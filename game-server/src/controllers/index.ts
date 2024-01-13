@@ -15,7 +15,7 @@ import http = require('http');
 let myIp = 'UNKNOWN';
 const dockerEnabled: boolean = !conf.dockerDisabled;
 console.log('[info] dockerEnabled:',dockerEnabled);
-const rccPort = conf.rccPort || 63914; // default: 64989
+const rccPort = conf.rccPort || 64989; // default: 64989
 
 const isPortAvailable = (port: number): Promise<boolean> => {
 	return new Promise((res, rej) => {
@@ -167,15 +167,12 @@ export default class CommandHandler extends StdExceptions {
 	}
 
 	private onStartup() {
-		const rccStopPath = path.join(__dirname, '../../stop-all-rcc.sh');
-		// On startup, we need to kill any running RCC instances - they're probably leftover from a server crash or something.
+		const rccStopPath = path.join('C:\ProjectX\services\game-server\stop-all-rcc.bat'); 	
 		try {
-			let stopRequest = cp.spawnSync('/usr/bin/sudo', [
-				rccStopPath
-			]);
-			console.log('[info] result for stopping rcc',stopRequest.stdout.toString(),stopRequest.status, stopRequest.stderr.toString());
-		}catch(e) {
-			console.log('[error] error in OnStartup - could not shut down existing RCC instances (probably not fatal):',e);
+			let stopRequest = cp.spawnSync('cmd.exe', ['/c', rccStopPath]); 
+			console.log('[info] result for stopping rcc', stopRequest.stdout.toString(), stopRequest.status, stopRequest.stderr.toString());
+		} catch (e) {
+			console.log('[error] error in OnStartup - could not shut down existing RCC instances (probably not fatal):', e);
 		}
 	}
 
