@@ -54,7 +54,7 @@ namespace Roblox.Website.Controllers
                 }
             catch(Exception e)
             {
-
+                throw new RobloxException(401, 0, "Unauthorized");
             }
             }
         }
