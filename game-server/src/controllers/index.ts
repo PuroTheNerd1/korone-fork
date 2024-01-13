@@ -167,7 +167,7 @@ export default class CommandHandler extends StdExceptions {
 	}
 
 	private onStartup() {
-		const rccStopPath = path.join('C:\ProjectX\services\game-server\stop-all-rcc.bat'); 	
+		const rccStopPath = path.join('C:\\ProjectX\\services\\game-server\\stop-all-rcc.bat'); 	
 		try {
 			let stopRequest = cp.spawnSync('cmd.exe', ['/c', rccStopPath]); 
 			console.log('[info] result for stopping rcc', stopRequest.stdout.toString(), stopRequest.status, stopRequest.stderr.toString());
