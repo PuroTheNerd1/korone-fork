@@ -559,7 +559,7 @@ namespace Roblox.Website.Controllers
             }
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?placeId={placeId}&userId={userId}";
+            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
 
@@ -616,12 +616,42 @@ namespace Roblox.Website.Controllers
             return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript);
         }
 
-        [HttpGetBypass("Asset/CharacterFetch.ashx")]
+     [HttpGetBypass("Asset/CharacterFetch.ashx")]
+        [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<string> CharacterFetch(long userId)
         {
             var assets = await services.avatar.GetWornAssets(userId);
-            return
-                $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId};{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
+            List<long> accessoryVersionIds = assets.ToList();
+            var result = new {
+    resolvedAvatarType = "R6",
+    equippedGearVersionIds = new List<int>(),
+    accessoryVersionIds = accessoryVersionIds,
+    backpackGearVersionIds = new List<int>(),
+    animationAssetIds = new {},
+    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
+};
+            if (userId == 0) {
+                result = new {
+    resolvedAvatarType = "R15",
+    equippedGearVersionIds = new List<int>(),
+    accessoryVersionIds = accessoryVersionIds,
+    backpackGearVersionIds = new List<int>(),
+    animationAssetIds = new {},
+    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
+};
+            } else {
+result = new {
+    resolvedAvatarType = "R6",
+     equippedGearVersionIds = new List<int>(),
+    accessoryVersionIds = accessoryVersionIds,
+    backpackGearVersionIds = new List<int>(),
+    animationAssetIds = new {},
+    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
+};
+            }
+string jsonString = JsonConvert.SerializeObject(result);
+
+return jsonString;
         }
 
         private void CheckServerAuth(string auth)
@@ -749,9 +779,9 @@ namespace Roblox.Website.Controllers
 
                 if (request.expectedAppearanceUrl != null)
                 {
-                    // will always be format of "http://localhost/Asset/CharacterFetch.ashx?userId=12", NO EXCEPTIONS!
+                    // will always be format of "http://localhost/v1.1/avatar-fetch?userId=12", NO EXCEPTIONS!
                     var expectedUrl =
-                        $"{Roblox.Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={ticketData.userId}";
+                        $"{Roblox.Configuration.BaseUrl}/v1.1/avatar-fetch?userId={ticketData.userId}";
                     if (request.expectedAppearanceUrl != expectedUrl)
                     {
                         throw new Exception("Character URL is bad");
