@@ -48,14 +48,13 @@ namespace Roblox.Website.Controllers
                     if (userSession == null)
                     {
                         Console.WriteLine("User session is null.");
-
                         throw new RobloxException(401, 0, "Unauthorized");
                     }
                     return userSession;
                 }
             catch(Exception e)
             {
-                
+
             }
             }
         }
