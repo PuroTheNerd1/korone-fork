@@ -39,7 +39,7 @@ namespace Roblox.Website.Controllers
         /// Equivalent to userSession but it will throw "Unauthorized" if user is not logged in.
         /// </summary>
         /// <exception cref="RobloxException"></exception>
-        protected Roblox.Models.Sessions.UserSession SafeUserSession
+        protected Roblox.Models.Sessions.UserSession safeUserSession
         {
             get
             {

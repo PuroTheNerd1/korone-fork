@@ -34,16 +34,11 @@ public class ChatControllerV2 : ControllerBase
     [HttpGet("get-unread-conversation-count")]
     public dynamic GetUnreadConversationCount()
     {
-        // todo
         throw new NotImplementedException();
-        return new
-        {
-            count = 0,
-        };
     }
 
     [HttpGet("chat-settings")]
-    public async Task<dynamic> GetChatSettings()
+    public dynamic GetChatSettings()
     {
         return new
         {
