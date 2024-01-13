@@ -39,16 +39,20 @@ namespace Roblox.Website.Controllers
         /// Equivalent to userSession but it will throw "Unauthorized" if user is not logged in.
         /// </summary>
         /// <exception cref="RobloxException"></exception>
-        protected Roblox.Models.Sessions.UserSession safeUserSession
+        protected Roblox.Models.Sessions.UserSession SafeUserSession
         {
             get
             {
                 if (userSession == null)
+                {
+                    Console.WriteLine("User session is null.");
+
                     throw new RobloxException(401, 0, "Unauthorized");
+                }
+
                 return userSession;
             }
         }
-
         public ControllerBase()
         {
             services = new ControllerServicesExtended();
