@@ -13,7 +13,7 @@ namespace Roblox.Rendering
         private static string BaseUrl = "";
         public static string LuaScriptPath = "";
         public static string RccServicePath = "";
-         public static string RccServicePathGames = "";
+        public static string RccServicePathGames = "C:\\ProjectX\\services\\RCCService\\";
         private static Random RandomComponent = new Random();
 
         public static void Configure(string baseUrl, string rccPath, string luaScriptPath, string rccPathGames)

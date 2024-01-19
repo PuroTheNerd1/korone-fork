@@ -575,8 +575,8 @@ namespace Roblox.Website.Controllers
             dynamic joinScript = new
             {
                 ClientPort = 0,
-                MachineAddress = "75.162.0.5",
-                ServerPort = GameServerService.currentGameServerPorts[jobId],
+                MachineAddress = "85.215.186.154",
+                ServerPort = 53640,
                 PingUrl = "",
                 PingInterval = 120,
                 UserName = username,
@@ -953,11 +953,10 @@ return jsonString;
         [HttpGetBypass("GetAllowedMD5Hashes")]
         public MVC.ActionResult<dynamic> AllowedMD5Hashes()
         {
-            if (!IsRcc())
-                throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "88f9751261ecb4d992ef7bc212e66726"
+                "dc96473f48b1ba721c5eba8cefe6a802",
+                "19fee28b79801aa033c7bbc6ffe4e58f"
             };
 
             return new { data = allowedList };
@@ -967,16 +966,18 @@ return jsonString;
         [HttpGetBypass("GetAllowedSecurityKeys")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
-            if (!IsRcc())
-                throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "0.2.0ecspcplayer"
+                "0.271.1pcplayer"
             };
-
             return new { data = allowedList };
         }
-        
+        [HttpGetBypass("universes/validate-place-join")]
+        public MVC.ActionResult<dynamic> ValidateJoin()
+        {
+            return "true";
+        }
+
         [HttpGetBypass("Setting/QuietGet/{type}")]
         public MVC.ActionResult<dynamic> GetAppSettings(string type)
         {

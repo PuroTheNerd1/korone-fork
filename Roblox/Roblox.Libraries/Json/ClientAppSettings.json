@@ -825,7 +825,7 @@
     "FFlagLoadCorescriptsPlatformDefMode": "True",
     "FFlagLoadLinkedScriptsOnDataModelLoad": "True",
     "FFlagLoadTimeModificationTestFlag": "True",
-    "FFlagLocalMD5": "True",
+    "FFlagLocalMD5": "False",
     "FFlagLocalOptimizer": "True",
     "FFlagLogServiceEnabled": "True",
     "FFlagLowQMaterialsEnable": "True",

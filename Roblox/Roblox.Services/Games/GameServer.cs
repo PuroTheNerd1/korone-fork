@@ -625,7 +625,8 @@ public class GameServerService : ServiceBase
         rccServer.StartInfo.RedirectStandardOutput = false;
         rccServer.StartInfo.UseShellExecute = true;
         rccServer.Start();
-        string originalScript = File.ReadAllText($"{RenderingHandler.LuaScriptPath}GameServerFloatzel.lua");
+        string originalScript = File.ReadAllText("C:\\ProjectX\\services\\RCCService\\gameserver.txt");
+        
         string finalScript = originalScript.Replace
             ("%port%", $"{networkServerPort}").Replace
             ("%placeId%", $"{placeId}").Replace
