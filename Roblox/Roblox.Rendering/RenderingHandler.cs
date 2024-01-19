@@ -81,7 +81,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://projex.zip/"">
+                    <BatchJobEx xmlns=""http://roblox.com/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -134,7 +134,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""hhttp://projex.zip/"">
+                    <BatchJobEx xmlns=""http://roblox.com/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -191,7 +191,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://projex.zip/"">
+                    <BatchJobEx xmlns=""http://roblox.com/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -357,7 +357,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://projex.zip/"">
+                    <BatchJobEx xmlns=""http://roblox.com/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -410,7 +410,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://projex.zip/"">
+                    <BatchJobEx xmlns=""http://roblox.com/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -469,7 +469,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://projex.zip/"">
+                    <BatchJobEx xmlns=""http://roblox.com/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
