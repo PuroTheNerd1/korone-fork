@@ -576,7 +576,7 @@ namespace Roblox.Website.Controllers
             {
                 ClientPort = 0,
                 MachineAddress = "85.215.186.154",
-                ServerPort = 53640,
+                ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
                 UserName = username,
@@ -972,6 +972,8 @@ return jsonString;
             };
             return new { data = allowedList };
         }
+        [HttpGetBypass("game/validate-place-join")]
+        [HttpPostBypass("universes/validate-place-join")]
         [HttpGetBypass("universes/validate-place-join")]
         public MVC.ActionResult<dynamic> ValidateJoin()
         {

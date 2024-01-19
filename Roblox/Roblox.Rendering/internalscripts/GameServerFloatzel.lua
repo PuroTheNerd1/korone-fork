@@ -365,7 +365,7 @@ end
 
 -- Now start the connection
 ns:Start(port)
-
+print("[info] port", port);
 scriptContext:SetTimeout(10)
 scriptContext.ScriptsDisabled = false
 
@@ -383,7 +383,7 @@ coroutine.wrap(function()
 	pollToReportActivity()
 end)()
 -- kill server if nobody joins within 2m of creation
-delay(120, function()
+wait(120, function()
 	if playersJoin == 0 then
 		serverOk = false
 		shutdown();

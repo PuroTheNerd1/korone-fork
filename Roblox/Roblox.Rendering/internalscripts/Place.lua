@@ -1,5 +1,3 @@
--- Place v1.0.2a
-
 assetUrl, fileExtension, x, y, baseUrl, universeId = %assetUrl%, %fileExtension%, %x%, %y%, %baseUrl%, %universeId%
 
 pcall(function() game:GetService("ContentProvider"):SetBaseUrl(baseUrl) end)
