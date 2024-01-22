@@ -115,23 +115,10 @@ function configureAnimationSet(name, fileList)
 	animTable[name].totalWeight = 0	
 	animTable[name].connections = {}
 
-	local allowCustomAnimations = true
-	local AllowDisableCustomAnimsUserFlag = true
-
-	local success, msg = pcall(function()
-		AllowDisableCustomAnimsUserFlag = UserSettings():IsUserFeatureEnabled("UserAllowDisableCustomAnims")
-	end)
-
-	if (AllowDisableCustomAnimsUserFlag) then
-		local ps = game:GetService("StarterPlayer"):FindFirstChild("PlayerSettings")
-		if (ps ~= nil) then
-			allowCustomAnimations = not require(ps).UseDefaultAnimations
-		end
-	end
-
 	-- check for config values
 	local config = script:FindFirstChild(name)
-	if (allowCustomAnimations and config ~= nil) then
+	if (config ~= nil) then
+--		print("Loading anims " .. name)
 		table.insert(animTable[name].connections, config.ChildAdded:connect(function(child) configureAnimationSet(name, fileList) end))
 		table.insert(animTable[name].connections, config.ChildRemoved:connect(function(child) configureAnimationSet(name, fileList) end))
 		local idx = 1
@@ -549,7 +536,7 @@ function move(time)
 
 	-- Tool Animation handling
 	local tool = getTool()
-	if tool and (tool.RequiresHandle or tool:FindFirstChild("Handle")) then
+	if tool then
 	
 		local animStringValueObject = getToolAnim(tool)
 

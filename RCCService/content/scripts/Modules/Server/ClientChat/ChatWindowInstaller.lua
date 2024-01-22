@@ -48,17 +48,10 @@ local function Install()
 		clientChatModules.Name = "ClientChatModules"
 		clientChatModules.Archivable = false
 
-		clientChatModules.Parent = installDirectory
-	end
-
-	local chatSettings = clientChatModules:FindFirstChild("ChatSettings")
-	if not chatSettings then
 		LoadModule(script.Parent.DefaultClientChatModules, "ChatSettings", clientChatModules)
-	end
-
-	local chatConstants = clientChatModules:FindFirstChild("ChatConstants")
-	if not chatConstants then
 		LoadModule(script.Parent.DefaultClientChatModules, "ChatConstants", clientChatModules)
+
+		clientChatModules.Parent = installDirectory
 	end
 
 	local MessageCreatorModules = clientChatModules:FindFirstChild("MessageCreatorModules")

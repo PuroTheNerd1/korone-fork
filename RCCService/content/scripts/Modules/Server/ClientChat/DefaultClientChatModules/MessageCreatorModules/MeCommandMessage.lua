@@ -13,7 +13,6 @@ function CreateMeCommandMessageLabel(messageData, channelName)
 	local useFont = extraData.Font or Enum.Font.SourceSansItalic
 	local useTextSize = extraData.TextSize or ChatSettings.ChatWindowTextSize
 	local useChatColor = Color3.new(1, 1, 1)
-	local useChannelColor = extraData.ChannelColor or ChatSettings.DefaultChannelColor or Color3.new(1, 1, 1)
 	local numNeededSpaces = 0
 
 	local BaseFrame, BaseMessage = util:CreateBaseMessage("", useFont, useTextSize, useChatColor)
@@ -21,7 +20,7 @@ function CreateMeCommandMessageLabel(messageData, channelName)
 
 	if channelName ~= messageData.OriginalChannel then
 		local formatChannelName = string.format("{%s}", messageData.OriginalChannel)
-		ChannelButton = util:AddChannelButtonToBaseMessage(BaseMessage, formatChannelName, useChannelColor)
+		ChannelButton = util:AddChannelButtonToBaseMessage(BaseMessage, formatChannelName, useNameColor)
 		numNeededSpaces = util:GetNumberOfSpaces(formatChannelName, useFont, useTextSize) + 1
 	end
 
@@ -36,28 +35,61 @@ function CreateMeCommandMessageLabel(messageData, channelName)
 
 	UpdateTextFunction(messageData)
 
-	local function GetHeightFunction(xSize)
-		return util:GetMessageHeight(BaseMessage, BaseFrame, xSize)
+	local function GetHeightFunction()
+		return util:GetMessageHeight(BaseMessage, BaseFrame)
 	end
 
-	local FadeParmaters = {}
-	FadeParmaters[BaseMessage] = {
-		TextTransparency = {FadedIn = 0, FadedOut = 1},
-		TextStrokeTransparency = {FadedIn = 0.75, FadedOut = 1}
-	}
+	local AnimParams = {}
+	AnimParams.Text_TargetTransparency = 0
+	AnimParams.Text_CurrentTransparency = 0
+	AnimParams.Text_NormalizedExptValue = 1
+	AnimParams.TextStroke_TargetTransparency = 0.75
+	AnimParams.TextStroke_CurrentTransparency = 0.75
+	AnimParams.Text_NormalizedExptValue = 1
 
-	if ChannelButton then
-		FadeParmaters[ChannelButton] = {
-			TextTransparency = {FadedIn = 0, FadedOut = 1},
-			TextStrokeTransparency = {FadedIn = 0.75, FadedOut = 1}
-		}
+	local function FadeInFunction(duration, CurveUtil)
+		AnimParams.Text_TargetTransparency = 0
+		AnimParams.TextStroke_TargetTransparency = 0.75
+		AnimParams.Text_NormalizedExptValue = CurveUtil:NormalizedDefaultExptValueInSeconds(duration)
+		AnimParams.TextStroke_NormalizedExptValue = CurveUtil:NormalizedDefaultExptValueInSeconds(duration)
 	end
 
-	local FadeInFunction, FadeOutFunction, UpdateAnimFunction = util:CreateFadeFunctions(FadeParmaters)
+	local function FadeOutFunction(duration, CurveUtil)
+		AnimParams.Text_TargetTransparency = 1
+		AnimParams.TextStroke_TargetTransparency = 1
+		AnimParams.Text_NormalizedExptValue = CurveUtil:NormalizedDefaultExptValueInSeconds(duration)
+		AnimParams.TextStroke_NormalizedExptValue = CurveUtil:NormalizedDefaultExptValueInSeconds(duration)
+	end
+
+	local function AnimGuiObjects()
+		BaseMessage.TextTransparency = AnimParams.Text_CurrentTransparency
+		BaseMessage.TextStrokeTransparency = AnimParams.TextStroke_CurrentTransparency
+
+		if ChannelButton then
+			ChannelButton.TextTransparency = AnimParams.Text_CurrentTransparency
+			ChannelButton.TextStrokeTransparency = AnimParams.TextStroke_CurrentTransparency
+		end
+	end
+
+	local function UpdateAnimFunction(dtScale, CurveUtil)
+		AnimParams.Text_CurrentTransparency = CurveUtil:Expt(
+				AnimParams.Text_CurrentTransparency,
+				AnimParams.Text_TargetTransparency,
+				AnimParams.Text_NormalizedExptValue,
+				dtScale
+		)
+		AnimParams.TextStroke_CurrentTransparency = CurveUtil:Expt(
+				AnimParams.TextStroke_CurrentTransparency,
+				AnimParams.TextStroke_TargetTransparency,
+				AnimParams.TextStroke_NormalizedExptValue,
+				dtScale
+		)
+
+		AnimGuiObjects()
+	end
 
 	return {
 		[util.KEY_BASE_FRAME] = BaseFrame,
-		[util.KEY_BASE_MESSAGE] = BaseMessage,
 		[util.KEY_UPDATE_TEXT_FUNC] = UpdateTextFunction,
 		[util.KEY_GET_HEIGHT] = GetHeightFunction,
 		[util.KEY_FADE_IN] = FadeInFunction,

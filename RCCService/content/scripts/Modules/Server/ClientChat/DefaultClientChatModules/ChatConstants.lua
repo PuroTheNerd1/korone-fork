@@ -10,9 +10,8 @@ module.MessageTypeSystem = "System"
 module.MessageTypeMeCommand = "MeCommand"
 module.MessageTypeWelcome = "Welcome"
 module.MessageTypeSetCore = "SetCore"
-module.MessageTypeWhisper = "Whisper"
 
 module.MajorVersion = 0
-module.MinorVersion = 2
+module.MinorVersion = 1
 
 return module

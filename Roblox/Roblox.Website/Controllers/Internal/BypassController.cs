@@ -576,7 +576,7 @@ namespace Roblox.Website.Controllers
             {
                 ClientPort = 0,
                 MachineAddress = "85.215.186.154",
-                ServerPort = GameServerService.currentGameServerPorts[jobId],
+                ServerPort = GameServerService.currentGameServerPorts[jobId], 
                 PingUrl = "",
                 PingInterval = 120,
                 UserName = username,
@@ -616,42 +616,43 @@ namespace Roblox.Website.Controllers
             return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript);
         }
 
-     [HttpGetBypass("Asset/CharacterFetch.ashx")]
+        [HttpGetBypass("Asset/CharacterFetch.ashx")]
         [HttpGetBypass("/v1.1/avatar-fetch")]
-        public async Task<string> CharacterFetch(long userId)
+        public async Task<string> CharacterFetch(long userId, long serverplaceid = 0)
         {
             var assets = await services.avatar.GetWornAssets(userId);
             List<long> accessoryVersionIds = assets.ToList();
             var result = new {
-    resolvedAvatarType = "R6",
-    equippedGearVersionIds = new List<int>(),
-    accessoryVersionIds = accessoryVersionIds,
-    backpackGearVersionIds = new List<int>(),
-    animationAssetIds = new {},
-    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
-};
+            resolvedAvatarType = "R6",
+            equippedGearVersionIds = new List<int>(),
+            accessoryVersionIds = accessoryVersionIds,
+            backpackGearVersionIds = new List<int>(),
+            animationAssetIds = new {},
+            bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}&serverplaceid={serverplaceid}"
+            };
             if (userId == 0) {
                 result = new {
-    resolvedAvatarType = "R15",
-    equippedGearVersionIds = new List<int>(),
-    accessoryVersionIds = accessoryVersionIds,
-    backpackGearVersionIds = new List<int>(),
-    animationAssetIds = new {},
-    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
-};
-            } else {
-result = new {
-    resolvedAvatarType = "R6",
-     equippedGearVersionIds = new List<int>(),
-    accessoryVersionIds = accessoryVersionIds,
-    backpackGearVersionIds = new List<int>(),
-    animationAssetIds = new {},
-    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
-};
+                    resolvedAvatarType = "R15",
+                    equippedGearVersionIds = new List<int>(),
+                    accessoryVersionIds = accessoryVersionIds,
+                    backpackGearVersionIds = new List<int>(),
+                    animationAssetIds = new {},
+                    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}&serverplaceid={serverplaceid}"
+                };
+            } 
+            else {
+            result = new {
+                resolvedAvatarType = "R6",
+                equippedGearVersionIds = new List<int>(),
+                accessoryVersionIds = accessoryVersionIds,
+                backpackGearVersionIds = new List<int>(),
+                animationAssetIds = new {},
+                bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}&serverplaceid={serverplaceid}"
+            };
             }
-string jsonString = JsonConvert.SerializeObject(result);
+            string jsonString = JsonConvert.SerializeObject(result);
 
-return jsonString;
+            return jsonString;
         }
 
         private void CheckServerAuth(string auth)
@@ -955,10 +956,9 @@ return jsonString;
         {
             List<string> allowedList = new List<string>()
             {
-                "dc96473f48b1ba721c5eba8cefe6a802",
-                "19fee28b79801aa033c7bbc6ffe4e58f"
+                "ab2071468b7cd856173d1ce47f3bfdd9",
+                "d0390cd3378f4316436cd2e9b7b3bc24"
             };
-
             return new { data = allowedList };
         }
         

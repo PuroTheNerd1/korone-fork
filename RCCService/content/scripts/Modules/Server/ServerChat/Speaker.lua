@@ -128,15 +128,15 @@ end
 
 --- Used to mute a speaker so that this speaker does not see their messages.
 function methods:AddMutedSpeaker(speakerName)
-	self.MutedSpeakers[speakerName:lower()] = true
+	self.MutedSpeakers[speakerName] = true
 end
 
 function methods:RemoveMutedSpeaker(speakerName)
-	self.MutedSpeakers[speakerName:lower()] = false
+	self.MutedSpeakers[speakerName] = false
 end
 
 function methods:IsSpeakerMuted(speakerName)
-	return self.MutedSpeakers[speakerName:lower()]
+	return self.MutedSpeakers[speakerName]
 end
 
 --///////////////// Internal-Use Methods

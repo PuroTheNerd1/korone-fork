@@ -1757,7 +1757,7 @@ local function CreateClickToMoveModule()
 				if BindableEvent_EnableTouchJump then
 					BindableEvent_EnableTouchJump:Fire(true)
 				end
-				if currentSeatPart and currentSeatPart.ClassName == "VehicleSeat" then
+				if currentSeatPart.ClassName == "VehicleSeat" then
 					CurrentSeatPart = currentSeatPart
 					if AutoJumperInstance then
 						AutoJumperInstance:Stop()
@@ -2180,11 +2180,6 @@ local VALID_SUBJECTS = {
  
 local NEAR_CLIP_PLANE_OFFSET = 0.5 --NOTE: Not configurable here
 
-local portraitPopperFixFlagExists, portraitPopperFixFlagEnabled = pcall(function()
-	return UserSettings():IsUserFeatureEnabled("UserPortraitPopperFix")
-end)
-local FFlagUserPortraitPopperFix = portraitPopperFixFlagExists and portraitPopperFixFlagEnabled
-
 -----------------
 --| Variables |--
 -----------------
@@ -2193,8 +2188,6 @@ local PlayersService = game:GetService('Players')
 
 local Camera = nil
 local CameraChangeConn = nil
-
-local SubjectPart = nil
 
 local PlayerCharacters = {} -- For ignoring in raycasts
 local VehicleParts = {} -- Also just for ignoring
@@ -2254,16 +2247,6 @@ local function OnCameraChanged(property)
 			if newSubject:IsA('VehicleSeat') then
 				VehicleParts = newSubject:GetConnectedParts(true)
 			end
-			
-			if FFlagUserPortraitPopperFix then
-				if newSubject:IsA("BasePart") then
-					SubjectPart = newSubject
-				elseif newSubject:IsA("Model") then
-					SubjectPart = newSubject.PrimaryPart
-				elseif newSubject:IsA("Humanoid") then
-					SubjectPart = newSubject.Torso
-				end
-			end
 		end
 	end
 end
@@ -2312,10 +2295,6 @@ function PopperCam:Update()
 	if PopperEnabled then
 		-- First, prep some intermediate vars
 		local focusPoint = Camera.Focus.p
-		if FFlagUserPortraitPopperFix and SubjectPart then
-			focusPoint = SubjectPart.CFrame.p
-		end
-        
 		local cameraCFrame = Camera.CoordinateFrame
 		local cameraFrontPoint = cameraCFrame.p + (cameraCFrame.lookVector * NEAR_CLIP_PLANE_OFFSET)
 		local screenSize = Camera.ViewportSize
@@ -2386,13 +2365,6 @@ local PlayersService = game:GetService('Players')
 local UserInputService = game:GetService('UserInputService')
 local StarterGui = game:GetService('StarterGui')
 local GuiService = game:GetService('GuiService')
-local ContextActionService = game:GetService('ContextActionService')
-
-local LocalPlayer = PlayersService.LocalPlayer
-local PlayerGui = nil
-if LocalPlayer then
-	PlayerGui = PlayersService.LocalPlayer:WaitForChild("PlayerGui")
-end
 
 local VRServiceExists, VRService = pcall(function() return game:GetService("VRService") end)
 if not VRServiceExists or not VRService then
@@ -2400,18 +2372,11 @@ if not VRServiceExists or not VRService then
 	VRService = UserInputService
 end
 
-local PortraitMode = false
-
 local CameraScript = script.Parent
 local ShiftLockController = require(CameraScript:WaitForChild('ShiftLockController'))
 
 local Settings = UserSettings()
 local GameSettings = Settings.GameSettings
-
-local spawnLocationFixFlagExists, spawnLocationFixFlagEnabled = pcall(function()
-	return Settings:IsUserFeatureEnabled("UserSpawnLocationFixEnabled")
-end)
-local FFlagSpawnLocationFixEnabled = spawnLocationFixFlagExists and spawnLocationFixFlagEnabled
 
 local function clamp(low, high, num)
 	if low <= high then
@@ -2429,10 +2394,6 @@ local function IsFinite(num)
 end
 
 local THUMBSTICK_DEADZONE = 0.2
-
-local LANDSCAPE_DEFAULT_ZOOM = 12.5
-local PORTRAIT_DEFAULT_ZOOM = 25
-local DefaultZoom = LANDSCAPE_DEFAULT_ZOOM
 
 local humanoidCache = {}
 local function findPlayerHumanoid(player)
@@ -2468,10 +2429,6 @@ local ZERO_VECTOR2 = Vector2.new(0,0)
 local TOUCH_SENSITIVTY = Vector2.new(math.pi*2.25, math.pi*2)
 local MOUSE_SENSITIVITY = Vector2.new(math.pi*4, math.pi*1.9)
 
-local MAX_TIME_FOR_DOUBLE_TAP = 1.5
-local MAX_TAP_POS_DELTA = 15
-local MAX_TAP_TIME_DELTA = 0.75
-
 local SEAT_OFFSET = Vector3.new(0,5,0)
 local VR_SEAT_OFFSET = Vector3.new(0, 4, 0)
 local HEAD_OFFSET = Vector3.new(0, 1.5, 0)
@@ -2482,88 +2439,6 @@ local SetCameraOnSpawn = true
 
 local hasGameLoaded = false
 
-local GestureArea = nil
-
-do
-	-- Check for changes in ViewportSize to decide if PortraitMode
-	local CameraChangedConn = nil
-	local function onWorkspaceChanged(property)
-		if property == 'CurrentCamera' then
-			if CameraChangedConn then
-				CameraChangedConn:Disconnect()
-				CameraChangedConn = nil
-			end
-			local newCamera = workspace.CurrentCamera
-			if newCamera then
-				local size = newCamera.ViewportSize
-				PortraitMode = size.X < size.Y
-				DefaultZoom = PortraitMode and PORTRAIT_DEFAULT_ZOOM or LANDSCAPE_DEFAULT_ZOOM
-				CameraChangedConn = newCamera.Changed:Connect(function(property)
-					if property == 'ViewportSize' then
-						size = newCamera.ViewportSize
-						PortraitMode = size.X < size.Y
-						DefaultZoom = PortraitMode and PORTRAIT_DEFAULT_ZOOM or LANDSCAPE_DEFAULT_ZOOM
-					end
-				end)
-			end
-		end
-	end
-	workspace.Changed:Connect(onWorkspaceChanged)
-	if workspace.CurrentCamera then
-		onWorkspaceChanged('CurrentCamera')
-	end
-
-	-- Setup gesture area that camera uses while DynamicThumbstick is enabled
-	local function OnCharacterAdded(character)
-		if PlayerGui then
-			local ScreenGui = Instance.new("ScreenGui")
-			ScreenGui.Parent = PlayerGui
-			
-			GestureArea = Instance.new("Frame")
-			GestureArea.BackgroundTransparency = 1.0
-			GestureArea.Visible = true
-			GestureArea.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-			GestureArea.Size = UDim2.new(1, 0, .6, 0)
-			GestureArea.Position = UDim2.new(0, 0, 0, 0)
-			GestureArea.Parent = ScreenGui
-		end
-		for _, child in ipairs(LocalPlayer.Character:GetChildren()) do
-			if child:IsA("Tool") then
-				IsAToolEquipped = true
-			end
-		end
-		character.ChildAdded:Connect(function(child)
-			if child:IsA("Tool") then
-				IsAToolEquipped = true
-			end
-		end)
-		character.ChildRemoved:Connect(function(child)
-			if child:IsA("Tool") then
-				IsAToolEquipped = false
-			end
-		end)
-	end
-	
-	if LocalPlayer then
-		if LocalPlayer.Character ~= nil then
-			OnCharacterAdded(LocalPlayer.Character)
-		end
-		LocalPlayer.CharacterAdded:connect(function(character)
-			OnCharacterAdded(character)
-		end)
-	end
-end
-	
-local function positionIntersectsGuiObject(position, guiObject)
-	if position.X < guiObject.AbsolutePosition.X + guiObject.AbsoluteSize.X
-		and position.X > guiObject.AbsolutePosition.X
-		and position.Y < guiObject.AbsolutePosition.Y + guiObject.AbsoluteSize.Y
-		and position.Y > guiObject.AbsolutePosition.Y then
-		return true
-	end
-	return false
-end	
-
 local function GetRenderCFrame(part)
 	return part:GetRenderCFrame()
 end
@@ -2571,14 +2446,11 @@ end
 local function CreateCamera()
 	local this = {}
 	local R15HeadHeight = R15_HEAD_OFFSET
+
 	function this:GetActivateValue()
 		return 0.7
 	end
-	
-	function this:IsPortraitMode()
-		return PortraitMode
-	end	
-	
+
 	function this:GetRotateAmountValue(vrRotationIntensity)
 		vrRotationIntensity = vrRotationIntensity or StarterGui:GetCore("VRRotationIntensity")
 		if vrRotationIntensity then
@@ -2590,6 +2462,7 @@ local function CreateCamera()
 		end
 		return ZERO_VECTOR2
 	end
+
 	function this:GetRepeatDelayValue(vrRotationIntensity)
 		vrRotationIntensity = vrRotationIntensity or StarterGui:GetCore("VRRotationIntensity")
 		if vrRotationIntensity then
@@ -2601,24 +2474,20 @@ local function CreateCamera()
 		end
 		return 0
 	end
-	
+
 	this.ShiftLock = false
 	this.Enabled = false
 	local isFirstPerson = false
 	local isRightMouseDown = false
 	local isMiddleMouseDown = false
 	this.RotateInput = Vector2.new()
-	
-	local tweens = {}
 
 	this.lastSubject = nil
 	this.lastSubjectPosition = Vector3.new(0, 5, 0)
 
 	local lastVRRotation = 0
 	local vrRotateKeyCooldown = {}
-	
-	local isDynamicThumbstickEnabled = false	
-	
+
 	function this:GetShiftLock()
 		return ShiftLockController:IsShiftLocked()
 	end
@@ -2663,14 +2532,14 @@ local function CreateCamera()
 				else
 					local humanoidRootPart = cameraSubject.Torso
 					if humanoidRootPart and humanoidRootPart:IsA('BasePart') then
-						local subjectCFrame = GetRenderCFrame(humanoidRootPart)
+						local subjectCFrame = GetRenderCFrame(humanoidRootPart)					
 						if cameraSubject.RigType == Enum.HumanoidRigType.R15 then
 							result = subjectCFrame.p +
-								subjectCFrame:vectorToWorldSpace(R15HeadHeight + cameraSubject.CameraOffset)
+								subjectCFrame:vectorToWorldSpace(R15HeadHeight + cameraSubject.CameraOffset)		
 						else
 							result = subjectCFrame.p +
 								subjectCFrame:vectorToWorldSpace(HEAD_OFFSET + cameraSubject.CameraOffset)
-						end
+						end 
 					end
 				end
 			end
@@ -2690,7 +2559,7 @@ local function CreateCamera()
 	function this:GetCameraZoom()
 		if this.currentZoom == nil then
 			local player = PlayersService.LocalPlayer
-			this.currentZoom = player and clamp(player.CameraMinZoomDistance, player.CameraMaxZoomDistance, DefaultZoom) or DefaultZoom
+			this.currentZoom = player and clamp(player.CameraMinZoomDistance, player.CameraMaxZoomDistance, 10) or 10
 		end
 		return this.currentZoom
 	end
@@ -2852,24 +2721,24 @@ local function CreateCamera()
 			return
 		end
 		--we only want this to happen in first person VR
-		local player = PlayersService.LocalPlayer
-		if not (player and player.Character
-				and player.Character:FindFirstChild("HumanoidRootPart")
+		local player = game.Players.LocalPlayer
+		if not (player and player.Character 
+				and player.Character:FindFirstChild("HumanoidRootPart") 
 				and player.Character.HumanoidRootPart:FindFirstChild("RootJoint")) then
 			return
 		end
-
+		
 		local camera = workspace.CurrentCamera
 		local cameraSubject = camera.CameraSubject
-		local isInVehicle = cameraSubject and cameraSubject:IsA('VehicleSeat')
-
+		local isInVehicle = cameraSubject and cameraSubject:IsA('VehicleSeat')		
+		
 		if this:IsInFirstPerson() and not isInVehicle then
 			local vrFrame = VRService:GetUserCFrame(Enum.UserCFrame.Head)
 			local vrRotation = vrFrame - vrFrame.p
-			local rootJoint = player.Character.HumanoidRootPart.RootJoint
+			local rootJoint = player.Character.HumanoidRootPart.RootJoint 
 			rootJoint.C0 = CFrame.new(vrRotation:vectorToObjectSpace(vrFrame.p)) * CFrame.new(0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0)
 		else
-			local rootJoint = player.Character.HumanoidRootPart.RootJoint
+			local rootJoint = player.Character.HumanoidRootPart.RootJoint 
 			rootJoint.C0 = CFrame.new(0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0)
 		end
 	end
@@ -2881,7 +2750,7 @@ local function CreateCamera()
 			return false
 		end
 		if not vrRotationIntensityExists and tick() - lastVrRotationCheck < 1 then return false end
-
+		
 		local success, vrRotationIntensity = pcall(function() return StarterGui:GetCore("VRRotationIntensity") end)
 		vrRotationIntensityExists = success and vrRotationIntensity ~= nil
 		lastVrRotationCheck = tick()
@@ -2891,12 +2760,12 @@ local function CreateCamera()
 
 	function this:GetVRRotationInput()
 		local vrRotateSum = ZERO_VECTOR2
-
+		
 		local vrRotationIntensity = StarterGui:GetCore("VRRotationIntensity")
-
+	
 		local vrGamepadRotation = self.GamepadPanningCamera or ZERO_VECTOR2
 		local delayExpired = (tick() - lastVRRotation) >= self:GetRepeatDelayValue(vrRotationIntensity)
-
+		
 		if math.abs(vrGamepadRotation.x) >= self:GetActivateValue() then
 			if (delayExpired or not vrRotateKeyCooldown[Enum.KeyCode.Thumbstick2]) then
 				local sign = 1
@@ -2910,7 +2779,7 @@ local function CreateCamera()
 			vrRotateKeyCooldown[Enum.KeyCode.Thumbstick2] = nil
 		end
 		if self.TurningLeft then
-			if delayExpired or not vrRotateKeyCooldown[Enum.KeyCode.Left] then
+			if delayExpired or not vrRotateKeyCooldown[Enum.KeyCode.Left] then 
 				vrRotateSum = vrRotateSum - self:GetRotateAmountValue(vrRotationIntensity)
 				vrRotateKeyCooldown[Enum.KeyCode.Left] = true
 			end
@@ -2929,7 +2798,7 @@ local function CreateCamera()
 		if vrRotateSum ~= ZERO_VECTOR2 then
 			lastVRRotation = tick()
 		end
-
+		
 		return vrRotateSum
 	end
 
@@ -2942,7 +2811,7 @@ local function CreateCamera()
 	local workspaceChangedConn = nil
 	local humanoidChildAddedConn = nil
 	local humanoidChildRemovedConn = nil
-
+	
 	local function cancelCameraFreeze(keepConstraints)
 		if not keepConstraints then
 			cameraTranslationConstraints = Vector3.new(cameraTranslationConstraints.x, 1, cameraTranslationConstraints.z)
@@ -2961,11 +2830,11 @@ local function CreateCamera()
 			cameraFrozen = true
 		end
 	end
-
+	
 	local function rescaleCameraOffset(newScaleFactor)
 		R15HeadHeight = R15_HEAD_OFFSET*newScaleFactor
 	end
-
+	
 	local function onHumanoidSubjectChildAdded(child)
 		if child.Name == "BodyHeightScale" and child:IsA("NumberValue") then
 			if heightScaleChangedConn then
@@ -2975,7 +2844,7 @@ local function CreateCamera()
 			rescaleCameraOffset(child.Value)
 		end
 	end
-
+	
 	local function onHumanoidSubjectChildRemoved(child)
 		if child.Name == "BodyHeightScale" then
 			rescaleCameraOffset(1)
@@ -3003,7 +2872,7 @@ local function CreateCamera()
 			heightScaleChangedConn:disconnect()
 			heightScaleChangedConn = nil
 		end
-
+		
 		local humanoid = workspace.CurrentCamera and workspace.CurrentCamera.CameraSubject
 		if trackingHumanoid ~= humanoid then
 			cancelCameraFreeze()
@@ -3014,7 +2883,7 @@ local function CreateCamera()
 			for _, child in pairs(humanoid:GetChildren()) do
 				onHumanoidSubjectChildAdded(child)
 			end
-
+		
 			subjectStateChangedConn = humanoid.StateChanged:connect(function(oldState, newState)
 				if newState == Enum.HumanoidStateType.Jumping and not this:IsInFirstPerson() and VRService.VREnabled then
 					startCameraFreeze(this:GetSubjectPosition(), humanoid)
@@ -3045,7 +2914,7 @@ local function CreateCamera()
 
 	function this:GetVRFocus(subjectPosition, timeDelta)
 		local newFocus = nil
-
+		
 		local camera = workspace.CurrentCamera
 		local lastFocus = self.LastCameraFocus or subjectPosition
 		if not cameraFrozen then
@@ -3068,7 +2937,7 @@ local function CreateCamera()
 				cancelCameraFreeze()
 			end
 		end
-
+		
 		return newFocus
 	end
 
@@ -3078,13 +2947,9 @@ local function CreateCamera()
 	local startPos = nil
 	local lastPos = nil
 	local panBeginLook = nil
-	local lastTapTime = nil
 
 	local fingerTouches = {}
 	local NumUnsunkTouches = 0
-	
-	local inputStartPositions = {}
-	local inputStartTimes = {}
 
 	local StartingDiff = nil
 	local pinchBeginZoom = nil
@@ -3094,23 +2959,14 @@ local function CreateCamera()
 	this.KeyPanEnabled = true
 
 	local function OnTouchBegan(input, processed)
-		--If isDynamicThumbstickEnabled, then only process TouchBegan event if it starts in GestureArea
-		if (not isDynamicThumbstickEnabled) or positionIntersectsGuiObject(input.Position, GestureArea) then
-			fingerTouches[input] = processed
-			if not processed then
-				inputStartPositions[input] = input.Position
-				inputStartTimes[input] = tick()
-				NumUnsunkTouches = NumUnsunkTouches + 1
-			end
+		fingerTouches[input] = processed
+		if not processed then
+			NumUnsunkTouches = NumUnsunkTouches + 1
 		end
 	end
 
 	local function OnTouchChanged(input, processed)
-		
 		if fingerTouches[input] == nil then
-			if isDynamicThumbstickEnabled then
-				return
-			end
 			fingerTouches[input] = processed
 			if not processed then
 				NumUnsunkTouches = NumUnsunkTouches + 1
@@ -3163,80 +3019,7 @@ local function CreateCamera()
 			pinchBeginZoom = nil
 		end
 	end
-	
-	local function calcLookBehindRotateInput(torso)
-		if torso then
-			local newDesiredLook = (torso.CFrame.lookVector - Vector3.new(0,0.23,0)).unit
-			local horizontalShift = findAngleBetweenXZVectors(newDesiredLook, this:GetCameraLook())
-			local vertShift = math.asin(this:GetCameraLook().y) - math.asin(newDesiredLook.y)
-			if not IsFinite(horizontalShift) then
-				horizontalShift = 0
-			end
-			if not IsFinite(vertShift) then
-				vertShift = 0
-			end
-			
-			return Vector2.new(horizontalShift, vertShift)
-		end
-		return nil
-	end
-	
-	local function OnTouchTap(position)
-		if isDynamicThumbstickEnabled then
-			if lastTapTime and tick() - lastTapTime < MAX_TIME_FOR_DOUBLE_TAP then
-				local tween = {
-					from = this:GetCameraZoom(),
-					to = DefaultZoom,
-					start = tick(),
-					duration = 0.2,
-					func = function(from, to, alpha)
-						this:ZoomCamera(from + (to - from)*alpha)
-						return to
-					end
-				}
-				tweens["Zoom"] = tween
-			else
-				local humanoid = this:GetHumanoid()
-				if humanoid then
-					local player = PlayersService.LocalPlayer
-					if player and player.Character then
-						if humanoid and humanoid.Torso then
-							local tween = {
-								from = this.RotateInput,
-								to = calcLookBehindRotateInput(humanoid.Torso),
-								start = tick(),
-								duration = 0.2,
-								func = function(from, to, alpha)
-									to = calcLookBehindRotateInput(humanoid.Torso)
-									if to then
-										this.RotateInput = from + (to - from)*alpha
-									end
-									return to
-								end
-							}
-							tweens["Rotate"] = tween
-							
-							-- reset old camera info so follow cam doesn't rotate us
-							this.LastCameraTransform = nil
-						end
-					end
-				end
-			end
-			lastTapTime = tick()
-		end
-	end
-	
-	local function IsTouchTap(input)
-		local posDelta = (inputStartPositions[input] - input.Position).magnitude
-		if posDelta < MAX_TAP_POS_DELTA then
-			local timeDelta = inputStartTimes[input] - tick()
-			if timeDelta < MAX_TAP_TIME_DELTA then
-				return true
-			end
-		end
-		return false
-	end
-	
+
 	local function OnTouchEnded(input, processed)
 		if fingerTouches[input] == false then
 			if NumUnsunkTouches == 1 then
@@ -3244,9 +3027,6 @@ local function CreateCamera()
 				startPos = nil
 				lastPos = nil
 				this.UserPanningTheCamera = false
-				if IsTouchTap(input) then
-					OnTouchTap(input.Position)
-				end
 			elseif NumUnsunkTouches == 2 then
 				StartingDiff = nil
 				pinchBeginZoom = nil
@@ -3257,8 +3037,6 @@ local function CreateCamera()
 			NumUnsunkTouches = NumUnsunkTouches - 1
 		end
 		fingerTouches[input] = nil
-		inputStartPositions[input] = nil
-		inputStartTimes[input] = nil
 	end
 
 	local function OnMousePanButtonPressed(input, processed)
@@ -3542,8 +3320,8 @@ local function CreateCamera()
 		if workspaceChangedConn then
 			workspaceChangedConn:disconnect()
 			workspaceChangedConn = nil
-		end
-
+		end	
+		
 		this.TurningLeft = false
 		this.TurningRight = false
 		this.LastCameraTransform = nil
@@ -3570,15 +3348,15 @@ local function CreateCamera()
 			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 		end
 	end
-
+	
 	function this:ResetInputStates()
 		isRightMouseDown = false
 		isMiddleMouseDown = false
 		OnMousePanButtonReleased() -- this function doesn't seem to actually need parameters
-
+		
 		if UserInputService.TouchEnabled then
 			--[[menu opening was causing serious touch issues
-			this should disable all active touch events if
+			this should disable all active touch events if 
 			they're active when menu opens.]]
 			for inputObject, value in pairs(fingerTouches) do
 				fingerTouches[inputObject] = nil
@@ -3586,14 +3364,14 @@ local function CreateCamera()
 			panBeginLook = nil
 			startPos = nil
 			lastPos = nil
-			this.UserPanningTheCamera = false
+			this.UserPanningTheCamera = false	
 			StartingDiff = nil
 			pinchBeginZoom = nil
 			NumUnsunkTouches = 0
 		end
 	end
 
-	function this:ConnectInputEvents()	
+	function this:ConnectInputEvents()
 		InputBeganConn = UserInputService.InputBegan:connect(function(input, processed)
 			if input.UserInputType == Enum.UserInputType.Touch then
 				OnTouchBegan(input, processed)
@@ -3631,7 +3409,7 @@ local function CreateCamera()
 				OnKeyUp(input, processed)
 			end
 		end)
-
+		
 		MenuOpenedConn = GuiService.MenuOpened:connect(function()
 			this:ResetInputStates()
 		end)
@@ -3708,25 +3486,13 @@ local function CreateCamera()
 			end
 		end
 
-		ContextActionService:BindAction("RootCamGamepadPan", getGamepadPan, false, Enum.KeyCode.Thumbstick2)
-		ContextActionService:BindAction("RootCamGamepadZoom", doGamepadZoom, false, Enum.KeyCode.ButtonR3)
+		game.ContextActionService:BindAction("RootCamGamepadPan", getGamepadPan, false, Enum.KeyCode.Thumbstick2)
+		game.ContextActionService:BindAction("RootCamGamepadZoom", doGamepadZoom, false, Enum.KeyCode.ButtonR3)
 
 		assignActivateGamepad()
 
 		-- set mouse behavior
 		self:UpdateMouseBehavior()
-	end
-	
-	--Process tweens related to tap-to-recenter and double-tap-to-zoom
-	--Needs to be called from specific cameras on each update
-	function this:ProcessTweens()
-		for name, tween in pairs(tweens) do
-			local alpha = math.min(1.0, (tick() - tween.start)/tween.duration)
-			tween.to = tween.func(tween.from, tween.to, alpha)
-			if math.abs(1 - alpha) < 0.0001 then
-				tweens[name] = nil
-			end
-		end
 	end
 
 	function this:SetEnabled(newState)
@@ -3749,46 +3515,34 @@ local function CreateCamera()
 				end
 			end
 		end)
-		
-		local function OnCharacterAdded(newCharacter)
 
-			if (not FFlagSpawnLocationFixEnabled) then
-				this:ZoomCamera(DefaultZoom)
-			end
+		local function OnCharacterAdded(newCharacter)
+			this:ZoomCamera(12.5)
 			local humanoid = findPlayerHumanoid(player)
 			local start = tick()
 			while tick() - start < 0.3 and (humanoid == nil or humanoid.Torso == nil) do
 				wait()
 				humanoid = findPlayerHumanoid(player)
 			end
+			local function setLookBehindCharacter()
+				if humanoid and humanoid.Torso and player.Character == newCharacter then
+					local newDesiredLook = (humanoid.Torso.CFrame.lookVector - Vector3.new(0,0.23,0)).unit
+					local horizontalShift = findAngleBetweenXZVectors(newDesiredLook, this:GetCameraLook())
+					local vertShift = math.asin(this:GetCameraLook().y) - math.asin(newDesiredLook.y)
+					if not IsFinite(horizontalShift) then
+						horizontalShift = 0
+					end
+					if not IsFinite(vertShift) then
+						vertShift = 0
+					end
+					this.RotateInput = Vector2.new(horizontalShift, vertShift)
 
-			if (not FFlagSpawnLocationFixEnabled) then
-				wait()
-			end
-
-
-			if humanoid and humanoid.Torso and player.Character == newCharacter then
-				local newDesiredLook = (humanoid.Torso.CFrame.lookVector - Vector3.new(0,0.23,0)).unit
-				local horizontalShift = findAngleBetweenXZVectors(newDesiredLook, this:GetCameraLook())
-				local vertShift = math.asin(this:GetCameraLook().y) - math.asin(newDesiredLook.y)
-				if not IsFinite(horizontalShift) then
-					horizontalShift = 0
+					-- reset old camera info so follow cam doesn't rotate us
+					this.LastCameraTransform = nil
 				end
-				if not IsFinite(vertShift) then
-					vertShift = 0
-				end
-				this.RotateInput = Vector2.new(horizontalShift, vertShift)
-				
-				-- reset old camera info so follow cam doesn't rotate us
-				this.LastCameraTransform = nil
 			end
-			
-			-- Need to wait for camera cframe to update before we zoom in
-			-- Not waiting will force camera to original cframe
-			if (FFlagSpawnLocationFixEnabled) then
-				wait()
-				this:ZoomCamera(DefaultZoom)
-			end
+			wait()
+			setLookBehindCharacter()
 		end
 
 		player.CharacterAdded:connect(function(character)
@@ -3822,51 +3576,8 @@ local function CreateCamera()
 			OnGameLoaded()
 		end
 	end)
-	
-	local function OnDynamicThumbstickEnabled()
-		if UserInputService.TouchEnabled then
-			isDynamicThumbstickEnabled = true
-		end
-	end
-	
-	local function OnDynamicThumbstickDisabled()
-		isDynamicThumbstickEnabled = false
-	end
-	
-	local function OnDevTouchMovementModeChanged()
-		if PlayersService.LocalPlayer.DevTouchMovementMode.Name == "DynamicThumbstick" then
-			OnDynamicThumbstickEnabled()
-		else
-			OnDynamicThumbstickDisabled()
-		end
-	end	
-	
-	local function OnGameSettingsTouchMovementModeChanged()
-		if PlayersService.LocalPlayer and PlayersService.LocalPlayer.DevTouchMovementMode == Enum.DevTouchMovementMode.UserChoice then
-			if GameSettings.TouchMovementMode.Name == "DynamicThumbstick" then
-				OnDynamicThumbstickEnabled()
-			else
-				OnDynamicThumbstickDisabled()
-			end
-		end
-	end
-	
-	if PlayersService.LocalPlayer then
-		PlayersService.LocalPlayer.Changed:Connect(function(prop)
-			if prop == "DevTouchMovementMode" then
-				OnDevTouchMovementModeChanged()
-			end
-		end)
-		OnDevTouchMovementModeChanged()
-	end
-	
-	GameSettings.Changed:Connect(function(prop)
-		if prop == "TouchMovementMode" then
-			OnGameSettingsTouchMovementModeChanged()
-		end
-	end)
-	OnGameSettingsTouchMovementModeChanged()
-	
+
+
 	return this
 end
 
@@ -4002,10 +3713,18 @@ local function CreateClassicCamera()
 	local tweenMaxSpeed = math.rad(250)
 	local timeBeforeAutoRotate = 2
 	
+	local lastThumbstickRotate = nil
+	local numOfSeconds = 0.7
+	local currentSpeed = 0
+	local maxSpeed = 0.1
+	local thumbstickSensitivity = 1
+	local lastThumbstickPos = ZERO_VECTOR2
+	local ySensitivity = 0.8
+	local lastVelocity = nil
+	
 	local lastUpdate = tick()
 	module.LastUserPanCamera = tick()
 	function module:Update()
-		module:ProcessTweens()
 		local now = tick()
 		local timeDelta = (now - lastUpdate)
 		
@@ -4220,9 +3939,7 @@ end
 local RootCameraCreator = require(script.Parent)
 
 local UP_VECTOR = Vector3.new(0, 1, 0)
-local XZ_VECTOR = Vector3.new(1, 0, 1)
-local ZERO_VECTOR3 = Vector3.new(0, 0, 0)
-local PORTRAIT_OFFSET = Vector3.new(0, -3, 0)
+local XZ_VECTOR = Vector3.new(1,0,1)
 
 local function clamp(low, high, num)
 	if low <= high then
@@ -4243,11 +3960,11 @@ end
 -- May return NaN or inf or -inf
 local function findAngleBetweenXZVectors(vec2, vec1)
 	-- This is a way of finding the angle between the two vectors:
-	return math.atan2(vec1.X*vec2.Z-vec1.Z*vec2.X, vec1.X*vec2.X+vec1.Z*vec2.Z)
+	return math.atan2(vec1.X*vec2.Z-vec1.Z*vec2.X, vec1.X*vec2.X + vec1.Z*vec2.Z)
 end
 
 local function CreateFollowCamera()
-	local module = RootCameraCreator()
+	local module = RootCameraCreator()	
 	
 	local tweenAcceleration = math.rad(220)
 	local tweenSpeed = math.rad(0)
@@ -4257,19 +3974,18 @@ local function CreateFollowCamera()
 	local lastUpdate = tick()
 	module.LastUserPanCamera = tick()
 	function module:Update()
-		module:ProcessTweens()
 		local now = tick()
 		local timeDelta = (now - lastUpdate)
 		
 		local userPanningTheCamera = (self.UserPanningTheCamera == true)
-		local camera = workspace.CurrentCamera
+		local camera = 	workspace.CurrentCamera
 		local player = PlayersService.LocalPlayer
 		local humanoid = self:GetHumanoid()
 		local cameraSubject = camera and camera.CameraSubject
 		local isClimbing = humanoid and humanoid:GetState() == Enum.HumanoidStateType.Climbing
 		local isInVehicle = cameraSubject and cameraSubject:IsA('VehicleSeat')
 		local isOnASkateboard = cameraSubject and cameraSubject:IsA('SkateboardPlatform')
-		
+
 		if lastUpdate == nil or now - lastUpdate > 1 then
 			module:ResetCameraLook()
 			self.LastCameraTransform = nil
@@ -4277,7 +3993,7 @@ local function CreateFollowCamera()
 		
 		if lastUpdate then
 			
-			if self:ShouldUseVRRotation() then
+			if self:ShouldUseVRRotation() then				
 				self.RotateInput = self.RotateInput + self:GetVRRotationInput()
 			else
 				-- Cap out the delta to 0.1 so we don't get some crazy things when we re-resume from
@@ -4288,10 +4004,10 @@ local function CreateFollowCamera()
 					angle = angle + (self.TurningLeft and -120 or 0)
 					angle = angle + (self.TurningRight and 120 or 0)
 				end
-				
+	
 				local gamepadRotation = self:UpdateGamepad()
 				if gamepadRotation ~= Vector2.new(0,0) then
-					userPanningTheCamera = true
+					userPanningTheCamera = true				
 					self.RotateInput = self.RotateInput + (gamepadRotation * delta)
 				end
 				
@@ -4310,7 +4026,7 @@ local function CreateFollowCamera()
 		
 		local userRecentlyPannedCamera = now - module.LastUserPanCamera < timeBeforeAutoRotate
 		
-		local subjectPosition = self:GetSubjectPosition()
+		local subjectPosition = self:GetSubjectPosition()		
 		if subjectPosition and player and camera then
 			local zoom = self:GetCameraZoom()
 			if zoom < 0.5 then
@@ -4340,10 +4056,10 @@ local function CreateFollowCamera()
 							if isOnASkateboard then
 								forwardVector = cameraSubject.CFrame.lookVector
 							end
-							
+
 							tweenSpeed = clamp(0, tweenMaxSpeed, tweenSpeed + tweenAcceleration * timeDelta)
-							
-							local percent = clamp(0, 1, tweenSpeed*timeDelta)
+
+							local percent = clamp(0, 1, tweenSpeed * timeDelta)
 							if not isClimbing and self:IsInFirstPerson() then
 								percent = 1
 							end
@@ -4355,17 +4071,9 @@ local function CreateFollowCamera()
 						end
 					elseif not (isInFirstPerson or userRecentlyPannedCamera) and not VRService.VREnabled then
 						local lastVec = -(self.LastCameraTransform.p - subjectPosition)
-						
 						local y = findAngleBetweenXZVectors(lastVec, self:GetCameraLook())
-						
-						-- This cutoff is to decide if the humanoid's angle of movement,
-						-- relative to the camera's look vector, is enough that
-						-- we want the camera to be following them. The point is to provide 
-						-- a sizable deadzone to allow more precise forward movements.
-						local thetaCutoff = 0.4
-						
 						-- Check for NaNs
-						if IsFinite(y) and math.abs(y) > 0.0001 and math.abs(y) > thetaCutoff*timeDelta then
+						if IsFinite(y) and math.abs(y) > 0.0001 then
 							self.RotateInput = self.RotateInput + Vector2.new(y, 0)
 						end
 					end
@@ -4374,13 +4082,7 @@ local function CreateFollowCamera()
 			local newLookVector = self:RotateCamera(self:GetCameraLook(), self.RotateInput)
 			self.RotateInput = Vector2.new()
 			
-			if VRService.VREnabled then
-				camera.Focus = self:GetVRFocus(subjectPosition, timeDelta)
-			elseif self:IsPortraitMode() then
-				camera.Focus = CFrame.new(subjectPosition + PORTRAIT_OFFSET)
-			else
-				camera.Focus = CFrame.new(subjectPosition)
-			end
+			camera.Focus = VRService.VREnabled and self:GetVRFocus(subjectPosition, timeDelta) or CFrame.new(subjectPosition)
 			camera.CFrame = CFrame.new(camera.Focus.p - (zoom * newLookVector), camera.Focus.p) + Vector3.new(0, self:GetCameraHeight(), 0)
 
 			self.LastCameraTransform = camera.CFrame

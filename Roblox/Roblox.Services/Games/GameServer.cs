@@ -625,7 +625,7 @@ public class GameServerService : ServiceBase
         rccServer.StartInfo.RedirectStandardOutput = false;
         rccServer.StartInfo.UseShellExecute = true;
         rccServer.Start();
-        System.Threading.Thread.Sleep(500);
+        System.Threading.Thread.Sleep(700);
         string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServer.lua");
         
         string finalScript = originalScript.Replace
@@ -638,7 +638,7 @@ public class GameServerService : ServiceBase
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <OpenJobEx xmlns=""http://roblox.com/"">
+                    <OpenJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{jobId}</id>
                             <category>1</category>

@@ -195,32 +195,6 @@ function methods:CreateGuiObjects(targetParent)
 		end
 	end)
 
-	local function CalculateChannelsBarPixelSize(textSize)
-		if (deviceType == DEVICE_PHONE) then
-			textSize = textSize or ChatSettings.ChatChannelsTabTextSizePhone
-		else
-			textSize = textSize or ChatSettings.ChatChannelsTabTextSize
-		end
-
-		local channelsBarTextYSize = textSize
-		local chatChannelYSize = math.max(32, channelsBarTextYSize + 8) + 2
-
-		return chatChannelYSize
-	end
-
-	local function CalculateChatBarPixelSize(textSize)
-		if (deviceType == DEVICE_PHONE) then
-			textSize = textSize or ChatSettings.ChatBarTextSizePhone
-		else
-			textSize = textSize or ChatSettings.ChatBarTextSize
-		end
-
-		local chatBarTextSizeY = textSize
-		local chatBarYSize = chatBarTextSizeY + (7 * 2) + (5 * 2)
-
-		return chatBarYSize
-	end
-
 	if bubbleChatOnly() then
 		ChatBarParentFrame.Position = UDim2.new(0, 0, 0, 0)
 		ChannelsBarParentFrame.Visible = false
@@ -247,8 +221,6 @@ function methods:CreateGuiObjects(targetParent)
 
 		end
 
-		local chatBarYSize = CalculateChatBarPixelSize()
-
 		BaseFrame.Size = UDim2.new(useXScale, useXOffset, 0, chatBarYSize)
 		BaseFrame.Position = ChatSettings.DefaultWindowPosition
 
@@ -269,6 +241,32 @@ function methods:CreateGuiObjects(targetParent)
 
 		BaseFrame.Position = ChatSettings.DefaultWindowPosition
 
+	end
+
+	local function CalculateChannelsBarPixelSize(textSize)
+		if (deviceType == DEVICE_PHONE) then
+			textSize = textSize or ChatSettings.ChatChannelsTabTextSizePhone
+		else
+			textSize = textSize or ChatSettings.ChatChannelsTabTextSize
+		end
+
+		local channelsBarTextYSize = textSize
+		local chatChannelYSize = math.max(32, channelsBarTextYSize + 8) + 2
+
+		return chatChannelYSize
+	end
+
+	local function CalculateChatBarPixelSize(textSize)
+		if (deviceType == DEVICE_PHONE) then
+			textSize = textSize or ChatSettings.ChatBarTextSizePhone
+		else
+			textSize = textSize or ChatSettings.ChatBarTextSize
+		end
+
+		local chatBarTextSizeY = textSize
+		local chatBarYSize = chatBarTextSizeY + (7 * 2) + (5 * 2)
+
+		return chatBarYSize
 	end
 
 	if (deviceType == DEVICE_PHONE) then
@@ -376,10 +374,6 @@ function methods:CreateGuiObjects(targetParent)
 	self.GuiObjects.ChatResizerFrame = ChatResizerFrame
 	self.GuiObjects.ResizeIcon = ResizeIcon
 	self:AnimGuiObjects()
-end
-
-function methods:GetChatBar()
-	return rawget(self, "ChatBar")
 end
 
 function methods:RegisterChatBar(ChatBar)
