@@ -559,7 +559,7 @@ namespace Roblox.Website.Controllers
             }
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
+            string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}"; //$"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
 
@@ -615,10 +615,16 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("hi");
             return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript);
         }
-
+    
         [HttpGetBypass("Asset/CharacterFetch.ashx")]
+        public async Task<string> CharacterFetchASHX(long userId)
+        {
+            var assets = await services.avatar.GetWornAssets(userId);
+            return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId};{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
+        }
+
         [HttpGetBypass("/v1.1/avatar-fetch")]
-        public async Task<string> CharacterFetch(long userId, long serverplaceid = 0)
+        public async Task<string> CharacterFetch(long userId)
         {
             var assets = await services.avatar.GetWornAssets(userId);
             List<long> accessoryVersionIds = assets.ToList();
@@ -628,7 +634,7 @@ namespace Roblox.Website.Controllers
             accessoryVersionIds = accessoryVersionIds,
             backpackGearVersionIds = new List<int>(),
             animationAssetIds = new {},
-            bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}&serverplaceid={serverplaceid}"
+            bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
             };
             if (userId == 0) {
                 result = new {
@@ -637,7 +643,7 @@ namespace Roblox.Website.Controllers
                     accessoryVersionIds = accessoryVersionIds,
                     backpackGearVersionIds = new List<int>(),
                     animationAssetIds = new {},
-                    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}&serverplaceid={serverplaceid}"
+                    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
                 };
             } 
             else {
@@ -647,7 +653,7 @@ namespace Roblox.Website.Controllers
                 accessoryVersionIds = accessoryVersionIds,
                 backpackGearVersionIds = new List<int>(),
                 animationAssetIds = new {},
-                bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}&serverplaceid={serverplaceid}"
+                bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
             };
             }
             string jsonString = JsonConvert.SerializeObject(result);
@@ -864,7 +870,7 @@ namespace Roblox.Website.Controllers
             var robloxRoot = new XElement("roblox",
                 new XAttribute(XNamespace.Xmlns + "xmime", "http://www.w3.org/2005/05/xmlmime"),
                 new XAttribute(XNamespace.Xmlns + "xsi", "http://www.w3.org/2001/XMLSchema-instance"),
-                new XAttribute(xsi + "noNamespaceSchemaLocation", "http://www.roblox.com/roblox.xsd"),
+                new XAttribute(xsi + "noNamespaceSchemaLocation", "http://www.projex.zip/roblox.xsd"),
                 new XAttribute("version", 4)
             );
             robloxRoot.Add(new XElement("External", "null"));

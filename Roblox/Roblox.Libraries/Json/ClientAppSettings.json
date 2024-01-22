@@ -442,7 +442,7 @@
   "DFFlagUse9FrameBackgroundTransparency": "True",
   "DFFlagUseApiProxyThrottling": "True",
   "DFFlagUseAssetTypeHeader": "True",
-  "DFFlagUseAvatarFetchAPI": "False",
+  "DFFlagUseAvatarFetchAPI": "True",
   "DFFlagUseCanManageApiToDetermineConsoleAccess": "False",
   "DFFlagUseCharacterRootforCameraTarget": "True",
   "DFFlagUseComSiftUpdatedWebChatFilterParamsAndHeader": "False",

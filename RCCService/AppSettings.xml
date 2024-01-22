@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Settings>
-	<ContentFolder>C:\ProjectX\services\RCCService\content</ContentFolder>
+	<ContentFolder>content</ContentFolder>
 	<BaseUrl>http://www.projex.zip</BaseUrl>
 </Settings>
