@@ -75,14 +75,6 @@ settings().Diagnostics.LuaRamLimit = 0
 
 game:GetService("Players").PlayerAdded:connect(function(player)
 	print("Player " .. player.userId .. " added")
-    player.CharacterAdded:connect(function(c)
-    game:GetObjects("rbxasset://fonts/characterCameraScript.rbxmx")[1].Parent = c
-    game:GetObjects("rbxasset://fonts/characterControlScript.rbxmx")[1].Parent = c
-    for i,v in pairs(c:GetChildren()) do
-    print(v.Name)
-    end
-    print(c.Animate.Source)
-    end)
 end)
 
 game:GetService("Players").PlayerRemoving:connect(function(player)
@@ -94,10 +86,11 @@ if placeId~=nil and url~=nil then
 	wait()
 	
 	-- load the game
-	game:Load("rbxasset://place.rbxl")
+	game:Load(url .. "/asset/?id=" .. placeId)
 end
 
 -- Now start the connection
+print(port)
 ns:Start(port) 
 
 
