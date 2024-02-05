@@ -628,8 +628,8 @@ public class GameServerService : ServiceBase
         rccServer.StartInfo.RedirectStandardOutput = false;
         rccServer.StartInfo.UseShellExecute = true;
         rccServer.Start();
-        //await WaitForPort(RCCPort);
         //await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
+        await WaitForPort(RCCPort);
         currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);
         jobRccs.Add(jobId, rccServer);
