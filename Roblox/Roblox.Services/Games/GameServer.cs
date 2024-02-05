@@ -1,6 +1,9 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
+using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Text.Json;
 using Dapper;
 using Roblox.Dto.Games;
@@ -620,43 +623,13 @@ public class GameServerService : ServiceBase
         rccServer.StartInfo.CreateNoWindow = false;
         rccServer.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
         rccServer.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}RCCService.exe";
-        rccServer.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
+        rccServer.StartInfo.Arguments = string.Format($@"-console -port {RCCPort} -gsport:{networkServerPort} -placeId:{placeId}");
         rccServer.StartInfo.RedirectStandardError = false;
         rccServer.StartInfo.RedirectStandardOutput = false;
         rccServer.StartInfo.UseShellExecute = true;
         rccServer.Start();
-        System.Threading.Thread.Sleep(700);
-        string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServer.lua");
-        
-        string finalScript = originalScript.Replace
-            ("%port%", $"{networkServerPort}").Replace
-            ("%placeId%", $"{placeId}").Replace
-            ("%creatorId%", $"{uni.builderId}").Replace
-            ("_AUTHORIZATION_STRING_", Configuration.GameServerAuthorization);
-        string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <OpenJobEx xmlns=""http://projex.zip/"">
-                        <job>
-                            <id>{jobId}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </OpenJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-        await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
+        //await WaitForPort(RCCPort);
+        //await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
         currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);
         jobRccs.Add(jobId, rccServer);
@@ -753,7 +726,27 @@ public class GameServerService : ServiceBase
 
         return result;
     }
-
+    static Task WaitForPort(int RCCPort)
+    {
+        while (true)
+        {
+            try
+            {
+                using (TcpClient client = new TcpClient())
+                {
+                    client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
+                    Console.WriteLine("did not find port");
+                    break; 
+                    }
+                }
+                catch (SocketException)
+                {
+                    Thread.Sleep(0); 
+                }
+            }   
+        Console.WriteLine($"found port: {RCCPort}");
+        return Task.CompletedTask;
+        }
     public async Task<IEnumerable<GameServerEntry>> GetGamesUserIsPlaying(long userId)
     {
        return await db.QueryAsync<GameServerEntry>(
@@ -763,4 +756,5 @@ public class GameServerService : ServiceBase
                 id = userId,
             });
     }
+    
 }

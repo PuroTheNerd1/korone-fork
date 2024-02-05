@@ -58,6 +58,13 @@ public class SessionMiddleware
         return token;
     }
 
+
+    private async Task OnBadSession(HttpContext ctx)
+    {
+        ctx.Response.Cookies.Delete(CookieName);
+        await _next(ctx);
+    }
+
     public static T DecodeJwt<T>(string token)
     {
         var json = Decoder.Decode(token, cookieJwtKey, verify: true);
@@ -66,17 +73,17 @@ public class SessionMiddleware
         if (result == null) throw new NullReferenceException();
         return result;
     }
-
-    private async Task OnBadSession(HttpContext ctx)
-    {
-        ctx.Response.Cookies.Delete(CookieName);
-        await _next(ctx);
-    }
-
     public async Task InvokeAsync(HttpContext ctx)
     {
         var authTimer = new MiddlewareTimer(ctx, "au");
         var currentPath = ctx.Request.Path.ToString().ToLower();
+        var excludedPaths = new List<string> { "/login/negotiate.ashx", "/login/negotiateasync.ashx" };
+
+        if (excludedPaths.Contains(currentPath))
+        {
+            await _next(ctx);
+            return;
+        }
         try
         {
             if (ctx.Request.Cookies.ContainsKey(CookieName))

@@ -1,10 +1,8 @@
-// 10/31/2023 Halloween Special
-// Open Source Replacement for game-server for Economy Simulator Revivals.
-// Be sure to check out https://www.fossci.com for an actually good revival. Written by Aep obviously.
-
 using System.Diagnostics;
 using System.Text;
 using System.Xml.Linq;
+using System.Net.Sockets;
+using System.Net;
 
 namespace Roblox.Rendering
 {
@@ -28,7 +26,7 @@ namespace Roblox.Rendering
         {
             using (HttpClient RccHttpClient = new HttpClient())
             {
-                RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://roblox.com/{SOAPAction}");
+                RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://projex.zip/{SOAPAction}");
                 HttpContent XMLContent = new StringContent(XML, Encoding.UTF8, "text/xml");
                 try
                 {
@@ -40,7 +38,7 @@ namespace Roblox.Rendering
                     }
                     
                     XDocument Doc = XDocument.Parse(RccHttpClientResponse);
-                    XNamespace ns1 = "http://roblox.com/";
+                    XNamespace ns1 = "http://projex.zip/";
                     XElement Element = Doc.Descendants(ns1 + "value").FirstOrDefault()!;
                     string LuaValue = Element.Value ?? "";
                     return LuaValue;
@@ -58,15 +56,15 @@ namespace Roblox.Rendering
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
 
             string originalScript = File.ReadAllText($"{LuaScriptPath}Hat.lua");
@@ -82,7 +80,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://roblox.com/"">
+                    <BatchJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -100,7 +98,7 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
@@ -111,15 +109,15 @@ namespace Roblox.Rendering
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
 
             string originalScript = File.ReadAllText($"{LuaScriptPath}Mesh.lua");
@@ -135,7 +133,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://roblox.com/"">
+                    <BatchJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -153,7 +151,7 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
@@ -164,15 +162,15 @@ namespace Roblox.Rendering
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
 
             int x = isFace ? 1680 : 600;
@@ -192,7 +190,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://roblox.com/"">
+                    <BatchJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -210,7 +208,7 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
@@ -222,13 +220,13 @@ namespace Roblox.Rendering
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = true;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
+            renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
 
@@ -246,7 +244,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://roblox.com/"">
+                    <BatchJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -264,7 +262,7 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
@@ -276,13 +274,13 @@ namespace Roblox.Rendering
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = true;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
+            renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
 
@@ -302,7 +300,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://roblox.com/"">
+                    <BatchJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -320,7 +318,7 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
@@ -332,13 +330,13 @@ namespace Roblox.Rendering
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = true;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
+            renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
 
@@ -358,7 +356,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://roblox.com/"">
+                    <BatchJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -376,7 +374,7 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
@@ -387,17 +385,16 @@ namespace Roblox.Rendering
             string characterAppearanceUrl = $"{BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             // renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-
             string originalScript = File.ReadAllText($"{LuaScriptPath}Avatar.lua");
             string finalScript = originalScript.Replace
                 ("%baseUrl%", $@"""{BaseUrl}""").Replace
@@ -411,7 +408,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://roblox.com/"">
+                    <BatchJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -429,9 +426,8 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            Console.WriteLine(result);
             renderRcc.Kill();
             return result;
         }
@@ -441,17 +437,16 @@ namespace Roblox.Rendering
             string characterAppearanceUrl = $"{BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             // renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-
             string originalScript = File.ReadAllText($"{LuaScriptPath}Closeup.lua");
             string finalScript = originalScript.Replace
                 ("%baseUrl%", $@"""{BaseUrl}""").Replace
@@ -470,7 +465,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://roblox.com/"">
+                    <BatchJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>
@@ -488,10 +483,31 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
+        }
+        static Task WaitForPort(int RCCPort)
+        {
+            while (true)
+            {
+                try
+                {
+                    using (TcpClient client = new TcpClient())
+                    {
+                        client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
+                        Console.WriteLine("did not find port");
+                        break; 
+                    }
+                }
+                catch (SocketException)
+                {
+                    Thread.Sleep(0); 
+                }
+            }   
+            Console.WriteLine($"found port: {RCCPort}");
+            return Task.CompletedTask;
         }
     }
 }

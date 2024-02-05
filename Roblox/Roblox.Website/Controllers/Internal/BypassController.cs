@@ -466,6 +466,7 @@ namespace Roblox.Website.Controllers
         [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
         {
+            Response.Cookies.Delete(".ROBLOSECURITY");
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
             {
                 Domain = ".projex.zip",
@@ -482,7 +483,117 @@ namespace Roblox.Website.Controllers
         {
             return new MVC.RedirectResult("/");
         }
+        [HttpPostBypass("/AbuseReport/InGameChatHandler.ashx")] // report abuse api
+        public async Task<dynamic> ReportAbuseAsync()
+        {
+            string? report;
+            using (StreamReader reader = new StreamReader(Request.Body))
+            {
+                report = await reader.ReadToEndAsync();
+            }
+            var xmlDoc = XDocument.Parse(report);
+            string? webhookurl = "https://discord.com/api/webhooks/1199125219143598250/zsjMa-lZW_iDZBp8nLbKgZbnO3phlcepefB3lJgCpK7Elet8i2BV2VrDo_mkti_9PYFm";
+            string? userid = xmlDoc.Root?.Attribute("userID")?.Value;
+            string? placeid = xmlDoc.Root?.Attribute("placeID")?.Value;
+            string? gamejobid = xmlDoc.Root?.Attribute("gameJobID")?.Value;
+            string? reason = xmlDoc.Root?.Element("comment")?.Value;
+            var messages = xmlDoc.Root?.Element("messages")?.Elements("message")
+                .Select(m => new
+                {
+                    UserID = m.Attribute("userID")?.Value,
+                    Content = m.Value
+                });
 
+            foreach (var message in messages)
+            {
+                Console.WriteLine($"UserID: {message.UserID}, Content: {message.Content}");
+            }
+
+            Console.WriteLine($"Someone used abuse report!");
+            Console.WriteLine("Sending to the discord webhook");
+            dynamic WebHookJSON = new
+            {
+                content = "@here",
+                embeds = new[]
+            {
+                new
+                {
+                    title = "Details",
+                    color = null as object,
+                    fields = new object[]
+                    {
+                        new
+                        {
+                            name = "UID",
+                            value = userid
+                        },
+                        new
+                        {
+                            name = "PlaceID",
+                            value = placeid
+                        },
+                        new
+                        {
+                            name = "GameJobID",
+                            value = gamejobid
+                        },
+                        new
+                        {
+                            name = "Messages",
+                            value = string.Join("\n", messages.Select(msg => $"UserID: {msg.UserID}, Content: {msg.Content}")),
+                            inline = true
+                        },
+                        new
+                        {
+                            name = "Reason",
+                            value = reason
+                        },
+                    },
+                    author = new
+                    {
+                        name = "Abuse Report"
+                    }
+                }
+            }
+            };
+
+            string? jsonString = JsonConvert.SerializeObject(WebHookJSON, Formatting.Indented);
+            try
+            {
+                using (HttpClient httpClient = new HttpClient())
+                {
+                    StringContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await httpClient.PostAsync(webhookurl, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("Success");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"failure code: {response.StatusCode}");
+                    }
+                }
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: {e}");
+                return BadRequest();
+            }
+        }
+        [HttpGet("/game/players/{Player}")]
+        public async Task<dynamic> ChatWhitelist(long Player)
+        {
+            var result = new
+            {
+                ChatFilter = "whitelist"
+            };
+
+            string jsonString = JsonConvert.SerializeObject(result);
+            return jsonString;
+        }
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId)
@@ -575,8 +686,8 @@ namespace Roblox.Website.Controllers
             dynamic joinScript = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
-                ServerPort = GameServerService.currentGameServerPorts[jobId], 
+                MachineAddress = "127.0.0.1",
+                ServerPort = 53640, //GameServerService.currentGameServerPorts[jobId], 
                 PingUrl = "",
                 PingInterval = 120,
                 UserName = username,
@@ -892,7 +1003,11 @@ namespace Roblox.Website.Controllers
             // return as string
             return new XDocument(robloxRoot).ToString();
         }
-
+        [MVC.HttpGet("/Game/LoadPlaceInfo.ashx")]
+        public dynamic LoadPlaceInfo()
+        {
+            return Ok();
+        }
         [MVC.HttpPost("/moderation/filtertext/")]
         public dynamic GetModerationText()
         {
@@ -963,7 +1078,7 @@ namespace Roblox.Website.Controllers
             List<string> allowedList = new List<string>()
             {
                 "ab2071468b7cd856173d1ce47f3bfdd9",
-                "d0390cd3378f4316436cd2e9b7b3bc24"
+                "cd20cc67e4224b365fde769cd3b92e41"
             };
             return new { data = allowedList };
         }
@@ -974,7 +1089,7 @@ namespace Roblox.Website.Controllers
         {
             List<string> allowedList = new List<string>()
             {
-                "0.271.1pcplayer"
+                "0.235.0pcplayer"
             };
             return new { data = allowedList };
         }

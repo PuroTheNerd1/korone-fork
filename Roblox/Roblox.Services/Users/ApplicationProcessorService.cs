@@ -101,25 +101,25 @@ public class ApplicationProcessorService : ServiceBase, IService
             if (followers >= 20000)
             {
                 // botted - this is probably somebody's main (which is a good thing!)
-                isRichMindset = true;
+                isRichMindset = false;
             }
 
             if (hasOneThousandVisits)
-                isRichMindset = true;
+                isRichMindset = false;
 
             if (friends > 100 && followers > 100)
-                isRichMindset = true;
+                isRichMindset = false;
             
             if (!isRichMindset)
             {
                 // check for premium/other stuff?
                 var profile = await api.GetProfile(userId);
                 if (profile.isPremium)
-                    isRichMindset = true;
+                    isRichMindset = false;
                 
                 var previousNames = profile.previousUsernames.Split("\r\n");
                 if (previousNames.Length > 2)
-                    isRichMindset = true;
+                    isRichMindset = false;
             }
             
             // Finally...
