@@ -623,13 +623,44 @@ public class GameServerService : ServiceBase
         rccServer.StartInfo.CreateNoWindow = false;
         rccServer.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
         rccServer.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}RCCService.exe";
-        rccServer.StartInfo.Arguments = string.Format($@"-console -port {RCCPort} -gsport:{networkServerPort} -placeId:{placeId}");
+        rccServer.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
         rccServer.StartInfo.RedirectStandardError = false;
         rccServer.StartInfo.RedirectStandardOutput = false;
         rccServer.StartInfo.UseShellExecute = true;
         rccServer.Start();
-        //await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
+        System.Threading.Thread.Sleep(700);
+        string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServer.lua");
+        
+        string finalScript = originalScript.Replace
+            ("%port%", $"{networkServerPort}").Replace
+            ("%placeId%", $"{placeId}").Replace
+            ("%creatorId%", $"{uni.builderId}").Replace
+            ("_AUTHORIZATION_STRING_", Configuration.GameServerAuthorization);
+        string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
+               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+                <soap:Body>
+                    <OpenJobEx xmlns=""http://projex.zip/"">
+                        <job>
+                            <id>{jobId}</id>
+                            <category>1</category>
+                            <cores>1</cores>
+                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
+                        </job>
+                        <script>
+                            <name>{Guid.NewGuid().ToString()}</name>
+                            <script>
+                                <![CDATA[
+                                {finalScript}
+                                ]]>
+                            </script>
+                        </script>
+                    </OpenJobEx>
+                </soap:Body>
+            </soap:Envelope>";
         await WaitForPort(RCCPort);
+        await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
         currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);
         jobRccs.Add(jobId, rccServer);

@@ -465,7 +465,7 @@
   "DFFlagUseApiProxyThrottling": "True",
   "DFFlagUseAssetTypeHeader": "True",
   "DFFlagUseAvatarFetchAPI": "True",
-  "DFFlagUseCanManageApiToDetermineConsoleAccess": "True",
+  "DFFlagUseCanManageApiToDetermineConsoleAccess": "False",
   "DFFlagUseCharacterRootforCameraTarget": "True",
   "DFFlagUseComSiftUpdatedWebChatFilterParamsAndHeader": "False",
   "DFFlagUseDecalLocalTransparencyModifier": "True",
