@@ -1003,24 +1003,6 @@ namespace Roblox.Website.Controllers
             // return as string
             return new XDocument(robloxRoot).ToString();
         }
-        [HttpGetBypass("/Game/LoadPlaceInfo.ashx")]
-        public dynamic LoadPlaceInfo(long PlaceId)
-        {
-                string ReturnedPlaceInfo = "pcall(function() game:SetCreatorID(1, Enum.CreatorType.User) end)" +
-                "" +
-                "pcall(function() game:GetService(\"SocialService\"):SetFriendUrl(\"http://assetgame.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=269&userid=420\") end)\r\n" +
-                "pcall(function() game:GetService(\"SocialService\"):SetBestFriendUrl(\"http://assetgame.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=269&userid=420\") end)\r\n" +
-                "pcall(function() game:GetService(\"SocialService\"):SetGroupUrl(\"http://assetgame.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d\") end)\r\n" +
-                "pcall(function() game:GetService(\"SocialService\"):SetGroupRankUrl(\"http://assetgame.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d\") end)\r\n" +
-                "pcall(function() game:GetService(\"SocialService\"):SetGroupRoleUrl(\"http://assetgame.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d\") end)\r\n" +
-                "pcall(function() game:GetService(\"GamePassService\"):SetPlayerHasPassUrl(\"http://assetgame.projex.zip/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d\") end)\r\n" +
-                "pcall(function() game:GetService(\"MarketplaceService\"):SetProductInfoUrl(\"https://api.projex.zip/marketplace/productinfo?assetId=%d\") end)\r\n" +
-                "pcall(function() game:GetService(\"MarketplaceService\"):SetDevProductInfoUrl(\"https://api.projex.zip/marketplace/productDetails?productId=%d\") end)\r\n" +
-                "pcall(function() game:GetService(\"MarketplaceService\"):SetPlayerOwnsAssetUrl(\"https://api.projex.zip/ownership/hasasset?userId=%d&assetId=%d\") end)\r\n" +
-                "pcall(function() game:SetPlaceVersion(0) end)\r\n" +
-                "pcall(function() game:SetVIPServerOwnerId(0) end)\r\n";
-            return ReturnedPlaceInfo;
-        }
         [HttpPostBypass("/moderation/filtertext/")]
         public dynamic GetModerationText()
         {
