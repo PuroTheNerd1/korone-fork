@@ -686,8 +686,8 @@ namespace Roblox.Website.Controllers
             dynamic joinScript = new
             {
                 ClientPort = 0,
-                MachineAddress = "127.0.0.1",
-                ServerPort = 53640, //GameServerService.currentGameServerPorts[jobId], 
+                MachineAddress = "85.215.186.154",
+                ServerPort = GameServerService.currentGameServerPorts[jobId], 
                 PingUrl = "",
                 PingInterval = 120,
                 UserName = username,
