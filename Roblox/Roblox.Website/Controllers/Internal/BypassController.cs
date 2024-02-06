@@ -839,6 +839,7 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("/gs/players/report")]
+        [Obsolete]
         public async Task ReportPlayerActivity([Required, MVC.FromBody] ReportPlayerActivity request)
         {
             CheckServerAuth(request.authorization);
