@@ -953,19 +953,17 @@ namespace Roblox.Website.Controllers
                 isBanned = false,
             });
 #else
-        var multiGetResult = await services.users.MultiGetAccountStatus(ids);
-        var result = new List<object>(); 
-
-        foreach (var user in multiGetResult)
-        {
-            result.Add(new
+            var multiGetResult = await services.users.MultiGetAccountStatus(ids);
+            foreach (var user in multiGetResult)
             {
-                userId = user.userId,
-                isBanned = user.accountStatus != AccountStatus.Ok,
-            });
-        }
+                result.Add(new
+                {
+                    userId = user.userId,
+                    isBanned = user.accountStatus != AccountStatus.Ok,
+                });
+            }
 
-        return result;
+            return result;
 #endif
         }
 
