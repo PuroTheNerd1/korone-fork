@@ -620,13 +620,9 @@ public class GameServerService : ServiceBase
             return "BAD";
         }
         Process rccServer = new Process();
-        rccServer.StartInfo.CreateNoWindow = false;
         rccServer.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
         rccServer.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}RCCService.exe";
         rccServer.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-        rccServer.StartInfo.RedirectStandardError = false;
-        rccServer.StartInfo.RedirectStandardOutput = false;
-        rccServer.StartInfo.UseShellExecute = true;
         rccServer.Start();
         System.Threading.Thread.Sleep(700);
         string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServerFloatzel.lua");
