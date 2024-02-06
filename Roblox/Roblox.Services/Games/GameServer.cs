@@ -366,7 +366,8 @@ public class GameServerService : ServiceBase
 
     public async Task DeleteGameServer(string serverId)
     {
-        
+        await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
+        await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
     }
     
     private static readonly IEnumerable<int> GameServerPorts = new []
