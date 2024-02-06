@@ -443,15 +443,20 @@ public class UsersService : ServiceBase, IService
         return res;
     }
 
-    public async Task<IEnumerable<MultiGetAccountStatusEntry>> MultiGetAccountStatus(IEnumerable<long> userIds)
+    public async Task<IEnumerable<dynamic>> MultiGetAccountStatus(IEnumerable<long> userIds)
     {
         var ids = userIds.Distinct().ToList();
-        if (ids.Count == 0) return Array.Empty<MultiGetAccountStatusEntry>();
+        if (ids.Count == 0) return Array.Empty<dynamic>();
         
         var sql = new SqlBuilder();
         var t = sql.AddTemplate("SELECT id as userId, u.status as accountStatus FROM \"user\" u /**where**/");
         sql.OrWhereMulti("u.id = $1", ids);
-        return await db.QueryAsync<MultiGetAccountStatusEntry>(t.RawSql, t.Parameters);
+        var result = await db.QueryAsync<MultiGetAccountStatusEntry>(t.RawSql, t.Parameters);
+
+        return result.Select(user => new {
+            userId = user.userId,
+            accountStatus = user.accountStatus
+        });
     }
 
     public async Task<IEnumerable<MultiGetEntry>> MultiGetUsersById(IEnumerable<long> userIds)
