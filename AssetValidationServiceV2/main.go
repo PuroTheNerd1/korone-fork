@@ -6,7 +6,6 @@ import (
 	"log"
 	"sync"
 	"time"
-
 	"github.com/gofiber/fiber/v2"
 )
 
