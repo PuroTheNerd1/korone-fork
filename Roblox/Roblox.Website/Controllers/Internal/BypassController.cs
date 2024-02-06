@@ -402,7 +402,7 @@ namespace Roblox.Website.Controllers
                     {
                         isInGroup = true;
                     }
-                    var group = await services.groups.GetUserRoleInGroup((long) groupid, (long) playerid);
+                    var group = await services.groups.GetUserRoleInGroup((long)(groupid ?? 0), (long)(playerid ?? 0));
                     if (group.rank != 0)
                         isInGroup = true;
                 }
@@ -506,9 +506,8 @@ namespace Roblox.Website.Controllers
 
             foreach (var message in messages)
             {
-                Console.WriteLine($"UserID: {message.UserID}, Content: {message.Content}");
+                Console.WriteLine($"UserID: {message?.UserID}, Content: {message?.Content}");
             }
-
             Console.WriteLine($"Someone used abuse report!");
             Console.WriteLine("Sending to the discord webhook");
             dynamic WebHookJSON = new
@@ -584,7 +583,7 @@ namespace Roblox.Website.Controllers
             }
         }
         [HttpGet("/game/players/{Player}")]
-        public async Task<dynamic> ChatWhitelist(long Player)
+        public dynamic ChatWhitelist(long Player)
         {
             var result = new
             {
@@ -637,7 +636,7 @@ namespace Roblox.Website.Controllers
         public static long startUserId {get;set;} = 30;
 #if DEBUG
         [HttpGetBypass("/game/get-join-script-debug")]
-        public async Task<dynamic> GetJoinScriptDebug(long placeId, long userId = 12)
+        public dynamic GetJoinScriptDebug(long placeId, long userId = 12)
         {
             //startUserId = 12;
             var result = services.gameServer.CreateTicket(startUserId, placeId, GetIP());
