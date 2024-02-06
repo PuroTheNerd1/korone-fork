@@ -127,6 +127,7 @@ public class GameServerService : ServiceBase
         return value;
     }
 
+    [Obsolete]
     public async Task OnPlayerJoin(long userId, long placeId, string serverId)
     {
         CurrentPlayersInGame.Add(userId, placeId);
@@ -186,6 +187,7 @@ public class GameServerService : ServiceBase
         });
     }
 
+    [Obsolete]
     public async Task OnPlayerLeave(long userId, long placeId, string serverId)
     {
         CurrentPlayersInGame.Remove(userId);
