@@ -941,7 +941,7 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("Users/GetBanStatus.ashx")]
-        public IEnumerable<dynamic> MultiGetBanStatus(string userIds)
+        public async Task<IEnumerable<dynamic>> MultiGetBanStatus(string userIds)
         {
 
             var ids = userIds.Split(",").Select(long.Parse).Distinct();
@@ -1154,28 +1154,28 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("persistence/increment")]
-        public dynamic IncrementPersistence(long placeId, string key, string type, string scope, string target, int value)
+        public async Task<dynamic> IncrementPersistence(long placeId, string key, string type, string scope, string target, int value)
         {
             // increment?placeId=%i&key=%s&type=%s&scope=%s&target=&value=%i
-
+            
             if (!IsRcc())
                 throw new RobloxException(400, 0, "BadRequest");
-
+            
             return new
             {
-                data = (object?)null,
+                data = (object?) null,
             };
         }
 
         [HttpPostBypass("persistence/getSortedValues")]
-        public dynamic GetSortedPersistenceValues(long placeId, string type, string scope, string key, int pageSize, bool ascending, int inclusiveMinValue = 0, int inclusiveMaxValue = 0)
+        public async Task<dynamic> GetSortedPersistenceValues(long placeId, string type, string scope, string key, int pageSize, bool ascending, int inclusiveMinValue = 0, int inclusiveMaxValue = 0)
         {
             // persistence/getSortedValues?placeId=0&type=sorted&scope=global&key=Level%5FHighscores20&pageSize=10&ascending=False"
             // persistence/set?placeId=124921244&key=BF2%5Fds%5Ftest&&type=standard&scope=global&target=BF2%5Fds%5Fkey%5Ftmp&valueLength=31
-
+            
             if (!IsRcc())
                 throw new RobloxException(400, 0, "BadRequest");
-
+            
             return new
             {
                 data = new
@@ -1272,7 +1272,7 @@ namespace Roblox.Website.Controllers
                 verifiedId = "1",
             });
             var joinId = await services.users.ProcessApplication(id, 1, UserApplicationStatus.Approved);
-            await services.users.SetApplicationUserIdByJoinId(joinId ?? "", result.userId);
+            await services.users.SetApplicationUserIdByJoinId(joinId, result.userId);
             
             var sess = await services.users.CreateSession(result.userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
