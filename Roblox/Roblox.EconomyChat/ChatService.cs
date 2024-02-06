@@ -45,12 +45,12 @@ public class ChatService : ServiceBase
         
     }
 
-    public async Task<IEnumerable<Roblox.EconomyChat.Models.ChannelChatMessage>> GetMessagesInChannel(long channelId, long startMessageId, int limit)
+    public Task<IEnumerable<Roblox.EconomyChat.Models.ChannelChatMessage>> GetMessagesInChannel(long channelId, long startMessageId, int limit)
     {
         if (!chatMessageDb.ContainsKey(channelId))
-            return Array.Empty<ChannelChatMessage>();
+            return Task.FromResult<IEnumerable<ChannelChatMessage>>(Array.Empty<ChannelChatMessage>());
         
-        return chatMessageDb[channelId].Where(v => v.messageId > startMessageId).Take(limit);
+        return Task.FromResult(chatMessageDb[channelId].Where(v => v.messageId > startMessageId).Take(limit));
     }
 
     public async Task<ChatMessage> CreateChannelMessage(long contextUserId, CreateMessageRequest request)
