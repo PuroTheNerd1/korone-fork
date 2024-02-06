@@ -867,11 +867,7 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("/Game/ValidateTicket.ashx")]
         public async Task<string> ValidateClientTicketRcc([Required, MVC.FromBody] ValidateTicketRequest request)
-        {
-#if DEBUG
-            return "true";
-#endif
-            
+        {           
             try
             {
                 // Below is intentionally caught by local try/catch. RCC could crash if we give a 500 error.
