@@ -686,7 +686,8 @@ public class GameServerService : ServiceBase
             }
         }
     }
-    
+
+    [Obsolete]
     public async Task DeleteOldGameServers()
     {
         // first part, do game servers
