@@ -798,7 +798,7 @@ namespace Roblox.Website.Controllers
                 Creator = new
                 {
                     Id = details.creatorTargetId,
-                    Name = details.name,
+                    Name = details.creatorName,
                 },
             };
         }
@@ -1069,7 +1069,7 @@ namespace Roblox.Website.Controllers
             List<string> allowedList = new List<string>()
             {
                 "ab2071468b7cd856173d1ce47f3bfdd9",
-                "cd20cc67e4224b365fde769cd3b92e41"
+                "6ca7876ddc24c07cb7a28487705b57b7"
             };
             return new { data = allowedList };
         }
