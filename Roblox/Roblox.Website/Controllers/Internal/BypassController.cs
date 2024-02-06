@@ -484,7 +484,7 @@ namespace Roblox.Website.Controllers
             return new MVC.RedirectResult("/");
         }
         [HttpPostBypass("/AbuseReport/InGameChatHandler.ashx")] // report abuse api
-        public async Task<dynamic> ReportAbuseAsync()
+        public async Task<MVC.ActionResult> ReportAbuseAsync()
         {
             string? report;
             using (StreamReader reader = new StreamReader(Request.Body))
