@@ -648,7 +648,7 @@ public class GameServerService : ServiceBase
         rccServer.StartInfo.UseShellExecute = true;
         rccServer.Start();
         System.Threading.Thread.Sleep(700);
-        string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServerFloatzel.lua");
+        string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServer.lua");
         
         string finalScript = originalScript.Replace
             ("%port%", $"{networkServerPort}").Replace

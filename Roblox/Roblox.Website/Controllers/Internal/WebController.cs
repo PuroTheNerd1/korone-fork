@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Roblox.Dto.Assets;
 using Roblox.Exceptions;
 using Roblox.Libraries.Assets;
@@ -45,18 +44,7 @@ public class WebController : ControllerBase
             }
         });
     }
-    [HttpGet("asset-thumbnail/json")]
-    public ActionResult<dynamic?> ReturnJsonAssetThumbnailInfo([Required] long assetId)
-    {
-        var jsonData = new
-        {
-            Url = $"https://www.projex.zip/Thumbs/Asset.ashx?assetId={assetId}",
-            Final = true
-        };
-        string jsonString = JsonConvert.SerializeObject(jsonData);
-        return Content(jsonString, "application/json");
-    }
-
+    
     [HttpGet("thumbs/avatar.ashx")]
     public async Task<RedirectResult> GetAvatarThumbnail(long userId)
     {
@@ -463,7 +451,7 @@ public class WebController : ControllerBase
     }
 
     [HttpGet("game/get-join-script")]
-    public async Task<dynamic> GetJoinScript(long placeId, int year)
+    public async Task<dynamic> GetJoinScript(long placeId)
     {
         // TODO: Rate limit, or caching, or something
         var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
@@ -472,7 +460,7 @@ public class WebController : ControllerBase
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
         var bootstrapperArgs = $"://1+launchmode:play+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/game/PlaceLauncher.ashx?placeId={placeId}+k:l";
         var args =
-            $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {Request.Cookies[".ROBLOSECURITY"]} --joinScriptUrl {Configuration.BaseUrl}/game/placelauncher.ashx?placeId={placeId}&year={year}";
+            $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {Request.Cookies[".ROBLOSECURITY"]} --joinScriptUrl {Configuration.BaseUrl}/game/placelauncher.ashx?placeId={placeId}";
         return new
         {
             joinScriptUrl = bootstrapperArgs,
