@@ -389,7 +389,11 @@ namespace Roblox.Website.Controllers
 
             throw new NotImplementedException();
         }
-
+        [HttpGet("/Thumbs/gameicon.ashx")]
+        public async Task<MVC.RedirectResult> GAMEICON([Required] long assetId)
+        {
+            return new MVC.RedirectResult($"https://www.projex.zip/Thumbs/Asset.ashx?assetId={assetId}", true);
+        }      
         [HttpGet("Game/LuaWebService/HandleSocialRequest.ashx")]
         public async Task<string> LuaSocialRequest([Required, MVC.FromQuery] string method, long? playerid = null, long? groupid = null, long? userid = null)
         {
@@ -626,7 +630,7 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
-        public async Task<dynamic> PlaceLaunch(long placeId)
+        public async Task<dynamic> PlaceLaunch(long placeId, int year)
         {
             
             if (userSession == null)
@@ -651,7 +655,7 @@ namespace Roblox.Website.Controllers
                 {
                     jobId = result.job,
                     status = (int)result.status,
-                    joinScriptUrl = $"{Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
+                    joinScriptUrl = $"{Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}&year={year}",
                     authenticationUrl = Configuration.BaseUrl + "/Login/Negotiate.ashx",
                     authenticationTicket = Request.Cookies[".ROBLOSECURITY"],
                     message = (string?)null,
@@ -681,9 +685,9 @@ namespace Roblox.Website.Controllers
             };
         }
 #endif
-
+        string characterAppearanceUrl;
         [HttpGetBypass("game/join.ashx")]
-        public async Task<dynamic> JoinGame(string jobId, long placeId)
+        public async Task<dynamic> JoinGame(string jobId, long placeId, int year)
         {
             GamesService gamesService = new GamesService();
             PlaceEntry uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
@@ -702,7 +706,27 @@ namespace Roblox.Website.Controllers
             }
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}"; //$"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
+            //string characterAppearanceUrl2016 = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}"; 
+            //string characterAppearanceUrl2017 = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}"; //$"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}"; 
+
+            //DateTime currentUtcDateTime = DateTime.UtcNow;
+            //string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            /*
+            string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
+            string ticketSignature = SignatureController.SignStringResponseForClientFromPrivateKey(cticket);
+            
+            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{formattedDateTime}";
+            string ticketSignature2 = SignatureController.SignStringResponseForClientFromPrivateKey(ticket2);
+
+            string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
+            */
+
+            if (year == 2017){
+               string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
+            }
+            else {
+                string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}"; 
+            }
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
 
@@ -714,8 +738,8 @@ namespace Roblox.Website.Controllers
 
             string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-
-            dynamic joinScript = new
+            if (year == 2017) {
+            dynamic joinScript2017 = new
             {
                 ClientPort = 0,
                 MachineAddress = "127.0.0.1",
@@ -726,8 +750,7 @@ namespace Roblox.Website.Controllers
                 SeleniumTestMode = false,
                 UserId = userId,
                 SuperSafeChat = false,
-                CharacterAppearance =
-                    characterAppearanceUrl,
+                CharacterAppearance = characterAppearanceUrl,
                 ClientTicket = finalTicket,
                 GameId = jobId,
                 PlaceId = placeId,
@@ -748,15 +771,59 @@ namespace Roblox.Website.Controllers
                 IsRobloxPlace = uni.builderId == 1,
                 GenerateTeleportJoin = false,
                 IsUnknownOrUnder13 = false,
-                SessionId = "",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.fossci.com|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
+                DataCenterId = 0,
+                UniverseId = 0,
+                BrowserTrackerId = 0,
+                UsePortraitMode = false,
+                FollowUserId = 0
+            }; 
+            Console.WriteLine("2017 Join script");
+            return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript2017);
+            }
+            else {
+            dynamic joinScript = new
+            {
+                ClientPort = 0,
+                MachineAddress = "85.215.186.154",
+                ServerPort = GameServerService.currentGameServerPorts[jobId], 
+                PingUrl = "",
+                PingInterval = 120,
+                UserName = username,
+                SeleniumTestMode = false,
+                UserId = userId,
+                SuperSafeChat = false,
+                CharacterAppearance = characterAppearanceUrl,
+                ClientTicket = finalTicket,
+                GameId = jobId,
+                PlaceId = placeId,
+                MeasurementUrl = "",
+                WaitingForCharacterGuid = Guid.NewGuid().ToString(),
+                BaseUrl = Configuration.BaseUrl,
+                ChatStyle = "ClassicAndBubble",
+                VendorId = 0,
+                ScreenShotInfo = "",
+                VideoInfo = "",
+                CreatorId = uni.builderId,
+                CreatorTypeEnum = "User",
+                MembershipType = membership,
+                AccountAge = accountAgeDays,
+                CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
+                CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
+                CookieStoreEnabled = true,
+                IsRobloxPlace = uni.builderId == 1,
+                GenerateTeleportJoin = false,
+                IsUnknownOrUnder13 = false,
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.fossci.com|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 DataCenterId = 0,
                 UniverseId = 0,
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 FollowUserId = 0
             };
-            Console.WriteLine("hi");
+            Console.WriteLine("2016 Joinscript");
             return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript);
+            }
         }
     
         [HttpGetBypass("Asset/CharacterFetch.ashx")]
@@ -1164,21 +1231,31 @@ namespace Roblox.Website.Controllers
         {
             List<string> allowedList = new List<string>()
             {
-                "ab2071468b7cd856173d1ce47f3bfdd9",
-                "29bac5f08da46d1c269dd1e106f09863"
+                //"ab2071468b7cd856173d1ce47f3bfdd9",
+                "29bac5f08da46d1c269dd1e106f09863",
+                "bca16d73a701fd008b363de3d7cef9b0"
             };
             return new { data = allowedList };
         }
         
-        [HttpGetBypass("GetAllowedSecurityVersions")]
         [HttpGetBypass("GetAllowedSecurityKeys")]
-        public MVC.ActionResult<dynamic> AllowedSecurityVersions()
+        [HttpGetBypass("GetAllowedSecurityVersions")]
+        public MVC.IActionResult AllowedSecurityVersions()
         {
-            List<string> allowedList = new List<string>()
+            List<string> allowedList = new List<string>
             {
-                "0.235.0pcplayer"
+                "0.314.0pcplayer"
             };
-            return new { data = allowedList };
+            var jsonString = JsonConvert.SerializeObject(allowedList, new JsonSerializerSettings
+            {
+                StringEscapeHandling = StringEscapeHandling.Default
+            });
+            return new MVC.ContentResult
+            {
+                ContentType = "application/json",
+                Content = jsonString,
+                StatusCode = 200
+            };
         }
         [HttpGetBypass("game/validate-place-join")]
         [HttpPostBypass("universes/validate-place-join")]
@@ -1189,10 +1266,17 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        public MVC.ActionResult<dynamic> GetAppSettings(string type)
+        public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
             try
             {
+                if (apiKey == "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79")
+                {
+                    string AppSettings16 = Path.Combine(Configuration.JsonDataDirectory, "ClientAppSettings2016" + ".json");
+                    string jsonContent16 = System.IO.File.ReadAllText(AppSettings16);
+                    dynamic? clientAppSettingsData16 = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent16);
+                    return clientAppSettingsData16 ?? "";
+                }
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
                 string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
                 dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
