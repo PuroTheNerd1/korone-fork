@@ -718,8 +718,8 @@ namespace Roblox.Website.Controllers
             dynamic joinScript = new
             {
                 ClientPort = 0,
-                MachineAddress = "127.0.0.1",
-                ServerPort = 2005, //GameServerService.currentGameServerPorts[jobId], 
+                MachineAddress = "85.215.186.154",
+                ServerPort = GameServerService.currentGameServerPorts[jobId], 
                 PingUrl = "",
                 PingInterval = 120,
                 UserName = username,
@@ -1164,8 +1164,8 @@ namespace Roblox.Website.Controllers
         {
             List<string> allowedList = new List<string>()
             {
-                "ab2071468b7cd856173d1ce47f3bfdd9",
-                "29bac5f08da46d1c269dd1e106f09863"
+                "bca16d73a701fd008b363de3d7cef9b0",
+                "43b0eee4522fa26d101a70a1d424f638"
             };
             return new { data = allowedList };
         }
