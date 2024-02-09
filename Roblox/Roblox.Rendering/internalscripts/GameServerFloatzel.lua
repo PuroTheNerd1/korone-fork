@@ -201,7 +201,7 @@ local function shutdown()
 	end
 	pcall(function()
 		game:HttpPost(url .. "/gs/shutdown", http:JSONEncode({
-			["authorization"] = "_AUTHORIZATION_STRING_",
+			["authorization"] = "adr3092f90g8902g0924ojigwrwnrjlknkwjrgjnkwrnkjggwrkjngdd",
 			["serverId"] = game.JobId,
 			["placeId"] = placeId,
 		}), false, "application/json");

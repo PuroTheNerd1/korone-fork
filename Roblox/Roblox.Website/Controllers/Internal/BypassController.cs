@@ -78,10 +78,12 @@ namespace Roblox.Website.Controllers
             }
             
             var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
+            /*
             if (latestVersion.contentUrl is null)
             {
                 throw new RobloxException(403, 0, "Forbidden"); // ?
             }
+            */
             // These files are large, encourage clients to cache them
             HttpContext.Response.Headers.CacheControl = new CacheControlHeaderValue()
             {
@@ -222,8 +224,8 @@ namespace Roblox.Website.Controllers
             }
             if (details.is18Plus && !isRcc && !isBotRequest && !is18OrOver)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
-            if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
-                throw new RobloxException(403, 0, "Asset not approved for requester");
+            //if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
+                //throw new RobloxException(403, 0, "Asset not approved for requester");
             
             var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
             Stream? assetContent = null;
@@ -462,11 +464,10 @@ namespace Roblox.Website.Controllers
 
             throw new NotImplementedException();
         }
-
-        [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
+        /*
+        [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
         {
-            Response.Cookies.Delete(".ROBLOSECURITY");
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
             {
                 Domain = ".projex.zip",
@@ -476,8 +477,38 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.Lax,
             });
+            Console.WriteLine($"set cookie {suggest}");
         }
+        */
 
+        [HttpGet("/Login/Negotiate.ashx")]
+        [HttpPostBypass("/Login/Negotiate.ashx")]
+        public MVC.ActionResult<string> NegotiateAuthentication(string suggest)
+        {
+            //Console.WriteLine("[NegotiateAuthentication] Client requested negotiation!");
+            try
+            {
+
+                HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
+                {
+                    Domain = ".projex.zip",
+                    Secure = false,
+                    Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                    IsEssential = true,
+                    Path = "/",
+                    SameSite = SameSiteMode.Lax,
+                });
+                Console.WriteLine("Set client's account cookie successfully!");
+                return suggest;
+            
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Critical error while setting client's account cookie: {e}");
+                return BadRequest();
+            }
+
+        }
         [HttpGet("/auth/submit")]
         public MVC.RedirectResult SubmitAuth(string auth)
         {
@@ -597,10 +628,12 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId)
         {
+            
             if (userSession == null)
             {
                 return BadRequest();
             }
+            
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             GameServerJwt details = new GameServerJwt
             {
@@ -685,8 +718,8 @@ namespace Roblox.Website.Controllers
             dynamic joinScript = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
-                ServerPort = GameServerService.currentGameServerPorts[jobId], 
+                MachineAddress = "127.0.0.1",
+                ServerPort = 2005, //GameServerService.currentGameServerPorts[jobId], 
                 PingUrl = "",
                 PingInterval = 120,
                 UserName = username,
@@ -835,7 +868,7 @@ namespace Roblox.Website.Controllers
         public void ShutDownServer([Required, MVC.FromBody] ReportActivity request)
         {
             CheckServerAuth(request.authorization);
-            services.gameServer.ShutDownServer(request.serverId);
+            services.gameServer.ShutDownServerAsync(request.serverId);
         }
 
         [HttpPostBypass("/gs/players/report")]
@@ -1021,8 +1054,71 @@ namespace Roblox.Website.Controllers
 		        throw new Exception("Internal");
 	        }
 #endif
-        }
+        }       
+        [HttpGetBypass("game/load-place-info")]
+        [HttpPostBypass("game/load-place-info")]
+        public dynamic LoadPlaceInfo()
+        {
+            //Console.WriteLine("[LoadPlaceInfo] Client or RCC (Server) is requesting place info!");
+            var placeId = Request.Headers["roblox-place-id"];
+            long.TryParse(placeId, out long pid);
+            //var placeInfo = 1;
+            //if (placeInfo == null)
+            //{
+            //return BadRequest("The place requested does not exist.");
+            //}
 
+            var jsonData = new
+            {
+                CreatorId = 269,
+                CreatorType = "User",
+                PlaceVersion = 1,
+                GameId = 1,
+                IsRobloxPlace = true
+            };
+
+            string jsonString = JsonConvert.SerializeObject(jsonData);
+            return Content(jsonString, "application/json");
+        }
+        [HttpGet("/v1.1/game-start-info")]
+        public dynamic ReturnGameStartInfo(long universeId)
+        {
+
+            Console.WriteLine("[ReturnGameStartInfo] Client or RCC requested game start info!");
+
+            var jsonData = new
+            {
+                gameAvatarType = "PlayerChoice",
+                allowCustomAnimations = "True",
+                universeAvatarCollisionType = "OuterBox",
+                universeAvatarBodyType = "Standard",
+                message = "",
+                universeAvatarMinScales = new
+                {
+                    width = 1,
+                    height = 1,
+                    head = 1,
+                    depth = 1,
+                    proportion = 0,
+                    bodyType = 0
+                },
+                universeAvatarMaxScales = new
+                {
+                    width = 1,
+                    height = 1,
+                    head = 1,
+                    depth = 1,
+                    proportion = 0,
+                    bodyType = 0
+                },
+                universeAvatarAssetOverrides = new List<long>() { },
+                moderationStatus = (string?)null
+            };
+
+            var jsonString = JsonConvert.SerializeObject(jsonData);
+            return jsonString;
+
+        }
         [HttpGetBypass("botapi/migrate-alltypes")]
         public async Task<dynamic> MigrateAllItemsBot([Required, MVC.FromQuery] string url)
         {
@@ -1069,7 +1165,7 @@ namespace Roblox.Website.Controllers
             List<string> allowedList = new List<string>()
             {
                 "ab2071468b7cd856173d1ce47f3bfdd9",
-                "6ca7876ddc24c07cb7a28487705b57b7"
+                "29bac5f08da46d1c269dd1e106f09863"
             };
             return new { data = allowedList };
         }

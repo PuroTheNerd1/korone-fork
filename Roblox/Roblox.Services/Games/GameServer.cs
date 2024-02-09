@@ -297,7 +297,7 @@ public class GameServerService : ServiceBase
             new List<dynamic> {placeId, gameServerId, gameServerPort});
     }
 
-    public void ShutDownServer(string serverId)
+    public async Task ShutDownServerAsync(string serverId)
     {
         // TODO: When we add multiple servers for the same game (most likely not for a while), get the jobId or kill the server a better way.
         string placeJobId = serverId; // hopefully not null, shouldn't be??
@@ -311,6 +311,8 @@ public class GameServerService : ServiceBase
         jobRccs.Remove(placeJobId);
         mainRCCPortsInUse.Remove(rccProcess);
         RemoveAllPlayersFromPlaceId(placeId);
+        await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
+        await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
         Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
     }
     
@@ -452,8 +454,8 @@ public class GameServerService : ServiceBase
             .ToList();
         return serverData!;
     }
-
-    /*private async Task<GameServerGetOrCreateResponse> GetServerForPlaceV2(long placeId)
+/*
+    private async Task<GameServerGetOrCreateResponse> GetServerForPlaceV2(long placeId)
     {
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(30));
         if (!serverCreationLock.IsAcquired)
@@ -530,7 +532,9 @@ public class GameServerService : ServiceBase
         {
             var data = entry.ip.Split(":");
             var ip = data[0];
-            var port = data[1];
+            
+            int mainRCCPort = RandomComponent.Next(30000, 40000);
+            int networkServerPort = RandomComponent.Next(50000, 60000);
             var runningCount = serverInfo!.data.Count();
             if (runningCount >= entry.maxServerCount)
             {
@@ -554,9 +558,10 @@ public class GameServerService : ServiceBase
             {
                 var watch = new Stopwatch();
                 watch.Start();
-                await StartGame(ip, port, placeId, id, gamePort.port);
+                await StartGameServer(placeId, mainRCCPort, networkServerPort, id, 43200);
+                //await StartGame(ip, port, placeId, id, gamePort.port);
                 watch.Stop();
-                GameMetrics.ReportTimeToStartGameServer(ip, port, watch.ElapsedMilliseconds);
+                //GameMetrics.ReportTimeToStartGameServer(ip, mainRCCPort, watch.ElapsedMilliseconds);
             }
             catch (Exception e)
             {
@@ -579,8 +584,7 @@ public class GameServerService : ServiceBase
             status = JoinStatus.Waiting,
         };
     }
-    */
-
+*/
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId)
     {
         string jobId = Guid.NewGuid().ToString();
@@ -597,7 +601,19 @@ public class GameServerService : ServiceBase
         else
         {
             StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, 43200);
-        }
+            /*
+            await db.ExecuteAsync(
+                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
+                new
+                {
+                    id = jobId,
+                    asset_id = placeId,
+                    ip = "85.125.186.154",
+                    port = networkServerPort,
+                    server_connection = $"85.125.186.154:{networkServerPort}", 
+                });
+            */
+        }   
 
         return StartGameInfo != "BAD"
             ? new GameServerGetOrCreateResponse()
@@ -632,7 +648,7 @@ public class GameServerService : ServiceBase
         rccServer.StartInfo.UseShellExecute = true;
         rccServer.Start();
         System.Threading.Thread.Sleep(700);
-        string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServerFloatzel.lua");
+        string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServer.lua");
         
         string finalScript = originalScript.Replace
             ("%port%", $"{networkServerPort}").Replace
