@@ -434,11 +434,6 @@ public class UsersService : ServiceBase, IService
         
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE id = :id", new { id = userId });
         if (res == null) throw new RecordNotFoundException();
-        if (userId == 12)
-        {
-            res.isAdmin = true;
-            res.isModerator = true;
-        }
         userInfoCache.Set(userId, res);
         return res;
     }

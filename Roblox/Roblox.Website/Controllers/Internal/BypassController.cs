@@ -476,7 +476,7 @@ namespace Roblox.Website.Controllers
 
             if (sessResult.userId == null)
             {
-                return (long?)null;
+                return "no session found";
             }
 
             return sessResult.userId;
