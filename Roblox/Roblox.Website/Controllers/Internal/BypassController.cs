@@ -955,7 +955,21 @@ namespace Roblox.Website.Controllers
         {
             return new MVC.RedirectResult("/internal/membership");
         }
-        
+        [HttpGet("game/players/{userId}")]
+
+        public MVC.ActionResult<dynamic> ChatWhiteList(long userId)
+        {
+            string whitelist = "whitelist";
+
+            dynamic json = new
+            {
+               ChatFilter = whitelist,
+            };
+
+            string jsonString = JsonConvert.SerializeObject(json);
+            return Content(jsonString, "application/json");
+        }
+
         [HttpGetBypass("GetAllowedMD5Hashes")]
         public MVC.ActionResult<dynamic> AllowedMD5Hashes()
         {
@@ -963,7 +977,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "88f9751261ecb4d992ef7bc212e66726"
+                "43b0eee4522fa26d101a70a1d424f638"
             };
 
             return new { data = allowedList };
@@ -977,7 +991,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "0.2.0ecspcplayer"
+                "0.235.0pcplayer"
             };
 
             return new { data = allowedList };
