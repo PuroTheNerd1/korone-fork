@@ -157,23 +157,12 @@ export default class CommandHandler extends StdExceptions {
 	
 	constructor() {
 		super();
-		this.onStartup();
 	}
 
 	private randomId(): string {
 		// use UUID for consistency
 		return uuid.v4();
 		// return require('crypto').randomBytes(32).toString('hex');
-	}
-
-	private onStartup() {
-		const rccStopPath = path.join('C:\\ProjectX\\services\\game-server\\stop-all-rcc.bat'); 	
-		try {
-			let stopRequest = cp.spawnSync('cmd.exe', ['/c', rccStopPath]); 
-			console.log('[info] result for stopping rcc', stopRequest.stdout.toString(), stopRequest.status, stopRequest.stderr.toString());
-		} catch (e) {
-			console.log('[error] error in OnStartup - could not shut down existing RCC instances (probably not fatal):', e);
-		}
 	}
 
 	private async startRcc(game: IGameEntry): Promise<void> {
@@ -218,7 +207,7 @@ export default class CommandHandler extends StdExceptions {
 		if (!dockerEnabled) {
 			const rccPath = conf.rcc || path.join(__dirname, '../../rccservice/Release/');
 			const rccExecutable = rccPath + (os.platform() === 'win32' ? 'RCCService.exe' : 'rcc');
-			rcc = cp.spawn(rccExecutable, ['-Console', '-Port', portToRunOn.toString(), '-Content', conf.content || path.join(rccPath, './content/')], {
+			rcc = cp.spawn(rccExecutable, ['-Console', '-Port', portToRunOn.toString()], {
 				cwd: rccPath,
 				stdio: 'pipe',
 			});
@@ -403,7 +392,7 @@ export default class CommandHandler extends StdExceptions {
 		const xml = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
-    <OpenJobEx xmlns="http://roblox.com/">
+    <OpenJobEx xmlns="http://projex.zip/">
         <job>
             <id>${jobId}</id>
             <category>0</category>
@@ -432,7 +421,7 @@ export default class CommandHandler extends StdExceptions {
 		const xml = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
-    <CloseJob xmlns="http://roblox.com/" jobID="${jobId}">
+    <CloseJob xmlns="http://projex.zip/" jobID="${jobId}">
 		<jobID>${jobId}</jobID>
         <job>
             <id>${jobId}</id>
@@ -927,7 +916,7 @@ export default class CommandHandler extends StdExceptions {
 		const jobRequest = this.createSoapRequest(
 			scripts.playerThumbnail
 				// set user id
-				.replace(/65789275746246/g, user.userId.toString())
+				.replace(/65789275746246/g, "1")
 				// set user avatar json
 				.replace(/JSON_AVATAR/g, JSON.stringify(user).replace(`'`, `\\'`))
 				.replace(/_X_RES_/g, (420 * resolutionMultiplier.userThumbnail).toString())

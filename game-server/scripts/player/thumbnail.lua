@@ -1,7 +1,7 @@
 local jobId = "InsertJobIdHere";
 local userId = 65789275746246;
 local mode = "R6";
-local baseURL = "http://localhost";
+local baseURL = "http://www.projex.zip";
 local uploadURL = "UPLOAD_URL_HERE";
 local ScriptContext = game:GetService("ScriptContext");
 local Lighting = game:GetService('Lighting');
@@ -15,7 +15,7 @@ game:GetService('ThumbnailGenerator').GraphicsMode = 2;
 HttpService.HttpEnabled = true;
 ScriptContext.ScriptsDisabled = true
 Lighting.Outlines = false
-ContentProvider:SetBaseUrl('http://localhost')
+ContentProvider:SetBaseUrl('http://www.projex.zip')
 local Insert = game:GetService("InsertService")
 
 local function applyMesh(Player, children, limb)
