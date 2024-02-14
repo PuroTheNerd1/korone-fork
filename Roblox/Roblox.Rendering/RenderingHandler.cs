@@ -380,6 +380,57 @@ namespace Roblox.Rendering
             return result;
         }
 
+        public static async Task<string> RequestPackageRender(long assetId, int JobExpiration)
+        {
+            string characterAppearanceUrl = $"{BaseUrl}/Asset/FakeCharacterFetch.ashx?assetId={assetId}";
+            int RCCPort = RandomComponent.Next(10000, 25000);
+            Process renderRcc = new Process();
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
+            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
+            renderRcc.StartInfo.RedirectStandardError = false;
+            renderRcc.StartInfo.RedirectStandardOutput = false;
+            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.CreateNoWindow = false;
+            renderRcc.Start();
+            string originalScript = File.ReadAllText($"{LuaScriptPath}Avatar.lua");
+            string finalScript = originalScript.Replace
+                ("%baseUrl%", $@"""{BaseUrl}""").Replace
+                ("%characterAppearanceUrl%", $@"""{characterAppearanceUrl}""").Replace
+                ("%fileExtension%", @"""png""").Replace
+                ("%x%", "840").Replace
+                ("%y%", "840");
+            
+            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
+               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+                <soap:Body>
+                    <BatchJobEx xmlns=""http://projex.zip/"">
+                        <job>
+                            <id>{Guid.NewGuid().ToString()}</id>
+                            <category>1</category>
+                            <cores>1</cores>
+                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
+                        </job>
+                        <script>
+                            <name>{Guid.NewGuid().ToString()}</name>
+                            <script>
+                                <![CDATA[
+                                {finalScript}
+                                ]]>
+                            </script>
+                        </script>
+                    </BatchJobEx>
+                </soap:Body>
+            </soap:Envelope>";
+            await WaitForPort(RCCPort);
+            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
+            renderRcc.Kill();
+            return result;
+        }
         public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
         {
             string characterAppearanceUrl = $"{BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";

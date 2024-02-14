@@ -623,6 +623,13 @@ namespace Roblox.Website.Controllers
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId};{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
 
+        [HttpGetBypass("Asset/FakeCharacterFetch.ashx")]
+        public async Task<string> FakeCharacterFetchASHX(long assetId)
+        {
+            var assets = await services.assets.GetPackageAssets(assetId);
+            return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId=2;{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
+        }
+
         [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<string> CharacterFetch(long userId)
         {

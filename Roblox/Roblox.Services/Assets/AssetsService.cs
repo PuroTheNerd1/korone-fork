@@ -420,7 +420,18 @@ public class AssetsService : ServiceBase, IService
             await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.ReviewApproved);
         }
     }
-    
+    private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null) {
+        var latestVersion = await GetLatestAssetVersion(assetId);
+        string response = await RenderingHandler.RequestPackageRender(assetId, 20);
+        string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
+        byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
+        using (var imageStream = new MemoryStream(imageBytes))
+        {
+            var key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+            await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.ReviewApproved);
+        }
+    }  
+    /*
     private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
@@ -468,7 +479,7 @@ public class AssetsService : ServiceBase, IService
         await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
             ModerationStatus.AwaitingApproval);
     }
-
+*/
     private async Task CreateAssetThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
