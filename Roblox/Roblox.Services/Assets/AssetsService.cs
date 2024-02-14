@@ -412,7 +412,6 @@ public class AssetsService : ServiceBase, IService
         bool isFace = assetType == Type.Face;
         var latestVersion = await GetLatestAssetVersion(assetId);
         string response = await Rendering.RenderingHandler.RequestImageThumbnail(assetId, 20, isFace);
-        
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
         using (var imageStream = new MemoryStream(imageBytes))
@@ -474,7 +473,6 @@ public class AssetsService : ServiceBase, IService
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
         string response = await Rendering.RenderingHandler.RequestHatThumbnail(assetId, 20);
-        
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
         using (var imageStream = new MemoryStream(imageBytes))
@@ -489,7 +487,6 @@ public class AssetsService : ServiceBase, IService
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
         string response = await RenderingHandler.RequestMeshThumbnail(assetId, 20);
-        
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
         using (var imageStream = new MemoryStream(imageBytes))
@@ -504,7 +501,6 @@ public class AssetsService : ServiceBase, IService
         string key;
         var latestVersion = await GetLatestAssetVersion(assetId);
         string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
-        
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 352, 352);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
         using (var imageStream = new MemoryStream(imageBytes))
@@ -608,9 +604,7 @@ public class AssetsService : ServiceBase, IService
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
         string response = await RenderingHandler.RequestHeadRender(assetId, 20);
-        
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
-        
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
         using (var imageStream = new MemoryStream(imageBytes))
         {
@@ -1604,8 +1598,6 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             default:
                 throw new Exception("Unsupported creatorType: " + details.creatorType);
         }
-
-        return false;
     }
 
     public async Task<IEnumerable<CreationEntry>> GetCreations(CreatorType creatorType, long creatorId,

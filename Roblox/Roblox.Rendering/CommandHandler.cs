@@ -25,7 +25,7 @@ namespace Roblox.Rendering
                 await ConnectionManager();
             });
         }
-        
+
         private static async Task ListenForMessages()
         {
             // allocate 8mb
@@ -35,7 +35,6 @@ namespace Roblox.Rendering
             {
                 try
                 {
-                    
                     var result = await ws.ReceiveAsync(memory.Memory, CancellationToken.None);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
@@ -124,7 +123,6 @@ namespace Roblox.Rendering
 
         private static async Task<RenderResponse<Stream>> SendCommand(string command, IEnumerable<dynamic> arguments, CancellationToken? cancellationToken)
         {
-            CommandHandler.Configure("ws://localhost:3189", "VestiaZeta");
             var id = Guid.NewGuid().ToString();
             var cmd = new RenderRequest()
             {

@@ -601,7 +601,7 @@ public class GameServerService : ServiceBase
         else
         {
             StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, 43200);
-            /*
+            
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
                 new
@@ -612,7 +612,7 @@ public class GameServerService : ServiceBase
                     port = networkServerPort,
                     server_connection = $"85.125.186.154:{networkServerPort}", 
                 });
-            */
+            
         }   
 
         return StartGameInfo != "BAD"

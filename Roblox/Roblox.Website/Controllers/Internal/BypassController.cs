@@ -78,12 +78,10 @@ namespace Roblox.Website.Controllers
             }
             
             var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
-            /*
             if (latestVersion.contentUrl is null)
             {
                 throw new RobloxException(403, 0, "Forbidden"); // ?
             }
-            */
             // These files are large, encourage clients to cache them
             HttpContext.Response.Headers.CacheControl = new CacheControlHeaderValue()
             {
@@ -224,8 +222,8 @@ namespace Roblox.Website.Controllers
             }
             if (details.is18Plus && !isRcc && !isBotRequest && !is18OrOver)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
-            //if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
-                //throw new RobloxException(403, 0, "Asset not approved for requester");
+            if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
+                throw new RobloxException(403, 0, "Asset not approved for requester");
             
             var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
             Stream? assetContent = null;
@@ -404,7 +402,7 @@ namespace Roblox.Website.Controllers
                     {
                         isInGroup = true;
                     }
-                    var group = await services.groups.GetUserRoleInGroup((long)(groupid ?? 0), (long)(playerid ?? 0));
+                    var group = await services.groups.GetUserRoleInGroup((long) groupid, (long) playerid);
                     if (group.rank != 0)
                         isInGroup = true;
                 }
@@ -464,8 +462,8 @@ namespace Roblox.Website.Controllers
 
             throw new NotImplementedException();
         }
-        /*
-        [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
+
+        [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
         {
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
@@ -477,163 +475,22 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.Lax,
             });
-            Console.WriteLine($"set cookie {suggest}");
         }
-        */
 
-        [HttpGet("/Login/Negotiate.ashx")]
-        [HttpPostBypass("/Login/Negotiate.ashx")]
-        public MVC.ActionResult<string> NegotiateAuthentication(string suggest)
-        {
-            //Console.WriteLine("[NegotiateAuthentication] Client requested negotiation!");
-            try
-            {
-
-                HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
-                {
-                    Domain = ".projex.zip",
-                    Secure = false,
-                    Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                    IsEssential = true,
-                    Path = "/",
-                    SameSite = SameSiteMode.Lax,
-                });
-                Console.WriteLine("Set client's account cookie successfully!");
-                return suggest;
-            
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Critical error while setting client's account cookie: {e}");
-                return BadRequest();
-            }
-
-        }
         [HttpGet("/auth/submit")]
         public MVC.RedirectResult SubmitAuth(string auth)
         {
             return new MVC.RedirectResult("/");
         }
-        [HttpPostBypass("/AbuseReport/InGameChatHandler.ashx")] // report abuse api
-        public async Task<MVC.ActionResult> ReportAbuseAsync()
-        {
-            string? report;
-            using (StreamReader reader = new StreamReader(Request.Body))
-            {
-                report = await reader.ReadToEndAsync();
-            }
-            var xmlDoc = XDocument.Parse(report);
-            string? webhookurl = "https://discord.com/api/webhooks/1199125219143598250/zsjMa-lZW_iDZBp8nLbKgZbnO3phlcepefB3lJgCpK7Elet8i2BV2VrDo_mkti_9PYFm";
-            string? userid = xmlDoc.Root?.Attribute("userID")?.Value;
-            string? placeid = xmlDoc.Root?.Attribute("placeID")?.Value;
-            string? gamejobid = xmlDoc.Root?.Attribute("gameJobID")?.Value;
-            string? reason = xmlDoc.Root?.Element("comment")?.Value;
-            var messages = xmlDoc.Root?.Element("messages")?.Elements("message")
-                .Select(m => new
-                {
-                    UserID = m.Attribute("userID")?.Value,
-                    Content = m.Value
-                });
 
-            foreach (var message in messages)
-            {
-                Console.WriteLine($"UserID: {message?.UserID}, Content: {message?.Content}");
-            }
-            Console.WriteLine($"Someone used abuse report!");
-            Console.WriteLine("Sending to the discord webhook");
-            dynamic WebHookJSON = new
-            {
-                content = "@here",
-                embeds = new[]
-            {
-                new
-                {
-                    title = "Details",
-                    color = null as object,
-                    fields = new object[]
-                    {
-                        new
-                        {
-                            name = "UID",
-                            value = userid
-                        },
-                        new
-                        {
-                            name = "PlaceID",
-                            value = placeid
-                        },
-                        new
-                        {
-                            name = "GameJobID",
-                            value = gamejobid
-                        },
-                        new
-                        {
-                            name = "Messages",
-                            value = string.Join("\n", messages.Select(msg => $"UserID: {msg.UserID}, Content: {msg.Content}")),
-                            inline = true
-                        },
-                        new
-                        {
-                            name = "Reason",
-                            value = reason
-                        },
-                    },
-                    author = new
-                    {
-                        name = "Abuse Report"
-                    }
-                }
-            }
-            };
-
-            string? jsonString = JsonConvert.SerializeObject(WebHookJSON, Formatting.Indented);
-            try
-            {
-                using (HttpClient httpClient = new HttpClient())
-                {
-                    StringContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-
-                    HttpResponseMessage response = await httpClient.PostAsync(webhookurl, content);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine("Success");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"failure code: {response.StatusCode}");
-                    }
-                }
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error: {e}");
-                return BadRequest();
-            }
-        }
-        [HttpGet("/game/players/{Player}")]
-        public dynamic ChatWhitelist(long Player)
-        {
-            var result = new
-            {
-                ChatFilter = "whitelist"
-            };
-
-            string jsonString = JsonConvert.SerializeObject(result);
-            return jsonString;
-        }
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId)
         {
-            
             if (userSession == null)
             {
                 return BadRequest();
             }
-            
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             GameServerJwt details = new GameServerJwt
             {
@@ -669,7 +526,7 @@ namespace Roblox.Website.Controllers
         public static long startUserId {get;set;} = 30;
 #if DEBUG
         [HttpGetBypass("/game/get-join-script-debug")]
-        public dynamic GetJoinScriptDebug(long placeId, long userId = 12)
+        public async Task<dynamic> GetJoinScriptDebug(long placeId, long userId = 12)
         {
             //startUserId = 12;
             var result = services.gameServer.CreateTicket(startUserId, placeId, GetIP());
@@ -702,7 +559,7 @@ namespace Roblox.Website.Controllers
             }
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}"; //$"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
+            string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?placeId={placeId}&userId={userId}"; //$"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
 
@@ -719,7 +576,7 @@ namespace Roblox.Website.Controllers
             {
                 ClientPort = 0,
                 MachineAddress = "85.215.186.154",
-                ServerPort = GameServerService.currentGameServerPorts[jobId], 
+                ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
                 UserName = username,
@@ -758,7 +615,7 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("hi");
             return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript);
         }
-    
+
         [HttpGetBypass("Asset/CharacterFetch.ashx")]
         public async Task<string> CharacterFetchASHX(long userId)
         {
@@ -803,7 +660,6 @@ namespace Roblox.Website.Controllers
 
             return jsonString;
         }
-
         private void CheckServerAuth(string auth)
         {
             if (auth != Configuration.GameServerAuthorization)
@@ -872,7 +728,6 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("/gs/players/report")]
-        [Obsolete]
         public async Task ReportPlayerActivity([Required, MVC.FromBody] ReportPlayerActivity request)
         {
             CheckServerAuth(request.authorization);
@@ -900,7 +755,11 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("/Game/ValidateTicket.ashx")]
         public async Task<string> ValidateClientTicketRcc([Required, MVC.FromBody] ValidateTicketRequest request)
-        {           
+        {
+#if DEBUG
+            return "true";
+#endif
+            
             try
             {
                 // Below is intentionally caught by local try/catch. RCC could crash if we give a 500 error.
@@ -1010,7 +869,7 @@ namespace Roblox.Website.Controllers
             var robloxRoot = new XElement("roblox",
                 new XAttribute(XNamespace.Xmlns + "xmime", "http://www.w3.org/2005/05/xmlmime"),
                 new XAttribute(XNamespace.Xmlns + "xsi", "http://www.w3.org/2001/XMLSchema-instance"),
-                new XAttribute(xsi + "noNamespaceSchemaLocation", "http://www.projex.zip/roblox.xsd"),
+                new XAttribute(xsi + "noNamespaceSchemaLocation", "http://www.roblox.com/roblox.xsd"),
                 new XAttribute("version", 4)
             );
             robloxRoot.Add(new XElement("External", "null"));
@@ -1032,7 +891,8 @@ namespace Roblox.Website.Controllers
             // return as string
             return new XDocument(robloxRoot).ToString();
         }
-        [HttpPostBypass("/moderation/filtertext/")]
+
+        [MVC.HttpPost("/moderation/filtertext/")]
         public dynamic GetModerationText()
         {
             var text = HttpContext.Request.Form["text"].ToString();
@@ -1054,71 +914,8 @@ namespace Roblox.Website.Controllers
 		        throw new Exception("Internal");
 	        }
 #endif
-        }       
-        [HttpGetBypass("game/load-place-info")]
-        [HttpPostBypass("game/load-place-info")]
-        public dynamic LoadPlaceInfo()
-        {
-            //Console.WriteLine("[LoadPlaceInfo] Client or RCC (Server) is requesting place info!");
-            var placeId = Request.Headers["roblox-place-id"];
-            long.TryParse(placeId, out long pid);
-            //var placeInfo = 1;
-            //if (placeInfo == null)
-            //{
-            //return BadRequest("The place requested does not exist.");
-            //}
-
-            var jsonData = new
-            {
-                CreatorId = 269,
-                CreatorType = "User",
-                PlaceVersion = 1,
-                GameId = 1,
-                IsRobloxPlace = true
-            };
-
-            string jsonString = JsonConvert.SerializeObject(jsonData);
-            return Content(jsonString, "application/json");
         }
-        [HttpGet("/v1.1/game-start-info")]
-        public dynamic ReturnGameStartInfo(long universeId)
-        {
 
-            Console.WriteLine("[ReturnGameStartInfo] Client or RCC requested game start info!");
-
-            var jsonData = new
-            {
-                gameAvatarType = "PlayerChoice",
-                allowCustomAnimations = "True",
-                universeAvatarCollisionType = "OuterBox",
-                universeAvatarBodyType = "Standard",
-                message = "",
-                universeAvatarMinScales = new
-                {
-                    width = 1,
-                    height = 1,
-                    head = 1,
-                    depth = 1,
-                    proportion = 0,
-                    bodyType = 0
-                },
-                universeAvatarMaxScales = new
-                {
-                    width = 1,
-                    height = 1,
-                    head = 1,
-                    depth = 1,
-                    proportion = 0,
-                    bodyType = 0
-                },
-                universeAvatarAssetOverrides = new List<long>() { },
-                moderationStatus = (string?)null
-            };
-
-            var jsonString = JsonConvert.SerializeObject(jsonData);
-            return jsonString;
-
-        }
         [HttpGetBypass("botapi/migrate-alltypes")]
         public async Task<dynamic> MigrateAllItemsBot([Required, MVC.FromQuery] string url)
         {
@@ -1162,11 +959,13 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedMD5Hashes")]
         public MVC.ActionResult<dynamic> AllowedMD5Hashes()
         {
+            if (!IsRcc())
+                throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "bca16d73a701fd008b363de3d7cef9b0",
-                "43b0eee4522fa26d101a70a1d424f638"
+                "88f9751261ecb4d992ef7bc212e66726"
             };
+
             return new { data = allowedList };
         }
         
@@ -1174,20 +973,16 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedSecurityKeys")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
+            if (!IsRcc())
+                throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "0.235.0pcplayer"
+                "0.2.0ecspcplayer"
             };
+
             return new { data = allowedList };
         }
-        [HttpGetBypass("game/validate-place-join")]
-        [HttpPostBypass("universes/validate-place-join")]
-        [HttpGetBypass("universes/validate-place-join")]
-        public MVC.ActionResult<dynamic> ValidateJoin()
-        {
-            return "true";
-        }
-
+        
         [HttpGetBypass("Setting/QuietGet/{type}")]
         public MVC.ActionResult<dynamic> GetAppSettings(string type)
         {
@@ -1234,11 +1029,6 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> GetBalance()
         {
             return await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
-        }
-        [HttpGetBypass("users/{userid}/canmanage/{assetid}")]
-        public async Task<string> CanManage(long userId, long assetId)
-        {
-            return (await services.users.GetUserAssets(userId, assetId)).Any() ? "true" : "false";
         }
 
         [HttpGetBypass("/ownership/hasasset")]

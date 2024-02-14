@@ -78,7 +78,6 @@ public class FrontendProxyMiddleware
         "/game/get-join-script-debug",
         "/games/getgameinstancesjson",
         "/develop/upload",
-        "/universes/validate-place-join",
         // gs
         "/gs/activity",
         "/gs/ping",

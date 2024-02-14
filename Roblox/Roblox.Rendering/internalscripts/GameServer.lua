@@ -66,7 +66,7 @@ function start(placeId, port, url)
 		--		end)
 	end
 	
-	pcall(function() game:GetService("NetworkServer"):SetIsPlayerAuthenticationRequired(true) end) -- REMEMBER TO ENABLE!!
+	pcall(function() game:GetService("NetworkServer"):SetIsPlayerAuthenticationRequired(false) end) -- REMEMBER TO ENABLE!!
 	settings().Diagnostics.LuaRamLimit = 0
 	--settings().Network:SetThroughputSensitivity(0.08, 0.01)
 	--settings().Network.SendRate = 35
@@ -108,5 +108,4 @@ function start(placeId, port, url)
 	
 	end
 	
-start(%placeId%, %port%, "http://www.projex.zip")
-	
+start(%placeId%, %port%, "http://projex.zip")	

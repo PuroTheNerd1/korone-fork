@@ -4,7 +4,7 @@ local http = game:GetService("HttpService");
 http.HttpEnabled = false;
 
 -- begin dynamiclly edited
-local url = "http://www.projex.zip";
+local url = "http://projex.zip";
 local port = %port%;
 local placeId = %placeId%;
 local creatorType = Enum.CreatorType.User;
@@ -161,7 +161,7 @@ local function reportPlayerEvent(userId, t)
     -- wrapped in pcall to prevent keys spilling in error logs
 	local ok, msg = pcall(function()
 		local msg = http:JSONEncode({
-			["authorization"] = "adr3092f90g8902g0924ojigwrwnrjlknkwjrgjnkwrnkjggwrkjngdd",
+			["authorization"] = "_AUTHORIZATION_STRING_",
 			["serverId"] = game.JobId,
 			["userId"] = tostring(userId),
 			["eventType"] = t,
@@ -177,7 +177,7 @@ print("[info] jobId is", game.JobId);
 local function pollToReportActivity()
 	local function sendPing()
 		game:HttpPost(url .. "/gs/ping", http:JSONEncode({
-			["authorization"] = "adr3092f90g8902g0924ojigwrwnrjlknkwjrgjnkwrnkjggwrkjngdd",
+			["authorization"] = "_AUTHORIZATION_STRING_",
 			["serverId"] = game.JobId,
 			["placeId"] = placeId,
 		}), false, "application/json");
@@ -201,7 +201,7 @@ local function shutdown()
 	end
 	pcall(function()
 		game:HttpPost(url .. "/gs/shutdown", http:JSONEncode({
-			["authorization"] = "adr3092f90g8902g0924ojigwrwnrjlknkwjrgjnkwrnkjggwrkjngdd",
+			["authorization"] = "_AUTHORIZATION_STRING_",
 			["serverId"] = game.JobId,
 			["placeId"] = placeId,
 		}), false, "application/json");
@@ -365,7 +365,7 @@ end
 
 -- Now start the connection
 ns:Start(port)
-print("[info] port", port);
+
 scriptContext:SetTimeout(10)
 scriptContext.ScriptsDisabled = false
 
@@ -383,7 +383,7 @@ coroutine.wrap(function()
 	pollToReportActivity()
 end)()
 -- kill server if nobody joins within 2m of creation
-wait(120, function()
+delay(120, function()
 	if playersJoin == 0 then
 		serverOk = false
 		shutdown();
