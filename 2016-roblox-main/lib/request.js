@@ -10,6 +10,11 @@ const getBaseUrl = () => {
   return config.publicRuntimeConfig.backend.baseUrl;
 }
 
+const getUrlWithProxy = (url) => {
+  if (config.publicRuntimeConfig.backend.proxyEnabled)
+    return '/api/proxy?url=' + encodeURIComponent(url);
+  return url;
+}
 
 const request = async (method, url, data) => {
   const isBrowser = typeof window !== 'undefined';

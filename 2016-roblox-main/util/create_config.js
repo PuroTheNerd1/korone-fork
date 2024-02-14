@@ -16,7 +16,7 @@ const main = () => {
     },
     "publicRuntimeConfig": {
       "backend": {
-        proxyEnabled: false,
+        proxyEnabled: true,
         flags: {
           myAccountPage2016Enabled: true,
           catalogGenreFilterSupported: false,
