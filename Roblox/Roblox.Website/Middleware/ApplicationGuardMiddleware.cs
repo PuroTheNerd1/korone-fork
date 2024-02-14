@@ -49,7 +49,8 @@ public class ApplicationGuardMiddleware
         "/game/validate-machine",
         "/game/validateticket.ashx",
         "/game/get-join-script-debug",
-        "/api/moderation/filtertext"
+        "/api/moderation/filtertext",
+        "/version",
     };
 
     public static void Configure(string authorizationString)
@@ -129,6 +130,7 @@ public class ApplicationGuardMiddleware
     [MethodImpl(MethodImplOptions.AggressiveInlining|MethodImplOptions.AggressiveOptimization)]
     private bool IsUserAgentBlocked(string ua)
     {
+        /*
         // note that this isn't really for blocking malicious actors, it's just for preventing search engines (and
         // similar services) from crawling our site
         ua = ua.ToLower().Trim();
@@ -166,17 +168,10 @@ public class ApplicationGuardMiddleware
         if (ua.IndexOf("qwantify") != -1) return true;
         if (ua.IndexOf("duckduckgo") != -1) return true;
         
-        // Old browsers
-        // Even if they were legitimate users, they probably wouldn't be able to use the site due to the ssl certs being
-        // too new, and even if they could visit the site, it wouldn't even load properly.
-        if (IsOldBrowser(ua)) return true;
-        if (ua == "chrome") return true; // todo: what is this?
-        if (ua == "firefox") return true; // todo: what is this?
-        if (ua == "safari") return true; // todo: what is this?
-        if (ua == "opera") return true; // todo: what is this?
 
         // Misc
         // From https://developers.whatismybrowser.com/useragents/explore/software_type_specific/crawler/
+
         if (ua.IndexOf("baiduspider") != -1) return true;
         if (ua.IndexOf("mj12bot") != -1) return true; // https://majestic.com/
         if (ua.IndexOf("megaindex") != -1) return true;
@@ -208,7 +203,6 @@ public class ApplicationGuardMiddleware
         if (ua.IndexOf("comscore.com") != -1) return true; // https://www.comscore.com/Web-Crawler
         if (ua.IndexOf("proximic.com") != -1) return true; // http://www.proximic.com/info/spider.php
         if (ua.IndexOf("opengraph.io") != -1) return true; // https://opengraph.io/
-        if (ua.IndexOf("roblox.com") != -1) return true; // todo: what is this?
         if (ua.IndexOf("seznambot") != -1) return true; // https://napoveda.seznam.cz/en/seznamcz-web-search/
         if (ua.IndexOf("headline.com") != -1) return true; // https://www.headline.com/
         if (ua.IndexOf("ev-crawler") != -1) return true; // https://www.headline.com/
@@ -238,17 +232,17 @@ public class ApplicationGuardMiddleware
         if (ua == "ruby") return true;
         if (ua.IndexOf("test certificate info") != -1) return true;
         if (ua == "wp_is_mobile") return true; // no clue what this is
-        if (ua.IndexOf("curl/") != -1) return true;
+        if (ua.IndexOf("Roblox") != -1) return false;
         if (ua.IndexOf("wget/") != -1) return true;
         if (ua.IndexOf("well-known.dev") != -1) return true;
         if (ua == "aids") return true; // ?
-
+        */
         return false;
     }
 
     private readonly string[] allowedPathsForBlockUserAgents = new[]
     {
-        "",
+        "/version",
         "/auth/home",
         "/auth/captcha",
     };

@@ -150,6 +150,7 @@ namespace Roblox.Rendering
             var bits = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(cmd));
             while (ws is not {State: WebSocketState.Open})
             {
+                CommandHandler.Configure("ws://localhost:3189", "VestiaZeta");
                 Writer.Info(LogGroup.GeneralRender, "Ws not available, retry in a second");
 #if DEBUG 
                 await Task.Delay(TimeSpan.FromSeconds(60), cancellationToken  ?? CancellationToken.None);

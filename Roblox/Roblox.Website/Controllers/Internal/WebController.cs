@@ -464,7 +464,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "es-player",
+            prefix = "projectx-client",
             retroArgs = args
         };
     }
