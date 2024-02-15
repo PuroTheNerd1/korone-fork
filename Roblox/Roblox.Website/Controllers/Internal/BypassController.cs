@@ -470,16 +470,14 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/GetCurrentUser.ashx")]
         public async Task<MVC.ActionResult<dynamic?>> ReturnUserId()
         {
-            var cookie = Request.Cookies[".ROBLOSECURITY"];
-            var decodedResult = SessionMiddleware.DecodeJwt<JwtEntry>(cookie);
-            var sessResult = await services.users.GetSessionById(decodedResult.sessionId);
-
-            if (sessResult.userId == null)
+            if (userSession.userId == null)
             {
                 return "no session found";
             }
-
-            return sessResult.userId;
+            long ID = userSession.userId;
+            string idAsString = ID.ToString();
+            Console.WriteLine(userSession.userId);
+            return Content(idAsString);
         }
 
         [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
