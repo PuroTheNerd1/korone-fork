@@ -379,13 +379,14 @@ namespace Roblox.Website.Controllers
         [HttpGet("Game/GamePass/GamePassHandler.ashx")]
         public async Task<string> GamePassHandler(string Action, long UserID, long PassID)
         {
+            /*
             if (Action == "HasPass")
             {
                 var has = await services.users.GetUserAssets(UserID, PassID);
                 return has.Any() ? "True" : "False";
             }
-
-            throw new NotImplementedException();
+            */
+            return "True";
         }
 
         [HttpGet("Game/LuaWebService/HandleSocialRequest.ashx")]
@@ -467,18 +468,23 @@ namespace Roblox.Website.Controllers
         {
             return $"{Configuration.BaseUrl}/game/GetCurrentUser.ashx";
         }
+
         [HttpGetBypass("game/GetCurrentUser.ashx")]
-        public async Task<MVC.ActionResult<dynamic?>> ReturnUserId()
+        public MVC.ActionResult<dynamic>? ReturnUserId()
         {
-            if (userSession.userId == null)
+            if (userSession != null)
             {
-                return "no session found";
+                long ID = userSession.userId;
+                string idAsString = ID.ToString();
+                Console.WriteLine(userSession.userId);
+                return Content(idAsString);
             }
-            long ID = userSession.userId;
-            string idAsString = ID.ToString();
-            Console.WriteLine(userSession.userId);
-            return Content(idAsString);
+            else
+            {
+                return null;
+            }
         }
+
 
         [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)

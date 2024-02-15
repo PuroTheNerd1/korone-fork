@@ -47,7 +47,7 @@ public class WebController2021 : ControllerBase
         
     }
 
-    [HttpGet("studio/e.png")]
+    [HttpGetBypass("studio/e.png")]
     public void ReportStudioAnaltics()
     {
         

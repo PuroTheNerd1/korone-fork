@@ -26,6 +26,7 @@ public class ApplicationGuardMiddleware
         "/auth/discord",
         "/auth/submit",
         "/auth/home",
+        "/IDE/welcome",
         "/auth/privacy",
         "/auth/tos",
         "/auth/login",
