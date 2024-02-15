@@ -462,37 +462,7 @@ namespace Roblox.Website.Controllers
 
             throw new NotImplementedException();
         }
-        [HttpGetBypass("login/RequestAuth.ashx")]
-        public string StudioRequestAuth()
-        {
-            return $"{Configuration.BaseUrl}/game/GetCurrentUser.ashx";
-        }
-        [HttpGetBypass("game/GetCurrentUser.ashx")]
-        public async Task<MVC.ActionResult<dynamic?>> ReturnUserId()
-        {
-            if (userSession.userId == null)
-            {
-                return "no session found";
-            }
-            long ID = userSession.userId;
-            string idAsString = ID.ToString();
-            Console.WriteLine(userSession.userId);
-            return Content(idAsString);
-        }
 
-        [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
-        public void Negotiate([Required, MVC.FromQuery] string suggest)
-        {
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
-            {
-                Domain = ".projex.zip",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
-        }
 
         [HttpGet("/auth/submit")]
         public MVC.RedirectResult SubmitAuth(string auth)
