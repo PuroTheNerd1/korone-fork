@@ -28,15 +28,9 @@ public class RobloxPlayerCorsMiddleware
         
         // unsafe-eval required by nextjs
         var scriptSrc =
-<<<<<<< HEAD
-            "'unsafe-eval' 'self' https://hcaptcha.com https://*.hcaptcha.com https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js https://projex.zip   http://*.archive.org https://*.archive.org http://js.rbxcdn.com/46eace8231bf3c1ce64c55407d9ae60d.js https://gist.githack.com/shikataganaii/493d13b6f24b9b532e627c0569db7f58/raw/df7f21d28fe06ec5a81b507173aac722139a23a9/JSRoblox.js";
-        
-        return "default-src 'self'; img-src "+imgSrc+"; child-src 'self'; script-src "+scriptSrc+"; frame-src 'self' https://hcaptcha.com  http://web.archive.org https://*.archive.org https://web.archive.org/* https://*.hcaptcha.com; style-src 'unsafe-inline' 'self'  http://*.archive.org https://gistcdn.githack.com/shikataganaii/3f0b965de02c7fae12c92ebf1e511a1b/raw/21e02c39241c209b3831fe4fbf6d8922cfb714e7/IDEWelcome.css https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css ; font-src 'self' https://*.archive.org https://*.googleusercontent.com fonts.gstatic.com; connect-src "+connectSrc+"; worker-src 'self';";
-=======
             "'unsafe-eval' 'self' https://hcaptcha.com https://*.hcaptcha.com https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js https://projex.zip";
         
         return "default-src 'self'; img-src "+imgSrc+"; child-src 'self'; script-src "+scriptSrc+"; frame-src 'self' https://hcaptcha.com https://*.hcaptcha.com; style-src 'unsafe-inline' 'self' https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css; font-src 'self' fonts.gstatic.com; connect-src "+connectSrc+"; worker-src 'self';";
->>>>>>> parent of d377c54 (Game passes + better ide/welcome)
     }
     
     public async Task InvokeAsync(HttpContext ctx)
