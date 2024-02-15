@@ -1087,6 +1087,19 @@ namespace Roblox.Website.Controllers
             return (await services.users.GetUserAssets(userId, assetId)).Any() ? "true" : "false";
         }
 
+        [HttpGetBypass("/users/{id:long}/canmanage/{placeId:long}")]
+        public async Task<MVC.ActionResult> CanManageAsync(long id, long placeId)
+        {
+            bool CanManagePlace = await services.assets.CanUserModifyItem(placeId, id);
+            dynamic json = new
+            {
+               Success = true,
+               CanManage = CanManagePlace
+            };
+            string jsonString = JsonConvert.SerializeObject(json);
+            return Content(jsonString, "application/json"); 
+        }
+
         [HttpPostBypass("persistence/increment")]
         public async Task<dynamic> IncrementPersistence(long placeId, string key, string type, string scope, string target, int value)
         {
