@@ -535,12 +535,12 @@ public class AdminApiController : ControllerBase
     private async Task AwardCommissionForModeration()
     {
         // give commission
-        await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, 25);
+        await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, 5);
         await services.users.InsertAsync("user_transaction", new
         {
             type = PurchaseType.Commission,
             currency_type = CurrencyType.Robux,
-            amount = 25,
+            amount = 5,
             // details
             sub_type = TransactionSubType.StaffAssetModeration,
             // user data
@@ -552,12 +552,12 @@ public class AdminApiController : ControllerBase
     private async Task AwardCommissionForApplicationReview()
     {
         // give commission
-        await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, 25);
+        await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, 5);
         await services.users.InsertAsync("user_transaction", new
         {
             type = PurchaseType.Commission,
             currency_type = CurrencyType.Robux,
-            amount = 25,
+            amount = 5,
             // details
             sub_type = TransactionSubType.StaffApplicationReview,
             // user data
@@ -1824,8 +1824,7 @@ Thank you for your understanding,
         await services.assets.UpdateAssetMarketInfoName(request.assetId, request.assetName);
         await services.assets.UpdateAssetMarketDescriptionInfo(request.assetId, request.description);
         
-        await services.assets.UpdateAssetMarketInfo(request.assetId, request.isForSale, request.isLimited,
-            request.isLimitedUnique, request.maxCopies, request.offsaleDeadline);
+        await services.assets.UpdateAssetMarketInfo(request.assetId, request.isForSale, request.isLimited, request.isLimitedUnique, request.maxCopies, request.offsaleDeadline);
         await services.assets.SetItemPrice(request.assetId, request.priceRobux, request.priceTickets);
     }
 

@@ -6,7 +6,7 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]   
     public class LauncherController : ControllerBase
     {
-        private static string RBXversion = "version-03c7c0ace395d80b";
+        private static string RBXversion = "version-db91005dec8612ce";
         private static string RBXPath = $"C:\\ProjectX\\services\\Roblox\\Setup\\{RBXversion}\\";
         [HttpGetBypass("/cdn/version")]
         public dynamic GetVersion()

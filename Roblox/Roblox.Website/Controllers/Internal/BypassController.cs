@@ -525,6 +525,37 @@ namespace Roblox.Website.Controllers
             };
         }
 #endif
+        [HttpGetBypass("login/RequestAuth.ashx")]
+        public string StudioRequestAuth()
+        {
+            return $"{Configuration.BaseUrl}/game/GetCurrentUser.ashx";
+        }
+        [HttpGetBypass("game/GetCurrentUser.ashx")]
+        public async Task<MVC.ActionResult<dynamic?>> ReturnUserId()
+        {
+            if (userSession.userId == null)
+            {
+                return "no session found";
+            }
+            long ID = userSession.userId;
+            string idAsString = ID.ToString();
+            Console.WriteLine(userSession.userId);
+            return Content(idAsString);
+        }
+
+        [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
+        public void Negotiate([Required, MVC.FromQuery] string suggest)
+        {
+            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
+            {
+                Domain = ".projex.zip",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
+            });
+        }
 
         [HttpGetBypass("game/join.ashx")]
         public async Task<dynamic> JoinGame(string jobId, long placeId)
@@ -943,7 +974,19 @@ namespace Roblox.Website.Controllers
             ValidateBotAuthorization();
             return await MigrateItem.MigrateItemFromRoblox(assetId, true, 5, new List<Models.Assets.Type>() { Models.Assets.Type.TeeShirt, Models.Assets.Type.Shirt, Models.Assets.Type.Pants });
         }
-        
+        [HttpGetBypass("game/users/{userId:long}/canmanage/{placeId:long}")]
+        public async Task<MVC.IActionResult> CanManage(long userId, long placeId)
+        {
+        bool CanManagePlace =  await services.assets.CanUserModifyItem(placeId, userId);
+        dynamic json = new
+        {
+            Success = true,
+            CanManage = CanManagePlace
+        };
+        string jsonString = JsonConvert.SerializeObject(json);
+        return Content(jsonString, "application/json"); 
+        }
+
         [HttpGetBypass("BuildersClub/Upgrade.ashx")]
         public MVC.IActionResult UpgradeNow()
         {
@@ -971,7 +1014,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "43b0eee4522fa26d101a70a1d424f638"
+                "eccf280b1e356c79a4852be692940f73"
             };
 
             return new { data = allowedList };
@@ -1050,20 +1093,8 @@ namespace Roblox.Website.Controllers
         {
             return (await services.users.GetUserAssets(userId, assetId)).Any() ? "true" : "false";
         }
-
-        [HttpGetBypass("/users/{id:long}/canmanage/{placeId:long}")]
-        public async Task<MVC.ActionResult> CanManageAsync(long id, long placeId)
-        {
-            bool CanManagePlace = await services.assets.CanUserModifyItem(placeId, id);
-            dynamic json = new
-            {
-               Success = true,
-               CanManage = CanManagePlace
-            };
-            string jsonString = JsonConvert.SerializeObject(json);
-            return Content(jsonString, "application/json"); 
-        }
-
+        
+        
         [HttpPostBypass("persistence/increment")]
         public async Task<dynamic> IncrementPersistence(long placeId, string key, string type, string scope, string target, int value)
         {

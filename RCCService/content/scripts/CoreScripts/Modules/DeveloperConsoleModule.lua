@@ -2847,7 +2847,7 @@ do
 		if permissions.CreatorFlagValue then -- Use the new API
 			permissions.IsCreator = false
 			local success, result = pcall(function()
-				local url = string.format("/users/%d/canmanage/%d", game:GetService("Players").LocalPlayer.UserId, game.PlaceId)
+				local url = string.format("/game/%d/canmanage/%d", game:GetService("Players").LocalPlayer.UserId, game.PlaceId)
 				return game:GetService('HttpRbxApiService'):GetAsync(url, Enum.ThrottlingPriority.Default)
 			end)
 			if success and type(result) == "string" then
