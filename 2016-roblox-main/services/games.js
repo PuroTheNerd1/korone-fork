@@ -41,6 +41,19 @@ export const launchGame = async ({ placeId }) => {
   }, 1000);
 }
 
+export const launchGameFromJobId = async ({ placeId, jobId }) => {
+  const result = await request('GET', getBaseUrl() + '/game/get-join-script?placeId=' + encodeURIComponent(placeId) + "&jobId=" + encodeURIComponent(jobId));
+  const toClick = result.data.joinUrl;
+  const aTag = document.createElement('a');
+  aTag.setAttribute('href', result.data.prefix + '' + result.data.joinScriptUrl);
+  document.body.appendChild(aTag);
+  aTag.click();
+  // delay before deletion is required on some browsers, not sure why
+  setTimeout(() => {
+    aTag.remove();
+  }, 1000);
+}
+
 export const multiGetPlaceDetails = ({ placeIds }) => {
   return request('GET', getFullUrl('games', `/v1/games/multiget-place-details?placeIds=${encodeURIComponent(placeIds.join(','))}`)).then(d => d.data);
 }

@@ -1332,7 +1332,7 @@ public class UsersService : ServiceBase, IService
         return PurchaseAbuseFailureReason.Ok;
     }
 
-    private async Task BeforePurchase(long userIdBuyer, long assetId)
+  /*  private async Task BeforePurchase(long userIdBuyer, long assetId)
     {
         // the purpose of this function is so i can be a mini version of zlib.
         const long ownerUserId = 12; // todo: get from appsettings
@@ -1358,12 +1358,12 @@ public class UsersService : ServiceBase, IService
         }
 #endif
     }
-
+*/
     public async Task PurchaseNormalItem(long userIdBuyer, long assetId, CurrencyType expectedCurrency)
     {
         using var log = Writer.CreateWithId(LogGroup.ItemPurchase);
         log.Info($"PurchaseNormalItem start. buyer={userIdBuyer} assetId={assetId}");
-        await BeforePurchase(userIdBuyer, assetId);
+       // await BeforePurchase(userIdBuyer, assetId);
 
         var canPurchase = await CanAssetBePurchased(assetId, userIdBuyer, expectedCurrency);
         if (canPurchase != PurchaseAbuseFailureReason.Ok)
@@ -1536,7 +1536,7 @@ public class UsersService : ServiceBase, IService
             return 0;
         });
     }
-    
+    /*
     private async Task BeforeResalePurchase(long userIdBuyer, long userAssetId)
     {
         // the purpose of this function is so i can be a snipe botter without ddosing my own site >:D
@@ -1556,7 +1556,7 @@ public class UsersService : ServiceBase, IService
             }
         }
     }
-
+*/
     public async Task<long> GetMaximumCopyCount(long assetId)
     {
         var totalResult = await db.QuerySingleOrDefaultAsync<Dto.Total>("SELECT COUNT(*) as total FROM user_asset WHERE asset_id = :assetId", new
@@ -1779,7 +1779,7 @@ public class UsersService : ServiceBase, IService
         if (membershipType == null)
             return;
         var metadata = MembershipMetadata.GetMetadata(membershipType.membershipType);
-        var dailyRobux = isStaff ? 1000 : metadata.dailyRobux;
+        var dailyRobux = isStaff ? 60 : metadata.dailyRobux;
         if (dailyRobux == 0)
             return;
 

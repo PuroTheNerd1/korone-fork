@@ -123,6 +123,10 @@ const ProfileHeader = props => {
       name: 'Inventory',
       url: `/users/${store.userId}/inventory`,
     });
+    buttons.push({
+      name: 'View RAP',
+      url: `/internal/collectibles?userId=${store.userId}`,
+    });
     if (!isOwnProfile) {
       buttons.push({
         name: 'Trade',

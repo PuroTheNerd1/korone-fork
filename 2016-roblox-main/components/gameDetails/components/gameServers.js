@@ -14,7 +14,8 @@ const ServerEntry = props => {
   return <div className='row'>
     <div className='col-12 col-lg-2'>
       <ActionButton label='Join' className={buttonStyles.continueButton + ' pt-1 pb-1'} onClick={() => {
-        alert('Feature is not implemented'); // todo
+        
+        //alert('Feature is not implemented'); // todo
       }}></ActionButton>
     </div>
     <div className='col-12 col-lg-10'>

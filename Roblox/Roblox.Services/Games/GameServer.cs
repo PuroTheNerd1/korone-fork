@@ -770,11 +770,11 @@ public class GameServerService : ServiceBase
             limit,
             offset,
         })).ToList();
+        
         foreach (var server in result)
         {
             server.players = await GetGameServerPlayers(server.id);
         }
-
         return result;
     }
     static Task WaitForPort(int RCCPort)

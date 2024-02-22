@@ -174,14 +174,13 @@
 						}
 					}
 					let maxSerial = null;
-					if (getElementById("max-copies")) {
-						let maxSerial = getElementById("max-copies").value;
-						if (Number.isSafeInteger(parseInt(maxSerial, 10))) {
-							maxSerial = parseInt(maxSerial, 10);
-						}else{
-							maxSerial = null;
-						}
-					}
+					if (document.getElementById("max-copies")) {
+    					let maxSerialValue = document.getElementById("max-copies").value;
+    					if (Number.isSafeInteger(parseInt(maxSerialValue, 10))) {
+        					maxSerial = parseInt(maxSerialValue, 10);
+    				}
+				}
+
 					let price = getElementById("priceRobux").value;
 					if (Number.isSafeInteger(parseInt(price, 10))) {
 						price = parseInt(price, 10);

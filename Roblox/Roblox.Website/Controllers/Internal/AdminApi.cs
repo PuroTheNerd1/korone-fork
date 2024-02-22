@@ -2695,7 +2695,7 @@ Thank you for your understanding,
 
     private async Task RewardForReportReview()
     {
-        const int robuxAmount = 25;
+        const int robuxAmount = 5;
         await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, robuxAmount);
         await services.users.InsertAsync("user_transaction", new
         {

@@ -478,49 +478,54 @@ public class WebController : ControllerBase
         };
     }
 
-    [HttpGet("games/getgameinstancesjson")]
-    public async Task<dynamic> GetGameServers(long placeId, int startIndex)
-    {
-        var limit = 10;
-        var offset = startIndex;
-        var servers = (await services.gameServer.GetGameServers(placeId, offset, limit)).ToList();
-        var details = (await services.games.MultiGetPlaceDetails(new []{placeId})).First();
-        return new
-        {
-            PlaceId = placeId,
-            ShowShutdownAllButton = false, // todo: enable if user has perms
-            Collection = servers.Select(c =>
-            {
-                var players = c.players.ToList();
-                return new
-                {
-                    Capacity = details.maxPlayerCount,
-                    Ping = 100, // todo
-                    Fps = 59.95, // todo
-                    ShowSlowGameMessage = false, // todo
-                    UserCanJoin = true, // todo: false if vip server
-                    ShowShutdownButton = false, // todo: true if vip server player owns or user has perms
-                    JoinScript = (string?) null, // todo
-                    FriendsMouseover = "",
-                    FriendsDescription = "",
-                    PlayersCapacity = $"{players.Count} of {details.maxPlayerCount}",
-                    RobloxAppJoinScript = "", // todo
-                    CurrentPlayers = players.Select(c => new
-                    {
-                        Id = c.userId,
-                        Username = c.username,
-                        Thumbnail = new
-                        {
-                            IsFinal = true,
-                            Url = "/Thumbs/Avatar-Headshot.ashx?userid=" + c.userId,
-                        },
-                    }),
-                };
-            }),
-            TotalCollectionSize = servers.Count,
-        };
+[HttpGet("games/getgameinstancesjson")]
+public async Task<dynamic> GetGameServers(long placeId, int startIndex)
+{
+    var limit = 10;
+    var offset = startIndex;
+    var servers = (await services.gameServer.GetGameServers(placeId, offset, limit)).ToList();
+    var details = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
+    List<dynamic> collection = new List<dynamic>();
 
+    foreach (var server in servers)
+    {
+        var jobId = server.id; 
+        var players = server.players.ToList();
+
+        collection.Add(new
+        {
+            Capacity = details.maxPlayerCount,
+            Ping = 100, // todo
+            Fps = 59.95, // todo
+            ShowSlowGameMessage = false, // todo
+            UserCanJoin = true, // todo: false if vip server
+            ShowShutdownButton = false, // todo: true if vip server player owns or user has perms
+            JoinScript = $"://1+launchmode:play+gameinfo:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzZXNzaW9uSWQiOiI5YWVkNDZmNy0wYzBkLTRiN2EtOWMwMy1lN2U4MmE5NjYwYmYiLCJjcmVhdGVkQXQiOjE3MDc4NDM1ODF9.TsIb7do2qRm5cdgasoqEchu_tVCkgqiafhBpIGBvRs5ZhIW24aWmkaBKjvtYyJnXpy8ZmRqbNe1mboiQen2IBw+placelauncherurl:https://www.projex.zip/game/PlaceLauncher.ashx?placeId=2+k:l", // todo
+            FriendsMouseover = "",
+            FriendsDescription = "",
+            PlayersCapacity = $"{players.Count} of {details.maxPlayerCount}",
+            RobloxAppJoinScript = "", // todo
+            CurrentPlayers = players.Select(c => new
+            {
+                Id = c.userId,
+                Username = c.username,
+                Thumbnail = new
+                {
+                    IsFinal = true,
+                    Url = "/Thumbs/Avatar-Headshot.ashx?userid=" + c.userId,
+                },
+            }),
+        });
     }
+
+    return new
+    {
+        PlaceId = placeId,
+        ShowShutdownAllButton = false, // todo: enable if user has perms
+        Collection = collection,
+        TotalCollectionSize = servers.Count,
+    };
+}
 
     [HttpGet("search/users/results")]
     public async Task<dynamic> SearchUsersJson(string? keyword = null, int offset = 0, int limit = 10)
