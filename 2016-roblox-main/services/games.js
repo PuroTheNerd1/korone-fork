@@ -42,7 +42,7 @@ export const launchGame = async ({ placeId }) => {
 }
 
 export const launchGameFromJobId = async ({ placeId, jobId }) => {
-  const result = await request('GET', getBaseUrl() + '/game/get-join-script?placeId=' + encodeURIComponent(placeId) + "&jobId=" + encodeURIComponent(jobId));
+  const result = await request('GET', getBaseUrl() + '/game/get-join-script-fromjobid?placeId=' + encodeURIComponent(placeId) + "&jobId=" + encodeURIComponent(jobId));
   const toClick = result.data.joinUrl;
   const aTag = document.createElement('a');
   aTag.setAttribute('href', result.data.prefix + '' + result.data.joinScriptUrl);

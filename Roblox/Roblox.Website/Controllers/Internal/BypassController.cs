@@ -625,7 +625,7 @@ namespace Roblox.Website.Controllers
                 IsUnknownOrUnder13 = false,
                 SessionId = "",
                 DataCenterId = 0,
-                UniverseId = 0,
+                UniverseId = placeId,
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 FollowUserId = 0
@@ -781,10 +781,6 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/Game/ValidateTicket.ashx")]
         public async Task<string> ValidateClientTicketRcc([Required, MVC.FromBody] ValidateTicketRequest request)
         {
-#if DEBUG
-            return "true";
-#endif
-            
             try
             {
                 // Below is intentionally caught by local try/catch. RCC could crash if we give a 500 error.
@@ -956,6 +952,7 @@ namespace Roblox.Website.Controllers
                 Type.Animation,
                 Type.SolidModel,
                 Type.MeshPart,
+                Type.GamePass,
                 Type.ClimbAnimation,
                 Type.DeathAnimation,
                 Type.FallAnimation,
@@ -977,14 +974,14 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/users/{userId:long}/canmanage/{placeId:long}")]
         public async Task<MVC.IActionResult> CanManage(long userId, long placeId)
         {
-        bool CanManagePlace =  await services.assets.CanUserModifyItem(placeId, userId);
-        dynamic json = new
-        {
-            Success = true,
-            CanManage = CanManagePlace
-        };
-        string jsonString = JsonConvert.SerializeObject(json);
-        return Content(jsonString, "application/json"); 
+            bool CanManagePlace =  await services.assets.CanUserModifyItem(placeId, userId);
+            dynamic json = new
+            {
+                Success = true,
+                CanManage = CanManagePlace
+            };
+            string jsonString = JsonConvert.SerializeObject(json);
+            return Content(jsonString, "application/json"); 
         }
 
         [HttpGetBypass("BuildersClub/Upgrade.ashx")]
@@ -1014,7 +1011,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "eccf280b1e356c79a4852be692940f73"
+                "ff896a42d5a87335b0a192dc80eddce8"
             };
 
             return new { data = allowedList };
@@ -1024,8 +1021,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedSecurityKeys")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
-            if (!IsRcc())
-                throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
                 "0.235.0pcplayer"

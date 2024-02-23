@@ -1,6 +1,7 @@
 // Most of this is just guess work. I don't know what the server list looked like, and I can't find any photos/videos.
 import { createUseStyles } from "react-jss";
 import { getServers } from "../../../services/games";
+import { launchGameFromJobId } from "../../../services/games";
 import useButtonStyles from "../../../styles/buttonStyles";
 import ActionButton from "../../actionButton";
 import CreatorLink from "../../creatorLink";
@@ -14,8 +15,13 @@ const ServerEntry = props => {
   return <div className='row'>
     <div className='col-12 col-lg-2'>
       <ActionButton label='Join' className={buttonStyles.continueButton + ' pt-1 pb-1'} onClick={() => {
-        
-        //alert('Feature is not implemented'); // todo
+      launchGameFromJobId({
+        placeId: props.placeId,
+        jobId: props.jobId
+      }).catch(e => {
+        // todo: modal
+        setError(e.message);
+      });
       }}></ActionButton>
     </div>
     <div className='col-12 col-lg-10'>

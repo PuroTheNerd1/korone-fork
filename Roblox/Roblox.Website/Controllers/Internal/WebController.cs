@@ -469,6 +469,25 @@ public class WebController : ControllerBase
         };
     }
 
+    [HttpGet("game/get-join-script-fromjobid")]
+    public async Task<dynamic> GetJoinScriptFromJobId(long placeId, string jobId)
+    {
+        // TODO: Rate limit, or caching, or something
+        var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
+        if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
+        var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
+        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
+        var bootstrapperArgs = $"://1+launchmode:play+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/Join.ashx?jobId={jobId}&placeId={placeId}+k:l";
+        var args =
+            $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {Request.Cookies[".ROBLOSECURITY"]} --joinScriptUrl {Configuration.BaseUrl}/Game/Join.ashx?jobId={jobId}&placeId={placeId}";
+        return new
+        {
+            joinScriptUrl = bootstrapperArgs,
+            prefix = "projectx-client",
+            retroArgs = args
+        };
+    }
+
     [HttpGet("usercheck/show-tos")]
     public dynamic GetIsTosCheckRequired()
     {
@@ -494,13 +513,14 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
 
         collection.Add(new
         {
+            placeId = placeId,
             Capacity = details.maxPlayerCount,
             Ping = 100, // todo
             Fps = 59.95, // todo
             ShowSlowGameMessage = false, // todo
             UserCanJoin = true, // todo: false if vip server
             ShowShutdownButton = false, // todo: true if vip server player owns or user has perms
-            JoinScript = $"://1+launchmode:play+gameinfo:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzZXNzaW9uSWQiOiI5YWVkNDZmNy0wYzBkLTRiN2EtOWMwMy1lN2U4MmE5NjYwYmYiLCJjcmVhdGVkQXQiOjE3MDc4NDM1ODF9.TsIb7do2qRm5cdgasoqEchu_tVCkgqiafhBpIGBvRs5ZhIW24aWmkaBKjvtYyJnXpy8ZmRqbNe1mboiQen2IBw+placelauncherurl:https://www.projex.zip/game/PlaceLauncher.ashx?placeId=2+k:l", // todo
+            jobId = jobId,
             FriendsMouseover = "",
             FriendsDescription = "",
             PlayersCapacity = $"{players.Count} of {details.maxPlayerCount}",
