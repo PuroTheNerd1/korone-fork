@@ -1048,7 +1048,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "a752ab0d6f16a722a224ad1bb77efc70"
+                "7f9683695266636e848bb75bdf8c6112"
             };
 
             return new { data = allowedList };
