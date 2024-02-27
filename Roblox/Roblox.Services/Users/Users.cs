@@ -2166,7 +2166,7 @@ public class UsersService : ServiceBase, IService
     private static Object staffMux { get; } = new();
     private static Dictionary<long, bool> staffDic { get; } = new();
 
-    public async Task<bool> IsUserStaff(long userId)
+    public static bool IsUserStaff(long userId)
     {
         lock (staffMux)
         {

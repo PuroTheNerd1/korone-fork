@@ -27,7 +27,7 @@ const UploadPlace = props => {
       {feedback ? <p className='mb-0 text-danger'>{feedback}</p> : null}
     </div>
     <div className='col-6'>
-      <p className='mb-0 fw-bold mt-2'>RBXM File:</p>
+      <p className='mb-0 fw-bold mt-2'>RBXL/RBLX File:</p>
       <input ref={fileRef} type='file' />
       <div className='mt-4'>
         <div className='d-inline-block'>

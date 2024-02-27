@@ -47,7 +47,7 @@ func IsGameValid(reader io.Reader) bool {
 			services[item.ClassName] = item
 		}
 	}
-	//fmt.Println("all services", services)
+	fmt.Println("all services", services)
 	if _, exists := services["Lighting"]; !exists {
 		return false
 	}

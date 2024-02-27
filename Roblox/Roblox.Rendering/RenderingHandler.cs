@@ -11,7 +11,7 @@ namespace Roblox.Rendering
         private static string BaseUrl = "";
         public static string LuaScriptPath = "";
         public static string RccServicePath = "";
-        public static string RccServicePathGames = "C:\\ProjectX\\services\\RCCService\\";
+        public static string RccServicePathGames = "C:\\ProjectX\\services\\RCCService\\RenderRCC\\";
         private static Random RandomComponent = new Random();
 
         public static void Configure(string baseUrl, string rccPath, string luaScriptPath, string rccPathGames)
@@ -66,7 +66,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-
+            Thread.Sleep(2000);
             string originalScript = File.ReadAllText($"{LuaScriptPath}Hat.lua");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
@@ -119,7 +119,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-
+            Thread.Sleep(2000);
             string originalScript = File.ReadAllText($"{LuaScriptPath}Mesh.lua");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
@@ -172,7 +172,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-
+            Thread.Sleep(2000);
             int x = isFace ? 1680 : 600;
             int y = isFace ? 1680 : 600;
 
@@ -221,7 +221,7 @@ namespace Roblox.Rendering
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
-            //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
@@ -229,7 +229,6 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-
             string originalScript = File.ReadAllText($"{LuaScriptPath}Place.lua");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
@@ -262,6 +261,7 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
+            Console.WriteLine(XML);
             await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
@@ -283,7 +283,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-
+            Thread.Sleep(2000);
             string originalScript = File.ReadAllText($"{LuaScriptPath}Clothing.lua");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
@@ -339,7 +339,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-
+            Thread.Sleep(2000);
             string originalScript = File.ReadAllText($"{LuaScriptPath}Head.lua");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace

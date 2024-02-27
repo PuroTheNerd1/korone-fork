@@ -614,7 +614,7 @@ public class TradesService : ServiceBase, IService
             log.Info("offerUserId = {0} requestUserId = {1} offerRobux = {2} requestRobux = {3}", offerUserId, requestUserId, offerRobux, requestRobux);
             // check status
             using var us = ServiceProvider.GetOrCreate<UsersService>(this);
-            if (!await us.IsUserStaff(offerUserId))
+            if (!UsersService.IsUserStaff(offerUserId))
             {
                 var canBeCompleted = await CanTradeBeCompeted(tradeId, offerUserId, requestUserId);
                 if (canBeCompleted != TradeAbuseFailureReason.Ok)

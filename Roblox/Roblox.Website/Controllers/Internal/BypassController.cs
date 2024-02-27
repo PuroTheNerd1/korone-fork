@@ -346,7 +346,7 @@ namespace Roblox.Website.Controllers
                             }
 #if DEBUG
                             // If staff, allow access in debug builds
-                            if (await services.users.IsUserStaff(userSession.userId))
+                            if (UsersService.IsUserStaff(userSession.userId))
                             {
                                 ok = true;
                             }
@@ -530,17 +530,24 @@ namespace Roblox.Website.Controllers
         {
             return $"{Configuration.BaseUrl}/game/GetCurrentUser.ashx";
         }
+
+        [HttpGetBypass("My/Places.aspx")]
+        public async Task<MVC.ActionResult<dynamic?>> MyPlaces()
+        {
+            return Ok();
+        }
+
         [HttpGetBypass("game/GetCurrentUser.ashx")]
         public async Task<MVC.ActionResult<dynamic?>> ReturnUserId()
         {
-            if (userSession.userId == null)
+            if (userSession == null)
             {
-                return "no session found";
+                return (long?)null;
             }
+            
             long ID = userSession.userId;
-            string idAsString = ID.ToString();
             Console.WriteLine(userSession.userId);
-            return Content(idAsString);
+            return Ok(ID);
         }
 
         [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
@@ -694,27 +701,45 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException();
             }
         }
-        
+        [HttpPostBypass("marketplace/purchase")]
+        public async Task<dynamic> TestGamepass(long assetId)
+        {
+            var data = new
+            {
+                success = "true",
+                status = "Bought",
+                receipt = "test"
+            };
+
+            return Ok(data);
+        }
         [HttpGet("marketplace/productinfo")]
         public async Task<dynamic> GetProductInfo(long assetId)
         {
-            var details = await services.assets.GetAssetCatalogInfo(assetId);
-            return new
+            try
             {
-                TargetId = details.id,
-                AssetId = details.id,
-                ProductId = details.id,
-                Name = details.name,
-                Description = details.description,
-                AssetTypeId = (int)details.assetType,
-                IsForSale = details.isForSale,
-                IsPublicDomain = details.isForSale && details.price == 0,
-                Creator = new
+                var details = await services.assets.GetAssetCatalogInfo(assetId);
+                return new
                 {
-                    Id = details.creatorTargetId,
-                    Name = details.creatorName,
-                },
-            };
+                    TargetId = details.id,
+                    AssetId = details.id,
+                    ProductId = details.id, 
+                    Name = details.name,
+                    Description = details.description,
+                    AssetTypeId = (int)details.assetType,
+                    IsForSale = details.isForSale,
+                    IsPublicDomain = details.isForSale && details.price == 0,
+                    Creator = new
+                    {
+                        Id = details.creatorTargetId,
+                        Name = details.creatorName,
+                    }
+                };
+            }
+            catch (RecordNotFoundException)
+            {
+                return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
+            }
         }
 
         [HttpPostBypass("/gs/activity")]
@@ -974,14 +999,26 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/users/{userId:long}/canmanage/{placeId:long}")]
         public async Task<MVC.IActionResult> CanManage(long userId, long placeId)
         {
-            bool CanManagePlace =  await services.assets.CanUserModifyItem(placeId, userId);
-            dynamic json = new
-            {
-                Success = true,
-                CanManage = CanManagePlace
-            };
-            string jsonString = JsonConvert.SerializeObject(json);
-            return Content(jsonString, "application/json"); 
+            bool CanManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
+            bool isStaff = await StaffFilter.IsStaff(userId);
+            if(CanManagePlace || isStaff){
+                dynamic json = new
+                {
+                    Success = true,
+                    CanManage = true
+                };
+                string jsonString = JsonConvert.SerializeObject(json);
+                return Content(jsonString, "application/json"); 
+            }
+            else{
+                dynamic json = new
+                {
+                    Success = true,
+                    CanManage = false
+                };
+                string jsonString = JsonConvert.SerializeObject(json);
+                return Content(jsonString, "application/json"); 
+            }
         }
 
         [HttpGetBypass("BuildersClub/Upgrade.ashx")]
@@ -1011,7 +1048,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "ff896a42d5a87335b0a192dc80eddce8"
+                "7f9683695266636e848bb75bdf8c6112"
             };
 
             return new { data = allowedList };
@@ -1177,6 +1214,15 @@ namespace Roblox.Website.Controllers
             };
         }
 
+        [HttpGetBypass("game/logout.aspx")]
+        public async Task<dynamic> Logout()
+        {
+            using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
+            sessCache.Remove(safeUserSession.sessionId);
+            HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
+            return Ok();
+        }
+
         [HttpPostBypass("persistence/set")]
         public async Task<dynamic> Set(long placeId, string key, string type, string scope, string target, int valueLength, [Required, MVC.FromBody] SetRequest request)
         {
@@ -1190,6 +1236,26 @@ namespace Roblox.Website.Controllers
             {
                 data = request.data,
             };
+        }
+        [HttpGetBypass("studio/e.png")]
+        public async Task<string> StudioEpng()
+        {
+            return "1";
+        }
+        [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
+        [HttpPostBypass("/v1.1/Counters/Increment")]
+        [HttpPostBypass("/v1.0/SequenceStatistics/BatchAddToSequencesV2")]
+        [HttpPostBypass("v1.0/MultiIncrement")]
+        [HttpPostBypass("/game/report-stats")]
+        [HttpGetBypass("usercheck/show-tos")]
+        [HttpGetBypass("/v1.1/Counters/Increment")]
+        [HttpGetBypass("notifications/signalr/negotiate")]
+        [HttpGetBypass("notifications/negotiate")]
+        [HttpPostBypass("v1.0/Refresh")]
+        [HttpPostBypass("v2.0/Refresh")]
+        public MVC.OkResult TelemetryFunctions()
+        {
+            return Ok();
         }
 
 #if DEBUG

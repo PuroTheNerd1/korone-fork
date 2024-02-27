@@ -48,11 +48,6 @@ public class WebController2021 : ControllerBase
         
     }
 
-    [HttpGet("studio/e.png")]
-    public void ReportStudioAnaltics()
-    {
-        
-    }
     private async Task<IActionResult> GetPage(string viewName, IEnumerable<dynamic>? arguments = null)
     {
         var newArgs = new List<dynamic>();

@@ -43,6 +43,9 @@ namespace Roblox.Website.Controllers
         private static readonly List<string> ViewUrls = new List<string>()
         {
             "game/visit.ashx",
+            "IDE/welcome",
+            "IDE/login",
+            "IDE/ClientToolbox.aspx"
         };
 
         static HttpGetBypassAttribute()

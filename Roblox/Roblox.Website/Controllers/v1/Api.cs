@@ -77,7 +77,7 @@ public class ApiController : ControllerBase
             Creator = new
             {
                 Id = details.creatorTargetId,
-                Name = details.name,
+                Name = details.creatorName,
             },
         };
     }

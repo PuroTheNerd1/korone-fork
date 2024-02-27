@@ -1,0 +1,102 @@
+
+@page "/IDE/ClientToolbox.aspx"
+@using Roblox
+@model Roblox.Website.Pages.Toolbox
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Toolbox</title>
+    <link rel="icon" href="/images/icon.ico">
+    <link href="~/Toolbox.css" type="text/css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function insertContent(id) {
+            try {
+                window.external.Insert("http://projex.zip/asset/?id=" + id);
+            } catch (x) {
+                alert("Sorry, Unable to insert item.");
+            }
+        }
+
+        function dragRBX(id) {
+            try {
+                window.external.StartDrag("http://projex.zip/asset/?id=" + id);
+            } catch (x) {
+                alert("Sorry, Unable to drag item.");
+            }
+        }
+
+        function clickButton(e, buttonid) {
+            var bt = document.getElementById(buttonid);
+            if (typeof bt == 'object') {
+                if (navigator.appName.indexOf("Netscape") > (-1)) {
+                    if (e.keyCode == 13) {
+                        bt.click();
+                        return false;
+                    }
+                }
+                if (navigator.appName.indexOf("Microsoft Internet Explorer") > (-1)) {
+                    if (event.keyCode == 13) {
+                        bt.click();
+                        return false;
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body style="margin: 0;" class="Page">
+    <center>
+        <div style="margin-top: 5px;margin-bottom:5px;">
+            @{
+                string[] images = { "<a href='#'><img src='https://media.discordapp.net/attachments/1099355005800169493/1099460798390218862/image0.gif'></a>",
+                                    "<a href='#'><img src='https://i.redd.it/yfn33c6ezsj51.png' style='border: 1px solid black'></a>",
+                                    "<a href='#'></a>" };
+                Random rnd = new Random();
+                string randomImage = images[rnd.Next(images.Length)];
+                @Html.Raw(randomImage)
+            }
+            <div class="ad-annotations" style="width: 5px"></div>
+        </div>
+    </center>
+    <center>
+        <br><a href="#" onclick="alert('You cannot do this.');" title="Report this ad">[ report ]</a>
+    </center>
+    <div>
+        <center>
+            <h1>Toolbox</h1>
+        </center>
+        <a href="#"></a>
+        <hr>
+        <center>Models</center>
+        <div id="NewToolboxContainer">
+            <div id="ToolBoxScrollWrapper">
+                <div id="ToolboxItems">
+                    <div class="ToolboxItem WithoutVoting" id="span_setitem_10472779" ondragstart="dragRBX(10472779)" style="display: inline-block;">
+                        <a href="javascript:insertContent(10472779)" class="itemLink" title="Bloxy Cola">
+                            <img alt="Bloxy Cola" id="img_span_setitem_10472779" src="https://tr.rbxcdn.com/3cd20aec82c0e661b3c9f345f3d3889c/420/420/Gear/Png" onerror="return Roblox.Controls.Image.OnError(this)" width="60" height="62" border="0px">
+                            <h4>Bloxy Cola</h4>
+                        </a>
+                    </div>
+                    <div class="ToolboxItem WithoutVoting" id="span_setitem_187733249" ondragstart="dragRBX(187733249)" style="display: inline-block;">
+                        <a href="javascript:insertContent(187733249)" class="itemLink" title="Motorcycle">
+                            <img alt="Motorcycle" id="img_span_setitem_187733249" src="https://tr.rbxcdn.com/0735c98d7bbb691c561eb05bfa527db0/420/420/Model/Png" onerror="return Roblox.Controls.Image.OnError(this)" width="60" height="62" border="0px">
+                            <h4>Motorcycle</h4>
+                        </a>
+                    </div>
+                    <div class="ToolboxItem WithoutVoting" id="span_setitem_8959904556" ondragstart="dragRBX(8959904556)" style="display: inline-block;">
+                        <a href="javascript:insertContent(8959904556)" class="itemLink" title="Classic House">
+                            <img alt="Classic House" id="img_span_setitem_8959904556" src="https://tr.rbxcdn.com/b74ddd8ef09ad6e431d42c1c1b16365f/420/420/Model/Png" onerror="return Roblox.Controls.Image.OnError(this)" width="60" height="62" border="0px">
+                            <h4>Classic House</h4>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
