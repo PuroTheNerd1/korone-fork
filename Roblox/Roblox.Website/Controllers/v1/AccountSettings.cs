@@ -14,7 +14,7 @@ public class AccountSettingsControllerV1 : ControllerBase
     {
         return new
         {
-            emailAddress = "fake-email@projex.zip",
+            emailAddress = "ProjectX@projex.zip",
             verified = true,
         };
     }

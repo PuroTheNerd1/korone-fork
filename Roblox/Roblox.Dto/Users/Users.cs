@@ -169,7 +169,6 @@ public enum SocialMediaSite
     YoutubeChannelId,
     YoutubeChannelName,
     RedditUsername,
-    V3rmillionUserId,
     SteamUserId,
     TikTokRedirect,
 }
@@ -202,12 +201,10 @@ public class AppSocialMedia
         // Keep this ordered from most important to least.
         new RobloxUserIdParser(),
         new TwitterUsernameParser(),
-        new V3rmillionUserIdParser(),
         new YoutubeChannelNameParser(),
         new YoutubeChannelIdParser(),
         new RedditUsernameParser(),
         new SteamUserIdParser(),
-        
         new TikTokRedirectParser(),
         new TiKTokUsernameParser(),
     };
@@ -263,27 +260,6 @@ public class SteamUserIdParser : ISocialMediaParser
     }
 }
 
-public class V3rmillionAppSocial : AppSocialMedia
-{
-    public V3rmillionAppSocial(string userId) : base(userId, SocialMediaSite.V3rmillionUserId)
-    {
-        url = "https://v3rmillion.net/member.php?action=profile&uid=" + userId;
-    }
-}
-
-public class V3rmillionUserIdParser : ISocialMediaParser
-{
-    public AppSocialMedia? ParseFirstUrl(string text)
-    {
-        var match = Regex.Match(text, @"v3rmillion\.net\/member\.php\?action=profile&uid=(\d+)");
-        if (match.Success)
-        {
-            var id = match.Groups[1].Value;
-            return new V3rmillionAppSocial(long.Parse(id).ToString());
-        }
-        return null;
-    }
-}
 
 public class RedditUsernameAppSocial : AppSocialMedia
 {
