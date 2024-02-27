@@ -11,7 +11,7 @@ const DevelopPage = props => {
 
 DevelopPage.getInitialProps = () => {
   return {
-    title: 'Develop - Project X',
+    title: 'Develop - ROBLOX',
   }
 }
 
