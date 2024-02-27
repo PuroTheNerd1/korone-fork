@@ -64,12 +64,14 @@ const useStyles = createUseStyles({
  * @returns 
  */
 const CatalogDetails = props => {
+  
   const { details } = props;
   const authStore = AuthenticationStore.useContainer();
   const s = useStyles();
   const isLimited = details.itemRestrictions.includes('Limited');
   const isLimitedUnique = details.itemRestrictions.includes('LimitedUnique');
   const store = CatalogDetailsPage.useContainer();
+  
 
   useEffect(() => {
     store.setDetails(props.details);
@@ -114,8 +116,13 @@ const CatalogDetails = props => {
   if (!store.details) return null;
 
   const subTitle = `ROBLOX ${store.subCategoryDisplayName}${(isLimited || isLimitedUnique) ? ' / Collectible Item' : ''}${isLimitedUnique ? ' / Limited Edition' : ''}`;
-
+  const imageUrl = ItemImage(details.id);
   return <div className='container'>
+    <meta property="og:title" content={s.title}>{details.name}</meta>
+    <meta property="og:description" content={s.description}>{filterTextForEmpty(details.description)}</meta>
+    <meta property="og:image" content={String(ItemImage(details.id))}/>
+    <meta property="og:url" content={`https://projex.zip/catalog/${details.id}/${details.name}`} />
+    <meta property="og:type" content="website"></meta>
     <AdBanner />
     <div className={s.catalogItemContainer}>
       <BuyItemModal/>
