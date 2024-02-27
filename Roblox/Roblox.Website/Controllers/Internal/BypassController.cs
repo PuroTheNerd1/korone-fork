@@ -1048,7 +1048,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "d97f424952798a8a5b08fa0ea2d582f8"
+                "a752ab0d6f16a722a224ad1bb77efc70"
             };
 
             return new { data = allowedList };
@@ -1225,7 +1225,48 @@ namespace Roblox.Website.Controllers
 
         [HttpGetBypass("rcc/sendsystats")]
         public async Task<dynamic> SendAntiCheatFlags(long userId, string stat, string details)
-        {
+        { 
+            string webhookUrl = "https://discord.com/api/webhooks/1212149596575502356/J_EWa_RHt2PrhOM_i3KO78uPpyfZpKN9jPP31uFt8flP2Db6moRk-9FCB9zqc-KpZwoo";
+            string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+            if (userAgent != null && userAgent.Contains("atEaSchEmpLiGRaHoGreNbUstRUb"))
+            {
+                var userInfo = await services.users.GetUserById(userId);
+                Console.WriteLine("RCC is sending stats");
+                dynamic discordMessage = new
+                {
+                    content = (object)null,
+                    embeds = new[]
+                    {
+                        new 
+                        {
+                            title = "ZetaCheatingMonitor",
+                            url = "https://projex.zip",
+                            color = 16711680,
+                            fields = new[]
+                            {
+                                new  { name = "Username", value = $"{userInfo.username}" },
+                                new  { name = "Flag", value = $"```\n{details}\n```" },
+                                new  { name = "Details", value = $"```\n{stat}\n```" }
+                            },
+                            thumbnail = new { url = "https://cdn.discordapp.com/avatars/1124385331827966032/3d16946616a0c553a53135a118df02de.png?size=1024" }
+                        }
+                    },
+                    username = "ZetaCheatingMonitor",
+                    avatar_url = "https://cdn.discordapp.com/avatars/1124385331827966032/3d16946616a0c553a53135a118df02de.png?size=1024",
+                    attachments = new List<object>()
+                };
+                string jsonMessage = JsonConvert.SerializeObject(discordMessage, Formatting.Indented);
+                using (HttpClient client = new HttpClient())
+                {
+                    StringContent httpContent = new StringContent(jsonMessage, Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await client.PostAsync(webhookUrl, httpContent);
+                }
+            }
+            else
+            {
+                throw new RobloxException(400, 0, "BadRequest");    
+            }     
             return Ok();
         }
 
