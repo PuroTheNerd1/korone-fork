@@ -38,6 +38,7 @@
     "parse-domain": "^7.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-helmet": "^6.1.0",
     "react-jss": "^10.7.1",
     "unstated-next": "^1.1.0"
   },
