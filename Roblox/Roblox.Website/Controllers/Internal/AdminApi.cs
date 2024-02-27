@@ -220,7 +220,7 @@ public class AdminApiController : ControllerBase
             serverStartTime = startTime,
         };
     }
-    [HttpPost("alert"), StaffFilter(Access.GetAlert)]
+
     [HttpGet("alert"), StaffFilter(Access.GetAlert)]
     public async Task<dynamic> GetSystemMessage()
     {

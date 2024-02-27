@@ -1048,7 +1048,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "7f9683695266636e848bb75bdf8c6112"
+                "d97f424952798a8a5b08fa0ea2d582f8"
             };
 
             return new { data = allowedList };
@@ -1220,6 +1220,12 @@ namespace Roblox.Website.Controllers
             using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
             sessCache.Remove(safeUserSession.sessionId);
             HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
+            return Ok();
+        }
+
+        [HttpGetBypass("rcc/sendsystats")]
+        public async Task<dynamic> SendAntiCheatFlags(long userId, string stat, string details)
+        {
             return Ok();
         }
 
