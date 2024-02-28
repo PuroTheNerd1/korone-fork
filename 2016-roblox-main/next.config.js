@@ -31,7 +31,11 @@ module.exports = {
       },
     ]
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    return config
-  },
+  webpack(config) {
+    config.plugins = config.plugins.filter(plugin => {
+      return plugin.constructor.name !== 'ReactFreshWebpackPlugin';
+    });
+
+    return config;
+  }
 }

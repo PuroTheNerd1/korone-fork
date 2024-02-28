@@ -33,14 +33,7 @@ if (typeof window !== 'undefined') {
      \_______/        |_|        \_____/     |_|        |_|
 
      Keep your account safe! Do not paste any text here.
-
-     If someone is asking you to paste text here then you're
-     giving someone access to your account, your gear, and
-     your ROBUX.
-
-     To learn more about keeping your account safe you can go to
-
-     https://en.help.roblox.com/hc/en-us/articles/203313380-Account-Security-Theft-Keeping-your-Account-Safe-`);
+     Hello World!`);
 }
 
 function RobloxApp({ Component, pageProps }) {
@@ -60,7 +53,7 @@ function RobloxApp({ Component, pageProps }) {
     <Head>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin={''} />
-      <title>{pageProps.title || 'Project X'}</title>
+      <title>{pageProps.title || 'hello world'}</title>
       <link rel='icon' type="image/vnd.microsoft.icon" href='/favicon.ico' />
       <meta name='viewport' content='width=device-width, initial-scale=1' />
     </Head>
