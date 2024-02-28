@@ -53,7 +53,7 @@ function RobloxApp({ Component, pageProps }) {
     <Head>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin={''} />
-      <title>{pageProps.title || 'hello world'}</title>
+      <title>{pageProps.title || 'Project X'}</title>
       <link rel='icon' type="image/vnd.microsoft.icon" href='/favicon.ico' />
       <meta name='viewport' content='width=device-width, initial-scale=1' />
     </Head>
