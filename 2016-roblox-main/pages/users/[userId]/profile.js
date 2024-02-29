@@ -1,22 +1,26 @@
+import React from 'react';
 import Head from 'next/head';
 import Theme2016 from "../../../components/theme2016";
 import UserProfile from "../../../components/userProfile";
 import UserProfileStore from "../../../components/userProfile/stores/UserProfileStore";
 import { getUserInfo } from "../../../services/users";
+import { multiGetUserHeadshots } from "../../../services/thumbnails";
 
-const UserProfilePage = ({ username, userId }) => {
+const UserProfilePage = ({ username, userId, description, thumbnail }) => {
   const ogTitle = username || "Project X";
   const ogUrl = userId ? `https://projex.zip/users/${userId}/profile` : '';
-  const ogDesc = description || "";
+  const ogDesc = description || 'Join Project X and explore together!';
+  const ogImage = thumbnail;
 
   return (
     <>
       <Head>
         <title>{username}</title>
-        <meta property="og:title" content={ogTitle} />
+        <meta property="og:title" content={ogTitle + "'s Profile"} />
         <meta property="og:url" content={ogUrl} />
         <meta property="og:type" content="profile" />
-        <meta property="og:description" content="" />
+        <meta property="og:description" content={ogDesc} />
+        <meta property="og:image" content={`https://projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
       </Head>
       <UserProfileStore.Provider>
         <Theme2016>
@@ -29,13 +33,16 @@ const UserProfilePage = ({ username, userId }) => {
 
 export async function getServerSideProps(context) {
   const { userId } = context.query;
-
+  // we will get the username, desc
   try {
     const info = await getUserInfo({ userId });
+    const thumbnailGen = await multiGetUserHeadshots({ userIds: [userId] });
     const username = info.name || "Project X"; 
+    const description = info.description || "No description available";
     return {
       props: {
         username,
+        description,
         userId
       }
     };
@@ -44,6 +51,7 @@ export async function getServerSideProps(context) {
     return {
       props: {
         username: "Project X", 
+        description: "Join Project X and explore together!",
         userId
       }
     };
