@@ -6,6 +6,7 @@ public enum Access
     GetAlert,
     SetAlert,
     CreateUser,
+    ForceApplication,
     GetPendingGroupIcons,
     GetAssetModerationDetails,
     GetPendingModerationItems,

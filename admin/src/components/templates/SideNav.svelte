@@ -86,6 +86,12 @@
 			permission: 'ManageApplications',
 		},
 		{
+			name: 'Force Application',
+			link: '/admin/force-application',
+			icon: TerminalIcon,
+			permission: 'ForceApplication',
+		},
+		{
 			name: 'Reports',
 			link: '/admin/reports',
 			icon: StarIcon,

@@ -40,6 +40,7 @@ import AbuseReports from "./pages/AbuseReports.svelte";
 import ResolveAsset from "./pages/ResolveAsset.svelte";
 import CopyRobloxBundle from "./pages/CopyRobloxBundle.svelte";
 import Permissions from "./pages/Permissions.svelte";
+import ForceApplication from "./pages/ForceApplication.svelte";
 	// import 'bootstrap';
 
 	var pushState = history.pushState;
@@ -104,6 +105,9 @@ import Permissions from "./pages/Permissions.svelte";
 		</Route>
 		<Route path="/admin/asset/create-for-item">
 			<CreateAssetForItem />
+		</Route>
+		<Route path="/admin/force-application">
+			<ForceApplication />
 		</Route>
 		<Route path="/admin/asset/create">
 			<CreateAsset />

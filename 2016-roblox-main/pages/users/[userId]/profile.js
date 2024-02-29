@@ -4,22 +4,24 @@ import Theme2016 from "../../../components/theme2016";
 import UserProfile from "../../../components/userProfile";
 import UserProfileStore from "../../../components/userProfile/stores/UserProfileStore";
 import { getUserInfo } from "../../../services/users";
-import { multiGetUserHeadshots } from "../../../services/thumbnails";
+import DOMPurify from 'dompurify'; // Import DOMPurify for sanitization
 
-const UserProfilePage = ({ username, userId, description, thumbnail }) => {
+const UserProfilePage = ({ username, userId, description }) => {
   const ogTitle = username + "'s Profile" || "Project X";
   const ogUrl = userId ? `https://projex.zip/users/${userId}/profile` : '';
   const ogDesc = description || 'Join Project X and explore together!';
-  const ogImage = thumbnail;
+
+  const sanitizedTitle = DOMPurify.sanitize(ogTitle);
+  const sanitizedDesc = DOMPurify.sanitize(ogDesc);
 
   return (
     <>
       <Head>
-        <title>{username}</title>
-        <meta property="og:title" content={ogTitle} />
+        <title>{sanitizedTitle}</title>
+        <meta property="og:title" content={sanitizedTitle} />
         <meta property="og:url" content={ogUrl} />
         <meta property="og:type" content="profile" />
-        <meta property="og:description" content={ogDesc} />
+        <meta property="og:description" content={sanitizedDesc} />
         <meta property="og:image" content={`https://projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
         <meta name="theme-color" content="#f00000" />
       </Head>
@@ -37,9 +39,9 @@ export async function getServerSideProps(context) {
   // we will get the username, desc
   try {
     const info = await getUserInfo({ userId });
-    const thumbnailGen = await multiGetUserHeadshots({ userIds: [userId] });
     const username = info.name || "Project X"; 
     const description = info.description || "No description available";
+
     return {
       props: {
         username,

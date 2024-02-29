@@ -271,7 +271,36 @@ public class AdminApiController : ControllerBase
         
         return await services.users.CreateUser(req.username, req.password, Gender.Unknown, req.userId);
     }
+    [HttpPost("force-application"), StaffFilter(Access.ForceApplication)]
+    public async Task<dynamic> ForceApplication([Required, FromBody] ForceApplicationReq req)
+    {
+        if (req.socialURL == null)
+            throw new StaffException("Bad Social URL");
 
+        var inviteId = services.users.GetUserInvite(req.userId);
+
+        
+        if (inviteId != null)
+            await services.users.DeleteUserInvite(req.userId);
+
+
+        var id = await services.users.CreateApplication(new CreateUserApplicationRequest()
+            {
+                about = "Forced Application",
+                socialPresence = req.socialURL,
+                isVerified = true,
+                verifiedUrl = req.socialURL,
+                verificationPhrase = "Forced Application",
+                verifiedId = "1",
+            });
+
+
+        var joinId = await services.users.ProcessApplication(id, 1, UserApplicationStatus.Approved);
+
+        await services.users.SetApplicationUserIdByJoinId(joinId, req.userId);
+
+        return "Join application added to user";
+    }
     [HttpGet("groups/pending-icons"), StaffFilter(Access.GetPendingGroupIcons)]
     public async Task<dynamic> GetPendingIcons()
     {
