@@ -7,7 +7,7 @@ import { getUserInfo } from "../../../services/users";
 import { multiGetUserHeadshots } from "../../../services/thumbnails";
 
 const UserProfilePage = ({ username, userId, description, thumbnail }) => {
-  const ogTitle = username || "Project X";
+  const ogTitle = username + "'s Profile" || "Project X";
   const ogUrl = userId ? `https://projex.zip/users/${userId}/profile` : '';
   const ogDesc = description || 'Join Project X and explore together!';
   const ogImage = thumbnail;
@@ -16,11 +16,12 @@ const UserProfilePage = ({ username, userId, description, thumbnail }) => {
     <>
       <Head>
         <title>{username}</title>
-        <meta property="og:title" content={ogTitle + "'s Profile"} />
+        <meta property="og:title" content={ogTitle} />
         <meta property="og:url" content={ogUrl} />
         <meta property="og:type" content="profile" />
         <meta property="og:description" content={ogDesc} />
         <meta property="og:image" content={`https://projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
+        <meta name="theme-color" content="#f00000" />
       </Head>
       <UserProfileStore.Provider>
         <Theme2016>
@@ -47,7 +48,7 @@ export async function getServerSideProps(context) {
       }
     };
   } catch (error) {
-    console.error("Error fetching user info:", error);
+    console.error("Error fetching user info");
     return {
       props: {
         username: "Project X", 
