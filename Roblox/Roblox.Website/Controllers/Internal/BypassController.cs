@@ -33,6 +33,7 @@ using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Roblox.Website.Controllers
 {
@@ -40,13 +41,13 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class BypassController : ControllerBase
     {
-        [HttpGet("internal/release-metadata")]
+        [HttpGetBypass("internal/release-metadata")]
         public dynamic GetReleaseMetaData([Required] string requester)
         {
             throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
         }
 
-        [HttpGet("asset/shader")]
+        [HttpGetBypass("asset/shader")]
         public async Task<MVC.FileResult> GetShaderAsset(long id)
         {
             var isMaterialOrShader = BypassControllerMetadata.materialAndShaderAssetIds.Contains(id);
@@ -98,12 +99,17 @@ namespace Roblox.Website.Controllers
             var isRcc = rccAccessKey == Configuration.RccAuthorization;
             return isRcc;
         }
-
-        [HttpGet("asset")]
-        public async Task<MVC.ActionResult> GetAssetById(long id)
+        [HttpGetBypass("v1/asset")]
+        [HttpGetBypass("asset")]
+        public async Task<MVC.ActionResult> GetAssetById(long id, long? assetversionid = null)
         {
+
             // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
             // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
+            if(assetversionid != null)
+            {
+                id = (long)assetversionid;
+            }
             var is18OrOver = false;
             if (userSession != null)
             {
@@ -376,7 +382,7 @@ namespace Roblox.Website.Controllers
             throw new BadRequestException();
         }
 
-        [HttpGet("Game/GamePass/GamePassHandler.ashx")]
+        [HttpGetBypass("Game/GamePass/GamePassHandler.ashx")]
         public async Task<string> GamePassHandler(string Action, long UserID, long PassID)
         {
             if (Action == "HasPass")
@@ -388,7 +394,7 @@ namespace Roblox.Website.Controllers
             throw new NotImplementedException();
         }
 
-        [HttpGet("Game/LuaWebService/HandleSocialRequest.ashx")]
+        [HttpGetBypass("Game/LuaWebService/HandleSocialRequest.ashx")]
         public async Task<string> LuaSocialRequest([Required, MVC.FromQuery] string method, long? playerid = null, long? groupid = null, long? userid = null)
         {
             // TODO: Implement these
@@ -464,7 +470,7 @@ namespace Roblox.Website.Controllers
         }
 
 
-        [HttpGet("/auth/submit")]
+        [HttpGetBypass("/auth/submit")]
         public MVC.RedirectResult SubmitAuth(string auth)
         {
             return new MVC.RedirectResult("/");
@@ -550,7 +556,7 @@ namespace Roblox.Website.Controllers
             return Ok(ID);
         }
 
-        [HttpGet("login/negotiate.ashx"), HttpGet("login/negotiateasync.ashx")]
+        [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
         {
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
@@ -654,43 +660,25 @@ namespace Roblox.Website.Controllers
             var assets = await services.assets.GetPackageAssets(assetId);
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId=2;{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
-
+        [HttpGetBypass("/v1/avatar-fetch")]
         [HttpGetBypass("/v1.1/avatar-fetch")]
-        public async Task<string> CharacterFetch(long userId)
+        public async Task<MVC.IActionResult> CharacterFetch(long userId)
         {
             var assets = await services.avatar.GetWornAssets(userId);
+            var colors = await services.avatar.GetAvatar(userId);
+            dynamic bodyColors = new { HeadColor = colors.headColorId, LeftArmColor = colors.leftArmColorId, LeftLegColor = colors.leftLegColorId, RightArmColor = colors.rightArmColorId, RightLegColor = colors.rightLegColorId, TorsoColor = colors.torsoColorId };
             List<long> accessoryVersionIds = assets.ToList();
             var result = new {
-            resolvedAvatarType = "R6",
-            equippedGearVersionIds = new List<int>(),
-            accessoryVersionIds = accessoryVersionIds,
-            backpackGearVersionIds = new List<int>(),
-            animationAssetIds = new {},
-            bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
-            };
-            if (userId == 0) {
-                result = new {
-                    resolvedAvatarType = "R15",
-                    equippedGearVersionIds = new List<int>(),
-                    accessoryVersionIds = accessoryVersionIds,
-                    backpackGearVersionIds = new List<int>(),
-                    animationAssetIds = new {},
-                    bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
-                };
-            } 
-            else {
-            result = new {
                 resolvedAvatarType = "R6",
+                accessoryVersionIds,
                 equippedGearVersionIds = new List<int>(),
-                accessoryVersionIds = accessoryVersionIds,
                 backpackGearVersionIds = new List<int>(),
                 animationAssetIds = new {},
-                bodyColorsUrl = $"https://projex.zip/Asset/BodyColors.ashx?userId={userId}"
+                bodyColors
             };
-            }
             string jsonString = JsonConvert.SerializeObject(result);
 
-            return jsonString;
+            return Content(jsonString, "application/json");
         }
         private void CheckServerAuth(string auth)
         {
@@ -713,7 +701,7 @@ namespace Roblox.Website.Controllers
 
             return Ok(data);
         }
-        [HttpGet("marketplace/productinfo")]
+        [HttpGetBypass("marketplace/productinfo")]
         public async Task<dynamic> GetProductInfo(long assetId)
         {
             try
@@ -1026,8 +1014,7 @@ namespace Roblox.Website.Controllers
         {
             return new MVC.RedirectResult("/internal/membership");
         }
-        [HttpGet("game/players/{userId}")]
-
+        [HttpGetBypass("game/players/{userId}")]
         public MVC.ActionResult<dynamic> ChatWhiteList(long userId)
         {
             string whitelist = "whitelist";
@@ -1071,6 +1058,23 @@ namespace Roblox.Website.Controllers
         public MVC.ActionResult<dynamic> ValidateJoin()
         {
             return "true";
+        }
+        [HttpGetBypass("v1/settings/application")]
+        public MVC.ActionResult<dynamic> GetAppSettingsNew(string applicationName)
+        {
+            try
+            {
+                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, applicationName + ".json");
+                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
+
+                return clientAppSettingsData ?? "";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
+                return new { };
+            }
         }
         [HttpGetBypass("Setting/QuietGet/{type}")]
         public MVC.ActionResult<dynamic> GetAppSettings(string type)

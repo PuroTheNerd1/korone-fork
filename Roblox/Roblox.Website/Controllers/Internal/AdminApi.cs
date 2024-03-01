@@ -271,6 +271,7 @@ public class AdminApiController : ControllerBase
         
         return await services.users.CreateUser(req.username, req.password, Gender.Unknown, req.userId);
     }
+
     [HttpPost("force-application"), StaffFilter(Access.ForceApplication)]
     public async Task<dynamic> ForceApplication([Required, FromBody] ForceApplicationReq req)
     {
@@ -285,14 +286,14 @@ public class AdminApiController : ControllerBase
 
 
         var id = await services.users.CreateApplication(new CreateUserApplicationRequest()
-            {
-                about = "Forced Application",
-                socialPresence = req.socialURL,
-                isVerified = true,
-                verifiedUrl = req.socialURL,
-                verificationPhrase = "Forced Application",
-                verifiedId = "1",
-            });
+        {
+            about = "Forced Application",
+            socialPresence = req.socialURL,
+            isVerified = true,
+            verifiedUrl = req.socialURL,
+            verificationPhrase = "Forced Application",
+            verifiedId = "1",
+        });
 
 
         var joinId = await services.users.ProcessApplication(id, 1, UserApplicationStatus.Approved);
@@ -2044,6 +2045,7 @@ Thank you for your understanding,
         if (request.isLimitedUnique) request.isLimited = true;
         if (!Enum.IsDefined(request.assetTypeId))
             throw new StaffException("Bad assetTypeId");
+        //var isMesh = request.assetTypeId == Type.Mesh;
         var isPackage = request.assetTypeId == Type.Package;
         var disableRender = isPackage;
         IEnumerable<long>? packageAssetIds = null;
@@ -2095,7 +2097,7 @@ Thank you for your understanding,
         {
             var fileData = request.rbxm.OpenReadStream();
             // TODO: we should probably be validating audio and image uploads...
-            if (request.assetTypeId != Type.Audio && request.assetTypeId != Type.Image)
+            if (request.assetTypeId != Type.Audio && request.assetTypeId != Type.Image && request.assetTypeId != Type.Mesh)
             {
                 var isOk = await services.assets.ValidateAssetFile(fileData, request.assetTypeId);
                 if (!isOk)
@@ -2226,15 +2228,31 @@ Thank you for your understanding,
     public async Task<dynamic> GetOnlinePlayersCount()
     {
         var t = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(60));
-        var result = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM \"user\" WHERE online_at >= :t", new
+        var OnlineCount = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM \"user\" WHERE online_at >= :t", new
         {
             t,
         });
+        var OnlineUserNames = await db.QueryAsync("SELECT username FROM \"user\" WHERE online_at >= :t", new
+        {
+            t,
+        });
+
+        var usernames = new List<string>();
+
+        foreach (var row in OnlineUserNames)
+        {
+            var username = (string)row.username; 
+            usernames.Add(username);
+        }
+
         return new
         {
-            total = (long) result.total,
+            total = (long)OnlineCount.total,
+            usernames = usernames.ToArray()
         };
     }
+
+
 
     [HttpGet("users/{userId:long}/transactions"), StaffFilter(Access.GetUserTransactions)]
     public async Task<dynamic> GetUserTransactions(long userId, PurchaseType type, int offset, int limit)
@@ -2845,6 +2863,5 @@ Thank you for your understanding,
         var result = services.gameServer.GetAllGameServers();
         var l = new List<dynamic>();
         return result;
-        return l;
     }
 }

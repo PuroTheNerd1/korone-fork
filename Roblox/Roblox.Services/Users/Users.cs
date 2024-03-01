@@ -2043,6 +2043,13 @@ public class UsersService : ServiceBase, IService
         });
     }
 
+    public async Task DeleteUserInvite(long userId)
+    {
+        await db.ExecuteAsync("DELETE FROM user_invite WHERE user_id = :id", new
+        {
+            id = userId,
+        });
+    }
     public async Task<bool> IsInviteCreationFloodChecked(long userId)
     {
         var creationCount = await db.QuerySingleOrDefaultAsync<Total>(

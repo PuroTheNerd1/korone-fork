@@ -31,7 +31,6 @@ namespace Roblox.Website.Controllers
             {
                 return NotFound();
             }
-
             string NormalCDN = Path.Combine(CDN, file);
             string ClientStrapper = Path.Combine(RBXClientPath, file);
             string StudioStrapper = Path.Combine(RBXStudioPath, file);
