@@ -1167,55 +1167,33 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("persistence/getv2")]
         public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope)
         {
-            var rawBody = await new StreamReader(Request.Body).ReadToEndAsync();
-            if (rawBody.StartsWith("&"))
-            {
-                rawBody = rawBody.Substring(1);
-            }
-            // getV2?placeId=%i&type=%s&scope=%s
-            // Expected format is:
-            //	{ "data" : 
-            //		[
-            //			{	"Value" : value,
-            //				"Scope" : scope,							
-            //				"Key" : key,
-            //				"Target" : target
-            //			}
-            //		]
-            //	}
-            // or for non-existing key:
-            // { "data": [] }
-            
-            // for no sub key:
-            // Expected format is:
-            //	{ "data" : value }
-            Console.WriteLine("Request = {0}", rawBody);
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-            var requests = rawBody.Split("\n").Where(c => !string.IsNullOrWhiteSpace(c)).Distinct();
-            
+
+            string qKeyscope = Request.Form["qkeys[0].scope"]!;
+            string qKeyTarget = Request.Form["qkeys[0].target"]!;
+            string qKeyKey = Request.Form["qkeys[0].key"]!;
+            //lets check if its RCC first 
+            if (!IsRcc())
+                throw new RobloxException(403, 0, "Unauthorized");
+            var res = await ds.GetAllEntries(placeId, qKeyTarget, qKeyscope, qKeyKey);
             var result = new List<GetKeyEntry>();
-            foreach (var request in requests)
+
+            foreach (var entry in res)
             {
-                var des = JsonSerializer.Deserialize<GetKeyScope>(request);
-                
-                var res = await ds.Get(placeId, type, des.scope ?? scope, des.key, des.target);
-                if (!string.IsNullOrWhiteSpace(res))
-                    result.Add(new GetKeyEntry()
-                    {
-                        Key = des.key,
-                        Scope = des.scope ?? scope,
-                        Target =des.target,
-                        Value = res,
-                    });
+                result.Add(new GetKeyEntry()
+                {
+                    Key = qKeyKey,
+                    Scope = qKeyscope ?? scope,
+                    Target = qKeyTarget,
+                    Value = entry.value // Accessing value property of each entry
+                });
             }
 
-            if (!IsRcc())
-                throw new RobloxException(400, 0, "BadRequest");
+
             
-            return new
-            {
-                data = result,
-            };
+            var finalData = new { data = result };
+            string jsonString = JsonConvert.SerializeObject(finalData);
+            return Content(jsonString, "application/json");
         }
 
         [HttpGetBypass("game/logout.aspx")]
@@ -1275,18 +1253,29 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("persistence/set")]
-        public async Task<dynamic> Set(long placeId, string key, string type, string scope, string target, int valueLength, [Required, MVC.FromBody] SetRequest request)
+        public async Task<dynamic> Set(long placeId, string key, string type, string scope, string target, int valueLength)
         {
             // { "data" : value }
             if (!IsRcc())
                 throw new RobloxException(400, 0, "BadRequest");
+            var value = Request.Form["value"][0];
             await ServiceProvider.GetOrCreate<DataStoreService>()
-                .Set(placeId, target, type, scope, key, valueLength, request.data);
-            
-            return new
+                .Set(placeId, target, type, scope, key, valueLength, value);
+            var json = new
             {
-                data = request.data,
+                Value = value,
+                Scope = scope,
+                Key = key,
+                Target = target
             };
+
+            var finalJson = new
+            {
+                data = json
+            };
+            string jsonString = JsonConvert.SerializeObject(finalJson);
+
+            return Content(jsonString, "application/json");
         }
         [HttpGetBypass("studio/e.png")]
         public async Task<string> StudioEpng()

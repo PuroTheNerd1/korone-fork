@@ -21,7 +21,7 @@ public class DataStoreService : ServiceBase, IService
         throw new ArgumentException("Invalid " + nameof(type));
     }
 
-    private async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
+    public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
     {
         return await db.QueryAsync<DataStoreEntry>(
             "SELECT id, value from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope AND name = :name ORDER BY id DESC",
@@ -97,7 +97,7 @@ public class DataStoreService : ServiceBase, IService
         // Type can be "standard" or "sorted"
         // long placeId, string type, string scope   
         var ent = await GetAllEntries(placeId, key, scope, target);
-        return ent.FirstOrDefault()?.value;
+        return ent.FirstOrDefault().value;
     }
     
     public bool IsThreadSafe()
