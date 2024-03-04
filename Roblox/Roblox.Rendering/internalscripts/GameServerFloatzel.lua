@@ -130,7 +130,7 @@ if url~=nil then
 	pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
 	pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
 	pcall(function() game:GetService("ContentProvider"):SetBaseUrl(url .. "/") end)
-	pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
+	--pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/moderation/filtertext/") end)
 
 	game:GetService("BadgeService"):SetPlaceId(placeId)
 
@@ -185,7 +185,7 @@ local function pollToReportActivity()
 		local ok, data = pcall(function()
 			sendPing();
 		end)
-		print("[info] poll resp", ok, data)
+		--print("[info] poll resp", ok, data)
 		wait(5)
 	end
 	print("Server is no longer ok. Activity is not being reported. Will die soon.")

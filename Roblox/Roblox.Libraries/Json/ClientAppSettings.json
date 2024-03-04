@@ -157,7 +157,7 @@
   "DFFlagReplicateAnimationSpeed": "True",
   "DFFlagReplicatorWorkspaceProperties": "True",
   "DFFlagReportElevatedPhysicsFPSToGA": "True",
-  "DFFlagRobloxAnalyticsTrackingEnabled": "True",
+  "DFFlagRobloxAnalyticsTrackingEnabled": "False",
   "DFFlagSanitizeKeyframeUrl": "True",
   "DFFlagScopedMutexOnJSONParser": "True",
   "DFFlagScriptDefaultSourceIsEmpty": "True",
@@ -241,6 +241,7 @@
   "DFStringHttpInfluxPassword": "playfaster",
   "DFStringHttpInfluxURL": "",
   "DFStringHttpInfluxUser": "rob",
+  "DFStringRobloxAnalyticsURL": "https://economy-simulator.org/",
   "EnableFullMonitorsResolution": "True",
   "ExcludeContactWithInteriorTerrainMinusYFace": "True",
   "FFLagEnableFullMonitorsResolution": "True",
@@ -439,6 +440,7 @@
   "FFlagLogServiceEnabled": "True",
   "FFlagLowQMaterialsEnable": "True",
   "FFlagLuaBasedBubbleChat": "True",
+  "FFlagLuaChatFiltering": "True",
   "FFlagLuaDebuggerBreakOnError": "True",
   "FFlagLuaDebuggerCloneDebugger": "True",
   "FFlagLuaDebuggerCrashFixEnabled": "True",
@@ -475,8 +477,6 @@
   "FFlagNewVehicleHud": "True",
   "FFlagNewWaterMaterialEnable": "True",
   "FFlagNoClimbPeople": "True",
-  "FFlagLuaChatFiltering": false,
-  "LuaChatFiltering": false,
   "FFlagNoCollideLadderFilter": "True",
   "FFlagNoWallClimb": "False",
   "FFlagNonScriptableAccessEnabled": "False",
@@ -867,11 +867,7 @@
   "SFFlagReplicatedFirstEnabled": "True",
   "SFFlagStateBasedAnimationReplication": "True",
   "SFFlagTopRepContSync": "True",
-  "SFFlagUseLuaChat": "False",
-  "StartPageUrl": "/IDE/login",
-  "VideoPreRollWaitTimeSeconds": "45",
-  "FFlagUseAssetGameSubdomainForGetCurrentUser": false,
-  "UseAssetGameSubdomainForGetCurrentUser": false,
-  "StudioInSyncWebKitAuthentication": true
-
+  "SFFlagUseLuaChat": "True",
+  "StartPageUrl": "/ide/welcome",
+  "VideoPreRollWaitTimeSeconds": "45"
 }

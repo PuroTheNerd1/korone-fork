@@ -89,6 +89,7 @@ public class FrontendProxyMiddleware
         "/gs/players/report",
         "/gs/a",
         "/api/moderation/filtertext",
+        "/moderation/filtertext",
         // hubs
         "/chat",
         "/chat/negotiate",

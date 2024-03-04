@@ -50,6 +50,7 @@ public class ApplicationGuardMiddleware
         "/game/validateticket.ashx",
         "/game/get-join-script-debug",
         "/api/moderation/filtertext",
+        "/moderation/filtertext",
         "/version",
     };
 

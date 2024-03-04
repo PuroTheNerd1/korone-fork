@@ -609,7 +609,7 @@ public class GameServerService : ServiceBase
                     id = jobId,
                     asset_id = placeId,
                     ip = "85.125.186.154",
-                    port = networkServerPort,
+                    port = mainRCCPort,
                     server_connection = $"85.125.186.154:{networkServerPort}", 
                 });
             

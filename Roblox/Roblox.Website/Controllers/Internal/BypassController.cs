@@ -480,6 +480,22 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId)
         {
+            DateTime currentUtcDateTime = DateTime.UtcNow;
+            var result = await services.gameServer.GetServerForPlace(placeId);
+            string username = userSession!.username;
+            long userId = userSession!.userId;
+            string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?placeId={placeId}&userId={userId}"; //$"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
+            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+
+            string cticket = $"{userId}\n{result.job}\n{formattedDateTime}";
+            string ticketSignature = SignatureController.SignStringResponseForClientFromPrivateKey(cticket);
+            
+            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{result.job}\n{formattedDateTime}";
+            string ticketSignature2 = SignatureController.SignStringResponseForClientFromPrivateKey(ticket2);
+
+            string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
+            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
+
             if (userSession == null)
             {
                 return BadRequest();
@@ -493,7 +509,6 @@ namespace Roblox.Website.Controllers
                 iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
                 ip = GetIP()
             };
-            var result = await services.gameServer.GetServerForPlace(details.placeId);
             if (result.status == JoinStatus.Joining)
             {
                 await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(details.placeId);
@@ -503,7 +518,7 @@ namespace Roblox.Website.Controllers
                     status = (int)result.status,
                     joinScriptUrl = $"{Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
                     authenticationUrl = Configuration.BaseUrl + "/Login/Negotiate.ashx",
-                    authenticationTicket = Request.Cookies[".ROBLOSECURITY"],
+                    authenticationTicket = finalTicket, //Request.Cookies[".ROBLOSECURITY"],
                     message = (string?)null,
                 };
             }
@@ -925,18 +940,24 @@ namespace Roblox.Website.Controllers
             // return as string
             return new XDocument(robloxRoot).ToString();
         }
+        [HttpGetBypass("rcc/kickplayer")]
+        public dynamic KickPlayer(string jobid, long userid, string reason)
+        {
 
-        [MVC.HttpPost("/moderation/filtertext/")]
+        }
+        [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
         {
+            Console.WriteLine("RCC is doing its thing");
             var text = HttpContext.Request.Form["text"].ToString();
             return new
             {
-                data = new
+                success = true,
+                data = new 
                 {
                     white = text,
-                    black = text,
-                },
+                    black = text
+                }
             };
         }
 
@@ -1035,8 +1056,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "7f9683695266636e848bb75bdf8c6112",
-                "d85d5601eab807dffead220f215b86d4"
+                "d85d5601eab807dffead220f215b86d4",
+                "919e4d22de9f010f6b41f46a907acb09"
             };
 
             return new { data = allowedList };
