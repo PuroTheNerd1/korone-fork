@@ -37,7 +37,7 @@ public class GameServerService : ServiceBase
     public static Dictionary<Process, int> mainRCCPortsInUse = new Dictionary<Process, int>(); // Process, main RCC soap port
     public static void Configure(string newJwtKey)
     {
-        jwtKey = newJwtKey;
+        jwtKey = "hello world 12345";
     }
 
     private string HashIpAddress(string hashedIpAddress)
@@ -82,7 +82,7 @@ public class GameServerService : ServiceBase
         return false;
     }
 
-    public GameServerJwt DecodeTicket(string ticket, string? expectedIpAddress)
+    public GameServerJwt DecodeTicket(string ticket)
     {
         var value = jwt.DecodeJwt<GameServerJwt>(ticket, jwtKey);
         if (value.t != ClientJoinTicketType) throw new ArgumentException("Invalid ticket");
@@ -90,16 +90,6 @@ public class GameServerService : ServiceBase
         {
             throw new ArgumentException("Invalid ticket");
         }
-
-        if (expectedIpAddress != null)
-        {
-            var ipOk = hasher.Verify(value.ip, expectedIpAddress);
-            if (!ipOk)
-            {
-                throw new ArgumentException("Invalid ticket");
-            }
-        }
-
         return value;
     }
 
@@ -585,6 +575,31 @@ public class GameServerService : ServiceBase
         };
     }
 */
+
+    public async Task<long> GetRCCport(string jobId)
+    {
+        var result = await db.QueryFirstOrDefaultAsync<long?>("SELECT port FROM asset_server WHERE id = :id::uuid", new { id = jobId });
+
+        if (result.HasValue)
+        {
+            return result.Value;
+        }
+        else
+        {
+            throw new Exception("Port not found or NULL.");
+        }
+    }
+    public async Task<string> GetJobIdByUserId(long userId)
+    {
+        var result = await db.QueryFirstOrDefaultAsync<Guid?>(
+            "SELECT server_id FROM asset_server_player WHERE user_id = :userId",
+            new { userId }
+        );
+
+        string serverIdAsString = result?.ToString();
+
+        return serverIdAsString;
+    }
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId)
     {
         string jobId = Guid.NewGuid().ToString();

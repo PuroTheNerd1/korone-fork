@@ -574,6 +574,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
         {
+            //HttpContext.Response.Cookies.Delete();
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
             {
                 Domain = ".projex.zip",
@@ -805,7 +806,7 @@ namespace Roblox.Website.Controllers
             // Doesn't do anything yet. See: services/api/src/controllers/bypass.ts:1473
             return;
         }
-
+        /*
         [HttpPostBypass("/Game/ValidateTicket.ashx")]
         public async Task<string> ValidateClientTicketRcc([Required, MVC.FromBody] ValidateTicketRequest request)
         {
@@ -864,7 +865,7 @@ namespace Roblox.Website.Controllers
                 return "false";
             }
         }
-
+        */
         [HttpPostBypass("/game/validate-machine")]
         public dynamic ValidateMachine()
         {
@@ -941,9 +942,34 @@ namespace Roblox.Website.Controllers
             return new XDocument(robloxRoot).ToString();
         }
         [HttpGetBypass("rcc/kickplayer")]
-        public dynamic KickPlayer(string jobid, long userid, string reason)
+        public async Task<dynamic> KickPlayerAsync(long userId, string reason)
         {
+            string JobId = await services.gameServer.GetJobIdByUserId(userId);
+            long RCCPort = await services.gameServer.GetRCCport(JobId);
 
+            Console.WriteLine(RCCPort);
+            var userInfo = await services.users.GetUserById(userId);
+
+            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
+               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+                <soap:Body>
+                    <Execute xmlns=""http://projex.zip/"">
+				        <jobID>{JobId}</jobID>
+                        <script>
+                            <name>{Guid.NewGuid().ToString()}</name>
+                            <script>
+                                <![CDATA[
+                                game.Players.{userInfo.username}:Kick(""{reason}"")
+                                ]]>
+                            </script>
+                        </script>
+                    </Execute>
+                </soap:Body>
+            </soap:Envelope>";
+            await GameServerService.SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "Execute");            
+            return $"Kicked player {userInfo.username} with reason: {reason}";
         }
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
