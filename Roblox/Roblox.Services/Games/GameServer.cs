@@ -737,7 +737,7 @@ public class GameServerService : ServiceBase
         }
         // second part, do game server players
         // this is so ugly jeez
-        /*var orphanedPlayers =
+        var orphanedPlayers =
             await db.QueryAsync(
                 "SELECT s.id, p.server_id FROM asset_server_player p LEFT JOIN asset_server s ON s.id = p.server_id WHERE s.id IS NULL");
         foreach (var deadbeatDad in orphanedPlayers.Select(c => ((Guid) c.server_id).ToString()).Distinct())
@@ -748,9 +748,7 @@ public class GameServerService : ServiceBase
                 id = deadbeatDad,
             });
             Console.WriteLine("deleted from db line 724 DeleteOldGameServers");
-
         }
-        */
     }
 
     public async Task<IEnumerable<GameServerPlayer>> GetGameServerPlayers(string serverId)
