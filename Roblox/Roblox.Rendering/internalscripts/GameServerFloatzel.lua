@@ -30,7 +30,6 @@ pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl(url
 pcall(function() game:SetPlaceVersion(placeVersionId) end)
 pcall(function() game:SetVIPServerOwnerId(vipServerOwnerId) end)
 ]]--
-
 print("[info] start",placeId,"on port",port,"wih base",url)
 ------------------- UTILITY FUNCTIONS --------------------------
 
@@ -131,7 +130,7 @@ if url~=nil then
 	pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
 	pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
 	pcall(function() game:GetService("ContentProvider"):SetBaseUrl(url .. "/") end)
-	--pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
+	pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
 
 	game:GetService("BadgeService"):SetPlaceId(placeId)
 

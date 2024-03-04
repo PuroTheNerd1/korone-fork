@@ -302,7 +302,7 @@ public class Application : RobloxPageModel
             }
             else
             {
-                Task.Run(async () =>
+                await Task.Run(async () =>
                 {
                     try
                     {
@@ -311,7 +311,7 @@ public class Application : RobloxPageModel
                     }
                     catch (Exception e)
                     {
-                        Writer.Info(LogGroup.AbuseDetection, "app approve bg fail {0}",e.Message);
+                        Writer.Info(LogGroup.AbuseDetection, "app approve bg fail {0}", e.Message);
                     }
                 });
             }

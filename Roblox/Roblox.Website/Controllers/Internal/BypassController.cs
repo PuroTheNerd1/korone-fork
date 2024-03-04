@@ -1035,7 +1035,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "7f9683695266636e848bb75bdf8c6112"
+                "7f9683695266636e848bb75bdf8c6112",
+                "d85d5601eab807dffead220f215b86d4"
             };
 
             return new { data = allowedList };
@@ -1210,7 +1211,7 @@ namespace Roblox.Website.Controllers
         { 
             string webhookUrl = "https://discord.com/api/webhooks/1212149596575502356/J_EWa_RHt2PrhOM_i3KO78uPpyfZpKN9jPP31uFt8flP2Db6moRk-9FCB9zqc-KpZwoo";
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
+            //if (stat == "")
             if (userAgent != null && userAgent.Contains("atEaSchEmpLiGRaHoGreNbUstRUb"))
             {
                 var userInfo = await services.users.GetUserById(userId);
@@ -1231,7 +1232,7 @@ namespace Roblox.Website.Controllers
                                 new  { name = "Flag", value = $"```\n{details}\n```" },
                                 new  { name = "Details", value = $"```\n{stat}\n```" }
                             },
-                            thumbnail = new { url = "https://cdn.discordapp.com/avatars/1124385331827966032/3d16946616a0c553a53135a118df02de.png?size=1024" }
+                            thumbnail = new { url = $"https://projex.zip/thumbs/avatar.ashx?userId={userId}" }
                         }
                     },
                     username = "ZetaCheatingMonitor",
