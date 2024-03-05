@@ -574,7 +574,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
         {
-            //HttpContext.Response.Cookies.Delete();
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
             {
                 Domain = ".projex.zip",
@@ -584,6 +583,10 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.Lax,
             });
+            HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
+            HttpContext.Response.Headers.Add("Pragma", "no-cache");
+            HttpContext.Response.Headers.Add("Expires", "-1");
+            HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
         }
 
         [HttpGetBypass("game/join.ashx")]
@@ -693,7 +696,10 @@ namespace Roblox.Website.Controllers
                 bodyColors
             };
             string jsonString = JsonConvert.SerializeObject(result);
-
+            HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
+            HttpContext.Response.Headers.Add("Pragma", "no-cache");
+            HttpContext.Response.Headers.Add("Expires", "-1");
+            HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
             return Content(jsonString, "application/json");
         }
         private void CheckServerAuth(string auth)
