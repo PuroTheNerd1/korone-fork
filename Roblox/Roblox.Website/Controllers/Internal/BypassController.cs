@@ -662,7 +662,10 @@ namespace Roblox.Website.Controllers
                 UsePortraitMode = false,
                 FollowUserId = 0
             };
-            Console.WriteLine("hi");
+            HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
+            HttpContext.Response.Headers.Add("Pragma", "no-cache");
+            HttpContext.Response.Headers.Add("Expires", "-1");
+            HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
             return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript);
         }
 
@@ -696,10 +699,6 @@ namespace Roblox.Website.Controllers
                 bodyColors
             };
             string jsonString = JsonConvert.SerializeObject(result);
-            HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
-            HttpContext.Response.Headers.Add("Pragma", "no-cache");
-            HttpContext.Response.Headers.Add("Expires", "-1");
-            HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
             return Content(jsonString, "application/json");
         }
         private void CheckServerAuth(string auth)
