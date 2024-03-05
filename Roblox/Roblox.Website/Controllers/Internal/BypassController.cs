@@ -103,7 +103,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("asset")]
         public async Task<MVC.ActionResult> GetAssetById(long id, long? assetversionid = null)
         {
-
+            HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
+            HttpContext.Response.Headers.Add("Pragma", "no-cache");
+            HttpContext.Response.Headers.Add("Expires", "-1");
+            HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
             // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
             // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
             if(assetversionid != null)
