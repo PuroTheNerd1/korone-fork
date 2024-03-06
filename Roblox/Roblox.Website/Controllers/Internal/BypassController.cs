@@ -630,8 +630,8 @@ namespace Roblox.Website.Controllers
                 ClientPort = 0,
                 MachineAddress = "85.215.186.154",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
-                PingUrl = "",
-                PingInterval = 120,
+                PingUrl = "http://www.projex.zip/ping",
+                PingInterval = 50,
                 UserName = username,
                 SeleniumTestMode = false,
                 UserId = userId,
@@ -875,7 +875,7 @@ namespace Roblox.Website.Controllers
         }
         */
         [HttpPostBypass("/game/validate-machine")]
-        public dynamic ValidateMachine()
+        public async Task<dynamic> ValidateMachineAsync(HttpContext context)
         {
             return new
             {
@@ -1333,6 +1333,73 @@ namespace Roblox.Website.Controllers
 
             return Content(jsonString, "application/json");
         }
+        [HttpPost("user/follow")]
+        public async Task<dynamic> FollowUser(long followedUserId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
+            if (followedUserId == safeUserSession.userId)
+                throw new BadRequestException();
+            await services.friends.FollowerUser(safeUserSession.userId, followedUserId);
+
+            return new
+            {
+                success = true,
+                isCaptchaRequired = false,
+            };
+        }
+        [HttpPost("user/following-exists")]
+        public async Task<dynamic> FollowingExists(long userId, long followerUserId)
+        {
+            var result = new List<dynamic>();
+                if (userSession is null)
+                {
+                    result.Add(new
+                    {
+                        isFollowing = false,
+                        userId,
+                    });
+                }
+                
+                var isFollowing = await services.friends.IsOneFollowingTwo(userSession.userId, followerUserId);
+                result.Add(new
+                {
+                    isFollowing,
+                    userId,
+                });
+            
+            return new
+            {
+                followings = result,
+            };
+        }
+        [HttpPost("user/unfollow")]
+        public async Task DeleteFollowing(long followedUserId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
+            await services.friends.DeleteFollowing(safeUserSession.userId, followedUserId);
+        }
+        [HttpPost("user/decline-friend-request")]
+        public async Task DeclineFriendRequest(long requesterUserId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
+            await services.friends.DeclineFriendRequest(safeUserSession.userId, requesterUserId);
+        }
+        [HttpGetBypass("user/request-friendship")]
+        [HttpPostBypass("user/request-friendship")]
+        public async Task<dynamic> RequestFriendship(long recipientUserId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
+            if (safeUserSession.userId == recipientUserId)
+                throw new BadRequestException(7, "The user cannot be friends with itself");
+            await services.friends.RequestFriendship(safeUserSession.userId, recipientUserId);
+            
+            return new
+            {
+                success = true,
+                isCaptchaRequired = false,
+            };
+        }
+        
         [HttpGetBypass("studio/e.png")]
         public async Task<string> StudioEpng()
         {

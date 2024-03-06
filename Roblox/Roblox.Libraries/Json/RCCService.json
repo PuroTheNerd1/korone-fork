@@ -1490,7 +1490,5 @@
   "FFlagCorescriptSetCoreChatActiveEnabled": "True",
   "FFlagOnlyShowHealthWhenDamaged": "True",
   "FFlagUserChatPrivacySetting": "True",
-  "FFlagCorescriptNewChatSetCoresEnabled": "True",
-  "DFFlagUseComSiftUpdatedWebChatFilterParamsAndHeader": true,
-  "UseComSiftUpdatedWebChatFilterParamsAndHeader": true
+  "FFlagCorescriptNewChatSetCoresEnabled": "True"
 }

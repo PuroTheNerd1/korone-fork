@@ -46,7 +46,7 @@ const ServerEntry = props => {
                 <div className='col-6'>
                   <PlayerImage id={v.Id} name={v.Username}></PlayerImage>
                 </div>
-                <div className='col-6 mt-3 overflow-hidden'>
+                <div className='col-6 mt-3'>
                   <CreatorLink id={v.Id} name={v.Username} type='User'></CreatorLink>
                 </div>
               </div>
