@@ -478,31 +478,42 @@ namespace Roblox.Website.Controllers
         {
             return new MVC.RedirectResult("/");
         }
-
-        [HttpGetBypass("/game/PlaceLauncher.ashx")]
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
+        [HttpGetBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId)
         {
-            DateTime currentUtcDateTime = DateTime.UtcNow;
-            var result = await services.gameServer.GetServerForPlace(placeId);
-            string username = userSession!.username;
-            long userId = userSession!.userId;
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?placeId={placeId}&userId={userId}"; //$"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
-
-            string cticket = $"{userId}\n{result.job}\n{formattedDateTime}";
-            string ticketSignature = SignatureController.SignStringResponseForClientFromPrivateKey(cticket);
-            
-            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{result.job}\n{formattedDateTime}";
-            string ticketSignature2 = SignatureController.SignStringResponseForClientFromPrivateKey(ticket2);
-
-            string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
-            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-
             if (userSession == null)
             {
-                return BadRequest();
+                if (userSession is null)
+                    throw new RobloxException(403, 0, "Forbidden"); 
             }
+            DateTime currentUtcDateTime = DateTime.UtcNow;
+            long year = await services.games.GetYear(placeId);
+            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            Console.WriteLine(year);
+            var result = await services.gameServer.GetServerForPlace(placeId, year);
+            string username = userSession!.username;
+            long userId = userSession!.userId;
+            string characterAppearanceUrl;
+            string finalTicket;
+            Console.WriteLine(year);
+            if (year == 2019)
+            {
+                finalTicket = SignatureController.GenerateClientTicketV3(userId, username, result.job, formattedDateTime);
+            }
+            else
+            {
+                characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
+                string cticket = $"{userId}\n{result.job}\n{formattedDateTime}";
+                string ticketSignature = SignatureController.SignStringResponseForClientFromPrivateKey(cticket);
+                
+                string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{result.job}\n{formattedDateTime}";
+                string ticketSignature2 = SignatureController.SignStringResponseForClientFromPrivateKey(ticket2);
+
+                finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
+            }
+
+
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             GameServerJwt details = new GameServerJwt
             {
@@ -574,7 +585,7 @@ namespace Roblox.Website.Controllers
             return Ok(ID);
         }
 
-        [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx")]
+        [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
         {
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
@@ -592,15 +603,22 @@ namespace Roblox.Website.Controllers
             HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
         }
 
+        [HttpPostBypass("game/join.ashx")]
         [HttpGetBypass("game/join.ashx")]
         public async Task<dynamic> JoinGame(string jobId, long placeId)
         {
+            Console.WriteLine("Client connected to join.ashx");
             GamesService gamesService = new GamesService();
             PlaceEntry uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
+            long year = await services.games.GetYear(placeId);
             string username = userSession!.username;
             long userId = userSession!.userId;
             string membership;
             var membership2 = await services.users.GetUserMembership(userId);
+            DateTime currentUtcDateTime = DateTime.UtcNow;
+            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            string finalTicket;
+            string characterAppearanceUrl;
             if (membership2  == null)
             {
                 membership = "None";
@@ -608,37 +626,109 @@ namespace Roblox.Website.Controllers
             else
             {
                 membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
-
             }
+            if (year == 2019)
+            {
+                Console.WriteLine("Using 2019 ticket");
+                Console.WriteLine(jobId);
+                finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
+
+                characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
+            }
+            else
+            {
+                characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
+                string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
+                string ticketSignature = SignatureController.SignStringResponseForClientFromPrivateKey(cticket);
+                            
+                string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{formattedDateTime}";
+                string ticketSignature2 = SignatureController.SignStringResponseForClientFromPrivateKey(ticket2);
+
+                finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
+            }
+            
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?placeId={placeId}&userId={userId}"; //$"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
-            DateTime currentUtcDateTime = DateTime.UtcNow;
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            //string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?placeId={placeId}&userId={userId}"; //$"{Configuration.BaseUrl}/v1.1/avatar-fetch?placeId={placeId}&userId={userId}";
 
-            string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
-            string ticketSignature = SignatureController.SignStringResponseForClientFromPrivateKey(cticket);
-            
-            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{formattedDateTime}";
-            string ticketSignature2 = SignatureController.SignStringResponseForClientFromPrivateKey(ticket2);
 
-            string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-
+            dynamic sessionId = new
+            {
+                SessionId = Guid.NewGuid().ToString(),
+                GameId = Guid.NewGuid().ToString(),
+                PlaceId = placeId,
+                ClientIpAddress = "hihihi",
+                PlatformTypeId = 8,
+                SessionStarted = "",
+                BrowserTrackerId = 0,
+                PartyId = (int?)null,
+                Age = (int?)null,
+                Latitude = 39.0481,
+                Longitude = -77.4728,
+                CountryId = 1,
+                LanguageId = (int?)null
+            };
+            dynamic json = new
+            {
+                ClientPort = 0,
+                MachineAddress = "127.0.0.1", 
+                ServerPort = 53640, 
+                PingUrl = "", 
+                PingInterval = 120, 
+                UserName = username, 
+                SeleniumTestMode = false, 
+                UserId = userId, 
+                RobloxLocale = "en_us", 
+                GameLocale = "en_us", 
+                SuperSafeChat = false, 
+                CharacterAppearance = characterAppearanceUrl,
+                ClientTicket = finalTicket, 
+                NewClientTicket = finalTicket, 
+                GameId = "e34226ba-37a5-4366-8239-8b60b27363e9", 
+                PlaceId = placeId, 
+                MeasurementUrl = "",
+                WaitingForCharacterGuid = Guid.NewGuid().ToString(),
+                BaseUrl = "https://projex.zip/", 
+                ChatStyle = "ClassicAndBubble", 
+                VendorId = 0,
+                ScreenShotInfo = "",
+                VideoInfo = "",
+                CreatorId = 1,
+                CreatorTypeEnum = "User",
+                MembershipType = "None", 
+                AccountAge = 10000, 
+                CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
+                CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
+                CookieStoreEnabled = true,
+                IsRobloxPlace = true,
+                GenerateTeleportJoin = false,
+                IsUnknownOrUnder13 = false,
+                GameChatType = "AllUsers",
+                SessionId = $"{sessionId}",
+                AnalyticsSessionId = Guid.NewGuid().ToString(),
+                DataCenterId = 0,
+                UniverseId = placeId,
+                BrowserTrackerId = 0,
+                UsePortraitMode = false,
+                FollowUserId = 0,
+                characterAppearanceId = userId,
+                CountryCode = "US"
+            };
             dynamic joinScript = new
             {
                 ClientPort = 0,
                 MachineAddress = "85.215.186.154",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
-                PingUrl = "http://www.projex.zip/ping",
+                PingUrl = "",
                 PingInterval = 50,
                 UserName = username,
                 SeleniumTestMode = false,
                 UserId = userId,
                 SuperSafeChat = false,
-                CharacterAppearance =
-                    characterAppearanceUrl,
+                CharacterAppearance = characterAppearanceUrl,
                 ClientTicket = finalTicket,
+                NewClientTicket = finalTicket,
                 GameId = jobId,
                 PlaceId = placeId,
                 MeasurementUrl = "",
@@ -663,13 +753,22 @@ namespace Roblox.Website.Controllers
                 UniverseId = placeId,
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
-                FollowUserId = 0
+                FollowUserId = 0,
+                characterAppearanceId = userId
             };
             HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
             HttpContext.Response.Headers.Add("Expires", "-1");
             HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
-            return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript);
+            if (year == 2019)
+            {
+                return SignatureController.SignJson2048(json);
+            }
+            else
+            {
+                return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript);
+            }
+
         }
 
         [HttpGetBypass("Asset/CharacterFetch.ashx")]

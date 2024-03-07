@@ -14,6 +14,7 @@ const Access = (props) => {
   const resetForm = () => {
     setFeedback(null);
     setMaxPlayers(store.details.maxPlayerCount);
+    setSelectedYear(store.details.year);
   };
 
   const save = () => {
@@ -64,10 +65,10 @@ const Access = (props) => {
           </select>
           <p className="fw-bold">Select Year:</p>
           <select
-            value={year}
+            value={store.details.year}
             className="br-none border-1 border-secondary pe-2"
             onChange={(v) => {
-              setSelectedYear(parseInt(v.currentTarget.value, 10));
+              setSelectedYear(parseInt(v.currentTarget.value));
             }}
           >
             <option value={2016}>2016</option>

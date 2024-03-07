@@ -630,7 +630,7 @@ public class GameServerService : ServiceBase
 
         return serverIdAsString;
     }
-    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId)
+    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, long year)
     {
         string jobId = Guid.NewGuid().ToString();
 
@@ -646,6 +646,7 @@ public class GameServerService : ServiceBase
         else
         {
             StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, 43200);
+            
             
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Roblox.Dto.Assets;
 using Roblox.Exceptions;
 using Roblox.Libraries.Assets;
@@ -119,6 +120,25 @@ public class WebController : ControllerBase
         return new RedirectResult(result[0].imageUrl ?? "/img/placeholder.png", false);
     }
 
+    [HttpGet("asset-thumbnail/json")]
+    public async Task<dynamic> GetAssetThumbnailJson([Required] long assetId)
+    {
+        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
+        if (!authUser18Plus)
+        {
+            var asset18Plus = await services.assets.Is18Plus(assetId);
+            if (asset18Plus)
+                return new RedirectResult("/img/blocked.png", false);
+        }
+        var json = new
+        {
+            Url = $"https://www.projex.zip/thumbs/asset.ashx?assetId={assetId}",
+            Final = true
+        };
+        string jsonString = JsonConvert.SerializeObject(json);
+        return jsonString;
+    }
+    
     [HttpGet("userads/redirect")]
     public async Task<IActionResult> AdRedirect(string data)
     {
