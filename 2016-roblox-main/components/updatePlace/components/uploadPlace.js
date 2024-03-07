@@ -9,19 +9,12 @@ const UploadPlace = (props) => {
   const fileRef = useRef(null);
   const s = useButtonStyles();
   const [feedback, setFeedback] = useState(null);
-  const [year, setSelectedYear] = useState(2016);
 
   const uploadPlace = () => {
     uploadAssetVersion({
       assetId: store.placeId,
       file: fileRef.current.files[0],
     })
-      .then(() => {
-        return setUniverseYear({
-          universeId: store.placeId,
-          year: year,
-        });
-      })
       .then(() => {
         window.location.reload();
       })
@@ -30,9 +23,7 @@ const UploadPlace = (props) => {
       });
   };
 
-  const handleYearChange = (e) => {
-    setSelectedYear(parseInt(e.currentTarget.value));
-  };
+
 
 return (
   <div className="row mt-4">
@@ -44,15 +35,6 @@ return (
       <div className="mb-3">
         <p className="mb-0 fw-bold mt-2">RBXL/RBXLX File:</p>
         <input ref={fileRef} type="file" />
-        <p className="fw-bold">Select Year:</p>
-          <select
-            value={year}
-            className="br-none border-1 border-secondary pe-2"
-            onChange={handleYearChange}
-          >
-            <option value={2016}>2016</option>
-            <option value={2019}>2019</option>
-          </select>
       </div>
       <div className="mt-4">
         <ActionButton
