@@ -107,7 +107,10 @@ public class PlayEntry
     public DateTime? endedAt { get; set; }
     public long placeId { get; set; }
 }
-
+public class SetYearRequest
+{
+    public int year { get; set; }
+}
 public class SetMaxPlayerCountRequest
 {
     public int maxPlayers { get; set; }

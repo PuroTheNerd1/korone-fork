@@ -233,7 +233,17 @@ public class GamesService : ServiceBase, IService
 
         return result;
     }
-
+    public async Task SetYear(long placeId, int year)
+    {
+        if (year != 2016 && year != 2019)
+            throw new ArgumentException("Year can only be 2016 or 2019");
+            
+        await db.ExecuteAsync("UPDATE asset_place SET year = :year WHERE asset_id = :id", new
+        {
+            id = placeId,
+            year,
+        });
+    }
     public async Task SetMaxPlayerCount(long placeId, int maxPlayerCount)
     {
         if (maxPlayerCount < 10)

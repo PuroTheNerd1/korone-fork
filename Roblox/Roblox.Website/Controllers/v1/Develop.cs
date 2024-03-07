@@ -50,7 +50,13 @@ public class DevelopControllerV1 : ControllerBase
         await services.assets.UpdateAsset(assetId, request.description, request.name, request.genres.First(),
             request.isCopyingAllowed, request.enableComments);
     }
-
+    [HttpPatch("universes/{universeId:long}/set-year")]
+    public async Task SetYear(long universeId, [Required, FromBody] SetYearRequest request)
+    {
+        var place = await services.games.GetRootPlaceId(universeId);
+        await services.assets.ValidatePermissions(place, safeUserSession.userId);
+        await services.games.SetYear(place, request.year);
+    }
     [HttpPatch("universes/{universeId:long}/max-player-count")]
     public async Task SetMaxPlayerCount(long universeId, [Required, FromBody] SetMaxPlayerCountRequest request)
     {

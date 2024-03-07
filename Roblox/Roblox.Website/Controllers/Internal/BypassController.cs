@@ -953,7 +953,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> KickPlayerAsync(long userId, string reason)
         {
             GameServerService gameServerService = new GameServerService();
-            bool isOwner = StaffFilter.IsOwner(userSession.userId);
+            bool isOwner = userSession != null && StaffFilter.IsOwner(userSession.userId);
             if (isOwner)
             {
                 try
