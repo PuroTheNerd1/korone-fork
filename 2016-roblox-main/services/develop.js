@@ -64,7 +64,11 @@ export const setAssetPrice = async ({assetId, priceInRobux, priceInTickets}) => 
 export const getAllGenres = async () => {
   return (await request('GET', getFullUrl('develop', '/v1/assets/genres'))).data.data;
 }
-
+export const setUniverseYear = async ({universeId, year}) => {
+  return await request('PATCH',getFullUrl('develop', `/v1/universes/${universeId}/set-year`), {
+    year,
+  });
+}
 export const setUniverseMaxPlayers = async ({universeId, maxPlayers}) => {
   return await request('PATCH',getFullUrl('develop', `/v1/universes/${universeId}/max-player-count`), {
     maxPlayers,

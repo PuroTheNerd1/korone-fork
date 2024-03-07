@@ -51,7 +51,6 @@ const Access = props => {
           })}
         </select>
       </div>
-
       <div className='mt-4'>
         <div className='d-inline-block'>
           <ActionButton disabled={store.locked} className={s.normal + ' ' + s.continueButton} label='Save' onClick={save} />
