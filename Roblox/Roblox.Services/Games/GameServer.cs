@@ -280,7 +280,37 @@ public class GameServerService : ServiceBase
             return null;
         }
     }
+    public async Task<dynamic> KickPlayer(long userId, string reason)
+    {
+        UsersService users = new UsersService();
+        GameServerService gameServerService = new GameServerService();
+        string JobId = await GetJobIdByUserId(userId);
+        long RCCPort = await gameServerService.GetRCCport(JobId);
 
+        Console.WriteLine(RCCPort);
+        var userInfo = await users.GetUserById(userId);
+
+        string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+        <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+            xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
+            xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+            <soap:Body>
+                <Execute xmlns=""http://projex.zip/"">
+				    <jobID>{JobId}</jobID>
+                    <script>
+                        <name>{Guid.NewGuid().ToString()}</name>
+                        <script>
+                            <![CDATA[
+                            game.Players.{userInfo.username}:Kick(""{reason}"")
+                            ]]>
+                        </script>
+                    </script>
+                </Execute>
+            </soap:Body>
+        </soap:Envelope>";
+        await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "Execute");            
+        return Task.CompletedTask;     
+    }
     public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
     {
         await PostToGameServer<GameServerEmptyResponse>(ipAddress, port, "startGame",
@@ -700,7 +730,7 @@ public class GameServerService : ServiceBase
         jobRccs.Add(jobId, rccServer);
         return "OK";
     }
-    
+
     public static async Task SendSoapRequestToRcc(string URL, string XML, string SOAPAction)
     {
         using (HttpClient RccHttpClient = new HttpClient())
@@ -799,18 +829,18 @@ public class GameServerService : ServiceBase
                 using (TcpClient client = new TcpClient())
                 {
                     client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
-                    Console.WriteLine("did not find port");
+                    //Console.WriteLine("did not find port");
                     break; 
-                    }
                 }
-                catch (SocketException)
-                {
-                    Thread.Sleep(0); 
-                }
-            }   
-        Console.WriteLine($"found port: {RCCPort}");
+            }
+            catch (SocketException)
+            {
+                Thread.Sleep(0); 
+            }
+        }   
+        //Console.WriteLine($"found port: {RCCPort}");
         return Task.CompletedTask;
-        }
+    }
     public async Task<IEnumerable<GameServerEntry>> GetGamesUserIsPlaying(long userId)
     {
        return await db.QueryAsync<GameServerEntry>(

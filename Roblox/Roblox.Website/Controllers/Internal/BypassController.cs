@@ -952,32 +952,24 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("rcc/kickplayer")]
         public async Task<dynamic> KickPlayerAsync(long userId, string reason)
         {
-            string JobId = await services.gameServer.GetJobIdByUserId(userId);
-            long RCCPort = await services.gameServer.GetRCCport(JobId);
-
-            Console.WriteLine(RCCPort);
-            var userInfo = await services.users.GetUserById(userId);
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <Execute xmlns=""http://projex.zip/"">
-				        <jobID>{JobId}</jobID>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                game.Players.{userInfo.username}:Kick(""{reason}"")
-                                ]]>
-                            </script>
-                        </script>
-                    </Execute>
-                </soap:Body>
-            </soap:Envelope>";
-            await GameServerService.SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "Execute");            
-            return $"Kicked player {userInfo.username} with reason: {reason}";
+            GameServerService gameServerService = new GameServerService();
+            bool isOwner = StaffFilter.IsOwner(userSession.userId);
+            if (isOwner)
+            {
+                try
+                {
+                    await gameServerService.KickPlayer(userId, reason);
+                }
+                catch (Exception)
+                {
+                    return "failed to kick";
+                }
+                return $"Kicked player {userId} with reason: {reason}";
+            }
+            else
+            {
+                return "not the owner";
+            }
         }
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
