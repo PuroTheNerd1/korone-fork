@@ -645,9 +645,7 @@ public class GameServerService : ServiceBase
         }
         else
         {
-            StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, 43200);
-            
-            
+            StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);                        
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
                 new
@@ -673,34 +671,60 @@ public class GameServerService : ServiceBase
             };
     }
     
-    public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, int JobExpiration)
+    public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
         AssetsService assetsService = new AssetsService();
         GamesService gamesService = new GamesService();
+        string originalScript;
+        string finalScript;
+        Process rccServer = null;
+        Process rccServer2019 = null;
         var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
         var uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
         if (AssetCatalogInfo.assetType != Models.Assets.Type.Place)
         {
             return "BAD";
         }
-        Process rccServer = new Process();
-        rccServer.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-        rccServer.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}RCCService.exe";
-        rccServer.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-        rccServer.StartInfo.CreateNoWindow = false;
-        rccServer.StartInfo.RedirectStandardError = false;
-        rccServer.StartInfo.RedirectStandardOutput = false;
-        rccServer.StartInfo.UseShellExecute = true;
-        rccServer.Start();
-        System.Threading.Thread.Sleep(700);
-        string originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServerFloatzel.lua");
-        
-        string finalScript = originalScript.Replace
-            ("%port%", $"{networkServerPort}").Replace
-            ("%placeId%", $"{placeId}").Replace
-            ("%creatorId%", $"{uni.builderId}").Replace
-            ("_AUTHORIZATION_STRING_", Configuration.GameServerAuthorization);
+        switch (year)
+        {
+            case 2016:
+                rccServer = new Process();
+                rccServer.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                rccServer.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}RCCService.exe";
+                rccServer.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
+                rccServer.StartInfo.CreateNoWindow = true;
+                rccServer.StartInfo.RedirectStandardError = false;
+                rccServer.StartInfo.RedirectStandardOutput = true;
+                rccServer.StartInfo.UseShellExecute = true;
+                rccServer.Start();            
+                originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServerFloatzel.lua");
+                finalScript = originalScript.Replace
+                    ("%port%", $"{networkServerPort}").Replace
+                    ("%placeId%", $"{placeId}").Replace
+                    ("%creatorId%", $"{uni.builderId}").Replace
+                    ("_AUTHORIZATION_STRING_", Configuration.GameServerAuthorization);
+                break;
+            case 2020:
+                rccServer2019 = new Process();
+                rccServer2019.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                rccServer2019.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2020\\RCCService.exe";
+                rccServer2019.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
+                rccServer2019.StartInfo.CreateNoWindow = false;
+                rccServer2019.StartInfo.RedirectStandardError = false;
+                rccServer2019.StartInfo.RedirectStandardOutput = false;
+                rccServer2019.StartInfo.UseShellExecute = true;
+                rccServer2019.Start();            
+                originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\Gameserver2020.txt");
+                finalScript = originalScript.Replace("%placeId%", placeId.ToString())
+                        .Replace("%creatorId%", uni.builderId.ToString())
+                        .Replace("%jobId%", jobId)
+                        .Replace("%port%", networkServerPort.ToString());
+                break;
+            default:
+                return "Year not supported";
+        }
+
         string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -728,7 +752,16 @@ public class GameServerService : ServiceBase
         await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
         currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);
-        jobRccs.Add(jobId, rccServer);
+        switch (year)
+        {
+            case 2016:
+                jobRccs.Add(jobId, rccServer);
+                break;
+            case 2019:
+                jobRccs.Add(jobId, rccServer2019);
+                break;
+        }
+        //jobRccs.Add(jobId, rccServer);
         return "OK";
     }
 

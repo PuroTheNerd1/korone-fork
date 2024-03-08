@@ -10,3 +10,6 @@ services/old-*
 
 /2016-roblox
 /Roblox/.idea/.idea.Roblox/.idea/workspace.xml
+Roblox/Roblox.Website/ffprobe.exe
+Roblox/Roblox.Website/ffmpeg.exe
+Roblox/Roblox.Website/ffplay.exe

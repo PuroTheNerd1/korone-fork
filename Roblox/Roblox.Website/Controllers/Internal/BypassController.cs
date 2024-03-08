@@ -484,8 +484,7 @@ namespace Roblox.Website.Controllers
         {
             if (userSession == null)
             {
-                if (userSession is null)
-                    throw new RobloxException(403, 0, "Forbidden"); 
+                throw new RobloxException(403, 0, "Forbidden"); 
             }
             DateTime currentUtcDateTime = DateTime.UtcNow;
             long year = await services.games.GetYear(placeId);
@@ -1173,8 +1172,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "d85d5601eab807dffead220f215b86d4",
-                "919e4d22de9f010f6b41f46a907acb09"
+                "96fb5d86ef17a6d8824e0a1a10a2ff53",
             };
 
             return new { data = allowedList };

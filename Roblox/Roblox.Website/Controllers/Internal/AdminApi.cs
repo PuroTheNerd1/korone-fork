@@ -796,6 +796,10 @@ public class AdminApiController : ControllerBase
         var doesExpire = expirationDate != null;
         
         var info = await services.users.GetUserById(request.userId);
+        if (userSession.userId == request.userId)
+        {
+            throw new StaffException("You cannot ban yourself");
+        }
         if (info.accountStatus != AccountStatus.Ok && info.accountStatus != AccountStatus.Suppressed && info.accountStatus != AccountStatus.MustValidateEmail)
             throw new StaffException("You cannot ban this user. Current status is " + info.accountStatus);
         if (await IsStaff(request.userId) && !StaffFilter.IsOwner(userSession.userId))
