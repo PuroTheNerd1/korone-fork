@@ -83,6 +83,19 @@ namespace Roblox.Website.Controllers.Internal
                 return Convert.ToBase64String(signature);
             }
         }
+        public static string GenerateClientTicketV1(long userId, string username, string jobId, string characterAppearanceUrl)
+        {
+            DateTime currentUtcDateTime = DateTime.UtcNow;
+            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
+            string ticketSignature = SignStringResponseForClientFromPrivateKey(cticket);
+                
+            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{formattedDateTime}";
+            string ticketSignature2 = SignStringResponseForClientFromPrivateKey(ticket2);
+
+            string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
+            return finalTicket;
+        }
         public static string GenerateClientTicketV3(long userId, string username, string jobId, string dateTime)
         {
             // the second userid is meant to be characterAppearanceId
