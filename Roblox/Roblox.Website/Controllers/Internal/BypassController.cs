@@ -502,10 +502,13 @@ namespace Roblox.Website.Controllers
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
                     break;
+                case 2017:
+                case 2018:
                 case 2019:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, result.job, formattedDateTime);
                     break;
+                case 2020:
                 default:
                     throw new InvalidOperationException($"This year does not exist: {year}");
             }
@@ -1177,7 +1180,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "96fb5d86ef17a6d8824e0a1a10a2ff53",
+                //"96fb5d86ef17a6d8824e0a1a10a2ff53",
+                "58df9b655d4683d06d4a3355c5eea192"
             };
 
             return new { data = allowedList };
@@ -1419,6 +1423,7 @@ namespace Roblox.Website.Controllers
 
             return Content(jsonString, "application/json");
         }
+        [HttpGetBypass("user/follow")]
         [HttpPost("user/follow")]
         public async Task<dynamic> FollowUser(long followedUserId)
         {
@@ -1433,7 +1438,8 @@ namespace Roblox.Website.Controllers
                 isCaptchaRequired = false,
             };
         }
-        [HttpPost("user/following-exists")]
+        [HttpPostBypass("user/following-exists")]
+        [HttpGetBypass("user/following-exists")]
         public async Task<dynamic> FollowingExists(long userId, long followerUserId)
         {
             var result = new List<dynamic>();

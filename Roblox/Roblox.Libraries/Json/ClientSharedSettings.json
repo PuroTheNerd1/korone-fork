@@ -140,7 +140,7 @@
     "DFFlagPhysicsSenderThrottleBasedOnBufferHealth": "True",
     "DFFlagPhysicsSkipUnnecessaryContactCreation": "True",
     "DFFlagPlaceValidation": "True",
-    "DFFlagPreventReturnOfElevatedPhysicsFPS": "True",
+    "DFFlagPreventReturnOfElevatedPhysicsFPS": "False",
     "DFFlagProjectileOwnershipOptimization": "True",
     "DFFlagPromoteAssemblyModifications": "True",
     "DFFlagPushLuaWorldRayOriginToNearClipPlane": "True",
