@@ -740,7 +740,7 @@ namespace Roblox.Website.Controllers
                 GenerateTeleportJoin = false,
                 IsUnknownOrUnder13 = false,
                 GameChatType = "AllUsers",
-                SessionId = $"{sessionId}",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.projex.zip|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 AnalyticsSessionId = Guid.NewGuid().ToString(),
                 DataCenterId = 0,
                 UniverseId = placeId,
