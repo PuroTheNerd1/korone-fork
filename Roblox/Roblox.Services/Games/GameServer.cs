@@ -679,7 +679,10 @@ public class GameServerService : ServiceBase
         string originalScript;
         string finalScript;
         Process rccServer = null;
+        Process rccServer2017 = null;
+        Process rccServer2018 = null;
         Process rccServer2019 = null;
+        Process rccServer2020 = null;
         var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
         var uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
         if (AssetCatalogInfo.assetType != Models.Assets.Type.Place)
@@ -760,8 +763,17 @@ public class GameServerService : ServiceBase
             case 2016:
                 jobRccs.Add(jobId, rccServer);
                 break;
+            case 2017:
+                jobRccs.Add(jobId, rccServer2017);
+                break;
+            case 2018:
+                jobRccs.Add(jobId, rccServer2018);
+                break;
             case 2019:
                 jobRccs.Add(jobId, rccServer2019);
+                break;
+            case 2020:
+                jobRccs.Add(jobId, rccServer2020);
                 break;
         }
         //jobRccs.Add(jobId, rccServer);
