@@ -635,8 +635,18 @@ namespace Roblox.Website.Controllers
                     finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2017:
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
+                    finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
+                    break;
                 case 2018:
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
+                    finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
+                    break;
                 case 2019:
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
+                    finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
+                    break;
+                case 2020:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
                     break;
