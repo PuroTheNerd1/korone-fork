@@ -604,7 +604,7 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("game/join.ashx")]
         [HttpGetBypass("game/join.ashx")]
-        public async Task<dynamic> JoinGame(string jobId, long placeId)
+        public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
         {
             Console.WriteLine("Client connected to join.ashx");
             GamesService gamesService = new GamesService();
@@ -646,23 +646,7 @@ namespace Roblox.Website.Controllers
             
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            dynamic sessionId = new
-            {
-                SessionId = Guid.NewGuid().ToString(),
-                GameId = Guid.NewGuid().ToString(),
-                PlaceId = placeId,
-                ClientIpAddress = "hihihi",
-                PlatformTypeId = 8,
-                SessionStarted = "",
-                BrowserTrackerId = 0,
-                PartyId = (int?)null,
-                Age = (int?)null,
-                Latitude = 39.0481,
-                Longitude = -77.4728,
-                CountryId = 1,
-                LanguageId = (int?)null
-            };            
+            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);         
             dynamic joinScript2016 = new
             {
                 ClientPort = 0,
@@ -670,6 +654,46 @@ namespace Roblox.Website.Controllers
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 50,
+                UserName = username,
+                SeleniumTestMode = false,
+                UserId = userId,
+                SuperSafeChat = false,
+                CharacterAppearance = characterAppearanceUrl,
+                ClientTicket = finalTicket,
+                GameId = jobId,
+                PlaceId = placeId,
+                MeasurementUrl = "",
+                WaitingForCharacterGuid = Guid.NewGuid().ToString(),
+                BaseUrl = Configuration.BaseUrl,
+                ChatStyle = "ClassicAndBubble",
+                VendorId = 0,
+                ScreenShotInfo = "",
+                VideoInfo = "",
+                CreatorId = uni.builderId,
+                CreatorTypeEnum = "User",
+                MembershipType = membership,
+                AccountAge = accountAgeDays,
+                CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
+                CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
+                CookieStoreEnabled = true,
+                IsRobloxPlace = uni.builderId == 1,
+                GenerateTeleportJoin = false,
+                IsUnknownOrUnder13 = false,
+                SessionId = "",
+                DataCenterId = 0,
+                UniverseId = placeId,
+                BrowserTrackerId = 0,
+                UsePortraitMode = false,
+                FollowUserId = 0,
+                characterAppearanceId = userId
+            };
+            dynamic joinScript20172018 = new
+            {
+                ClientPort = 0,
+                MachineAddress = "",
+                ServerPort = GameServerService.currentGameServerPorts[jobId],
+                PingUrl = "",
+                PingInterval = 120,
                 UserName = username,
                 SeleniumTestMode = false,
                 UserId = userId,
@@ -694,17 +718,18 @@ namespace Roblox.Website.Controllers
                 CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
                 CookieStoreEnabled = true,
                 IsRobloxPlace = uni.builderId == 1,
-                GenerateTeleportJoin = false,
+                GenerateTeleportJoin = GenerateTeleportJoin,
                 IsUnknownOrUnder13 = false,
-                SessionId = $"{sessionId}",
+                GameChatType = "AllUsers",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.projex.zip|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 DataCenterId = 0,
-                UniverseId = placeId,
+                UniverseId = placeId, 
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 FollowUserId = 0,
                 characterAppearanceId = userId
             };
-            dynamic joinScriptNew = new
+            dynamic joinScript20192020 = new
             {
                 ClientPort = 0,
                 MachineAddress = "85.215.186.154", 
@@ -761,10 +786,13 @@ namespace Roblox.Website.Controllers
                 case 2016:
                     return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript2016);
                 case 2017:
+                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
                 case 2018:
+                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
                 case 2019:
-                    return SignatureController.SignJson2048(joinScriptNew);
+                    return SignatureController.SignJson2048(joinScript20192020);
                 case 2020:
+                    return SignatureController.SignJson2048(joinScript20192020);
                 default:
                     return "Fail";
             }
