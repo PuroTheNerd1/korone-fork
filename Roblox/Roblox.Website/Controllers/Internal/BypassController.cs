@@ -631,6 +631,8 @@ namespace Roblox.Website.Controllers
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
+                case 2017:
+                case 2018:
                 case 2019:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
@@ -755,8 +757,11 @@ namespace Roblox.Website.Controllers
             {
                 case 2016:
                     return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript2016);
+                case 2017:
+                case 2018:
                 case 2019:
                     return SignatureController.SignJson2048(joinScriptNew);
+                case 2020:
                 default:
                     return "Fail";
             }

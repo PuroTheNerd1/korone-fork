@@ -705,6 +705,9 @@ public class GameServerService : ServiceBase
                     ("%creatorId%", $"{uni.builderId}").Replace
                     ("_AUTHORIZATION_STRING_", Configuration.GameServerAuthorization);
                 break;
+            case 2017:
+            case 2018:
+            case 2019:
             case 2020:
                 rccServer2019 = new Process();
                 rccServer2019.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
