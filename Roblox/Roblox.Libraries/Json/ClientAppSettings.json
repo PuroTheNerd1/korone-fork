@@ -140,7 +140,7 @@
   "DFFlagPhysicsSenderThrottleBasedOnBufferHealth": "True",
   "DFFlagPhysicsSkipUnnecessaryContactCreation": "True",
   "DFFlagPlaceValidation": "True",
-  "DFFlagPreventReturnOfElevatedPhysicsFPS": "True",
+  "DFFlagPreventReturnOfElevatedPhysicsFPS": "False",
   "DFFlagProjectileOwnershipOptimization": "True",
   "DFFlagPromoteAssemblyModifications": "True",
   "DFFlagPushLuaWorldRayOriginToNearClipPlane": "True",
@@ -869,5 +869,7 @@
   "SFFlagTopRepContSync": "True",
   "SFFlagUseLuaChat": "True",
   "StartPageUrl": "/ide/welcome",
-  "VideoPreRollWaitTimeSeconds": "45"
+  "VideoPreRollWaitTimeSeconds": "45",
+  "DebugSSAOForce": "True",
+  "FFlagDebugSSAOForce":  "True"
 }

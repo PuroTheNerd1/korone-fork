@@ -693,9 +693,9 @@ public class GameServerService : ServiceBase
                 rccServer.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
                 rccServer.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}RCCService.exe";
                 rccServer.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-                rccServer.StartInfo.CreateNoWindow = true;
+                rccServer.StartInfo.CreateNoWindow = false;
                 rccServer.StartInfo.RedirectStandardError = false;
-                rccServer.StartInfo.RedirectStandardOutput = true;
+                rccServer.StartInfo.RedirectStandardOutput = false;
                 rccServer.StartInfo.UseShellExecute = true;
                 rccServer.Start();            
                 originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServerFloatzel.lua");

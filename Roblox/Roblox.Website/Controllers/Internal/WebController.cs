@@ -138,7 +138,7 @@ public class WebController : ControllerBase
         string jsonString = JsonConvert.SerializeObject(json);
         return jsonString;
     }
-    
+
     [HttpGet("userads/redirect")]
     public async Task<IActionResult> AdRedirect(string data)
     {
@@ -675,8 +675,7 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
         // IP flood check too! same limit as userId for now
         await services.cooldown.CooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5));
         
-        var isClothing =
-            request.assetType is Models.Assets.Type.Shirt or Models.Assets.Type.Pants or Models.Assets.Type.TeeShirt;
+        var isClothing = request.assetType is Models.Assets.Type.Shirt or Models.Assets.Type.Pants or Models.Assets.Type.TeeShirt;
         var isAudio = request.assetType is Models.Assets.Type.Audio;
         var isImage = request.assetType is Models.Assets.Type.Image;
 
@@ -744,6 +743,10 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 var stream = request.file.OpenReadStream();
                 var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
                 stream.Position = 0;
+                //bool AudioSig = HasAudioSignature(stream);
+                //Console.WriteLine(AudioSig);
+                //if (HasAudioSignature(stream))
+                    //throw new BadRequestException(0, "Invalid image file");
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
                 // create the texture
@@ -766,6 +769,11 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
             else if (isImage)
             {
                 var stream = request.file.OpenReadStream();
+                bool AudioSig = HasAudioSignature(stream);
+                Console.WriteLine(AudioSig);
+                //if (HasAudioSignature(stream))
+                    //throw new BadRequestException(0, "Invalid image file");
+
                 var pictureData = await services.assets.ValidateImage(stream);
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
@@ -779,14 +787,14 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)stream.Length,
                     pictureData.width, pictureData.height, pictureData.imageFormat,
                     await services.assets.GenerateImageHash(stream));
-               
+            
                 return imageAsset;
             }
             else if (isAudio)
             {
                 // check if has enough
                 var balance = await services.economy.GetBalance(creatorType, creatorId);
-                if (balance.robux < 350)
+                if (balance.robux < 100)
                     throw new BadRequestException(0, "Not enough Robux for purchase");
                 // validate auto
                 var stream = request.file.OpenReadStream();
@@ -814,5 +822,22 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
             }
         }
     }
-    
+    private bool HasAudioSignature(Stream stream)
+    {
+
+        byte[] oggSignature = new byte[] { 0x4F, 0x67, 0x67, 0x53 }; 
+        byte[] mp3Signature = new byte[] { 0x49, 0x44, 0x33 }; 
+
+        byte[] buffer = new byte[Math.Max(oggSignature.Length, mp3Signature.Length)];
+
+        stream.Read(buffer, 0, buffer.Length);
+
+        if (buffer.Take(oggSignature.Length).SequenceEqual(oggSignature) ||
+            buffer.Take(mp3Signature.Length).SequenceEqual(mp3Signature))
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

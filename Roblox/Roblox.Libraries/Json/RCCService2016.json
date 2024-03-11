@@ -361,7 +361,7 @@
     "DFFlagPlayerOwnsAssetFalseForInvalidUsers": "True",
     "DFFlagPreferredPlayersEnabled": "True",
     "DFFlagPreProcessTextBoxEvents": "True",
-    "DFFlagPreventReturnOfElevatedPhysicsFPS": "True",
+    "DFFlagPreventReturnOfElevatedPhysicsFPS": "False",
     "DFFlagProcessAcceleratorsBeforeGUINaviagtion": "True",
     "DFFlagProjectileOwnershipOptimization": "True",
     "DFFlagPromoteAssemblyModifications": "True",
