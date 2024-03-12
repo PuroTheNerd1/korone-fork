@@ -940,7 +940,7 @@ namespace Roblox.Website.Controllers
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
         }
 
-        [HttpPost("/presence/register-absence")]
+        [HttpPostBypass("/presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
             GameServerService gameServerService = new GameServerService();
@@ -956,6 +956,7 @@ namespace Roblox.Website.Controllers
             }
             long placeId = GameServerService.GetUserPlaceId(visitorId);
 
+            await Roblox.Metrics.GameMetrics.ReportGameJoinSuccess(placeId);
             await gameServerService.OnPlayerLeave(visitorId, placeId, JobId);
 
             if (await services.games.GetPlayerCount(placeId) == 0)
