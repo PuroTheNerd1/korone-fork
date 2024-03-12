@@ -927,17 +927,19 @@ namespace Roblox.Website.Controllers
         public async Task RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
         {
             bool IsRCC = IsRcc();
+
             if(!IsRCC)
             {
                 return;
             }
+
             if(GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
             {
                 return;
             }
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
         }
-        
+
         [HttpPost("/presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
@@ -948,8 +950,14 @@ namespace Roblox.Website.Controllers
             {
                 return;
             }
+            if(!GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
+            {
+                return;
+            }
             long placeId = GameServerService.GetUserPlaceId(visitorId);
+
             await gameServerService.OnPlayerLeave(visitorId, placeId, JobId);
+
             if (await services.games.GetPlayerCount(placeId) == 0)
             {
                 await services.gameServer.ShutDownServerAsync(JobId);
