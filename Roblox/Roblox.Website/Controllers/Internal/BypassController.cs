@@ -482,7 +482,8 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId)
         {
-            if (userSession == null)
+            string UserAgent = Request.Headers["User-Agent"].ToString();
+            if (userSession == null || UserAgent != "Roblox/WinInet")
             {
                 throw new RobloxException(403, 0, "Forbidden"); 
             }
@@ -612,6 +613,11 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/join.ashx")]
         public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
         {
+            string UserAgent = Request.Headers["User-Agent"].ToString();
+            if (userSession == null || UserAgent != "Roblox/WinInet")
+            {
+                throw new RobloxException(403, 0, "Forbidden"); 
+            }
             Console.WriteLine("Client connected to join.ashx");
             GamesService gamesService = new GamesService();
             PlaceEntry uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
