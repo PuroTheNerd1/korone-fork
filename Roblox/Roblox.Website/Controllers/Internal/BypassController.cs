@@ -923,6 +923,7 @@ namespace Roblox.Website.Controllers
             CheckServerAuth(request.authorization);
             await services.gameServer.DeleteGameServer(request.serverId);
         }
+        //this is for the newer years that dont have a custom monitoring script
         [HttpPostBypass("/presence/register-game-presence")]
         public async Task RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
         {
