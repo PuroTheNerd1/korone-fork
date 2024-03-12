@@ -92,7 +92,6 @@ namespace Roblox.Website.Controllers
             var assetContent = await services.assets.GetAssetContent(latestVersion.contentUrl);
             return File(assetContent, "application/binary");
         }
-
         private bool IsRcc()
         {
             var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
@@ -124,7 +123,7 @@ namespace Roblox.Website.Controllers
             {
                 is18OrOver = true;
             }
-            
+
             var assetId = id;
             var invalidIdKey = "InvalidAssetIdForConversionV1:" + assetId;
             // Opt
@@ -160,6 +159,7 @@ namespace Roblox.Website.Controllers
             }
 
             var isRcc = IsRcc();
+
             if (isRcc)
                 encryptionEnabled = false;
 #if DEBUG
@@ -503,12 +503,18 @@ namespace Roblox.Website.Controllers
                     finalTicket = SignatureController.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
                     break;
                 case 2017:
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
+                    finalTicket = SignatureController.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
+                    break;
                 case 2018:
                 case 2019:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, result.job, formattedDateTime);
                     break;
                 case 2020:
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
+                    finalTicket = SignatureController.GenerateClientTicketV3(userId, username, result.job, formattedDateTime);
+                    break;
                 default:
                     throw new InvalidOperationException($"This year does not exist: {year}");
             }
@@ -618,7 +624,8 @@ namespace Roblox.Website.Controllers
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             string finalTicket;
             string characterAppearanceUrl;
-            
+            var userInfo = await services.users.GetUserById(userId);
+            var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             if (membership2  == null)
             {
                 membership = "None";
@@ -647,15 +654,14 @@ namespace Roblox.Website.Controllers
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
                     break;
                 case 2020:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}";
+                    finalTicket = SignatureController.GenerateClientTicketV4(userId, username, jobId, formattedDateTime, accountAgeDays);
                     break;
                 default:
                     throw new InvalidOperationException($"This year does not exist: {year}");
             }
             
-            var userInfo = await services.users.GetUserById(userId);
-            var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
+
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);         
             dynamic joinScript2016 = new
             {
@@ -700,7 +706,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20172018 = new
             {
                 ClientPort = 0,
-                MachineAddress = "",
+                MachineAddress = "85.215.186.154",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
@@ -1107,6 +1113,12 @@ namespace Roblox.Website.Controllers
                 return "not the owner";
             }
         }
+
+        [HttpGetBypass("/Game/ChatFilter.ashx")]
+        public string RCC_GetChatFilter()
+        {
+            return "True";
+        }
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
         {
@@ -1122,7 +1134,23 @@ namespace Roblox.Website.Controllers
                 }
             };
         }
-
+        [HttpPostBypass("moderation/v2/filtertext/")]
+        public dynamic GetModerationTextV2()
+        {
+            Console.WriteLine("RCC is doing its thing");
+            var text = HttpContext.Request.Form["text"].ToString();
+            var json = new
+            {
+                success = true,
+                data = new
+                {
+                    AgeUnder13 = text,
+                    Age13OrOver = text,
+                }
+            };
+            string jsonString = JsonConvert.SerializeObject(json);
+            return Content(jsonString, "application/json");
+        }
         private void ValidateBotAuthorization()
         {
 #if DEBUG == false
@@ -1219,7 +1247,9 @@ namespace Roblox.Website.Controllers
             List<string> allowedList = new List<string>()
             {
                 //"96fb5d86ef17a6d8824e0a1a10a2ff53",
-                "58df9b655d4683d06d4a3355c5eea192"
+                "58df9b655d4683d06d4a3355c5eea192",
+                "a9c40916884f904e29b9b39594946ebe",
+                "9627668ed54e769a6b1e9f064917465b"
             };
 
             return new { data = allowedList };
@@ -1231,10 +1261,12 @@ namespace Roblox.Website.Controllers
         {
             List<string> allowedList = new List<string>()
             {
-                "0.235.0pcplayer"
+                "0.235.0pcplayer",
+                "0.314.0pcplayer",
+                "0.448.0pcplayer",
             };
-
-            return new { data = allowedList };
+            var jsonString = JsonConvert.SerializeObject(allowedList);
+            return new { data = jsonString };
         }
         [HttpGetBypass("game/validate-place-join")]
         [HttpPostBypass("universes/validate-place-join")]
@@ -1261,8 +1293,27 @@ namespace Roblox.Website.Controllers
             }
         }
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        public MVC.ActionResult<dynamic> GetAppSettings(string type)
+        //D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79
+        public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
+            /*
+            if (apiKey == "F06B8D11-9DBA-42F0-84E2-CC1285734D45")
+            {
+                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F" + ".json");
+                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
+
+                return clientAppSettingsData ?? "";
+            }
+            if (apiKey == "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79")
+            {
+                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "ClientAppSettings2017" + ".json");
+                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
+
+                return clientAppSettingsData ?? "";
+            }
+            */
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
@@ -1528,6 +1579,23 @@ namespace Roblox.Website.Controllers
                 success = true,
                 isCaptchaRequired = false,
             };
+        }
+        [HttpPostBypass("game/load-place-info")]
+        public async Task<dynamic> LoadPlaceInfo()
+        {
+            var placeId = Request.Headers["roblox-place-id"];
+            long.TryParse(placeId, out long assetId);
+            var details = await services.assets.GetAssetCatalogInfo(assetId);
+            var jsonData = new
+            {
+                CreatorId =  details.creatorTargetId,
+                CreatorType = "User",
+                PlaceVersion = details.id,
+                GameId = assetId,
+                IsRobloxPlace = details.creatorTargetId == 1
+            };
+            string jsonString = JsonConvert.SerializeObject(jsonData);
+            return Content(jsonString, "application/json");
         }
         
         [HttpGetBypass("studio/e.png")]

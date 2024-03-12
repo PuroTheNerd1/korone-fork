@@ -130,6 +130,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/game/validateticket.ashx",
         "/api/moderation/filtertext",
         "/moderation/filtertext",
+        "/moderation/v2/filtertext",
         // uses built-in RequestVerificationToken
         "/auth",
         "/auth/signup",

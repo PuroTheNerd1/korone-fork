@@ -643,9 +643,11 @@ public class GameServerService : ServiceBase
             jobId = currentPlaceIdsInUse[placeId];
             StartGameInfo = "OK";
         }
+
         else
         {
-            StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);                        
+            StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
+                                 
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
                 new
@@ -678,6 +680,7 @@ public class GameServerService : ServiceBase
         GamesService gamesService = new GamesService();
         string originalScript;
         string finalScript;
+        long maxplayers = await gamesService.GetMaxPlayerCount(placeId);
         Process rccServer = null;
         Process rccServer2017 = null;
         Process rccServer2018 = null;
@@ -709,6 +712,43 @@ public class GameServerService : ServiceBase
                     ("_AUTHORIZATION_STRING_", Configuration.GameServerAuthorization);
                 break;
             case 2017:
+                rccServer2017 = new Process();
+                rccServer2017.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                rccServer2017.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2017\\RCCService.exe";
+                rccServer2017.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
+                rccServer2017.StartInfo.CreateNoWindow = false;
+                rccServer2017.StartInfo.RedirectStandardError = false;
+                rccServer2017.StartInfo.RedirectStandardOutput = false;
+                rccServer2017.StartInfo.UseShellExecute = true;
+                rccServer2017.Start();            
+                originalScript = $@"
+                {{
+                    ""Mode"": ""GameServer"",
+                    ""Settings"": {{
+                        ""PlaceId"": {placeId},
+                        ""CreatorId"": ""{uni.builderId}"",
+                        ""GameId"": ""{jobId}"",
+                        ""MachineAddress"": ""85.215.186.154"",
+                        ""MaxPlayers"": {maxplayers},
+                        ""MaxGameInstances"": 5,
+                        ""PreferredPlayerCapacity"": {maxplayers},
+                        ""UniverseId"": {placeId},
+                        ""BaseUrl"": ""projex.zip"",
+                        ""PlaceFetchUrl"": ""https://www.projex.zip"",
+                        ""MatchmakingContextId"": 1,
+                        ""CreatorType"": ""User"",
+                        ""PlaceVersion"": 1,
+                        ""JobId"": ""{jobId}"",
+                        ""PreferredPort"": {networkServerPort},
+                        ""PlaceVisitAccessKey"": ""{Configuration.RccAuthorization}"",
+                        ""ApiKey"": ""{Configuration.RccAuthorization}"",
+                        ""GsmInterval"": 5,
+                        ""GameCode"": """"
+                    }}
+                }}";
+                finalScript = originalScript.Replace("%", "&#37;");
+                break;
+
             case 2018:
             case 2019:
             case 2020:
@@ -721,11 +761,32 @@ public class GameServerService : ServiceBase
                 rccServer2019.StartInfo.RedirectStandardOutput = false;
                 rccServer2019.StartInfo.UseShellExecute = true;
                 rccServer2019.Start();            
-                originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\Gameserver2020.txt");
-                finalScript = originalScript.Replace("%placeId%", placeId.ToString())
-                        .Replace("%creatorId%", uni.builderId.ToString())
-                        .Replace("%jobId%", jobId)
-                        .Replace("%port%", networkServerPort.ToString());
+                originalScript = $@"
+                {{
+                    ""Mode"": ""GameServer"",
+                    ""Settings"": {{
+                        ""PlaceId"": {placeId},
+                        ""CreatorId"": {uni.builderId},
+                        ""GameId"": ""{jobId}"",
+                        ""MachineAddress"": ""85.215.186.154"",
+                        ""MaxPlayers"": {maxplayers},
+                        ""MaxGameInstances"": 5,
+                        ""PreferredPlayerCapacity"": {maxplayers},
+                        ""UniverseId"": {placeId},
+                        ""BaseUrl"": ""projex.zip"",
+                        ""PlaceFetchUrl"": ""https://www.projex.zip/asset/?id={placeId}"",
+                        ""MatchmakingContextId"": 1,
+                        ""CreatorType"": ""User"",
+                        ""PlaceVersion"": 1,
+                        ""JobId"": ""{jobId}"",
+                        ""PreferredPort"": {networkServerPort},
+                        ""PlaceVisitAccessKey"": ""{Configuration.RccAuthorization}"",
+                        ""ApiKey"": ""{Configuration.RccAuthorization}"",
+                        ""GsmInterval"": 5,
+                        ""GameCode"": """"
+                }}
+                }}";
+                finalScript = originalScript.Replace("%", "&#37;");
                 break;
             default:
                 return "Year not supported";
@@ -755,6 +816,7 @@ public class GameServerService : ServiceBase
                 </soap:Body>
             </soap:Envelope>";
         await WaitForPort(RCCPort);
+        Console.WriteLine(finalScript);
         await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
         currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);

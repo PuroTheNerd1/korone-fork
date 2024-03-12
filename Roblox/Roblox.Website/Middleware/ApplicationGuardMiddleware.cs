@@ -51,6 +51,7 @@ public class ApplicationGuardMiddleware
         "/game/get-join-script-debug",
         "/api/moderation/filtertext",
         "/moderation/filtertext",
+        "/moderation/v2/filtertext",
         "/version",
     };
 

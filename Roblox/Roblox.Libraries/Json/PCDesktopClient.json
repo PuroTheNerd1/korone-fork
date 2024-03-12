@@ -42,7 +42,7 @@
 		"DFFlagClampPitch2": true,
 		"DFFlagCleanCacheMoveMutex": true,
 		"DFFlagClearUnusedLuaRefsWithJob": true,
-		"DFFlagCLI120342": false,
+		"DFFlagCLI120342": true,
 		"DFFlagCLI120342p7": true,
 		"DFFlagCLI120342p72": true,
 		"DFFlagClientHappyNewYear1": true,

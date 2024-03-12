@@ -90,6 +90,7 @@ public class FrontendProxyMiddleware
         "/gs/a",
         "/api/moderation/filtertext",
         "/moderation/filtertext",
+        "/moderation/v2/filtertext",
         // hubs
         "/chat",
         "/chat/negotiate",
