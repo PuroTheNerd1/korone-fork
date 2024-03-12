@@ -292,7 +292,7 @@ public class UsersService : ServiceBase, IService
     {
         if (string.IsNullOrEmpty(nameToCheck) || string.IsNullOrWhiteSpace(nameToCheck)) return false;
         if (nameToCheck.Length >= 21 || nameToCheck.Length < 3) return false;
-        // Check start/end
+        // check start/end
         foreach (var badCharacter in UsernameCannotStartOrEndWith)
         {
             if (nameToCheck.StartsWith(badCharacter) || nameToCheck.EndsWith(badCharacter)) return false;
@@ -303,7 +303,7 @@ public class UsersService : ServiceBase, IService
         var normalizedName = normalizedNameArray.Value;
         if (normalizedName != nameToCheck) return false;
         
-        // Check for duplicate whitespace
+        // check for duplicate whitespace
         for (var i = 1; i < normalizedName.Length; i++)
         {
             if (normalizedName[i-1] == ' ' && normalizedName[i] == ' ') return false;
@@ -319,14 +319,23 @@ public class UsersService : ServiceBase, IService
             return false;
         if (lowerName.Contains("tranny") || lowerName.Contains("fag") || lowerName.Contains("goblina") || lowerName.Contains("dyke") || lowerName.Contains("dick") || lowerName.Contains("cock") || lowerName.Contains("c0ck") || lowerName.Contains("d1ck") || lowerName.Contains("hitler") || lowerName.Contains("hitier"))
             return false;
-        
+
         // mod blocked
         var blocked = await IsBadUsername(nameToCheck);
         if (blocked)
             return false;
         
+        // disallow special characters
+        foreach (char c in nameToCheck)
+        {
+            if (!char.IsLetterOrDigit(c))
+                return false;
+        }
+
         return true;
     }
+
+
 
     public bool IsPasswordValid(string passwordToValidate)
     {

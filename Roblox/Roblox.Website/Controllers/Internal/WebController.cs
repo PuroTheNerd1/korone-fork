@@ -323,17 +323,11 @@ public class WebController : ControllerBase
     [HttpGet("users/{userId:long}/canmanage/{placeId:long}")]
     public async Task<IActionResult> CanManage(long userId, long placeId)
     {
-    bool CanManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
-    bool isStaff = await StaffFilter.IsStaff(userId);
-    if (CanManagePlace || isStaff) {
-        dynamic json = new { Success = true, CanManage = true };
-        string jsonString = JsonConvert.SerializeObject(json);
-        return Content(jsonString, "application/json");
-    } else {
-        dynamic json = new { Success = true, CanManage = false };
-        string jsonString = JsonConvert.SerializeObject(json);
-        return Content(jsonString, "application/json");
-    }
+        bool canManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
+        bool isStaff = await StaffFilter.IsStaff(userId);
+        
+        dynamic json = new { Success = true, CanManage = canManagePlace || isStaff };
+        return Content(JsonConvert.SerializeObject(json), "application/json");
     }
     
     [HttpPost("users/set-builders-club")]
