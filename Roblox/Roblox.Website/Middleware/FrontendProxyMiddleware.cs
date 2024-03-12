@@ -170,6 +170,11 @@ public class FrontendProxyMiddleware
     public async Task InvokeAsync(HttpContext ctx)
     {
         var requestUrl = ctx.Request.GetEncodedPathAndQuery();
+        if (requestUrl.Contains("/canmanage/"))
+        {
+            await _next(ctx);
+            return;
+        }        
         foreach (var item in BypassUrls)
         {
             if (requestUrl.ToLower().StartsWith(item))
