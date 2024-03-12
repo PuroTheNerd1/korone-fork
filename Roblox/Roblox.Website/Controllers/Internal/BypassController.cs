@@ -1269,11 +1269,17 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/players/{userId}")]
         public MVC.ActionResult<dynamic> ChatWhiteList(long userId)
         {
-            string whitelist = "whitelist";
-
+            string mode;
+            bool IsOwner = StaffFilter.IsOwner(userId);
+            if (StaffFilter.IsOwner(userId)){
+                mode = "whitelist";
+            }
+            else{
+                mode = "blacklist";
+            }
             dynamic json = new
             {
-               ChatFilter = whitelist,
+               ChatFilter = mode,
             };
 
             string jsonString = JsonConvert.SerializeObject(json);
