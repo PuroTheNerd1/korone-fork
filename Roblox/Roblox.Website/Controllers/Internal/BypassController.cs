@@ -923,12 +923,44 @@ namespace Roblox.Website.Controllers
             CheckServerAuth(request.authorization);
             await services.gameServer.DeleteGameServer(request.serverId);
         }
+        [HttpPostBypass("/presence/register-game-presence")]
+        public async Task RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
+        {
+            bool IsRCC = IsRcc();
+            if(!IsRCC)
+            {
+                return;
+            }
+            if(GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
+            {
+                return;
+            }
+            await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
+        }
+        
+        [HttpPost("/presence/register-absence")]
+        public async Task RegisterGamePresenceAbsence(long visitorId)
+        {
+            GameServerService gameServerService = new GameServerService();
+            string JobId = await gameServerService.GetJobIdByUserId(visitorId);
+            bool IsRCC = IsRcc();
+            if(!IsRCC)
+            {
+                return;
+            }
+            long placeId = GameServerService.GetUserPlaceId(visitorId);
+            await gameServerService.OnPlayerLeave(visitorId, placeId, JobId);
+            if (await services.games.GetPlayerCount(placeId) == 0)
+            {
+                await services.gameServer.ShutDownServerAsync(JobId);
+            }
+        }
 
         [HttpPostBypass("/gs/shutdown")]
-        public void ShutDownServer([Required, MVC.FromBody] ReportActivity request)
+        public async Task ShutDownServer([Required, MVC.FromBody] ReportActivity request)
         {
             CheckServerAuth(request.authorization);
-            services.gameServer.ShutDownServerAsync(request.serverId);
+            await services.gameServer.ShutDownServerAsync(request.serverId);
         }
 
         [HttpPostBypass("/gs/players/report")]
