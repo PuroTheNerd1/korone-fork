@@ -871,5 +871,6 @@
   "StartPageUrl": "/ide/welcome",
   "VideoPreRollWaitTimeSeconds": "45",
   "DebugSSAOForce": "True",
-  "FFlagDebugSSAOForce":  "True"
+  "FFlagDebugSSAOForce":  "True",
+  "DFFlagFixSeatingWhileSitting": "True"
 }

@@ -590,6 +590,66 @@ namespace Roblox.Website.Controllers
             Console.WriteLine(userSession.userId);
             return Ok(ID);
         }
+        [HttpPostBypass("mobileapi/login")]
+        public async Task<ContentResult> Login()
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
+            string username = Request.Form["username"]!;
+            string password = Request.Form["password"]!;
+
+            Console.WriteLine(username, password);
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
+            }
+
+            long userId;
+            try
+            {
+                userId = await services.users.GetUserIdFromUsername(username);
+            }
+            catch (RecordNotFoundException e)
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+            }
+
+            var passwordOk = await services.users.VerifyPassword(userId, password);
+            if (!passwordOk)
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+            }
+            var sess = await services.users.CreateSession(userId);
+            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+            {
+                sessionId = sess,
+                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            });
+            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+            {
+                Secure = true,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                HttpOnly = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
+            });
+            var userBalance = await services.economy.GetUserBalance(userId);
+            dynamic successJson = new
+            {
+                Status = "OK",
+                UserInfo = new
+                {
+                    UserName = username,
+                    RobuxBalance = userBalance.robux,
+                    TicketsBalance = userBalance.tickets,
+                    IsAnyBuildersClubMember = false,
+                    ThumbnailUrl = $"https://www.projex.zip/Thumbs/Avatar.ashx?userId={userId}",
+                    UserID = userId
+                }
+            };
+            string jsonString = JsonConvert.SerializeObject(successJson);
+            return Content(jsonString, "application/json");
+        }
 
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
@@ -1300,7 +1360,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                //"96fb5d86ef17a6d8824e0a1a10a2ff53",
+                "96fb5d86ef17a6d8824e0a1a10a2ff53",
                 "58df9b655d4683d06d4a3355c5eea192",
                 "a9c40916884f904e29b9b39594946ebe",
                 "9627668ed54e769a6b1e9f064917465b"
@@ -1308,9 +1368,12 @@ namespace Roblox.Website.Controllers
 
             return new { data = allowedList };
         }
-        
-        [HttpGetBypass("GetAllowedSecurityVersions")]
         [HttpGetBypass("GetAllowedSecurityKeys")]
+        public MVC.ActionResult<dynamic> AllowedSecurity()
+        {
+            return true;
+        }
+        [HttpGetBypass("GetAllowedSecurityVersions")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
             List<string> allowedList = new List<string>()
@@ -1368,6 +1431,7 @@ namespace Roblox.Website.Controllers
                 return clientAppSettingsData ?? "";
             }
             */
+            
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
@@ -1512,7 +1576,7 @@ namespace Roblox.Website.Controllers
                         new 
                         {
                             title = "ZetaCheatingMonitor",
-                            url = "https://projex.zip",
+                            url = "https://www.projex.zip",
                             color = 16711680,
                             fields = new[]
                             {
@@ -1520,7 +1584,7 @@ namespace Roblox.Website.Controllers
                                 new  { name = "Flag", value = $"```\n{details}\n```" },
                                 new  { name = "Details", value = $"```\n{stat}\n```" }
                             },
-                            thumbnail = new { url = $"https://projex.zip/thumbs/avatar.ashx?userId={userId}" }
+                            thumbnail = new { url = $"https://www.projex.zip/thumbs/avatar.ashx?userId={userId}" }
                         }
                     },
                     username = "ZetaCheatingMonitor",
@@ -1685,7 +1749,7 @@ namespace Roblox.Website.Controllers
                 about = "Integration test",
                 socialPresence = "",
                 isVerified = true,
-                verifiedUrl = "https://projex.zip/",
+                verifiedUrl = "https://www.projex.zip/",
                 verificationPhrase = "Integration test",
                 verifiedId = "1",
             });

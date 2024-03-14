@@ -969,5 +969,6 @@
   "StartPageUrl": "/ide/welcome",
   "VideoPreRollWaitTimeSeconds": "45",
   "FFlagDebugProtocolSynchronization ": "True",
-  "HttpUseCurlPercentageRCC": "100"
+  "HttpUseCurlPercentageRCC": "100",
+  "DFFlagFixSeatingWhileSitting": "True"
 }

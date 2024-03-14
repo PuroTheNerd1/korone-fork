@@ -67,7 +67,7 @@ public class AuthenticationControllerV2 : ControllerBase
         HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
     }
 
-    private async Task CreateSessionAndSetCookie(long userId)
+    public async Task CreateSessionAndSetCookie(long userId)
     {
         var sess = await services.users.CreateSession(userId);
         var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()

@@ -11,7 +11,16 @@ namespace Roblox.Website.Controllers
         private static string CDN = $"C:\\ProjectX\\services\\Roblox\\Setup\\";
         private static string RBXClientPath = $"C:\\ProjectX\\services\\Roblox\\Setup\\Client\\{RBXversion}";
         private static string RBXStudioPath = $"C:\\ProjectX\\services\\Roblox\\Setup\\Studio\\{RBXversionstudio}";
-
+        [HttpGetBypass("/v2/client-version/WindowsPlayer/channel/LIVE")]
+        public dynamic GetVersionV2()
+        {
+            dynamic json = new
+            {
+                clientVersionUpload = RBXversion,
+                bootstrapperVersion = "1, 6, 0, 0"
+            };
+            return Ok(json);
+        }
         [HttpGetBypass("/cdn/version")]
         public dynamic GetVersion()
         {

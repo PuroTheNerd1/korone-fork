@@ -1,211 +1,410 @@
-local function reportPlayerEvent(userId, t)
-    -- wrapped in pcall to prevent keys spilling in error logs
-	local ok, msg = pcall(function()
-		local msg = http:JSONEncode({
-			["authorization"] = "adr3092f90g8902g0924ojigwrwnrjlknkwjrgjnkwrnkjggwrkjngdd",
-			["serverId"] = game.JobId,
-			["userId"] = tostring(userId),
-			["eventType"] = t,
-			["placeId"] = tostring(placeId),
-		})
-		print("sending",msg)
-		game:HttpPost(url .. "/gs/players/report", msg, false, "application/json");
-	end)
-	print("player event",ok,msg)
-end
-print("[info] jobId is", game.JobId);
+JSONSettings = ...
+local placeId = JSONSettings["PlaceId"]
+local universeId = JSONSettings["UniverseId"]
+local matchmakingContextId = JSONSettings["MatchmakingContextId"]
+local gameCode = JSONSettings["GameCode"]
+local baseUrl = JSONSettings["BaseUrl"]
+local gameId = JSONSettings["GameId"]
+local machineAddress = JSONSettings["MachineAddress"]
+local gsmInterval = JSONSettings["GsmInterval"]
+local maxPlayers = JSONSettings["MaxPlayers"]
+local maxGameInstances = JSONSettings["MaxGameInstances"]
+local apiKey = JSONSettings["ApiKey"]
+local preferredPlayerCapacity = JSONSettings["PreferredPlayerCapacity"]
+local placeVisitAccessKey = JSONSettings["PlaceVisitAccessKey"]
 
-local function pollToReportActivity()
-	local function sendPing()
-		game:HttpPost(url .. "/gs/ping", http:JSONEncode({
-			["authorization"] = "adr3092f90g8902g0924ojigwrwnrjlknkwjrgjnkwrnkjggwrkjngdd",
-			["serverId"] = game.JobId,
-			["placeId"] = placeId,
-		}), false, "application/json");
-	end
-	while serverOk do
-		local ok, data = pcall(function()
-			sendPing();
-		end)
-		--print("[info] poll resp", ok, data)
-		wait(5)
-	end
-	print("Server is no longer ok. Activity is not being reported. Will die soon.")
-end
-local playersJoin = 0;
+local access = true
+local isCloudEdit = matchmakingContextId == 3
+local assetGameUrl = "https://assetgame." .. baseUrl
 
-local function shutdown()
-	print("[info] shut down server")
-	if isDebugServer then
-		print("Would shut down, but this is a debug server, so shutdown is disabled")
-		return
-	end
-	pcall(function()
-		game:HttpPost(url .. "/gs/shutdown", http:JSONEncode({
-			["authorization"] = "adr3092f90g8902g0924ojigwrwnrjlknkwjrgjnkwrnkjggwrkjngdd",
-			["serverId"] = game.JobId,
-			["placeId"] = placeId,
-		}), false, "application/json");
-	end)
-	pcall(function()
-		ns:Stop()
-	end)
-end
 
-local adminsList = nil
-spawn(function()
-	local ok, newList = pcall(function()
-		local result = game:GetService('HttpRbxApiService'):GetAsync("Users/ListStaff.ashx", true)
-		return game:GetService('HttpService'):JSONDecode(result)
-	end)
-	if not ok then
-		print("GetStaff failed because",newList)
-		return
-	end
-	pcall(function()
-		adminsList = {}
-		adminsList[12] = true -- 12 is hard coded as admin but doesn't show badge
-		for i,v in ipairs(newList) do
-			adminsList[v] = true
-		end
-	end)
+startTime = tick()
+networkServer = game:GetService("NetworkServer") 
+playersService = game:GetService("Players")
+httpService = game:GetService("HttpService")
+pcall(function() playersService.MaxPlayers = maxPlayers end)
+pcall(function() playersService.MaxPlayersInternal = maxPlayers end)
+pcall(function() playersService.PreferredPlayersInternal = preferredPlayerCapacity end)
+gsmUrl = "https://api." .. baseUrl
+gameInstancesApiUrl = "https://api." .. baseUrl
+apiProxyUrl = "https://api." .. baseUrl
+playSessions = {}
+playerJoinTimes = {}
+
+local RCCKickDupeExists, RCCKickDupeEnabled = pcall(function()
+	return settings():GetFFlag("RCCKickDuplicatePlayersOnJoin")
 end)
 
-local bannedIds = {}
+local kickDuplicatePlayersRCC = RCCKickDupeExists and RCCKickDupeEnabled and not isCloudEdit;
 
-local function processModCommand(sender, message)
-	if string.sub(message, 1, 5) == ":ban " then
-		local userToBan = string.sub(string.lower(message), 6)
-		local player = nil
-		for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
-			local name = string.sub(string.lower(p.Name), 1, string.len(userToBan))
-			if name == userToBan and p ~= sender then
-				player = p
-				break
-			else
-				print("Not a match!",name,"vs",userToBan)
-			end
+function checkUnifiedPlayerPayloadFlag()
+    local UnifiedPlayerPayloadExists, UnifiedPlayerPayloadEnabled = pcall(function () return settings():GetFFlag("UnifiedPlayerPayload") end)
+    return UnifiedPlayerPayloadExists and UnifiedPlayerPayloadEnabled
+end
+
+function UrlEncode(s)
+	s = string.gsub(s, "([&=+%c])", function (c)
+		return string.format("%%%02X", string.byte(c))
+	end)
+	s = string.gsub(s, " ", "+")
+	return s
+end
+
+
+function Split(str, pat)
+   local t = {}  -- NOTE: use {n = 0} in Lua-5.0
+   local fpat = "(.-)" .. pat
+   local last_end = 1
+   local s, e, cap = str:find(fpat, 1)
+   while s do
+      if s ~= 1 or cap ~= "" then
+	 table.insert(t,cap)
+      end
+      last_end = e + 1
+      s, e, cap = str:find(fpat, last_end)
+   end
+   if last_end <= #str then
+      cap = str:sub(last_end)
+      table.insert(t, cap)
+   end
+   return t
+end
+
+
+function CalculateAveragePing()
+	local totalPing = 0
+	local replicatorCount = 0
+	local averagePing = 0
+	local status, err = pcall(function()
+		for _, r in ipairs(stats().Network:GetChildren()) do 
+			if r.Name ~= "Packets Thread" then 
+				r:GetValue() -- hax
+				totalPing = totalPing + r.Ping:GetValue()
+				replicatorCount = replicatorCount + 1
+			end 
 		end
-		print("ban", player, userToBan)
-		if player ~= nil then
-			player:Kick("Banned from this server by an administrator")
-			bannedIds[player.userId] = {
-				["Name"] = player.Name, -- for unban
-			}
+		if replicatorCount > 0 then
+			averagePing = totalPing / replicatorCount
 		end
-	end
-	if string.sub(message, 1, 7) == ":unban " then
-		local userToBan = string.sub(string.lower(message), 8)
-		local userId = nil
-		for id, data in pairs(bannedIds) do
-			local name = string.sub(string.lower(data.Name), 1, string.len(userToBan))
-			if name == userToBan then
-				userId = id
-				break
-			end
-		end
-		print("ban", userId)
-		if userId ~= nil then
-			table.remove(bannedIds, userId)
-		end
+	end)
+	if (not status) then
+		PrintDebugMessage("CalculateAveragePing error = " .. err)
+	end	
+	return averagePing
+end
+
+
+function PrintDebugMessage(message)
+	if message then
+		-- print ("!GameServiceMonitor: " .. message)
+		-- game:HttpPost(gsmUrl .. "/v1.0/LogLuaMessage?&apiKey=" .. apiKey .. "&text=" .. UrlEncode(message), "")
 	end
 end
 
-local function getBannedUsersAsync(playersTable)
-	local csv = ""
-	for _, p in ipairs(playersTable) do
-		csv = csv .. "," .. tostring(p.userId)
-	end
-	if csv == "" then return end
-	csv = string.sub(csv, 2)
-
-	local url = "Users/GetBanStatus.ashx?userIds=" .. csv
-	local ok, newList = pcall(function()
-		local result = game:GetService('HttpRbxApiService'):GetAsync(url, true)
-		return game:GetService('HttpService'):JSONDecode(result)
-	end)
-
-	if not ok then
-		print("getBannedUsersAsync failed because",newList)
-		return
-	end
-
-	local ok, banProcErr = pcall(function()
-		for _, entry in ipairs(newList) do
-			if entry.isBanned then
-				local inGame = game:GetService("Players"):GetPlayerByUserId(entry.userId)
-				if inGame ~= nil then
-					inGame:Kick("Account restriction. Visit our website for more information.")
-				end
-			end
-		end
-	end)
-	if not ok then
-		print("[error] could not process ban result",banProcErr)
+function PrintErrorMessage(message)
+	if message then
+		print ("!GameServiceMonitor: " .. message)
+		-- game:HttpPost(gsmUrl .. "/v1.0/LogLuaMessage?&apiKey=" .. apiKey .. "&text=" .. UrlEncode(message), "")
 	end
 end
-local hasNoPlayerCount = 0
-spawn(function()
+
+function UpdatePresence(player, isDisconnect)
+	local fullUrl = apiProxyUrl .. "/presence/"
+	local queryParams = "?visitorId=" .. player.userId
+
+	if isDisconnect then
+		fullUrl = fullUrl .. "register-absence"
+	else
+		fullUrl = fullUrl .. "register-game-presence"
+		queryParams = queryParams .. "&placeId=" .. placeId .. "&gameId=" .. gameId .. "&locationType=" .. ((isCloudEdit or matchmakingContextId == 4) and "CloudEdit" or "Game")
+	end
+
+	fullUrl = fullUrl .. queryParams
+
+	PrintDebugMessage("Calling Api Proxy to update presence. URL: " .. fullUrl)
+
+	game:HttpPost(fullUrl, "")
+	return true
+end
+
+function GetPlayerPostData()
+    local sessionArray = {}
+    for _, player in ipairs(playersService:GetPlayers()) do
+        local t =
+        {
+            UserId = player.userId,
+            IsVr = player.VRDevice ~= "",
+            GameTimeWhenJoined = playerJoinTimes[player.userId],
+            GameSessionId = player:GetGameSessionID()
+        }
+        table.insert(sessionArray, t)
+    end
+    return httpService:JSONEncode({GameSessions = sessionArray})
+end
+
+function SendMessageToGamesApi(source, player)
+    local postDataJson = ""
+    local playerCSV = ""
+    if checkUnifiedPlayerPayloadFlag() then
+        postDataJson = GetPlayerPostData()
+    else
+	    -- Construct the player CSV
+	    local comma = ","
+	    local separator = ""
+	    local postDataAsTable = {}
+
+	    for _, playerObject in ipairs(playersService:GetPlayers()) do
+		    playerCSV = playerCSV .. separator .. playerObject.userId
+		    separator = comma
+
+		    local session = playSessions[playerObject.userId]
+		    if session ~= nil then
+			    local t =
+			    {
+				    Id = playerObject.userId,
+				    Age = session["Age"]
+			    }
+			    table.insert(postDataAsTable, t)
+		    end
+	    end
+	    postDataJson = httpService:JSONEncode(postDataAsTable)
+    end
+
+	local w = stats().Workspace		
+	local gameTime = tick() - startTime
+
+	local fullUrl = ""
+    if checkUnifiedPlayerPayloadFlag() then 
+        fullUrl = gsmUrl .. "/v2.0/Refresh/?apiKey=" .. apiKey
+    else
+        fullUrl = gsmUrl .. "/v1.0/Refresh/?apiKey=" .. apiKey
+    end
+	fullUrl = fullUrl .. "&gameId=" .. gameId .."&placeId=" .. placeId .."&gameCapacity=" .. maxPlayers 
+	fullUrl = fullUrl .. "&maximumGameInstances=" .. maxGameInstances .."&ipAddress=" .. machineAddress
+    if not checkUnifiedPlayerPayloadFlag() then
+        fullUrl = fullUrl .. "&playerIdsCsv=" .. playerCSV
+    end
+	fullUrl = fullUrl .. "&port=" .. networkServer.Port .."&clientCount=" .. networkServer:GetClientCount()
+	fullUrl = fullUrl .. "&gameTime=" .. gameTime
+	fullUrl = fullUrl .. "&preferredPlayerCapacity=" .. preferredPlayerCapacity
+	fullUrl = fullUrl .. "&eventSource=" .. source
+	if player ~= nil then
+		fullUrl = fullUrl .. "&originatingPlayerId=" .. player.userId
+	end
+	fullUrl = fullUrl .. "&gameCode="
+	if gameCode ~= nil then
+		fullUrl = fullUrl .. gameCode
+	end
+	fullUrl = fullUrl .. "&matchmakingContextId=" .. matchmakingContextId
+    fullUrl = fullUrl .. "&isCloudEdit=" .. ((isCloudEdit or matchmakingContextId == 4) and "true" or "false")
+	fullUrl = fullUrl .. "&rccVersion=" .. version()
+
+	PrintDebugMessage("Calling Games API. Source: " .. source .. ", URL: " .. fullUrl .. " Post data (JSON}:" .. postDataJson)
+
+	game:HttpPost(fullUrl, postDataJson, false, "application/json")
+	return true
+end
+
+
+function SendMessageToGameInstancesApi(source)
+    local postDataJson = ""
+    if checkUnifiedPlayerPayloadFlag() then
+        postDataJson = GetPlayerPostData()
+    else
+	    local postDataAsTable = {}
+	    for _, playerObject in ipairs(playersService:GetPlayers()) do
+		    local session = playSessions[playerObject.userId]
+		    if session ~= nil then
+			    local isVr = false
+			    pcall(function() isVr = playerObject.VRDevice ~= "" end)
+
+			    local t = 
+			    {
+				    UserId = playerObject.userId, 
+				    SessionId = session.SessionId, 
+				    GameTimeWhenJoined = session.GameTimeWhenJoined,
+				    ClientIpAddress = session.ClientIpAddress,
+				    PlatformId = session.PlatformId,
+				    Started = session.Started,
+				    BrowserTrackerId = session.BrowserTrackerId,
+				    PartyId = session.PartyId,
+				    Age = session.Age,
+				    IsVr = isVr,
+			    }
+
+			    if session.Latitude ~= nil and session.Latitude ~= "null" and session.Longitude ~= nil and session.Longitude ~= "null" then
+				    local countryId = "null"
+				    if session.CountryId ~= nil and session.CountryId ~= "null" then
+					    countryId = session.CountryId
+				    end
+
+				    t.Geolocation = {
+					    Latitude = session.Latitude,
+					    Longitude = session.Longitude,
+					    CountryId = countryId
+				    }
+			    end
+			
+			    table.insert(postDataAsTable, t)
+		    end
+	    end
+	    postDataJson = httpService:JSONEncode(postDataAsTable)
+    end
+
+	local w = stats().Workspace		
+	local gameTime = tick() - startTime
+	local averagePing = CalculateAveragePing()
+	
+	local fullUrl = ""
+    if checkUnifiedPlayerPayloadFlag() then
+        fullUrl = gameInstancesApiUrl .. "/v2/CreateOrUpdate/?apiKey=" .. apiKey
+    else
+        fullUrl = gameInstancesApiUrl .. "/v1/CreateOrUpdate/?apiKey=" .. apiKey
+    end
+	fullUrl = fullUrl .. "&gameId=" .. gameId .."&placeId=" .. placeId .. "&gameCapacity=" .. maxPlayers
+	fullUrl = fullUrl .. "&maximumGameInstances=" .. maxGameInstances .. "&serverIpAddress=" .. machineAddress
+	fullUrl = fullUrl .. "&serverPort=" .. networkServer.Port .. "&fps=" .. w.FPS:GetValue()
+	fullUrl = fullUrl .. "&heartbeatRate=" .. w.Heartbeat:GetValue()
+	fullUrl = fullUrl .. "&ping=" .. averagePing .. "&gameTime=" .. gameTime
+	fullUrl = fullUrl .. "&universeId=" .. universeId
+	fullUrl = fullUrl .. "&gameCode="
+	if gameCode ~= nil then
+		fullUrl = fullUrl .. gameCode
+	end
+	fullUrl = fullUrl .. "&matchmakingContextId=" .. matchmakingContextId
+	
+	PrintDebugMessage("Calling Game Instances API. Source: " .. source .. ", URL: " .. fullUrl .. " Post data (json): " .. postDataJson)
+	
+	game:HttpPost(fullUrl, postDataJson, false, "application/json")
+	return true
+end
+
+-- Send updates to Games API and Game Instances API every gsmInterval seconds
+delay(0, function() 
+	while networkServer.Port == 0 do
+		wait(1)
+	end
+
 	while true do
-		wait(30)
-		print("Checking banned players...")
-		if #game:GetService("Players"):GetPlayers() == 0 then
-			print("[warn] no players. m=",hasNoPlayerCount)
-			serverOk = false
-			hasNoPlayerCount = hasNoPlayerCount + 1
-		else
-			print("game has players, reset mod")
-			hasNoPlayerCount = 0
-		end
-		if hasNoPlayerCount >= 3 then
-			print("Server has had no players for over 1.5m, attempt shutdown")
-			pcall(function()
-				shutdown()
-			end)
-		end
-		getBannedUsersAsync(game:GetService("Players"):GetPlayers())
+		-- always send on gsmInterval, we also send on events when player join and leave.
+		pcall(function() return SendMessageToGamesApi("HeartBeat", nil) end)
+		pcall(function() return SendMessageToGameInstancesApi("HeartBeat") end)
+		wait(gsmInterval) 
 	end
-end)
+end	
+)
 
-game:GetService("Players").PlayerAdded:connect(function(player)
-	playersJoin = playersJoin + 1;
-	print("Player " .. player.userId .. " added")
-    reportPlayerEvent(player.userId, "Join")
+-- Events that make HTTP calls back to endpoints tracking player activity
 
-	if bannedIds[player.userId] ~= nil then
-		player:Kick("Banned from this server by an administrator")
-		return
-	end
+local function onPlayerConnectingReportClientPresence(player)
+	if assetGameUrl and access and placeId and player and player.userId then
+		local didTeleportIn = "False"
+		if player.TeleportedIn then didTeleportIn = "True" end
 
-	player.Chatted:connect(function(message)
-		if adminsList ~= nil and adminsList[player.userId] ~= nil then
-			print("is an admin",player)
-			processModCommand(player, message)
+		game:HttpGet(assetGameUrl .. "/Game/ClientPresence.ashx?action=connect&PlaceID=" .. placeId .. "&UserID=" .. player.userId)
+		if not isCloudEdit then
+			game:HttpPost(assetGameUrl .. "/Game/PlaceVisit.ashx?UserID=" .. player.userId .. "&AssociatedPlaceID=" .. placeId .. "&placeVisitAccessKey=" .. placeVisitAccessKey .. "&IsTeleport=" .. didTeleportIn, "")
 		end
+	end
+end
+
+local function onPlayerConnectingReportClientPresence2(player)
+	
+	-- update playeSessions table
+	local clientSessionId = player:GetGameSessionID()
+	local parts = Split(clientSessionId, "|")
+
+	local newSession = 
+	{
+		GameTimeWhenJoined = tick() - startTime,
+		SessionId = parts[1],
+		ClientIpAddress = parts[4],
+		PlatformId = parts[5],
+		Started = parts[6],
+		BrowserTrackerId = parts[7],
+		PartyId = parts[8],
+		Age = parts[9],
+		Latitude = parts[10],  -- nil if doesn't exist
+		Longitude = parts[11],  -- nil if doesn't exist
+		CountryId = parts[12]  -- nil if doesn't exist
+	}
+
+	playSessions[player.userId] = newSession
+    playerJoinTimes[player.userId] = tick() - startTime
+
+	-- Games API
+	local success, err = pcall(function() return SendMessageToGamesApi("PlayerAdded", player) end)
+	if (not success) then
+		PrintErrorMessage("playersService.PlayerAdded error updating games api = " .. err)
+	end
+	
+	-- Game Instances API
+	success, err = pcall(function() return SendMessageToGameInstancesApi("PlayerAdded") end	)
+	if (not success) then
+		PrintErrorMessage("playersService.PlayerAdded error updating game instances api = " .. err)
+	end	
+
+	-- Api Proxy - Presence
+	success, err = pcall(function() return UpdatePresence(player, false) end)
+	if (not success) then
+		PrintErrorMessage("playersService.PlayerAdded error updating presence = " .. err)
+	end
+end
+
+local function onPlayerDisconnectingReportClientPresence(player)
+	local isTeleportingOut = "False"
+	if player.Teleported then isTeleportingOut = "True" end
+
+	if assetGameUrl and access and placeId and player and player.userId then
+		game:HttpGet(assetGameUrl .. "/Game/ClientPresence.ashx?action=disconnect&PlaceID=" .. placeId .. "&UserID=" .. player.userId .. "&IsTeleport=" .. isTeleportingOut)
+	end
+end
+
+local function onPlayerDisconnectingReportClientPresence2(player)
+	-- remove form playSessions table
+	playSessions[player.userId] = nil
+    playerJoinTimes[player.userId] = nil
+
+	-- Games API
+	local success, err = pcall(function() return SendMessageToGamesApi("PlayerRemoving", player) end)
+	if (not success) then
+		PrintErrorMessage("playersService.PlayerRemoving error updating games api = " .. err)
+	end
+	
+	-- Game Instances API
+	success, err = pcall(function() return SendMessageToGameInstancesApi("PlayerRemoving") end)
+	if (not success) then
+		PrintErrorMessage("playersService.PlayerRemoving error updating game instances api = = " .. err)
+	end	
+
+	-- Api Proxy - Presence
+	success, err = pcall(function() return UpdatePresence(player, true) end)
+	if (not success) then
+		PrintErrorMessage("playersService.PlayerRemoving error updating presence = " .. err)
+	end
+end
+
+if (kickDuplicatePlayersRCC or isCloudEdit) then
+	playersService.PlayerConnecting:connect(function(player)
+		pcall(function() onPlayerConnectingReportClientPresence2(player) end)
+		pcall(function() onPlayerConnectingReportClientPresence(player) end)
 	end)
-end)
 
-game:GetService("Players").PlayerRemoving:connect(function(player)
-	print("Player " .. player.userId .. " leaving")
-    reportPlayerEvent(player.userId, "Leave")
-	local pCount = #game:GetService("Players"):GetPlayers();
-	if pCount == 0 then
-		shutdown();
-	end
-end)
+	playersService.PlayerDisconnecting:connect(function(player)
+		pcall(function() onPlayerDisconnectingReportClientPresence2(player) end)
+		pcall(function() onPlayerDisconnectingReportClientPresence(player) end)
+	end)
+else
+	playersService.PlayerAdded:connect(onPlayerConnectingReportClientPresence)
+	playersService.PlayerAdded:connect(onPlayerConnectingReportClientPresence2)
 
+	playersService.PlayerRemoving:connect(onPlayerDisconnectingReportClientPresence)
+	playersService.PlayerRemoving:connect(onPlayerDisconnectingReportClientPresence2)
+end
 
--- StartGame --
-game:GetService("RunService"):Run()
-
-serverOk = true;
-coroutine.wrap(function()
-	pollToReportActivity()
-end)()
--- kill server if nobody joins within 2m of creation
-delay(120, function()
-	if playersJoin == 0 then
-		serverOk = false
-		shutdown();
-	end
+game.Close:connect(function()
+	-- when game closes, notify Game Instances API
+	local fullUrl = gameInstancesApiUrl .. "/v1/Close/?apiKey=" .. apiKey .. "&gameId=" .. gameId .."&placeId=" .. placeId .."&universeId=" .. universeId
+	PrintDebugMessage("Calling Game Instances API. Source: GameClose, URL: " .. fullUrl)
+	game:HttpPost(fullUrl, "", true)
 end)

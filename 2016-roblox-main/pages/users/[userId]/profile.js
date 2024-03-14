@@ -7,7 +7,7 @@ import { getUserInfo } from "../../../services/users";
 
 const UserProfilePage = ({ username, userId, description }) => {
   const ogTitle = username + "'s Profile" || "Project X";
-  const ogUrl = userId ? `https://projex.zip/users/${userId}/profile` : '';
+  const ogUrl = userId ? `https://www.projex.zip/users/${userId}/profile` : '';
   const ogDesc = description || 'Join Project X and explore together!';
 
   return (
@@ -18,7 +18,7 @@ const UserProfilePage = ({ username, userId, description }) => {
         <meta property="og:url" content={ogUrl} />
         <meta property="og:type" content="profile" />
         <meta property="og:description" content={ogDesc} />
-        <meta property="og:image" content={`https://projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
+        <meta property="og:image" content={`https://www.projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
         <meta name="theme-color" content="#f00000" />
       </Head>
       <UserProfileStore.Provider>

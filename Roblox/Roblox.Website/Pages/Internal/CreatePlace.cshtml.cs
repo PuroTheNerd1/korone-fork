@@ -289,6 +289,6 @@ public class CreatePlace : RobloxPageModel
         // create universe too
         await services.games.CreateUniverse(asset.placeId);
         // give url
-        successUrl = "https://projex.zip/internal/place-update?id=" + asset.placeId;
+        successUrl = "https://www.projex.zip/internal/place-update?id=" + asset.placeId;
     }
 }
