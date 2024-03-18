@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
-import { getGameMedia, multiGetPlaceDetails, multiGetUniverseDetails } from "../../../services/games";
+import { getGameMedia, multiGetPlaceDetails, multiGetUniverseDetails, getYear } from "../../../services/games";
 
 const GameDetailsStore = createContainer(() => {
   const [details, setDetails] = useState(null);
@@ -8,6 +8,7 @@ const GameDetailsStore = createContainer(() => {
   const [placeDetails, setPlaceDetails] = useState(null);
   const [universeDetails, setUniverseDetails] = useState(null);
   const [servers, setServers] = useState(null);
+  const [year, setYear] = useState(null);
 
   useEffect(() => {
     // reset our states, then get new details

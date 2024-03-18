@@ -1702,6 +1702,12 @@ namespace Roblox.Website.Controllers
                 isCaptchaRequired = false,
             };
         }
+        [HttpGetBypass("/asset/getyear")]
+        public async Task<dynamic> GetPlaceYear(long placeId)
+        {
+            long year = await services.games.GetYear(placeId);
+            return year;
+        }
         [HttpPostBypass("game/load-place-info")]
         public async Task<dynamic> LoadPlaceInfo()
         {

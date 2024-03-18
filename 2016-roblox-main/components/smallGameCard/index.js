@@ -79,11 +79,22 @@ const useStyles = createUseStyles({
   solidRedColor: {
     background: '#E27676',
   },
+
+  yearText: {
+    position: 'absolute',
+    bottom: '10px',
+    right: '10px',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    color: '#fff',
+    padding: '5px',
+    fontSize: '14px',
+    borderRadius: '5px',
+  },
 });
 
 /**
  * SmallGameCard
- * @param {{name: string; playerCount: number; likes: number; dislikes: number; creatorId: number; creatorType: string | number; creatorName: string; iconUrl: string; placeId: number; className?: string; hideVoting?: boolean;}} props
+ * @param {{name: string; playerCount: number; likes: number; dislikes: number; creatorId: number; creatorType: string | number; creatorName: string; iconUrl: string; year: number; placeId: number; className?: string; hideVoting?: boolean;}} props
  * @returns 
  */
 const SmallGameCard = props => {
@@ -183,15 +194,16 @@ const SmallGameCard = props => {
     <div className={cardStyles.card + ' '} ref={colRef}>
       <Link href={url}>
         <a>
-          <div className={s.imageWrapper}>
-            <img className={s.image} src={iconUrl} alt={props.name} onLoad={(e) => {
-            }} onError={(e) => {
-              if (!iconUrl || iconUrl.indexOf('empty.png') !== -1) return;
-              setIconUrl('/img/empty.png');
-              setTimeout(() => {
-                setIconUrl(props.iconUrl);
-              }, 1000);
-            }}/>
+          <div className={s.imageWrapper} style={{position: 'relative'}}>
+                <img className={s.image} src={iconUrl} alt={props.name} onLoad={(e) => {
+                }} onError={(e) => {
+                  if (!iconUrl || iconUrl.indexOf('empty.png') !== -1) return;
+                  setIconUrl('/img/empty.png');
+                  setTimeout(() => {
+                    setIconUrl(props.iconUrl);
+                  }, 1000);
+                }}/>
+              <p className={s.yearText}>{props.year}</p>
           </div>
         </a>
       </Link>

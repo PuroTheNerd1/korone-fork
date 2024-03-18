@@ -69,6 +69,7 @@ export const setUniverseYear = async ({universeId, year}) => {
     year,
   });
 }
+
 export const setUniverseMaxPlayers = async ({universeId, maxPlayers}) => {
   return await request('PATCH',getFullUrl('develop', `/v1/universes/${universeId}/max-player-count`), {
     maxPlayers,

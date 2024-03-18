@@ -24,6 +24,8 @@ export const getGameList = ({ sortToken, limit, genre = 0, keyword }) => {
   return request('GET', getFullUrl('games', `/v1/games/list?sortToken=${encodeURIComponent(sortToken)}&maxRows=${limit}&genre=${genre}&keyword=${keyword}`)).then(d => d.data)
 }
 
+export const getYear = async ({ universeId }) => (await request('GET', `${getBaseUrl()}/asset/getyear?placeId=${encodeURIComponent(universeId)}`)).data.data;
+
 export const getGameMedia = ({ universeId }) => {
   return request('GET', getFullUrl('games', `/v2/games/${universeId}/media`)).then(d => d.data.data);
 }

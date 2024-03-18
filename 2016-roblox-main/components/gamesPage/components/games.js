@@ -1,49 +1,81 @@
 import SmallGameCard from "../../smallGameCard";
-import GameRow, {useStyles as useGameRowStyles} from "./gameRow";
-import React from "react";
+import GameRow, { useStyles as useGameRowStyles } from "./gameRow";
+import React, { useEffect, useState } from "react";
 import GamesPageStore from "../../../stores/gamesPage";
+import { getYear } from "../../../services/games";
 
-const Games = props => {
+const Games = (props) => {
   const store = GamesPageStore.useContainer();
   const gameS = useGameRowStyles();
-  let existingGames = {}
+  const [year, setYear] = useState(null);
+  let existingGames = {};
+
+  useEffect(() => {
+    if (store.infiniteGamesGrid) {
+      Promise.all(
+        store.infiniteGamesGrid.games.map((game) =>
+          getYear({ universeId: game.universeId })
+        )
+      ).then((yearDataArray) => {
+        const yearMap = {};
+        store.infiniteGamesGrid.games.forEach((game, index) => {
+          yearMap[game.universeId] = yearDataArray[index];
+        });
+        setYear(yearMap);
+      });
+    }
+  }, [store.infiniteGamesGrid]);
 
   if (store.infiniteGamesGrid) {
     if (store.infiniteGamesGrid.games.length === 0) {
-      return <p className='mt-4'>No results.</p>
+      return <p className="mt-4">No results.</p>;
     }
-    return <div className='row'>
-      {
-        store.infiniteGamesGrid.games.map(v => {
-          return <SmallGameCard
+    return (
+      <div className="row">
+        {store.infiniteGamesGrid.games.map((v) => (
+          <SmallGameCard
             key={v.universeId}
-            className={gameS.gameCard + ' mb-3'}
+            className={gameS.gameCard + " mb-3"}
             placeId={v.placeId}
             creatorId={v.creatorId}
             creatorType={v.creatorType}
             creatorName={v.creatorName}
             iconUrl={store.icons[v.universeId]}
+            year={year && year[v.universeId]}
             likes={v.totalUpVotes}
             dislikes={v.totalDownVotes}
             name={v.name}
             playerCount={v.playerCount}
           />
-        })
-      }
-    </div>
+        ))}
+      </div>
+    );
   }
-  return <div className='row'>
-    {
-      store.sorts ? store.sorts.map(v => {
-        if (existingGames[v.token]) {
-          return null;
-        }
-        existingGames[v.token] = true;
-        let games = store.games && store.games[v.token] || null;
-        return <GameRow ads={true} key={'row ' + v.token} title={v.displayName} games={games} icons={store.icons}/>
-      }) : null
-    }
-  </div>
-}
+
+  return (
+    <div className="row">
+      {store.sorts ? (
+        store.sorts.map((v) => {
+          if (existingGames[v.token]) {
+            return null;
+          }
+          existingGames[v.token] = true;
+          let games = store.games && store.games[v.token] || null;
+          return (
+            <GameRow
+              ads={true}
+              key={"row " + v.token}
+              title={v.displayName}
+              games={games}
+              icons={store.icons}
+            />
+          );
+        })
+      ) : (
+        <></>
+      )}
+    </div>
+  );
+};
 
 export default Games;
