@@ -53,7 +53,7 @@ public class ThumbnailsService : ServiceBase, IService
                     Models.Assets.Type.Image,
                     
                     Models.Assets.Type.Face,
-                    Models.Assets.Type.Place,
+                    //Models.Assets.Type.Place,
                     Models.Assets.Type.Mesh,
                     Models.Assets.Type.MeshPart,
                 }.Select(c => (int)c).ToList(),

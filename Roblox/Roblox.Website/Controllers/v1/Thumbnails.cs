@@ -108,7 +108,8 @@ public class ThumbnailsControllerV1 : ControllerBase
         var services = new ControllerServices();
         // Get all items updated over 5 minutes ago that do not have a thumb
         var itemsToFix = (await services.thumbnails.GetAssetIdsWithoutThumbnail()).ToList();
-        Writer.Info(LogGroup.FixBrokenThumbnails, "Fixing {0} broken thumbnails", itemsToFix.Count);
+        //Writer.Info(LogGroup.FixBrokenThumbnails, "Fixing {0} broken thumbnails", itemsToFix.Count);
+        
         foreach (var item in itemsToFix)
         {
             await Task.Delay(TimeSpan.FromSeconds(5)); // pace ourselves since repairing thumbs isn't as important as rendering new ones

@@ -509,6 +509,11 @@ public class AssetsService : ServiceBase, IService
 
     private async Task CreateGameThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
+        var modInfo = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
+        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        {
+            return;
+        }
         string key;
         var latestVersion = await GetLatestAssetVersion(assetId);
         string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
@@ -562,6 +567,11 @@ public class AssetsService : ServiceBase, IService
 
     private async Task CreateGameIcon(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
+        var modInfo = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
+        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        {
+            return;
+        }
         string key = "";
         if (thumbnailToUse == null)
         {
