@@ -28,8 +28,11 @@ const PlayButton = props => {
   const auth = AuthenticationStore.useContainer();
   const s = useStyles();
   const buttonStyles = useButtonStyles();
+
   const onClick = e => {
-    if (getFlag('launchUsingEsURI', false)) {
+    if (navigator.userAgent.includes("ROBLOX Android App")) { 
+      window.location.href = 'games/start?placeid=' + props.placeId;
+    } else if (getFlag('launchUsingEsURI', false)) {
       e && e.preventDefault && e.preventDefault();
       if (!auth.isAuthenticated) {
         window.location.href = '/Login';
@@ -41,21 +44,23 @@ const PlayButton = props => {
         // todo: modal
         setError(e.message);
       });
-    }else if (getFlag('launchUsingEsWeb', false)) {
+    } else if (getFlag('launchUsingEsWeb', false)) {
       window.location.href = '/RobloxApp/Play?placeId=' + props.placeId;
-    }else{
+    } else {
       // TODO: Roblox URI handling here (is this even possible?)
       alert('Support for joining ROBLOX games is not implemented. You will be redirected to ROBLOX to play this game.');
       window.location.href = 'https://www.roblox.com/games/' + props.placeId + '/--';
     }
   }
 
-  return <div className='row'>
-    <div className={'col-12 mx-auto ' + s.buttonWrapper}>
-      {error && <p className='text-danger mb-1 mt-1'>{error}</p>}
-      <ActionButton label='Play' className={s.button + ' ' + buttonStyles.buyButton} onClick={onClick}></ActionButton>
+  return (
+    <div className='row'>
+      <div className={'col-12 mx-auto ' + s.buttonWrapper}>
+        {error && <p className='text-danger mb-1 mt-1'>{error}</p>}
+        <ActionButton label='Play' className={s.button + ' ' + buttonStyles.buyButton} onClick={onClick}></ActionButton>
+      </div>
     </div>
-  </div>
+  );
 }
 
 export default PlayButton;

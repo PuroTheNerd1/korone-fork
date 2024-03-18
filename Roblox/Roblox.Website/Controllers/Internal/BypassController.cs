@@ -642,7 +642,7 @@ namespace Roblox.Website.Controllers
                     UserName = username,
                     RobuxBalance = userBalance.robux,
                     TicketsBalance = userBalance.tickets,
-                    IsAnyBuildersClubMember = false,
+                    IsAnyBuildersClubMember = true,
                     ThumbnailUrl = $"https://www.projex.zip/Thumbs/Avatar.ashx?userId={userId}",
                     UserID = userId
                 }
@@ -650,7 +650,11 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(successJson);
             return Content(jsonString, "application/json");
         }
-
+        [HttpGetBypass("games/start")]
+        public void AndroidStart(long placeId)
+        {
+            Thread.Sleep(2000);
+        }
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
         {
