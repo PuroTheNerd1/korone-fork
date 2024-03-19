@@ -34,7 +34,6 @@ const useStyles = createUseStyles({
     background: 'white',
     marginLeft: '-7px',
     boxShadow: '0 3px 4px 0 rgb(25 25 25 / 30%)',
-    bottom: '-3px',
   },
   creatorText: {
     color: '#c3c3c3',
@@ -83,7 +82,7 @@ const useStyles = createUseStyles({
 
   yearText: {
     position: 'absolute',
-    bottom: '10px',
+    bottom: '14px',
     right: '10px',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     color: '#fff',
