@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { abbreviateNumber } from "../../lib/numberUtils";
 import { itemNameToEncodedName } from "../../services/catalog";
-import { getGameUrl } from "../../services/games";
+import { getGameUrl, getYear } from "../../services/games";
 import CreatorLink from "../creatorLink";
 import useCardStyles from "../userProfile/styles/card";
 import Link from "../link";
@@ -166,6 +166,10 @@ const SmallGameCard = props => {
     name: props.name,
   });
 
+  const year = getYear({
+    universeId: props.placeId,
+  });
+
   const Voting = (props) => {
     const {color} = props;
     const sGreen = color ? s.solidGreenColor : s.solidGreen;
@@ -203,7 +207,7 @@ const SmallGameCard = props => {
                     setIconUrl(props.iconUrl);
                   }, 1000);
                 }}/>
-              <p className={s.yearText}>{props.year}</p>
+              <p className={s.yearText}>{year}</p>
           </div>
         </a>
       </Link>

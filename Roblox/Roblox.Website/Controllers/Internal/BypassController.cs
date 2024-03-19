@@ -1131,6 +1131,8 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/game/validate-machine")]
         public async Task<dynamic> ValidateMachineAsync(HttpContext context)
         {
+            string macAddress = Request.Form["macAddresses"]!;
+            Console.WriteLine(macAddress);
             return new
             {
                 success = true,
@@ -1752,11 +1754,11 @@ namespace Roblox.Website.Controllers
         public async Task<string> CreateAccountAndSetCookie()
         {
             var name = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 14);
-            var result = await services.users.CreateUser(name, "AmogusDrip69", Gender.Male);
+            var result = await services.users.CreateUser(name, "ROBLOX", Gender.Male);
             await services.users.InsertOrUpdateMembership(result.userId, MembershipType.BuildersClub);
             var id = await services.users.CreateApplication(new CreateUserApplicationRequest()
             {
-                about = "Integration test",
+                about = "ROBLOX",
                 socialPresence = "",
                 isVerified = true,
                 verifiedUrl = "https://www.projex.zip/",
