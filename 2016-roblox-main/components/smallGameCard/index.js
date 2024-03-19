@@ -34,6 +34,7 @@ const useStyles = createUseStyles({
     background: 'white',
     marginLeft: '-7px',
     boxShadow: '0 3px 4px 0 rgb(25 25 25 / 30%)',
+    bottom: '-3px',
   },
   creatorText: {
     color: '#c3c3c3',
