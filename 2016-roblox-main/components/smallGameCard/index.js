@@ -82,7 +82,7 @@ const useStyles = createUseStyles({
 
   yearText: {
     position: 'absolute',
-    bottom: '14px',
+    bottom: '20px',
     right: '10px',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     color: '#fff',
