@@ -1131,7 +1131,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/game/validate-machine")]
         public async Task<dynamic> ValidateMachineAsync(HttpContext context)
         {
-            string macAddress = Request.Form["macAddresses"]!;
+            var macAddress = Request.Form["macAddresses"]!;
             Console.WriteLine(macAddress);
             return new
             {

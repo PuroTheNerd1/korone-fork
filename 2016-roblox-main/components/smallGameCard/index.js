@@ -99,7 +99,7 @@ const useStyles = createUseStyles({
  */
 const SmallGameCard = props => {
   const {hideVoting} = props;
-
+  const [year, setYear] = useState(null);
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
     width: window.innerWidth
@@ -166,9 +166,18 @@ const SmallGameCard = props => {
     name: props.name,
   });
 
-  const year = getYear({
-    universeId: props.placeId,
-  });
+  useEffect(() => {
+    const fetchYear = async () => {
+      try {
+        const fetchedYear = await getYear({ universeId: props.placeId });
+        setYear(fetchedYear); 
+      } catch (error) {
+        console.error("Error fetching year:", error);
+      }
+    };
+
+    fetchYear(); 
+  }, [props.placeId]); 
 
   const Voting = (props) => {
     const {color} = props;
