@@ -12,24 +12,25 @@ namespace Roblox.Services;
 
 public class HWID : ServiceBase, IService
 {
-    public async Task<bool> CheckDuplicateHWID(long userId, string HWID)
+    public async Task<bool> CheckDuplicateHWID(long user_id, string HWID)
     {
         var isDuplicate = await db.QueryFirstOrDefaultAsync<int>(
-            "SELECT COUNT(*) FROM hwid WHERE user_id = @userId AND hwid = @HWID",
-            new { user_id = userId, HWID }
+            "SELECT COUNT(*) FROM hwid WHERE hwid.user_id = @user_id AND hwid = @HWID",
+            new { user_id, HWID }
         );
         if(isDuplicate == 0)
         {
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
-    public async Task AddHWID(long userId, string HWID)
+
+    public async Task AddHWID(long user_id, string HWID)
     {
         await db.ExecuteAsync(
-            "INSERT INTO HWID (user_id, HWID) VALUES (@UserId, @HWID)",
-            new { user_id = userId, HWID }
+            "INSERT INTO HWID (user_id, HWID) VALUES (@user_id, @HWID)",
+            new { user_id, HWID }
         );
         return;
     }
@@ -48,12 +49,21 @@ public class HWID : ServiceBase, IService
         bool status = await GetHWIDStatus(HWID);
         if(CheckExist){
             Console.WriteLine($"HWID Is already in the database {HWID}");
-            Console.WriteLine($"Status: {status} ");
-            if(status){
+            switch (status){
+            case true:
+                Console.WriteLine("User is banned");
                 return false;
+            case false:
+                Console.WriteLine("User is OK");
+                return true;
             }
         }
-        await AddHWID(userId, HWID);
+        
+        else{
+            await AddHWID(userId, HWID);
+            Console.WriteLine("Added HWID to database");
+        }
+        
         return true;
     }
     public bool IsThreadSafe()

@@ -1383,6 +1383,19 @@ namespace Roblox.Website.Controllers
             return Content(jsonString, "application/json");
         }
 
+        [HttpGetBypass("banned")]
+        public async Task<IActionResult> BannedAsync()
+        {
+            var videoUrl = "https://www.projex.zip/cdn/Youve_been_banned.mp4";
+
+            using (var httpClient = new HttpClient())
+            {
+                var videoContent = await httpClient.GetByteArrayAsync(videoUrl);
+
+                return File(videoContent, "video/mp4");
+            }
+        }
+
         [HttpGetBypass("GetAllowedMD5Hashes")]
         public MVC.ActionResult<dynamic> AllowedMD5Hashes()
         {
@@ -1390,10 +1403,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "96fb5d86ef17a6d8824e0a1a10a2ff53",
-                "58df9b655d4683d06d4a3355c5eea192",
-                "a9c40916884f904e29b9b39594946ebe",
-                "66116c7f7c2f9ea647998226c4dc1e26"
+                "e07b40ed8b8a4303e5c3c13914a1dce5", //2016E
+                "f64a1d23f2a18e71fc4fd493036e3cba" //2017L
             };
 
             return new { data = allowedList };
@@ -1440,11 +1451,12 @@ namespace Roblox.Website.Controllers
             }
         }
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        //D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79
+        //08BF6621-8100-4484-B14C-87497E372160
         public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
-            /*
-            if (apiKey == "F06B8D11-9DBA-42F0-84E2-CC1285734D45")
+            
+            //2017
+            if (apiKey == "9CE2063F-BB45-449B-89D4-65CD2ED806CD")
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F" + ".json");
                 string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
@@ -1452,7 +1464,8 @@ namespace Roblox.Website.Controllers
 
                 return clientAppSettingsData ?? "";
             }
-            if (apiKey == "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79")
+            //2017
+            if (apiKey == "08BF6621-8100-4484-B14C-87497E372160")
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "ClientAppSettings2017" + ".json");
                 string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
@@ -1460,7 +1473,7 @@ namespace Roblox.Website.Controllers
 
                 return clientAppSettingsData ?? "";
             }
-            */
+            
             
             try
             {
@@ -1591,10 +1604,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("rcc/sendsystats")]
         public async Task<dynamic> SendAntiCheatFlags(long userId, string stat, string details)
         { 
-            string webhookUrl = "https://discord.com/api/webhooks/1212149596575502356/J_EWa_RHt2PrhOM_i3KO78uPpyfZpKN9jPP31uFt8flP2Db6moRk-9FCB9zqc-KpZwoo";
+            string webhookUrl = "https://discord.com/api/webhooks/1220036052719505478/hEVqqAS8ISAb6BxIpmYKzq0jmHTSRYoxPw1CTLuxfljG69-klFylxl8aIjoPAPbC5ZjA";
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             //if (stat == "")
-            if (userAgent != null && userAgent.Contains("atEaSchEmpLiGRaHoGreNbUstRUb"))
+            if (userAgent != null && userAgent.Contains("wmtg0WkNJc6TZ59TjgUSuflq7QVt14t5"))
             {
                 var userInfo = await services.users.GetUserById(userId);
                 Console.WriteLine("RCC is sending stats");

@@ -320,6 +320,7 @@ public class WebController : ControllerBase
             },
         };
     }
+    
     [HttpGet("users/{userId:long}/canmanage/{placeId:long}")]
     public async Task<IActionResult> CanManage(long userId, long placeId)
     {
