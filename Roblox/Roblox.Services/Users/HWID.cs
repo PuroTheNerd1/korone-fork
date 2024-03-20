@@ -49,10 +49,12 @@ public class HWID : ServiceBase, IService
         if(CheckExist){
             Console.WriteLine($"HWID Is already in the database {HWID}");
             Console.WriteLine($"Status: {status} ");
-            return status;
+            if(status){
+                return false;
+            }
         }
         await AddHWID(userId, HWID);
-        return false;
+        return true;
     }
     public bool IsThreadSafe()
     {
