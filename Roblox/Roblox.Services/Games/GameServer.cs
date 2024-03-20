@@ -816,7 +816,6 @@ public class GameServerService : ServiceBase
                 </soap:Body>
             </soap:Envelope>";
         await WaitForPort(RCCPort);
-        Console.WriteLine(finalScript);
         await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
         currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);

@@ -34,7 +34,7 @@ using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Http.Extensions;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -1129,12 +1129,25 @@ namespace Roblox.Website.Controllers
         }
         */
         [HttpPostBypass("/game/validate-machine")]
-        public async Task<dynamic> ValidateMachineAsync(HttpContext context)
+        public async Task<dynamic> ValidateMachineAsync()
         {
-            string macAddress = Request.Form["macAddresses"]!;
-            if (macAddress != null)
-                Console.WriteLine("Client sended macAddress");
-            Console.WriteLine(macAddress);
+            using (StreamReader reader = new StreamReader(Request.Body))
+            {
+                string requestBody = await reader.ReadToEndAsync();
+
+                string[] keyValuePairs = requestBody.Split('&');
+                
+                foreach (var pair in keyValuePairs)
+                {
+                    string[] keyValue = pair.Split('=');
+                    if (keyValue.Length == 2 && keyValue[0] == "macAddresses")
+                    {
+                        string macAddress = Uri.UnescapeDataString(keyValue[1]);
+                        Console.WriteLine("Client sent macAddress: " + macAddress);
+                        break;
+                    }
+                }
+            }
             return new
             {
                 success = true,
@@ -1371,7 +1384,7 @@ namespace Roblox.Website.Controllers
                 "96fb5d86ef17a6d8824e0a1a10a2ff53",
                 "58df9b655d4683d06d4a3355c5eea192",
                 "a9c40916884f904e29b9b39594946ebe",
-                "9627668ed54e769a6b1e9f064917465b"
+                "66116c7f7c2f9ea647998226c4dc1e26"
             };
 
             return new { data = allowedList };
