@@ -8,6 +8,7 @@ namespace Roblox.Models.Users
         Poisoned,
         MustValidateEmail,
         Forgotten,
+        MachineBanned,
     }
 
     public enum MembershipType

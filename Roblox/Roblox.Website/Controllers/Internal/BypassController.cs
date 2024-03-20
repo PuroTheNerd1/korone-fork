@@ -1131,6 +1131,9 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/game/validate-machine")]
         public async Task<dynamic> ValidateMachineAsync()
         {
+            HWID hwid = new HWID();
+            string macAddress = null; 
+            long userId = userSession.userId;
             using (StreamReader reader = new StreamReader(Request.Body))
             {
                 string requestBody = await reader.ReadToEndAsync();
@@ -1142,15 +1145,21 @@ namespace Roblox.Website.Controllers
                     string[] keyValue = pair.Split('=');
                     if (keyValue.Length == 2 && keyValue[0] == "macAddresses")
                     {
-                        string macAddress = Uri.UnescapeDataString(keyValue[1]);
+                        macAddress = Uri.UnescapeDataString(keyValue[1]);
                         Console.WriteLine("Client sent macAddress: " + macAddress);
                         break;
                     }
                 }
             }
-            return new
-            {
-                success = true,
+
+            if (userSession == null || macAddress == null){
+                return "";
+            }
+
+            bool isBanned = await hwid.CheckHWID(userId, macAddress);
+
+            return new{
+                success = isBanned,
                 message = "",
             };
         }
