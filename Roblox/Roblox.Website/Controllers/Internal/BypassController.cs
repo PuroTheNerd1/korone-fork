@@ -1403,7 +1403,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "e07b40ed8b8a4303e5c3c13914a1dce5", //2016E
+                "e5ca52f3fdec262425ec7a0cc4c3412a", //2016E
+                "2cb51bbbcd309a35858876b6c2167627", //Debug MD5 2016E
                 "f64a1d23f2a18e71fc4fd493036e3cba" //2017L
             };
 
@@ -1606,7 +1607,7 @@ namespace Roblox.Website.Controllers
         { 
             string webhookUrl = "https://discord.com/api/webhooks/1220036052719505478/hEVqqAS8ISAb6BxIpmYKzq0jmHTSRYoxPw1CTLuxfljG69-klFylxl8aIjoPAPbC5ZjA";
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            //if (stat == "")
+            if (stat == "")
             if (userAgent != null && userAgent.Contains("wmtg0WkNJc6TZ59TjgUSuflq7QVt14t5"))
             {
                 var userInfo = await services.users.GetUserById(userId);
