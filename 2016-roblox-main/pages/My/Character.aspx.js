@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
 import AdBanner from "../../components/ad/adBanner";
 import CharacterPage from "../../components/characterCustomizerPage";
@@ -13,27 +13,55 @@ const useCharacterPageStyles = createUseStyles({
     fontSize: '30px',
   },
   characterContainer: {
+    position: 'relative',
     background: '#fff',
     padding: '4px 8px',
     overflow: 'hidden',
+  },
+  switchButton: {
+    position: 'absolute',
+    top: '10px',
+    right: '10px',
   },
 });
 
 const MyCharacterPage = props => {
   const s = useCharacterPageStyles();
-  return <div className='container'>
-    <AdBanner context='MyCharacterPage'/>
-    <div className={s.characterContainer}>
-      <div className='row mt-2'>
-        <div className='col-12 ps-4 pe-4'>
-          <h1 className={s.header}>Character Customizer</h1>
+  const [rigType, setRigType] = useState("R6"); 
+
+  const handleRigToggle = () => {
+    const newRigType = rigType === "R6" ? "R15" : "R6";
+    const apiUrl = `apisite/avatar/v1/avatar/set-rig?rigtype=${newRigType}`;
+    fetch(apiUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to set rig type');
+        }
+        setRigType(newRigType);
+      })
+      .catch(error => {
+        console.error('Error setting rig type:', error);
+      });
+  };
+
+  return (
+    <div className="container">
+      <AdBanner context="MyCharacterPage" />
+      <div className={s.characterContainer}>
+        <div className="row mt-2">
+          <div className="col-12 ps-4 pe-4">
+            <h1 className={s.header}>Character Customizer</h1>
+            <button className={s.switchButton} onClick={handleRigToggle}>
+              {rigType === "R6" ? "Switch to R15" : "Switch to R6"}
+            </button>
+          </div>
         </div>
+        <CharacterCustomizationStore.Provider value={{ rigType }}>
+          <CharacterPage />
+        </CharacterCustomizationStore.Provider>
       </div>
-      <CharacterCustomizationStore.Provider>
-        <CharacterPage/>
-      </CharacterCustomizationStore.Provider>
     </div>
-  </div>
-}
+  );
+};
 
 export default MyCharacterPage;
