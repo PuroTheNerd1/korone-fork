@@ -115,7 +115,7 @@ namespace Roblox.Website.Controllers
             var is18OrOver = false;
             if (userSession != null)
             {
-                is18OrOver = await services.users.Is18Plus(userSession.userId);
+                is18OrOver = await services.users.Is18Plus(safeUserSession.userId);
             }
 
             // TEMPORARY UNTIL AUTH WORKS ON STUDIO! REMEMBER TO REMOVE
@@ -347,7 +347,7 @@ namespace Roblox.Website.Controllers
                         if (userSession != null)
                         {
                             // Use current user as access check
-                            ok = await services.assets.CanUserModifyItem(assetId, userSession.userId);
+                            ok = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
                             if (!ok)
                             {
                                 // Note that all users have access to "Roblox"'s content for legacy reasons
@@ -483,7 +483,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> PlaceLaunch(long placeId)
         {
             string UserAgent = Request.Headers["User-Agent"].ToString();
-            if (userSession == null || UserAgent != "Roblox/WinInet")
+            if (UserAgent != "Roblox/WinInet")
             {
                 throw new RobloxException(403, 0, "Forbidden"); 
             }
@@ -492,8 +492,8 @@ namespace Roblox.Website.Controllers
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             Console.WriteLine(year);
             var result = await services.gameServer.GetServerForPlace(placeId, year);
-            string username = userSession!.username;
-            long userId = userSession!.userId;
+            string username = safeUserSession!.username;
+            long userId = safeUserSession.userId;
             string characterAppearanceUrl;
             string finalTicket;
             Console.WriteLine(result.job);
@@ -523,7 +523,7 @@ namespace Roblox.Website.Controllers
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             GameServerJwt details = new GameServerJwt
             {
-                userId = userSession.userId,
+                userId = safeUserSession.userId,
                 placeId = placeId,
                 t = "GameJoinTicketV1.1",
                 iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
@@ -581,13 +581,8 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/GetCurrentUser.ashx")]
         public async Task<MVC.ActionResult<dynamic?>> ReturnUserId()
         {
-            if (userSession == null)
-            {
-                return (long?)null;
-            }
-            
-            long ID = userSession.userId;
-            Console.WriteLine(userSession.userId);
+            long ID = safeUserSession.userId;
+            Console.WriteLine(safeUserSession.userId);
             return Ok(ID);
         }
         [HttpPostBypass("mobileapi/login")]
@@ -1133,7 +1128,7 @@ namespace Roblox.Website.Controllers
         {
             HWID hwid = new HWID();
             string macAddress = null; 
-            long userId = userSession.userId;
+            long userId = safeUserSession.userId;
             using (StreamReader reader = new StreamReader(Request.Body))
             {
                 string requestBody = await reader.ReadToEndAsync();
@@ -1233,7 +1228,11 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> KickPlayerAsync(long userId, string reason)
         {
             GameServerService gameServerService = new GameServerService();
-            bool isOwner = userSession != null && StaffFilter.IsOwner(userSession.userId);
+            bool isOwner = userSession != null && StaffFilter.IsOwner(safeUserSession.userId);
+            if (safeUserSession.userId == userId)
+            {
+                return "You can't kick yourself!";
+            }
             if (isOwner)
             {
                 try
@@ -1403,7 +1402,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "e5ca52f3fdec262425ec7a0cc4c3412a", //2016E
+                "b7fa3ddea3663ad332806cec0a6be093", //2016E
                 "2cb51bbbcd309a35858876b6c2167627", //Debug MD5 2016E
                 "f64a1d23f2a18e71fc4fd493036e3cba" //2017L
             };
@@ -1703,7 +1702,7 @@ namespace Roblox.Website.Controllers
                     });
                 }
                 
-                var isFollowing = await services.friends.IsOneFollowingTwo(userSession.userId, followerUserId);
+                var isFollowing = await services.friends.IsOneFollowingTwo(safeUserSession.userId, followerUserId);
                 result.Add(new
                 {
                     isFollowing,

@@ -17,7 +17,7 @@ namespace Roblox.Website.Controllers
             dynamic json = new
             {
                 clientVersionUpload = RBXversion,
-                bootstrapperVersion = "1, 6, 0, 0"
+                bootstrapperVersion = "1, 7, 0, 0"
             };
             return Ok(json);
         }
@@ -25,6 +25,11 @@ namespace Roblox.Website.Controllers
         public dynamic GetVersion()
         {
             return Ok(RBXversion);
+        }
+        [HttpGetBypass("/cdn/ProjectXPlayerLauncher.exe")]
+        public MVC.IActionResult GetLauncher()
+        {
+            return PhysicalFile("C:\\ProjectX\\services\\Roblox\\Setup\\ProjectXPlayerLauncher1.exe", "application/octet-stream");
         }
 
         [HttpGetBypass("/cdn/versionQTStudio")]

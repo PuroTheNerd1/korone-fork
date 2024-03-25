@@ -222,21 +222,20 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}Place.lua");
+            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Place.txt");
             string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"""{assetUrl}""").Replace
-                ("%fileExtension%", $@"""png""").Replace
-                ("%x%", $@"""{x}""").Replace
-                ("%y%", $@"""{y}""").Replace
-                ("%baseUrl%", $@"""{BaseUrl}/""").Replace
-                ("%universeId%", $@"""{assetId}""");
+                ("%fileExtension%", $@"""PNG""").Replace
+                ("%x%", $@"{x}").Replace
+                ("%y%", $@"{y}").Replace
+                ("%baseUrl%", $@"{BaseUrl}/").Replace
+                ("%universeId%", $@"{assetId}");
             
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
