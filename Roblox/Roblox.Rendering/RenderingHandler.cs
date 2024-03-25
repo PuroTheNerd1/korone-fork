@@ -432,23 +432,23 @@ namespace Roblox.Rendering
         }
         public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
         {
-            string characterAppearanceUrl = $"{BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
+            string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             // renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}Avatar.lua");
+            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Avatar.txt");
             string finalScript = originalScript.Replace
-                ("%baseUrl%", $@"""{BaseUrl}""").Replace
                 ("%characterAppearanceUrl%", $@"""{characterAppearanceUrl}""").Replace
+                ("%baseUrl%", $@"""{BaseUrl}""").Replace
                 ("%fileExtension%", @"""png""").Replace
                 ("%x%", "840").Replace
                 ("%y%", "840");
@@ -480,35 +480,29 @@ namespace Roblox.Rendering
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
-        }
-        
+        }       
         public static async Task<string> RequestHeadshotThumbnail(long userId, int JobExpiration)
         {
-            string characterAppearanceUrl = $"{BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
+            string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             // renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
+            renderRcc.StartInfo.Arguments = string.Format($@"-console -verbose -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = false;
             renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}Closeup.lua");
+            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Closeup.txt");
             string finalScript = originalScript.Replace
                 ("%baseUrl%", $@"""{BaseUrl}""").Replace
                 ("%characterAppearanceUrl%", $@"""{characterAppearanceUrl}""").Replace
                 ("%fileExtension%", @"""png""").Replace
                 ("%x%", "720").Replace
-                ("%y%", "720").Replace
-                ("%quadratic%", "true").Replace
-                ("%baseHatZoom%", "40").Replace
-                ("%maxHatZoom%", "60").Replace
-                ("%cameraOffsetX%", "0").Replace
-                ("%cameraOffsetY%", "0");
+                ("%y%", "720");
             
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""

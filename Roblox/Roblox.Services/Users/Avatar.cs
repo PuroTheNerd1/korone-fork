@@ -51,7 +51,17 @@ public class AvatarService : ServiceBase, IService
                 });
         return result.Select(c => (long) c.asset_id);
     }
+    public async Task<int> GetAvatarTypeAsync(long userId)
+    {
+        var AvatarRigType = await db.QuerySingleOrDefaultAsync(
+            "SELECT avatar_type FROM user_avatar WHERE user_id = :user_id",
+            new
+            {
+                user_id = userId,
+            });
 
+        return AvatarRigType.avatar_type;
+    }
     public async Task<AvatarWithColors> GetAvatar(long userId)
     {
         var existingAvatar = await db.QuerySingleOrDefaultAsync<DatabaseAvatarWithImages>(

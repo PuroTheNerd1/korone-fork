@@ -1018,7 +1018,7 @@ public class UsersService : ServiceBase, IService
             await InsertAsync("user_avatar", "user_id", new
             {
                 user_id = userId,
-                avatar_type = 2,
+                avatar_type = 1,
                 thumbnail_url = (string?)null,
                 headshot_thumbnail_url = (string?)null,
                 head_color_id = 194,

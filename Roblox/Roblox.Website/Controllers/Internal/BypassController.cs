@@ -112,6 +112,14 @@ namespace Roblox.Website.Controllers
             {
                 id = (long)assetversionid;
             }
+            if(id == 507766388)
+            {
+                return PhysicalFile("C:\\ProjectX\\services\\Roblox\\FixJitter\\507766388.rbxm", "application/octet-stream");  
+            }
+            else if(id == 507766666)
+            {
+                return PhysicalFile("C:\\ProjectX\\services\\Roblox\\FixJitter\\507766666.rbxm", "application/octet-stream");      
+            }
             var is18OrOver = false;
             if (userSession != null)
             {
@@ -896,16 +904,31 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<MVC.IActionResult> CharacterFetch(long userId)
         {
+            string RigType;
+            int AvatarType = await services.avatar.GetAvatarTypeAsync(userId);
+            switch(AvatarType)
+            {
+                case 1:
+                    RigType = "R6";
+                    break;
+                case 2:
+                    RigType = "R15";
+                    break;
+                default:
+                    RigType = "R6";
+                    break;
+            }
             var assets = await services.avatar.GetWornAssets(userId);
             var colors = await services.avatar.GetAvatar(userId);
             dynamic bodyColors = new { HeadColor = colors.headColorId, LeftArmColor = colors.leftArmColorId, LeftLegColor = colors.leftLegColorId, RightArmColor = colors.rightArmColorId, RightLegColor = colors.rightLegColorId, TorsoColor = colors.torsoColorId };
             List<long> accessoryVersionIds = assets.ToList();
             var result = new {
-                resolvedAvatarType = "R6",
+                resolvedAvatarType = RigType,
                 accessoryVersionIds,
                 equippedGearVersionIds = new List<int>(),
                 backpackGearVersionIds = new List<int>(),
                 animationAssetIds = new {},
+                bodyColorsUrl = $"https://www.projex.zip/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors
             };
             string jsonString = JsonConvert.SerializeObject(result);
