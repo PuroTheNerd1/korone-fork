@@ -31,7 +31,7 @@ const MyCharacterPage = props => {
 
   const handleRigToggle = () => {
     const newRigType = rigType === "R6" ? "R15" : "R6";
-    const apiUrl = `apisite/avatar/v1/avatar/set-rig?rigtype=${newRigType}`;
+    const apiUrl = `/apisite/avatar/v1/avatar/set-rig?rigtype=${newRigType}`;
     fetch(apiUrl)
       .then(response => {
         if (!response.ok) {
