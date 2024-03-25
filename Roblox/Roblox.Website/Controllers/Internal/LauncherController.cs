@@ -29,7 +29,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/cdn/ProjectXPlayerLauncher.exe")]
         public MVC.IActionResult GetLauncher()
         {
-            return PhysicalFile("C:\\ProjectX\\services\\Roblox\\Setup\\ProjectXPlayerLauncher1.exe", "application/octet-stream");
+            return PhysicalFile("C:\\ProjectX\\services\\Roblox\\Setup\\ProjectXPlayerLauncher23.exe", "application/octet-stream");
         }
 
         [HttpGetBypass("/cdn/versionQTStudio")]

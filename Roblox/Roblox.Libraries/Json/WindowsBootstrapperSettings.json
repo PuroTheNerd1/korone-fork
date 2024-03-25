@@ -11,7 +11,7 @@
   "DeprecatePropertyTree": "True",
   "DeprecatedOSXMinorVersion": "6",
   "EnabledWebRedirect": "True",
-  "ExeVersion": "0.0.0.1",
+  "ExeVersion": "1.6.0.1",
   "FFlagBetterErrorReporting": "True",
   "FFlagChromefixOnlyIfFound": "True",
   "FFlagChromefixOpenDefaultPreferences": "True",
@@ -36,7 +36,6 @@
   "FIntInfluxReportExceptionPermyriad": "10000",
   "ForceSilentMode": "False",
   "GoogleAnalyticsAccountPropertyID": "UA-43420590-16",
-  "GuidVersion": "a4781a8a67bb4885",
   "HardcodeCdnHost": "False",
   "InfluxDatabase": "roblox_bootstrapper",
   "InfluxHundredthsPercentage": "0",
@@ -56,5 +55,5 @@
   "UseNewDeprecatedOSXCheck": "True",
   "UseNewInfluxBootstrapper": "True",
   "UseRelaunchEmptyArgs": "True",
-  "ValidateInstalledExeVersion": "True"
+  "ValidateInstalledExeVersion": "False"
 }

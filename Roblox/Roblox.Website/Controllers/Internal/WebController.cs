@@ -484,11 +484,25 @@ public class WebController : ControllerBase
     public async Task<dynamic> GetJoinScript(long placeId)
     {
         // TODO: Rate limit, or caching, or something
+        string clientVer;
+        long year = await services.games.GetYear(placeId);
+        switch(year)
+        {
+            case 2016:
+                clientVer = "2016E";
+                break;
+            case 2017:
+                clientVer = "2017L";
+                break;
+            default:
+                clientVer = "2016E";
+                break;
+        }
         var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-        var bootstrapperArgs = $"://1+launchmode:play+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/game/PlaceLauncher.ashx?placeId={placeId}+k:l";
+        var bootstrapperArgs = $"://1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/game/PlaceLauncher.ashx?placeId={placeId}+k:l+client";
         var args =
             $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {Request.Cookies[".ROBLOSECURITY"]} --joinScriptUrl {Configuration.BaseUrl}/game/placelauncher.ashx?placeId={placeId}";
         return new
