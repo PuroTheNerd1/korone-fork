@@ -207,7 +207,6 @@ const SmallGameCard = props => {
     <div className={cardStyles.card + ' '} ref={colRef}>
       <Link href={url}>
         <a>
-    // Marking this because the issue may be here
           <div className={s.imageWrapper} style={{position: 'relative'}}>
                 <img className={s.image} src={iconUrl} alt={props.name} onLoad={(e) => {
                 }} onError={(e) => {

@@ -83,7 +83,7 @@ public class WebController : ControllerBase
         return new RedirectResult(result[0].imageUrl ?? "/img/placeholder.png", false);
     }
 
-        
+    [HttpGetBypass("Thumbs/GameIcon.ashx")]
     [HttpGet("thumbs/asset.ashx")]
     public async Task<RedirectResult> GetAssetThumbnail([Required] long assetId)
     {
@@ -130,13 +130,15 @@ public class WebController : ControllerBase
             if (asset18Plus)
                 return new RedirectResult("/img/blocked.png", false);
         }
+        var result = (await services.thumbnails.GetAssetThumbnails(new[] {assetId})).ToList();
         var json = new
         {
-            Url = $"https://www.projex.zip/thumbs/asset.ashx?assetId={assetId}",
-            Final = true
+            Url = $"https://www.projex.zip{result[0].imageUrl}",
+            Final = true,
+            SubstitutionType = 0
         };
         string jsonString = JsonConvert.SerializeObject(json);
-        return jsonString;
+        return Content(jsonString, "application/json");
     }
 
     [HttpGet("userads/redirect")]

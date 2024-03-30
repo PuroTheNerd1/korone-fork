@@ -30,14 +30,14 @@ const PlayButton = props => {
   const buttonStyles = useButtonStyles();
 
   const onClick = e => {
-    if (navigator.userAgent.includes("ROBLOX Android App")) { 
+    if (navigator.userAgent.includes("ROBLOX Android App") || navigator.userAgent.includes("ROBLOX iOS App")) { 
       window.location.href = 'games/start?placeid=' + props.placeId;
     } else if (getFlag('launchUsingEsURI', false)) {
-      e && e.preventDefault && e.preventDefault();
       if (!auth.isAuthenticated) {
         window.location.href = '/Login';
-        return
+        return;
       }
+      e && e.preventDefault && e.preventDefault();
       launchGame({
         placeId: props.placeId,
       }).catch(e => {
@@ -52,6 +52,7 @@ const PlayButton = props => {
       window.location.href = 'https://www.roblox.com/games/' + props.placeId + '/--';
     }
   }
+  
 
   return (
     <div className='row'>

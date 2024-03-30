@@ -35,6 +35,7 @@ using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Extensions;
+using Roblox.Website.WebsiteModels.Authentication;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -486,22 +487,19 @@ namespace Roblox.Website.Controllers
         {
             return new MVC.RedirectResult("/");
         }
+
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId)
         {
             string UserAgent = Request.Headers["User-Agent"].ToString();
-            if (UserAgent != "Roblox/WinInet")
-            {
-                throw new RobloxException(403, 0, "Forbidden"); 
-            }
             DateTime currentUtcDateTime = DateTime.UtcNow;
             long year = await services.games.GetYear(placeId);
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             Console.WriteLine(year);
             var result = await services.gameServer.GetServerForPlace(placeId, year);
-            string username = safeUserSession!.username;
-            long userId = safeUserSession.userId;
+            string username = safeUserSession.username!;
+            long userId = safeUserSession.userId!;
             string characterAppearanceUrl;
             string finalTicket;
             Console.WriteLine(result.job);
@@ -593,6 +591,80 @@ namespace Roblox.Website.Controllers
             Console.WriteLine(safeUserSession.userId);
             return Ok(ID);
         }
+        [HttpPostBypass("v2/login")]
+        public async Task<dynamic> LoginV2()
+        {
+            string username;
+            string password;
+            using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
+            {
+                string requestBody;
+                requestBody = await reader.ReadToEndAsync();
+                var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobile>(requestBody) ?? new LoginRequestMobile();
+                username = serializedResponse.username;
+                password = serializedResponse.password;
+            }         
+
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
+            }
+
+            long userId;
+            try
+            {
+                userId = await services.users.GetUserIdFromUsername(username);
+            }
+            catch (RecordNotFoundException e)
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+            }
+
+            var passwordOk = await services.users.VerifyPassword(userId, password);
+            if (!passwordOk)
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+            }
+            var sess = await services.users.CreateSession(userId);
+            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+            {
+                sessionId = sess,
+                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            });
+            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
+            {
+                Domain = ".projex.zip",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.Unspecified,
+            });
+            var userBalance = await services.economy.GetUserBalance(userId);
+            var jsonData = new
+            {
+                membershipType = 4,
+                username = username,
+                isUnder13 = false,
+                countryCode = "US",
+                userId = userId,
+                displayName = username
+            };
+            string jsonString = JsonConvert.SerializeObject(jsonData);
+            return Content(jsonString, "application/json");
+        }
+        [HttpGetBypass("/mobileapi/check-app-version")]
+        [HttpPostBypass("/mobileapi/check-app-version")]
+        public ActionResult<dynamic> CheckAppVersion()
+        {
+
+            dynamic data = new { UpgradeAction = "None" };
+            var json = new
+            { data = data };
+
+            string jsonString = JsonConvert.SerializeObject(json);
+            return Content(jsonString, "application/json");
+        }
         [HttpPostBypass("mobileapi/login")]
         public async Task<ContentResult> Login()
         {
@@ -600,7 +672,6 @@ namespace Roblox.Website.Controllers
             string username = Request.Form["username"]!;
             string password = Request.Form["password"]!;
 
-            Console.WriteLine(username, password);
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
@@ -681,10 +752,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
         {
             string UserAgent = Request.Headers["User-Agent"].ToString();
-            if (userSession == null || UserAgent != "Roblox/WinInet")
-            {
-                throw new RobloxException(403, 0, "Forbidden"); 
-            }
+
             Console.WriteLine("Client connected to join.ashx");
             GamesService gamesService = new GamesService();
             PlaceEntry uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
@@ -1029,6 +1097,7 @@ namespace Roblox.Website.Controllers
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
         }
 
+
         [HttpPostBypass("/presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
@@ -1053,7 +1122,48 @@ namespace Roblox.Website.Controllers
                 await services.gameServer.ShutDownServerAsync(JobId);
             }
         }
+        [HttpGetBypass("/device/initialize")]
+        [HttpPostBypass("/device/initialize")]
+        public ActionResult<dynamic> InitDevice()
+        {
+            string? appDeviceIdentifier = null;
 
+            var json = new
+            {
+                browserTrackerId = 1234567890,
+                appDeviceIdentifier = appDeviceIdentifier,
+            };
+
+            string? jsonString = JsonConvert.SerializeObject(json);
+            return Content(jsonString, "application/json");
+        }
+        [HttpGetBypass("/Game/ClientPresence.ashx")]
+        public async Task ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
+        {
+            GameServerService gameServerService = new GameServerService();
+            if(action == "disconnect"){
+                string JobId = await gameServerService.GetJobIdByUserId(userId);
+                bool IsRCC = IsRcc();
+                if(!IsRCC)
+                {
+                    return;
+                }
+                if(!GameServerService.CurrentPlayersInGame.ContainsKey(userId))
+                {
+                    return;
+                }
+
+                await Roblox.Metrics.GameMetrics.ReportGameJoinSuccess(placeId);
+                await gameServerService.OnPlayerLeave(userId, placeId, JobId);
+
+                if (await services.games.GetPlayerCount(placeId) == 0)
+                {
+                    await services.gameServer.ShutDownServerAsync(JobId);
+                }
+            }
+
+
+        }
         [HttpPostBypass("/gs/shutdown")]
         public async Task ShutDownServer([Required, MVC.FromBody] ReportActivity request)
         {
@@ -1473,6 +1583,7 @@ namespace Roblox.Website.Controllers
                 return new { };
             }
         }
+        [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
         //08BF6621-8100-4484-B14C-87497E372160
         public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
@@ -1793,6 +1904,12 @@ namespace Roblox.Website.Controllers
         {
             return "1";
         }
+        [HttpPostBypass("v1/CreateOrUpdate")]        
+        public ActionResult<dynamic> CreateOrUpdate()
+        {
+            return Ok();
+        }
+        [HttpGetBypass("v1/CreateOrUpdate/")]
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
         [HttpPostBypass("/v1.0/SequenceStatistics/BatchAddToSequencesV2")]

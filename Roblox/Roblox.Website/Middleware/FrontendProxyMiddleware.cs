@@ -60,6 +60,7 @@ public class FrontendProxyMiddleware
         "/thumbs/avatar.ashx",
         "/thumbs/avatar-headshot.ashx",
         "/thumbs/asset.ashx",
+        "/Thumbs/GameIcon.ashx",
         "/user-sponsorship/",
         "/users/inventory/list-json",
         "/users/favorites/list-json",

@@ -7,6 +7,7 @@ namespace Roblox.Website.Controllers
     public class LauncherController : ControllerBase
     {
         private static string RBXversion = "version-622e5002057946a";
+        private static string RBXMacversion = "version-622e5002057946a";        
         private static string RBXversionstudio = "version-cbge7ed28c0dc9d2";
         private static string CDN = $"C:\\ProjectX\\services\\Roblox\\Setup\\";
         private static string RBXClientPath = $"C:\\ProjectX\\services\\Roblox\\Setup\\Client\\{RBXversion}";
@@ -26,10 +27,10 @@ namespace Roblox.Website.Controllers
         {
             return Ok(RBXversion);
         }
-        [HttpGetBypass("/cdn/ProjectXPlayerLauncher.exe")]
-        public MVC.IActionResult GetLauncher()
+        [HttpGetBypass("/install/GetInstallerCdns.ashx")]
+        public dynamic GetCDN()
         {
-            return PhysicalFile("C:\\ProjectX\\services\\Roblox\\Setup\\ProjectXPlayerLauncher23.exe", "application/octet-stream");
+            return "setup.projex.zip/cdn";
         }
 
         [HttpGetBypass("/cdn/versionQTStudio")]
