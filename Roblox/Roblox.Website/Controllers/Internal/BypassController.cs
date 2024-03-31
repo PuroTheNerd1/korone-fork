@@ -1831,13 +1831,13 @@ namespace Roblox.Website.Controllers
         {
 
             var roles = new string[] { };
-            var userBalance = await services.economy.GetUserBalance(userSession.userId);
-            Console.WriteLine(userSession.username);
+            var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
+            Console.WriteLine(safeUserSession.username);
             var jsonData = new
             {
-                UserId =  userSession.userId,
-                Username = userSession.username,
-                DisplayName = userSession.username,
+                UserId =  safeUserSession.userId,
+                Username = safeUserSession.username,
+                DisplayName = safeUserSession.username,
                 HasPasswordSet = true,
                 Email = "ProjectX@projex.zip",
                 MembershipType = 3,
