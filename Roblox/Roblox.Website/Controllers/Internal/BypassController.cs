@@ -596,6 +596,7 @@ namespace Roblox.Website.Controllers
         {
             string username;
             string password;
+            long userId;
             using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
             {
                 string requestBody;
@@ -609,21 +610,21 @@ namespace Roblox.Website.Controllers
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
             }
+            else
+            {
+                try
+                {
+                    userId = await services.users.GetUserIdFromUsername(username);
 
-            long userId;
-            try
-            {
-                userId = await services.users.GetUserIdFromUsername(username);
-            }
-            catch (RecordNotFoundException e)
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
-            }
-
-            var passwordOk = await services.users.VerifyPassword(userId, password);
-            if (!passwordOk)
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                    if (!await services.users.VerifyPassword(userId, password))
+                    {
+                        throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                    }
+                }
+                catch (RecordNotFoundException)
+                {
+                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                }
             }
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
@@ -671,26 +672,26 @@ namespace Roblox.Website.Controllers
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
             string username = Request.Form["username"]!;
             string password = Request.Form["password"]!;
-
+            long userId;
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
             }
+            else
+            {
+                try
+                {
+                    userId = await services.users.GetUserIdFromUsername(username);
 
-            long userId;
-            try
-            {
-                userId = await services.users.GetUserIdFromUsername(username);
-            }
-            catch (RecordNotFoundException e)
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
-            }
-
-            var passwordOk = await services.users.VerifyPassword(userId, password);
-            if (!passwordOk)
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                    if (!await services.users.VerifyPassword(userId, password))
+                    {
+                        throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                    }
+                }
+                catch (RecordNotFoundException)
+                {
+                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                }
             }
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
@@ -698,14 +699,14 @@ namespace Roblox.Website.Controllers
                 sessionId = sess,
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
-            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
             {
-                Secure = true,
+                Domain = ".projex.zip",
+                Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
-                HttpOnly = true,
                 Path = "/",
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.Unspecified,
             });
             var userBalance = await services.economy.GetUserBalance(userId);
             dynamic successJson = new
@@ -1535,9 +1536,9 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
-                "b7fa3ddea3663ad332806cec0a6be093", //2016E
+                "d902c5a3a4a33954bc6fbd0daa485966", //2016E
                 "2cb51bbbcd309a35858876b6c2167627", //Debug MD5 2016E
-                "f64a1d23f2a18e71fc4fd493036e3cba" //2017L
+                "c3e8aee40c57fb157938a79e339c0d0b" //2017L
             };
 
             return new { data = allowedList };
@@ -1583,6 +1584,8 @@ namespace Roblox.Website.Controllers
                 return new { };
             }
         }
+        [HttpGetBypass("Setting/Get/{type}")]
+        [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
         //08BF6621-8100-4484-B14C-87497E372160
@@ -1725,7 +1728,7 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(finalData);
             return Content(jsonString, "application/json");
         }
-
+        [HttpGetBypass("sign-out/v1")]
         [HttpGetBypass("game/logout.aspx")]
         public async Task<dynamic> Logout()
         {
@@ -1822,6 +1825,31 @@ namespace Roblox.Website.Controllers
                 isCaptchaRequired = false,
             };
         }
+        [HttpGetBypass("users/account-info")]
+        [HttpPostBypass("users/account-info")]
+        public async Task<ContentResult> accountInfo()
+        {
+
+            var roles = new string[] { };
+            var userBalance = await services.economy.GetUserBalance(userSession.userId);
+            Console.WriteLine(userSession.username);
+            var jsonData = new
+            {
+                UserId =  userSession.userId,
+                Username = userSession.username,
+                DisplayName = userSession.username,
+                HasPasswordSet = true,
+                Email = "ProjectX@projex.zip",
+                MembershipType = 3,
+                RobuxBalance = userBalance.robux,
+                AgeBracket = 0,
+                Roles = roles,
+                EmailNotificationEnabled = false,
+                PasswordNotifcationEnabled = false,
+            };
+            string jsonString = JsonConvert.SerializeObject(jsonData);
+            return Content(jsonString, "application/json");
+        }
         [HttpPostBypass("user/following-exists")]
         [HttpGetBypass("user/following-exists")]
         public async Task<dynamic> FollowingExists(long userId, long followerUserId)
@@ -1904,12 +1932,9 @@ namespace Roblox.Website.Controllers
         {
             return "1";
         }
-        [HttpPostBypass("v1/CreateOrUpdate")]        
-        public ActionResult<dynamic> CreateOrUpdate()
-        {
-            return Ok();
-        }
+
         [HttpGetBypass("v1/CreateOrUpdate/")]
+        [HttpPostBypass("v1/CreateOrUpdate")]
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
         [HttpPostBypass("/v1.0/SequenceStatistics/BatchAddToSequencesV2")]

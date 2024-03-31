@@ -112,6 +112,13 @@
             }}>Text Mod</button>
             <button class="btn btn-primary mt-4 ml-2" on:click={() => {
                 const permissions = [
+                    'ManageApplications',
+                    'ClearApplications',
+                ];
+                quickConfig(permissions);
+            }}>Application Mod</button>
+            <button class="btn btn-primary mt-4 ml-2" on:click={() => {
+                const permissions = [
                     'CreateAssetCopiedFromRoblox',
                     'CreateBundleCopiedFromRoblox',
                     'GetProductDetails',
@@ -119,5 +126,6 @@
                 ];
                 quickConfig(permissions);
             }}>Asset Copy (Non Limited)</button>
+
         </div>
 </div>

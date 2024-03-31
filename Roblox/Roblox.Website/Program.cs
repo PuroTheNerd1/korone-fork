@@ -10,6 +10,7 @@ using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Controllers.Internal;
 using Roblox.Website.Hubs;
+using System.Text;
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
@@ -169,5 +170,41 @@ app.UseEndpoints(e =>
     e.MapControllers();
     e.MapRazorPages();
 });
+app.Use(async (httpContext, next) =>
+{
+    try
+    {
+       
+        Console.WriteLine($"Request URL: {httpContext.Request.Path}");
 
+        httpContext.Request.EnableBuffering();
+        string requestBody = await new StreamReader(httpContext.Request.Body, Encoding.UTF8).ReadToEndAsync();
+        httpContext.Request.Body.Position = 0;
+        Console.WriteLine($"Request body: {requestBody}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Exception reading request: {ex.Message}");
+    }
+
+    Stream originalBody = httpContext.Response.Body;
+    try
+    {
+        using var memStream = new MemoryStream();
+        httpContext.Response.Body = memStream;
+
+        await next(httpContext);
+
+        memStream.Position = 0;
+        string responseBody = new StreamReader(memStream).ReadToEnd();
+
+        memStream.Position = 0;
+        await memStream.CopyToAsync(originalBody);
+        Console.WriteLine(responseBody);
+    }
+    finally
+    {
+        httpContext.Response.Body = originalBody;
+    }
+});
 app.Run();
