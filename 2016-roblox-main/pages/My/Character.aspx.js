@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createUseStyles } from "react-jss";
 import AdBanner from "../../components/ad/adBanner";
 import CharacterPage from "../../components/characterCustomizerPage";
@@ -27,7 +27,28 @@ const useCharacterPageStyles = createUseStyles({
 
 const MyCharacterPage = props => {
   const s = useCharacterPageStyles();
-  const [rigType, setRigType] = useState("R6"); 
+  const [rigType, setRigType] = useState(null);
+
+  useEffect(() => {
+    fetch('https://www.projex.zip/apisite/avatar/v1/avatar') // r15 - r6 checker
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch avatar data');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const avatarType = data.playerAvatarType;
+        if (avatarType === 'R6' || avatarType === 'R15') {
+          setRigType(avatarType);
+        } else {
+          throw new Error('Invalid avatar type');
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching avatar data:', error);
+      });
+  }, []);
 
   const handleRigToggle = () => {
     const newRigType = rigType === "R6" ? "R15" : "R6";
@@ -51,14 +72,18 @@ const MyCharacterPage = props => {
         <div className="row mt-2">
           <div className="col-12 ps-4 pe-4">
             <h1 className={s.header}>Character Customizer</h1>
-            <button className={s.switchButton} onClick={handleRigToggle}>
-              {rigType === "R6" ? "Switch to R15" : "Switch to R6"}
-            </button>
+            {rigType && (
+              <button className={s.switchButton} onClick={handleRigToggle}>
+                {rigType === "R6" ? "Switch to R15" : "Switch to R6"}
+              </button>
+            )}
           </div>
         </div>
-        <CharacterCustomizationStore.Provider value={{ rigType }}>
-          <CharacterPage />
-        </CharacterCustomizationStore.Provider>
+        {rigType && (
+          <CharacterCustomizationStore.Provider value={{ rigType }}>
+            <CharacterPage />
+          </CharacterCustomizationStore.Provider>
+        )}
       </div>
     </div>
   );
