@@ -9,38 +9,42 @@ using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.WebsiteModels;
 using ServiceProvider = Roblox.Services.ServiceProvider;
+using Dapper;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Roblox.Website.Controllers;
 
 [ApiController]
 [Route("/apisite/avatar/v1")]
-public class AvatarControllerV1 : ControllerBase
+public class AvatarControllerV1 : ControllerBase, IService
 {
     private void FeatureCheck()
     {
         FeatureFlags.FeatureCheck(FeatureFlag.AvatarsEnabled);
     }
     
-    private void AttemptScheduleRender(bool forceRedraw = false)
+    private async void AttemptScheduleRender(bool forceRedraw = false)
     {
         var userId = safeUserSession.userId;
-        using (var cache = ServiceProvider.GetOrCreate<AvatarCache>())
+        if (!forceRedraw)
         {
-            if (!cache.AttemptScheduleRender(userId)) return;
-        }
+            using (var cache = ServiceProvider.GetOrCreate<AvatarCache>())
+            {
+                if (!cache.AttemptScheduleRender(userId)) return;
+            }
+        }        
         
-        
-        Task.Run(async () =>
+        await Task.Run(async () =>
         {
             await Task.Delay(TimeSpan.FromSeconds(2));
-            
+            Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarTypeAsync(userId);
             using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
             try
             {
                 using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
                 var assetIds = await cache.GetPendingAssets(userId);
                 var newColors = await cache.GetColors(userId);
-                await avatarService.RedrawAvatar(userId, assetIds, newColors, AvatarType.R6, forceRedraw);
+                await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw);
             }
             catch (Exception e)
             {
@@ -52,6 +56,7 @@ public class AvatarControllerV1 : ControllerBase
             }
         });
     }
+
     
     [HttpPost("avatar/redraw-thumbnail")]
     public void RequestRedrawAvatar()
@@ -84,6 +89,26 @@ public class AvatarControllerV1 : ControllerBase
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, currentlyWorn);
         
+        AttemptScheduleRender();
+    }
+
+    [HttpGet("avatar/set-rig")]
+    public async Task SetRigType(string rigtype)
+    {
+        int type;
+        switch (rigtype)
+        {
+            case "R6":
+                type = 1;
+                break;
+            case "R15":
+                type = 2;
+                break;
+            default:
+                type = 1;
+                break;
+        }
+        await services.avatar.UpdateRigType(type, safeUserSession.userId);
         AttemptScheduleRender();
     }
 
@@ -440,4 +465,15 @@ public class AvatarControllerV1 : ControllerBase
     {
         
     }
+
+    public bool IsThreadSafe()
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool IsReusable()
+    {
+        throw new NotImplementedException();
+    }
+
 }

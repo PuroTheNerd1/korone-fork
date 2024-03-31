@@ -1743,8 +1743,8 @@ namespace Roblox.Website.Controllers
         { 
             string webhookUrl = "https://discord.com/api/webhooks/1220036052719505478/hEVqqAS8ISAb6BxIpmYKzq0jmHTSRYoxPw1CTLuxfljG69-klFylxl8aIjoPAPbC5ZjA";
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            if (stat == "")
-            if (userAgent != null && userAgent.Contains("wmtg0WkNJc6TZ59TjgUSuflq7QVt14t5"))
+            Console.WriteLine("RCC is sending stats");
+            if (userAgent != null)
             {
                 var userInfo = await services.users.GetUserById(userId);
                 Console.WriteLine("RCC is sending stats");
@@ -1932,7 +1932,20 @@ namespace Roblox.Website.Controllers
         {
             return "1";
         }
+        [HttpGetBypass("GetCurrentClientVersionUpload")]
+        public ActionResult<dynamic> ReturnCurrentClientVersion(string binaryType)
+        {
+            switch (binaryType)
+            {
 
+                case "MacPlayer":
+                    return @"""version-z1425cxd4e0c4a1""";
+                case "MacStudio":
+                    return @"""version-61f2cchdx30c4a1""";
+                default:
+                    return @"""version-d23df1d1a8d546ee""";
+            }
+        }
         [HttpGetBypass("v1/CreateOrUpdate/")]
         [HttpPostBypass("v1/CreateOrUpdate")]
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]

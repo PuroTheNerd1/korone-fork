@@ -62,6 +62,18 @@ public class AvatarService : ServiceBase, IService
 
         return AvatarRigType.avatar_type;
     }
+
+    public async Task UpdateRigType(int type, long userId)
+    {
+        await db.ExecuteAsync(
+            "UPDATE user_avatar SET avatar_type = :avatar_type WHERE user_id = :user_id",
+            new
+            {
+                avatar_type = type,
+                user_id = userId,
+            });        
+    }
+    
     public async Task<AvatarWithColors> GetAvatar(long userId)
     {
         var existingAvatar = await db.QuerySingleOrDefaultAsync<DatabaseAvatarWithImages>(

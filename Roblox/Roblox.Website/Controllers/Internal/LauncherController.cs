@@ -12,6 +12,7 @@ namespace Roblox.Website.Controllers
         private static string CDN = $"C:\\ProjectX\\services\\Roblox\\Setup\\";
         private static string RBXClientPath = $"C:\\ProjectX\\services\\Roblox\\Setup\\Client\\{RBXversion}";
         private static string RBXStudioPath = $"C:\\ProjectX\\services\\Roblox\\Setup\\Studio\\{RBXversionstudio}";
+        private static string RBXMacClientPath = $"C:\\ProjectX\\services\\Roblox\\Setup\\Client\\Mac";
         [HttpGetBypass("/v2/client-version/WindowsPlayer/channel/LIVE")]
         public dynamic GetVersionV2()
         {
@@ -48,6 +49,7 @@ namespace Roblox.Website.Controllers
             }
             string NormalCDN = Path.Combine(CDN, file);
             string ClientStrapper = Path.Combine(RBXClientPath, file);
+            string MacStrapper = Path.Combine(RBXMacClientPath, file);
             string StudioStrapper = Path.Combine(RBXStudioPath, file);
 
             if (System.IO.File.Exists(NormalCDN))
@@ -58,10 +60,15 @@ namespace Roblox.Website.Controllers
             {
                 return PhysicalFile(ClientStrapper, "application/octet-stream");
             }
+            else if (System.IO.File.Exists(MacStrapper))
+            {
+                return PhysicalFile(MacStrapper, "application/octet-stream");
+            }
             else if (System.IO.File.Exists(StudioStrapper))
             {
                 return PhysicalFile(StudioStrapper, "application/octet-stream");
             }
+
             else
             {
                 return NotFound();
