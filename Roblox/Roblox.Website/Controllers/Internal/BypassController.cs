@@ -497,11 +497,12 @@ namespace Roblox.Website.Controllers
             long year = await services.games.GetYear(placeId);
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             Console.WriteLine(year);
-            var result = await services.gameServer.GetServerForPlace(placeId, year);
+            
             string username = safeUserSession.username!;
             long userId = safeUserSession.userId!;
             string characterAppearanceUrl;
             string finalTicket;
+            var result = await services.gameServer.GetServerForPlace(placeId, year);
             Console.WriteLine(result.job);
             switch (year)
             {
