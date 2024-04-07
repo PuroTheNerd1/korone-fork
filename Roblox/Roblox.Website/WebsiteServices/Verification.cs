@@ -109,43 +109,6 @@ public class ApplicationWebsiteService : WebsiteService
                     verifiedUrl = socialData.url;
                     verifiedId = socialData.site + ":" + socialData.identifier;
                     break;
-                case SocialMediaSite.TwitterUsername:
-                    var twitter = new TwitterApi();
-                    TwitterUserObject info;
-                    try
-                    {
-                        info = await twitter.GetUserByScreenName(socialData.identifier);
-                    }
-                    catch (TwitterRecordNotFoundException)
-                    {
-                        throw new InvalidSocialMediaUrlException();
-                    }
-
-                    // Maximum age of now - 10 years, minimum of now - 6 months
-                    if (info.createdAt < DateTime.UtcNow.Subtract(TimeSpan.FromDays(365 * 10)) ||
-                        info.createdAt > DateTime.UtcNow.Subtract(TimeSpan.FromDays(30 * 4)) ||
-                        info.publicMetrics == null)
-                    {
-                        throw new AccountTooNewException();
-                    }
-
-                    if (info.publicMetrics.followersCount < 5 || 
-                        info.publicMetrics.followingsCount < 10 || 
-                        info.publicMetrics.tweetCount < 5)
-                    {
-                        throw new AccountTooNewException();
-                    }
-
-                    if (string.IsNullOrWhiteSpace(info.description) ||
-                        !AppSocialMedia.IsVerificationPhraseInString(verificationPhrase, info.description))
-                    {
-                        throw new UnableToFindVerificationPhraseException("Could not find verification phrase in your twitter bio. If you recently updated it, you may have to wait a few minutes and try again.");
-                    }
-
-                    verifiedUrl = socialData.url;
-                    var id = new TwitterUserIdAppSocial(info.userId);
-                    verifiedId = id.site + ":" + id.identifier;
-                    break;
                 // below are just for URL normalization - we don't actually verify automatically
                 case SocialMediaSite.TikTokUsername:
                 case SocialMediaSite.YoutubeChannelId:
