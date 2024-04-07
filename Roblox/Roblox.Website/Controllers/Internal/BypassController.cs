@@ -970,6 +970,8 @@ namespace Roblox.Website.Controllers
             var assets = await services.assets.GetPackageAssets(assetId);
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId=2;{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
+
+        [HttpGetBypass("v1/avatar")]
         [HttpGetBypass("/v1/avatar-fetch")]
         [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<MVC.IActionResult> CharacterFetch(long userId)
@@ -991,6 +993,7 @@ namespace Roblox.Website.Controllers
             var assets = await services.avatar.GetWornAssets(userId);
             var colors = await services.avatar.GetAvatar(userId);
             dynamic bodyColors = new { HeadColor = colors.headColorId, LeftArmColor = colors.leftArmColorId, LeftLegColor = colors.leftLegColorId, RightArmColor = colors.rightArmColorId, RightLegColor = colors.rightLegColorId, TorsoColor = colors.torsoColorId };
+            dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
             List<long> accessoryVersionIds = assets.ToList();
             var result = new {
                 resolvedAvatarType = RigType,
@@ -998,6 +1001,8 @@ namespace Roblox.Website.Controllers
                 equippedGearVersionIds = new List<int>(),
                 backpackGearVersionIds = new List<int>(),
                 animationAssetIds = new {},
+                playerAvatarType = AvatarType,
+                scales,
                 bodyColorsUrl = $"https://www.projex.zip/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors
             };
@@ -1091,7 +1096,7 @@ namespace Roblox.Website.Controllers
             {
                 return;
             }
-
+            Thread.Sleep(500);
             if(GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
             {
                 return;
@@ -1116,12 +1121,14 @@ namespace Roblox.Website.Controllers
             }
             long placeId = GameServerService.GetUserPlaceId(visitorId);
 
-            await Roblox.Metrics.GameMetrics.ReportGameJoinSuccess(placeId);
             await gameServerService.OnPlayerLeave(visitorId, placeId, JobId);
+            // lets wait 
+            Thread.Sleep(500);
 
             if (await services.games.GetPlayerCount(placeId) == 0)
             {
                 await services.gameServer.ShutDownServerAsync(JobId);
+                await services.gameServer.DeleteGameServer(JobId);
             }
         }
         [HttpGetBypass("/device/initialize")]
@@ -1358,7 +1365,13 @@ namespace Roblox.Website.Controllers
             robloxRoot.Add(items);
             // return as string
             return new XDocument(robloxRoot).ToString();
+        }       
+        [HttpGetBypass("Game/PlaceVisit.ashx")]
+        public async Task<dynamic> PlaceVisit()
+        {
+            return Ok();
         }
+
         [HttpGetBypass("rcc/kickplayer")]
         public async Task<dynamic> KickPlayerAsync(long userId, string reason)
         {
