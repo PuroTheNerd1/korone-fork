@@ -1033,7 +1033,7 @@ public class UsersService : ServiceBase, IService
             {
                 await CreateUserAsset(userId, id);
             }
-
+             
             return new UserId
             {
                 userId = userId,

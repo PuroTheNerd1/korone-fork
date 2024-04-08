@@ -1123,7 +1123,7 @@ namespace Roblox.Website.Controllers
 
             await gameServerService.OnPlayerLeave(visitorId, placeId, JobId);
             // lets wait 
-            Thread.Sleep(500);
+            Thread.Sleep(1000);
 
             if (await services.games.GetPlayerCount(placeId) == 0)
             {
@@ -1365,7 +1365,9 @@ namespace Roblox.Website.Controllers
             robloxRoot.Add(items);
             // return as string
             return new XDocument(robloxRoot).ToString();
-        }       
+        }
+        
+        [HttpPostBypass("Game/PlaceVisit.ashx")]       
         [HttpGetBypass("Game/PlaceVisit.ashx")]
         public async Task<dynamic> PlaceVisit()
         {
