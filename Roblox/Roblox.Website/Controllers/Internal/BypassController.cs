@@ -1283,14 +1283,17 @@ namespace Roblox.Website.Controllers
                     if (keyValue.Length == 2 && keyValue[0] == "macAddresses")
                     {
                         macAddress = Uri.UnescapeDataString(keyValue[1]);
-                        Console.WriteLine("Client sent macAddress: " + macAddress);
+                        //Console.WriteLine("Client sent macAddress: " + macAddress);
                         break;
                     }
                 }
             }
 
-            if (userSession == null || macAddress == null){
-                return "";
+            if (macAddress == null){
+                return new{
+                    success = false,
+                    message = "",
+                };
             }
 
             bool isBanned = await hwid.CheckHWID(userId, macAddress);
