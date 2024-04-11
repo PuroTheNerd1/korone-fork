@@ -748,7 +748,6 @@ public class GameServerService : ServiceBase
                 }}";
                 finalScript = originalScript.Replace("%", "&#37;");
                 break;
-
             case 2018:
             case 2019:
             case 2020:
@@ -826,15 +825,6 @@ public class GameServerService : ServiceBase
                 break;
             case 2017:
                 jobRccs.Add(jobId, rccServer2017);
-                break;
-            case 2018:
-                jobRccs.Add(jobId, rccServer2018);
-                break;
-            case 2019:
-                jobRccs.Add(jobId, rccServer2019);
-                break;
-            case 2020:
-                jobRccs.Add(jobId, rccServer2020);
                 break;
         }
         //jobRccs.Add(jobId, rccServer);

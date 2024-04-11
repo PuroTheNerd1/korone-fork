@@ -1124,11 +1124,11 @@ namespace Roblox.Website.Controllers
             await gameServerService.OnPlayerLeave(visitorId, placeId, JobId);
             // lets wait 
             Thread.Sleep(1000);
-
-            if (await services.games.GetPlayerCount(placeId) == 0)
+            int playerCount = await services.games.GetPlayerCount(placeId);
+            if (playerCount  < 1)
             {
+                Console.WriteLine("Shutting down....");
                 await services.gameServer.ShutDownServerAsync(JobId);
-                await services.gameServer.DeleteGameServer(JobId);
             }
         }
         [HttpGetBypass("/device/initialize")]
@@ -1292,7 +1292,7 @@ namespace Roblox.Website.Controllers
             if (macAddress == null){
                 return new{
                     success = false,
-                    message = "",
+                    message = "Invalid Data",
                 };
             }
 
@@ -1303,7 +1303,19 @@ namespace Roblox.Website.Controllers
                 message = "",
             };
         }
+        [HttpGetBypass("/my/balance")]
+        public async Task<ActionResult<dynamic>> MyBalance()
+        {
 
+            var bal = await services.economy.GetUserRobux(safeUserSession.userId);
+            var json = new
+            {
+                robux = bal
+            };
+
+            string? jsonString = JsonConvert.SerializeObject(json);
+            return Content(jsonString, "application/json");
+        }
         [HttpGetBypass("Users/ListStaff.ashx")]
         public async Task<IEnumerable<long>> GetStaffList()
         {
@@ -1766,7 +1778,6 @@ namespace Roblox.Website.Controllers
             if (userAgent != null)
             {
                 var userInfo = await services.users.GetUserById(userId);
-                Console.WriteLine("RCC is sending stats");
                 dynamic discordMessage = new
                 {
                     content = (object)null,

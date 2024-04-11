@@ -12,7 +12,7 @@ public class BillingControllerV1
     {
         return new
         {
-            balanace = 0,
+            balance = 0,
             robuxAmount = 0,
             canRedeemCreditForRobux = false,
         };
