@@ -147,7 +147,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseMiddleware<FrontendProxyMiddleware>();
-//app.UseRobloxLoggingMiddleware();
+app.UseRobloxLoggingMiddleware();
 
 app.UseExceptionHandler("/error");
 //await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");

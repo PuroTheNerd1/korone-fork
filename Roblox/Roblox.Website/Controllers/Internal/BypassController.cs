@@ -970,8 +970,52 @@ namespace Roblox.Website.Controllers
             var assets = await services.assets.GetPackageAssets(assetId);
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId=2;{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
+        [HttpGetBypass("v1/avatar-rules")]
+        public IActionResult AvatarRules()
+        {
+            string filePath = @"C:\ProjectX\services\Roblox\Roblox.Libraries\Json\avatarules.json";
 
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound(); 
+            }
+
+            string jsonContent = System.IO.File.ReadAllText(filePath);
+
+            dynamic avatarRules = JsonConvert.DeserializeObject(jsonContent);
+
+            if (avatarRules == null)
+            {
+                return StatusCode(500); 
+            }
+
+            string jsonString = JsonConvert.SerializeObject(avatarRules);
+
+            return Content(jsonString, "application/json");
+        }
         [HttpGetBypass("v1/avatar")]
+        public async Task<dynamic> MobileCharapp()
+        {
+            string filePath = @"C:\ProjectX\services\Roblox\Roblox.Libraries\Json\TestCharApp.json";
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound(); 
+            }
+
+            string jsonContent = System.IO.File.ReadAllText(filePath);
+
+            dynamic avatarRules = JsonConvert.DeserializeObject(jsonContent);
+
+            if (avatarRules == null)
+            {
+                return StatusCode(500); 
+            }
+
+            string jsonString = JsonConvert.SerializeObject(avatarRules);
+
+            return Content(jsonString, "application/json");
+        }
         [HttpGetBypass("/v1/avatar-fetch")]
         [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<MVC.IActionResult> CharacterFetch(long userId)
@@ -1614,6 +1658,24 @@ namespace Roblox.Website.Controllers
                 Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
                 return new { };
             }
+        }
+        [HttpGetBypass("v2/get-rollout-settings")]
+        public dynamic ChatRollout(string featureNames)
+        {
+            dynamic rollOut = new
+            {
+                rolloutFeatures = new[]
+                {
+                    new
+                    {
+                        featureName = featureNames,
+                        isRolloutEnabled = true
+                    }
+                }
+            };
+
+            string jsonString = JsonConvert.SerializeObject(rollOut);
+            return Content(jsonString, "application/json");
         }
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/Get/{type}")]
