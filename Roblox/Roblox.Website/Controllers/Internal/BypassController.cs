@@ -993,10 +993,48 @@ namespace Roblox.Website.Controllers
 
             return Content(jsonString, "application/json");
         }
-        [HttpGetBypass("v1/avatar")]
-        public async Task<dynamic> MobileCharapp()
+        [HttpPostBypass("v1/avatar/set-body-color")]
+        public async Task<dynamic> SetBodyColor()
         {
-            string filePath = @"C:\ProjectX\services\Roblox\Roblox.Libraries\Json\TestCharApp.json";
+            return Ok();
+        }      
+        [HttpGetBypass("v1/avatar/set-scales")]
+        public async Task<dynamic> SetScale()
+        {
+            var result = new
+            {
+                success = true
+            };
+            string jsonString = JsonConvert.SerializeObject(result);
+            return Content(jsonString, "application/json");           
+        }
+        [HttpGetBypass("v2/stream-notifications/unread-count")]
+        public async Task<dynamic> PushNotif()
+        {
+            var result = new
+            {
+                unreadNotifications = 999,
+                statusMessage = string.Empty
+            };
+            string jsonString = JsonConvert.SerializeObject(result);
+            return Content(jsonString, "application/json");           
+        }        
+        [HttpGetBypass("sponsoredpage/list-json")]
+        [HttpGetBypass("mobile-ads/v1/get-ad-details")]
+        [HttpGetBypass("incoming-items/counts")]
+        public async Task<dynamic> IncomingItems()
+        {
+            var result = new
+            {
+                success = true
+            };
+            string jsonString = JsonConvert.SerializeObject(result);
+            return Content(jsonString, "application/json");           
+        }
+        [HttpGetBypass("v1/avatar/metadata")]
+        public async Task<IActionResult> AvatarMetadata()
+        {
+            string filePath = @"C:\ProjectX\services\Roblox\Roblox.Libraries\Json\metadata.json";
 
             if (!System.IO.File.Exists(filePath))
             {
@@ -1014,8 +1052,67 @@ namespace Roblox.Website.Controllers
 
             string jsonString = JsonConvert.SerializeObject(avatarRules);
 
+            return Content(jsonString, "application/json");            
+        }        
+        [HttpGetBypass("v1/avatar")]
+        public async Task<IActionResult> MobileCharapp()
+        {
+            var colors = await services.avatar.GetAvatar(safeUserSession.userId);          
+            var assets = await services.avatar.GetWornAssets(safeUserSession.userId);  
+
+            var bodyColors = new
+            {
+                HeadColor = colors.headColorId,
+                LeftArmColor = colors.leftArmColorId,
+                LeftLegColor = colors.leftLegColorId,
+                RightArmColor = colors.rightArmColorId,
+                RightLegColor = colors.rightLegColorId,
+                TorsoColor = colors.torsoColorId
+            };
+
+            var assetList = new List<dynamic>();
+
+            foreach(int i in assets)
+            {
+                var details = await services.assets.GetAssetCatalogInfo(i);
+                var asset = new
+                {
+                    id = i,
+                    name = details.name,
+                    assetType = new
+                    {
+                        id = (int)details.assetType,
+                        name = details.assetType.ToString()
+                    },
+                    currentVersionId = i
+                };
+                assetList.Add(asset);
+            }
+
+            var MobileCharapp = new
+            {
+                scales = new
+                {
+                    height = 1,
+                    width = 1,
+                    head = 1,
+                    depth = 1,
+                    proportion = 0,
+                    bodyType = 0
+                },
+                playerAvatarType = "R15",
+                bodyColors = bodyColors,
+                bodyColorsUrl = $"https://www.projex.zip/Asset/BodyColors.ashx?userId={safeUserSession.userId}",
+                assets = assetList,
+                defaultShirtApplied = false,
+                defaultPantsApplied = false
+            };
+
+            var jsonString = JsonConvert.SerializeObject(MobileCharapp);
+
             return Content(jsonString, "application/json");
         }
+
         [HttpGetBypass("/v1/avatar-fetch")]
         [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<MVC.IActionResult> CharacterFetch(long userId)
