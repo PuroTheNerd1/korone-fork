@@ -1287,14 +1287,6 @@ namespace Roblox.Website.Controllers
             long placeId = GameServerService.GetUserPlaceId(visitorId);
 
             await gameServerService.OnPlayerLeave(visitorId, placeId, JobId);
-            // lets wait 
-            Thread.Sleep(1000);
-            int playerCount = await services.games.GetPlayerCount(placeId);
-            if (playerCount  < 1)
-            {
-                Console.WriteLine("Shutting down....");
-                await services.gameServer.ShutDownServerAsync(JobId);
-            }
         }
         [HttpGetBypass("/device/initialize")]
         [HttpPostBypass("/device/initialize")]
@@ -2165,6 +2157,24 @@ namespace Roblox.Website.Controllers
                     return @"""version-d23df1d1a8d546ee""";
             }
         }
+        [HttpPostBypass("v1.0/Refresh")]
+        [HttpPostBypass("v2.0/Refresh")]
+        public async Task<dynamic> RefreshGameInstance(string gameId, string playerIdsCsv)
+        {
+            bool IsRCC = IsRcc();
+            if (IsRCC){
+                if (playerIdsCsv != null)
+                {
+                    await services.gameServer.SetServerPing(gameId);
+                    return "OK!";
+                }
+                else{
+                    await services.gameServer.ShutDownServerAsync(gameId);
+                    return "OK!";
+                }
+            }
+            return "FALSE";
+        }
         [HttpGetBypass("v1/CreateOrUpdate/")]
         [HttpPostBypass("v1/CreateOrUpdate")]
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
@@ -2176,8 +2186,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/v1.1/Counters/Increment")]
         [HttpGetBypass("notifications/signalr/negotiate")]
         [HttpGetBypass("notifications/negotiate")]
-        [HttpPostBypass("v1.0/Refresh")]
-        [HttpPostBypass("v2.0/Refresh")]
+
         public MVC.OkResult TelemetryFunctions()
         {
             return Ok();
