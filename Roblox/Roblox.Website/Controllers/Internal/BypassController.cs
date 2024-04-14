@@ -393,7 +393,31 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
             throw new BadRequestException();
         }
+        [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
+        public async Task<string> LoadPlaceInfo(long PlaceId)
+        {
+            var details = await services.assets.GetAssetCatalogInfo(PlaceId);
+            string luaCode = $@"
+                            pcall(function() game:SetCreatorID({details.creatorTargetId}, Enum.CreatorType.User) end);
+                            pcall(function() game:GetService(""SocialService""):SetFriendUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetBestFriendUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupRankUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupRoleUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""GamePassService""):SetPlayerHasPassUrl(""http://www.projex.zip/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d"") end);
+            ";
 
+            string[] lines = luaCode.Split('\n');
+            for (int i = 0; i < lines.Length; i++)
+            {
+                lines[i] = lines[i].TrimStart();
+            }
+
+            luaCode = string.Join("\n", lines);
+            string SignedScript = SignatureController.SignStringResponseForClientFromPrivateKey(luaCode, true);
+            return SignedScript;
+
+        }
         [HttpGetBypass("Game/GamePass/GamePassHandler.ashx")]
         public async Task<string> GamePassHandler(string Action, long UserID, long PassID)
         {
@@ -1739,6 +1763,9 @@ namespace Roblox.Website.Controllers
         {
             return "true";
         }
+        [HttpPostBypass("v2/settings/application")]
+        [HttpGetBypass("v2/settings/application")]
+        [HttpPostBypass("v1/settings/application")]
         [HttpGetBypass("v1/settings/application")]
         public MVC.ActionResult<dynamic> GetAppSettingsNew(string applicationName)
         {
@@ -1934,6 +1961,9 @@ namespace Roblox.Website.Controllers
             string webhookUrl = "https://discord.com/api/webhooks/1220036052719505478/hEVqqAS8ISAb6BxIpmYKzq0jmHTSRYoxPw1CTLuxfljG69-klFylxl8aIjoPAPbC5ZjA";
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             Console.WriteLine("RCC is sending stats");
+            if(details == "vegah"){
+                return Ok();
+            }
             if (userAgent != null)
             {
                 var userInfo = await services.users.GetUserById(userId);
