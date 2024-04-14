@@ -171,13 +171,38 @@ local function reportPlayerEvent(userId, t)
 	end)
 	-- print("player event",ok,msg)
 end
+
 print("[info] jobId is", game.JobId);
 
+function CalculateAveragePing()
+	local totalPing = 0
+	local replicatorCount = 0
+	local averagePing = 0
+	local status, err = pcall(function()
+		for _, r in ipairs(stats().Network:GetChildren()) do 
+			if r.Name ~= "Packets Thread" then 
+				r:GetValue() -- hax
+				totalPing = totalPing + r.Ping:GetValue()
+				replicatorCount = replicatorCount + 1
+			end 
+		end
+		if replicatorCount > 0 then
+			averagePing = totalPing / replicatorCount
+		end
+	end)
+	if (not status) then
+		PrintDebugMessage("CalculateAveragePing error = " .. err)
+	end	
+	return averagePing
+end
+
 local function pollToReportActivity()
+	local ping = CalculateAveragePing()
 	local function sendPing()
 		game:HttpPost(url .. "/gs/ping", http:JSONEncode({
 			["authorization"] = "_AUTHORIZATION_STRING_",
 			["serverId"] = game.JobId,
+			["ping"] = ping,
 			["placeId"] = placeId,
 		}), false, "application/json");
 	end

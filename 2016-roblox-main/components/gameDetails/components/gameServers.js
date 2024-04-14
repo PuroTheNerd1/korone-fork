@@ -30,9 +30,6 @@ const ServerEntry = props => {
           <span className='fw-600'>Player Count: </span>{props.CurrentPlayers.length} / {store.universeDetails.maxPlayers} Players
         </span>
         <span>
-          <span className='fw-600 ps-4'>FPS: </span> {props.Fps}
-        </span>
-        <span>
           <span className='fw-600 ps-4'>Ping: </span> {props.Ping}
         </span>
       </p>

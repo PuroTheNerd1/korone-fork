@@ -556,17 +556,17 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
     {
         var jobId = server.id; 
         var players = server.players.ToList();
-
+        long Ping = await services.gameServer.GetServerStat(server.id); 
         collection.Add(new
         {
-            placeId = placeId,
+            placeId,
             Capacity = details.maxPlayerCount,
-            Ping = 100, // todo
-            Fps = 59.95, // todo
+            Ping = Ping, 
+            Fps = 60, 
             ShowSlowGameMessage = false, // todo
             UserCanJoin = true, // todo: false if vip server
             ShowShutdownButton = false, // todo: true if vip server player owns or user has perms
-            jobId = jobId,
+            jobId,
             FriendsMouseover = "",
             FriendsDescription = "",
             PlayersCapacity = $"{players.Count} of {details.maxPlayerCount}",

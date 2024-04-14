@@ -1242,6 +1242,7 @@ namespace Roblox.Website.Controllers
         public async Task ReportServerActivity([Required, MVC.FromBody] ReportActivity request)
         {
             CheckServerAuth(request.authorization);
+            //await services.gameServer.SetServerGSPing(request.serverId, request.ping);
             await services.gameServer.SetServerPing(request.serverId);
         }
 
@@ -2157,26 +2158,40 @@ namespace Roblox.Website.Controllers
                     return @"""version-d23df1d1a8d546ee""";
             }
         }
+        [HttpGetBypass("v1/CreateOrUpdate")]
+        [HttpPostBypass("v1/CreateOrUpdate")]        
+        public async Task<dynamic> GetOrCreate(string gameId, int ping)
+        {
+            bool IsRCC = IsRcc();
+            if(IsRCC)
+            {
+                Console.WriteLine(ping);
+                //await services.gameServer.SetServerGSFPS(gameId, fps);
+                await services.gameServer.SetServerGSPing(gameId, ping);   
+                return "OK!";             
+            }
+            else{
+                return "FALSE";
+            }
+        }        
         [HttpPostBypass("v1.0/Refresh")]
         [HttpPostBypass("v2.0/Refresh")]
-        public async Task<dynamic> RefreshGameInstance(string gameId, string playerIdsCsv)
+        public async Task<dynamic> RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
             bool IsRCC = IsRcc();
             if (IsRCC){
-                if (playerIdsCsv != null)
+                if (clientCount == 0 && gameTime > 5)
                 {
-                    await services.gameServer.SetServerPing(gameId);
+                    await services.gameServer.ShutDownServerAsync(gameId);
                     return "OK!";
                 }
                 else{
-                    await services.gameServer.ShutDownServerAsync(gameId);
+                    await services.gameServer.SetServerPing(gameId);
                     return "OK!";
                 }
             }
             return "FALSE";
         }
-        [HttpGetBypass("v1/CreateOrUpdate/")]
-        [HttpPostBypass("v1/CreateOrUpdate")]
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
         [HttpPostBypass("/v1.0/SequenceStatistics/BatchAddToSequencesV2")]

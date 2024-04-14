@@ -374,9 +374,39 @@ public class GameServerService : ServiceBase
         {
             id = serverId,
         });
+       
         return (DateTime) result.updated_at;
     }
+    public async Task<long> GetServerStat(string serverId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<long>("SELECT ping FROM asset_server WHERE id = :id::uuid", new
+        {
+            id = serverId,
+        });
+        if (result == null)
+        {
+            throw new Exception($"No server found with ID: {serverId}");
+        }      
 
+        return result;
+    }    
+    public async Task SetServerGSFPS(string serverId, long fps)
+    {
+        long roundedFps = (long)Math.Round((double)fps);
+        await db.ExecuteAsync("UPDATE asset_server SET fps = :GSFPS WHERE id = :id::uuid", new
+        {
+            GSFPS = roundedFps,
+            id = serverId,
+        });
+    }    
+    public async Task SetServerGSPing(string serverId, long ping)
+    {
+        await db.ExecuteAsync("UPDATE asset_server SET ping = :GSP WHERE id = :id::uuid", new
+        {
+            GSP = ping,
+            id = serverId,
+        });
+    }
     public async Task SetServerPing(string serverId)
     {
         await db.ExecuteAsync("UPDATE asset_server SET updated_at = :u WHERE id = :id::uuid", new

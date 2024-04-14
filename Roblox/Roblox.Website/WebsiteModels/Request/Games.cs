@@ -12,6 +12,7 @@ public class ReportActivity
 {
     public string serverId { get; set; }
     public string authorization { get; set; }
+   // public long ping { get; set;}
 }
 
 public class ReportPlayerActivity
