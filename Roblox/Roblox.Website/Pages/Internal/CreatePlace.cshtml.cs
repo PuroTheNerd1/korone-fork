@@ -56,17 +56,17 @@ public class CreatePlace : RobloxPageModel
         }
         
         var friends = await services.friends.CountFriends(userId);
-        if (friends < 2)
-        {
-            log.Info("user has less than 2 friends");
-            return false;
-        }
+        //if (friends < 2)
+        //{
+            //log.Info("user has less than 2 friends");
+            //return false;
+        //}
 
         // make sure they're a spender!
         var economyTotals = await services.economy.GetTransactionTotals(userId, TimeSpan.FromDays(30));
-        if (Math.Abs(economyTotals.purchaseTotal) < 100)
+        if (Math.Abs(economyTotals.purchaseTotal) < 25)
         {
-            log.Info("user has spent less than 100 robux in the past month");
+            log.Info("user has spent less than 25 robux in the past month");
             return false;
         }
 
@@ -214,17 +214,15 @@ public class CreatePlace : RobloxPageModel
         
         // lol
         // anti brandon/sleep/xlxi check
+        /*        
         if (userId < 200)
         {
             log.Info("account is too inactive (branch X)");
             return PlaceCreationFailureReason.TooInactive;
         }
+        */
 
-        if (await WasRejectedRecently(userId))
-        {
-            log.Info("user was already rejected recently");
-            return PlaceCreationFailureReason.TooInactive;
-        }
+
 
         if (await IsActiveEnoughForPlace(userId))
         {
