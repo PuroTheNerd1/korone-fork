@@ -107,9 +107,9 @@ namespace Roblox.Website.Controllers.Internal
             string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};3";
             return finalTicket;
         }
-        public static string GenerateClientTicketV4(long userId, string username, string jobId, string dateTime, long accountAgeDays)
+        public static string GenerateClientTicketV4(long userId, string username, string jobId, string dateTime, long accountAgeDays, long placeId)
         {
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}";
+            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             string membershipType = "Premium";
             string countryCode = "US";
             string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";
@@ -117,7 +117,7 @@ namespace Roblox.Website.Controllers.Internal
             string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membershipType.Length}\n{membershipType}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
             string ticketSignature = SignString2048(ticket);
 
-            string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};3";
+            string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
             return finalTicket;
         }
     }

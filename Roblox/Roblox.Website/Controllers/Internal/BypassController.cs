@@ -516,7 +516,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId)
         {
-            string UserAgent = Request.Headers["User-Agent"].ToString();
+            //string UserAgent = Request.Headers["User-Agent"].ToString();
             DateTime currentUtcDateTime = DateTime.UtcNow;
             long year = await services.games.GetYear(placeId);
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
@@ -528,6 +528,7 @@ namespace Roblox.Website.Controllers
             string finalTicket;
             var result = await services.gameServer.GetServerForPlace(placeId, year);
             Console.WriteLine(result.job);
+
             switch (year)
             {
                 case 2016:
@@ -821,8 +822,8 @@ namespace Roblox.Website.Controllers
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
                     break;
                 case 2020:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV4(userId, username, jobId, formattedDateTime, accountAgeDays);
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
+                    finalTicket = SignatureController.GenerateClientTicketV4(userId, username, jobId, formattedDateTime, accountAgeDays, placeId);
                     break;
                 default:
                     throw new InvalidOperationException($"This year does not exist: {year}");
@@ -915,20 +916,27 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20192020 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154", 
+                MachineAddress = "85.215.186.154",
+                ServerConnections = new List<dynamic>
+                {
+                    new
+                    {
+                        Port = GameServerService.currentGameServerPorts[jobId], 
+                        Address = "85.215.186.154", 
+                    }
+                },
+
                 ServerPort = GameServerService.currentGameServerPorts[jobId], 
                 PingUrl = "", 
                 PingInterval = 120, 
                 UserName = username, 
+                DisplayName = username,
                 SeleniumTestMode = false, 
                 UserId = userId, 
-                RobloxLocale = "en_us", 
-                GameLocale = "en_us", 
                 SuperSafeChat = false, 
                 CharacterAppearance = characterAppearanceUrl,
                 ClientTicket = finalTicket, 
-                NewClientTicket = finalTicket, 
-                GameId = jobId, 
+                GameId = placeId, 
                 PlaceId = placeId, 
                 MeasurementUrl = "",
                 WaitingForCharacterGuid = Guid.NewGuid().ToString(),
@@ -939,8 +947,8 @@ namespace Roblox.Website.Controllers
                 VideoInfo = "",
                 CreatorId = 1,
                 CreatorTypeEnum = "User",
-                MembershipType = "None", 
-                AccountAge = 10000, 
+                MembershipType = "Premium", 
+                AccountAge = accountAgeDays, 
                 CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
                 CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
                 CookieStoreEnabled = true,
@@ -1744,7 +1752,7 @@ namespace Roblox.Website.Controllers
             {
                 "0.235.0pcplayer",
                 "0.314.0pcplayer",
-                "0.448.0pcplayer",
+                "0.450.0pcplayer"
             };
             var jsonString = JsonConvert.SerializeObject(allowedList);
             return new { data = jsonString };
@@ -2158,16 +2166,19 @@ namespace Roblox.Website.Controllers
                     return @"""version-d23df1d1a8d546ee""";
             }
         }
+        [HttpPostBypass("v2/CreateOrUpdate")]        
+        [HttpGetBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v1/CreateOrUpdate")]
         [HttpPostBypass("v1/CreateOrUpdate")]        
-        public async Task<dynamic> GetOrCreate(string gameId, int ping)
+        public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
         {
             bool IsRCC = IsRcc();
+            int roundedInt = (int)Math.Round(ping, 0);            
             if(IsRCC)
             {
-                Console.WriteLine(ping);
+                Console.WriteLine(roundedInt);
                 //await services.gameServer.SetServerGSFPS(gameId, fps);
-                await services.gameServer.SetServerGSPing(gameId, ping);   
+                await services.gameServer.SetServerGSPing(gameId, roundedInt);   
                 return "OK!";             
             }
             else{

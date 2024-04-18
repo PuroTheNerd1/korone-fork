@@ -4233,6 +4233,8 @@
     "FFlagEnableProximityPromptBetaFeature": "True",
     "FFlagStudioAttributesUI": "True",
     "DFFlagTheseAreSomeOfMyBestAttributes": "True",
-    "FFlagTheseAreSomeOfMyBestAttributes": "True"
-	}
+    "FFlagTheseAreSomeOfMyBestAttributes": "True",
+    "FFlagDebugLocalRccTicketTesting": "True",
+    "FFlagDebugLocalRccServerConnection": "True"
+    }
 }

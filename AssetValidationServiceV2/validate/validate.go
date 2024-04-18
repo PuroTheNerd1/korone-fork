@@ -31,7 +31,7 @@ func IsItemValid(reader io.Reader) bool {
 			services[item.ClassName] = item
 		}
 	}
-	log.Println("item data", file, services)
+	//log.Println("item data", file, services)
 	return len(services) == 0
 }
 
@@ -47,7 +47,7 @@ func IsGameValid(reader io.Reader) bool {
 			services[item.ClassName] = item
 		}
 	}
-	fmt.Println("all services", services)
+	//fmt.Println("all services", services)
 	if _, exists := services["Lighting"]; !exists {
 		return false
 	}

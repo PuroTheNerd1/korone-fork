@@ -1609,7 +1609,7 @@
     "FFlagDebugEnableEventEmulator": "True",
     "FFlagDebugForceRegenerateSchemaBitStream": "True",
     "FFlagDebugGraphicsIntelCrash": "False",
-    "FFlagDebugLocalRccServerConnection": "False",
+    "FFlagDebugLocalRccServerConnection": "True",
     "FFlagDebugLocalRccTicketTesting": "False",
     "FFlagDebugPlayerDisplayNameMock": "False",
     "FFlagDebugStudioSandboxDraftsHardeningVerifyTmpFile": "True",

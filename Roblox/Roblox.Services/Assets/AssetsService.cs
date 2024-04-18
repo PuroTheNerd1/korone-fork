@@ -235,6 +235,7 @@ public class AssetsService : ServiceBase, IService
             }
 
             var result = JsonSerializer.Deserialize<AssetValidationResponse>(await ok.Content.ReadAsStringAsync());
+            Console.WriteLine(result);
             return result is {isValid: true};
         }
         catch (Exception e)
@@ -585,7 +586,7 @@ public class AssetsService : ServiceBase, IService
             }
             Writer.Info(LogGroup.GameIconRender, "game icon render over. placeId={0}", assetId);
         }
-        await InsertOrReplaceIcon(assetId, key, ModerationStatus.AwaitingApproval);
+        await InsertOrReplaceIcon(assetId, key, ModerationStatus.ReviewApproved);
     }
 
     private async Task CreateTeeShirtThumbnail(long assetId, CancellationToken? cancellationToken = null)

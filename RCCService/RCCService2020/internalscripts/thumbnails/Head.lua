@@ -20,6 +20,7 @@ end
 
 pcall(function() game:GetService("ContentProvider"):SetBaseUrl(baseUrl) end)
 game:GetService("ScriptContext").ScriptsDisabled = true
+game:GetService("UserInputService").MouseIconEnabled = false
 
 local objects = game:GetObjects(assetUrl)
 ThumbnailGenerator:AddProfilingCheckpoint("ObjectsLoaded")
@@ -31,7 +32,7 @@ if DFFlagHeadThumbnailMannequins then
 	headScaleType = ScaleUtility.GetObjectsScaleType(objects)
 	mannequin = MannequinUtility.LoadMannequinForScaleType(headScaleType)
 else
-	mannequin = game:GetObjects(baseUrl.. "asset/?id=" .. tostring(mannequinId))[1]
+	mannequin = game:GetObjects(baseUrl.. "/asset/?id=" .. tostring(mannequinId))[1]
 	mannequin.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	mannequin.Parent = workspace
 end

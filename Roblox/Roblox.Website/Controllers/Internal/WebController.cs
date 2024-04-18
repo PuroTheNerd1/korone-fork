@@ -673,7 +673,9 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
         try
         {
             var fs = request.file.OpenReadStream();
-            if (!await services.assets.ValidateAssetFile(fs, Models.Assets.Type.Place))
+            bool isOk = await services.assets.ValidateAssetFile(fs, Models.Assets.Type.Place);
+
+            if (!isOk)
                 throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
             fs.Position = 0;
 

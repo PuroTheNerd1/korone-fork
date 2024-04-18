@@ -781,15 +781,15 @@ public class GameServerService : ServiceBase
             case 2018:
             case 2019:
             case 2020:
-                rccServer2019 = new Process();
-                rccServer2019.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                rccServer2019.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2020\\RCCService.exe";
-                rccServer2019.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-                rccServer2019.StartInfo.CreateNoWindow = false;
-                rccServer2019.StartInfo.RedirectStandardError = false;
-                rccServer2019.StartInfo.RedirectStandardOutput = false;
-                rccServer2019.StartInfo.UseShellExecute = true;
-                rccServer2019.Start();            
+                rccServer2020 = new Process();
+                rccServer2020.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                rccServer2020.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2020\\RCCService.exe";
+                rccServer2020.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
+                rccServer2020.StartInfo.CreateNoWindow = false;
+                rccServer2020.StartInfo.RedirectStandardError = false;
+                rccServer2020.StartInfo.RedirectStandardOutput = false;
+                rccServer2020.StartInfo.UseShellExecute = true;
+                rccServer2020.Start();            
                 originalScript = $@"
                 {{
                     ""Mode"": ""GameServer"",
@@ -855,6 +855,9 @@ public class GameServerService : ServiceBase
                 break;
             case 2017:
                 jobRccs.Add(jobId, rccServer2017);
+                break;
+            case 2020:
+                jobRccs.Add(jobId, rccServer2020);
                 break;
         }
         //jobRccs.Add(jobId, rccServer);
