@@ -327,9 +327,9 @@ public class WebController : ControllerBase
     public async Task<IActionResult> CanManage(long userId, long placeId)
     {
         bool canManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
-        bool isStaff = await StaffFilter.IsStaff(userId);
+        bool isOwner =  StaffFilter.IsOwner(userId);
         
-        dynamic json = new { Success = true, CanManage = canManagePlace || isStaff };
+        dynamic json = new { Success = canManagePlace || isOwner, CanManage = canManagePlace || isOwner };
         return Content(JsonConvert.SerializeObject(json), "application/json");
     }
     

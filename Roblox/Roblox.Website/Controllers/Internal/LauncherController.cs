@@ -6,7 +6,7 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]   
     public class LauncherController : ControllerBase
     {
-        private static string RBXversion = "version-60425c8d4e0c4a1";
+        private static string RBXversion = "version-60425c8d4e0c4a2";
         private static string RBXMacversion = "version-622e5002057946a";        
         private static string RBXversionstudio = "version-cbge7ed28c0dc9d2";
         private static string CDN = $"C:\\ProjectX\\services\\Roblox\\Setup\\";
@@ -39,7 +39,11 @@ namespace Roblox.Website.Controllers
         {
             return Ok(RBXversionstudio);
         }
-
+        [HttpGetBypass("/cdn/ProjectXPlayerLauncher.exe")]
+        public dynamic PlayerLauncher()
+        {
+            return PhysicalFile(@"C:\ProjectX\services\Roblox\Setup\services\ProjectXPlayerLauncher2233.exe", "application/octet-stream");
+        }
         [HttpGetBypass("cdn/{*file}")]
         public MVC.IActionResult GetCDNFile(string file)
         {

@@ -28,7 +28,7 @@ public class PasswordReset : RobloxPageModel
     public string? username { get; set; }
     [BindProperty]
     public string? action { get; set; }
-    [FromForm(Name = "h-captcha-response")]
+    [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
     public string siteKey => Configuration.HCaptchaPublicKey;
     public string? errorMessage { get; set; }

@@ -391,7 +391,33 @@
 						<FileTextIcon /> Reset Description
 					</button>
 				</Permission>
-
+				<div class="card mb-2">
+					<div class="card-body card-header"><h4 class="mb-0">Game Actions</h4></div>
+				</div>
+				{#if rank.is("owner")}
+					<button
+					class="btn-outline-dark btn w-100"
+					on:click={(e) => {
+						e.preventDefault();
+						modalBody = "Please confirm that you want to kick the player ";
+						modalCb = (t) => {
+							if (t) {
+								request
+									.get("/rcc/kickplayer?userId=" + userId+ "&reason=Kicked by administrat343or", {})
+									.then(() => {
+										window.location.reload();
+									})
+									.catch((err) => {
+										errorMessage = err.message;
+									});
+							}
+						};
+						modalVisible = true;
+					}}
+				>
+					<DatabaseIcon /> Kick player from the game
+				</button>
+				{/if}				
 				<div class="card mb-2">
 					<div class="card-body card-header"><h4 class="mb-0">Economy Actions</h4></div>
 				</div>

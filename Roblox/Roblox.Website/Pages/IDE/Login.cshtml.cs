@@ -34,7 +34,7 @@ public class IDELogin : RobloxPageModel
     public string? username { get; set; }
     [BindProperty]
     public string? password { get; set; }
-    [FromForm(Name = "h-captcha-response")]
+    [FromForm(Name = "cf-turnstile-response")]
     public string? hCaptchaResponse { get; set; }
     [BindProperty(SupportsGet = true)]
     public string? applicationId { get; set; }

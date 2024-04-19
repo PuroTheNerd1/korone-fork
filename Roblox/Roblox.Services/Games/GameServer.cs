@@ -308,6 +308,7 @@ public class GameServerService : ServiceBase
                 </Execute>
             </soap:Body>
         </soap:Envelope>";
+        Console.WriteLine(JobId);
         await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "Execute");            
         return Task.CompletedTask;     
     }

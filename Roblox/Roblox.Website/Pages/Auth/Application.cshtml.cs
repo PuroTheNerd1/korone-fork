@@ -46,7 +46,7 @@ public class Application : RobloxPageModel
     public string about { get; set; }
     [BindProperty]
     public string socialUrl { get; set; }
-    [FromForm(Name = "h-captcha-response")]
+    [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
     public string? verificationPhrase { get; set; }
     [BindProperty]

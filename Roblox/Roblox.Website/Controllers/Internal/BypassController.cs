@@ -1663,30 +1663,6 @@ namespace Roblox.Website.Controllers
             ValidateBotAuthorization();
             return await MigrateItem.MigrateItemFromRoblox(assetId, true, 5, new List<Models.Assets.Type>() { Models.Assets.Type.TeeShirt, Models.Assets.Type.Shirt, Models.Assets.Type.Pants });
         }
-        [HttpGetBypass("game/users/{userId:long}/canmanage/{placeId:long}")]
-        public async Task<MVC.IActionResult> CanManage(long userId, long placeId)
-        {
-            bool CanManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
-            bool isStaff = await StaffFilter.IsStaff(userId);
-            if(CanManagePlace || isStaff){
-                dynamic json = new
-                {
-                    Success = true,
-                    CanManage = true
-                };
-                string jsonString = JsonConvert.SerializeObject(json);
-                return Content(jsonString, "application/json"); 
-            }
-            else{
-                dynamic json = new
-                {
-                    Success = true,
-                    CanManage = false
-                };
-                string jsonString = JsonConvert.SerializeObject(json);
-                return Content(jsonString, "application/json"); 
-            }
-        }
 
         [HttpGetBypass("BuildersClub/Upgrade.ashx")]
         public MVC.IActionResult UpgradeNow()
