@@ -15,11 +15,6 @@
 			icon: HomeIcon,
 		},
 		{
-			name: 'Reference',
-			link: '/admin/reference',
-			icon: BookIcon,
-		},
-		{
 			name: "Players",
 			link: "/admin/players",
 			icon: UsersIcon,

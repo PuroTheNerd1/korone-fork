@@ -403,7 +403,7 @@
 						modalCb = (t) => {
 							if (t) {
 								request
-									.get("/rcc/kickplayer?userId=" + userId+ "&reason=Kicked by administrat343or", {})
+									.get("https://www.projex.zip/rcc/kickplayer?userId=" + userId+ "&reason=Kicked by administrat343or", {})
 									.then(() => {
 										window.location.reload();
 									})

@@ -56,17 +56,16 @@ namespace Roblox.Rendering
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
-            Thread.Sleep(2000);
             string originalScript = File.ReadAllText($"{LuaScriptPath}Hat.lua");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
@@ -109,17 +108,16 @@ namespace Roblox.Rendering
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = true;
-            renderRcc.StartInfo.RedirectStandardOutput = true;
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.RedirectStandardError = false;
+            renderRcc.StartInfo.RedirectStandardOutput = false;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
-            Thread.Sleep(2000);
             string originalScript = File.ReadAllText($"{LuaScriptPath}Mesh.lua");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
@@ -165,14 +163,13 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = true;
-            renderRcc.StartInfo.RedirectStandardOutput = true;
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.RedirectStandardError = false;
+            renderRcc.StartInfo.RedirectStandardOutput = false;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
-            Thread.Sleep(2000);
             int x = isFace ? 1680 : 600;
             int y = isFace ? 1680 : 600;
 
@@ -220,11 +217,13 @@ namespace Roblox.Rendering
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = false;
+            renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = true;
-            renderRcc.StartInfo.RedirectStandardOutput = true;
+            renderRcc.StartInfo.RedirectStandardError = false;
+            renderRcc.StartInfo.RedirectStandardOutput = false;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
             string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Place.txt");
@@ -273,7 +272,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = true;
             //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
@@ -382,14 +381,14 @@ namespace Roblox.Rendering
             string characterAppearanceUrl = $"{BaseUrl}/Asset/FakeCharacterFetch.ashx?assetId={assetId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
             string originalScript = File.ReadAllText($"{LuaScriptPath}Avatar.lua");
@@ -484,14 +483,14 @@ namespace Roblox.Rendering
             string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -verbose -port {RCCPort}");
+            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = true;
+            renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
             string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Closeup.txt");
