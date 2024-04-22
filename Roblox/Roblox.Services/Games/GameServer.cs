@@ -781,6 +781,7 @@ public class GameServerService : ServiceBase
                 break;
             case 2018:
             case 2019:
+            /*
             case 2020:
                 rccServer2020 = new Process();
                 rccServer2020.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
@@ -818,6 +819,7 @@ public class GameServerService : ServiceBase
                 }}";
                 finalScript = originalScript.Replace("%", "&#37;");
                 break;
+            */
             default:
                 return "Year not supported";
         }
@@ -856,9 +858,6 @@ public class GameServerService : ServiceBase
                 break;
             case 2017:
                 jobRccs.Add(jobId, rccServer2017);
-                break;
-            case 2020:
-                jobRccs.Add(jobId, rccServer2020);
                 break;
         }
         //jobRccs.Add(jobId, rccServer);
