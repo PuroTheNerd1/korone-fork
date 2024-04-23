@@ -530,7 +530,6 @@ public class GameServerService : ServiceBase
             if (runningPlaces.Length == 0) continue;
             foreach (var runningPlace in runningPlaces)
             {
-
                 // check if this is the right place
                 if (runningPlace.placeId != placeId)
                     continue;
@@ -647,25 +646,31 @@ public class GameServerService : ServiceBase
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string StartGameInfo;
         long maxPlayerCount;
-        using (var gs = ServiceProvider.GetOrCreate<GamesService>())
-        {
-            maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
-        } 
-        var openGameServers = await db.QueryAsync(
-            "SELECT id FROM asset_server WHERE asset_id = :assetid",
+
+        GamesService gs = new GamesService();
+        
+        
+        maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
+         
+        var openGameServers = await db.QueryAsync<dynamic>(
+            "SELECT id as jobid FROM asset_server WHERE asset_id = :assetid",
             new
             {
                 assetid = placeId,
             });
         // check for maxplayers and if a server already exists if it does lets join it then
-        foreach (var job in openGameServers)
+        foreach (var servers in openGameServers)
         {
-            var currentPlayerCount = await GetGameServerPlayers(job.id);
+
+            Console.WriteLine($"{servers.jobid} {maxPlayerCount}" );
+            jobId = servers.jobid.ToString(); 
+            var currentPlayerCount = await GetGameServerPlayers(jobId);
+            
             if (currentPlayerCount.Count() >= maxPlayerCount)
                 continue;
             return new GameServerGetOrCreateResponse()
             {
-                job = job.id,
+                job = jobId,
                 status = JoinStatus.Joining
             };
         }
@@ -705,6 +710,7 @@ public class GameServerService : ServiceBase
         string originalScript;
         string finalScript;
         long maxplayers = await gamesService.GetMaxPlayerCount(placeId);
+        Console.WriteLine($"MaxPlayers = {maxplayers}");
         Process rccServer = null;
         Process rccServer2017 = null;
         Process rccServer2018 = null;

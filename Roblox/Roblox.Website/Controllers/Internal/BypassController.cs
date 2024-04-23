@@ -514,20 +514,47 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
-        public async Task<dynamic> PlaceLaunch(long placeId)
+        public async Task<dynamic> PlaceLaunch(long placeId, string? jobId = null)
         {
-            //string UserAgent = Request.Headers["User-Agent"].ToString();
+            GameServerService gameserver = new GameServerService();
+            GamesService gs = new GamesService();        
+            long maxPlayerCount;
+            var jobPlayers = await gameserver.GetGameServerPlayers(jobId);
+            maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
+            if (jobId != null)
+            {
+                if (jobPlayers.Count() >= maxPlayerCount)
+                {
+                    return new
+                    {
+                        jobId,
+                        status = (int)JoinStatus.GameFull,
+                        message = "Game is full",
+                    };
+                }
+                else
+                {
+                    return new
+                    {
+                        jobId = jobId,
+                        status = (int)JoinStatus.GameFull,
+                        joinScriptUrl = $"{Configuration.BaseUrl}/Game/Join.ashx?jobId={jobId}&placeId={placeId}",
+                        authenticationUrl = Configuration.BaseUrl + "/Login/Negotiate.ashx",
+                        authenticationTicket = Request.Cookies[".ROBLOSECURITY"],
+                        message = (string?)null,
+                    };                    
+                }                
+            }
             DateTime currentUtcDateTime = DateTime.UtcNow;
             long year = await services.games.GetYear(placeId);
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
-            Console.WriteLine(year);
             
             string username = safeUserSession.username!;
             long userId = safeUserSession.userId!;
             string characterAppearanceUrl;
             string finalTicket;
             var result = await services.gameServer.GetServerForPlace(placeId, year);
-            Console.WriteLine(result.job);
+            //Console.WriteLine(result.job);
 
             switch (year)
             {
@@ -553,24 +580,17 @@ namespace Roblox.Website.Controllers
             }
  
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            GameServerJwt details = new GameServerJwt
-            {
-                userId = safeUserSession.userId,
-                placeId = placeId,
-                t = "GameJoinTicketV1.1",
-                iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
-                ip = GetIP()
-            };
+
             if (result.status == JoinStatus.Joining)
             {
-                await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(details.placeId);
+                await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
                 return new
                 {
                     jobId = result.job,
                     status = (int)result.status,
                     joinScriptUrl = $"{Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
                     authenticationUrl = Configuration.BaseUrl + "/Login/Negotiate.ashx",
-                    authenticationTicket = finalTicket, //Request.Cookies[".ROBLOSECURITY"],
+                    authenticationTicket = Request.Cookies[".ROBLOSECURITY"],
                     message = (string?)null,
                 };
             }
@@ -614,7 +634,7 @@ namespace Roblox.Website.Controllers
         public async Task<MVC.ActionResult<dynamic?>> ReturnUserId()
         {
             long ID = safeUserSession.userId;
-            Console.WriteLine(safeUserSession.userId);
+            //Console.WriteLine(safeUserSession.userId);
             return Ok(ID);
         }
         [HttpPostBypass("v2/login")]
@@ -782,6 +802,8 @@ namespace Roblox.Website.Controllers
 
             Console.WriteLine("Client connected to join.ashx");
             GamesService gamesService = new GamesService();
+            GameServerService gameserver = new GameServerService();
+            var jobPlayers = await gameserver.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
             long year = await services.games.GetYear(placeId);
             string username = userSession!.username;
@@ -792,7 +814,14 @@ namespace Roblox.Website.Controllers
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             string finalTicket;
             string characterAppearanceUrl;
-
+            if (jobPlayers.Count() >= uni.maxPlayerCount)
+            {
+                return new
+                {
+                    error = "The requested game is full",
+                    status = 5
+                };
+            }
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             if (membership2  == null)
@@ -2029,7 +2058,6 @@ namespace Roblox.Website.Controllers
 
             var roles = new string[] { };
             var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
-            Console.WriteLine(safeUserSession.username);
             var jsonData = new
             {
                 UserId =  safeUserSession.userId,
@@ -2143,6 +2171,28 @@ namespace Roblox.Website.Controllers
                     return @"""version-d23df1d1a8d546ee""";
             }
         }
+        [HttpGetBypass("v1/Close")]
+        [HttpPostBypass("V1/Close")]
+        public async Task<dynamic> CloseGSNew(string gameId)
+        {
+            bool IsRCC = IsRcc();
+            if(IsRCC)
+            {
+                try
+                {
+                    await services.gameServer.ShutDownServerAsync(gameId);
+                    return "OK!";
+                }
+                catch (Exception ex)
+                {
+                    // lets just delete the gameserver if we couldnt close the gameserver 
+                    await services.gameServer.DeleteGameServer(gameId);
+                    return "Catch an error";
+                }
+            }
+            return "Not authed.";
+            
+        }
         [HttpPostBypass("v2/CreateOrUpdate")]        
         [HttpGetBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v1/CreateOrUpdate")]
@@ -2168,10 +2218,18 @@ namespace Roblox.Website.Controllers
         {
             bool IsRCC = IsRcc();
             if (IsRCC){
-                if (clientCount == 0 && gameTime > 5)
+                if (clientCount < 1 && gameTime > 5)
                 {
-                    await services.gameServer.ShutDownServerAsync(gameId);
-                    return "OK!";
+                    try
+                    {
+                        await services.gameServer.ShutDownServerAsync(gameId);
+                        return "OK!";
+                    }
+                    catch (Exception ex)
+                    {
+                        await services.gameServer.DeleteGameServer(gameId);
+                        return "OK!";
+                    }
                 }
                 else{
                     await services.gameServer.SetServerPing(gameId);
