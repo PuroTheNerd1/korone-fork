@@ -789,6 +789,42 @@ public class GameServerService : ServiceBase
                 finalScript = originalScript.Replace("%", "&#37;");
                 break;
             case 2018:
+                rccServer2018 = new Process();
+                rccServer2018.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                rccServer2018.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2018\\RCCService.exe";
+                rccServer2018.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
+                rccServer2018.StartInfo.CreateNoWindow = false;
+                rccServer2018.StartInfo.RedirectStandardError = false;
+                rccServer2018.StartInfo.RedirectStandardOutput = false;
+                rccServer2018.StartInfo.UseShellExecute = true;
+                rccServer2018.Start();            
+                originalScript = $@"
+                {{
+                    ""Mode"": ""GameServer"",
+                    ""Settings"": {{
+                        ""PlaceId"": {placeId},
+                        ""CreatorId"": {uni.builderId},
+                        ""GameId"": ""{jobId}"",
+                        ""MachineAddress"": ""85.215.186.154"",
+                        ""MaxPlayers"": {maxplayers},
+                        ""MaxGameInstances"": 5,
+                        ""PreferredPlayerCapacity"": {maxplayers},
+                        ""UniverseId"": {placeId},
+                        ""BaseUrl"": ""projex.zip"",
+                        ""PlaceFetchUrl"": ""https://www.projex.zip"",
+                        ""MatchmakingContextId"": 1,
+                        ""CreatorType"": ""User"",
+                        ""PlaceVersion"": 1,
+                        ""JobId"": ""{jobId}"",
+                        ""PreferredPort"": {networkServerPort},
+                        ""PlaceVisitAccessKey"": ""{Configuration.RccAuthorization}"",
+                        ""ApiKey"": ""{Configuration.RccAuthorization}"",
+                        ""GsmInterval"": 5,
+                        ""GameCode"": """"
+                    }}
+                }}";
+                finalScript = originalScript.Replace("%", "&#37;");
+                break;
             case 2019:
             /*
             case 2020:
@@ -867,6 +903,9 @@ public class GameServerService : ServiceBase
                 break;
             case 2017:
                 jobRccs.Add(jobId, rccServer2017);
+                break;
+            case 2018:
+                jobRccs.Add(jobId, rccServer2018);
                 break;
         }
         //jobRccs.Add(jobId, rccServer);

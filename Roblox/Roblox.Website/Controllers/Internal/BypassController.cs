@@ -567,6 +567,9 @@ namespace Roblox.Website.Controllers
                     finalTicket = SignatureController.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
                     break;
                 case 2018:
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
+                    finalTicket = SignatureController.GenerateClientTicketV2(userId, username, result.job, formattedDateTime);
+                    break;
                 case 2019:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, result.job, formattedDateTime);
@@ -845,7 +848,7 @@ namespace Roblox.Website.Controllers
                     break;
                 case 2018:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
+                    finalTicket = SignatureController.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2019:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
@@ -966,7 +969,7 @@ namespace Roblox.Website.Controllers
                 SuperSafeChat = false, 
                 CharacterAppearance = characterAppearanceUrl,
                 ClientTicket = finalTicket, 
-                GameId = placeId, 
+                GameId = jobId, 
                 PlaceId = placeId, 
                 MeasurementUrl = "",
                 WaitingForCharacterGuid = Guid.NewGuid().ToString(),
@@ -1009,7 +1012,7 @@ namespace Roblox.Website.Controllers
                 case 2017:
                     return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
                 case 2018:
-                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
+                    return SignatureController.SignJson2048(joinScript20172018);
                 case 2019:
                     return SignatureController.SignJson2048(joinScript20192020);
                 case 2020:
@@ -1759,7 +1762,8 @@ namespace Roblox.Website.Controllers
             {
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E
                 "2cb51bbbcd309a35858876b6c2167627", //Debug MD5 2016E
-                "c3e8aee40c57fb157938a79e339c0d0b" //2017L
+                "c3e8aee40c57fb157938a79e339c0d0b", //2017L
+                "a1c01f3387031684c801880f4ab61cdf"  //2018L
             };
 
             return new { data = allowedList };
@@ -1776,6 +1780,7 @@ namespace Roblox.Website.Controllers
             {
                 "0.235.0pcplayer",
                 "0.314.0pcplayer",
+                "0.355.0pcplayer",
                 "0.450.0pcplayer"
             };
             var jsonString = JsonConvert.SerializeObject(allowedList);
@@ -1852,8 +1857,22 @@ namespace Roblox.Website.Controllers
 
                 return clientAppSettingsData ?? "";
             }
-            
-            
+            if (apiKey  == "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A")
+            {
+                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "RCCService2018" + ".json");
+                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
+
+                return clientAppSettingsData ?? "";
+            }            
+            if (apiKey  == "19C0B314-AC23-4CD4-8A37-02C4140F7240")
+            {
+                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "ClientAppSettings2018" + ".json");
+                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
+
+                return clientAppSettingsData ?? "";
+            }             
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");

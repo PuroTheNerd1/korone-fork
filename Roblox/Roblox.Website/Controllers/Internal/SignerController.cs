@@ -25,7 +25,7 @@ namespace Roblox.Website.Controllers.Internal
                 _rsaCsp = new RSACryptoServiceProvider();
                 
                 _rsaCsp.ImportCspBlob(privateKeyBlob);
-                rsa2048.ImportFromPem(System.IO.File.ReadAllText("PEM\\PrivateKey.pem"));
+                rsa2048.ImportFromPem(System.IO.File.ReadAllText("PEM\\PrivateKey2048.pem"));
 
             }
             catch (Exception ex)
@@ -96,6 +96,19 @@ namespace Roblox.Website.Controllers.Internal
             string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
             return finalTicket;
         }
+        public static string GenerateClientTicketV2(long userId, string username, string jobId, string characterAppearanceUrl)
+        {
+            DateTime currentUtcDateTime = DateTime.UtcNow;
+            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
+            string ticketSignature = SignString2048(cticket);
+                
+            string cticket2 = $"{userId}\n{username}\n{userId}\n{jobId}\n{formattedDateTime}";
+            string ticketSignature2 = SignString2048(cticket2);
+
+            string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature};2";
+            return finalTicket;
+        }        
         public static string GenerateClientTicketV3(long userId, string username, string jobId, string dateTime)
         {
             // the second userid is meant to be characterAppearanceId

@@ -496,6 +496,9 @@ public class WebController : ControllerBase
             case 2017:
                 clientVer = "2017L";
                 break;
+            case 2018:
+                clientVer = "2018L";
+                break;
             default:
                 clientVer = "2016E";
                 break;
