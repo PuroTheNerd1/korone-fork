@@ -638,6 +638,16 @@ public class GameServerService : ServiceBase
 
         return serverIdAsString;
     }
+    public async Task<dynamic> GetGameServersForPlace(long placeId)
+    {
+        var result = await db.QueryAsync(
+            "SELECT id as jobid FROM asset_server WHERE asset_id = :assetid",
+            new
+            {
+                assetid = placeId,
+            });
+        return result;
+    }
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, long year)
     {
         string jobId = Guid.NewGuid().ToString();

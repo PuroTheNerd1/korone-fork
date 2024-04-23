@@ -89,10 +89,22 @@ const AssetEntry = props => {
     },
     isPlace && {
       name: 'Shut Down All Servers',
-      url: '#',
       onClick: e => {
         e.preventDefault();
-        // TODO
+        const confirmation = window.confirm("Do you want to shut down all servers?");
+        if (confirmation) {
+          fetch(`https://www.projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
+            method: "GET",
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+          })
+          .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+          });
+        }
       },
     },
   ];
