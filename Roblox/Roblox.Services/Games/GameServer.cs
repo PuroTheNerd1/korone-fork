@@ -505,8 +505,8 @@ public class GameServerService : ServiceBase
             .ToList();
         return serverData!;
     }
-/*
-    private async Task<GameServerGetOrCreateResponse> GetServerForPlaceV2(long placeId)
+
+    public async Task<GameServerGetOrCreateResponse> GetServerForPlaceV2(long placeId, long year)
     {
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(30));
         if (!serverCreationLock.IsAcquired)
@@ -530,29 +530,7 @@ public class GameServerService : ServiceBase
             if (runningPlaces.Length == 0) continue;
             foreach (var runningPlace in runningPlaces)
             {
-#if RELEASE
-                // TODO: move this to bg job or something.
-                // This fixes a bug when the server seems to not be shut down properly - sometimes there will be a
-                // lingering game for hours after the server *should* have been shutdown.
-                // first part, do game servers
-                var serversToDelete = await db.QuerySingleOrDefaultAsync<GameServerWithUpdated>(
-                    "SELECT id::text, asset_id as assetId, created_at as createdAt, updated_at as updatedAt FROM asset_server WHERE id = :id::uuid",
-                    new
-                    {
-                        id = runningPlace.id,
-                    });
-                if (serversToDelete == null ||
-                    serversToDelete.updatedAt <= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5)))
-                {
-                    Writer.Info(LogGroup.GameServerJoin, "closing server with id={0} due to it being last updated over 5 minutes ago or not existing. updatedAt={1}", runningPlace.id, serversToDelete?.updatedAt);
-                    var ipPort = entry.ip.Split(":");
-                    Roblox.Metrics.GameMetrics.ReportServerShutdownWithoutDatabaseEntry(entry.ip,
-                        runningPlace.placeId);
-                    // Either server doesn't exist, or the server wasn't deleted when it should have been. release it.
-                    await PostToGameServer<GameServerEmptyResponse>(ipPort[0], ipPort[1], "shutdown", new List<dynamic> { runningPlace.id });
-                    continue; // Don't try to use this server yet.
-                }
-#endif
+
                 // check if this is the right place
                 if (runningPlace.placeId != placeId)
                     continue;
@@ -581,8 +559,8 @@ public class GameServerService : ServiceBase
         Writer.Info(LogGroup.GameServerJoin, "Least loaded server is {0} with {1} games running", serverData[0].Item2.ip, serverData[0].Item1!.data.Count());
         foreach (var (serverInfo, entry) in serverData)
         {
-            var data = entry.ip.Split(":");
-            var ip = data[0];
+            
+            string ip = "85.125.186.154";
             
             int mainRCCPort = RandomComponent.Next(30000, 40000);
             int networkServerPort = RandomComponent.Next(50000, 60000);
@@ -602,14 +580,14 @@ public class GameServerService : ServiceBase
                     id,
                     asset_id = placeId,
                     ip,
-                    gamePort.port,
-                    server_connection = entry.ip, // ip:port
+                    networkServerPort,
+                    server_connection = $"{ip}:{networkServerPort}", // ip:port
                 });
             try
             {
                 var watch = new Stopwatch();
                 watch.Start();
-                await StartGameServer(placeId, mainRCCPort, networkServerPort, id, 43200);
+                await StartGameServer(placeId, mainRCCPort, networkServerPort, id, year, 43200);
                 //await StartGame(ip, port, placeId, id, gamePort.port);
                 watch.Stop();
                 //GameMetrics.ReportTimeToStartGameServer(ip, mainRCCPort, watch.ElapsedMilliseconds);
@@ -635,7 +613,7 @@ public class GameServerService : ServiceBase
             status = JoinStatus.Waiting,
         };
     }
-*/
+
 
     public async Task<long> GetRCCport(string jobId)
     {
@@ -668,29 +646,44 @@ public class GameServerService : ServiceBase
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string StartGameInfo;
-        
-        if (currentPlaceIdsInUse.ContainsKey(placeId)!)
+        long maxPlayerCount;
+        using (var gs = ServiceProvider.GetOrCreate<GamesService>())
         {
-            jobId = currentPlaceIdsInUse[placeId];
-            StartGameInfo = "OK";
+            maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
+        } 
+        var openGameServers = await db.QueryAsync(
+            "SELECT id FROM asset_server WHERE asset_id = :assetid",
+            new
+            {
+                assetid = placeId,
+            });
+        // check for maxplayers and if a server already exists if it does lets join it then
+        foreach (var job in openGameServers)
+        {
+            var currentPlayerCount = await GetGameServerPlayers(job.id);
+            if (currentPlayerCount.Count() >= maxPlayerCount)
+                continue;
+            return new GameServerGetOrCreateResponse()
+            {
+                job = job.id,
+                status = JoinStatus.Joining
+            };
         }
-
-        else
-        {
-            StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
-                                 
-            await db.ExecuteAsync(
-                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
-                new
-                {
-                    id = jobId,
-                    asset_id = placeId,
-                    ip = "85.125.186.154",
-                    port = mainRCCPort,
-                    server_connection = $"85.125.186.154:{networkServerPort}", 
-                });
-            
-        }   
+    
+        
+        StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
+                             
+        await db.ExecuteAsync(
+            "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
+            new
+            {
+                id = jobId,
+                asset_id = placeId,
+                ip = "85.125.186.154",
+                port = mainRCCPort,
+                server_connection = $"85.125.186.154:{networkServerPort}", 
+             });
+                       
 
         return StartGameInfo != "BAD"
             ? new GameServerGetOrCreateResponse()

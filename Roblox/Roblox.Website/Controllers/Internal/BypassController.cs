@@ -792,6 +792,7 @@ namespace Roblox.Website.Controllers
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             string finalTicket;
             string characterAppearanceUrl;
+
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             if (membership2  == null)
