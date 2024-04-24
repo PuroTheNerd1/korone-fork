@@ -2,29 +2,11 @@ import SmallGameCard from "../../smallGameCard";
 import GameRow, { useStyles as useGameRowStyles } from "./gameRow";
 import React, { useEffect, useState } from "react";
 import GamesPageStore from "../../../stores/gamesPage";
-import { getYear } from "../../../services/games";
 
 const Games = (props) => {
   const store = GamesPageStore.useContainer();
   const gameS = useGameRowStyles();
-  const [year, setYear] = useState(null);
   let existingGames = {};
-
-  useEffect(() => {
-    if (store.infiniteGamesGrid) {
-      Promise.all(
-        store.infiniteGamesGrid.games.map((game) =>
-          getYear({ universeId: game.universeId })
-        )
-      ).then((yearDataArray) => {
-        const yearMap = {};
-        store.infiniteGamesGrid.games.forEach((game, index) => {
-          yearMap[game.universeId] = yearDataArray[index];
-        });
-        setYear(yearMap);
-      });
-    }
-  }, [store.infiniteGamesGrid]);
 
   if (store.infiniteGamesGrid) {
     if (store.infiniteGamesGrid.games.length === 0) {
@@ -41,7 +23,7 @@ const Games = (props) => {
             creatorType={v.creatorType}
             creatorName={v.creatorName}
             iconUrl={store.icons[v.universeId]}
-            year={year && year[v.universeId]}
+            year={v.year}
             likes={v.totalUpVotes}
             dislikes={v.totalDownVotes}
             name={v.name}

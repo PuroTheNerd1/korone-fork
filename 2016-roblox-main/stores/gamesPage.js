@@ -2,7 +2,7 @@ import { chunk } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { createContainer } from "unstated-next";
 import getFlag from "../lib/getFlag";
-import { getGameList, getGameSorts, getYear } from "../services/games";
+import { getGameList, getGameSorts } from "../services/games";
 import { multiGetUniverseIcons } from "../services/thumbnails";
 
 const selectorSorts = [

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { abbreviateNumber } from "../../lib/numberUtils";
 import { itemNameToEncodedName } from "../../services/catalog";
-import { getGameUrl, getYear } from "../../services/games";
+import { getGameUrl } from "../../services/games";
 import CreatorLink from "../creatorLink";
 import useCardStyles from "../userProfile/styles/card";
 import Link from "../link";
@@ -165,21 +165,7 @@ const SmallGameCard = props => {
     placeId: props.placeId,
     name: props.name,
   });
-  /*
-  useEffect(() => {
-    const fetchYear = async () => {
-      try {
-        const fetchedYear = await getYear({ universeId: props.placeId });
-        setYear(fetchedYear); 
-      } catch (error) {
-        console.error("Error fetching year:", error);
-      }
-    };
-
-    fetchYear(); 
-  }, [props.placeId]); 
-  */
-  useEffect(() => {
+ect(() => {
     if (!props.year) {
       setYear(props.year);
       return

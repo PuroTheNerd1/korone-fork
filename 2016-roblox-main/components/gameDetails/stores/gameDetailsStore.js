@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
-import { getGameMedia, multiGetPlaceDetails, multiGetUniverseDetails, getYear } from "../../../services/games";
+import { getGameMedia, multiGetPlaceDetails, multiGetUniverseDetails } from "../../../services/games";
 
 const GameDetailsStore = createContainer(() => {
   const [details, setDetails] = useState(null);

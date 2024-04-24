@@ -557,7 +557,7 @@ namespace Roblox.Website.Controllers
 
             if (result.status == JoinStatus.Joining)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(2500);
                 await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
                 return new
                 {

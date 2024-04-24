@@ -25,17 +25,6 @@ export const getGameList = ({ sortToken, limit, genre = 0, keyword }) => {
   return request('GET', getFullUrl('games', `/v1/games/list?sortToken=${encodeURIComponent(sortToken)}&maxRows=${limit}&genre=${genre}&keyword=${keyword}`)).then(d => d.data)
 }
 
-export const getYear = async ({ universeId }) => {
-  try {
-      const response = await axios.get(`${getBaseUrl()}/asset/getyear?placeId=${encodeURIComponent(universeId)}`);
-      
-      const year = String(response.data).trim();
-
-      return year;
-  } catch (error) {
-      throw new Error(`Error fetching year: ${error.message}`);
-  }
-};
 export const getGameMedia = ({ universeId }) => {
   return request('GET', getFullUrl('games', `/v2/games/${universeId}/media`)).then(d => d.data.data);
 }
