@@ -66,7 +66,7 @@ const MyTradesTable = props => {
             <option value='inactive'>Inactive</option>
           </select>
           <p className={s.tradeTypeActions + ' ms-2'}>
-            <a href='https://help.roblox.com'>
+            <a href='https://help.projex.zip'>
               How do I send a trade?
             </a>
           </p>

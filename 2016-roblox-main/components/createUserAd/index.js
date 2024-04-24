@@ -53,7 +53,7 @@ const CreateUserAd = props => {
       </div>
       <div className='col-12 mt-4'>
         <h2>Instructions</h2>
-        <p>On ROBLOX, users can bid an amount of robux to buy advertising for their places, groups, clothing, and models.</p>
+        <p>On Project X, users can bid an amount of robux to buy advertising for their places, groups, clothing, and models.</p>
         <p>Download, Edit, and Upload one of the following templates:</p>
         <ul className={s.buttonList}>
           <li className='mb-2'>
@@ -66,7 +66,6 @@ const CreateUserAd = props => {
             300 x 250 Rectangle <ActionButton onClick={clicker(templates.rectangle)} className={btnStyles.continueButton + ' ' + btnStyles.normal + ' ' + s.downloadButton} label='Download'/>
           </li>
         </ul>
-        <p>For tips and ticks, read the tutorial: <a href='https://developer.roblox.com/en-us/articles/Promoting-Your-Roblox-Game'>How to Design an Effective Ad</a>.</p>
       </div>
     </div>
     <div className='row mt-4'>

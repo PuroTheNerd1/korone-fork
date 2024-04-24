@@ -65,6 +65,7 @@ public class GameListEntry
     public bool isShowSponsoredLabel { get; set; }
     public string nativeAdData { get; set; } = "";
     public bool isSponsored { get; set; }
+    public long year { get; set; }
     public string imageToken => "T_" + placeId + "_icon";
 }
 

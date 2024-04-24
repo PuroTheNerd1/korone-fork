@@ -142,6 +142,7 @@ const GameRow = props => {
               creatorType={v.creatorType}
               creatorName={v.creatorName}
               iconUrl={props.icons[v.universeId]}
+              year={v.year}
               likes={v.totalUpVotes}
               dislikes={v.totalDownVotes}
               name={v.name}

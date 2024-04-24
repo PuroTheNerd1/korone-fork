@@ -165,7 +165,7 @@ const SmallGameCard = props => {
     placeId: props.placeId,
     name: props.name,
   });
-
+  /*
   useEffect(() => {
     const fetchYear = async () => {
       try {
@@ -178,7 +178,14 @@ const SmallGameCard = props => {
 
     fetchYear(); 
   }, [props.placeId]); 
-
+  */
+  useEffect(() => {
+    if (!props.year) {
+      setYear(props.year);
+      return
+    }
+    setYear(props.year);
+  }, [props.year]);
   const Voting = (props) => {
     const {color} = props;
     const sGreen = color ? s.solidGreenColor : s.solidGreen;
