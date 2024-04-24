@@ -165,7 +165,8 @@ const SmallGameCard = props => {
     placeId: props.placeId,
     name: props.name,
   });
-ect(() => {
+
+  useEffect(() => {
     if (!props.year) {
       setYear(props.year);
       return
