@@ -119,6 +119,42 @@ public class WebController : ControllerBase
             return new RedirectResult("/img/placeholder.png", false);
         return new RedirectResult(result[0].imageUrl ?? "/img/placeholder.png", false);
     }
+    [HttpGetBypass("avatar-thumbnail/image")]
+    public async Task<RedirectResult> GetAvatarRenderNew(long userId)
+    {
+        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
+        if (!authUser18Plus)
+        {
+            var avatar18Plus = await services.avatar.IsUserAvatar18Plus(userId);
+            if (avatar18Plus)
+                return new RedirectResult("/img/blocked.png", false);
+        }
+
+        var result = (await services.thumbnails.GetUserThumbnails(new[] {userId})).ToList();
+        if (result.Count == 0)
+            return new RedirectResult("/img/placeholder.png", false);
+        return new RedirectResult(result[0].imageUrl ?? "/img/placeholder.png", false);
+    }
+    [HttpGet("avatar-thumbnail/json")]
+    public async Task<dynamic> GetAvatarThumbnailJson([Required] long userId)
+    {
+        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
+        if (!authUser18Plus)
+        {
+            var asset18Plus = await services.assets.Is18Plus(userId);
+            if (asset18Plus)
+                return new RedirectResult("/img/blocked.png", false);
+        }
+        var result = (await services.thumbnails.GetUserThumbnails(new[] {userId})).ToList();
+        var json = new
+        {
+            Url = $"https://www.projex.zip{result[0].imageUrl}",
+            Final = true,
+            SubstitutionType = 0
+        };
+        string jsonString = JsonConvert.SerializeObject(json);
+        return Content(jsonString, "application/json");
+    }
 
     [HttpGet("asset-thumbnail/json")]
     public async Task<dynamic> GetAssetThumbnailJson([Required] long assetId)
