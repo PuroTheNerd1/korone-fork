@@ -358,7 +358,19 @@ public class WebController : ControllerBase
             },
         };
     }
-    
+    [HttpGet("users/{userId:long}")]
+    public async Task<IActionResult> userInfo(long userId)
+    {
+
+        var userInfo = await services.users.GetUserById(userId);
+        var data  =  new
+        {
+            Id = userId,
+            Username = userInfo.username,
+        };
+
+        return Content(JsonConvert.SerializeObject(data), "application/json");
+    }
     [HttpGet("users/{userId:long}/canmanage/{placeId:long}")]
     public async Task<IActionResult> CanManage(long userId, long placeId)
     {

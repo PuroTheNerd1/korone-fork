@@ -110,11 +110,7 @@ public class IDELogin : RobloxPageModel
             return new PageResult();
         }
 
-        if (string.IsNullOrEmpty(hCaptchaResponse))
-        {
-            errorMessage = BadCaptchaMessage;
-            return new PageResult();
-        }
+
         
         long userId = 0;
         try
@@ -146,12 +142,6 @@ public class IDELogin : RobloxPageModel
         }
 
         // Check captcha AFTER basic validation (but not before username/password checks!)
-        if (!await HCaptcha.IsValid(rawIpAddress, hCaptchaResponse))
-        {
-            errorMessage = BadCaptchaMessage;
-            Metrics.UserMetrics.ReportCaptchaFailure(UserMetrics.CaptchaFailureType.Login);
-            return new PageResult();
-        }
 
         var timer = new Stopwatch();
         timer.Start();

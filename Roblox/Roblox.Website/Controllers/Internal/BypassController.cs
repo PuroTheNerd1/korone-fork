@@ -518,6 +518,7 @@ namespace Roblox.Website.Controllers
         {
             GameServerService gameserver = new GameServerService();
             GamesService gs = new GamesService();        
+            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long maxPlayerCount;
             var jobPlayers = await gameserver.GetGameServerPlayers(jobId);
             maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
@@ -547,45 +548,16 @@ namespace Roblox.Website.Controllers
             }
             DateTime currentUtcDateTime = DateTime.UtcNow;
             long year = await services.games.GetYear(placeId);
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
-            
-            string username = safeUserSession.username!;
-            long userId = safeUserSession.userId!;
-            string characterAppearanceUrl;
-            string finalTicket;
+
+
             var result = await services.gameServer.GetServerForPlace(placeId, year);
             //Console.WriteLine(result.job);
-
-            switch (year)
-            {
-                case 2016:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
-                    break;
-                case 2017:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
-                    break;
-                case 2018:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV2(userId, username, result.job, formattedDateTime);
-                    break;
-                case 2019:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV3(userId, username, result.job, formattedDateTime);
-                    break;
-                case 2020:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV3(userId, username, result.job, formattedDateTime);
-                    break;
-                default:
-                    throw new InvalidOperationException($"This year does not exist: {year}");
-            }
  
-            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
+            //lets wait 3 secs
 
             if (result.status == JoinStatus.Joining)
             {
+                Thread.Sleep(2000);
                 await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
                 return new
                 {
@@ -643,7 +615,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/GetCurrentUser.ashx")]
         public IActionResult GetUserId()
         {
-            string userIdAsString = safeUserSession.userId.ToString();
+            if (userSession == null){
+               return Ok("Bad Request");
+            }
+            string userIdAsString = userSession.userId.ToString();
             return Content(userIdAsString, "text/plain");
         }
         [HttpPostBypass("v2/login")]
@@ -978,7 +953,7 @@ namespace Roblox.Website.Controllers
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 FollowUserId = 0,
-                characterAppearanceId = userId
+                characterAppearanceId = 0
             };
             dynamic joinScript20192020 = new
             {
@@ -1815,6 +1790,7 @@ namespace Roblox.Website.Controllers
                 "0.235.0pcplayer",
                 "0.314.0pcplayer",
                 "0.355.0pcplayer",
+                "2.355.0iosapp",
                 "0.450.0pcplayer"
             };
             var jsonString = JsonConvert.SerializeObject(allowedList);
@@ -2028,7 +2004,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> Logout()
         {
             using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
-            sessCache.Remove(safeUserSession.sessionId);
+            sessCache.Remove(userSession.sessionId);
             HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
             return Ok();
         }

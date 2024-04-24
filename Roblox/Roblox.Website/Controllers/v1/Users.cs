@@ -39,8 +39,6 @@ public class UsersControllerV1 : ControllerBase
         return new
         {
             id = info.userId,
-            Id = info.userId,
-            Username = info.username,
             name = info.username,
             displayName = info.username,
             info.description,

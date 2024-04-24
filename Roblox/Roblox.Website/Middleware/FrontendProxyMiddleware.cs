@@ -8,6 +8,7 @@ using Roblox.Models.Users;
 using Roblox.Services;
 using Roblox.Website.Lib;
 using ServiceProvider = Microsoft.Extensions.DependencyInjection.ServiceProvider;
+using System.Text.RegularExpressions;
 
 namespace Roblox.Website.Middleware;
 
@@ -171,11 +172,12 @@ public class FrontendProxyMiddleware
     public async Task InvokeAsync(HttpContext ctx)
     {
         var requestUrl = ctx.Request.GetEncodedPathAndQuery();
-        if (requestUrl.Contains("/canmanage/"))
+        if (requestUrl.Contains("/canmanage/") || Regex.IsMatch(requestUrl, @"^/users/\d+$"))
         {
             await _next(ctx);
             return;
-        }        
+        }  
+          
         foreach (var item in BypassUrls)
         {
             if (requestUrl.ToLower().StartsWith(item))

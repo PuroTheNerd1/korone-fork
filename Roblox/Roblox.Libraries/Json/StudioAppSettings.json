@@ -1587,7 +1587,7 @@
 "SFFlagUseLuaChat": "True",
 "SFFlagUseNewBlockFunction": "True",
 "SFFlagUseNewSetFMOD3D": "True",
-"StartPageUrl": "/ide/welcome",
+"StartPageUrl": "/IDE/login",
 "VideoPreRollWaitTimeSeconds": "45",
 "StudioNativeLoginPageV3": "True",
 "FFlagStudioNativeLoginPageV3": "True",
