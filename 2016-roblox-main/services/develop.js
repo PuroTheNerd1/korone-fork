@@ -12,12 +12,40 @@ export const uploadAsset = ({ name, assetTypeId, file, groupId }) => {
   return request('POST', getBaseUrl() + '/develop/upload', formData);
 }
 
-export const uploadAssetVersion = ({assetId, file}) => {
-  let form = new FormData();
-  form.append('assetId', assetId);
-  form.append('file', file);
-  return request('POST', getBaseUrl() + '/develop/upload-version', form);
-}
+export const uploadAssetVersion = async ({ assetId, file }) => {
+  return new Promise((resolve, reject) => {
+    let form = new FormData();
+    form.append('assetId', assetId);
+    form.append('file', file);
+
+    let xhr = new XMLHttpRequest();
+
+    xhr.open('POST', getBaseUrl() + '/develop/upload-version', true);
+
+    xhr.upload.onprogress = function(event) {
+      if (event.lengthComputable) {
+        let percentComplete = (event.loaded / event.total) * 100;
+        console.log('Upload progress: ' + percentComplete.toFixed(2) + '%');
+      }
+    };
+
+    xhr.responseType = 'json';
+
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        resolve(xhr.response);
+      } else {
+        reject('Error uploading file: ' + xhr.statusText);
+      }
+    };
+
+    xhr.onerror = function() {
+      reject('Network error while uploading file.');
+    };
+
+    xhr.send(form);
+  });
+};
 
 export const getCreatedAssetDetails = (assetIds) => {
   return request('POST', getFullUrl('itemconfiguration', '/v1/creations/get-asset-details'), {

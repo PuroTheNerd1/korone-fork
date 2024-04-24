@@ -131,6 +131,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/api/moderation/filtertext",
         "/moderation/filtertext",
         "/moderation/v2/filtertext",
+        "/develop/upload-version",
         // uses built-in RequestVerificationToken
         "/auth",
         "/auth/signup",

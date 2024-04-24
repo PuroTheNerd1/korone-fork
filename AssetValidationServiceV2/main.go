@@ -53,6 +53,7 @@ func main() {
 
 	app.Post("/api/v1/validate-place", func(c *fiber.Ctx) error {
 		beforeValidation()
+		log.Println("ClientReached")
 		defer afterValidation()
 		
 		body := c.Body()

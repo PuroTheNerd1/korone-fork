@@ -2255,7 +2255,7 @@ namespace Roblox.Website.Controllers
         {
             bool IsRCC = IsRcc();
             if (IsRCC){
-                if (clientCount < 1 && gameTime > 5)
+                if (clientCount < 1 && gameTime > 10)
                 {
                     try
                     {
