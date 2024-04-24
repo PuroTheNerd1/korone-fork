@@ -621,10 +621,17 @@ namespace Roblox.Website.Controllers
             };
         }
 #endif
+        [HttpPostBypass("login/RequestAuth.ashx")]
         [HttpGetBypass("login/RequestAuth.ashx")]
-        public string StudioRequestAuth()
+        public async Task<MVC.ActionResult<dynamic?>> StudioRequestAuth()
         {
-            return $"{Configuration.BaseUrl}/game/GetCurrentUser.ashx";
+            Console.WriteLine(userSession.userId);
+            if (userSession == null){
+                return Unauthorized("User is not authorized.");
+            }
+
+            string cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
+            return Ok($"https://www.projex.zip/Login/Negotiate.ashx?suggest={cookie}");
         }
 
         [HttpGetBypass("My/Places.aspx")]
@@ -634,26 +641,53 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("game/GetCurrentUser.ashx")]
-        public async Task<MVC.ActionResult<dynamic?>> ReturnUserId()
+        public IActionResult GetUserId()
         {
-            long ID = safeUserSession.userId;
-            //Console.WriteLine(safeUserSession.userId);
-            return Ok(ID);
+            string userIdAsString = safeUserSession.userId.ToString();
+            return Content(userIdAsString, "text/plain");
         }
         [HttpPostBypass("v2/login")]
         public async Task<dynamic> LoginV2()
         {
-            string username;
-            string password;
+            string requestBody;
+
+            string userAgent;
+            userAgent = Request.Headers["User-Agent"]; 
+            string username = "";
+            string password = "";
             long userId;
             using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
             {
-                string requestBody;
                 requestBody = await reader.ReadToEndAsync();
-                var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobile>(requestBody) ?? new LoginRequestMobile();
-                username = serializedResponse.username;
-                password = serializedResponse.password;
-            }         
+            }
+            if(userAgent == "RobloxStudio/WinInet")
+            {
+                string[] keyValuePairs = requestBody.Split('&');
+                foreach (string pair in keyValuePairs)
+                {
+                    string[] keyValue = pair.Split('=');
+                    if (keyValue.Length == 2)
+                    {
+                        if (keyValue[0] == "username")
+                        {
+                            username = keyValue[1];
+                        }
+                        else if (keyValue[0] == "password")
+                        {
+                            password = keyValue[1];
+                        }
+                    }
+                }
+            }
+            else{
+                using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
+                {
+                    var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobile>(requestBody) ?? new LoginRequestMobile();
+                    username = serializedResponse.username;
+                    password = serializedResponse.password;
+                }         
+            }
+
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {

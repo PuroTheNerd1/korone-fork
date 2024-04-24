@@ -1575,5 +1575,11 @@
   "SFFlagUseNewBlockFunction": "True",
   "SFFlagUseNewSetFMOD3D": "True",
   "StartPageUrl": "/ide/welcome",
-  "VideoPreRollWaitTimeSeconds": "45"
+  "VideoPreRollWaitTimeSeconds": "45",
+  "DisableFriendServiceLoadFriendRequests": "False",
+  "FFlagDisableFriendServiceLoadFriendRequests": "False",
+  "DFFlagDisableFriendServiceLoadFriendRequests": "False",
+  "FFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
+  "VerifyIncomingFriendRequestsBeforeNotifying": "False",
+  "DFFlagVerifyIncomingFriendRequestsBeforeNotifying": "False"
 }

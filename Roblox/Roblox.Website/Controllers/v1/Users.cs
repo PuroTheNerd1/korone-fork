@@ -26,7 +26,7 @@ public class UsersControllerV1 : ControllerBase
             isStaff = await StaffFilter.IsStaff(userSession.userId)
         };
     }
-
+    [HttpPost("users/{userId:long}")]
     [HttpGet("users/{userId:long}")]
     public async Task<dynamic> GetUserById(long userId)
     {

@@ -1490,5 +1490,11 @@
   "FFlagCorescriptSetCoreChatActiveEnabled": "True",
   "FFlagOnlyShowHealthWhenDamaged": "True",
   "FFlagUserChatPrivacySetting": "True",
-  "FFlagCorescriptNewChatSetCoresEnabled": "True"
+  "FFlagCorescriptNewChatSetCoresEnabled": "True",
+  "DisableFriendServiceLoadFriendRequests": "False",
+  "FFlagDisableFriendServiceLoadFriendRequests": "False",
+  "DFFlagDisableFriendServiceLoadFriendRequests": "False",
+  "FFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
+  "VerifyIncomingFriendRequestsBeforeNotifying": "False",
+  "DFFlagVerifyIncomingFriendRequestsBeforeNotifying": "False"
 }
