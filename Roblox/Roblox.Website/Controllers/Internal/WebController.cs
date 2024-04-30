@@ -580,7 +580,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "projex-player",
+            prefix = "projectx-client",
             retroArgs = args
         };
     }
@@ -723,16 +723,19 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
 
         try
         {
-            var fs = request.file.OpenReadStream();
-            bool isOk = await services.assets.ValidateAssetFile(fs, Models.Assets.Type.Place);
-            Console.WriteLine(isOk);
-            //if (!isOk)
-                //throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-            fs.Position = 0;
+            using (var fs = request.file.OpenReadStream())
+            {
+                bool isOk = await services.assets.ValidateAssetFile(fs, Models.Assets.Type.Place);
+                Console.WriteLine(isOk);
+                if (!isOk)
+                    throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
 
-            await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
-            // Render in the background
-            services.assets.RenderAsset(request.assetId, info.assetType);
+                fs.Position = 0; 
+
+                await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
+                
+                services.assets.RenderAssetAsync(request.assetId, info.assetType);
+            }
         }
         finally
         {

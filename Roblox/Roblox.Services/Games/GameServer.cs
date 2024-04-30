@@ -328,11 +328,10 @@ public class GameServerService : ServiceBase
         rccProcess.Kill(); // soft kill soon instead of force kill
             
         // Remove from our dictionaries now.
-        currentPlaceIdsInUse.Remove(placeId);
+        //currentPlaceIdsInUse.Remove(placeId);
         currentGameServerPorts.Remove(placeJobId);
         jobRccs.Remove(placeJobId);
         mainRCCPortsInUse.Remove(rccProcess);
-        RemoveAllPlayersFromPlaceId(placeId);
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
         Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
@@ -661,7 +660,7 @@ public class GameServerService : ServiceBase
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string jobId = Guid.NewGuid().ToString();
-
+        string OldJobId;
         GamesService gs = new GamesService();
         long maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
 
@@ -674,17 +673,18 @@ public class GameServerService : ServiceBase
 
         foreach (var server in openGameServers)
         {
-            jobId = server.jobid.ToString(); 
-            var currentPlayerCount = await GetGameServerPlayers(jobId);
+            OldJobId = server.jobid.ToString(); 
+            var currentPlayerCount = await GetGameServerPlayers(OldJobId);
 
-            if (currentPlayerCount.Count() < maxPlayerCount)
+            if (currentPlayerCount.Count() == maxPlayerCount)
             {
-                return new GameServerGetOrCreateResponse()
-                {
-                    job = jobId,
-                    status = JoinStatus.Joining
-                };
+                continue;
             }
+            return new GameServerGetOrCreateResponse()
+            {
+                job = OldJobId,
+                status = JoinStatus.Joining
+            };
         }
 
         string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
@@ -896,7 +896,7 @@ public class GameServerService : ServiceBase
         await WaitForPort(RCCPort);
         await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
         //await WaitForUDPPort(networkServerPort);  
-        currentPlaceIdsInUse.Add(placeId, jobId);
+        //currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);
         switch (year)
         {

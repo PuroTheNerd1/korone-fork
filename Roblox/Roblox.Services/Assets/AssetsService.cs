@@ -218,25 +218,33 @@ public class AssetsService : ServiceBase, IService
     public async Task<bool> ValidateAssetFile(Stream file, Models.Assets.Type assetType)
     {
         Writer.Info(LogGroup.AssetValidation, "validating asset. type = {0}", assetType);
+        
         try
         {
-            var s = new StreamContent(file);
-            s.Headers.Add("robloxAuthorization", Configuration.AssetValidationServiceAuthorization);
-            var url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-item";
-            if (assetType == Type.Place)
+            using (var memoryStream = new MemoryStream())
             {
-                url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-place";
-            }
-            var ok = await assetValidationClient.PostAsync(
-                url, s);
-            if (!ok.IsSuccessStatusCode)
-            {
-                throw new Exception("Got failure response from assetValidationService. Code = " + ok.StatusCode);
-            }
+                await file.CopyToAsync(memoryStream); 
+                memoryStream.Seek(0, SeekOrigin.Begin); 
 
-            var result = JsonSerializer.Deserialize<AssetValidationResponse>(await ok.Content.ReadAsStringAsync());
-            Console.WriteLine(result);
-            return result is {isValid: true};
+                var s = new StreamContent(memoryStream);
+                s.Headers.Add("robloxAuthorization", Configuration.AssetValidationServiceAuthorization);
+
+                var url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-item";
+                if (assetType == Type.Place)
+                {
+                    url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-place";
+                }
+
+                var ok = await assetValidationClient.PostAsync(url, s);
+                if (!ok.IsSuccessStatusCode)
+                {
+                    throw new Exception("Got failure response from assetValidationService. Code = " + ok.StatusCode);
+                }
+
+                var result = JsonSerializer.Deserialize<AssetValidationResponse>(await ok.Content.ReadAsStringAsync());
+                Console.WriteLine(result);
+                return result?.isValid ?? false;
+            }
         }
         catch (Exception e)
         {
@@ -245,6 +253,7 @@ public class AssetsService : ServiceBase, IService
 
         return false;
     }
+
 
     public async Task<Imager?> ValidateImage(Stream content)
     {
