@@ -524,7 +524,7 @@ namespace Roblox.Website.Controllers
             maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
             if (jobId != null)
             {
-                if (jobPlayers.Count() >= maxPlayerCount)
+                if (jobPlayers.Count() == maxPlayerCount)
                 {
                     return new
                     {
@@ -538,7 +538,7 @@ namespace Roblox.Website.Controllers
                     return new
                     {
                         jobId = jobId,
-                        status = (int)JoinStatus.GameFull,
+                        status = (int)JoinStatus.Joining,
                         joinScriptUrl = $"{Configuration.BaseUrl}/Game/Join.ashx?jobId={jobId}&placeId={placeId}",
                         authenticationUrl = Configuration.BaseUrl + "/Login/Negotiate.ashx",
                         authenticationTicket = Request.Cookies[".ROBLOSECURITY"],
@@ -546,7 +546,6 @@ namespace Roblox.Website.Controllers
                     };                    
                 }                
             }
-            DateTime currentUtcDateTime = DateTime.UtcNow;
             long year = await services.games.GetYear(placeId);
 
 
@@ -573,8 +572,8 @@ namespace Roblox.Website.Controllers
             return new
             {
                 jobId = (string?)null,
-                status = (int)result.status,
-                message = "Waiting for server",
+                status = (int)JoinStatus.Loading,
+                message = "Server found, loading...",
             };
         }
 
@@ -825,7 +824,7 @@ namespace Roblox.Website.Controllers
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             string finalTicket;
-            string characterAppearanceUrl;
+            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
             if (jobPlayers.Count() >= uni.maxPlayerCount)
             {
                 return new
@@ -851,20 +850,16 @@ namespace Roblox.Website.Controllers
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
-                case 2017:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
+                case 2017:                  
                     finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2018:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2019:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
                     break;
                 case 2020:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
                     finalTicket = SignatureController.GenerateClientTicketV4(userId, username, jobId, formattedDateTime, accountAgeDays, placeId);
                     break;
                 default:
@@ -1358,25 +1353,20 @@ namespace Roblox.Website.Controllers
         public async Task ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
         {
             GameServerService gameServerService = new GameServerService();
+            bool IsRCC = IsRcc();
+            if(!IsRCC)
+            {
+                return;
+            }
+            if(!GameServerService.CurrentPlayersInGame.ContainsKey(userId))
+            {
+                return;
+            }
             if(action == "disconnect"){
                 string JobId = await gameServerService.GetJobIdByUserId(userId);
-                bool IsRCC = IsRcc();
-                if(!IsRCC)
-                {
-                    return;
-                }
-                if(!GameServerService.CurrentPlayersInGame.ContainsKey(userId))
-                {
-                    return;
-                }
 
                 await Roblox.Metrics.GameMetrics.ReportGameJoinSuccess(placeId);
                 await gameServerService.OnPlayerLeave(userId, placeId, JobId);
-
-                if (await services.games.GetPlayerCount(placeId) == 0)
-                {
-                    await services.gameServer.ShutDownServerAsync(JobId);
-                }
             }
 
 

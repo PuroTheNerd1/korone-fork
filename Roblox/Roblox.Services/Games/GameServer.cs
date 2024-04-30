@@ -17,7 +17,8 @@ using Roblox.Models.GameServer;
 using Roblox.Rendering;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
-
+using System.Net.NetworkInformation;
+using System.Threading.Tasks;
 namespace Roblox.Services;
 
 public class GameServerService : ServiceBase
@@ -650,44 +651,44 @@ public class GameServerService : ServiceBase
     }
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, long year)
     {
-        string jobId = Guid.NewGuid().ToString();
+        await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(30));       
+        if (!serverCreationLock.IsAcquired)
+            return new GameServerGetOrCreateResponse
+            {
+                status = JoinStatus.Waiting,
+            };
 
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = RandomComponent.Next(50000, 60000);
-        string StartGameInfo;
-        long maxPlayerCount;
+        string jobId = Guid.NewGuid().ToString();
 
         GamesService gs = new GamesService();
-        
-        
-        maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
-         
+        long maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
+
         var openGameServers = await db.QueryAsync<dynamic>(
             "SELECT id as jobid FROM asset_server WHERE asset_id = :assetid",
             new
             {
                 assetid = placeId,
             });
-        // check for maxplayers and if a server already exists if it does lets join it then
-        foreach (var servers in openGameServers)
-        {
 
-            Console.WriteLine($"{servers.jobid} {maxPlayerCount}" );
-            jobId = servers.jobid.ToString(); 
+        foreach (var server in openGameServers)
+        {
+            jobId = server.jobid.ToString(); 
             var currentPlayerCount = await GetGameServerPlayers(jobId);
-            
-            if (currentPlayerCount.Count() >= maxPlayerCount)
-                continue;
-            return new GameServerGetOrCreateResponse()
+
+            if (currentPlayerCount.Count() < maxPlayerCount)
             {
-                job = jobId,
-                status = JoinStatus.Joining
-            };
+                return new GameServerGetOrCreateResponse()
+                {
+                    job = jobId,
+                    status = JoinStatus.Joining
+                };
+            }
         }
-    
-        
-        StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
-                             
+
+        string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
+                    
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
             new
@@ -697,8 +698,7 @@ public class GameServerService : ServiceBase
                 ip = "85.125.186.154",
                 port = mainRCCPort,
                 server_connection = $"85.125.186.154:{networkServerPort}", 
-             });
-                       
+            });
 
         return StartGameInfo != "BAD"
             ? new GameServerGetOrCreateResponse()
@@ -711,6 +711,7 @@ public class GameServerService : ServiceBase
                 status = JoinStatus.Waiting
             };
     }
+
     
     public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int JobExpiration)
     {
@@ -894,6 +895,7 @@ public class GameServerService : ServiceBase
             </soap:Envelope>";
         await WaitForPort(RCCPort);
         await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
+        //await WaitForUDPPort(networkServerPort);  
         currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);
         switch (year)
@@ -909,6 +911,7 @@ public class GameServerService : ServiceBase
                 break;
         }
         //jobRccs.Add(jobId, rccServer);
+        Thread.Sleep(5000);
         return "OK";
     }
 
@@ -1001,6 +1004,33 @@ public class GameServerService : ServiceBase
         }
         return result;
     }
+    static async Task<bool> IsPortAvailable(int port)
+    {
+        try
+        {
+            using (var udpClient = new UdpClient())
+            {
+                // Try to connect to the specified port
+                udpClient.Connect("127.0.0.1", port);
+                return true;
+            }
+        }
+        catch (SocketException)
+        {
+            return false;
+        }
+    }
+
+    static async Task WaitForUDPPort(int port)
+    {
+        while (!await IsPortAvailable(port))
+        {
+            await Task.Delay(100);
+        }
+
+        Console.WriteLine($"Port {port} is now available!");
+    }
+
     static Task WaitForPort(int RCCPort)
     {
         while (true)
