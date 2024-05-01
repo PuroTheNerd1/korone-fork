@@ -36,6 +36,7 @@ using Type = Roblox.Models.Assets.Type;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Extensions;
 using Roblox.Website.WebsiteModels.Authentication;
+using System.Text.RegularExpressions;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -1642,6 +1643,10 @@ namespace Roblox.Website.Controllers
         {
             Console.WriteLine("RCC is doing its thing");
             var text = HttpContext.Request.Form["text"].ToString();
+            if (ContainsCyrillic(text))
+            {
+                text = "I will speak english";
+            }
             return new
             {
                 success = true,
@@ -1657,6 +1662,10 @@ namespace Roblox.Website.Controllers
         {
             Console.WriteLine("RCC is doing its thing");
             var text = HttpContext.Request.Form["text"].ToString();
+            if (ContainsCyrillic(text))
+            {
+                text = "I will speak english";
+            }
             var json = new
             {
                 success = true,
@@ -1669,6 +1678,11 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(json);
             return Content(jsonString, "application/json");
         }
+        public bool ContainsCyrillic(string input)
+        {
+            Regex regex = new Regex(@"[\u0400-\u04FF]");
+            return regex.IsMatch(input);
+        }        
         private void ValidateBotAuthorization()
         {
 #if DEBUG == false

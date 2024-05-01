@@ -536,6 +536,7 @@ public class WebController : ControllerBase
         // TODO: Rate limit, or caching, or something
         string clientVer;
         long year = await services.games.GetYear(placeId);
+
         switch(year)
         {
             case 2016:
@@ -550,7 +551,7 @@ public class WebController : ControllerBase
             default:
                 clientVer = "2016E";
                 break;
-        }
+        }        
         var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
@@ -569,12 +570,28 @@ public class WebController : ControllerBase
     [HttpGet("game/get-join-script-fromjobid")]
     public async Task<dynamic> GetJoinScriptFromJobId(long placeId, string jobId)
     {
-        // TODO: Rate limit, or caching, or something
+        string clientVer;
+        long year = await services.games.GetYear(placeId);
+        switch(year)
+        {
+            case 2016:
+                clientVer = "2016E";
+                break;
+            case 2017:
+                clientVer = "2017L";
+                break;
+            case 2018:
+                clientVer = "2018L";
+                break;
+            default:
+                clientVer = "2016E";
+                break;
+        }           
         var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-        var bootstrapperArgs = $"://1+launchmode:play+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/Join.ashx?jobId={jobId}&placeId={placeId}+k:l";
+        var bootstrapperArgs = $"://1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/Placelauncher.ashx?jobId={jobId}&placeId={placeId}+k:l";
         var args =
             $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {Request.Cookies[".ROBLOSECURITY"]} --joinScriptUrl {Configuration.BaseUrl}/Game/Join.ashx?jobId={jobId}&placeId={placeId}";
         return new
@@ -725,12 +742,12 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
         {
             using (var fs = request.file.OpenReadStream())
             {
-                bool isOk = await services.assets.ValidateAssetFile(fs, Models.Assets.Type.Place);
-                Console.WriteLine(isOk);
-                if (!isOk)
+                bool startsWithRoblox = await AssetValidationV2(fs);
+                if (!startsWithRoblox)
                     throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
 
                 fs.Position = 0; 
+
 
                 await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
                 
@@ -745,7 +762,13 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
             }
         }
     }
-    
+    private async Task<bool> AssetValidationV2(Stream stream)
+    {
+        byte[] buffer = new byte[7]; 
+        await stream.ReadAsync(buffer, 0, buffer.Length);
+        string startOfFile = Encoding.UTF8.GetString(buffer);
+        return startOfFile == "<roblox";
+    }
     [HttpPost("develop/upload")]
     public async Task<CreateResponse> UploadItem([Required, FromForm] UploadAssetRequest request)
     {
