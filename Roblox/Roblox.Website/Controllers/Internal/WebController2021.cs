@@ -89,18 +89,30 @@ public class WebController2021 : ControllerBase
     [HttpGet("/home")]
     public async Task<IActionResult> GetHome()
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         return await GetPage("dashboard");
     }
     
     [HttpGet("/trades")]
     public async Task<IActionResult> GetTrades()
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         return await GetPage("trades");
     }
         
     [HttpGet("/users/{userId:long}/trade")]
     public async Task<IActionResult> GetTradeWithUser(long userId)
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         return await GetPage("tradeWithUser", new List<dynamic>()
         {
             new
@@ -114,6 +126,10 @@ public class WebController2021 : ControllerBase
     [HttpGet("/users/{userId:long}/profile")]
     public async Task<IActionResult> GetUserProfile(long userId)
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         var info = await services.users.GetUserById(userId);
         if (info.IsDeleted())
         {
@@ -173,12 +189,20 @@ public class WebController2021 : ControllerBase
     [HttpGet("/groups/search")]
     public async Task<IActionResult> SearchGroups()
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         return await GetPage("groupSearch");
     }
 
     [HttpGet("search/users")]
     public async Task<IActionResult> SearchUsers(string keyword)
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         if (string.IsNullOrEmpty(keyword) || keyword.Length >= 32 || keyword.IndexOf(">") != -1 || keyword.IndexOf("<") != -1) 
             return Content("Invalid search keyword");
         return await GetPage("userSearch", new List<dynamic>() {keyword});
@@ -187,6 +211,10 @@ public class WebController2021 : ControllerBase
     [HttpGet("/groups/create")]
     public async Task<IActionResult> CreateGroup()
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         return await GetPage("groupCreate");
     }
 
@@ -194,6 +222,10 @@ public class WebController2021 : ControllerBase
     [HttpGet("my/groups")]
     public async Task<IActionResult> GroupsRedirect()
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         var hasGroups = (await services.groups.GetAllRolesForUser(userSession.userId)).ToList();
         if (hasGroups.Count > 0)
         {
@@ -207,6 +239,10 @@ public class WebController2021 : ControllerBase
     [HttpGet("groups/{groupId:long}/{name}")]
     public async Task<IActionResult> GetGroup(long groupId, string name)
     {
+        if(userSession == null)
+        {
+            return Redirect("auth/login");
+        }
         var details = await services.groups.GetGroupById(groupId);
         var expectedName = UrlUtilities.ConvertToSeoName(details.name);
         if (expectedName != name) return Redirect("/groups/" + groupId + "/" + expectedName);
