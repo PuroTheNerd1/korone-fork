@@ -14,6 +14,9 @@ namespace Roblox.Website.Controllers;
 [Route("/apisite/users/v1")]
 public class UsersControllerV1 : ControllerBase
 {
+    public List<CollectibleItemEntry> inventory { get; set; }
+    public long totalRap { get; set; }
+
     [HttpGet("users/authenticated")]
     public async Task<dynamic> GetMySession()
     {
@@ -30,6 +33,21 @@ public class UsersControllerV1 : ControllerBase
     [HttpGet("users/{userId:long}")]
     public async Task<dynamic> GetUserById(long userId)
     {
+        inventory = new ();
+        var offset = 0;
+        while (true)
+        {
+            var results = (await services.inventory.GetCollectibleInventory(userId, null, "asc", 100, offset)).ToArray();
+            if (results.Length == 0) break;
+            offset += 100;
+            inventory.AddRange(results);
+        }
+
+        foreach (var item in inventory)
+        {
+            totalRap += item.recentAveragePrice;
+        }
+
         var info = await services.users.GetUserById(userId);
         var isBanned =
             info.accountStatus != AccountStatus.Ok && 
@@ -44,6 +62,7 @@ public class UsersControllerV1 : ControllerBase
             info.description,
             info.created,
             isBanned,
+            totalRap
         };
     }
 
