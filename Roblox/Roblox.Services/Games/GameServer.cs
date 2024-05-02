@@ -708,7 +708,7 @@ public class GameServerService : ServiceBase
             }
             : new GameServerGetOrCreateResponse()
             {
-                status = JoinStatus.Waiting
+                status = JoinStatus.Loading
             };
     }
 
