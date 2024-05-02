@@ -89,7 +89,7 @@ public class WebController2021 : ControllerBase
     [HttpGet("/home")]
     public async Task<IActionResult> GetHome()
     {
-        if(userSession == null)
+        if(userSession.userId == null)
         {
             return Redirect("auth/login");
         }
@@ -99,7 +99,7 @@ public class WebController2021 : ControllerBase
     [HttpGet("/trades")]
     public async Task<IActionResult> GetTrades()
     {
-        if(userSession == null)
+        if(userSession.userId == null)
         {
             return Redirect("auth/login");
         }
