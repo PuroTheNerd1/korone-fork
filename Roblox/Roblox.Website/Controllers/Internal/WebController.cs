@@ -135,7 +135,7 @@ public class WebController : ControllerBase
             return new RedirectResult("/img/placeholder.png", false);
         return new RedirectResult(result[0].imageUrl ?? "/img/placeholder.png", false);
     }
-    [HttpGet("avatar-thumbnail/json")]
+    [HttpGetBypass("avatar-thumbnail/json")]
     public async Task<dynamic> GetAvatarThumbnailJson([Required] long userId)
     {
         var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
@@ -156,7 +156,7 @@ public class WebController : ControllerBase
         return Content(jsonString, "application/json");
     }
 
-    [HttpGet("asset-thumbnail/json")]
+    [HttpGetBypass("asset-thumbnail/json")]
     public async Task<dynamic> GetAssetThumbnailJson([Required] long assetId)
     {
         var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
