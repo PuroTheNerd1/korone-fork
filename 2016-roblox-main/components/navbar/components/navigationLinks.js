@@ -1,6 +1,6 @@
 import { createUseStyles } from "react-jss";
 import Link from "../../link";
-
+import AuthenticationStore from "../../../stores/authentication";
 const useStyles = createUseStyles({
   container: {
     marginTop: '3px',
@@ -58,6 +58,11 @@ const LinkEntry = props => {
 
 const NavigationLinks = props => {
   const s = useStyles();
+  const auth = AuthenticationStore.useContainer();
+  if (!auth.isAuthenticated) {
+    window.location.href = '/auth/login';
+    return;
+  }
   return <div className={`${s.col} col-10 col-lg-5`}>
     <div className={s.container}>
       <div className='row'>
