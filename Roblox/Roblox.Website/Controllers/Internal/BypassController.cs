@@ -1631,7 +1631,6 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
         {
-            Console.WriteLine("RCC is doing its thing");
             var text = HttpContext.Request.Form["text"].ToString();
             if (ContainsCyrillic(text))
             {
@@ -1650,7 +1649,6 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("moderation/v2/filtertext/")]
         public dynamic GetModerationTextV2()
         {
-            Console.WriteLine("RCC is doing its thing");
             var text = HttpContext.Request.Form["text"].ToString();
             if (ContainsCyrillic(text))
             {
