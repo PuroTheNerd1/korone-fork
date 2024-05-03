@@ -506,20 +506,17 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(long placeId, string? jobId = null)
-        {
-            GameServerService gameserver = new GameServerService();
-            GamesService gs = new GamesService();        
+        {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long maxPlayerCount;
-            var jobPlayers = await gameserver.GetGameServerPlayers(jobId);
-            maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
+            var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
+            maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
             if (jobId != null)
             {
                 if (jobPlayers.Count() == maxPlayerCount)
                 {
                     return new
                     {
-                        jobId,
                         status = (int)JoinStatus.GameFull,
                         message = "Game is full",
                     };
@@ -803,15 +800,12 @@ namespace Roblox.Website.Controllers
             string UserAgent = Request.Headers["User-Agent"].ToString();
 
             Console.WriteLine("Client connected to join.ashx");
-            GamesService gamesService = new GamesService();
-            GameServerService gameserver = new GameServerService();
-            var jobPlayers = await gameserver.GetGameServerPlayers(jobId);
-            PlaceEntry uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
+            var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
+            PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             long year = await services.games.GetYear(placeId);
-            string username = userSession!.username;
-            long userId = userSession!.userId;
+            string username = safeUserSession.username;
+            long userId = safeUserSession.userId;
             string membership;
-            var membership2 = await services.users.GetUserMembership(userId);
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             string finalTicket;
@@ -826,14 +820,9 @@ namespace Roblox.Website.Controllers
             }
             var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            if (membership2  == null)
-            {
-                membership = "None";
-            }
-            else
-            {
-                membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
-            }
+            var membershipInfo = MembershipMetadata.GetMetadata((await services.users.GetUserMembership(userId)).membershipType);
+            membership = membershipInfo.membershipType.ToString();
+
 
             switch (year)
             {
@@ -1117,17 +1106,17 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/avatar")]
         public async Task<IActionResult> MobileCharapp()
         {
-            var colors = await services.avatar.GetAvatar(safeUserSession.userId);          
+            var avatar = await services.avatar.GetAvatar(safeUserSession.userId);          
             var assets = await services.avatar.GetWornAssets(safeUserSession.userId);  
 
             var bodyColors = new
             {
-                HeadColor = colors.headColorId,
-                LeftArmColor = colors.leftArmColorId,
-                LeftLegColor = colors.leftLegColorId,
-                RightArmColor = colors.rightArmColorId,
-                RightLegColor = colors.rightLegColorId,
-                TorsoColor = colors.torsoColorId
+                HeadColor = avatar.headColorId,
+                LeftArmColor = avatar.leftArmColorId,
+                LeftLegColor = avatar.leftLegColorId,
+                RightArmColor = avatar.rightArmColorId,
+                RightLegColor = avatar.rightLegColorId,
+                TorsoColor = avatar.torsoColorId
             };
 
             var assetList = new List<dynamic>();
@@ -1160,7 +1149,7 @@ namespace Roblox.Website.Controllers
                     proportion = 0,
                     bodyType = 0
                 },
-                playerAvatarType = "R15",
+                playerAvatarType = (avatar.avatar_type == 2) ? "R15" : "R6",
                 bodyColors = bodyColors,
                 bodyColorsUrl = $"https://www.projex.zip/Asset/BodyColors.ashx?userId={safeUserSession.userId}",
                 assets = assetList,
@@ -1177,27 +1166,14 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<MVC.IActionResult> CharacterFetch(long userId)
         {
-            string RigType;
-            int AvatarType = await services.avatar.GetAvatarTypeAsync(userId);
-            switch(AvatarType)
-            {
-                case 1:
-                    RigType = "R6";
-                    break;
-                case 2:
-                    RigType = "R15";
-                    break;
-                default:
-                    RigType = "R6";
-                    break;
-            }
             var assets = await services.avatar.GetWornAssets(userId);
-            var colors = await services.avatar.GetAvatar(userId);
-            dynamic bodyColors = new { HeadColor = colors.headColorId, LeftArmColor = colors.leftArmColorId, LeftLegColor = colors.leftLegColorId, RightArmColor = colors.rightArmColorId, RightLegColor = colors.rightLegColorId, TorsoColor = colors.torsoColorId };
+            var avatar = await services.avatar.GetAvatar(userId);
+            dynamic bodyColors = new { HeadColor = avatar.headColorId, LeftArmColor = avatar.leftArmColorId, LeftLegColor = avatar.leftLegColorId, RightArmColor = avatar.rightArmColorId, RightLegColor = avatar.rightLegColorId, TorsoColor = avatar.torsoColorId };
             dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
+            string AvatarType = (avatar.avatar_type == 2) ? "R15" : "R6";
             List<long> accessoryVersionIds = assets.ToList();
             var result = new {
-                resolvedAvatarType = RigType,
+                resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
                 equippedGearVersionIds = new List<int>(),
                 backpackGearVersionIds = new List<int>(),

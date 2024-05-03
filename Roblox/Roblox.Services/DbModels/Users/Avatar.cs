@@ -8,6 +8,7 @@ public class DatabaseAvatar
     public int right_leg_color_id { get; set; }
     public int left_arm_color_id { get; set; }
     public int right_arm_color_id { get; set; }
+    public int avatar_type { get; set;}
 }
 
 public class DatabaseAvatarWithImages : DatabaseAvatar

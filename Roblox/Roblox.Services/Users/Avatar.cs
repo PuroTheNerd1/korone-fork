@@ -77,7 +77,7 @@ public class AvatarService : ServiceBase, IService
     public async Task<AvatarWithColors> GetAvatar(long userId)
     {
         var existingAvatar = await db.QuerySingleOrDefaultAsync<DatabaseAvatarWithImages>(
-            "SELECT head_color_id, torso_color_id, left_arm_color_id,right_arm_color_id,left_leg_color_id,right_leg_color_id,thumbnail_url,headshot_thumbnail_url FROM user_avatar WHERE user_id = :user_id",
+            "SELECT head_color_id, torso_color_id, left_arm_color_id,right_arm_color_id,left_leg_color_id,right_leg_color_id,avatar_type,thumbnail_url,headshot_thumbnail_url FROM user_avatar WHERE user_id = :user_id",
             new
             {
                 user_id = userId,
@@ -90,6 +90,7 @@ public class AvatarService : ServiceBase, IService
             leftArmColorId = existingAvatar.left_arm_color_id,
             rightLegColorId = existingAvatar.right_leg_color_id,
             leftLegColorId = existingAvatar.left_leg_color_id,
+            avatar_type = existingAvatar.avatar_type,
             thumbnailUrl = existingAvatar.thumbnail_url,
             headshotUrl = existingAvatar.headshot_thumbnail_url,
         };

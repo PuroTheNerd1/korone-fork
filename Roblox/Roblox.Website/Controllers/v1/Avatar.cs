@@ -95,19 +95,8 @@ public class AvatarControllerV1 : ControllerBase, IService
     [HttpGet("avatar/set-rig")]
     public async Task SetRigType(string rigtype)
     {
-        int type;
-        switch (rigtype)
-        {
-            case "R6":
-                type = 1;
-                break;
-            case "R15":
-                type = 2;
-                break;
-            default:
-                type = 1;
-                break;
-        }
+        int type = (rigtype == "R15") ? 2 : 1;
+
         await services.avatar.UpdateRigType(type, safeUserSession.userId);
         AttemptScheduleRender();
     }

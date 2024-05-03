@@ -8,6 +8,7 @@ public class ColorEntry
     public int rightArmColorId { get; set; }
     public int leftLegColorId { get; set; }
     public int rightLegColorId { get; set; }
+    public int avatar_type { get; set; }
 }
 
 public class AvatarWithColors : ColorEntry
