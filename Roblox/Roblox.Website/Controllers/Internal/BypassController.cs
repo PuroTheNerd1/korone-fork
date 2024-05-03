@@ -1023,7 +1023,7 @@ namespace Roblox.Website.Controllers
         public async Task<IActionResult> AvatarRules()
         {
             AvatarControllerV1 avatar = new AvatarControllerV1();
-            var avatarRules = await avatar.GetAvatarRules();
+            var avatarRules = avatar.GetAvatarRules();
             return Ok(avatarRules);
         }
         [HttpPostBypass("v1/avatar/set-body-color")]
@@ -1068,66 +1068,12 @@ namespace Roblox.Website.Controllers
         public async Task<IActionResult> AvatarMetadata()
         {
             AvatarControllerV1 avatar = new AvatarControllerV1();
-            var avatarMetadata = await avatar.GetAvatarMetadata();
+            var avatarMetadata = avatar.GetAvatarMetadata();
             return Ok(avatarMetadata);
         }        
         [HttpGetBypass("v1/avatar")]
         public async Task<IActionResult> MobileCharapp()
         {
-            /*
-            var avatar = await services.avatar.GetAvatar(safeUserSession.userId);          
-            var assets = await services.avatar.GetWornAssets(safeUserSession.userId);  
-
-            var bodyColors = new
-            {
-                HeadColor = avatar.headColorId,
-                LeftArmColor = avatar.leftArmColorId,
-                LeftLegColor = avatar.leftLegColorId,
-                RightArmColor = avatar.rightArmColorId,
-                RightLegColor = avatar.rightLegColorId,
-                TorsoColor = avatar.torsoColorId
-            };
-
-            var assetList = new List<dynamic>();
-
-            foreach(int i in assets)
-            {
-                var details = await services.assets.GetAssetCatalogInfo(i);
-                var asset = new
-                {
-                    id = i,
-                    name = details.name,
-                    assetType = new
-                    {
-                        id = (int)details.assetType,
-                        name = details.assetType.ToString()
-                    },
-                    currentVersionId = i
-                };
-                assetList.Add(asset);
-            }
-
-            var MobileCharapp = new
-            {
-                scales = new
-                {
-                    height = 1,
-                    width = 1,
-                    head = 1,
-                    depth = 1,
-                    proportion = 0,
-                    bodyType = 0
-                },
-                playerAvatarType = (avatar.avatar_type == 2) ? "R15" : "R6",
-                bodyColors = bodyColors,
-                bodyColorsUrl = $"https://www.projex.zip/Asset/BodyColors.ashx?userId={safeUserSession.userId}",
-                assets = assetList,
-                defaultShirtApplied = false,
-                defaultPantsApplied = false
-            };
-
-            var jsonString = JsonConvert.SerializeObject(MobileCharapp);
-            */
             AvatarControllerV1 avatar = new AvatarControllerV1();
             var avatarData = await avatar.GetAvatar(safeUserSession.userId);
             return Ok(avatarData);
