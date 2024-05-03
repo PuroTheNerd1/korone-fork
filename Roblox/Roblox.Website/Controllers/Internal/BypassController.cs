@@ -146,19 +146,9 @@ namespace Roblox.Website.Controllers
 #if DEBUG == false
             var userAgent = Request.Headers["User-Agent"].FirstOrDefault()?.ToLower();
             var requester = Request.Headers["Requester"].FirstOrDefault()?.ToLower();
-            if (!isBotRequest && !isLoggedIn) {
-                if (userAgent is null) throw new BadRequestException();
-                if (requester is null) throw new BadRequestException();
-                // Client = studio/client, Server = rcc
-                if (requester != "client" && requester != "server")
-                {
-                    throw new BadRequestException();
-                }
-
-                if (!BypassControllerMetadata.allowedUserAgents.Contains(userAgent))
-                {
-                    throw new BadRequestException();
-                }
+            if (!isBotRequest && !isLoggedIn && (userAgent == null || requester == null || (requester != "client" && requester != "server") || !BypassControllerMetadata.allowedUserAgents.Contains(userAgent)))
+            {
+                throw new BadRequestException();
             }
 #endif
 
@@ -1852,41 +1842,23 @@ namespace Roblox.Website.Controllers
         //08BF6621-8100-4484-B14C-87497E372160
         public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
-            
-            //2017
-            if (apiKey == "9CE2063F-BB45-449B-89D4-65CD2ED806CD")
-            {
-                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F" + ".json");
-                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
-                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-
-                return clientAppSettingsData ?? "";
-            }
-            //2017
-            if (apiKey == "08BF6621-8100-4484-B14C-87497E372160")
-            {
-                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "ClientAppSettings2017" + ".json");
-                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
-                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-
-                return clientAppSettingsData ?? "";
-            }
-            if (apiKey  == "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A")
-            {
-                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "RCCService2018" + ".json");
-                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
-                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-
-                return clientAppSettingsData ?? "";
-            }            
-            if (apiKey  == "19C0B314-AC23-4CD4-8A37-02C4140F7240")
-            {
-                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, "ClientAppSettings2018" + ".json");
-                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
-                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-
-                return clientAppSettingsData ?? "";
-            }             
+            // NOTE: Need to make this cleaner
+            switch (apiKey){
+                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": //2017L RCC
+                    type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
+                    break;
+                case "08BF6621-8100-4484-B14C-87497E372160": //2017L Client
+                    type = "ClientAppSettings2017";
+                    break;
+                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": //2018L RCC
+                    type = "RCCService2018";
+                    break;                 
+                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": //2018 Client
+                    type = "ClientAppSettings2018";
+                    break;
+                default:
+                    break;
+            }         
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
@@ -1976,7 +1948,6 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope)
         {
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-
             string qKeyscope = Request.Form["qkeys[0].scope"]!;
             string qKeyTarget = Request.Form["qkeys[0].target"]!;
             string qKeyKey = Request.Form["qkeys[0].key"]!;
@@ -2057,7 +2028,7 @@ namespace Roblox.Website.Controllers
             }
             else
             {
-                throw new RobloxException(400, 0, "BadRequest");    
+                throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");    
             }     
             return Ok();
         }
@@ -2227,21 +2198,23 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> CloseGSNew(string gameId)
         {
             bool IsRCC = IsRcc();
-            if(IsRCC)
+            if(!IsRCC)
             {
-                try
-                {
-                    await services.gameServer.ShutDownServerAsync(gameId);
-                    return "OK!";
-                }
-                catch (Exception ex)
-                {
-                    // lets just delete the gameserver if we couldnt close the gameserver 
-                    await services.gameServer.DeleteGameServer(gameId);
-                    return "Catch an error";
-                }
+                return "Not RCC";
             }
-            return "Not authed.";
+
+            try
+            {
+                await services.gameServer.ShutDownServerAsync(gameId);
+                return "OK!";
+            }
+            catch (Exception ex)
+            {
+                // lets just delete the gameserver if we couldnt close the gameserver 
+                await services.gameServer.DeleteGameServer(gameId);
+                return "Catch an error";
+            }
+            
             
         }
         [HttpPostBypass("v2/CreateOrUpdate")]        
@@ -2251,43 +2224,42 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
         {
             bool IsRCC = IsRcc();
-            int roundedInt = (int)Math.Round(ping, 0);            
-            if(IsRCC)
+            int roundPing = (int)Math.Round(ping, 0);            
+            if(!IsRCC)
             {
-                Console.WriteLine(roundedInt);
-                //await services.gameServer.SetServerGSFPS(gameId, fps);
-                await services.gameServer.SetServerGSPing(gameId, roundedInt);   
-                return "OK!";             
+                return "Not RCC";
             }
-            else{
-                return "FALSE";
-            }
+            
+            await services.gameServer.SetServerGSPing(gameId, roundPing);   
+            return "OK!";             
+            
         }        
         [HttpPostBypass("v1.0/Refresh")]
         [HttpPostBypass("v2.0/Refresh")]
         public async Task<dynamic> RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
             bool IsRCC = IsRcc();
-            if (IsRCC){
-                if (clientCount < 1 && gameTime > 10)
+            if (!IsRCC){
+                return "Not RCC";
+            }
+
+            if (clientCount < 1 && gameTime > 10)
+            {
+                try
                 {
-                    try
-                    {
-                        await services.gameServer.ShutDownServerAsync(gameId);
-                        return "OK!";
-                    }
-                    catch (Exception ex)
-                    {
-                        await services.gameServer.DeleteGameServer(gameId);
-                        return "OK!";
-                    }
+                    await services.gameServer.ShutDownServerAsync(gameId);
+                    return "OK!";
                 }
-                else{
-                    await services.gameServer.SetServerPing(gameId);
+                catch (Exception ex)
+                {
+                    await services.gameServer.DeleteGameServer(gameId);
                     return "OK!";
                 }
             }
-            return "FALSE";
+            else{
+                await services.gameServer.SetServerPing(gameId);
+                return "OK!";
+            }
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]

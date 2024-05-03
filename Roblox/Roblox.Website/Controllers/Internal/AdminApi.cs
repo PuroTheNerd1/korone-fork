@@ -694,10 +694,8 @@ public class AdminApiController : ControllerBase
         sql.OrderBy(orderByColumn + " " + orderByMode + " NULLS LAST");
         if (!string.IsNullOrEmpty(query))
         {
-            sql.Where("u.username ilike :query", new
-            {
-                query = query,
-            });
+            var wildcardQuery = "%" + query + "%";
+            sql.Where("u.username ILIKE :query", new { query = wildcardQuery });
         }
 
         var all = await db.QueryAsync(t.RawSql, t.Parameters);
