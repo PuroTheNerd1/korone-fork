@@ -49,8 +49,9 @@ const useStyles = createUseStyles({
 const NavigationLinks = props => {
   const auth = AuthenticationStore.useContainer();
   useEffect(() => {
+    console.log("auth.isAuthenticated:", auth.isAuthenticated);
     if (!auth.isAuthenticated) {
-      window.location.href = '/auth/login';
+      console.log("Redirecting to login...");
     }
   }, [auth.isAuthenticated]);
 
