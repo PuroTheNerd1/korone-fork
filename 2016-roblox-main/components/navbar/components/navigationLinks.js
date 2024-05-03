@@ -1,6 +1,8 @@
 import { createUseStyles } from "react-jss";
 import Link from "../../link";
 import AuthenticationStore from "../../../stores/authentication";
+import { useEffect } from "react";
+const auth = AuthenticationStore.useContainer();
 const useStyles = createUseStyles({
   container: {
     marginTop: '3px',
@@ -44,6 +46,13 @@ const useStyles = createUseStyles({
     marginLeft: 0,
   }
 })
+useEffect(() => {
+  if (!auth.isAuthenticated) {
+    window.location.href = '/auth/login';
+  }
+}, [auth.isAuthenticated]);
+
+
 
 const LinkEntry = props => {
   const s = useStyles();
@@ -58,11 +67,6 @@ const LinkEntry = props => {
 
 const NavigationLinks = props => {
   const s = useStyles();
-  const auth = AuthenticationStore.useContainer();
-  if (!auth.isAuthenticated) {
-    window.location.href = '/auth/login';
-    return;
-  }
   return <div className={`${s.col} col-10 col-lg-5`}>
     <div className={s.container}>
       <div className='row'>
