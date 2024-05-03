@@ -10,11 +10,12 @@ public static class RobloxInfluxDb
 {
     public static InfluxDBClient? client { get; set; }
     const string Bucket = "roblox-website-v2";
-    const string Org = "A";
+    const string Org = "RobloxOrg";
     
-    public static void Configure(string baseUrl, string websiteToken)
+    public static void Configure()
     {
-        client = InfluxDBClientFactory.Create(baseUrl, websiteToken);
+        Console.WriteLine($"Setting up influx");
+        client = InfluxDBClientFactory.Create("https://us-east-1-1.aws.cloud2.influxdata.com", "9MrrCYcNv5RQXhxxx4varK8nIPrOB7alIALlz8hqutzupwv6QphOuVUx8Yj6yY_-b_atGr3XIN5Nzc_IEC5JbQ==");
     }
 
     public static List<PointData> points { get; set; } = new();
@@ -85,7 +86,7 @@ public static class RobloxInfluxDb
         var writeApi = client.GetWriteApiAsync();
         try
         {
-            await writeApi.WritePointAsync(point, Bucket, Org);
+            await writeApi.WritePointAsync(point, Bucket);
         }
         catch (ArgumentException e)
         {
@@ -100,6 +101,6 @@ public static class RobloxInfluxDb
         if (client == null)
             return;
         var writeApi = client.GetWriteApiAsync();
-        await writeApi.WriteMeasurementAsync(data, WritePrecision.Ms, Bucket, Org);
+        await writeApi.WriteMeasurementAsync(data, WritePrecision.Ms, Bucket);
     }
 }

@@ -52,6 +52,7 @@ GameServerService.Configure(string.Join(Guid.NewGuid().ToString(), new int [16].
 Roblox.Configuration.PackageShirtAssetId = long.Parse(configuration.GetSection("PackageShirtAssetId").Value);
 Roblox.Configuration.PackagePantsAssetId = long.Parse(configuration.GetSection("PackagePantsAssetId").Value);
 Roblox.Libraries.TwitterApi.TwitterApi.Configure(configuration.GetSection("Twitter:Bearer").Value);
+Roblox.Metrics.RobloxInfluxDb.Configure();
 // Sign up asset ids
 var assetIdsStart = configuration.GetSection("SignupAssetIds").GetChildren().Select(assetIdStr => long.Parse(assetIdStr.Value));
 Roblox.Configuration.SignupAssetIds = assetIdsStart;

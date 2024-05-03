@@ -84,6 +84,7 @@ const GameServers = props => {
       }
       <div className={s.buttonWrapper}>
         {showButton && <ActionButton label='Load Games' onClick={(e) => {
+          e.preventDefault();
           if (store.servers && store.servers.loading) {
             return;
           }

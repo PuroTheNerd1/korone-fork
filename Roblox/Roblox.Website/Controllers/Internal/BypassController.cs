@@ -1248,8 +1248,6 @@ namespace Roblox.Website.Controllers
             }
             if(action == "disconnect"){
                 string JobId = await gameServerService.GetJobIdByUserId(userId);
-
-                await Roblox.Metrics.GameMetrics.ReportGameJoinSuccess(placeId);
                 await gameServerService.OnPlayerLeave(userId, placeId, JobId);
             }
 

@@ -686,9 +686,11 @@ public class GameServerService : ServiceBase
                 status = JoinStatus.Joining
             };
         }
-
+        var watch = new Stopwatch();
+        watch.Start();
         string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
-                    
+        watch.Stop();
+        GameMetrics.ReportTimeToStartGameServer("85.125.186.154", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
             new
