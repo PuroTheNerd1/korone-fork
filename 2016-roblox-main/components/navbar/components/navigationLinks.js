@@ -50,8 +50,8 @@ const NavigationLinks = props => {
 
 
   useEffect(() => {
-    window.addEventListener('load', async () => {
-      if (!await auth.isAuthenticated) {
+    window.addEventListener('load', () => {
+      if (!auth.isAuthenticated) {
         window.location.href = '/auth/login';
       }
     });
