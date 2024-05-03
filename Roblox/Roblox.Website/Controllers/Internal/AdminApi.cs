@@ -1380,7 +1380,7 @@ public class AdminApiController : ControllerBase
         // temporary
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Cannot give Tickets to this user");
-        if (request.tickets is <= 0 or > 10000000)
+        if (request.robux is <= -10000000 or > 10000000)
             throw new StaffException("Invalid ticket amount. Must be between 1 and 10M (inclusive)");
 
         await db.ExecuteAsync("UPDATE user_economy SET balance_tickets = balance_tickets + :amt WHERE user_id = :user_id",
@@ -1405,7 +1405,7 @@ public class AdminApiController : ControllerBase
         // temporary
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Cannot give Robux to this user");
-        if (request.robux is <= 0 or > 10000000)
+        if (request.robux is <= -10000000 or > 10000000)
             throw new StaffException("Invalid robux amount. Must be between 1 and 10M (inclusive)");
 
         await db.ExecuteAsync("UPDATE user_economy SET balance_robux = balance_robux + :amt WHERE user_id = :user_id",
