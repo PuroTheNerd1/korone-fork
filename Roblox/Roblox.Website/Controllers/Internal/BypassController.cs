@@ -1349,40 +1349,47 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> ValidateMachineAsync()
         {
             HWID hwid = new HWID();
-            string macAddress = null; 
             long userId = safeUserSession.userId;
+            bool isBanned = false; 
+            string macAddress = null; 
+
             using (StreamReader reader = new StreamReader(Request.Body))
             {
-                string requestBody = await reader.ReadToEndAsync();
+                string rawBody = await reader.ReadToEndAsync();
 
-                string[] keyValuePairs = requestBody.Split('&');
-                
-                foreach (var pair in keyValuePairs)
+                string[] macAddresses = rawBody.Split('&');
+                List<string> processedMacAddresses = new List<string>();
+                foreach (string macAddressString in macAddresses)
                 {
-                    string[] keyValue = pair.Split('=');
-                    if (keyValue.Length == 2 && keyValue[0] == "macAddresses")
+                    string[] parts = macAddressString.Split('=');
+                    if (parts.Length == 2)
                     {
-                        macAddress = Uri.UnescapeDataString(keyValue[1]);
-                        //Console.WriteLine("Client sent macAddress: " + macAddress);
-                        break;
+                        macAddress = parts[1];
+                        isBanned = await hwid.CheckHWID(userId, macAddress);
+                        if (!isBanned) 
+                        {
+                            break;
+                        }                        
                     }
                 }
             }
 
-            if (macAddress == null){
-                return new{
+            if (macAddress == null)
+            {
+                return new
+                {
                     success = false,
                     message = "Invalid Data",
                 };
             }
 
-            bool isBanned = await hwid.CheckHWID(userId, macAddress);
-
-            return new{
+            return new
+            {
                 success = isBanned,
                 message = "",
             };
         }
+
         [HttpGetBypass("/my/balance")]
         public async Task<ActionResult<dynamic>> MyBalance()
         {
