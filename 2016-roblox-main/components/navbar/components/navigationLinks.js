@@ -2,7 +2,7 @@ import { createUseStyles } from "react-jss";
 import Link from "../../link";
 import AuthenticationStore from "../../../stores/authentication";
 import { useEffect } from "react";
-const auth = AuthenticationStore.useContainer();
+
 const useStyles = createUseStyles({
   container: {
     marginTop: '3px',
@@ -17,7 +17,6 @@ const useStyles = createUseStyles({
     paddingBottom: 0,
     textAlign: 'center',
     fontSize: '16px',
-
     textDecoration: 'none',
     padding: '4px 8px',
     transition: 'none',
@@ -45,38 +44,40 @@ const useStyles = createUseStyles({
     paddingLeft: 0,
     marginLeft: 0,
   }
-})
-useEffect(() => {
-  if (!auth.isAuthenticated) {
-    window.location.href = '/auth/login';
-  }
-}, [auth.isAuthenticated]);
-
-
-
-const LinkEntry = props => {
-  const s = useStyles();
-  return <div className='col-3'>
-    <Link href={`/${props.url}`}>
-      <a className={`${s.linkEntry} nav-link active pt-0`}>
-        {props.children}
-      </a>
-    </Link>
-  </div>
-}
+});
 
 const NavigationLinks = props => {
+  const auth = AuthenticationStore.useContainer();
+  useEffect(() => {
+    if (!auth.isAuthenticated) {
+      window.location.href = '/auth/login';
+    }
+  }, [auth.isAuthenticated]);
+
   const s = useStyles();
-  return <div className={`${s.col} col-10 col-lg-5`}>
-    <div className={s.container}>
-      <div className='row'>
-        <LinkEntry url='games'>Games</LinkEntry>
-        <LinkEntry url='catalog'>Catalog</LinkEntry>
-        <LinkEntry url='develop'>Develop</LinkEntry>
-        <LinkEntry url='download'>Download</LinkEntry>
+
+  const LinkEntry = props => (
+    <div className='col-3'>
+      <Link href={`/${props.url}`}>
+        <a className={`${s.linkEntry} nav-link active pt-0`}>
+          {props.children}
+        </a>
+      </Link>
+    </div>
+  );
+
+  return (
+    <div className={`${s.col} col-10 col-lg-5`}>
+      <div className={s.container}>
+        <div className='row'>
+          <LinkEntry url='games'>Games</LinkEntry>
+          <LinkEntry url='catalog'>Catalog</LinkEntry>
+          <LinkEntry url='develop'>Develop</LinkEntry>
+          <LinkEntry url='download'>Download</LinkEntry>
+        </div>
       </div>
     </div>
-  </div>
+  );
 }
 
 export default NavigationLinks;
