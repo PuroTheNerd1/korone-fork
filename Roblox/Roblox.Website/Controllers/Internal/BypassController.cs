@@ -1064,13 +1064,13 @@ namespace Roblox.Website.Controllers
             return Content(jsonString, "application/json");           
         }
         [HttpGetBypass("v1/avatar/metadata")]
-        public async Task<IActionResult> AvatarMetadata()
+        public dynamic AvatarMetadata()
         {
             AvatarControllerV1 avatar = new AvatarControllerV1();
             return avatar.GetAvatarMetadata();
         }        
         [HttpGetBypass("v1/avatar")]
-        public async Task<IActionResult> MobileCharapp()
+        public dynamic MobileCharapp()
         {
             /*
             var avatar = await services.avatar.GetAvatar(safeUserSession.userId);          
@@ -1127,7 +1127,7 @@ namespace Roblox.Website.Controllers
             var jsonString = JsonConvert.SerializeObject(MobileCharapp);
             */
             AvatarControllerV1 avatar = new AvatarControllerV1();
-            return await avatar.GetAvatar(safeUserSession.userId);
+            return  avatar.GetAvatar(safeUserSession.userId);
         }
 
         [HttpGetBypass("/v1/avatar-fetch")]
