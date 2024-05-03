@@ -1020,27 +1020,10 @@ namespace Roblox.Website.Controllers
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId=2;{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
         [HttpGetBypass("v1/avatar-rules")]
-        public IActionResult AvatarRules()
+        public dynamic AvatarRules()
         {
-            string filePath = @"C:\ProjectX\services\Roblox\Roblox.Libraries\Json\avatarules.json";
-
-            if (!System.IO.File.Exists(filePath))
-            {
-                return NotFound(); 
-            }
-
-            string jsonContent = System.IO.File.ReadAllText(filePath);
-
-            dynamic avatarRules = JsonConvert.DeserializeObject(jsonContent);
-
-            if (avatarRules == null)
-            {
-                return StatusCode(500); 
-            }
-
-            string jsonString = JsonConvert.SerializeObject(avatarRules);
-
-            return Content(jsonString, "application/json");
+            AvatarControllerV1 avatar = new AvatarControllerV1();
+            return avatar.GetAvatarRules();
         }
         [HttpPostBypass("v1/avatar/set-body-color")]
         public async Task<dynamic> SetBodyColor()
@@ -1083,29 +1066,13 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/avatar/metadata")]
         public async Task<IActionResult> AvatarMetadata()
         {
-            string filePath = @"C:\ProjectX\services\Roblox\Roblox.Libraries\Json\metadata.json";
-
-            if (!System.IO.File.Exists(filePath))
-            {
-                return NotFound(); 
-            }
-
-            string jsonContent = System.IO.File.ReadAllText(filePath);
-
-            dynamic avatarRules = JsonConvert.DeserializeObject(jsonContent);
-
-            if (avatarRules == null)
-            {
-                return StatusCode(500); 
-            }
-
-            string jsonString = JsonConvert.SerializeObject(avatarRules);
-
-            return Content(jsonString, "application/json");            
+            AvatarControllerV1 avatar = new AvatarControllerV1();
+            return avatar.GetAvatarMetadata();
         }        
         [HttpGetBypass("v1/avatar")]
         public async Task<IActionResult> MobileCharapp()
         {
+            /*
             var avatar = await services.avatar.GetAvatar(safeUserSession.userId);          
             var assets = await services.avatar.GetWornAssets(safeUserSession.userId);  
 
@@ -1158,8 +1125,9 @@ namespace Roblox.Website.Controllers
             };
 
             var jsonString = JsonConvert.SerializeObject(MobileCharapp);
-
-            return Content(jsonString, "application/json");
+            */
+            AvatarControllerV1 avatar = new AvatarControllerV1();
+            return await avatar.GetAvatar(safeUserSession.userId);
         }
 
         [HttpGetBypass("/v1/avatar-fetch")]
