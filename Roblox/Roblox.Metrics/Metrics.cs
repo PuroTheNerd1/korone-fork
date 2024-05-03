@@ -86,7 +86,7 @@ public static class RobloxInfluxDb
         var writeApi = client.GetWriteApiAsync();
         try
         {
-            await writeApi.WritePointAsync(point, Bucket);
+            await writeApi.WritePointAsync(point, Bucket, Org);
         }
         catch (ArgumentException e)
         {
@@ -101,6 +101,6 @@ public static class RobloxInfluxDb
         if (client == null)
             return;
         var writeApi = client.GetWriteApiAsync();
-        await writeApi.WriteMeasurementAsync(data, WritePrecision.Ms, Bucket);
+        await writeApi.WriteMeasurementAsync(data, WritePrecision.Ms, Bucket, Org);
     }
 }
