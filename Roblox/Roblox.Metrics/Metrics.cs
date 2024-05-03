@@ -10,7 +10,7 @@ public static class RobloxInfluxDb
 {
     public static InfluxDBClient? client { get; set; }
     const string Bucket = "roblox-website-v2";
-    const string Org = "a621702984f69a5d";
+    const string Org = "A";
     
     public static void Configure(string baseUrl, string websiteToken)
     {
