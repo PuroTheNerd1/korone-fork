@@ -49,13 +49,7 @@ const useStyles = createUseStyles({
 const NavigationLinks = props => {
 
 
-  useEffect(() => {
-    window.addEventListener('load', () => {
-      if (!auth.isAuthenticated) {
-        window.location.href = '/auth/login';
-      }
-    });
-  }, [auth.isAuthenticated]);
+
 
   const s = useStyles();
 
