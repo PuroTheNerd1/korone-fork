@@ -1020,10 +1020,11 @@ namespace Roblox.Website.Controllers
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId=2;{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
         [HttpGetBypass("v1/avatar-rules")]
-        public dynamic AvatarRules()
+        public async Task<IActionResult> AvatarRules()
         {
             AvatarControllerV1 avatar = new AvatarControllerV1();
-            return avatar.GetAvatarRules();
+            var avatarRules = await avatar.GetAvatarRules();
+            return Ok(avatarRules);
         }
         [HttpPostBypass("v1/avatar/set-body-color")]
         public async Task<dynamic> SetBodyColor()
@@ -1064,13 +1065,14 @@ namespace Roblox.Website.Controllers
             return Content(jsonString, "application/json");           
         }
         [HttpGetBypass("v1/avatar/metadata")]
-        public dynamic AvatarMetadata()
+        public async Task<IActionResult> AvatarMetadata()
         {
             AvatarControllerV1 avatar = new AvatarControllerV1();
-            return avatar.GetAvatarMetadata();
+            var avatarMetadata = await avatar.GetAvatarMetadata();
+            return Ok(avatarMetadata);
         }        
         [HttpGetBypass("v1/avatar")]
-        public dynamic MobileCharapp()
+        public async Task<IActionResult> MobileCharapp()
         {
             /*
             var avatar = await services.avatar.GetAvatar(safeUserSession.userId);          
@@ -1127,7 +1129,8 @@ namespace Roblox.Website.Controllers
             var jsonString = JsonConvert.SerializeObject(MobileCharapp);
             */
             AvatarControllerV1 avatar = new AvatarControllerV1();
-            return  avatar.GetAvatar(safeUserSession.userId);
+            var avatarData = await avatar.GetAvatar(safeUserSession.userId);
+            return Ok(avatarData);
         }
 
         [HttpGetBypass("/v1/avatar-fetch")]
