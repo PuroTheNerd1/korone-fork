@@ -48,12 +48,14 @@ const useStyles = createUseStyles({
 
 const NavigationLinks = props => {
   const auth = AuthenticationStore.useContainer();
+
   useEffect(() => {
-    console.log("auth.isAuthenticated:", auth.isAuthenticated);
-    if (!auth.isAuthenticated) {
-      console.log("Redirecting to login...");
-    }
-  }, [auth.isAuthenticated]);
+    window.addEventListener('load', () => {
+      if (!auth.isAuthenticated) {
+        window.location.href = '/auth/login';
+      }
+    });
+  }, []);
 
   const s = useStyles();
 
