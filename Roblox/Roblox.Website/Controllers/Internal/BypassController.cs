@@ -2251,12 +2251,10 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
         {
             bool IsRCC = IsRcc();
-            int roundedInt = (int)Math.Round(ping, 0);            
+            int roundPing = (int)Math.Round(ping, 0);            
             if(IsRCC)
             {
-                Console.WriteLine(roundedInt);
-                //await services.gameServer.SetServerGSFPS(gameId, fps);
-                await services.gameServer.SetServerGSPing(gameId, roundedInt);   
+                await services.gameServer.SetServerGSPing(gameId, roundPing);   
                 return "OK!";             
             }
             else{
@@ -2268,26 +2266,27 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
             bool IsRCC = IsRcc();
-            if (IsRCC){
-                if (clientCount < 1 && gameTime > 10)
+            if (!IsRCC){
+                return "Not RCC";
+            }
+
+            if (clientCount < 1 && gameTime > 10)
+            {
+                try
                 {
-                    try
-                    {
-                        await services.gameServer.ShutDownServerAsync(gameId);
-                        return "OK!";
-                    }
-                    catch (Exception ex)
-                    {
-                        await services.gameServer.DeleteGameServer(gameId);
-                        return "OK!";
-                    }
+                    await services.gameServer.ShutDownServerAsync(gameId);
+                    return "OK!";
                 }
-                else{
-                    await services.gameServer.SetServerPing(gameId);
+                catch (Exception ex)
+                {
+                    await services.gameServer.DeleteGameServer(gameId);
                     return "OK!";
                 }
             }
-            return "FALSE";
+            else{
+                await services.gameServer.SetServerPing(gameId);
+                return "OK!";
+            }
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
