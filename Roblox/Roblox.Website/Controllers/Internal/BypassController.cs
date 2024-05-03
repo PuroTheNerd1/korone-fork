@@ -2227,21 +2227,22 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> CloseGSNew(string gameId)
         {
             bool IsRCC = IsRcc();
-            if(IsRCC)
+            if(!IsRCC){
+                return "Not RCC";
+            }
+            
+            try
             {
-                try
-                {
-                    await services.gameServer.ShutDownServerAsync(gameId);
-                    return "OK!";
-                }
-                catch (Exception ex)
-                {
-                    // lets just delete the gameserver if we couldnt close the gameserver 
-                    await services.gameServer.DeleteGameServer(gameId);
-                    return "Catch an error";
+                await services.gameServer.ShutDownServerAsync(gameId);
+                return "OK!";
+            }
+            catch (Exception ex)
+            {
+                // lets just delete the gameserver if we couldnt close the gameserver 
+                await services.gameServer.DeleteGameServer(gameId);
+                return "Catch an error";
                 }
             }
-            return "Not authed.";
             
         }
         [HttpPostBypass("v2/CreateOrUpdate")]        
@@ -2252,14 +2253,13 @@ namespace Roblox.Website.Controllers
         {
             bool IsRCC = IsRcc();
             int roundPing = (int)Math.Round(ping, 0);            
-            if(IsRCC)
+            if(!IsRCC)
             {
-                await services.gameServer.SetServerGSPing(gameId, roundPing);   
-                return "OK!";             
+                return "Not RCC";
             }
-            else{
-                return "FALSE";
-            }
+            
+            await services.gameServer.SetServerGSPing(gameId, roundPing);   
+            return "OK!";                        
         }        
         [HttpPostBypass("v1.0/Refresh")]
         [HttpPostBypass("v2.0/Refresh")]
