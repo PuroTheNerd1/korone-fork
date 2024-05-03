@@ -319,22 +319,21 @@ public class UsersService : ServiceBase, IService
             return false;
         if (lowerName.Contains("tranny") || lowerName.Contains("fag") || lowerName.Contains("goblina") || lowerName.Contains("dyke") || lowerName.Contains("dick") || lowerName.Contains("cock") || lowerName.Contains("c0ck") || lowerName.Contains("d1ck") || lowerName.Contains("hitler") || lowerName.Contains("hitier"))
             return false;
-
+        // special char block
+        if (!IsAsciiUsername(nameToCheck))
+            return false;
         // mod blocked
         var blocked = await IsBadUsername(nameToCheck);
         if (blocked)
             return false;
         
-        // disallow special characters
-        foreach (char c in nameToCheck)
-        {
-            if (!char.IsLetterOrDigit(c))
-                return false;
-        }
 
         return true;
     }
-
+    private bool IsAsciiUsername(string username)
+    {
+        return username.All(c => c < 128 && char.IsLetterOrDigit(c));
+    }
 
 
     public bool IsPasswordValid(string passwordToValidate)
