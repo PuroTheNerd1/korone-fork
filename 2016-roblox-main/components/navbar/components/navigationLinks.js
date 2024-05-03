@@ -2,7 +2,7 @@ import { createUseStyles } from "react-jss";
 import Link from "../../link";
 import AuthenticationStore from "../../../stores/authentication";
 import { useEffect } from "react";
-
+const auth = AuthenticationStore.useContainer();
 const useStyles = createUseStyles({
   container: {
     marginTop: '3px',
@@ -47,15 +47,15 @@ const useStyles = createUseStyles({
 });
 
 const NavigationLinks = props => {
-  const auth = AuthenticationStore.useContainer();
+
 
   useEffect(() => {
-    window.addEventListener('load', () => {
-      if (!auth.isAuthenticated) {
+    window.addEventListener('load', async () => {
+      if (!await auth.isAuthenticated) {
         window.location.href = '/auth/login';
       }
     });
-  }, []);
+  }, [auth.isAuthenticated]);
 
   const s = useStyles();
 
