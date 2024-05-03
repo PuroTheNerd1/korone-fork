@@ -146,19 +146,9 @@ namespace Roblox.Website.Controllers
 #if DEBUG == false
             var userAgent = Request.Headers["User-Agent"].FirstOrDefault()?.ToLower();
             var requester = Request.Headers["Requester"].FirstOrDefault()?.ToLower();
-            if (!isBotRequest && !isLoggedIn) {
-                if (userAgent is null) throw new BadRequestException();
-                if (requester is null) throw new BadRequestException();
-                // Client = studio/client, Server = rcc
-                if (requester != "client" && requester != "server")
-                {
-                    throw new BadRequestException();
-                }
-
-                if (!BypassControllerMetadata.allowedUserAgents.Contains(userAgent))
-                {
-                    throw new BadRequestException();
-                }
+            if (!isBotRequest && !isLoggedIn && (userAgent == null || requester == null || (requester != "client" && requester != "server") || !BypassControllerMetadata.allowedUserAgents.Contains(userAgent)))
+            {
+                throw new BadRequestException();
             }
 #endif
 
