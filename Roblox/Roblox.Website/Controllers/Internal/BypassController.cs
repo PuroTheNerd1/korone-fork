@@ -2149,7 +2149,7 @@ namespace Roblox.Website.Controllers
                 return "Not RCC";
             }
 
-            if (clientCount < 1 && gameTime > 25)
+            if (clientCount < 1 && gameTime > 8)
             {
                 try
                 {
