@@ -1355,7 +1355,7 @@ namespace Roblox.Website.Controllers
             }
         }
         */
-        [HttpPostBypass("/game/validate-machine")]
+        [HttpPostBypass("game/validate-machine")]
         public async Task<dynamic> ValidateMachineAsync()
         {
             HWID hwid = new HWID();
