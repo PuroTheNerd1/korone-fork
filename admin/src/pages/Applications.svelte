@@ -266,6 +266,14 @@ import DropdownButton from "../components/misc/DropdownButton.svelte";
 								{#if app.isVerified}
 									<span class="badge bg-success">Verfied: </span>
 									<a rel='nofollow noopener noreferrer' target='_blank' href={app.verifiedUrl}>{app.verifiedUrl}</a>
+									<br />
+									<hr />
+									<span>Discord ID: {app.discordId}</span>
+									<br />
+									<hr />
+									<span>Discord Username: {app.discordUsername}</span>
+									<br />
+									<hr />
 								{:else}
 									<span class="badge bg-warning text-dark">Unverified: </span>
 									{#if isGoodPrefix(app.socialPresence)}
@@ -273,12 +281,6 @@ import DropdownButton from "../components/misc/DropdownButton.svelte";
 									{:else}
 										{app.socialPresence}
 									{/if}
-									<br />
-									<hr />
-									<span>Discord ID: {app.discordId}</span>
-									<br />
-									<hr />
-									<span>Discord Username: {app.discordUsername}</span>
 									<br />
 									<hr />
 									<span>Verification Phrase: {app.verificationPhrase}</span>
