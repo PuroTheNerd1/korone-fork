@@ -826,7 +826,7 @@ namespace Roblox.Website.Controllers
 
             if (membership == null)
             {
-                membership == "None";
+                membership = "None";
             }
 
             switch (year)
