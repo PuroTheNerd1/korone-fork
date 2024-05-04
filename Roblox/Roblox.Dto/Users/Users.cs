@@ -129,7 +129,7 @@ public class CreateUserApplicationRequest
 {
     public string about { get; set; }
     public string socialPresence { get; set; }
-    public long discordId { get; set; }
+    public string discordId { get; set; }
     public string discordUsername { get; set; }
     public long? userId { get; set; }
     public DateTime createdAt { get; set; }

@@ -52,7 +52,7 @@ public class Application : RobloxPageModel
     [BindProperty]
     public string socialUrl { get; set; }
     [BindProperty]
-    public long discordId { get; set; }
+    public string discordId { get; set; }
     [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
     public string? verificationPhrase { get; set; }
@@ -80,7 +80,7 @@ public class Application : RobloxPageModel
             showBannerForOldUsers = true;
         }
     }
-    public async Task<DiscordInfo> InfoDiscordUser(long discord_id)
+    public async Task<DiscordInfo> InfoDiscordUser(string discord_id)
     {
         var httpClient = new HttpClient();
         var response = await httpClient.GetAsync($"http://localhost:3550/isuserinserver?discordId={discord_id}");
@@ -178,9 +178,15 @@ public class Application : RobloxPageModel
             return new PageResult();
         }
         
-        if (discordId == null || discordId == 0)
+        if (string.IsNullOrEmpty(discordId))
         {
             errorMessage = "Discord ID is empty.";
+            return new PageResult();
+        }
+
+        if (!Regex.IsMatch(discordId, @"^\d+$"))
+        {
+            errorMessage = "Your Discord ID must contain only numeric characters.";
             return new PageResult();
         }
 

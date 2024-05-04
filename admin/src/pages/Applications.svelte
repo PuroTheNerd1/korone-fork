@@ -281,6 +281,12 @@ import DropdownButton from "../components/misc/DropdownButton.svelte";
 									{/if}
 									<br />
 									<hr />
+									<span>Discord ID: {app.discordId}</span>
+									<br />
+									<hr />
+									<span>Discord Username: {app.discordUsername}</span>
+									<br />
+									<hr />
 									<span>Verification Phrase: {app.verificationPhrase}</span>
 								{/if}
 							</td>
