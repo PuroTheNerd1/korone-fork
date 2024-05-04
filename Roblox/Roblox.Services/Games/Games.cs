@@ -138,7 +138,6 @@ public class GamesService : ServiceBase, IService
             });
         return query.total;
     }
-
     public async Task<IEnumerable<GameListEntry>> GetGamesList(long? contextUserId, string? sortToken, int maxRows, Genre? genre, string? keyword)
     {
         var query = new SqlBuilder();

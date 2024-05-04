@@ -68,7 +68,30 @@ public class GameListEntry
     public long year { get; set; }
     public string imageToken => "T_" + placeId + "_icon";
 }
-
+public class GameListEntryRoblox
+{
+    public long CreatorID { get; set; }
+    public string CreatorName { get; set; }
+    public string CreatorUrl = $"https://www.projex.zip/users/1/profile";
+    public long Plays { get; set; }
+    public int Price  { get; set; }
+    public int ProductID = 0;
+    public bool IsOwned = false;
+    public bool IsVotingEnabled = true;
+    public int TotalUpVotes { get; set; }
+    public int TotalDownVotes { get; set; }
+    public long TotalBought = 1;
+    public long UniverseID { get; set; }
+    public bool HasErrorOcurred = false;
+    public string GameDetailReferralUrl = "https://projex.zip";
+    public string Url = "";
+    public string RetryUrl = null;
+    public bool Final = true;
+    public string Name { get; set; }
+    public long PlaceID { get; set; }
+    public long PlayerCount { get; set; }
+    public long ImageId = 2311;
+}
 public class GamesForCreatorEntryDb
 {
     public long id { get; set; }
