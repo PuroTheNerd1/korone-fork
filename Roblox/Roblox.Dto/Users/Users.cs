@@ -129,8 +129,6 @@ public class CreateUserApplicationRequest
 {
     public string about { get; set; }
     public string socialPresence { get; set; }
-    public string discordId { get; set; }
-    public string discordUsername { get; set; }
     public long? userId { get; set; }
     public DateTime createdAt { get; set; }
     public DateTime updatedAt { get; set; }
@@ -138,6 +136,8 @@ public class CreateUserApplicationRequest
     public string? verifiedUrl { get; set; }
     public string? verifiedId { get; set; }
     public string? verificationPhrase { get; set; }
+    public string discordId { get; set; }
+    public string discordUsername { get; set; }
 }
 
 public class UserApplicationEntry : CreateUserApplicationRequest

@@ -21,7 +21,11 @@ public class VerificationPhraseCookie
     public string phrase { get; set; }
     public DateTime createdAt { get; set; }
 }
-
+public class DiscordInfo
+{
+    public bool success { get; set; }
+    public string username { get; set; }
+}
 public class Application : RobloxPageModel
 {
     public string? errorMessage { get; set; }
@@ -91,7 +95,14 @@ public class Application : RobloxPageModel
             }
         }
     }
-
+    private async Task<DiscordInfo> InfoDiscordUser(string discord_id)
+    {
+        var httpClient = new HttpClient();
+        var response = await httpClient.GetAsync($"http://localhost:3550/isuserinserver?discordId={discord_id}");
+        var userInfoJson = await response.Content.ReadAsStringAsync();
+        var desUserInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<DiscordInfo>(userInfoJson);
+        return desUserInfo;
+    }
     public async Task<IActionResult> OnGet()
     {
         var apps = new ApplicationWebsiteService(HttpContext);
@@ -142,7 +153,7 @@ public class Application : RobloxPageModel
         }
         await ApplyBanner();
         await ApplyApplication();
-
+        var userInfo = await InfoDiscordUser(discordId);
         if (action == "Get New Code")
         {
             Writer.Info(LogGroup.AbuseDetection, "Regen code");
@@ -199,6 +210,23 @@ public class Application : RobloxPageModel
         if (string.IsNullOrWhiteSpace(socialUrl) || socialUrl.Length is < 3 or > 128)
         {
             errorMessage = "Social URL must be between 3 and 128 characters.";
+            return new PageResult();
+        }
+        if (!userInfo.success)
+        {
+            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord";
+            return new PageResult();
+        }
+
+        if (string.IsNullOrEmpty(discordId))
+        {
+            errorMessage = "Discord ID is empty.";
+            return new PageResult();
+        }
+
+        if (!Regex.IsMatch(discordId, @"^\d+$"))
+        {
+            errorMessage = "Your Discord ID must contain only numeric characters.";
             return new PageResult();
         }
 
@@ -283,6 +311,8 @@ public class Application : RobloxPageModel
                 verifiedUrl = result.verifiedUrl,
                 verifiedId = result.verifiedId,
                 verificationPhrase = verificationPhrase!,
+                discordId = discordId,
+                discordUsername = userInfo.username
             });
             HttpContext.Response.Cookies.Append("es-application-1", applicationId, new CookieOptions()
             {
