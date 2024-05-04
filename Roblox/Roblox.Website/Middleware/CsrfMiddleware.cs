@@ -159,7 +159,8 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/chat",
         "/chat/negotiate",
         "/version",
-        "/v1/CreateOrUpdate"
+        "/v1/CreateOrUpdate",
+        "game/validate-machine"
     };
 
     public async Task InvokeAsync(HttpContext ctx)
