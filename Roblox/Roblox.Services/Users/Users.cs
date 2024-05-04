@@ -681,8 +681,8 @@ public class UsersService : ServiceBase, IService
             preferred_name = "",
             request.about,
             social_presence = request.socialPresence,
-            discord_id = request.discordId,
-            discord_username = request.discordUsername,
+            //discord_id = request.discordId,
+            //discord_username = request.discordUsername,
             status = UserApplicationStatus.Pending,
             is_verified = request.isVerified,
             verified_url = request.verifiedUrl,
@@ -745,7 +745,7 @@ public class UsersService : ServiceBase, IService
     private (SqlBuilder, SqlBuilder.Template) GetApplicationQuery()
     {
         var q = new SqlBuilder();
-        var t = q.AddTemplate("SELECT id, join_id as joinId, about, social_presence as socialPresence, discord_id as discordId, discord_username as discordUsername, user_id as userId, author_id as authorId, reject_reason as rejectionReason, status, created_at as createdAt, updated_at as updatedAt, is_verified as isVerified, verified_url as verifiedUrl, verification_phrase as verificationPhrase FROM join_application /**where**/ /**orderby**/");
+        var t = q.AddTemplate("SELECT id, join_id as joinId, about, social_presence as socialPresence, user_id as userId, author_id as authorId, reject_reason as rejectionReason, status, created_at as createdAt, updated_at as updatedAt, is_verified as isVerified, verified_url as verifiedUrl, verification_phrase as verificationPhrase FROM join_application /**where**/ /**orderby**/");
         return (q, t);
     }
 

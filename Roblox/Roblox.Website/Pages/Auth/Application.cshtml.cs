@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Newtonsoft.Json;
 using Roblox.Dto.Users;
 using Roblox.Exceptions;
 using Roblox.Libraries.Captcha;
@@ -22,11 +21,7 @@ public class VerificationPhraseCookie
     public string phrase { get; set; }
     public DateTime createdAt { get; set; }
 }
-public class DiscordInfo
-{
-    public bool success { get; set; }
-    public string username { get; set; }
-}
+
 public class Application : RobloxPageModel
 {
     public string? errorMessage { get; set; }
@@ -51,8 +46,6 @@ public class Application : RobloxPageModel
     public string about { get; set; }
     [BindProperty]
     public string socialUrl { get; set; }
-    [BindProperty]
-    public string discordId { get; set; }
     [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
     public string? verificationPhrase { get; set; }
@@ -80,14 +73,7 @@ public class Application : RobloxPageModel
             showBannerForOldUsers = true;
         }
     }
-    public async Task<DiscordInfo> InfoDiscordUser(string discord_id)
-    {
-        var httpClient = new HttpClient();
-        var response = await httpClient.GetAsync($"http://localhost:3550/isuserinserver?discordId={discord_id}");
-        var userInfoJson = await response.Content.ReadAsStringAsync();
-        var desUserInfo = JsonConvert.DeserializeObject<DiscordInfo>(userInfoJson);
-        return desUserInfo;
-    }
+
     private async Task ApplyApplication()
     {
         if (HttpContext.Request.Cookies.ContainsKey("es-application-1"))
@@ -142,7 +128,6 @@ public class Application : RobloxPageModel
 
     public async Task<IActionResult> OnPost()
     {
-        var userInfo = await InfoDiscordUser(discordId);
         var apps = new ApplicationWebsiteService(HttpContext);
         try
         {
@@ -177,25 +162,8 @@ public class Application : RobloxPageModel
             application = null;
             return new PageResult();
         }
-        
-        if (string.IsNullOrEmpty(discordId))
-        {
-            errorMessage = "Discord ID is empty.";
+        if (application != null)
             return new PageResult();
-        }
-
-        if (!Regex.IsMatch(discordId, @"^\d+$"))
-        {
-            errorMessage = "Your Discord ID must contain only numeric characters.";
-            return new PageResult();
-        }
-
-        if (!userInfo.success)
-        {
-            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord";
-            return new PageResult();
-        }
-
         if (verificationPhrase == null)
         {
             errorMessage = "Unable to check verification phrase. Please make sure cookies are enabled and try again.";
@@ -265,7 +233,6 @@ public class Application : RobloxPageModel
         if (result.verifiedId != null)
             await services.users.DeleteUnusedApplicationsWithSameUrl(result.verifiedId);
         await services.users.DeleteUnusedAppsWithSameUrlUnverified(socialUrl);
-        /*
 #if !DEBUG
             // Check if this is a duplicate
             // TODO: We might want to look into not giving an error message for this and just silently rejecting.
@@ -280,7 +247,7 @@ public class Application : RobloxPageModel
                 return new PageResult();
             }
 #endif
-        */
+
         // Check captcha last
         var userIp = ControllerBase.GetRequesterIpRaw(HttpContext);
         if (!await HCaptcha.IsValid(userIp, hCaptchaResponse))
@@ -310,8 +277,6 @@ public class Application : RobloxPageModel
                 createdAt = DateTime.UtcNow,
                 updatedAt = DateTime.UtcNow,
                 socialPresence = result.normalizedUrl,
-                discordId = discordId,
-                discordUsername = userInfo.username,
                 isVerified = result.isVerified,
                 verifiedUrl = result.verifiedUrl,
                 verifiedId = result.verifiedId,
