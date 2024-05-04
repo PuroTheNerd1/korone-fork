@@ -617,7 +617,7 @@ namespace Roblox.Website.Controllers
             gameDetail.UniverseID = 189;
             gameDetail.HasErrorOcurred = false;
             gameDetail.GameDetailReferralUrl = "https://www.projex.zip/games/189/Natural-Disaster-Survival";
-            gameDetail.Url = "https://www.projex.zip/images/thumbnails/e70dd27c44ca8bebebb14f48fbba28c5b5a2ba79ebb1e3c820c3a1e84fc8aed5.png";
+            gameDetail.Url = "https://www.roblox.bar/images/thumbnails/e70dd27c44ca8bebebb14f48fbba28c5b5a2ba79ebb1e3c820c3a1e84fc8aed5.png";
             gameDetail.RetryUrl = null;
             gameDetail.Final = true;
             gameDetail.Name = "Natural Disaster Survival";
