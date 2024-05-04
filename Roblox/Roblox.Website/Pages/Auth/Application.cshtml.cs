@@ -46,6 +46,8 @@ public class Application : RobloxPageModel
     public string about { get; set; }
     [BindProperty]
     public string socialUrl { get; set; }
+    [BindProperty]
+    public string discordId { get; set; }
     [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
     public string? verificationPhrase { get; set; }
