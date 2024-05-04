@@ -627,7 +627,8 @@ namespace Roblox.Website.Controllers
 
             List<dynamic> gameDetailList = new List<dynamic>(); 
             gameDetailList.Add(gameDetail); 
-
+            gameDetailList.Add(gameDetail); 
+            gameDetailList.Add(gameDetail); 
             string jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(gameDetailList); 
             return Content(jsonString, "application/json");
         }
