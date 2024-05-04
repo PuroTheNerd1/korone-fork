@@ -178,17 +178,19 @@ public class Application : RobloxPageModel
             return new PageResult();
         }
         
-        if (!userInfo.success)
+        if (discordId == null || discordId == 0)
         {
-            errorMessage = $"We couldn't find {discordId} in the Discord server. Please try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord";
+            errorMessage = "Discord ID is empty.";
             return new PageResult();
         }
 
-        if (verificationPhrase == null)
+        if (!userInfo.success)
         {
             errorMessage = "Unable to check verification phrase. Please make sure cookies are enabled and try again.";
+            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord";
             return new PageResult();
         }
+
         if (verificationPhrase == null)
         {
             errorMessage = "Unable to check verification phrase. Please make sure cookies are enabled and try again.";
