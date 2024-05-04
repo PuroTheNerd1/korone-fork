@@ -117,11 +117,17 @@
                                     <input placeholder="Social Media Profile URL" value="@Model.socialUrl" disabled="@Model.submitDisabled" type="text" class="form-control" name="socialUrl" maxlength="128"/>
                                 </div>
                             </div>
-                            
-                            <div class="input-padding"></div>
-                            
                             <div class="stage-3">
-                                <h4>Step 3 - Verification</h4>
+                                <h4>Step 3 - Discord ID</h4>
+                                <div class="p-2">
+                                    <p class="mb-0">Please put your Discord ID here. Don't know how to get it? Click <a href="https://www.electronicshub.org/how-to-find-discord-user-id/" target="_blank">here</a>.</p>
+                                    <p class="mb-2 mt-2"><span class="fw-bold">You must be in the Project X Discord server</span>, to join click <a href="https://www.projex.zip/auth/home" target="_blank">here</a></p>
+                                    <input placeholder="Example: 1124385331827966032" value="@Model.discordId" disabled="@Model.submitDisabled" type="number" class="form-control" name="discordId" maxlength="20"/>
+                                </div>
+                            </div>                            
+                            <div class="input-padding"></div>
+                            <div class="stage-4">
+                                <h4>Step 4 - Verification</h4>
                                 <div class="p-2">
                                     <p class="mb-0">Copy the entire phrase in the blue box below and paste it into the about section of your social media profile. This is done so that we can verify you aren't impersonating someone.</p>
                                     <div class="alert alert-primary mt-2 mb-2">
@@ -138,8 +144,8 @@
                             <div class="input-padding"></div>
                             
                             
-                            <div class="stage-4">
-                                <h4>Step 4 - Captcha</h4>
+                            <div class="stage-5">
+                                <h4>Step 5 - Captcha</h4>
                                 <div class="p-2">
                                     <p class="mb-0">We just have to make sure you aren't a robot.</p>
                                     <div class="cf-turnstile mt-4" data-sitekey="@Model.siteKey" data-theme="light"></div>

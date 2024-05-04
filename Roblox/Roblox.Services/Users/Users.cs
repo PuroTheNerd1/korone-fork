@@ -319,22 +319,21 @@ public class UsersService : ServiceBase, IService
             return false;
         if (lowerName.Contains("tranny") || lowerName.Contains("fag") || lowerName.Contains("goblina") || lowerName.Contains("dyke") || lowerName.Contains("dick") || lowerName.Contains("cock") || lowerName.Contains("c0ck") || lowerName.Contains("d1ck") || lowerName.Contains("hitler") || lowerName.Contains("hitier"))
             return false;
-
+        // special char block
+        if (!IsAsciiUsername(nameToCheck))
+            return false;
         // mod blocked
         var blocked = await IsBadUsername(nameToCheck);
         if (blocked)
             return false;
         
-        // disallow special characters
-        foreach (char c in nameToCheck)
-        {
-            if (!char.IsLetterOrDigit(c))
-                return false;
-        }
 
         return true;
     }
-
+    private bool IsAsciiUsername(string username)
+    {
+        return username.All(c => c < 128 && char.IsLetterOrDigit(c));
+    }
 
 
     public bool IsPasswordValid(string passwordToValidate)
@@ -682,6 +681,8 @@ public class UsersService : ServiceBase, IService
             preferred_name = "",
             request.about,
             social_presence = request.socialPresence,
+            discord_id = request.discordId,
+            discord_username = request.discordUsername,
             status = UserApplicationStatus.Pending,
             is_verified = request.isVerified,
             verified_url = request.verifiedUrl,
@@ -744,7 +745,7 @@ public class UsersService : ServiceBase, IService
     private (SqlBuilder, SqlBuilder.Template) GetApplicationQuery()
     {
         var q = new SqlBuilder();
-        var t = q.AddTemplate("SELECT id, join_id as joinId, about, social_presence as socialPresence, user_id as userId, author_id as authorId, reject_reason as rejectionReason, status, created_at as createdAt, updated_at as updatedAt, is_verified as isVerified, verified_url as verifiedUrl, verification_phrase as verificationPhrase FROM join_application /**where**/ /**orderby**/");
+        var t = q.AddTemplate("SELECT id, join_id as joinId, about, social_presence as socialPresence, discord_id as discordId, discord_username as discordUsername, user_id as userId, author_id as authorId, reject_reason as rejectionReason, status, created_at as createdAt, updated_at as updatedAt, is_verified as isVerified, verified_url as verifiedUrl, verification_phrase as verificationPhrase FROM join_application /**where**/ /**orderby**/");
         return (q, t);
     }
 
