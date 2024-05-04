@@ -625,8 +625,11 @@ namespace Roblox.Website.Controllers
             gameDetail.PlayerCount = 10347;
             gameDetail.ImageId = 2311;
 
-            string jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(gameDetail);
-            return Ok(jsonString);
+            List<dynamic> gameDetailList = new List<dynamic>(); 
+            gameDetailList.Add(gameDetail); 
+
+            string jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(gameDetailList); 
+            return Content(jsonString, "application/json");
         }
         [HttpGetBypass("game/GetCurrentUser.ashx")]
         public IActionResult GetUserId()
