@@ -803,8 +803,8 @@ namespace Roblox.Website.Controllers
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             long year = await services.games.GetYear(placeId);
-            string username = safeUserSession.username;
-            long userId = safeUserSession.userId;
+            string username = userSession!.username;
+            long userId = userSession!.userId;
             string membership;
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
@@ -818,11 +818,16 @@ namespace Roblox.Website.Controllers
                     status = 5
                 };
             }
-            var userInfo = await services.users.GetUserById(userId);
+            var userInfo = await services.users.GetUserById(userSession!.userId);
+            Console.WriteLine(username);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             var membershipInfo = MembershipMetadata.GetMetadata((await services.users.GetUserMembership(userId)).membershipType);
             membership = membershipInfo.membershipType.ToString();
 
+            if (membership == null)
+            {
+                membership == "None";
+            }
 
             switch (year)
             {
@@ -2132,7 +2137,7 @@ namespace Roblox.Website.Controllers
                 return "Not RCC";
             }
 
-            if (clientCount < 1 && gameTime > 10)
+            if (clientCount < 1 && gameTime > 25)
             {
                 try
                 {
