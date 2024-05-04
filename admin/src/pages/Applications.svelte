@@ -272,8 +272,6 @@ import DropdownButton from "../components/misc/DropdownButton.svelte";
 									<br />
 									<hr />
 									<span>Discord Username: {app.discordUsername}</span>
-									<br />
-									<hr />
 								{:else}
 									<span class="badge bg-warning text-dark">Unverified: </span>
 									{#if isGoodPrefix(app.socialPresence)}
