@@ -797,8 +797,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/join.ashx")]
         public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
         {
-            string UserAgent = Request.Headers["User-Agent"].ToString();
-
             Console.WriteLine("Client connected to join.ashx");
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
@@ -806,6 +804,7 @@ namespace Roblox.Website.Controllers
             string username = userSession!.username;
             long userId = userSession!.userId;
             string membership;
+            var membership2 = await services.users.GetUserMembership(userId);
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             string finalTicket;
@@ -821,8 +820,14 @@ namespace Roblox.Website.Controllers
             var userInfo = await services.users.GetUserById(userSession!.userId);
             Console.WriteLine(username);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            var membershipInfo = MembershipMetadata.GetMetadata((await services.users.GetUserMembership(userId)).membershipType);
-            membership = membershipInfo.membershipType.ToString();
+            if (membership2 == null)
+            {
+                membership = "None";
+            }
+            else
+            {
+                membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
+            }
 
             if (membership == null)
             {
