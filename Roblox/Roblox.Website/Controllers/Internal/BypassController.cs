@@ -1376,7 +1376,7 @@ namespace Roblox.Website.Controllers
                     {
                         macAddress = parts[1];
                         isBanned = await hwid.CheckHWID(userId, macAddress);
-                        if (!isBanned) 
+                        if (isBanned) 
                         {
                             break;
                         }                        
