@@ -265,6 +265,7 @@ public class Application : RobloxPageModel
         if (result.verifiedId != null)
             await services.users.DeleteUnusedApplicationsWithSameUrl(result.verifiedId);
         await services.users.DeleteUnusedAppsWithSameUrlUnverified(socialUrl);
+        /*
 #if !DEBUG
             // Check if this is a duplicate
             // TODO: We might want to look into not giving an error message for this and just silently rejecting.
@@ -279,7 +280,7 @@ public class Application : RobloxPageModel
                 return new PageResult();
             }
 #endif
-
+        */
         // Check captcha last
         var userIp = ControllerBase.GetRequesterIpRaw(HttpContext);
         if (!await HCaptcha.IsValid(userIp, hCaptchaResponse))
