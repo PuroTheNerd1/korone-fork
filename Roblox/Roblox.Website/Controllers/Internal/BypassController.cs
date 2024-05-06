@@ -1128,6 +1128,7 @@ namespace Roblox.Website.Controllers
         {
             List<long> accessoryVersionIds = new List<long>();
             List<long> equippedGearVersionIds = new List<long>();
+            string userAgent = Request.Headers["User-Agent"].ToString();
             var wornAssets = await services.avatar.GetWornAssets(userId);
             var avatar = await services.avatar.GetAvatar(userId);
             dynamic bodyColors = new { HeadColor = avatar.headColorId, LeftArmColor = avatar.leftArmColorId, LeftLegColor = avatar.leftLegColorId, RightArmColor = avatar.rightArmColorId, RightLegColor = avatar.rightLegColorId, TorsoColor = avatar.torsoColorId };
@@ -1144,10 +1145,13 @@ namespace Roblox.Website.Controllers
                     accessoryVersionIds.Add(assetId);
                 }
             }
+            if (userAgent != "Roblox/Win2020"){
+                equippedGearVersionIds = new List<long>();
+            }
             var result = new {
                 resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
-                equippedGearVersionIds = new {},
+                equippedGearVersionIds,
                 backpackGearVersionIds = equippedGearVersionIds,
                 animationAssetIds = new {},
                 playerAvatarType = AvatarType,
