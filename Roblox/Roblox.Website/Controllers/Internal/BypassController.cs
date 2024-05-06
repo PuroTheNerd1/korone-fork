@@ -1148,7 +1148,7 @@ namespace Roblox.Website.Controllers
                 resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
                 equippedGearVersionIds,
-                backpackGearVersionIds = new List<int>(),
+                backpackGearVersionIds = equippedGearVersionIds,
                 animationAssetIds = new {},
                 playerAvatarType = AvatarType,
                 scales,
