@@ -10,6 +10,7 @@ namespace Roblox.Website.Controllers
             // win
             "roblox/winhttp",
             "roblox/wininet",
+            "roblox/win2020",
             // mac
             "roblox/darwin",
             // linux
