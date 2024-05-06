@@ -1147,7 +1147,7 @@ namespace Roblox.Website.Controllers
             var result = new {
                 resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
-                equippedGearVersionIds,
+                equippedGearVersionIds = new {},
                 backpackGearVersionIds = equippedGearVersionIds,
                 animationAssetIds = new {},
                 playerAvatarType = AvatarType,
