@@ -255,7 +255,18 @@ public class ApplicationGuardMiddleware
         ctx.Response.Headers.Location = "/auth/home";
         await ctx.Response.WriteAsync("Object moved to <a href=\""+dest+"\">here</a>.");
     }
-    
+    public static bool IsRoblox(HttpRequest Request)
+    {
+        IHeaderDictionary Headers = Request.Headers;
+        string userAgent = Headers["User-Agent"].ToString();
+        bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("roblox ios app");
+        if (isMobile)
+        {
+            return true;
+        }
+        bool isUserAgent = userAgent.Contains("Roblox/WinInet") || userAgent.Contains("Roblox/Darwin");
+        return Headers.ContainsKey("User-Agent") && isUserAgent && (Headers["Requester"].ToString().Contains("Client") || Headers["Requester"].ToString().Contains("Server"));
+    }    
     public async Task InvokeAsync(HttpContext ctx)
     {
         var appGuardTimer = new MiddlewareTimer(ctx, "AppGuard");

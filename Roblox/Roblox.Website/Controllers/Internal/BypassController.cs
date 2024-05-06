@@ -37,6 +37,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Extensions;
 using Roblox.Website.WebsiteModels.Authentication;
 using System.Text.RegularExpressions;
+using InfluxDB.Client.Core.Exceptions;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -509,6 +510,9 @@ namespace Roblox.Website.Controllers
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long maxPlayerCount;
+            if (!isRoblox){
+                throw new RobloxException(403, 0, "Forbidden");
+            }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
             if (jobId != null)
@@ -831,6 +835,10 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
         {
             Console.WriteLine("Client connected to join.ashx");
+            bool isRoblox = ApplicationGuardMiddleware.IsRoblox(Request);
+            if (!isRoblox){
+                throw new RobloxException(403, 0, "Forbidden");
+            }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             long year = await services.games.GetYear(placeId);
