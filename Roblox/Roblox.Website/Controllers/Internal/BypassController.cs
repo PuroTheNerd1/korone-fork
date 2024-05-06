@@ -510,6 +510,7 @@ namespace Roblox.Website.Controllers
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long maxPlayerCount;
+            bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
                 throw new RobloxException(403, 0, "Forbidden");
             }
@@ -540,12 +541,7 @@ namespace Roblox.Website.Controllers
             }
             long year = await services.games.GetYear(placeId);
 
-
             var result = await services.gameServer.GetServerForPlace(placeId, year);
-            //Console.WriteLine(result.job);
- 
-            //lets wait 3 secs
-
             if (result.status == JoinStatus.Joining)
             {
                 Thread.Sleep(2500);
