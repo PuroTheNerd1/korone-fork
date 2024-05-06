@@ -1141,7 +1141,7 @@ namespace Roblox.Website.Controllers
                 }
 
                 else{
-                    accessoryVersionIds.Add(userId);
+                    accessoryVersionIds.Add(assetId);
                 }
             }
             var result = new {
