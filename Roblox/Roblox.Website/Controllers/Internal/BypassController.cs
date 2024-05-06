@@ -1126,16 +1126,28 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<MVC.IActionResult> CharacterFetch(long userId)
         {
-            var assets = await services.avatar.GetWornAssets(userId);
+            List<long> accessoryVersionIds = new List<long>();
+            List<long> equippedGearVersionIds = new List<long>();
+            var wornAssets = await services.avatar.GetWornAssets(userId);
             var avatar = await services.avatar.GetAvatar(userId);
             dynamic bodyColors = new { HeadColor = avatar.headColorId, LeftArmColor = avatar.leftArmColorId, LeftLegColor = avatar.leftLegColorId, RightArmColor = avatar.rightArmColorId, RightLegColor = avatar.rightLegColorId, TorsoColor = avatar.torsoColorId };
             dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
             string AvatarType = (avatar.avatar_type == 2) ? "R15" : "R6";
-            List<long> accessoryVersionIds = assets.ToList();
+            foreach (long assetId in wornAssets)
+            {
+                var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
+                if (assetInfo.assetType == Type.Gear){
+                    equippedGearVersionIds.Add(assetId);
+                }
+
+                else{
+                    accessoryVersionIds.Add(userId);
+                }
+            }
             var result = new {
                 resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
-                equippedGearVersionIds = new List<int>(),
+                equippedGearVersionIds,
                 backpackGearVersionIds = new List<int>(),
                 animationAssetIds = new {},
                 playerAvatarType = AvatarType,
