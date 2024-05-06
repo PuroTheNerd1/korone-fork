@@ -512,7 +512,7 @@ namespace Roblox.Website.Controllers
             long maxPlayerCount;
             bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
-                throw new RobloxException(403, 0, "Forbidden");
+                return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
@@ -833,7 +833,7 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("Client connected to join.ashx");
             bool isRoblox = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
-                throw new RobloxException(403, 0, "Forbidden");
+                return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
