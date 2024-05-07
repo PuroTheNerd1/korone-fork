@@ -542,6 +542,7 @@ namespace Roblox.Website.Controllers
             long year = await services.games.GetYear(placeId);
 
             var result = await services.gameServer.GetServerForPlace(placeId, year);
+            
             if (result.status == JoinStatus.Joining)
             {
                 Thread.Sleep(2500);
@@ -1738,8 +1739,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedSecurityVersions")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
+            if (!IsRcc())
+                throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
-            {
+            {  
                 "0.235.0pcplayer",
                 "0.314.0pcplayer",
                 "0.355.0pcplayer",

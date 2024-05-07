@@ -660,12 +660,12 @@ public class GameServerService : ServiceBase
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string jobId = Guid.NewGuid().ToString();
-        string OldJobId;
+
         GamesService gs = new GamesService();
         long maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
 
         var openGameServers = await db.QueryAsync<dynamic>(
-            "SELECT id as jobid FROM asset_server WHERE asset_id = :assetid",
+            "SELECT id as jobid, updated_at as lastping FROM asset_server WHERE asset_id = :assetid",
             new
             {
                 assetid = placeId,
@@ -673,24 +673,42 @@ public class GameServerService : ServiceBase
 
         foreach (var server in openGameServers)
         {
-            OldJobId = server.jobid.ToString(); 
-            var currentPlayerCount = await GetGameServerPlayers(OldJobId);
+            string ExistingJobId = server.jobid.ToString(); 
+            var currentPlayerCount = await GetGameServerPlayers(ExistingJobId);
 
+            DateTimeOffset updatedAt = DateTimeOffset.Parse(server.lastping.ToString());
+            DateTimeOffset currentTime = DateTimeOffset.UtcNow; 
+            TimeSpan timeDifference = currentTime - updatedAt;
+
+            // If the server is full we continue
             if (currentPlayerCount.Count() == maxPlayerCount)
             {
                 continue;
             }
+
+            // If server is last updated 5 mins ago and if theres no players active, we shutdown the server because RCC is most likely dead 
+
+            if (!currentPlayerCount.Any() && timeDifference.TotalMinutes <= 5)
+            {
+                await ShutDownServerAsync(ExistingJobId);
+                continue;
+            }
+            
+            // We found a OK server lets join
             return new GameServerGetOrCreateResponse()
             {
-                job = OldJobId,
+                job = ExistingJobId,
                 status = JoinStatus.Joining
             };
         }
+
         var watch = new Stopwatch();
         watch.Start();
         string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
         watch.Stop();
+
         GameMetrics.ReportTimeToStartGameServer("85.125.186.154", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
+
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
             new
@@ -829,45 +847,6 @@ public class GameServerService : ServiceBase
                 finalScript = originalScript.Replace("%", "&#37;");
                 break;
             case 2019:
-            /*
-            case 2020:
-                rccServer2020 = new Process();
-                rccServer2020.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                rccServer2020.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2020\\RCCService.exe";
-                rccServer2020.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-                rccServer2020.StartInfo.CreateNoWindow = false;
-                rccServer2020.StartInfo.RedirectStandardError = false;
-                rccServer2020.StartInfo.RedirectStandardOutput = false;
-                rccServer2020.StartInfo.UseShellExecute = true;
-                rccServer2020.Start();            
-                originalScript = $@"
-                {{
-                    ""Mode"": ""GameServer"",
-                    ""Settings"": {{
-                        ""PlaceId"": {placeId},
-                        ""CreatorId"": {uni.builderId},
-                        ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""85.215.186.154"",
-                        ""MaxPlayers"": {maxplayers},
-                        ""MaxGameInstances"": 5,
-                        ""PreferredPlayerCapacity"": {maxplayers},
-                        ""UniverseId"": {placeId},
-                        ""BaseUrl"": ""projex.zip"",
-                        ""PlaceFetchUrl"": ""https://www.projex.zip/asset/?id={placeId}"",
-                        ""MatchmakingContextId"": 1,
-                        ""CreatorType"": ""User"",
-                        ""PlaceVersion"": 1,
-                        ""JobId"": ""{jobId}"",
-                        ""PreferredPort"": {networkServerPort},
-                        ""PlaceVisitAccessKey"": ""{Configuration.RccAuthorization}"",
-                        ""ApiKey"": ""{Configuration.RccAuthorization}"",
-                        ""GsmInterval"": 5,
-                        ""GameCode"": """"
-                }}
-                }}";
-                finalScript = originalScript.Replace("%", "&#37;");
-                break;
-            */
             default:
                 return "Year not supported";
         }
