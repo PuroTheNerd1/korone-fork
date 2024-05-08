@@ -867,11 +867,6 @@ namespace Roblox.Website.Controllers
                 membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
 
-            if (membership == null)
-            {
-                membership = "None";
-            }
-
             switch (year)
             {
                 case 2016:
@@ -899,7 +894,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript2016 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "194.15.36.134",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 50,
@@ -939,7 +934,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20172018 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "194.15.36.134",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
@@ -981,13 +976,13 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20192020 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "194.15.36.134",
                 ServerConnections = new List<dynamic>
                 {
                     new
                     {
                         Port = GameServerService.currentGameServerPorts[jobId], 
-                        Address = "85.215.186.154", 
+                        Address = "194.15.36.134", 
                     }
                 },
 

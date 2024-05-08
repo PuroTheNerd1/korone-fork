@@ -333,7 +333,7 @@ public class GameServerService : ServiceBase
         }            
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
-        //currentGameServerPorts.Remove(placeJobId);
+        currentGameServerPorts.Remove(placeJobId);
         //jobRccs.Remove(placeJobId);
         //mainRCCPortsInUse.Remove(rccProcess);
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
@@ -753,6 +753,7 @@ public class GameServerService : ServiceBase
             HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}");
             if (response.IsSuccessStatusCode)
             {
+                currentGameServerPorts.Add(jobId, networkServerPort);
                 return "OK";
             }
         }
@@ -806,7 +807,7 @@ public class GameServerService : ServiceBase
                         ""PlaceId"": {placeId},
                         ""CreatorId"": ""{uni.builderId}"",
                         ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""85.215.186.154"",
+                        ""MachineAddress"": ""194.15.36.134"",
                         ""MaxPlayers"": {maxplayers},
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
@@ -843,7 +844,7 @@ public class GameServerService : ServiceBase
                         ""PlaceId"": {placeId},
                         ""CreatorId"": {uni.builderId},
                         ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""85.215.186.154"",
+                        ""MachineAddress"": ""194.15.36.134"",
                         ""MaxPlayers"": {maxplayers},
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
