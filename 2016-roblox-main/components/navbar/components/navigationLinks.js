@@ -1,8 +1,6 @@
 import { createUseStyles } from "react-jss";
 import Link from "../../link";
 import AuthenticationStore from "../../../stores/authentication";
-import { useEffect } from "react";
-import { useRouter } from 'next/router';
 const useStyles = createUseStyles({
   container: {
     marginTop: '3px',
@@ -60,18 +58,6 @@ const LinkEntry = props => {
 
 const NavigationLinks = props => {
   const s = useStyles();
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const robloSecurity = document.cookie.split(';').find(cookie => cookie.trim().startsWith('.ROBLOSECURITY='));
-      if (!robloSecurity) {
-        router.push('/auth/login');
-      }
-    };
-
-    checkAuth();
-  }, [router]);
   return <div className={`${s.col} col-10 col-lg-5`}>
     <div className={s.container}>
       <div className='row'>
