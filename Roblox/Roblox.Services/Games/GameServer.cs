@@ -324,14 +324,18 @@ public class GameServerService : ServiceBase
         // TODO: When we add multiple servers for the same game (most likely not for a while), get the jobId or kill the server a better way.
         string placeJobId = serverId; // hopefully not null, shouldn't be??
         long placeId = GetPlaceIdByJobId(serverId);
-        Process rccProcess = jobRccs[placeJobId];
-        rccProcess.Kill(); // soft kill soon instead of force kill
-            
+        //Process rccProcess = jobRccs[placeJobId];
+        //rccProcess.Kill(); // soft kill soon instead of force kill
+        using (HttpClient client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?jobId={serverId}");
+        }            
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
-        currentGameServerPorts.Remove(placeJobId);
-        jobRccs.Remove(placeJobId);
-        mainRCCPortsInUse.Remove(rccProcess);
+        //currentGameServerPorts.Remove(placeJobId);
+        //jobRccs.Remove(placeJobId);
+        //mainRCCPortsInUse.Remove(rccProcess);
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
         Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
@@ -738,10 +742,23 @@ public class GameServerService : ServiceBase
         // Before we waste our time, check if the place exists.
         AssetsService assetsService = new AssetsService();
         GamesService gamesService = new GamesService();
-        string originalScript;
-        string finalScript;
+        var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
+        var uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();        
+        //string originalScript;
+        //string finalScript;
         long maxplayers = await gamesService.GetMaxPlayerCount(placeId);
-        Console.WriteLine($"MaxPlayers = {maxplayers}");
+        using (HttpClient client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}");
+            if (response.IsSuccessStatusCode)
+            {
+                return "OK";
+            }
+        }
+        return "FALSE";
+        //Console.WriteLine($"MaxPlayers = {maxplayers}");
+        /*
         Process rccServer = null;
         Process rccServer2017 = null;
         Process rccServer2018 = null;
@@ -894,6 +911,7 @@ public class GameServerService : ServiceBase
         //jobRccs.Add(jobId, rccServer);
         Thread.Sleep(5000);
         return "OK";
+        */
     }
 
     public static async Task SendSoapRequestToRcc(string URL, string XML, string SOAPAction)

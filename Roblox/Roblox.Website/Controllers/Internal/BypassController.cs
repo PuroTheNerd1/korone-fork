@@ -1593,6 +1593,9 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
         {
+
+
+            string[] filterWords = {"nigger", "nigga", "nazi", "1488"};
             var text = HttpContext.Request.Form["text"].ToString();
             if (ContainsCyrillic(text))
             {
