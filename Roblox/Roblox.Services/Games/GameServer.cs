@@ -329,7 +329,7 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?jobId={serverId}");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/kill-game-server?jobId={serverId}");
         }            
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
@@ -757,7 +757,7 @@ public class GameServerService : ServiceBase
                 return "OK";
             }
         }
-        return "FALSE";
+        return "BAD";
         //Console.WriteLine($"MaxPlayers = {maxplayers}");
         /*
         Process rccServer = null;
