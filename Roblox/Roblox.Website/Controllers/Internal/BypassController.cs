@@ -1241,7 +1241,7 @@ namespace Roblox.Website.Controllers
             await services.gameServer.DeleteGameServer(request.serverId);
         }
         //this is for the newer years that dont have a custom monitoring script
-        [HttpPostBypass("/presence/register-game-presence")]
+        [HttpPostBypass("presence/register-game-presence")]
         public async Task RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
         {
             bool IsRCC = IsRcc();
@@ -1259,7 +1259,7 @@ namespace Roblox.Website.Controllers
         }
 
 
-        [HttpPostBypass("/presence/register-absence")]
+        [HttpPostBypass("presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
             GameServerService gameServerService = new GameServerService();
@@ -1309,8 +1309,6 @@ namespace Roblox.Website.Controllers
                 string JobId = await gameServerService.GetJobIdByUserId(userId);
                 await gameServerService.OnPlayerLeave(userId, placeId, JobId);
             }
-
-
         }
         [HttpPostBypass("/gs/shutdown")]
         public async Task ShutDownServer([Required, MVC.FromBody] ReportActivity request)
