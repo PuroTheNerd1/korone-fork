@@ -1,6 +1,5 @@
 import { createUseStyles } from "react-jss";
 import Link from "../../link";
-import AuthenticationStore from "../../../stores/authentication";
 const useStyles = createUseStyles({
   container: {
     marginTop: '3px',
