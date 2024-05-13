@@ -50,4 +50,14 @@ public class DevelopStudio : ControllerBase
             data = result,
         };
     }
+    [HttpGet("universes/{universeId}")]
+    public async Task<dynamic> UniverseInfo(string universeId)
+    {
+        var sp = universeId.Split(",").Select(long.Parse);
+        var result = await services.games.MultiGetUniverseInfo(sp);
+        return new
+        {
+            result,
+        };
+    }
 }
