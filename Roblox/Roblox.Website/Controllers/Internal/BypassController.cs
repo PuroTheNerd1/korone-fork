@@ -346,14 +346,13 @@ namespace Roblox.Website.Controllers
                     else
                     {
                         // It's not RCC making the request. are we authorized?
-                        if (!isLoggedIn)
+                        if (userSession == null)
                         {
                             throw new BadRequestException();
                         }
                         // Use current user as access check
                         IsOK = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
                         // Don't encrypt assets being sent to authorized users - they could be trying to download their own place to give to a friend or something
-                        IsOK = (id == 4430);
                         if (IsOK)
                         {
                             encryptionEnabled = false;

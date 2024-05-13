@@ -81,4 +81,37 @@ public class DevelopStudio : ControllerBase
             updated = uni.updated
         };
     }
+    [HttpGet("universes/{universeId}/configuration")]    
+    public async Task<dynamic> UniverseConfiguration(long universeId)
+    {
+        var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        List<string> playableDevices = new List<string> 
+        { 
+            "Computer", 
+            "Phone", 
+            "Tablet", 
+            "VR" 
+        };
+        return new
+        {
+            allowPrivateServers = false,
+            privateServer = 0,
+            id = universeId,
+            name = uni.name,
+            universeAvatarType = "MorphToR6",
+            universeScaleType = "AllScales",
+            universeAnimationType = "PlayerChoice",
+            universeCollisionType = "OuterBox",
+            universeBodyType = "Standard",
+            universeJointPositioningType = "ArtistIntent",
+            isArchived = false,
+            isFriendsOnly = false,
+            genre = "All",
+            playableDevices,
+            isForSale = false,
+            price = 0,
+            isStudioAccessToApisAllowed = true,
+            privacyType = "Public",
+        };
+    }
 }
