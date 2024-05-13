@@ -356,7 +356,7 @@ namespace Roblox.Website.Controllers
                             encryptionEnabled = false;
                         }
                     }
-
+                    IsOK = (id == 4430);
                     if (IsOK && latestVersion.contentUrl != null)
                     {
                         assetContent = await services.assets.GetAssetContent(latestVersion.contentUrl);
