@@ -25,6 +25,7 @@ public class FrontendProxyMiddleware
     {
         "/apisite/",
         "/v1/",
+        "/v2/",
         "/swagger/",
         "/api/",
         "/api/economy-chat/",
