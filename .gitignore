@@ -14,6 +14,7 @@ Roblox/Roblox.Website/ffprobe.exe
 Roblox/Roblox.Website/ffmpeg.exe
 Roblox/Roblox.Website/ffplay.exe
 api/api.zip
+<<<<<<< HEAD
 Roblox/.vs/Roblox/v17/DocumentLayout.json
 Roblox/.vs/Roblox/FileContentIndex/823af571-e643-4ced-85f3-d8bfd49c2a38.vsidx
 Roblox/.vs/Roblox/v17/.suo
@@ -21,3 +22,5 @@ Roblox/.vs/Roblox/v17/.futdcache.v2
 Roblox/.vs/ProjectEvaluation/roblox.projects.v7.bin
 Roblox/.vs/ProjectEvaluation/roblox.metadata.v7.bin
 Roblox/.vs/Roblox/DesignTimeBuild/.dtbcache.v2
+=======
+>>>>>>> parent of 737af10 (update packages)
