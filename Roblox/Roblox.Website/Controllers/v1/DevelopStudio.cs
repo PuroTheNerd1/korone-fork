@@ -9,7 +9,7 @@ namespace Roblox.Website.Controllers;
 [Route("/v1")]
 public class DevelopStudio : ControllerBase
 {
-    [HttpGetBypass("/gametemplates")]
+    [HttpGet("gametemplates")]
     public dynamic StudioTemplates()
     {
         var Templates = new
@@ -36,7 +36,7 @@ public class DevelopStudio : ControllerBase
         string json = JsonConvert.SerializeObject(data);
         return json; 
     }
-    [HttpGetBypass("/user/universes")]
+    [HttpGet("user/universes")]
     public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetUserCreatedGames(long userId,
         string? sortOrder, string? accessFilter, int limit, string? cursor = null)
     {
