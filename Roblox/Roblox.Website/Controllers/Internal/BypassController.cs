@@ -378,6 +378,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
         {
+            //we get universe
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeid })).First();
             return new 
             {
