@@ -34,16 +34,15 @@ public class DevelopStudio : ControllerBase
         };
         var data = new { data = new[] { Templates } };
         string json = JsonConvert.SerializeObject(data);
-        return json; 
+        return Content(json, "application/json");
     }
     [HttpGet("user/universes")]
-    public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetUserCreatedGames(long userId,
-        string? sortOrder, string? accessFilter, int limit, string? cursor = null)
+    public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetUserCreatedGames(string? sortOrder, string? accessFilter, int limit, string? cursor = null)
     {
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
         var result =
-            (await services.games.GetGamesForType(CreatorType.User, userId, limit, offset, sortOrder ?? "asc", accessFilter ?? "All")).ToList();
+            (await services.games.GetGamesForType(CreatorType.User, userSession.userId, limit, offset, sortOrder ?? "asc", accessFilter ?? "All")).ToList();
         return new RobloxCollectionPaginated<GamesForCreatorEntry>()
         {
             nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
