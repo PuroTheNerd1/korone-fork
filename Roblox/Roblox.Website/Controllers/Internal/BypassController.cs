@@ -176,6 +176,7 @@ namespace Roblox.Website.Controllers
                 try
                 {
                     var ourId = await services.assets.GetAssetIdFromRobloxAssetId(assetId);
+                    
                     assetId = ourId;
                 }
                 catch (RecordNotFoundException)
@@ -228,8 +229,9 @@ namespace Roblox.Website.Controllers
                     */
                     return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
                 }
-                details = await services.assets.GetAssetCatalogInfo(assetId);
+
             }
+            details = await services.assets.GetAssetCatalogInfo(assetId);
             if (details.is18Plus && !isRcc && !isBotRequest && !is18OrOver)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
@@ -371,7 +373,8 @@ namespace Roblox.Website.Controllers
                 Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
                 throw new BadRequestException();
             }
-            return File(assetContent, "application/binary", $"{id} - {placeDetails.name}.rbxl");
+            
+            return File(assetContent, "application/binary", $"{assetId} - {placeDetails.name}.rbxl");
         }
         [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
         public async Task<string> LoadPlaceInfo(long PlaceId)
