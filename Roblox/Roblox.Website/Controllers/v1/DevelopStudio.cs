@@ -95,7 +95,7 @@ public class DevelopStudio : ControllerBase
         return new
         {
             allowPrivateServers = false,
-            privateServer = 0,
+            privateServerPrice = 0,
             id = universeId,
             name = uni.name,
             universeAvatarType = "MorphToR6",

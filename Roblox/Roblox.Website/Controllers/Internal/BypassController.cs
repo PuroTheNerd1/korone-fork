@@ -375,6 +375,15 @@ namespace Roblox.Website.Controllers
             
             return File(assetContent, "application/binary", $"{assetId} - {details.name}.rbxl");
         }
+        [HttpGetBypass("universes/get-universe-containing-place")]
+        public async Task<dynamic> GetUniverse(long placeid)
+        {
+            PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeid })).First();
+            return new 
+            {
+                UniverseId = uni.universeId
+            };
+        }
         [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
         public async Task<string> LoadPlaceInfo(long PlaceId)
         {
