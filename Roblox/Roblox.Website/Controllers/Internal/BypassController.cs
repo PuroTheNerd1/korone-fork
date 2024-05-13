@@ -109,7 +109,6 @@ namespace Roblox.Website.Controllers
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
             HttpContext.Response.Headers.Add("Expires", "-1");
             HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
-            var placeDetails = await services.assets.GetAssetCatalogInfo(id);
             if(assetversionid != null)
             {
                 id = (long)assetversionid;
@@ -334,6 +333,7 @@ namespace Roblox.Website.Controllers
                         // If rcc is making the request, but it's not for a place, validate the request:
                         if (!IsOK)
                         {
+                            var placeDetails = await services.assets.GetAssetCatalogInfo(id);
                             // Check permissions
                             if (placeDetails.creatorType == details.creatorType &&
                                 placeDetails.creatorTargetId == details.creatorTargetId)
@@ -374,7 +374,7 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException();
             }
             
-            return File(assetContent, "application/binary", $"{assetId} - {placeDetails.name}.rbxl");
+            return File(assetContent, "application/binary", $"{assetId} - {details.name}.rbxl");
         }
         [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
         public async Task<string> LoadPlaceInfo(long PlaceId)
