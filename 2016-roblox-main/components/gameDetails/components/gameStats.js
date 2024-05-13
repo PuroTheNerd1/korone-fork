@@ -19,10 +19,6 @@ const GameStats = props => {
       value: dayjs(store.universeDetails.updated).fromNow(),
     },
     {
-      name: 'Year',
-      value: store.universeDetails.year.toLocaleString(),
-    },
-    {
       name: 'Favorited',
       value: store.universeDetails.favoritedCount.toLocaleString(),
     },
