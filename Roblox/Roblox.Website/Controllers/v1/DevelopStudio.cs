@@ -50,14 +50,35 @@ public class DevelopStudio : ControllerBase
             data = result,
         };
     }
-    [HttpGet("universes/{universeId}")]
-    public async Task<dynamic> UniverseInfo(string universeId)
+    [HttpGet("universes/{universeId}/permissions")]
+    public async Task<dynamic> CanManage(long universeId)
     {
-        var sp = universeId.Split(",").Select(long.Parse);
-        var result = await services.games.MultiGetUniverseInfo(sp);
+        var place = await services.games.GetRootPlaceId(universeId);
+        bool canManage = await services.assets.CanUserModifyItem(userSession.userId, place);
         return new
         {
-            result,
+            canManage,
+            canCloudEdit = canManage
+        };
+    }
+    [HttpGet("universes/{universeId}")]    
+    public async Task<dynamic> UniverseInfo(long universeId)
+    {
+        var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        return new
+        {
+            id = universeId,
+            name = uni.name,
+            description = uni.description,
+            isArchived = false,
+            rootPlaceId = uni.rootPlaceId,
+            isActive = true,
+            privacyType = "Public",
+            creatorType = "User",
+            creatorTargetId = uni.creatorId,
+            creatorName = uni.creatorName,
+            created = uni.created,
+            updated = uni.updated
         };
     }
 }
