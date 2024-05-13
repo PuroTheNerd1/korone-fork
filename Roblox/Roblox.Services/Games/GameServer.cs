@@ -685,7 +685,7 @@ public class GameServerService : ServiceBase
             TimeSpan timeDifference = currentTime - updatedAt;
 
             // If the server is full we continue
-            if (currentPlayerCount.Count() == maxPlayerCount)
+            if (currentPlayerCount.Count() >= maxPlayerCount)
             {
                 continue;
             }
@@ -722,8 +722,6 @@ public class GameServerService : ServiceBase
         watch.Stop();
 
         GameMetrics.ReportTimeToStartGameServer("194.15.36.134", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
-
-
 
         return StartGameInfo != "BAD"
             ? new GameServerGetOrCreateResponse()
