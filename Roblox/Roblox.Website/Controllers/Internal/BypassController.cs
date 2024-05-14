@@ -109,7 +109,6 @@ namespace Roblox.Website.Controllers
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
             HttpContext.Response.Headers.Add("Expires", "-1");
             HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
-            Console.WriteLine($"Loading asset: {id}");
             if(assetversionid != null)
             {
                 id = (long)assetversionid;
