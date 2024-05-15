@@ -1804,7 +1804,7 @@ namespace Roblox.Website.Controllers
         //08BF6621-8100-4484-B14C-87497E372160
         public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
-            // NOTE: Need to make this cleaner
+            bool isValid = true;
             switch (apiKey){
                 case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": //2017L RCC
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
@@ -1819,21 +1819,33 @@ namespace Roblox.Website.Controllers
                     type = "ClientAppSettings2018";
                     break;
                 default:
-                    return NotFound();
+                    isValid = false;
+                    break;
+            }
+            if (!isValid)
+            {
+                if(type.Contains("iOSAppSettings") || type.Contains("AndroidAppSettings"))
+                {
+                    isValid = true;
+                }
             }         
-            try
+            if (isValid)
             {
-                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
-                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
-                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
+                try
+                {
+                    string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
+                    string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                    dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
 
-                return clientAppSettingsData ?? "";
+                    return clientAppSettingsData ?? "";
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
+                    return new { };
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
-                return new { };
-            }
+            return NotFound();
         }
 
         [HttpGetBypass("abusereport/UserProfile"), HttpGetBypass("abusereport/asset"), HttpGetBypass("abusereport/user"), HttpGetBypass("abusereport/users")]
