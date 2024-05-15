@@ -1761,6 +1761,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/settings/application")]
         public MVC.ActionResult<dynamic> GetAppSettingsNew(string applicationName)
         {
+            if (applicationName != "RCCService2020")
+            {
+                return NotFound();
+            }
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, applicationName + ".json");
@@ -1815,7 +1819,7 @@ namespace Roblox.Website.Controllers
                     type = "ClientAppSettings2018";
                     break;
                 default:
-                    break;
+                    return NotFound();
             }         
             try
             {
