@@ -3,7 +3,6 @@ using Roblox.Dto.Users;
 using Roblox.Exceptions;
 using Roblox.Libraries.EasyJwt;
 using Roblox.Libraries.RobloxApi;
-using Roblox.Libraries.TwitterApi;
 using Roblox.Logging;
 using Roblox.Services;
 using Roblox.Website.Pages.Auth;
@@ -113,10 +112,6 @@ public class ApplicationWebsiteService : WebsiteService
                 case SocialMediaSite.TikTokUsername:
                 case SocialMediaSite.YoutubeChannelId:
                 case SocialMediaSite.YoutubeChannelName:
-                case SocialMediaSite.RedditUsername:
-                    // Don't add verified stuff since we don't have access to these apis :(
-                    socialUrl = socialData.url;
-                    break;
                 default:
                     throw new NotImplementedException();
             }
