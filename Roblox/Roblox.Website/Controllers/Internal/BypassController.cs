@@ -1797,55 +1797,55 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(rollOut);
             return Content(jsonString, "application/json");
         }
+        private static readonly HashSet<string> AllowedTypes = new HashSet<string>
+        {
+            "iOSAppSettings",
+            "AndroidAppSettings"
+        };
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        //08BF6621-8100-4484-B14C-87497E372160
-        public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
+        public ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
             bool isValid = true;
-            switch (apiKey){
-                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": //2017L RCC
+            
+            switch (apiKey)
+            {
+                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": 
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
-                case "08BF6621-8100-4484-B14C-87497E372160": //2017L Client
+                case "08BF6621-8100-4484-B14C-87497E372160": 
                     type = "ClientAppSettings2017";
                     break;
-                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": //2018L RCC
+                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": 
                     type = "RCCService2018";
-                    break;                 
-                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": //2018 Client
+                    break;
+                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": 
                     type = "ClientAppSettings2018";
                     break;
                 default:
-                    isValid = false;
+                    isValid = AllowedTypes.Contains(type);
+                    if (!isValid) {
+                        return NotFound();
+                    }
                     break;
             }
-            if (!isValid)
+            
+            try
             {
-                if(type.Contains("iOSAppSettings") || type.Contains("AndroidAppSettings"))
-                {
-                    isValid = true;
-                }
-            }         
-            if (isValid)
-            {
-                try
-                {
-                    string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
-                    string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
-                    dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-
-                    return clientAppSettingsData ?? "";
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
-                    return new { };
-                }
+                string FFlag = Path.Combine(Configuration.JsonDataDirectory, $"{type}.json");
+                if (!System.IO.File.Exists(FFlag)) return NotFound();
+                
+                string jsonContent = System.IO.File.ReadAllText(FFlag);
+                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
+                return clientAppSettingsData ?? new ExpandoObject();
             }
-            return NotFound();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
+                return BadRequest("Error fetching FFlags");
+            }
         }
 
         [HttpGetBypass("abusereport/UserProfile"), HttpGetBypass("abusereport/asset"), HttpGetBypass("abusereport/user"), HttpGetBypass("abusereport/users")]
