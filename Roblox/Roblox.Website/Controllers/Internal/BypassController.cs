@@ -1826,9 +1826,10 @@ namespace Roblox.Website.Controllers
                     type = "ClientAppSettings2018";
                     break;
                 default:
+                //this is for 2016 temmporary lmao
                     isValid = AllowedTypes.Contains(type);
                     if (!isValid) {
-                        return NotFound();
+                        type = "ClientAppSettings";
                     }
                     break;
             }
