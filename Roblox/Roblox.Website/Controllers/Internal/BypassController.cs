@@ -1800,7 +1800,8 @@ namespace Roblox.Website.Controllers
         private static readonly HashSet<string> AllowedTypes = new HashSet<string>
         {
             "iOSAppSettings",
-            "AndroidAppSettings"
+            "AndroidAppSettings",
+            "StudioAppSettings"
         };
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/Get/{type}")]
