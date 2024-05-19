@@ -509,13 +509,12 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> PlaceLaunch(long placeId, string? jobId = null)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            long maxPlayerCount;
+            long maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
             bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
                 return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
-            maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
             if (jobId != null)
             {
                 if (jobPlayers.Count() == maxPlayerCount)
