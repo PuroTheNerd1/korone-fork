@@ -255,9 +255,9 @@ public class GamesService : ServiceBase, IService
     }
     public async Task SetMaxPlayerCount(long placeId, int maxPlayerCount)
     {
-        if (maxPlayerCount < 10)
+        if (maxPlayerCount < 50)
             throw new RobloxException(400, 0, "Max player count cannot be below 10");
-        if (maxPlayerCount > 20)
+        if (maxPlayerCount > 100)
             throw new RobloxException(400, 0, "Max player count cannot exceed 20");
         
         await db.ExecuteAsync("UPDATE asset_place SET max_player_count = :max WHERE asset_id = :id", new
