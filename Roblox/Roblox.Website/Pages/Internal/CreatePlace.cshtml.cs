@@ -146,11 +146,6 @@ public class CreatePlace : RobloxPageModel
         var log = Writer.CreateWithId(LogGroup.AbuseDetection);
         log.Info("start CanCreatePlace with userId={0}",userId);
         var userInfo = await services.users.GetUserById(userId);
-        if (userInfo.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(7)))
-        {
-            log.Info("account is too new");
-            return PlaceCreationFailureReason.AccountTooNew;
-        }
 
         var createdPlaces = (await services.assets.GetCreations(CreatorType.User, userId, Type.Place, 0, 100)).ToArray();
         if (createdPlaces.Length != 0)
