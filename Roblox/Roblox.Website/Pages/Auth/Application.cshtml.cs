@@ -116,8 +116,6 @@ public class Application : RobloxPageModel
             }
             catch (Exception ex)
             {
-                // Log or handle the JSON parsing exception
-                Console.WriteLine($"Error parsing JSON: {ex.Message}");
                 return new DiscordInfo { success = false, username = null };
             }
         }
