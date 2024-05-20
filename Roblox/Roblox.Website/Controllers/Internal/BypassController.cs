@@ -122,18 +122,6 @@ namespace Roblox.Website.Controllers
                 return PhysicalFile("C:\\ProjectX\\services\\Roblox\\FixJitter\\507766666.rbxm", "application/octet-stream");      
             }
 
-            var is18OrOver = false;
-            if (userSession != null)
-            {
-                is18OrOver = await services.users.Is18Plus(safeUserSession.userId);
-            }
-
-            // TEMPORARY UNTIL AUTH WORKS ON STUDIO! REMEMBER TO REMOVE
-            if (HttpContext.Request.Headers.ContainsKey("RbxTempBypassFor18PlusAssets"))
-            {
-                is18OrOver = true;
-            }
-
             var assetId = id;
             var invalidIdKey = "InvalidAssetIdForConversionV1:" + assetId;
             // Opt
@@ -231,7 +219,7 @@ namespace Roblox.Website.Controllers
 
             }
             details = await services.assets.GetAssetCatalogInfo(assetId);
-            if (details.is18Plus && !isRcc && !isBotRequest && !is18OrOver)
+            if (!isRcc && !isBotRequest)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
