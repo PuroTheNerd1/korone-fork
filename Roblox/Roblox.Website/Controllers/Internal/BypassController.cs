@@ -537,9 +537,8 @@ namespace Roblox.Website.Controllers
                     };                    
                 }                
             }
-            long year = await services.games.GetYear(placeId);
 
-            var result = await services.gameServer.GetServerForPlace(placeId, year);
+            var result = await services.gameServer.GetServerForPlace(placeId, await services.games.GetYear(placeId));
             
             if (result.status == JoinStatus.Joining)
             {

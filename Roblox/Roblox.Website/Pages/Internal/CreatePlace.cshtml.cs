@@ -206,18 +206,6 @@ public class CreatePlace : RobloxPageModel
             log.Info("user has no app or it is not approved {0}", app?.status.ToString());
             return PlaceCreationFailureReason.NoApplication;
         }
-        
-        // lol
-        // anti brandon/sleep/xlxi check
-        /*        
-        if (userId < 200)
-        {
-            log.Info("account is too inactive (branch X)");
-            return PlaceCreationFailureReason.TooInactive;
-        }
-        */
-
-
 
         if (await IsActiveEnoughForPlace(userId))
         {
