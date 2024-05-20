@@ -510,8 +510,7 @@ namespace Roblox.Website.Controllers
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
-            bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
-            if (!isRoblox){
+            if (!ApplicationGuardMiddleware.IsRoblox(Request)){
                 return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
