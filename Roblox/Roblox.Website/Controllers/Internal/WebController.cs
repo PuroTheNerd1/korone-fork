@@ -87,14 +87,7 @@ public class WebController : ControllerBase
     [HttpGet("thumbs/asset.ashx")]
     public async Task<RedirectResult> GetAssetThumbnail([Required] long assetId)
     {
-        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
-        if (!authUser18Plus)
-        {
-            var asset18Plus = await services.assets.Is18Plus(assetId);
-            if (asset18Plus)
-                return new RedirectResult("/img/blocked.png", false);
-        }
-        
+       
         var result = (await services.thumbnails.GetAssetThumbnails(new[] {assetId})).ToList();
         if (result.Count == 0 || result[0].imageUrl == null)
             return new RedirectResult("/img/placeholder.png", false);
@@ -104,13 +97,6 @@ public class WebController : ControllerBase
     [HttpGet("icons/asset.ashx")]
     public async Task<RedirectResult> GetAssetIcon([Required] long assetId)
     {
-        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
-        if (!authUser18Plus)
-        {
-            var asset18Plus = await services.assets.Is18Plus(assetId);
-            if (asset18Plus)
-                return new RedirectResult("/img/blocked.png", false);
-        }
         
         var universe = (await services.games.MultiGetPlaceDetails(new[] {assetId})).First();
         var result = (await services.thumbnails.GetGameIcons(new[] {universe.universeId})).ToList();
@@ -159,13 +145,6 @@ public class WebController : ControllerBase
     [HttpGetBypass("asset-thumbnail/json")]
     public async Task<dynamic> GetAssetThumbnailJson([Required] long assetId)
     {
-        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
-        if (!authUser18Plus)
-        {
-            var asset18Plus = await services.assets.Is18Plus(assetId);
-            if (asset18Plus)
-                return new RedirectResult("/img/blocked.png", false);
-        }
         var result = (await services.thumbnails.GetAssetThumbnails(new[] {assetId})).ToList();
         var json = new
         {
