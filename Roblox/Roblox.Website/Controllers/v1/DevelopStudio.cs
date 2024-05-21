@@ -33,4 +33,9 @@ public class DevelopStudio : ControllerBase
         string json = JsonConvert.SerializeObject(data);
         return json; 
     }
+    [HttpPostBypass("places/{placeId}")]
+    public async Task<dynamic> UpdatePlace([Required, FromBody] UpdatePlace request, long placeId)
+    {
+        
+    }
 }

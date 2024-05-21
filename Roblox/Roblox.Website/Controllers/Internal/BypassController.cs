@@ -1800,7 +1800,8 @@ namespace Roblox.Website.Controllers
                     break;
                 default:
                     break;
-            }         
+            }     
+                
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
@@ -2202,6 +2203,16 @@ namespace Roblox.Website.Controllers
                 await services.gameServer.SetServerPing(gameId);
                 return "OK!";
             }
+        }
+        [HttpGetBypass("/tixtorobux")]
+        public async Task<dynamic> TixToRobux(long tix)
+        {
+            var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
+            long conversionRate = 10;
+
+            decimal robux = userBalance.tix / conversionRate;
+
+            long finalRobux = (int)Math.Round(robux, 0);
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]

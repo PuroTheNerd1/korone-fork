@@ -14,3 +14,8 @@ public class Universe
     public DateTime created { get; set; }
     public DateTime updated { get; set; }
 }
+public class UpdatePlace
+{
+    public long id { get; set; }
+    public long universeid { get; set; }
+}
