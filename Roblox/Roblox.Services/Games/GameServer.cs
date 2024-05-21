@@ -690,9 +690,7 @@ public class GameServerService : ServiceBase
                 continue;
             }
 
-            // If server is last updated 5 mins ago and if theres no players active, we shutdown the server because RCC is most likely dead 
-
-            if (!currentPlayerCount.Any() && timeDifference.TotalMinutes <= 5)
+            if (timeDifference.TotalMinutes <= 5)
             {
                 await ShutDownServerAsync(ExistingJobId);
                 continue;
