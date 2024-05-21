@@ -2226,7 +2226,7 @@ namespace Roblox.Website.Controllers
 
             decimal robux = userBalance.tix / conversionRate;
 
-            long finalRobux = (int)Math.Round(robux, 0);
+            long finalRobux = (long)Math.Round(robux, 0);
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
