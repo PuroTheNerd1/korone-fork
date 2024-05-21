@@ -39,7 +39,6 @@ const Creations = props => {
               playerCount={0}
               placeId={v.rootPlace.id}
               iconUrl={icons[v.id]}
-              year={v.year}
               creatorType='User'
               creatorId={store.userId}
               creatorName={store.username}

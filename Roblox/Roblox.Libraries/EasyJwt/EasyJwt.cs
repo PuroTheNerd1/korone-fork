@@ -12,11 +12,6 @@ public class MicrosoftJsonSerialize : IJsonSerializer
         return JsonSerializer.Serialize(obj);
     }
 
-    public object Deserialize(Type type, string json)
-    {
-        return JsonSerializer.Deserialize(json, type);
-    }
-
     public T Deserialize<T>(string json)
     {
         var result = JsonSerializer.Deserialize<T>(json);

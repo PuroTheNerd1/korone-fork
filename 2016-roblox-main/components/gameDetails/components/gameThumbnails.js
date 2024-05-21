@@ -25,16 +25,6 @@ const useStyles = createUseStyles({
       color: 'rgba(255,255,255,1)',
     }
   },
-  yearText: {
-    position: 'absolute',
-    bottom: '20px',
-    right: '10px',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: '#fff',
-    padding: '5px',
-    fontSize: '14px',
-    borderRadius: '5px',
-  },
 })
 
 const GameThumbnails = props => {

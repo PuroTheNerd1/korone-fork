@@ -62,7 +62,6 @@ const Favorites = props => {
               creatorType={v.Creator.Type}
               placeId={v.Item.AssetId}
               iconUrl={icons[v.Item.UniverseId]}
-              year={v.year}
               hideVoting={true}
               playerCount={0}
             />

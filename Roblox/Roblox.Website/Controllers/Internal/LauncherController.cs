@@ -45,15 +45,12 @@ namespace Roblox.Website.Controllers
             return PhysicalFile(@"C:\ProjectX\services\Roblox\Setup\services\ProjectXPlayerLauncher2233.exe", "application/octet-stream");
         }
         [HttpGetBypass("cdn/{*file}")]
-        public MVC.ActionResult GetCDNFile(string file)
+        public MVC.IActionResult GetCDNFile(string file)
         {
             if (string.IsNullOrEmpty(file))
             {
                 return NotFound();
             }
-
-            file = Path.GetFileName(file);
-
             string NormalCDN = Path.Combine(CDN, file);
             string ClientStrapper = Path.Combine(RBXClientPath, file);
             string MacStrapper = Path.Combine(RBXMacClientPath, file);
@@ -76,7 +73,10 @@ namespace Roblox.Website.Controllers
                 return PhysicalFile(StudioStrapper, "application/octet-stream");
             }
 
-            return NotFound();
-        }
-    }
+            else
+            {
+                return NotFound();
+            }
+        }        
+    }    
 }

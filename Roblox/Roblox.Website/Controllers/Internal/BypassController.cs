@@ -109,8 +109,6 @@ namespace Roblox.Website.Controllers
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
             HttpContext.Response.Headers.Add("Expires", "-1");
             HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
-            // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
-            // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
             if(assetversionid != null)
             {
                 id = (long)assetversionid;
@@ -122,17 +120,6 @@ namespace Roblox.Website.Controllers
             else if(id == 507766666)
             {
                 return PhysicalFile("C:\\ProjectX\\services\\Roblox\\FixJitter\\507766666.rbxm", "application/octet-stream");      
-            }
-            var is18OrOver = false;
-            if (userSession != null)
-            {
-                is18OrOver = await services.users.Is18Plus(safeUserSession.userId);
-            }
-
-            // TEMPORARY UNTIL AUTH WORKS ON STUDIO! REMEMBER TO REMOVE
-            if (HttpContext.Request.Headers.ContainsKey("RbxTempBypassFor18PlusAssets"))
-            {
-                is18OrOver = true;
             }
 
             var assetId = id;
@@ -345,7 +332,7 @@ namespace Roblox.Website.Controllers
                     else
                     {
                         // It's not RCC making the request. are we authorized?
-                        if (userSession != null)
+                        if (userSession == null)
                         {
                             // Use current user as access check
                             ok = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
@@ -379,11 +366,11 @@ namespace Roblox.Website.Controllers
 
             if (assetContent != null)
             {
-                return File(assetContent, "application/binary");
+                Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
+                throw new BadRequestException();
             }
-
-            Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
-            throw new BadRequestException();
+            
+            return File(assetContent, "application/binary", $"{assetId} - {details.name}.rbxl");
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
@@ -519,11 +506,13 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> PlaceLaunch(long placeId, string? jobId = null)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            long maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
-            if (!ApplicationGuardMiddleware.IsRoblox(Request)){
+            long maxPlayerCount;
+            bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
+            if (!isRoblox){
                 return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
+            maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
             if (jobId != null)
             {
                 if (jobPlayers.Count() == maxPlayerCount)
@@ -547,8 +536,9 @@ namespace Roblox.Website.Controllers
                     };                    
                 }                
             }
+            long year = await services.games.GetYear(placeId);
 
-            var result = await services.gameServer.GetServerForPlace(placeId, await services.games.GetYear(placeId));
+            var result = await services.gameServer.GetServerForPlace(placeId, year);
             
             if (result.status == JoinStatus.Joining)
             {
@@ -1765,10 +1755,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/settings/application")]
         public MVC.ActionResult<dynamic> GetAppSettingsNew(string applicationName)
         {
-            if (applicationName != "RCCService2020")
-            {
-                return NotFound();
-            }
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, applicationName + ".json");
@@ -1801,55 +1787,43 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(rollOut);
             return Content(jsonString, "application/json");
         }
-        private static readonly HashSet<string> AllowedTypes = new HashSet<string>
-        {
-            "iOSAppSettings",
-            "AndroidAppSettings",
-            "StudioAppSettings"
-        };
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        public ActionResult<dynamic> GetAppSettings(string type, string apiKey)
+        //08BF6621-8100-4484-B14C-87497E372160
+        public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
-            bool isValid = true;
-            
-            switch (apiKey)
-            {
-                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": 
+            // NOTE: Need to make this cleaner
+            switch (apiKey){
+                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": //2017L RCC
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
-                case "08BF6621-8100-4484-B14C-87497E372160": 
+                case "08BF6621-8100-4484-B14C-87497E372160": //2017L Client
                     type = "ClientAppSettings2017";
                     break;
-                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": 
+                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": //2018L RCC
                     type = "RCCService2018";
-                    break;
-                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": 
+                    break;                 
+                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": //2018 Client
                     type = "ClientAppSettings2018";
                     break;
                 default:
-                //this is for 2016 temmporary lmao
-                    isValid = AllowedTypes.Contains(type);
-                    if (!isValid) {
-                        type = "ClientAppSettings";
-                    }
                     break;
-            }         
+            }     
+                
             try
             {
-                string FFlag = Path.Combine(Configuration.JsonDataDirectory, $"{type}.json");
-                if (!System.IO.File.Exists(FFlag)) return NotFound();
-                
-                string jsonContent = System.IO.File.ReadAllText(FFlag);
+                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
+                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
                 dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-                return clientAppSettingsData ?? new ExpandoObject();
+
+                return clientAppSettingsData ?? "";
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
-                return BadRequest("Error fetching FFlags");
+                return new { };
             }
         }
 
