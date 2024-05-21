@@ -109,6 +109,8 @@ namespace Roblox.Website.Controllers
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
             HttpContext.Response.Headers.Add("Expires", "-1");
             HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
+            // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
+            // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
             if(assetversionid != null)
             {
                 id = (long)assetversionid;
@@ -120,6 +122,17 @@ namespace Roblox.Website.Controllers
             else if(id == 507766666)
             {
                 return PhysicalFile("C:\\ProjectX\\services\\Roblox\\FixJitter\\507766666.rbxm", "application/octet-stream");      
+            }
+            var is18OrOver = false;
+            if (userSession != null)
+            {
+                is18OrOver = await services.users.Is18Plus(safeUserSession.userId);
+            }
+
+            // TEMPORARY UNTIL AUTH WORKS ON STUDIO! REMEMBER TO REMOVE
+            if (HttpContext.Request.Headers.ContainsKey("RbxTempBypassFor18PlusAssets"))
+            {
+                is18OrOver = true;
             }
 
             var assetId = id;
@@ -163,7 +176,6 @@ namespace Roblox.Website.Controllers
                 try
                 {
                     var ourId = await services.assets.GetAssetIdFromRobloxAssetId(assetId);
-                    
                     assetId = ourId;
                 }
                 catch (RecordNotFoundException)
@@ -216,10 +228,9 @@ namespace Roblox.Website.Controllers
                     */
                     return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
                 }
-
+                details = await services.assets.GetAssetCatalogInfo(assetId);
             }
-            details = await services.assets.GetAssetCatalogInfo(assetId);
-            if (!isRcc && !isBotRequest)
+            if (details.is18Plus && !isRcc && !isBotRequest && !is18OrOver)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
@@ -293,7 +304,7 @@ namespace Roblox.Website.Controllers
                     break;
                 default:
                     // anything else requires auth
-                    var IsOK = false;
+                    var ok = false;
                     if (isRcc)
                     {
                         encryptionEnabled = false;
@@ -311,43 +322,54 @@ namespace Roblox.Website.Controllers
                             }
                         }
                         // if rcc is trying to access current place, allow through
-                        IsOK = (placeId == assetId);
+                        ok = (placeId == assetId);
                         // If game server is trying to load a new place (current placeId is empty), then allow it
-                        if (!IsOK && details.assetType == Models.Assets.Type.Place && placeId == 0)
+                        if (!ok && details.assetType == Models.Assets.Type.Place && placeId == 0)
                         {
                             // Game server is trying to load, so allow it
-                            IsOK = true;
+                            ok = true;
                         }
                         // If rcc is making the request, but it's not for a place, validate the request:
-                        if (!IsOK)
+                        if (!ok)
                         {
-                            var placeDetails = await services.assets.GetAssetCatalogInfo(id);
                             // Check permissions
+                            var placeDetails = await services.assets.GetAssetCatalogInfo(placeId);
                             if (placeDetails.creatorType == details.creatorType &&
                                 placeDetails.creatorTargetId == details.creatorTargetId)
                             {
                                 // We are authorized
-                                IsOK = true;
+                                ok = true;
                             }
                         }
                     }
                     else
                     {
                         // It's not RCC making the request. are we authorized?
-                        if (userSession == null)
+                        if (userSession != null)
                         {
-                            throw new BadRequestException();
-                        }
-                        // Use current user as access check
-                        IsOK = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
-                        // Don't encrypt assets being sent to authorized users - they could be trying to download their own place to give to a friend or something
-                        if (IsOK)
-                        {
-                            encryptionEnabled = false;
+                            // Use current user as access check
+                            ok = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
+                            if (!ok)
+                            {
+                                // Note that all users have access to "Roblox"'s content for legacy reasons
+                                ok = (details.creatorType == CreatorType.User && details.creatorTargetId == 1);
+                            }
+#if DEBUG
+                            // If staff, allow access in debug builds
+                            if (UsersService.IsUserStaff(userSession.userId))
+                            {
+                                ok = true;
+                            }
+#endif
+                            // Don't encrypt assets being sent to authorized users - they could be trying to download their own place to give to a friend or something
+                            if (ok)
+                            {
+                                encryptionEnabled = false;
+                            }
                         }
                     }
 
-                    if (IsOK && latestVersion.contentUrl != null)
+                    if (ok && latestVersion.contentUrl != null)
                     {
                         assetContent = await services.assets.GetAssetContent(latestVersion.contentUrl);
                     }
@@ -355,13 +377,13 @@ namespace Roblox.Website.Controllers
                     break;
             }
 
-            if (assetContent == null)
+            if (assetContent != null)
             {
-                Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
-                throw new BadRequestException();
+                return File(assetContent, "application/binary");
             }
-            
-            return File(assetContent, "application/binary", $"{assetId} - {details.name}.rbxl");
+
+            Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
+            throw new BadRequestException();
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
@@ -2224,9 +2246,10 @@ namespace Roblox.Website.Controllers
             var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
             long conversionRate = 10;
 
-            decimal robux = userBalance.tix / conversionRate;
+            decimal robux = userBalance.tickets / conversionRate;
 
             long finalRobux = (long)Math.Round(robux, 0);
+            return Ok();
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
