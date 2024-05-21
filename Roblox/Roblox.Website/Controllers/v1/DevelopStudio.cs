@@ -114,9 +114,4 @@ public class DevelopStudio : ControllerBase
             privacyType = "Public",
         };
     }
-    [HttpPostBypass("places/{placeId}")]
-    public async Task<dynamic> UpdatePlace([Required, FromBody] UpdatePlace request, long placeId)
-    {
-        
-    }
 }
