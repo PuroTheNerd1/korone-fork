@@ -109,6 +109,8 @@ namespace Roblox.Website.Controllers
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
             HttpContext.Response.Headers.Add("Expires", "-1");
             HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
+            // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
+            // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
             if(assetversionid != null)
             {
                 id = (long)assetversionid;
@@ -120,6 +122,17 @@ namespace Roblox.Website.Controllers
             else if(id == 507766666)
             {
                 return PhysicalFile("C:\\ProjectX\\services\\Roblox\\FixJitter\\507766666.rbxm", "application/octet-stream");      
+            }
+            var is18OrOver = false;
+            if (userSession != null)
+            {
+                is18OrOver = await services.users.Is18Plus(safeUserSession.userId);
+            }
+
+            // TEMPORARY UNTIL AUTH WORKS ON STUDIO! REMEMBER TO REMOVE
+            if (HttpContext.Request.Headers.ContainsKey("RbxTempBypassFor18PlusAssets"))
+            {
+                is18OrOver = true;
             }
 
             var assetId = id;
@@ -332,7 +345,7 @@ namespace Roblox.Website.Controllers
                     else
                     {
                         // It's not RCC making the request. are we authorized?
-                        if (userSession == null)
+                        if (userSession != null)
                         {
                             // Use current user as access check
                             ok = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
@@ -366,21 +379,11 @@ namespace Roblox.Website.Controllers
 
             if (assetContent != null)
             {
-                Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
-                throw new BadRequestException();
+                return File(assetContent, "application/binary");
             }
-            
-            return File(assetContent, "application/binary", $"{assetId} - {details.name}.rbxl");
-        }
-        [HttpGetBypass("universes/get-universe-containing-place")]
-        public async Task<dynamic> GetUniverse(long placeid)
-        {
-            //we get universe
-            PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeid })).First();
-            return new 
-            {
-                UniverseId = uni.universeId
-            };
+
+            Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
+            throw new BadRequestException();
         }
         [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
         public async Task<string> LoadPlaceInfo(long PlaceId)
@@ -864,6 +867,11 @@ namespace Roblox.Website.Controllers
                 membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
 
+            if (membership == null)
+            {
+                membership = "None";
+            }
+
             switch (year)
             {
                 case 2016:
@@ -891,7 +899,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript2016 = new
             {
                 ClientPort = 0,
-                MachineAddress = "194.15.36.134",
+                MachineAddress = "85.215.186.154",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 50,
@@ -931,7 +939,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20172018 = new
             {
                 ClientPort = 0,
-                MachineAddress = "194.15.36.134",
+                MachineAddress = "85.215.186.154",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
@@ -973,13 +981,13 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20192020 = new
             {
                 ClientPort = 0,
-                MachineAddress = "194.15.36.134",
+                MachineAddress = "85.215.186.154",
                 ServerConnections = new List<dynamic>
                 {
                     new
                     {
                         Port = GameServerService.currentGameServerPorts[jobId], 
-                        Address = "194.15.36.134", 
+                        Address = "85.215.186.154", 
                     }
                 },
 
@@ -1032,10 +1040,13 @@ namespace Roblox.Website.Controllers
             switch (year)
             {
                 case 2016:
+                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript2016);
                 case 2017:
                     return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
                 case 2018:
+                    return SignatureController.SignJson2048(joinScript20172018);
                 case 2019:
+                    return SignatureController.SignJson2048(joinScript20192020);
                 case 2020:
                     return SignatureController.SignJson2048(joinScript20192020);
                 default:
@@ -1235,7 +1246,7 @@ namespace Roblox.Website.Controllers
             await services.gameServer.DeleteGameServer(request.serverId);
         }
         //this is for the newer years that dont have a custom monitoring script
-        [HttpPostBypass("presence/register-game-presence")]
+        [HttpPostBypass("/presence/register-game-presence")]
         public async Task RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
         {
             bool IsRCC = IsRcc();
@@ -1253,7 +1264,7 @@ namespace Roblox.Website.Controllers
         }
 
 
-        [HttpPostBypass("presence/register-absence")]
+        [HttpPostBypass("/presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
             GameServerService gameServerService = new GameServerService();
@@ -1303,6 +1314,8 @@ namespace Roblox.Website.Controllers
                 string JobId = await gameServerService.GetJobIdByUserId(userId);
                 await gameServerService.OnPlayerLeave(userId, placeId, JobId);
             }
+
+
         }
         [HttpPostBypass("/gs/shutdown")]
         public async Task ShutDownServer([Required, MVC.FromBody] ReportActivity request)
@@ -1580,9 +1593,6 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
         {
-
-
-            string[] filterWords = {"nigger", "nigga", "nazi", "1488"};
             var text = HttpContext.Request.Form["text"].ToString();
             if (ContainsCyrillic(text))
             {
@@ -1810,8 +1820,7 @@ namespace Roblox.Website.Controllers
                     break;
                 default:
                     break;
-            }     
-                
+            }         
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
@@ -2213,17 +2222,6 @@ namespace Roblox.Website.Controllers
                 await services.gameServer.SetServerPing(gameId);
                 return "OK!";
             }
-        }
-        [HttpGetBypass("/tixtorobux")]
-        public async Task<dynamic> TixToRobux(long tix)
-        {
-            var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
-            long conversionRate = 10;
-
-            decimal robux = userBalance.tickets / conversionRate;
-
-            long finalRobux = (long)Math.Round(robux, 0);
-            return Ok();
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
