@@ -146,11 +146,6 @@ public class CreatePlace : RobloxPageModel
         var log = Writer.CreateWithId(LogGroup.AbuseDetection);
         log.Info("start CanCreatePlace with userId={0}",userId);
         var userInfo = await services.users.GetUserById(userId);
-        if (userInfo.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(7)))
-        {
-            log.Info("account is too new");
-            return PlaceCreationFailureReason.AccountTooNew;
-        }
 
         var createdPlaces = (await services.assets.GetCreations(CreatorType.User, userId, Type.Place, 0, 100)).ToArray();
         if (createdPlaces.Length != 0)
@@ -211,18 +206,6 @@ public class CreatePlace : RobloxPageModel
             log.Info("user has no app or it is not approved {0}", app?.status.ToString());
             return PlaceCreationFailureReason.NoApplication;
         }
-        
-        // lol
-        // anti brandon/sleep/xlxi check
-        /*        
-        if (userId < 200)
-        {
-            log.Info("account is too inactive (branch X)");
-            return PlaceCreationFailureReason.TooInactive;
-        }
-        */
-
-
 
         if (await IsActiveEnoughForPlace(userId))
         {

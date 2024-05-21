@@ -379,11 +379,21 @@ namespace Roblox.Website.Controllers
 
             if (assetContent != null)
             {
-                return File(assetContent, "application/binary");
+                Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
+                throw new BadRequestException();
             }
-
-            Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
-            throw new BadRequestException();
+            
+            return File(assetContent, "application/binary", $"{assetId} - {details.name}.rbxl");
+        }
+        [HttpGetBypass("universes/get-universe-containing-place")]
+        public async Task<dynamic> GetUniverse(long placeid)
+        {
+            //we get universe
+            PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeid })).First();
+            return new 
+            {
+                UniverseId = uni.universeId
+            };
         }
         [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
         public async Task<string> LoadPlaceInfo(long PlaceId)
@@ -509,13 +519,11 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> PlaceLaunch(long placeId, string? jobId = null)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            long maxPlayerCount;
-            bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
-            if (!isRoblox){
+            long maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
+            if (!ApplicationGuardMiddleware.IsRoblox(Request)){
                 return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
-            maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
             if (jobId != null)
             {
                 if (jobPlayers.Count() == maxPlayerCount)
@@ -539,9 +547,8 @@ namespace Roblox.Website.Controllers
                     };                    
                 }                
             }
-            long year = await services.games.GetYear(placeId);
 
-            var result = await services.gameServer.GetServerForPlace(placeId, year);
+            var result = await services.gameServer.GetServerForPlace(placeId, await services.games.GetYear(placeId));
             
             if (result.status == JoinStatus.Joining)
             {
@@ -1765,6 +1772,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/settings/application")]
         public MVC.ActionResult<dynamic> GetAppSettingsNew(string applicationName)
         {
+            if (applicationName != "RCCService2020")
+            {
+                return NotFound();
+            }
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, applicationName + ".json");
@@ -1797,42 +1808,55 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(rollOut);
             return Content(jsonString, "application/json");
         }
+        private static readonly HashSet<string> AllowedTypes = new HashSet<string>
+        {
+            "iOSAppSettings",
+            "AndroidAppSettings",
+            "StudioAppSettings"
+        };
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        //08BF6621-8100-4484-B14C-87497E372160
-        public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
+        public ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
-            // NOTE: Need to make this cleaner
-            switch (apiKey){
-                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": //2017L RCC
+            bool isValid = true;
+            
+            switch (apiKey)
+            {
+                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": 
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
-                case "08BF6621-8100-4484-B14C-87497E372160": //2017L Client
+                case "08BF6621-8100-4484-B14C-87497E372160": 
                     type = "ClientAppSettings2017";
                     break;
-                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": //2018L RCC
+                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": 
                     type = "RCCService2018";
-                    break;                 
-                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": //2018 Client
+                    break;
+                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": 
                     type = "ClientAppSettings2018";
                     break;
                 default:
+                //this is for 2016 temmporary lmao
+                    isValid = AllowedTypes.Contains(type);
+                    if (!isValid) {
+                        type = "ClientAppSettings";
+                    }
                     break;
             }         
             try
             {
-                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
-                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                string FFlag = Path.Combine(Configuration.JsonDataDirectory, $"{type}.json");
+                if (!System.IO.File.Exists(FFlag)) return NotFound();
+                
+                string jsonContent = System.IO.File.ReadAllText(FFlag);
                 dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-
-                return clientAppSettingsData ?? "";
+                return clientAppSettingsData ?? new ExpandoObject();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
-                return new { };
+                return BadRequest("Error fetching FFlags");
             }
         }
 

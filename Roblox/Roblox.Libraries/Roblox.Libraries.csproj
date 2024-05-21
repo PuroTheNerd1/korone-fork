@@ -9,7 +9,11 @@
   <ItemGroup>
     <PackageReference Include="JWT" Version="8.7.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
+<<<<<<< HEAD
     <PackageReference Include="Sodium.Core" Version="1.3.5" />
+=======
+    <PackageReference Include="Sodium.Core" Version="1.2.3" />
+>>>>>>> parent of 61a37c2 (Revert "Merge branch 'main' of https://github.com/ProjectXORC/Project-X-V2")
   </ItemGroup>
 
   <ItemGroup>

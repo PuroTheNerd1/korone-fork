@@ -24,6 +24,8 @@ public class FrontendProxyMiddleware
     public static List<string> BypassUrls = new()
     {
         "/apisite/",
+        "/v1/",
+        "/v2/",
         "/swagger/",
         "/api/",
         "/api/economy-chat/",
