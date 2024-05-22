@@ -65,7 +65,7 @@ FeatureFlags.StartUpdateFlagTask();
 var ownerUserIdConfig = configuration.GetSection("OwnerUserId");
 List<long> ownerUserIds = ownerUserIdConfig.Get<List<long>>();
 Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds);
-Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
+//Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
