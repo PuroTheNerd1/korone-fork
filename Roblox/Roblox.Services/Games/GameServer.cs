@@ -324,14 +324,18 @@ public class GameServerService : ServiceBase
         // TODO: When we add multiple servers for the same game (most likely not for a while), get the jobId or kill the server a better way.
         string placeJobId = serverId; // hopefully not null, shouldn't be??
         long placeId = GetPlaceIdByJobId(serverId);
-        Process rccProcess = jobRccs[placeJobId];
-        rccProcess.Kill(); // soft kill soon instead of force kill
-            
+        //Process rccProcess = jobRccs[placeJobId];
+        //rccProcess.Kill(); // soft kill soon instead of force kill
+        using (HttpClient client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?jobId={serverId}");
+        }            
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
-        currentGameServerPorts.Remove(placeJobId);
-        jobRccs.Remove(placeJobId);
-        mainRCCPortsInUse.Remove(rccProcess);
+        //currentGameServerPorts.Remove(placeJobId);
+        //jobRccs.Remove(placeJobId);
+        //mainRCCPortsInUse.Remove(rccProcess);
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
         Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
@@ -660,12 +664,12 @@ public class GameServerService : ServiceBase
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string jobId = Guid.NewGuid().ToString();
-        string OldJobId;
+
         GamesService gs = new GamesService();
         long maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
 
         var openGameServers = await db.QueryAsync<dynamic>(
-            "SELECT id as jobid FROM asset_server WHERE asset_id = :assetid",
+            "SELECT id as jobid, updated_at as lastping FROM asset_server WHERE asset_id = :assetid",
             new
             {
                 assetid = placeId,
@@ -673,24 +677,42 @@ public class GameServerService : ServiceBase
 
         foreach (var server in openGameServers)
         {
-            OldJobId = server.jobid.ToString(); 
-            var currentPlayerCount = await GetGameServerPlayers(OldJobId);
+            string ExistingJobId = server.jobid.ToString(); 
+            var currentPlayerCount = await GetGameServerPlayers(ExistingJobId);
 
+            DateTimeOffset updatedAt = DateTimeOffset.Parse(server.lastping.ToString());
+            DateTimeOffset currentTime = DateTimeOffset.UtcNow; 
+            TimeSpan timeDifference = currentTime - updatedAt;
+
+            // If the server is full we continue
             if (currentPlayerCount.Count() == maxPlayerCount)
             {
                 continue;
             }
+
+            // If server is last updated 5 mins ago and if theres no players active, we shutdown the server because RCC is most likely dead 
+
+            if (!currentPlayerCount.Any() && timeDifference.TotalMinutes <= 5)
+            {
+                await ShutDownServerAsync(ExistingJobId);
+                continue;
+            }
+            
+            // We found a OK server lets join
             return new GameServerGetOrCreateResponse()
             {
-                job = OldJobId,
+                job = ExistingJobId,
                 status = JoinStatus.Joining
             };
         }
+
         var watch = new Stopwatch();
         watch.Start();
         string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
         watch.Stop();
+
         GameMetrics.ReportTimeToStartGameServer("85.125.186.154", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
+
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
             new
@@ -720,10 +742,23 @@ public class GameServerService : ServiceBase
         // Before we waste our time, check if the place exists.
         AssetsService assetsService = new AssetsService();
         GamesService gamesService = new GamesService();
-        string originalScript;
-        string finalScript;
+        var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
+        var uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();        
+        //string originalScript;
+        //string finalScript;
         long maxplayers = await gamesService.GetMaxPlayerCount(placeId);
-        Console.WriteLine($"MaxPlayers = {maxplayers}");
+        using (HttpClient client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}");
+            if (response.IsSuccessStatusCode)
+            {
+                return "OK";
+            }
+        }
+        return "FALSE";
+        //Console.WriteLine($"MaxPlayers = {maxplayers}");
+        /*
         Process rccServer = null;
         Process rccServer2017 = null;
         Process rccServer2018 = null;
@@ -829,45 +864,6 @@ public class GameServerService : ServiceBase
                 finalScript = originalScript.Replace("%", "&#37;");
                 break;
             case 2019:
-            /*
-            case 2020:
-                rccServer2020 = new Process();
-                rccServer2020.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                rccServer2020.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2020\\RCCService.exe";
-                rccServer2020.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-                rccServer2020.StartInfo.CreateNoWindow = false;
-                rccServer2020.StartInfo.RedirectStandardError = false;
-                rccServer2020.StartInfo.RedirectStandardOutput = false;
-                rccServer2020.StartInfo.UseShellExecute = true;
-                rccServer2020.Start();            
-                originalScript = $@"
-                {{
-                    ""Mode"": ""GameServer"",
-                    ""Settings"": {{
-                        ""PlaceId"": {placeId},
-                        ""CreatorId"": {uni.builderId},
-                        ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""85.215.186.154"",
-                        ""MaxPlayers"": {maxplayers},
-                        ""MaxGameInstances"": 5,
-                        ""PreferredPlayerCapacity"": {maxplayers},
-                        ""UniverseId"": {placeId},
-                        ""BaseUrl"": ""projex.zip"",
-                        ""PlaceFetchUrl"": ""https://www.projex.zip/asset/?id={placeId}"",
-                        ""MatchmakingContextId"": 1,
-                        ""CreatorType"": ""User"",
-                        ""PlaceVersion"": 1,
-                        ""JobId"": ""{jobId}"",
-                        ""PreferredPort"": {networkServerPort},
-                        ""PlaceVisitAccessKey"": ""{Configuration.RccAuthorization}"",
-                        ""ApiKey"": ""{Configuration.RccAuthorization}"",
-                        ""GsmInterval"": 5,
-                        ""GameCode"": """"
-                }}
-                }}";
-                finalScript = originalScript.Replace("%", "&#37;");
-                break;
-            */
             default:
                 return "Year not supported";
         }
@@ -915,6 +911,7 @@ public class GameServerService : ServiceBase
         //jobRccs.Add(jobId, rccServer);
         Thread.Sleep(5000);
         return "OK";
+        */
     }
 
     public static async Task SendSoapRequestToRcc(string URL, string XML, string SOAPAction)
