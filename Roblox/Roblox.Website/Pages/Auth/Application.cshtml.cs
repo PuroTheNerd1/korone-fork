@@ -99,32 +99,10 @@ public class Application : RobloxPageModel
     {
         var httpClient = new HttpClient();
         var response = await httpClient.GetAsync($"http://localhost:3550/isuserinserver?discordId={discord_id}");
-
-        if (response.IsSuccessStatusCode)
-        {
-            var userInfoJson = await response.Content.ReadAsStringAsync();
-
-            if (string.IsNullOrEmpty(userInfoJson))
-            {
-                return new DiscordInfo { success = false, username = null };
-            }
-
-            try
-            {
-                var desUserInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<DiscordInfo>(userInfoJson);
-                return desUserInfo;
-            }
-            catch (Exception ex)
-            {
-                return new DiscordInfo { success = false, username = null };
-            }
-        }
-        else
-        {
-            return new DiscordInfo { success = false, username = null };
-        }
+        var userInfoJson = await response.Content.ReadAsStringAsync();
+        var desUserInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<DiscordInfo>(userInfoJson);
+        return desUserInfo;
     }
-
     public async Task<IActionResult> OnGet()
     {
         var apps = new ApplicationWebsiteService(HttpContext);

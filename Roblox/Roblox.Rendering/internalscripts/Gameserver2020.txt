@@ -4,7 +4,7 @@
         "PlaceId": %placeId%,
         "CreatorId": %creatorId%,
         "GameId": "%jobId%",
-        "MachineAddress": "194.15.36.134",
+        "MachineAddress": "85.215.186.154",
         "MaxPlayers": 30,
         "GsmInterval": 999999,
         "MaxGameInstances": 5,
