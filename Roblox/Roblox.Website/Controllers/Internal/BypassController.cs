@@ -385,6 +385,16 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
             throw new BadRequestException();
         }
+        [HttpGetBypass("universes/get-universe-containing-place")]
+        public async Task<dynamic> GetUniverse(long placeid)
+        {
+            //we get universe
+            PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeid })).First();
+            return new 
+            {
+                UniverseId = uni.universeId
+            };
+        }
         [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
         public async Task<string> LoadPlaceInfo(long PlaceId)
         {
@@ -510,9 +520,9 @@ namespace Roblox.Website.Controllers
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long maxPlayerCount;
-            bool isRoblox = ApplicationGuardMiddleware.IsRoblox(Request);
+            bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
-                throw new RobloxException(403, 0, "Forbidden");
+                return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
@@ -541,12 +551,8 @@ namespace Roblox.Website.Controllers
             }
             long year = await services.games.GetYear(placeId);
 
-
             var result = await services.gameServer.GetServerForPlace(placeId, year);
-            //Console.WriteLine(result.job);
- 
-            //lets wait 3 secs
-
+            
             if (result.status == JoinStatus.Joining)
             {
                 Thread.Sleep(2500);
@@ -838,7 +844,7 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("Client connected to join.ashx");
             bool isRoblox = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
-                throw new RobloxException(403, 0, "Forbidden");
+                return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
@@ -871,11 +877,6 @@ namespace Roblox.Website.Controllers
                 membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
 
-            if (membership == null)
-            {
-                membership = "None";
-            }
-
             switch (year)
             {
                 case 2016:
@@ -903,7 +904,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript2016 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "194.15.36.134",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 50,
@@ -943,7 +944,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20172018 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "194.15.36.134",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
@@ -985,13 +986,13 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20192020 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "194.15.36.134",
                 ServerConnections = new List<dynamic>
                 {
                     new
                     {
                         Port = GameServerService.currentGameServerPorts[jobId], 
-                        Address = "85.215.186.154", 
+                        Address = "194.15.36.134", 
                     }
                 },
 
@@ -1250,7 +1251,7 @@ namespace Roblox.Website.Controllers
             await services.gameServer.DeleteGameServer(request.serverId);
         }
         //this is for the newer years that dont have a custom monitoring script
-        [HttpPostBypass("/presence/register-game-presence")]
+        [HttpPostBypass("presence/register-game-presence")]
         public async Task RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
         {
             bool IsRCC = IsRcc();
@@ -1268,7 +1269,7 @@ namespace Roblox.Website.Controllers
         }
 
 
-        [HttpPostBypass("/presence/register-absence")]
+        [HttpPostBypass("presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
             GameServerService gameServerService = new GameServerService();
@@ -1318,8 +1319,6 @@ namespace Roblox.Website.Controllers
                 string JobId = await gameServerService.GetJobIdByUserId(userId);
                 await gameServerService.OnPlayerLeave(userId, placeId, JobId);
             }
-
-
         }
         [HttpPostBypass("/gs/shutdown")]
         public async Task ShutDownServer([Required, MVC.FromBody] ReportActivity request)
@@ -1597,6 +1596,9 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
         {
+
+
+            string[] filterWords = {"nigger", "nigga", "nazi", "1488"};
             var text = HttpContext.Request.Form["text"].ToString();
             if (ContainsCyrillic(text))
             {
@@ -1743,8 +1745,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedSecurityVersions")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
+            if (!IsRcc())
+                throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
-            {
+            {  
                 "0.235.0pcplayer",
                 "0.314.0pcplayer",
                 "0.355.0pcplayer",
@@ -1767,6 +1771,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/settings/application")]
         public MVC.ActionResult<dynamic> GetAppSettingsNew(string applicationName)
         {
+            if (applicationName != "RCCService2020")
+            {
+                return NotFound();
+            }
             try
             {
                 string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, applicationName + ".json");
@@ -1799,42 +1807,56 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(rollOut);
             return Content(jsonString, "application/json");
         }
+        private static readonly HashSet<string> AllowedTypes = new HashSet<string>
+        {
+            "iOSAppSettings",
+            "AndroidAppSettings",
+            "StudioAppSettings"
+        };
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        //08BF6621-8100-4484-B14C-87497E372160
-        public MVC.ActionResult<dynamic> GetAppSettings(string type, string apiKey)
+        public ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
-            // NOTE: Need to make this cleaner
-            switch (apiKey){
-                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": //2017L RCC
+            bool isValid = true;
+            
+            switch (apiKey)
+            {
+                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": 
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
-                case "08BF6621-8100-4484-B14C-87497E372160": //2017L Client
+                case "08BF6621-8100-4484-B14C-87497E372160": 
                     type = "ClientAppSettings2017";
                     break;
-                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": //2018L RCC
+                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": 
                     type = "RCCService2018";
-                    break;                 
-                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": //2018 Client
+                    break;
+                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": 
                     type = "ClientAppSettings2018";
                     break;
                 default:
+                //this is for 2016 temmporary lmao
+                    isValid = AllowedTypes.Contains(type);
+                    if (!isValid) {
+                        type = "ClientAppSettings";
+                    }
                     break;
-            }         
+            }
+            
             try
             {
-                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, type + ".json");
-                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                string FFlag = Path.Combine(Configuration.JsonDataDirectory, $"{type}.json");
+                if (!System.IO.File.Exists(FFlag)) return NotFound();
+                
+                string jsonContent = System.IO.File.ReadAllText(FFlag);
                 dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-
-                return clientAppSettingsData ?? "";
+                return clientAppSettingsData ?? new ExpandoObject();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
-                return new { };
+                return BadRequest("Error fetching FFlags");
             }
         }
 
