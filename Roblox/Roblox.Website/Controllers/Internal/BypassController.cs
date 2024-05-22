@@ -510,6 +510,7 @@ namespace Roblox.Website.Controllers
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long maxPlayerCount;
+            bool isRoblox = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
                 throw new RobloxException(403, 0, "Forbidden");
             }
