@@ -147,6 +147,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/internal/place-update",
         "/internal/migrate-to-application",
         "/internal/contest/first-contest",
+        "/internal/tixexchange",
         "/auth/account-deletion",
         "/auth/login",
         "/auth/password-reset",
