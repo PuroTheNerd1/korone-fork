@@ -3,52 +3,66 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Roblox.Dto.Users;
 using Roblox.Models.Users;
+using System.Threading.Tasks;
 
-namespace Roblox.Website.Pages.Internal;
-
-public class TixExchange : RobloxPageModel
+namespace Roblox.Website.Pages.Internal
 {
-    public string? successMessage { get; set; }
-    public string? errorMessage { get; set; }
-    public long tix { get; set; }
-    public async Task OnGet()
+    public class TixExchange : RobloxPageModel
     {
-        if (userSession == null)
-            return;
-    }
+        [BindProperty]
+        public string? successMessage { get; set; }
+        [BindProperty]
+        public string? errorMessage { get; set; }
+        [BindProperty]
+        public long tix { get; set; }
 
-
-    public async Task OnPost()
-    {
-        if (tix <= 0)
+        public async Task OnGet()
         {
-            errorMessage = "Invalid amount of tix";
-            return;
+            if (userSession == null)
+            {
+                return;
+            }
         }
 
-        int conversionRate = 10;
-        decimal roughRobux = tix / conversionRate;
-        long finalRobux = (long)Math.Round(roughRobux, 0);
-
-
-        long newBalance = (await services.economy.GetUserBalance(userSession.userId)).tickets;
-
-        if (newBalance < tix)
+        public async Task OnPost()
         {
-            errorMessage = "Insufficient tix balance.";
-            return;
-        }
+            if (userSession == null)
+            {
+                return;
+            }
 
-        try
-        {
-            await services.economy.DecrementCurrency(userSession.userId, Models.Economy.CurrencyType.Tickets, tix);
-            await services.economy.IncrementCurrency(userSession.userId, Models.Economy.CurrencyType.Robux, finalRobux);
+            if (tix <= 0)
+            {
+                errorMessage = "Invalid amount of tix.";
+                return;
+            }
+
+            int conversionRate = 10;
+            decimal roughRobux = tix / conversionRate;
+            long finalRobux = (long)Math.Round(roughRobux, 0);
+
+            try
+            {
+                var balance = await services.economy.GetUserBalance(userSession.userId);
+                long newBalance = balance.tickets;
+
+                if (newBalance < tix)
+                {
+                    errorMessage = "Insufficient tix balance.";
+                    return;
+                }
+
+                await services.economy.DecrementCurrency(userSession.userId, Models.Economy.CurrencyType.Tickets, tix);
+                await services.economy.IncrementCurrency(userSession.userId, Models.Economy.CurrencyType.Robux, finalRobux);
+
+                successMessage = $"You have received {finalRobux} R$ from {tix} Tix.";
+                return;
+            }
+            catch (Exception e)
+            {
+                errorMessage = "Failed to convert tix to robux.";
+                return;
+            }
         }
-        catch(Exception e)
-        {
-            errorMessage = "Failed to convert tix to robux";
-            return;
-        }
-        successMessage = "You have received" + finalRobux + "R$ from" + tix + "Tix";
     }
 }
