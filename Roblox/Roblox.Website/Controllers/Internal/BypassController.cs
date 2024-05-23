@@ -2245,45 +2245,6 @@ namespace Roblox.Website.Controllers
                 return "OK!";
             }
         }
-        [HttpGetBypass("tix-to-robux")]
-        public async Task<dynamic> TixToRobux(long tix)
-        {
-            if (tix <= 0)
-            {
-                return "Invalid amount of tix.";
-            }
-
-            const int conversionRate = 10;
-            decimal roughRobux = tix / conversionRate;
-            long finalRobux = (long)Math.Round(roughRobux, 0);
-
-            long newBalance;
-            try
-            {
-                newBalance = (await services.economy.GetUserBalance(safeUserSession.userId)).tickets;
-            }
-            catch(Exception e)
-            {
-                return "Failed to retrieve user balance.";
-            }
-
-            if (newBalance < tix)
-            {
-                return "Insufficient tix balance.";
-            }
-
-            try
-            {
-                await services.economy.DecrementCurrency(safeUserSession.userId, Models.Economy.CurrencyType.Tickets, tix);
-                await services.economy.IncrementCurrency(safeUserSession.userId, Models.Economy.CurrencyType.Robux, finalRobux);
-            }
-            catch(Exception e)
-            {
-                return "Failed to convert tix to robux.";
-            }
-
-            return $"Successfully given {finalRobux} robux.";
-        }
 
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
