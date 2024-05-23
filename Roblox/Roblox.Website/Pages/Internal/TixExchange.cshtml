@@ -5,7 +5,6 @@
     Layout = "Shared/_Layout";
 }
 
-
 @section MetaTags {
     <title>Tix Exchange</title>
 }
@@ -25,7 +24,7 @@
                 }
                 <form method="post" autocomplete="off">
                     <div class="mt-4">
-                        <label for="amountOfTix">Amount of Tix</label>
+                        <label for="tix">Amount of Tix</label>
                         <input type="number" class="form-control" id="tix" name="tix" value="@Model.tix" />
                     </div>
                     @Html.AntiForgeryToken()
