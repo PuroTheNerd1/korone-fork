@@ -320,7 +320,7 @@ public class EconomyService : ServiceBase, IService
         
         return await db.QueryAsync<TransactionEntryDb>(template.RawSql, template.Parameters);
     }
-    
+
     public async Task<IEnumerable<TransactionEntryDb>> GetTransactions(long creatorId, CreatorType creatorType, int limit, int offset)
     {
         var (query, template) = GetTransactionQuery();
