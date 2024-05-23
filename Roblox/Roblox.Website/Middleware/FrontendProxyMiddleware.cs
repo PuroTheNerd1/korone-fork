@@ -53,6 +53,7 @@ public class FrontendProxyMiddleware
         "/internal/migrate-to-application",
         "/internal/collectibles",
         "/internal/contest/first-contest",
+        "/internal/tixexchange",
         "/auth/notapproved",
         // Admin
         "/admin-api/api",
