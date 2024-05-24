@@ -685,14 +685,14 @@ public class GameServerService : ServiceBase
             TimeSpan timeDifference = currentTime - updatedAt;
 
             // If the server is full we continue
-            if (currentPlayerCount.Count() == maxPlayerCount)
+            if (currentPlayerCount.Count() >= maxPlayerCount)
             {
                 continue;
             }
 
-            // If server is last updated 5 mins ago and if theres no players active, we shutdown the server because RCC is most likely dead 
+            // If server is last updated 5 mins, we shutdown the server because RCC is most likely dead 
 
-            if (!currentPlayerCount.Any() && timeDifference.TotalMinutes <= 5)
+            if (timeDifference.TotalMinutes <= 5)
             {
                 await ShutDownServerAsync(ExistingJobId);
                 continue;
