@@ -711,7 +711,7 @@ public class GameServerService : ServiceBase
         string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
         watch.Stop();
 
-        GameMetrics.ReportTimeToStartGameServer("85.125.186.154", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
+        GameMetrics.ReportTimeToStartGameServer("194.15.36.134", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
 
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
@@ -719,9 +719,9 @@ public class GameServerService : ServiceBase
             {
                 id = jobId,
                 asset_id = placeId,
-                ip = "85.125.186.154",
+                ip = "194.15.36.134",
                 port = mainRCCPort,
-                server_connection = $"85.125.186.154:{networkServerPort}", 
+                server_connection = $"194.15.36.134:{networkServerPort}", 
             });
 
         return StartGameInfo != "BAD"
