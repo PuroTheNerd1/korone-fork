@@ -700,11 +700,9 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.Plugin:
             case Models.Assets.Type.SolidModel:
-                break;
             case Models.Assets.Type.Badge:
             case Models.Assets.Type.GamePass:
-                // todo: create icon with same method as tee shirt render (no bg), but crop result to circle
-                throw new Exception("NotImplemented");
+                break;
             case Models.Assets.Type.Place:
                 thumbRequests.Add(CreateGameThumbnail(assetId, cancellationToken));
                 thumbRequests.Add(CreateGameIcon(assetId, default, cancellationToken));
