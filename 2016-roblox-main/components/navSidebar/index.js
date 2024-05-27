@@ -85,7 +85,6 @@ const NavSideBar = props => {
       <LinkEntry name='Trade' url='/My/Trades.aspx' icon='icon-nav-trade' count={authStore.notificationCount.trades} />
       <LinkEntry name='Groups' url='/My/Groups.aspx' icon='icon-nav-group' />
       <LinkEntry name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum' />
-      <LinkEntry name='Blog' url='/info/blog' icon='icon-nav-blog' />
       {isStaff ? (
         <LinkEntry name='Admin Panel' url='/admin' icon='icon-nav-friends' count={69} />
       ) : null}

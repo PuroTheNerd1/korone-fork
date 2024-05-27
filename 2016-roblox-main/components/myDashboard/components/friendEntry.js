@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import { createUseStyles } from "react-jss";
 import { getGameUrl } from "../../../services/games";
-import PlayerImage from "../../playerImage";
 import Activity from "../../userActivity";
 import DashboardStore from "../stores/dashboardStore";
 import Link from "../../link";

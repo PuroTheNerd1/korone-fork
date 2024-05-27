@@ -1,6 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
-import PlayerImage from "../../playerImage";
+import PlayerHeadshot from "../../playerHeadshot";
 import UserProfileStore from "../stores/UserProfileStore";
 import useCardStyles from "../styles/card";
 import SmallButtonLink from "./smallButtonLink";
@@ -67,7 +67,7 @@ const Friends = props => {
                   <Link href={`/users/${v.id}/profile`}>
                     <a>
                       <div className={s.imageWrapper}>
-                        <PlayerImage id={v.id}/>
+                        <PlayerHeadshot id={v.id} name={s.username}/>
                       </div>
                       <p className={s.username}>{v.name}</p>
                     </a>
