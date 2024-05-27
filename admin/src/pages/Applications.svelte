@@ -264,7 +264,7 @@ import DropdownButton from "../components/misc/DropdownButton.svelte";
 							<td>{app.about}</td>
 							<td>
 								{#if app.isVerified}
-									<span class="badge bg-success">Verfied: </span>
+									<span class="badge bg-success">Verified: </span>
 									<a rel='nofollow noopener noreferrer' target='_blank' href={app.verifiedUrl}>{app.verifiedUrl}</a>
 									<br />
 									<hr />
