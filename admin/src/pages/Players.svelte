@@ -31,7 +31,20 @@
 										await Promise.all(promises);
 		}
 	}
+	export let createdAt;
+	export let onlineAt;
 
+	const formatDate = (dateString) => {
+		const date = new Date(dateString);
+		return date.toLocaleString('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: 'numeric',
+		hour12: true
+		});
+	};
 	const banAllUsers = async () => {
 		let groups = chunk(playersData.filter(v => v.checked), 100);
 		for (const items of groups) {
@@ -263,8 +276,8 @@
 							</td>
 							<td><a use:link href={`/admin/manage-user/${i.id}`}>{i.id}</a></td>
 							<td><a use:link href={`/admin/manage-user/${i.id}`}>{i.username}</a></td>
-							<td>{i.created_at}</td>
-							<td>{i.online_at}</td>
+							<td>{formatDate(i.created_at)}</td>
+							<td>{formatDate(i.online_at)}</td>
 							<td>
 								{#if i.status === "Ok"}
 									<span class="badge bg-success">OK</span>

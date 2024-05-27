@@ -194,6 +194,7 @@ import DropdownButton from "../components/misc/DropdownButton.svelte";
 							class="form-control"
 							bind:value={searchColumn}
 						>
+							<option value="">All</option>
 							<option value="SocialUrl">Social URL</option>
 							<option value="Name">Name</option>
 							<option value="About">About</option>
