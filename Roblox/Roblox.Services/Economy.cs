@@ -419,9 +419,9 @@ public class EconomyService : ServiceBase, IService
         await InTransaction(async _ =>
         {
             var balance = await GetBalance(creatorType, creatorId);
-            if (balance.robux < 350)
+            if (balance.robux < 100)
                 throw new LogicException(FailType.Unknown, 0, "Cannot charge user more than they own");
-            await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 350);
+            await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 100);
             await InsertTransaction(new AudioUploadTransaction(creatorType, creatorId));
             return 0;
         });
