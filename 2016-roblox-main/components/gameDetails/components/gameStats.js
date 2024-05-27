@@ -23,6 +23,10 @@ const GameStats = props => {
       value: store.universeDetails.favoritedCount.toLocaleString(),
     },
     {
+      name: 'Year',
+      value: store.placeDetails.year.toLocaleString(),
+    },
+    {
       name: 'Visited',
       value: store.universeDetails.visits.toLocaleString(),
     },
