@@ -874,10 +874,6 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
             else if (isImage)
             {
                 var stream = request.file.OpenReadStream();
-                bool AudioSig = HasAudioSignature(stream);
-                Console.WriteLine(AudioSig);
-                //if (HasAudioSignature(stream))
-                    //throw new BadRequestException(0, "Invalid image file");
 
                 var pictureData = await services.assets.ValidateImage(stream);
                 if (pictureData == null)

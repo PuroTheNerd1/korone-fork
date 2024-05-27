@@ -13,6 +13,7 @@ import Button from "./button";
 import GroupWall from "./groupWall";
 import MembersRow from "./membersRow";
 import GroupStore from "./store";
+import NotAvailable from "../../develop/components/notAvailable";
 
 const useStyles = createUseStyles({
   icon: {
@@ -181,6 +182,10 @@ const GroupPage = props => {
         {
           name: 'Store',
           element: <GroupStore groupId={store.groupId} />,
+        },
+        {
+          name: 'Games',
+          element: <NotAvailable />,
         }
       ].filter(v => !!v)} />
     </div>

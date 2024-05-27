@@ -194,6 +194,7 @@ import DropdownButton from "../components/misc/DropdownButton.svelte";
 							class="form-control"
 							bind:value={searchColumn}
 						>
+							<option value="">All</option>
 							<option value="SocialUrl">Social URL</option>
 							<option value="Name">Name</option>
 							<option value="About">About</option>
@@ -264,7 +265,7 @@ import DropdownButton from "../components/misc/DropdownButton.svelte";
 							<td>{app.about}</td>
 							<td>
 								{#if app.isVerified}
-									<span class="badge bg-success">Verfied: </span>
+									<span class="badge bg-success">Verified: </span>
 									<a rel='nofollow noopener noreferrer' target='_blank' href={app.verifiedUrl}>{app.verifiedUrl}</a>
 									<br />
 									<hr />

@@ -133,7 +133,7 @@ const GroupWall = props => {
             } else if (mode === -1) {
               if (!posts.previousPageCursor) return;
               getPosts(posts.previousPageCursor);
-              page.current = page.current + 1;
+              page.current = page.current - 1;
             }
           }
         }} /> : null}

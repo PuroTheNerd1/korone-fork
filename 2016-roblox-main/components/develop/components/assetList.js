@@ -24,6 +24,9 @@ const useStyles = createUseStyles({
   },
   gearDropdownWrapper: {
     marginBottom: '-1rem',
+    position: 'relative', 
+    zIndex: '999', 
+    overflow: 'visible',
   },
 });
 

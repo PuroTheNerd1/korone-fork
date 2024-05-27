@@ -674,13 +674,15 @@ namespace Roblox.Website.Controllers
                     string[] keyValue = pair.Split('=');
                     if (keyValue.Length == 2)
                     {
-                        if (keyValue[0] == "username")
+                        string key = HttpUtility.UrlDecode(keyValue[0]);
+                        string value = HttpUtility.UrlDecode(keyValue[1]);
+                        if (key == "username")
                         {
-                            username = keyValue[1];
+                            username = value;
                         }
-                        else if (keyValue[0] == "password")
+                        else if (key == "password")
                         {
-                            password = keyValue[1];
+                            password = value;
                         }
                     }
                 }
