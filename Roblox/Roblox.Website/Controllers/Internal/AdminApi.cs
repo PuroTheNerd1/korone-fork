@@ -2099,7 +2099,7 @@ Thank you for your understanding,
         {
             var fileData = request.rbxm.OpenReadStream();
             // TODO: we should probably be validating audio and image uploads...
-            if (request.assetTypeId != Type.Audio && request.assetTypeId != Type.Image && request.assetTypeId != Type.Mesh)
+            if (request.assetTypeId != Type.Audio && request.assetTypeId != Type.Image && request.assetTypeId != Type.Mesh && request.assetTypeId != Type.GamePass && request.assetTypeId != Type.Badge)
             {
                 var isOk = await services.assets.ValidateAssetFile(fileData, request.assetTypeId);
                 if (!isOk)
