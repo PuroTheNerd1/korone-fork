@@ -24,7 +24,7 @@ const GameStats = props => {
     },
     {
       name: 'Year',
-      value: store.placeDetails.year.toLocaleString(),
+      value: store.placeDetails.year,
     },
     {
       name: 'Visited',
