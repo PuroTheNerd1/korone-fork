@@ -14,13 +14,13 @@ import {
 import { getUserInfo } from "../../services/users";
 import AuthenticationStore from "../../stores/authentication";
 import GenericPagination from "../genericPagination";
-import PlayerImage from "../playerImage";
 import Tabs2016 from "../tabs2016";
 import useCardStyles from "../userProfile/styles/card";
 import UserFriendsStore from "./stores/userFriendsStore";
 import Paging from "../pagination2016";
 import Link from "../link";
 import Dropdown2016 from "../dropdown2016";
+import PlayerHeadshot from "../playerHeadshot";
 
 const useStyles = createUseStyles({
   title: {
@@ -220,7 +220,7 @@ const UserFriends = props => {
                         <div className={s.imageWrapper}>
                           <Link href={`/users/${v.id}/profile`}>
                             <a>
-                              <PlayerImage id={v.id} name={v.name} />
+                              <PlayerHeadshot id={v.id} name={v.name} />
                             </a>
                           </Link>
                         </div>
