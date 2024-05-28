@@ -202,10 +202,8 @@ public class AppSocialMedia
     {
         // Keep this ordered from most important to least.
         new RobloxUserIdParser(),
-        new TwitterUsernameParser(),
         new YoutubeChannelNameParser(),
         new YoutubeChannelIdParser(),
-        new RedditUsernameParser(),
         new SteamUserIdParser(),
         new TikTokRedirectParser(),
         new TiKTokUsernameParser(),
