@@ -848,10 +848,9 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 var stream = request.file.OpenReadStream();
                 var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
                 stream.Position = 0;
-                //bool AudioSig = HasAudioSignature(stream);
-                //Console.WriteLine(AudioSig);
-                //if (HasAudioSignature(stream))
-                    //throw new BadRequestException(0, "Invalid image file");
+                if (HasAudioSignature(stream))
+                    throw new BadRequestException(0, "Invalid image file");
+                stream.Position = 0;
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
                 // create the texture

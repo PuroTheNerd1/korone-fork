@@ -109,14 +109,6 @@ public class ApplicationWebsiteService : WebsiteService
                     verifiedUrl = socialData.url;
                     verifiedId = socialData.site + ":" + socialData.identifier;
                     break;
-                // below are just for URL normalization - we don't actually verify automatically
-                case SocialMediaSite.TikTokUsername:
-                case SocialMediaSite.YoutubeChannelId:
-                case SocialMediaSite.YoutubeChannelName:
-                case SocialMediaSite.RedditUsername:
-                    // Don't add verified stuff since we don't have access to these apis :(
-                    socialUrl = socialData.url;
-                    break;
                 default:
                     throw new NotImplementedException();
             }

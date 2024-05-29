@@ -202,11 +202,6 @@ public class AppSocialMedia
     {
         // Keep this ordered from most important to least.
         new RobloxUserIdParser(),
-        new YoutubeChannelNameParser(),
-        new YoutubeChannelIdParser(),
-        new SteamUserIdParser(),
-        new TikTokRedirectParser(),
-        new TiKTokUsernameParser(),
     };
 
     public static AppSocialMedia? ParseFirstUrl(string text)
