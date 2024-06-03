@@ -30,7 +30,7 @@ const MyCharacterPage = props => {
   const [rigType, setRigType] = useState(null);
 
   useEffect(() => {
-    fetch('https://www.projex.zip/apisite/avatar/v1/avatar') // r15 - r6 checker
+    fetch('https://www.roblox.bar/apisite/avatar/v1/avatar') // r15 - r6 checker
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch avatar data');

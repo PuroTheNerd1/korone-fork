@@ -237,7 +237,7 @@ public class Application : RobloxPageModel
         }
         if (!userInfo.success)
         {
-            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord";
+            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.roblox.bar/auth/discord";
             return new PageResult();
         }
 

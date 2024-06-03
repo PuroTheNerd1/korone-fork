@@ -96,7 +96,7 @@ const AssetEntry = props => {
         e.preventDefault();
         const confirmation = window.confirm("Do you want to shut down all servers?");
         if (confirmation) {
-          fetch(`https://www.projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
+          fetch(`https://www.roblox.bar/rcc/killallservers?placeId=${props.assetId}`, {
             method: "GET",
           })
           .then(response => {

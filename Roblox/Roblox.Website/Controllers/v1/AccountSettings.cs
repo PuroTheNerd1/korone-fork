@@ -14,7 +14,7 @@ public class AccountSettingsControllerV1 : ControllerBase
     {
         return new
         {
-            emailAddress = "ProjectX@projex.zip",
+            emailAddress = "ProjectX@roblox.bar",
             verified = true,
         };
     }

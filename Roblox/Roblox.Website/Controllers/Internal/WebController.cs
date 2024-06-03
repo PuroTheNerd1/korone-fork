@@ -148,7 +148,7 @@ public class WebController : ControllerBase
         var result = (await services.thumbnails.GetUserThumbnails(new[] {userId})).ToList();
         var json = new
         {
-            Url = $"https://www.projex.zip{result[0].imageUrl}",
+            Url = $"https://www.roblox.bar{result[0].imageUrl}",
             Final = true,
             SubstitutionType = 0
         };
@@ -169,7 +169,7 @@ public class WebController : ControllerBase
         var result = (await services.thumbnails.GetAssetThumbnails(new[] {assetId})).ToList();
         var json = new
         {
-            Url = $"https://www.projex.zip{result[0].imageUrl}",
+            Url = $"https://www.roblox.bar{result[0].imageUrl}",
             Final = true,
             SubstitutionType = 0
         };

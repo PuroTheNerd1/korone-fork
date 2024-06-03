@@ -70,7 +70,7 @@ public class GameServerPort
 #if DEBUG
         return originalBaseUrl + ":" + port;
 #endif
-        // URL format is like "gs1-1.projex.zip"
+        // URL format is like "gs1-1.roblox.bar"
         var matched = idConversionRegex.Match(originalBaseUrl);
         if (!matched.Success || matched.Groups.Count < 2)
             throw new ArgumentException("Invalid baseUrl: " + originalBaseUrl);

@@ -31,7 +31,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/install/GetInstallerCdns.ashx")]
         public dynamic GetCDN()
         {
-            return "setup.projex.zip/cdn";
+            return "setup.roblox.bar/cdn";
         }
 
         [HttpGetBypass("/cdn/versionQTStudio")]

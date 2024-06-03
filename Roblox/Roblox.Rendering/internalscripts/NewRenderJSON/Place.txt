@@ -3,7 +3,7 @@
   "Settings": {
     "Type": "Place",
     "Arguments": [
-       "https://www.projex.zip/asset?id=%universeId%",
+       "https://www.roblox.bar/asset?id=%universeId%",
        "PNG",
       %x%,
       %y%,

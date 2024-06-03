@@ -21,8 +21,8 @@ local PromptCreator = require(CoreGuiModules:WaitForChild("PromptCreator"))
 local PlayerDropDownModule = require(CoreGuiModules:WaitForChild("PlayerDropDown"))
 local BlockingUtility = PlayerDropDownModule:CreateBlockingUtility()
 
-local THUMBNAIL_URL = "https://www.projex.zip/Thumbs/Avatar.ashx?x=200&y=200&format=png&userId="
-local BUST_THUMBNAIL_URL = "https://www.projex.zip/bust-thumbnail/image?width=420&height=420&format=png&userId="
+local THUMBNAIL_URL = "https://www.roblox.bar/Thumbs/Avatar.ashx?x=200&y=200&format=png&userId="
+local BUST_THUMBNAIL_URL = "https://www.roblox.bar/bust-thumbnail/image?width=420&height=420&format=png&userId="
 
 function DoPromptBlockPlayer(playerToBlock)
 	if BlockingUtility:IsPlayerBlockedByUserId(playerToBlock.UserId) then
