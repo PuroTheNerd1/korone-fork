@@ -2267,8 +2267,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("integration-test/create-account-and-set-cookie")]
         public async Task<string> CreateAccountAndSetCookie()
         {
-            var name = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 14);
-            var result = await services.users.CreateUser(name, "ROBLOX", Gender.Male);
+            var result = await services.users.CreateUser("ROBLOX", "ROBLOX", Gender.Male);
             await services.users.InsertOrUpdateMembership(result.userId, MembershipType.BuildersClub);
             var id = await services.users.CreateApplication(new CreateUserApplicationRequest()
             {
@@ -2297,7 +2296,7 @@ namespace Roblox.Website.Controllers
                 Expires = DateTimeOffset.Now.AddDays(1),
                 Path = "/",
             });
-            return "Created user " + name + "...\nOK";
+            return "Created user " + "ROBLOX" + "...\nOK";
         }
 #endif
     }
