@@ -11,7 +11,7 @@
     @await RenderSectionAsync("MetaTags", required: false)
 </head>
 <body class="d-flex flex-column h-100">
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -39,7 +39,7 @@
 </nav>
 @if (Model.isAuthenticated)
 {
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-auth bg-dark border-bottom pt-0 pb-0">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-auth bg-dark pt-0 pb-0">
         <div class="container-fluid">
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
