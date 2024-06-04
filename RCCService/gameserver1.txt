@@ -86,7 +86,7 @@ if placeId~=nil and url~=nil then
 	wait()
 	
 	-- load the game
-	game:Load("http://www.roblox.bar/asset?id=699")
+	game:Load("http://www.projex.zip/asset?id=699")
  print("game load request sent!")
 end
 
@@ -109,4 +109,4 @@ game:GetService("RunService"):Run()
 
 
 end
-start(1818, 53640, "http://www.roblox.bar")
+start(1818, 53640, "http://www.projex.zip")

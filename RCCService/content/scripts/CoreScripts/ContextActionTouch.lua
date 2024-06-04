@@ -12,8 +12,8 @@ local buttonVector = {}
 local buttonScreenGui = nil
 local buttonFrame = nil
 
-local ContextDownImage = "http://www.roblox.bar/asset/?id=97166756"
-local ContextUpImage = "http://www.roblox.bar/asset/?id=97166444"
+local ContextDownImage = "http://www.projex.zip/asset/?id=97166756"
+local ContextUpImage = "http://www.projex.zip/asset/?id=97166444"
 
 local oldTouches = {}
 

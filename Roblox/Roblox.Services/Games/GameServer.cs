@@ -296,7 +296,7 @@ public class GameServerService : ServiceBase
             xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
             xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
             <soap:Body>
-                <Execute xmlns=""http://roblox.bar/"">
+                <Execute xmlns=""http://projex.zip/"">
 				    <jobID>{JobId}</jobID>
                     <script>
                         <name>{Guid.NewGuid().ToString()}</name>
@@ -329,7 +329,7 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.roblox.bar/kill-game-server?jobId={serverId}");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/kill-game-server?jobId={serverId}");
         }            
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
@@ -750,7 +750,7 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.roblox.bar/start-game-server?placeId={placeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}");
             if (response.IsSuccessStatusCode)
             {
                 currentGameServerPorts.Add(jobId, networkServerPort);
@@ -812,8 +812,8 @@ public class GameServerService : ServiceBase
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
                         ""UniverseId"": {placeId},
-                        ""BaseUrl"": ""roblox.bar"",
-                        ""PlaceFetchUrl"": ""https://www.roblox.bar"",
+                        ""BaseUrl"": ""projex.zip"",
+                        ""PlaceFetchUrl"": ""https://www.projex.zip"",
                         ""MatchmakingContextId"": 1,
                         ""CreatorType"": ""User"",
                         ""PlaceVersion"": 1,
@@ -849,8 +849,8 @@ public class GameServerService : ServiceBase
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
                         ""UniverseId"": {placeId},
-                        ""BaseUrl"": ""roblox.bar"",
-                        ""PlaceFetchUrl"": ""https://www.roblox.bar"",
+                        ""BaseUrl"": ""projex.zip"",
+                        ""PlaceFetchUrl"": ""https://www.projex.zip"",
                         ""MatchmakingContextId"": 1,
                         ""CreatorType"": ""User"",
                         ""PlaceVersion"": 1,
@@ -874,7 +874,7 @@ public class GameServerService : ServiceBase
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <OpenJobEx xmlns=""http://roblox.bar/"">
+                    <OpenJobEx xmlns=""http://projex.zip/"">
                         <job>
                             <id>{jobId}</id>
                             <category>1</category>
@@ -919,7 +919,7 @@ public class GameServerService : ServiceBase
     {
         using (HttpClient RccHttpClient = new HttpClient())
         {
-            RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://roblox.bar/{SOAPAction}");
+            RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://projex.zip/{SOAPAction}");
             HttpContent XMLContent = new StringContent(XML, Encoding.UTF8, "text/xml");
             try
             {

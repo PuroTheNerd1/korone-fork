@@ -88,7 +88,7 @@ local doubleTapThreshold = .25
 
 
 local baseUrl = contentProvider.BaseUrl
-local domainUrl = baseUrl--"sitetest3.robloxlabs.com"	--"roblox.bar"	--
+local domainUrl = baseUrl--"sitetest3.robloxlabs.com"	--"projex.zip"	--
 	domainUrl = string.gsub(domainUrl,"/","")
 	domainUrl = string.gsub(domainUrl, "www.", "")		-- Trims pre-fixes out
 	domainUrl = string.gsub(domainUrl,"https:","")
@@ -1944,7 +1944,7 @@ local detailsMenuCount = 0
 function openDetails(assetId)
 	--[[if isCoreSetup then
 		closeMenu()
-		guiService:OpenBrowserWindow("https://www.roblox.bar/catalog/"..tostring(assetId).."/name")
+		guiService:OpenBrowserWindow("https://www.projex.zip/catalog/"..tostring(assetId).."/name")
 	else]]
 		detailsMenuCount = detailsMenuCount + 1
 		local myDetailsMenuCount = detailsMenuCount
@@ -2354,7 +2354,7 @@ local function outfitImageFetch(outfitId, attemptNumber)
 	if attemptNumber > 10 then
 		return 'OutfitFailedToLoad'
 	end
-	local returnString = httpGet("http://www.roblox.bar/Outfit-Thumbnail/Json?userOutfitId="..outfitId.."&width=352&height=352&format=png")
+	local returnString = httpGet("http://www.projex.zip/Outfit-Thumbnail/Json?userOutfitId="..outfitId.."&width=352&height=352&format=png")
 	if returnString then
 		local returnData = httpService:JSONDecode(returnString)
 		if returnData and returnData.Final then

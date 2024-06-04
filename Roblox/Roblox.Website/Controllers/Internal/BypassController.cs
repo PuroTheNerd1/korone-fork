@@ -401,12 +401,12 @@ namespace Roblox.Website.Controllers
             var details = await services.assets.GetAssetCatalogInfo(PlaceId);
             string luaCode = $@"
                             pcall(function() game:SetCreatorID({details.creatorTargetId}, Enum.CreatorType.User) end);
-                            pcall(function() game:GetService(""SocialService""):SetFriendUrl(""http://www.roblox.bar/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetBestFriendUrl(""http://www.roblox.bar/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupUrl(""http://www.roblox.bar/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupRankUrl(""http://www.roblox.bar/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupRoleUrl(""http://www.roblox.bar/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""GamePassService""):SetPlayerHasPassUrl(""http://www.roblox.bar/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetFriendUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetBestFriendUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupRankUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupRoleUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""GamePassService""):SetPlayerHasPassUrl(""http://www.projex.zip/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d"") end);
             ";
 
             string[] lines = luaCode.Split('\n');
@@ -522,7 +522,7 @@ namespace Roblox.Website.Controllers
             long maxPlayerCount;
             bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
-                return Redirect("https://www.roblox.bar/404");
+                return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
@@ -601,7 +601,7 @@ namespace Roblox.Website.Controllers
             }
 
             string cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
-            return Ok($"https://www.roblox.bar/Login/Negotiate.ashx?suggest={cookie}");
+            return Ok($"https://www.projex.zip/Login/Negotiate.ashx?suggest={cookie}");
         }
 
         [HttpGetBypass("My/Places.aspx")]
@@ -616,7 +616,7 @@ namespace Roblox.Website.Controllers
 
             gameDetail.CreatorID = 20;
             gameDetail.CreatorName = "ass";
-            gameDetail.CreatorUrl = "https://www.roblox.bar/users/20/profile";
+            gameDetail.CreatorUrl = "https://www.projex.zip/users/20/profile";
             gameDetail.Plays = 1;
             gameDetail.Price = 0;
             gameDetail.ProductID = 0;
@@ -627,8 +627,8 @@ namespace Roblox.Website.Controllers
             gameDetail.TotalBought = 69;
             gameDetail.UniverseID = 189;
             gameDetail.HasErrorOcurred = false;
-            gameDetail.GameDetailReferralUrl = "https://www.roblox.bar/games/189/Natural-Disaster-Survival";
-            gameDetail.Url = "https://www.roblox.bar/images/thumbnails/e70dd27c44ca8bebebb14f48fbba28c5b5a2ba79ebb1e3c820c3a1e84fc8aed5.png";
+            gameDetail.GameDetailReferralUrl = "https://www.projex.zip/games/189/Natural-Disaster-Survival";
+            gameDetail.Url = "https://www.projex.zip/images/thumbnails/e70dd27c44ca8bebebb14f48fbba28c5b5a2ba79ebb1e3c820c3a1e84fc8aed5.png";
             gameDetail.RetryUrl = null;
             gameDetail.Final = true;
             gameDetail.Name = "Natural Disaster Survival";
@@ -725,7 +725,7 @@ namespace Roblox.Website.Controllers
             });
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
             {
-                Domain = ".roblox.bar",
+                Domain = ".projex.zip",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
@@ -792,7 +792,7 @@ namespace Roblox.Website.Controllers
             });
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
             {
-                Domain = ".roblox.bar",
+                Domain = ".projex.zip",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
@@ -809,7 +809,7 @@ namespace Roblox.Website.Controllers
                     RobuxBalance = userBalance.robux,
                     TicketsBalance = userBalance.tickets,
                     IsAnyBuildersClubMember = true,
-                    ThumbnailUrl = $"https://www.roblox.bar/Thumbs/Avatar.ashx?userId={userId}",
+                    ThumbnailUrl = $"https://www.projex.zip/Thumbs/Avatar.ashx?userId={userId}",
                     UserID = userId
                 }
             };
@@ -826,7 +826,7 @@ namespace Roblox.Website.Controllers
         {
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
             {
-                Domain = ".roblox.bar",
+                Domain = ".projex.zip",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
@@ -846,7 +846,7 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("Client connected to join.ashx");
             bool isRoblox = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
-                return Redirect("https://www.roblox.bar/404");
+                return Redirect("https://www.projex.zip/404");
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
@@ -977,7 +977,7 @@ namespace Roblox.Website.Controllers
                 GenerateTeleportJoin = GenerateTeleportJoin,
                 IsUnknownOrUnder13 = false,
                 GameChatType = "AllUsers",
-                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.roblox.bar|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.projex.zip|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 DataCenterId = 0,
                 UniverseId = placeId, 
                 BrowserTrackerId = 0,
@@ -1028,7 +1028,7 @@ namespace Roblox.Website.Controllers
                 GenerateTeleportJoin = false,
                 IsUnknownOrUnder13 = false,
                 GameChatType = "AllUsers",
-                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.roblox.bar|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.projex.zip|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 AnalyticsSessionId = Guid.NewGuid().ToString(),
                 DataCenterId = 0,
                 UniverseId = placeId,
@@ -1168,7 +1168,7 @@ namespace Roblox.Website.Controllers
                 animationAssetIds = new {},
                 playerAvatarType = AvatarType,
                 scales,
-                bodyColorsUrl = $"https://www.roblox.bar/Asset/BodyColors.ashx?userId={userId}",
+                bodyColorsUrl = $"https://www.projex.zip/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors
             };
             string jsonString = JsonConvert.SerializeObject(result);
@@ -1712,7 +1712,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("banned")]
         public async Task<IActionResult> BannedAsync()
         {
-            var videoUrl = "https://www.roblox.bar/cdn/Youve_been_banned.mp4";
+            var videoUrl = "https://www.projex.zip/cdn/Youve_been_banned.mp4";
 
             using (var httpClient = new HttpClient())
             {
@@ -1990,7 +1990,7 @@ namespace Roblox.Website.Controllers
                         new 
                         {
                             title = "ZetaCheatingMonitor",
-                            url = "https://www.roblox.bar",
+                            url = "https://www.projex.zip",
                             color = 16711680,
                             fields = new[]
                             {
@@ -1998,7 +1998,7 @@ namespace Roblox.Website.Controllers
                                 new  { name = "Flag", value = $"```\n{details}\n```" },
                                 new  { name = "Details", value = $"```\n{stat}\n```" }
                             },
-                            thumbnail = new { url = $"https://www.roblox.bar/thumbs/avatar.ashx?userId={userId}" }
+                            thumbnail = new { url = $"https://www.projex.zip/thumbs/avatar.ashx?userId={userId}" }
                         }
                     },
                     username = "ZetaCheatingMonitor",
@@ -2072,7 +2072,7 @@ namespace Roblox.Website.Controllers
                 Username = safeUserSession.username,
                 DisplayName = safeUserSession.username,
                 HasPasswordSet = true,
-                Email = "ProjectX@roblox.bar",
+                Email = "ProjectX@projex.zip",
                 MembershipType = 3,
                 RobuxBalance = userBalance.robux,
                 AgeBracket = 0,
@@ -2275,7 +2275,7 @@ namespace Roblox.Website.Controllers
                 about = "ROBLOX",
                 socialPresence = "",
                 isVerified = true,
-                verifiedUrl = "https://www.roblox.bar/",
+                verifiedUrl = "https://www.projex.zip/",
                 verificationPhrase = "Integration test",
                 verifiedId = "1",
             });

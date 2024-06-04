@@ -72,7 +72,7 @@ public class GameListEntryRoblox
 {
     public long CreatorID { get; set; }
     public string CreatorName { get; set; }
-    public string CreatorUrl = $"https://www.roblox.bar/users/1/profile";
+    public string CreatorUrl = $"https://www.projex.zip/users/1/profile";
     public long Plays { get; set; }
     public int Price  { get; set; }
     public int ProductID = 0;
@@ -83,7 +83,7 @@ public class GameListEntryRoblox
     public long TotalBought = 1;
     public long UniverseID { get; set; }
     public bool HasErrorOcurred = false;
-    public string GameDetailReferralUrl = "https://roblox.bar";
+    public string GameDetailReferralUrl = "https://projex.zip";
     public string Url = "";
     public string RetryUrl = null;
     public bool Final = true;

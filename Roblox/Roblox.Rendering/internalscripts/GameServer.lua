@@ -108,4 +108,4 @@ function start(placeId, port, url)
 	
 	end
 	
-start(%placeId%, %port%, "http://roblox.bar")	
+start(%placeId%, %port%, "http://projex.zip")	

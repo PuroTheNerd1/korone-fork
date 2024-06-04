@@ -3,9 +3,9 @@
 			// API for all web endpoints
 			// Calls are async
 
-			// Any calls to roblox.bar need to use game:HttpGetAynsc() and game:HttpPostAynsc()
+			// Any calls to projex.zip need to use game:HttpGetAynsc() and game:HttpPostAynsc()
 				// use rbxGetAsync() and rbxPostAsync()
-			// Any calls to api.roblox.bar should use HttpRbxApiService
+			// Any calls to api.projex.zip should use HttpRbxApiService
 				// use rbxApiGetAsync() and rbxApiPostAsync()
 
 			// NOTE: You cannot currently get thumbnails with this API (please see the Thumbnail module), because
@@ -690,7 +690,7 @@ function Http.PurchaseProductAsync(productId, expectedPrice, expectedSellerId, e
 	print('PurchaseProductAsync:' , formattedUrl)
 	return rbxPostAsync(formattedUrl, '')
 	-- path, params, contentType)
-	-- return http://www.roblox.bar/API/Item.ashx?rqtype=purchase&productID=24805065&expectedCurrency=1&expectedPrice=88&expectedSellerID=1
+	-- return http://www.projex.zip/API/Item.ashx?rqtype=purchase&productID=24805065&expectedCurrency=1&expectedPrice=88&expectedSellerID=1
 end
 
 

@@ -274,7 +274,7 @@ local function Initialize()
 					table.insert(existingPlayerLabels, index, frame)
 				end
 				frame.Name = 'PlayerLabel'..player.Name
-				frame.Icon.Image = 'http://www.roblox.bar/Thumbs/Avatar.ashx?x=100&y=100&userId='..math.max(1, player.userId)
+				frame.Icon.Image = 'http://www.projex.zip/Thumbs/Avatar.ashx?x=100&y=100&userId='..math.max(1, player.userId)
 				frame.NameLabel.Text = player.Name
 				frame.ImageTransparency = frameDefaultTransparency
 
