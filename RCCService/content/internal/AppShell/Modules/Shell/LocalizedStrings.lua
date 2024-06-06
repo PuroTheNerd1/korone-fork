@@ -130,7 +130,7 @@ local enUS =
 	["AuthAccountUnlinkedPhrase"] = "";	-- This is a special case handled by EngagementScreen
 	["AuthMissingGamePadPhrase"] = "No gamepad detected. Please turn on a gamepad.";
 	["AuthNoUserDetectedPhrase"] = "No Xbox Live user detected. Please sign in to an Xbox Live account.";
-	["AuthHttpErrorDetected"] = "Trouble communicating with ROBLOX servers. Please check www.roblox.bar/help/xbox for more info.";
+	["AuthHttpErrorDetected"] = "Trouble communicating with ROBLOX servers. Please check www.projex.zip/help/xbox for more info.";
 	["AuthErrorPhrase"] = "Trouble communicating with ROBLOX servers. Please try again.";
 
 	-- Sign In
@@ -230,7 +230,7 @@ local enUS =
 
 	-- Terms of Service & Privacy
 	["ToSPhrase"] = "View Terms...";
-	["ToSInfoLinkPhrase"] = "Terms & Privacy Policy:\nwww.roblox.bar/info/terms-of-service\nwww.roblox.bar/info/Privacy.aspx";
+	["ToSInfoLinkPhrase"] = "Terms & Privacy Policy:\nwww.projex.zip/info/terms-of-service\nwww.projex.zip/info/Privacy.aspx";
 	["PrivacyPhrase"] = "Privacy";
 
 	-- Codes
@@ -259,7 +259,7 @@ local enUS =
 	["ActiveUserLostConnectionPhrase"] = "User '%s' has been logged out, please press 'A' on the controller you would like to continue with.";
 
 	["PlayMyPlaceMoreGamesTitle"] = "My Games";
-	["PlayMyPlaceMoreGamesPhrase"] = "Sign in on roblox.bar to create more games and edit your existing creations!";
+	["PlayMyPlaceMoreGamesPhrase"] = "Sign in on projex.zip to create more games and edit your existing creations!";
 	["PrivateSessionPhrase"] = "In Private Game";
 
 	-- Reauth (Booted to engagement screen), alerts

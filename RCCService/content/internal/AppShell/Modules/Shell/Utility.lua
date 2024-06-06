@@ -474,7 +474,7 @@ do
 		end
 	end
 	function Util.FindAssetsInModel(object, baseUrl)
-		baseUrl = baseUrl or 'http://www.roblox.bar/asset/?id='
+		baseUrl = baseUrl or 'http://www.projex.zip/asset/?id='
 		local result = {}
 		findAssetsHelper(object, result, baseUrl)
 		return result
