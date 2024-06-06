@@ -711,7 +711,10 @@ public class GameServerService : ServiceBase
         string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
         if (StartGameInfo == "BAD")
         {
-            return "wtf!";
+            return new GameServerGetOrCreateResponse()
+            {
+                status = JoinStatus.Error
+            };
         };
         watch.Stop();
 
