@@ -709,6 +709,10 @@ public class GameServerService : ServiceBase
         var watch = new Stopwatch();
         watch.Start();
         string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
+        if (StartGameInfo == "BAD")
+        {
+            return "wtf!";
+        };
         watch.Stop();
 
         GameMetrics.ReportTimeToStartGameServer("194.15.36.134", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
