@@ -747,6 +747,7 @@ public class GameServerService : ServiceBase
         //string originalScript;
         //string finalScript;
         long maxplayers = await gamesService.GetMaxPlayerCount(placeId);
+        Console.WriteLine("Starting Gameserver");
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
