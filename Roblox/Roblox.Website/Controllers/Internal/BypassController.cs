@@ -571,7 +571,7 @@ namespace Roblox.Website.Controllers
             return new
             {
                 jobId = (string?)null,
-                status = (int)JoinStatus.Loading,
+                status = (int)JoinStatus.Error,
                 message = "Server found, loading...",
             };
         }
@@ -2262,7 +2262,7 @@ namespace Roblox.Website.Controllers
         {
             return Ok();
         }
-
+          
 #if DEBUG
         [HttpGetBypass("integration-test/create-account-and-set-cookie")]
         public async Task<string> CreateAccountAndSetCookie()
