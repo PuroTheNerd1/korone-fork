@@ -713,7 +713,7 @@ public class GameServerService : ServiceBase
         {
             return new GameServerGetOrCreateResponse()
             {
-                status = JoinStatus.Error
+                status = JoinStatus.Restricted
             };
         };
         watch.Stop();
