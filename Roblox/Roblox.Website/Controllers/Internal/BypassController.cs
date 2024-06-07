@@ -571,7 +571,7 @@ namespace Roblox.Website.Controllers
             return new
             {
                 jobId = (string?)null,
-                status = (int)JoinStatus.Unauthorized,
+                status = (int)JoinStatus.UserLeft,
                 message = "Server found, loading...",
             };
         }
