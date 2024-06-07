@@ -38,7 +38,7 @@
 {#if post.type === "ForumPost"}
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card card-body">
+            <div class="card card-body bg-dark text-light">
                 <p class="mb-0">{post.post}</p>
                 <details>
                     {#if post.title}
