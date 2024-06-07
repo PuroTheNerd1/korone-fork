@@ -66,7 +66,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Hat.lua");
+            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Hat.txt");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"{assetUrl}").Replace
                 ("%baseUrl%", $@"{BaseUrl}/");
