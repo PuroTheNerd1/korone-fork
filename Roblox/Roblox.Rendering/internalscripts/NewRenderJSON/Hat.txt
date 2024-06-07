@@ -4,10 +4,10 @@
     "Type": "Hat",
     "Arguments": [
        %assetUrl%,
-       %fileExtension%,
-       "%baseUrl%"
+       "PNG",
        1680,
        1680,
+       "https://www.projex.zip",
        true,
        0,
        0,

@@ -68,8 +68,7 @@ namespace Roblox.Rendering
             renderRcc.Start();
             string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Hat.txt");
             string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"""{assetUrl}""").Replace
-                ("%baseUrl%", $@"{BaseUrl}/");
+                ("%assetUrl%", $@"""{assetUrl}""");
             
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
@@ -95,6 +94,7 @@ namespace Roblox.Rendering
                 </soap:Body>
             </soap:Envelope>";
             await WaitForPort(RCCPort);
+            
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
