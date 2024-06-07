@@ -68,7 +68,7 @@ namespace Roblox.Rendering
             renderRcc.Start();
             string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Hat.txt");
             string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"{assetUrl}").Replace
+                ("%assetUrl%", $@"""{assetUrl}""").Replace
                 ("%baseUrl%", $@"{BaseUrl}/");
             
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
