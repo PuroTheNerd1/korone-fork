@@ -5,9 +5,9 @@
     "Arguments": [
        %assetUrl%,
        %fileExtension%,
-       %baseUrl%
-       %x%,
-       %y%,
+       "%baseUrl%"
+       1680,
+       1680,
        true,
        0,
        0,

@@ -66,13 +66,10 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}Hat.lua");
+            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Hat.lua");
             string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"""{assetUrl}""").Replace
-                ("%fileExtension%", $@"""png""").Replace
-                ("%x%", @"""1680""").Replace
-                ("%y%", @"""1680""").Replace
-                ("%baseUrl%", $@"""{BaseUrl}/""");
+                ("%assetUrl%", $@"{assetUrl}").Replace
+                ("%baseUrl%", $@"{BaseUrl}/");
             
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
