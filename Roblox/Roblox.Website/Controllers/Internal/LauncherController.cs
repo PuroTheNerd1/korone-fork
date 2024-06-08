@@ -51,6 +51,8 @@ namespace Roblox.Website.Controllers
             {
                 return NotFound();
             }
+
+            file = Path.GetFileName(file);
             string NormalCDN = Path.Combine(CDN, file);
             string ClientStrapper = Path.Combine(RBXClientPath, file);
             string MacStrapper = Path.Combine(RBXMacClientPath, file);
