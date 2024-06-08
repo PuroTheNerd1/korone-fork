@@ -1823,16 +1823,17 @@ namespace Roblox.Website.Controllers
             
             switch (apiKey)
             {
-                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD": 
+                case "9CE2063F-BB45-449B-89D4-65CD2ED806CD":  //2017L RCC
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
+                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79": //2017L Windows and MacOS
                 case "08BF6621-8100-4484-B14C-87497E372160": 
                     type = "ClientAppSettings2017";
                     break;
-                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A": 
+                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D7A":  //2018L RCC
                     type = "RCCService2018";
                     break;
-                case "19C0B314-AC23-4CD4-8A37-02C4140F7240": 
+                case "19C0B314-AC23-4CD4-8A37-02C4140F7240":  ///2018L AppSettings
                     type = "ClientAppSettings2018";
                     break;
                 default:
@@ -2172,9 +2173,9 @@ namespace Roblox.Website.Controllers
             {
 
                 case "MacPlayer":
-                    return @"""version-z1425cxd4e0c4a1""";
+                    return @"""version-z1425cxd4e0c4a2""";
                 case "MacStudio":
-                    return @"""version-z1425cxd4e0c4a1""";
+                    return @"""version-z1425cxd4e0c4a2""";
                 default:
                     return @"""version-d23df1d1a8d546ee""";
             }
