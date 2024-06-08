@@ -2174,7 +2174,7 @@ namespace Roblox.Website.Controllers
                 case "MacPlayer":
                     return @"""version-z1425cxd4e0c4a1""";
                 case "MacStudio":
-                    return @"""version-61f2cchdx30c4a1""";
+                    return @"""version-z1425cxd4e0c4a1""";
                 default:
                     return @"""version-d23df1d1a8d546ee""";
             }
