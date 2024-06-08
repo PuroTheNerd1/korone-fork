@@ -113,6 +113,43 @@ const wardrobeItems = [
         name: 'Packages',
       }
     ]
+  },
+  {
+    label: 'Animations',
+    categories: [
+      {
+        id: 48,
+        name: 'Climb Animations',
+      },
+      {
+        id: 49,
+        name: 'Death Animations',
+      },
+      {
+        id: 50,
+        name: 'Fall Animations',
+      },
+      {
+        id: 51,
+        name: 'Idle Animations',
+      },
+      {
+        id: 52,
+        name: 'Run Animations',
+      },
+      {
+        id: 53,
+        name: 'Swim Animations',
+      },
+      {
+        id: 54,
+        name: 'Walk Animations',
+      },
+      {
+        id: 56,
+        name: 'Pose Animations',
+      }
+    ]
   }
 ];
 
