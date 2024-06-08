@@ -46,7 +46,7 @@ public class ApplicationWebsiteService : WebsiteService
     
     private const string VerificationPhraseCookieName = "es-verification-phrase";
     private static EasyJwt jwt { get; } = new EasyJwt();
-    private const string VerificationSecret = "5FA10C5C-8179-4E76-BF60-8E3CF9786C3C360F5313-2C0D-4A22-BCB6-6C47CF6683449267E62C-605B-4FB0-848B-FA48ECC4F581";
+    private const string VerificationSecret = "NZziBqbvb709fIKBsOfzC37ZfxiUPJhmoMmO4rPVE1G8zaOU3ByhcYpiI3C0vXmUWR4dl30Cc4FhaiMc29hNDs1nXcweYIt4PVdQrNT0gP9NM9V3BF3oh0l9QBUOVpY5OvPdsEU3We8aqnIdfT4rj1YO8eSl25bms48h3mgXOupwjlMfONxs7FtQSiwb1CRJ9jEltwbf68qKsPxg2OKrjt3N7QzKrVpF4wS122cW2w3Nmyg9AMIfdDWicIr0zz0YvSEdDhemja4dK3fvpA6Cy3fbIRjcCP8k0NjzpFxgtNhjWbtakGlJgcCguS2LC8afkVFGCKNWjmta2mqxT7tsCdICaflyWFgyYH0b8fbSTD1bTsOQs5XsAqkSPVC4l1a1dcD10ttzSPof9bs3BjSo7jdUXvN9IaflhEp2FGrNjoVB68mP4GVaz9B0fM7o33fCcCT7AZVTrJ3Yd035wuDNvB3Qhmi2VZpvRukbxfyP7LGnjMAQxyxIl6O5PaoE9qGE";
 
     /// <summary>
     /// Verify that the provided verificationPhrase exists on the socialUrls profile
