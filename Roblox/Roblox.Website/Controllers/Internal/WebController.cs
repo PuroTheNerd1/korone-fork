@@ -898,13 +898,17 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 if (balance.robux < 100 && userSession.userId != 7)
                     throw new BadRequestException(0, "Not enough Robux for purchase");
                 // validate auto
+
                 var stream = request.file.OpenReadStream();
+                stream.Position = 0;
                 var ok = await services.assets.IsAudioValid(stream);
+                stream.Position = 0;
                 if (ok != AudioValidation.Ok)
                 {
                     throw new BadRequestException(0, "Bad audio file. Error = " + ok.ToString());
                 }
                 // charge
+                stream.Position = 0;
                 await services.economy.ChargeForAudioUpload(creatorType, creatorId);
                 stream.Position = 0;
                 // create item
