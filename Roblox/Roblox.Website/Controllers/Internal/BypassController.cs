@@ -1473,8 +1473,9 @@ namespace Roblox.Website.Controllers
             return Content(jsonString, "application/json");
         }
         [HttpGetBypass("Users/ListStaff.ashx")]
-        public async Task<IEnumerable<long>> GetStaffList()
+        public async Task<dynamic> GetStaffList()
         {
+            if(!IsRcc()) return Redirect("/404");
             return (await StaffFilter.GetStaff()).Where(c => c != 12);
         }
 
