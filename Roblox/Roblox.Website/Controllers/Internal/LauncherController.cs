@@ -6,7 +6,7 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]   
     public class LauncherController : ControllerBase
     {
-        private static string RBXversion = "version-13c4259f38dd45o";
+        private static string RBXversion = "version-13c4259f38dd45i";
         private static string RBXMacversion = "version-z1425cxd4e0c4a2";        
         private static string RBXversionstudio = "version-cbge7ed28c0dc9d2";
         private static string CDN = $"C:\\ProjectX\\services\\Roblox\\Setup\\";
