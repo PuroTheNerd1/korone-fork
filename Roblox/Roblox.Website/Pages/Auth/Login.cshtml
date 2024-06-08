@@ -43,7 +43,7 @@
                     {
                         <p><a href="/auth/password-reset">Reset Password</a></p>
                     }
-                    <div class="cf-turnstile mt-4 mb-2" data-sitekey="@Model.siteKey"data-theme="light"></div>
+                    <div class="cf-turnstile mt-4 mb-2" data-sitekey="@Model.siteKey"data-theme="dark"></div>
                     @Html.AntiForgeryToken()
                     <input disabled="@Model.loginDisabled" class="btn btn-primary" type="submit" value="Login" id="login-submit"/>
                 </form>
