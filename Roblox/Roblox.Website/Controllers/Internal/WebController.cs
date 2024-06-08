@@ -894,7 +894,8 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
             {
                 // check if has enough
                 var balance = await services.economy.GetBalance(creatorType, creatorId);
-                if (balance.robux < 100)
+                //choke is a audio uploader we dont need to check for the balance
+                if (balance.robux < 100 && userSession.userId != 7)
                     throw new BadRequestException(0, "Not enough Robux for purchase");
                 // validate auto
                 var stream = request.file.OpenReadStream();
