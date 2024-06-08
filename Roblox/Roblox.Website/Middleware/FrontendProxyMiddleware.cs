@@ -84,6 +84,8 @@ public class FrontendProxyMiddleware
         "/game/get-join-script-debug",
         "/games/getgameinstancesjson",
         "/develop/upload",
+        // rbxapi
+        "/v1",
         // gs
         "/gs/activity",
         "/gs/ping",

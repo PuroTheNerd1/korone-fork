@@ -46,6 +46,7 @@ public class ApplicationGuardMiddleware
         "/gs/players/report",
         "/gs/a",
         // other
+        "/v1",
         "/game/validate-machine",
         "/game/validateticket.ashx",
         "/game/get-join-script-debug",
