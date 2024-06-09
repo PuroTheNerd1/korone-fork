@@ -141,7 +141,15 @@ public class AvatarService : ServiceBase, IService
         Type.Head,
         
         //anims
+        Type.ClimbAnimation,
+        Type.DeathAnimation,
+        Type.FallAnimation,
         Type.IdleAnimation,
+        Type.JumpAnimation,
+        Type.RunAnimation,
+        Type.SwimAnimation,
+        Type.WalkAnimation,
+        Type.PoseAnimation,
         //gears
         Type.Gear,
     };
