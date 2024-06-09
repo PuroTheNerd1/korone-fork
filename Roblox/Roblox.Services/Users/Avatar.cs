@@ -117,10 +117,11 @@ public class AvatarService : ServiceBase, IService
 
     private readonly Models.Assets.Type[] _wearableAssetTypes = new[]
     {
+        
         Type.Shirt,
         Type.Pants,
         Type.TeeShirt,
-        
+        //accesories
         Type.Face,
         Type.Hat,
         Type.FrontAccessory,
@@ -130,7 +131,8 @@ public class AvatarService : ServiceBase, IService
         Type.NeckAccessory,
         Type.ShoulderAccessory,
         Type.FaceAccessory,
-        
+
+        //body 
         Type.LeftArm,
         Type.RightArm,
         Type.LeftLeg,
@@ -138,6 +140,9 @@ public class AvatarService : ServiceBase, IService
         Type.Torso,
         Type.Head,
         
+        //anims
+        Type.IdleAnimation,
+        //gears
         Type.Gear,
     };
     
@@ -495,6 +500,14 @@ public class AvatarService : ServiceBase, IService
                     break;
                 case Models.Assets.Type.RightLeg:
                     rightLeg++;
+                    break;
+                case Models.Assets.Type.IdleAnimation:
+                case Models.Assets.Type.WalkAnimation:
+                case Models.Assets.Type.RunAnimation:
+                case Models.Assets.Type.JumpAnimation:
+                case Models.Assets.Type.PoseAnimation:
+                case Models.Assets.Type.SwimAnimation:
+                    animations++;
                     break;
                 default:
                     throw new Exception("Unexpected asset type: " + item.assetType);
