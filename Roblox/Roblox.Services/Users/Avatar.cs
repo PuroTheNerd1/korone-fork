@@ -522,7 +522,6 @@ public class AvatarService : ServiceBase, IService
             }
         }
 
-        if (animations > 1) return false;
         if (gear > 1) return false;
         if (tShirt > 1 || shirt > 1 || pants > 1) return false;
         if (face > 1) return false;
