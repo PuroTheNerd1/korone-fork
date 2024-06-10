@@ -182,7 +182,7 @@ public class Application : RobloxPageModel
             Writer.Info(LogGroup.AbuseDetection, "Regen code");
             try
             {
-                verificationPhrase = await apps.ApplyVerificationPhrase(hashedIp, ApplicationService.GenerationContext.ApplicationCreation);
+                verificationPhrase = await apps.ApplyVerificationPhrase(hashedIp, ApplicationService.GenerationContext.ApplicationCreation, true);
             }
             catch (TooManyRequestsException)
             {
