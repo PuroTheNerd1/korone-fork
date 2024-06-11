@@ -103,6 +103,8 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("v1/asset")]
         [HttpGetBypass("asset")]
+        [HttpPostBypass("v1/asset")]
+        [HttpPostBypass("asset")]
         public async Task<MVC.ActionResult> GetAssetById(long id, long? assetversionid = null)
         {
             HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
@@ -1822,7 +1824,6 @@ namespace Roblox.Website.Controllers
                 case "9CE2063F-BB45-449B-89D4-65CD2ED806CD":  //2017L RCC
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
-                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79": //2017L Windows and MacOS
                 case "08BF6621-8100-4484-B14C-87497E372160": 
                     type = "ClientAppSettings2017";
                     break;
