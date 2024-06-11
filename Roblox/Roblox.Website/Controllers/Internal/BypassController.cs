@@ -1599,8 +1599,8 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
         {
-            var text = FilterText(HttpContext.Request.Form["text"].ToString());
-            if (ContainsCyrillic(text))
+            var text = services.filter.FilterText(HttpContext.Request.Form["text"].ToString());
+            if (services.filter.ContainsCyrillic(text))
             {
                 text = "I will speak english";
             }
@@ -1617,8 +1617,8 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("moderation/v2/filtertext/")]
         public dynamic GetModerationTextV2()
         {
-            var text = FilterText(HttpContext.Request.Form["text"].ToString());
-            if (ContainsCyrillic(text))
+            var text = services.filter.FilterText(HttpContext.Request.Form["text"].ToString());
+            if (services.filter.ContainsCyrillic(text))
             {
                 text = "I will speak english";
             }
@@ -1634,28 +1634,7 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(json);
             return Content(jsonString, "application/json");
         }
-        public bool ContainsCyrillic(string input)
-        {
-            Regex regex = new Regex(@"[\u0400-\u04FF]");
-            return regex.IsMatch(input);
-        }        
-        public string FilterText(string input)
-        {
-            string buildFilteredWordPatern(string word)
-            {
-                return @"\b" + string.Join(@"\s*", word.ToCharArray()) + @"\b";
-            }
-            string[] filteredWords = {"nigger", "nigga", "1488", "nazi"};  
-            string[] filteredWordsPatterns = filteredWords.Select(word => buildFilteredWordPatern(word)).ToArray();
-            foreach (string pattern in filteredWordsPatterns)
-            {
-                if (Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase))
-                {
-                    return new string('#', input.Length);
-                }
-            }
-            return input;
-        }
+
         private void ValidateBotAuthorization()
         {
 #if DEBUG == false

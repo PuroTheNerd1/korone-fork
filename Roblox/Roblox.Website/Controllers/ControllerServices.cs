@@ -22,6 +22,7 @@ namespace Roblox.Website.Controllers
         public AbuseReportService abuseReport { get; } = new();
         public EconomyService economy { get; } = new();
         public CooldownService cooldown { get; } = new();
+        public FilterService filter { get; } = new();
         public RobloxApi robloxApi { get; } = new();
         public ChatService chat { get; } = new();
     }
