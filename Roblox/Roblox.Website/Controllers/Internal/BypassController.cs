@@ -2219,6 +2219,8 @@ namespace Roblox.Website.Controllers
         }        
         [HttpPostBypass("v1.0/Refresh")]
         [HttpPostBypass("v2.0/Refresh")]
+        [HttpGetBypass("v1.0/Refresh")]
+        [HttpGetBypass("v2.0/Refresh")]
         public async Task<dynamic> RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
             bool IsRCC = IsRcc();
