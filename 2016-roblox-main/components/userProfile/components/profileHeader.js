@@ -200,6 +200,7 @@ const ProfileHeader = props => {
                 <RelationshipStatistics id='friends' label='Friends' value={store.friends?.length} userId={store.userId}/>
                 <RelationshipStatistics id='followers' label='Followers' value={store.followersCount} userId={store.userId}/>
                 <RelationshipStatistics id='followings' label='Following' value={store.followingsCount} userId={store.userId}/>
+                <RelationshipStatistics id='rap' label='RAP' value={store.RAP} userId={store.userId}/>
                 {
                   showButtons && <>
                     <div className='col-6 col-lg-2 offset-lg-2 pe-1'>

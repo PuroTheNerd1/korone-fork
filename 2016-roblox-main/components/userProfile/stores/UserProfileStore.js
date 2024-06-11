@@ -21,12 +21,14 @@ const UserProfileStore = createContainer(() => {
   const [createdGames, setCreatedGames] = useState(null);
   const [tab, setTab] = useState('About');
   const [isFollowing, setIsFollowing] = useState(null);
+  const [RAP, setRAP] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
     getUserInfo({ userId }).then(result => {
       setUserInfo(result);
       setUsername(result.name);
+      setRAP(result.inventory_rap)
     }).catch(e => {
       setLastError('InvalidUserId');
     });
@@ -82,6 +84,9 @@ const UserProfileStore = createContainer(() => {
 
     isFollowing,
     setIsFollowing,
+
+    RAP,
+    setRAP,
 
     getFriendStatus: (authenticatedUserId) => {
       getFriendStatus({ authenticatedUserId, userId }).then(setFriendStatus);
