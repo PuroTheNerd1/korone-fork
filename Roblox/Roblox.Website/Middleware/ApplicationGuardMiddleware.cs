@@ -385,7 +385,7 @@ public class ApplicationGuardMiddleware
             }
             
             // If not blocked
-            if (FeatureFlags.IsDisabled(FeatureFlag.AllowAccessToAllRequests))
+            if (FeatureFlags.IsDisabled(FeatureFlag.AllowAccessToAllRequests) && !ua.ToLower().Contains("roblox"))
             {
                 await Redirect(ctx, "/auth/home");
                 return;
