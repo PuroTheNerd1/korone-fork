@@ -1710,7 +1710,9 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             throw new ArgumentException("Comment is too short. It must be at least 3 alpha-numeric characters");
         if (comment.Length > 200) throw new ArgumentException("Comment is too long");
 
-        var details = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
+        //var details = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
+        //if (!details.enableComments)
+            //throw new ArgumentException("Asset does not support comments");
         if (await IsInCommentCooldown(userId)) throw new FloodcheckException();
         if (await IsInCommentCooldownGlobal()) throw new FloodcheckException();
         await InsertAsync("asset_comment", new
