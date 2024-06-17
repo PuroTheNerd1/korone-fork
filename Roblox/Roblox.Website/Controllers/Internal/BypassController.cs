@@ -1902,6 +1902,38 @@ namespace Roblox.Website.Controllers
             var jsonString = JsonConvert.SerializeObject(allowedList);
             return new { data = jsonString };
         }
+        [HttpGetBypass("universes/get-aliases")]
+        public async Task<dynamic> GetAliases(long universeId)
+        {
+            return new
+            {
+                FinalPage = true,
+                Aliases = new[]
+                {
+                    new 
+                    {
+                        Name = "Test",
+                        Type = Models.Assets.Type.Hat,
+                        TargetId = 164,
+                        Asset = new
+                        {
+                            Id = 164,
+                            TypeId = Models.Assets.Type.Hat,
+                            Name = "Name",
+                            Description = "Name",
+                            CreatorType = CreatorType.User,
+                            CreatorTargetId = 1,
+                            Created = "2017-03-31T12:16:46.547",
+                            Updated = "2017-03-31T12:16:46.547",   
+                        },
+                        Version = 0,
+                    }
+                },
+                PageSize = 50
+            };
+            
+
+        }
         [HttpGetBypass("universes/get-universe-places")]
         public async Task<dynamic> GetPlaces(long universeId)
         {
