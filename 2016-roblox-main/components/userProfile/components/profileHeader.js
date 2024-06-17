@@ -12,6 +12,7 @@ import useCardStyles from "../styles/card";
 import FriendButton from "./friendButton";
 import MessageButton from "./messageButton";
 import RelationshipStatistics from "./relationshipStatistics";
+import RAPStats from "./RAPStats";
 
 const useHeaderStyles = createUseStyles({
   iconWrapper: {
@@ -200,7 +201,7 @@ const ProfileHeader = props => {
                 <RelationshipStatistics id='friends' label='Friends' value={store.friends?.length} userId={store.userId}/>
                 <RelationshipStatistics id='followers' label='Followers' value={store.followersCount} userId={store.userId}/>
                 <RelationshipStatistics id='followings' label='Following' value={store.followingsCount} userId={store.userId}/>
-                <RelationshipStatistics id='rap' label='RAP' value={store.RAP} userId={store.userId}/>
+                <RAPStats label='RAP' value={store.RAP} />
                 {
                   showButtons && <>
                     <div className='col-6 col-lg-2 offset-lg-2 pe-1'>
