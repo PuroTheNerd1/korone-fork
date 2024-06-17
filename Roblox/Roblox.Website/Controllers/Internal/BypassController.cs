@@ -1058,7 +1058,7 @@ namespace Roblox.Website.Controllers
                 case 2017:
                     return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
                 case 2018:
-                    return SignatureController.SignJson2048(joinScript20192020);      
+                    return SignatureController.SignJson2048(joinScript20172018);      
                 case 2019:
                 case 2020:
                     return SignatureController.SignJson2048(joinScript20192020);
