@@ -1071,7 +1071,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GenerateVersion")]
         public string GenerateVersion()
         {
-            return $"version-{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 15)}";
+            return $"version-{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16)}";
         }
         [HttpGetBypass("GenerateAuthString")]
         public string GenerateAuthString()
