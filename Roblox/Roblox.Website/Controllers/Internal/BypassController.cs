@@ -986,7 +986,7 @@ namespace Roblox.Website.Controllers
                 GameChatType = "AllUsers",
                 SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 DataCenterId = 0,
-                UniverseId = placeId, 
+                UniverseId = uni.universeId, 
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 FollowUserId = 0,
