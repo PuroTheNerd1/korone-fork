@@ -1072,7 +1072,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GenerateVersion")]
         public string GenerateVersion()
         {
-            return $"version-{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 8)}";
+            return $"version-{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 15)}";
         }
         [HttpGetBypass("Asset/CharacterFetch.ashx")]
         public async Task<string> CharacterFetchASHX(long userId)
