@@ -38,6 +38,8 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Roblox.Website.WebsiteModels.Authentication;
 using System.Text.RegularExpressions;
 using InfluxDB.Client.Core.Exceptions;
+using Roblox.Exceptions;
+using Roblox.Website.Pages;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -1071,6 +1073,12 @@ namespace Roblox.Website.Controllers
         {
             return $"version-{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 15)}";
         }
+        [HttpGetBypass("GenerateAuthString")]
+        public string GenerateAuthString()
+        {
+            string twoGuid = Guid.NewGuid().ToString().Replace("-", "") + Guid.NewGuid().ToString().Replace("-", "");
+            return "PJX-" + twoGuid;
+        }
         [HttpGetBypass("Asset/CharacterFetch.ashx")]
         public async Task<string> CharacterFetchASHX(long userId)
         {
@@ -1905,6 +1913,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("universes/get-aliases")]
         public async Task<dynamic> GetAliases(long universeId)
         {
+            
             return new
             {
                 FinalPage = true,
