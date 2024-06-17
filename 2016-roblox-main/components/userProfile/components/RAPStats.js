@@ -25,15 +25,17 @@ const useStyles = createUseStyles({
 });
 
 const RAPStats = props => {
-  const { label, value} = props;
+  const { label, value, userId } = props;
   const s = useStyles();
 
   return <div className='col-12 col-lg-2'>
     <p className={s.statHeader}>{label}</p>
     <p className={s.statValue}>
+      <Link href={`/internal/collectibles?userId=${userId}`}>
         <a>
-            {value ?? 0}
+          {value}
         </a>
+      </Link>
     </p>
   </div>
 }
