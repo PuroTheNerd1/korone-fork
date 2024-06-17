@@ -201,7 +201,7 @@ const ProfileHeader = props => {
                 <RelationshipStatistics id='friends' label='Friends' value={store.friends?.length} userId={store.userId}/>
                 <RelationshipStatistics id='followers' label='Followers' value={store.followersCount} userId={store.userId}/>
                 <RelationshipStatistics id='followings' label='Following' value={store.followingsCount} userId={store.userId}/>
-                <RAPStats label='RAP' value={store.RAP} />
+                <RAPStats label='RAP' value={0} />
                 {
                   showButtons && <>
                     <div className='col-6 col-lg-2 offset-lg-2 pe-1'>
