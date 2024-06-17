@@ -401,14 +401,16 @@ namespace Roblox.Website.Controllers
         public async Task<string> LoadPlaceInfo(long PlaceId)
         {
             var details = await services.assets.GetAssetCatalogInfo(PlaceId);
+            // this is just easier for me then using replace all the time on every pcall
+            string httpsToHttp = Configuration.BaseUrl.Replace("https", "http");
             string luaCode = $@"
                             pcall(function() game:SetCreatorID({details.creatorTargetId}, Enum.CreatorType.User) end);
-                            pcall(function() game:GetService(""SocialService""):SetFriendUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetBestFriendUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupRankUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupRoleUrl(""http://www.projex.zip/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""GamePassService""):SetPlayerHasPassUrl(""http://www.projex.zip/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetFriendUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetBestFriendUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupRankUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""SocialService""):SetGroupRoleUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d"") end);
+                            pcall(function() game:GetService(""GamePassService""):SetPlayerHasPassUrl(""{httpsToHttp}/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d"") end);
             ";
 
             string[] lines = luaCode.Split('\n');
@@ -524,7 +526,12 @@ namespace Roblox.Website.Controllers
             long maxPlayerCount;
             bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
-                return Redirect("https://www.projex.zip/404");
+                //return bogus message if the request doesnt contain the roblox user agent
+                return new
+                {
+                    status = (int)JoinStatus.Error,
+                    message = "An error occured while starting the game."
+                };
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
@@ -979,7 +986,7 @@ namespace Roblox.Website.Controllers
                 GenerateTeleportJoin = GenerateTeleportJoin,
                 IsUnknownOrUnder13 = false,
                 GameChatType = "AllUsers",
-                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.projex.zip|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 DataCenterId = 0,
                 UniverseId = placeId, 
                 BrowserTrackerId = 0,
@@ -1030,7 +1037,7 @@ namespace Roblox.Website.Controllers
                 GenerateTeleportJoin = false,
                 IsUnknownOrUnder13 = false,
                 GameChatType = "AllUsers",
-                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|www.projex.zip|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 AnalyticsSessionId = Guid.NewGuid().ToString(),
                 DataCenterId = 0,
                 UniverseId = placeId,
@@ -1174,7 +1181,7 @@ namespace Roblox.Website.Controllers
                 animationAssetIds = new {},
                 playerAvatarType = AvatarType,
                 scales,
-                bodyColorsUrl = $"https://www.projex.zip/Asset/BodyColors.ashx?userId={userId}",
+                bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors
             };
             string jsonString = JsonConvert.SerializeObject(result);
@@ -1992,7 +1999,7 @@ namespace Roblox.Website.Controllers
                         new 
                         {
                             title = "ZetaCheatingMonitor",
-                            url = "https://www.projex.zip",
+                            url = Configuration.BaseUrl,
                             color = 16711680,
                             fields = new[]
                             {
@@ -2000,7 +2007,7 @@ namespace Roblox.Website.Controllers
                                 new  { name = "Flag", value = $"```\n{details}\n```" },
                                 new  { name = "Details", value = $"```\n{stat}\n```" }
                             },
-                            thumbnail = new { url = $"https://www.projex.zip/thumbs/avatar.ashx?userId={userId}" }
+                            thumbnail = new { url = $"{Configuration.BaseUrl}/thumbs/avatar.ashx?userId={userId}" }
                         }
                     },
                     username = "ZetaCheatingMonitor",
@@ -2278,7 +2285,7 @@ namespace Roblox.Website.Controllers
                 about = "ROBLOX",
                 socialPresence = "",
                 isVerified = true,
-                verifiedUrl = "https://www.projex.zip/",
+                verifiedUrl = Configuration.BaseUrl,
                 verificationPhrase = "Integration test",
                 verifiedId = "1",
             });
