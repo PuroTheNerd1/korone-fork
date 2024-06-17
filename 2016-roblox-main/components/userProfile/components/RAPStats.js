@@ -32,7 +32,7 @@ const RAPStats = props => {
     <p className={s.statHeader}>{label}</p>
     <p className={s.statValue}>
         <a>
-            {value.toLocaleString()}
+            {value ?? 0}
         </a>
     </p>
   </div>
