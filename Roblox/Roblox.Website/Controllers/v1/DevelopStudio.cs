@@ -53,10 +53,8 @@ public class DevelopStudio : ControllerBase
     [HttpGet("universes/{universeId}/permissions")]
     public async Task<dynamic> CanManage(long universeId)
     {
-        var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
-
         var place = await services.games.GetRootPlaceId(universeId);
-        bool canManage = await services.assets.CanUserModifyItem(userSession.userId, uni.rootPlaceId);
+        bool canManage = await services.assets.CanUserModifyItem(place, safeUserSession.userId);
         return new
         {
             canManage,
