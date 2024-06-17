@@ -1089,6 +1089,7 @@ namespace Roblox.Website.Controllers
         {
             var userInfo = await services.users.GetUserById(safeUserSession.userId);
             string membership;
+            bool isAdmin = await StaffFilter.IsStaff(safeUserSession.userId);
             var membership2 = await services.users.GetUserMembership(safeUserSession.userId);
             if (membership2 == null)
             {
@@ -1101,7 +1102,7 @@ namespace Roblox.Website.Controllers
             return new
             {
                 ChangeUsernameEnabled = true,
-                IsAdmin = StaffFilter.IsStaff(safeUserSession.userId),
+                IsAdmin = isAdmin,
                 UserId = safeUserSession.userId,
                 Name = safeUserSession.username,
                 DisplayName = safeUserSession.username,
