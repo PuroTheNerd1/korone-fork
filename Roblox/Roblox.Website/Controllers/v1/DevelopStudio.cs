@@ -81,6 +81,23 @@ public class DevelopStudio : ControllerBase
             updated = uni.updated
         };
     }
+    [HttpGet("universes/get-universe-places")]
+    public async Task<dynamic> GetPlaces(long universeId)
+    {
+        var place = await services.games.GetRootPlaceId(universeId);
+        var placeInfo = await services.assets.GetAssetCatalogInfo(place);
+        return new
+        {
+            FinalPage = true,
+            RootPlace = place,
+            Places = new
+            {
+                PlaceId = place,
+                Name = placeInfo.name,
+            },
+            PageSize = 50
+        };
+    }
     [HttpGet("universes/{universeId}/configuration")]    
     public async Task<dynamic> UniverseConfiguration(long universeId)
     {
