@@ -1084,6 +1084,143 @@ namespace Roblox.Website.Controllers
             var assets = await services.assets.GetPackageAssets(assetId);
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId=2;{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
+        [HttpGetBypass("my/settings/json")]
+        public async Task<dynamic> SettingsJsonA()
+        {
+            var userInfo = await services.users.GetUserById(safeUserSession.userId);
+            string membership;
+            var membership2 = await services.users.GetUserMembership(safeUserSession.userId);
+            if (membership2 == null)
+            {
+                membership = "None";
+            }
+            else
+            {
+                membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
+            }
+            return new
+            {
+                ChangeUsernameEnabled = true,
+                IsAdmin = StaffFilter.IsStaff(safeUserSession.userId),
+                UserId = safeUserSession.userId,
+                Name = safeUserSession.username,
+                DisplayName = safeUserSession.username,
+                IsEmailOnFile = true,
+                IsEmailVerified = true,
+                IsPhoneFeatureEnabled = true,
+                RobuxRemainingForUsernameChange = 0,
+                PreviousUserNames = "",
+                UseSuperSafePrivacyMode = false,
+                IsSuperSafeModeEnabledForPrivacySetting = false,
+                UseSuperSafeChat = false,
+                IsAppChatSettingEnabled = true,
+                IsGameChatSettingEnabled = true,
+                IsAccountPrivacySettingsV2Enabled = true,
+                IsSetPasswordNotificationEnabled = false,
+                ChangePasswordRequiresTwoStepVerification = false,
+                ChangeEmailRequiresTwoStepVerification = false,
+                UserEmail = "projectx@projex.zip",
+                UserEmailMasked = true,
+                UserEmailVerified = true,
+                CanHideInventory = true,
+                CanTrade = false,
+                MissingParentEmail = false,
+                IsUpdateEmailSectionShown = true,
+                IsUnder13UpdateEmailMessageSectionShown = false,
+                IsUserConnectedToFacebook = false,
+                IsTwoStepToggleEnabled = false,
+                AgeBracket = 0,
+                UserAbove13 = true,
+                ClientIpAddress = GetRequesterIpRaw(HttpContext),
+                AccountAgeInDays = DateTime.UtcNow.Subtract(userInfo.created).Days,
+                IsOBC = membership == "OutrageousBuildersClub",
+                IsTBC = membership == "TurboBuildersClub",
+                IsAnyBC = membership != "None",
+                IsPremium = false,
+                IsBcRenewalMembership = false,
+                BcExpireDate = "/Date(-0)/",
+                BcRenewalPeriod = (string?)null,
+                BcLevel = (int?)null,
+                HasCurrencyOperationError = false,
+                CurrencyOperationErrorMessage = (string?)null,
+                BlockedUsersModel = new
+                {
+                    BlockedUserIds = new List<int>() { },
+                    BlockedUsers = new List<string>() { },
+                    MaxBlockedUsers = 50,
+                    Total = 1,
+                    Page = 1
+                },
+                Tab = (string?)null,
+                ChangePassword = false,
+                IsAccountPinEnabled = true,
+                IsAccountRestrictionsFeatureEnabled = true,
+                IsAccountRestrictionsSettingEnabled = false,
+                IsAccountSettingsSocialNetworksV2Enabled = false,
+                IsUiBootstrapModalV2Enabled = true,
+                IsI18nBirthdayPickerInAccountSettingsEnabled = true,
+                InApp = false,
+                MyAccountSecurityModel = new
+                {
+                    IsEmailSet = true,
+                    IsEmailVerified = true,
+                    IsTwoStepEnabled = false,
+                    ShowSignOutFromAllSessions = true,
+                    TwoStepVerificationViewModel = new
+                    {
+                        UserId = safeUserSession.userId,
+                        IsEnabled = false,
+                        CodeLength = 6,
+                        ValidCodeCharacters = (int?)null
+                    }
+                },
+                ApiProxyDomain = Configuration.BaseUrl,
+                AccountSettingsApiDomain = Configuration.BaseUrl,
+                AuthDomain = Configuration.BaseUrl,
+                IsDisconnectFbSocialSignOnEnabled = true,
+                IsDisconnectXboxEnabled = true,
+                NotificationSettingsDomain = Configuration.BaseUrl,
+                AllowedNotificationSourceTypes = new List<string>
+                {
+                    "Test",
+                    "FriendRequestReceived",
+                    "FriendRequestAccepted",
+                    "PartyInviteReceived",
+                    "PartyMemberJoined",
+                    "ChatNewMessage",
+                    "PrivateMessageReceived",
+                    "UserAddedToPrivateServerWhiteList",
+                    "ConversationUniverseChanged",
+                    "TeamCreateInvite",
+                    "GameUpdate",
+                    "DeveloperMetricsAvailable"
+                },
+                AllowedReceiverDestinationTypes = new List<string>
+                {
+                    "DesktopPush",
+                    "NotificationStream"
+                },
+                BlacklistedNotificationSourceTypesForMobilePush = new List<string> { },
+                MinimumChromeVersionForPushNotifications = 50,
+                PushNotificationsEnabledOnFirefox = true,
+                LocaleApiDomain = Configuration.BaseUrl,
+                HasValidPasswordSet = true,
+                IsUpdateEmailApiEndpointEnabled = true,
+                FastTrackMember = (string?)null,
+                IsFastTrackAccessible = false,
+                HasFreeNameChange = false,
+                IsAgeDownEnabled = false,
+                IsSendVerifyEmailApiEndpointEnabled = true,
+                IsPromotionChannelsEndpointEnabled = true,
+                ReceiveNewsletter = false,
+                SocialNetworksVisibilityPrivacy = 6,
+                SocialNetworksVisibilityPrivacyValue = "AllUsers",
+                Facebook = (string?)null,
+                Twitter = (string?)null,
+                YouTube = (string?)null,
+                Twitch = (string?)null
+            };
+        }
         [HttpGetBypass("v1/avatar-rules")]
         public async Task<IActionResult> AvatarRules()
         {
