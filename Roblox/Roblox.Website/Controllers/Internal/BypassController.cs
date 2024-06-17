@@ -1062,7 +1062,11 @@ namespace Roblox.Website.Controllers
                     return "Fail";
             }
         }
-
+        [HttpGetBypass("GenerateVersion")]
+        public string GenerateVersion()
+        {
+            return $"version-{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 8)}";
+        }
         [HttpGetBypass("Asset/CharacterFetch.ashx")]
         public async Task<string> CharacterFetchASHX(long userId)
         {
