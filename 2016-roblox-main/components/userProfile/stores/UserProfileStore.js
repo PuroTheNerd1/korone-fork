@@ -55,6 +55,7 @@ const UserProfileStore = createContainer(() => {
     setLastError,
 
     username,
+    RAP,
     userInfo,
 
     status,
@@ -85,8 +86,7 @@ const UserProfileStore = createContainer(() => {
     isFollowing,
     setIsFollowing,
 
-    RAP,
-    setRAP,
+
 
     getFriendStatus: (authenticatedUserId) => {
       getFriendStatus({ authenticatedUserId, userId }).then(setFriendStatus);
