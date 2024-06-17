@@ -390,11 +390,9 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
         {
-            //we get universe
-            PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeid })).First();
             return new 
             {
-                UniverseId = uni.universeId
+                UniverseId = await services.games.GetUniverseId(placeid)
             };
         }
         [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
@@ -946,7 +944,7 @@ namespace Roblox.Website.Controllers
                 IsUnknownOrUnder13 = false,
                 SessionId = "",
                 DataCenterId = 0,
-                UniverseId = placeId,
+                UniverseId = uni.universeId,
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 FollowUserId = 0,
@@ -988,7 +986,7 @@ namespace Roblox.Website.Controllers
                 GameChatType = "AllUsers",
                 SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 DataCenterId = 0,
-                UniverseId = placeId, 
+                UniverseId = uni.universeId, 
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 FollowUserId = 0,
@@ -1040,7 +1038,7 @@ namespace Roblox.Website.Controllers
                 SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 AnalyticsSessionId = Guid.NewGuid().ToString(),
                 DataCenterId = 0,
-                UniverseId = placeId,
+                UniverseId = uni.universeId,
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 FollowUserId = 0,
