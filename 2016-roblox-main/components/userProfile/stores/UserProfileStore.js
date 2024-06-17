@@ -28,7 +28,7 @@ const UserProfileStore = createContainer(() => {
     getUserInfo({ userId }).then(result => {
       setUserInfo(result);
       setUsername(result.name);
-      setRAP(result.inventory_rap)
+      setRAP(result.inventory_rap);
     }).catch(e => {
       setLastError('InvalidUserId');
     });
