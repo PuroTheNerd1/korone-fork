@@ -65,16 +65,17 @@ public class DevelopStudio : ControllerBase
     public async Task<dynamic> UniverseInfo(long universeId)
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {uni.rootPlaceId})).First();
         return new
         {
             id = universeId,
             name = uni.name,
             description = uni.description,
-            isArchived = false,
+            isArchived = assetInfo.isArchivable,
             rootPlaceId = uni.rootPlaceId,
-            isActive = true,
+            isActive = assetInfo.moderationStatus != ModerationStatus.Declined,
             privacyType = "Public",
-            creatorType = "User",
+            creatorType = assetInfo.creator.type,
             creatorTargetId = uni.creatorId,
             creatorName = uni.creatorName,
             created = uni.created,
@@ -86,6 +87,8 @@ public class DevelopStudio : ControllerBase
     public async Task<dynamic> UniverseConfiguration(long universeId)
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {uni.rootPlaceId})).First();
+        var details = await services.assets.GetAssetCatalogInfo(uni.rootPlaceId);
         List<string> playableDevices = new List<string> 
         { 
             "Computer", 
@@ -105,12 +108,12 @@ public class DevelopStudio : ControllerBase
             universeCollisionType = "OuterBox",
             universeBodyType = "Standard",
             universeJointPositioningType = "ArtistIntent",
-            isArchived = false,
+            isArchived = assetInfo.isArchivable,
             isFriendsOnly = false,
-            genre = "All",
+            genre = assetInfo.genres,
             playableDevices,
-            isForSale = false,
-            price = 0,
+            isForSale = details.isForSale,
+            price = (int)details.price,
             isStudioAccessToApisAllowed = true,
             privacyType = "Public",
         };
