@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Web;
@@ -934,18 +936,18 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
     {
         using (var ms = new MemoryStream())
         {
-            using (var image = await Image.LoadAsync(content))
+            using (var image = new Bitmap(content))
             {
-                var pngEncoder = new PngEncoder()
+                using (var clonedImage = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb))
                 {
-                    TextEncoding = null, 
-                    ExcludeXmpMetadata = true, 
-                    IgnoreMetadataChunk = true 
-                };
+                    using (var g = Graphics.FromImage(clonedImage))
+                    {
+                        g.DrawImage(image, new System.Drawing.Rectangle(0, 0, image.Width, image.Height));
+                    }
 
-                await image.SaveAsync(ms, pngEncoder);
+                    clonedImage.Save(ms, ImageFormat.Png);
+                }
             }
-            
             ms.Position = 0;
             return ms;
         }
