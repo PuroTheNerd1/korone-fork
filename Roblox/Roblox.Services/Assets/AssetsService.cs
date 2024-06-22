@@ -20,6 +20,8 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.DbModels;
 using Roblox.Services.Exceptions;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using AssetId = Roblox.Dto.Assets.AssetId;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
@@ -262,7 +264,21 @@ public class AssetsService : ServiceBase, IService
         if (imageData == null) return null;
         if (imageData.width <= 0 || imageData.height <= 0)
             return null;
-
+        if (imageData.imageFormat == ImagerFormat.PNG)
+        {
+            content.Position = 0;
+            using (Image<Rgba32> image = Image.Load<Rgba32>(content))
+            {
+                var pngMetadata = image.Metadata.GetFormatMetadata(PngFormat.Instance);
+                foreach (var textChunk in pngMetadata.TextData)
+                {
+                    if (!string.IsNullOrEmpty(textChunk.Value))
+                    {
+                        return null;  
+                    }
+                }
+            }
+        }
         if (imageData.imageFormat != ImagerFormat.PNG && imageData.imageFormat != ImagerFormat.JPEG)
             return null;
 
@@ -289,7 +305,21 @@ public class AssetsService : ServiceBase, IService
             AssetMetrics.ReportInvalidClothingImageFormatUploadAttempt(img.imageFormat.ToString());
             return null;
         }
-
+        if (img.imageFormat == ImagerFormat.PNG)
+        {
+            content.Position = 0;
+            using (Image<Rgba32> image = Image.Load<Rgba32>(content))
+            {
+                var pngMetadata = image.Metadata.GetFormatMetadata(PngFormat.Instance);
+                foreach (var textChunk in pngMetadata.TextData)
+                {
+                    if (!string.IsNullOrEmpty(textChunk.Value))
+                    {
+                        return null;  
+                    }
+                }
+            }
+        }
         if (type is Models.Assets.Type.Pants or Models.Assets.Type.Shirt)
         {
             // Must be these exact dimensions
