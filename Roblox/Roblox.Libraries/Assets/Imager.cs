@@ -1,6 +1,11 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
-
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using SixLabors.ImageSharp.Processing;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 namespace Roblox.Libraries;
 
 public enum ImagerFormat
@@ -47,12 +52,18 @@ public class Imager
         IImageFormat imageFormat;
         try
         {
-            (imageData, imageFormat) = await SixLabors.ImageSharp.Image.LoadWithFormatAsync(content);
+            (imageData, imageFormat) = await Image.LoadWithFormatAsync(content);
+
+            if (imageFormat.Name == "PNG" && imageData.Metadata.GetPngMetadata().TextData != null)
+            {
+                imageData.Metadata.GetPngMetadata().TextData.Clear();
+            }
         }
         catch (Exception e) when (e is UnknownImageFormatException or InvalidImageContentException)
         {
             throw new InvalidImageException();
         }
+
 
         this.image = imageData;
         this.format = imageFormat;
