@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Web;
@@ -18,9 +16,6 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Catalog;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
 using Type = System.Type;
 
 namespace Roblox.Website.Controllers;
@@ -856,7 +851,9 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
                 stream.Position = 0;
-                stream = await RemoveMetadataFromImage(stream);
+                if(HasAudioSignature(stream))
+                    throw new BadRequestException(0, "Invalid iamge file");
+                stream.Position = 0;
                 // create the texture
                 var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image",
                     userSession.userId, creatorType, creatorId, stream, Models.Assets.Type.Image,
@@ -882,7 +879,8 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
                 stream.Position = 0;
-                stream = await RemoveMetadataFromImage(stream);
+                if(HasAudioSignature(stream))
+                    throw new BadRequestException(0, "Invalid iamge file");
                 // create the texture
                 var imageAsset = await services.assets.CreateAsset(request.name, "Image",
                     userSession.userId, creatorType, creatorId, stream, Models.Assets.Type.Image,
@@ -932,24 +930,20 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
             }
         }
     }
-    private async Task<Stream> RemoveMetadataFromImage(Stream content)
+    private bool HasAudioSignature(Stream stream)
     {
-        using (var ms = new MemoryStream())
-        {
-            using (var image = new Bitmap(content))
-            {
-                using (var clonedImage = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb))
-                {
-                    using (var g = Graphics.FromImage(clonedImage))
-                    {
-                        g.DrawImage(image, new System.Drawing.Rectangle(0, 0, image.Width, image.Height));
-                    }
+        byte[] oggSignature = new byte[] { 0x4F, 0x67, 0x67, 0x53 }; 
+        byte[] mp3Signature = new byte[] { 0x49, 0x44, 0x33 }; 
 
-                    clonedImage.Save(ms, ImageFormat.Png);
-                }
-            }
-            ms.Position = 0;
-            return ms;
+        byte[] buffer = new byte[Math.Max(oggSignature.Length, mp3Signature.Length)];
+
+        stream.Read(buffer, 0, buffer.Length);
+
+        if (buffer.Take(oggSignature.Length).SequenceEqual(oggSignature) ||
+            buffer.Take(mp3Signature.Length).SequenceEqual(mp3Signature))
+        {
+            return true;
         }
+        return false;
     }
 }
