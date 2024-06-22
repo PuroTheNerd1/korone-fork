@@ -848,11 +848,10 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 var stream = request.file.OpenReadStream();
                 var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
                 stream.Position = 0;
-                if (HasAudioSignature(stream))
-                    throw new BadRequestException(0, "Invalid image file");
-                stream.Position = 0;
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
+                stream.Position = 0;
+                stream = await RemoveMetadataFromImage(stream);
                 // create the texture
                 var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image",
                     userSession.userId, creatorType, creatorId, stream, Models.Assets.Type.Image,
@@ -878,6 +877,7 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
                 stream.Position = 0;
+                stream = await RemoveMetadataFromImage(stream);
                 // create the texture
                 var imageAsset = await services.assets.CreateAsset(request.name, "Image",
                     userSession.userId, creatorType, creatorId, stream, Models.Assets.Type.Image,
@@ -927,22 +927,24 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
             }
         }
     }
-    private bool HasAudioSignature(Stream stream)
+    private async Task<Stream> RemoveMetadataFromImage(Stream content)
     {
-
-        byte[] oggSignature = new byte[] { 0x4F, 0x67, 0x67, 0x53 }; 
-        byte[] mp3Signature = new byte[] { 0x49, 0x44, 0x33 }; 
-
-        byte[] buffer = new byte[Math.Max(oggSignature.Length, mp3Signature.Length)];
-
-        stream.Read(buffer, 0, buffer.Length);
-
-        if (buffer.Take(oggSignature.Length).SequenceEqual(oggSignature) ||
-            buffer.Take(mp3Signature.Length).SequenceEqual(mp3Signature))
+        using (var ms = new MemoryStream())
         {
-            return true;
-        }
+            using (var image = await Image.LoadAsync(content))
+            {
+                var pngEncoder = new PngEncoder()
+                {
+                    TextEncoding = null, 
+                    ExcludeXmpMetadata = true, 
+                    IgnoreMetadataChunk = true 
+                };
 
-        return false;
+                await image.SaveAsync(ms, pngEncoder);
+            }
+            
+            ms.Position = 0;
+            return ms;
+        }
     }
 }
