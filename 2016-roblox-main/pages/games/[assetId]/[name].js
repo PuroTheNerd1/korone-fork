@@ -10,7 +10,7 @@ const GamePage = ({ name, description, assetId, ...props }) => {
         <Head>
           <title>{name} - Project X</title>
           <meta property="og:title" content={name} />
-          <meta property="og:url" content={`https://www.projex.zip/catalog/${assetId}/--`} />
+          <meta property="og:url" content={`https://www.projex.zip/games/${assetId}/--`} />
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={description} />
           <meta property="og:image" content={`https://www.projex.zip/thumbs/asset.ashx?assetId=${assetId}`} />
