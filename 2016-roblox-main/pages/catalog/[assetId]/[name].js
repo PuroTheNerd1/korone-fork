@@ -26,20 +26,27 @@ const ItemPage = ({ name, description, assetId, ...props }) => {
 
 export async function getServerSideProps(context) {
   const { assetId } = context.query;
-  const [details, setDetails] = useState(null);
-  getItemDetails([assetId]).then(result => {
+
+  try {
+    const result = await getItemDetails([assetId]);
     const newDetails = result.data.data[0];
     if (newDetails === undefined) {
       throw new Error('NotFound');
     }
-    setDetails(newDetails);
-  })
-  return {
-    props: {
-      name: details.name, 
-      description: details.description,
-      assetId: assetId
-    }
-  };
+
+    return {
+      props: {
+        name: newDetails.name,
+        description: newDetails.description,
+        assetId: assetId
+      }
+    };
+  } catch (error) {
+    return {
+      name: null,
+      description: null,
+      assetId: null
+    };
+  }
 }
 export default ItemPage;
