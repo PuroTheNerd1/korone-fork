@@ -26,9 +26,8 @@ const ItemPage = ({ name, description, assetId, ...props }) => {
 
 export async function getServerSideProps(context) {
   const { assetId } = context.query;
-  let info;
+  const info = await getProductInfoLegacy(assetId);
   try {
-    info = await getProductInfoLegacy(assetId);
     return {
       props: {
         name: info.Name,
@@ -37,6 +36,7 @@ export async function getServerSideProps(context) {
       }
     };
   } catch (error) {
+    console.error(error);
     return {
       props: {
         name: null,
