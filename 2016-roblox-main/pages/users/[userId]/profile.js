@@ -18,7 +18,7 @@ const UserProfilePage = ({ username, userId, description }) => {
           <meta property="og:title" content={ogTitle} />
           <meta property="og:url" content={ogUrl} />
           <meta property="og:type" content="profile" />
-          <meta property="og:description" content={`View ${username}'s inventory`} />
+          <meta property="og:description" content={ogDesc} />
           <meta property="og:image" content={`https://www.projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
           <meta name="theme-color" content="#f00000" />
         </Head>
