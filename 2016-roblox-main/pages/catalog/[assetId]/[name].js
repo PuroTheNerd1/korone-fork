@@ -43,9 +43,11 @@ export async function getServerSideProps(context) {
     };
   } catch (error) {
     return {
-      name: null,
-      description: null,
-      assetId: null
+      props: {
+        name: null,
+        description: null,
+        assetId: null
+      }
     };
   }
 }
