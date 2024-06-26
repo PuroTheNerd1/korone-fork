@@ -4,8 +4,7 @@ import Theme2016 from "../../../components/theme2016";
 import UserProfile from "../../../components/userProfile";
 import UserProfileStore from "../../../components/userProfile/stores/UserProfileStore";
 import { getUserInfo } from "../../../services/users";
-
-const UserProfilePage = ({ username, userId, description }) => {
+const UserProfilePage = ({ username, userId, description, ...props }) => {
   const ogTitle = username + "'s Profile" || "Project X";
   const ogUrl = userId ? `https://www.projex.zip/users/${userId}/profile` : '';
   const ogDesc = description || 'Join Project X and explore together!';
@@ -20,6 +19,7 @@ const UserProfilePage = ({ username, userId, description }) => {
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={ogDesc} />
           <meta property="og:image" content={`https://www.projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
+          <meta name="og:site_name" content="Project X" />
           <meta name="theme-color" content="#f00000" />
         </Head>
       )}
