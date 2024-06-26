@@ -1,6 +1,6 @@
 import SharedAssetPage from "../../../components/sharedAssetPage";
 import { useRouter } from 'next/router';
-import { getItemDetails } from "../../../services/catalog";
+import { getItemDetails, getProductInfoLegacy } from "../../../services/catalog";
 import { useState } from "react";
 import Head from "next/head";
 const ItemPage = ({ name, description, assetId, ...props }) => {
@@ -26,18 +26,13 @@ const ItemPage = ({ name, description, assetId, ...props }) => {
 
 export async function getServerSideProps(context) {
   const { assetId } = context.query;
-
+  let info;
   try {
-    const result = await getItemDetails([assetId]);
-    const newDetails = result.data.data[0];
-    if (newDetails === undefined) {
-      throw new Error('NotFound');
-    }
-
+    info = await getProductInfoLegacy(assetId);
     return {
       props: {
-        name: newDetails.name,
-        description: newDetails.description,
+        name: info.Name,
+        description: info.Description,
         assetId: assetId
       }
     };
