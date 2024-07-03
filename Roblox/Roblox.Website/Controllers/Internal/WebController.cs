@@ -55,6 +55,7 @@ public class WebController : ControllerBase
             try
             {
                 userId = await services.users.GetUserIdFromUsername(username);
+                Console.WriteLine(userId);
             }
             catch (Exception)
             {
