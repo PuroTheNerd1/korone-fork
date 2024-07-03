@@ -47,7 +47,7 @@ public class WebController : ControllerBase
     }
     
     [HttpGet("thumbs/avatar.ashx")]
-    public async Task<RedirectResult> GetAvatarThumbnail(long userId, string? username)
+    public async Task<RedirectResult> GetAvatarThumbnail(long? userId, string? username)
     {
         var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
         if (username != null)
