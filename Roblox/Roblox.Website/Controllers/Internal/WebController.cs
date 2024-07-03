@@ -47,9 +47,20 @@ public class WebController : ControllerBase
     }
     
     [HttpGet("thumbs/avatar.ashx")]
-    public async Task<RedirectResult> GetAvatarThumbnail(long userId)
+    public async Task<RedirectResult> GetAvatarThumbnail(long userId, string? username)
     {
         var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
+        if (username != null)
+        {
+            try
+            {
+                userId = await services.users.GetUserIdFromUsername(username);
+            }
+            catch (Exception)
+            {
+                return new RedirectResult("/img/blocked.png", false);
+            }
+        }
         if (!authUser18Plus)
         {
             var avatar18Plus = await services.avatar.IsUserAvatar18Plus(userId);
@@ -100,7 +111,7 @@ public class WebController : ControllerBase
             return new RedirectResult("/img/placeholder.png", false);
         return new RedirectResult(result[0].imageUrl ?? "/img/placeholder.png", false);
     }
-    
+
     [HttpGet("icons/asset.ashx")]
     public async Task<RedirectResult> GetAssetIcon([Required] long assetId)
     {
