@@ -114,6 +114,7 @@ public class GamesForCreatorEntry
     public long id { get; set; }
     public string name { get; set; }
     public string? description { get; set; }
+    public long rootPlaceId { get; set;}
     public RootPlaceEntry rootPlace { get; set; }
     public DateTime created { get; set; }
     public DateTime updated { get; set; }

@@ -304,6 +304,7 @@ public class GamesService : ServiceBase, IService
             description = c.description,
             name = c.name,
             placeVisits = c.visitCount,
+            rootPlaceId = c.rootAssetId,
             rootPlace = new()
             {
                 id = c.rootAssetId,
