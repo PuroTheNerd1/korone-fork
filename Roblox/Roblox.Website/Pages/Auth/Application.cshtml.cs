@@ -252,7 +252,11 @@ public class Application : RobloxPageModel
             errorMessage = "Your Discord ID must contain only numeric characters.";
             return new PageResult();
         }
-
+        if(await apps.CheckDuplicateDiscord(discordId))
+        {
+            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord #1";
+            return new PageResult();
+        }
         await using var rateLimitLock =
             await Roblox.Services.Cache.redLock.CreateLockAsync("ApplicationSubmitV1:" + hashedIp, TimeSpan.FromSeconds(5));
         if (!rateLimitLock.IsAcquired)
