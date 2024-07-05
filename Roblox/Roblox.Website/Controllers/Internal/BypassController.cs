@@ -1915,11 +1915,17 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> Upload(long assetId)
         {
             Console.WriteLine(Request.Body);
-            using (var reader = new StreamReader(HttpContext.Request.Body))
+            using (var memoryStream = new MemoryStream())
             {
-                // trying as many methods possible lol
-                var placeFile = await reader.ReadToEndAsync();
-                Console.WriteLine(placeFile);
+                await HttpContext.Request.Body.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+                using (var reader = new StreamReader(gzipStream, Encoding.UTF8))
+                {
+                    var decompPlacefile = await reader.ReadToEndAsync();
+                    Console.WriteLine(decompPlacefile);
+                }
             }
             return 0;
             /*
