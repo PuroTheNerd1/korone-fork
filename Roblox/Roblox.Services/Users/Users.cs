@@ -671,7 +671,22 @@ public class UsersService : ServiceBase, IService
         // Default
         return false;
     }
-
+    /// <summary>
+    /// Check duplicate discord id.
+    /// </summary>
+    /// <param name="discordId"></param>
+    public async Task<bool> CheckDuplicateDiscord(string discordId)
+    {
+        var isDuplicate = await db.QueryFirstOrDefaultAsync<int>(
+            "SELECT COUNT(discord_id) FROM join_application WHERE join_application.discord_id = @discord_id",
+            new { discordId }
+        );
+        if(isDuplicate == 0)
+        {
+            return false;
+        }
+        return true;
+    }
     public async Task<string> CreateApplication(CreateUserApplicationRequest request)
     {
         var applicationId = Guid.NewGuid().ToString();

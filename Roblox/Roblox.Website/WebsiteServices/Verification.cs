@@ -8,6 +8,7 @@ using Roblox.Logging;
 using Roblox.Services;
 using Dapper;
 using Roblox.Website.Pages.Auth;
+
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
 namespace Roblox.Website.WebsiteServices;
@@ -130,22 +131,7 @@ public class ApplicationWebsiteService : WebsiteService
     {
         httpContext.Response.Cookies.Delete(VerificationPhraseCookieName);
     }
-    /// <summary>
-    /// Check duplicate discord id.
-    /// </summary>
-    /// <param name="discordId"></param>
-    public async Task<bool> CheckDuplicateDiscord(string discordId)
-    {
-        var isDuplicate = await db.QueryFirstOrDefaultAsync<int>(
-            "SELECT COUNT(discord_id) FROM join_application WHERE join_application.discord_id = @discord_id",
-            new { discordId }
-        );
-        if(isDuplicate == 0)
-        {
-            return false;
-        }
-        return true;
-    }
+
     /// <summary>
     /// Get phrase from cookie or generate a new phrase. Returns the phrase.
     /// </summary>
