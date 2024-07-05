@@ -135,7 +135,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/moderation/v2/filtertext",
         "/develop/upload-version",
         // universes
-        "/universes",
+        "/universes/",
         // uses built-in RequestVerificationToken
         "/auth",
         "/auth/signup",
@@ -188,6 +188,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         {
             if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !bypassUrls.Contains(pathLower))
             {
+                Console.WriteLine(pathLower);
                 var token = await TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
                 if (token == null)
