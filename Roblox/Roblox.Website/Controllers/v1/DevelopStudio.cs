@@ -93,7 +93,7 @@ public class DevelopStudio : ControllerBase
         { 
             1,
         };
-        return new UniverseConfiguration
+        return new 
         {
             allowPrivateServers = false,
             privateServerPrice = 0,
