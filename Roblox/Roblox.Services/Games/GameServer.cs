@@ -24,7 +24,6 @@ namespace Roblox.Services;
 
 public class GameServerService : ServiceBase
 {
-    GamesService games = new GamesService();
     private const string ClientJoinTicketType = "GameJoinTicketV1.1";
     private const string ServerJoinTicketType = "GameServerTicketV2";
     private static HttpClient client { get; } = new();
@@ -656,6 +655,7 @@ public class GameServerService : ServiceBase
     }
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId)
     {
+        GamesService games = new GamesService();
         long year = await games.GetYear(placeId);
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(30));       
         if (!serverCreationLock.IsAcquired)
@@ -668,8 +668,8 @@ public class GameServerService : ServiceBase
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string jobId = Guid.NewGuid().ToString();
 
-        GamesService gs = new GamesService();
-        long maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
+
+        long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
         var openGameServers = await db.QueryAsync<dynamic>(
             "SELECT id as jobid, updated_at as lastping FROM asset_server WHERE asset_id = :assetid",
@@ -750,10 +750,10 @@ public class GameServerService : ServiceBase
     public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
+        GamesService games = new GamesService();
         AssetsService assetsService = new AssetsService();
-        GamesService gamesService = new GamesService();
         var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
-        var uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();        
+        var uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();        
         //string originalScript;
         //string finalScript;
         long maxplayers = await games.GetMaxPlayerCount(placeId);

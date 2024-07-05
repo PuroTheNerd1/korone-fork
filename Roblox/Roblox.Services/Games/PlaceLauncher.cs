@@ -1,31 +1,5 @@
-using System.ComponentModel.DataAnnotations;
-using System.Dynamic;
-using System.Security.Cryptography;
-using System.Text;
-using System.Web;
-using System.Xml.Linq;
-using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
-using Roblox.Dto.Games;
-using Roblox.Dto.Persistence;
-using Roblox.Dto.Users;
-using Roblox.Libraries.Assets;
-using Roblox.Libraries.FastFlag;
-using Roblox.Libraries.RobloxApi;
-using Roblox.Logging;
-using Roblox.Services.Exceptions;
-using Roblox.Models.Assets;
 using Roblox.Models.GameServer;
-using Roblox.Models.Users;
 using Roblox.Services;
-using Roblox.Services.App.FeatureFlags;
-using JsonSerializer = System.Text.Json.JsonSerializer;
-using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
-using ServiceProvider = Roblox.Services.ServiceProvider;
-using Type = Roblox.Models.Assets.Type;
-using System.Text.RegularExpressions;
-using InfluxDB.Client.Core.Exceptions;
-using Roblox.Exceptions;
 
 
 
@@ -55,8 +29,6 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<dynamic> RequestGameJob(string gameId, long placeId)
     {
-        GamesService games = new GamesService();
-        GameServerService gameServer = new GameServerService();
         if (await games.IsFull(gameId, placeId))
         {
             return new
@@ -78,7 +50,6 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<dynamic> RequestGame(long placeId)
     {
-        GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
         var result = await gameServer.GetServerForPlace(placeId);
         if (result.status != JoinStatus.Joining)
