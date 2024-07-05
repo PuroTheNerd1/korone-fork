@@ -116,7 +116,6 @@ public class Application : RobloxPageModel
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error parsing JSON: {ex.Message}");
                 return new DiscordInfo { success = false, username = null };
             }
         }
@@ -252,7 +251,7 @@ public class Application : RobloxPageModel
             errorMessage = "Your Discord ID must contain only numeric characters.";
             return new PageResult();
         }
-        if(await apps.CheckDuplicateDiscord(discordId))
+        if(await services.users.CheckDuplicateDiscord(discordId))
         {
             errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord #1";
             return new PageResult();
