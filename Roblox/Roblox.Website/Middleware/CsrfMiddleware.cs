@@ -134,6 +134,8 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/moderation/filtertext",
         "/moderation/v2/filtertext",
         "/develop/upload-version",
+        // universes
+        "/universes",
         // uses built-in RequestVerificationToken
         "/auth",
         "/auth/signup",

@@ -177,7 +177,7 @@ public class FrontendProxyMiddleware
     public async Task InvokeAsync(HttpContext ctx)
     {
         var requestUrl = ctx.Request.GetEncodedPathAndQuery();
-        if (requestUrl.Contains("/canmanage/") || Regex.IsMatch(requestUrl, @"^/users/\d+$") || requestUrl.Contains("universes"))
+        if (requestUrl.Contains("/canmanage/") || Regex.IsMatch(requestUrl, @"^/users/\d+$") || requestUrl.Contains("/universes/"))
         {
             await _next(ctx);
             return;
