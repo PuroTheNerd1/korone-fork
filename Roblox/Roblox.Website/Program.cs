@@ -94,6 +94,12 @@ var prepareResponseForCache = (StaticFileResponseContext ctx) =>
 };
 app.UseStaticFiles(new StaticFileOptions
 {
+    FileProvider = new PhysicalFileProvider(Roblox.Configuration.PublicDirectory + "css/roblox/"),
+    RequestPath = "/css",
+    OnPrepareResponse = prepareResponseForCache,
+});
+app.UseStaticFiles(new StaticFileOptions
+{
     FileProvider = new PhysicalFileProvider(Roblox.Configuration.PublicDirectory + "js/"),
     RequestPath = "/js",
     OnPrepareResponse = prepareResponseForCache,
