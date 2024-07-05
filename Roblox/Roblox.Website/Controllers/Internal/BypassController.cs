@@ -2549,7 +2549,8 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/v1.1/Counters/Increment")]
         [HttpGetBypass("notifications/signalr/negotiate")]
         [HttpGetBypass("notifications/negotiate")]
-
+        [HttpPostBypass("v1.1/Counters/BatchIncrement")]
+        [HttpGetBypass("v1.1/Counters/BatchIncrement")]
         public MVC.OkResult TelemetryFunctions()
         {
             return Ok();
