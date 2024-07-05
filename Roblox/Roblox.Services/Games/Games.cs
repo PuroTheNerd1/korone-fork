@@ -302,7 +302,7 @@ public class GamesService : ServiceBase, IService
             name = c.name,
             description = c.description,
             rootPlaceId = c.rootAssetId,
-            creatorType = (CreatorType)(int)creatorType,
+            creatorType = (int) creatorType, 
             creatorTargetId = creatorId,
             creatorName = username,
             created = c.created,

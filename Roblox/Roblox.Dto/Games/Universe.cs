@@ -117,7 +117,7 @@ public class GamesForCreatorDevelop
     public long rootPlaceId { get; set; }
     public bool isActive { get; set;} = true;
     public string privacyType { get; set;} = "Public";
-    public CreatorType creatorType { get; set; }
+    public int creatorType { get; set; }
     public long creatorTargetId { get; set;}
     public string creatorName { get; set;}
     public DateTime created { get; set; }
