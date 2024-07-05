@@ -1918,7 +1918,7 @@ namespace Roblox.Website.Controllers
             using (var reader = new StreamReader(HttpContext.Request.Body))
             {
                 // trying as many methods possible lol
-                var placeFile = reader.ReadToEnd();
+                var placeFile = await reader.ReadToEndAsync();
                 Console.WriteLine(placeFile);
             }
             return 0;
