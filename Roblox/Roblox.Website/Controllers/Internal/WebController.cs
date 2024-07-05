@@ -727,7 +727,7 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
     private static int pendingAssetUploads { get; set; } = 0;
     private static readonly Mutex pendingAssetUploadsMux = new();
     [HttpPost("Data/Upload.ashx")]
-    public async Task Upload(long assetId)
+    public async Task<dynamic> Upload(long assetId)
     {
         using (var stream = Request.Body)
         {
@@ -742,6 +742,10 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, outputStream);
                 
                 services.assets.RenderAssetAsync(assetId, Models.Assets.Type.Place);
+                return new
+                {
+                    success = true,
+                };
             }
         }
     }
