@@ -1,15 +1,14 @@
+
 using Roblox.Models.GameServer;
+
 using Roblox.Services;
 
 
 
 public class PlaceLauncherService : ServiceBase
 {
-
-
     public async Task<dynamic> PlaceLauncherAsync(string request, long placeId, bool? isPartyLeader, bool? isTeleport, string? gameId, string? accessCode, string? linkCode, string? privateGameMode)
     {
-
         switch (request)
         {
             case "RequestGameJob":
@@ -51,6 +50,7 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<dynamic> RequestGame(long placeId)
     {
+        GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
         var result = await gameServer.GetServerForPlace(placeId);
         if (result.status != JoinStatus.Joining)

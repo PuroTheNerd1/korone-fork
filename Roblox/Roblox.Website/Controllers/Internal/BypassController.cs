@@ -524,7 +524,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> PlaceLaunch(string request, int placeId, string? gameId, bool isPartyLeader, bool isTeleport, string? accessCode, string? linkCode, string? privateGameMode)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            return services.placeLauncherFactory.PlaceLauncherAsync(request, placeId, isPartyLeader, isTeleport, gameId, accessCode, linkCode, privateGameMode);
+            return await services.placeLauncherFactory.PlaceLauncherAsync(request, placeId, isPartyLeader, isTeleport, gameId, accessCode, linkCode, privateGameMode);
             /*
             long maxPlayerCount;
             bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
