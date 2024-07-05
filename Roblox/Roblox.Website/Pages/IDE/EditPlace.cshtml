@@ -1,4 +1,4 @@
-@page "/ide/publish/editplace"
+@page "/IDE/publish/editplace"
 @model Roblox.Website.Pages.EditPlace
 
 <!DOCTYPE html
@@ -69,7 +69,7 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD
       <div class="boxed-body">
          <h3>Uploading to "Place"</h3>
          <div id="progressBarWrapper">
-            <div id="uploadProgressBar" data-upload-url="http://www.projex.zip/Data/Upload.ashx" data-previous-url="http://www.projex.zip/ide/publish/newplace" data-newupload="True" data-assetid="@Model.PlaceId" data-isplace="False" data-ispackage="False">
+            <div id="uploadProgressBar" data-upload-url="http://www.projex.zip/Data/Upload.ashx" data-previous-url="http://www.projex.zip/ide/publish/newplace" data-newupload="True" data-assetid="@Model.placeId" data-isplace="False" data-ispackage="False">
                <div id="progressAmount" class="progress-blue-bar" style="width:0%;"></div>
             </div>
             <a class="btn-medium btn-negative uploadCancel" id="cancelButton">Cancel</a>
@@ -79,7 +79,7 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD
          <p id="errorMessageContainer"><span id="uploadProgressCounter">0%</span> Completed</p>
          <div id="shareWithFriends" class="divider-top">
             <h3>Share your Place with friends</h3>
-            <input class="form-text-box" id="gameLink" name="gameLink" type="text" value="http://www.projex.zip/games/?id=@Model.PlaceId/" />
+            <input class="form-text-box" id="gameLink" name="gameLink" type="text" value="http://www.projex.zip/games/?id=@Model.placeId/" />
          </div>
       </div>
       <script type="text/javascript">

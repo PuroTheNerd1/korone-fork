@@ -36,6 +36,8 @@ public class FrontendProxyMiddleware
         "/unsecuredcontent/",
         // Razor - IDE
         "/IDE/welcome",
+        "/ide/publish/editplace",
+        "/IDE/Upload.aspx",
         // Razor - Internal
         "/internal/year",
         "/internal/updates",

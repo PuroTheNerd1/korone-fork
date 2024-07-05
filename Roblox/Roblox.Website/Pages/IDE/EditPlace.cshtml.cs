@@ -11,6 +11,7 @@ namespace Roblox.Website.Pages;
 
 public class EditPlace : RobloxPageModel
 {
+    public long? placeId { get; set; }
     public void OnGet()
     {
         
