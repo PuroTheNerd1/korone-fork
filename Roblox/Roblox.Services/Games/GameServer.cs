@@ -510,7 +510,7 @@ public class GameServerService : ServiceBase
             .ToList();
         return serverData!;
     }
-
+/*
     public async Task<GameServerGetOrCreateResponse> GetServerForPlaceV2(long placeId, long year)
     {
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(30));
@@ -617,7 +617,7 @@ public class GameServerService : ServiceBase
             status = JoinStatus.Waiting,
         };
     }
-
+*/
 
     public async Task<long> GetRCCport(string jobId)
     {
@@ -653,7 +653,7 @@ public class GameServerService : ServiceBase
             });
         return result;
     }
-    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId)
+    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, int matchmaking)
     {
         GamesService games = new GamesService();
         long year = await games.GetYear(placeId);
@@ -711,7 +711,7 @@ public class GameServerService : ServiceBase
 
         var watch = new Stopwatch();
         watch.Start();
-        string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, 43200);   
+        string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
         if (StartGameInfo == "BAD")
         {
             return new GameServerGetOrCreateResponse()
@@ -747,7 +747,7 @@ public class GameServerService : ServiceBase
     }
 
     
-    public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int JobExpiration)
+    public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int matchmaking, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
         GamesService games = new GamesService();
@@ -761,7 +761,7 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
             if (response.IsSuccessStatusCode)
             {
                 currentGameServerPorts.Add(jobId, networkServerPort);

@@ -2,11 +2,16 @@
 using Roblox.Models.GameServer;
 
 using Roblox.Services;
-
-
-
 public class PlaceLauncherService : ServiceBase
 {
+    public enum MatchmakingContextId
+    {
+        Default = 1,
+        Xbox,
+        CloudEdit,
+        CloudEditTest,
+    }
+
     public async Task<dynamic> PlaceLauncherAsync(string request, long placeId, bool? isPartyLeader, bool? isTeleport, string? gameId, string? accessCode, string? linkCode, string? privateGameMode)
     {
         switch (request)
@@ -14,7 +19,7 @@ public class PlaceLauncherService : ServiceBase
             case "RequestGameJob":
                 return await RequestGameJob(gameId, placeId);
             case "RequestGame":
-                return await RequestGame(placeId);
+                return await RequestGame(placeId, (int)MatchmakingContextId.Default);
             case "RequestPrivateGame":
                 break;
         }
@@ -48,11 +53,11 @@ public class PlaceLauncherService : ServiceBase
             message = (string)null,
         };
     }
-    public async Task<dynamic> RequestGame(long placeId)
+    public async Task<dynamic> RequestGame(long placeId, int matchmaking)
     {
         GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
-        var result = await gameServer.GetServerForPlace(placeId);
+        var result = await gameServer.GetServerForPlace(placeId, matchmaking);
         if (result.status != JoinStatus.Joining)
         {
             await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
