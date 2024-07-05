@@ -40,6 +40,7 @@ using System.Text.RegularExpressions;
 using InfluxDB.Client.Core.Exceptions;
 using Roblox.Exceptions;
 using Roblox.Website.Pages;
+using System.IO.Compression;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -1910,7 +1911,46 @@ namespace Roblox.Website.Controllers
             var jsonString = JsonConvert.SerializeObject(allowedList);
             return new { data = jsonString };
         }
-        
+        [HttpPostBypass("Data/Upload.ashx")]
+        public async Task<dynamic> Upload(long assetId)
+        {
+            using (var stream = Request.Body)
+            {
+                var decodedStream = DecodeContent(stream);
+                using (var outputStream = new MemoryStream())
+                {
+                    await decodedStream.CopyToAsync(outputStream);
+                    bool startsWithRoblox = await AssetValidationV2(outputStream);
+                    if (!startsWithRoblox)
+                        throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
+                    outputStream.Position = 0; 
+                    await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, outputStream);
+                    
+                    services.assets.RenderAssetAsync(assetId, Models.Assets.Type.Place);
+                    return new
+                    {
+                        success = true,
+                    };
+                }
+            }
+        }
+        private async Task<bool> AssetValidationV2(Stream stream)
+        {
+            byte[] buffer = new byte[7]; 
+            await stream.ReadAsync(buffer, 0, buffer.Length);
+            string startOfFile = Encoding.UTF8.GetString(buffer);
+            return startOfFile == "<roblox";
+        }
+        private Stream DecodeContent(Stream inputStream)
+        {
+            var memoryStream = new MemoryStream();
+            inputStream.CopyTo(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin); 
+
+            var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
+
+            return gzipStream;
+        }
         [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
         public async Task EnableCloudEdit(long universeId)
         {
