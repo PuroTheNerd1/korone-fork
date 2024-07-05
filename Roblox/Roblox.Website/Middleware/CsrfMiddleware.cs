@@ -186,7 +186,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         }
         try
         {
-            if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !bypassUrls.Contains(pathLower))
+            if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !bypassUrls.Contains(pathLower)  && !pathLower.Contains("enablecloudedit"))
             {
                 Console.WriteLine(pathLower);
                 var token = await TryGetCookie(ctx);
