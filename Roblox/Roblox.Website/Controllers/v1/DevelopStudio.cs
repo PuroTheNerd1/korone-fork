@@ -37,17 +37,17 @@ public class DevelopStudio : ControllerBase
         return Content(json, "application/json");
     }
     [HttpGet("user/universes")]
-    public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetUserCreatedGames(string? sortOrder, string? accessFilter, int limit, string? cursor = null)
+    public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames(string? sortOrder, string? accessFilter, int limit, string? cursor = null)
     {
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
         var result =
-            (await services.games.GetGamesForType(CreatorType.User, userSession.userId, limit, offset, sortOrder ?? "asc", accessFilter ?? "All")).ToList();
-        return new RobloxCollectionPaginated<GamesForCreatorEntry>()
+            (await services.games.GetGamesForTypeDevelop(CreatorType.User, userSession.userId, userSession.username, limit, offset, sortOrder ?? "asc", accessFilter ?? "All")).ToList();
+        return new RobloxCollectionPaginated<GamesForCreatorDevelop>()
         {
             nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
             previousPageCursor = offset >= limit ? (offset-limit).ToString() : null,
-            data = result,
+            data = result
         };
     }
     [HttpGet("universes/{universeId}/permissions")]

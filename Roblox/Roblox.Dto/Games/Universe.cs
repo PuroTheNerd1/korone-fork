@@ -108,7 +108,21 @@ public class RootPlaceEntry
     public long id { get; set; }
     public Type type => Type.Place;
 }
-
+public class GamesForCreatorDevelop
+{
+    public long id { get; set; }
+    public string name { get; set; }
+    public string? description { get; set; }
+    public bool isArchived { get; set;} = true;
+    public long rootPlaceId { get; set; }
+    public bool isActive { get; set;} = true;
+    public string privacyType { get; set;} = "Public";
+    public CreatorType creatorType { get; set; }
+    public long creatorTargetId { get; set;}
+    public string creatorName { get; set;}
+    public DateTime created { get; set; }
+    public DateTime updated { get; set; }
+}
 public class GamesForCreatorEntry
 {
     public long id { get; set; }

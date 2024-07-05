@@ -285,7 +285,30 @@ public class GamesService : ServiceBase, IService
 
         return await db.QueryAsync<PlaceEntry>(temp.RawSql, temp.Parameters);
     }
-
+    public async Task<IEnumerable<GamesForCreatorDevelop>> GetGamesForTypeDevelop(CreatorType creatorType, long creatorId, string username, int limit,
+        int offset, string? sort, string? accessFilter)
+    {
+        var qu = await db.QueryAsync<GamesForCreatorEntryDb>(
+            "SELECT u.id, a.name, a.description, u.root_asset_id as rootAssetId, ap.visit_count as visitCount, a.created_at as created, a.updated_at as updated FROM universe AS u INNER JOIN asset a ON a.id = u.root_asset_id INNER JOIN asset_place ap ON ap.asset_id = u.root_asset_id WHERE u.creator_type = :type AND u.creator_id = :id LIMIT :limit OFFSET :offset", new
+            {
+                type = creatorType,
+                id = creatorId,
+                limit,
+                offset,
+            });
+        return qu.Select(c => new GamesForCreatorDevelop()
+        {
+            id = c.id,
+            name = c.name,
+            description = c.description,
+            rootPlaceId = c.rootAssetId,
+            creatorType = (CreatorType)(int)creatorType,
+            creatorTargetId = creatorId,
+            creatorName = username,
+            created = c.created,
+            updated = c.updated,
+        });
+    }
     public async Task<IEnumerable<GamesForCreatorEntry>> GetGamesForType(CreatorType creatorType, long creatorId, int limit,
         int offset, string? sort, string? accessFilter)
     {
