@@ -179,14 +179,12 @@ public class WebController : ControllerBase
                 return new RedirectResult("/img/blocked.png", false);
         }
         var result = (await services.thumbnails.GetAssetThumbnails(new[] {assetId})).ToList();
-        var json = new
+        return new
         {
             Url = $"https://www.projex.zip{result[0].imageUrl}",
             Final = true,
             SubstitutionType = 0
         };
-        string jsonString = JsonConvert.SerializeObject(json);
-        return Content(jsonString, "application/json");
     }
 
     [HttpGet("userads/redirect")]
