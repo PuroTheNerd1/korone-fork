@@ -32,8 +32,7 @@ if (typeof window !== 'undefined') {
     \ \_____/ /       | |       \ \___/ /    | |         _
      \_______/        |_|        \_____/     |_|        |_|
 
-     Keep your account safe! Do not paste any text here.
-     Hello World!`);
+     Keep your account safe! Do not paste any text here.`);
 }
 
 function RobloxApp({ Component, pageProps }) {
