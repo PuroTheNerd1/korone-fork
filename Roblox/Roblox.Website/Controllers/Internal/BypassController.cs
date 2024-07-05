@@ -1911,20 +1911,54 @@ namespace Roblox.Website.Controllers
             var jsonString = JsonConvert.SerializeObject(allowedList);
             return new { data = jsonString };
         }
+        private static int pendingAssetUploads { get; set; } = 0;
+        private static readonly Mutex pendingAssetUploadsMux = new();
+
         [HttpPostBypass("Data/Upload.ashx")]
         public async Task<dynamic> Upload(long assetId)
         {
-            Console.WriteLine(Request.Body);
-            using (var memoryStream = new MemoryStream())
-            {
-                await HttpContext.Request.Body.CopyToAsync(memoryStream);
-                memoryStream.Position = 0;
+            var info = await services.assets.GetAssetCatalogInfo(assetId);
+            var canUpload = await services.assets.CanUserModifyItem(info.id, safeUserSession.userId);
 
-                using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-                using (var reader = new StreamReader(gzipStream, Encoding.UTF8))
+            if (info.assetType != Models.Assets.Type.Place)
+            {
+                canUpload = false;
+            }
+
+            if (canUpload == false)
+                throw new RobloxException(403, 0, "Unauthorized");
+
+            lock (pendingAssetUploadsMux)
+            {
+                if (pendingAssetUploads >= 2)
+                    throw new RobloxException(429, 0, "TooManyRequests");
+                pendingAssetUploads++;
+            }
+            try
+            {
+                using (MemoryStream memoryStream = new MemoryStream())
                 {
-                    var decompPlacefile = await reader.ReadToEndAsync();
-                    Console.WriteLine(decompPlacefile);
+                    await HttpContext.Request.Body.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
+
+                    using (Stream gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+                    using (StreamReader reader = new StreamReader(gzipStream, Encoding.UTF8))
+                    {
+                        bool startsWithRoblox = await AssetValidationV2(gzipStream);
+                        memoryStream.Position = 0;
+                        if (!startsWithRoblox)
+                            throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
+                        memoryStream.Position = 0;
+                        await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, gzipStream);
+                        services.assets.RenderAssetAsync(assetId, info.assetType);
+                    }
+                }
+            }
+            finally
+            {
+                lock (pendingAssetUploadsMux)
+                {
+                    pendingAssetUploads--;
                 }
             }
             return 0;
