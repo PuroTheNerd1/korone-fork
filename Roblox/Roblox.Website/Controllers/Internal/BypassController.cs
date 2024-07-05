@@ -2001,20 +2001,11 @@ namespace Roblox.Website.Controllers
             string startOfFile = Encoding.UTF8.GetString(buffer);
             return startOfFile == "<roblox";
         }
-        private async Task<Stream> DecodeContentAsync(Stream inputStream)
-        {
-            var memoryStream = new MemoryStream();
-            await inputStream.CopyToAsync(memoryStream);
-            memoryStream.Seek(0, SeekOrigin.Begin); 
-
-            var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
-
-            return gzipStream;
-        }
         [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
-        public async Task EnableCloudEdit(long universeId)
+        public async Task<OkObjectResult> EnableCloudEdit(long universeId)
         {
             await services.games.EnableCloudEdit(universeId);
+            return Ok(new { });
         }
 
         [HttpGetBypass("universes/{universeId:long}/cloudeditenabled")]
