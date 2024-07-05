@@ -1942,14 +1942,20 @@ namespace Roblox.Website.Controllers
                     memoryStream.Position = 0;
 
                     using (Stream gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-                    using (StreamReader reader = new StreamReader(gzipStream, Encoding.UTF8))
+                    using (MemoryStream decompressedStream = new MemoryStream())
                     {
-                        bool startsWithRoblox = await AssetValidationV2(gzipStream);
-                        memoryStream.Position = 0;
+                        await gzipStream.CopyToAsync(decompressedStream);
+                        decompressedStream.Position = 0;
+
+                        bool startsWithRoblox = await AssetValidationV2(decompressedStream);
                         if (!startsWithRoblox)
+                        {
                             throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-                        memoryStream.Position = 0;
-                        await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, gzipStream);
+                        }
+                        
+                        decompressedStream.Position = 0;
+                        
+                        await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, decompressedStream);
                         services.assets.RenderAssetAsync(assetId, info.assetType);
                     }
                 }
