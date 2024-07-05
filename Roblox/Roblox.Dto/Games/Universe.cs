@@ -147,7 +147,7 @@ public class UniverseConfiguration
     public bool isArchived { get; set; }
     public bool isFriendsOnly { get; set; }
     public IEnumerable<Genre> genre { get; set; }
-    public List<string> playableDevices { get; set; }
+    public List<long> playableDevices { get; set; }
     public bool isForSale { get; set; }
     public int price { get; set; }
     public bool isStudioAccessToApisAllowed { get; set; }

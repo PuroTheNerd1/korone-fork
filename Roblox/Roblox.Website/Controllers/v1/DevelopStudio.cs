@@ -89,12 +89,9 @@ public class DevelopStudio : ControllerBase
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
         var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {uni.rootPlaceId})).First();
         var details = await services.assets.GetAssetCatalogInfo(uni.rootPlaceId);
-        List<string> playableDevices = new List<string> 
+        List<long> playableDevices = new List<long>
         { 
-            "Computer", 
-            "Phone", 
-            "Tablet", 
-            "VR" 
+            1,
         };
         return new UniverseConfiguration
         {
