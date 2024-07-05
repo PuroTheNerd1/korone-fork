@@ -127,13 +127,13 @@
 					</div>
                 @{
         			GamesService gamesService = new GamesService();
-					var createdPlaces = (await gamesService.GetGamesForType(CreatorType.User, Model.userId, 100, 0, "asc", "all")).Select(c => new {c.id,c.name}).ToList();
+					var createdPlaces = (await gamesService.GetGamesForType(CreatorType.User, Model.userId, 100, 0, "asc", "all")).Select(c => new {c.rootPlace.id,c.name}).ToList();
                 }
                 @foreach (dynamic place in createdPlaces)
 					{
-						<div class="asset model" id="newasset" onclick="document.location.href ='/ide/publish/editplace?placeId=@place.id';">
+						<div class="asset model" id="newasset" onclick="document.location.href ='/ide/publish/editplace?placeId=@place.rootPlace.id';">
 							<a class="model-image">
-								<img id="newModelImage" class="modelThumbnail" src="https://www.projex.zip/Thumbs/Asset.ashx?assetId=@place.id" alt="@place.name" />
+								<img id="newModelImage" class="modelThumbnail" src="https://www.projex.zip/Thumbs/Asset.ashx?assetId=@place.rootPlace.id" alt="@place.name" />
 							</a>
 							<p class="item-name-container ellipsis-overflow">@place.name</p>
 						</div>
