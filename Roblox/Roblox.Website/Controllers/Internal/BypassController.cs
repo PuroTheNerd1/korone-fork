@@ -1916,7 +1916,7 @@ namespace Roblox.Website.Controllers
         {
             using (var stream = Request.Body)
             {
-                var decodedStream = DecodeContent(stream);
+                var decodedStream = await DecodeContentAsync(stream);
                 using (var outputStream = new MemoryStream())
                 {
                     await decodedStream.CopyToAsync(outputStream);
@@ -1941,10 +1941,10 @@ namespace Roblox.Website.Controllers
             string startOfFile = Encoding.UTF8.GetString(buffer);
             return startOfFile == "<roblox";
         }
-        private Stream DecodeContent(Stream inputStream)
+        private async Task<Stream> DecodeContentAsync(Stream inputStream)
         {
             var memoryStream = new MemoryStream();
-            inputStream.CopyTo(memoryStream);
+            await inputStream.CopyToAsync(memoryStream);
             memoryStream.Seek(0, SeekOrigin.Begin); 
 
             var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
