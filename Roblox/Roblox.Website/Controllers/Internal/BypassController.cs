@@ -1213,7 +1213,7 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpGetBypass("v1.1/game-start-info")]
-        public async Task<Dynamic> GameStartinfo()
+        public async Task<dynamic> GameStartinfo()
         {
             return new 
             {
