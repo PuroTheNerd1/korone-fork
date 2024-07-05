@@ -726,39 +726,7 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
 
     private static int pendingAssetUploads { get; set; } = 0;
     private static readonly Mutex pendingAssetUploadsMux = new();
-    [HttpPost("Data/Upload.ashx")]
-    public async Task<dynamic> Upload(long assetId)
-    {
-        using (var stream = Request.Body)
-        {
-            var decodedStream = DecodeContent(stream);
-            using (var outputStream = new MemoryStream())
-            {
-                await decodedStream.CopyToAsync(outputStream);
-                bool startsWithRoblox = await AssetValidationV2(outputStream);
-                if (!startsWithRoblox)
-                    throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-                outputStream.Position = 0; 
-                await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, outputStream);
-                
-                services.assets.RenderAssetAsync(assetId, Models.Assets.Type.Place);
-                return new
-                {
-                    success = true,
-                };
-            }
-        }
-    }
-    private Stream DecodeContent(Stream inputStream)
-    {
-        var memoryStream = new MemoryStream();
-        inputStream.CopyTo(memoryStream);
-        memoryStream.Seek(0, SeekOrigin.Begin); 
 
-        var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
-
-        return gzipStream;
-    }
     [HttpPost("develop/upload-version")]
     public async Task UploadVersion([Required, FromForm] UploadAssetVersionRequest request)
     {
