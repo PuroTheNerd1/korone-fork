@@ -20,6 +20,8 @@ public class PlaceLauncherService : ServiceBase
                 return await RequestGameJob(gameId, placeId);
             case "RequestGame":
                 return await RequestGame(placeId, (int)MatchmakingContextId.Default);
+            case "CloudEdit":
+                return await RequestGame(placeId, (int)MatchmakingContextId.CloudEdit);
             case "RequestPrivateGame":
                 break;
         }
