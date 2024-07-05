@@ -1954,7 +1954,7 @@ namespace Roblox.Website.Controllers
                         }
                         
                         decompressedStream.Position = 0;
-                        
+
                         await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, decompressedStream);
                         services.assets.RenderAssetAsync(assetId, info.assetType);
                     }
@@ -1966,8 +1966,12 @@ namespace Roblox.Website.Controllers
                 {
                     pendingAssetUploads--;
                 }
+                
             }
-            return 0;
+            return new
+            {
+                success = true,
+            };
             /*
             using (var stream = Request.Body)
             {
