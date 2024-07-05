@@ -1915,6 +1915,12 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> Upload(long assetId)
         {
             Console.WriteLine(Request.Body);
+            using (var reader = new StreamReader(HttpContext.Request.Body))
+            {
+                // trying as many methods possible lol
+                var placeFile = reader.ReadToEnd();
+                Console.WriteLine(placeFile);
+            }
             return 0;
             /*
             using (var stream = Request.Body)
