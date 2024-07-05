@@ -92,7 +92,12 @@ var prepareResponseForCache = (StaticFileResponseContext ctx) =>
     ctx.Context.Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + durationInSeconds;
     ctx.Context.Response.Headers.Remove(HeaderNames.LastModified);
 };
-
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Roblox.Configuration.PublicDirectory + "js/"),
+    RequestPath = "/js",
+    OnPrepareResponse = prepareResponseForCache,
+});
 // Should be public
 app.UseStaticFiles(new StaticFileOptions
 {

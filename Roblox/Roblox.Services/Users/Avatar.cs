@@ -663,7 +663,39 @@ public class AvatarService : ServiceBase, IService
     {
         return false;
     }
-    
+    public static async Task<dynamic> GetResizedImageFromStream(Stream stream, int newX, int newY)
+    {
+        try
+        {
+            byte[] imageBytes;
+            using (var memoryStream = new MemoryStream())
+            {
+                await stream.CopyToAsync(memoryStream);
+                imageBytes = memoryStream.ToArray();
+            }
+
+            using (MemoryStream memoryStream = new MemoryStream(imageBytes))
+            using (Image image = await Image.LoadAsync(memoryStream))
+            {
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(newX, newY),
+                    Mode = ResizeMode.Max
+                }));
+
+                using (MemoryStream resizedMemoryStream = new MemoryStream())
+                {
+                    await image.SaveAsync(resizedMemoryStream, new PngEncoder());
+                    byte[] resizedImageBytes = resizedMemoryStream.ToArray();
+                    return resizedImageBytes;
+                }
+            }
+        }
+        catch
+        {
+            return "BAD";
+        }
+    } 
     public static async Task<string> GetResizedImageFromBase64(string base64, int newX, int newY)
     {
         try

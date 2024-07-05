@@ -595,7 +595,22 @@ public class AssetsService : ServiceBase, IService
             }
             Writer.Info(LogGroup.GameIconRender, "game icon render over. placeId={0}", assetId);
         }
-        await InsertOrReplaceIcon(assetId, key, ModerationStatus.ReviewApproved);
+        else if(thumbnailToUse != null)
+        {
+            var pictureData = await ValidateImage(thumbnailToUse);
+            if(pictureData == null)
+            {
+                Writer.Info(LogGroup.GameIconRender, "custom icon failed", assetId);
+            }
+            
+            byte[] imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
+
+            using (var imageStream = new MemoryStream(imageBytes))
+            {
+                key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+            }
+        }
+        await InsertOrReplaceIcon(assetId, key, ModerationStatus.AwaitingApproval);
     }
 
     private async Task CreateTeeShirtThumbnail(long assetId, CancellationToken? cancellationToken = null)
