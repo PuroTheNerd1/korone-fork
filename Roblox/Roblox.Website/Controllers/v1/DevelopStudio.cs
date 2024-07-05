@@ -110,7 +110,7 @@ public class DevelopStudio : ControllerBase
             genre = assetInfo.genres,
             playableDevices = playableDevices,
             isForSale = details.isForSale,
-            price = (int)details.price,
+            price = 0,
             isStudioAccessToApisAllowed = true,
             privacyType = privacyType.Public,
         };
