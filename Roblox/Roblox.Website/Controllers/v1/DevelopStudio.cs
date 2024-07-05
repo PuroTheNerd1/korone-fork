@@ -96,26 +96,26 @@ public class DevelopStudio : ControllerBase
             "Tablet", 
             "VR" 
         };
-        return new
+        return new UniverseConfiguration
         {
             allowPrivateServers = false,
             privateServerPrice = 0,
             id = universeId,
             name = uni.name,
-            universeAvatarType = "MorphToR6",
-            universeScaleType = "AllScales",
-            universeAnimationType = "PlayerChoice",
-            universeCollisionType = "OuterBox",
-            universeBodyType = "Standard",
-            universeJointPositioningType = "ArtistIntent",
+            universeAvatarType = 1,
+            universeScaleType = 1,
+            universeAnimationType = 1,
+            universeCollisionType = 1,
+            universeBodyType = 1,
+            universeJointPositioningType = 1,
             isArchived = assetInfo.isArchivable,
             isFriendsOnly = false,
             genre = assetInfo.genres,
-            playableDevices,
+            playableDevices = playableDevices,
             isForSale = details.isForSale,
             price = (int)details.price,
             isStudioAccessToApisAllowed = true,
-            privacyType = "Public",
+            privacyType = privacyType.Public,
         };
     }
 }

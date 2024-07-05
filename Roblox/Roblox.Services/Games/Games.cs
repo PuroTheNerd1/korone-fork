@@ -1,3 +1,4 @@
+using System.Formats.Asn1;
 using Dapper;
 using Roblox.Dto;
 using Roblox.Dto.Games;
@@ -47,7 +48,19 @@ public class GamesService : ServiceBase, IService
             throw new RobloxException(400, 0, "Invalid place ID");
         return arr[0].universeId;
     }
-    
+    public async Task EnableCloudEdit(long universeId)
+    {
+        await db.ExecuteAsync("UPDATE universe SET cloudedit = true WHERE id = :universeId",
+            new
+            {
+                universeId = universeId,
+            });
+    }
+    /*
+    public async Task<MultiGetUniverseEntry> GetUniverseConfiguration(long universeIds)
+    {
+
+    }*/
     public async Task<IEnumerable<MultiGetUniverseEntry>> MultiGetUniverseInfo(IEnumerable<long> universeIds)
     {
         var ids = universeIds.ToArray();
@@ -357,10 +370,17 @@ public class GamesService : ServiceBase, IService
                 creator_id = (long) creatorInfo.creator_id,
                 creator_type = (int) creatorInfo.creator_type,
             });
+
             await InsertAsync("universe_asset", new
             {
                 asset_id = rootPlaceId,
                 universe_id = uni,
+            });
+            var uni2 = (await MultiGetUniverseInfo(new[] {uni})).FirstOrDefault();
+            await InsertAsync("universe_settings", new
+            {
+                universe_id = uni,
+                name = uni2.name
             });
             return new CreateUniverseResponse()
             {

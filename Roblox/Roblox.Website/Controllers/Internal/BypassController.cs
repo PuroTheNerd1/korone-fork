@@ -1910,6 +1910,13 @@ namespace Roblox.Website.Controllers
             var jsonString = JsonConvert.SerializeObject(allowedList);
             return new { data = jsonString };
         }
+        
+        [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
+        public async Task EnableCloudEdit(long universeId)
+        {
+            await services.games.EnableCloudEdit(universeId);
+        }
+
         [HttpGetBypass("universes/{universeId:long}/cloudeditenabled")]
         public dynamic IsCloudEditEnabled(long universeId)
         {

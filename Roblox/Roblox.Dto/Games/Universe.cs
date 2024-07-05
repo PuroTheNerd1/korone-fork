@@ -123,6 +123,36 @@ public class GamesForCreatorDevelop
     public DateTime created { get; set; }
     public DateTime updated { get; set; }
 }
+public enum privacyType
+{
+    Public = 1,
+    Private
+}
+public class UniverseConfiguration
+{
+
+
+
+    public bool allowPrivateServers { get; set;}
+    public long privateServerPrice { get; set;}
+    public bool isMeshTextureApiAccessAllowed { get; set;}
+    public long id { get; set; }
+    public string name { get; set; }
+    public long universeAvatarType { get; set; }
+    public long universeScaleType { get; set; }
+    public long universeAnimationType { get; set; }
+    public long universeCollisionType { get; set; }
+    public long universeBodyType { get; set; }
+    public long universeJointPositioningType { get; set; }
+    public bool isArchived { get; set; }
+    public bool isFriendsOnly { get; set; }
+    public IEnumerable<Genre> genre { get; set; }
+    public List<string> playableDevices { get; set; }
+    public bool isForSale { get; set; }
+    public int price { get; set; }
+    public bool isStudioAccessToApisAllowed { get; set; }
+    public privacyType privacyType { get; set;}
+}
 public class GamesForCreatorEntry
 {
     public long id { get; set; }
