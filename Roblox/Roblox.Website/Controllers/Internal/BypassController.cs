@@ -1207,37 +1207,7 @@ namespace Roblox.Website.Controllers
                 Twitch = (string?)null
             };
         }
-        [HttpGetBypass("v1.1/game-start-info")]
-        public async Task<dynamic> GameStartinfo()
-        {
-            return new 
-            {
-                allowCustomAnimations = "True",
-                universeAvatarCollisionType = "OuterBox",
-                universeAvatarBodyType = "Standard",
-                message = "",
-                universeAvatarMinScales = new
-                {
-                    width = 1,
-                    height = 1,
-                    head = 1,
-                    depth = 1,
-                    proportion = 0,
-                    bodyType = 0
-                },
-                universeAvatarMaxScales = new
-                {
-                    width = 1,
-                    height = 1,
-                    head = 1,
-                    depth = 1,
-                    proportion = 0,
-                    bodyType = 0
-                },
-                universeAvatarAssetOverrides = new List<long>() { },
-                moderationStatus = (string?)null                
-            };
-        }
+
         [HttpGetBypass("v1/avatar-rules")]
         public async Task<IActionResult> AvatarRules()
         {
