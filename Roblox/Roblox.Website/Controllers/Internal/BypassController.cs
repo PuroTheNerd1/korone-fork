@@ -834,11 +834,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/join.ashx")]
         public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
         {
-            Console.WriteLine("Client connected to join.ashx");
-            bool isRoblox = ApplicationGuardMiddleware.IsRoblox(Request);
-            if (!isRoblox){
-                return Redirect("https://www.projex.zip/404");
-            }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             long year = await services.games.GetYear(placeId);
