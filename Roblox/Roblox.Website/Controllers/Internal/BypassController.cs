@@ -524,11 +524,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> PlaceLaunch(string request, int placeId, string? gameId, bool isPartyLeader, bool isTeleport, string? accessCode, string? linkCode, string? privateGameMode)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            Console.WriteLine(userSession.username);
-            if(userSession == null)
-            {
-                Redirect("/404");
-            }
+            Console.WriteLine($"username: {safeUserSession.username}");
             return await services.placeLauncherFactory.PlaceLauncherAsync(request, placeId, isPartyLeader, isTeleport, gameId, accessCode, linkCode, privateGameMode);
             /*
             long maxPlayerCount;
@@ -591,7 +587,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("login/RequestAuth.ashx")]
         public async Task<MVC.ActionResult<dynamic?>> StudioRequestAuth()
         {
-            Console.WriteLine(userSession.userId);
             if (userSession == null){
                 return Unauthorized("User is not authorized.");
             }
