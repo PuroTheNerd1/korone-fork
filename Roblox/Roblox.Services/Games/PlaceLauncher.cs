@@ -29,6 +29,7 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<dynamic> RequestGameJob(string gameId, long placeId)
     {
+        GamesService games = new GamesService();
         if (await games.IsFull(gameId, placeId))
         {
             return new
