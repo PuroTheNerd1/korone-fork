@@ -1914,6 +1914,9 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("Data/Upload.ashx")]
         public async Task<dynamic> Upload(long assetId)
         {
+            Console.WriteLine(Request.Body);
+            return 0;
+            /*
             using (var stream = Request.Body)
             {
                 var decodedStream = await DecodeContentAsync(stream);
@@ -1933,6 +1936,7 @@ namespace Roblox.Website.Controllers
                     };
                 }
             }
+            */
         }
         private async Task<bool> AssetValidationV2(Stream stream)
         {
