@@ -11,6 +11,7 @@ namespace Roblox.Services;
 
 public class GamesService : ServiceBase, IService
 {
+    GameServerService gameServer = new GameServerService();
     public async Task<long> GetMaxPlayerCount(long placeId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
@@ -20,7 +21,16 @@ public class GamesService : ServiceBase, IService
             });
         return result?.total ?? 0;
     }
-
+    public async Task<bool> IsFull(string jobId, long placeId)
+    {
+        var jobPlayers = await gameServer.GetGameServerPlayers(jobId);
+        var maxPlayerCount = await GetMaxPlayerCount(placeId);
+        if (jobPlayers.Count() >= maxPlayerCount)
+        {
+            return true;
+        }
+        return false;
+    }
     public async Task<long> GetYear(long placeId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Year>(

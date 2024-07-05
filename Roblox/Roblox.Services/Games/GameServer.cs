@@ -19,10 +19,12 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+
 namespace Roblox.Services;
 
 public class GameServerService : ServiceBase
 {
+    GamesService games = new GamesService();
     private const string ClientJoinTicketType = "GameJoinTicketV1.1";
     private const string ServerJoinTicketType = "GameServerTicketV2";
     private static HttpClient client { get; } = new();
@@ -652,8 +654,9 @@ public class GameServerService : ServiceBase
             });
         return result;
     }
-    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, long year)
+    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId)
     {
+        long year = await games.GetYear(placeId);
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(30));       
         if (!serverCreationLock.IsAcquired)
             return new GameServerGetOrCreateResponse
@@ -753,7 +756,7 @@ public class GameServerService : ServiceBase
         var uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();        
         //string originalScript;
         //string finalScript;
-        long maxplayers = await gamesService.GetMaxPlayerCount(placeId);
+        long maxplayers = await games.GetMaxPlayerCount(placeId);
         Console.WriteLine("Starting Gameserver");
         using (HttpClient client = new HttpClient())
         {

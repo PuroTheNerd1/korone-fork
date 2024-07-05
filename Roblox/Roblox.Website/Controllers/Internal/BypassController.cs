@@ -521,9 +521,11 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
-        public async Task<dynamic> PlaceLaunch(long placeId, string? jobId = null)
+        public async Task<dynamic> PlaceLaunch(string request, int placeId, string? gameId, bool isPartyLeader, bool isTeleport, string? accessCode, string? linkCode, string? privateGameMode)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
+            return services.placeLauncherFactory.PlaceLauncherAsync(request, placeId, isPartyLeader, isTeleport, gameId, accessCode, linkCode, privateGameMode);
+            /*
             long maxPlayerCount;
             bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
             if (!isRoblox){
@@ -536,29 +538,7 @@ namespace Roblox.Website.Controllers
             }
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
-            if (jobId != null)
-            {
-                if (jobPlayers.Count() == maxPlayerCount)
-                {
-                    return new
-                    {
-                        status = (int)JoinStatus.GameFull,
-                        message = "Game is full",
-                    };
-                }
-                else
-                {
-                    return new
-                    {
-                        jobId = jobId,
-                        status = (int)JoinStatus.Joining,
-                        joinScriptUrl = $"{Configuration.BaseUrl}/Game/Join.ashx?jobId={jobId}&placeId={placeId}",
-                        authenticationUrl = Configuration.BaseUrl + "/Login/Negotiate.ashx",
-                        authenticationTicket = Request.Cookies[".ROBLOSECURITY"],
-                        message = (string?)null,
-                    };                    
-                }                
-            }
+
             long year = await services.games.GetYear(placeId);
 
             var result = await services.gameServer.GetServerForPlace(placeId, year);
@@ -584,6 +564,7 @@ namespace Roblox.Website.Controllers
                 status = (int)JoinStatus.UserLeft,
                 message = "Server found, loading...",
             };
+            */
         }
 
         public static long startUserId {get;set;} = 30;
