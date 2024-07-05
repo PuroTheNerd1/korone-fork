@@ -45,7 +45,7 @@ namespace Roblox.Website.Controllers
             "game/visit.ashx",
             "IDE/welcome",
             "/ide/publish/editplace",
-            "/IDE/Upload.aspx",
+            "IDE/Upload.aspx",
             "IDE/login",
             "IDE/ClientToolbox.aspx"
         };

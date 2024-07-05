@@ -4,7 +4,7 @@ using Roblox.Dto.Users;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 
-namespace Roblox.Website.Pages.IDE;
+namespace Roblox.Website.Pages;
 
 public class Upload : RobloxPageModel
 {
