@@ -53,11 +53,15 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/visit.ashx")]
         public async Task<dynamic> VisitStudio(int IsPlaySolo, long UserID, long universeId)
         {
+            string membership;
             var membership2 = await services.users.GetUserMembership(UserID);
-            int membership = 0;
-            if(membership2.membershipType == null) 
+            if (membership2 == null)
             {
-                membership = (int)MembershipType.None;
+                membership = "None";
+            }
+            else
+            {
+                membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
             string finalScript = visitScript.Replace
                 ("%membership%", $"{membership}").Replace
