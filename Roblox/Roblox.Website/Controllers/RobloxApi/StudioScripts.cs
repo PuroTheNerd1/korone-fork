@@ -54,8 +54,13 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> VisitStudio(int IsPlaySolo, long UserID, long universeId)
         {
             var membership2 = await services.users.GetUserMembership(UserID);
+            int membership = 0;
+            if(membership2.membershipType == null) 
+            {
+                membership = (int)MembershipType.None;
+            }
             string finalScript = visitScript.Replace
-                ("%membership%", $"{(int)membership2.membershipType}").Replace
+                ("%membership%", $"{membership}").Replace
                 ("%userId%", $"{UserID}").Replace
                 ("%universeId%", $"{universeId}");
             return SignatureController.SignStringResponseForClientFromPrivateKey(finalScript, true);
