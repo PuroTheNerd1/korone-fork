@@ -64,6 +64,7 @@ namespace Roblox.Website.Controllers
                 membership = (int)membership2!.membershipType;
             }
             string finalScript = visitScript.Replace
+                ("roblox.com", $"{Configuration.BaseUrl.Replace("https://www.", "")}").Replace            
                 ("%membership%", $"{membership}").Replace
                 ("%userId%", $"{UserID}").Replace
                 ("%universeId%", $"{universeId}");
