@@ -67,9 +67,14 @@ List<long> ownerUserIds = ownerUserIdConfig.Get<List<long>>();
 Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds);
 //Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
 
-// Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddControllers().AddJsonOptions(o =>
+builder.Services.AddControllers(options =>
+{
+    options.RespectBrowserAcceptHeader = true;
+})
+
+.AddXmlSerializerFormatters() 
+.AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     o.JsonSerializerOptions.PropertyNamingPolicy = null;
