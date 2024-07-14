@@ -678,8 +678,8 @@ public class UsersService : ServiceBase, IService
     public async Task<bool> CheckDuplicateDiscord(string discordId)
     {
         var isDuplicate = await db.QueryFirstOrDefaultAsync<int>(
-            "SELECT COUNT(discord_id) FROM join_application WHERE join_application.discord_id = @discord_id",
-            new { discordId }
+            "SELECT COUNT(discord_id) FROM join_application WHERE join_application.discord_id = :discord_id",
+            new { discord_id = discordId }
         );
         if(isDuplicate == 0)
         {
