@@ -60,24 +60,24 @@ public class PlaceLauncherService : ServiceBase
         GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
         var result = await gameServer.GetServerForPlace(placeId, matchmaking);
-        if (result.status != JoinStatus.Joining)
+        if (result.status == JoinStatus.Joining)
         {
             await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
             return new
             {
-                jobId = (string?)null,
-                status = (int)JoinStatus.Loading,
-                message = "Server found, loading...",
+                jobId = result.job,
+                status = (int)result.status,
+                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
+                authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
+                authenticationTicket = (string?)null,
+                message = (string?)null,
             };
         }
         return new
         {
-            jobId = result.job,
-            status = (int)result.status,
-            joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
-            authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
-            authenticationTicket = (string?)null,
-            message = (string?)null,
+            jobId = (string?)null,
+            status = (int)JoinStatus.Loading,
+            message = "Server found, loading...",
         };
     }
 }
