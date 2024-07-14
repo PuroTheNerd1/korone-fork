@@ -92,7 +92,7 @@ public class RbxThumbnails : ControllerBase
     [HttpGetBypass("Thumbs/PlaceIcon.ashx")]
     [HttpGetBypass("Thumbs/GameIcon.ashx")]
     [HttpGetBypass("thumbs/asset.ashx")]
-    public async Task<RedirectResult> GetAssetThumbnail([Required] long assetId, long? aid)
+    public async Task<RedirectResult> GetAssetThumbnail(long assetId, long? aid)
     {        
         if(aid != null)
             assetId = (long)aid;
