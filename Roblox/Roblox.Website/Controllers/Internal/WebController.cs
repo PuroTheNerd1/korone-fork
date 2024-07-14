@@ -203,10 +203,7 @@ public class WebController : ControllerBase
                 });
             }
         }
-        return new
-        {
-            result
-        };
+        return result;
     }
 
     [HttpGetBypass("asset-thumbnail/json")]
