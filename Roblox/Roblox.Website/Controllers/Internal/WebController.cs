@@ -11,6 +11,7 @@ using Roblox.Libraries.Assets;
 using Roblox.Models.Assets;
 using Roblox.Models.Groups;
 using Roblox.Models.Staff;
+using Roblox.Models.Thumbnails;
 using Roblox.Models.Users;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
@@ -26,7 +27,10 @@ namespace Roblox.Website.Controllers;
 public class WebController : ControllerBase
 {
     private static ControllerServices staticServices { get; } = new();
-    
+    public class UniverseQuery
+    {
+        public List<long> UniverseId { get; set; }
+    }
     static WebController()
     {
         // Init server close tasks
@@ -161,14 +165,30 @@ public class WebController : ControllerBase
         var result = (await services.thumbnails.GetUserThumbnails(new[] {userId})).ToList();
         var json = new
         {
-            Url = $"https://www.projex.zip{result[0].imageUrl}",
-            Final = true,
+            Url = $"{Configuration.BaseUrl}/{result[0].imageUrl}",
+            State = result[0].imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
             SubstitutionType = 0
         };
         string jsonString = JsonConvert.SerializeObject(json);
         return Content(jsonString, "application/json");
     }
-
+    [HttpGetBypass("asset-gameicon/multiget")]
+    public async Task<dynamic> GetGameIconMultiGet([FromQuery] UniverseQuery query)
+    {
+        List<long> universeIds = query.UniverseId;
+        var result = new List<dynamic>();
+        foreach (long id in universeIds)
+        {
+            var gameIcon = (await services.thumbnails.GetGameIcons(new[] { id })).ToList();
+            result.Add(new
+            {
+                targetId = id,
+                State = gameIcon[0].imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                imageUrl = $"{Configuration.BaseUrl}/{result[0].imageUrl}",
+            });
+        }
+        return result;
+    }
     [HttpGetBypass("asset-thumbnail/json")]
     public async Task<dynamic> GetAssetThumbnailJson([Required] long assetId)
     {
@@ -183,7 +203,7 @@ public class WebController : ControllerBase
         return new
         {
             Url = $"https://www.projex.zip{result[0].imageUrl}",
-            Final = true,
+            State = result[0].imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
             SubstitutionType = 0
         };
     }

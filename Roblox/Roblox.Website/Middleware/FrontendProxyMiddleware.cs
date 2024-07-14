@@ -62,6 +62,7 @@ public class FrontendProxyMiddleware
         "/admin",
         // Web
         "/thumbs/avatar.ashx",
+        "/asset-gameicon/multiget",
         "/thumbs/avatar-headshot.ashx",
         "/thumbs/asset.ashx",
         "/Thumbs/GameIcon.ashx",
