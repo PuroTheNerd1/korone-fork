@@ -21,11 +21,11 @@ public class RobloxLoggingMiddleware
         watch.Stop();
 
         var str = $"[{ctx.Request.Method.ToUpper()}] {ctx.Request.GetEncodedUrl()} - {watch.ElapsedMilliseconds}ms";
-        if (ctx.Request.GetEncodedUrl().ToString().Contains("AppSettings"))
+        if(ctx.Request.GetEncodedUrl().Contains("e.png"))
         {
-            Console.WriteLine(str);
+            return;
         }
-        
+        Console.WriteLine(str);
     }
 }
 
