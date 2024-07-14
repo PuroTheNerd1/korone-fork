@@ -40,7 +40,6 @@ public class GamesService : ServiceBase, IService
             });
         return result?.year ?? 0;
     }
-
     public async Task<long> GetRootPlaceId(long universeId)
     {
         var details = await MultiGetUniverseInfo(new []{universeId});
@@ -389,7 +388,7 @@ public class GamesService : ServiceBase, IService
             var uni2 = (await MultiGetUniverseInfo(new[] {uni})).FirstOrDefault();
             await InsertAsync("universe_settings", new
             {
-                universe_id = uni,
+                id = uni,
                 name = uni2.name
             });
             return new CreateUniverseResponse()

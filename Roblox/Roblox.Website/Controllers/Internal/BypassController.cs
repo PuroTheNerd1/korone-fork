@@ -1830,13 +1830,10 @@ namespace Roblox.Website.Controllers
             else{
                 mode = "blacklist";
             }
-            dynamic json = new
+            return new 
             {
-               ChatFilter = mode,
+                ChatFilter = mode,
             };
-
-            string jsonString = JsonConvert.SerializeObject(json);
-            return Content(jsonString, "application/json");
         }
 
         [HttpGetBypass("banned")]

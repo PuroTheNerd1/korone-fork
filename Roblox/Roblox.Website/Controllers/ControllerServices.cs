@@ -17,6 +17,7 @@ namespace Roblox.Website.Controllers
         public ThumbnailsService thumbnails { get; } = new();
         public TradesService trades { get; } = new();
         public GameServerService gameServer { get; } = new();
+        public SetsService sets { get; } = new();
         public PlaceLauncherService placeLauncherFactory { get; } = new();
         public ForumsService forums { get; } = new();
         public CurrencyExchangeService currencyExchange { get; } = new();
