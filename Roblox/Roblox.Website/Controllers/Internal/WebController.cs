@@ -189,6 +189,7 @@ public class WebController : ControllerBase
                 {
                     targetId = id,
                     State = gameIcon.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                    Url = $"{Configuration.BaseUrl}{gameIcon.imageUrl}",
                     imageUrl = $"{Configuration.BaseUrl}{gameIcon.imageUrl}"
                 });
             }
@@ -204,7 +205,7 @@ public class WebController : ControllerBase
         }
         return new
         {
-            data = result
+            result
         };
     }
 

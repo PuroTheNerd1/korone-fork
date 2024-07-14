@@ -682,11 +682,11 @@ public class GameServerService : ServiceBase
         {
             string ExistingJobId = server.gameid.ToString(); 
             var currentPlayerCount = await GetGameServerPlayers(ExistingJobId);
-            /*
+
             DateTimeOffset updatedAt = DateTimeOffset.Parse(server.lastping.ToString());
             DateTimeOffset currentTime = DateTimeOffset.UtcNow; 
             TimeSpan timeDifference = currentTime - updatedAt;
-            */
+
             // If the server is full we continue
             if (currentPlayerCount.Count() >= maxPlayerCount)
             {
@@ -694,13 +694,13 @@ public class GameServerService : ServiceBase
             }
 
             // If server is last updated 5 mins, we shutdown the server because RCC is most likely dead 
-            /*
+
             if (timeDifference.TotalMinutes <= 5)
             {
                 await ShutDownServerAsync(ExistingJobId);
                 continue;
             }
-            */
+            
             // We found a OK server lets join
             return new GameServerGetOrCreateResponse()
             {
