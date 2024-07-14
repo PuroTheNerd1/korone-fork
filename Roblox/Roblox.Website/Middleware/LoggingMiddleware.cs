@@ -20,6 +20,10 @@ public class RobloxLoggingMiddleware
         watch.Stop();
 
         var str = $"[{ctx.Request.Method.ToUpper()}] {ctx.Request.GetEncodedUrl()} - {watch.ElapsedMilliseconds}ms";
+        if (ctx.Request.GetEncodedUrl().ToString().Contains("e.png"))
+        {
+            return;
+        }
         Console.WriteLine(str);
     }
 }

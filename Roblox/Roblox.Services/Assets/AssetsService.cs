@@ -517,7 +517,7 @@ public class AssetsService : ServiceBase, IService
         }
     }
 
-    private async Task CreateGameThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    private async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
         var modInfo = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
@@ -719,7 +719,7 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.GamePass:
                 break;
             case Models.Assets.Type.Place:
-                thumbRequests.Add(CreateGameThumbnail(assetId, cancellationToken));
+                thumbRequests.Add(CreateGameThumbnail(assetId, default, cancellationToken));
                 thumbRequests.Add(CreateGameIcon(assetId, default, cancellationToken));
                 break;
             case Models.Assets.Type.Mesh:
