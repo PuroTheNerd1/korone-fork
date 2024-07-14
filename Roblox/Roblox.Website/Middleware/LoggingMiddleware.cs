@@ -14,17 +14,18 @@ public class RobloxLoggingMiddleware
     
     public async Task InvokeAsync(HttpContext ctx)
     {
+        string userAgent = ctx.Request.Headers["User-Agent"].ToString();
         var watch = new Stopwatch();
         watch.Start();
         await _next(ctx);
         watch.Stop();
 
         var str = $"[{ctx.Request.Method.ToUpper()}] {ctx.Request.GetEncodedUrl()} - {watch.ElapsedMilliseconds}ms";
-        if (ctx.Request.GetEncodedUrl().ToString().Contains("e.png"))
+        if (ctx.Request.GetEncodedUrl().ToString().Contains("AppSettings"))
         {
-            return;
+            Console.WriteLine(str);
         }
-        Console.WriteLine(str);
+        
     }
 }
 
