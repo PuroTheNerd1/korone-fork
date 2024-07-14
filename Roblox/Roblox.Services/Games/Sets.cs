@@ -1,54 +1,74 @@
-namespace Roblox.Services;
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 
-public class SetsService : ServiceBase
+namespace Roblox.Services
 {
-    private static HttpClient sharedClient = new()
+    public class SetsService : ServiceBase
     {
-        BaseAddress = new Uri("https://sets.pizzaboxer.xyz/Game/Tools/InsertAsset.ashx?"),
-    };
-    private async Task<dynamic> RequestSetData(HttpClient httpClient, string uri)
-    {
-        using HttpResponseMessage response = await httpClient.GetAsync(uri);
-        string SetData = await response.Content.ReadAsStringAsync();
-        return SetData;
-    }
-    private async Task<dynamic> FetchSet(long? setId, bool bypassCache = false)
-    {
-        if (!bypassCache)
+        private static readonly HttpClient sharedClient = new HttpClient
         {
-            string cachedSetData = await redis.StringGetAsync($"set:{setId}:data");
-            if (cachedSetData != null)
+            BaseAddress = new Uri("https://sets.pizzaboxer.xyz/Game/Tools/InsertAsset.ashx"),
+        };
+
+        private async Task<string> RequestSetData(HttpClient httpClient, string query)
+        {
+            var builder = new UriBuilder(httpClient.BaseAddress)
             {
-                return cachedSetData; 
-            }
+                Query = query
+            };
+
+            using HttpResponseMessage response = await httpClient.GetAsync(builder.Uri);
+            response.EnsureSuccessStatusCode(); 
+            return await response.Content.ReadAsStringAsync();
         }
 
-        string setData = await RequestSetData(sharedClient, $"sid={setId}");
-        await redis.StringSetAsync($"set:{setId}:data", setData, TimeSpan.FromDays(10));
-
-        return setData; 
-    }
-    private async Task<dynamic> FetchUserSet(long? nsets = 20, string? type = "user", long? userId = 1, bool bypassCache = false)
-    {
-        if (!bypassCache)
+        private async Task<string> FetchSet(long? setId, bool bypassCache = false)
         {
-            string cachedSetData = await redis.StringGetAsync($"set:{userId}:data");
-            if (cachedSetData != null)
+            if (!bypassCache)
             {
-                return cachedSetData; 
+                string cachedSetData = await redis.StringGetAsync($"set:{setId}:data");
+                if (cachedSetData != null)
+                {
+                    return cachedSetData;
+                }
             }
-        }    
-        string setData = await RequestSetData(sharedClient, $"nsets={nsets}&type={type}&userid={userId}");
-        await redis.StringSetAsync($"set:{userId}:data", setData, TimeSpan.FromDays(10));
-        return setData; 
-    }
-    public async Task<string> GrabSet(long? sid, long? nsets, string? type, long? userId)
-    {
-        if(sid == null){
-            if(nsets == null || type == null || userId == null)
-                return null;
-            return await FetchUserSet(nsets, type, userId);
-        };
-        return await FetchSet(sid);
+
+            string query = $"sid={setId}";
+            string setData = await RequestSetData(sharedClient, query);
+            await redis.StringSetAsync($"set:{setId}:data", setData, TimeSpan.FromDays(10));
+
+            return setData;
+        }
+
+        private async Task<string> FetchUserSet(long? nsets = 20, string type = "user", long? userId = 1, bool bypassCache = false)
+        {
+            if (!bypassCache)
+            {
+                string cachedSetData = await redis.StringGetAsync($"set:{userId}:data");
+                if (cachedSetData != null)
+                {
+                    return cachedSetData;
+                }
+            }
+
+            string query = $"nsets={nsets}&type={type}&userid={userId}";
+            string setData = await RequestSetData(sharedClient, query);
+            await redis.StringSetAsync($"set:{userId}:data", setData, TimeSpan.FromDays(10));
+            return setData;
+        }
+
+        public async Task<string> GrabSet(long? sid, long? nsets, string type, long? userId)
+        {
+            if (sid == null)
+            {
+                if (nsets == null || type == null || userId == null)
+                    return null;
+
+                return await FetchUserSet(nsets, type, userId);
+            }
+
+            return await FetchSet(sid);
+        }
     }
 }
