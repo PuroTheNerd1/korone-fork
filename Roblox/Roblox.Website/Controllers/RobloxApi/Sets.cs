@@ -18,9 +18,7 @@ namespace Roblox.Website.Controllers
             {
                 return BadRequest();
             }
-            var xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(setData);
-            return Content(xmlDoc.OuterXml, "text/xml");
+            return Content(setData, "text/xml");
         }
     }
 }

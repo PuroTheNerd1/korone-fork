@@ -65,10 +65,10 @@ namespace Roblox.Services
                 if (nsets == null || type == null || userId == null)
                     return null;
 
-                return await FetchUserSet(nsets, type, userId);
+                return await FetchUserSet(nsets, type, userId, true);
             }
 
-            return await FetchSet(sid);
+            return await FetchSet(sid, true);
         }
     }
 }
