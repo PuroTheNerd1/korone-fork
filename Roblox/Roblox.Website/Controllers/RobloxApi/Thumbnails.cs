@@ -117,7 +117,7 @@ public class RbxThumbnails : ControllerBase
         return new
         {
             Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
-            State = result[0].imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+            Final = true,
             SubstitutionType = 0
         };
     }     
