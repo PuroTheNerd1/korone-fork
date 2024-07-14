@@ -8,9 +8,16 @@ public class ThumbnailEntry
 {
     public long targetId { get; set; }
     public ThumbnailState state { get; set; }
+    public ThumbnailState State { get; set; }
+    public string? Url { get; set; }
     public string? imageUrl { get; set; }
 }
-
+public class ThumbnailEntryRBX
+{
+    public long targetId { get; set; }
+    public ThumbnailState State { get; set; }
+    public string? Url { get; set; }
+}
 public class AssetThumbnailEntryDb
 {
     public long targetId { get; set; }

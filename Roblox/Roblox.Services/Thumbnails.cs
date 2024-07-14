@@ -181,7 +181,38 @@ public class ThumbnailsService : ServiceBase, IService
             return c;
         });
     }
-    
+    public async Task<IEnumerable<ThumbnailEntryRBX>> GetGameIconsRBX(IEnumerable<long> universeIds)
+    {
+        var ids = universeIds.Distinct().ToList();
+        if (ids.Count == 0) return new ThumbnailEntryRBX[] { };
+        var query = new SqlBuilder();
+        var t = query.AddTemplate(
+            "SELECT universe_id as targetId, content_url as imageUrl, moderation_status as moderationStatus FROM universe_asset INNER JOIN asset_icon ai ON ai.asset_id = universe_asset.asset_id /**where**/");
+        query.OrWhereMulti("universe_id = $1", ids);
+
+        return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
+        {
+            if (c.moderationStatus != ModerationStatus.ReviewApproved)
+            {
+                c.imageUrl = null;
+            }
+            
+            if (!string.IsNullOrEmpty(c.imageUrl))
+            {
+                c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
+            }
+            
+            if (c.imageUrl != null)
+                c.imageUrl = Roblox.Configuration.BaseUrl + c.imageUrl;
+
+            return new ThumbnailEntryRBX()
+            {
+                targetId = c.targetId,
+                Url = c.imageUrl,
+                State = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+            };
+        });
+    }    
     public async Task<IEnumerable<ThumbnailEntry>> GetGameIcons(IEnumerable<long> universeIds)
     {
         var ids = universeIds.Distinct().ToList();
