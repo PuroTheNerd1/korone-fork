@@ -165,14 +165,14 @@ public class WebController : ControllerBase
         var result = (await services.thumbnails.GetUserThumbnails(new[] {userId})).ToList();
         var json = new
         {
-            Url = $"{Configuration.BaseUrl}/{result[0].imageUrl}",
+            Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
             State = result[0].imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
             SubstitutionType = 0
         };
         string jsonString = JsonConvert.SerializeObject(json);
         return Content(jsonString, "application/json");
     }
-    
+
     [HttpGetBypass("asset-gameicon/multiget")]
     public async Task<dynamic> GetGameIconMultiGet([FromQuery] UniverseQuery query)
     {
@@ -189,7 +189,7 @@ public class WebController : ControllerBase
                 {
                     targetId = id,
                     State = gameIcon.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
-                    imageUrl = $"{Configuration.BaseUrl}/{gameIcon.imageUrl}"
+                    imageUrl = $"{Configuration.BaseUrl}{gameIcon.imageUrl}"
                 });
             }
             else
