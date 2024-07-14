@@ -172,23 +172,39 @@ public class WebController : ControllerBase
         string jsonString = JsonConvert.SerializeObject(json);
         return Content(jsonString, "application/json");
     }
+    
     [HttpGetBypass("asset-gameicon/multiget")]
     public async Task<dynamic> GetGameIconMultiGet([FromQuery] UniverseQuery query)
     {
         List<long> universeIds = query.UniverseId;
         var result = new List<dynamic>();
+
         foreach (long id in universeIds)
         {
-            var gameIcon = (await services.thumbnails.GetGameIcons(new[] { id })).ToList();
-            result.Add(new
+            var gameIcons = (await services.thumbnails.GetGameIcons(new[] { id })).ToList();
+            if (gameIcons.Count > 0) 
             {
-                targetId = id,
-                State = gameIcon[0].imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
-                imageUrl = $"{Configuration.BaseUrl}/{result[0].imageUrl}",
-            });
+                var gameIcon = gameIcons[0];
+                result.Add(new
+                {
+                    targetId = id,
+                    State = gameIcon.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                    imageUrl = $"{Configuration.BaseUrl}/{gameIcon.imageUrl}"
+                });
+            }
+            else
+            {
+                result.Add(new
+                {
+                    targetId = id,
+                    State = ThumbnailState.Pending,
+                    imageUrl = "/img/placeholder.png",
+                });
+            }
         }
         return result;
     }
+
     [HttpGetBypass("asset-thumbnail/json")]
     public async Task<dynamic> GetAssetThumbnailJson([Required] long assetId)
     {
