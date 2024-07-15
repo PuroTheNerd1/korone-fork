@@ -201,37 +201,13 @@ div.modalthing {
   font-weight: bold;
   border-radius: 0;
 }
-
+.table td { 
+  background: #2c2c2c; 
+  color: white;
+} 
 table.settings-table > tbody > tr {
   border-bottom: 1px solid #dedede;
 }
-.table {
-  width: 100%;
-  background-color: #2d2d2d;
-  color: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.table th,
-.table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #333;
-}
-
-.table thead {
-  background-color: #1a1a1a;
-}
-
-.table tbody tr:nth-child(even) {
-  background-color: #222;
-}
-
-.table tbody tr:hover {
-  background-color: #3a3a3a;
-}
-
 
 img.avatar-thumb {
   width: 100%;
