@@ -1,5 +1,4 @@
 import updatePlaceStore from "../stores/updatePlaceStore";
-import configureItemStore from "../../configureItem/stores/configureItemStore";
 import { useEffect, useState } from "react";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
@@ -26,7 +25,6 @@ const genres = [
 
 const BasicSettings = props => {
   const store = updatePlaceStore.useContainer();
-  const store2 = configureItemStore.useContainer();
   const [name, setName] = useState('');
   const [description, setDescription] = useState(null);
   const [isCopylocked, setCopylock] = useState(false);
@@ -40,7 +38,7 @@ const BasicSettings = props => {
     setName(store.details.name);
     setDescription(store.details.description);
     setGenre(store.details.genre);
-    setCommentsEnabled(store2.commentsEnabled)
+    setCommentsEnabled(store.commentsEnabled)
   }
 
   useEffect(() => {
@@ -84,14 +82,6 @@ const BasicSettings = props => {
         <select
           value={commentsEnabled.toString()}
           onChange={e => setCommentsEnabled(e.currentTarget.value === 'true')}
-        >
-          <option value="true">Enabled</option>
-          <option value="false">Disabled</option>
-        </select>
-        <p className='mb-0 fw-bold mt-2'>Enable/disable copylock:</p>
-        <select
-          value={isCopylocked.toString()}
-          onChange={e => setCopylock(e.currentTarget.value === 'true')}
         >
           <option value="true">Enabled</option>
           <option value="false">Disabled</option>

@@ -71,6 +71,11 @@ export const multiGetGameVotes = ({universeIds}) => {
   return request('GET', getFullUrl('games', '/v1/games/votes?universeIds=' + encodeURIComponent(universeIds.join(',')))).then(d => d.data.data);
 }
 
+export const isCommentsEnabled = async ({ assetId }) => {
+  const response = await request('GET', getFullUrl('games', '/v1/game/comments-enabled?assetId=' + assetId));
+  return response;
+}
+
 export const voteOnGame = ({universeId, isUpvote}) => {
   return request('PATCH', getFullUrl('games', '/v1/games/'+universeId+'/user-votes'), {
     vote: isUpvote,

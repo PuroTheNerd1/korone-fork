@@ -2,7 +2,7 @@ import updatePlaceStore from "./stores/updatePlaceStore";
 import {useEffect} from "react";
 import VerticalSelector from "../verticalSelector";
 import BasicSettings from "./components/basicSettings";
-import {multiGetPlaceDetails} from "../../services/games";
+import {multiGetPlaceDetails , isCommentsEnabled} from "../../services/games";
 import Icon from "./components/icon";
 import UploadPlace from "./components/uploadPlace";
 import Access from "./components/access";
@@ -12,6 +12,9 @@ const Container = props => {
   useEffect(() => {
     store.setTab('Basic Settings');
     store.setPlaceId(props.placeId);
+    isCommentsEnabled({ assetId: props.placeId }).then(enabled => {
+      store.setcommentsEnabled(enabled);
+    });
     multiGetPlaceDetails({placeIds: [props.placeId]}).then(data => {
       store.setDetails(data[0]);
     })
