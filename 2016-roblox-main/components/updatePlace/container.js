@@ -2,7 +2,7 @@ import updatePlaceStore from "./stores/updatePlaceStore";
 import {useEffect} from "react";
 import VerticalSelector from "../verticalSelector";
 import BasicSettings from "./components/basicSettings";
-import {multiGetPlaceDetails , isCommentsEnabled} from "../../services/games";
+import {isCommentsEnabled, multiGetPlaceDetails} from "../../services/games";
 import Icon from "./components/icon";
 import UploadPlace from "./components/uploadPlace";
 import Access from "./components/access";
