@@ -2240,7 +2240,6 @@ namespace Roblox.Website.Controllers
             }
 
 
-            
             var finalData = new { data = result };
             string jsonString = JsonConvert.SerializeObject(finalData);
             return Content(jsonString, "application/json");
@@ -2307,27 +2306,21 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("persistence/set")]
         public async Task<dynamic> Set(long placeId, string key, string type, string scope, string target, int valueLength)
         {
-            // { "data" : value }
             if (!IsRcc())
                 throw new RobloxException(400, 0, "BadRequest");
             var value = Request.Form["value"][0];
             await ServiceProvider.GetOrCreate<DataStoreService>()
                 .Set(placeId, target, type, scope, key, valueLength, value);
-            var json = new
+            return new 
             {
-                Value = value,
-                Scope = scope,
-                Key = key,
-                Target = target
+                data = new 
+                {
+                    Value = value,
+                    Scope = scope,
+                    Key = key,
+                    Target = target    
+                }
             };
-
-            var finalJson = new
-            {
-                data = json
-            };
-            string jsonString = JsonConvert.SerializeObject(finalJson);
-
-            return Content(jsonString, "application/json");
         }
         [HttpGetBypass("user/follow")]
         [HttpPost("user/follow")]
