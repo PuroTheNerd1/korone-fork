@@ -657,6 +657,7 @@ namespace Roblox.Website.Controllers
             {
                 requestBody = await reader.ReadToEndAsync();
             }
+            /*
             if(userAgent == "RobloxStudio/WinInet")
             {
                 string[] keyValuePairs = requestBody.Split('&');
@@ -686,8 +687,13 @@ namespace Roblox.Website.Controllers
                     password = serializedResponse.password;
                 }         
             }
-
-
+            /*
+            using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
+            {
+                var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobile>(requestBody) ?? new LoginRequestMobile();
+                username = serializedResponse.username;
+                password = serializedResponse.password;
+            }         
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
@@ -2108,7 +2114,7 @@ namespace Roblox.Website.Controllers
                 case "9CE2063F-BB45-449B-89D4-65CD2ED806CD":  //2017L RCC
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
-                case "08BF6621-8100-4484-B14C-87497E372160": 
+                case "08BF6621-8100-4484-B14C-87497E372160": //2017L Studio + Client
                     if(type == "StudioAppSettings")
                         break;
                     type = "ClientAppSettings2017";
