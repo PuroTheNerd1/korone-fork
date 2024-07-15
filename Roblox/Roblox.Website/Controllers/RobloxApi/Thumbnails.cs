@@ -57,7 +57,8 @@ public class RbxThumbnails : ControllerBase
                 result = (await services.thumbnails.GetAssetThumbnails(new[] { id })).ToList();
                 break;
             case ThumbnailType.PlaceIcon:
-                result = (await services.thumbnails.GetGameIcons(new[] { id })).ToList();
+                long universeId = await services.games.GetUniverseId(id);
+                result = (await services.thumbnails.GetGameIcons(new[] { universeId })).ToList();
                 break;
         }
 
