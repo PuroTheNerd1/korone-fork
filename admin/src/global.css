@@ -213,16 +213,13 @@ table.settings-table > tbody > tr {
 .table th,
 .table td {
   border-color: #444;
+  color: #2d2d2d;
 }
 
 .table th {
   color: #ccc;
   background-color: #2d2d2d;
   border-color: #444;
-}
-
-.table td {
-  color: #e0e0e0;
 }
 
 .table tbody tr:nth-child(even) {
