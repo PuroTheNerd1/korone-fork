@@ -1,7 +1,11 @@
 import updatePlaceStore from "../stores/updatePlaceStore";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import {useEffect, useState} from "react";
 =======
+=======
+import configureItemStore from "../../configureItem/stores/configureItemStore";
+>>>>>>> parent of 1c55b77a (should work now)
 import { useEffect, useState } from "react";
 >>>>>>> parent of 785a982d (Add copylock and fix comments)
 import ActionButton from "../../actionButton";
@@ -97,6 +101,7 @@ const genres = [
 
 const BasicSettings = props => {
   const store = updatePlaceStore.useContainer();
+  const store2 = configureItemStore.useContainer();
   const [name, setName] = useState('');
   const [description, setDescription] = useState(null); // nullable
   const [commentsEnabled, setCommentsEnabled] = useState(false);
@@ -109,6 +114,10 @@ const BasicSettings = props => {
     setName(store.details.name);
     setDescription(store.details.description);
     setGenre(store.details.genre);
+<<<<<<< HEAD
+=======
+    setCommentsEnabled(store2.commentsEnabled)
+>>>>>>> parent of 1c55b77a (should work now)
   }
 
   useEffect(() => {
@@ -200,7 +209,11 @@ const BasicSettings = props => {
         <p className='mb-0 fw-bold mt-2'>Enable/disable copylock:</p>
         <select
           value={isCopylocked.toString()}
+<<<<<<< HEAD
           onChange={e => setCopylock(e.currentTarget.value === 'false')}
+=======
+          onChange={e => setCopylock(e.currentTarget.value === 'true')}
+>>>>>>> parent of 1c55b77a (should work now)
         >
           <option value="true">Enabled</option>
           <option value="false">Disabled</option>

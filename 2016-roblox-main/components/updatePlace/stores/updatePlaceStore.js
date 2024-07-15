@@ -2,8 +2,7 @@ import {createContainer} from "unstated-next";
 import {useState} from "react";
 
 const UpdatePlaceStore = createContainer(() => {
-  const [tab, setcommentsEnabled] = useState(null);
-  const [commentsEnabled, setTab] = useState(null);
+  const [tab, setTab] = useState(null);
   const [details, setDetails] = useState(null);
   const [locked, setLocked] = useState(false);
   const [placeId, setPlaceId] = useState(null);
@@ -15,9 +14,6 @@ const UpdatePlaceStore = createContainer(() => {
     tab,
     setTab,
 
-    commentsEnabled,
-    setcommentsEnabled,
-    
     details,
     setDetails,
 

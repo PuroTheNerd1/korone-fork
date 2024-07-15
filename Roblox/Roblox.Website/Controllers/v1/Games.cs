@@ -164,11 +164,7 @@ public class GamesControllerV1 : ControllerBase
     {
         return await services.games.MultiGetPlaceDetails(placeIds.Split(",").Select(long.Parse));
     }
-    [HttpGet("game/comments-enabled")]
-    public async Task<dynamic> AreCommentsEnabldGame(long assetId)
-    {
-        return await services.assets.AreCommentsEnabled(assetId);
-    }
+
     [HttpGet("games/votes")]
     public async Task<dynamic> GetGameVotes(string universeIds)
     {
