@@ -105,7 +105,6 @@ const BasicSettings = props => {
     setName(store.details.name);
     setDescription(store.details.description);
     setGenre(store.details.genre);
-    setCommentsEnabled(store.commentsEnabled);
   }
 
   useEffect(() => {
@@ -122,7 +121,7 @@ const BasicSettings = props => {
       description,
       genres: [genre],
       isCopyingAllowed: false,
-      enableComments: commentsEnabled,
+      enableComments: commentsEnabled === 'true',
     }).then(() => {
       window.location.reload();
     }).catch(e => {
