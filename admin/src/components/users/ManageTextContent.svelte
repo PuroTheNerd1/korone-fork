@@ -54,7 +54,7 @@
         {#await request.get(textView === 'Status' ? ("/user/status-history?userId=" + userId) : textView === 'Comments' ? ('/user/comment-history?userId=' + userId) : ('/invites/' + userId)) then data}
             {#each data.data as item}
                 <div class="col-12">
-                    <div class="card card-body mt-2">
+                    <div class="card card-body mt-2 bg-dark text-white">
                         {#if textView === 'Invites'}
                             <p class="mb-0"><a href={`/admin/manage-user/${item.userId}`}>Invited {item.userId}</a></p>
                         {:else}
