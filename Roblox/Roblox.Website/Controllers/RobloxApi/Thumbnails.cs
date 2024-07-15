@@ -134,8 +134,40 @@ public class RbxThumbnails : ControllerBase
     [HttpGetBypass("asset-gameicon/multiget")]
     public async Task<dynamic> GetGameIconMultiGet([FromQuery] List<long> universeId)
     {
+        var result = new List<dynamic>();
+
+        foreach (long id in universeId)
+        {
+            var gameIcons = (await services.thumbnails.GetGameIcons(new[] { id })).ToList();
+            if (gameIcons.Count > 0) 
+            {
+                var gameIcon = gameIcons[0];
+                result.Add(new
+                {
+                    targetId = id,
+                    State = gameIcon.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                    Url = $"{Configuration.BaseUrl}{gameIcon.imageUrl}"
+                });
+            }
+            else
+            {
+                result.Add(new
+                {
+                    targetId = id,
+                    State = ThumbnailState.Pending,
+                    Url = "/img/placeholder.png",
+                });
+            }
+        }
+        return result;
+    }
+    /*
+    [HttpGetBypass("asset-gameicon/multiget")]
+    public async Task<dynamic> GetGameIconMultiGet([FromQuery] List<long> universeId)
+    {
         return await services.thumbnails.GetGameIconsRBX(universeId);
     }
+    */
 
    
 }
