@@ -1,5 +1,9 @@
 import updatePlaceStore from "../stores/updatePlaceStore";
+<<<<<<< HEAD
 import {useEffect, useState} from "react";
+=======
+import { useEffect, useState } from "react";
+>>>>>>> parent of 785a982d (Add copylock and fix comments)
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
 import {updateAsset} from "../../../services/develop";
@@ -136,6 +140,7 @@ const BasicSettings = props => {
     })
   }
 
+<<<<<<< HEAD
   return <div className='row mt-4'>
     <div className='col-6'>
       <h2 className='fw-bolder mb-4'>Basic Settings</h2>
@@ -174,6 +179,46 @@ const BasicSettings = props => {
           <ActionButton disabled={store.locked} className={s.normal + ' ' + s.cancelButton} label='Cancel' onClick={() => {
             resetForm();
           }} />
+=======
+  return (
+    <div className='row mt-4'>
+      <div className='col-6'>
+        <h2 className='fw-bolder mb-4'>Basic Settings</h2>
+        {feedback ? <p className='mb-0 text-danger'>{feedback}</p> : null}
+        <p className='mb-0 fw-bold'>Name:</p>
+        <input type='text' className='w-100' value={name} onChange={(e) => setName(e.currentTarget.value)} />
+        <p className='mb-0 fw-bold mt-2'>Description:</p>
+        <textarea rows={8} className='w-100' value={description || ''} onChange={(e) => setDescription(e.currentTarget.value)} />
+        <p className='mb-0 fw-bold mt-2'>Comments Enabled:</p>
+        <select
+          value={commentsEnabled.toString()}
+          onChange={e => setCommentsEnabled(e.currentTarget.value === 'true')}
+        >
+          <option value="true">Enabled</option>
+          <option value="false">Disabled</option>
+        </select>
+        <p className='mb-0 fw-bold mt-2'>Enable/disable copylock:</p>
+        <select
+          value={isCopylocked.toString()}
+          onChange={e => setCopylock(e.currentTarget.value === 'false')}
+        >
+          <option value="true">Enabled</option>
+          <option value="false">Disabled</option>
+        </select>
+        <p className='mb-0 fw-bold mt-2'>Genre:</p>
+        <select value={genre} onChange={(e) => setGenre(e.currentTarget.value)}>
+          {genres.map(v => (
+            <option key={v.value} value={v.value}>{v.name}</option>
+          ))}
+        </select>
+        <div className='mt-4'>
+          <div className='d-inline-block'>
+            <ActionButton disabled={store.locked} className={s.normal + ' ' + s.continueButton} label='Save' onClick={save} />
+          </div>
+          <div className='d-inline-block ms-4'>
+            <ActionButton disabled={store.locked} className={s.normal + ' ' + s.cancelButton} label='Cancel' onClick={resetForm} />
+          </div>
+>>>>>>> parent of 785a982d (Add copylock and fix comments)
         </div>
       </div>
     </div>
