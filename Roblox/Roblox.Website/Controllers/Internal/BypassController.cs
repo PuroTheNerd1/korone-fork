@@ -687,7 +687,7 @@ namespace Roblox.Website.Controllers
                     password = serializedResponse.password;
                 }         
             }
-            /*
+            */
             using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
             {
                 var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobile>(requestBody) ?? new LoginRequestMobile();

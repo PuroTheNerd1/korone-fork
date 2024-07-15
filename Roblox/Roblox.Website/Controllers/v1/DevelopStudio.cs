@@ -18,8 +18,8 @@ public class DevelopStudio : ControllerBase
             hasTutorials = false,
             universe = new Universe
             {
-                id = 221,
-                name = "Baseplate",
+                id = 1,
+                name = "Starter place",
                 description = null,
                 isArchived = false,
                 rootPlaceId = 4430,
