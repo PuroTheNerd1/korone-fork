@@ -268,7 +268,7 @@
 				{/if}
 				<Permission p="NullifyPassword">
 					<button
-						class="btn-outline-dark btn w-100"
+						class="btn-outline-primary btn w-100"
 						on:click={(e) => {
 							e.preventDefault();
 							modalBody = "Please confirm that you want to nullify the password for this account.\n\nReminder: This will make it impossible to login until a password is set.";
@@ -293,7 +293,7 @@
 				</Permission>
 				<Permission p="DestroyAllSessionsForUser">
 					<button
-						class="btn-outline-dark btn w-100"
+						class="btn-outline-primary btn w-100"
 						on:click={(e) => {
 							e.preventDefault();
 							modalBody = "Please confirm that you want to reset all sessions for this account.";
@@ -318,7 +318,7 @@
 				</Permission>
 				<Permission p="LockAccount">
 					<button
-						class="btn-outline-dark btn w-100"
+						class="btn-outline-primary btn w-100"
 						on:click={(e) => {
 							e.preventDefault();
 							modalBody = "Please confirm that you want to lock this account, making it impossible to login until they contact a staff member.";
@@ -343,7 +343,7 @@
 				</Permission>
 				<Permission p="ResetUsername">
 					<button
-						class="btn-outline-dark btn w-100"
+						class="btn-outline-primary btn w-100"
 						on:click={(e) => {
 							e.preventDefault();
 							modalBody = "Please confirm that you want to reset the username of this account.";
@@ -368,7 +368,7 @@
 				</Permission>
 				<Permission p="ResetDescription">
 					<button
-						class="btn-outline-dark btn w-100"
+						class="btn-outline-primary btn w-100"
 						on:click={(e) => {
 							e.preventDefault();
 							modalBody = "Please confirm that you want to reset the description of this account.";
@@ -396,7 +396,7 @@
 				</div>
 				{#if rank.is("owner")}
 					<button
-					class="btn-outline-dark btn w-100"
+					class="btn-outline-primary btn w-100"
 					on:click={(e) => {
 						e.preventDefault();
 						modalBody = "Please confirm that you want to kick the player ";
@@ -423,29 +423,29 @@
 				</div>
 
 				{#if rank.hasPermission("GiveUserRobux")}
-					<a use:link class="btn-outline-dark btn w-100" href={`/admin/manage-robux-user/${userId}`}><DollarSignIcon /> Manage Currency</a>
+					<a use:link class="btn-outline-primary btn w-100" href={`/admin/manage-robux-user/${userId}`}><DollarSignIcon /> Manage Currency</a>
 				{/if}
 				{#if rank.hasPermission("GetUserTransactions")}
-					<a use:link class="btn-outline-dark btn w-100" href={`/admin/user-transactions/${userId}`}><DollarSignIcon /> Review Transactions</a>
-					<a use:link class="btn-outline-dark btn w-100" href={`/admin/user-trades/${userId}`}><DatabaseIcon /> Review Trades</a>
+					<a use:link class="btn-outline-primary btn w-100" href={`/admin/user-transactions/${userId}`}><DollarSignIcon /> Review Transactions</a>
+					<a use:link class="btn-outline-primary btn w-100" href={`/admin/user-trades/${userId}`}><DatabaseIcon /> Review Trades</a>
 				{/if}
 				{#if rank.hasPermission("GiveUserItem") || rank.hasPermission("RemoveUserItem")}
-					<a use:link class="btn-outline-dark btn w-100" href={`/admin/manage-inventory-user/${userId}`}><ShoppingBagIcon /> Manage Inventory</a>
+					<a use:link class="btn-outline-primary btn w-100" href={`/admin/manage-inventory-user/${userId}`}><ShoppingBagIcon /> Manage Inventory</a>
 				{/if}
 				<div class="card mb-2">
 					<div class="card-body card-header"><h4 class="mb-0">Misc Actions</h4></div>
 				</div>
-				<a use:link class="btn-outline-dark btn w-100" href={`/admin/message-user/${userId}`}><MailIcon /> Send Message</a>
+				<a use:link class="btn-outline-primary btn w-100" href={`/admin/message-user/${userId}`}><MailIcon /> Send Message</a>
 				{#if rank.hasPermission("GiveUserBadge") || rank.hasPermission("DeleteUserBadge")}
-					<a use:link class="btn-outline-dark btn w-100" href={`/admin/manage-badges-user/${userId}`}><AwardIcon /> Manage Badges</a>
+					<a use:link class="btn-outline-primary btn w-100" href={`/admin/manage-badges-user/${userId}`}><AwardIcon /> Manage Badges</a>
 				{/if}
 
 				<Permission p="DeleteUsername">
-					<a use:link class="btn-outline-dark btn w-100" href={`/admin/manage-usernames/${userId}`}><MailIcon /> Manage Usernames</a>
+					<a use:link class="btn-outline-primary btn w-100" href={`/admin/manage-usernames/${userId}`}><MailIcon /> Manage Usernames</a>
 				</Permission>
 				<Permission p="CreateGameForUser">
 					<button
-						class="btn-outline-dark btn w-100"
+						class="btn-outline-primary btn w-100"
 						on:click={(e) => {
 							e.preventDefault();
 							request
@@ -466,7 +466,7 @@
 				</div>
 				<Permission p="RegenerateAvatar">
 					<button
-						class="btn-outline-dark btn w-100"
+						class="btn-outline-primary btn w-100"
 						on:click={(e) => {
 							e.preventDefault();
 							// regen
@@ -485,7 +485,7 @@
 				</Permission>
 				<Permission p="ResetAvatar">
 					<button
-						class="btn-outline-dark btn w-100"
+						class="btn-outline-primary btn w-100"
 						on:click={(e) => {
 							e.preventDefault();
 							// regen
