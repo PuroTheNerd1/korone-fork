@@ -389,7 +389,6 @@ public class GamesService : ServiceBase, IService
             await InsertAsync("universe_settings", new
             {
                 id = uni,
-                name = uni2.name
             });
             return new CreateUniverseResponse()
             {
