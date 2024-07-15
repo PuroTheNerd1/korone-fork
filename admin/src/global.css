@@ -202,37 +202,36 @@ div.modalthing {
   border-radius: 0;
 }
 
-table.table {
+table.settings-table > tbody > tr {
+  border-bottom: 1px solid #dedede;
+}
+.table {
+  width: 100%;
+  background-color: #2d2d2d;
+  color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+.table thead {
   background-color: #1a1a1a;
-  color: #ffffff;
 }
 
-table.table th {
-  background-color: #1a1a1a;
-  color: #cccccc;
-  border: 1px solid #333333;
+.table tbody tr:nth-child(even) {
+  background-color: #222;
 }
 
-table.table td {
-  color: #ffffff;
-  border: 1px solid #333333;
+.table tbody tr:hover {
+  background-color: #3a3a3a;
 }
 
-table.table tbody tr:nth-child(even) {
-  background-color: #333333;
-}
-
-table.table tbody tr {
-  border-bottom: 1px solid #444444;
-}
-
-table.settings-table tbody tr:nth-child(even) {
-  background-color: #333333;
-}
-
-table.settings-table tbody tr {
-  border-bottom: 1px solid #444444;
-}
 
 img.avatar-thumb {
   width: 100%;
