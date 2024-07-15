@@ -77,7 +77,7 @@
 			<div class="col-12 col-lg-9">
 				<div class="row">
 					<div class="col-12 col-lg-4">
-						<div class="card">
+						<div class="card bg-dark">
 							<div class="card card-body card-header">
 								<h3 class="mb-0">{info ? info.data.username : 'Loading...'}</h3>
 							</div>
