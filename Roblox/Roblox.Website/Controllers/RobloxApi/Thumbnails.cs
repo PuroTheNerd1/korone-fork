@@ -26,6 +26,10 @@ namespace Roblox.Website.Controllers;
 [Route("/")]
 public class RbxThumbnails : ControllerBase
 {
+    public class UniverseQuery
+    {
+        public List<long> UniverseId { get; set; }
+    }
     public enum ThumbnailType
     {
         UserHeadshot = 1,
@@ -132,11 +136,12 @@ public class RbxThumbnails : ControllerBase
         };
     }     
     [HttpGetBypass("asset-gameicon/multiget")]
-    public async Task<dynamic> GetGameIconMultiGet([FromQuery] List<long> universeId)
+    public async Task<dynamic> GetGameIconMultiGet([FromQuery] UniverseQuery query)
     {
+        List<long> universeIds = query.UniverseId;
         var result = new List<dynamic>();
 
-        foreach (long id in universeId)
+        foreach (long id in universeIds)
         {
             var gameIcons = (await services.thumbnails.GetGameIcons(new[] { id })).ToList();
             if (gameIcons.Count > 0) 
@@ -146,7 +151,8 @@ public class RbxThumbnails : ControllerBase
                 {
                     targetId = id,
                     State = gameIcon.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
-                    Url = $"{Configuration.BaseUrl}{gameIcon.imageUrl}"
+                    Url = $"{Configuration.BaseUrl}{gameIcon.imageUrl}",
+                    imageUrl = $"{Configuration.BaseUrl}{gameIcon.imageUrl}"
                 });
             }
             else
@@ -155,7 +161,7 @@ public class RbxThumbnails : ControllerBase
                 {
                     targetId = id,
                     State = ThumbnailState.Pending,
-                    Url = "/img/placeholder.png",
+                    imageUrl = "/img/placeholder.png",
                 });
             }
         }
