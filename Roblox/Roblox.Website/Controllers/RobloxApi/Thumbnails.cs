@@ -31,6 +31,7 @@ public class RbxThumbnails : ControllerBase
         UserHeadshot = 1,
         UserAvatar,
         Asset,
+        PlaceIcon
     }
     public async Task<RedirectResult> GetThumbnailUrl(long id, ThumbnailType type)
     {
@@ -54,6 +55,9 @@ public class RbxThumbnails : ControllerBase
                 break;
             case ThumbnailType.Asset:
                 result = (await services.thumbnails.GetAssetThumbnails(new[] { id })).ToList();
+                break;
+            case ThumbnailType.PlaceIcon:
+                result = (await services.thumbnails.GetGameIcons(new[] { id })).ToList();
                 break;
         }
 
@@ -86,11 +90,16 @@ public class RbxThumbnails : ControllerBase
     {
         return await GetThumbnailUrl(userId, ThumbnailType.UserHeadshot);
     }
+    //place icon
+    [HttpGetBypass("Thumbs/PlaceIcon.ashx")]
+    [HttpGetBypass("Thumbs/GameIcon.ashx")]
+    public async Task<RedirectResult> GetGameIcon(long assetId)
+    {
+        return await GetThumbnailUrl(assetId, ThumbnailType.PlaceIcon);
+    }
     //asset icon stuff
     [HttpGetBypass("icons/asset.ashx")]
     [HttpGetBypass("Game/Tools/ThumbnailAsset.ashx")]
-    [HttpGetBypass("Thumbs/PlaceIcon.ashx")]
-    [HttpGetBypass("Thumbs/GameIcon.ashx")]
     [HttpGetBypass("thumbs/asset.ashx")]
     public async Task<RedirectResult> GetAssetThumbnail(long assetId, long? aid)
     {        

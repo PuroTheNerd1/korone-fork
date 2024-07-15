@@ -526,8 +526,8 @@ public class AssetsService : ServiceBase, IService
         }
         string key;
         var latestVersion = await GetLatestAssetVersion(assetId);
-        string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1920, 1080);
-        string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 1920, 1080);
+        string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
+        string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 352, 352);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
         using (var imageStream = new MemoryStream(imageBytes))
         {
