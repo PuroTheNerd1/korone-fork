@@ -202,28 +202,42 @@ div.modalthing {
   border-radius: 0;
 }
 
-table.settings-table > tbody > tr {
-  border-bottom: 1px solid #dedede;
+table.table {
+  background-color: #2d2d2d; 
+  color: #e0e0e0; 
+  border-collapse: collapse; 
+  width: 100%; 
 }
-.table {
+
+table.table th {
   background-color: #2d2d2d;
-  color: #e0e0e0;
+  color: #ccc; 
+  border: 1px solid #444;
+  padding: 8px; 
 }
 
-.table th,
-.table td {
-  border-color: #444;
-  color: #2d2d2d;
+
+table.table td {
+  color: #2d2d2d; 
+  border: 1px solid #444; 
+  padding: 8px; 
 }
 
-.table th {
-  color: #ccc;
-  background-color: #2d2d2d;
-  border-color: #444;
+table.table tbody tr:nth-child(even) {
+  background-color: #333; 
 }
 
-.table tbody tr:nth-child(even) {
-  background-color: #333;
+table.table tbody tr {
+  border-bottom: 1px solid #dedede; 
+}
+
+table.settings-table tbody tr:nth-child(even) {
+  background-color: #333; 
+}
+
+
+table.settings-table tbody tr {
+  border-bottom: 1px solid #dedede; 
 }
 
 img.avatar-thumb {

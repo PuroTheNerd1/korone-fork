@@ -105,7 +105,7 @@
 						</div>
 					</div>
 					<div class="col-12 col-lg-8">
-						<div class="card">
+						<div class="card bg-dark text-light">
 							<div class="card card-body card-header">
 								<h3 class="mb-0">User Summary</h3>
 							</div>
