@@ -99,6 +99,7 @@ public class RbxThumbnails : ControllerBase
         return await GetThumbnailUrl(assetId, ThumbnailType.PlaceIcon);
     }
     //asset icon stuff
+    [HttpGet("asset-thumbnail/image")]
     [HttpGetBypass("icons/asset.ashx")]
     [HttpGetBypass("Game/Tools/ThumbnailAsset.ashx")]
     [HttpGetBypass("thumbs/asset.ashx")]
