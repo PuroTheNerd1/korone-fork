@@ -203,14 +203,14 @@
 												<div class="btn-group w-100">
 													<button class="btn btn-success border border-dark" on:click={onClick(true, false, false, asset)}>OK</button>
 												
-													<button disabled={asset.group_id !== undefined} class="btn border border-dark" on:click={onClick(true, true, false, asset)}>OK, 18+</button>
+													<button disabled={asset.group_id !== undefined} class="btn btn-success border border-dark" on:click={onClick(true, true, false, asset)}>OK, 18+</button>
 												</div>
 											</div>
 											<div class="col-12 mt-4">
 												<div class="btn-group w-100">
-													<button class="btn border border-dark" on:click={onClick(false, true, false, asset)}>BAD</button>
+													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, false, asset)}>BAD</button>
 												
-													<button class="btn border border-dark" on:click={onClick(false, true, true, asset)}>BAD + DELETE</button>
+													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, true, asset)}>BAD + DELETE</button>
 												</div>
 											</div>
 										</div>
