@@ -208,7 +208,7 @@
 			</div>
 			
 			<div class="col-12 col-md-6 col-lg-3 actions">
-				<div class="card mb-2">
+				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Account Actions</h4></div>
 				</div>
 				{#if info.data.status !== "Ok"}
@@ -391,7 +391,7 @@
 						<FileTextIcon /> Reset Description
 					</button>
 				</Permission>
-				<div class="card mb-2">
+				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Game Actions</h4></div>
 				</div>
 				{#if rank.is("owner")}
@@ -418,7 +418,7 @@
 					<DatabaseIcon /> Kick player from the game
 				</button>
 				{/if}				
-				<div class="card mb-2">
+				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Economy Actions</h4></div>
 				</div>
 
@@ -432,7 +432,7 @@
 				{#if rank.hasPermission("GiveUserItem") || rank.hasPermission("RemoveUserItem")}
 					<a use:link class="btn-outline-primary btn w-100" href={`/admin/manage-inventory-user/${userId}`}><ShoppingBagIcon /> Manage Inventory</a>
 				{/if}
-				<div class="card mb-2">
+				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Misc Actions</h4></div>
 				</div>
 				<a use:link class="btn-outline-primary btn w-100" href={`/admin/message-user/${userId}`}><MailIcon /> Send Message</a>
@@ -461,7 +461,7 @@
 						}}>Create Game</button
 					>
 				</Permission>
-				<div class="card mb-2">
+				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Avatar Actions</h4></div>
 				</div>
 				<Permission p="RegenerateAvatar">
