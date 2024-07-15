@@ -26,10 +26,6 @@ namespace Roblox.Website.Controllers;
 [Route("/")]
 public class RbxThumbnails : ControllerBase
 {
-    public class UniverseQuery
-    {
-        public List<long> UniverseId { get; set; }
-    }
     public enum ThumbnailType
     {
         UserHeadshot = 1,
@@ -120,7 +116,7 @@ public class RbxThumbnails : ControllerBase
         return new
         {
             Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
-            State = result[0].imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+            Final = true,
             SubstitutionType = 0
         };
     }
@@ -135,46 +131,12 @@ public class RbxThumbnails : ControllerBase
             SubstitutionType = 0
         };
     }     
-    [HttpGetBypass("asset-gameicon/multiget")]
-    public async Task<dynamic> GetGameIconMultiGet([FromQuery] UniverseQuery query)
-    {
-        List<long> universeIds = query.UniverseId;
-        var result = new List<dynamic>();
 
-        foreach (long id in universeIds)
-        {
-            var gameIcons = (await services.thumbnails.GetGameIcons(new[] { id })).ToList();
-            if (gameIcons.Count > 0) 
-            {
-                var gameIcon = gameIcons[0];
-                result.Add(new
-                {
-                    targetId = id,
-                    State = gameIcon.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
-                    Url = $"{Configuration.BaseUrl}{gameIcon.imageUrl}",
-                    imageUrl = $"{Configuration.BaseUrl}{gameIcon.imageUrl}"
-                });
-            }
-            else
-            {
-                result.Add(new
-                {
-                    targetId = id,
-                    State = ThumbnailState.Pending,
-                    imageUrl = "/img/placeholder.png",
-                });
-            }
-        }
-        return result;
-    }
-    /*
     [HttpGetBypass("asset-gameicon/multiget")]
     public async Task<dynamic> GetGameIconMultiGet([FromQuery] List<long> universeId)
     {
         return await services.thumbnails.GetGameIconsRBX(universeId);
     }
-    */
-
    
 }
 
