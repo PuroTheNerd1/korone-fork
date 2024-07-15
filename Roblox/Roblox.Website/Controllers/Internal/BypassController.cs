@@ -657,7 +657,7 @@ namespace Roblox.Website.Controllers
             {
                 requestBody = await reader.ReadToEndAsync();
             }
-            /*
+            
             if(userAgent == "RobloxStudio/WinInet")
             {
                 string[] keyValuePairs = requestBody.Split('&');
@@ -687,13 +687,7 @@ namespace Roblox.Website.Controllers
                     password = serializedResponse.password;
                 }         
             }
-            */
-            using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
-            {
-                var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobile>(requestBody) ?? new LoginRequestMobile();
-                username = serializedResponse.username;
-                password = serializedResponse.password;
-            }         
+           
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
