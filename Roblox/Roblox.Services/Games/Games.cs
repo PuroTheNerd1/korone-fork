@@ -385,9 +385,11 @@ public class GamesService : ServiceBase, IService
                 asset_id = rootPlaceId,
                 universe_id = uni,
             });
+            var uni2 = (await MultiGetUniverseInfo(new[] {uni})).FirstOrDefault();
             await InsertAsync("universe_settings", new
             {
                 id = uni,
+                name = uni2.name
             });
             return new CreateUniverseResponse()
             {

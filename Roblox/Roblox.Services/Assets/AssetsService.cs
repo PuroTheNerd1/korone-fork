@@ -519,16 +519,13 @@ public class AssetsService : ServiceBase, IService
 
     private async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
-        using var games = ServiceProvider.GetOrCreate<GamesService>();
         var modInfo = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
         {
             return;
         }
         string key;
-        long universeId = await games.GetUniverseId(assetId);
         var latestVersion = await GetLatestAssetVersion(assetId);
-        
         string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1920, 1080);
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 1920, 1080);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
