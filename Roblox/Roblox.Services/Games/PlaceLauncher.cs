@@ -51,7 +51,7 @@ public class PlaceLauncherService : ServiceBase
             status = (int)JoinStatus.Joining,
             joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={gameId}&placeId={placeId}",
             authenticationUrl = $"{Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx",
-            authenticationTicket = (string)null,
+            authenticationTicket = "hi",
             message = (string)null,
         };
     }
@@ -69,7 +69,7 @@ public class PlaceLauncherService : ServiceBase
                 status = (int)result.status,
                 joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
-                authenticationTicket = (string?)null,
+                authenticationTicket = "hi",
                 message = (string?)null,
             };
         }
