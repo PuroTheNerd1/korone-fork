@@ -203,41 +203,35 @@ div.modalthing {
 }
 
 table.table {
-  background-color: #2d2d2d; 
-  color: #e0e0e0; 
-  border-collapse: collapse; 
-  width: 100%; 
+  background-color: #1a1a1a;
+  color: #ffffff;
 }
 
 table.table th {
-  background-color: #2d2d2d;
-  color: #ccc; 
-  border: 1px solid #444;
-  padding: 8px; 
+  background-color: #1a1a1a;
+  color: #cccccc;
+  border: 1px solid #333333;
 }
 
-
 table.table td {
-  color: #2d2d2d; 
-  border: 1px solid #444; 
-  padding: 8px; 
+  color: #ffffff;
+  border: 1px solid #333333;
 }
 
 table.table tbody tr:nth-child(even) {
-  background-color: #333; 
+  background-color: #333333;
 }
 
 table.table tbody tr {
-  border-bottom: 1px solid #dedede; 
+  border-bottom: 1px solid #444444;
 }
 
 table.settings-table tbody tr:nth-child(even) {
-  background-color: #333; 
+  background-color: #333333;
 }
 
-
 table.settings-table tbody tr {
-  border-bottom: 1px solid #dedede; 
+  border-bottom: 1px solid #444444;
 }
 
 img.avatar-thumb {
