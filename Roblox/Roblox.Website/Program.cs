@@ -72,8 +72,6 @@ builder.Services.AddControllers(options =>
 {
     options.RespectBrowserAcceptHeader = true;
 })
-
-.AddXmlSerializerFormatters() 
 .AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
