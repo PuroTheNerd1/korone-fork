@@ -1987,7 +1987,7 @@ namespace Roblox.Website.Controllers
         {
             return new 
             {
-                enabled = false,
+                enabled = true,
             };
         }
         [HttpGetBypass("universes/get-aliases")]
