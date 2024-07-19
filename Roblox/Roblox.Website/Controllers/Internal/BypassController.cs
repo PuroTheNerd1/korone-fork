@@ -524,11 +524,17 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> PlaceLaunch(string request, int placeId, string? gameId, bool isPartyLeader, bool isTeleport, string? accessCode, string? linkCode, string? privateGameMode)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            Console.WriteLine($"username: {safeUserSession.username}");
+            if (!ApplicationGuardMiddleware.IsRoblox(Request)){
+                return new
+                {
+                    status = (int)JoinStatus.Error,
+                    message = "An error occured while starting the game."
+                };
+            }
             return await services.placeLauncherFactory.PlaceLauncherAsync(request, placeId, isPartyLeader, isTeleport, gameId, accessCode, linkCode, privateGameMode);
             /*
             long maxPlayerCount;
-            bool isRoblox  = ApplicationGuardMiddleware.IsRoblox(Request);
+            bool isRoblox  = 
             if (!isRoblox){
                 //return bogus message if the request doesnt contain the roblox user agent
                 return new
@@ -892,7 +898,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript2016 = new
             {
                 ClientPort = 0,
-                MachineAddress = "194.15.36.134",
+                MachineAddress = "85.215.186.154",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 50,
@@ -932,7 +938,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20172018 = new
             {
                 ClientPort = 0,
-                MachineAddress = "194.15.36.134",
+                MachineAddress = "85.215.186.154",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
@@ -974,13 +980,13 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20192020 = new
             {
                 ClientPort = 0,
-                MachineAddress = "194.15.36.134",
+                MachineAddress = "85.215.186.154",
                 ServerConnections = new List<dynamic>
                 {
                     new
                     {
                         Port = GameServerService.currentGameServerPorts[jobId], 
-                        Address = "194.15.36.134", 
+                        Address = "85.215.186.154", 
                     }
                 },
 
@@ -1329,35 +1335,6 @@ namespace Roblox.Website.Controllers
 
             return Ok(data);
         }
-        [HttpGetBypass("marketplace/productinfo")]
-        public async Task<dynamic> GetProductInfo(long assetId)
-        {
-            try
-            {
-                var details = await services.assets.GetAssetCatalogInfo(assetId);
-                return new
-                {
-                    TargetId = details.id,
-                    AssetId = details.id,
-                    ProductId = details.id, 
-                    Name = details.name,
-                    Description = details.description,
-                    AssetTypeId = (int)details.assetType,
-                    IsForSale = details.isForSale,
-                    IsPublicDomain = details.isForSale && details.price == 0,
-                    Creator = new
-                    {
-                        Id = details.creatorTargetId,
-                        Name = details.creatorName,
-                    }
-                };
-            }
-            catch (RecordNotFoundException)
-            {
-                return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
-            }
-        }
-
         [HttpPostBypass("/gs/activity")]
         public async Task<dynamic> GetGsActivity([Required, MVC.FromBody] ReportActivity request)
         {
@@ -1734,10 +1711,6 @@ namespace Roblox.Website.Controllers
         public dynamic GetModerationText()
         {
             var text = services.filter.FilterText(HttpContext.Request.Form["text"].ToString());
-            if (services.filter.ContainsCyrillic(text))
-            {
-                text = "I will speak english";
-            }
             return new
             {
                 success = true,
@@ -1752,10 +1725,6 @@ namespace Roblox.Website.Controllers
         public dynamic GetModerationTextV2()
         {
             var text = services.filter.FilterText(HttpContext.Request.Form["text"].ToString());
-            if (services.filter.ContainsCyrillic(text))
-            {
-                text = "I will speak english";
-            }
             var json = new
             {
                 success = true,
@@ -1863,7 +1832,7 @@ namespace Roblox.Website.Controllers
             };
 
             return new { data = allowedList };
-        }e 
+        }
         [HttpGetBypass("GetAllowedSecurityKeys")]
         public MVC.ActionResult<dynamic> AllowedSecurity()
         {

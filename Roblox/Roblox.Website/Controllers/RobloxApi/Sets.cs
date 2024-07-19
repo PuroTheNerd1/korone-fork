@@ -9,7 +9,6 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class Sets: ControllerBase
     {
-
         [HttpGetBypass("Game/Tools/InsertAsset.ashx")]
         public async Task<dynamic> InsertAsset(long? sid, long? nsets, string? type, long? userId)
         {

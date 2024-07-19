@@ -708,7 +708,7 @@ public class GameServerService : ServiceBase
         };
         watch.Stop();
 
-        GameMetrics.ReportTimeToStartGameServer("194.15.36.134", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
+        GameMetrics.ReportTimeToStartGameServer("85.215.186.154", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
 
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
@@ -716,9 +716,9 @@ public class GameServerService : ServiceBase
             {
                 id = jobId,
                 asset_id = placeId,
-                ip = "194.15.36.134",
+                ip = "85.215.186.154",
                 port = mainRCCPort,
-                server_connection = $"194.15.36.134:{networkServerPort}", 
+                server_connection = $"85.215.186.154:{networkServerPort}", 
             });
 
         return StartGameInfo != "BAD"
@@ -805,7 +805,7 @@ public class GameServerService : ServiceBase
                         ""PlaceId"": {placeId},
                         ""CreatorId"": ""{uni.builderId}"",
                         ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""194.15.36.134"",
+                        ""MachineAddress"": ""85.215.186.154"",
                         ""MaxPlayers"": {maxplayers},
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
@@ -842,7 +842,7 @@ public class GameServerService : ServiceBase
                         ""PlaceId"": {placeId},
                         ""CreatorId"": {uni.builderId},
                         ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""194.15.36.134"",
+                        ""MachineAddress"": ""85.215.186.154"",
                         ""MaxPlayers"": {maxplayers},
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
