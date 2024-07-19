@@ -1465,66 +1465,6 @@ namespace Roblox.Website.Controllers
             // Doesn't do anything yet. See: services/api/src/controllers/bypass.ts:1473
             return;
         }
-        /*
-        [HttpPostBypass("/Game/ValidateTicket.ashx")]
-        public async Task<string> ValidateClientTicketRcc([Required, MVC.FromBody] ValidateTicketRequest request)
-        {
-            try
-            {
-                // Below is intentionally caught by local try/catch. RCC could crash if we give a 500 error.
-                FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-                var ticketData = services.gameServer.DecodeTicket(request.ticket, null);
-                if (ticketData.userId != request.expectedUserId)
-                {
-                    // Either bug or someone broke into RCC
-                    Roblox.Metrics.GameMetrics.ReportTicketErrorUserIdNotMatchingTicket(request.ticket,
-                        ticketData.userId, request.expectedUserId);
-                    throw new Exception("Ticket userId does not match expected userId");
-                }
-                // From TS: it is possible for a client to spoof username or appearance to be empty string, 
-                // so make sure you don't do much validation on those params (aside from assertion that it's a string)
-                if (request.expectedUsername != null)
-                {
-                    var userInfo = await services.users.GetUserById(ticketData.userId);
-                    if (userInfo.username != request.expectedUsername)
-                    {
-                        throw new Exception("Ticket username does not match expected username");
-                    }
-                }
-
-                if (request.expectedAppearanceUrl != null)
-                {
-                    // will always be format of "http://localhost/v1.1/avatar-fetch?userId=12", NO EXCEPTIONS!
-                    var expectedUrl =
-                        $"{Roblox.Configuration.BaseUrl}/v1.1/avatar-fetch?userId={ticketData.userId}";
-                    if (request.expectedAppearanceUrl != expectedUrl)
-                    {
-                        throw new Exception("Character URL is bad");
-                    }
-                }
-                
-                // Confirm user isn't already in a game
-                var gameStatus = (await services.users.MultiGetPresence(new [] {ticketData.userId})).First();
-                if (gameStatus.placeId != null && gameStatus.userPresenceType == PresenceType.InGame)
-                {
-                    // Make sure that the only game they are playing is the one they are trying to join.
-                    var playingGames = await services.gameServer.GetGamesUserIsPlaying(ticketData.userId);
-                    foreach (var game in playingGames)
-                    {
-                        if (game.id != request.gameJobId)
-                            throw new Exception("User is already playing another game");
-                    }
-                }
-
-                return "true";
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("[error] Verify ticket failed. Error = {0}\n{1}", e.Message, e.StackTrace);
-                return "false";
-            }
-        }
-        */
         [HttpPostBypass("game/validate-machine")]
         public async Task<dynamic> ValidateMachineAsync()
         {
@@ -2304,6 +2244,20 @@ namespace Roblox.Website.Controllers
             {
                 success = true,
                 isCaptchaRequired = false,
+            };
+        }
+        [HttpGetBypass("users/get-by-username")]
+        public async Task<dynamic> GetByUsername(string username)
+        {
+            var userInfo = await services.users.GetUserByName(username);
+            var onlineStatus = (await services.users.MultiGetPresence(new[] {userInfo.userId})).First();
+            return new 
+            {
+                Id = userInfo.userId,
+                Username = username,
+                AvatarUri = "null",
+                AvatarFinal = false,
+                IsOnline = onlineStatus.userPresenceType,
             };
         }
         [HttpGetBypass("users/account-info")]

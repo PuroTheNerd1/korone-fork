@@ -432,7 +432,12 @@ public class UsersService : ServiceBase, IService
                 });
         return result;
     }
-
+    public async Task<UserInfo> GetUserByName(string username)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE username = :name", new { name = username });
+        if (res == null) throw new RecordNotFoundException();
+        return res;
+    }
     public async Task<UserInfo> GetUserById(long userId)
     {
         using var userInfoCache = ServiceProvider.GetOrCreate<GetUserByIdCache>();
