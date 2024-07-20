@@ -120,9 +120,8 @@ namespace Roblox.Website.Controllers.Internal
             string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};3";
             return finalTicket;
         }
-        public static string GenerateClientTicketV4(long userId, string username, string jobId, string dateTime, long accountAgeDays, long placeId)
+        public static string GenerateClientTicketV4(long userId, string username, string characterAppearanceUrl, string jobId, string dateTime, long accountAgeDays, long placeId)
         {
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             string membershipType = "Premium";
             string countryCode = "US";
             string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";

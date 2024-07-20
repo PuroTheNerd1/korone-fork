@@ -887,7 +887,8 @@ namespace Roblox.Website.Controllers
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
                     break;
                 case 2020:
-                    finalTicket = SignatureController.GenerateClientTicketV4(userId, username, jobId, formattedDateTime, accountAgeDays, placeId);
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
+                    finalTicket = SignatureController.GenerateClientTicketV4(userId, username, characterAppearanceUrl, jobId, formattedDateTime, accountAgeDays, placeId);
                     break;
                 default:
                     throw new InvalidOperationException($"This year does not exist: {year}");
