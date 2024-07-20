@@ -3,6 +3,18 @@ using Roblox.Website.Controllers.Internal;
 using CsvHelper;
 using System.Xml;
 using Roblox.Services.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using Roblox.Dto.Users;
+using Roblox.Exceptions;
+using Roblox.Services;
+using Roblox.Services.App.FeatureFlags;
+using Roblox.Services.Exceptions;
+using BadRequestException = Roblox.Exceptions.BadRequestException;
+using ServiceProvider = Roblox.Services.ServiceProvider;
+
+using Roblox.Dto.Marketplace;
 namespace Roblox.Website.Controllers
 {
 
@@ -37,6 +49,43 @@ namespace Roblox.Website.Controllers
             {
                 return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
             }
+        }
+        [HttpPostBypass("marketplace/purchase")]
+        public async Task <dynamic> PurchaseProductMarket([FromForm] Dto.Marketplace.PurchaseRequest purchaseRequest)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.EconomyEnabled);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            // some sanity checks
+            var productInfo = await services.assets.GetProductForAsset(purchaseRequest.productId);
+            if (purchaseRequest.productId is 0 or < 0)
+                purchaseRequest.productId = 0;
+            if(productInfo.isLimited || productInfo.isLimitedUnique){
+                return new
+                {
+                    status = "error",
+                };
+            }
+            
+            // Confirm asset is buyable
+            var user18Plus = await services.users.Is18Plus(safeUserSession.userId);
+            if (!user18Plus)
+            {
+                if (await services.assets.Is18Plus(purchaseRequest.productId))
+                    throw new RobloxException(400, 0,
+                        "You cannot purchase 18+ items until you confirm you are 18 or over.");
+            }
+            
+            await services.users.PurchaseNormalItem(safeUserSession.userId, purchaseRequest.productId, purchaseRequest.currencyTypeId);
+            stopwatch.Stop();
+            Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
+                false);
+            return new 
+            {
+                success = true,
+            };
+            // Report time
+
         }
     }
 }

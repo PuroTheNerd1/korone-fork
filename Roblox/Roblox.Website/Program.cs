@@ -11,6 +11,8 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Controllers.Internal;
 using Roblox.Website.Hubs;
 using System.Text;
+using Discord.OAuth2;
+using Microsoft.AspNetCore.Authentication.Cookies;
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
@@ -85,6 +87,24 @@ builder.Services.AddSwaggerGen(c =>
     c.SchemaGeneratorOptions.SchemaIdSelector = type => type.ToString();
     c.OperationFilter<SwaggerFileOperationFilter>();
 });
+
+// Add Discord authentication
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    opt.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = DiscordDefaults.AuthenticationScheme;
+})
+    .AddCookie()
+    .AddDiscord(x =>
+    {
+        x.AppId = configuration["Discord:AppId"];
+        x.AppSecret = configuration["Discord:AppSecret"];
+        x.Scope.Add("guilds");
+
+        // Required for accessing the oauth2 token in order to make requests on the user's behalf, ie. accessing the user's guild list
+        x.SaveTokens = true;
+    });
 
 var app = builder.Build();
 app.UseRouting();
