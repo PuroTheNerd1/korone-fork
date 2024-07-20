@@ -668,7 +668,7 @@ public class GameServerService : ServiceBase
         int proxyPort = RandomComponent.Next(50000, 60000);
         int networkServerPort = RandomComponent.Next(20000, 30000);
         string jobId = Guid.NewGuid().ToString();
-
+        proxyPort = 53640;
 
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
