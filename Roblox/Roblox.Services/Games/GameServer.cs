@@ -665,9 +665,9 @@ public class GameServerService : ServiceBase
             };
 
         int mainRCCPort = RandomComponent.Next(30000, 40000);
-        int proxyPort = RandomComponent.Next(50000, 60000);
-        int networkServerPort = RandomComponent.Next(20000, 30000);
+        int networkServerPort = RandomComponent.Next(50000, 60000);
         string jobId = Guid.NewGuid().ToString();
+
 
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
@@ -698,7 +698,7 @@ public class GameServerService : ServiceBase
 
         var watch = new Stopwatch();
         watch.Start();
-        string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);   
+        string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
         if (StartGameInfo == "BAD")
         {
             return new GameServerGetOrCreateResponse()
@@ -718,7 +718,7 @@ public class GameServerService : ServiceBase
                 asset_id = placeId,
                 ip = "85.215.186.154",
                 port = mainRCCPort,
-                server_connection = $"85.215.186.154:{proxyPort}", 
+                server_connection = $"85.215.186.154:{networkServerPort}", 
             });
 
         return StartGameInfo != "BAD"
@@ -734,11 +734,12 @@ public class GameServerService : ServiceBase
     }
 
     
-    public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, int proxyPort, string jobId, long year, int matchmaking, int JobExpiration)
+    public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int matchmaking, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
         GamesService games = new GamesService();
         AssetsService assetsService = new AssetsService();
+        var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
         var uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();        
         //string originalScript;
         //string finalScript;
@@ -747,10 +748,10 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
             if (response.IsSuccessStatusCode)
             {
-                currentGameServerPorts.Add(jobId, proxyPort);
+                currentGameServerPorts.Add(jobId, networkServerPort);
                 return "OK";
             }
         }
