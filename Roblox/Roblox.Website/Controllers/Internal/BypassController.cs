@@ -1963,23 +1963,27 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/settings/application")]
         public MVC.ActionResult<dynamic> GetAppSettingsNew(string applicationName)
         {
-            if (applicationName != "RCCService2020")
+            string realApp;
+            switch(applicationName)
             {
+                case "RCCService2020":
+                    realApp = "RCCService2020";
+                    break;
+                case "PCDesktopClient":
+                    realApp = "PCDesktopClient";
+                    break;
+                default:
+                    return NotFound();
+            }
+            string sanatized = Path.GetFileName(realApp);
+            if(sanatized == null)
                 return NotFound();
-            }
-            try
-            {
-                string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, applicationName + ".json");
-                string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
-                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
 
-                return clientAppSettingsData ?? "";
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
-                return new { };
-            }
+            string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, applicationName + ".json");
+            string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+            dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
+
+            return clientAppSettingsData ?? "";
         }
         [HttpGetBypass("v2/get-rollout-settings")]
         public dynamic ChatRollout(string featureNames)
