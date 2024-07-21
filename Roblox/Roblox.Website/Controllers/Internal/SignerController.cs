@@ -123,10 +123,9 @@ namespace Roblox.Website.Controllers.Internal
         public static string GenerateClientTicketV4(long userId, string username, string characterAppearanceUrl, string jobId, string dateTime, long accountAgeDays, long placeId)
         {
             string membershipType = "Premium";
-            string countryCode = "US";
             string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";
             string ticket2Signature = SignString2048(ticket2);
-            string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membershipType.Length}\n{membershipType}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
+            string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membershipType.Length}\n{membershipType}\n0\n\n0\n\n{username.Length}\n{username}";
             string ticketSignature = SignString2048(ticket);
 
             string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
