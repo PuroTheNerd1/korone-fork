@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
-
+using System;
 namespace Roblox.Website.Controllers.Internal
 {
     public class SignatureController : ControllerBase
@@ -122,10 +122,13 @@ namespace Roblox.Website.Controllers.Internal
         }
         public static string GenerateClientTicketV4(long userId, string username, string characterAppearanceUrl, string jobId, string dateTime, long accountAgeDays, long placeId)
         {
+            DateTime utcNow = DateTime.UtcNow;
+                
+            string customTimestamp = utcNow.ToString("MM/dd/yyyy hh:mm:ss tt");
             string membershipType = "Premium";
-            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";
+            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{customTimestamp}";
             string ticket2Signature = SignString2048(ticket2);
-            string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membershipType.Length}\n{membershipType}\n0\n\n0\n\n{username.Length}\n{username}";
+            string ticket = $"{customTimestamp}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membershipType.Length}\n{membershipType}\n0\n\n0\n\n{username.Length}\n{username}";
             string ticketSignature = SignString2048(ticket);
 
             string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";

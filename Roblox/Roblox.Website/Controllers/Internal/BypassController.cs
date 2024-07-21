@@ -1024,7 +1024,7 @@ namespace Roblox.Website.Controllers
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
                 CharacterAppearance = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}",
-                GameId = placeId,     
+                GameId = jobId,     
                 RobloxLocale = "RobloxLocale",
                 GameLocale = "en_us",
                 CountryCode = "US",
