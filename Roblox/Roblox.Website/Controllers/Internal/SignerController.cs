@@ -130,6 +130,7 @@ namespace Roblox.Website.Controllers.Internal
             string ticketSignature = SignString2048(ticket);
 
             string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
+            Console.WriteLine(ticket2 + ticket);
             return finalTicket;
         }
     }

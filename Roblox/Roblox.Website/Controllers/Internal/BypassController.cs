@@ -887,7 +887,7 @@ namespace Roblox.Website.Controllers
                     finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
                     break;
                 case 2020:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
+                    characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
                     finalTicket = SignatureController.GenerateClientTicketV4(userId, username, characterAppearanceUrl, jobId, formattedDateTime, accountAgeDays, placeId);
                     break;
                 default:
@@ -990,7 +990,6 @@ namespace Roblox.Website.Controllers
                         Address = "85.215.186.154", 
                     }
                 },
-
                 ServerPort = GameServerService.currentGameServerPorts[jobId], 
                 PingUrl = "", 
                 PingInterval = 120, 
@@ -998,10 +997,8 @@ namespace Roblox.Website.Controllers
                 DisplayName = username,
                 SeleniumTestMode = false, 
                 UserId = userId, 
-                SuperSafeChat = false, 
-                CharacterAppearance = characterAppearanceUrl,
                 ClientTicket = finalTicket, 
-                GameId = jobId, 
+                SuperSafeChat = false, 
                 PlaceId = placeId, 
                 MeasurementUrl = "",
                 WaitingForCharacterGuid = Guid.NewGuid().ToString(),
@@ -1010,26 +1007,28 @@ namespace Roblox.Website.Controllers
                 VendorId = 0,
                 ScreenShotInfo = "",
                 VideoInfo = "",
-                CreatorId = 1,
-                CreatorTypeEnum = "User",
+                CreatorId = uni.builderId,
+                CreatorTypeEnum = "User",  
                 MembershipType = "Premium", 
                 AccountAge = accountAgeDays, 
                 CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
                 CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
                 CookieStoreEnabled = true,
-                IsRobloxPlace = true,
+                IsRobloxPlace = false,
+                UniverseId = uni.universeId,
                 GenerateTeleportJoin = false,
                 IsUnknownOrUnder13 = false,
-                GameChatType = "AllUsers",
                 SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
-                AnalyticsSessionId = Guid.NewGuid().ToString(),
                 DataCenterId = 0,
-                UniverseId = uni.universeId,
+                FollowUserId = 0,
                 BrowserTrackerId = 0,
                 UsePortraitMode = false,
-                FollowUserId = 0,
+                CharacterAppearance = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}",
+                GameId = placeId,     
+                RobloxLocale = "RobloxLocale",
+                GameLocale = "en_us",
+                CountryCode = "US",
                 characterAppearanceId = userId,
-                CountryCode = "US"
             };
 
             HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
