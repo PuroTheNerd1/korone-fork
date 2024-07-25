@@ -691,48 +691,43 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<string> GenerateAuthCode(string discordId)
     {
-        var statusResult = await db.QuerySingleOrDefaultAsync<(string discordAuthCode, int status)>(
-            "SELECT discordAuthCode, status FROM discord_link WHERE discord_id = :discord_id",
-            new { discord_id = discordId });
-
-        if (statusResult.discordAuthCode != null)
-        {
-            if (statusResult.status == (int)DiscordLinkstatus.Linked)
+        
+        string existingAuthCode = await db.QuerySingleOrDefaultAsync<string>(
+            "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
+            new
             {
-                return null;
-            }
-            return statusResult.discordAuthCode;
-        }
+                discord_id = discordId,
+                status = (int)DiscordLinkstatus.PendingVerification
+            });
 
+        if (existingAuthCode != null)
+        {
+            return existingAuthCode;
+        }
+        
+        string alreadyVerified = await db.QuerySingleOrDefaultAsync<string>(
+            "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND linkstatus = :status",
+            new
+            {
+                discord_id = discordId,
+                status = (int)DiscordLinkstatus.Linked
+            });
+        if (alreadyVerified != null)
+        {
+            return null;
+        }
         string authCode = Guid.NewGuid().ToString();
-
-        using (var transaction = db.BeginTransaction())
-        {
-            try
+        await db.ExecuteAsync(
+            "INSERT INTO discord_link (discord_id, discordAuthCode, status) VALUES (:discord_id, :authcode, :status)",
+            new
             {
-                await db.ExecuteAsync(
-                    "INSERT INTO discord_link (discord_id, discordAuthCode, status) VALUES (:discord_id, :authcode, :status)",
-                    new
-                    {
-                        authcode = authCode,
-                        discord_id = discordId,
-                        status = (int)DiscordLinkstatus.PendingVerification
-                    },
-                    transaction: transaction
-                );
-
-                transaction.Commit();
+                authcode = authCode,
+                discord_id = discordId,
+                status = (int)DiscordLinkstatus.PendingVerification
             }
-            catch (Exception ex)
-            {
-                transaction.Rollback();
-                throw new InvalidOperationException("An error occurred while generating the auth code.", ex);
-            }
-        }
-
+        );
         return authCode;
     }
-
     public async Task LinkDiscordAccount(string discordAuthCode, long userId)
     {
         string discordId = await db.QuerySingleOrDefaultAsync<string>(
