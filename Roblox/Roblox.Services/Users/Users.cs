@@ -689,6 +689,76 @@ public class UsersService : ServiceBase, IService
         
         return isDuplicate > 0;
     }
+    public async Task<string> GenerateAuthCode(string discordId)
+    {
+        var statusResult = await db.QuerySingleOrDefaultAsync<(string discordAuthCode, int status)>(
+            "SELECT discordAuthCode, status FROM discord_link WHERE discord_id = :discord_id",
+            new { discord_id = discordId });
+
+        if (statusResult.discordAuthCode != null)
+        {
+            if (statusResult.status == (int)DiscordLinkstatus.Linked)
+            {
+                return null;
+            }
+            return statusResult.discordAuthCode;
+        }
+
+        string authCode = Guid.NewGuid().ToString();
+
+        using (var transaction = db.BeginTransaction())
+        {
+            try
+            {
+                await db.ExecuteAsync(
+                    "INSERT INTO discord_link (discord_id, discordAuthCode, status) VALUES (:discord_id, :authcode, :status)",
+                    new
+                    {
+                        authcode = authCode,
+                        discord_id = discordId,
+                        status = (int)DiscordLinkstatus.PendingVerification
+                    },
+                    transaction: transaction
+                );
+
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new InvalidOperationException("An error occurred while generating the auth code.", ex);
+            }
+        }
+
+        return authCode;
+    }
+
+    public async Task LinkDiscordAccount(string discordAuthCode, long userId)
+    {
+        string discordId = await db.QuerySingleOrDefaultAsync<string>(
+            "SELECT discord_id FROM discord_link WHERE discordAuthCode = :linkcode AND status = :status",
+            new
+            {
+                linkcode = discordAuthCode,
+                status = (int)DiscordLinkstatus.PendingVerification
+            });
+        
+        if (discordId != null)
+        {
+            await db.ExecuteAsync(
+                "UPDATE user SET discord_id = :discordid WHERE id = :uid AND linkstatus = :lstatus",
+                new
+                {
+                    uid = userId,
+                    discordid = discordId,
+                    lstatus = (int)DiscordLinkstatus.Unlinked
+                });
+        }
+        else
+        {
+            throw new InvalidOperationException("Invalid Discord authentication code or status.");
+        }
+    }
     public async Task<string> CreateApplication(CreateUserApplicationRequest request)
     {
         var applicationId = Guid.NewGuid().ToString();

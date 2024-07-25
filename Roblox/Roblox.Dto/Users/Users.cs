@@ -31,7 +31,12 @@ public class MultiGetDbEntry
     public string username { get; set; }
     public string? requestedUsername { get; set; }
 }
-
+public enum DiscordLinkstatus
+{
+    Linked = 1,
+    PendingVerification,
+    Unlinked
+}
 public class UserInfo
 {
     public long userId { get; set; }
