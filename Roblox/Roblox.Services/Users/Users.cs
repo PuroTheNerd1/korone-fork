@@ -756,6 +756,14 @@ public class UsersService : ServiceBase, IService
                     lstat = (int)DiscordLinkstatus.Linked,
                     lstatus = (int)DiscordLinkstatus.Unlinked
                 });
+           await db.ExecuteAsync(
+                "UPDATE \"discord_link\" SET status = :lstat, WHERE discordauthcode = :linkcode AND status = :lstatus",
+                new
+                {
+                    linkcode = discordAuthCode,
+                    lstat = (int)DiscordLinkstatus.Linked,
+                    lstatus = (int)DiscordLinkstatus.PendingVerification
+                });
         }
         else
         {
