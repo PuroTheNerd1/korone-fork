@@ -740,8 +740,8 @@ public class UsersService : ServiceBase, IService
         
         if (discordId != null)
         {
-            await db.ExecuteAsync(
-                "INSERT INTO \"user\" (id, discord_id, linkstatus) VALUES (:uid, :discordid, :lstatus)",
+           await db.ExecuteAsync(
+                "UPDATE \"user\" SET discord_id = :discordid WHERE id = :uid AND linkstatus = :lstatus",
                 new
                 {
                     uid = userId,
