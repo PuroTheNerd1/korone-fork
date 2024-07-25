@@ -712,7 +712,14 @@ public class UsersService : ServiceBase, IService
                 discord_id = discordId,
                 status = (int)DiscordLinkstatus.Linked
             });
-        if (alreadyVerified != null)
+        string alreadyVerified2 = await db.QuerySingleOrDefaultAsync<string>(
+            "SELECT discord_id FROM \"user\" WHERE discord_id = :discord_id AND status = :status",
+            new
+            {
+                discord_id = discordId,
+                status = (int)DiscordLinkstatus.Linked
+            });
+        if (alreadyVerified != null || alreadyVerified2 != null)
         {
             return null;
         }
@@ -741,11 +748,12 @@ public class UsersService : ServiceBase, IService
         if (discordId != null)
         {
            await db.ExecuteAsync(
-                "UPDATE \"user\" SET discord_id = :discordid WHERE id = :uid AND linkstatus = :lstatus",
+                "UPDATE \"user\" SET discord_id = :discordid, linkstatus = :lstat, WHERE id = :uid AND linkstatus = :lstatus",
                 new
                 {
                     uid = userId,
                     discordid = discordId,
+                    lstat = (int)DiscordLinkstatus.Linked,
                     lstatus = (int)DiscordLinkstatus.Unlinked
                 });
         }
