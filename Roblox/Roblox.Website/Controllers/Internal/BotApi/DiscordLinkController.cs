@@ -26,7 +26,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("bot/verify")]
         public async Task<dynamic> LinkDiscord(string linkcode)
         {
-
             await services.users.LinkDiscordAccount(linkcode, safeUserSession.userId);
             return "Successfully linked your account";
         }
