@@ -706,7 +706,7 @@ public class UsersService : ServiceBase, IService
         }
         
         string alreadyVerified = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND linkstatus = :status",
+            "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
             new
             {
                 discord_id = discordId,
