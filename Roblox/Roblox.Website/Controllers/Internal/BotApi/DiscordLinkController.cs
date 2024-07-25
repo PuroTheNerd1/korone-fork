@@ -26,7 +26,15 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("bot/verify")]
         public async Task<dynamic> LinkDiscord(string linkcode)
         {
-            await services.users.LinkDiscordAccount(linkcode, safeUserSession.userId);
+            try
+            {
+                await services.users.LinkDiscordAccount(linkcode, safeUserSession.userId);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine($"Something went wrong while linking the account{e.Message.ToString()}");
+                return "Something went wrong while trying to link your account";
+            }
             return "Successfully linked your account";
         }
     }
