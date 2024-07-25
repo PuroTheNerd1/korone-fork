@@ -735,13 +735,13 @@ public class UsersService : ServiceBase, IService
             new
             {
                 linkcode = discordAuthCode,
-                status = (int)DiscordLinkstatus.PendingVerification
+                status = (int)DiscordLinkstatus.PendingVerification 
             });
         
         if (discordId != null)
         {
             await db.ExecuteAsync(
-                "UPDATE user SET discord_id = :discordid WHERE id = :uid AND linkstatus = :lstatus",
+                "INSERT INTO user (id, discord_id, linkstatus) VALUES (:uid, :discordid, :lstatus)",
                 new
                 {
                     uid = userId,
