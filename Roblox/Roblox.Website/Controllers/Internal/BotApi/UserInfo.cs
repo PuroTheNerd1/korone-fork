@@ -8,7 +8,7 @@ namespace Roblox.Website.Controllers
 
     [MVC.ApiController]
     [MVC.Route("/")]
-    public class UserInfo: ControllerBase
+    public class UserInfoBot: ControllerBase
     {
         private NpgsqlConnection db => services.assets.db;
         private bool IsBot()
