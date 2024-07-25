@@ -62,7 +62,7 @@ public class UsersControllerV1 : ControllerBase
             info.description,
             info.created,
             isBanned,
-            inventory_rap = 100
+            inventory_rap = totalRap
         };
     }
 
