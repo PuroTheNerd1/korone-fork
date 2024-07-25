@@ -22,18 +22,22 @@ namespace Roblox.Website.Controllers
             if(!IsBot())
                 return "Yes";
             var t = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(60));
-            var OnlineCount = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM \"user\" WHERE online_at >= :t", new
+            var OnlineCountQuery = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM \"user\" WHERE online_at >= :t", new
             {
                 t,
             });
-            var Ingame = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM asset_server_player", new
+            var IngameQuery = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM asset_server_player", new
             {
                 t,
             });
+
+            long OnlineCount = OnlineCountQuery?.total ?? 0;
+            long Ingame = IngameQuery?.total ?? 0;
+            
             return new 
             {
-                Online = (long)OnlineCount.Count,
-                Ingame = (long)Ingame.Count
+                Online = OnlineCount,
+                Ingame = Ingame
             };
         }
 
