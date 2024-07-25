@@ -450,7 +450,12 @@ public class UsersService : ServiceBase, IService
         userInfoCache.Set(userId, res);
         return res;
     }
-
+    public async Task<UserInfo> GetUserByDiscordId(string discordId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE discord_id = :id", new { id = discordId });
+        if (res == null) throw new RecordNotFoundException();
+        return res;
+    }
     public async Task<IEnumerable<MultiGetAccountStatusEntry>> MultiGetAccountStatus(IEnumerable<long> userIds)
     {
         var ids = userIds.Distinct().ToList();
