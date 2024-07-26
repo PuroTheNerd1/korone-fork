@@ -9,6 +9,7 @@ using Roblox.Dto.Assets;
 using Roblox.Dto.Thumbnails;
 using Roblox.Exceptions;
 using Roblox.Libraries.Assets;
+using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Groups;
 using Roblox.Models.Staff;
@@ -19,6 +20,7 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Catalog;
+using Roblox.Website.WebsiteModels.Thumbnails;
 using Type = System.Type;
 
 namespace Roblox.Website.Controllers;
@@ -137,6 +139,22 @@ public class RbxThumbnails : ControllerBase
     public async Task<dynamic> GetGameIconMultiGet([FromQuery] List<long> universeId)
     {
         return await services.thumbnails.GetGameIconsRBX(universeId);
+    }
+    [HttpPostBypass("v1/batch")]
+    public async Task<RobloxCollection<dynamic>> BatchThumbnailsRequest(IEnumerable<BatchRequestEntry> request)
+    {
+        var thumbs = request.ToList();
+        var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
+        {
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails),
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots),
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons),
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
+        });
+        return new RobloxCollection<dynamic>()
+        {
+            data = allResults.SelectMany(x => x),
+        };
     }
    
 }

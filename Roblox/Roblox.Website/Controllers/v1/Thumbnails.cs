@@ -223,7 +223,7 @@ public class ThumbnailsControllerV1 : ControllerBase
         };
     }
 
-    private async Task<IEnumerable<dynamic>> MultiGetThumbnailsGeneric(List<BatchRequestEntry> thumbs, string type, Func<IEnumerable<long>, Task<IEnumerable<ThumbnailEntry>>> method)
+    public static async Task<IEnumerable<dynamic>> MultiGetThumbnailsGeneric(List<BatchRequestEntry> thumbs, string type, Func<IEnumerable<long>, Task<IEnumerable<ThumbnailEntry>>> method)
     {
         var idList = thumbs.Where(c => c.type == type).Select(c => c.targetId).ToList();
         if (idList.Count == 0) return Array.Empty<dynamic>();
