@@ -211,7 +211,7 @@ public class RbxThumbnails : ControllerBase
         Console.WriteLine($"Full Response: {resultJson}");
         return new
         {
-            data = allResults
+            data = allResults.SelectMany(x => x),
         };
     }
 }
