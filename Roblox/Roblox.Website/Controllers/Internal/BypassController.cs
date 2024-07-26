@@ -1026,7 +1026,7 @@ namespace Roblox.Website.Controllers
                 UniverseId = uni.universeId,
                 GenerateTeleportJoin = false,
                 IsUnknownOrUnder13 = false,
-                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|85.215.186.154|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 DataCenterId = 0,
                 FollowUserId = 0,
                 BrowserTrackerId = 0,

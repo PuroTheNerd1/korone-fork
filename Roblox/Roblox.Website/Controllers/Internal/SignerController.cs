@@ -153,7 +153,7 @@ namespace Roblox.Website.Controllers.Internal
             string ticket2Signature = SignString2048New(ticket2);
             string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership.Length}\n{membership}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
             string ticketSignature = SignString2048New(ticket);
-
+            Console.WriteLine(ticket2 + ticket);
             string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
             return finalTicket;
         }
