@@ -108,7 +108,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("asset")]
         [HttpPostBypass("v1/asset")]
         [HttpPostBypass("asset")]
-        public async Task<MVC.ActionResult> GetAssetById(long id, long? assetversionid = null)
+        public async Task<MVC.ActionResult> GetAssetById(long id, long? assetversionid = null, long? version = null)
         {
             HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
@@ -123,6 +123,10 @@ namespace Roblox.Website.Controllers
             else if(id == 507766666)
             {
                 return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");      
+            }
+            if(assetversionid != null)
+            {
+                id = (long)assetversionid;
             }
             var is18OrOver = false;
             if (userSession != null)
@@ -235,14 +239,14 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
-            dynamic version;
-            if (assetversionid != null)
+            dynamic assetVersion;
+            if (version != null)
             {
-                version = await services.assets.GetSpecificAssetVersion(assetId, (long)assetversionid);
+                assetVersion = await services.assets.GetSpecificAssetVersion(assetId, (long)assetversionid);
             }
             else
             {
-                version = await services.assets.GetLatestAssetVersion(assetId);
+                assetVersion = await services.assets.GetLatestAssetVersion(assetId);
             }
 
             Stream? assetContent = null;
@@ -250,16 +254,16 @@ namespace Roblox.Website.Controllers
             {
                 // Special types
                 case Roblox.Models.Assets.Type.TeeShirt:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetTeeShirt(version.contentId)), "application/binary");
+                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetTeeShirt(assetVersion.contentId)), "application/binary");
                 case Models.Assets.Type.Shirt:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(version.contentId)), "application/binary");
+                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(assetVersion.contentId)), "application/binary");
                 case Models.Assets.Type.Pants:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetPants(version.contentId)), "application/binary");
+                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetPants(assetVersion.contentId)), "application/binary");
                 // Types that require no authentication and aren't encrypted
                 case Models.Assets.Type.Image:
                 case Models.Assets.Type.Special:
-                    if (version.contentUrl != null)
-                        assetContent = await services.assets.GetAssetContent(version.contentUrl);
+                    if (assetVersion.contentUrl != null)
+                        assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     // encryptionEnabled = false;
                     break;
                 // Types that require no authentication
@@ -299,16 +303,16 @@ namespace Roblox.Website.Controllers
                 case Models.Assets.Type.WalkAnimation:
                 case Models.Assets.Type.PoseAnimation:
                 case Models.Assets.Type.SolidModel:
-                    if (version.contentUrl is null)
+                    if (assetVersion.contentUrl is null)
                         throw new RobloxException(400, 0, "BadRequest"); // todo: should we log this?
                     if (details.assetType == Models.Assets.Type.Audio)
                     {
                         // Convert to WAV file since that's what web client requires
-                        assetContent = await services.assets.GetAudioContentAsWav(assetId, version.contentUrl);
+                        assetContent = await services.assets.GetAudioContentAsWav(assetId, assetVersion.contentUrl);
                     }
                     else
                     {
-                        assetContent = await services.assets.GetAssetContent(version.contentUrl);
+                        assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     }
                     break;
                 default:
@@ -378,9 +382,9 @@ namespace Roblox.Website.Controllers
                         }
                     }
 
-                    if (ok && version.contentUrl != null)
+                    if (ok && assetVersion.contentUrl != null)
                     {
-                        assetContent = await services.assets.GetAssetContent(version.contentUrl);
+                        assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     }
 
                     break;
