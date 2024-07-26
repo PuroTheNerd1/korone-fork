@@ -229,11 +229,11 @@ public class ThumbnailsControllerV1 : ControllerBase
         if (idList.Count == 0) return Array.Empty<dynamic>();
         return (await method(idList)).Select(c => new
         {
-            imageUrl = $"{Configuration.BaseUrl}{c.imageUrl}",
-            state = c.state,
-            targetId = c.targetId,
-            type = type,
             requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId,
+            targetId = c.targetId,
+            state = "Completed",
+            imageUrl = $"{Configuration.BaseUrl}{c.imageUrl}",
+            version = 0
         });
     }
 
