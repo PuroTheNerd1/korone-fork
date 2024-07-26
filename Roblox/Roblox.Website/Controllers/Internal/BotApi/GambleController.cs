@@ -13,7 +13,7 @@ namespace Roblox.Website.Controllers
         {
             Random random = new Random();
             double chance = random.NextDouble();
-            if (chance < 0.4)
+            if (chance < 0.25)
             {
                 return "Heads";
             }
