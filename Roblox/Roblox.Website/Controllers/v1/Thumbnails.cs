@@ -229,7 +229,7 @@ public class ThumbnailsControllerV1 : ControllerBase
         if (idList.Count == 0) return Array.Empty<dynamic>();
         return (await method(idList)).Select(c => new
         {
-            imageUrl = c.imageUrl,
+            imageUrl = $"{Configuration.BaseUrl}{c.imageUrl}",
             state = c.state,
             targetId = c.targetId,
             type = type,

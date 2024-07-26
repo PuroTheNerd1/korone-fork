@@ -162,7 +162,6 @@ public class RbxThumbnails : ControllerBase
                 using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
                 {
                     var json = await reader.ReadToEndAsync();
-                    Console.WriteLine($"Request: {json}");
                     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
                 }
             }
@@ -186,12 +185,6 @@ public class RbxThumbnails : ControllerBase
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
         });
 
-        var resultObject = new
-        {
-            data = allResults
-        };
-        Console.WriteLine("Full Response:");
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(resultObject, Newtonsoft.Json.Formatting.Indented));
         return new
         {
             data = allResults
