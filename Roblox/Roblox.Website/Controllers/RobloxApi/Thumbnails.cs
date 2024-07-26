@@ -185,7 +185,13 @@ public class RbxThumbnails : ControllerBase
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons),
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
         });
-        Console.WriteLine(allResults);
+
+        var resultObject = new
+        {
+            data = allResults
+        };
+        Console.WriteLine("Full Response:");
+        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(resultObject, Newtonsoft.Json.Formatting.Indented));
         return new
         {
             data = allResults
