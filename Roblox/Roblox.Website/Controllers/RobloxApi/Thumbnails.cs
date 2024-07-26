@@ -145,6 +145,7 @@ public class RbxThumbnails : ControllerBase
     {
         bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
         IEnumerable<BatchRequestEntry> requestEntries;
+        var tasks = new List<Task<IEnumerable<dynamic>>>();
         Console.WriteLine(isGzip);
         if (isGzip)
         {
@@ -177,18 +178,37 @@ public class RbxThumbnails : ControllerBase
         }
 
         var thumbs = requestEntries.ToList();
-        var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
+        foreach (var entry in requestEntries)
         {
-            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails),
-            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots),
-            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons),
-            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
-        });
+            switch (entry.type)
+            {
+                case "AvatarThumbnail":
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails));
+                    break;
+                case "AvatarHeadShot":
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots));
+                    break;
+                case "GameIcon":
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons));
+                    break;
+                case "AssetThumbnail":
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails));
+                    break;
+                default:
+                    throw new ArgumentException("Invalid type provided.", nameof(entry.type));
+            }
+        }
+
+
+        var allResults = await Task.WhenAll(tasks);
+
+        
         var resultObject = new
         {
             data = allResults
         };
-        Console.WriteLine($"Full Response: {resultObject}");
+        var resultJson = JsonConvert.SerializeObject(resultObject, Formatting.Indented);
+        Console.WriteLine($"Full Response: {resultJson}");
         return new
         {
             data = allResults
