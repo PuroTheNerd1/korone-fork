@@ -1316,7 +1316,7 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("/v1/avatar-fetch")]
         [HttpGetBypass("/v1.1/avatar-fetch")]
-        public async Task<MVC.IActionResult> CharacterFetch(long userId)
+        public async Task<dynamic> CharacterFetch(long userId)
         {
             List<long> accessoryVersionIds = new List<long>();
             List<long> equippedGearVersionIds = new List<long>();
@@ -1355,7 +1355,8 @@ namespace Roblox.Website.Controllers
             if (userAgent != "Roblox/Win2020"){
                 equippedGearVersionIds = new List<long>();
             }
-            var result = new {
+            return new 
+            {
                 resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
                 equippedGearVersionIds,
@@ -1374,8 +1375,6 @@ namespace Roblox.Website.Controllers
                 bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors
             };
-            string jsonString = JsonConvert.SerializeObject(result);
-            return Content(jsonString, "application/json");
         }
         private void CheckServerAuth(string auth)
         {
