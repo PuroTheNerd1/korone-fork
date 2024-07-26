@@ -1017,7 +1017,7 @@ namespace Roblox.Website.Controllers
                 VideoInfo = "",
                 CreatorId = uni.builderId,
                 CreatorTypeEnum = "User",  
-                MembershipType = "Premium", 
+                MembershipType = membership, 
                 AccountAge = accountAgeDays, 
                 CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
                 CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
