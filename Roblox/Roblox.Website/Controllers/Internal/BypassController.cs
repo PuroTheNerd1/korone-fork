@@ -41,6 +41,7 @@ using InfluxDB.Client.Core.Exceptions;
 using Roblox.Exceptions;
 using Roblox.Website.Pages;
 using System.IO.Compression;
+using Roblox.Models;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -520,7 +521,48 @@ namespace Roblox.Website.Controllers
             throw new NotImplementedException();
         }
 
-
+        [HttpGetBypass("v2/users/{userId:long}/groups/roles")]
+        public async Task<RobloxCollection<dynamic>> GetUserGroupRoles(long userId)
+        {
+            var roles = await services.groups.GetAllRolesForUser(userId);
+            var result = new List<dynamic>();
+            foreach (var role in roles)
+            {
+                var groupDetails = await services.groups.GetGroupById(role.groupId);
+                result.Add(new
+                {
+                    group = new
+                    {
+                        id = groupDetails.id,
+                        name = groupDetails.name,
+                        memberCount = groupDetails.memberCount,
+                    },
+                    role = role,
+                });
+            }
+            if (await StaffFilter.IsStaff(userId))
+            {
+                result.Add(new
+                {
+                    group = new
+                    {
+                        id = 1200769,
+                        name = "Project X Admin",
+                        memberCount = 100,
+                    },
+                    role = new
+                    {
+                        id = 1,
+                        name = "Admin",
+                        rank = 100
+                    }
+                });
+            }
+            return new()
+            {
+                data = result,
+            };
+        }
         [HttpGetBypass("/auth/submit")]
         public MVC.RedirectResult SubmitAuth(string auth)
         {
