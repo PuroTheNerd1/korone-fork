@@ -10,17 +10,11 @@ namespace Roblox.Website.Controllers
     public class WebInfo: ControllerBase
     {
         private NpgsqlConnection db => services.assets.db;
-        private bool IsBot()
-        {
-            var botKey = Request.Headers.ContainsKey("PJX-BOTAUTH") ? Request.Headers["PJX-BOTAUTH"].ToString() : null;
-            var isBot = botKey == "ljbHjhLvOwPGasmd1qBoa4qkkbcqa1tT39BImr5SvZFbqQXi133GruGL2O2U06906ezZ8pmwEAv33SM5KmWk";
-            return isBot;
-        }
+        
+        [BotAuthorization]
         [HttpGetBypass("bot/status")]
         public async Task<dynamic> GetWebInfo()
         {
-            if(!IsBot())
-                return "Yes";
             var t = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(60));
             var OnlineCountQuery = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM \"user\" WHERE online_at >= :t", new
             {

@@ -71,12 +71,26 @@ public class EconomyControllerV1 : ControllerBase
         if (isOwned == null)
             throw new ForbiddenException();
         // Confirm item can be sold
+
         var details = await services.assets.GetAssetCatalogInfo(assetId);
+        var rsData = await services.assets.GetResaleData(assetId);
+        
         if (details.itemRestrictions == null || details.isForSale || !details.itemRestrictions.Contains("Limited") && !details.itemRestrictions.Contains("LimitedUnique"))
         {
             // Item cannot be sold at this time
             throw new BadRequestException();
         }
+        
+        // Anti lpp
+        if (request.price < (rsData.recentAveragePrice / 2) && rsData.recentAveragePrice != 0) {
+            throw new BadRequestException();
+        }
+
+        // Check if the request price is less than OG price
+        if (request.price < details.price) {
+            throw new BadRequestException();
+        }
+
         // Update price
         await services.users.SetPriceOfUserAsset(userAssetId, safeUserSession.userId, request.price);
     }

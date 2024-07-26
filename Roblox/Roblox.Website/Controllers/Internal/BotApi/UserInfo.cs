@@ -11,17 +11,12 @@ namespace Roblox.Website.Controllers
     public class UserInfoBot: ControllerBase
     {
         private NpgsqlConnection db => services.assets.db;
-        private bool IsBot()
-        {
-            var botKey = Request.Headers.ContainsKey("PJX-BOTAUTH") ? Request.Headers["PJX-BOTAUTH"].ToString() : null;
-            var isBot = botKey == "ljbHjhLvOwPGasmd1qBoa4qkkbcqa1tT39BImr5SvZFbqQXi133GruGL2O2U06906ezZ8pmwEAv33SM5KmWk";
-            return isBot;
-        }
+        
+        [BotAuthorization]
         [HttpGetBypass("bot/balance")]
         public async Task<object> GetUserBalanceAsync(string discordid)
         {
-            if(!IsBot())
-                return "Yes";
+
             Dto.Users.UserInfo userInfo;
             try
             {
