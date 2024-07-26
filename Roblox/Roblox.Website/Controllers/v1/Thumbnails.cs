@@ -227,13 +227,16 @@ public class ThumbnailsControllerV1 : ControllerBase
     {
         var idList = thumbs.Where(c => c.type == type).Select(c => c.targetId).ToList();
         if (idList.Count == 0) return Array.Empty<dynamic>();
-        return (await method(idList)).Select(c => new
+        var thumbnails = await method(idList);
+        return thumbnails.Select(c => new
         {
-            requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId,
+            requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
+            errorCode = 0, 
+            errorMessage = string.Empty,
             targetId = c.targetId,
             state = "Completed",
             imageUrl = $"{Configuration.BaseUrl}{c.imageUrl}",
-            version = 0
+            version = "0" 
         });
     }
 
