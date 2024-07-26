@@ -195,7 +195,8 @@ public class RbxThumbnails : ControllerBase
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails));
                     break;
                 default:
-                    throw new ArgumentException("Invalid type provided.", nameof(entry.type));
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots));
+                    break;
             }
         }
 
