@@ -11,6 +11,7 @@ namespace Roblox.Website.Controllers.Internal
         private static SHA1? _shaCsp;
         private static RSACryptoServiceProvider rsa = new();
         private static RSACryptoServiceProvider rsa2048 = new();
+        private static RSACryptoServiceProvider rsa2048New = new();
         private static readonly string newLine = "\r\n";
         private static readonly string format = "--rbxsig%{0}%{1}";
         private static readonly string format2048 = "--rbxsig2%{0}%{1}";
@@ -25,8 +26,8 @@ namespace Roblox.Website.Controllers.Internal
                 _rsaCsp = new RSACryptoServiceProvider();
                 
                 _rsaCsp.ImportCspBlob(privateKeyBlob);
-                rsa2048.ImportFromPem(System.IO.File.ReadAllText("PEM\\PrivateKey2048.pem"));
-
+                rsa2048.ImportFromPem(System.IO.File.ReadAllText(@"PEM\PrivateKey2048.pem"));
+                rsa2048New.ImportFromPem(System.IO.File.ReadAllText(@"PEM\2020\privatekey.pem"));
             }
             catch (Exception ex)
             {
@@ -83,6 +84,28 @@ namespace Roblox.Website.Controllers.Internal
                 return Convert.ToBase64String(signature);
             }
         }
+        public static string SignJson2048New(dynamic JSONToSign)
+        {
+            string script = newLine + JsonConvert.SerializeObject(JSONToSign);
+            byte[] signature = rsa2048New.SignData(Encoding.Default.GetBytes(script), SHA1.Create());
+
+            return string.Format(format2048, Convert.ToBase64String(signature), script);
+        }
+        public static string SignString2048New(string stringToSign, bool bUseRbxSig = false)
+        {
+            if (bUseRbxSig)
+            {
+                string script = newLine + stringToSign;
+                byte[] signature = rsa.SignData(Encoding.Default.GetBytes(script), SHA1.Create());
+
+                return string.Format(format, Convert.ToBase64String(signature), script);
+            }
+            else
+            {
+                byte[] signature = rsa2048New.SignData(Encoding.Default.GetBytes(stringToSign), SHA1.Create());
+                return Convert.ToBase64String(signature);
+            }
+        }
         public static string GenerateClientTicketV1(long userId, string username, string jobId, string characterAppearanceUrl)
         {
             DateTime currentUtcDateTime = DateTime.UtcNow;
@@ -127,9 +150,9 @@ namespace Roblox.Website.Controllers.Internal
             string customTimestamp = utcNow.ToString("MM/dd/yyyy hh:mm:ss tt");
             string membershipType = "Premium";
             string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{customTimestamp}";
-            string ticket2Signature = SignString2048(ticket2);
+            string ticket2Signature = SignJson2048New(ticket2);
             string ticket = $"{customTimestamp}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membershipType.Length}\n{membershipType}\n0\n\n0\n\n{username.Length}\n{username}";
-            string ticketSignature = SignString2048(ticket);
+            string ticketSignature = SignJson2048New(ticket);
 
             string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
             Console.WriteLine(ticket2 + ticket);
