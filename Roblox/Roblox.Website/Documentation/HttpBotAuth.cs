@@ -26,12 +26,12 @@ namespace Roblox.Website.Controllers
             {
                 if (botKey != BotAuthKey)
                 {
-                    context.Result = new ForbidResult();
+                    context.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);
                 }
             }
             else
             {
-                context.Result = new ForbidResult();
+                context.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);
             }
         }
 
