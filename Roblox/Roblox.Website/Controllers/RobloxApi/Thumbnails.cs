@@ -141,7 +141,7 @@ public class RbxThumbnails : ControllerBase
         return await services.thumbnails.GetGameIconsRBX(universeId);
     }
     [HttpPostBypass("v1/batch")]
-    public async Task<dynamic> BatchThumbnailsRequest(BatchRequestEntry request)
+    public async Task<dynamic> BatchThumbnailsRequest()
     {
         bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
         IEnumerable<BatchRequestEntry> requestEntries;
