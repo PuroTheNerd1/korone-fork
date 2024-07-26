@@ -1316,7 +1316,7 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("/v1/avatar-fetch")]
         [HttpGetBypass("/v1.1/avatar-fetch")]
-        public async Task<dynamic> CharacterFetch(long userId)
+        public async Task<MVC.IActionResult> CharacterFetch(long userId)
         {
             List<long> accessoryVersionIds = new List<long>();
             List<long> equippedGearVersionIds = new List<long>();
