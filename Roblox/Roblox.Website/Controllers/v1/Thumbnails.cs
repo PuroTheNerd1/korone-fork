@@ -227,7 +227,6 @@ public class ThumbnailsControllerV1 : ControllerBase
     {
         var idList = thumbs.Where(c => c.type == type).Select(c => c.targetId).ToList();
         if (idList.Count == 0) return Array.Empty<dynamic>();
-        
         return (await method(idList)).Select(c => new
         {
             imageUrl = c.imageUrl,
