@@ -218,15 +218,19 @@ public class AssetsService : ServiceBase, IService
     public async Task<bool> ValidateAssetFile(Stream file, Models.Assets.Type assetType)
     {
         Writer.Info(LogGroup.AssetValidation, "validating asset. type = {0}", assetType);
-        
+
+        string tempFilePath = Path.GetTempFileName();
+
         try
         {
-            using (var memoryStream = new MemoryStream())
+            using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write))
             {
-                await file.CopyToAsync(memoryStream); 
-                memoryStream.Seek(0, SeekOrigin.Begin); 
+                await file.CopyToAsync(fileStream);
+            }
 
-                var s = new StreamContent(memoryStream);
+            using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
+            {
+                var s = new StreamContent(fileStream);
                 s.Headers.Add("robloxAuthorization", Configuration.AssetValidationServiceAuthorization);
 
                 var url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-item";
@@ -249,6 +253,13 @@ public class AssetsService : ServiceBase, IService
         catch (Exception e)
         {
             Writer.Info(LogGroup.AssetValidation, "ValidateAssetFile caught exception. message = {0}\n{1}", e.Message, e.StackTrace);
+        }
+        finally
+        {
+            if (File.Exists(tempFilePath))
+            {
+                File.Delete(tempFilePath);
+            }
         }
 
         return false;

@@ -1830,8 +1830,8 @@ namespace Roblox.Website.Controllers
                         await gzipStream.CopyToAsync(decompressedStream);
                         decompressedStream.Position = 0;
 
-                        bool startsWithRoblox = await AssetValidationV2(decompressedStream);
-                        if (!startsWithRoblox)
+                        bool assetValidated = await services.assets.ValidateAssetFile(decompressedStream, Type.Place);
+                        if (!assetValidated)
                         {
                             throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
                         }
