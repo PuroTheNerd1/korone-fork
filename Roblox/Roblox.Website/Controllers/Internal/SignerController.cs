@@ -148,13 +148,13 @@ namespace Roblox.Website.Controllers.Internal
             DateTime utcNow = DateTime.UtcNow;
                 
             string customTimestamp = utcNow.ToString("MM/dd/yyyy hh:mm:ss tt");
-            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{customTimestamp}";
+            string countryCode = "US";
+            string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";
             string ticket2Signature = SignString2048New(ticket2);
-            string ticket = $"{customTimestamp}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership.Length}\n{membership}\n0\n\n0\n\n{username.Length}\n{username}";
+            string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership.Length}\n{membership}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
             string ticketSignature = SignString2048New(ticket);
 
-            string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
-            Console.WriteLine(ticket2 + ticket);
+            string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};3";
             return finalTicket;
         }
     }
