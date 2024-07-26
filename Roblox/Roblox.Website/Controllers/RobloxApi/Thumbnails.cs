@@ -141,11 +141,11 @@ public class RbxThumbnails : ControllerBase
         return await services.thumbnails.GetGameIconsRBX(universeId);
     }
     [HttpPostBypass("v1/batch")]
-    public async Task<RobloxCollection<dynamic>> BatchThumbnailsRequest(IEnumerable<BatchRequestEntry> request)
+    public async Task<dynamic> BatchThumbnailsRequest(BatchRequestEntry request)
     {
         bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
         IEnumerable<BatchRequestEntry> requestEntries;
-
+        Console.WriteLine(isGzip);
         if (isGzip)
         {
             using (var decompressedStream = new MemoryStream())
@@ -172,6 +172,7 @@ public class RbxThumbnails : ControllerBase
             using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
             {
                 var json = await reader.ReadToEndAsync();
+                Console.WriteLine(json);
                 requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
             }
         }
@@ -185,9 +186,9 @@ public class RbxThumbnails : ControllerBase
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
         });
 
-        return new RobloxCollection<dynamic>()
+        return new
         {
-            data = allResults.SelectMany(x => x),
+            data = allResults
         };
     }
 }
