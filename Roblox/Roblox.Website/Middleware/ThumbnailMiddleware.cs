@@ -20,30 +20,29 @@ public class ThumbnailMiddleware
 
         if (requestPath.StartsWith("/images/thumbnails", StringComparison.OrdinalIgnoreCase))
         {
-            var fileName = requestPath.Substring("/images/thumbnails".Length).TrimStart('/');
-            var filePath = Path.Combine(_basePath, fileName);
+            var relativePath = requestPath.Substring("/images/thumbnails".Length).TrimStart('/');
+            var filePathWithoutExtension = Path.Combine(_basePath, relativePath);
 
-            filePath = Path.GetFullPath(filePath);
-            if (!filePath.StartsWith(_basePath, StringComparison.OrdinalIgnoreCase))
+            filePathWithoutExtension = Path.GetFullPath(filePathWithoutExtension);
+            if (!filePathWithoutExtension.StartsWith(_basePath, StringComparison.OrdinalIgnoreCase))
             {
-                await _next(context); 
+                await _next(context);
                 return;
             }
 
-            if (File.Exists(filePath))
+            if (File.Exists(filePathWithoutExtension))
             {
-                var fileExtension = Path.GetExtension(filePath);
-                if (string.IsNullOrEmpty(fileExtension))
-                {
-                    filePath = Path.ChangeExtension(filePath, ".png");
-                }
+                context.Response.ContentType = "image/png";
+                await context.Response.SendFileAsync(filePathWithoutExtension);
+                return;
+            }
 
-                if (File.Exists(filePath))
-                {
-                    context.Response.ContentType = "image/png"; 
-                    await context.Response.SendFileAsync(filePath);
-                    return;
-                }
+            var defaultPngPath = Path.ChangeExtension(filePathWithoutExtension, ".png");
+            if (File.Exists(defaultPngPath))
+            {
+                context.Response.ContentType = "image/png";
+                await context.Response.SendFileAsync(defaultPngPath);
+                return;
             }
         }
 
