@@ -35,16 +35,4 @@ namespace Roblox.Website.Controllers
             }
         }
     }
-
-    [ApiController]
-    [Route("[controller]")]
-    public class MyController : ControllerBase
-    {
-        [HttpGet]
-        [BotAuthorization]  // Applying the custom attribute
-        public IActionResult Get()
-        {
-            return Ok("This is a protected endpoint");
-        }
-    }
 }
