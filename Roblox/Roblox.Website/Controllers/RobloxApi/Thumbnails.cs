@@ -143,7 +143,23 @@ public class RbxThumbnails : ControllerBase
     [HttpPostBypass("v1/batch")]
     public async Task BatchThumbnailsRequest()
     {
-        Console.WriteLine(Request.Body.ToString());
+        MemoryStream decompressedStream;
+        using (var memoryStream = new MemoryStream())
+        {
+            await HttpContext.Request.Body.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+            {
+                decompressedStream = new MemoryStream();
+                await gzipStream.CopyToAsync(decompressedStream);
+            }
+            using (var reader = new StreamReader(decompressedStream))
+            {
+                string result = await reader.ReadToEndAsync();
+                Console.WriteLine(result); 
+            }
+        }
         /*
         var thumbs = request.ToList();
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
