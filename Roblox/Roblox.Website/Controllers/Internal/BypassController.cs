@@ -1291,6 +1291,7 @@ namespace Roblox.Website.Controllers
             string userAgent = Request.Headers["User-Agent"].ToString();
             var wornAssets = await services.avatar.GetWornAssets(userId);
             var avatar = await services.avatar.GetAvatar(userId);
+            var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
             dynamic bodyColors = new
             {
                 headColorId = avatar.headColorId,
@@ -1311,11 +1312,10 @@ namespace Roblox.Website.Controllers
             string AvatarType = (avatar.avatar_type == 2) ? "R15" : "R6";
             foreach (long assetId in wornAssets)
             {
-                var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
-                if (assetInfo.assetType == Type.Gear){
+                var catinfo = await services.assets.GetAssetCatalogInfo(assetId);
+                if (catinfo.assetType == Type.Gear){
                     equippedGearVersionIds.Add(assetId);
                 }
-
                 else{
                     accessoryVersionIds.Add(assetId);
                 }
@@ -1327,6 +1327,14 @@ namespace Roblox.Website.Controllers
                 resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
                 equippedGearVersionIds,
+                assetAndAssetTypeIds = assetInfo.Select(c =>
+                {
+                    return new
+                    {
+                        assetId = c.id,
+                        assetTypeId = (int)c.assetType,
+                    };
+                }),
                 backpackGearVersionIds = equippedGearVersionIds,
                 animationAssetIds = new {},
                 playerAvatarType = AvatarType,
