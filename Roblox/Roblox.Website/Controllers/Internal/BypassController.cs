@@ -1776,7 +1776,8 @@ namespace Roblox.Website.Controllers
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E
                 "2cb51bbbcd309a35858876b6c2167627", //Debug MD5 2016E
                 "4e8ab57381d7f1a98cc7ea79824f88ef", //2017L
-                "8c5aecb7811acbb582f06f2a81b958f4"  //2018L
+                "8c5aecb7811acbb582f06f2a81b958f4",  //2018L
+                "4d7c57ac47f59305d74497e95c1506a3" //2020
             };
 
             return new { data = allowedList };
