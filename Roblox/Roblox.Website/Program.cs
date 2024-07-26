@@ -88,6 +88,12 @@ builder.Services.AddSwaggerGen(c =>
     c.OperationFilter<SwaggerFileOperationFilter>();
 });
 
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = "DefaultScheme";
+    opt.DefaultChallengeScheme = "DefaultScheme";
+    opt.DefaultForbidScheme = "DefaultScheme";
+});
 
 var app = builder.Build();
 app.UseRouting();
