@@ -80,7 +80,7 @@ public class EconomyControllerV1 : ControllerBase
             // Item cannot be sold at this time
             throw new BadRequestException();
         }
-        
+
         // Anti lpp
         if (request.price < (rsData.recentAveragePrice / 2) && rsData.recentAveragePrice != 0) {
             throw new BadRequestException();
@@ -245,7 +245,7 @@ public class EconomyControllerV1 : ControllerBase
             // User is making UAID purchase
             await PurchaseResellableItem(assetId, request);
             // Update sellers avatar in background (in case they were wearing the item they sold)
-            Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 using var avatarService = ServiceProvider.GetOrCreate<AvatarService>();
                 await avatarService.RedrawAvatar(request.expectedSellerId);

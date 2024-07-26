@@ -179,7 +179,6 @@ public class GameServerService : ServiceBase
         });
     }
 
-    [Obsolete]
     public async Task OnPlayerLeave(long userId, long placeId, string serverId)
     {
         CurrentPlayersInGame.Remove(userId);

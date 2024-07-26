@@ -116,10 +116,6 @@ namespace Roblox.Website.Controllers
             HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
             // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
             // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
-            if(assetversionid != null)
-            {
-                id = (long)assetversionid;
-            }
             if(id == 507766388)
             {
                 return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766388.rbxm", "application/octet-stream");  
@@ -239,23 +235,31 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
-            
-            var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
+            dynamic version;
+            if (assetversionid != null)
+            {
+                version = await services.assets.GetSpecificAssetVersion(assetId, (long)assetversionid);
+            }
+            else
+            {
+                version = await services.assets.GetLatestAssetVersion(assetId);
+            }
+
             Stream? assetContent = null;
             switch (details.assetType)
             {
                 // Special types
                 case Roblox.Models.Assets.Type.TeeShirt:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetTeeShirt(latestVersion.contentId)), "application/binary");
+                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetTeeShirt(version.contentId)), "application/binary");
                 case Models.Assets.Type.Shirt:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(latestVersion.contentId)), "application/binary");
+                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(version.contentId)), "application/binary");
                 case Models.Assets.Type.Pants:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetPants(latestVersion.contentId)), "application/binary");
+                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetPants(version.contentId)), "application/binary");
                 // Types that require no authentication and aren't encrypted
                 case Models.Assets.Type.Image:
                 case Models.Assets.Type.Special:
-                    if (latestVersion.contentUrl != null)
-                        assetContent = await services.assets.GetAssetContent(latestVersion.contentUrl);
+                    if (version.contentUrl != null)
+                        assetContent = await services.assets.GetAssetContent(version.contentUrl);
                     // encryptionEnabled = false;
                     break;
                 // Types that require no authentication
@@ -295,16 +299,16 @@ namespace Roblox.Website.Controllers
                 case Models.Assets.Type.WalkAnimation:
                 case Models.Assets.Type.PoseAnimation:
                 case Models.Assets.Type.SolidModel:
-                    if (latestVersion.contentUrl is null)
+                    if (version.contentUrl is null)
                         throw new RobloxException(400, 0, "BadRequest"); // todo: should we log this?
                     if (details.assetType == Models.Assets.Type.Audio)
                     {
                         // Convert to WAV file since that's what web client requires
-                        assetContent = await services.assets.GetAudioContentAsWav(assetId, latestVersion.contentUrl);
+                        assetContent = await services.assets.GetAudioContentAsWav(assetId, version.contentUrl);
                     }
                     else
                     {
-                        assetContent = await services.assets.GetAssetContent(latestVersion.contentUrl);
+                        assetContent = await services.assets.GetAssetContent(version.contentUrl);
                     }
                     break;
                 default:
@@ -374,9 +378,9 @@ namespace Roblox.Website.Controllers
                         }
                     }
 
-                    if (ok && latestVersion.contentUrl != null)
+                    if (ok && version.contentUrl != null)
                     {
-                        assetContent = await services.assets.GetAssetContent(latestVersion.contentUrl);
+                        assetContent = await services.assets.GetAssetContent(version.contentUrl);
                     }
 
                     break;
@@ -1839,7 +1843,7 @@ namespace Roblox.Website.Controllers
                         decompressedStream.Position = 0;
 
                         await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, decompressedStream);
-                        services.assets.RenderAssetAsync(assetId, info.assetType);
+                        await services.assets.RenderAssetAsync(assetId, info.assetType);
                     }
                 }
             }
@@ -1855,27 +1859,6 @@ namespace Roblox.Website.Controllers
             {
                 success = true,
             };
-            /*
-            using (var stream = Request.Body)
-            {
-                var decodedStream = await DecodeContentAsync(stream);
-                using (var outputStream = new MemoryStream())
-                {
-                    await decodedStream.CopyToAsync(outputStream);
-                    bool startsWithRoblox = await AssetValidationV2(outputStream);
-                    if (!startsWithRoblox)
-                        throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-                    outputStream.Position = 0; 
-                    await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, outputStream);
-                    
-                    services.assets.RenderAssetAsync(assetId, Models.Assets.Type.Place);
-                    return new
-                    {
-                        success = true,
-                    };
-                }
-            }
-            */
         }
         private async Task<bool> AssetValidationV2(Stream stream)
         {

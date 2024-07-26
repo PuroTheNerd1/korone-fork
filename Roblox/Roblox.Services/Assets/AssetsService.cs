@@ -51,7 +51,18 @@ public class AssetsService : ServiceBase, IService
         if (result == null) throw new RecordNotFoundException();
         return result;
     }
-
+    public async Task<Dto.Assets.AssetVersionEntry> GetSpecificAssetVersion(long assetId, long assetVersion)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
+            "SELECT id as assetVersionId, version_number as versionNumber, content_url as contentUrl, content_id as contentId, created_at as createdAt, updated_at as updatedAt, creator_id as creatorId FROM asset_version WHERE asset_id = :id AND version_number = :version ORDER BY id DESC LIMIT 1",
+            new
+            {
+                id = assetId,
+                version = assetVersion,
+            });
+        if (result == null) throw new RecordNotFoundException();
+        return result;
+    }
     private void ValidateNameAndDescription(string name, string? description)
     {
         // Validation

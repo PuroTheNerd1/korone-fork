@@ -624,7 +624,7 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
 
                 await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
                 
-                services.assets.RenderAssetAsync(request.assetId, info.assetType);
+                await services.assets.RenderAssetAsync(request.assetId, info.assetType);
             }
         }
         finally
