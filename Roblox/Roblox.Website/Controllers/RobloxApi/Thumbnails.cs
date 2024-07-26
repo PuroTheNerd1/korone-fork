@@ -184,7 +184,11 @@ public class RbxThumbnails : ControllerBase
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons),
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
         });
-
+        var resultObject = new
+        {
+            data = allResults
+        };
+        Console.WriteLine($"Full Response: {resultObject}");
         return new
         {
             data = allResults
