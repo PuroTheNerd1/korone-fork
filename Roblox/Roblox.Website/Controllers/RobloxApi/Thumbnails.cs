@@ -141,8 +141,10 @@ public class RbxThumbnails : ControllerBase
         return await services.thumbnails.GetGameIconsRBX(universeId);
     }
     [HttpPostBypass("v1/batch")]
-    public async Task<RobloxCollection<dynamic>> BatchThumbnailsRequest(IEnumerable<BatchRequestEntry> request)
+    public async Task BatchThumbnailsRequest()
     {
+        Console.WriteLine(Request.Body.ToString());
+        /*
         var thumbs = request.ToList();
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {
@@ -152,10 +154,12 @@ public class RbxThumbnails : ControllerBase
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
         });
         Console.WriteLine(allResults.ToString());
+        
         return new RobloxCollection<dynamic>()
         {
             data = allResults.SelectMany(x => x),
         };
+        */
     }
    
 }
