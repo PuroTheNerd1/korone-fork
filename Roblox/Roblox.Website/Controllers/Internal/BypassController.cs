@@ -2449,12 +2449,12 @@ namespace Roblox.Website.Controllers
             {
                 try
                 {
-                    //await services.gameServer.ShutDownServerAsync(gameId);
+                    await services.gameServer.ShutDownServerAsync(gameId);
                     return "OK!";
                 }
                 catch (Exception ex)
                 {
-                    //await services.gameServer.DeleteGameServer(gameId);
+                    await services.gameServer.DeleteGameServer(gameId);
                     return "OK!";
                 }
             }
