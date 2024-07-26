@@ -111,5 +111,4 @@ namespace Roblox.Website.Controllers
             BypassConfiguration.AddToBypass(template);
         }
     }
-    
 }
