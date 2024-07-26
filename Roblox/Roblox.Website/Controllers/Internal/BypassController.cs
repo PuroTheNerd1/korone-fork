@@ -1291,7 +1291,22 @@ namespace Roblox.Website.Controllers
             string userAgent = Request.Headers["User-Agent"].ToString();
             var wornAssets = await services.avatar.GetWornAssets(userId);
             var avatar = await services.avatar.GetAvatar(userId);
-            dynamic bodyColors = new { HeadColor = avatar.headColorId, LeftArmColor = avatar.leftArmColorId, LeftLegColor = avatar.leftLegColorId, RightArmColor = avatar.rightArmColorId, RightLegColor = avatar.rightLegColorId, TorsoColor = avatar.torsoColorId };
+            dynamic bodyColors = new
+            {
+                headColorId = avatar.headColorId,
+                leftArmColorId = avatar.leftArmColorId,
+                leftLegColorId = avatar.leftLegColorId,
+                rightArmColorId = avatar.rightArmColorId,
+                rightLegColorId = avatar.rightLegColorId,
+                torsoColorId = avatar.torsoColorId,
+
+                HeadColor = avatar.headColorId,
+                LeftArmColor = avatar.leftArmColorId,
+                LeftLegColor = avatar.leftLegColorId,
+                RightArmColor = avatar.rightArmColorId,
+                RightLegColor = avatar.rightLegColorId,
+                TorsoColor = avatar.torsoColorId
+            };
             dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
             string AvatarType = (avatar.avatar_type == 2) ? "R15" : "R6";
             foreach (long assetId in wornAssets)
