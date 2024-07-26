@@ -16,11 +16,11 @@ namespace Roblox.Website.Controllers
         }
     }
 
-    public class BotAuthorizationFilter : IAuthorizationFilter
+    public class BotAuthorizationFilter : IActionFilter
     {
         private const string BotAuthKey = "ljbHjhLvOwPGasmd1qBoa4qkkbcqa1tT39BImr5SvZFbqQXi133GruGL2O2U06906ezZ8pmwEAv33SM5KmWk";
 
-        public void OnAuthorization(AuthorizationFilterContext context)
+        public void OnActionExecuting(ActionExecutingContext context)
         {
             if (context.HttpContext.Request.Headers.TryGetValue("PJX-BOTAUTH", out StringValues botKey))
             {
@@ -33,6 +33,10 @@ namespace Roblox.Website.Controllers
             {
                 context.Result = new ForbidResult();
             }
+        }
+
+        public void OnActionExecuted(ActionExecutedContext context)
+        {
         }
     }
 }

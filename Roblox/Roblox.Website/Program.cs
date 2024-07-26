@@ -13,6 +13,8 @@ using Roblox.Website.Hubs;
 using System.Text;
 using Discord.OAuth2;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
@@ -88,12 +90,7 @@ builder.Services.AddSwaggerGen(c =>
     c.OperationFilter<SwaggerFileOperationFilter>();
 });
 
-builder.Services.AddAuthentication(opt =>
-{
-    opt.DefaultAuthenticateScheme = "DefaultScheme";
-    opt.DefaultChallengeScheme = "DefaultScheme";
-    opt.DefaultForbidScheme = "DefaultScheme";
-});
+
 
 var app = builder.Build();
 app.UseRouting();
