@@ -141,20 +141,41 @@ public class RbxThumbnails : ControllerBase
         return await services.thumbnails.GetGameIconsRBX(universeId);
     }
     [HttpPostBypass("v1/batch")]
-    public async Task BatchThumbnailsRequest()
+    public async Task<RobloxCollection<dynamic>> BatchThumbnailsRequest(IEnumerable<BatchRequestEntry> request)
     {
+        bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
+        IEnumerable<BatchRequestEntry> requestEntries;
 
-        Console.WriteLine(Request.Headers["Content-Encoding"].ToString());
-        using (var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true))
+        if (isGzip)
         {
-            var body = await reader.ReadToEndAsync();
+            using (var decompressedStream = new MemoryStream())
+            {
+                using (var requestStream = Request.Body)
+                {
+                    using (var gzipStream = new GZipStream(requestStream, CompressionMode.Decompress))
+                    {
+                        await gzipStream.CopyToAsync(decompressedStream);
+                    }
+                }
+                decompressedStream.Seek(0, SeekOrigin.Begin);
 
-            Console.WriteLine(body);
-
-            Request.Body.Seek(0, SeekOrigin.Begin);
+                using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
+                {
+                    var json = await reader.ReadToEndAsync();
+                    requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
+                }
+            }
         }
-        /*
-        var thumbs = request.ToList();
+        else
+        {
+            using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+            {
+                var json = await reader.ReadToEndAsync();
+                requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
+            }
+        }
+
+        var thumbs = requestEntries.ToList();
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails),
@@ -162,14 +183,11 @@ public class RbxThumbnails : ControllerBase
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons),
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
         });
-        Console.WriteLine(allResults.ToString());
-        
+
         return new RobloxCollection<dynamic>()
         {
             data = allResults.SelectMany(x => x),
         };
-        */
     }
-   
 }
 
