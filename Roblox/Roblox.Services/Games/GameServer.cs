@@ -719,7 +719,7 @@ public class GameServerService : ServiceBase
                 port = mainRCCPort,
                 server_connection = $"85.215.186.154:{networkServerPort}", 
             });
-
+        Thread.Sleep(2500);
         return StartGameInfo != "BAD"
             ? new GameServerGetOrCreateResponse()
             {
