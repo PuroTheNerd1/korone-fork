@@ -2426,6 +2426,21 @@ namespace Roblox.Website.Controllers
                 isCaptchaRequired = false,
             };
         }
+        [HttpGetBypass("user/get-friendship-count")]
+        public async Task<dynamic> GetFriendsAmount(long? userId)
+        {
+            if(userId == null)
+            {
+                userId = userSession.userId;
+            }
+            int amountFriends = await services.friends.CountFriends((long)userId);
+            return new 
+            {
+                success = true,
+                message = "Success",
+                count = amountFriends
+            };
+        }
         [HttpGetBypass("/asset/getyear")]
         public async Task<dynamic> GetPlaceYear(long placeId)
         {
