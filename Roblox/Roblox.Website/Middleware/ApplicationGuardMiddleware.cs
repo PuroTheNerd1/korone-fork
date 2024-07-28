@@ -133,7 +133,6 @@ public class ApplicationGuardMiddleware
     [MethodImpl(MethodImplOptions.AggressiveInlining|MethodImplOptions.AggressiveOptimization)]
     private bool IsUserAgentBlocked(string ua)
     {
-        /*
         // note that this isn't really for blocking malicious actors, it's just for preventing search engines (and
         // similar services) from crawling our site
         ua = ua.ToLower().Trim();
@@ -235,11 +234,10 @@ public class ApplicationGuardMiddleware
         if (ua == "ruby") return true;
         if (ua.IndexOf("test certificate info") != -1) return true;
         if (ua == "wp_is_mobile") return true; // no clue what this is
-        if (ua.IndexOf("Roblox") != -1) return false;
         if (ua.IndexOf("wget/") != -1) return true;
         if (ua.IndexOf("well-known.dev") != -1) return true;
         if (ua == "aids") return true; // ?
-        */
+        if (ua.Contains("roblox")) return false;
         return false;
     }
 
