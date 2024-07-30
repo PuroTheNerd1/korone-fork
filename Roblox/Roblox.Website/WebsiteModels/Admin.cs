@@ -150,7 +150,7 @@ public class UpdateProductRequest
 public class CreateAssetRequest
 {
     public string name { get; set; } = string.Empty;
-    public string description { get; set; } = string.Empty;
+    public string? description { get; set; } = string.Empty;
     public Type assetTypeId { get; set; }
     public Genre genre { get; set; }
     public bool isForSale { get; set; }
