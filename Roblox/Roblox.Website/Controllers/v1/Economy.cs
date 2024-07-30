@@ -81,14 +81,17 @@ public class EconomyControllerV1 : ControllerBase
             throw new BadRequestException();
         }
 
-        // Anti lpp
-        if (request.price < (rsData.recentAveragePrice / 2) && rsData.recentAveragePrice != 0) {
-            throw new BadRequestException();
-        }
+        if(request.price != 0)
+        {
+            // Anti lpp
+            if (request.price < (rsData.recentAveragePrice / 2) && rsData.recentAveragePrice != 0) {
+                throw new BadRequestException();
+            }
 
-        // Check if the request price is less than OG price
-        if (request.price < details.price) {
-            throw new BadRequestException();
+            // Check if the request price is less than OG price
+            if (request.price < details.price) {
+                throw new BadRequestException();
+            }
         }
 
         // Update price
