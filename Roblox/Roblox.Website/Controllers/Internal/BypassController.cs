@@ -2103,6 +2103,9 @@ namespace Roblox.Website.Controllers
             
             switch (apiKey)
             {
+                case "4C3DEC7F-7725-498F-BCA7-6389ED71E248": //2015 RCC + Client
+                    type = "AppSettingsMulti2015";
+                    break;
                 case "9CE2063F-BB45-449B-89D4-65CD2ED806CD":  //2017L RCC
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
