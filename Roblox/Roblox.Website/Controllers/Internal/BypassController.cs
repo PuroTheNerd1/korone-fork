@@ -1871,6 +1871,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
+                "a9912debcb6347c402e4139f452d4fd2", //2015M
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E
                 "2cb51bbbcd309a35858876b6c2167627", //Debug MD5 2016E
                 "4e8ab57381d7f1a98cc7ea79824f88ef", //2017L
@@ -1892,6 +1893,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {  
+                "0.206.0pcplayer",
                 "0.235.0pcplayer",
                 "0.314.0pcplayer",
                 "0.355.0pcplayer",
