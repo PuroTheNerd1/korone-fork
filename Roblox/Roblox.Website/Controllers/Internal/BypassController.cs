@@ -923,6 +923,7 @@ namespace Roblox.Website.Controllers
 
             switch (year)
             {
+                case 2015:
                 case 2016:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
                     finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
@@ -1088,13 +1089,12 @@ namespace Roblox.Website.Controllers
 
             switch (year)
             {
+                case 2015:
                 case 2016:
-                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript2016);
                 case 2017:
-                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
+                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20192020);
                 case 2018:
-                    return SignatureController.SignJson2048(joinScript20172018);      
-                case 2019:
+                    return SignatureController.SignJson2048(joinScript20192020);      
                 case 2020:
                     return SignatureController.SignJson2048New(joinScript20192020);
                 default:
