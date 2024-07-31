@@ -4234,7 +4234,7 @@
     "FFlagStudioAttributesUI": "True",
     "DFFlagTheseAreSomeOfMyBestAttributes": "True",
     "FFlagTheseAreSomeOfMyBestAttributes": "True",
-    "FFlagDebugLocalRccTicketTesting": "True",
-    "FFlagDebugLocalRccServerConnection": "True"
+    "FFlagDebugLocalRccTicketTesting": "False",
+    "FFlagDebugLocalRccServerConnection": "False"
     }
 }
