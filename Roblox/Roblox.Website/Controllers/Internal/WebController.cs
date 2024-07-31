@@ -338,6 +338,7 @@ public class WebController : ControllerBase
     public async Task<dynamic> GetAssetComments(long assetId, int startIndex)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.AssetCommentsEnabled);
+        /*
         var details = (await services.assets.MultiGetAssetDeveloperDetails(new []{assetId})).First();
         if (!details.enableComments)
         {
@@ -349,7 +350,7 @@ public class WebController : ControllerBase
                 AreCommentsDisabled = true,
             };
         }
-
+        */
         var com = await services.assets.GetComments(assetId, startIndex, 10);
         var isModerator = userSession != null && (await services.users.GetStaffPermissions(userSession.userId))
             .Any(a => a.permission == Access.DeleteComment);
