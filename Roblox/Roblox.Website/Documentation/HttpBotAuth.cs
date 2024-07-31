@@ -26,6 +26,7 @@ namespace Roblox.Website.Controllers
             {
                 if (botKey != BotAuthKey)
                 {
+                    Console.WriteLine("Failed auth");
                     context.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);
                 }
             }
