@@ -38,7 +38,7 @@ public static class Configuration
     public static string AssetValidationServiceAuthorization { get; set; }
     public static string BotAuthorization { get; set; }
     public static string RccAuthorization { get; set; }
-    public const string UserAgentBypassSecret = "503534DA-F2F8-4681-9B37-15EE9EAE88DC4D0FAE23-F672-4BC6-8D5F-E35A2939680DB1980985-AF9C-4B2E-B19E-67005FBAD27B";
+    public const string UserAgentBypassSecret = "mEvIjJZIYbdD5ZL0yX4gz2PIH9iQAXplEkDJjQlp6eqAvHL3KuDa6rBwEao073DOqb1G1OGBJM40YM48sUPiR9LKw7FR6VQRLfESGb28Krr468k0WltelKzXPxtHC9GQy4L9PimO96urUgReS838yAIRAxp6r02LFsp44H5VjpfvpqxalBv6la8wBJ88TXUTrZebyc71T9uXChRiVIdR54xlSkTb3OHWt0QH55adlfML2yHlQmXwZGFhDV0D21y4fdpspQE2ROD";
     public static long PackageShirtAssetId { get; set; }
     public static long PackagePantsAssetId { get; set; }
     private static IEnumerable<long>? _SignupAssetIds { get; set; }
