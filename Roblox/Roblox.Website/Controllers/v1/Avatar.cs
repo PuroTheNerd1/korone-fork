@@ -259,6 +259,7 @@ public class AvatarControllerV1 : ControllerBase, IService
                         id = (int) c.assetType,
                         name = c.assetType,
                     },
+                    currentVersionId = c.id,
                 };
             }),
         };
