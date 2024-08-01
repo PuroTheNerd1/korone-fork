@@ -8,13 +8,13 @@ using Microsoft.Net.Http.Headers;
 using Roblox;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
-using Roblox.Website.Controllers.Internal;
 using Roblox.Website.Hubs;
 using System.Text;
 using Discord.OAuth2;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Roblox.Services.Signer;
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
@@ -174,11 +174,11 @@ app.UseRobloxLoggingMiddleware();
 app.UseExceptionHandler("/error");
 //await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");
 //CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value); // will be removed soon
-SignatureController.Setup();
+
 RenderingHandler.Configure(configuration.GetSection("BaseUrl").Value, configuration.GetSection("Directories:RCCService").Value, configuration.GetSection("Directories:RCCLuaScripts").Value,  configuration.GetSection("Directories:RCCService2").Value);
 SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value);
 app.UseTimerMiddleware(); // Must always be last
-
+Roblox.Services.Signer.SignService.Setup();
 Task.Run(async () =>
 {
     await Task.Delay(TimeSpan.FromSeconds(5));

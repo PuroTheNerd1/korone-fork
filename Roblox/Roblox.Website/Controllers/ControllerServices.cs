@@ -1,5 +1,7 @@
 using Roblox.Libraries.RobloxApi;
 using Roblox.Services;
+using Roblox.Services.PlaceLauncher;
+using Roblox.Services.Signer;
 
 namespace Roblox.Website.Controllers
 {
@@ -19,6 +21,7 @@ namespace Roblox.Website.Controllers
         public GameServerService gameServer { get; } = new();
         public SetsService sets { get; } = new();
         public PlaceLauncherService placeLauncherFactory { get; } = new();
+        public SignService sign { get; } = new();
         public ForumsService forums { get; } = new();
         public CurrencyExchangeService currencyExchange { get; } = new();
         public AbuseReportService abuseReport { get; } = new();

@@ -8,6 +8,7 @@ using Roblox.Libraries.EasyJwt;
 using Roblox.Libraries.Password;
 using Roblox.Logging;
 using Roblox.Models.Sessions;
+using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Controllers;
 using Roblox.Website.Lib;

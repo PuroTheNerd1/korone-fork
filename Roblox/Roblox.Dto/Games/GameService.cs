@@ -37,6 +37,10 @@ public class GameServerPlayer
     public string username { get; set; } = string.Empty;
 }
 
+public class JoinGame
+{
+    public long placeId { get; set; }
+}
 public class GameServerEntry
 {
     public string id { get; set; } = string.Empty;

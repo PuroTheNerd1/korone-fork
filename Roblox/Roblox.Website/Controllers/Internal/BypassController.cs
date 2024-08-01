@@ -22,7 +22,6 @@ using Roblox.Models.GameServer;
 using Roblox.Models.Users;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
-using Roblox.Website.Controllers.Internal;
 using Roblox.Website.Filters;
 using Roblox.Website.Middleware;
 using Roblox.Website.WebsiteModels.Asset;
@@ -513,7 +512,7 @@ namespace Roblox.Website.Controllers
             }
 
             luaCode = string.Join("\n", lines);
-            string SignedScript = SignatureController.SignStringResponseForClientFromPrivateKey(luaCode, true);
+            string SignedScript = services.sign.SignStringResponseForClientFromPrivateKey(luaCode, true);
             return SignedScript;
 
         }
@@ -652,6 +651,11 @@ namespace Roblox.Website.Controllers
             return new MVC.RedirectResult("/");
         }
 
+        [HttpPostBypass("/v1/join-game")]
+        public async Task<dynamic> JoinGameMobile([FromBody] JoinGame request)
+        {
+            return await services.placeLauncherFactory.PlaceLauncherAsync("RequestGame", request.placeId, false, false, null, null, null, null, true);
+        }
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         public async Task<dynamic> PlaceLaunch(string request, int placeId, string? gameId, bool isPartyLeader, bool isTeleport, string? accessCode, string? linkCode, string? privateGameMode)
@@ -916,20 +920,20 @@ namespace Roblox.Website.Controllers
                 case 2015:
                 case 2016:
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
-                    finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
+                    finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2017:                  
-                    finalTicket = SignatureController.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
+                    finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2018:
-                    finalTicket = SignatureController.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
+                    finalTicket = services.sign.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2019:
-                    finalTicket = SignatureController.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
+                    finalTicket = services.sign.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
                     break;
                 case 2020:
                     characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-                    finalTicket = SignatureController.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
+                    finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
                     break;
                 default:
                     throw new InvalidOperationException($"This year does not exist: {year}");
@@ -1081,13 +1085,13 @@ namespace Roblox.Website.Controllers
             {
                 case 2015:
                 case 2016:
-                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript2016);
+                    return services.sign.SignJsonResponseForClientFromPrivateKey(joinScript2016);
                 case 2017:
-                    return SignatureController.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
+                    return services.sign.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
                 case 2018:
-                    return SignatureController.SignJson2048(joinScript20172018);      
+                    return services.sign.SignJson2048(joinScript20172018);      
                 case 2020:
-                    return SignatureController.SignJson2048New(joinScript20192020);
+                    return services.sign.SignJson2048New(joinScript20192020);
                 default:
                     return "Fail";
             }

@@ -1,6 +1,5 @@
 
 using MVC = Microsoft.AspNetCore.Mvc;
-using Roblox.Website.Controllers.Internal;
 namespace Roblox.Website.Controllers
 {
 
@@ -27,7 +26,7 @@ namespace Roblox.Website.Controllers
                 ("%membership%", $"{membership}").Replace
                 ("%userId%", $"{UserID}").Replace
                 ("%universeId%", $"{universeId}");
-            return SignatureController.SignStringResponseForClientFromPrivateKey(finalScript, true);
+            return services.sign.SignStringResponseForClientFromPrivateKey(finalScript, true);
         }
     }
 }
