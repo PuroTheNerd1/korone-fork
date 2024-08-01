@@ -16,5 +16,12 @@ namespace Roblox.Website.Controllers
             dynamic? local = JsonConvert.DeserializeObject<ExpandoObject>(localesRaw);
             return local ?? "";
         }
+        [HttpGetBypass("v1/locales/user-localization-locus-supported-locales")]
+        public dynamic GetLocalesOther()
+        {
+            string localesRaw = System.IO.File.ReadAllText(Configuration.JsonDataDirectory + "Supportedlocales.json");
+            dynamic? local = JsonConvert.DeserializeObject<ExpandoObject>(localesRaw);
+            return local ?? "";
+        }
     }
 }
