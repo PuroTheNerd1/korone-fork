@@ -404,67 +404,79 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/assets/batch")]
         public async Task<dynamic> AssetBatch()
         {
-            HttpContext.Request.EnableBuffering();
-
-            using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
+            List<BatchAssetRequest> requestData;
+            HttpContext.Request.Body.Position = 0;
+            bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
+            if (isGzip)
             {
-                var requestBody = await reader.ReadToEndAsync();
-                Console.WriteLine(requestBody);
-
-                HttpContext.Request.Body.Position = 0;
-                bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
-                Console.WriteLine($"Is GZIP: {isGzip}");
-                List<BatchAssetRequest> requestData;
-                try
+                using (var decompressedStream = new MemoryStream())
                 {
-                    requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(requestBody);
-                }
-                catch (JsonException ex)
-                {
-                    return BadRequest(new { success = false, error = "Invalid JSON format", details = ex.Message });
-                }
+                    using (var requestStream = Request.Body)
+                    {
+                        using (var gzipStream = new GZipStream(requestStream, CompressionMode.Decompress))
+                        {
+                            await gzipStream.CopyToAsync(decompressedStream);
+                        }
+                    }
+                    decompressedStream.Seek(0, SeekOrigin.Begin);
 
-                if (requestData == null || requestData.Count == 0 || requestData.Any(item => item.assetId == null || string.IsNullOrEmpty(item.assetType) || item.requestId == null))
+                    using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
+                    {
+                        var json = await reader.ReadToEndAsync();
+                        Console.WriteLine(json);
+                        requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
+                    }
+                }
+            }
+            else
+            {
+                using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+                {
+                    var json = await reader.ReadToEndAsync();
+                    Console.WriteLine(json);
+                    requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
+                }
+            }
+
+            if (requestData == null || requestData.Count == 0 || requestData.Any(item => item.assetId == null || item.requestId == null))
+            {
+                return BadRequest(new { success = false, error = "Invalid request" });
+            }
+
+            var assetReturnInfo = new List<object>();
+            foreach (var request in requestData)
+            {
+                if (request.assetId == null || request.requestId == null)
                 {
                     return BadRequest(new { success = false, error = "Invalid request" });
                 }
 
-                var assetReturnInfo = new List<object>();
-                foreach (var request in requestData)
-                {
-                    if (request.assetId == null || string.IsNullOrEmpty(request.assetType) || request.requestId == null)
+                try
                     {
-                        return BadRequest(new { success = false, error = "Invalid request" });
-                    }
+                    var details = await services.assets.GetAssetCatalogInfo((long)request.assetId);
 
-                    try
-                    {
-                        var details = await services.assets.GetAssetCatalogInfo((long)request.assetId);
-
-                        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.assetType == Type.Place)
-                        {
-                            continue;
-                        }
-
-                        Console.WriteLine(request.assetId);
-                        assetReturnInfo.Add(new
-                        {
-                            Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
-                            RequestId = request.requestId
-                        });
-                    }
-                    catch (RecordNotFoundException)
+                    if (details.moderationStatus != ModerationStatus.ReviewApproved || details.assetType == Type.Place)
                     {
                         continue;
                     }
-                    catch (Exception ex)
-                    {
-                        return StatusCode(500, new { success = false, error = "An unexpected error occurred", details = ex.Message });
-                    }
-                }
 
-                return Ok(assetReturnInfo);
+                    Console.WriteLine(request.assetId);
+                    assetReturnInfo.Add(new
+                    {
+                        Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
+                        RequestId = request.requestId
+                    });
+                }
+                catch (RecordNotFoundException)
+                {
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new { success = false, error = "An unexpected error occurred", details = ex.Message });
+                }
             }
+            return Ok(assetReturnInfo);
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
