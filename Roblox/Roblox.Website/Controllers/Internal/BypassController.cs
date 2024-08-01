@@ -412,7 +412,8 @@ namespace Roblox.Website.Controllers
                 Console.WriteLine(requestBody);
 
                 HttpContext.Request.Body.Position = 0;
-
+                bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
+                Console.WriteLine($"Is GZIP: {isGzip}");
                 List<BatchAssetRequest> requestData;
                 try
                 {
