@@ -1605,7 +1605,7 @@ namespace Roblox.Website.Controllers
                 message = "",
             };
         }
-
+        [HttpGetBypass("/v1/user/currency")]
         [HttpGetBypass("/my/balance")]
         public async Task<ActionResult<dynamic>> MyBalance()
         {
