@@ -100,6 +100,9 @@ namespace Roblox.Website.Controllers
                 case "PCDesktopClient":
                     realApp = "PCDesktopClient";
                     break;
+                case "AndroidApp":
+                    realApp = "AndroidApp";
+                    break;
                 default:
                     return NotFound();
             }
