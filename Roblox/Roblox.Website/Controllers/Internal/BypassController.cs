@@ -2279,6 +2279,7 @@ namespace Roblox.Website.Controllers
             var roles = new string[] { };
             if (userSession == null)
             {
+                HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return new
                 {
                     success = false,
