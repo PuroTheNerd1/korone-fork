@@ -402,7 +402,7 @@ namespace Roblox.Website.Controllers
         }
         [HttpPostBypass("asset/batch")]
         [HttpPostBypass("v1/assets/batch")]
-        public async Task<MVC.ActionResult> AssetBatch([FromBody] List<BatchAssetRequest> requestData)
+        public async Task<MVC.ActionResult> AssetBatch()
         {
             HttpContext.Request.EnableBuffering();
 
@@ -411,7 +411,8 @@ namespace Roblox.Website.Controllers
             HttpContext.Request.Body.Position = 0; 
 
             Console.WriteLine(requestBody);
-
+            return Ok();
+/*
             if (requestData == null || requestData.ToString().Length > 200)
             {
                 return BadRequest(new { success = false, error = "Invalid request" });
@@ -449,6 +450,7 @@ namespace Roblox.Website.Controllers
                 }
             }
             return Ok(new { success = true, assets = assetReturnInfo });
+*/
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
