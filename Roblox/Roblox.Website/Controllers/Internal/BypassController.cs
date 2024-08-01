@@ -2273,16 +2273,24 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("users/account-info")]
         [HttpPostBypass("users/account-info")]
-        public async Task<ContentResult> accountInfo()
+        public async Task<dynamic> accountInfo()
         {
 
             var roles = new string[] { };
-            var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
+            if (userSession == null)
+            {
+                return new
+                {
+                    success = false,
+                    message = "Unauthorized"
+                };
+            }
+            var userBalance = await services.economy.GetUserBalance(userSession.userId);
             var jsonData = new
             {
-                UserId =  safeUserSession.userId,
-                Username = safeUserSession.username,
-                DisplayName = safeUserSession.username,
+                UserId =  userSession.userId,
+                Username = userSession.username,
+                DisplayName = userSession.username,
                 HasPasswordSet = true,
                 Email = "ProjectX@projex.zip",
                 MembershipType = 3,
