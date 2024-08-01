@@ -400,8 +400,8 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
             throw new BadRequestException();
         }
-        [HttpPostBypass("asset/batch/")]
-        [HttpPostBypass("v1/assets/batch/")]
+        [HttpPostBypass("asset/batch")]
+        [HttpPostBypass("v1/assets/batch")]
         public async Task<MVC.ActionResult> AssetBatch([FromBody] List<BatchAssetRequest> requestData)
         {
             if (requestData == null || requestData.ToString().Length > 200)
