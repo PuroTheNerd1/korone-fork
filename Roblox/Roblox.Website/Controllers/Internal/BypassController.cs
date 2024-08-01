@@ -462,7 +462,7 @@ namespace Roblox.Website.Controllers
                     Console.WriteLine(request.assetId);
                     assetReturnInfo.Add(new
                     {
-                        Location = $"{Configuration.BaseUrl}/asset?id={request.assetId}",
+                        Location = $"{Configuration.BaseUrl}/sajdajkdjadj",
                         RequestId = request.requestId
                     });
                 }
@@ -470,7 +470,7 @@ namespace Roblox.Website.Controllers
                 {
                     assetReturnInfo.Add(new
                     {
-                        Location = $"{Configuration.BaseUrl}/asset?id={request.assetId}",
+                        Location = $"{Configuration.BaseUrl}/sajdajkdjadj",
                         RequestId = request.requestId
                     });
                     continue;
