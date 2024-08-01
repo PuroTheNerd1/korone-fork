@@ -402,7 +402,7 @@ namespace Roblox.Website.Controllers
         }
         [HttpPostBypass("asset/batch")]
         [HttpPostBypass("v1/assets/batch")]
-        public async Task<MVC.ActionResult> AssetBatch([FromBody] BatchAssetRequest[] requestData)
+        public async Task<IActionResult> AssetBatch([FromBody] IEnumerable<BatchAssetRequest> requestData)
         {
             HttpContext.Request.EnableBuffering();
 
