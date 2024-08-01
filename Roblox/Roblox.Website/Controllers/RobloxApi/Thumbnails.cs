@@ -163,6 +163,7 @@ public class RbxThumbnails : ControllerBase
                 using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
                 {
                     var json = await reader.ReadToEndAsync();
+                    Console.WriteLine(json);
                     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
                 }
             }
