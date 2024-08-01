@@ -58,14 +58,14 @@ public class PlaceLauncherService : ServiceBase
             message = (string)null,
         };
     }
-    public async Task<dynamic> RequestGame(long placeId, int matchmaking, bool? Special = false, string? username = null, long? userId = null, string? ticket = null)
+    public async Task<dynamic> RequestGame(long placeId, int matchmaking, bool? Special = false, string? username = null, long? userId = null)
     {
         GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
         UsersService users = new UsersService();
         SignService sign = new SignService();
         var result = await gameServer.GetServerForPlace(placeId, matchmaking);
-        dynamic joinscript = null;
+        dynamic joinScript = null;
         string finalTicket;
         if ((bool)Special)
         {
@@ -78,7 +78,6 @@ public class PlaceLauncherService : ServiceBase
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             var userInfo = await users.GetUserById((long)userId);
             string characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-            finalTicket = ticket;
 
             Console.WriteLine(username);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
@@ -92,7 +91,7 @@ public class PlaceLauncherService : ServiceBase
             }
             characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             finalTicket = sign.GenerateClientTicketV4((long)userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-            joinscript = new
+            joinScript = new
             {
                 ClientPort = 0,
                 MachineAddress = "85.215.186.154",
@@ -171,7 +170,7 @@ public class PlaceLauncherService : ServiceBase
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = "hi",
                 message = (string?)null,
-                joinscript
+                joinScript
             };
         }
         return new
