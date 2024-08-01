@@ -243,7 +243,7 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 targetId = c.targetId,
                 imageUrl = c.imageUrl,
-                state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                state = Configuration.BaseUrl + c.imageUrl.Replace(".png", "") == null ? ThumbnailState.Pending : ThumbnailState.Completed,
             };
         });
     }
