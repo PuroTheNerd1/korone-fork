@@ -79,7 +79,10 @@ public class ThumbnailsService : ServiceBase, IService
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
+            {
                 c.imageUrl = Roblox.Configuration.BaseUrl + c.imageUrl;
+                c.imageUrl.Replace(".png", "");
+            }
             return c;
         });
     }
