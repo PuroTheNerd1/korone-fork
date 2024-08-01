@@ -140,6 +140,17 @@ public class RbxThumbnails : ControllerBase
     {
         return await services.thumbnails.GetGameIconsRBX(universeId);
     }
+    [HttpGetBypass("v1/games/icons")]
+    public async Task<RobloxCollection<ThumbnailEntry>> GetGameIcons(string universeIds)
+    {
+        var parsed = universeIds.Split(",").Select(long.Parse).Distinct().ToList();
+        if (parsed.Count is > 200 or < 0) throw new BadRequestException();
+        var result = await services.thumbnails.GetGameIcons(parsed);
+        return new()
+        {
+            data = result,
+        };
+    }
     [HttpGet("v1/users/avatar-headshot")]
     public async Task<RobloxCollection<ThumbnailEntry>> GetMultiHeadshot(string userIds)
     {
