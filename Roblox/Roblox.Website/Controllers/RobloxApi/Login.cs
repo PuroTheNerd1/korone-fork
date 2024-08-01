@@ -79,6 +79,7 @@ namespace Roblox.Website.Controllers
 
             string userAgent;
             userAgent = Request.Headers["User-Agent"]; 
+            Console.WriteLine(userAgent);
             string username = "";
             string password = "";
             long userId;
