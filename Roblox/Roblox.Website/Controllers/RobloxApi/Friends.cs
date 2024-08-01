@@ -26,7 +26,7 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class Friends: ControllerBase
     {
-        [HttpGetBypass("v1/users/{userId:long/friends")]
+        [HttpGetBypass("v1/users/{userId:long}/friends")]
         public async Task<dynamic> GetFriends(long userId)
         {
             var result = await services.friends.GetFriends(userId);
