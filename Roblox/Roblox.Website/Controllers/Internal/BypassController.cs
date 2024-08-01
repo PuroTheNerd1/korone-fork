@@ -404,6 +404,14 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/assets/batch")]
         public async Task<MVC.ActionResult> AssetBatch([FromBody] List<BatchAssetRequest> requestData)
         {
+            HttpContext.Request.EnableBuffering();
+
+            var bodyStream = new StreamReader(HttpContext.Request.Body);
+            var requestBody = await bodyStream.ReadToEndAsync();
+            HttpContext.Request.Body.Position = 0; 
+
+            Console.WriteLine(requestBody);
+            
             if (requestData == null || requestData.ToString().Length > 200)
             {
                 return BadRequest(new { success = false, error = "Invalid request" });
