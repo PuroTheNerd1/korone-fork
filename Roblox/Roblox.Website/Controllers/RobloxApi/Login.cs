@@ -164,17 +164,35 @@ namespace Roblox.Website.Controllers
                 SameSite = SameSiteMode.Unspecified,
             });
             var userBalance = await services.economy.GetUserBalance(userId);
-            var jsonData = new
+            var info = await services.users.GetUserById(userId);
+            var isBanned =
+                info.accountStatus != AccountStatus.Ok && 
+                info.accountStatus != AccountStatus.MustValidateEmail && 
+                info.accountStatus != AccountStatus.Suppressed;
+            if(isMobile)
             {
-                membershipType = 4,
-                username = username,
-                isUnder13 = false,
-                countryCode = "US",
-                userId = userId,
-                displayName = username
-            };
-            string jsonString = JsonConvert.SerializeObject(jsonData);
-            return Content(jsonString, "application/json");
+                return new
+                {
+                    membershipType = 4,
+                    username = username,
+                    isUnder13 = false,
+                    countryCode = "US",
+                    userId = userId,
+                    displayName = username
+                };
+            }
+            else{
+                return new 
+                {
+                    user = new
+                    {
+                        id = userId,
+                        name = username,
+                        displayName = username
+                    },
+                    isBanned
+                };
+            }
         }
     }
 }
