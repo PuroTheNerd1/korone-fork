@@ -468,7 +468,11 @@ namespace Roblox.Website.Controllers
                 }
                 catch (RecordNotFoundException)
                 {
-                    continue;
+                    assetReturnInfo.Add(new
+                    {
+                        Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
+                        RequestId = request.requestId
+                    });
                 }
                 catch (Exception ex)
                 {
