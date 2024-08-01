@@ -184,7 +184,11 @@ public class RbxThumbnails : ControllerBase
             switch (entry.type)
             {
                 case "Avatar":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "Avatar", services.thumbnails.GetUserThumbnails));
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
+                        thumbs, 
+                        "Avatar", 
+                        ids => services.thumbnails.GetUserThumbnails(new[] { entry.targetId })
+                    ));
                     break;
                 case "AvatarThumbnail":
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails));
