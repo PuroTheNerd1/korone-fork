@@ -406,11 +406,14 @@ namespace Roblox.Website.Controllers
         {
             HttpContext.Request.EnableBuffering();
 
-            var bodyStream = new StreamReader(HttpContext.Request.Body);
-            var requestBody = await bodyStream.ReadToEndAsync();
-            HttpContext.Request.Body.Position = 0; 
+            using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
+            {
+                var requestBody = await reader.ReadToEndAsync();
 
-            Console.WriteLine(requestBody);
+                Console.WriteLine(requestBody);
+
+                HttpContext.Request.Body.Position = 0;
+            }
 
             if (requestData == null || requestData.ToString().Length > 200)
             {
