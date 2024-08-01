@@ -96,6 +96,9 @@ namespace Roblox.Website.Controllers
                 case "RCCService2020":
                     realApp = "RCCService2020";
                     break;
+                case "PCStudioApp":
+                    realApp = "StudioApp";
+                    break;
                 case "RCCService2021":
                     realApp = "RCCService2021";
                     break;
