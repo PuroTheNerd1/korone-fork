@@ -309,6 +309,11 @@ public class ApplicationGuardMiddleware
         var uaTimer = new MiddlewareTimer(ctx, "ua");
         var ua = ctx.Request.Headers["user-agent"].ToString();
         var uaBlocked = IsUserAgentBlocked(ua);
+        if(uaBlocked)
+        {
+            uaBlocked = !ctx.Request.Host.ToString().Contains("clientsettings");
+        };
+
         var bypassOk = false;
         var bypassAllowedForPath = allowedPathsForBlockUserAgents.Contains(normalizedPath);
         
