@@ -402,56 +402,68 @@ namespace Roblox.Website.Controllers
         }
         [HttpPostBypass("asset/batch")]
         [HttpPostBypass("v1/assets/batch")]
-        public async Task<dynamic> AssetBatch([FromBody] IEnumerable<BatchAssetRequest> requestData)
+        public async Task<dynamic> AssetBatch()
         {
             HttpContext.Request.EnableBuffering();
 
             using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
             {
                 var requestBody = await reader.ReadToEndAsync();
-
                 Console.WriteLine(requestBody);
 
                 HttpContext.Request.Body.Position = 0;
-            }
 
-            if (requestData == null || requestData.ToString().Length > 200)
-            {
-                return BadRequest(new { success = false, error = "Invalid request" });
-            }
-            var assetReturnInfo = new List<object>();
-            foreach (var request in requestData)
-            {
-                if (request.assetId == null || string.IsNullOrEmpty(request.assetType) || request.requestId == null)
+                List<BatchAssetRequest> requestData;
+                try
+                {
+                    requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(requestBody);
+                }
+                catch (JsonException ex)
+                {
+                    return BadRequest(new { success = false, error = "Invalid JSON format", details = ex.Message });
+                }
+
+                if (requestData == null || requestData.Count == 0 || requestData.Any(item => item.assetId == null || string.IsNullOrEmpty(item.assetType) || item.requestId == null))
                 {
                     return BadRequest(new { success = false, error = "Invalid request" });
                 }
 
-                try
+                var assetReturnInfo = new List<object>();
+                foreach (var request in requestData)
                 {
-                    var details = await services.assets.GetAssetCatalogInfo((long)request.assetId);
+                    if (request.assetId == null || string.IsNullOrEmpty(request.assetType) || request.requestId == null)
+                    {
+                        return BadRequest(new { success = false, error = "Invalid request" });
+                    }
 
-                    if (details.moderationStatus != ModerationStatus.ReviewApproved || details.assetType == Type.Place)
+                    try
+                    {
+                        var details = await services.assets.GetAssetCatalogInfo((long)request.assetId);
+
+                        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.assetType == Type.Place)
+                        {
+                            continue;
+                        }
+
+                        Console.WriteLine(request.assetId);
+                        assetReturnInfo.Add(new
+                        {
+                            Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
+                            RequestId = request.requestId
+                        });
+                    }
+                    catch (RecordNotFoundException)
                     {
                         continue;
                     }
-                    Console.WriteLine(request.assetId);
-                    assetReturnInfo.Add(new
+                    catch (Exception ex)
                     {
-                        Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
-                        RequestId = request.requestId
-                    });
+                        return StatusCode(500, new { success = false, error = "An unexpected error occurred", details = ex.Message });
+                    }
                 }
-                catch (RecordNotFoundException)
-                {
-                    continue;
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { success = false, error = "An unexpected error occurred", details = ex.Message });
-                }
+
+                return Ok(assetReturnInfo);
             }
-            return Ok(assetReturnInfo);
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
