@@ -242,8 +242,8 @@ public class ThumbnailsService : ServiceBase, IService
             return new ThumbnailEntry()
             {
                 targetId = c.targetId,
-                imageUrl = c.imageUrl,
-                state = Configuration.BaseUrl + c.imageUrl.Replace(".png", "") == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                imageUrl = Configuration.BaseUrl+ c.imageUrl.Replace(".png", ""),
+                state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
             };
         });
     }
