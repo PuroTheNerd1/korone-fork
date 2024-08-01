@@ -226,16 +226,32 @@ public class RbxThumbnails : ControllerBase
                     ));
                     break;
                 case "AvatarThumbnail":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails));
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
+                        thumbs, 
+                        "AvatarThumbnail", 
+                        ids => services.thumbnails.GetUserThumbnails(new[] { entry.targetId })
+                    ));
                     break;
                 case "AvatarHeadShot":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots));
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
+                        thumbs, 
+                        "AvatarHeadShot", 
+                        ids => services.thumbnails.GetUserHeadshots(new[] { entry.targetId })
+                    ));
                     break;
                 case "GameIcon":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons));
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
+                        thumbs, 
+                        "GameIcon", 
+                        ids => services.thumbnails.GetGameIcons(new[] { entry.targetId })
+                    ));
                     break;
                 case "AssetThumbnail":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails));
+                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
+                        thumbs, 
+                        "AssetThumbnail", 
+                        ids => services.thumbnails.GetUserHeadshots(new[] { entry.targetId })
+                    ));
                     break;
                 default:
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots));
