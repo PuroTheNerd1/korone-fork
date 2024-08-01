@@ -311,7 +311,7 @@ public class ApplicationGuardMiddleware
         var uaBlocked = IsUserAgentBlocked(ua);
         if(uaBlocked)
         {
-            uaBlocked = !ctx.Request.Host.ToString().Contains("clientsettings");
+            uaBlocked = !ctx.Request.GetEncodedUrl().ToString().Contains("clientsettings");
         };
 
         var bypassOk = false;
