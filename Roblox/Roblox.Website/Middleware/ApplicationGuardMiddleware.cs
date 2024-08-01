@@ -354,6 +354,7 @@ public class ApplicationGuardMiddleware
                 if (deleteCookie)
                     ctx.Response.Cookies.Delete("uabypass1");
             }
+            Console.WriteLine(ua.ToString());
             uaBypassWatch.Stop();
             Writer.Info(LogGroup.AbuseDetection, "took {0}ms to parse ua bypass cookie", uaBypassWatch.ElapsedMilliseconds);
         }
