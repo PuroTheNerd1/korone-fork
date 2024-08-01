@@ -235,7 +235,7 @@ public class ThumbnailsControllerV1 : ControllerBase
             errorMessage = string.Empty,
             targetId = c.targetId,
             state = "Completed",
-            imageUrl = $"{Configuration.BaseUrl}{c.imageUrl.Replace(".png", "")}",
+            imageUrl = $"{c.imageUrl.Replace(".png", "")}",
             version = "0" 
         });
     }
