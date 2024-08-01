@@ -1875,7 +1875,8 @@ namespace Roblox.Website.Controllers
                 "2cb51bbbcd309a35858876b6c2167627", //Debug MD5 2016E
                 "4e8ab57381d7f1a98cc7ea79824f88ef", //2017L
                 "8c5aecb7811acbb582f06f2a81b958f4",  //2018L
-                "9cdc73fd9b24c974f5a0dde411dcd38f" //2020L
+                "9cdc73fd9b24c974f5a0dde411dcd38f", //2020L
+                "49a33709ab8a717b72ec7083c12f1398" //2021E
             };
 
             return new { data = allowedList };
@@ -1897,7 +1898,8 @@ namespace Roblox.Website.Controllers
                 "0.314.0pcplayer",
                 "0.355.0pcplayer",
                 "2.355.0iosapp",
-                "0.450.0pcplayer"
+                "0.450.0pcplayer",
+                "0.463.0pcplayer"
             };
             var jsonString = JsonConvert.SerializeObject(allowedList);
             return new { data = jsonString };
