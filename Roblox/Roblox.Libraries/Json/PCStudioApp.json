@@ -1,4 +1,5 @@
 {
+	"applicationSettings":{
 	"AllowVideoPreRoll": true,
 	"AndroidSwipeGestureUseStartingPosition": true,
 	"AxisAdornmentGrabSize": 12,
@@ -4506,4 +4507,5 @@
 	"TreatAndroidInputSourceAsBitmask": true,
 	"UseSetForegroundWindowForPlayer2": true,
 	"VideoPreRollWaitTimeSeconds": 45
+	}
 }
