@@ -77,7 +77,8 @@ namespace Roblox.Website.Controllers
         {
             string requestBody;
 
-            string userAgent;
+            string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("roblox ios app");
             userAgent = Request.Headers["User-Agent"]; 
             Console.WriteLine(userAgent);
             string username = "";
@@ -112,9 +113,18 @@ namespace Roblox.Website.Controllers
             else{
                 using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
                 {
-                    var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobileV2>(requestBody) ?? new LoginRequestMobileV2();
-                    username = serializedResponse.username;
-                    password = serializedResponse.password;
+                    if (isMobile)
+                    {
+                        var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobileV2>(requestBody) ?? new LoginRequestMobileV2();
+                        username = serializedResponse.username;
+                        password = serializedResponse.password;
+                    }
+                    else
+                    {
+                        var serializedResponse = JsonConvert.DeserializeObject<LoginRequest>(requestBody) ?? new LoginRequest();
+                        username = serializedResponse.cvalue;
+                        password = serializedResponse.password;
+                    }
                 }         
             }
            
