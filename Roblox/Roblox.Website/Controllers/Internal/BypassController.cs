@@ -42,6 +42,7 @@ using Roblox.Exceptions;
 using Roblox.Website.Pages;
 using System.IO.Compression;
 using Roblox.Models;
+using Roblox.Dto.Assets;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -398,6 +399,48 @@ namespace Roblox.Website.Controllers
 
             Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
             throw new BadRequestException();
+        }
+        [HttpPostBypass("asset/batch/")]
+        [HttpPostBypass("v1/assets/batch/")]
+        public async Task<MVC.ActionResult> AssetBatch([FromBody] List<BatchAssetRequest> requestData)
+        {
+            if (requestData == null || requestData.ToString().Length > 200)
+            {
+                return BadRequest(new { success = false, error = "Invalid request" });
+            }
+            var assetReturnInfo = new List<object>();
+            foreach (var request in requestData)
+            {
+                if (request.AssetId == null || string.IsNullOrEmpty(request.AssetType) || request.RequestId == null)
+                {
+                    return BadRequest(new { success = false, error = "Invalid request" });
+                }
+
+                try
+                {
+                    var details = await services.assets.GetAssetCatalogInfo((long)request.AssetId);
+
+                    if (details.moderationStatus != ModerationStatus.ReviewApproved || details.assetType == Type.Place)
+                    {
+                        continue;
+                    }
+
+                    assetReturnInfo.Add(new
+                    {
+                        Location = $"{Configuration.BaseUrl}/v1/asset?id={request.AssetId}",
+                        RequestId = request.RequestId
+                    });
+                }
+                catch (RecordNotFoundException)
+                {
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new { success = false, error = "An unexpected error occurred", details = ex.Message });
+                }
+            }
+            return Ok(new { success = true, assets = assetReturnInfo });
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
