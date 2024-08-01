@@ -46,18 +46,18 @@ namespace Roblox.Website.Controllers
             dynamic? json = JsonConvert.DeserializeObject<ExpandoObject>(rawJson);
             return json ?? new ExpandoObject();
         }
-        [HttpGetBypass("v1/name-description/games/{placeId:long}")]
-        public async Task<dynamic> GetGameDesc(long placeId)
+        [HttpGetBypass("v1/name-description/games/{universeId:long}")]
+        public async Task<dynamic> GetGameDesc(long universeId)
         {
-            var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
+            var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
             return new
             {
                 data = new[]
                 {
                     new
                     {
-                        name = placeInfo.name,
-                        description = placeInfo.description,
+                        name = uni.name,
+                        description = uni.description,
                         languageCode = "en"
                     }
                 }
