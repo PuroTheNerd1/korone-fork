@@ -20,7 +20,7 @@ namespace Roblox.Website.Controllers
     /// </summary>
     public class ControllerServicesExtended : ControllerServices
     {
-
+//
         [Obsolete("Use AvatarService.RedrawAvatar instead")]
         public static async Task RedrawAvatar(long userId, IEnumerable<long>? newAssetIds = null, ColorEntry? colors = null,
             AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false)
