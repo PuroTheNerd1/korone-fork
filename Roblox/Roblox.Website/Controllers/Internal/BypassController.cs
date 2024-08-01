@@ -473,6 +473,7 @@ namespace Roblox.Website.Controllers
                         Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
                         RequestId = request.requestId
                     });
+                    continue;
                 }
                 catch (Exception ex)
                 {
