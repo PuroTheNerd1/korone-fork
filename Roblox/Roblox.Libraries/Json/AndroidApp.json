@@ -1,4 +1,5 @@
 {
+	"applicationSettings": {
 	"ABTestV1ApiRollout": 100,
 	"ActivityLimitParams": "5;10;10;3",
 	"AllowVideoPreRoll": true,
@@ -4307,4 +4308,5 @@
 	"VideoPreRollWaitTimeSeconds": 45,
 	"VisibleAgeStyleLuaApp": "More Only",
 	"VisibleAgeStyleNativeShell": "More Only"
+	}
 }
