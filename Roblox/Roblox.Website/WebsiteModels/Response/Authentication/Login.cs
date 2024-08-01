@@ -1,5 +1,5 @@
 namespace Roblox.Website.WebsiteModels.Authentication;
-public class LoginRequestMobile
+public class LoginRequestMobileV2
 {
     public string username { get; set; } = "";
     public string password { get; set; } = "";
