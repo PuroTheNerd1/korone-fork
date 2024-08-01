@@ -266,8 +266,8 @@ public class GamesService : ServiceBase, IService
     }
     public async Task SetYear(long placeId, int year)
     {
-        if (year != 2015 && year != 2016 && year != 2017 && year != 2018 && year != 2020)
-            throw new ArgumentException("Year can only be 2016, 2017, 2018, 2020");
+        if (year != 2015 && year != 2016 && year != 2017 && year != 2018 && year != 2020 && year != 2021)
+            throw new ArgumentException("Year can only be 2015, 2016, 2017, 2018, 2020, 2021");
             
         await db.ExecuteAsync("UPDATE asset_place SET year = :year WHERE asset_id = :id", new
         {

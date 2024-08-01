@@ -935,6 +935,10 @@ namespace Roblox.Website.Controllers
                     characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
                     finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
                     break;
+                case 2021:
+                    characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
+                    finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
+                    break;
                 default:
                     throw new InvalidOperationException($"This year does not exist: {year}");
             }
@@ -1091,6 +1095,7 @@ namespace Roblox.Website.Controllers
                 case 2018:
                     return services.sign.SignJson2048(joinScript20172018);      
                 case 2020:
+                case 2021:
                     return services.sign.SignJson2048New(joinScript20192020);
                 default:
                     return "Fail";
