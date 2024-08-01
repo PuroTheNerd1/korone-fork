@@ -402,7 +402,7 @@ namespace Roblox.Website.Controllers
         }
         [HttpPostBypass("asset/batch")]
         [HttpPostBypass("v1/assets/batch")]
-        public async Task<IActionResult> AssetBatch([FromBody] IEnumerable<BatchAssetRequest> requestData)
+        public async Task<dynamic> AssetBatch([FromBody] IEnumerable<BatchAssetRequest> requestData)
         {
             HttpContext.Request.EnableBuffering();
 
@@ -432,7 +432,7 @@ namespace Roblox.Website.Controllers
                     {
                         continue;
                     }
-
+                    Console.WriteLine(request.assetId);
                     assetReturnInfo.Add(new
                     {
                         Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
@@ -448,7 +448,7 @@ namespace Roblox.Website.Controllers
                     return StatusCode(500, new { success = false, error = "An unexpected error occurred", details = ex.Message });
                 }
             }
-            return Ok(new { success = true, assets = assetReturnInfo });
+            return Ok(assetReturnInfo);
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
