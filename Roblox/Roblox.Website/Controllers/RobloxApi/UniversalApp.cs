@@ -39,7 +39,7 @@ namespace Roblox.Website.Controllers
         public dynamic AppPolicy()
         {
             string policyContent = System.IO.File.ReadAllText(Configuration.JsonDataDirectory + "AppPolicy.json");
-            dynamic? policyJson = JsonConvert.DeserializeObject(policyContent);
+            dynamic? policyJson = JsonConvert.DeserializeObject<ExpandoObject>(policyContent);
             return policyJson ?? "";
         }
     }
