@@ -405,7 +405,6 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> AssetBatch()
         {
             List<BatchAssetRequest> requestData;
-            HttpContext.Request.Body.Position = 0;
             bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
             if (isGzip)
             {
