@@ -2,7 +2,7 @@ namespace Roblox.Dto.Assets;
 
 public class BatchAssetRequest
 {
-    public long? AssetId { get; set; }
-    public string AssetType { get; set; }
-    public long? RequestId { get; set; }
+    public long? assetId { get; set; }
+    public string assetType { get; set; }
+    public long? requestId { get; set; }
 }

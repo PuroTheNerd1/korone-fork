@@ -411,7 +411,7 @@ namespace Roblox.Website.Controllers
             HttpContext.Request.Body.Position = 0; 
 
             Console.WriteLine(requestBody);
-            
+
             if (requestData == null || requestData.ToString().Length > 200)
             {
                 return BadRequest(new { success = false, error = "Invalid request" });
@@ -419,14 +419,14 @@ namespace Roblox.Website.Controllers
             var assetReturnInfo = new List<object>();
             foreach (var request in requestData)
             {
-                if (request.AssetId == null || string.IsNullOrEmpty(request.AssetType) || request.RequestId == null)
+                if (request.assetId == null || string.IsNullOrEmpty(request.assetType) || request.requestId == null)
                 {
                     return BadRequest(new { success = false, error = "Invalid request" });
                 }
 
                 try
                 {
-                    var details = await services.assets.GetAssetCatalogInfo((long)request.AssetId);
+                    var details = await services.assets.GetAssetCatalogInfo((long)request.assetId);
 
                     if (details.moderationStatus != ModerationStatus.ReviewApproved || details.assetType == Type.Place)
                     {
@@ -435,8 +435,8 @@ namespace Roblox.Website.Controllers
 
                     assetReturnInfo.Add(new
                     {
-                        Location = $"{Configuration.BaseUrl}/v1/asset?id={request.AssetId}",
-                        RequestId = request.RequestId
+                        Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
+                        RequestId = request.requestId
                     });
                 }
                 catch (RecordNotFoundException)
