@@ -451,7 +451,7 @@ namespace Roblox.Website.Controllers
                 }
 
                 try
-                    {
+                {
                     var details = await services.assets.GetAssetCatalogInfo((long)request.assetId);
 
                     if (details.moderationStatus != ModerationStatus.ReviewApproved || details.assetType == Type.Place)
