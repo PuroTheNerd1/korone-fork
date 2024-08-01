@@ -35,5 +35,18 @@ namespace Roblox.Website.Controllers
                 data = result,
             };
         }
+        [HttpGetBypass("v1/users/{userId:long}/friends/count")]
+        public async Task<dynamic> GetNewFriendCount(long userId)
+        {
+            if(userId == null)
+            {
+                userId = userSession.userId;
+            }
+            int amountFriends = await services.friends.CountFriends((long)userId);
+            return new 
+            {
+                count = amountFriends
+            };
+        }
     }
 }
