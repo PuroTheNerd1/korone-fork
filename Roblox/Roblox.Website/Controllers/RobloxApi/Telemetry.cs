@@ -15,6 +15,8 @@ namespace Roblox.Website.Controllers
         {
             return Ok();
         }
+
+        [HttpGetBypass("v1/enrollments")]
         [HttpPostBypass("v1/enrollments")]
         public dynamic Enrollments()
         {
@@ -33,6 +35,8 @@ namespace Roblox.Website.Controllers
                 }
             };
         }
+
+        [HttpGetBypass("v1/get-enrollments")]
         [HttpPostBypass("v1/get-enrollments")]
         public dynamic GetEnrollments()
         {
