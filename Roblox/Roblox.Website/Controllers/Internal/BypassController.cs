@@ -654,7 +654,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/v1/join-game")]
         public async Task<dynamic> JoinGameMobile([FromBody] JoinGame request)
         {
-            return await services.placeLauncherFactory.PlaceLauncherAsync("RequestGame", request.placeId, false, false, null, null, null, null, true);
+            return await services.placeLauncherFactory.PlaceLauncherAsync("RequestGame", request.placeId, false, false, null, null, null, null, userSession.username, userSession.userId, true);
         }
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]

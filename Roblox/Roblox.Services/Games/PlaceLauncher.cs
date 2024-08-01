@@ -15,14 +15,14 @@ public class PlaceLauncherService : ServiceBase
         CloudEditTest,
     }
 
-    public async Task<dynamic> PlaceLauncherAsync(string request, long placeId, bool? isPartyLeader, bool? isTeleport, string? gameId, string? accessCode, string? linkCode, string? privateGameMode, bool? special = false)
+    public async Task<dynamic> PlaceLauncherAsync(string request, long placeId, bool? isPartyLeader, bool? isTeleport, string? gameId, string? accessCode, string? linkCode, string? privateGameMode, string? username = null, long? userId = null,  bool? special = false)
     {
         switch (request)
         {
             case "RequestGameJob":
                 return await RequestGameJob(gameId, placeId);
             case "RequestGame":
-                return await RequestGame(placeId, (int)MatchmakingContextId.Default, Special: special);
+                return await RequestGame(placeId, (int)MatchmakingContextId.Default, special, username, userId);
             case "CloudEdit":
                 return await RequestGame(placeId, (int)MatchmakingContextId.CloudEdit);
             case "RequestPrivateGame":
