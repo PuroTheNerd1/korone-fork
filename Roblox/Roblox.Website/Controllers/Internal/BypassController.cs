@@ -2021,6 +2021,17 @@ namespace Roblox.Website.Controllers
             
 
         }
+        [HttpGetBypass("v1/user/{userId:long}/is-admin-developer-console-enabled")]
+        public async Task<dynamic> NewCanManage(long userId)
+        {
+            long placeId = long.Parse(Request.Headers["roblox-place-id"].ToString());
+            bool canManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
+            bool isOwner =  StaffFilter.IsOwner(userId);
+            return new 
+            {
+                isAdminDeveloperConsoleEnabled = (canManagePlace || isOwner)
+            };
+        }
         [HttpGetBypass("universes/get-universe-places")]
         public async Task<dynamic> GetPlaces(long universeId)
         {
