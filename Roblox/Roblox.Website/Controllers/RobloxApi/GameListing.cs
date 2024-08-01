@@ -46,7 +46,23 @@ namespace Roblox.Website.Controllers
             dynamic? json = JsonConvert.DeserializeObject<ExpandoObject>(rawJson);
             return json ?? new ExpandoObject();
         }
-
+        [HttpGetBypass("v1/name-description/games/{placeId:long}")]
+        public async Task<dynamic> GetGameDesc(long placeId)
+        {
+            var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
+            return new
+            {
+                data = new[]
+                {
+                    new
+                    {
+                        name = placeInfo.name,
+                        description = placeInfo.description,
+                        languageCode = "en"
+                    }
+                }
+            };
+        }
         [HttpGetBypass("v1/games/list")]
         public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)
         {
