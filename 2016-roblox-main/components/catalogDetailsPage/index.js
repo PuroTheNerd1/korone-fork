@@ -189,7 +189,6 @@ const CatalogDetails = props => {
               </div>
               <div className='col-12 col-lg-3'>
                 <BuyButton/>
-                <Favorite assetId={details.id} favoriteCount={details.favoriteCount} />
               </div>
             </div>
             {store.isResellable &&
