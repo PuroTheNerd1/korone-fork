@@ -210,15 +210,9 @@ const CatalogPageCard = props => {
           </span>
         </p>
         <p className={s.detailsEntry}>
-          <span className={s.detailsKey}>Sales: </span>
+          <span className={s.detailsKey}>Sold: </span>
           <span className={s.detailsValue}>
             {getFlag('catalogSaleCountVisibleFromDetailsEndpoint', false) ? props.saleCount.toLocaleString() : 0}
-          </span>
-        </p>
-        <p className={s.detailsEntry}>
-          <span className={s.detailsKey}>Favorited: </span>
-          <span className={s.detailsValue}>
-            {props.favoriteCount?.toLocaleString() || 0} times
           </span>
         </p>
       </div>
