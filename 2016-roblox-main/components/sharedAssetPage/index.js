@@ -77,8 +77,6 @@ const AssetPage = props => {
                 id: assetId,
                 createdAt: uni.created,
                 updatedAt: uni.updated,
-                genres: [uni.genre],
-                favoriteCount: uni.favoritedCount,
                 isForSale: uni.price !== null,
                 price: uni.price,
                 itemRestrictions: [],
