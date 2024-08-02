@@ -6,6 +6,7 @@ import CatalogPageInput from "../../components/catalogPageInput";
 import CatalogPageNavigation from "../../components/catalogPageNavigation";
 import CatalogPageResults from "../../components/catalogPageResults";
 import CatalogPageStore from "../../stores/catalogPage";
+import CatalogFilters from "../../components/catalogFilters";
 
 const useStyles = createUseStyles({
   title: {
