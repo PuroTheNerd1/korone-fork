@@ -1,7 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
 import AdBanner from "../../components/ad/adBanner";
-import CatalogFilters from "../../components/catalogFilters";
 import CatalogLegend from "../../components/catalogLegend";
 import CatalogPageInput from "../../components/catalogPageInput";
 import CatalogPageNavigation from "../../components/catalogPageNavigation";
