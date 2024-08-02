@@ -17,7 +17,7 @@ export default function AuthenticatedHomePage() {
 export const getStaticProps = () => {
   return {
     props: {
-      title: 'Games - Project X',
+      title: 'Home - Project X',
     },
   };
 };
