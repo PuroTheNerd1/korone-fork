@@ -3,7 +3,6 @@ import { createUseStyles } from "react-jss";
 import CatalogPageStore from "../../stores/catalogPage";
 import GenreFilter from "./genreFilter";
 import SubCategoryFilter from "./subcategory";
-import CatalogFilters from "../../components/catalogFilters";
 
 const useFilterStyles = createUseStyles({
   header: {
