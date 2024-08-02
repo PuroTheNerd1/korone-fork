@@ -157,16 +157,6 @@ const CatalogPageResults = props => {
               key: '0',
               value: 'Relevance',
             },
-            // TODO
-            {
-              key: '100',
-              value: 'Most Favorited',
-            },
-            // TODO
-            {
-              key: '101',
-              value: 'Best Selling',
-            },
             {
               key: '3',
               value: 'Recently updated',
