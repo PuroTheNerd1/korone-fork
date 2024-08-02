@@ -184,8 +184,6 @@ const CatalogDetails = props => {
                 <CreatorDetails id={details.creatorTargetId} name={details.creatorName} type={details.creatorType} createdAt={details.createdAt} updatedAt={details.updatedAt}/>
                 <p className={s.description}>{filterTextForEmpty(details.description)}</p>
                 <ReportAbuse assetId={details.id}/>
-                <div className='divider-top mt-2'/>
-                <Genres genres={details.genres}/>
               </div>
               <div className='col-12 col-lg-3'>
                 <BuyButton/>
