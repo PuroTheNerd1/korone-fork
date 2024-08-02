@@ -1894,7 +1894,7 @@ public class UsersService : ServiceBase, IService
         if (membershipType == null)
             return;
         var metadata = MembershipMetadata.GetMetadata(membershipType.membershipType);
-        var dailyRobux = isStaff ? 60 : metadata.dailyRobux;
+        var dailyRobux = isStaff ? 85 : metadata.dailyRobux;
         if (dailyRobux == 0)
             return;
 
