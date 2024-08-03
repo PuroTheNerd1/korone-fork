@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Services.Exceptions;
 
 namespace Roblox.Website.Controllers;
 
@@ -63,23 +64,47 @@ public class ApiController : ControllerBase
     [HttpGet("marketplace/productinfo")]
     public async Task<dynamic> GetProductInfo(long assetId)
     {
-        var details = await services.assets.GetAssetCatalogInfo(assetId);
-        return new
+        try
         {
-            TargetId = details.id,
-            AssetId = details.id,
-            ProductId = details.id,
-            Name = details.name,
-            Description = details.description,
-            AssetTypeId = (int)details.assetType,
-            IsForSale = details.isForSale,
-            IsPublicDomain = details.isForSale && details.price == 0,
-            Creator = new
+            long Remaining = 0;
+            var details = await services.assets.GetAssetCatalogInfo(assetId);
+            if(details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"))
             {
-                Id = details.creatorTargetId,
-                Name = details.creatorName,
-            },
-        };
+                var resale = await services.assets.GetResaleData(assetId);
+                Remaining = resale.numberRemaining;
+            }
+            return new
+            {
+                TargetId = details.id,
+                AssetId = details.id,
+                ProductId = details.id, 
+                Name = details.name,
+                Description = details.description,
+                AssetTypeId = (int)details.assetType,
+                Creator = new
+                {
+                    Id = details.creatorTargetId,
+                    Name = details.creatorName,
+                },  
+                IconImageAssetId = 0,
+                Created = details.createdAt,
+                Updated = details.updatedAt,
+                PriceInRobux = details.price,
+                PriceInTickets = details.priceTickets,
+                Sales = details.saleCount,
+                IsNew = true,
+                IsForSale = details.isForSale,
+                IsPublicDomain = details.isForSale && details.price == 0,
+                IsLimited = details.itemRestrictions.Contains("Limited"),
+                IsLimitedUnique = details.itemRestrictions.Contains("LimitedUnique"),
+                Remaining,
+                MinimumMembershipLevel = 0
+            };
+        }
+        catch (RecordNotFoundException)
+        {
+            return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
+        }
     }
 
     [HttpGet("alerts/alert-info")]

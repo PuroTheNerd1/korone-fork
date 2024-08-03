@@ -26,7 +26,13 @@ namespace Roblox.Website.Controllers
         {
             try
             {
+                long Remaining = 0;
                 var details = await services.assets.GetAssetCatalogInfo(assetId);
+                if(details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"))
+                {
+                    var resale = await services.assets.GetResaleData(assetId);
+                    Remaining = resale.numberRemaining;
+                }
                 return new
                 {
                     TargetId = details.id,
@@ -35,13 +41,24 @@ namespace Roblox.Website.Controllers
                     Name = details.name,
                     Description = details.description,
                     AssetTypeId = (int)details.assetType,
-                    IsForSale = details.isForSale,
-                    IsPublicDomain = details.isForSale && details.price == 0,
                     Creator = new
                     {
                         Id = details.creatorTargetId,
                         Name = details.creatorName,
-                    }
+                    },  
+                    IconImageAssetId = 0,
+                    Created = details.createdAt,
+                    Updated = details.updatedAt,
+                    PriceInRobux = details.price,
+                    PriceInTickets = details.priceTickets,
+                    Sales = details.saleCount,
+                    IsNew = true,
+                    IsForSale = details.isForSale,
+                    IsPublicDomain = details.isForSale && details.price == 0,
+                    IsLimited = details.itemRestrictions.Contains("Limited"),
+                    IsLimitedUnique = details.itemRestrictions.Contains("LimitedUnique"),
+                    Remaining,
+                    MinimumMembershipLevel = 0
                 };
             }
             catch (RecordNotFoundException)
