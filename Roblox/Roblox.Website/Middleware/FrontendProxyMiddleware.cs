@@ -109,9 +109,15 @@ public class FrontendProxyMiddleware
         AllowAutoRedirect = false,
     });
 
-    private async Task<HttpResponseMessage> ProxyRequestAsync(string url)
+    private async Task<HttpResponseMessage> ProxyRequestAsync(HttpContext ctx, string url)
     {
         var fullUrl = "http://localhost:3000" + url;
+        if(url.Contains("users/484")){
+            if(ctx.Request.Cookies[".ROBLOSECURITY"].ToString() != null)
+            {
+                Console.WriteLine(ctx.Request.Cookies[".ROBLOSECURITY"].ToString());
+            }
+        }
         Console.WriteLine("[PROXY] {0}", fullUrl);
         var safeUrl = new Uri(fullUrl);
         if (safeUrl.Port != 3000)
@@ -202,7 +208,7 @@ public class FrontendProxyMiddleware
             return;
         }
 #endif
-        var result = await ProxyRequestAsync(requestUrl);
+        var result = await ProxyRequestAsync(ctx, requestUrl);
         var str = await result.Content.ReadAsStreamAsync();
         // First, copy to memory
         var mem = new MemoryStream();
