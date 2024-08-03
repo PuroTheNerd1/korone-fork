@@ -112,12 +112,14 @@ public class FrontendProxyMiddleware
     private async Task<HttpResponseMessage> ProxyRequestAsync(HttpContext ctx, string url)
     {
         var fullUrl = "http://localhost:3000" + url;
+        /*
         if(url.Contains("users/484")){
             if(ctx.Request.Cookies[".ROBLOSECURITY"].ToString() != null)
             {
                 Console.WriteLine(ctx.Request.Cookies[".ROBLOSECURITY"].ToString());
             }
         }
+        */
         Console.WriteLine("[PROXY] {0}", fullUrl);
         var safeUrl = new Uri(fullUrl);
         if (safeUrl.Port != 3000)
