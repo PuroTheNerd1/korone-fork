@@ -76,84 +76,78 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV2()
         {
             string requestBody;
-
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("roblox ios app");
-            userAgent = Request.Headers["User-Agent"]; 
-            Console.WriteLine(userAgent);
             string username = "";
             string password = "";
             long userId;
+
             using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
             {
                 requestBody = await reader.ReadToEndAsync();
             }
-            
-            if(userAgent == "RobloxStudio/WinInet")
+
+            if (string.IsNullOrEmpty(requestBody))
             {
-                string[] keyValuePairs = requestBody.Split('&');
-                foreach (string pair in keyValuePairs)
+                throw new Roblox.Exceptions.ForbiddenException(1, "Request body is empty.");
+            }
+
+            if (userAgent == "RobloxStudio/WinInet")
+            {
+                var keyValuePairs = requestBody.Split('&');
+                foreach (var pair in keyValuePairs)
                 {
-                    string[] keyValue = pair.Split('=');
+                    var keyValue = pair.Split('=');
                     if (keyValue.Length == 2)
                     {
-                        string key = HttpUtility.UrlDecode(keyValue[0]);
-                        string value = HttpUtility.UrlDecode(keyValue[1]);
-                        if (key == "username")
-                        {
-                            username = value;
-                        }
-                        else if (key == "password")
-                        {
-                            password = value;
-                        }
+                        var key = HttpUtility.UrlDecode(keyValue[0]);
+                        var value = HttpUtility.UrlDecode(keyValue[1]);
+                        if (key == "username") username = value;
+                        if (key == "password") password = value;
                     }
                 }
             }
-            else{
-                using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
+            else
+            {
+                if (isMobile)
                 {
-                    if (isMobile)
-                    {
-                        var serializedResponse = JsonConvert.DeserializeObject<LoginRequestMobileV2>(requestBody) ?? new LoginRequestMobileV2();
-                        username = serializedResponse.username;
-                        password = serializedResponse.password;
-                    }
-                    else
-                    {
-                        var serializedResponse = JsonConvert.DeserializeObject<LoginRequest>(requestBody) ?? new LoginRequest();
-                        username = serializedResponse.cvalue;
-                        password = serializedResponse.password;
-                    }
-                }         
+                    var loginRequest = JsonConvert.DeserializeObject<LoginRequestMobileV2>(requestBody);
+                    username = loginRequest?.username ?? string.Empty;
+                    password = loginRequest?.password ?? string.Empty;
+                }
+                else
+                {
+                    var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
+                    username = loginRequest?.cvalue ?? string.Empty;
+                    password = loginRequest?.password ?? string.Empty;
+                }
             }
-           
+
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
             }
-            else
-            {
-                try
-                {
-                    userId = await services.users.GetUserIdFromUsername(username);
 
-                    if (!await services.users.VerifyPassword(userId, password))
-                    {
-                        throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
-                    }
-                }
-                catch (RecordNotFoundException)
+            try
+            {
+                userId = await services.users.GetUserIdFromUsername(username);
+                if (!await services.users.VerifyPassword(userId, password))
                 {
-                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
                 }
             }
+            catch (RecordNotFoundException)
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
+            }
+
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
                 sessionId = sess,
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
+
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
             {
                 Domain = ".projex.zip",
@@ -163,36 +157,31 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.Unspecified,
             });
+
             var userBalance = await services.economy.GetUserBalance(userId);
             var info = await services.users.GetUserById(userId);
-            var isBanned =
-                info.accountStatus != AccountStatus.Ok && 
-                info.accountStatus != AccountStatus.MustValidateEmail && 
-                info.accountStatus != AccountStatus.Suppressed;
-            if(isMobile)
+            var isBanned = info.accountStatus != AccountStatus.Ok &&
+                        info.accountStatus != AccountStatus.MustValidateEmail &&
+                        info.accountStatus != AccountStatus.Suppressed;
+
+            return isMobile ? (dynamic)new
             {
-                return new
+                membershipType = 4,
+                username,
+                isUnder13 = false,
+                countryCode = "US",
+                userId,
+                displayName = username
+            } : new
+            {
+                user = new
                 {
-                    membershipType = 4,
-                    username = username,
-                    isUnder13 = false,
-                    countryCode = "US",
-                    userId = userId,
+                    id = userId,
+                    name = username,
                     displayName = username
-                };
-            }
-            else{
-                return new 
-                {
-                    user = new
-                    {
-                        id = userId,
-                        name = username,
-                        displayName = username
-                    },
-                    isBanned
-                };
-            }
+                },
+                isBanned
+            };
         }
     }
 }
