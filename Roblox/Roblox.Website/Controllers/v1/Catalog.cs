@@ -647,8 +647,10 @@ public class CatalogControllerV1 : ControllerBase
 	    var result = await services.assets.GetRecommendedItems(assetTypeId, contextAssetId, numItems);
 	    return new
 	    {
-		    data = result.Select(c => new
-		    {
+			data = result
+				.Where(c => c.isForSale && assetTypeId != Models.Assets.Type.Place && assetTypeId != Models.Assets.Type.Audio)
+				.Select(c => new
+				{
 			    item = new
 			    {
 				    assetId = c.assetId,
