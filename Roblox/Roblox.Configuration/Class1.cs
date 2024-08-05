@@ -25,6 +25,7 @@ public static class Configuration
     public static string GroupIconsDirectory { get; set; }
     public static string XmlTemplatesDirectory { get; set; }
     public static string JsonDataDirectory { get; set; }
+    public static string ScriptDirectory { get; set; }
     public static string AdminBundleDirectory { get; set; }
     public static string LuaScriptsDirectory { get; set; }
     public static string EconomyChatBundleDirectory { get; set; }

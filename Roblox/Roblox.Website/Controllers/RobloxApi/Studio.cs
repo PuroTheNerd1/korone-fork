@@ -7,10 +7,10 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class StudioScripts : ControllerBase
     {
-        public string visitScript = System.IO.File.ReadAllText(@"C:\ProjectX\services\Roblox\StudioScripts\visit.txt");
         [HttpGetBypass("game/visit.ashx")]
         public async Task<dynamic> VisitStudio(int IsPlaySolo, long UserID, long universeId)
         {
+            string visitScript = System.IO.File.ReadAllText($"{Configuration.ScriptDirectory}visit.txt");
             int membership;
             var membership2 = await services.users.GetUserMembership(UserID);
             if (membership2 == null)

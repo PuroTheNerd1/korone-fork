@@ -28,6 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 // DB
 Roblox.Services.Database.Configure(configuration.GetSection("Postgres").Value);
 Roblox.Services.Cache.Configure(configuration.GetSection("Redis").Value);
+
 // Config
 Roblox.Configuration.CdnBaseUrl = configuration.GetSection("CdnBaseUrl").Value;
 Roblox.Configuration.AssetDirectory = configuration.GetSection("Directories:Asset").Value;
@@ -37,6 +38,7 @@ Roblox.Configuration.GroupIconsDirectory = configuration.GetSection("Directories
 Roblox.Configuration.PublicDirectory = configuration.GetSection("Directories:Public").Value;
 Roblox.Configuration.XmlTemplatesDirectory = configuration.GetSection("Directories:XmlTemplates").Value;
 Roblox.Configuration.JsonDataDirectory = configuration.GetSection("Directories:JsonData").Value;
+Roblox.Configuration.ScriptDirectory = configuration.GetSection("Directories:ScriptsData").Value;
 Roblox.Configuration.AdminBundleDirectory = configuration.GetSection("Directories:AdminBundle").Value;
 Roblox.Configuration.EconomyChatBundleDirectory = configuration.GetSection("Directories:EconomyChatBundle").Value;
 Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value;
