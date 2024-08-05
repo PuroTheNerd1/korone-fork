@@ -188,7 +188,7 @@ const Resellers = props => {
       <h3 className={s.header}>Private Sales</h3>
     </div>
     <div className='col-12 divider-right'>
-      {store.allResellers && store.allResellers.length === 0 ? <p> Sorry, no one is privately selling this item at the moment. </p> : store.resellers.map(v => {
+      {store.allResellers && store.allResellers.length === 0 ? <p> There is currently nobody reselling this item. </p> : store.resellers.map(v => {
         return <SellerEntry key={v.userAssetId} {...v}></SellerEntry>
       })}
       <div className='row mt-2'>

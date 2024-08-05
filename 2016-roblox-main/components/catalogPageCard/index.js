@@ -122,8 +122,8 @@ const PriceText = (props) => {
   if (isLimited && !props.isForSale) {
     // Limited and not for sale anymore
     return <div>
-      <p className='mb-0'><Robux prefix="was ">{props.price || '-'}</Robux></p>
-      <p className='mb-0'><Robux prefix="now ">{props.lowestPrice || '-'}</Robux></p>
+      <p className='mb-0'><Robux prefix="was ">{props.price || 'N/A'}</Robux></p>
+      <p className='mb-0'><Robux prefix="now ">{props.lowestPrice || 'N/A'}</Robux></p>
     </div>
   }
   return <p className='mb-0 text-dark'>offsale</p>;
@@ -148,7 +148,7 @@ const CatalogPageCard = props => {
   const hasBottomOverlay = isLimited || isLimitedU;
 
   const isTimedItem = props.isForSale && props.offsaleDeadline;
-  const isNew = props.createdAt ? dayjs(props.createdAt).isAfter(dayjs().subtract(2, 'days')) : false;
+  const isNew = props.createdAt ? dayjs(props.createdAt).isAfter(dayjs().subtract(12, 'hours')) : false;
   const isSale = false; // TODO
   const hasTopOverlay = isNew || isSale;
 
@@ -198,7 +198,7 @@ const CatalogPageCard = props => {
         } : undefined}
         className={s.detailsWrapper + ' ' + (isLarge ? s.detailsLarge : s.detailsSmall) + ' ' + (showDetails ? s.detailsOpen : '')}>
         <p className={s.detailsEntry}>
-          <span className={s.detailsKey}>Creator: </span>
+          <span className={s.detailsKey}>Uploaded by: </span>
           <span className={s.detailsValue}>
             <CreatorLink id={props.creatorTargetId} name={props.creatorName} type={props.creatorType}/>
           </span>
@@ -206,7 +206,7 @@ const CatalogPageCard = props => {
         <p className={s.detailsEntry}>
           <span className={s.detailsKey}>Updated: </span>
           <span className={s.detailsValue}>
-            {dayjs(props.updatedAt).fromNow()}
+            {dayjs(props.updatedAt).format('M/D/YYYY')}
           </span>
         </p>
         <p className={s.detailsEntry}>

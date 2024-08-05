@@ -44,7 +44,7 @@ const CreatorDetails = props => {
         <CreatorLink id={props.id} name={props.name} type={props.type}/>
       }/>
       <StatEntry name="Created" value={dayjs(props.createdAt).format('M/D/YYYY')}/>
-      <StatEntry name="Updated" value={dayjs(props.updatedAt).fromNow()}/>
+      <StatEntry name="Updated" value={dayjs(props.updatedAt).format('M/D/YYYY')}/>
     </div>
   </div>
 }

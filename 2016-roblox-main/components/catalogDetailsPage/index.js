@@ -113,7 +113,7 @@ const CatalogDetails = props => {
 
   if (!store.details) return null;
 
-  const subTitle = `Project X ${store.subCategoryDisplayName}${(isLimited || isLimitedUnique) ? ' / Collectible Item' : ''}${isLimitedUnique ? ' / Limited Edition' : ''}`;
+  const subTitle = `${store.subCategoryDisplayName}${(isLimited || isLimitedUnique) ? ' / Collectible Item' : ''}${isLimitedUnique ? ' / Limited Edition' : ''}`;
 
   return <div className='container'>
     <AdBanner />
