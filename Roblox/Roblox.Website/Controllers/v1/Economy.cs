@@ -84,7 +84,7 @@ public class EconomyControllerV1 : ControllerBase
         if(request.price != 0)
         {
             // Anti lpp
-            if (request.price < (rsData.recentAveragePrice / 2) && rsData.recentAveragePrice != 0) {
+            if (rsData.recentAveragePrice != 0 && request.price < (rsData.recentAveragePrice * 0.60)) {
                 throw new BadRequestException();
             }
 
