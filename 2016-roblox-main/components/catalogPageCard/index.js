@@ -204,13 +204,13 @@ const CatalogPageCard = props => {
           </span>
         </p>
         <p className={s.detailsEntry}>
-          <span className={s.detailsKey}>Updated: </span>
+          <span className={s.detailsKey}>Created: </span>
           <span className={s.detailsValue}>
-            {dayjs(props.updatedAt).format('M/D/YYYY')}
+            {dayjs(props.createdAt).fromNow()}
           </span>
         </p>
         <p className={s.detailsEntry}>
-          <span className={s.detailsKey}>Sold: </span>
+          <span className={s.detailsKey}>Sales: </span>
           <span className={s.detailsValue}>
             {getFlag('catalogSaleCountVisibleFromDetailsEndpoint', false) ? props.saleCount.toLocaleString() : 0}
           </span>
