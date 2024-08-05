@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
 import getFlag from "../../../lib/getFlag";
-import { abbreviateNumber } from "../../../lib/numberUtils";
 import { logout } from "../../../services/auth";
 import AuthenticationStore from "../../../stores/authentication";
 import Link from "../../link";
@@ -50,7 +49,6 @@ const SettingsDropdown = props => {
     </p>
   </div>
 }
-
 
 const useLoginAreaStyles = createUseStyles({
   text: {
@@ -107,7 +105,7 @@ const LoggedInArea = props => {
           </Link>
         </p>
         <p className={s.text + ' ' + s.robuxText} title={authStore.robux.toLocaleString()}>
-          <span>{abbreviateNumber(authStore.robux)}</span>
+          <span>{authStore.robux.toLocaleString()}</span>
         </p>
         {getFlag('showTicketBalace', false) ? <>
         <p className={s.text} title={authStore.tix.toLocaleString()}>
@@ -118,7 +116,7 @@ const LoggedInArea = props => {
           </Link>
         </p>
         <p className={s.text + ' ' + s.robuxText}>
-          <span title={authStore.tix.toLocaleString()}>{abbreviateNumber(authStore.tix)}</span>
+          <span title={authStore.tix.toLocaleString()}>{authStore.tix.toLocaleString()}</span>
         </p>
         </> : null}
         <p className={s.text}>
