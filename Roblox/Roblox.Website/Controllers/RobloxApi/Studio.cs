@@ -10,7 +10,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/visit.ashx")]
         public async Task<dynamic> VisitStudio(int IsPlaySolo, long UserID, long universeId)
         {
-            string visitScript = System.IO.File.ReadAllText($"{Configuration.ScriptDirectory}visit.txt");
+            string visitScript = System.IO.File.ReadAllText(Configuration.ScriptDirectory + "/visit.txt");
             int membership;
             var membership2 = await services.users.GetUserMembership(UserID);
             if (membership2 == null)
