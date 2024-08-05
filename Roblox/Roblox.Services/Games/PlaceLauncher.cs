@@ -94,13 +94,13 @@ public class PlaceLauncherService : ServiceBase
             joinScript = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "45.137.70.23",
                 ServerConnections = new List<dynamic>
                 {
                     new
                     {
                         Port = GameServerService.currentGameServerPorts[result.job], 
-                        Address = "85.215.186.154", 
+                        Address = "45.137.70.23", 
                     }
                 },
                 ServerPort = GameServerService.currentGameServerPorts[result.job], 
@@ -131,7 +131,7 @@ public class PlaceLauncherService : ServiceBase
                 UniverseId = uni.universeId,
                 GenerateTeleportJoin = false,
                 UsUnknownOrUnder13 = false,
-                SessionId = $"{Guid.NewGuid().ToString()}|{result.job}|0|85.215.186.154|8|{formattedDateTime}|0|null|a|null|null|null",
+                SessionId = $"{Guid.NewGuid().ToString()}|{result.job}|0|45.137.70.23|8|{formattedDateTime}|0|null|a|null|null|null",
                 DataCenterId = 0,
                 FollowUserId = 0,
                 BrowserTrackerId = 0,

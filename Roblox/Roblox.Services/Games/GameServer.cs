@@ -707,7 +707,7 @@ public class GameServerService : ServiceBase
         };
         watch.Stop();
 
-        GameMetrics.ReportTimeToStartGameServer("85.215.186.154", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
+        GameMetrics.ReportTimeToStartGameServer("45.137.70.23", mainRCCPort.ToString(), watch.ElapsedMilliseconds);
 
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
@@ -715,9 +715,9 @@ public class GameServerService : ServiceBase
             {
                 id = jobId,
                 asset_id = placeId,
-                ip = "85.215.186.154",
+                ip = "45.137.70.23",
                 port = mainRCCPort,
-                server_connection = $"85.215.186.154:{networkServerPort}", 
+                server_connection = $"45.137.70.23:{networkServerPort}", 
             });
         Thread.Sleep(2500);
         return StartGameInfo != "BAD"
@@ -804,7 +804,7 @@ public class GameServerService : ServiceBase
                         ""PlaceId"": {placeId},
                         ""CreatorId"": ""{uni.builderId}"",
                         ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""85.215.186.154"",
+                        ""MachineAddress"": ""45.137.70.23"",
                         ""MaxPlayers"": {maxplayers},
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
@@ -841,7 +841,7 @@ public class GameServerService : ServiceBase
                         ""PlaceId"": {placeId},
                         ""CreatorId"": {uni.builderId},
                         ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""85.215.186.154"",
+                        ""MachineAddress"": ""45.137.70.23"",
                         ""MaxPlayers"": {maxplayers},
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},

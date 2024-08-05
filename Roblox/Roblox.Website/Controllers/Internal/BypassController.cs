@@ -948,7 +948,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript2016 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "45.137.70.23",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 50,
@@ -988,7 +988,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20172018 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "45.137.70.23",
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
@@ -1030,13 +1030,13 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20192020 = new
             {
                 ClientPort = 0,
-                MachineAddress = "85.215.186.154",
+                MachineAddress = "45.137.70.23",
                 ServerConnections = new List<dynamic>
                 {
                     new
                     {
                         Port = GameServerService.currentGameServerPorts[jobId], 
-                        Address = "85.215.186.154", 
+                        Address = "45.137.70.23", 
                     }
                 },
                 ServerPort = GameServerService.currentGameServerPorts[jobId], 
@@ -1067,7 +1067,7 @@ namespace Roblox.Website.Controllers
                 UniverseId = uni.universeId,
                 GenerateTeleportJoin = false,
                 IsUnknownOrUnder13 = false,
-                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|85.215.186.154|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
+                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|45.137.70.23|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
                 DataCenterId = 0,
                 FollowUserId = 0,
                 BrowserTrackerId = 0,
