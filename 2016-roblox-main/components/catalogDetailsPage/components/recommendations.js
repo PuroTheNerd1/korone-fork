@@ -33,7 +33,7 @@ const RecommendationEntry = props => {
     </p>
     <p className={`${s.creator} mb-0 text-center`}>
 
-      Creator: <CreatorLink id={props.creatorId} type={props.creatorType} name={props.creatorName}/>
+      Uploaded by: <CreatorLink id={props.creatorId} type={props.creatorType} name={props.creatorName}/>
     </p>
   </div>
 }
