@@ -1571,8 +1571,14 @@ namespace Roblox.Website.Controllers
             return;
         }
         [HttpPostBypass("game/validate-machine")]
-        public async Task<dynamic> ValidateMachineAsync()
+        public dynamic ValidateMachineAsync()
         {
+            return new
+            {
+                success = true,
+                message = "",
+            };
+            /*
             HWID hwid = new HWID();
             long userId = safeUserSession.userId;
             bool isBanned = false; 
@@ -1613,6 +1619,7 @@ namespace Roblox.Website.Controllers
                 success = isBanned,
                 message = "",
             };
+            */
         }
         [HttpGetBypass("/v1/user/currency")]
         [HttpGetBypass("/my/balance")]
