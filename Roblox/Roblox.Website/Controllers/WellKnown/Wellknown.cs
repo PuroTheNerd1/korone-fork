@@ -32,6 +32,10 @@ namespace Roblox.Website.Controllers
             {
                 return "dh=20873664bf98d2f31ebdd1c2df0ddd62821db03b";
             }
+            else if (hostName.Contains("zen"))
+            {
+                return "dh=42bc2c49fdf16f30791784a2f16e51c3ed7b5f0c";
+            }
             return "dh=20873664bf98d2f31ebdd1c2df0ddd62821db03b";
         }
     }
