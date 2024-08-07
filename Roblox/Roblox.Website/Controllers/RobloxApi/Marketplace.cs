@@ -21,6 +21,7 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class Marketplace: ControllerBase
     {
+        [HttpGetBypass("v2/assets/{assetId:long}/details")]
         [HttpGetBypass("marketplace/productinfo")]
         public async Task<dynamic> GetProductInfo(long assetId)
         {
@@ -45,6 +46,8 @@ namespace Roblox.Website.Controllers
                     {
                         Id = details.creatorTargetId,
                         Name = details.creatorName,
+                        CreatorType = details.creatorType,
+                        CreatorTargetId = details.creatorTargetId
                     },  
                     IconImageAssetId = 0,
                     Created = details.createdAt,
@@ -103,5 +106,6 @@ namespace Roblox.Website.Controllers
             // Report time
 
         }
+
     }
 }
