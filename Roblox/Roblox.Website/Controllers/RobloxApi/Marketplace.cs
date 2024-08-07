@@ -66,6 +66,7 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
+                Console.Write("Being redirected");
                 return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
             }
         }
