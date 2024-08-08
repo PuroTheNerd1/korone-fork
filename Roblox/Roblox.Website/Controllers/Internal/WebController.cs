@@ -228,6 +228,7 @@ public class WebController : ControllerBase
             },
         };
     }
+    [HttpGet("Users/{userId:long}")]
     [HttpGet("users/{userId:long}")]
     public async Task<IActionResult> userInfo(long userId)
     {
