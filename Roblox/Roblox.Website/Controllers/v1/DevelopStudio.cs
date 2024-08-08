@@ -67,8 +67,8 @@ public class DevelopStudio : ControllerBase
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
         return new 
         {
-            nextPageCursor = 0,
-            previousPageCursor = 0,
+            previousPageCursor = (string?)null,
+            nextPageCursor = (string?)null,
             data = new List<object>
             {
                 new
