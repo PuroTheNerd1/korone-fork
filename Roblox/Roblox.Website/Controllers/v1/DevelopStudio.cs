@@ -61,7 +61,23 @@ public class DevelopStudio : ControllerBase
             data = result
         };
     }
-
+    [HttpGet("universes/{universeId}/places")]
+    public async Task<dynamic> GetUniverseAttachedPlaces(long universeId)
+    {
+        var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        return new 
+        {
+            nextPageCursor = 0,
+            previousPageCursor = 0,
+            data = new
+            {
+                id = uni.rootPlaceId,
+                universeId,
+                name = uni.name,
+                description = uni.description
+            }
+        };
+    }
     [HttpGet("universes/{universeId}/permissions")]
     public async Task<dynamic> CanManage(long universeId)
     {
