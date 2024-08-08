@@ -37,6 +37,19 @@ public class DevelopStudio : ControllerBase
         return Content(json, "application/json");
     }
     [HttpGet("search/universes")]
+    public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames(int? limit = 10)
+    {
+        if (limit is > 100 or < 1) limit = 10;
+        int offset = int.Parse(cursor ?? "0");
+        var result =
+            (await services.games.GetGamesForTypeDevelop(CreatorType.User, userSession.userId, userSession.username, (int)limit, offset, "asc", "All")).ToList();
+        return new RobloxCollectionPaginated<GamesForCreatorDevelop>()
+        {
+            nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
+            previousPageCursor = offset >= limit ? (offset-limit).ToString() : null,
+            data = result
+        };
+    }
     [HttpGet("user/universes")]
     public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames(string? sortOrder, string? accessFilter, int limit, string? cursor = null)
     {
