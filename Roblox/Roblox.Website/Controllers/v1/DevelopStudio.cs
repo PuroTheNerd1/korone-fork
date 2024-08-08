@@ -36,6 +36,7 @@ public class DevelopStudio : ControllerBase
         string json = JsonConvert.SerializeObject(data);
         return Content(json, "application/json");
     }
+    [HttpGet("search/universes")]
     [HttpGet("user/universes")]
     public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames(string? sortOrder, string? accessFilter, int limit, string? cursor = null)
     {
