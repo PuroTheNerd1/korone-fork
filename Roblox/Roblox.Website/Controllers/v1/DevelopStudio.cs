@@ -69,12 +69,15 @@ public class DevelopStudio : ControllerBase
         {
             nextPageCursor = 0,
             previousPageCursor = 0,
-            data = new
+            data = new List<object>
             {
-                id = uni.rootPlaceId,
-                universeId,
-                name = uni.name,
-                description = uni.description
+                new
+                {
+                    id = uni.rootPlaceId,
+                    universeId = universeId,
+                    name = uni.name,
+                    description = uni.description
+                }
             }
         };
     }
