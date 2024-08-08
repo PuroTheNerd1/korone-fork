@@ -59,6 +59,15 @@ namespace Roblox.Website.Controllers
             };
         }
 
+        [HttpGetBypass("v1/users/{userId}/friends/count")]
+        public async Task<dynamic> GetFriendCount(long userId)
+        {
+            var result = await services.friends.CountFriends((long)userId);
+            return new
+            {
+                count = result,
+            };
+        }
         [HttpGetBypass("v1/metadata")]
         public dynamic GetMetadata()
         {
