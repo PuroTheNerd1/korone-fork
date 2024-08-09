@@ -231,12 +231,10 @@ public class ThumbnailsControllerV1 : ControllerBase
         return thumbnails.Select(c => new
         {
             requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
-            errorCode = 0, 
-            errorMessage = string.Empty,
             targetId = c.targetId,
             state = "Completed",
-            imageUrl = c.imageUrl,
-            version = "0" 
+            imageUrl = $"{c.imageUrl.Replace(".png", "")}",
+            version = "1" 
         });
     }
 
