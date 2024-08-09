@@ -25,50 +25,42 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("marketplace/productinfo")]
         public async Task<dynamic> GetProductInfo(long assetId)
         {
-            try
+            long Remaining = 0;
+            var details = await services.assets.GetAssetCatalogInfo(assetId);
+            if(details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"))
             {
-                long Remaining = 0;
-                var details = await services.assets.GetAssetCatalogInfo(assetId);
-                if(details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"))
-                {
-                    var resale = await services.assets.GetResaleData(assetId);
-                    Remaining = resale.numberRemaining;
-                }
-                return new
-                {
-                    TargetId = details.id,
-                    AssetId = details.id,
-                    ProductId = details.id, 
-                    Name = details.name,
-                    Description = details.description,
-                    AssetTypeId = (int)details.assetType,
-                    Creator = new
-                    {
-                        Id = details.creatorTargetId,
-                        Name = details.creatorName,
-                        CreatorType = details.creatorType,
-                        CreatorTargetId = details.creatorTargetId
-                    },  
-                    IconImageAssetId = 0,
-                    Created = details.createdAt,
-                    Updated = details.updatedAt,
-                    PriceInRobux = details.price,
-                    PriceInTickets = details.priceTickets,
-                    Sales = details.saleCount,
-                    IsNew = true,
-                    IsForSale = details.isForSale,
-                    IsPublicDomain = details.isForSale && details.price == 0,
-                    IsLimited = details.itemRestrictions.Contains("Limited"),
-                    IsLimitedUnique = details.itemRestrictions.Contains("LimitedUnique"),
-                    Remaining,
-                    MinimumMembershipLevel = 0
-                };
+                var resale = await services.assets.GetResaleData(assetId);
+                Remaining = resale.numberRemaining;
             }
-            catch (RecordNotFoundException)
+            return new
             {
-                Console.Write("Being redirected");
-                return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
-            }
+                TargetId = details.id,
+                AssetId = details.id,
+                ProductId = details.id, 
+                Name = details.name,
+                Description = details.description,
+                AssetTypeId = (int)details.assetType,
+                Creator = new
+                {
+                    Id = details.creatorTargetId,
+                    Name = details.creatorName,
+                    CreatorType = details.creatorType,
+                    CreatorTargetId = details.creatorTargetId
+                },  
+                IconImageAssetId = 0,
+                Created = details.createdAt,
+                Updated = details.updatedAt,
+                PriceInRobux = details.price,
+                PriceInTickets = details.priceTickets,
+                Sales = details.saleCount,
+                IsNew = true,
+                IsForSale = details.isForSale,
+                IsPublicDomain = details.isForSale && details.price == 0,
+                IsLimited = details.itemRestrictions.Contains("Limited"),
+                IsLimitedUnique = details.itemRestrictions.Contains("LimitedUnique"),
+                Remaining,
+                MinimumMembershipLevel = 0
+            };
         }
         [HttpPostBypass("marketplace/purchase")]
         public async Task <dynamic> PurchaseProductMarket([FromForm] Dto.Marketplace.PurchaseRequest purchaseRequest)
