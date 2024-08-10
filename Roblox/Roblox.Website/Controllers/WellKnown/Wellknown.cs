@@ -36,6 +36,14 @@ namespace Roblox.Website.Controllers
             {
                 return "dh=42bc2c49fdf16f30791784a2f16e51c3ed7b5f0c";
             }
+            else if (hostName.Contains("vmprotectmarker"))
+            {
+                return "dh=696c519db9c551b712e6b516c97bba2c5e3af340";
+            }
+            else if (hostName.Contains("lu"))
+            {
+                return "dh=8eedc367d89168d46cf7d1dadcdc21d26628353a";
+            }
             return "dh=20873664bf98d2f31ebdd1c2df0ddd62821db03b";
         }
     }
