@@ -8,6 +8,7 @@ using Roblox.Models.Users;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
+using Roblox.Website.Filters;
 using Roblox.Website.WebsiteServices;
 
 namespace Roblox.Website.Pages.Auth;
@@ -88,6 +89,12 @@ public class PasswordReset : RobloxPageModel
             userId = await services.users.GetUserIdFromUsername(username);
         }
         catch (RecordNotFoundException)
+        {
+            errorMessage = InvalidUsernameMessage;
+            return new PageResult();
+        }
+        //staff just needs to msg me to reset pw
+        if(await StaffFilter.IsStaff(userId))
         {
             errorMessage = InvalidUsernameMessage;
             return new PageResult();
