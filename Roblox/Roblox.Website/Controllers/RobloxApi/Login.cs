@@ -77,7 +77,7 @@ namespace Roblox.Website.Controllers
         {
             string requestBody;
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("ios");
+            bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("App");
             string username = "";
             string password = "";
             long userId;
