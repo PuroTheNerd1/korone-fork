@@ -111,8 +111,6 @@ namespace Roblox.Website.Controllers
                 var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
                 username = loginRequest?.username ?? loginRequest?.cvalue;
                 password = loginRequest?.password;
-                Console.WriteLine(username);
-                Console.WriteLine(password);
             }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
