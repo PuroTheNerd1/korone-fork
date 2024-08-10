@@ -3509,7 +3509,7 @@
 	"FFlagWebViewsUseLuaGameDetails": false,
 	"FFlagWebViewsUseLuaGameDetails2": true,
 	"FFlagWhateverFloatsYourContact": true,
-	"FFlagWhitelistThumbnailsAPI": false,
+	"FFlagWhitelistThumbnailsAPI": true,
 	"FFlagWindowsGameLaunchUseAppBridge": true,
 	"FFlagWindowsReportAbuseNotification": true,
 	"FFlagWindowsTouchEnabled": false,
