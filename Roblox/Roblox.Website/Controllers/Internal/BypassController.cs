@@ -402,10 +402,11 @@ namespace Roblox.Website.Controllers
         }
         [HttpPostBypass("asset/batch")]
         [HttpPostBypass("v1/assets/batch")]
-        public async Task<dynamic> AssetBatch()
+        public async Task<IActionResult> AssetBatch()
         {
             List<BatchAssetRequest> requestData;
             bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
+            
             if (isGzip)
             {
                 using (var decompressedStream = new MemoryStream())
@@ -443,14 +444,15 @@ namespace Roblox.Website.Controllers
                 Console.WriteLine(request.assetId);
                 assetReturnInfo.Add(new
                 {
-                    Location = $"{Configuration.BaseUrl.Replace("www", "assetdelivery")}/v1/asset?id={request.assetId}",
+                    Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
                     RequestId = request.requestId,
                     IsHashDynamic = true,
-                    IsCopyRightProtected = false,
+                    IsCopyrightProtected = true, 
                     IsArchived = true,
                 });
             }
-            return Content(JsonSerializer.Serialize(assetReturnInfo), "application/json"); 
+
+            return Content(JsonSerializer.Serialize(assetReturnInfo), "application/json");
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
