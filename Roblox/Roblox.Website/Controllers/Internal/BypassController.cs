@@ -436,11 +436,6 @@ namespace Roblox.Website.Controllers
                 }
             }
 
-            if (requestData == null || requestData.Count == 0 || requestData.Any(item => item.assetId == null || item.requestId == null))
-            {
-                return BadRequest(new { success = false, error = "Invalid request" });
-            }
-
             var assetReturnInfo = new List<object>();
             foreach (var request in requestData)
             {
@@ -449,35 +444,12 @@ namespace Roblox.Website.Controllers
                     return BadRequest(new { success = false, error = "Invalid request" });
                 }
 
-                try
+                Console.WriteLine(request.assetId);
+                assetReturnInfo.Add(new
                 {
-                    var details = await services.assets.GetAssetCatalogInfo((long)request.assetId);
-
-                    if (details.moderationStatus != ModerationStatus.ReviewApproved || details.assetType == Type.Place)
-                    {
-                        continue;
-                    }
-
-                    Console.WriteLine(request.assetId);
-                    assetReturnInfo.Add(new
-                    {
-                        Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
-                        RequestId = request.requestId
-                    });
-                }
-                catch (RecordNotFoundException)
-                {
-                    assetReturnInfo.Add(new
-                    {
-                        Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
-                        RequestId = request.requestId
-                    });
-                    continue;
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { success = false, error = "An unexpected error occurred", details = ex.Message });
-                }
+                    Location = $"{Configuration.BaseUrl}/asset?id={request.assetId}",
+                    RequestId = request.requestId
+                });
             }
             return Ok(assetReturnInfo);
         }
