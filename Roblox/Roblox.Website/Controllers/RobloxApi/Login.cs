@@ -87,7 +87,7 @@ namespace Roblox.Website.Controllers
             {
                 requestBody = await reader.ReadToEndAsync();
             }
-
+            Console.WriteLine(requestBody);
             if (string.IsNullOrEmpty(requestBody))
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Request body is empty.");
