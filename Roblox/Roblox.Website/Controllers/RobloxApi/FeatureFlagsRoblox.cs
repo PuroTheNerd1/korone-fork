@@ -111,6 +111,9 @@ namespace Roblox.Website.Controllers
                 case "AndroidApp":
                     realApp = "AndroidApp";
                     break;
+                case "iOSApp":
+                    realApp = "iOSApp";
+                    break;
                 default:
                     return NotFound();
             }
