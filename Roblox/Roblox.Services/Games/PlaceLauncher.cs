@@ -1,6 +1,7 @@
 
 using Roblox;
 using Roblox.Dto.Games;
+using Roblox.Models.Games;
 using Roblox.Models.GameServer;
 using Roblox.Services;
 using Roblox.Services.Signer;
@@ -15,16 +16,16 @@ public class PlaceLauncherService : ServiceBase
         CloudEditTest,
     }
 
-    public async Task<dynamic> PlaceLauncherAsync(string request, long placeId, bool? isPartyLeader, bool? isTeleport, string? gameId, string? accessCode, string? linkCode, string? privateGameMode, string? username = null, long? userId = null,  bool? special = false)
+    public async Task<dynamic> PlaceLauncherAsync(PlaceLaunchRequest plRequest)
     {
-        switch (request)
+        switch (plRequest.request)
         {
             case "RequestGameJob":
-                return await RequestGameJob(gameId, placeId);
+                return await RequestGameJob(plRequest.gameId, plRequest.placeId);
             case "RequestGame":
-                return await RequestGame(placeId, (int)MatchmakingContextId.Default, special, username, userId);
+                return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.Default, plRequest.special, plRequest.username, plRequest.userId);
             case "CloudEdit":
-                return await RequestGame(placeId, (int)MatchmakingContextId.CloudEdit);
+                return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.CloudEdit);
             case "RequestPrivateGame":
                 break;
         }

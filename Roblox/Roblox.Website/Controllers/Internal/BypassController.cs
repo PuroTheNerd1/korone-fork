@@ -42,6 +42,7 @@ using Roblox.Website.Pages;
 using System.IO.Compression;
 using Roblox.Models;
 using Roblox.Dto.Assets;
+using Roblox.Models.Games;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -627,11 +628,19 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/v1/join-game")]
         public async Task<dynamic> JoinGameMobile([FromBody] JoinGame request)
         {
-            return await services.placeLauncherFactory.PlaceLauncherAsync("RequestGame", request.placeId, false, false, null, null, null, null, userSession.username, userSession.userId, true);
+            var placeLauncherRequest = new PlaceLaunchRequest
+            {
+                request = "RequestGame",
+                placeId = request.placeId,
+                userId = safeUserSession.userId,
+                username = safeUserSession.username,
+                special = true,
+            };
+            return await services.placeLauncherFactory.PlaceLauncherAsync(placeLauncherRequest);
         }
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
-        public async Task<dynamic> PlaceLaunch(string request, int placeId, string? gameId, bool isPartyLeader, bool isTeleport, string? accessCode, string? linkCode, string? privateGameMode)
+        public async Task<dynamic> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             if (!ApplicationGuardMiddleware.IsRoblox(Request)){
@@ -641,7 +650,7 @@ namespace Roblox.Website.Controllers
                     message = "An error occured while starting the game."
                 };
             }
-            return await services.placeLauncherFactory.PlaceLauncherAsync(request, placeId, isPartyLeader, isTeleport, gameId, accessCode, linkCode, privateGameMode);
+            return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
             /*
             long maxPlayerCount;
             bool isRoblox  = 
