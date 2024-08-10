@@ -448,7 +448,7 @@ namespace Roblox.Website.Controllers
                 Console.WriteLine(request.assetId);
                 assetReturnInfo.Add(new
                 {
-                    Location = $"{Configuration.BaseUrl}/asset?id={request.assetId}",
+                    Location = $"{Configuration.BaseUrl.Replace("www", "assetdelivery")}/v1/asset?id={request.assetId}",
                     RequestId = request.requestId,
                     IsHashDynamic = true,
                     IsCopyRightProtected = false,
