@@ -2029,7 +2029,7 @@ namespace Roblox.Website.Controllers
                 PageSize = 50
             };
         }
-        [HttpGetBypass("games/{universeId}/media")]
+        [HttpGetBypass("v2/games/{universeId}/media")]
         public async Task<RobloxCollection<GameMediaEntry>> GetGameMedia(long universeId)
         {
             var place = await services.games.MultiGetUniverseInfo(new[] {universeId});
