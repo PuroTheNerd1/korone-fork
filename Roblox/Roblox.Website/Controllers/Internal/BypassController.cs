@@ -440,11 +440,6 @@ namespace Roblox.Website.Controllers
             var assetReturnInfo = new List<object>();
             foreach (var request in requestData)
             {
-                if (request.assetId == null || request.requestId == null)
-                {
-                    return BadRequest(new { success = false, error = "Invalid request" });
-                }
-
                 Console.WriteLine(request.assetId);
                 assetReturnInfo.Add(new
                 {
