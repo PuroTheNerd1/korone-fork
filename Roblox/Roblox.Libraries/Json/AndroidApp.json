@@ -1459,7 +1459,7 @@
     "FFlagBackpackScriptUseFormatByKey": "False",
     "FFlagBadgeApiV1UserHasBadge": "True",
     "FFlagBadgeReadDisabledFromInfo": "True",
-    "FFlagBatchAssetApi": "True",
+    "FFlagBatchAssetApi": "False",
     "FFlagBatchBoundsChanged": "True",
     "FFlagBatchThumbnailAddNewThumbnailTypes": "True",
     "FFlagBeamTextureDesyncFix": "True",
