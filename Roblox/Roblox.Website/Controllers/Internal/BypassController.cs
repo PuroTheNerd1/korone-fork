@@ -105,6 +105,7 @@ namespace Roblox.Website.Controllers
             var isRcc = rccAccessKey == Configuration.RccAuthorization;
             return isRcc;
         }
+        [HttpGetBypass("v2/asset")]
         [HttpGetBypass("v1/asset")]
         [HttpGetBypass("asset")]
         [HttpPostBypass("v1/asset")]
@@ -448,10 +449,13 @@ namespace Roblox.Website.Controllers
                 assetReturnInfo.Add(new
                 {
                     Location = $"{Configuration.BaseUrl}/asset?id={request.assetId}",
-                    RequestId = request.requestId
+                    RequestId = request.requestId,
+                    IsHashDynamic = true,
+                    IsCopyRightProtected = false,
+                    IsArchived = true,
                 });
             }
-            return Ok(assetReturnInfo);
+            return Content(JsonSerializer.Serialize(assetReturnInfo), "application/json"); 
         }
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
