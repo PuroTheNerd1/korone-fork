@@ -1,5 +1,5 @@
 {
-  "applicationSettings": {
+	"applicationSettings": {
     "AllowVideoPreRoll": "True",
     "AxisAdornmentGrabSize": "12",
     "CaptureCountersIntervalInMinutes": "5",
@@ -1511,7 +1511,7 @@
     "FFlagCatalogSnFResetCategoryFilter": "True",
     "FFlagCatalogSortAndFilters2": "True",
     "FFlagCatalogUpdateRecommendations": "True",
-    "FFlagCautiouslyInitilaizeSoftwareCursorVisible": "False",
+    "FFlagCautiouslyInitilaizeSoftwareCursorVisible": "True",
     "FFlagChangeHistoryIgnoreArchivable": "True",
     "FFlagChangeNarrowToSlender": "True",
     "FFlagChangesToFileMenu": "True",
@@ -1526,7 +1526,7 @@
     "FFlagCleanupFetchLocaleAssetFallback": "True",
     "FFlagClearHoverBoxOnDelete": "True",
     "FFlagCli38416": "False",
-    "FFlagClickDetectorCursorIconEnabled": "False",
+    "FFlagClickDetectorCursorIconEnabled": "True",
     "FFlagClickDetectorUsesHRPForDistanceCalculation": "True",
     "FFlagClientFireEventPlaceLauncherFail3": "True",
     "FFlagCloudEditServerGeneratesPlayerCameraPosition": "True",
@@ -1609,7 +1609,7 @@
     "FFlagDebugEnableEventEmulator": "True",
     "FFlagDebugForceRegenerateSchemaBitStream": "True",
     "FFlagDebugGraphicsIntelCrash": "False",
-    "FFlagDebugLocalRccServerConnection": "True",
+    "FFlagDebugLocalRccServerConnection": "False",
     "FFlagDebugLocalRccTicketTesting": "False",
     "FFlagDebugPlayerDisplayNameMock": "False",
     "FFlagDebugStudioSandboxDraftsHardeningVerifyTmpFile": "True",
@@ -4662,5 +4662,5 @@
     "TreatAndroidInputSourceAsBitmask": "True",
     "UseSetForegroundWindowForPlayer2": "True",
     "VideoPreRollWaitTimeSeconds": "45"
-  }
+    }
 }
