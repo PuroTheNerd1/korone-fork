@@ -36,7 +36,7 @@ namespace Roblox.Website.Controllers
             {
                 return "dh=42bc2c49fdf16f30791784a2f16e51c3ed7b5f0c";
             }
-            else if (hostName.Contains("vmprotectmarker"))
+            else if (hostName.Contains("vmprotect"))
             {
                 return "dh=696c519db9c551b712e6b516c97bba2c5e3af340";
             }
