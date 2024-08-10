@@ -78,7 +78,6 @@ namespace Roblox.Website.Controllers
             string requestBody;
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("ios");
-            Console.WriteLine(userAgent);
             string username = "";
             string password = "";
             long userId;
@@ -87,7 +86,6 @@ namespace Roblox.Website.Controllers
             {
                 requestBody = await reader.ReadToEndAsync();
             }
-            Console.WriteLine(requestBody);
             if (string.IsNullOrEmpty(requestBody))
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Request body is empty.");
@@ -110,18 +108,9 @@ namespace Roblox.Website.Controllers
             }
             else
             {
-                if (isMobile)
-                {
-                    var loginRequest = JsonConvert.DeserializeObject<LoginRequestMobileV2>(requestBody);
-                    username = loginRequest?.username ?? string.Empty;
-                    password = loginRequest?.password ?? string.Empty;
-                }
-                else
-                {
-                    var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
-                    username = loginRequest?.cvalue ?? string.Empty;
-                    password = loginRequest?.password ?? string.Empty;
-                }
+                var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
+                username = loginRequest?.username ?? loginRequest?.cvalue;
+                password = loginRequest?.password ?? string.Empty;
             }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
