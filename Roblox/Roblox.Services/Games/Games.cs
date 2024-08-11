@@ -417,13 +417,7 @@ public class GamesService : ServiceBase, IService
             CountryCode = year == 2018  ? "US" : null
         };
 
-        return year switch
-        {
-            2015 or 2016 => joinScript,
-            2017 or 2018 => joinScript,
-            2019 or 2020 => joinScript,
-            _ => throw new InvalidOperationException($"Unsupported year: {year}")
-        };
+        return joinScript;
     }
 
     public dynamic SignJoinScript(long year, dynamic joinScript)

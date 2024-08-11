@@ -131,7 +131,7 @@ public class SignService : ServiceBase
         string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
         string ticketSignature = SignString2048(cticket);
 
-        string cticket2 = $"{userId}\n{username}\n0\n{jobId}\n{formattedDateTime}";
+        string cticket2 = $"{userId}\n{username}\n{userId}\n{jobId}\n{formattedDateTime}";
         string ticketSignature2 = SignString2048(cticket2);
 
         string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature};2";
