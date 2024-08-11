@@ -253,7 +253,13 @@ public class Economy : ControllerBase
         {
             var json = await reader.ReadToEndAsync();
             Console.WriteLine(json);
-            request = JsonConvert.DeserializeObject<PurchaseRequest>(json);
+            string fixedJson = json.Trim();
+            if (fixedJson.StartsWith("{") && !fixedJson.EndsWith("}"))
+            {
+                fixedJson += "}";
+                Console.WriteLine(fixedJson);
+            }
+            request = JsonConvert.DeserializeObject<PurchaseRequest>(fixedJson);
         }
 
         FeatureCheck();
