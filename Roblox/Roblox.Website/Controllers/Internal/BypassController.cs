@@ -902,9 +902,12 @@ namespace Roblox.Website.Controllers
             }
             else
             {
-                membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
+                membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
-
+            if(year != 2020 || year != 2021 && membership == "Premium")
+            {
+                membership = "OutrageousBuildersClub";
+            }
             switch (year)
             {
                 case 2015:
