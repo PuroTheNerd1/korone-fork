@@ -1,6 +1,5 @@
 using System.Formats.Asn1;
 using Dapper;
-using Newtonsoft.Json;
 using Roblox.Dto;
 using Roblox.Dto.Games;
 using Roblox.Libraries;
@@ -365,73 +364,62 @@ public class GamesService : ServiceBase, IService
         
         var baseUrl = Configuration.BaseUrl.Replace("https://", "");
         
-        var baseJoinScript = new Dictionary<string, object>
+        var joinScript = new
         {
-            { "ClientPort", 0 },
-            { "MachineAddress", Configuration.GameServerIp },
-            { "ServerPort", GameServerService.currentGameServerPorts[jobId] },
-            { "PingUrl", "" },
-            { "PingInterval", year == 2017 || year == 2018 ? 120 : 50 },
-            { "UserName", username },
-            { "SeleniumTestMode", false },
-            { "UserId", userId },
-            { "SuperSafeChat", false },
-            { "CharacterAppearance", characterAppearanceUrl },
-            { "ClientTicket", finalTicket },
-            { "GameId", jobId },
-            { "PlaceId", placeId },
-            { "MeasurementUrl", "" },
-            { "WaitingForCharacterGuid", Guid.NewGuid().ToString() },
-            { "BaseUrl", Configuration.BaseUrl },
-            { "ChatStyle", "ClassicAndBubble" },
-            { "VendorId", 0 },
-            { "ScreenShotInfo", "" },
-            { "VideoInfo", "" },
-            { "CreatorId", builderId },
-            { "CreatorTypeEnum", "User" },
-            { "MembershipType", membership },
-            { "AccountAge", accountAgeDays },
-            { "CookieStoreFirstTimePlayKey", "rbx_evt_ftp" },
-            { "CookieStoreFiveMinutePlayKey", "rbx_evt_fmp" },
-            { "CookieStoreEnabled", true },
-            { "IsRobloxPlace", builderId == 1 },
-            { "GenerateTeleportJoin", generateTeleportJoin },
-            { "IsUnknownOrUnder13", false },
-            { "SessionId", $"{Guid.NewGuid()}|{jobId}|0|{baseUrl}|8|{formattedDateTime}|0|null|null|null|null|null" },
-            { "DataCenterId", 0 },
-            { "UniverseId", universeId },
-            { "BrowserTrackerId", 0 },
-            { "UsePortraitMode", false },
-            { "FollowUserId", 0 },
-            { "characterAppearanceId", userId },
-            { "ServerConnections", new List<object>
-                {
-                    new Dictionary<string, object>
-                    {
-                        { "Port", GameServerService.currentGameServerPorts[jobId] },
-                        { "Address", Configuration.GameServerIp }
-                    }
-                }
+            ClientPort = 0,
+            MachineAddress = Configuration.GameServerIp,
+            ServerPort = GameServerService.currentGameServerPorts[jobId],
+            PingUrl = "",
+            PingInterval = year == 2017 || year == 2018 ? 120 : 50,
+            UserName = username,
+            SeleniumTestMode = false,
+            UserId = userId,
+            SuperSafeChat = false,
+            CharacterAppearance = characterAppearanceUrl,
+            ClientTicket = finalTicket,
+            GameId = jobId,
+            PlaceId = placeId,
+            MeasurementUrl = "",
+            WaitingForCharacterGuid = Guid.NewGuid().ToString(),
+            BaseUrl = Configuration.BaseUrl,
+            ChatStyle = "ClassicAndBubble",
+            VendorId = 0,
+            ScreenShotInfo = "",
+            VideoInfo = "",
+            CreatorId = builderId,
+            CreatorTypeEnum = "User",
+            MembershipType = membership,
+            AccountAge = accountAgeDays,
+            CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
+            CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
+            CookieStoreEnabled = true,
+            IsRobloxPlace = builderId == 1,
+            GenerateTeleportJoin = generateTeleportJoin,
+            IsUnknownOrUnder13 = false,
+            SessionId = $"{Guid.NewGuid()}|{jobId}|0|{baseUrl}|8|{formattedDateTime}|0|null|null|null|null|null",
+            DataCenterId = 0,
+            UniverseId = universeId,
+            BrowserTrackerId = 0,
+            UsePortraitMode = false,
+            FollowUserId = 0,
+            characterAppearanceId = userId,
+            ServerConnections = new List<dynamic>
+            {
+                new { Port = GameServerService.currentGameServerPorts[jobId], Address = Configuration.GameServerIp }
             },
-            { "DisplayName", username },
-            { "RobloxLocale", "RobloxLocale" },
-            { "GameLocale", "en_us" },
-            { "CountryCode", "US" }
+            DisplayName = username,
+            RobloxLocale = "RobloxLocale",
+            GameLocale = "en_us",
+            CountryCode = "US"
         };
 
-        var finalScript = year switch
+        return year switch
         {
-            2015 or 2016 => baseJoinScript,
-            2017 or 2018 => new Dictionary<string, object>(baseJoinScript)
-            {
-                { "NewClientTicket", finalTicket },
-                { "GameChatType", "AllUsers" }
-            },
-            2019 or 2020 => baseJoinScript,
+            2015 or 2016 => joinScript,
+            2017 or 2018 => joinScript,
+            2019 or 2020 => joinScript,
             _ => throw new InvalidOperationException($"Unsupported year: {year}")
         };
-
-        return JsonConvert.SerializeObject(finalScript, Formatting.Indented);
     }
 
     public dynamic SignJoinScript(long year, dynamic joinScript)
