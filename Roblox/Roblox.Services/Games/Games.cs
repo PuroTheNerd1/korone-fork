@@ -477,6 +477,8 @@ public class GamesService : ServiceBase, IService
                 return joinScript;
             case 2021:
                 return joinScript20192020;
+            default:
+                return joinScript;
         }
     }
 
