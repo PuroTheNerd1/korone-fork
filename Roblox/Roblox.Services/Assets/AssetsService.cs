@@ -470,7 +470,7 @@ public class AssetsService : ServiceBase, IService
             return VideoValidation.UnsupportedFormat;
 
         var formatDetails = mediaInfo.Format;
-        if (formatDetails.FormatName == "mp4")
+        if (formatDetails.FormatName.Contains("webm", StringComparison.OrdinalIgnoreCase))
         {
             return VideoValidation.Ok;
         }
