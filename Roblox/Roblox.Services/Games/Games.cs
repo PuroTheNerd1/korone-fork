@@ -405,12 +405,14 @@ public class GamesService : ServiceBase, IService
             UsePortraitMode = false,
             FollowUserId = 0,
             characterAppearanceId = userId,
-            ServerConnections = year == 2018 
-                ? new List<dynamic>
+            ServerConnections = new List<dynamic>
+            {
+                new
                 {
-                    new { Port = GameServerService.currentGameServerPorts[jobId], Address = Configuration.GameServerIp }
+                    Port = GameServerService.currentGameServerPorts[jobId], 
+                    Address = Configuration.GameServerIp, 
                 }
-                : null,
+            },
             DisplayName = username,
             RobloxLocale = "RobloxLocale",
             GameLocale = "en_us",
@@ -476,7 +478,7 @@ public class GamesService : ServiceBase, IService
             case 2020:
                 return joinScript;
             case 2021:
-                return joinScript20192020;
+                return joinScript;
             default:
                 return joinScript;
         }
