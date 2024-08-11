@@ -216,7 +216,7 @@ public class Economy : ControllerBase
         // Everything seems ok now, so purchase the item
         await services.users.PurchaseNormalItem(safeUserSession.userId, assetId, request.expectedCurrency);
     }
-    [HttpGetBypass("v1/products/{productId}")]
+    [HttpGetBypass("v1/products/{assetId:long}")]
     public async Task<dynamic> GetProductInfo(long assetId)
     {
         var details = await services.assets.GetAssetCatalogInfo(assetId);
