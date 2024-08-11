@@ -361,7 +361,10 @@ public class GamesService : ServiceBase, IService
     public dynamic GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin)
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-        dynamic joinScript = new
+        
+        var baseUrl = Configuration.BaseUrl.Replace("https://", "");
+        
+        var joinScript = new
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
@@ -390,16 +393,24 @@ public class GamesService : ServiceBase, IService
             CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
             CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
             CookieStoreEnabled = true,
-            IsRobloxPlace = builderId== 1,
+            IsRobloxPlace = builderId == 1,
             GenerateTeleportJoin = generateTeleportJoin,
             IsUnknownOrUnder13 = false,
-            SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|null|null|null|null",
+            SessionId = $"{Guid.NewGuid()}|{jobId}|0|{baseUrl}|8|{formattedDateTime}|0|null|null|null|null|null",
             DataCenterId = 0,
             UniverseId = universeId,
             BrowserTrackerId = 0,
             UsePortraitMode = false,
             FollowUserId = 0,
-            characterAppearanceId = userId
+            characterAppearanceId = userId,
+            ServerConnections = new List<dynamic>
+            {
+                new { Port = GameServerService.currentGameServerPorts[jobId], Address = Configuration.GameServerIp }
+            },
+            DisplayName = username,
+            RobloxLocale = "RobloxLocale",
+            GameLocale = "en_us",
+            CountryCode = "US"
         };
 
         return year switch
@@ -411,22 +422,11 @@ public class GamesService : ServiceBase, IService
                 NewClientTicket = finalTicket,
                 GameChatType = "AllUsers"
             },
-            2019 or 2020 => new
-            {
-                joinScript,
-                ServerConnections = new List<dynamic>
-                {
-                    new { Port = GameServerService.currentGameServerPorts[jobId], Address = Configuration.GameServerIp }
-                },
-                DisplayName = username,
-                CharacterAppearance = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}",
-                RobloxLocale = "RobloxLocale",
-                GameLocale = "en_us",
-                CountryCode = "US"
-            },
+            2019 or 2020 => joinScript,
             _ => throw new InvalidOperationException($"Unsupported year: {year}")
         };
     }
+
     public dynamic SignJoinScript(long year, dynamic joinScript)
     {
         SignService sign = new SignService();
