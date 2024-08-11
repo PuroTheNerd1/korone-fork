@@ -214,7 +214,6 @@ public class RbxThumbnails : ControllerBase
         }
 
         var thumbs = requestEntries.ToList();
-        /*
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails),
@@ -226,7 +225,8 @@ public class RbxThumbnails : ControllerBase
         {
             data = allResults.SelectMany(x => x),
         };
-        */
+
+        /*
         foreach (var entry in requestEntries)
         {
             switch (entry.type)
@@ -268,7 +268,7 @@ public class RbxThumbnails : ControllerBase
             }
             
         }
-
+        
 
         var allResults = await Task.WhenAll(tasks);
 
@@ -283,7 +283,7 @@ public class RbxThumbnails : ControllerBase
         {
             data = allResults.SelectMany(x => x),
         };
-
+        */
     }
 }
 
