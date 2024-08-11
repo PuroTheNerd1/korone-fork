@@ -405,14 +405,16 @@ public class GamesService : ServiceBase, IService
             UsePortraitMode = false,
             FollowUserId = 0,
             characterAppearanceId = userId,
-            ServerConnections = new List<dynamic>
-            {
-                new { Port = GameServerService.currentGameServerPorts[jobId], Address = Configuration.GameServerIp }
-            },
+            ServerConnections = year == 2018 
+                ? new List<dynamic>
+                {
+                    new { Port = GameServerService.currentGameServerPorts[jobId], Address = Configuration.GameServerIp }
+                }
+                : null,
             DisplayName = username,
-            RobloxLocale = "RobloxLocale",
-            GameLocale = "en_us",
-            CountryCode = "US"
+            RobloxLocale = year == 2018  ? "RobloxLocale" : null,
+            GameLocale = year == 2018  ? "en_us" : null,
+            CountryCode = year == 2018  ? "US" : null
         };
 
         return year switch
