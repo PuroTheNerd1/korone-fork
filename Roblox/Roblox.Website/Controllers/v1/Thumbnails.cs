@@ -233,7 +233,8 @@ public class ThumbnailsControllerV1 : ControllerBase
             requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
             targetId = c.targetId,
             state = "Completed",
-            imageUrl = $"{c.imageUrl.Replace(".png", "")}",
+            imageUrl = Configuration.BaseUrl + c.imageUrl,
+            Url = Configuration.BaseUrl + c.imageUrl,
             version = "1" 
         });
     }

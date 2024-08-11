@@ -214,6 +214,18 @@ public class RbxThumbnails : ControllerBase
         }
 
         var thumbs = requestEntries.ToList();
+        var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
+        {
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails),
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots),
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons),
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
+        });
+        return new RobloxCollection<dynamic>()
+        {
+            data = allResults.SelectMany(x => x),
+        };
+        /*
         foreach (var entry in requestEntries)
         {
             switch (entry.type)
@@ -233,11 +245,7 @@ public class RbxThumbnails : ControllerBase
                     ));
                     break;
                 case "AvatarHeadShot":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs, 
-                        "AvatarHeadShot", 
-                        ids => services.thumbnails.GetUserHeadshots(new[] { entry.targetId })
-                    ));
+                    MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots),
                     break;
                 case "GameIcon":
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
@@ -257,6 +265,7 @@ public class RbxThumbnails : ControllerBase
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots));
                     break;
             }
+            
         }
 
 
@@ -273,6 +282,7 @@ public class RbxThumbnails : ControllerBase
         {
             data = allResults.SelectMany(x => x),
         };
+        */
     }
 }
 

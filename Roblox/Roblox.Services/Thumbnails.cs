@@ -97,7 +97,7 @@ public class ThumbnailsService : ServiceBase, IService
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.BaseUrl + c.imageUrl.Replace(".png", "");
+                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
             return c;
         });
     }
@@ -136,7 +136,7 @@ public class ThumbnailsService : ServiceBase, IService
             return new ThumbnailEntry()
             {
                 targetId = c.targetId,
-                imageUrl = Configuration.BaseUrl + c.imageUrl,
+                imageUrl = c.imageUrl,
                 state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
             };
         });
@@ -240,7 +240,7 @@ public class ThumbnailsService : ServiceBase, IService
             return new ThumbnailEntry()
             {
                 targetId = c.targetId,
-                imageUrl = Configuration.BaseUrl + c.imageUrl,
+                imageUrl = c.imageUrl,
                 state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
             };
         });
