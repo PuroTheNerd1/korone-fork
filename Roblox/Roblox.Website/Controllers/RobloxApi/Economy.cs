@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Users;
@@ -244,8 +245,14 @@ public class Economy : ControllerBase
     /// Note that we use assetId instead of productId in url, however, all our endpoints return an assetId instead of a productId for the productId param, so you are unlikely to need to code workarounds unless you hard-coded any productIds from Roblox.
     /// </remarks>
     [HttpPostBypass("v1/purchases/products/{assetId:long}")]
-    public async Task<dynamic> PurchaseAsset(long assetId, [FromBody] PurchaseRequest request)
+    public async Task<dynamic> PurchaseAsset()
     {
+        using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+        {
+            var json = await reader.ReadToEndAsync();
+            Console.WriteLine(json);
+        }
+        /*
         FeatureCheck();
         var stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -300,6 +307,7 @@ public class Economy : ControllerBase
             transactionVerb = "bought",
             isMultiPrivateSale = false,
         };
+        */
     }
 
     [HttpGetBypass("v1/assets/{assetId:long}/resellers")]
