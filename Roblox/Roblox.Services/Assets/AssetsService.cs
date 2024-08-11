@@ -466,17 +466,12 @@ public class AssetsService : ServiceBase, IService
         {
             File.Delete(tempFile);
         }
-        if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.Duration.TotalSeconds == 0) return VideoValidation.UnsupportedFormat;
-        if (mediaInfo.Duration > TimeSpan.FromMinutes(7)) return VideoValidation.TooLong;
-        if (mediaInfo.Duration < TimeSpan.FromMilliseconds(10))
-            return
-                VideoValidation
-                    .TooShort; // If duration is 0, FFProbe probably messed up, and we don't want to risk having users upload infinite duration files
+        if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.Duration.TotalSeconds == 0)
+            return VideoValidation.UnsupportedFormat;
+
         var formatDetails = mediaInfo.Format;
-        // our game engine currently supports mp3 and ogg.
-        if (formatDetails.FormatName is "mp4")
+        if (formatDetails.FormatName == "mp4")
         {
-            // OK
             return VideoValidation.Ok;
         }
 
