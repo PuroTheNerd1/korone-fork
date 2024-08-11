@@ -459,14 +459,14 @@ public class AssetsService : ServiceBase, IService
         }
         catch (Exception e)
         {
-            Console.WriteLine("[error] error validating audio: {0}\n{1}", e.Message, e.StackTrace);
+            Console.WriteLine("[error] error validating video: {0}\n{1}", e.Message, e.StackTrace);
             return VideoValidation.UnsupportedFormat;
         }
         finally
         {
             File.Delete(tempFile);
         }
-        if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.Duration.TotalSeconds == null) return VideoValidation.UnsupportedFormat;
+        if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.Duration.TotalSeconds == 0) return VideoValidation.UnsupportedFormat;
         if (mediaInfo.Duration > TimeSpan.FromMinutes(7)) return VideoValidation.TooLong;
         if (mediaInfo.Duration < TimeSpan.FromMilliseconds(10))
             return
