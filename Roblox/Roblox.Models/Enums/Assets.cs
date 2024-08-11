@@ -51,6 +51,7 @@ namespace Roblox.Models.Assets
         SwimAnimation = 54,
         WalkAnimation = 55,
         PoseAnimation = 56,
+        Video = 62,
         Special = 500,
     }
 
@@ -81,7 +82,15 @@ namespace Roblox.Models.Assets
         Declined,
         AwaitingModerationDecision,
     }
-
+    public enum VideoValidation
+    {
+        Ok = 0,
+        TooLong = 1,
+        TooShort,
+        FileTooLarge,
+        EmptyStream,
+        UnsupportedFormat,
+    }
     public enum AudioValidation
     {
         Ok = 0,

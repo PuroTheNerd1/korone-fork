@@ -666,8 +666,9 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
         var isClothing = request.assetType is Models.Assets.Type.Shirt or Models.Assets.Type.Pants or Models.Assets.Type.TeeShirt;
         var isAudio = request.assetType is Models.Assets.Type.Audio;
         var isImage = request.assetType is Models.Assets.Type.Image;
+        var isVideo = request.assetType is Models.Assets.Type.Video;
 
-        if (!isClothing && !isAudio && !isImage)
+        if (!isClothing && !isAudio && !isImage && !isVideo)
             throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
         
         // Limit of 50 assets globally pending approval before failure
@@ -800,6 +801,29 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 // create item
                 var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, CreatorType.User,
                     userSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
+                return asset;
+            }
+            else if(isVideo)
+            {
+                // check if has enough
+                var balance = await services.economy.GetBalance(creatorType, creatorId);
+                // validate auto
+
+                var stream = request.file.OpenReadStream();
+                stream.Position = 0;
+                var ok = await services.assets.IsVideoValid(stream);
+                stream.Position = 0;
+                if (ok != VideoValidation.Ok)
+                {
+                    throw new BadRequestException(0, "Bad video file. Error = " + ok.ToString());
+                }
+                // charge
+                stream.Position = 0;
+                await services.economy.ChargeForVideoUpload(creatorType, creatorId);
+                stream.Position = 0;
+                // create item
+                var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, CreatorType.User,
+                    userSession.userId, stream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
                 return asset;
             }
 

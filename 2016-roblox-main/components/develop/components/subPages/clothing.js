@@ -41,6 +41,12 @@ const detailsMap = {
     title: 'Image',
     fileLabel: '.png or .jpeg',
   },
+  62: {
+    name: 'Video',
+    namePlural: 'videos',
+    title: 'Video',
+    fileLabel: '.mp4',
+  },
 }
 
 const useStyles = createUseStyles({

@@ -100,6 +100,12 @@ const developerPages = [
     url: '/develop?View=38',
     disabled: true,
   },
+  {
+    id: 62,
+    name: 'Videos',
+    url: '/develop?View=62',
+    element: props => <Clothing id={62} {...props}/>,
+  },
 ];
 
 export {

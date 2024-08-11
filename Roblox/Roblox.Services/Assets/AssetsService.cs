@@ -437,6 +437,51 @@ public class AssetsService : ServiceBase, IService
         return AudioValidation.UnsupportedFormat;
     }
 
+
+    public async Task<VideoValidation> IsVideoValid(Stream content)
+    {
+        if (content.Length > maxAudioFileSizeBytes) return VideoValidation.FileTooLarge;
+        if (content.Length == 0) return VideoValidation.EmptyStream;
+        content.Position = 0;
+        IMediaAnalysis mediaInfo;
+        // streams return an empty duration, so we have to write to disk and then read that...
+        // https://github.com/rosenbjerg/FFMpegCore/issues/130#issuecomment-739572946
+        var tempFile = Path.GetTempFileName();
+        try
+        {
+            await using (var fs = File.OpenWrite(tempFile))
+            {
+                content.Seek(0, SeekOrigin.Begin);
+                await content.CopyToAsync(fs);
+            }
+
+            mediaInfo = await FFProbe.AnalyseAsync(tempFile);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("[error] error validating audio: {0}\n{1}", e.Message, e.StackTrace);
+            return VideoValidation.UnsupportedFormat;
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+        if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.Duration.TotalSeconds == null) return VideoValidation.UnsupportedFormat;
+        if (mediaInfo.Duration > TimeSpan.FromMinutes(7)) return VideoValidation.TooLong;
+        if (mediaInfo.Duration < TimeSpan.FromMilliseconds(10))
+            return
+                VideoValidation
+                    .TooShort; // If duration is 0, FFProbe probably messed up, and we don't want to risk having users upload infinite duration files
+        var formatDetails = mediaInfo.Format;
+        // our game engine currently supports mp3 and ogg.
+        if (formatDetails.FormatName is "mp4")
+        {
+            // OK
+            return VideoValidation.Ok;
+        }
+
+        return VideoValidation.UnsupportedFormat;
+    }
     #region RenderMethods
 
     private async Task CreateAssetTextureThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)

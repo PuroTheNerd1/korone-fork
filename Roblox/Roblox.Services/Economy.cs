@@ -430,7 +430,19 @@ public class EconomyService : ServiceBase, IService
             return 0;
         });
     }
-    
+    public async Task ChargeForVideoUpload(CreatorType creatorType, long creatorId)
+    {
+        await InTransaction(async _ =>
+        {
+            var balance = await GetBalance(creatorType, creatorId);
+            if (creatorId != 7)
+            {
+                await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 100);
+                await InsertTransaction(new AudioUploadTransaction(creatorType, creatorId));
+            }
+            return 0;
+        });
+    }
     public async Task<long> CountTransactionsOfType(long userId, PurchaseType type, TransactionSubType subType, TimeSpan period)
     {
         var dt = DateTime.UtcNow.Subtract(period);
