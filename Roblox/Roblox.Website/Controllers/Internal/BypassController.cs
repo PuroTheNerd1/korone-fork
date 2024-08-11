@@ -650,7 +650,7 @@ namespace Roblox.Website.Controllers
                     message = "An error occured while starting the game."
                 };
             }
-            if(userSession.username == null)
+            if(userSession == null)
             {
                 return new
                 {
