@@ -723,7 +723,16 @@ public class Catalog : ControllerBase
 	    if (request.limit is > 100 or < 1) request.limit = 10;
 	    return await services.assets.SearchCatalog(request);
     }
-
+    [HttpGetBypass("v1/assets/{assetId:long}/bundles")]
+    public dynamic GetRecommendationsMetadata(long assetId)
+    {
+        return new 
+        {
+            previousPageCursor = (string?) null,
+            nextPageCursor = (string?) null,
+            data = new List<object>()
+        };
+    }
     [HttpGetBypass("v1/recommendations/metadata")]
     public dynamic GetRecommendationsMetadata(string? page)
     {
