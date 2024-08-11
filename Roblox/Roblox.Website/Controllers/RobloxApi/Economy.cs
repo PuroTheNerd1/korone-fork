@@ -225,6 +225,7 @@ public class Economy : ControllerBase
             purchasable = details.isForSale,
             reason = "Success",
             productId = details.id,
+            price = details.price,
             currency = 1,
             assetId = details.id,
             assetName = details.name,
@@ -283,7 +284,7 @@ public class Economy : ControllerBase
         // Report time
         Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
             request.userAssetId != null);
-
+        var details = await services.assets.GetAssetCatalogInfo(assetId);
         return new
         {
             purchased = true,
@@ -292,7 +293,7 @@ public class Economy : ControllerBase
             currency = 1,
             price = request.expectedPrice,
             assetId = assetId,
-            assetName = "",
+            assetName = details.name,
             assetIsWearable = true,
             sellerName = request.expectedSellerId.ToString(),
             transactionVerb = "bought",
