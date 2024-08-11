@@ -670,12 +670,7 @@ public class GameServerService : ServiceBase
 
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
-        var openGameServers = await db.QueryAsync<dynamic>(
-            "SELECT id as gameid, updated_at as lastping FROM asset_server WHERE asset_id = :assetid",
-            new
-            {
-                assetid = placeId,
-            });
+        var openGameServers = await GetGameServersForPlace(placeId);
 
         foreach (var server in openGameServers)
         {
@@ -686,6 +681,13 @@ public class GameServerService : ServiceBase
             {
                 continue;
             }
+
+            // Check if it exists in the dictionary if not delete it!
+            if (!currentGameServerPorts.ContainsKey(ExistingJobId)){
+                _ = ShutDownServerAsync(ExistingJobId);
+                continue;
+            }
+                
             
             // We found a OK server lets join
             return new GameServerGetOrCreateResponse()
@@ -702,7 +704,7 @@ public class GameServerService : ServiceBase
         {
             return new GameServerGetOrCreateResponse()
             {
-                status = JoinStatus.Restricted
+                status = JoinStatus.Error
             };
         };
         watch.Stop();

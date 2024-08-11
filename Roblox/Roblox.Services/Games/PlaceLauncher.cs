@@ -146,8 +146,6 @@ public class PlaceLauncherService : ServiceBase
             };
         }
 
-
-
         if (result.status == JoinStatus.Joining)
         {
             await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
