@@ -431,8 +431,8 @@ public class GamesService : ServiceBase, IService
         SignService sign = new SignService();
         return year switch
         {
-            2015 or 2016 => sign.SignJsonResponseForClientFromPrivateKey(joinScript),
-            2017 or 2018 => sign.SignJsonResponseForClientFromPrivateKey(joinScript),
+            2015 or 2016 or 2017 => sign.SignJsonResponseForClientFromPrivateKey(joinScript),
+            2018 => sign.SignJson2048(joinScript),
             2019 or 2020 => sign.SignJson2048New(joinScript),
             _ => "Fail"
         };
