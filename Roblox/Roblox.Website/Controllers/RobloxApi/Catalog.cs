@@ -723,6 +723,12 @@ public class Catalog : ControllerBase
 	    if (request.limit is > 100 or < 1) request.limit = 10;
 	    return await services.assets.SearchCatalog(request);
     }
+	[HttpGetBypass("v1/favorites/assets/{assetId:long}/count")]
+	public async Task<long> GetFavoriteCount(long assetId)
+	{
+		long count = await services.assets.CountFavorites(assetId);
+		return count;
+	}
     [HttpGetBypass("v1/assets/{assetId:long}/bundles")]
     public dynamic GetRecommendationsMetadata(long assetId)
     {
