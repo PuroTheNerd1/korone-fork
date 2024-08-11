@@ -252,6 +252,7 @@ public class Economy : ControllerBase
             var json = await reader.ReadToEndAsync();
             Console.WriteLine(json);
         }
+        return "hi.";
         /*
         FeatureCheck();
         var stopwatch = new Stopwatch();
