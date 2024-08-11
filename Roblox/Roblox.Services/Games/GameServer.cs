@@ -674,7 +674,7 @@ public class GameServerService : ServiceBase
 
         foreach (var server in openGameServers)
         {
-            string ExistingJobId = server.gameid.ToString(); 
+            string ExistingJobId = server.jobid.ToString(); 
             var currentPlayerCount = await GetGameServerPlayers(ExistingJobId);
             // If the server is full we continue
             if (currentPlayerCount.Count() >= maxPlayerCount)
@@ -684,7 +684,8 @@ public class GameServerService : ServiceBase
 
             // Check if it exists in the dictionary if not delete it!
             if (!currentGameServerPorts.ContainsKey(ExistingJobId)){
-                _ = DeleteGameServer(ExistingJobId);
+                Console.WriteLine($"Removing old job: {ExistingJobId}");
+                Task.Run(() => ShutDownServerAsync(ExistingJobId));
                 continue;
             }
                 
