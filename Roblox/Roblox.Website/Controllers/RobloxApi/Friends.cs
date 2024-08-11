@@ -20,7 +20,6 @@ using Roblox.Models;
 using Roblox.Dto.Friends;
 namespace Roblox.Website.Controllers
 {
-
     [MVC.ApiController]
     [MVC.Route("/")]
     public class Friends: ControllerBase
