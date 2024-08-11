@@ -16,7 +16,8 @@ namespace Roblox.Models.Users
         None = 0,
         BuildersClub,
         TurboBuildersClub,
-        OutrageousBuildersClub
+        OutrageousBuildersClub,
+        Premium
     }
 
     public enum Gender

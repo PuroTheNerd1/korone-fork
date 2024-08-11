@@ -17,7 +17,8 @@ public class MembershipMetadata
         new MembershipMetadata(MembershipType.None, "None", 0),
         new MembershipMetadata(MembershipType.BuildersClub, "Builders Club", 15),
         new MembershipMetadata(MembershipType.TurboBuildersClub, "Turbo Builders Club", 35),
-        new MembershipMetadata(MembershipType.OutrageousBuildersClub, "Outrageous Builders Club", 60),
+        new MembershipMetadata(MembershipType.OutrageousBuildersClub, "Outrageous Builders Club", 85),
+        new MembershipMetadata(MembershipType.Premium, "Premium", 85),
     };
 
     public static MembershipMetadata GetMetadata(MembershipType membershipType)

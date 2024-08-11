@@ -79,8 +79,6 @@ public class PlaceLauncherService : ServiceBase
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             var userInfo = await users.GetUserById((long)userId);
             string characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-
-            Console.WriteLine(username);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             if (membership2 == null)
             {
@@ -88,79 +86,17 @@ public class PlaceLauncherService : ServiceBase
             }
             else
             {
-                membership = (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
+                membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
             characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             finalTicket = sign.GenerateClientTicketV4((long)userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-            joinScript = new
-            {
-                ClientPort = 0,
-                MachineAddress = Configuration.GameServerIp,
-                ServerConnections = new List<dynamic>
-                {
-                    new
-                    {
-                        Port = GameServerService.currentGameServerPorts[result.job], 
-                        Address = Configuration.GameServerIp, 
-                    }
-                },
-                ServerPort = GameServerService.currentGameServerPorts[result.job], 
-                PingUrl = "", 
-                PingInterval = 120, 
-                UserName = username, 
-                DisplayName = username,
-                SeleniumTestMode = false, 
-                UserId = userId, 
-                ClientTicket = finalTicket, 
-                SuperSafeChat = false, 
-                PlaceId = placeId, 
-                MeasurementUrl = "",
-                WaitingForCharacterGuid = Guid.NewGuid().ToString(),
-                BaseUrl = Configuration.BaseUrl, 
-                ChatStyle = "ClassicAndBubble", 
-                VendorId = 0,
-                ScreenShotInfo = "",
-                VideoInfo = "",
-                CreatorId = uni.builderId,
-                CreatorTypeEnum = "User",  
-                MembershipType = membership, 
-                AccountAge = accountAgeDays, 
-                CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
-                CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
-                CookieStoreEnabled = true,
-                IsRobloxPlace = false,
-                UniverseId = uni.universeId,
-                GenerateTeleportJoin = false,
-                UsUnknownOrUnder13 = false,
-                SessionId = $"{Guid.NewGuid().ToString()}|{result.job}|0|45.137.70.23|8|{formattedDateTime}|0|null|a|null|null|null",
-                DataCenterId = 0,
-                FollowUserId = 0,
-                BrowserTrackerId = 0,
-                UsePortraitMode = false,
-                CharacterAppearance = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}",
-                GameId = result.job,     
-                RobloxLocale = "RobloxLocale",
-                GameLocale = "en_us",
-                CountryCode = "US",
-                characterAppearanceId = userId,
-            };
+            joinScript = games.GetJoinScript(year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, "a");
         }
 
         if (result.status == JoinStatus.Joining)
         {
             await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
-            if ((bool)!Special)
-            {
-                return new
-                {
-                    jobId = result.job,
-                    status = (int)result.status,
-                    joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
-                    authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
-                    authenticationTicket = "hi",
-                    message = (string?)null,
-                };
-            }
+
             return new
             {
                 jobId = result.job,
@@ -169,7 +105,7 @@ public class PlaceLauncherService : ServiceBase
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = "hi",
                 message = (string?)null,
-                joinScript
+                joinScript = (bool)Special ? joinScript : null 
             };
         }
         return new

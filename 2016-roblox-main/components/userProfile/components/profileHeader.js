@@ -79,6 +79,10 @@ const ProfileHeader = props => {
       setStatus(d[0]);
     });
     getMembershipType({userId: store.userId}).then(d => {
+      if(d = 4)
+      {
+        d = 3
+      }
       setBcLevel(d);
     }).catch(e => {
       // can fail when not logged in :(

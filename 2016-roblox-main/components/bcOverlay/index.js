@@ -46,6 +46,10 @@ const BcOverlay = props => {
     setType(0);
     pendingCache[id] = [];
     getMembershipType({userId: id}).then(d => {
+      if(d = 4)
+      {
+        d = 3
+      }
       setType(d);
       pendingCache[id].forEach(v => v(d));
       delete pendingCache[id];
