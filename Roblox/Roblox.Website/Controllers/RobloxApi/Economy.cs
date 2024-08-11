@@ -253,7 +253,7 @@ public class Economy : ControllerBase
         {
             var json = await reader.ReadToEndAsync();
             Console.WriteLine(json);
-            request = JsonConvert.DeserializeObject<IEnumerable<PurchaseRequest>>(json);
+            request = JsonConvert.DeserializeObject<PurchaseRequest>(json);
         }
 
         FeatureCheck();
