@@ -594,6 +594,7 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
         Models.Assets.Type.Shirt,
         Models.Assets.Type.Pants,
         Models.Assets.Type.Image,
+        Models.Assets.Type.Video,
     };
 
     private static int pendingAssetUploads { get; set; } = 0;
