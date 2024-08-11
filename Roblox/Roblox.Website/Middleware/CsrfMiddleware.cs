@@ -119,7 +119,6 @@ public class CsrfMiddleware : ControllerServicesExtended
             }
         });
     }
-v1/purchases/products
 
 
     public static List<string> bypassUrls = new()
