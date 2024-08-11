@@ -412,9 +412,9 @@ public class GamesService : ServiceBase, IService
                 }
                 : null,
             DisplayName = username,
-            RobloxLocale = year == 2018  ? "RobloxLocale" : null,
-            GameLocale = year == 2018  ? "en_us" : null,
-            CountryCode = year == 2018  ? "US" : null
+            RobloxLocale = "RobloxLocale",
+            GameLocale = "en_us",
+            CountryCode = "US"
         };
 
         return joinScript;
