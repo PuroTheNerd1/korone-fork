@@ -634,7 +634,7 @@ namespace Roblox.Website.Controllers
                 placeId = request.placeId,
                 userId = safeUserSession.userId,
                 username = safeUserSession.username,
-                special = true,
+                special = true
             };
             return await services.placeLauncherFactory.PlaceLauncherAsync(placeLauncherRequest);
         }

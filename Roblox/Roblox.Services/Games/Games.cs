@@ -361,7 +361,7 @@ public class GamesService : ServiceBase, IService
     public dynamic GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin)
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-        var baseJoinScript = new
+        dynamic joinScript = new
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
@@ -404,16 +404,16 @@ public class GamesService : ServiceBase, IService
 
         return year switch
         {
-            2015 or 2016 => baseJoinScript,
+            2015 or 2016 => joinScript,
             2017 or 2018 => new
             {
-                baseJoinScript,
+                joinScript,
                 NewClientTicket = finalTicket,
                 GameChatType = "AllUsers"
             },
             2019 or 2020 => new
             {
-                baseJoinScript,
+                joinScript,
                 ServerConnections = new List<dynamic>
                 {
                     new { Port = GameServerService.currentGameServerPorts[jobId], Address = Configuration.GameServerIp }
