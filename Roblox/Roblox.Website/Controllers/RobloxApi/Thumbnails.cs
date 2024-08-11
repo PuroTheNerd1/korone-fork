@@ -146,9 +146,12 @@ public class RbxThumbnails : ControllerBase
         var parsed = universeIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
         var result = await services.thumbnails.GetGameIcons(parsed);
-        foreach(var item in result)
+        foreach (var item in result)
         {
-            item.imageUrl = Configuration.BaseUrl + item.imageUrl;
+            if (!string.IsNullOrEmpty(item.imageUrl)) 
+            {
+                item.imageUrl = $"{Configuration.BaseUrl}{item.imageUrl}";
+            }
         }
         return new()
         {
