@@ -146,16 +146,16 @@ public class RbxThumbnails : ControllerBase
         var parsed = universeIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
         var result = await services.thumbnails.GetGameIcons(parsed);
-        foreach (var item in result)
-        {
-            if (!string.IsNullOrEmpty(item.imageUrl)) 
+        var result2 = result.Select(thumbnail => 
+            new ThumbnailEntry
             {
-                item.imageUrl = $"{Configuration.BaseUrl}{item.imageUrl}";
-            }
-        }
+                targetId = thumbnail.targetId,
+                imageUrl = Configuration.BaseUrl + thumbnail.imageUrl,
+                state = ThumbnailState.Completed,
+            }).ToList();
         return new()
         {
-            data = result,
+            data = result2,
         };
     }
     [HttpGet("v1/users/avatar-headshot")]
