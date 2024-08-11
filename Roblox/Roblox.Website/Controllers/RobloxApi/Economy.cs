@@ -279,7 +279,7 @@ public class Economy : ControllerBase
                 throw new RobloxException(400, 0,
                     "You cannot purchase 18+ items until you confirm you are 18 or over.");
         }
-        
+        /*   
         if (request.userAssetId != null)
         {
             // User is making UAID purchase
@@ -291,11 +291,9 @@ public class Economy : ControllerBase
                 await avatarService.RedrawAvatar(request.expectedSellerId);
             });
         }
-        else
-        {
-            // User is making normal purchase
-            await PurchaseNormalItem(assetId, request);
-        }
+        */
+
+        await PurchaseNormalItem(assetId, request);
 
         stopwatch.Stop();
         // Report time
