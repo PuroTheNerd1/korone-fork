@@ -10,6 +10,8 @@ using Roblox.Models;
 using Roblox.Dto.Friends;
 using Roblox.Models.Assets;
 using System.Text.RegularExpressions;
+using Roblox.Dto.Games;
+using System.ComponentModel.DataAnnotations;
 namespace Roblox.Website.Controllers
 {
 
@@ -18,7 +20,7 @@ namespace Roblox.Website.Controllers
     public class GameListing: ControllerBase
     {
         private static Regex numberRegex { get; } = new("([0-9]+)");
-        [HttpGet("v1/games/multiget-playability-status")]
+        [HttpGetBypass("v1/games/multiget-playability-status")]
         public dynamic MultiGetPlayabilityStatus()
         {
             var ids = HttpContext.Request.QueryString.Value;
@@ -62,6 +64,62 @@ namespace Roblox.Website.Controllers
                     }
                 }
             };
+        }
+        [HttpGetBypass("v1/games/{universeId:long}/social-links/list")]
+        public dynamic GetSocialLinks()
+        {
+            return new
+            {
+                data = new List<int>(),
+            };
+        }
+        [HttpGetBypass("v1/games/recommendations/game/{universeId:long}")]
+        public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
+        {
+            if (maxRows is > 100 or < 1) maxRows = 10;
+            var result = await services.games.GetGamesList(userSession.userId, "popular", maxRows, null, null);
+            return new
+            {
+                games = result,
+            };
+        }
+
+        [HttpGetBypass("v1/games/multiget-place-details")]
+        public async Task<IEnumerable<PlaceEntry>> MultiGetPlaceDetails(string placeIds)
+        {
+            return await services.games.MultiGetPlaceDetails(placeIds.Split(",").Select(long.Parse));
+        }
+        [HttpGetBypass("v1/games/votes")]
+        public async Task<dynamic> GetGameVotes(string universeIds)
+        {
+            var ids = universeIds.Split(",").Select(long.Parse).Distinct().ToList();
+            if (ids.Count is < 1 or > 100)
+                throw new RobloxException(400, 0, "BadRequest");
+            var uni = await services.games.MultiGetUniverseInfo(ids);
+
+            var result = new List<dynamic>();
+            foreach (var item in uni)
+            {
+                var votes = await services.assets.GetVoteForAsset(item.rootPlaceId);
+                result.Add(new
+                {
+                    id = item.id,
+                    upVotes = votes.upVotes,
+                    downVotes = votes.downVotes,
+                });
+            }
+
+            return new
+            {
+                data = result,
+            };
+        }
+
+        [HttpPatch("v1/games/{universeId:long}/user-votes")]
+        public async Task VoteOnUniverse(long universeId, [Required, FromBody] VoteRequest request)
+        {
+            var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+            await services.assets.VoteOnAsset(uni.rootPlaceId, safeUserSession.userId, request.vote);
         }
         [HttpGetBypass("v1/games/list")]
         public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)
