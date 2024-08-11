@@ -935,7 +935,7 @@ namespace Roblox.Website.Controllers
             
 
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);         
-            var joinScript = services.games.GetJoinScript(year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin);
+            var joinScript = services.games.GetJoinScript(year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
             /*
             dynamic joinScript2016 = new
             {

@@ -358,7 +358,7 @@ public class GamesService : ServiceBase, IService
             updated = c.updated,
         });
     }
-    public dynamic GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin)
+    public dynamic GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string cookie)
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
         
@@ -416,8 +416,68 @@ public class GamesService : ServiceBase, IService
             GameLocale = "en_us",
             CountryCode = "US"
         };
-
-        return joinScript;
+        dynamic joinScript20192020 = new
+        {
+            ClientPort = 0,
+            MachineAddress = Configuration.GameServerIp,
+            ServerConnections = new List<dynamic>
+            {
+                new
+                {
+                    Port = GameServerService.currentGameServerPorts[jobId], 
+                    Address = Configuration.GameServerIp, 
+                }
+            },
+            ServerPort = GameServerService.currentGameServerPorts[jobId], 
+            PingUrl = "", 
+            PingInterval = 120, 
+            UserName = username, 
+            DisplayName = username,
+            SeleniumTestMode = false, 
+            UserId = userId, 
+            ClientTicket = finalTicket, 
+            SuperSafeChat = false, 
+            PlaceId = placeId, 
+            MeasurementUrl = "",
+            WaitingForCharacterGuid = Guid.NewGuid().ToString(),
+            BaseUrl = Configuration.BaseUrl, 
+            ChatStyle = "ClassicAndBubble", 
+            VendorId = 0,
+            ScreenShotInfo = "",
+            VideoInfo = "",
+            CreatorId = uni.builderId,
+            CreatorTypeEnum = "User",  
+            MembershipType = membership, 
+            AccountAge = accountAgeDays, 
+            CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
+            CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
+            CookieStoreEnabled = true,
+            IsRobloxPlace = false,
+            UniverseId = uni.universeId,
+            GenerateTeleportJoin = false,
+            IsUnknownOrUnder13 = false,
+            SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|45.137.70.23|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
+            DataCenterId = 0,
+            FollowUserId = 0,
+            BrowserTrackerId = 0,
+            UsePortraitMode = false,
+            CharacterAppearance = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}",
+            GameId = jobId,     
+            RobloxLocale = "RobloxLocale",
+            GameLocale = "en_us",
+            CountryCode = "US",
+            characterAppearanceId = userId,
+        };
+        switch (year)
+        {
+            case 2016:
+            case 2017:
+            case 2018:
+            case 2020:
+                return joinScript;
+            case 2021:
+                return joinScript20192020;
+        }
     }
 
     public dynamic SignJoinScript(long year, dynamic joinScript)
