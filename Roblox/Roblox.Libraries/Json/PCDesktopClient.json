@@ -1,5 +1,5 @@
 {
-	"applicationSettings": {
+    "applicationSettings":{
 	"AllowVideoPreRoll": true,
 	"AndroidSwipeGestureUseStartingPosition": true,
 	"AxisAdornmentGrabSize": 12,
@@ -1478,7 +1478,7 @@
 	"FFlagBackpackScriptUseFormatByKey": false,
 	"FFlagBadgeApiV1UserHasBadge": true,
 	"FFlagBadgeReadDisabledFromInfo": true,
-	"FFlagBatchAssetApi": false,
+	"FFlagBatchAssetApi": true,
 	"FFlagBatchBoundsChanged": true,
 	"FFlagBatchThumbnailAddNewThumbnailTypes": true,
 	"FFlagBeamTextureDesyncFix": true,
@@ -4072,7 +4072,7 @@
 	"FIntNeighborSleepThresholdMult": 10,
 	"FIntNewDevConsoleMaxHttpCount": 300,
 	"FIntNewDevConsoleMaxLogCount": 500,
-	"FIntNewInGameMenuPercentRollout": 100,
+	"FIntNewInGameMenuPercentRollout": 1,
 	"FIntNotMovingSleepThresholdMult": 1,
 	"FIntNumberParallelNarrowPhaseTasks_PlaceFilter": "10;189707;3229213183;654732683",
 	"FIntNumberParalleNarrowPhaseThreads": 16,
