@@ -650,6 +650,14 @@ namespace Roblox.Website.Controllers
                     message = "An error occured while starting the game."
                 };
             }
+            if(userSession.username == null)
+            {
+                return new
+                {
+                    status = (int)JoinStatus.Unauthorized,
+                    message = "You are not authorized to join"
+                };
+            }
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
             /*
             long maxPlayerCount;
