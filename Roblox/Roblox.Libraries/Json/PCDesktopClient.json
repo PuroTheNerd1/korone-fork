@@ -873,7 +873,7 @@
     "DFFlagTextScraperReportSessionId": "True",
     "DFFlagTextScraperStopReportPureParameterFix": "True",
     "DFFlagThrottleDebuggerMetrics": "True",
-    "DFFlagThrottleGetUserThumbnailAsync": "True",
+    "DFFlagThrottleGetUserThumbnailAsync": "False",
     "DFFlagThrottlingBadgesRollOut": "True",
     "DFFlagThrottlingEnableRandomOffset": "True",
     "DFFlagThrottlingGamePersistenceRollOut": "True",
