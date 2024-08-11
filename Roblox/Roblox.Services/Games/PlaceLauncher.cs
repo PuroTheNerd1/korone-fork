@@ -95,13 +95,13 @@ public class PlaceLauncherService : ServiceBase
             joinScript = new
             {
                 ClientPort = 0,
-                MachineAddress = "45.137.70.23",
+                MachineAddress = Configuration.GameServerIp,
                 ServerConnections = new List<dynamic>
                 {
                     new
                     {
                         Port = GameServerService.currentGameServerPorts[result.job], 
-                        Address = "45.137.70.23", 
+                        Address = Configuration.GameServerIp, 
                     }
                 },
                 ServerPort = GameServerService.currentGameServerPorts[result.job], 

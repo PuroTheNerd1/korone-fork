@@ -927,10 +927,12 @@ namespace Roblox.Website.Controllers
             
 
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);         
+            var joinScript = services.games.GetJoinScript(year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin);
+            /*
             dynamic joinScript2016 = new
             {
                 ClientPort = 0,
-                MachineAddress = "45.137.70.23",
+                MachineAddress = Configuration.GameServerIp,
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 50,
@@ -970,7 +972,7 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20172018 = new
             {
                 ClientPort = 0,
-                MachineAddress = "45.137.70.23",
+                MachineAddress = Configuration.GameServerIp,
                 ServerPort = GameServerService.currentGameServerPorts[jobId],
                 PingUrl = "",
                 PingInterval = 120,
@@ -1012,13 +1014,13 @@ namespace Roblox.Website.Controllers
             dynamic joinScript20192020 = new
             {
                 ClientPort = 0,
-                MachineAddress = "45.137.70.23",
+                MachineAddress = Configuration.GameServerIp,
                 ServerConnections = new List<dynamic>
                 {
                     new
                     {
                         Port = GameServerService.currentGameServerPorts[jobId], 
-                        Address = "45.137.70.23", 
+                        Address = Configuration.GameServerIp, 
                     }
                 },
                 ServerPort = GameServerService.currentGameServerPorts[jobId], 
@@ -1061,27 +1063,9 @@ namespace Roblox.Website.Controllers
                 CountryCode = "US",
                 characterAppearanceId = userId,
             };
+            */
 
-            HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
-            HttpContext.Response.Headers.Add("Pragma", "no-cache");
-            HttpContext.Response.Headers.Add("Expires", "-1");
-            HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
-
-            switch (year)
-            {
-                case 2015:
-                case 2016:
-                    return services.sign.SignJsonResponseForClientFromPrivateKey(joinScript2016);
-                case 2017:
-                    return services.sign.SignJsonResponseForClientFromPrivateKey(joinScript20172018);
-                case 2018:
-                    return services.sign.SignJson2048(joinScript20172018);      
-                case 2020:
-                case 2021:
-                    return services.sign.SignJson2048New(joinScript20192020);
-                default:
-                    return "Fail";
-            }
+            return services.games.SignJoinScript(year, joinScript);
         }
         [HttpGetBypass("GenerateVersion")]
         public string GenerateVersion()

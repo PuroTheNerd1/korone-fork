@@ -10,7 +10,6 @@ using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Hubs;
 using System.Text;
-using Discord.OAuth2;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -47,6 +46,7 @@ Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Pri
 Roblox.Configuration.GameServerAuthorization = configuration.GetSection("GameServerAuthorization").Value;
 Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value;
 Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value;
+Roblox.Configuration.GameServerIp = configuration.GetSection("GameServerIp").Value;
 Roblox.Configuration.LuaScriptsDirectory = configuration.GetSection("Directories:RCCLuaScripts").Value;
 IConfiguration gameServerConfig = new ConfigurationBuilder().AddJsonFile("game-servers.json").Build();
 Roblox.Configuration.GameServerIpAddresses = gameServerConfig.GetSection("GameServers").Get<IEnumerable<GameServerConfigEntry>>();

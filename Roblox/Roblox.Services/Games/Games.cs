@@ -5,6 +5,7 @@ using Roblox.Dto.Games;
 using Roblox.Libraries;
 using Roblox.Models.Assets;
 using Roblox.Services.Exceptions;
+using Roblox.Services.Signer;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
@@ -357,7 +358,86 @@ public class GamesService : ServiceBase, IService
             updated = c.updated,
         });
     }
+    public dynamic GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin)
+    {
+        var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
+        var baseJoinScript = new
+        {
+            ClientPort = 0,
+            MachineAddress = Configuration.GameServerIp,
+            ServerPort = GameServerService.currentGameServerPorts[jobId],
+            PingUrl = "",
+            PingInterval = year == 2017 || year == 2018 ? 120 : 50,
+            UserName = username,
+            SeleniumTestMode = false,
+            UserId = userId,
+            SuperSafeChat = false,
+            CharacterAppearance = characterAppearanceUrl,
+            ClientTicket = finalTicket,
+            GameId = jobId,
+            PlaceId = placeId,
+            MeasurementUrl = "",
+            WaitingForCharacterGuid = Guid.NewGuid().ToString(),
+            BaseUrl = Configuration.BaseUrl,
+            ChatStyle = "ClassicAndBubble",
+            VendorId = 0,
+            ScreenShotInfo = "",
+            VideoInfo = "",
+            CreatorId = builderId,
+            CreatorTypeEnum = "User",
+            MembershipType = membership,
+            AccountAge = accountAgeDays,
+            CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
+            CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
+            CookieStoreEnabled = true,
+            IsRobloxPlace = builderId== 1,
+            GenerateTeleportJoin = generateTeleportJoin,
+            IsUnknownOrUnder13 = false,
+            SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|null|null|null|null",
+            DataCenterId = 0,
+            UniverseId = universeId,
+            BrowserTrackerId = 0,
+            UsePortraitMode = false,
+            FollowUserId = 0,
+            characterAppearanceId = userId
+        };
 
+        return year switch
+        {
+            2015 or 2016 => baseJoinScript,
+            2017 or 2018 => new
+            {
+                baseJoinScript,
+                NewClientTicket = finalTicket,
+                GameChatType = "AllUsers"
+            },
+            2019 or 2020 => new
+            {
+                baseJoinScript,
+                ServerConnections = new List<dynamic>
+                {
+                    new { Port = GameServerService.currentGameServerPorts[jobId], Address = Configuration.GameServerIp }
+                },
+                DisplayName = username,
+                CharacterAppearance = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}",
+                RobloxLocale = "RobloxLocale",
+                GameLocale = "en_us",
+                CountryCode = "US"
+            },
+            _ => throw new InvalidOperationException($"Unsupported year: {year}")
+        };
+    }
+    public dynamic SignJoinScript(long year, dynamic joinScript)
+    {
+        SignService sign = new SignService();
+        return year switch
+        {
+            2015 or 2016 => sign.SignJsonResponseForClientFromPrivateKey(joinScript),
+            2017 or 2018 => sign.SignJsonResponseForClientFromPrivateKey(joinScript),
+            2019 or 2020 => sign.SignJson2048New(joinScript),
+            _ => "Fail"
+        };
+    }
     public async Task<IEnumerable<GameMediaEntry>> GetGameMedia(long placeId)
     {
         return await db.QueryAsync<GameMediaEntry>(
