@@ -261,7 +261,7 @@ public class Economy : ControllerBase
             }
             request = JsonConvert.DeserializeObject<PurchaseRequest>(fixedJson);
         }
-
+        var details = await services.assets.GetAssetCatalogInfo(assetId);
         FeatureCheck();
         var stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -292,14 +292,17 @@ public class Economy : ControllerBase
             });
         }
         */
-
-        await PurchaseNormalItem(assetId, request);
+        else
+        {
+            // User is making normal purchase
+            request.expectedSellerId = details.creatorTargetId;
+            await PurchaseNormalItem(assetId, request);
+        }
 
         stopwatch.Stop();
         // Report time
         Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
             request.userAssetId != null);
-        var details = await services.assets.GetAssetCatalogInfo(assetId);
         return new
         {
             purchased = true,
