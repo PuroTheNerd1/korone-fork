@@ -119,6 +119,8 @@ public class CsrfMiddleware : ControllerServicesExtended
             }
         });
     }
+v1/purchases/products
+
 
     public static List<string> bypassUrls = new()
     {
@@ -165,7 +167,9 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/chat/negotiate",
         "/version",
         "/v1/CreateOrUpdate",
-        "/game/validate-machine"
+        "/game/validate-machine",
+        //economy
+        "v1/purchases/products",
     };
 
     public async Task InvokeAsync(HttpContext ctx)
