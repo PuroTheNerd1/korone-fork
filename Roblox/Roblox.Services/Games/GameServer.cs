@@ -685,7 +685,7 @@ public class GameServerService : ServiceBase
             // Check if it exists in the dictionary if not delete it!
             if (!currentGameServerPorts.ContainsKey(ExistingJobId)){
                 Console.WriteLine($"Removing old job: {ExistingJobId}");
-                Task.Run(() => ShutDownServerAsync(ExistingJobId));
+                _ = ShutDownServerAsync(ExistingJobId);
                 continue;
             }
                 
