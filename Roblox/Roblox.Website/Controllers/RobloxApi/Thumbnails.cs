@@ -214,6 +214,7 @@ public class RbxThumbnails : ControllerBase
         }
 
         var thumbs = requestEntries.ToList();
+        /*
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails),
@@ -225,7 +226,7 @@ public class RbxThumbnails : ControllerBase
         {
             data = allResults.SelectMany(x => x),
         };
-        /*
+        */
         foreach (var entry in requestEntries)
         {
             switch (entry.type)
@@ -245,7 +246,7 @@ public class RbxThumbnails : ControllerBase
                     ));
                     break;
                 case "AvatarHeadShot":
-                    MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots),
+                    await ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots);
                     break;
                 case "GameIcon":
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
@@ -282,7 +283,7 @@ public class RbxThumbnails : ControllerBase
         {
             data = allResults.SelectMany(x => x),
         };
-        */
+
     }
 }
 
