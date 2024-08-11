@@ -364,7 +364,7 @@ public class GamesService : ServiceBase, IService
         
         var baseUrl = Configuration.BaseUrl.Replace("https://", "");
         
-        var joinScript = new
+        dynamic joinScript = new
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
@@ -418,7 +418,48 @@ public class GamesService : ServiceBase, IService
             2015 or 2016 => joinScript,
             2017 or 2018 => new
             {
-                joinScript,
+                joinScript.ClientPort,
+                joinScript.MachineAddress,
+                joinScript.ServerPort,
+                joinScript.PingUrl,
+                joinScript.PingInterval,
+                joinScript.UserName,
+                joinScript.SeleniumTestMode,
+                joinScript.UserId,
+                joinScript.SuperSafeChat,
+                joinScript.CharacterAppearance,
+                joinScript.ClientTicket,
+                joinScript.GameId,
+                joinScript.PlaceId,
+                joinScript.MeasurementUrl,
+                joinScript.WaitingForCharacterGuid,
+                joinScript.BaseUrl,
+                joinScript.ChatStyle,
+                joinScript.VendorId,
+                joinScript.ScreenShotInfo,
+                joinScript.VideoInfo,
+                joinScript.CreatorId,
+                joinScript.CreatorTypeEnum,
+                joinScript.MembershipType,
+                joinScript.AccountAge,
+                joinScript.CookieStoreFirstTimePlayKey,
+                joinScript.CookieStoreFiveMinutePlayKey,
+                joinScript.CookieStoreEnabled,
+                joinScript.IsRobloxPlace,
+                joinScript.GenerateTeleportJoin,
+                joinScript.IsUnknownOrUnder13,
+                joinScript.SessionId,
+                joinScript.DataCenterId,
+                joinScript.UniverseId,
+                joinScript.BrowserTrackerId,
+                joinScript.UsePortraitMode,
+                joinScript.FollowUserId,
+                joinScript.characterAppearanceId,
+                joinScript.ServerConnections,
+                joinScript.DisplayName,
+                joinScript.RobloxLocale,
+                joinScript.GameLocale,
+                joinScript.CountryCode,
                 NewClientTicket = finalTicket,
                 GameChatType = "AllUsers"
             },
