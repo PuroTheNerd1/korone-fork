@@ -377,6 +377,8 @@ public class GamesService : ServiceBase, IService
             SuperSafeChat = false,
             CharacterAppearance = characterAppearanceUrl,
             ClientTicket = finalTicket,
+            NewClientTicket = finalTicket,
+            GameChatType = "AllUsers",
             GameId = jobId,
             PlaceId = placeId,
             MeasurementUrl = "",
