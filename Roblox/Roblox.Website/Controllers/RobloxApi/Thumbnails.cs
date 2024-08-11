@@ -164,10 +164,26 @@ public class RbxThumbnails : ControllerBase
             foreach (var item in result)
             {
                 if (item.imageUrl is null) continue;
+
                 var avatar18Plus = await services.avatar.IsUserAvatar18Plus(item.targetId);
-                if (!avatar18Plus) continue;
-                item.state = ThumbnailState.Blocked;
-                item.imageUrl = "/img/blocked.png";
+                if (avatar18Plus)
+                {
+                    item.state = ThumbnailState.Blocked;
+                    item.imageUrl = "/img/blocked.png";
+                }
+                else
+                {
+                    item.imageUrl = Configuration.BaseUrl + item.imageUrl;
+                }
+            }
+        }
+        else
+        {
+            foreach (var item in result)
+            {
+                if (item.imageUrl is null) continue;
+
+                item.imageUrl = Configuration.BaseUrl + item.imageUrl;
             }
         }
         return new()
