@@ -306,6 +306,7 @@ namespace Roblox.Website.Controllers
                 case Models.Assets.Type.WalkAnimation:
                 case Models.Assets.Type.PoseAnimation:
                 case Models.Assets.Type.SolidModel:
+                case Models.Assets.Type.Video:
                     if (assetVersion.contentUrl is null)
                         throw new RobloxException(400, 0, "BadRequest"); // todo: should we log this?
                     if (details.assetType == Models.Assets.Type.Audio)
