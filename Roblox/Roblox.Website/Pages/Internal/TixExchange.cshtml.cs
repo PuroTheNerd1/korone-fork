@@ -52,8 +52,8 @@ namespace Roblox.Website.Pages.Internal
                     return;
                 }
 
-                await services.economy.DecrementCurrency(userSession.userId, Models.Economy.CurrencyType.Tickets, tix);
-                await services.economy.IncrementCurrency(userSession.userId, Models.Economy.CurrencyType.Robux, finalRobux);
+                await services.economy.DecrementCurrency(Models.Assets.CreatorType.User, userSession.userId, Models.Economy.CurrencyType.Tickets, tix);
+                await services.economy.IncrementCurrency(Models.Assets.CreatorType.User, userSession.userId, Models.Economy.CurrencyType.Robux, finalRobux);
 
                 successMessage = $"You have received {finalRobux} R$ from {tix} Tix.";
                 return;
