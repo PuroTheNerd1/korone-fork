@@ -156,9 +156,9 @@ public class CurrencyExchangeService : ServiceBase, IService
         var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
         // Transfer
         // Give source user the money they purchased
-        await ec.IncrementCurrency(sourceData.userId, destData.sourceCurrency, desiredAmount);
+        await ec.IncrementCurrency(Models.Assets.CreatorType.User, sourceData.userId, destData.sourceCurrency, desiredAmount);
         // Give dest user the money they earned
-        await ec.IncrementCurrency(destData.userId, destData.destinationCurrency, amountToTakeFromSource);
+        await ec.IncrementCurrency(Models.Assets.CreatorType.User, destData.userId, destData.destinationCurrency, amountToTakeFromSource);
         // Exchange transactions
         await InsertExchangeLog(sourceOrderId, destData.userId, desiredAmount, amountToTakeFromSource);
         await InsertExchangeLog(toBuyOrderId, sourceData.userId, amountToTakeFromSource, desiredAmount);
@@ -310,7 +310,7 @@ public class CurrencyExchangeService : ServiceBase, IService
         if (details.balance != 0)
         {
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
-            await ec.IncrementCurrency(details.userId, details.sourceCurrency, details.balance);
+            await ec.IncrementCurrency(Models.Assets.CreatorType.User, details.userId, details.sourceCurrency, details.balance);
         }
     }
 

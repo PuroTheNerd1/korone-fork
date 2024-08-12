@@ -7,6 +7,7 @@ using Roblox.Dto.Users;
 using Roblox.Libraries;
 using Roblox.Libraries.Exceptions;
 using Roblox.Logging;
+using Roblox.Models.Assets;
 using Roblox.Models.Economy;
 using Roblox.Models.Trades;
 using Roblox.Models.Users;
@@ -715,11 +716,11 @@ public class TradesService : ServiceBase, IService
                 // Robux that request is giving to offer person
                 // Deduct
                 log.Info("subtract request robux {0} from {1}", requestRobux.Value, requestUserId);
-                await ec.DecrementCurrency(requestUserId, CurrencyType.Robux, requestRobux.Value);
+                await ec.DecrementCurrency(CreatorType.User, requestUserId, CurrencyType.Robux, requestRobux.Value);
                 // Give 70% to other user
                 var percentToOtherUser = (long)Math.Truncate((decimal) (requestRobux * 0.7));
                 log.Info("transferring request robux {0} to {1}", percentToOtherUser, offerUserId);
-                await ec.IncrementCurrency(offerUserId, CurrencyType.Robux, percentToOtherUser);
+                await ec.IncrementCurrency(CreatorType.User, offerUserId, CurrencyType.Robux, percentToOtherUser);
             }
             
             if (offerRobux != null)
@@ -728,11 +729,11 @@ public class TradesService : ServiceBase, IService
                 // Robux that offer is giving to request person
                 // Deduct
                 log.Info("subtract offer robux {0} from {1}", offerRobux, offerUserId);
-                await ec.DecrementCurrency(offerUserId, CurrencyType.Robux, offerRobux.Value);
+                await ec.DecrementCurrency(CreatorType.User, offerUserId, CurrencyType.Robux, offerRobux.Value);
                 // Give 70% to other user
                 var percentToOtherUser = (long)Math.Truncate((decimal) (offerRobux * 0.7));
                 log.Info("transferring offer robux {0} to {1}", percentToOtherUser, requestUserId);
-                await ec.IncrementCurrency(requestUserId, CurrencyType.Robux, percentToOtherUser);
+                await ec.IncrementCurrency(CreatorType.User, requestUserId, CurrencyType.Robux, percentToOtherUser);
             }
             
             await db.ExecuteAsync("UPDATE user_trade SET status = :status WHERE id = :id", new

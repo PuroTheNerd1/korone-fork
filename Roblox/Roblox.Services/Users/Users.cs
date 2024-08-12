@@ -1871,7 +1871,7 @@ public class UsersService : ServiceBase, IService
             {
                 // increment balance, create transaction
                 using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
-                await ec.IncrementCurrency(userId, CurrencyType.Tickets, dailyTickets);
+                await ec.IncrementCurrency(CreatorType.User, userId, CurrencyType.Tickets, dailyTickets);
                 await InsertAsync("user_transaction", new
                 {
                     type = PurchaseType.TicketsStipend,

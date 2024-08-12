@@ -565,7 +565,7 @@ public class AdminApiController : ControllerBase
     private async Task AwardCommissionForModeration()
     {
         // give commission
-        await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, 5);
+        await services.economy.IncrementCurrency(CreatorType.User, userSession.userId, CurrencyType.Robux, 5);
         await services.users.InsertAsync("user_transaction", new
         {
             type = PurchaseType.Commission,
@@ -582,7 +582,7 @@ public class AdminApiController : ControllerBase
     private async Task AwardCommissionForApplicationReview()
     {
         // give commission
-        await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, 5);
+        await services.economy.IncrementCurrency(CreatorType.User, userSession.userId, CurrencyType.Robux, 5);
         await services.users.InsertAsync("user_transaction", new
         {
             type = PurchaseType.Commission,
@@ -2717,7 +2717,7 @@ Thank you for your understanding,
             robuxAmount = 5000;
         }
 
-        await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, robuxAmount);
+        await services.economy.IncrementCurrency(CreatorType.User, userSession.userId, CurrencyType.Robux, robuxAmount);
         await services.users.InsertAsync("user_transaction", new
         {
             type = PurchaseType.Commission,
@@ -2745,7 +2745,7 @@ Thank you for your understanding,
     private async Task RewardForReportReview()
     {
         const int robuxAmount = 5;
-        await services.economy.IncrementCurrency(userSession.userId, CurrencyType.Robux, robuxAmount);
+        await services.economy.IncrementCurrency(CreatorType.User, userSession.userId, CurrencyType.Robux, robuxAmount);
         await services.users.InsertAsync("user_transaction", new
         {
             type = PurchaseType.Commission,
