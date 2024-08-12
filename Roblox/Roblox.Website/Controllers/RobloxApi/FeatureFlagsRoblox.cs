@@ -29,9 +29,9 @@ namespace Roblox.Website.Controllers
             "AndroidAppSettings",
             "StudioAppSettings"
         };
-        [HttpGetBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
+        [HttpGetBypass("Setting/Get/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
         public ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
