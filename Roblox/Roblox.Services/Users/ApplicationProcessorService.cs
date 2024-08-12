@@ -121,7 +121,8 @@ public class ApplicationProcessorService : ServiceBase, IService
                 if (previousNames.Length > 2)
                     isRichMindset = true;
             }
-            
+            //why u may ask people love them alts.
+            isRichMindset = false;
             // Finally...
             if (isRichMindset)
             {
