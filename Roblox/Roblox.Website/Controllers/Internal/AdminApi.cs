@@ -169,9 +169,10 @@ public class AdminApiController : ControllerBase
     {
         return await services.users.GetAllStaff();
     }
-    
+
+
     [HttpGet("staff/permissions/list"), StaffFilter(Access.SetPermissions)]
-    public async Task<IEnumerable<Access>> GetAllPermissions()
+    public IEnumerable<Access> GetAllPermissions()
     {
         return Enum.GetValues<Access>();
     }
@@ -297,7 +298,10 @@ public class AdminApiController : ControllerBase
 
 
         var joinId = await services.users.ProcessApplication(id, 1, UserApplicationStatus.Approved);
-
+        if (joinId == null)
+        {
+            throw new StaffException("The join id is null");
+        }
         await services.users.SetApplicationUserIdByJoinId(joinId, req.userId);
 
         return "Join application added to user";
@@ -2862,7 +2866,7 @@ Thank you for your understanding,
     [StaffFilter(Access.GetGameServers)]
     public async Task<dynamic> GetGameServers()
     {
-        var result = services.gameServer.GetAllGameServers();
+        var result = await services.gameServer.GetAllGameServers();
         var l = new List<dynamic>();
         return result;
     }

@@ -370,7 +370,7 @@ public class UsersService : ServiceBase, IService
                 throw new NotEnoughRobuxForPurchaseException();
 
             // subtract from balance
-            await ec.DecrementCurrency(userId, CurrencyType.Robux, 1000);
+            await ec.DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, 1000);
 
             // trans
             await InsertAsync("user_transaction", new

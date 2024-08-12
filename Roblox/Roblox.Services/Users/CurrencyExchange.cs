@@ -408,7 +408,7 @@ public class CurrencyExchangeService : ServiceBase, IService
                 throw new RobloxException(400, 0, "You do not have enough currency to make this trade");
             }
             // decrement
-            await ec.DecrementCurrency(userId, sourceCurrency, amount);
+            await ec.DecrementCurrency(Models.Assets.CreatorType.User, userId, sourceCurrency, amount);
             // Record the position first
             var orderId = await InsertAsync("trade_currency_order", "id", new
             {

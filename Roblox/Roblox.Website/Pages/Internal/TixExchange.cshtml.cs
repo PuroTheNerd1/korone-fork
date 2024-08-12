@@ -16,7 +16,7 @@ namespace Roblox.Website.Pages.Internal
         [BindProperty]
         public long tix { get; set; }
 
-        public async Task OnGet()
+        public void OnGet()
         {
             if (userSession == null)
             {
@@ -58,7 +58,7 @@ namespace Roblox.Website.Pages.Internal
                 successMessage = $"You have received {finalRobux} R$ from {tix} Tix.";
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 errorMessage = "Failed to convert tix to robux.";
                 return;
