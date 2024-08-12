@@ -119,7 +119,6 @@ public class GameServerService : ServiceBase
         return value;
     }
 
-    [Obsolete]
     public async Task OnPlayerJoin(long userId, long placeId, string serverId)
     {
         CurrentPlayersInGame.Add(userId, placeId);
@@ -162,7 +161,7 @@ public class GameServerService : ServiceBase
             }
             else
             {
-                await ec.IncrementCurrency(placeDetails.creatorTargetId, CurrencyType.Tickets, 1);
+                await ec.IncrementCurrency(CreatorType.User, placeDetails.creatorTargetId, CurrencyType.Tickets, 1);
                 await InsertAsync("user_transaction", new
                 {
                     amount = 10,
@@ -221,7 +220,7 @@ public class GameServerService : ServiceBase
             await InTransaction(async _ =>
             {
                 using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
-                await ec.IncrementCurrency(userId, CurrencyType.Tickets, earnedTickets);
+                await ec.IncrementCurrency(CreatorType.User, userId, CurrencyType.Tickets, earnedTickets);
                 await InsertAsync("user_transaction", new
                 {
                     amount = earnedTickets,
@@ -284,9 +283,8 @@ public class GameServerService : ServiceBase
     public async Task<dynamic> KickPlayer(long userId, string reason)
     {
         UsersService users = new UsersService();
-        GameServerService gameServerService = new GameServerService();
         string JobId = await GetJobIdByUserId(userId);
-        long RCCPort = await gameServerService.GetRCCport(JobId);
+        long RCCPort = await GetRCCport(JobId);
 
         Console.WriteLine(RCCPort);
         var userInfo = await users.GetUserById(userId);
@@ -388,7 +386,7 @@ public class GameServerService : ServiceBase
         {
             id = serverId,
         });
-        if (result == null)
+        if (result == 0)
         {
             throw new Exception($"No server found with ID: {serverId}");
         }      
@@ -631,16 +629,18 @@ public class GameServerService : ServiceBase
             throw new Exception("Port not found or NULL.");
         }
     }
-    public async Task<string> GetJobIdByUserId(long userId)
+    public async Task<string?> GetJobIdByUserId(long userId)
     {
         var result = await db.QueryFirstOrDefaultAsync<Guid?>(
             "SELECT server_id FROM asset_server_player WHERE user_id = :userId",
             new { userId }
         );
+        if(result == null)
+        {
+            return null;
+        }
 
-        string serverIdAsString = result?.ToString();
-
-        return serverIdAsString;
+        return result.ToString();
     }
     public async Task<dynamic> GetGameServersForPlace(long placeId)
     {
@@ -1003,32 +1003,6 @@ public class GameServerService : ServiceBase
             server.players = await GetGameServerPlayers(server.id);
         }
         return result;
-    }
-    static async Task<bool> IsPortAvailable(int port)
-    {
-        try
-        {
-            using (var udpClient = new UdpClient())
-            {
-                // Try to connect to the specified port
-                udpClient.Connect("127.0.0.1", port);
-                return true;
-            }
-        }
-        catch (SocketException)
-        {
-            return false;
-        }
-    }
-
-    static async Task WaitForUDPPort(int port)
-    {
-        while (!await IsPortAvailable(port))
-        {
-            await Task.Delay(100);
-        }
-
-        Console.WriteLine($"Port {port} is now available!");
     }
 
     static Task WaitForPort(int RCCPort)

@@ -9,7 +9,6 @@ using Roblox.Dto.Users;
 using Roblox.Exceptions;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
-using Roblox.Services.Exceptions;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
@@ -143,6 +142,8 @@ namespace Roblox.Website.Controllers
             return new 
             {
                 success = true,
+                status = "Bought",
+                receipt = "test"
             };
             // Report time
 

@@ -33,7 +33,6 @@ using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http.Extensions;
 using Roblox.Website.WebsiteModels.Authentication;
 using System.Text.RegularExpressions;
 using InfluxDB.Client.Core.Exceptions;
@@ -245,7 +244,7 @@ namespace Roblox.Website.Controllers
             dynamic assetVersion;
             if (version != null)
             {
-                assetVersion = await services.assets.GetSpecificAssetVersion(assetId, (long)assetversionid);
+                assetVersion = await services.assets.GetSpecificAssetVersion(assetId, (long)version);
             }
             else
             {
@@ -439,7 +438,10 @@ namespace Roblox.Website.Controllers
                     requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
                 }
             }
-
+            if (requestData == null)
+            {
+                throw new BadRequestException();
+            }
             var assetReturnInfo = new List<object>();
             foreach (var request in requestData)
             {
@@ -517,7 +519,7 @@ namespace Roblox.Website.Controllers
                     {
                         isInGroup = true;
                     }
-                    var group = await services.groups.GetUserRoleInGroup((long) groupid, (long) playerid);
+                    var group = await services.groups.GetUserRoleInGroup((long) groupid, (long)playerid);
                     if (group.rank != 0)
                         isInGroup = true;
                 }
@@ -719,18 +721,19 @@ namespace Roblox.Website.Controllers
 #endif
         [HttpPostBypass("login/RequestAuth.ashx")]
         [HttpGetBypass("login/RequestAuth.ashx")]
-        public async Task<MVC.ActionResult<dynamic?>> StudioRequestAuth()
+        public ActionResult<dynamic?> StudioRequestAuth()
         {
-            if (userSession == null){
+            if (userSession == null)
+            {
                 return Unauthorized("User is not authorized.");
             }
 
-            string cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
+            string? cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
             return Ok($"https://www.projex.zip/Login/Negotiate.ashx?suggest={cookie}");
         }
 
         [HttpGetBypass("My/Places.aspx")]
-        public async Task<MVC.ActionResult<dynamic?>> MyPlaces()
+        public ActionResult<dynamic?> MyPlaces()
         {
             return Ok();
         }
@@ -941,142 +944,6 @@ namespace Roblox.Website.Controllers
 
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);         
             var joinScript = services.games.GetJoinScript(year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
-            /*
-            dynamic joinScript2016 = new
-            {
-                ClientPort = 0,
-                MachineAddress = Configuration.GameServerIp,
-                ServerPort = GameServerService.currentGameServerPorts[jobId],
-                PingUrl = "",
-                PingInterval = 50,
-                UserName = username,
-                SeleniumTestMode = false,
-                UserId = userId,
-                SuperSafeChat = false,
-                CharacterAppearance = characterAppearanceUrl,
-                ClientTicket = finalTicket,
-                GameId = jobId,
-                PlaceId = placeId,
-                MeasurementUrl = "",
-                WaitingForCharacterGuid = Guid.NewGuid().ToString(),
-                BaseUrl = Configuration.BaseUrl,
-                ChatStyle = "ClassicAndBubble",
-                VendorId = 0,
-                ScreenShotInfo = "",
-                VideoInfo = "",
-                CreatorId = uni.builderId,
-                CreatorTypeEnum = "User",
-                MembershipType = membership,
-                AccountAge = accountAgeDays,
-                CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
-                CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
-                CookieStoreEnabled = true,
-                IsRobloxPlace = uni.builderId == 1,
-                GenerateTeleportJoin = false,
-                IsUnknownOrUnder13 = false,
-                SessionId = "",
-                DataCenterId = 0,
-                UniverseId = uni.universeId,
-                BrowserTrackerId = 0,
-                UsePortraitMode = false,
-                FollowUserId = 0,
-                characterAppearanceId = userId
-            };
-            dynamic joinScript20172018 = new
-            {
-                ClientPort = 0,
-                MachineAddress = Configuration.GameServerIp,
-                ServerPort = GameServerService.currentGameServerPorts[jobId],
-                PingUrl = "",
-                PingInterval = 120,
-                UserName = username,
-                SeleniumTestMode = false,
-                UserId = userId,
-                SuperSafeChat = false,
-                CharacterAppearance = characterAppearanceUrl,
-                ClientTicket = finalTicket,
-                NewClientTicket = finalTicket,
-                GameId = jobId,
-                PlaceId = placeId,
-                MeasurementUrl = "",
-                WaitingForCharacterGuid = Guid.NewGuid().ToString(),
-                BaseUrl = Configuration.BaseUrl,
-                ChatStyle = "ClassicAndBubble",
-                VendorId = 0,
-                ScreenShotInfo = "",
-                VideoInfo = "",
-                CreatorId = uni.builderId,
-                CreatorTypeEnum = "User",
-                MembershipType = membership,
-                AccountAge = accountAgeDays,
-                CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
-                CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
-                CookieStoreEnabled = true,
-                IsRobloxPlace = uni.builderId == 1,
-                GenerateTeleportJoin = GenerateTeleportJoin,
-                IsUnknownOrUnder13 = false,
-                GameChatType = "AllUsers",
-                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.BaseUrl.Replace("https://", "")}|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
-                DataCenterId = 0,
-                UniverseId = uni.universeId, 
-                BrowserTrackerId = 0,
-                UsePortraitMode = false,
-                FollowUserId = 0,
-                characterAppearanceId = 0
-            };
-            dynamic joinScript20192020 = new
-            {
-                ClientPort = 0,
-                MachineAddress = Configuration.GameServerIp,
-                ServerConnections = new List<dynamic>
-                {
-                    new
-                    {
-                        Port = GameServerService.currentGameServerPorts[jobId], 
-                        Address = Configuration.GameServerIp, 
-                    }
-                },
-                ServerPort = GameServerService.currentGameServerPorts[jobId], 
-                PingUrl = "", 
-                PingInterval = 120, 
-                UserName = username, 
-                DisplayName = username,
-                SeleniumTestMode = false, 
-                UserId = userId, 
-                ClientTicket = finalTicket, 
-                SuperSafeChat = false, 
-                PlaceId = placeId, 
-                MeasurementUrl = "",
-                WaitingForCharacterGuid = Guid.NewGuid().ToString(),
-                BaseUrl = Configuration.BaseUrl, 
-                ChatStyle = "ClassicAndBubble", 
-                VendorId = 0,
-                ScreenShotInfo = "",
-                VideoInfo = "",
-                CreatorId = uni.builderId,
-                CreatorTypeEnum = "User",  
-                MembershipType = membership, 
-                AccountAge = accountAgeDays, 
-                CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
-                CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
-                CookieStoreEnabled = true,
-                IsRobloxPlace = false,
-                UniverseId = uni.universeId,
-                GenerateTeleportJoin = false,
-                IsUnknownOrUnder13 = false,
-                SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|45.137.70.23|8|{formattedDateTime}|0|null|{Request.Cookies[".ROBLOSECURITY"]}|null|null|null",
-                DataCenterId = 0,
-                FollowUserId = 0,
-                BrowserTrackerId = 0,
-                UsePortraitMode = false,
-                CharacterAppearance = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}",
-                GameId = jobId,     
-                RobloxLocale = "RobloxLocale",
-                GameLocale = "en_us",
-                CountryCode = "US",
-                characterAppearanceId = userId,
-            };
-            */
 
             return services.games.SignJoinScript(year, joinScript);
         }
@@ -1244,57 +1111,54 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("v1/avatar-rules")]
-        public async Task<IActionResult> AvatarRules()
+        public IActionResult AvatarRules()
         {
             AvatarControllerV1 avatar = new AvatarControllerV1();
             var avatarRules = avatar.GetAvatarRules();
             return Ok(avatarRules);
         }
         [HttpPostBypass("v1/avatar/set-body-color")]
-        public async Task<dynamic> SetBodyColor()
+        public dynamic SetBodyColor()
         {
             return Ok();
-        }      
+        }
+
         [HttpGetBypass("v1/avatar/set-scales")]
-        public async Task<dynamic> SetScale()
+        public dynamic SetScale()
         {
-            var result = new
+            return new
             {
                 success = true
             };
-            string jsonString = JsonConvert.SerializeObject(result);
-            return Content(jsonString, "application/json");           
         }
         [HttpGetBypass("v2/stream-notifications/unread-count")]
-        public async Task<dynamic> PushNotif()
+        public dynamic PushNotif()
         {
-            var result = new
+            return new 
             {
-                unreadNotifications = 999,
+                unreadNotifications = 69,
                 statusMessage = string.Empty
             };
-            string jsonString = JsonConvert.SerializeObject(result);
-            return Content(jsonString, "application/json");           
-        }        
+        }
+
         [HttpGetBypass("sponsoredpage/list-json")]
         [HttpGetBypass("mobile-ads/v1/get-ad-details")]
         [HttpGetBypass("incoming-items/counts")]
-        public async Task<dynamic> IncomingItems()
+        public dynamic IncomingItems()
         {
-            var result = new
+            return new 
             {
                 success = true
             };
-            string jsonString = JsonConvert.SerializeObject(result);
-            return Content(jsonString, "application/json");           
         }
         [HttpGetBypass("v1/avatar/metadata")]
-        public async Task<IActionResult> AvatarMetadata()
+        public IActionResult AvatarMetadata()
         {
             AvatarControllerV1 avatar = new AvatarControllerV1();
             var avatarMetadata = avatar.GetAvatarMetadata();
             return Ok(avatarMetadata);
-        }        
+        }
+
         [HttpGetBypass("v1/avatar")]
         public async Task<IActionResult> MobileCharapp()
         {
@@ -1303,7 +1167,7 @@ namespace Roblox.Website.Controllers
             return Ok(avatarData);
         }
         [HttpGetBypass("v1.1/game-start-info")]
-        public async Task<dynamic> GameStartInfo(long universeId)
+        public dynamic GameStartInfo(long universeId)
         {
             return new
             {
@@ -1402,23 +1266,10 @@ namespace Roblox.Website.Controllers
         {
             if (auth != Configuration.GameServerAuthorization)
             {
-                Roblox.Metrics.GameMetrics.ReportRccAuthorizationFailure(HttpContext.Request.GetEncodedUrl(),
-                    auth, GetRequesterIpRaw(HttpContext));
                 throw new BadRequestException();
             }
         }
-        [HttpPostBypass("marketplace/purchase")]
-        public async Task<dynamic> TestGamepass(long assetId)
-        {
-            var data = new
-            {
-                success = "true",
-                status = "Bought",
-                receipt = "test"
-            };
 
-            return Ok(data);
-        }
         [HttpPostBypass("/gs/activity")]
         public async Task<dynamic> GetGsActivity([Required, MVC.FromBody] ReportActivity request)
         {
@@ -1469,20 +1320,20 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
-            GameServerService gameServerService = new GameServerService();
-            string JobId = await gameServerService.GetJobIdByUserId(visitorId);
             bool IsRCC = IsRcc();
-            if(!IsRCC)
+            if(!IsRCC || !GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
             {
                 return;
             }
-            if(!GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
+
+            string JobId = await services.gameServer.GetJobIdByUserId(visitorId);
+            if(JobId == null)
             {
                 return;
             }
             long placeId = GameServerService.GetUserPlaceId(visitorId);
 
-            await gameServerService.OnPlayerLeave(visitorId, placeId, JobId);
+            await services.gameServer.OnPlayerLeave(visitorId, placeId, JobId);
         }
         [HttpGetBypass("/device/initialize")]
         [HttpPostBypass("/device/initialize")]
@@ -1504,16 +1355,16 @@ namespace Roblox.Website.Controllers
         {
             GameServerService gameServerService = new GameServerService();
             bool IsRCC = IsRcc();
-            if(!IsRCC)
-            {
-                return;
-            }
-            if(!GameServerService.CurrentPlayersInGame.ContainsKey(userId))
+            if(!IsRCC || !GameServerService.CurrentPlayersInGame.ContainsKey(userId))
             {
                 return;
             }
             if(action == "disconnect"){
                 string JobId = await gameServerService.GetJobIdByUserId(userId);
+                if(JobId == null)
+                {
+                    return;
+                }
                 await gameServerService.OnPlayerLeave(userId, placeId, JobId);
             }
         }
@@ -1680,10 +1531,12 @@ namespace Roblox.Website.Controllers
             // return as string
             return new XDocument(robloxRoot).ToString();
         }
-        
-        [HttpPostBypass("Game/PlaceVisit.ashx")]       
+
+
+        [HttpPostBypass("Game/PlaceVisit.ashx")]
+
         [HttpGetBypass("Game/PlaceVisit.ashx")]
-        public async Task<dynamic> PlaceVisit()
+        public dynamic PlaceVisit()
         {
             return Ok();
         }
@@ -1836,19 +1689,6 @@ namespace Roblox.Website.Controllers
             };
         }
 
-        [HttpGetBypass("banned")]
-        public async Task<IActionResult> BannedAsync()
-        {
-            var videoUrl = "https://www.projex.zip/cdn/Youve_been_banned.mp4";
-
-            using (var httpClient = new HttpClient())
-            {
-                var videoContent = await httpClient.GetByteArrayAsync(videoUrl);
-
-                return File(videoContent, "video/mp4");
-            }
-        }
-
         [HttpGetBypass("GetAllowedMD5Hashes")]
         public MVC.ActionResult<dynamic> AllowedMD5Hashes()
         {
@@ -1975,6 +1815,7 @@ namespace Roblox.Website.Controllers
                 enabled = false,
             };
         }
+        /*
         [HttpGetBypass("universes/get-aliases")]
         public async Task<dynamic> GetAliases(long universeId)
         {
@@ -2004,10 +1845,9 @@ namespace Roblox.Website.Controllers
                     }
                 },
                 PageSize = 50
-            };
-            
-
+            };   
         }
+        */
         [HttpGetBypass("v1/user/{userId:long}/is-admin-developer-console-enabled")]
         public async Task<dynamic> NewCanManage(long userId)
         {
@@ -2109,31 +1949,33 @@ namespace Roblox.Website.Controllers
         {
             return (await services.users.GetUserAssets(userId, assetId)).Any() ? "true" : "false";
         }
-        
-        
+
+
+
         [HttpPostBypass("persistence/increment")]
-        public async Task<dynamic> IncrementPersistence(long placeId, string key, string type, string scope, string target, int value)
+        public dynamic IncrementPersistence(long placeId, string key, string type, string scope, string target, int value)
         {
             // increment?placeId=%i&key=%s&type=%s&scope=%s&target=&value=%i
-            
+
             if (!IsRcc())
                 throw new RobloxException(400, 0, "BadRequest");
-            
+
             return new
             {
-                data = (object?) null,
+                data = (object?)null,
             };
         }
 
         [HttpPostBypass("persistence/getSortedValues")]
-        public async Task<dynamic> GetSortedPersistenceValues(long placeId, string type, string scope, string key, int pageSize, bool ascending, int inclusiveMinValue = 0, int inclusiveMaxValue = 0)
+        public dynamic GetSortedPersistenceValues(long placeId, string type, string scope, string key, int pageSize, bool ascending, int inclusiveMinValue = 0, int inclusiveMaxValue = 0)
         {
             // persistence/getSortedValues?placeId=0&type=sorted&scope=global&key=Level%5FHighscores20&pageSize=10&ascending=False"
             // persistence/set?placeId=124921244&key=BF2%5Fds%5Ftest&&type=standard&scope=global&target=BF2%5Fds%5Fkey%5Ftmp&valueLength=31
-            
+
             if (!IsRcc())
                 throw new RobloxException(400, 0, "BadRequest");
-            
+
+
             return new
             {
                 data = new
@@ -2164,7 +2006,7 @@ namespace Roblox.Website.Controllers
                     Key = qKeyKey,
                     Scope = qKeyscope ?? scope,
                     Target = qKeyTarget,
-                    Value = entry.value // Accessing value property of each entry
+                    Value = entry.value ?? ""// Accessing value property of each entry
                 });
             }
 
@@ -2175,60 +2017,11 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("sign-out/v1")]
         [HttpGetBypass("game/logout.aspx")]
-        public async Task<dynamic> Logout()
+        public dynamic Logout()
         {
             using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
-            sessCache.Remove(userSession.sessionId);
+            sessCache.Remove(safeUserSession.sessionId);
             HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
-            return Ok();
-        }
-
-        [HttpGetBypass("rcc/sendsystats")]
-        public async Task<dynamic> SendAntiCheatFlags(long userId, string stat, string details)
-        { 
-            string webhookUrl = "https://discord.com/api/webhooks/1220036052719505478/hEVqqAS8ISAb6BxIpmYKzq0jmHTSRYoxPw1CTLuxfljG69-klFylxl8aIjoPAPbC5ZjA";
-            string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            Console.WriteLine("RCC is sending stats");
-            if(details == "vegah"){
-                return Ok();
-            }
-            if (userAgent != null)
-            {
-                var userInfo = await services.users.GetUserById(userId);
-                dynamic discordMessage = new
-                {
-                    content = (object)null,
-                    embeds = new[]
-                    {
-                        new 
-                        {
-                            title = "ZetaCheatingMonitor",
-                            url = Configuration.BaseUrl,
-                            color = 16711680,
-                            fields = new[]
-                            {
-                                new  { name = "Username", value = $"{userInfo.username}" },
-                                new  { name = "Flag", value = $"```\n{details}\n```" },
-                                new  { name = "Details", value = $"```\n{stat}\n```" }
-                            },
-                            thumbnail = new { url = $"{Configuration.BaseUrl}/thumbs/avatar.ashx?userId={userId}" }
-                        }
-                    },
-                    username = "ZetaCheatingMonitor",
-                    avatar_url = "https://cdn.discordapp.com/avatars/1124385331827966032/3d16946616a0c553a53135a118df02de.png?size=1024",
-                    attachments = new List<object>()
-                };
-                string jsonMessage = JsonConvert.SerializeObject(discordMessage, Formatting.Indented);
-                using (HttpClient client = new HttpClient())
-                {
-                    StringContent httpContent = new StringContent(jsonMessage, Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await client.PostAsync(webhookUrl, httpContent);
-                }
-            }
-            else
-            {
-                throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");    
-            }     
             return Ok();
         }
 
@@ -2371,7 +2164,7 @@ namespace Roblox.Website.Controllers
         {
             if(userId == null)
             {
-                userId = userSession.userId;
+                userId = safeUserSession.userId;
             }
             int amountFriends = await services.friends.CountFriends((long)userId);
             return new 
@@ -2404,9 +2197,10 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(jsonData);
             return Content(jsonString, "application/json");
         }
-        
+
+
         [HttpGetBypass("studio/e.png")]
-        public async Task<string> StudioEpng()
+        public string StudioEpng()
         {
             return "1";
         }
@@ -2439,7 +2233,7 @@ namespace Roblox.Website.Controllers
                 await services.gameServer.ShutDownServerAsync(gameId);
                 return "OK!";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // lets just delete the gameserver if we couldnt close the gameserver 
                 await services.gameServer.DeleteGameServer(gameId);
@@ -2481,7 +2275,7 @@ namespace Roblox.Website.Controllers
                     await services.gameServer.ShutDownServerAsync(gameId);
                     return "OK!";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await services.gameServer.DeleteGameServer(gameId);
                     return "OK!";
