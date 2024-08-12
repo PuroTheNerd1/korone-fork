@@ -19,6 +19,7 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using CsvHelper;
 
 namespace Roblox.Services;
 
@@ -284,6 +285,10 @@ public class GameServerService : ServiceBase
     {
         UsersService users = new UsersService();
         string JobId = await GetJobIdByUserId(userId);
+        if(JobId == null)
+        {
+            throw new Exception();
+        }
         long RCCPort = await GetRCCport(JobId);
 
         Console.WriteLine(RCCPort);

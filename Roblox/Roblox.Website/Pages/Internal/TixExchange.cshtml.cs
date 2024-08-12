@@ -31,7 +31,7 @@ namespace Roblox.Website.Pages.Internal
                 return;
             }
 
-            if (tix <= 10)
+            if (tix < 10)
             {
                 errorMessage = "The minimum tix you can exchange is 10.";
                 return;
