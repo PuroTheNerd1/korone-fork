@@ -454,6 +454,9 @@ public class WebController : ControllerBase
         long year = await services.games.GetYear(placeId);
         switch(year)
         {
+            case 2015:
+                clientVer = "2015M";
+                break;
             case 2016:
                 clientVer = "2016E";
                 break;
@@ -466,10 +469,13 @@ public class WebController : ControllerBase
             case 2020:
                 clientVer = "2020L";
                 break;
+            case 2021:
+                clientVer = "2021E";
+                break;
             default:
                 clientVer = "2016E";
                 break;
-        }           
+        }          
         var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
@@ -480,7 +486,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "projectx-client",
+            prefix = "projex-player",
             retroArgs = args
         };
     }
