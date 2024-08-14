@@ -1353,19 +1353,18 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/Game/ClientPresence.ashx")]
         public async Task ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
         {
-            GameServerService gameServerService = new GameServerService();
             bool IsRCC = IsRcc();
             if(!IsRCC || !GameServerService.CurrentPlayersInGame.ContainsKey(userId))
             {
                 return;
             }
             if(action == "disconnect"){
-                string JobId = await gameServerService.GetJobIdByUserId(userId);
+                string JobId = await services.gameServer.GetJobIdByUserId(userId);
                 if(JobId == null)
                 {
                     return;
                 }
-                await gameServerService.OnPlayerLeave(userId, placeId, JobId);
+                await services.gameServer.OnPlayerLeave(userId, placeId, JobId);
             }
         }
         [HttpPostBypass("/gs/shutdown")]
