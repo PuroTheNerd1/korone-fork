@@ -881,8 +881,8 @@ namespace Roblox.Website.Controllers
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             long year = await services.games.GetYear(placeId);
-            string username = userSession!.username;
-            long userId = -699;
+            string username = safeUserSession.username;
+            long userId = safeUserSession.userId;
             string membership;
             var membership2 = await services.users.GetUserMembership(userId);
             DateTime currentUtcDateTime = DateTime.UtcNow;
