@@ -882,7 +882,7 @@ namespace Roblox.Website.Controllers
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             long year = await services.games.GetYear(placeId);
             string username = userSession!.username;
-            long userId = userSession!.userId;
+            long userId = -699;
             string membership;
             var membership2 = await services.users.GetUserMembership(userId);
             DateTime currentUtcDateTime = DateTime.UtcNow;
