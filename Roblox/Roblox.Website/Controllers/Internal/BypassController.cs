@@ -851,10 +851,11 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(successJson);
             return Content(jsonString, "application/json");
         }
-        [HttpGetBypass("games/start")]
-        public void AndroidStart(long placeId)
+        [HttpGetBypass("download2")]
+        public async Task<ContentResult> DownloadPageAsync()
         {
-            Thread.Sleep(2000);
+            string html = await System.IO.File.ReadAllTextAsync("download.html");
+            return Content(html, "text/html");
         }
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
