@@ -852,10 +852,14 @@ namespace Roblox.Website.Controllers
             return Content(jsonString, "application/json");
         }
         [HttpGetBypass("download2")]
-        public async Task<ContentResult> DownloadPageAsync()
+        public async Task<dynamic> DownloadPage()
         {
-            string html = await System.IO.File.ReadAllTextAsync("download.html");
-            return Content(html, "text/html");
+            //do this for anti reporting shit
+            if(userSession == null)
+            {
+                return Redirect("/auth/home");
+            }
+            return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
         }
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, MVC.FromQuery] string suggest)
