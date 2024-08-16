@@ -44,7 +44,7 @@ namespace Roblox.Website.Pages.Internal
             try
             {
                 var balance = await services.economy.GetUserBalance(userSession.userId);
-                long newBalance = balance.tickets;
+                long newBalance = balance.robux;
 
                 if (newBalance < robux)
                 {
