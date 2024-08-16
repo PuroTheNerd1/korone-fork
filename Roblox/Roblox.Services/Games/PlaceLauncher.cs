@@ -45,7 +45,7 @@ public class PlaceLauncherService : ServiceBase
         if (gameId == null)
         {
             throw new BadRequestException("Game id is missing");
-        }
+        };
         if (await games.IsFull(gameId, placeId))
         {
             return new
