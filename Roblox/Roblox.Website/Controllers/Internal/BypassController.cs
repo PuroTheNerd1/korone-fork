@@ -1213,6 +1213,16 @@ namespace Roblox.Website.Controllers
             string userAgent = Request.Headers["User-Agent"].ToString();
             var wornAssets = await services.avatar.GetWornAssets(userId);
             var avatar = await services.avatar.GetAvatar(userId);
+            List<dynamic> emotes = new List<dynamic>
+            {
+                new
+                {
+                    assetId = 15610015346,
+                    assetName = "Yungblud Happier Jump",
+                    position = 0
+                }
+            };
+
             var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
             dynamic bodyColors = new
             {
@@ -1262,7 +1272,8 @@ namespace Roblox.Website.Controllers
                 playerAvatarType = AvatarType,
                 scales,
                 bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
-                bodyColors
+                bodyColors,
+                emotes
             };
             string jsonString = JsonConvert.SerializeObject(result);
             return Content(jsonString, "application/json");
