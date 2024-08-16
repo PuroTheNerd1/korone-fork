@@ -3,7 +3,7 @@ public class PlaceLaunchRequest
 {
     public string request { get; set; }
     public long placeId { get; set; }
-    public string? gameId { get; set; } 
+    public string? gameId { get; set; } = null;
     public bool isPartyLeader { get; set; }
     public bool isTeleport { get; set; }
     public string? accessCode { get; set; }
