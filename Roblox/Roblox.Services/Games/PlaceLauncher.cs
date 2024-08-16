@@ -38,7 +38,7 @@ public class PlaceLauncherService : ServiceBase
         //default 
         return new PlaceLaunchResponse()
         {
-            status = JoinStatus.Error,
+            status = (int)JoinStatus.Error,
             message = "An error occured while starting the game."  
         };
     }
@@ -50,7 +50,7 @@ public class PlaceLauncherService : ServiceBase
         {
             return new PlaceLaunchResponse()
             {
-                status = JoinStatus.GameFull,
+                status = (int)JoinStatus.GameFull,
                 message = "Game is full",
             };
         }
@@ -58,7 +58,7 @@ public class PlaceLauncherService : ServiceBase
         return new PlaceLaunchResponse()
         {
             jobId = gameId,
-            status = JoinStatus.Joining,
+            status = (int)JoinStatus.Joining,
             joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={gameId}&placeId={placeId}",
             authenticationUrl = $"{Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx",
             authenticationTicket = "hi",
@@ -105,7 +105,7 @@ public class PlaceLauncherService : ServiceBase
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,
-                status = result.status,
+                status = (int)result.status,
                 joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = "hi",
@@ -116,7 +116,7 @@ public class PlaceLauncherService : ServiceBase
         return new PlaceLaunchResponse()
         {
             jobId = (string?)null,
-            status = JoinStatus.Loading,
+            status = (int)JoinStatus.Loading,
             message = "Server found, loading...",
         };
     }

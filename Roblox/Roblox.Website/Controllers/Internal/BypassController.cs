@@ -649,7 +649,7 @@ namespace Roblox.Website.Controllers
             if (!ApplicationGuardMiddleware.IsRoblox(Request)){
                 return new PlaceLaunchResponse()
                 {
-                    status = JoinStatus.Error,
+                    status = (int)JoinStatus.Error,
                     message = "An error occured while starting the game."
                 };
             }
@@ -657,7 +657,7 @@ namespace Roblox.Website.Controllers
             {
                 return new PlaceLaunchResponse()
                 {
-                    status = JoinStatus.Unauthorized,
+                    status = (int)JoinStatus.Unauthorized,
                     message = "You are not authorized to join"
                 };
             }
