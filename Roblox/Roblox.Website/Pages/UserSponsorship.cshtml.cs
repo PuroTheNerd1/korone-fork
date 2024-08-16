@@ -25,10 +25,9 @@ public class UserSponsorship : RobloxPageModel
         if (!Enum.IsDefined(userAdType))
             return;
         
-        var assetService = new AssetsService();
-        ad = await assetService.GetAdvertisementForIFrame(userAdType, userSession?.userId);
+        ad = await services.assets.GetAdvertisementForIFrame(userAdType, userSession?.userId);
         if (ad == null) return;
-        await assetService.IncrementAdvertisementImpressions(ad.id);
+        await services.assets.IncrementAdvertisementImpressions(ad.id);
         var thumbs = new ThumbnailsService();
         // TODO: This should be using getLatestAssetVersion() instead of a thumbnail... the thumbnail is too low quality
         // var image = await assetService.GetLatestAssetVersion(ad.advertisementAssetId);
@@ -38,7 +37,7 @@ public class UserSponsorship : RobloxPageModel
         switch (ad.targetType)
         {
             case UserAdvertisementTargetType.Asset:
-                var itemData = await assetService.GetAssetCatalogInfo(ad.targetId);
+                var itemData = await services.assets.GetAssetCatalogInfo(ad.targetId);
                 var adUrl = ad.id + "|" + "/" + UrlUtilities.ConvertToSeoName(itemData.name) + "-item?ID=" + ad.targetId;
                 redirectUrl = "/userads/redirect?data=" + HttpUtility.UrlEncode(Convert.ToBase64String(Encoding.UTF8.GetBytes(adUrl)));
                 break;
