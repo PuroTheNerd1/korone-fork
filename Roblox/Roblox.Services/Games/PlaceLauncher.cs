@@ -17,7 +17,7 @@ public class PlaceLauncherService : ServiceBase
         CloudEditTest,
     }
 
-    public async Task<dynamic> PlaceLauncherAsync(PlaceLaunchRequest plRequest)
+    public async Task<PlaceLaunchResponse> PlaceLauncherAsync(PlaceLaunchRequest plRequest)
     {
         switch (plRequest.request)
         {
@@ -36,9 +36,9 @@ public class PlaceLauncherService : ServiceBase
                 break;
         }
         //default 
-        return new
+        return new PlaceLaunchResponse()
         {
-            status = (int)JoinStatus.Error,
+            status = JoinStatus.Error,
             message = "An error occured while starting the game."  
         };
     }

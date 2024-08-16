@@ -643,21 +643,21 @@ namespace Roblox.Website.Controllers
         }
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
-        public async Task<dynamic> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
+        public async Task<PlaceLaunchResponse> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             if (!ApplicationGuardMiddleware.IsRoblox(Request)){
-                return new
+                return new PlaceLaunchResponse()
                 {
-                    status = (int)JoinStatus.Error,
+                    status = JoinStatus.Error,
                     message = "An error occured while starting the game."
                 };
             }
             if(userSession == null)
             {
-                return new
+                return new PlaceLaunchResponse()
                 {
-                    status = (int)JoinStatus.Unauthorized,
+                    status = JoinStatus.Unauthorized,
                     message = "You are not authorized to join"
                 };
             }
