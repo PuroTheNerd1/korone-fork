@@ -153,6 +153,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/internal/migrate-to-application",
         "/internal/contest/first-contest",
         "/internal/tixexchange",
+        "/internal/robuxexchange",
         "/auth/account-deletion",
         "/auth/login",
         "/auth/password-reset",

@@ -56,6 +56,7 @@ public class FrontendProxyMiddleware
         "/internal/collectibles",
         "/internal/contest/first-contest",
         "/internal/tixexchange",
+        "/internal/robuxexchange",
         "/auth/notapproved",
         // Admin
         "/admin-api/api",
