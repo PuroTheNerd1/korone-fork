@@ -48,7 +48,7 @@ namespace Roblox.Website.Pages.Internal
 
                 if (newBalance < robux)
                 {
-                    errorMessage = "Insufficient tix balance.";
+                    errorMessage = "Insufficient robux balance.";
                     return;
                 }
 
