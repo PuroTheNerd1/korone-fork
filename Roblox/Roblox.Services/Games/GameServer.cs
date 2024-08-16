@@ -163,6 +163,7 @@ public class GameServerService : ServiceBase
             else
             {
                 await ec.IncrementCurrency(CreatorType.User, placeDetails.creatorTargetId, CurrencyType.Tickets, 1);
+                await ec.IncrementCurrency(CreatorType.User, userId, CurrencyType.Tickets, 5);
                 await InsertAsync("user_transaction", new
                 {
                     amount = 10,
