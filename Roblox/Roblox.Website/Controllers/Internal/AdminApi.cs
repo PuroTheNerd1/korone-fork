@@ -2062,10 +2062,10 @@ Thank you for your understanding,
 
         if (isPackage)
         {
-            packageAssetIds = request.packageAssetIds.Split(",").Select(long.Parse);
             // validate
             if (request.packageAssetIds == null)
                 throw new StaffException("Must specify assetIds when creating a package");
+            packageAssetIds = request.packageAssetIds.Split(",").Select(long.Parse);
             var packages = (await services.assets.MultiGetAssetDeveloperDetails(packageAssetIds)).ToList();
             var result = new Dictionary<Type, int>();
             foreach (var item in packages)
