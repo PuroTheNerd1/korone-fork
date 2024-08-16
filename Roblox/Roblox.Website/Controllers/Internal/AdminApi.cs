@@ -1487,6 +1487,7 @@ public class AdminApiController : ControllerBase
         // temporary
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Cannot give items to this user");
+        Console.WriteLine(request.assetId);
         var details = await services.assets.GetAssetCatalogInfo(request.assetId);
         if (!details.itemRestrictions.Contains("LimitedUnique") && request.giveSerial)
             throw new StaffException("This asset is not limited unique, cannot give serial");
