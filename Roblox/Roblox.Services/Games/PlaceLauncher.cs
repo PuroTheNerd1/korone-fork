@@ -1,4 +1,5 @@
 
+using InfluxDB.Client.Core.Exceptions;
 using Roblox;
 using Roblox.Dto.Games;
 using Roblox.Models.Games;
@@ -20,6 +21,7 @@ public class PlaceLauncherService : ServiceBase
     {
         switch (plRequest.request)
         {
+            
             case "RequestGameJob":
                 return await RequestGameJob(plRequest.gameId, plRequest.placeId);
             case "RequestGame":
@@ -40,6 +42,10 @@ public class PlaceLauncherService : ServiceBase
     public async Task<dynamic> RequestGameJob(string gameId, long placeId)
     {
         GamesService games = new GamesService();
+        if (gameId == null)
+        {
+            throw new BadRequestException("Game id is missing");
+        }
         if (await games.IsFull(gameId, placeId))
         {
             return new
