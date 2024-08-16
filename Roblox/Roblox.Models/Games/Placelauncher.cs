@@ -1,3 +1,5 @@
+using Roblox.Models.GameServer;
+
 namespace Roblox.Models.Games;
 public class PlaceLaunchRequest
 {
@@ -12,4 +14,15 @@ public class PlaceLaunchRequest
     public string? username { get; set; } = null;
     public long? userId { get; set; } = null;
     public bool? special { get; set; } = false;
+}
+
+public class PlaceLaunchResponse
+{
+    public string? jobId { get; set; }
+    public JoinStatus status { get; set; }
+    public string? joinScriptUrl { get; set; }
+    public string? authenticationUrl { get; set; }
+    public string? authenticationTicket { get; set; }
+    public string? message { get; set; }
+    public dynamic? joinScript { get; set; } = null;
 }

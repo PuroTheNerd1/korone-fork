@@ -43,29 +43,29 @@ public class PlaceLauncherService : ServiceBase
         };
     }
 
-    public async Task<dynamic> RequestGameJob(string gameId, long placeId)
+    public async Task<PlaceLaunchResponse> RequestGameJob(string gameId, long placeId)
     {
         GamesService games = new GamesService();
         if (await games.IsFull(gameId, placeId))
         {
-            return new
+            return new PlaceLaunchResponse()
             {
-                status = (int)JoinStatus.GameFull,
+                status = JoinStatus.GameFull,
                 message = "Game is full",
             };
         }
 
-        return new
+        return new PlaceLaunchResponse()
         {
             jobId = gameId,
-            status = (int)JoinStatus.Joining,
+            status = JoinStatus.Joining,
             joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={gameId}&placeId={placeId}",
             authenticationUrl = $"{Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx",
             authenticationTicket = "hi",
             message = (string)null,
         };
     }
-    public async Task<dynamic> RequestGame(long placeId, int matchmaking, bool? Special = false, string? username = null, long? userId = null)
+    public async Task<PlaceLaunchResponse> RequestGame(long placeId, int matchmaking, bool? Special = false, string? username = null, long? userId = null)
     {
         GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
@@ -84,7 +84,6 @@ public class PlaceLauncherService : ServiceBase
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             var userInfo = await users.GetUserById((long)userId);
-            string characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             if (membership2 == null)
             {
@@ -94,7 +93,7 @@ public class PlaceLauncherService : ServiceBase
             {
                 membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
-            characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={userId}&placeId={placeId}";
+            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             finalTicket = sign.GenerateClientTicketV4((long)userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
             joinScript = games.GetJoinScript(year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, "a");
         }
@@ -103,10 +102,10 @@ public class PlaceLauncherService : ServiceBase
         {
             await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
 
-            return new
+            return new PlaceLaunchResponse()
             {
                 jobId = result.job,
-                status = (int)result.status,
+                status = result.status,
                 joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = "hi",
@@ -114,10 +113,10 @@ public class PlaceLauncherService : ServiceBase
                 joinScript = (bool)Special ? joinScript : null 
             };
         }
-        return new
+        return new PlaceLaunchResponse()
         {
             jobId = (string?)null,
-            status = (int)JoinStatus.Loading,
+            status = JoinStatus.Loading,
             message = "Server found, loading...",
         };
     }
