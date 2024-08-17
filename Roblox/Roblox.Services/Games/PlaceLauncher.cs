@@ -110,7 +110,7 @@ public class PlaceLauncherService : ServiceBase
         {
             await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
 
-            var response = new PlaceLaunchResponse()
+            return new PlaceLaunchResponse()
             {
                 jobId = result.job,
                 status = (int)result.status,
@@ -118,14 +118,8 @@ public class PlaceLauncherService : ServiceBase
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = "hi",
                 message = (string?)null,
+                joinScript = (bool)Special ? joinScript : null 
             };
-
-            if ((bool)Special)
-            {
-                response.joinScript = joinScript;
-            }
-
-            return response;
         }
         return new PlaceLaunchResponse()
         {
