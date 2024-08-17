@@ -31,7 +31,7 @@ namespace Roblox.Website.Controllers
                 universeId = c,
             });
         }
-        [HttpGetBypass("v2/v1/games")]
+        [HttpGetBypass("v1/games")]
         public async Task<dynamic> MultiGetUniverseInfo(string universeIds)
         {
             var sp = universeIds.Split(",").Select(long.Parse);
