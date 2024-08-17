@@ -673,46 +673,6 @@ namespace Roblox.Website.Controllers
                 };
             }
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
-            /*
-            long maxPlayerCount;
-            bool isRoblox  = 
-            if (!isRoblox){
-                //return bogus message if the request doesnt contain the roblox user agent
-                return new
-                {
-                    status = (int)JoinStatus.Error,
-                    message = "An error occured while starting the game."
-                };
-            }
-            var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
-            maxPlayerCount = await services.games.GetMaxPlayerCount(placeId);
-
-            long year = await services.games.GetYear(placeId);
-
-            var result = await services.gameServer.GetServerForPlace(placeId, year);
-            
-            if (result.status == JoinStatus.Joining)
-            {
-                Thread.Sleep(2500);
-                await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
-                return new
-                {
-                    jobId = result.job,
-                    status = (int)result.status,
-                    joinScriptUrl = $"{Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
-                    authenticationUrl = Configuration.BaseUrl + "/Login/Negotiate.ashx",
-                    authenticationTicket = Request.Cookies[".ROBLOSECURITY"],
-                    message = (string?)null,
-                };
-            }
-
-            return new
-            {
-                jobId = (string?)null,
-                status = (int)JoinStatus.UserLeft,
-                message = "Server found, loading...",
-            };
-            */
         }
 
         public static long startUserId {get;set;} = 30;
