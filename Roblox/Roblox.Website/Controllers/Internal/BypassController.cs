@@ -646,7 +646,9 @@ namespace Roblox.Website.Controllers
         public async Task<PlaceLaunchResponse> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
         {     
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            if (!ApplicationGuardMiddleware.IsRoblox(Request)){
+            long year = await services.games.GetYear(Placelauncher.placeId);
+        
+            if (!ApplicationGuardMiddleware.IsRoblox(Request) || year == 2016){
                 return new PlaceLaunchResponse()
                 {
                     status = (int)JoinStatus.Error,
