@@ -26,7 +26,7 @@ namespace Roblox.Website.Controllers
             var ids = HttpContext.Request.QueryString.Value;
             return numberRegex.Matches(ids).Select(c => long.Parse(c.Value)).Distinct().Select(c => new
             {
-                playabilityStatus = "Playable",
+                playabilityStatus = 0,
                 isPlayable = true,
                 universeId = c,
             });
@@ -73,14 +73,32 @@ namespace Roblox.Website.Controllers
                 data = new List<int>(),
             };
         }
-        [HttpGetBypass("v1/games/recommendations/game/{universeId:long}")]
-        public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
+
+        [HttpGetBypass("/v1/games/{universeId:long}/favorites")]
+        public async Task<dynamic> GetFavoriteStatus(long universeId)
         {
-            if (maxRows is > 100 or < 1) maxRows = 10;
-            var result = await services.games.GetGamesList(userSession.userId, "popular", maxRows, null, null);
+            return new 
+            {
+                isFavorited = await services.assets.GetFavoriteStatus(safeUserSession.userId, universeId)
+            };
+        }
+        [HttpGetBypass("v1/games/{universeId:long}/game-passes")]
+        public async Task<dynamic> GetGameGamePasses(long universeId, int maxRows = 6)
+        {
             return new
             {
-                games = result,
+                previousPageCursor = (string?) null,
+                nextPageCursor = (string?) null,
+                data = new List<object>()
+            };
+        }
+        [HttpGetBypass("v1/games/recommendations/game/{universeId:long}")]
+        public async Task<dynamic> GetRecommendedGames(long universeId)
+        {
+            return new
+            {
+                nextPaginationKey = string.Empty,
+                games = new List<dynamic>(),
             };
         }
 
