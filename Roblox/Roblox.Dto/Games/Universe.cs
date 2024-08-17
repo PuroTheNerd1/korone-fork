@@ -33,6 +33,8 @@ public class MultiGetUniverseEntry
     public long rootPlaceId { get; set; }
     public string name { get; set; }
     public string? description { get; set; }
+    public string sourceName { get; set; } 
+    public string? sourceDescription { get; set; }
     public DateTime created { get; set; }
     public DateTime updated { get; set; }
     public int maxPlayers { get; set; }
