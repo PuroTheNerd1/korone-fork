@@ -632,7 +632,7 @@ namespace Roblox.Website.Controllers
         public async Task<PlaceLaunchResponse> JoinGameMobile([FromBody] JoinGame request)
         {
             long year = await services.games.GetYear(request.placeId);
-            if (year != 2020 && year != 2021)
+            if (year != 2020)
             {
                 return new PlaceLaunchResponse()
                 {
