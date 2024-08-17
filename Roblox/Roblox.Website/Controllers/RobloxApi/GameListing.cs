@@ -31,7 +31,7 @@ namespace Roblox.Website.Controllers
                 universeId = c,
             });
         }
-        [HttpGet("v1/games")]
+        [HttpGetBypass("v2/v1/games")]
         public async Task<dynamic> MultiGetUniverseInfo(string universeIds)
         {
             var sp = universeIds.Split(",").Select(long.Parse);
@@ -131,7 +131,7 @@ namespace Roblox.Website.Controllers
                 games = result,
             };
         }
-        [HttpGet("users/{userId:long}/games")]
+        [HttpGetBypass("v2/users/{userId:long}/games")]
         public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetUserGames(long userId,
             string? sortOrder, string? accessFilter, int limit, string? cursor = null)
         {
@@ -147,7 +147,7 @@ namespace Roblox.Website.Controllers
             };
         }
         
-        [HttpGet("groups/{groupId:long}/games")]
+        [HttpGetBypass("v2/groups/{groupId:long}/games")]
         public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetGroupGames(long groupId,
             string? sortOrder, string? accessFilter, int limit, string? cursor = null)
         {
@@ -166,7 +166,7 @@ namespace Roblox.Website.Controllers
         /// <summary>
         /// Endpoint is only valid for custom media (such as videos or custom thumbnails. Auto generated and/or default thumbnails are not returned.
         /// </summary>
-        [HttpGet("games/{universeId}/media")]
+        [HttpGetBypass("v2/games/{universeId}/media")]
         public async Task<RobloxCollection<GameMediaEntry>> GetGameMedia(long universeId)
         {
             var place = await services.games.MultiGetUniverseInfo(new[] {universeId});
