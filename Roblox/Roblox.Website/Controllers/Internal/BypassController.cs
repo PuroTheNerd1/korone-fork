@@ -631,6 +631,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/v1/join-game")]
         public async Task<PlaceLaunchResponse> JoinGameMobile([FromBody] JoinGame request)
         {
+            /*
             long year = await services.games.GetYear(request.placeId);
             if (year != 2020 || year != 2021)
             {
@@ -640,6 +641,7 @@ namespace Roblox.Website.Controllers
                     message = "An error occured while starting the game."
                 };
             }
+            */
             var placeLauncherRequest = new PlaceLaunchRequest
             {
                 request = "RequestGame",
