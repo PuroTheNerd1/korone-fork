@@ -16,6 +16,12 @@ public class UniverseCreator
 
 public class MultiGetUniverseEntry
 {
+    public long id { get; set; }
+    public long rootPlaceId { get; set; }
+    public string name { get; set; }
+    public string? description { get; set; }
+    public string sourceName { get; set; } 
+    public string? sourceDescription { get; set; }
     public Genre genre { get; set; }
 
     public UniverseCreator creator => new UniverseCreator()
@@ -30,13 +36,8 @@ public class MultiGetUniverseEntry
     public string universeAvatarType { get; set; } = "MorphToR6";
     public bool studioAccessToApisAllowed { get; set; }
     public long? price { get; set; }
-    
-    public long id { get; set; }
-    public long rootPlaceId { get; set; }
-    public string name { get; set; }
-    public string? description { get; set; }
-    public string sourceName { get; set; } 
-    public string? sourceDescription { get; set; }
+    public bool isGenreEnforced { get; set; } = false;
+    public long playing { get; set; } = 0;
     public DateTime created { get; set; }
     public DateTime updated { get; set; }
     public int maxPlayers { get; set; }
