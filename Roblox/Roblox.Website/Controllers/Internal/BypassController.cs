@@ -1862,16 +1862,7 @@ namespace Roblox.Website.Controllers
                 PageSize = 50
             };
         }
-        [HttpGetBypass("v2/games/{universeId}/media")]
-        public async Task<RobloxCollection<GameMediaEntry>> GetGameMedia(long universeId)
-        {
-            var place = await services.games.MultiGetUniverseInfo(new[] {universeId});
-            var result = await services.games.GetGameMedia(place.First().rootPlaceId);
-            return new()
-            {
-                data = result,
-            };
-        }
+
         [HttpGetBypass("game/validate-place-join")]
         [HttpPostBypass("universes/validate-place-join")]
         [HttpGetBypass("universes/validate-place-join")]
