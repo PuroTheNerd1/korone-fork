@@ -9,7 +9,9 @@ public class UniverseCreator
     public long id { get; set; }
     public string name { get; set; }
     public CreatorType type { get; set; }
-    public bool isRNVAccount { get; set; }
+    public bool isRNVAccount { get; set; } = false;
+    public bool hasVerifiedBadge { get; set; } = false;
+    
 }
 
 public class MultiGetUniverseEntry
