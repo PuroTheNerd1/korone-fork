@@ -239,10 +239,13 @@ public class RbxThumbnails : ControllerBase
         var thumbs = requestEntries.ToList();
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "Avatar", services.thumbnails.GetUserThumbnails),
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails),
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots),
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons),
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GameThumbnail", services.thumbnails.GetAssetThumbnails),
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
+            ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "GroupIcon", services.thumbnails.GetGroupIcons),
         });
         return new RobloxCollection<dynamic>()
         {
