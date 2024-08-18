@@ -46,9 +46,7 @@ const useBuyButtonStyles = createUseStyles({
 
 const PrivateSellersCount = props => {
   const store = CatalogDetailsPage.useContainer();
-  return <p className='mt-0 mb-0 text-center'>
-    <a className='a'>See all private sellers ({store.resellersCount || 0})</a>
-  </p>
+  return
 }
 
 const useSaleCountStyles = createUseStyles({
