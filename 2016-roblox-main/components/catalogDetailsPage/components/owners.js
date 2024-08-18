@@ -47,7 +47,6 @@ const Owners = props => {
           <div className='col-8'>
             <p className='mb-0 mt-2'>{owner ? <CreatorLink id={owner.id} name={owner.name} type='User'/> : 'Deleted/Private'}</p>
             <p className='mt-1 mb-0'>Serial {v.serialNumber ? '#' + v.serialNumber : 'N/A'}</p>
-            <p className='mt-1 mb-0'>Updated {dayjs(v.updated).fromNow()}</p>
             {
               !owner ? <div className='mb-4' /> : null
             }
