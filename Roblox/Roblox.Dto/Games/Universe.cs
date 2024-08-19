@@ -37,7 +37,7 @@ public class MultiGetUniverseEntry
     public bool studioAccessToApisAllowed { get; set; }
     public long? price { get; set; }
     public bool isGenreEnforced { get; set; } = false;
-    public long playing { get; set; } = 0;
+    public long playing { get; set; }
     public DateTime created { get; set; }
     public DateTime updated { get; set; }
     public int maxPlayers { get; set; }
