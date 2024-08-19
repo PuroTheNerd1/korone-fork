@@ -139,7 +139,7 @@ public class WebController2021 : ControllerBase
         foreach (var place in createdPlaces)
         {
             var id = (long) place.rootPlace.id;
-            place.playerCount = await services.games.GetPlayerCount(id);
+            place.playerCount = await Services.GamesService.GetPlayerCount(id);
             place.visitCount = await services.games.GetVisitCount(id);
         }
         return await GetPage("userProfile", new List<dynamic>()
@@ -311,7 +311,7 @@ public class WebController2021 : ControllerBase
         {
             return Redirect("/games/" + placeId + "/" + expectedName);
         }
-        details.playerCount = await services.games.GetPlayerCount(placeId);
+        details.playerCount = await Services.GamesService.GetPlayerCount(placeId);
         details.favoriteCount = 0;
         details.visitCount = await services.games.GetVisitCount(placeId);
         return await GetPage("gameDetails", new []{details});
