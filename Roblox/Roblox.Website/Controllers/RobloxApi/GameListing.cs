@@ -94,12 +94,14 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpGetBypass("v1/games/recommendations/game/{universeId:long}")]
-        public async Task<dynamic> GetRecommendedGames(long universeId)
+        public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
         {
+            if (maxRows is > 100 or < 1) maxRows = 10;
+            // todo: actually add recommendeds
+            var result = await services.games.GetGamesList(userSession.userId, "popular", maxRows, null, null);
             return new
             {
-                nextPaginationKey = string.Empty,
-                games = new List<dynamic>(),
+                games = result,
             };
         }
 

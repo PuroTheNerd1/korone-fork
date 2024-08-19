@@ -21,7 +21,6 @@ public class PlaceLauncherService : ServiceBase
     {
         switch (plRequest.request)
         {
-            
             case "RequestGameJob":
                 if (plRequest.gameId == null)
                 {

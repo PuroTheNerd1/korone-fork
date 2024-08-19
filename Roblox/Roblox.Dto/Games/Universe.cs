@@ -88,7 +88,7 @@ public class GameListEntryRoblox
     public long TotalBought = 1;
     public long UniverseID { get; set; }
     public bool HasErrorOcurred = false;
-    public string GameDetailReferralUrl = "https://projex.zip";
+    public string GameDetailReferralUrl = Roblox.Configuration.BaseUrl;
     public string Url = "";
     public string RetryUrl = null;
     public bool Final = true;
