@@ -1308,11 +1308,14 @@ namespace Roblox.Website.Controllers
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
             bool IsRCC = IsRcc();
-            if(!IsRCC || !GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
+            if(!IsRCC)
             {
                 return;
             }
-
+            if(!GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
+            {
+                return;
+            }
             string JobId = await services.gameServer.GetJobIdByUserId(visitorId);
             if(JobId == null)
             {
@@ -1341,7 +1344,11 @@ namespace Roblox.Website.Controllers
         public async Task ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
         {
             bool IsRCC = IsRcc();
-            if(!IsRCC || !GameServerService.CurrentPlayersInGame.ContainsKey(userId))
+            if(!IsRCC)
+            {
+                return;
+            }
+            if(!GameServerService.CurrentPlayersInGame.ContainsKey(userId))
             {
                 return;
             }
