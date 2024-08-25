@@ -92,7 +92,6 @@ public class SignService : ServiceBase
 
         return string.Format(format2048, Convert.ToBase64String(signature), script);
     }
-
     public string SignString2048New(string stringToSign, bool bUseRbxSig = false)
     {
         if (bUseRbxSig)
@@ -108,63 +107,59 @@ public class SignService : ServiceBase
             return Convert.ToBase64String(signature);
         }
     }
-
-    public string GenerateClientTicket(long year, long userId, string username, string jobId, string? membership, long? accountAgeDays, long placeId)
+    public string GenerateClientTicketV1(long userId, string username, string jobId, string characterAppearanceUrl)
     {
         DateTime currentUtcDateTime = DateTime.UtcNow;
         string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
-        string characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
-
-        switch (year)
-        {
-            case 2016:
-            case 2017:
-                if (year == 2017){
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}";
-                }
-                return GenerateV1Ticket(userId, username, jobId, formattedDateTime, characterAppearanceUrl);
-            case 2018:
-                return GenerateV2Ticket(userId, username, jobId, formattedDateTime);
-            case 2020:
-            case 2021:
-                return GenerateV4Ticket(userId, username, jobId, membership, accountAgeDays, formattedDateTime);
-
-            default:
-                throw new NotImplementedException("Year does not exist");
-        }
-    }
-
-    private string GenerateV1Ticket(long userId, string username, string jobId, string formattedDateTime, string characterAppearanceUrl)
-    {
         string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
-        string ticketSignature = SignStringResponseForClientFromPrivateKey(cticket);
+
+        SignService signService = new SignService();
+
+        string ticketSignature = signService.SignStringResponseForClientFromPrivateKey(cticket);
 
         string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{formattedDateTime}";
-        string ticketSignature2 = SignStringResponseForClientFromPrivateKey(ticket2);
+        string ticketSignature2 = signService.SignStringResponseForClientFromPrivateKey(ticket2);
 
-        return $"{formattedDateTime};{ticketSignature2};{ticketSignature};v1";
+        string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
+        return finalTicket;
     }
 
-    private string GenerateV2Ticket(long userId, string username, string jobId, string formattedDateTime)
+    public string GenerateClientTicketV2(long userId, string username, string jobId, string characterAppearanceUrl)
     {
+        DateTime currentUtcDateTime = DateTime.UtcNow;
+        string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
         string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
         string ticketSignature = SignString2048(cticket);
 
-        string ticket2 = $"{userId}\n{username}\n{userId}\n{jobId}\n{formattedDateTime}";
-        string ticketSignature2 = SignString2048(ticket2);
+        string cticket2 = $"{userId}\n{username}\n{userId}\n{jobId}\n{formattedDateTime}";
+        string ticketSignature2 = SignString2048(cticket2);
 
-        return $"{formattedDateTime};{ticketSignature2};{ticketSignature};v2";
+        string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature};2";
+        return finalTicket;
     }
-
-    private string GenerateV4Ticket(long userId, string username, string jobId, string? membership, long? accountAgeDays, string formattedDateTime)
+    public string GenerateClientTicketV3(long userId, string username, string jobId, string dateTime)
     {
+        // the second userid is meant to be characterAppearanceId
+        string ticket2 = $"{userId}\n{username}\n{userId}\n{jobId}\n{dateTime}";
+        string ticket2Signature = SignString2048(ticket2);
+        string ticket = $"{userId}\n{jobId}\n{dateTime}";
+        string ticketSignature = SignString2048(ticket);
+        // Final ticket
+        string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};3";
+        return finalTicket;
+    }
+    public string GenerateClientTicketV4(long userId, string username, string characterAppearanceUrl, string membership, string jobId, string dateTime, long accountAgeDays, long placeId)
+    {
+        DateTime utcNow = DateTime.UtcNow;
+
+        string customTimestamp = utcNow.ToString("MM/dd/yyyy hh:mm:ss tt");
         string countryCode = "US";
-        string ticket2 = $"{userId}\n{username}\n{$"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}"};{userId}\n{jobId}\n{formattedDateTime}";
-        string ticketSignature2 = SignString2048New(ticket2);
-
-        string cticket = $"{formattedDateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership?.Length ?? 0}\n{membership ?? string.Empty}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
-        string ticketSignature = SignString2048New(cticket);
-
-        return $"{formattedDateTime};{ticketSignature2};{ticketSignature};v4";
+        string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";
+        string ticket2Signature = SignString2048New(ticket2);
+        string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership.Length}\n{membership}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
+        string ticketSignature = SignString2048New(ticket);
+        Console.WriteLine(ticket2 + ticket);
+        string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
+        return finalTicket;
     }
 }

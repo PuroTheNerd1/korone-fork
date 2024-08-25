@@ -889,7 +889,35 @@ namespace Roblox.Website.Controllers
             {
                 membership = "OutrageousBuildersClub";
             }
-            finalTicket = services.sign.GenerateClientTicket(year, userId, username, jobId, membership, accountAgeDays, placeId);
+            switch (year)
+            {
+                case 2015:
+                case 2016:
+                    characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
+                    finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
+                    break;
+                case 2017:                  
+                    finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
+                    break;
+                case 2018:
+                    finalTicket = services.sign.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
+                    break;
+                case 2019:
+                    finalTicket = services.sign.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
+                    break;
+                case 2020:
+                    characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
+                    finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
+                    break;
+                case 2021:
+                    characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
+                    finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
+                    break;
+                default:
+                    throw new InvalidOperationException($"This year does not exist: {year}");
+            }
+            
+
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);         
             var joinScript = services.games.GetJoinScript(year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
 
