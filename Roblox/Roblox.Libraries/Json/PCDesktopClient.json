@@ -4204,6 +4204,8 @@
 	"StartPageUrl": "/ide/welcome",
 	"TreatAndroidInputSourceAsBitmask": true,
 	"UseSetForegroundWindowForPlayer2": true,
-	"VideoPreRollWaitTimeSeconds": 45
+	"VideoPreRollWaitTimeSeconds": 45,
+	"DFFlagTheseAreSomeOfMyBestAttributes": true,
+	"FFlagTheseAreSomeOfMyBestAttributes": true
     }
 }
