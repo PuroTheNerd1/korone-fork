@@ -112,14 +112,9 @@ public class SignService : ServiceBase
         DateTime currentUtcDateTime = DateTime.UtcNow;
         string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
         string cticket = $"{userId}\n{jobId}\n{formattedDateTime}";
-
-        SignService signService = new SignService();
-
-        string ticketSignature = signService.SignStringResponseForClientFromPrivateKey(cticket);
-
+        string ticketSignature = SignStringResponseForClientFromPrivateKey(cticket);
         string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{formattedDateTime}";
-        string ticketSignature2 = signService.SignStringResponseForClientFromPrivateKey(ticket2);
-
+        string ticketSignature2 = SignStringResponseForClientFromPrivateKey(ticket2);
         string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature}";
         return finalTicket;
     }
