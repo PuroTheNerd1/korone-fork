@@ -1285,22 +1285,25 @@ namespace Roblox.Website.Controllers
         }
         //this is for the newer years that dont have a custom monitoring script
         [HttpPostBypass("presence/register-game-presence")]
-        public async Task RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
+        public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
         {
             bool IsRCC = IsRcc();
 
             if(!IsRCC)
             {
-                return;
+                throw new UnauthorizedAccessException();
             }
             Thread.Sleep(500);
-            if(GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
+            if (GameServerService.CurrentPlayersInGame.TryGetValue(visitorId, out long storedPlaceId))
             {
-                return;
+                if(storedPlaceId != placeId)
+                {
+                    GameServerService.CurrentPlayersInGame.Remove(visitorId);
+                }
             }
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
+            return Ok();
         }
-
 
         [HttpPostBypass("presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
