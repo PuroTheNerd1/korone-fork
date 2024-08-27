@@ -4358,6 +4358,7 @@
 	"StudioDevforumUrl": "https://devforum.projex.zip/c/29",
 	"TaskSchedulerHoldMutexWhileWaitingForWorkerThreads": true,
 	"TreatAndroidInputSourceAsBitmask": true,
-	"VideoPreRollWaitTimeSeconds": 45
+	"VideoPreRollWaitTimeSeconds": 45,
+	"DFIntTaskSchedulerTargetFps": 500
    }
 }

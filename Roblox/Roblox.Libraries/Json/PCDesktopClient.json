@@ -4207,6 +4207,7 @@
 	"UseSetForegroundWindowForPlayer2": true,
 	"VideoPreRollWaitTimeSeconds": 45,
 	"DFFlagTheseAreSomeOfMyBestAttributes": true,
-	"FFlagTheseAreSomeOfMyBestAttributes": true
+	"FFlagTheseAreSomeOfMyBestAttributes": true,
+	"DFIntTaskSchedulerTargetFps": 500
     }
 }
