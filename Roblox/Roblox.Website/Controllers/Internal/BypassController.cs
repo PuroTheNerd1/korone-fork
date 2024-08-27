@@ -835,8 +835,18 @@ namespace Roblox.Website.Controllers
             return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
         }
         [HttpPostBypass("v1/authentication-ticket/redeem")]
-        public void RedeemAuthenticationTicket([Required, FromBody] string ticket)
+        public async Task<IActionResult> RedeemAuthenticationTicket()
         {
+            using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
+            {
+                string body = await reader.ReadToEndAsync();
+                
+                HttpContext.Request.Body.Position = 0;
+                
+                Console.WriteLine(body);
+            }
+            return Ok();
+            /*
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", ticket, new CookieOptions
             {
                 Domain = ".projex.zip",
@@ -846,6 +856,7 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.Lax,
             });
+            */
         }
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, FromQuery] string suggest)
