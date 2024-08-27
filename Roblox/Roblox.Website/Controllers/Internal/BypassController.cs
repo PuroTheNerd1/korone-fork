@@ -834,14 +834,23 @@ namespace Roblox.Website.Controllers
             }
             return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
         }
-        [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
-        public void Negotiate([MVC.FromQuery] string? suggest, [FromBody] string? authenticationTicket)
+        [HttpPostBypass("v1/authentication-ticket/redeem")]
+        public void RedeemAuthenticationTicket([Required, FromBody] string ticket)
         {
-            if(suggest == null && authenticationTicket == null)
+            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", ticket, new CookieOptions
             {
-                throw new BadRequestException(400, "Ticket is missing");
-            }
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest ?? authenticationTicket, new CookieOptions
+                Domain = ".projex.zip",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
+            });
+        }
+        [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
+        public void Negotiate([Required, FromQuery] string suggest)
+        {
+            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
             {
                 Domain = ".projex.zip",
                 Secure = false,
