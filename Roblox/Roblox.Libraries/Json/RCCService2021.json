@@ -2832,7 +2832,7 @@
       "FFlagUserRoactBubbleChatBeta":"False",
       "FFlagUserRoactBubbleChatBeta_PlaceFilter":"True;63;64",
       "FFlagVRDontDetectHMD":"False",
-      "FFlagVRDontRunSteamVR":"True",
+      "FFlagVRDontRunSteamVR":"False",
       "FFlagUserServiceEnabledV2":"True",
       "FFlagUserServiceWhiteListV2":"True",
       "FFlagUserShouldClipInGameChat":"True",

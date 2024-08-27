@@ -3211,6 +3211,7 @@
 	"FFlagSponsoredAdIdGameTileAnalytic": true,
 	"FFlagStableRichTextLayout": true,
 	"FFlagSteamVRDisableHMDDetection": false,
+   "FFlagInGameMenuVRToggle":true,
 	"FFlagStopAnimationEditorWhileGameRunning": true,
 	"FFlagStopCheckingClusterAndWorkspaceInJDI2": true,
 	"FFlagStopCheckingFrontendProcessingInTextLayout": true,
