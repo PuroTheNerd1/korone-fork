@@ -454,7 +454,7 @@ namespace Roblox.Website.Controllers
                     RequestId = request.requestId,
                     IsHashDynamic = true,
                     IsCopyrightProtected = true, 
-                    IsArchived = true,
+                    IsArchived = false,
                 });
             }
 
