@@ -4211,7 +4211,7 @@
 	"FIntNeighborSleepThresholdMult": 10,
 	"FIntNewDevConsoleMaxHttpCount": 300,
 	"FIntNewDevConsoleMaxLogCount": 500,
-	"FIntNewInGameMenuPercentRollout": 0,
+	"FIntNewInGameMenuPercentRollout": 100,
 	"FIntNotMovingSleepThresholdMult": 1,
 	"FIntNumSmoothingPasses": 3,
 	"FIntParalleNarrowPhaseThreads": 16,
