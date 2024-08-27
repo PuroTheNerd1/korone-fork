@@ -1693,7 +1693,7 @@ namespace Roblox.Website.Controllers
                 "4e8ab57381d7f1a98cc7ea79824f88ef", //2017L
                 "8c5aecb7811acbb582f06f2a81b958f4",  //2018L
                 "9cdc73fd9b24c974f5a0dde411dcd38f", //2020L
-                "8de5195fd38a8256f71cbcf8ce26a203" //2021M
+                "a58f725954fe5b2ed30b0778f932d249" //2021M
             };
 
             return new { data = allowedList };
