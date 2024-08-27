@@ -1750,7 +1750,7 @@
 	"FFlagDraggerSupportBones": true,
 	"FFlagDraggerUseUniqueBindNames": true,
 	"FFlagDUACatalogSearchBugfix": true,
-	"FFlagDUARPassVREnabled": true,
+	"FFlagDUARPassVREnabled": false,
 	"FFlagDynamicIndoorEnvMapUpdate1": true,
 	"FFlagDynamicIndoorEnvMapUpdate2": true,
 	"FFlagDynamicIndoorEnvMapUpdate3": true,

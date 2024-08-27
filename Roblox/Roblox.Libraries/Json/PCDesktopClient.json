@@ -4041,6 +4041,7 @@
 	"FIntGamePerfMonitorPercentage": 10,
 	"FIntGraphicsVulkanARMVaryingBufferMb": 160,
 	"FIntGraphicsVulkanMinAndroidVersion": 25,
+	"FFlagInGameMenuVRToggle":true,
 	"FIntGraphicsVulkanMinDriverVersionPVR": 4981305,
 	"FIntHttpCacheRedirectsTimeoutMs": 14400000,
 	"FIntHttpCurlMaxCachedHandlesPerHost": 8,
