@@ -426,7 +426,7 @@ public class WebController : ControllerBase
                 clientVer = "2020L";
                 break;
             case 2021:
-                clientVer = "2021E";
+                clientVer = "2021M";
                 break;
             default:
                 clientVer = "2016E";
@@ -470,7 +470,7 @@ public class WebController : ControllerBase
                 clientVer = "2020L";
                 break;
             case 2021:
-                clientVer = "2021E";
+                clientVer = "2021M";
                 break;
             default:
                 clientVer = "2016E";
