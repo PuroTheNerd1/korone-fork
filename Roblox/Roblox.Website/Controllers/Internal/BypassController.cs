@@ -837,13 +837,10 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/authentication-ticket/redeem")]
         public async Task<IActionResult> RedeemAuthenticationTicket()
         {
-            using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
+            using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
             {
-                string body = await reader.ReadToEndAsync();
-                
-                HttpContext.Request.Body.Position = 0;
-                
-                Console.WriteLine(body);
+                var json = await reader.ReadToEndAsync();
+                Console.WriteLine(json);
             }
             return Ok();
             /*
