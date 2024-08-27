@@ -53,7 +53,7 @@ namespace Roblox.Website.Controllers
         {
             throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
         }
-
+/*
         [HttpGetBypass("asset/shader")]
         public async Task<MVC.FileResult> GetShaderAsset(long id)
         {
@@ -99,12 +99,14 @@ namespace Roblox.Website.Controllers
             var assetContent = await services.assets.GetAssetContent(latestVersion.contentUrl);
             return File(assetContent, "application/binary");
         }
+        */
         private bool IsRcc()
         {
             var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
             var isRcc = rccAccessKey == Configuration.RccAuthorization;
             return isRcc;
         }
+
         [HttpGetBypass("v2/asset")]
         [HttpGetBypass("v1/asset")]
         [HttpGetBypass("asset")]
@@ -833,9 +835,13 @@ namespace Roblox.Website.Controllers
             return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
         }
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
-        public void Negotiate([Required, MVC.FromQuery] string suggest)
+        public void Negotiate([MVC.FromQuery] string? suggest, [FromBody] string? authenticationTicket)
         {
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
+            if(suggest == null && authenticationTicket == null)
+            {
+                throw new BadRequestException(400, "Ticket is missing");
+            }
+            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest ?? authenticationTicket, new CookieOptions
             {
                 Domain = ".projex.zip",
                 Secure = false,
@@ -844,10 +850,6 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.Lax,
             });
-            HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
-            HttpContext.Response.Headers.Add("Pragma", "no-cache");
-            HttpContext.Response.Headers.Add("Expires", "-1");
-            HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
         }
 
         [HttpPostBypass("game/join.ashx")]
@@ -1694,7 +1696,7 @@ namespace Roblox.Website.Controllers
                 "4e8ab57381d7f1a98cc7ea79824f88ef", //2017L
                 "8c5aecb7811acbb582f06f2a81b958f4",  //2018L
                 "9cdc73fd9b24c974f5a0dde411dcd38f", //2020L
-                "df5ddc4f735ed9c4ba9582c205675a95" //2021E Debug
+                "df5ddc4f735ed9c4ba9582c205675a95" //2021M
             };
 
             return new { data = allowedList };
