@@ -84,6 +84,8 @@
   "AxisAdornmentGrabSize": "12",
   "FFlagProcessAllPacketsPerStep": "True",
   "FFlagUS14116": "True",
+  "DFLogUS14116": "6",
+  "FLogUS14116": "7",
   "FFlagBlockBlockNarrowPhaseRefactor": "True",
   "FFlagEnableRubberBandSelection": "True",
   "FFlagQtStudioScreenshotEnabled": "True",
