@@ -1860,7 +1860,7 @@
 	"FFlagEnablePlayerEmulatorStylizer": true,
 	"FFlagEnablePluginPermissionsPage2": true,
 	"FFlagEnablePreviewTabSelection": true,
-	"FFlagEnableProximityPromptBetaFeature": false,
+	"FFlagEnableProximityPromptBetaFeature": true,
 	"FFlagEnablePurchaseV2": true,
 	"FFlagEnableR3ButtonIOS": true,
 	"FFlagEnableReadingNewConvexDecompositionPath": true,
