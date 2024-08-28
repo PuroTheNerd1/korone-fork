@@ -295,7 +295,7 @@
   "DFFlagLuaSourceContinerScriptGuidEnabled": "True",
   "DFFlagLuaYieldErrorNoResumeEnabled": "True",
   "DFFlagMacInferredCrashReporting": "True",
-  "DFFlagMakeWebPendingFriendRequests": "True",
+  "DFFlagMakeWebPendingFriendRequests": "False",
   "DFFlagMaskWeightCleared": "True",
   "DFFlagMaterialPropertiesDivideByZeroWeights": "True",
   "DFFlagMaterialPropertiesEnabled": "True",

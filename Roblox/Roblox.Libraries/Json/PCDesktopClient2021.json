@@ -4359,6 +4359,6 @@
 	"TaskSchedulerHoldMutexWhileWaitingForWorkerThreads": true,
 	"TreatAndroidInputSourceAsBitmask": true,
 	"VideoPreRollWaitTimeSeconds": 45,
-	"DFIntTaskSchedulerTargetFps": 500
+    "FFlagLuauKnowsTheDataModel3":"True"
    }
 }

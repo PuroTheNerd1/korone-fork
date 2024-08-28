@@ -845,7 +845,7 @@
   "DFFlagLuaGcPerVm": "True",
   "FFlagStudioDeviceEmulationTouchInputFix": "True",
   "FFlagTaskSchedulerCyclicExecutive": "True",
-  "DFFlagMakeWebPendingFriendRequests": "True",
+  "DFFlagMakeWebPendingFriendRequests": "False",
   "DFFlagGetLastestAssetVersionEnabled": "True",
   "FFlagHideDeprecatedEnums": "True",
   "FFlagSubmitEditedColor3WhenFocusLost": "True",

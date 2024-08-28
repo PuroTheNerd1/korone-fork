@@ -3087,6 +3087,7 @@
       "SFFlagWeldConstraintRelativeCFrame2":"True",
       "StartPageUrl":"\/ide\/welcome",
       "TreatAndroidInputSourceAsBitmask":"True",
-      "VideoPreRollWaitTimeSeconds":"45"
+      "VideoPreRollWaitTimeSeconds":"45",
+      "FFlagLuauKnowsTheDataModel3":"True"
    }
 }
