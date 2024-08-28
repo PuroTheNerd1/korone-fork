@@ -110,7 +110,7 @@ namespace Roblox.Website.Controllers
             if(sanatized == null)
                 return NotFound();
 
-            string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, applicationName + ".json");
+            string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, sanatized + ".json");
             string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
             dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
 
