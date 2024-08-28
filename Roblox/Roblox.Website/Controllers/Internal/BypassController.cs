@@ -1132,7 +1132,13 @@ namespace Roblox.Website.Controllers
             var avatarMetadata = avatar.GetAvatarMetadata();
             return Ok(avatarMetadata);
         }
-
+        [HttpGetBypass("v1/users/{userId:long}/avatar")]
+        public async Task<IActionResult> GetCharAppInfo(long userId)
+        {
+            AvatarControllerV1 avatar = new AvatarControllerV1();
+            var avatarData = await avatar.GetAvatar(userId);
+            return Ok(avatarData);
+        }
         [HttpGetBypass("v1/avatar")]
         public async Task<IActionResult> MobileCharapp()
         {
