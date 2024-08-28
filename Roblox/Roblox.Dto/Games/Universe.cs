@@ -118,7 +118,7 @@ public class GamesForCreatorDevelop
     public long id { get; set; }
     public string name { get; set; }
     public string? description { get; set; }
-    public bool isArchived { get; set;} = true;
+    public bool isArchived { get; set;} = false;
     public long rootPlaceId { get; set; }
     public bool isActive { get; set;} = true;
     public string privacyType { get; set;} = "Public";
