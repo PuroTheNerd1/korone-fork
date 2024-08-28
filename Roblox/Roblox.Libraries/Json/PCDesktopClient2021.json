@@ -4359,6 +4359,6 @@
 	"TaskSchedulerHoldMutexWhileWaitingForWorkerThreads": true,
 	"TreatAndroidInputSourceAsBitmask": true,
 	"VideoPreRollWaitTimeSeconds": 45,
-    "FFlagLuauKnowsTheDataModel3":"True"
+    "FFlagLuauKnowsTheDataModel3":true
    }
 }
