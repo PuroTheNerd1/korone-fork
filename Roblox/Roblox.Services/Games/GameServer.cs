@@ -162,6 +162,10 @@ public class GameServerService : ServiceBase
             }
             else
             {
+                if(placeDetails.creatorTargetId == userId)
+                {
+                    return 0;
+                }
                 await ec.IncrementCurrency(CreatorType.User, placeDetails.creatorTargetId, CurrencyType.Tickets, 10);
                 await InsertAsync("user_transaction", new
                 {
