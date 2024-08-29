@@ -154,7 +154,7 @@ namespace Roblox.Website.Controllers
                         info.accountStatus != AccountStatus.MustValidateEmail &&
                         info.accountStatus != AccountStatus.Suppressed;
 
-            return isMobile ? (dynamic)new
+            return new
             {
                 membershipType = 4,
                 username,
@@ -162,15 +162,6 @@ namespace Roblox.Website.Controllers
                 countryCode = "US",
                 userId,
                 displayName = username
-            } : new
-            {
-                user = new
-                {
-                    id = userId,
-                    name = username,
-                    displayName = username
-                },
-                isBanned
             };
         }
     }
