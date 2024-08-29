@@ -161,7 +161,14 @@ namespace Roblox.Website.Controllers
                 isUnder13 = false,
                 countryCode = "US",
                 userId,
-                displayName = username
+                displayName = username,
+                user = new
+                {
+                    id = userId,
+                    name = username,
+                    displayName = username
+                },
+                isBanned
             };
         }
     }
