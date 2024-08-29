@@ -2717,9 +2717,9 @@ Thank you for your understanding,
         
         robuxAmount *= robuxMultiplier;
         
-        if (robuxAmount > 5000)
+        if (robuxAmount > 150)
         {
-            robuxAmount = 5000;
+            robuxAmount = 150;
         }
 
         await services.economy.IncrementCurrency(CreatorType.User, userSession.userId, CurrencyType.Robux, robuxAmount);
