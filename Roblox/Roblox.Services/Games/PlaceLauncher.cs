@@ -53,12 +53,12 @@ public class PlaceLauncherService : ServiceBase
                 message = "The game is ended",
             };
         }
-        if (await games.IsFull(gameId, placeId))
-        {
+        if (!GameServerService.currentGameServerPorts.ContainsKey(gameId)){
+            //if the job id is missing the game most likely ended
             return new PlaceLaunchResponse()
             {
-                status = (int)JoinStatus.GameFull,
-                message = "Game is full",
+                status = (int)JoinStatus.GameEnded,
+                message = "The game is ended",
             };
         }
 
