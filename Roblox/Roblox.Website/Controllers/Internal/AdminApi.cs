@@ -2194,7 +2194,7 @@ Thank you for your understanding,
             canUpload = true;
         }
 
-        if (canUpload == false) throw new StaffException("Not authorized to modify this item");
+        if (canUpload == false && !StaffFilter.IsOwner(userSession.id)) throw new StaffException("Not authorized to modify this item");
         if (info.assetType == Type.Package) throw new StaffException("Cannot create an asset version for this type");
         var result = await services.assets.CreateAssetVersion(request.assetId, 1, request.rbxm.OpenReadStream());
         services.assets.RenderAsset(request.assetId, info.assetType);
