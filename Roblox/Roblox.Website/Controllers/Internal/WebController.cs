@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -770,19 +771,34 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
                 stream.Position = 0;
-                if(HasAudioSignature(stream))
-                    throw new BadRequestException(0, "Invalid iamge file");
-                // create the texture
-                var imageAsset = await services.assets.CreateAsset(request.name, "Image",
-                    userSession.userId, creatorType, creatorId, stream, Models.Assets.Type.Image,
-                    Genre.All,
-                    ModerationStatus.AwaitingApproval);
-                stream.Position = 0;
-                await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)stream.Length,
-                    pictureData.width, pictureData.height, pictureData.imageFormat,
-                    await services.assets.GenerateImageHash(stream));
-            
-                return imageAsset;
+                using (var originalImage = new Bitmap(stream))
+                {
+                    var memoryStream = new MemoryStream();
+
+                    using (var newBitmap = new Bitmap(originalImage.Width, originalImage.Height))
+                    {
+                        using (var graphics = Graphics.FromImage(newBitmap))
+                        {
+                            graphics.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
+                        }
+
+                        newBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                    }
+
+                   memoryStream.Position = 0;
+                   var imageAsset = await services.assets.CreateAsset(request.name, "Image",
+                        userSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
+                        Genre.All,
+                        ModerationStatus.AwaitingApproval);
+
+                    memoryStream.Position = 0;
+
+                    await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
+                        pictureData.width, pictureData.height, pictureData.imageFormat,
+                        await services.assets.GenerateImageHash(memoryStream));
+                    
+                    return imageAsset;
+                }
             }
             else if (isAudio)
             {
