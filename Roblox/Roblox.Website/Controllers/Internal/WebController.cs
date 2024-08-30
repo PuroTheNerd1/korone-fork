@@ -746,22 +746,38 @@ public async Task<dynamic> GetGameServers(long placeId, int startIndex)
                 if(HasAudioSignature(stream))
                     throw new BadRequestException(0, "Invalid iamge file");
                 stream.Position = 0;
-                // create the texture
-                var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image",
-                    userSession.userId, creatorType, creatorId, stream, Models.Assets.Type.Image,
-                    Genre.All,
-                    ModerationStatus.AwaitingApproval);
-                // info
-                stream.Position = 0;
-                await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)stream.Length,
-                    pictureData.width, pictureData.height, pictureData.imageFormat,
-                    await services.assets.GenerateImageHash(stream));
-                // create the asset
-                var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default,
-                    default, default, default, imageAsset.assetId);
-                // give asset to user
-                await services.users.CreateUserAsset(userSession.userId, asset.assetId);
-                return asset;
+                using (var originalImage = new Bitmap(stream))
+                {
+                    var memoryStream = new MemoryStream();
+
+                    using (var newBitmap = new Bitmap(originalImage.Width, originalImage.Height))
+                    {
+                        using (var graphics = Graphics.FromImage(newBitmap))
+                        {
+                            graphics.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
+                        }
+                        newBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                    }
+
+                    memoryStream.Position = 0;
+
+                    var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image",
+                        userSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
+                        Genre.All,
+                        ModerationStatus.AwaitingApproval);
+
+                    memoryStream.Position = 0;
+                    await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
+                        pictureData.width, pictureData.height, pictureData.imageFormat,
+                        await services.assets.GenerateImageHash(memoryStream));
+
+                    var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default,
+                        default, default, default, imageAsset.assetId);
+
+                    await services.users.CreateUserAsset(userSession.userId, asset.assetId);
+                    
+                    return asset;
+                }
             }
             else if (isImage)
             {
