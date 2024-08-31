@@ -674,15 +674,6 @@ namespace Roblox.Website.Controllers
                     message = "You are not authorized to join"
                 };
             }
-            // this should never go wrong 
-            if (GameServerService.CurrentPlayersInGame.ContainsKey(userSession.userId))
-            {
-                return new PlaceLaunchResponse()
-                {
-                    status = (int)JoinStatus.GameFull,
-                    message = "Game is full",
-                };
-            }
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 
