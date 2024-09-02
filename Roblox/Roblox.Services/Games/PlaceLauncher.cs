@@ -28,9 +28,9 @@ public class PlaceLauncherService : ServiceBase
                 };
                 return await RequestGameJob(plRequest.gameId, plRequest.placeId);
             case "RequestGame":
-                return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.Default, plRequest.special, plRequest.username, plRequest.userId);
+                return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.Default, plRequest.cookie, plRequest.special, plRequest.username, plRequest.userId);
             case "CloudEdit":
-                return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.CloudEdit);
+                return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.CloudEdit, plRequest.cookie);
             case "RequestPrivateGame":
                 break;
         }
@@ -72,7 +72,7 @@ public class PlaceLauncherService : ServiceBase
             message = (string)null,
         };
     }
-    public async Task<PlaceLaunchResponse> RequestGame(long placeId, int matchmaking, bool? Special = false, string? username = null, long? userId = null)
+    public async Task<PlaceLaunchResponse> RequestGame(long placeId, int matchmaking, string cookie, bool? Special = false, string? username = null, long? userId = null)
     {
         GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
@@ -115,7 +115,7 @@ public class PlaceLauncherService : ServiceBase
                 status = (int)result.status,
                 joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
-                authenticationTicket = "hi",
+                authenticationTicket = cookie,
                 message = (string?)null,
                 joinScript = (bool)Special ? joinScript : null 
             };

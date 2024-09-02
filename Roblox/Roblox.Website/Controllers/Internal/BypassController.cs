@@ -674,6 +674,7 @@ namespace Roblox.Website.Controllers
                     message = "You are not authorized to join"
                 };
             }
+            Placelauncher.cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"].ToString();
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 

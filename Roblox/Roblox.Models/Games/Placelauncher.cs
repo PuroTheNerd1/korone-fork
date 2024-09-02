@@ -1,3 +1,4 @@
+using System.Net;
 using Roblox.Models.GameServer;
 
 namespace Roblox.Models.Games;
@@ -11,6 +12,7 @@ public class PlaceLaunchRequest
     public string? accessCode { get; set; }
     public string? linkCode { get; set; }
     public string? privateGameMode { get; set; }
+    public string cookie { get; set; } 
     public string? username { get; set; } = null;
     public long? userId { get; set; } = null;
     public bool? special { get; set; } = false;
