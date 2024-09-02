@@ -187,6 +187,10 @@
 													<audio controls={true}>
 														<source src={`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`} />
 													</audio>
+												{:else if asset.assetType === 'Video'}
+													<video controls={true}>
+														<source src={`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`} type="video/webm" />
+													</video>
 												{:else}
 													<img on:error={(e) => {
 														console.log('[warn] image load failure',e);
