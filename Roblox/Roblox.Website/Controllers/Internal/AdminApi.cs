@@ -374,7 +374,7 @@ public class AdminApiController : ControllerBase
                 Type.MeshPart,
                 Type.Mesh,
                 Type.SolidModel,
-                Type.Video,
+                Type.Video
             });
             query.AddParameters(new
             {
