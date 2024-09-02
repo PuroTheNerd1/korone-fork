@@ -393,7 +393,7 @@ public class AdminApiController : ControllerBase
                 item.creatorId = latest.creatorId;
                 var userInfo = await services.users.GetUserById(latest.creatorId);
                 item.creatorName = userInfo.username;
-                if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Audio)
+                if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
                 {
                     services.assets.RenderAsset(item.id, item.assetType);
                     continue;
