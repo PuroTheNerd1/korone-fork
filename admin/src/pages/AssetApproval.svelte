@@ -180,15 +180,15 @@
 								<div class="row">
 									<div class="col-12 col-lg-6">
 										<div class="mod-icon">
-											<h3 class="text-left">{asset.group_id ? ('Group ' + asset.group_id) : asset.name}</h3>
-											<p class="text-left">By <a use:link href={`/admin/manage-user/${asset.creatorId || asset.user_id}`}>{asset.creatorName || asset.creatorname}</a></p>
+											<h3 class="text-left text-info">{asset.group_id ? ('Group ' + asset.group_id) : asset.name}</h3>
+											<p class="text-left text-info">By <a use:link href={`/admin/manage-user/${asset.creatorId || asset.user_id}`}>{asset.creatorName || asset.creatorname}</a></p>
 											<a href={asset.group_id ? `/My/Groups.aspx?gid=${asset.group_id}` : `/catalog/${asset.asset_id || asset.id}/--`}>
 												{#if asset.assetType === 'Audio'}
 													<audio controls={true}>
 														<source src={`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`} />
 													</audio>
 												{:else if asset.assetType === 'Video'}
-													<video controls={true} width="600">
+													<video controls={true} width="400">
 														<source src={`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`} type="video/mp4" />
 														<track 
 															kind="captions" 
