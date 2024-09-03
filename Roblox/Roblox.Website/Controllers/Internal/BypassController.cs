@@ -1564,23 +1564,20 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("rcc/kickplayer")]
         public async Task<dynamic> KickPlayerAsync(long userId, string reason)
         {
-            GameServerService gameServerService = new GameServerService();
             bool isOwner = userSession != null && StaffFilter.IsOwner(safeUserSession.userId);
+            string jobId = await services.gameServer.GetJobIdByUserId(userId);
             if (safeUserSession.userId == userId)
             {
                 return "You can't kick yourself!";
             }
             if (isOwner)
             {
-                try
+                using (HttpClient client = new HttpClient())
                 {
-                    await gameServerService.KickPlayer(userId, reason);
-                }
-                catch (Exception)
-                {
-                    return "failed to kick";
-                }
-                return $"Kicked player {userId} with reason: {reason}";
+                    client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
+                    HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/evict-player?jobId={jobId}&userId={userId}");
+                } 
+                return $"Kicked player {userId}";
             }
             else
             {
