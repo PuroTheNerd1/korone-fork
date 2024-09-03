@@ -925,6 +925,7 @@ public class AssetsService : ServiceBase, IService
         await InTransaction(async (trans) =>
         {
             // check if item was already uploaded before. if true, we can skip moderation check
+            /*
             if (moderationStatus == ModerationStatus.AwaitingApproval)
             {
                 AssetModerationEntry? previouslyUploaded = null;
@@ -952,6 +953,7 @@ public class AssetsService : ServiceBase, IService
                     moderationStatus = ModerationStatus.AwaitingApproval;
                 }
             }
+            */
 
             var request = new Dictionary<string, dynamic?>
             {
