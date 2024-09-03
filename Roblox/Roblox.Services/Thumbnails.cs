@@ -121,6 +121,10 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 c.imageUrl = "/img/Audio.png";
             }
+            else if (c.type == Type.Video)
+            {
+                c.imageUrl = "/img/Video.png";
+            }
             else if (c.type is Type.Model or Type.Lua)
             {
                 c.imageUrl = "/img/Model.png";
