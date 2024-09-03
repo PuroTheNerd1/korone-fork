@@ -964,7 +964,7 @@ public class AssetsService : ServiceBase, IService
                 {"creator_type", (int)creatorType},
                 {"created_at", createdAt},
                 {"updated_at", updatedAt},
-                {"moderation_status", (int)ModerationStatus.AwaitingApproval},
+                {"moderation_status", (int)moderationStatus},
                 {"asset_genre", (int)genre},
                 {"asset_type", (int)assetType},
             };
