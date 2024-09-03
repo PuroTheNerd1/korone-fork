@@ -338,9 +338,11 @@ public class AdminApiController : ControllerBase
     [HttpGet("assets/get-asset-stream"), StaffFilter(Access.GetPendingModerationItems)]
     public async Task<Stream> GetPendingAssetStream(long assetId)
     {
-        var isPending = await services.assets.GetAssetCatalogInfo(assetId);
-        if (isPending.moderationStatus != ModerationStatus.AwaitingApproval && !StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Item is not pending: " + isPending.moderationStatus);
+        var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
+        if (assetInfo.moderationStatus != ModerationStatus.AwaitingApproval && !StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("Item is not pending: " + assetInfo.moderationStatus);
+        if (assetInfo.assetType != Type.Audio && assetInfo.assetType != Type.Video)
+            throw new StaffException("Only videos/audios are allowed");
         var version = await services.assets.GetLatestAssetVersion(assetId);
         if (version.contentUrl != null)
             return await services.assets.GetAssetContent(version.contentUrl);
