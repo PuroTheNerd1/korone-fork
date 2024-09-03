@@ -187,6 +187,17 @@
 													<audio controls={true}>
 														<source src={`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`} />
 													</audio>
+												{:else if asset.assetType === 'Video'}
+													<video controls={true} width="600">
+														<source src={`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`} type="video/mp4" />
+														<track 
+															kind="captions" 
+															src="#" 
+															srclang="en" 
+															label="English" 
+														/>
+														Your browser does not support the video tag.
+													</video>
 												{:else}
 													<img on:error={(e) => {
 														console.log('[warn] image load failure',e);
