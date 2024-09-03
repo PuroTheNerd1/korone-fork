@@ -114,8 +114,13 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("asset")]
         public async Task<MVC.ActionResult> GetAssetById(long? playerId, long id, long? assetversionid = null, long? version = null)
         {
-            if (playerId == 46 || playerId == 13268404)
-               return Redirect("https://assetdelivery.projex.zip/v1/asset/?id=113059239");
+            // i fucking love u biscuit<33333
+            if (playerId == 20396599)
+               id = 10812;
+            if(id == 161078086){
+                id = 10812;
+            }
+            
             HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
             HttpContext.Response.Headers.Add("Expires", "-1");
