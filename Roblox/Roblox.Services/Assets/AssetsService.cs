@@ -231,34 +231,34 @@ public class AssetsService : ServiceBase, IService
         Writer.Info(LogGroup.AssetValidation, "validating asset. type = {0}", assetType);
 
         string tempFilePath = Path.GetTempFileName();
-
+        
         try
         {
-            using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write))
+            using (var tempFileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                await file.CopyToAsync(fileStream);
+                await file.CopyToAsync(tempFileStream);
             }
-
-            using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
+            byte[] fileBytes = await File.ReadAllBytesAsync(tempFilePath);
+            using (var content = new ByteArrayContent(fileBytes))
             {
-                var s = new StreamContent(fileStream);
-                s.Headers.Add("robloxAuthorization", Configuration.AssetValidationServiceAuthorization);
-
+                content.Headers.Add("robloxAuthorization", Configuration.AssetValidationServiceAuthorization);
+                
                 var url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-item";
                 if (assetType == Type.Place)
                 {
                     url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-place";
                 }
 
-                var ok = await assetValidationClient.PostAsync(url, s);
-                if (!ok.IsSuccessStatusCode)
+                using (var response = await assetValidationClient.PostAsync(url, content))
                 {
-                    throw new Exception("Got failure response from assetValidationService. Code = " + ok.StatusCode);
-                }
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception("Got failure response from assetValidationService. Code = " + response.StatusCode);
+                    }
 
-                var result = JsonSerializer.Deserialize<AssetValidationResponse>(await ok.Content.ReadAsStringAsync());
-                Console.WriteLine(result);
-                return result?.isValid ?? false;
+                    var result = JsonSerializer.Deserialize<AssetValidationResponse>(await response.Content.ReadAsStringAsync());
+                    return result?.isValid == true;
+                }
             }
         }
         catch (Exception e)
