@@ -18,13 +18,12 @@ namespace Roblox.Website.Controllers
 
     public class BotAuthorizationFilter : IActionFilter
     {
-        private const string BotAuthKey = "ljbHjhLvOwPGasmd1qBoa4qkkbcqa1tT39BImr5SvZFbqQXi133GruGL2O2U06906ezZ8pmwEAv33SM5KmWk";
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
             if (context.HttpContext.Request.Headers.TryGetValue("PJX-BOTAUTH", out StringValues botKey))
             {
-                if (botKey != BotAuthKey)
+                if (botKey != Configuration.BotAuthorization)
                 {
                     Console.WriteLine("Failed auth");
                     context.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);

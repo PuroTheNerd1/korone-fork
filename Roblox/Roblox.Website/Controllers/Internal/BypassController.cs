@@ -1567,18 +1567,14 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> KickPlayerAsync(long userId)
         {
             bool isOwner = userSession != null && StaffFilter.IsOwner(safeUserSession.userId);
-            string jobId = await services.gameServer.GetJobIdByUserId(userId);
+
             if (safeUserSession.userId == userId)
             {
                 return "You can't kick yourself!";
             }
             if (isOwner)
             {
-                using (HttpClient client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
-                    HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/evict-player?jobId={jobId}&userId={userId}");
-                } 
+
                 return $"Kicked player {userId}";
             }
             else

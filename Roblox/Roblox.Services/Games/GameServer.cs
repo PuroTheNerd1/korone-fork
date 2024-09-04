@@ -285,40 +285,14 @@ public class GameServerService : ServiceBase
             return null;
         }
     }
-    public async Task<dynamic> KickPlayer(long userId, string reason)
+    public async Task KickPlayer(long userId)
     {
-        UsersService users = new UsersService();
-        string JobId = await GetJobIdByUserId(userId);
-        if(JobId == null)
+        string jobId = await GetJobIdByUserId(userId);
+        using (HttpClient client = new HttpClient())
         {
-            throw new Exception();
-        }
-        long RCCPort = await GetRCCport(JobId);
-
-        Console.WriteLine(RCCPort);
-        var userInfo = await users.GetUserById(userId);
-
-        string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-        <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-            xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-            xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-            <soap:Body>
-                <Execute xmlns=""http://projex.zip/"">
-				    <jobID>{JobId}</jobID>
-                    <script>
-                        <name>{Guid.NewGuid().ToString()}</name>
-                        <script>
-                            <![CDATA[
-                            game.Players.{userInfo.username}:Kick(""{reason}"")
-                            ]]>
-                        </script>
-                    </script>
-                </Execute>
-            </soap:Body>
-        </soap:Envelope>";
-        Console.WriteLine(JobId);
-        await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "Execute");            
-        return Task.CompletedTask;     
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/evict-player?jobId={jobId}&userId={userId}");
+        } 
     }
     public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
     {
@@ -335,7 +309,7 @@ public class GameServerService : ServiceBase
         //rccProcess.Kill(); // soft kill soon instead of force kill
         using (HttpClient client = new HttpClient())
         {
-            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
             HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/kill-game-server?jobId={serverId}");
         }            
         // Remove from our dictionaries now.
@@ -758,7 +732,7 @@ public class GameServerService : ServiceBase
         Console.WriteLine("Starting Gameserver");
         using (HttpClient client = new HttpClient())
         {
-            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", "KPBZSkHaBiiBjc921e5ETtckEZxZRrhexBUm2g2DeUFkowODS6lWh88I7R8LlrWfTOCCldZdQyXGacrYDoIvXuB7182aUPbdGSj489xwgoHow3b8jD6tSi");
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
             HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
             if (response.IsSuccessStatusCode)
             {
