@@ -1308,7 +1308,6 @@ namespace Roblox.Website.Controllers
             {
                 throw new UnauthorizedAccessException();
             }
-            Thread.Sleep(500);
             if (GameServerService.CurrentPlayersInGame.TryGetValue(visitorId, out long storedPlaceId))
             {
                 if(storedPlaceId != placeId)
@@ -1325,10 +1324,6 @@ namespace Roblox.Website.Controllers
         {
             bool IsRCC = IsRcc();
             if(!IsRCC)
-            {
-                return;
-            }
-            if(!GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
             {
                 return;
             }
