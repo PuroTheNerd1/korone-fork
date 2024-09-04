@@ -1574,7 +1574,7 @@ namespace Roblox.Website.Controllers
             }
             if (isOwner)
             {
-
+                await services.gameServer.KickPlayer(userId);
                 return $"Kicked player {userId}";
             }
             else
