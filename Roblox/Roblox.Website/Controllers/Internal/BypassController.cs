@@ -114,7 +114,15 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("asset")]
         public async Task<MVC.ActionResult> GetAssetById(long? playerId, long id, long? assetversionid = null, long? version = null)
         {
-            // i fucking love u biscuit<33333
+            //This is from corescripts from 2017 for more context userId 20396599 = my bby (biscuit)
+            //local CUSTOM_ICONS = {	-- Admins with special icons
+            //['7210880'] = 'rbxassetid://134032333', -- Jeditkacheff
+            //['13268404'] = 'rbxassetid://113059239', -- Sorcus
+            //['261'] = 'rbxassetid://105897927', -- shedlestky
+            //['20396599'] = 'rbxassetid://161078086', -- Robloxsai
+            //}
+
+            // i fucking love u biscuit<33333 ur gonna be mine forever :3
             if (playerId == 20396599)
                id = 10812;
             if(id == 161078086){
