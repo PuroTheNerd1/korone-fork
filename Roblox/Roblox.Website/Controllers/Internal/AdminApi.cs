@@ -345,6 +345,21 @@ public class AdminApiController : ControllerBase
         int remainingAssets = (int)(giftOwners.Count() - terminatedCopies.Count);
         foreach (var owner in giftOwners)
         {
+            //do NOT gift the same user over
+            bool userAlreadyOwnsAsset = await db.QuerySingleOrDefaultAsync<bool>(
+                "SELECT COUNT(1) > 0 FROM user_asset WHERE asset_id = :assetId AND user_id = :userId", 
+                new
+                {
+                    assetId = req.assetId,
+                    userId = owner.userId
+                }
+            );
+
+            if (userAlreadyOwnsAsset)
+            {
+                continue;
+            }
+
             for (var i = 0; i < remainingAssets; i++)
             {
                 var saleCount = await services.assets.GetSaleCount(req.assetId);
