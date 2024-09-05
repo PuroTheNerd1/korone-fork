@@ -168,12 +168,18 @@
 						<a use:link class="nav-link" href="/admin/bundle/copy"><CopyIcon /> Copy Bundle</a>
 					</li>
 				{/if}
-
+				/admin/giftallusers
 				{#if rank.hasPermission("SetAssetProduct")}
 					<li class="nav-item ml-4">
 						<a use:link class="nav-link" href="/admin/product/update"><EditIcon /> Update Item Product</a>
 					</li>
 				{/if}
+				{#if rank.hasPermission("SetAssetProduct")}
+					<li class="nav-item ml-4">
+						<a use:link class="nav-link" href="/admin/product/update"><EditIcon /> Update Item Product</a>
+					</li>
+				{/if}
+
 				{#if rank.hasPermission("MigrateAssetFromRoblox")}
 					<li class="nav-item ml-4">
 						<a use:link class="nav-link" href="/admin/asset/create-for-item"><FolderPlusIcon /> Create Item Asset</a>
@@ -182,6 +188,9 @@
 				{#if rank.hasPermission("CreateAssetVersion")}
 					<li class="nav-item ml-4">
 						<a use:link class="nav-link" href="/admin/asset/version/create"><UploadCloudIcon /> Update Item RBXM</a>
+					</li>
+					<li class="nav-item ml-4">
+						<a use:link class="nav-link" href="/admin/giftallusers"><FolderPlusIcon /> Gift All Users</a>
 					</li>
 				{/if}
 				{#if rank.hasPermission("GiveUserItem")}

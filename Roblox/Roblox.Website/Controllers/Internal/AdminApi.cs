@@ -317,7 +317,64 @@ public class AdminApiController : ControllerBase
 
         return result;
     }
+    [HttpPost("gift-users"),  StaffFilter(Access.CreateAsset)]
+    public async Task<dynamic> GiftUsers([FromBody] GiftUsersRequest req)
+    {
+        // Owner check
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("You are not allowed to do that");
+        //12 hours
+        if (!await services.cooldown.TryIncrementBucketCooldown("GiftAssetV1_Hour", 10, TimeSpan.FromHours(12)))
+            throw new StaffException("Gift rate limit exceeded.");
 
+        var details = await services.assets.GetAssetCatalogInfo(req.assetId);
+        //Do NOT allow limiteds
+        if (details.itemRestrictions.Contains("LimitedUnique") || details.itemRestrictions.Contains("Limited"))
+            throw new StaffException("This item is a limited");
+
+        
+        var giftOwners = await db.QueryAsync<CollectibleUserAssetEntry>(
+            "SELECT id AS userAssetId, asset_id AS assetId, user_id AS userId, price, serial, created_at AS createdAt, updated_at AS updatedAt " +
+            "FROM user_asset WHERE asset_id = :giftId", new
+            {
+                giftId = req.giftId
+            }
+        );
+
+        var terminatedCopies = (await GetGiveItemCirc(req.assetId, giftOwners.Count())).ToList();
+        int remainingAssets = (int)(giftOwners.Count() - terminatedCopies.Count);
+        foreach (var owner in giftOwners)
+        {
+            for (var i = 0; i < remainingAssets; i++)
+            {
+                var saleCount = await services.assets.GetSaleCount(req.assetId);
+
+                long? serial = null;
+
+                var userAssetId = await db.QuerySingleOrDefaultAsync<long>(
+                    "INSERT INTO user_asset (asset_id, user_id, serial) VALUES (:assetId, :userId, :serial) RETURNING id", new
+                    {
+                        assetId = req.assetId,
+                        userId = owner.userId,  
+                        serial = serial
+                    }
+                );
+                /* TODO: Fix the spamming should be ez
+                await db.ExecuteAsync(
+                    "INSERT INTO moderation_give_item (user_id, author_user_id, user_asset_id, user_id_from) VALUES (:userId, :authorUserId, :userAssetId, null)",
+                    new
+                    {
+                        userId = req.userId,
+                        authorUserId = userSession.userId, 
+                        userAssetId = userAssetId
+                    }
+                
+                );
+                */
+            }
+        }
+        return Ok();
+    }
     [HttpGet("asset/moderation-details"), StaffFilter(Access.GetAssetModerationDetails)]
     public async Task<dynamic> GetModerationDetails(long assetId)
     {
@@ -1483,7 +1540,6 @@ public class AdminApiController : ControllerBase
                 limit = limit,
             })).ToList();
     }
-
     [HttpPost("giveitem"), StaffFilter(Access.GiveUserItem)]
     public async Task GiveItem([Required, FromBody] GiveItemRequest request)
     {

@@ -1100,28 +1100,6 @@ namespace Roblox.Website.Controllers
                 Twitch = (string?)null
             };
         }
-
-        [HttpGetBypass("v1/avatar-rules")]
-        public IActionResult AvatarRules()
-        {
-            AvatarControllerV1 avatar = new AvatarControllerV1();
-            var avatarRules = avatar.GetAvatarRules();
-            return Ok(avatarRules);
-        }
-        [HttpPostBypass("v1/avatar/set-body-color")]
-        public dynamic SetBodyColor()
-        {
-            return Ok();
-        }
-
-        [HttpGetBypass("v1/avatar/set-scales")]
-        public dynamic SetScale()
-        {
-            return new
-            {
-                success = true
-            };
-        }
         [HttpGetBypass("v2/stream-notifications/unread-count")]
         public dynamic PushNotif()
         {
@@ -1142,27 +1120,7 @@ namespace Roblox.Website.Controllers
                 success = true
             };
         }
-        [HttpGetBypass("v1/avatar/metadata")]
-        public IActionResult AvatarMetadata()
-        {
-            AvatarControllerV1 avatar = new AvatarControllerV1();
-            var avatarMetadata = avatar.GetAvatarMetadata();
-            return Ok(avatarMetadata);
-        }
-        [HttpGetBypass("v1/users/{userId:long}/avatar")]
-        public async Task<IActionResult> GetCharAppInfo(long userId)
-        {
-            AvatarControllerV1 avatar = new AvatarControllerV1();
-            var avatarData = await avatar.GetAvatar(userId);
-            return Ok(avatarData);
-        }
-        [HttpGetBypass("v1/avatar")]
-        public async Task<IActionResult> MobileCharapp()
-        {
-            AvatarControllerV1 avatar = new AvatarControllerV1();
-            var avatarData = await avatar.GetAvatar(safeUserSession.userId);
-            return Ok(avatarData);
-        }
+
         [HttpGetBypass("v1.1/game-start-info")]
         public dynamic GameStartInfo(long universeId)
         {

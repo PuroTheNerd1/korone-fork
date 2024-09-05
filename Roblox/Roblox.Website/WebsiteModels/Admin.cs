@@ -17,7 +17,11 @@ public class CreateUserRequest
     public string? password { get; set; }
     public long userId { get; set; }
 }
-
+public class GiftUsersRequest
+{
+    public long giftId { get; set; }
+    public long assetId { get; set; }
+}
 public class ForceApplicationReq
 {
     public long userId { get; set; }
