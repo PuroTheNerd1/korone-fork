@@ -35,7 +35,7 @@ public class RbxThumbnails : ControllerBase
         Asset,
         PlaceIcon
     }
-    public async Task<RedirectResult> GetThumbnailUrl(long id, ThumbnailType type)
+    private async Task<RedirectResult> GetThumbnailUrl(long id, ThumbnailType type)
     {
         var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
         if (!authUser18Plus)
