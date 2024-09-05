@@ -451,15 +451,4 @@ public class AvatarRBX : ControllerBase
     {
         
     }
-
-    public bool IsThreadSafe()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsReusable()
-    {
-        throw new NotImplementedException();
-    }
-
 }
