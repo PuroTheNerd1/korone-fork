@@ -261,11 +261,6 @@ public class AvatarRBX : ControllerBase
             }),
         };
     }
-    [HttpGetBypass("v1/users/{userId:long}/avatar")]
-    public async Task<dynamic> GetUserCharApp(long userId)
-    {
-        return await GetAvatar(safeUserSession.userId);
-    }
     [HttpGetBypass("v1/avatar")]
     public async Task<dynamic> GetMyAvatar()
     {
