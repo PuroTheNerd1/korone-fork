@@ -16,7 +16,7 @@ namespace Roblox.Website.Controllers;
 
 [ApiController]
 [Route("/")]
-public class Avatar : ControllerBase, IService
+public class AvatarRBX : ControllerBase
 {
     private void FeatureCheck()
     {
@@ -454,7 +454,7 @@ public class Avatar : ControllerBase, IService
         };
     }
 
-    [HttpPostBypass("v1/avatar/set-scales"), HttpPost("avatar/set-player-avatar-type")]
+    [HttpPostBypass("v1/avatar/set-scales"), HttpPostBypass("v1/avatar/set-player-avatar-type")]
     public void AvatarNoOp()
     {
         
