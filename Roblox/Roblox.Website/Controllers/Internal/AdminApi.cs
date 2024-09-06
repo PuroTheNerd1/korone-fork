@@ -341,8 +341,6 @@ public class AdminApiController : ControllerBase
             }
         );
 
-        var terminatedCopies = (await GetGiveItemCirc(req.assetId, giftOwners.Count())).ToList();
-        int remainingAssets = (int)(giftOwners.Count() - terminatedCopies.Count);
         foreach (var owner in giftOwners)
         {
             long? serial = null;
