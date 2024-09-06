@@ -345,48 +345,15 @@ public class AdminApiController : ControllerBase
         int remainingAssets = (int)(giftOwners.Count() - terminatedCopies.Count);
         foreach (var owner in giftOwners)
         {
-            //do NOT gift the same user over
-            bool userAlreadyOwnsAsset = await db.QuerySingleOrDefaultAsync<bool>(
-                "SELECT COUNT(1) > 0 FROM user_asset WHERE asset_id = :assetId AND user_id = :userId", 
-                new
+            long? serial = null;
+            var userAssetId = await db.QuerySingleOrDefaultAsync<long>(
+                "INSERT INTO user_asset (asset_id, user_id, serial) VALUES (:assetId, :userId, :serial) RETURNING id", new
                 {
                     assetId = req.assetId,
-                    userId = owner.userId
+                    userId = owner.userId,  
+                    serial = serial
                 }
             );
-
-            if (userAlreadyOwnsAsset)
-            {
-                continue;
-            }
-
-            for (var i = 0; i < remainingAssets; i++)
-            {
-                var saleCount = await services.assets.GetSaleCount(req.assetId);
-
-                long? serial = null;
-
-                var userAssetId = await db.QuerySingleOrDefaultAsync<long>(
-                    "INSERT INTO user_asset (asset_id, user_id, serial) VALUES (:assetId, :userId, :serial) RETURNING id", new
-                    {
-                        assetId = req.assetId,
-                        userId = owner.userId,  
-                        serial = serial
-                    }
-                );
-                /* TODO: Fix the spamming should be ez
-                await db.ExecuteAsync(
-                    "INSERT INTO moderation_give_item (user_id, author_user_id, user_asset_id, user_id_from) VALUES (:userId, :authorUserId, :userAssetId, null)",
-                    new
-                    {
-                        userId = req.userId,
-                        authorUserId = userSession.userId, 
-                        userAssetId = userAssetId
-                    }
-                
-                );
-                */
-            }
         }
         return Ok();
     }

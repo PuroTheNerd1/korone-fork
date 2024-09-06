@@ -719,7 +719,7 @@ namespace Roblox.Website.Controllers
             }
 
             string? cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
-            return Ok($"https://www.projex.zip/Login/Negotiate.ashx?suggest={cookie}");
+            return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={cookie}");
         }
 
         [HttpGetBypass("My/Places.aspx")]
