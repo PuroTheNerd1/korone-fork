@@ -352,6 +352,7 @@ public class AdminApiController : ControllerBase
                     serial = serial
                 }
             );
+            await services.assets.IncrementSaleCount(req.assetId);
         }
         return Ok();
     }
