@@ -126,7 +126,6 @@ public class GameServerService : ServiceBase
         {
             CurrentPlayersInGame.Add(userId, placeId);
         }
-
         await db.ExecuteAsync(
             "INSERT INTO asset_server_player (asset_id, user_id, server_id) VALUES (:asset_id, :user_id, :server_id::uuid)",
             new
