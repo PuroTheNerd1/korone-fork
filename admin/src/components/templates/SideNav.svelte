@@ -168,7 +168,6 @@
 						<a use:link class="nav-link" href="/admin/bundle/copy"><CopyIcon /> Copy Bundle</a>
 					</li>
 				{/if}
-				/admin/giftallusers
 				{#if rank.hasPermission("SetAssetProduct")}
 					<li class="nav-item ml-4">
 						<a use:link class="nav-link" href="/admin/product/update"><EditIcon /> Update Item Product</a>
