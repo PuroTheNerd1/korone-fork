@@ -1664,9 +1664,10 @@ namespace Roblox.Website.Controllers
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E
                 "2cb51bbbcd309a35858876b6c2167627", //Debug MD5 2016E
                 "276b30fc7a3518f8058a0b7446233513", //2017L Beta Presence
-                "3d05c09b9a40f141c0289d650015b290", //2017 RAGEHooks Beta
+                "3d05c09b9a40f141c0289d650015b290", //2017L RAGEHooks Beta
+                "ac8ab952ad3b6dc2700e955c0a942e40", //2017L RAGELoader Debug
                 "4e8ab57381d7f1a98cc7ea79824f88ef", //2017L
-                "8c5aecb7811acbb582f06f2a81b958f4",  //2018L
+                "8c5aecb7811acbb582f06f2a81b958f4", //2018L
                 "9cdc73fd9b24c974f5a0dde411dcd38f", //2020L
                 "a58f725954fe5b2ed30b0778f932d249" //2021M
             };
