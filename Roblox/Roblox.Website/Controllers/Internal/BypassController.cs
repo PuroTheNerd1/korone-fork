@@ -1674,6 +1674,7 @@ namespace Roblox.Website.Controllers
 
             return new { data = allowedList };
         }
+
         [HttpGetBypass("GetAllowedSecurityKeys")]
         public MVC.ActionResult<dynamic> AllowedSecurity()
         {
