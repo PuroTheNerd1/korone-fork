@@ -1662,14 +1662,11 @@ namespace Roblox.Website.Controllers
             {
                 "a9912debcb6347c402e4139f452d4fd2", //2015M Prod
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E Prod
-                "2cb51bbbcd309a35858876b6c2167627", //2016E Debug
-                "276b30fc7a3518f8058a0b7446233513", //2017L Beta Presence
-                "3d05c09b9a40f141c0289d650015b290", //2017L RAGEHooks Beta
                 "5ddb672b683081ca286d0ffb273cc06f", //2017L RAGELoader Debug
                 "4e8ab57381d7f1a98cc7ea79824f88ef", //2017L Prod
                 "8c5aecb7811acbb582f06f2a81b958f4", //2018L Prod
                 "9cdc73fd9b24c974f5a0dde411dcd38f", //2020L Prod
-                "a58f725954fe5b2ed30b0778f932d249"  //2021M Prod
+                "a58f725954fe5b2ed30b0778f932d249", //2021M Prod
             };
 
             return new { data = allowedList };
