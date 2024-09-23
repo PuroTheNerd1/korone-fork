@@ -1274,13 +1274,9 @@ namespace Roblox.Website.Controllers
             {
                 throw new UnauthorizedAccessException();
             }
-            if (GameServerService.CurrentPlayersInGame.TryGetValue(visitorId, out long storedPlaceId))
+            if (GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
             {
-                if(storedPlaceId != placeId)
-                {
-                    changedInternal = true;
-                    GameServerService.CurrentPlayersInGame[visitorId] = placeId;
-                }
+                GameServerService.CurrentPlayersInGame.Remove(visitorId);
             }
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId, changedInternal);
             return Ok();
