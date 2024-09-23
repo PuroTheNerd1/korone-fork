@@ -642,7 +642,6 @@ public class GameServerService : ServiceBase
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, int matchmaking)
     {
         GamesService games = new GamesService();
-        long year = await games.GetYear(placeId);
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
         var GameServers = await GetGameServersForPlace(placeId);
@@ -662,7 +661,7 @@ public class GameServerService : ServiceBase
                 continue;
             }
 
-            //dict check!!!
+            //dict check!!! if it doesnt contain it lets kill it!
             if (!currentGameServerPorts.ContainsKey(jobid))
             {
                 _ = ShutDownServerAsync(jobid);
@@ -676,7 +675,7 @@ public class GameServerService : ServiceBase
                 status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
             };
         }
-
+        long year = await games.GetYear(placeId);
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string jobId = Guid.NewGuid().ToString();
