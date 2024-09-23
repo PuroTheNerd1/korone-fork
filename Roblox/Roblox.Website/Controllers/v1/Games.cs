@@ -94,6 +94,7 @@ public class GamesControllerV1 : ControllerBase
         }
         else
         {
+            results.Add(sorts["roulette"]);
             results.Add(sorts["popular"]);
             results.Add(sorts["mostFavorited"]);
             results.Add(sorts["recentlyUpdated"]);
