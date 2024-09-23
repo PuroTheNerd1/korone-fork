@@ -95,6 +95,11 @@ public class Application : RobloxPageModel
             }
         }
     }
+    private async void messageUser(string discord_id, string applicationId)
+    {
+        var httpClient = new HttpClient();
+        await httpClient.GetAsync($"http://localhost:3550/sendmsg?discordId={discord_id}&applicationId={applicationId}");
+    }
     private async Task<DiscordInfo> InfoDiscordUser(string discord_id)
     {
         var httpClient = new HttpClient();
@@ -347,6 +352,7 @@ public class Application : RobloxPageModel
                 MaxAge = TimeSpan.FromDays(30),
                 Secure = true,
             });
+            messageUser(discordId, applicationId);
             application = await services.users.GetApplicationById(applicationId);
             apps.DeleteVerificationCookie();
 
