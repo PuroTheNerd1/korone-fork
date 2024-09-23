@@ -679,22 +679,7 @@ public class GameServerService : ServiceBase
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string jobId = Guid.NewGuid().ToString();
-
-        var watch = new Stopwatch();
-        watch.Start();
         _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
-        /*
-        if (StartGameInfo == "BAD")
-        {
-            return new GameServerGetOrCreateResponse()
-            {
-                status = JoinStatus.Error
-            };
-        };
-        watch.Stop();
-
-        GameMetrics.ReportTimeToStartGameServer(Configuration.GameServerIp, mainRCCPort.ToString(), watch.ElapsedMilliseconds);
-        */
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
             new
@@ -705,24 +690,11 @@ public class GameServerService : ServiceBase
                 port = mainRCCPort,
                 server_connection = $"{Configuration.GameServerIp}:{networkServerPort}", 
             });
-        //Thread.Sleep(6000);]
         return new GameServerGetOrCreateResponse()
         {
             job = jobId,
             status = JoinStatus.Loading
         };
-        /*
-        return StartGameInfo != "BAD"
-            ? new GameServerGetOrCreateResponse()
-            {
-                job = jobId,
-                status = JoinStatus.Joining
-            }
-            : new GameServerGetOrCreateResponse()
-            {
-                status = JoinStatus.Loading
-            };
-        */
     }
 
     
