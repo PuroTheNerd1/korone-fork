@@ -29,19 +29,19 @@ public class GamesControllerV1 : ControllerBase
         var sorts = new Dictionary<string, dynamic>()
         {
             {
-                "roulette", new
-                {
-                    token = "roulette",
-                    name = "roulette",
-                    displayName = "roulette",
-                }
-            },
-            {
                 "popular", new
                 {
                     token = "popular",
                     name = "popular",
                     displayName = "popular",
+                }
+            },
+            {
+                "roulette", new
+                {
+                    token = "roulette",
+                    name = "roulette",
+                    displayName = "roulette",
                 }
             },
             {
@@ -88,14 +88,15 @@ public class GamesControllerV1 : ControllerBase
             if (recent.Any())
             {
                 results.Add(sorts["recent"]);
+                results.Add(sorts["roulette"]);
                 results.Add(sorts["popular"]);
                 // results.Add(sorts["mostFavorited"]);
             }
         }
         else
         {
-            results.Add(sorts["roulette"]);
             results.Add(sorts["popular"]);
+            results.Add(sorts["roulette"]);
             results.Add(sorts["mostFavorited"]);
             results.Add(sorts["recentlyUpdated"]);
             // results.Add(sorts["recentlyCreated"]);
