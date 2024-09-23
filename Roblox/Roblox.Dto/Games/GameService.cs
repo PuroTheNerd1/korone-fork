@@ -27,7 +27,7 @@ public enum ServerStatus
 }
 public class GameServerDb
 {
-    public string id { get; set; } = string.Empty;
+    public Guid id { get; set; }
     public ServerStatus status;
 }
 
