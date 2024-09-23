@@ -29,6 +29,14 @@ public class GamesControllerV1 : ControllerBase
         var sorts = new Dictionary<string, dynamic>()
         {
             {
+                "roulette", new
+                {
+                    token = "roulette",
+                    name = "roulette",
+                    displayName = "roulette",
+                }
+            },
+            {
                 "popular", new
                 {
                     token = "popular",

@@ -216,6 +216,10 @@ public class GamesService : ServiceBase, IService
                     query.OrWhere("asset.id = " + item);
                 }
                 break;
+            case "roulette":
+                query.OrderBy("RANDOM()"); 
+                sortRequired = false;
+                break;
             case "recentlyupdated":
                 query.OrderBy("asset.updated_at DESC");
                 sortRequired = false;
@@ -267,7 +271,7 @@ public class GamesService : ServiceBase, IService
     }
     public async Task SetYear(long placeId, int year)
     {
-        if (year != 2015 && year != 2016 && year != 2017 && year != 2018 && year != 2020 && year != 2021)
+        if (year != 2017 && year != 2018 && year != 2020 && year != 2021)
             throw new ArgumentException("Year can only be 2015, 2016, 2017, 2018, 2020, 2021");
             
         await db.ExecuteAsync("UPDATE asset_place SET year = :year WHERE asset_id = :id", new
