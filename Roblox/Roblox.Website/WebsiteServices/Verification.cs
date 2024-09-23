@@ -98,7 +98,7 @@ public class ApplicationWebsiteService : WebsiteService
                     }
 #if !DEBUG
                     var created = DateTime.Parse(userDesc.created);
-                    if (created >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(30 * 3)))
+                    if (created >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(30)))
                     {
                         throw new AccountTooNewException();
                     }
