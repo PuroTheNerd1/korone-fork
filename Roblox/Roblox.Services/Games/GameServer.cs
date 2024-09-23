@@ -643,12 +643,6 @@ public class GameServerService : ServiceBase
     {
         GamesService games = new GamesService();
         long year = await games.GetYear(placeId);
-        await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(30));       
-        if (!serverCreationLock.IsAcquired)
-            return new GameServerGetOrCreateResponse
-            {
-                status = JoinStatus.Waiting,
-            };
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
         var GameServers = await GetGameServersForPlace(placeId);
