@@ -20,6 +20,16 @@ public class GameServerMultiRunEntry
     /// </summary>
     public bool isFull { get; set; }
 }
+public enum ServerStatus
+{
+    Loading = 1,
+    Ready
+}
+public class GameServerDb
+{
+    public string id { get; set; } = string.Empty;
+    public ServerStatus status;
+}
 
 public class GameServerInfoResponse
 {

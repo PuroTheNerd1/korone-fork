@@ -1517,7 +1517,7 @@ namespace Roblox.Website.Controllers
             {
                 foreach (var jobs in serverjobs)
                 {
-                    jobId = jobs.jobid.ToString(); 
+                    jobId = jobs.id.ToString(); 
                     await services.gameServer.ShutDownServerAsync(jobId);
                 }
                 return "OK!";
@@ -2219,7 +2219,7 @@ namespace Roblox.Website.Controllers
                 return "Not RCC";
             }
 
-            if (clientCount < 1 && gameTime > 15)
+            if (clientCount < 1 && gameTime > 25)
             {
                 try
                 {

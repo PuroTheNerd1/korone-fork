@@ -398,9 +398,10 @@ public class GameServerService : ServiceBase
     }
     public async Task SetServerPing(string serverId)
     {
-        await db.ExecuteAsync("UPDATE asset_server SET updated_at = :u WHERE id = :id::uuid", new
+        await db.ExecuteAsync("UPDATE asset_server SET updated_at = :u, status = :stat WHERE id = :id::uuid", new
         {
             u = DateTime.UtcNow,
+            stat = (int)ServerStatus.Ready,
             id = serverId,
         });
     }
@@ -628,16 +629,18 @@ public class GameServerService : ServiceBase
 
         return result.ToString();
     }
-    public async Task<dynamic> GetGameServersForPlace(long placeId)
+    public async Task<List<GameServerDb>> GetGameServersForPlace(long placeId)
     {
-        var result = await db.QueryAsync(
-            "SELECT id as jobid FROM asset_server WHERE asset_id = :assetid",
+        var results = await db.QueryAsync<GameServerDb>(
+            "SELECT id, status FROM asset_server WHERE asset_id = :assetid",
             new
             {
                 assetid = placeId,
             });
-        return result;
+        
+        return results.ToList();
     }
+
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, int matchmaking)
     {
         GamesService games = new GamesService();
@@ -648,45 +651,44 @@ public class GameServerService : ServiceBase
             {
                 status = JoinStatus.Waiting,
             };
-
-        int mainRCCPort = RandomComponent.Next(30000, 40000);
-        int networkServerPort = RandomComponent.Next(50000, 60000);
-        string jobId = Guid.NewGuid().ToString();
-
-
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
-        var openGameServers = await GetGameServersForPlace(placeId);
+        List<GameServerDb> GameServers = await GetGameServersForPlace(placeId);
 
-        foreach (var server in openGameServers)
+        foreach (GameServerDb server in GameServers)
         {
-            string ExistingJobId = server.jobid.ToString(); 
-            var currentPlayerCount = await GetGameServerPlayers(ExistingJobId);
-            // If the server is full we continue
+            string jobid = server.id.ToString();
+            var currentPlayerCount = await GetGameServerPlayers(jobid);
+
+            // if the server is full continue the search for a good one 
             if (currentPlayerCount.Count() >= maxPlayerCount)
             {
                 continue;
             }
 
-            // Check if it exists in the dictionary if not delete it!
-            if (!currentGameServerPorts.ContainsKey(ExistingJobId)){
-                Console.WriteLine($"Removing old job: {ExistingJobId}");
-                _ = ShutDownServerAsync(ExistingJobId);
+            //dict check!!!
+            if (!currentGameServerPorts.ContainsKey(jobid))
+            {
+                _ = ShutDownServerAsync(jobid);
                 continue;
             }
-                
-            
-            // We found a OK server lets join
+
+            // we found a server to join or.... its loading depending
             return new GameServerGetOrCreateResponse()
             {
-                job = ExistingJobId,
-                status = JoinStatus.Joining
+                job = jobid,
+                status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
             };
         }
 
+        int mainRCCPort = RandomComponent.Next(30000, 40000);
+        int networkServerPort = RandomComponent.Next(50000, 60000);
+        string jobId = Guid.NewGuid().ToString();
+
         var watch = new Stopwatch();
         watch.Start();
-        string StartGameInfo = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
+        _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
+        /*
         if (StartGameInfo == "BAD")
         {
             return new GameServerGetOrCreateResponse()
@@ -697,7 +699,7 @@ public class GameServerService : ServiceBase
         watch.Stop();
 
         GameMetrics.ReportTimeToStartGameServer(Configuration.GameServerIp, mainRCCPort.ToString(), watch.ElapsedMilliseconds);
-
+        */
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
             new
@@ -708,7 +710,13 @@ public class GameServerService : ServiceBase
                 port = mainRCCPort,
                 server_connection = $"{Configuration.GameServerIp}:{networkServerPort}", 
             });
-        Thread.Sleep(6000);
+        //Thread.Sleep(6000);]
+        return new GameServerGetOrCreateResponse()
+        {
+            job = jobId,
+            status = JoinStatus.Loading
+        };
+        /*
         return StartGameInfo != "BAD"
             ? new GameServerGetOrCreateResponse()
             {
@@ -719,6 +727,7 @@ public class GameServerService : ServiceBase
             {
                 status = JoinStatus.Loading
             };
+        */
     }
 
     
