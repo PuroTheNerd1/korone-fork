@@ -655,6 +655,10 @@ public class GameServerService : ServiceBase
 
         foreach (GameServerDb server in GameServers)
         {
+            if (GameServers == null)
+            {
+                break;
+            }
             string jobid = server.id.ToString();
             var currentPlayerCount = await GetGameServerPlayers(jobid);
 
