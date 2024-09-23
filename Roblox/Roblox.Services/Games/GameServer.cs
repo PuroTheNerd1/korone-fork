@@ -629,16 +629,14 @@ public class GameServerService : ServiceBase
 
         return result.ToString();
     }
-    public async Task<List<GameServerDb>> GetGameServersForPlace(long placeId)
-    {
-        var results = await db.QueryAsync<GameServerDb>(
+    public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId)
+    {   
+        return await db.QueryAsync<GameServerDb>(
             "SELECT id, status FROM asset_server WHERE asset_id = :assetid",
             new
             {
                 assetid = placeId,
             });
-        
-        return results.ToList();
     }
 
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, int matchmaking)
@@ -653,7 +651,7 @@ public class GameServerService : ServiceBase
             };
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
-        List<GameServerDb> GameServers = await GetGameServersForPlace(placeId);
+        var GameServers = await GetGameServersForPlace(placeId);
 
         foreach (GameServerDb server in GameServers)
         {
