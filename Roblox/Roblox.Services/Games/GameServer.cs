@@ -698,7 +698,7 @@ public class GameServerService : ServiceBase
                 id = jobId,
                 asset_id = placeId,
                 ip = Configuration.GameServerIp,
-                port = mainRCCPort,
+                port = networkServerPort,
                 server_connection = $"{Configuration.GameServerIp}:{networkServerPort}", 
             });
         return new GameServerGetOrCreateResponse()
