@@ -362,18 +362,18 @@ public class GamesService : ServiceBase, IService
             updated = c.updated,
         });
     }
-    public dynamic GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string cookie)
+    public async Task<dynamic> GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string cookie)
     {
         GameServerService gameServer = new GameServerService();
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-        var gamseserverPort = gameServer.GetGameserverForJobId(jobId);
+        int gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
         var baseUrl = Configuration.BaseUrl.Replace("https://", "");
         
         var joinScript = new
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
-            ServerPort = gamseserverPort.port,
+            ServerPort = gamseserverPort,
             PingUrl = "",
             PingInterval = year == 2017 || year == 2018 ? 120 : 50,
             UserName = username,
@@ -414,7 +414,7 @@ public class GamesService : ServiceBase, IService
             {
                 new
                 {
-                    Port = gamseserverPort.port, 
+                    Port = gamseserverPort, 
                     Address = Configuration.GameServerIp, 
                 }
             },

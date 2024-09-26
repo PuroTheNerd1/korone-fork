@@ -629,7 +629,7 @@ public class GameServerService : ServiceBase
 
         return result.ToString();
     }
-    public async Task<dynamic> GetGameserverForJobId(string jobId)
+    public async Task<int> GetGameserverForJobId(string jobId)
     {   
         return await db.QueryFirstOrDefaultAsync<dynamic>(
             "SELECT port FROM asset_server WHERE id = :jobid",
