@@ -631,13 +631,14 @@ public class GameServerService : ServiceBase
     }
     public async Task<dynamic> GetGameserverForJobId(string jobId)
     {   
-        return await db.QueryAsync<dynamic>(
+        return await db.QueryFirstOrDefaultAsync<dynamic>(
             "SELECT port FROM asset_server WHERE id = :jobid",
             new
             {
                 jobid = jobId,
             });
     }
+
 
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId)
     {   

@@ -366,7 +366,7 @@ public class GamesService : ServiceBase, IService
     {
         GameServerService gameServer = new GameServerService();
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-        dynamic gamseserverPort = gameServer.GetGameserverForJobId(jobId);
+        var gamseserverPort = gameServer.GetGameserverForJobId(jobId);
         var baseUrl = Configuration.BaseUrl.Replace("https://", "");
         
         var joinScript = new
