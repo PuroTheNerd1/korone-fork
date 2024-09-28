@@ -45,15 +45,7 @@ public class PlaceLauncherService : ServiceBase
     public async Task<PlaceLaunchResponse> RequestGameJob(string gameId, long placeId)
     {
         GamesService games = new GamesService();
-        if (!GameServerService.currentGameServerPorts.ContainsKey(gameId)){
-            //if the job id is missing the game most likely ended
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.GameEnded,
-                message = "The game is ended",
-            };
-        }
-
+        
         return new PlaceLaunchResponse()
         {
             jobId = gameId,

@@ -307,7 +307,7 @@ public class GameServerService : ServiceBase
     {
         // TODO: When we add multiple servers for the same game (most likely not for a while), get the jobId or kill the server a better way.
         string placeJobId = serverId; // hopefully not null, shouldn't be??
-        long placeId = GetPlaceIdByJobId(serverId);
+        //long placeId = GetPlaceIdByJobId(serverId);
         //Process rccProcess = jobRccs[placeJobId];
         //rccProcess.Kill(); // soft kill soon instead of force kill
         using (HttpClient client = new HttpClient())
@@ -317,12 +317,12 @@ public class GameServerService : ServiceBase
         }            
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
-        currentGameServerPorts.Remove(placeJobId);
+        //currentGameServerPorts.Remove(placeJobId);
         //jobRccs.Remove(placeJobId);
         //mainRCCPortsInUse.Remove(rccProcess);
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
-        Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
+        //Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
     }
     
     public static void RemoveAllPlayersFromPlaceId(long placeId)
@@ -673,11 +673,11 @@ public class GameServerService : ServiceBase
             }
 
             //dict check!!! if it doesnt contain it lets kill it!
-            if (!currentGameServerPorts.ContainsKey(jobid))
-            {
-                _ = ShutDownServerAsync(jobid);
-                continue;
-            }
+            //if (!currentGameServerPorts.ContainsKey(jobid))
+            //{
+                //_ = ShutDownServerAsync(jobid);
+                //continue;
+            //}
 
             // we found a server to join or.... its loading depending
             return new GameServerGetOrCreateResponse()
@@ -690,6 +690,12 @@ public class GameServerService : ServiceBase
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = RandomComponent.Next(50000, 60000);
         string jobId = Guid.NewGuid().ToString();
+        await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
+        if (!serverCreationLock.IsAcquired)
+            return new GameServerGetOrCreateResponse
+            {
+                status = JoinStatus.Loading,
+            };
         _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
@@ -726,7 +732,7 @@ public class GameServerService : ServiceBase
             HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
             if (response.IsSuccessStatusCode)
             {
-                currentGameServerPorts.Add(jobId, networkServerPort);
+                //currentGameServerPorts.Add(jobId, networkServerPort);
                 return "OK";
             }
         }
