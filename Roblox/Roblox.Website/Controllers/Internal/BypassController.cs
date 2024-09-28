@@ -1274,10 +1274,6 @@ namespace Roblox.Website.Controllers
             {
                 throw new UnauthorizedAccessException();
             }
-            if (GameServerService.CurrentPlayersInGame.ContainsKey(visitorId))
-            {
-                GameServerService.CurrentPlayersInGame.Remove(visitorId);
-            }
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId, changedInternal);
             return Ok();
         }
@@ -1319,10 +1315,6 @@ namespace Roblox.Website.Controllers
         {
             bool IsRCC = IsRcc();
             if(!IsRCC)
-            {
-                return;
-            }
-            if(!GameServerService.CurrentPlayersInGame.ContainsKey(userId))
             {
                 return;
             }
