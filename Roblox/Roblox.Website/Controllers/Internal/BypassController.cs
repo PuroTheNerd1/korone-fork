@@ -935,7 +935,9 @@ namespace Roblox.Website.Controllers
 
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);         
             var joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
-
+            Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate"; 
+            Response.Headers["Pragma"] = "no-cache"; 
+            Response.Headers["Expires"] = "0"; 
             return services.games.SignJoinScript((long)uni.year, joinScript);
         }
         [HttpGetBypass("GenerateVersion")]
