@@ -20,6 +20,7 @@ using Roblox.Services.Exceptions;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using CsvHelper;
+using System.Reflection;
 
 namespace Roblox.Services;
 
@@ -639,7 +640,20 @@ public class GameServerService : ServiceBase
             });
     }
 
-
+    public async Task<bool> IsPortTaken(int port)
+    {   
+        port = await db.QueryFirstOrDefaultAsync<int>(
+            "SELECT port FROM asset_server WHERE port = :gsport",
+            new
+            {
+                gsport = port,
+            });
+        if (port == 0)
+        {
+            return false;
+        }
+        return true;
+    }
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId)
     {   
         return await db.QueryAsync<GameServerDb>(
@@ -688,7 +702,13 @@ public class GameServerService : ServiceBase
         }
         long year = await games.GetYear(placeId);
         int mainRCCPort = RandomComponent.Next(30000, 40000);
-        int networkServerPort = RandomComponent.Next(7000, 8000);
+        int networkServerPort;
+        bool isUsable = false;
+        while (!isUsable)
+        {
+            networkServerPort = RandomComponent.Next(7000, 8000);
+            isUsable = await IsPortTaken(networkServerPort);
+        }
         string jobId = Guid.NewGuid().ToString();
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
         if (!serverCreationLock.IsAcquired)
