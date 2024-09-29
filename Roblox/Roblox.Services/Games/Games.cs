@@ -371,7 +371,7 @@ public class GamesService : ServiceBase, IService
         
         var joinScript = new
         {
-            ClientPort = 9000,
+            ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
             ServerPort = gamseserverPort,
             PingUrl = "",
