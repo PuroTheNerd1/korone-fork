@@ -1175,15 +1175,9 @@ namespace Roblox.Website.Controllers
                 },
                 new
                 {
-                    assetId = 14548709888,
-                    assetName = "Pink Venom",
-                    position = 2
-                },
-                new
-                {
                     assetId = 14124050904,
                     assetName = "TWICE Like Ooh-Ahh",
-                    position = 3
+                    position = 2
                 },
             };
 
