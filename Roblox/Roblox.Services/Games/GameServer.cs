@@ -688,7 +688,7 @@ public class GameServerService : ServiceBase
         }
         long year = await games.GetYear(placeId);
         int mainRCCPort = RandomComponent.Next(30000, 40000);
-        int networkServerPort = RandomComponent.Next(50000, 60000);
+        int networkServerPort = RandomComponent.Next(7000, 8000);
         string jobId = Guid.NewGuid().ToString();
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
         if (!serverCreationLock.IsAcquired)
