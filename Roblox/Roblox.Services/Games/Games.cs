@@ -371,11 +371,11 @@ public class GamesService : ServiceBase, IService
         
         var joinScript = new
         {
-            ClientPort = 0,
+            ClientPort = 9000,
             MachineAddress = Configuration.GameServerIp,
             ServerPort = gamseserverPort,
             PingUrl = "",
-            PingInterval = year == 2017 || year == 2018 ? 120 : 50,
+            PingInterval = 0,
             UserName = username,
             SeleniumTestMode = false,
             UserId = userId,
@@ -404,12 +404,13 @@ public class GamesService : ServiceBase, IService
             GenerateTeleportJoin = generateTeleportJoin,
             IsUnknownOrUnder13 = false,
             SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.GameServerIp}|8|{formattedDateTime}|0|null|{cookie}|null|null|null",
-            DataCenterId = 1,
+            DataCenterId = 0,
             UniverseId = universeId,
             BrowserTrackerId = 0,
             UsePortraitMode = false,
             FollowUserId = 0,
             characterAppearanceId = userId,
+            /*
             ServerConnections = new List<dynamic>
             {
                 new
@@ -418,6 +419,7 @@ public class GamesService : ServiceBase, IService
                     Address = Configuration.GameServerIp, 
                 }
             },
+            */
             DisplayName = username,
             RobloxLocale = "RobloxLocale",
             GameLocale = "en_us",

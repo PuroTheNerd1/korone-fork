@@ -2161,10 +2161,12 @@ namespace Roblox.Website.Controllers
                     return @"""version-d23df1d1a8d546ee""";
             }
         }
+        /*
         [HttpGetBypass("v1/Close")]
         [HttpPostBypass("V1/Close")]
         public async Task<dynamic> CloseGSNew(string gameId)
         {
+
             bool IsRCC = IsRcc();
             if(!IsRCC)
             {
@@ -2183,6 +2185,7 @@ namespace Roblox.Website.Controllers
                 return "Catch an error";
             }
         }
+        */
         [HttpPostBypass("v2/CreateOrUpdate")]        
         [HttpGetBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v1/CreateOrUpdate")]
@@ -2211,7 +2214,7 @@ namespace Roblox.Website.Controllers
                 return "Not RCC";
             }
 
-            if (clientCount < 1 && gameTime > 25)
+            if (clientCount == 0 && gameTime > 50)
             {
                 try
                 {
