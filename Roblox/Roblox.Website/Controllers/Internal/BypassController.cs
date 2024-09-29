@@ -1171,14 +1171,20 @@ namespace Roblox.Website.Controllers
                 {
                     assetId = 15610015346,
                     assetName = "Yungblud Happier Jump",
-                    position = 0
+                    position = 1
                 },
                 new
                 {
                     assetId = 14548709888,
                     assetName = "Pink Venom",
-                    position = 0
-                }
+                    position = 2
+                },
+                new
+                {
+                    assetId = 14124050904,
+                    assetName = "TWICE Like Ooh-Ahh",
+                    position = 3
+                },
             };
 
             var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
