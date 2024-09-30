@@ -724,17 +724,25 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("getrichpresence")]
         public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId)
         {
-            string JobId = await services.gameServer.GetJobIdByUserId(userId);
+            string JobId = "";
+            int playerCount = 0;
+            if (userId != 0)
+            {
+                JobId = await services.gameServer.GetJobIdByUserId(userId);
+                var currentPlayerCount = await services.gameServer.GetGameServerPlayers(JobId);
+                playerCount = currentPlayerCount.Count();
+            }
+
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
-            var currentPlayerCount = await services.gameServer.GetGameServerPlayers(JobId);
+
             return new 
             {
                 Creator = placeInfo.creatorName,
                 Name = placeInfo.name,
                 MaxPlayers = maxplayers,
                 PartyId = Guid.NewGuid().ToString(),
-                CurrentPlayers = currentPlayerCount,
+                CurrentPlayers = playerCount,
             };
         }
         [HttpGetBypass("My/Places.aspx")]
