@@ -721,7 +721,22 @@ namespace Roblox.Website.Controllers
             string? cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
             return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={cookie}");
         }
-
+        [HttpGetBypass("getrichpresence")]
+        public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId)
+        {
+            string JobId = await services.gameServer.GetJobIdByUserId(userId);
+            long maxplayers = await services.games.GetMaxPlayerCount(placeId);
+            var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
+            var currentPlayerCount = await services.gameServer.GetGameServerPlayers(JobId);
+            return new 
+            {
+                Creator = placeInfo.creatorName,
+                Name = placeInfo.name,
+                MaxPlayers = maxplayers,
+                PartyId = Guid.NewGuid().ToString(),
+                CurrentPlayers = currentPlayerCount,
+            };
+        }
         [HttpGetBypass("My/Places.aspx")]
         public ActionResult<dynamic?> MyPlaces()
         {
