@@ -735,11 +735,12 @@ namespace Roblox.Website.Controllers
 
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
-
+            long year = await services.games.GetYear(placeId);
             return new 
             {
                 Creator = placeInfo.creatorName,
                 Name = placeInfo.name,
+                Year = year,
                 MaxPlayers = maxplayers,
                 PartyId = Guid.NewGuid().ToString(),
                 CurrentPlayers = playerCount,
