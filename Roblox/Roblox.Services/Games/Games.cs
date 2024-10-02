@@ -368,7 +368,10 @@ public class GamesService : ServiceBase, IService
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
         int gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
         var baseUrl = Configuration.BaseUrl.Replace("https://", "");
-        
+        if (gamseserverPort == 0)
+        {
+            throw new Exception("Couldn't find gameserver port");
+        }
         var joinScript = new
         {
             ClientPort = 0,

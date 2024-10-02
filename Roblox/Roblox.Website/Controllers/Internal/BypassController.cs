@@ -903,7 +903,7 @@ namespace Roblox.Website.Controllers
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             string finalTicket;
-            string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}";
+            string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             if (jobPlayers.Count() >= uni.maxPlayerCount)
             {
                 return new
@@ -924,7 +924,7 @@ namespace Roblox.Website.Controllers
                 membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
             Console.WriteLine(membership);
-            if(uni.year != 2020 && uni.year  != 2021 && membership == "Premium")
+            if(uni.year != 2020 && uni.year != 2021 && membership == "Premium")
             {
                 membership = "OutrageousBuildersClub";
             }
@@ -957,11 +957,16 @@ namespace Roblox.Website.Controllers
             }
             
 
-            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);         
-            var joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
-            Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate"; 
-            Response.Headers["Pragma"] = "no-cache"; 
-            Response.Headers["Expires"] = "0"; 
+            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
+            dynamic joinScript = null;
+            try 
+            {
+                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
+            }
+            catch (Exception e)
+            {
+                throw new BadRequestException(1, "Couldn't find gameserver");
+            }
             return services.games.SignJoinScript((long)uni.year, joinScript);
         }
         [HttpGetBypass("GenerateVersion")]
