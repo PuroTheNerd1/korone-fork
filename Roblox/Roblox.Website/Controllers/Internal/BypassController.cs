@@ -1313,12 +1313,20 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
         {
             bool IsRCC = IsRcc();
-            bool changedInternal = false;
             if(!IsRCC)
             {
                 throw new UnauthorizedAccessException();
             }
-            await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId, changedInternal);
+            try 
+            {
+                GameServerService.CurrentPlayersInGame.Remove(visitorId);
+            }   
+            catch(Exception)
+            {
+
+            }
+
+            await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
             return Ok();
         }
 
@@ -1389,7 +1397,7 @@ namespace Roblox.Website.Controllers
             else if (request.eventType == "Join")
             {
                 await Roblox.Metrics.GameMetrics.ReportGameJoinSuccess(request.placeId);
-                await services.gameServer.OnPlayerJoin(request.userId, request.placeId, request.serverId, false);
+                await services.gameServer.OnPlayerJoin(request.userId, request.placeId, request.serverId);
             }
             else
             {

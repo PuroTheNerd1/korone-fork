@@ -121,12 +121,9 @@ public class GameServerService : ServiceBase
         return value;
     }
 
-    public async Task OnPlayerJoin(long userId, long placeId, string serverId, bool changedInternal)
+    public async Task OnPlayerJoin(long userId, long placeId, string serverId)
     {
-        if (!changedInternal)
-        {
-            CurrentPlayersInGame.Add(userId, placeId);
-        }
+        CurrentPlayersInGame.Add(userId, placeId);
         await db.ExecuteAsync(
             "INSERT INTO asset_server_player (asset_id, user_id, server_id) VALUES (:asset_id, :user_id, :server_id::uuid)",
             new
