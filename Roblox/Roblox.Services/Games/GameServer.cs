@@ -699,7 +699,7 @@ public class GameServerService : ServiceBase
         }
         long year = await games.GetYear(placeId);
         int mainRCCPort = RandomComponent.Next(30000, 40000);
-        int networkServerPort = 6999;
+        int networkServerPort = 7001;
         /*
         bool isUsable = false;
         while (!isUsable)
