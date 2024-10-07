@@ -370,13 +370,13 @@ public class GamesService : ServiceBase, IService
         var baseUrl = Configuration.BaseUrl.Replace("https://", "");
         if (gamseserverPort == 0)
         {
-            throw new Exception("Couldn't find gameserver port");
+            throw new Exception("Couldn't find gameserver");
         }
         var joinScript = new
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
-            ServerPort = 7000,//gamseserverPort,
+            ServerPort = gamseserverPort,
             PingUrl = "",
             PingInterval = 0,
             UserName = username,
