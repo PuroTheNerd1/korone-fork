@@ -699,7 +699,8 @@ public class GameServerService : ServiceBase
         }
         long year = await games.GetYear(placeId);
         int mainRCCPort = RandomComponent.Next(30000, 40000);
-        int networkServerPort = 0;
+        int networkServerPort = 6999;
+        /*
         bool isUsable = false;
         while (!isUsable)
         {
@@ -711,6 +712,7 @@ public class GameServerService : ServiceBase
             }
             isUsable = true;
         }
+        */
         string jobId = Guid.NewGuid().ToString();
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
         if (!serverCreationLock.IsAcquired)

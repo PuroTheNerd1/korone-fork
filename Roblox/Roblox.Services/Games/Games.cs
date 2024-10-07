@@ -376,7 +376,7 @@ public class GamesService : ServiceBase, IService
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
-            ServerPort = gamseserverPort,
+            ServerPort = 7000,//gamseserverPort,
             PingUrl = "",
             PingInterval = 0,
             UserName = username,
