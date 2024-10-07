@@ -378,8 +378,8 @@ public class GamesService : ServiceBase, IService
         var joinScript = new
         {
             ClientPort = 0,
-            MachineAddress = "20.215.233.251",//Configuration.GameServerIp,
-            ServerPort = GameServerService.currentGameServerPortsPoland[jobId],
+            MachineAddress = Configuration.GameServerIp,
+            ServerPort = GameServerService.currentGameServerPorts[jobId],
             PingUrl = "",
             PingInterval = 0,
             UserName = username,
