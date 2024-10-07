@@ -366,20 +366,20 @@ public class GamesService : ServiceBase, IService
     {
         GameServerService gameServer = new GameServerService();
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-        /*
+        
         int gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
         if (gamseserverPort == 0)
         {
             throw new Exception("Couldn't find gameserver");
         }
-        */
+        
         var baseUrl = Configuration.BaseUrl.Replace("https://", "");
 
         var joinScript = new
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
-            ServerPort = GameServerService.currentGameServerPorts[jobId],
+            ServerPort = gamseserverPort,
             PingUrl = "",
             PingInterval = 0,
             UserName = username,
