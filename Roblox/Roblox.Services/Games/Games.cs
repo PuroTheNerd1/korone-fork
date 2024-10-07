@@ -1,5 +1,6 @@
 using System.Formats.Asn1;
 using Dapper;
+using Newtonsoft.Json.Linq;
 using Roblox.Dto;
 using Roblox.Dto.Games;
 using Roblox.Libraries;
@@ -362,18 +363,42 @@ public class GamesService : ServiceBase, IService
             updated = c.updated,
         });
     }
-    public async Task<dynamic> GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string cookie)
+    public async Task<string> GetUserCountry(string ip)
+    {
+        string url = $"http://ip-api.com/json/{ip}";
+        HttpClient httpClient = new HttpClient();
+
+        var response = await httpClient.GetStringAsync(url);
+        var json = JObject.Parse(response);
+        return json["countryCode"]?.ToString();
+    }
+    public async Task<dynamic> GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string cookie, string ip)
     {
         GameServerService gameServer = new GameServerService();
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-        
-        int gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
-        if (gamseserverPort == 0)
+        int gamseserverPort;
+        string gameserverIp;
+        int DataCenterId = 0;
+        string country = await GetUserCountry(ip);
+        switch (country) 
         {
-            throw new Exception("Couldn't find gameserver");
+            case "RU": 
+            case "CZ": 
+            case "SK": 
+            case "UA": 
+            case "BY": 
+            case "LT": 
+                gamseserverPort = GameServerService.currentGameServerPortsPoland[jobId];
+                //hardcoded for now
+                gameserverIp = "20.215.233.251";
+                DataCenterId = 2;
+                break;
+            default:
+                gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
+                gameserverIp = Configuration.GameServerIp;
+                DataCenterId = 1;
+                break;
         }
-        
-        var baseUrl = Configuration.BaseUrl.Replace("https://", "");
 
         var joinScript = new
         {
@@ -410,7 +435,7 @@ public class GamesService : ServiceBase, IService
             GenerateTeleportJoin = generateTeleportJoin,
             IsUnknownOrUnder13 = false,
             SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.GameServerIp}|8|{formattedDateTime}|0|null|{cookie}|null|null|null",
-            DataCenterId = 0,
+            DataCenterId,
             UniverseId = universeId,
             BrowserTrackerId = 0,
             UsePortraitMode = false,

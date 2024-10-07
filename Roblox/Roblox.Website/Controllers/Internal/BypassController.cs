@@ -972,7 +972,9 @@ namespace Roblox.Website.Controllers
             dynamic joinScript = null;
             try 
             {
-                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
+                //needed for matchmaking so we can select the best route
+                string ip = GetRequesterIpRaw(HttpContext);
+                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString(), ip);
             }
             catch (Exception e)
             {
