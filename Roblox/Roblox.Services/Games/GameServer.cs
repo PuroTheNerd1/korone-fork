@@ -312,11 +312,13 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/kill-game-server?jobId={serverId}");
+            await client.GetAsync($"https://arbiter.projex.zip/kill-game-server?jobId={serverId}");
+            await client.GetAsync($"https://poland.projex.zip/killproxy?jobId={serverId}");
         }            
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
-        //currentGameServerPorts.Remove(placeJobId);
+        currentGameServerPorts.Remove(placeJobId);
+        currentGameServerPortsPoland.Remove(placeJobId);
         //jobRccs.Remove(placeJobId);
         //mainRCCPortsInUse.Remove(rccProcess);
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
