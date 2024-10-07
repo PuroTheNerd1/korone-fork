@@ -387,6 +387,7 @@ public class GamesService : ServiceBase, IService
             case "SK": 
             case "UA": 
             case "BY": 
+            case "PL": 
             case "LT": 
                 gamseserverPort = GameServerService.currentGameServerPortsPoland[jobId];
                 //hardcoded for now
