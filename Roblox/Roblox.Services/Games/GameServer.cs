@@ -36,6 +36,7 @@ public class GameServerService : ServiceBase
     private static Dictionary<long, long> gamePlayerCounts = new Dictionary<long, long>(); // placeid, playercount
     private static Dictionary<string, Process> jobRccs = new Dictionary<string, Process>(); // jobid, rcc process
     public static Dictionary<string, int> currentGameServerPorts = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
+    public static Dictionary<string, int> currentGameServerPortsPoland = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
     private static Dictionary<long, string> currentPlaceIdsInUse = new Dictionary<long, string>(); // placeid, jobid
     public static Dictionary<long, long> CurrentPlayersInGame = new Dictionary<long, long>() { }; // userid, placeid
     public static Dictionary<Process, int> mainRCCPortsInUse = new Dictionary<Process, int>(); // Process, main RCC soap port
@@ -753,10 +754,13 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
-            if (response.IsSuccessStatusCode)
+            HttpResponseMessage arbiterrsp = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
+            HttpResponseMessage proxyresponse = await client.GetAsync($"https://poland.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
+            if (arbiterrsp.IsSuccessStatusCode && proxyresponse.IsSuccessStatusCode)
             {
-                //currentGameServerPorts.Add(jobId, networkServerPort);
+                currentGameServerPorts.Add(jobId, networkServerPort);
+                int plProxyPort = int.Parse(await proxyresponse.Content.ReadAsStringAsync());
+                currentGameServerPortsPoland.Add(jobId, plProxyPort);
                 return "OK";
             }
         }
