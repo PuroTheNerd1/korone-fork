@@ -382,6 +382,8 @@ public class GamesService : ServiceBase, IService
         string country = await GetUserCountry(ip);
         switch (country) 
         {
+            //ips are hardcoded for now TwT
+            //close to poland
             case "RU": 
             case "CZ": 
             case "SK": 
@@ -390,9 +392,14 @@ public class GamesService : ServiceBase, IService
             case "PL": 
             case "LT": 
                 gamseserverPort = GameServerService.currentGameServerPortsPoland[jobId];
-                //hardcoded for now
                 gameserverIp = "20.215.233.251";
                 DataCenterId = 2;
+                break;
+            case "US":
+            case "CA":
+                gamseserverPort = GameServerService.currentGameServerPortsEastUs[jobId];
+                gameserverIp = "137.116.66.63";
+                DataCenterId = 3;
                 break;
             default:
                 gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
