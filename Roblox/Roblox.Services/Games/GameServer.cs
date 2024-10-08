@@ -761,7 +761,7 @@ public class GameServerService : ServiceBase
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
             HttpResponseMessage arbiterrsp = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
             HttpResponseMessage proxyplresponse = await client.GetAsync($"https://poland.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
-                        HttpResponseMessage proxyeastusresponse = await client.GetAsync($"https://poland.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
+                        HttpResponseMessage proxyeastusresponse = await client.GetAsync($"https://eastus.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
             if (arbiterrsp.IsSuccessStatusCode && proxyplresponse.IsSuccessStatusCode && proxyeastusresponse.IsSuccessStatusCode)
             {
                 currentGameServerPorts.Add(jobId, networkServerPort);
