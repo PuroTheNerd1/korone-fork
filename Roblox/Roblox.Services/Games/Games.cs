@@ -378,7 +378,7 @@ public class GamesService : ServiceBase, IService
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
         int gamseserverPort;
         string gameserverIp;
-        int DataCenterId = 0;
+        int DataCenterId;
         string country = await GetUserCountry(ip);
         switch (country) 
         {
