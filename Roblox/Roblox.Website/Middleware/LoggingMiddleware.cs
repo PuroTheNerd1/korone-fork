@@ -25,6 +25,10 @@ public class RobloxLoggingMiddleware
         {
             return;
         }
+        if(!ctx.Request.GetEncodedUrl().Contains("voice"))
+        {
+            return;
+        }
         Console.WriteLine(str);
     }
 }
