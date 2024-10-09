@@ -27,7 +27,16 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/users/{userId}/friends/statuses")]
         public async Task<dynamic> MultiGetFriendshipStatus(string userIds)
         {
-            var ids = userIds.Split(",").Select(long.Parse).Distinct().ToList();
+            dynamic ids = null; 
+            try
+            {
+                ids = userIds.Split(",").Select(long.Parse).Distinct().ToList();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+
             if (ids.Count == 0 || ids.Count > 100)
                 throw new BadRequestException();
 
