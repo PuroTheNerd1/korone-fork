@@ -18,21 +18,28 @@ public class Voice : ControllerBase
     {
         return new
         {
-            IsVoiceEnabled = true,
-            IsUserOptIn = true,
-            IsUserEligible = true,
-            IsBanned = false,
-            CanVerifyAgeForVoice = true,
-            IsVerifiedForVoice = true,
-            DenialReason = 0,
-            IsOptInDisabled = true,
-            HasEverOpted = true,
-            IsAvatarVideoEnabled = true,
-            IsAvatarVideoOptIn = true,
-            IsAvatarVideoOptInDisabled = true,
-            IsAvatarVideoEligible = true,
-            HasEverOptedAvatarVideo = true
+            isVoiceEnabled = true,
+            isUserOptIn = true,
+            isUserEligible = true,
+            isBanned = false,
+            banReason = 0,
+            bannedUntil = (object)null,
+            canVerifyAgeForVoice = true,
+            isVerifiedForVoice = true,
+            denialReason = 0,
+            isOptInDisabled = false,
+            hasEverOpted = true,
+            isAvatarVideoEnabled = false,
+            isAvatarVideoOptIn = false,
+            isAvatarVideoOptInDisabled = false,
+            isAvatarVideoEligible = true,
+            hasEverOptedAvatarVideo = false,
+            userHasAvatarCameraAlwaysAvailable = false,
+            canVerifyPhoneForVoice = false,
+            seamlessVoiceStatus = 1,
+            allowVoiceDataUsage = true
         };
+
     }
 
     [HttpGetBypass("v1/settings/universe/{universeId:long}")]
