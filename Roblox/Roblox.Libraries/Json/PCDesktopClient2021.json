@@ -916,6 +916,7 @@
 	"DFFlagVisualEngineTrackHeadless": true,
 	"DFFlagVisuallyMovingSleepOnRemove": true,
 	"DFFlagVoiceChat":true,
+	"DFFlagVoiceChatSupported":true,
 	"DFFlagVoiceChat_PlaceFilter": "True;7853;2807301554;5465723678;5914914682;5857870096;5968314783;5972134083;5064251723",
 	"DFFlagVoiceChatCadmThreadFix": true,
 	"DFFlagVoiceChatCallbackLogFix": true,
