@@ -1714,6 +1714,7 @@ namespace Roblox.Website.Controllers
                 "4022369076d608d1a99b7b3d250e4de5", //2018L RAGELoader Debug
                 "9cdc73fd9b24c974f5a0dde411dcd38f", //2020L Prod
                 "a58f725954fe5b2ed30b0778f932d249", //2021M Prod
+                "ce0881a8de335b63a9caedf151641864", //2021M June 6
             };
 
             return new { data = allowedList };
