@@ -725,6 +725,13 @@ namespace Roblox.Website.Controllers
             string? cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
             return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={cookie}");
         }
+        
+        [HttpGetBypass("getserverinfo")]
+        public async Task<dynamic> GetServerInfo(string ip)
+        {
+            return services.games.GetInfoFromIp(ip);
+        }
+
         [HttpGetBypass("getrichpresence")]
         public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId)
         {
