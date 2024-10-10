@@ -464,10 +464,11 @@ public class TradesService : ServiceBase, IService
         logic.Requires(SendTradeErrorCodes.TooLittleRobux, offer.robux is null or > 0);
         logic.Requires(SendTradeErrorCodes.TooLittleRobux, request.robux is null or > 0);
         // check premium status
-        if (!await CanTradeMembershipCheck(offer.userId))
-            throw new ArgumentException("Offer user must have builders club to trade");
-        if (!await CanTradeMembershipCheck(request.userId))
-            throw new ArgumentException("Request user must have builders club to trade");
+        // not needed because bc is legit free 
+        //if (!await CanTradeMembershipCheck(offerUserId))
+        //throw new ArgumentException("Offer user must have builders club to trade");
+        //if (!await CanTradeMembershipCheck(requestUserId))
+        //throw new ArgumentException("Request user must have builders club to trade");
         // Check if both parties can trade with eachother
         var canTrade = await CanTrade(offer.userId, request.userId);
         logic.Requires(SendTradeErrorCodes.CannotTrade, canTrade);
@@ -631,10 +632,11 @@ public class TradesService : ServiceBase, IService
             if (requestRobux is < 0)
                 throw new ArgumentException("Cannot accept this trade - it has negative requestRobux");
             // check premium status
-            if (!await CanTradeMembershipCheck(offerUserId))
-                throw new ArgumentException("Offer user must have builders club to trade");
-            if (!await CanTradeMembershipCheck(requestUserId))
-                throw new ArgumentException("Request user must have builders club to trade");
+            // not needed because bc is legit free 
+            //if (!await CanTradeMembershipCheck(offerUserId))
+                //throw new ArgumentException("Offer user must have builders club to trade");
+            //if (!await CanTradeMembershipCheck(requestUserId))
+                //throw new ArgumentException("Request user must have builders club to trade");
             // Confirm users can still trade
             var canTrade = await CanTrade(offerUserId, requestUserId);
             log.Info("can offer {0} trade with requester {1}: {2}", offerUserId, requestUserId, canTrade);
