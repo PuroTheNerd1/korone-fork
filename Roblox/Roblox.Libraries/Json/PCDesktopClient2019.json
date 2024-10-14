@@ -1,5 +1,7 @@
 {
-	"AllowVideoPreRoll": true,
+    "applicationSettings":
+    {
+"AllowVideoPreRoll": true,
 	"AxisAdornmentGrabSize": 12,
 	"CaptureCountersIntervalInMinutes": 5,
 	"CaptureQTStudioCountersEnabled": true,
@@ -1404,4 +1406,5 @@
 	"SFFlagUseNativePathWaypoint": true,
 	"StartPageUrl": "/ide/welcome",
 	"VideoPreRollWaitTimeSeconds": 45
+    }
 }
