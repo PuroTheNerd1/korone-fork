@@ -4644,6 +4644,9 @@
     "SFFlagTerrainRaycastsRespectCollisionGroups": "True",
     "SFFlagUseNativePathWaypoint": "True",
     "StartPageUrl": "/ide/welcome",
+    "FFlagUS14116": "True",
+    "DFLogUS14116": "6",
+    "FLogUS14116": "7",
     "TreatAndroidInputSourceAsBitmask": "True",
     "UseSetForegroundWindowForPlayer2": "True",
     "VideoPreRollWaitTimeSeconds": "45"
