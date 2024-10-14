@@ -964,10 +964,8 @@ namespace Roblox.Website.Controllers
                     finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2018:
-                    finalTicket = services.sign.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
-                    break;
                 case 2019:
-                    finalTicket = services.sign.GenerateClientTicketV3(userId, username, jobId, formattedDateTime);
+                    finalTicket = services.sign.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2020:
                     characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
