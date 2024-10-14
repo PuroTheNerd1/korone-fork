@@ -79,6 +79,9 @@ namespace Roblox.Website.Controllers
             string realApp;
             switch(applicationName)
             {
+                case "PCDesktopClient2019":
+                    realApp = "PCDesktopClient2019";
+                    break;
                 case "RCCService2020":
                     realApp = "RCCService2020";
                     break;
