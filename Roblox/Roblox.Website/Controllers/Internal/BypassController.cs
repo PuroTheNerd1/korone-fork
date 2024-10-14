@@ -1724,6 +1724,7 @@ namespace Roblox.Website.Controllers
                 "ea9ad31b1fcefb64f32139d8f88705dc", //2017L Prod
                 "8c5aecb7811acbb582f06f2a81b958f4", //2018L Prod
                 "4022369076d608d1a99b7b3d250e4de5", //2018L RAGELoader Debug
+                "9d7975454cee0e948e35cdc1fb55f92a", //2019E Prod
                 "9cdc73fd9b24c974f5a0dde411dcd38f", //2020L Prod
                 "a58f725954fe5b2ed30b0778f932d249", //2021M Prod
                 "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6
@@ -1747,6 +1748,7 @@ namespace Roblox.Website.Controllers
                 "0.206.0pcplayer",
                 "0.235.0pcplayer",
                 "0.314.0pcplayer",
+                "0.376.0pcplayer",
                 "0.355.0pcplayer",
                 "2.355.0iosapp",
                 "0.450.0pcplayer",
