@@ -637,7 +637,7 @@ public class AssetsService : ServiceBase, IService
         return await CommandHandler.RequestHatConversion(base64Request, cancellationToken);
     }
 
-    private async Task CreateGameIcon(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
+    public async Task CreateGameIcon(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
         var modInfo = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
