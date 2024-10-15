@@ -66,7 +66,7 @@ public class DevelopControllerV1 : ControllerBase
     }
 
     [HttpPost("place/upload-gameicon")]
-    public async Task<dynamic> UploadGameIcon(long placeId, [Required] IFormFile file)
+    public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
     {
         await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
         var details = await services.assets.GetAssetCatalogInfo(placeId);
