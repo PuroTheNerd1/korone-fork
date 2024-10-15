@@ -194,4 +194,5 @@ app.UseEndpoints(e =>
     e.MapControllers();
     e.MapRazorPages();
 });
+app.UseWebSockets();
 app.Run();
