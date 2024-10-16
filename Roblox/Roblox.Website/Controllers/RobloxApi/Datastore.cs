@@ -94,7 +94,7 @@ namespace Roblox.Website.Controllers
             result.AddRange(res.Select(entry => new GetKeyEntrySorted()
             {
                 Target = entry.name,
-                Value = int.Parse(entry.value),
+                Value = 1//int.Parse(entry.value),
             })
             //.Where(entry => int.TryParse(entry.Value, out _))
             .OrderBy(entry => 
