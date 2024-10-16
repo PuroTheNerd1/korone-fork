@@ -44,7 +44,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "InvalidValue");
             }
 
-            await ds.Set(placeId, target, type, scope, key, 31, value.ToString());
+            await ds.Set(placeId, key, type, scope, target, 31, value.ToString());
             return new
             {
                 data = value,
@@ -58,7 +58,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             var value = Request.Form["value"][0];
             await ServiceProvider.GetOrCreate<DataStoreService>()
-                .Set(placeId, target, type, scope, key, valueLength, value);
+                .Set(placeId, key, type, scope, target, valueLength, value);
             return new 
             {
                 data = new 
