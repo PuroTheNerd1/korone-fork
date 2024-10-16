@@ -23,7 +23,7 @@ public class DataStoreService : ServiceBase, IService
     public async Task<IEnumerable<DataStoreEntry>> GetOrderedEntry(long placeId, string key, string scope)
     {
         return await db.QueryAsync<DataStoreEntry>(
-            "SELECT id, value, name from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope ORDER BY id DESC",
+            "SELECT id, value, name from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope ORDER BY updated_at ASC",
             new
             {
                 place_id = placeId,

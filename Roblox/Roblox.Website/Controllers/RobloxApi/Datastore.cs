@@ -77,6 +77,8 @@ namespace Roblox.Website.Controllers
             // persistence/getSortedValues?placeId=0&type=sorted&scope=global&key=Level%5FHighscores20&pageSize=10&ascending=False"
             // persistence/set?placeId=124921244&key=BF2%5Fds%5Ftest&&type=standard&scope=global&target=BF2%5Fds%5Fkey%5Ftmp&valueLength=31
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
+            bool isEmpty = false;
+            dynamic result; 
             if (!IsRcc())
                 throw new RobloxException(403, 0, "BadRequest");
             if (pageSize > 100)
@@ -89,26 +91,51 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "InValidExclusiveStartKey");
 
             var res = await ds.GetOrderedEntry(placeId, key, scope);
-            var result = new List<GetKeyEntrySorted>();
-            
-            result.AddRange(res.Select(entry => new GetKeyEntrySorted()
+            if (type == "sorted")
             {
-                Target = entry.name,
-                Value = 1//int.Parse(entry.value),
-            })
-            //.Where(entry => int.TryParse(entry.Value, out _))
-            //.OrderBy(entry => 
-            //{
-                //int value = int.Parse(entry.Value);
-                //return Math.Clamp(value, inclusiveMinValue, inclusiveMaxValue);
-            //}
-            );
+                result = new List<GetKeyEntrySorted>();
+                foreach (DataStoreEntry item in res)
+                {
+                    int value;
+                    if (!int.TryParse(item.value, out value))
+                    {
+                        continue;
+                    }
+                    result.Add(new GetKeyEntrySorted()
+                    {
+                        Target = item.name,
+                        Value = value,
+                    });
+                }
+            }
+            else 
+            {
+                result = new List<GetKeyEntry>();
+                foreach (DataStoreEntry item in res)
+                {
+                    if (item.value == null)
+                    {
+                        isEmpty = true;
+                        break;
+                    }
+                    result.Add(new GetKeyEntry()
+                    {
+                        Target = item.name,
+                        Value = item.value,
+                    });
+                }
+            }
+
+            if (isEmpty)
+            {
+                result = new List<string>();
+            }
 
             if (!ascending)
             {
                 result.Reverse();
             }
-
+            result.Distinct();
             return new
             {
                 data = new
