@@ -108,31 +108,12 @@ namespace Roblox.Website.Controllers
                 result.Reverse();
             }
 
-            var startIndex = exclusiveStartKey.HasValue ? result.FindIndex(e => int.Parse(e.Value) > exclusiveStartKey.Value) : 0;
-
-            if (startIndex == -1)
-            {
-                startIndex = result.Count; 
-            }
-
-            var endIndex = startIndex + pageSize;
-
-            List<GetKeyEntry> paginatedEntries;
-            if (startIndex >= result.Count)
-            {
-                paginatedEntries = new List<GetKeyEntry>();
-            }
-            else
-            {
-                paginatedEntries = result.GetRange(startIndex, Math.Min(pageSize, result.Count - startIndex));
-            }
-
             return new
             {
                 data = new
                 {
-                    Entries = paginatedEntries.Select(e => int.Parse(e.Value)).ToArray(),
-                    ExclusiveStartKey = paginatedEntries.Count > 0 ? paginatedEntries.Last().Value : null,
+                    Entries = result,
+                    ExclusiveStartKey = 1,
                 },
             };
         }
