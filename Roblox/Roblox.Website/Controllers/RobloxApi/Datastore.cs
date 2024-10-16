@@ -98,7 +98,14 @@ namespace Roblox.Website.Controllers
                 foreach (DataStoreEntry item in res)
                 {
                     int value;
-                    if (!int.TryParse(item.value, out value) || addedTargets.Contains(item.name))
+
+                    if (!int.TryParse(item.value, out value))
+                    {
+                        continue;
+                    }
+                    
+                    //rlly hacky but it works
+                    if (value == 0 || addedTargets.Contains(item.name))
                     {
                         continue;
                     }
