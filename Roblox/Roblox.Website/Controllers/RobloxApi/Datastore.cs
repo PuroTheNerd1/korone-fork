@@ -135,7 +135,7 @@ namespace Roblox.Website.Controllers
             {
                 result.Reverse();
             }
-            result.Distinct();
+            //result.Distinct();
             return new
             {
                 data = new
