@@ -107,11 +107,11 @@ public class DataStoreService : ServiceBase, IService
         // Type can be "standard" or "sorted"
         // long placeId, string type, string scope   
         var ent = await GetAllEntries(placeId, key, scope, target);
-        if (!ent.Any())
+        if (ent.Any())
         {
-            return null;
+            return ent.FirstOrDefault()?.value;
         }
-        return ent.FirstOrDefault()?.value;
+        return null;
     }
     
     public bool IsThreadSafe()

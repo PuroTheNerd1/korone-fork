@@ -160,7 +160,8 @@ namespace Roblox.Website.Controllers
                 string value = await ds.Get(placeId, type, qKeyscope, qKeyKey, qKeyTarget);
                 if (value == null)
                 {
-                    break;
+                    countRequest++;
+                    continue;
                 }
                 result.Add(new GetKeyEntry()
                 {
@@ -172,7 +173,7 @@ namespace Roblox.Website.Controllers
                 countRequest++;
             }
 
-            var finalData = new { data = result };
+            var finalData = new { data = result ?? null};
             string jsonString = JsonConvert.SerializeObject(finalData);
             return Content(jsonString, "application/json");
         }
