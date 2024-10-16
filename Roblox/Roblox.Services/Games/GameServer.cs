@@ -690,11 +690,11 @@ public class GameServerService : ServiceBase
             }
 
             //dict check!!! if it doesnt contain it lets kill it!
-            //if (!currentGameServerPorts.ContainsKey(jobid))
-            //{
-                //_ = ShutDownServerAsync(jobid);
-                //continue;
-            //}
+            if (!currentGameServerPorts.ContainsKey(jobid))
+            {
+                _ = ShutDownServerAsync(jobid);
+                continue;
+            }
 
             // we found a server to join or.... its loading depending
             return new GameServerGetOrCreateResponse()
@@ -706,7 +706,7 @@ public class GameServerService : ServiceBase
         long year = await games.GetYear(placeId);
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort = 0;
-        
+        //we need to check if the port isnt taken in the database if it is lets keep going trying to find a new port
         bool isUsable = false;
         while (!isUsable)
         {
@@ -720,12 +720,14 @@ public class GameServerService : ServiceBase
         }
         
         string jobId = Guid.NewGuid().ToString();
-        await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(3));
+        // we need to use redis te determine if we can create a server or not
+        await using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeId}", TimeSpan.FromSeconds(10));
         if (!serverCreationLock.IsAcquired)
             return new GameServerGetOrCreateResponse
             {
                 status = JoinStatus.Loading,
             };
+        // use discord to make server so we dont have to wait
         _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
