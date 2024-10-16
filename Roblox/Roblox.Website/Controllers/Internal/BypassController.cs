@@ -100,7 +100,7 @@ namespace Roblox.Website.Controllers
             return File(assetContent, "application/binary");
         }
         */
-        private bool IsRcc()
+        public bool IsRcc()
         {
             var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
             var isRcc = rccAccessKey == Configuration.RccAuthorization;
@@ -1967,71 +1967,6 @@ namespace Roblox.Website.Controllers
             return (await services.users.GetUserAssets(userId, assetId)).Any() ? "true" : "false";
         }
 
-
-
-        [HttpPostBypass("persistence/increment")]
-        public dynamic IncrementPersistence(long placeId, string key, string type, string scope, string target, int value)
-        {
-            // increment?placeId=%i&key=%s&type=%s&scope=%s&target=&value=%i
-
-            if (!IsRcc())
-                throw new RobloxException(400, 0, "BadRequest");
-
-            return new
-            {
-                data = (object?)null,
-            };
-        }
-
-        [HttpPostBypass("persistence/getSortedValues")]
-        public dynamic GetSortedPersistenceValues(long placeId, string type, string scope, string key, int pageSize, bool ascending, int inclusiveMinValue = 0, int inclusiveMaxValue = 0)
-        {
-            // persistence/getSortedValues?placeId=0&type=sorted&scope=global&key=Level%5FHighscores20&pageSize=10&ascending=False"
-            // persistence/set?placeId=124921244&key=BF2%5Fds%5Ftest&&type=standard&scope=global&target=BF2%5Fds%5Fkey%5Ftmp&valueLength=31
-
-            if (!IsRcc())
-                throw new RobloxException(400, 0, "BadRequest");
-
-
-            return new
-            {
-                data = new
-                {
-                    Entries = ArraySegment<int>.Empty,
-                    ExclusiveStartKey = (string?)null,
-                },
-            };
-        }
-
-        [HttpPostBypass("persistence/getv2")]
-        public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope)
-        {
-            using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-            string qKeyscope = Request.Form["qkeys[0].scope"]!;
-            string qKeyTarget = Request.Form["qkeys[0].target"]!;
-            string qKeyKey = Request.Form["qkeys[0].key"]!;
-            //lets check if its RCC first 
-            if (!IsRcc())
-                throw new RobloxException(403, 0, "Unauthorized");
-            var res = await ds.GetAllEntries(placeId, qKeyTarget, qKeyscope, qKeyKey);
-            var result = new List<GetKeyEntry>();
-
-            foreach (var entry in res)
-            {
-                result.Add(new GetKeyEntry()
-                {
-                    Key = qKeyKey,
-                    Scope = qKeyscope ?? scope,
-                    Target = qKeyTarget,
-                    Value = entry.value ?? ""// Accessing value property of each entry
-                });
-            }
-
-
-            var finalData = new { data = result };
-            string jsonString = JsonConvert.SerializeObject(finalData);
-            return Content(jsonString, "application/json");
-        }
         [HttpGetBypass("sign-out/v1")]
         [HttpGetBypass("game/logout.aspx")]
         public dynamic Logout()
@@ -2042,25 +1977,6 @@ namespace Roblox.Website.Controllers
             return Ok();
         }
 
-        [HttpPostBypass("persistence/set")]
-        public async Task<dynamic> Set(long placeId, string key, string type, string scope, string target, int valueLength)
-        {
-            if (!IsRcc())
-                throw new RobloxException(400, 0, "BadRequest");
-            var value = Request.Form["value"][0];
-            await ServiceProvider.GetOrCreate<DataStoreService>()
-                .Set(placeId, target, type, scope, key, valueLength, value);
-            return new 
-            {
-                data = new 
-                {
-                    Value = value,
-                    Scope = scope,
-                    Key = key,
-                    Target = target    
-                }
-            };
-        }
         [HttpGetBypass("user/follow")]
         [HttpPost("user/follow")]
         public async Task<dynamic> FollowUser(long followedUserId)

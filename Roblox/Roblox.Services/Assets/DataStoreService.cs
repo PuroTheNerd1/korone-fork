@@ -20,7 +20,17 @@ public class DataStoreService : ServiceBase, IService
             return KeyType.Standard;
         throw new ArgumentException("Invalid " + nameof(type));
     }
-
+    public async Task<IEnumerable<DataStoreEntry>> GetOrderedEntry(long placeId, string key, string scope)
+    {
+        return await db.QueryAsync<DataStoreEntry>(
+            "SELECT id, value, name from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope ORDER BY id DESC",
+            new
+            {
+                place_id = placeId,
+                key,
+                scope,
+            });
+    }
     public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
     {
         return await db.QueryAsync<DataStoreEntry>(
@@ -61,9 +71,9 @@ public class DataStoreService : ServiceBase, IService
         // key is the DS key
         // scope is either global or a custom scope - essentially a key prefix
         
-        var t = ParseType(type);
-        if (t != KeyType.Standard)
-            return; // ignore for now
+        //var t = ParseType(type);
+        //if (t != KeyType.Standard)
+            //return; // ignore for now
         
         var uni = placeId == 0 ? 0 : await ServiceProvider.GetOrCreate<GamesService>().GetUniverseId(placeId);
 
@@ -87,12 +97,12 @@ public class DataStoreService : ServiceBase, IService
 
     public async Task<string?> Get(long placeId, string type, string scope, string key, string target)
     {
-        var t = ParseType(type);
-        if (t != KeyType.Standard)
-        {
+        //var t = ParseType(type);
+        //if (t != KeyType.Standard)
+        //{
             // Ignored
-            return null;
-        }
+            //return null;
+        //}
 
         // Type can be "standard" or "sorted"
         // long placeId, string type, string scope   

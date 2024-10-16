@@ -501,55 +501,55 @@ public class WebController : ControllerBase
         };
     }
 
-[HttpGet("games/getgameinstancesjson")]
-public async Task<dynamic> GetGameServers(long placeId, int startIndex)
-{
-    var limit = 10;
-    var offset = startIndex;
-    var servers = (await services.gameServer.GetGameServers(placeId, offset, limit)).ToList();
-    var details = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
-    List<dynamic> collection = new List<dynamic>();
-
-    foreach (var server in servers)
+    [HttpGet("games/getgameinstancesjson")]
+    public async Task<dynamic> GetGameServers(long placeId, int startIndex)
     {
-        var jobId = server.id; 
-        var players = server.players.ToList();
-        long Ping = await services.gameServer.GetServerStat(server.id); 
-        collection.Add(new
+        var limit = 10;
+        var offset = startIndex;
+        var servers = (await services.gameServer.GetGameServers(placeId, offset, limit)).ToList();
+        var details = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
+        List<dynamic> collection = new List<dynamic>();
+
+        foreach (var server in servers)
         {
-            placeId,
-            Capacity = details.maxPlayerCount,
-            Ping = Ping, 
-            Fps = 60, 
-            ShowSlowGameMessage = false, // todo
-            UserCanJoin = true, // todo: false if vip server
-            ShowShutdownButton = false, // todo: true if vip server player owns or user has perms
-            jobId,
-            FriendsMouseover = "",
-            FriendsDescription = "",
-            PlayersCapacity = $"{players.Count} of {details.maxPlayerCount}",
-            RobloxAppJoinScript = "", // todo
-            CurrentPlayers = players.Select(c => new
+            var jobId = server.id; 
+            var players = server.players.ToList();
+            long Ping = await services.gameServer.GetServerStat(server.id); 
+            collection.Add(new
             {
-                Id = c.userId,
-                Username = c.username,
-                Thumbnail = new
+                placeId,
+                Capacity = details.maxPlayerCount,
+                Ping = Ping, 
+                Fps = 60, 
+                ShowSlowGameMessage = false, // todo
+                UserCanJoin = true, // todo: false if vip server
+                ShowShutdownButton = false, // todo: true if vip server player owns or user has perms
+                jobId,
+                FriendsMouseover = "",
+                FriendsDescription = "",
+                PlayersCapacity = $"{players.Count} of {details.maxPlayerCount}",
+                RobloxAppJoinScript = "", // todo
+                CurrentPlayers = players.Select(c => new
                 {
-                    IsFinal = true,
-                    Url = "/Thumbs/Avatar-Headshot.ashx?userid=" + c.userId,
-                },
-            }),
-        });
-    }
+                    Id = c.userId,
+                    Username = c.username,
+                    Thumbnail = new
+                    {
+                        IsFinal = true,
+                        Url = "/Thumbs/Avatar-Headshot.ashx?userid=" + c.userId,
+                    },
+                }),
+            });
+        }
 
-    return new
-    {
-        PlaceId = placeId,
-        ShowShutdownAllButton = false, // todo: enable if user has perms
-        Collection = collection,
-        TotalCollectionSize = servers.Count,
-    };
-}
+        return new
+        {
+            PlaceId = placeId,
+            ShowShutdownAllButton = false, // todo: enable if user has perms
+            Collection = collection,
+            TotalCollectionSize = servers.Count,
+        };
+    }
 
     [HttpGet("search/users/results")]
     public async Task<dynamic> SearchUsersJson(string? keyword = null, int offset = 0, int limit = 10)
