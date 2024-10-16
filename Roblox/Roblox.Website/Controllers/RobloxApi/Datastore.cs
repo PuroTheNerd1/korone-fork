@@ -103,7 +103,7 @@ namespace Roblox.Website.Controllers
                     {
                         continue;
                     }
-                    
+
                     //rlly hacky but it works
                     if (value == 0 || addedTargets.Contains(item.name))
                     {
@@ -141,7 +141,7 @@ namespace Roblox.Website.Controllers
             {
                 result.Reverse();
             }
-            result.Sort((Comparison<dynamic>)((a, b) => a.Value.CompareTo(b.Value)));
+            result.Sort((Comparison<dynamic>)((a, b) => b.Value.CompareTo(a.Value)));
             if (isEmpty)
             {
                 result = new List<string>();
