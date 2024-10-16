@@ -182,7 +182,7 @@ public class GamesService : ServiceBase, IService
         {
             query.Where("asset.name ILIKE :keyword", new
             {
-                keyword = keyword + "%",
+                keyword = "%" + keyword + "%",
             });
         }
         
