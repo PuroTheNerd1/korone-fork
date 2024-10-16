@@ -94,10 +94,11 @@ namespace Roblox.Website.Controllers
             if (type == "sorted")
             {
                 result = new List<GetKeyEntrySorted>();
+                var addedTargets = new HashSet<string>();
                 foreach (DataStoreEntry item in res)
                 {
                     int value;
-                    if (!int.TryParse(item.value, out value))
+                    if (!int.TryParse(item.value, out value) || result.ContainsKey(item.name))
                     {
                         continue;
                     }
@@ -106,6 +107,7 @@ namespace Roblox.Website.Controllers
                         Target = item.name,
                         Value = value,
                     });
+                    addedTargets.Add(item.name);
                 }
             }
             else 
@@ -126,16 +128,17 @@ namespace Roblox.Website.Controllers
                 }
             }
 
-            if (isEmpty)
-            {
-                result = new List<string>();
-            }
+
 
             if (!ascending)
             {
                 result.Reverse();
             }
-            //result.Distinct();
+            result.Sort((Comparison<dynamic>)((a, b) => a.Value.CompareTo(b.Value)));
+            if (isEmpty)
+            {
+                result = new List<string>();
+            }
             return new
             {
                 data = new
