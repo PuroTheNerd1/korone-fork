@@ -25,3 +25,11 @@ public class GetKeyEntry
     public string Key { get; set; }
     public string Target { get; set; }
 }
+
+public class GetKeyEntrySorted
+{
+    public dynamic Value { get; set; }
+    public string Scope { get; set; }
+    public string Key { get; set; }
+    public string Target { get; set; }
+}

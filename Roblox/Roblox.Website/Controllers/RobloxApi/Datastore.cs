@@ -89,14 +89,14 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "InValidExclusiveStartKey");
 
             var res = await ds.GetOrderedEntry(placeId, key, scope);
-            var result = new List<GetKeyEntry>();
+            var result = new List<GetKeyEntrySorted>();
             
-            result.AddRange(res.Select(entry => new GetKeyEntry()
+            result.AddRange(res.Select(entry => new GetKeyEntrySorted()
             {
                 Target = entry.name,
-                Value = entry.value ?? "",
+                Value = int.Parse(entry.value),
             })
-            .Where(entry => int.TryParse(entry.Value, out _))
+            //.Where(entry => int.TryParse(entry.Value, out _))
             .OrderBy(entry => 
             {
                 int value = int.Parse(entry.Value);
