@@ -695,8 +695,8 @@ public class GameServerService : ServiceBase
                 _ = ShutDownServerAsync(jobid);
                 continue;
             }
-            // if server hasnt pinged for 1 minutes kill the server 
-            if (server.updated_at.AddMinutes(1) < DateTime.UtcNow)
+            // if server hasnt pinged for 10 minutes kill the server 
+            if (server.updated_at.AddMinutes(10) < DateTime.UtcNow)
             {
                 _ = ShutDownServerAsync(jobid);
                 continue;
