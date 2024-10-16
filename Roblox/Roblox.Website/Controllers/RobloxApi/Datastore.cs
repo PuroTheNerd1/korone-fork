@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Roblox.Dto.Assets;
 using Roblox.Dto.Persistence;
 using Roblox.Services;
 using Roblox.Services.Exceptions;
@@ -125,7 +126,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(403, 0, "Unauthorized");
             int countRequest = 0;
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-            var result = new List<GetKeyEntry>();
+            dynamic result = new List<GetKeyEntry>();
+            bool isEmpty = false;
             string qKeyscope;
             string qKeyTarget;
             string qKeyKey;
@@ -138,24 +140,35 @@ namespace Roblox.Website.Controllers
                 if (qKeyscope == null || qKeyTarget == null || qKeyKey == null)
                     break;
 
-                string value = await ds.Get(placeId, type, qKeyscope, qKeyKey, qKeyTarget);
-                if (value == null)
+                var entry = await ds.GetAllEntries(placeId, qKeyKey, scope, qKeyTarget);
+                if (entry == null)
                 {
                     countRequest++;
                     continue;
                 }
-                result.Add(new GetKeyEntry()
+                foreach (DataStoreEntry item in entry)
                 {
-                    Key = qKeyKey,
-                    Scope = qKeyscope ?? scope,
-                    Target = qKeyTarget,
-                    Value = value ?? ""
-                });
+                    //should never be null
+                    if (String.IsNullOrEmpty(item.value))
+                    {
+                        isEmpty = true;
+                        break;
+                    }
+                    result.Add(new GetKeyEntry()
+                    {
+                        Key = qKeyKey,
+                        Scope = qKeyscope,
+                        Target = qKeyTarget,
+                        Value = item.value
+                    });
+                }
                 countRequest++;
             }
-
-            var finalData = new { data = result ?? null};
+            if (isEmpty)
+                result = new List<string>();
+            var finalData = new { data = result};
             string jsonString = JsonConvert.SerializeObject(finalData);
+            Console.WriteLine(jsonString);
             return Content(jsonString, "application/json");
         }
     }
