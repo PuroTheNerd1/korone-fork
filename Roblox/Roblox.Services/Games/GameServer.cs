@@ -660,7 +660,7 @@ public class GameServerService : ServiceBase
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId)
     {   
         return await db.QueryAsync<GameServerDb>(
-            "SELECT id, status FROM asset_server WHERE asset_id = :assetid",
+            "SELECT id, status, updated_at FROM asset_server WHERE asset_id = :assetid",
             new
             {
                 assetid = placeId,
@@ -695,7 +695,12 @@ public class GameServerService : ServiceBase
                 _ = ShutDownServerAsync(jobid);
                 continue;
             }
-
+            // if server hasnt pinged for 1 minutes kill the server 
+            if (server.updated_at.AddMinutes(1) < DateTime.UtcNow)
+            {
+                _ = ShutDownServerAsync(jobid);
+                continue;
+            }
             // we found a server to join or.... its loading depending
             return new GameServerGetOrCreateResponse()
             {
@@ -723,10 +728,16 @@ public class GameServerService : ServiceBase
         // we need to use redis te determine if we can create a server or not
         await using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeId}", TimeSpan.FromSeconds(5));
         if (!serverCreationLock.IsAcquired)
+        {
+            //wait one sec bcs collision
+            Thread.Sleep(1000);
             return new GameServerGetOrCreateResponse
             {
                 status = JoinStatus.Loading,
             };
+        }
+            
+
         // use discard to make server so we dont have to wait
         _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
         await db.ExecuteAsync(
@@ -766,11 +777,11 @@ public class GameServerService : ServiceBase
             HttpResponseMessage proxyeastusresponse = await client.GetAsync($"https://eastus.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
             if (arbiterrsp.IsSuccessStatusCode && proxyplresponse.IsSuccessStatusCode && proxyeastusresponse.IsSuccessStatusCode)
             {
-                currentGameServerPorts.Add(jobId, networkServerPort);
                 int plProxyPort = int.Parse(await proxyplresponse.Content.ReadAsStringAsync());
                 int eastusProxyPort = int.Parse(await proxyeastusresponse.Content.ReadAsStringAsync());
                 currentGameServerPortsPoland.Add(jobId, plProxyPort);
                 currentGameServerPortsEastUs.Add(jobId, eastusProxyPort);
+                currentGameServerPorts.Add(jobId, networkServerPort);
                 return "OK";
             }
         }

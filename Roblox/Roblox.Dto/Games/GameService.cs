@@ -28,6 +28,7 @@ public enum ServerStatus
 public class GameServerDb
 {
     public Guid id { get; set; }
+    public DateTime updated_at { get; set; }
     public ServerStatus status;
 }
 
