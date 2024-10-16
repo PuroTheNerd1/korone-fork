@@ -721,13 +721,13 @@ public class GameServerService : ServiceBase
         
         string jobId = Guid.NewGuid().ToString();
         // we need to use redis te determine if we can create a server or not
-        await using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeId}", TimeSpan.FromSeconds(10));
+        await using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeId}", TimeSpan.FromSeconds(5));
         if (!serverCreationLock.IsAcquired)
             return new GameServerGetOrCreateResponse
             {
                 status = JoinStatus.Loading,
             };
-        // use discord to make server so we dont have to wait
+        // use discard to make server so we dont have to wait
         _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
