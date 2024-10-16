@@ -109,8 +109,23 @@ namespace Roblox.Website.Controllers
             }
 
             var startIndex = exclusiveStartKey.HasValue ? result.FindIndex(e => int.Parse(e.Value) > exclusiveStartKey.Value) : 0;
+
+            if (startIndex == -1)
+            {
+                startIndex = result.Count; 
+            }
+
             var endIndex = startIndex + pageSize;
-            var paginatedEntries = result.GetRange(startIndex, Math.Min(endIndex, result.Count - startIndex));
+
+            List<GetKeyEntry> paginatedEntries;
+            if (startIndex >= result.Count)
+            {
+                paginatedEntries = new List<GetKeyEntry>();
+            }
+            else
+            {
+                paginatedEntries = result.GetRange(startIndex, Math.Min(pageSize, result.Count - startIndex));
+            }
 
             return new
             {
