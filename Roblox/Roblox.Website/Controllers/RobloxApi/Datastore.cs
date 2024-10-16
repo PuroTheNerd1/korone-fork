@@ -140,25 +140,33 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("persistence/getv2")]
         public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope)
         {
-            using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-            string qKeyscope = Request.Form["qkeys[0].scope"]!;
-            string qKeyTarget = Request.Form["qkeys[0].target"]!;
-            string qKeyKey = Request.Form["qkeys[0].key"]!;
-            //lets check if its RCC first 
             if (!IsRcc())
                 throw new RobloxException(403, 0, "Unauthorized");
-            var res = await ds.GetAllEntries(placeId, qKeyTarget, qKeyscope, qKeyKey);
+            int countRequest = 0;
+            using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
             var result = new List<GetKeyEntry>();
-
-            foreach (var entry in res)
+            string qKeyscope;
+            string qKeyTarget;
+            string qKeyKey;
+            while (true) 
             {
+                qKeyscope = Request.Form[$"qkeys[{countRequest}].scope"]!;
+                qKeyTarget = Request.Form[$"qkeys[{countRequest}].target"]!;
+                qKeyKey = Request.Form[$"qkeys[{countRequest}].key"]!;
+
+                if (qKeyscope == null || qKeyTarget == null || qKeyKey == null)
+                    break;
+
+                string value = await ds.Get(placeId, type, qKeyscope, qKeyKey, qKeyTarget);
+
                 result.Add(new GetKeyEntry()
                 {
                     Key = qKeyKey,
                     Scope = qKeyscope ?? scope,
                     Target = qKeyTarget,
-                    Value = entry.value ?? ""
+                    Value = value ?? ""
                 });
+                countRequest++;
             }
 
             var finalData = new { data = result };
