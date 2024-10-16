@@ -97,12 +97,12 @@ namespace Roblox.Website.Controllers
                 Value = 1//int.Parse(entry.value),
             })
             //.Where(entry => int.TryParse(entry.Value, out _))
-            .OrderBy(entry => 
-            {
-                int value = int.Parse(entry.Value);
-                return Math.Clamp(value, inclusiveMinValue, inclusiveMaxValue);
-            }
-            ));
+            //.OrderBy(entry => 
+            //{
+                //int value = int.Parse(entry.Value);
+                //return Math.Clamp(value, inclusiveMinValue, inclusiveMaxValue);
+            //}
+            );
 
             if (!ascending)
             {
