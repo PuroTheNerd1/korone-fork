@@ -107,6 +107,10 @@ public class DataStoreService : ServiceBase, IService
         // Type can be "standard" or "sorted"
         // long placeId, string type, string scope   
         var ent = await GetAllEntries(placeId, key, scope, target);
+        if (ent == null)
+        {
+            return null;
+        }
         return ent.FirstOrDefault().value;
     }
     

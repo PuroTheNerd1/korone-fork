@@ -158,7 +158,10 @@ namespace Roblox.Website.Controllers
                     break;
 
                 string value = await ds.Get(placeId, type, qKeyscope, qKeyKey, qKeyTarget);
-
+                if (value == null)
+                {
+                    continue;
+                }
                 result.Add(new GetKeyEntry()
                 {
                     Key = qKeyKey,
