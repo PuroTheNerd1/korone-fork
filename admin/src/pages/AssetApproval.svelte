@@ -213,8 +213,6 @@
 											<div class="col-12">
 												<div class="btn-group w-100">
 													<button class="btn btn-success border border-dark" on:click={onClick(true, false, false, asset)}>OK</button>
-												
-													<button disabled={asset.group_id !== undefined} class="btn btn-success border border-dark" on:click={onClick(true, true, false, asset)}>OK, 18+</button>
 												</div>
 											</div>
 											<div class="col-12 mt-4">
