@@ -141,7 +141,7 @@ namespace Roblox.Website.Controllers
             {
                 result.Reverse();
             }
-            result.Sort((Comparison<dynamic>)((a, b) => b.Value.CompareTo(a.Value)));
+            result.Sort((Comparison<dynamic>)((a, b) => a.Value.CompareTo(b.Value)));
             if (isEmpty)
             {
                 result = new List<string>();
