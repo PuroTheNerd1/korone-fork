@@ -38,7 +38,15 @@ namespace Roblox.Website.Controllers
                     status = (int)GamblingStatus.UserNotFound
                 };
             }
-
+            string key = $"CoinFlip:{userInfo.userId}";
+            if (!await services.cooldown.TryCooldownCheck(key, TimeSpan.FromSeconds(2)))
+            {
+                return new GamblingResponse
+                {
+                    message = "You are on cooldown, please wait a few seconds before gambling again",
+                    status = (int)GamblingStatus.UnknownError
+                };
+            }
             var balance = await services.economy.GetUserBalance(userInfo.userId);
             long newBalance = balance.robux;
             //balance check
