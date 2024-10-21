@@ -38,7 +38,7 @@ namespace Roblox.Website.Controllers
                     status = (int)GamblingStatus.UserNotFound
                 };
             }
-            string key = $"CoinFlip:{userInfo.userId}";
+            string key = $"CoinFlipV1:{userInfo.userId}";
             if (!await services.cooldown.TryCooldownCheck(key, TimeSpan.FromSeconds(2)))
             {
                 return new GamblingResponse
