@@ -112,7 +112,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("asset")]
         [HttpPostBypass("v1/asset")]
         [HttpPostBypass("asset")]
-        public async Task<MVC.ActionResult> GetAssetById(long? playerId, long id, long? assetversionid = null, long? version = null)
+        public async Task<MVC.ActionResult> GetAssetById(long? playerId, long id, long? assetversionid = null)
         {
             
 
@@ -262,16 +262,17 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
-            dynamic assetVersion;
+            dynamic assetVersion = await services.assets.GetLatestAssetVersion(assetId);
+            /*
             if (version != null)
             {
                 assetVersion = await services.assets.GetSpecificAssetVersion(assetId, (long)version);
             }
             else
             {
-                assetVersion = await services.assets.GetLatestAssetVersion(assetId);
+                assetVersion = 
             }
-
+            */
             Stream? assetContent = null;
             switch (details.assetType)
             {
