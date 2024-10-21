@@ -62,7 +62,7 @@ namespace Roblox.Website.Controllers
                 return new GamblingResponse
                 {
                     message = "You have flipped heads and won!",
-                    submessage = $"\nYou have won **{finalRobux}** R$, your balance is updated to **{(newBalance + amount).ToString("N0", CultureInfo.CurrentCulture)}** R$",
+                    submessage = $"\nYou have won **{finalRobux}** R$, your balance is updated to **{(newBalance + finalRobux).ToString("N0", CultureInfo.CurrentCulture)}** R$",
                     status = (int)GamblingStatus.Won, // Explicitly cast to int
                 };
             }
