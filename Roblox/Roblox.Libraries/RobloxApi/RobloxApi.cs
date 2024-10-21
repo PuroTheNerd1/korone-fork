@@ -322,7 +322,7 @@ public class RobloxApi
     {
         while (true)
         {
-            var result = await _client.GetAsync($"https://assetdelivery.roblox.com/v1/assetId/{assetId}/version/1");
+            var result = await _client.GetAsync($"https://assetdelivery.roblox.com/v1/assetId/{assetId}/version/2");
             if (result.StatusCode is HttpStatusCode.TooManyRequests)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2));
