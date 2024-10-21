@@ -325,7 +325,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = true;
             //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RenderRCC\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
@@ -341,8 +341,6 @@ namespace Roblox.Rendering
                 ("%y%", $@"""{1680}""").Replace
                 ("%baseUrl%", $@"""{BaseUrl}/""").Replace
                 ("%mannequinId%", $@"""{1785197}""");
-            
-            Console.WriteLine();
             
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""

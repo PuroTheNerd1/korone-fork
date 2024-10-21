@@ -34,7 +34,7 @@ namespace Roblox.Website.Controllers
             {
                 return new GamblingResponse
                 {
-                    message = "Your account is not linked, please use the /linkaccount  command to link your account",
+                    message = "Your account is not linked, please use the /linkaccount command to link your account",
                     status = (int)GamblingStatus.UserNotFound
                 };
             }
