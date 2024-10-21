@@ -741,7 +741,7 @@ public class GameServerService : ServiceBase
         // use discard to make server so we dont have to wait
         await InTransaction<GameServerGetOrCreateResponse>(async _ =>
         {
-            StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
+            Task.Run(async () => await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200));
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
                 new
