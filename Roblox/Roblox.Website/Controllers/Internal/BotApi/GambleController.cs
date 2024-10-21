@@ -21,7 +21,7 @@ namespace Roblox.Website.Controllers
                 return new GamblingResponse
                 {
                     message = "You have entered an invalid amount, please enter an amount between 1 and 250",
-                    status = GamblingStatus.InvalidAmount
+                    status = (int)GamblingStatus.InvalidAmount
                 };
             }
 
@@ -34,7 +34,7 @@ namespace Roblox.Website.Controllers
                 return new GamblingResponse
                 {
                     message = "Your account is not linked, please use the link command to link your account",
-                    status = GamblingStatus.UserNotFound
+                    status = (int)GamblingStatus.UserNotFound
                 };
             }
 
@@ -46,7 +46,7 @@ namespace Roblox.Website.Controllers
                 return new GamblingResponse
                 {
                     message = "You do not have enough balance to gamble this amount",
-                    status = GamblingStatus.InsufficientBalance
+                    status = (int)GamblingStatus.InsufficientBalance
                 };
             }
             //decrement currency here
@@ -62,7 +62,7 @@ namespace Roblox.Website.Controllers
                 {
                     message = "You have flipped heads and won!",
                     submessage = $"\nYou have won **{finalRobux}** R$, your balance is updated to **{newBalance + finalRobux}**",
-                    status = GamblingStatus.Won,
+                    status = (int)GamblingStatus.Won, // Explicitly cast to int
                 };
             }
             else
@@ -71,7 +71,7 @@ namespace Roblox.Website.Controllers
                 {
                     message = "You have flipped tails and lost",
                     submessage = $"\nYou have lost **{finalRobux}** R$, your balance is updated to **{newBalance - finalRobux}**",
-                    status = GamblingStatus.Lost,
+                    status = (int)GamblingStatus.Lost, 
                 };
             }
         }
