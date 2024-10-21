@@ -1,8 +1,9 @@
 using InfluxDB.Client.Core.Exceptions;
 using MVC = Microsoft.AspNetCore.Mvc;
-
+using Roblox.Dto.Gambling;
 namespace Roblox.Website.Controllers
 {
+
 
     [MVC.ApiController]
     [MVC.Route("/")]
@@ -10,23 +11,31 @@ namespace Roblox.Website.Controllers
     {
         [BotAuthorization]
         [HttpGetBypass("bot/coinflip")]
-        public async Task<dynamic> CoinFlip(string discordid, int amount)
+        public async Task<GamblingResponse> CoinFlip(string discordid, int amount)
         {
             Random random = new Random();
             Dto.Users.UserInfo userInfo;
 
-            if (amount > 1000 || amount < 1)
+            if (amount > 250 || amount < 1)
             {
-                return new { error = "Invalid amount" };
+                return new GamblingResponse
+                {
+                    message = "You have entered an invalid amount, please enter an amount between 1 and 250",
+                    status = GamblingStatus.InvalidAmount
+                };
             }
 
             try 
             {
                 userInfo = await services.users.GetUserByDiscordId(discordid);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw new BadRequestException("User not found");
+                return new GamblingResponse
+                {
+                    message = "Your account is not linked, please use the link command to link your account",
+                    status = GamblingStatus.UserNotFound
+                };
             }
 
             var balance = await services.economy.GetUserBalance(userInfo.userId);
@@ -34,7 +43,11 @@ namespace Roblox.Website.Controllers
             //balance check
             if (newBalance < amount)
             {
-                throw new BadRequestException("Insufficient balance");
+                return new GamblingResponse
+                {
+                    message = "You do not have enough balance to gamble this amount",
+                    status = GamblingStatus.InsufficientBalance
+                };
             }
             //decrement currency here
             await services.economy.DecrementCurrency(Models.Assets.CreatorType.User, userInfo.userId, Models.Economy.CurrencyType.Robux, amount);
@@ -45,18 +58,20 @@ namespace Roblox.Website.Controllers
             if (isWinner)
             {
                 await services.economy.IncrementCurrency(Models.Assets.CreatorType.User, userInfo.userId, Models.Economy.CurrencyType.Robux, finalRobux);
-                return new
+                return new GamblingResponse
                 {
-                    message = "You won!",
-                    newBalance = newBalance + finalRobux
+                    message = "You have flipped heads and won!",
+                    submessage = $"\nYou have won **{finalRobux}** R$, your balance is updated to **{newBalance + finalRobux}**",
+                    status = GamblingStatus.Won,
                 };
             }
             else
             {
-                return new
+                return new GamblingResponse
                 {
-                    message = "You lost!",
-                    newBalance = newBalance + finalRobux
+                    message = "You have flipped tails and lost",
+                    submessage = $"\nYou have lost **{finalRobux}** R$, your balance is updated to **{newBalance - finalRobux}**",
+                    status = GamblingStatus.Lost,
                 };
             }
         }
