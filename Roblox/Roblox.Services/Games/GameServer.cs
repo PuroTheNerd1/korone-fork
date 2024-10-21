@@ -739,17 +739,26 @@ public class GameServerService : ServiceBase
             
 
         // use discard to make server so we dont have to wait
-        _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
-        await db.ExecuteAsync(
-            "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
-            new
-            {
-                id = jobId,
-                asset_id = placeId,
-                ip = Configuration.GameServerIp,
-                port = networkServerPort,
-                server_connection = $"{Configuration.GameServerIp}:{networkServerPort}", 
-            });
+        await InTransaction<GameServerGetOrCreateResponse>(async _ =>
+        {
+            StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200);   
+            await db.ExecuteAsync(
+                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
+                new
+                {
+                    id = jobId,
+                    asset_id = placeId,
+                    ip = Configuration.GameServerIp,
+                    port = networkServerPort,
+                    server_connection = $"{Configuration.GameServerIp}:{networkServerPort}", 
+                });
+                return new GameServerGetOrCreateResponse()
+                {
+                    job = jobId,
+                    status = JoinStatus.Loading
+                };
+        });
+
         return new GameServerGetOrCreateResponse()
         {
             job = jobId,
@@ -758,7 +767,7 @@ public class GameServerService : ServiceBase
     }
 
     
-    public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int matchmaking, int JobExpiration)
+    public async Task StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int matchmaking, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
         GamesService games = new GamesService();
@@ -782,10 +791,10 @@ public class GameServerService : ServiceBase
                 currentGameServerPortsPoland.Add(jobId, plProxyPort);
                 currentGameServerPortsEastUs.Add(jobId, eastusProxyPort);
                 currentGameServerPorts.Add(jobId, networkServerPort);
-                return "OK";
+                //return "OK";
             }
         }
-        return "BAD";
+        //return "BAD";
         //Console.WriteLine($"MaxPlayers = {maxplayers}");
         /*
         Process rccServer = null;

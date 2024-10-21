@@ -330,7 +330,6 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
-            Thread.Sleep(2000);
             string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Head.txt");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
