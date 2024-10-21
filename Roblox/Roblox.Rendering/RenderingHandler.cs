@@ -276,7 +276,6 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
-            Thread.Sleep(2000);
             string originalScript = File.ReadAllText($"{LuaScriptPath}Clothing.lua");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
@@ -286,7 +285,6 @@ namespace Roblox.Rendering
                 ("%baseUrl%", $@"""{BaseUrl}/""").Replace
                 ("%mannequinId%", $@"""{1785197}""");
             
-            Console.WriteLine();
             
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
@@ -371,28 +369,29 @@ namespace Roblox.Rendering
             return result;
         }
 
-        public static async Task<string> RequestPackageRender(long assetId, int JobExpiration)
+        public static async Task<string> RequestPackageRender(string assetUrls, int JobExpiration)
         {
-            string characterAppearanceUrl = $"{BaseUrl}/Asset/FakeCharacterFetch.ashx?assetId={assetId}";
             int RCCPort = RandomComponent.Next(10000, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
+            renderRcc.StartInfo.Arguments = string.Format($@"-console -verbose -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}Avatar.lua");
+            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Package.txt");
             string finalScript = originalScript.Replace
-                ("%baseUrl%", $@"""{BaseUrl}""").Replace
-                ("%characterAppearanceUrl%", $@"""{characterAppearanceUrl}""").Replace
-                ("%fileExtension%", @"""png""").Replace
-                ("%x%", "840").Replace
-                ("%y%", "840");
+                ("%assetUrls%", $@"""{assetUrls}""").Replace
+                ("%fileExtension%", $@"""png""").Replace
+                ("%x%", $@"""{1680}""").Replace
+                ("%y%", $@"""{1680}""").Replace
+                ("%baseUrl%", $@"""{BaseUrl}/""").Replace
+                ("%RigURL%", $@"""{BaseUrl}/asset/?id=1785197""");
+            
             
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""

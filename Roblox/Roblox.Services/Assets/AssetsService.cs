@@ -494,7 +494,9 @@ public class AssetsService : ServiceBase, IService
     }
     private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null) {
         var latestVersion = await GetLatestAssetVersion(assetId);
-        string response = await RenderingHandler.RequestPackageRender(assetId, 20);
+        var assets = await GetPackageAssets(assetId);
+        string assetUrls = string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c));
+        string response = await RenderingHandler.RequestPackageRender(assetUrls, 20);
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
         using (var imageStream = new MemoryStream(imageBytes))
