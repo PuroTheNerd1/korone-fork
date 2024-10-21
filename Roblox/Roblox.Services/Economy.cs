@@ -450,7 +450,8 @@ public class EconomyService : ServiceBase, IService
         {
             await DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, amount);
             if (won) {
-                await IncrementCurrency(Models.Assets.CreatorType.User, userId, Models.Economy.CurrencyType.Robux, finalRobux);
+                Console.WriteLine($"won: {won} final rbx: {finalRobux}");
+                await IncrementCurrency(CreatorType.User, userId, CurrencyType.Robux, finalRobux);
             }
             return 0;
         });
