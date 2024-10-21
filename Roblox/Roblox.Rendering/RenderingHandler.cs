@@ -54,7 +54,7 @@ namespace Roblox.Rendering
         public static async Task<string> RequestHatThumbnail(long assetId, int JobExpiration)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10000, 25000);
+            int RCCPort = RandomComponent.Next(10003, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
@@ -103,7 +103,7 @@ namespace Roblox.Rendering
         public static async Task<string> RequestMeshThumbnail(long assetId, int JobExpiration)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10000, 25000);
+            int RCCPort = RandomComponent.Next(10003, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
@@ -155,7 +155,7 @@ namespace Roblox.Rendering
         public static async Task<string> RequestImageThumbnail(long assetId, int JobExpiration, bool isFace = false)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10000, 25000);
+            int RCCPort = RandomComponent.Next(10003, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
@@ -211,7 +211,7 @@ namespace Roblox.Rendering
         public static async Task<string> RequestPlaceRender(long assetId, int JobExpiration, int x, int y)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10000, 25000);
+            int RCCPort = RandomComponent.Next(10003, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
@@ -264,7 +264,7 @@ namespace Roblox.Rendering
         public static async Task<string> RequestClothingRender(long assetId, int JobExpiration)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10000, 25000);
+            int RCCPort = RandomComponent.Next(10003, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = true;
@@ -318,7 +318,7 @@ namespace Roblox.Rendering
         public static async Task<string> RequestHeadRender(long assetId, int JobExpiration)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10000, 25000);
+            int RCCPort = RandomComponent.Next(10003, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = true;
             renderRcc.StartInfo.CreateNoWindow = true;
@@ -371,7 +371,7 @@ namespace Roblox.Rendering
 
         public static async Task<string> RequestPackageRender(string assetUrls, int JobExpiration)
         {
-            int RCCPort = RandomComponent.Next(10000, 25000);
+            int RCCPort = RandomComponent.Next(10003, 25000);
             Process renderRcc = new Process();
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
@@ -424,7 +424,7 @@ namespace Roblox.Rendering
         public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
         {
             string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
-            int RCCPort = 10000;//RandomComponent.Next(10000, 25000);
+            int RCCPort = 10000;//RandomComponent.Next(10003, 25000);
             //Process renderRcc = new Process();
             //renderRcc.StartInfo.UseShellExecute = false;
             //renderRcc.StartInfo.CreateNoWindow = true;
@@ -475,7 +475,7 @@ namespace Roblox.Rendering
         public static async Task<string> RequestHeadshotThumbnail(long userId, int JobExpiration)
         {
             string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
-            int RCCPort = 10001;//RandomComponent.Next(10000, 25000);
+            int RCCPort = 10001;//RandomComponent.Next(10003, 25000);
             //Process renderRcc = new Process();
             //renderRcc.StartInfo.UseShellExecute = false;
             //renderRcc.StartInfo.CreateNoWindow = true;
