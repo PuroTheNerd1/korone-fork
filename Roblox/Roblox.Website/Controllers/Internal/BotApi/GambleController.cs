@@ -61,7 +61,7 @@ namespace Roblox.Website.Controllers
             //decrement currency here
             //await services.economy.DecrementCurrency(Models.Assets.CreatorType.User, userInfo.userId, Models.Economy.CurrencyType.Robux, amount);
             //calculate if win
-            int chance = random.Next(0, 101);
+            int chance = random.Next(1, 100);
             // 50% chance to win
             bool isWinner = chance <= 50;
             int finalRobux = amount * 2;
