@@ -52,8 +52,7 @@ namespace Roblox.Website.Pages.Internal
                     return;
                 }
 
-                await services.economy.DecrementCurrency(Models.Assets.CreatorType.User, userSession.userId, Models.Economy.CurrencyType.Robux, robux);
-                await services.economy.IncrementCurrency(Models.Assets.CreatorType.User, userSession.userId, Models.Economy.CurrencyType.Tickets, finaltix);
+                await services.economy.ChargeForConversion(userSession.userId, robux, finaltix, Roblox.Models.Economy.ConversionType.RobuxToTix);
 
                 successMessage = $"You have received {finaltix} tickets from {robux} R$.";
                 return;

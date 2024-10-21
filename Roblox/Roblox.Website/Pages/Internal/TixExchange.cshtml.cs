@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Roblox.Dto.Users;
 using Roblox.Models.Users;
+using Roblox.Website.Controllers;
 using System.Threading.Tasks;
 
 namespace Roblox.Website.Pages.Internal
@@ -52,8 +53,7 @@ namespace Roblox.Website.Pages.Internal
                     return;
                 }
 
-                await services.economy.DecrementCurrency(Models.Assets.CreatorType.User, userSession.userId, Models.Economy.CurrencyType.Tickets, tix);
-                await services.economy.IncrementCurrency(Models.Assets.CreatorType.User, userSession.userId, Models.Economy.CurrencyType.Robux, finalRobux);
+                await services.economy.ChargeForConversion(userSession.userId, tix, finalRobux, Roblox.Models.Economy.ConversionType.TixToRobux);
 
                 successMessage = $"You have received {finalRobux} R$ from {tix} Tix.";
                 return;

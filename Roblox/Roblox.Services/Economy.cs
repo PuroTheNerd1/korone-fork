@@ -85,6 +85,7 @@ public class EconomyService : ServiceBase, IService
     {
         if (amount < 0)
             throw new ArgumentException("Amount must be zero or more");
+            
         await db.ExecuteAsync("UPDATE user_economy SET balance_robux = balance_robux + :amt WHERE user_id = :user_id",
             new
             {
@@ -176,7 +177,7 @@ public class EconomyService : ServiceBase, IService
                 amt = amount,
             });
     }
-    
+
     [Obsolete("Use the overload with a creatorType instead")]
     public async Task IncrementCurrency(long userId, CurrencyType currency, long amount)
     {
@@ -440,6 +441,39 @@ public class EconomyService : ServiceBase, IService
                 await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 100);
                 await InsertTransaction(new AudioUploadTransaction(creatorType, creatorId));
             }
+            return 0;
+        });
+    }
+    public async Task ChargeForCoinflip(long userId, long amount, long finalRobux, bool won)
+    {
+        await InTransaction(async _ =>
+        {
+            await DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, amount);
+            if (won) {
+                await IncrementCurrency(Models.Assets.CreatorType.User, userId, Models.Economy.CurrencyType.Robux, finalRobux);
+            }
+            return 0;
+        });
+    }
+    public async Task ChargeForConversion(long userId, long amount, long convertedAmount, ConversionType type)
+    {
+        //dangerous?
+        Models.Economy.CurrencyType currencyFrom = Models.Economy.CurrencyType.Tickets;
+        Models.Economy.CurrencyType currencyTo = Models.Economy.CurrencyType.Tickets;
+        await InTransaction(async _ =>
+        {
+            if (type == ConversionType.TixToRobux) // tix to robux conversion
+            {
+                currencyFrom = Models.Economy.CurrencyType.Tickets;
+                currencyTo = Models.Economy.CurrencyType.Robux;
+            }
+            else if (type == ConversionType.RobuxToTix) // robux to tix conversion
+            {
+                currencyFrom = Models.Economy.CurrencyType.Robux;
+                currencyTo = Models.Economy.CurrencyType.Tickets;
+            }
+            await DecrementCurrency(CreatorType.User, userId, currencyFrom, amount);
+            await IncrementCurrency(CreatorType.User, userId, currencyTo, convertedAmount);
             return 0;
         });
     }

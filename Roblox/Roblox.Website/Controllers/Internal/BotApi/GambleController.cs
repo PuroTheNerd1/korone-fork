@@ -51,14 +51,14 @@ namespace Roblox.Website.Controllers
                 };
             }
             //decrement currency here
-            await services.economy.DecrementCurrency(Models.Assets.CreatorType.User, userInfo.userId, Models.Economy.CurrencyType.Robux, amount);
+            //await services.economy.DecrementCurrency(Models.Assets.CreatorType.User, userInfo.userId, Models.Economy.CurrencyType.Robux, amount);
             //calculate if win
             int chance = random.Next(0, 101);
             bool isWinner = chance <= 40;
             int finalRobux = amount * 2;
+            await services.economy.ChargeForCoinflip(userInfo.userId, amount, finalRobux, isWinner);
             if (isWinner)
             {
-                await services.economy.IncrementCurrency(Models.Assets.CreatorType.User, userInfo.userId, Models.Economy.CurrencyType.Robux, finalRobux);
                 return new GamblingResponse
                 {
                     message = "You have flipped heads and won!",

@@ -19,6 +19,11 @@ namespace Roblox.Models.Economy
         Robux = 1,
         Tickets = 2
     }
+    public enum ConversionType
+    {
+        TixToRobux = 1,
+        RobuxToTix,
+    }
     
     public enum TransactionSubType 
     {
