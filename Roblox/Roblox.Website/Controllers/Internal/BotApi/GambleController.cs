@@ -71,7 +71,7 @@ namespace Roblox.Website.Controllers
                 return new GamblingResponse
                 {
                     message = "You have flipped tails and lost",
-                    submessage = $"\nYou have lost **{amount}** R$, your balance is updated to **{(newBalance - finalRobux).ToString("N0", CultureInfo.CurrentCulture)}** R$",
+                    submessage = $"\nYou have lost **{amount}** R$, your balance is updated to **{(newBalance - amount).ToString("N0", CultureInfo.CurrentCulture)}** R$",
                     status = (int)GamblingStatus.Lost, 
                 };
             }
