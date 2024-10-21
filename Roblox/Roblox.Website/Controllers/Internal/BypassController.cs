@@ -1330,14 +1330,6 @@ namespace Roblox.Website.Controllers
             {
                 throw new UnauthorizedAccessException();
             }
-            try 
-            {
-                GameServerService.CurrentPlayersInGame.Remove(visitorId);
-            }   
-            catch(Exception)
-            {
-
-            }
 
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
             return Ok();
