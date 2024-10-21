@@ -333,7 +333,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.Start();
             Thread.Sleep(2000);
-            string originalScript = File.ReadAllText($"{LuaScriptPath}Head.lua");
+            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Head.txt");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""").Replace
                 ("%fileExtension%", $@"""png""").Replace
