@@ -667,6 +667,12 @@ public class AvatarService : ServiceBase, IService
     {
         try
         {
+            if (stream.CanSeek)
+            {
+                Console.WriteLine("Seeked stream");
+                stream.Seek(0, SeekOrigin.Begin);
+            }
+
             byte[] imageBytes;
             using (var memoryStream = new MemoryStream())
             {
@@ -693,7 +699,7 @@ public class AvatarService : ServiceBase, IService
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.Message);
+            Console.WriteLine(e.ToString());
             return null; 
         }
     }
