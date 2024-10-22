@@ -738,8 +738,6 @@ public class WebController : ControllerBase
                 if (pictureData == null)
                     throw new BadRequestException(0, "Invalid image file");
                 stream.Position = 0;
-                if(HasAudioSignature(stream))
-                    throw new BadRequestException(0, "Invalid iamge file");
                 stream.Position = 0;
                 using (var originalImage = new Bitmap(stream))
                 {
@@ -873,20 +871,5 @@ public class WebController : ControllerBase
             }
         }
     }
-    private bool HasAudioSignature(Stream stream)
-    {
-        byte[] oggSignature = new byte[] { 0x4F, 0x67, 0x67, 0x53 }; 
-        byte[] mp3Signature = new byte[] { 0x49, 0x44, 0x33 }; 
 
-        byte[] buffer = new byte[Math.Max(oggSignature.Length, mp3Signature.Length)];
-
-        stream.Read(buffer, 0, buffer.Length);
-
-        if (buffer.Take(oggSignature.Length).SequenceEqual(oggSignature) ||
-            buffer.Take(mp3Signature.Length).SequenceEqual(mp3Signature))
-        {
-            return true;
-        }
-        return false;
-    }
 }

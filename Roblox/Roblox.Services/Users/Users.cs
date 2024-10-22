@@ -141,10 +141,34 @@ public class UsersService : ServiceBase, IService
             password = hash,
         });
     }
-    public string GetOrSetTotp(long userId)
+    public async Task<TotpInfo> GetOrSetTotp(long userId)
     {
-        string secret = tfa.CreateSecret(80);
-        return secret;
+        var storedTotp = await db.QuerySingleOrDefaultAsync<TotpInfo>("SELECT secret, user_id as userId, status FROM user_totp WHERE user_id = :id", new
+        {
+            id = userId,
+        });
+        // no entry of user in the totp table
+        if (storedTotp == null)
+        {
+            //create a new secret for the user
+            string newSecret = tfa.CreateSecret(160);
+            // set in db as disabled bcs user hasnt verified it yet
+            var newTotp = await db.ExecuteAsync("INSERT INTO user_totp (user_id, secret, status) VALUES (:id, :secret, :status)", new
+            {
+                id = userId,
+                secret = newSecret,
+                status = (int)TotpStatus.Disabled,
+            });
+            // return the totpinfo
+            return new TotpInfo()
+            {
+                userId = userId,
+                secret = newSecret,
+                status = TotpStatus.Disabled,
+            };
+        }
+        // we have a result of the user lets return it 
+        return storedTotp;
     }
     public byte[] GetOtpQrCode(long userId, string secret)
     {

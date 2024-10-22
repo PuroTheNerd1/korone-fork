@@ -1489,9 +1489,10 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("GenerateOtpSecret")]
-        public string GenerateOtpSecret()
+        public async Task<dynamic> GenerateOtpSecret()
         {
-            return services.users.GetOrSetTotp(safeUserSession.userId);
+            var totpInfo = await services.users.GetOrSetTotp(safeUserSession.userId);
+            return totpInfo.secret;
         }
 
         [HttpGetBypass("GenereateOtpQrCode")]

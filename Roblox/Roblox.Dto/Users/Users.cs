@@ -37,6 +37,19 @@ public enum DiscordLinkstatus
     PendingVerification,
     Unlinked
 }
+public enum TotpStatus
+{
+    Enabled = 1, // user has fully verified totp
+    Disabled // user has made otp code but didnt verify so 2fa is off
+}
+
+public class TotpInfo
+{
+    public long userId { get; set; }
+    public string secret { get; set; }
+    public TotpStatus status { get; set; }
+}
+
 public class UserInfo
 {
     public long userId { get; set; }
