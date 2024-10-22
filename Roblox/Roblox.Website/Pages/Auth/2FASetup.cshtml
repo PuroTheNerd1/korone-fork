@@ -23,7 +23,7 @@
                 </div>
 
                 <form method="post">
-                    <input type="text" placeholder="2FA Code" minlength="6" maxlength="6" pattern="\d*"  name="totpcode" class="form-control mb-1"/>
+                    <input type="text" placeholder="2FA Code" autocomplete="off" minlength="6" maxlength="6" pattern="\d*"  name="totpcode" class="form-control mb-1"/>
                     @Html.AntiForgeryToken()
                     <input class="btn btn-primary" type="submit" value="Enable" id="login-submit"/>
                 </form>
