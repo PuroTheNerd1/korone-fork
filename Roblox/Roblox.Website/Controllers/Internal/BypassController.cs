@@ -2223,7 +2223,18 @@ namespace Roblox.Website.Controllers
                 return "OK!";
             }
         }
-
+        // just a test move to webcontroller later on
+        [HttpPostBypass("assets/upload-gameicon")]
+        public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
+        {
+            await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
+            var details = await services.assets.GetAssetCatalogInfo(placeId);
+            if (details.assetType != Models.Assets.Type.Place) {
+                throw new BadRequestException(1, "Cannot upload a game icon for a non place");
+            }
+            await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
+            return Ok();
+        }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
         [HttpPostBypass("/v1.0/SequenceStatistics/BatchAddToSequencesV2")]
