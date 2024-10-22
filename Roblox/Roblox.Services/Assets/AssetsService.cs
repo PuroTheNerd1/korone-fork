@@ -2235,7 +2235,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             Writer.Info(LogGroup.FixAssetImageMetadata, "took {0}ms to get all asset versions to fix. length is {1}", w.ElapsedMilliseconds, list.Length);
             foreach (var version in list)
             {
-                // Writer.Info(LogGroup.FixAssetImageMetadata, "fixing {0}", version.assetVersionId);
+                Writer.Info(LogGroup.FixAssetImageMetadata, "fixing {0}", version.assetVersionId);
                 if (version.contentUrl is null) continue;
                 Imager info;
                 Stream data;
