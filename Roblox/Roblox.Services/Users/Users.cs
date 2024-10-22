@@ -153,9 +153,9 @@ public class UsersService : ServiceBase, IService
             //create a new secret for the user
             string newSecret = tfa.CreateSecret(160);
             // set in db as disabled bcs user hasnt verified it yet
-            var newTotp = await db.ExecuteAsync("INSERT INTO user_totp (user_id, secret, status) VALUES (:id, :secret, :status)", new
+            await InsertAsync("user_totp", new
             {
-                id = userId,
+                user_id = userId,
                 secret = newSecret,
                 status = (int)TotpStatus.Disabled,
             });
@@ -170,12 +170,32 @@ public class UsersService : ServiceBase, IService
         // we have a result of the user lets return it 
         return storedTotp;
     }
+
+    public async Task UpdateTotpStatus(long userId, TotpStatus status)
+    {
+        await UpdateAsync("user_totp", userId, new
+        {
+            status = (int)status,
+        });
+    }
+
+    public async Task<bool> VerifyTotp(string secret, string code)
+    {
+        return tfa.VerifyCode(secret, code);
+    }
+
+    public string GetOtpQrCodeBase64(long userId, string secret)
+    {
+        return tfa.GetQrCodeImageAsDataUri("UserId: " + userId, secret, 600);
+    }
+
     public byte[] GetOtpQrCode(long userId, string secret)
     {
         var qrCodeProvider = new QrServerQrCodeProvider();
         byte[] qrCode = qrCodeProvider.GetQrCodeImage(tfa.GetQrText($"UserId: {userId}", secret), 600);
         return qrCode;
     }
+
     public async Task UnlockAccount(long userId)
     {
         await db.ExecuteAsync("UPDATE \"user\" SET status = :status WHERE id = :id", new
