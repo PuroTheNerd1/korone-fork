@@ -21,7 +21,7 @@ public class RobloxPlayerCorsMiddleware
         var imgSrc = "'self' data:";
         if (isAuthenticated)
         {
-            imgSrc += "https://*.projex.zip https://*.cdn.com https://*.archive.org http://*.archive.org https://challenges.cloudflare.com/*";
+            imgSrc += " https://*.projex.zip https://*.cdn.com https://*.archive.org http://*.archive.org https://challenges.cloudflare.com/*";
         }
         
         // Scripts
