@@ -35,7 +35,7 @@
                 <form method="post">
                     <input disabled="@Model.loginDisabled" type="text" placeholder="Username" name="username" class="form-control mb-1"/>
                     <input disabled="@Model.loginDisabled" type="password" placeholder="Password" name="password" class="form-control mb-1"/>
-                    <input disabled="@Model.loginDisabled" type="text" placeholder="2FA Code (leave blank if not set)" name="2fa" class="form-control mb-1"/>
+                    <input disabled="@Model.loginDisabled" type="text" minlength="6" maxlength="6" pattern="\d*" placeholder="2FA Code (leave blank if not set)" name="totpcode" class="form-control mb-1"/>
                     @if (Model.applicationId != null)
                     {
                         <input type="hidden" name="applicationId" value="@Model.applicationId"/>
@@ -54,21 +54,3 @@
 </div>
 
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" defer></script>
-
-<script type="text/javascript">
-    function googleTranslateElementInit() {
-        new google.translate.TranslateElement({
-            pageLanguage: 'en',
-            includedLanguages: 'ru',
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-            autoDisplay: false
-        }, 'google_translate_element');
-    }
-
-    if (navigator.language.startsWith('ru')) {
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-        document.head.appendChild(script);
-    }
-</script>

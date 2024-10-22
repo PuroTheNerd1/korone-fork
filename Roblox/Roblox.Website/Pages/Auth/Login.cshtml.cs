@@ -34,6 +34,8 @@ public class Login : RobloxPageModel
     public string? username { get; set; }
     [BindProperty]
     public string? password { get; set; }
+    [BindProperty]
+    public string? totpcode { get; set; }
     [FromForm(Name = "cf-turnstile-response")]
     public string? hCaptchaResponse { get; set; }
     [BindProperty(SupportsGet = true)]
@@ -125,8 +127,29 @@ public class Login : RobloxPageModel
         {
             // Do nothing here.
         }
-        
-
+        //get totp info
+        TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+        if (totpInfo != null && totpInfo.status == TotpStatus.Enabled)
+        {
+            // blank check
+            if (string.IsNullOrWhiteSpace(totpcode))
+            {
+                errorMessage = "You must emter a 2FA Code";
+                return new PageResult();
+            }
+            //try to parse as an long so know its only numbers and not some other garbage
+            if (!long.TryParse(totpcode, out var code))
+            {
+                errorMessage = "The 2FA code you entered is not valid";
+                return new PageResult();
+            }
+            //and as final verify the totp code
+            if (!await services.users.VerifyTotp(totpInfo.secret, totpcode))
+            {
+                errorMessage = "The 2FA code you entered is not valid";
+                return new PageResult();
+            }
+        }
         if (!await services.cooldown.TryCooldownCheck("LoginAttemptV1:" + hashedIp, TimeSpan.FromSeconds(5)))
         {
             errorMessage = RateLimitSecondMessage;
