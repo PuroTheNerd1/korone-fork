@@ -17,8 +17,6 @@ namespace Roblox.Website.Pages.Auth;
 
 public class TotpSetup : RobloxPageModel
 {
-    private const string ExpiredApplicationMessage = "For security reasons, this application has been expired. Please create a new application and try again.";
-
     [BindProperty]
     public string? totpcode { get; set; }
     public string? errorMessage { get; set; }
