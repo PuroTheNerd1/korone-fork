@@ -27,6 +27,7 @@ public class ApplicationGuardMiddleware
         "/auth/discord",
         "/auth/submit",
         "/auth/home",
+        "/auth/2fa",
         "/auth/privacy",
         "/auth/tos",
         "/auth/login",
@@ -246,6 +247,7 @@ public class ApplicationGuardMiddleware
     {
         "/version",
         "/auth/home",
+        "/auth/2fa",
         "/auth/captcha",
     };
 
