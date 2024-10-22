@@ -10,11 +10,11 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class GambleBot: ControllerBase
     {
+        private static Random random = new Random();
         [BotAuthorization]
         [HttpGetBypass("bot/coinflip")]
         public async Task<GamblingResponse> CoinFlip(string discordid, int amount)
         {
-            Random random = new Random();
             Dto.Users.UserInfo userInfo;
 
             if (amount > 250 || amount < 1)
