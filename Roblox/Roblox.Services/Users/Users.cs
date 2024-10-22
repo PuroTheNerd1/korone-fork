@@ -149,7 +149,7 @@ public class UsersService : ServiceBase, IService
     public byte[] GetOtpQrCode(long userId, string secret)
     {
         var qrCodeProvider = new QrServerQrCodeProvider();
-        byte[] qrCode = qrCodeProvider.GetQrCodeImage(tfa.GetQrText($"Project X User {userId}", secret), 600);
+        byte[] qrCode = qrCodeProvider.GetQrCodeImage(tfa.GetQrText($"UserId: {userId}", secret), 600);
         return qrCode;
     }
     public async Task UnlockAccount(long userId)

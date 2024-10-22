@@ -38,8 +38,8 @@ namespace Roblox.Website.Controllers
                     status = (int)GamblingStatus.UserNotFound
                 };
             }
-            string key = $"CoinFlipV1:{userInfo.userId}";
-            if (!await services.cooldown.TryCooldownCheck(key, TimeSpan.FromSeconds(2)))
+            // cooldown is every 2 seconds
+            if (!await services.cooldown.TryCooldownCheck($"CoinFlipV1_Cooldown:{userInfo.userId}", TimeSpan.FromSeconds(2)))
             {
                 return new GamblingResponse
                 {
@@ -47,6 +47,13 @@ namespace Roblox.Website.Controllers
                     status = (int)GamblingStatus.UnknownError
                 };
             }
+            //limit is 20 coinflips per day
+            if (!await services.cooldown.TryIncrementBucketCooldown($"CoinFlipV1_Day:{userInfo.userId}", 20, TimeSpan.FromDays(1)))
+                return new GamblingResponse
+                {
+                    message = "You have reached the limit of today, please try again tomorrow",
+                    status = (int)GamblingStatus.UnknownError
+                };
             var balance = await services.economy.GetUserBalance(userInfo.userId);
             long currentBalance = balance.robux;
             //balance check
