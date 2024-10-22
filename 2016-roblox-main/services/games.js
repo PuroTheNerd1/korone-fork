@@ -32,7 +32,8 @@ export const getGameMedia = ({ universeId }) => {
 export const launchGame = async ({ placeId }) => {
   const result = await request('GET', getBaseUrl() + '/game/get-join-script?placeId=' + encodeURIComponent(placeId));
   const joinUrl = result.data.prefix + result.data.joinScriptUrl;
-  window.location.assign(joinUrl);
+  window.location.href = joinUrl;
+  //window.location.assign(joinUrl);
   //const toClick = result.data.joinUrl;
   /*
   const aTag = document.createElement('a');
