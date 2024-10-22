@@ -173,8 +173,9 @@ public class UsersService : ServiceBase, IService
 
     public async Task UpdateTotpStatus(long userId, TotpStatus status)
     {
-        await UpdateAsync("user_totp", userId, new
+        await db.ExecuteAsync("UPDATE user_totp SET status = :status WHERE user_id = :id", new
         {
+            id = userId,
             status = (int)status,
         });
     }
