@@ -2247,7 +2247,15 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 catch (Exception e)
                 {
                     Writer.Info(LogGroup.FixAssetImageMetadata, "error reading image for avid={0}: {1}\n{2}", version.assetVersionId, e.Message, e.StackTrace);
-                    await DeleteAsset(version.assetId);
+                    // ew nested try catch but this is temp
+                    try
+                    {
+                        await DeleteAsset(version.assetId);
+                    }
+                    catch (Exception)
+                    {
+                        Writer.Info(LogGroup.FixAssetImageMetadata, $"Error deleting asset {version.contentUrl}");
+                    }
                     continue;
                 }
                 await InsertOrUpdateAssetVersionMetadataImage(version.assetVersionId, (int)data.Length, info.width, info.height, info.imageFormat, await GenerateImageHash(data));
