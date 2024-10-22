@@ -35,6 +35,7 @@
                 <form method="post">
                     <input disabled="@Model.loginDisabled" type="text" placeholder="Username" name="username" class="form-control mb-1"/>
                     <input disabled="@Model.loginDisabled" type="password" placeholder="Password" name="password" class="form-control mb-1"/>
+                    <input disabled="@Model.loginDisabled" type="text" placeholder="2FA Code (leave blank if not set)" name="2fa" class="form-control mb-1"/>
                     @if (Model.applicationId != null)
                     {
                         <input type="hidden" name="applicationId" value="@Model.applicationId"/>

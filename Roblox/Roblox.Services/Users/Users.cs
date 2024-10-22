@@ -19,6 +19,8 @@ using Roblox.Models.Staff;
 using Roblox.Models.Users;
 using Roblox.Services.DbModels;
 using Roblox.Services.Exceptions;
+using TwoFactorAuthNet;
+using TwoFactorAuthNet.Providers.Qr;
 using MultiGetEntry = Roblox.Dto.Users.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
 
@@ -26,6 +28,7 @@ namespace Roblox.Services;
 
 public class UsersService : ServiceBase, IService
 {
+    public static TwoFactorAuth tfa = new TwoFactorAuth("Project X");
     public async Task<bool> IsNameAvailableForNameChange(long contextUserId, string username)
     {
         var alreadyInUse = await db.QuerySingleOrDefaultAsync("SELECT username FROM \"user\" WHERE username ilike :name",
@@ -138,7 +141,17 @@ public class UsersService : ServiceBase, IService
             password = hash,
         });
     }
-
+    public string GetOrSetTotp(long userId)
+    {
+        string secret = tfa.CreateSecret(80);
+        return secret;
+    }
+    public byte[] GetOtpQrCode(long userId, string secret)
+    {
+        var qrCodeProvider = new QrServerQrCodeProvider();
+        byte[] qrCode = qrCodeProvider.GetQrCodeImage(tfa.GetQrText($"Project X User {userId}", secret), 600);
+        return qrCode;
+    }
     public async Task UnlockAccount(long userId)
     {
         await db.ExecuteAsync("UPDATE \"user\" SET status = :status WHERE id = :id", new

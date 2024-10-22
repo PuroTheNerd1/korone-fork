@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="JWT" Version="8.7.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="TwoFactorAuth.Net" Version="1.4.0" />
   </ItemGroup>
 
   <ItemGroup>

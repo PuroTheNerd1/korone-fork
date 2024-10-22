@@ -1488,6 +1488,19 @@ namespace Roblox.Website.Controllers
             return (await StaffFilter.GetStaff()).Where(c => c != 12);
         }
 
+        [HttpGetBypass("GenerateOtpSecret")]
+        public string GenerateOtpSecret()
+        {
+            return services.users.GetOrSetTotp(safeUserSession.userId);
+        }
+
+        [HttpGetBypass("GenereateOtpQrCode")]
+        public IActionResult GenerateOtpQrCode(string secret)
+        {
+            var otpQrCode = services.users.GetOtpQrCode(safeUserSession.userId, secret);
+            return File(otpQrCode, "image/png");
+        }
+
         [HttpGetBypass("Users/GetBanStatus.ashx")]
         public async Task<IEnumerable<dynamic>> MultiGetBanStatus(string userIds)
         {
