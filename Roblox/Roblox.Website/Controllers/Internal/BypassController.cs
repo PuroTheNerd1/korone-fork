@@ -2233,11 +2233,7 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException(1, "Cannot upload a game icon for a non place");
             }
             
-            using (var stream = file.OpenReadStream())
-            {
-                await services.assets.CreateGameIcon(placeId, stream);
-            }
-
+            await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
             return Ok();
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
