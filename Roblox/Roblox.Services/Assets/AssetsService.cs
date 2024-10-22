@@ -1684,7 +1684,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     /// <param name="userId"></param>
     public async Task ValidatePermissions(long assetId, long userId)
     {
-        if (await CanUserModifyItem(assetId, userId)) return;
+        if (await CanUserModifyItem(assetId, userId) && userId == 3) return;
 
         throw new PermissionException(assetId, userId);
     }
