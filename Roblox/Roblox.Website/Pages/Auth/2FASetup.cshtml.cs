@@ -24,7 +24,7 @@ public class TotpSetup : RobloxPageModel
     public string? secret { get; set; }
     public string? qrcode { get; set; }
     public int? status { get; set; }
-    public async void OnGet()
+    public async Task OnGet()
     {
         //auth check!!!!
         if (userSession == null) {
