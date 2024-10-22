@@ -25,6 +25,7 @@
                 <form method="post">
                     <input type="text" placeholder="2FA Code" name="totpcode" class="form-control mb-1"/>
                     <input class="btn btn-primary" type="submit" value="Enable" id="login-submit"/>
+                    @Html.AntiForgeryToken()
                 </form>
             }
             else
