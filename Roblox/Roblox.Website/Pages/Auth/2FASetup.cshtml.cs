@@ -19,6 +19,8 @@ public class TotpSetup : RobloxPageModel
 {
     [BindProperty]
     public string? totpcode { get; set; }
+    [BindProperty]
+    public string? mode { get; set; }
     public string? errorMessage { get; set; }
     public string? successMessage { get; set; }
     public string? secret { get; set; }
@@ -74,6 +76,12 @@ public class TotpSetup : RobloxPageModel
         //verify the totp code
         //if it is valid, set the success message and update the user's totp status to enabled
         if (await services.users.VerifyTotp(secret, totpcode)) {
+            if (!string.IsNullOrEmpty(mode) && mode == "delete") {
+                await services.users.DeleteTotp(userSession.userId);
+                status = (int)TotpStatus.Disabled;
+                successMessage = "2FA has been disabled";
+                return new PageResult();
+            }
             await services.users.UpdateTotpStatus(userSession.userId, TotpStatus.Enabled);
             status = (int)TotpStatus.Enabled;
             successMessage = "2FA has been enabled";

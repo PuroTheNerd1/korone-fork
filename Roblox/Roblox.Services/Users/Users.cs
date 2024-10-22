@@ -179,6 +179,13 @@ public class UsersService : ServiceBase, IService
             status = (int)status,
         });
     }
+    public async Task DeleteTotp(long userId)
+    {
+        await db.ExecuteAsync("DELETE FROM user_totp WHERE user_id = :id", new
+        {
+            id = userId,
+        });
+    }
 
     public async Task<bool> VerifyTotp(string secret, string code)
     {

@@ -25,12 +25,17 @@
                 <form method="post">
                     <input type="text" placeholder="2FA Code" autocomplete="off" minlength="6" maxlength="6" pattern="\d*"  name="totpcode" class="form-control mb-1"/>
                     @Html.AntiForgeryToken()
-                    <input class="btn btn-primary" type="submit" value="Enable" id="login-submit"/>
+                    <input class="btn btn-primary" type="submit" value="Enable 2FA" id="2fa-submit"/>
                 </form>
             }
             else
             {
                 <p class="text-success">@Model.successMessage</p>
+                <form method="post">
+                    <input type="text" placeholder="2FA Code" autocomplete="off" minlength="6" maxlength="6" pattern="\d*"  name="totpcode" class="form-control mb-1"/>
+                    @Html.AntiForgeryToken()
+                    <input class="btn btn-danger" type="submit" value="Remove 2FA" id="2fa-submit"/>
+                </form>
             }
         </div>
     </div>
