@@ -674,10 +674,9 @@ public class AvatarService : ServiceBase, IService
                 imageBytes = memoryStream.ToArray();
             }
 
-            using (MemoryStream imageMemoryStream = new MemoryStream(imageBytes))
+            using (MemoryStream memoryStream = new MemoryStream(imageBytes))
+            using (Image image = await Image.LoadAsync(memoryStream))
             {
-                var image = await Image.LoadAsync(imageMemoryStream);
-                
                 image.Mutate(x => x.Resize(new ResizeOptions
                 {
                     Size = new Size(newX, newY),
@@ -687,7 +686,8 @@ public class AvatarService : ServiceBase, IService
                 using (MemoryStream resizedMemoryStream = new MemoryStream())
                 {
                     await image.SaveAsync(resizedMemoryStream, new PngEncoder());
-                    return resizedMemoryStream.ToArray();
+                    byte[] resizedImageBytes = resizedMemoryStream.ToArray();
+                    return resizedImageBytes;
                 }
             }
         }
