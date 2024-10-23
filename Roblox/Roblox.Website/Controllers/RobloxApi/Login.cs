@@ -124,7 +124,7 @@ namespace Roblox.Website.Controllers
 
             username = splittedUsername[0];
             totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
-            
+
             try
             {
                 userId = await services.users.GetUserIdFromUsername(username);
@@ -142,14 +142,12 @@ namespace Roblox.Website.Controllers
             TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
             if (totpInfo.status == TotpStatus.Enabled)
             {
-                if (splittedUsername.Length == 2)
+                //verify totp code
+                if(!await services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
                 {
-                    //verify totp code
-                    if(!await services.users.VerifyTotp(splittedUsername[1], totpInfo.secret))
-                    {
-                        throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
-                    }
+                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
                 }
+
                 //if 2FA code is not provided throw error
                 else
                 {
