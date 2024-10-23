@@ -119,10 +119,11 @@ public class AdminApiController : ControllerBase
         if (adminBundleCss == null)
 #endif
         {
-            adminStaticMux.WaitOne();
+            //adminStaticMux.WaitOne();
             adminBundleCss = System.IO.File.ReadAllText(Configuration.AdminBundleDirectory + "/build/bundle.css");
-            adminStaticMux.ReleaseMutex();
+            //adminStaticMux.ReleaseMutex();
         }
+        Console.WriteLine("Returning CSS");
         return Content(adminBundleCss, "text/css");
     }
 
