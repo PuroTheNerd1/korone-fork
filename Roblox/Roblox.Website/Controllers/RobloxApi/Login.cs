@@ -150,7 +150,7 @@ namespace Roblox.Website.Controllers
                 //if 2FA code is not provided throw error
                 else
                 {
-                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA_CODE");
+                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
                 }
             }
             var sess = await services.users.CreateSession(userId);
