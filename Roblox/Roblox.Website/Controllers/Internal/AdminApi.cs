@@ -91,9 +91,14 @@ public class AdminApiController : ControllerBase
         if (adminBundleJs == null)
 #endif
         {
-            adminStaticMux.WaitOne();
+            //adminStaticMux.WaitOne();
+            
             adminBundleJs = System.IO.File.ReadAllText(Configuration.AdminBundleDirectory + "/build/bundle.js");
-            adminStaticMux.ReleaseMutex();
+            if (adminBundleJs == null)
+            {
+                Console.WriteLine("Admin bundle is null");
+            }
+            //adminStaticMux.ReleaseMutex();
         }
         return Content(adminBundleJs, "application/javascript");
     }
