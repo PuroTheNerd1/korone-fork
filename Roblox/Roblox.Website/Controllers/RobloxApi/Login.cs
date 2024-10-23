@@ -142,15 +142,17 @@ namespace Roblox.Website.Controllers
             TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
             if (totpInfo.status == TotpStatus.Enabled)
             {
+                //null check
+                if (string.IsNullOrEmpty(totpCode))
+                {
+                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+                }
                 //verify totp code
                 if(!await services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
                 {
                     throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
                 }
-                //else
-                //{
-                    //throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
-                //}
+
             }
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
