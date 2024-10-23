@@ -58,7 +58,7 @@ namespace Roblox.Website.Controllers
                     throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
                 }
                 //verify totp code
-                if(!services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
+                if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
                 {
                     throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
                 }
@@ -172,7 +172,7 @@ namespace Roblox.Website.Controllers
                     throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
                 }
                 //verify totp code
-                if(!services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
+                if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
                 {
                     throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
                 }
@@ -253,7 +253,7 @@ namespace Roblox.Website.Controllers
                     throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
                 }
                 //verify totp code
-                if(!services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
+                if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
                 {
                     throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
                 }
