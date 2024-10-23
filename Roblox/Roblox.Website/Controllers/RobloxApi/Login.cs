@@ -139,7 +139,7 @@ namespace Roblox.Website.Controllers
             {
                 // Format: ROBLOX|347283
                 string[] splittedUsername = username.Split('|');
-                if (splittedUsername[1] != null)
+                if (splittedUsername.Length == 2)
                 {
                     //verify totp code
                     if(!await services.users.VerifyTotp(splittedUsername[1], totpInfo.secret))
