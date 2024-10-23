@@ -81,6 +81,7 @@ namespace Roblox.Website.Controllers
             bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("App");
             string username = "";
             string password = "";
+            string totpCode = "";
             long userId;
 
             using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
@@ -118,12 +119,16 @@ namespace Roblox.Website.Controllers
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
             }
+            // Format: {username}|{2facode}
+            string[] splittedUsername = username.Split('|');
 
+            username = splittedUsername[0];
+            totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
+            
             try
             {
                 userId = await services.users.GetUserIdFromUsername(username);
             }
-
             catch (RecordNotFoundException)
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
@@ -137,8 +142,6 @@ namespace Roblox.Website.Controllers
             TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
             if (totpInfo.status == TotpStatus.Enabled)
             {
-                // Format: ROBLOX|347283
-                string[] splittedUsername = username.Split('|');
                 if (splittedUsername.Length == 2)
                 {
                     //verify totp code
