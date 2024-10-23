@@ -58,18 +58,12 @@ public class TotpSetup : RobloxPageModel
 
         if (totpcode == null || string.IsNullOrWhiteSpace(totpcode)) {
             errorMessage = "You must provide a 2FA Code";
-            secret = totpInfo.secret;
-            qrcode = services.users.GetOtpQrCodeBase64(userSession.userId, totpInfo.secret);
-            status = (int)totpInfo.status;
             return new PageResult();
         }
 
         //parse the totp code as a long
         if (!long.TryParse(totpcode, out code)) {
             errorMessage = "The 2FA code you entered is not valid";
-            secret = totpInfo.secret;
-            qrcode = services.users.GetOtpQrCodeBase64(userSession.userId, totpInfo.secret);
-            status = (int)totpInfo.status;
             return new PageResult();
         }
 
