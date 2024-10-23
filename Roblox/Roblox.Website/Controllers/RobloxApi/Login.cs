@@ -7,6 +7,7 @@ using Roblox.Website.WebsiteModels.Authentication;
 using System.Text;
 using System.Web;
 using Roblox.Models.Users;
+using Roblox.Dto.Users;
 namespace Roblox.Website.Controllers
 {
 
@@ -121,16 +122,37 @@ namespace Roblox.Website.Controllers
             try
             {
                 userId = await services.users.GetUserIdFromUsername(username);
-                if (!await services.users.VerifyPassword(userId, password))
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
-                }
             }
+
             catch (RecordNotFoundException)
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
             }
-
+            //verify password first
+            if (!await services.users.VerifyPassword(userId, password))
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
+            }
+            //get totp info
+            TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+            if (totpInfo.status == TotpStatus.Enabled)
+            {
+                // Format: ROBLOX|347283
+                string[] splittedUsername = username.Split('|');
+                if (splittedUsername[1] != null)
+                {
+                    //verify totp code
+                    if(!await services.users.VerifyTotp(splittedUsername[1], totpInfo.secret))
+                    {
+                        throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
+                    }
+                }
+                //if 2FA code is not provided throw error
+                else
+                {
+                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA_CODE");
+                }
+            }
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
@@ -153,7 +175,6 @@ namespace Roblox.Website.Controllers
             var isBanned = info.accountStatus != AccountStatus.Ok &&
                         info.accountStatus != AccountStatus.MustValidateEmail &&
                         info.accountStatus != AccountStatus.Suppressed;
-
             return new
             {
                 membershipType = 4,
