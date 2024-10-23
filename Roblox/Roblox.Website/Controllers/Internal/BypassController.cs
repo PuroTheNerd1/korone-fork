@@ -747,7 +747,7 @@ namespace Roblox.Website.Controllers
                     playerCount = currentPlayerCount.Count();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 playerCount = 0;
             }
