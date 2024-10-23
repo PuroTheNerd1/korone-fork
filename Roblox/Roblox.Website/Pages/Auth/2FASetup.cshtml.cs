@@ -69,7 +69,7 @@ public class TotpSetup : RobloxPageModel
 
         //verify the totp code
         //if it is valid, set the success message and update the user's totp status to enabled
-        if (await services.users.VerifyTotp(secret, totpcode)) {
+        if (services.users.VerifyTotp(secret, totpcode)) {
             if (!string.IsNullOrEmpty(mode) && mode == "delete") {
                 await services.users.DeleteTotp(userSession.userId);
                 status = (int)TotpStatus.Disabled;

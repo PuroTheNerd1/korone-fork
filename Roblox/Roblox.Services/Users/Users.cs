@@ -187,7 +187,7 @@ public class UsersService : ServiceBase, IService
         });
     }
 
-    public async Task<bool> VerifyTotp(string secret, string code)
+    public bool VerifyTotp(string secret, string code)
     {
         return tfa.VerifyCode(secret, code);
     }

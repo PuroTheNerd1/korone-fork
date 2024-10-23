@@ -825,65 +825,7 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(json);
             return Content(jsonString, "application/json");
         }
-        [HttpPostBypass("mobileapi/login")]
-        public async Task<ContentResult> Login()
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-            string username = Request.Form["username"]!;
-            string password = Request.Form["password"]!;
-            long userId;
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
-            }
-            else
-            {
-                try
-                {
-                    userId = await services.users.GetUserIdFromUsername(username);
 
-                    if (!await services.users.VerifyPassword(userId, password))
-                    {
-                        throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
-                    }
-                }
-                catch (RecordNotFoundException)
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
-                }
-            }
-            var sess = await services.users.CreateSession(userId);
-            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-            {
-                sessionId = sess,
-                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            });
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
-            {
-                Domain = ".projex.zip",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Unspecified,
-            });
-            var userBalance = await services.economy.GetUserBalance(userId);
-            dynamic successJson = new
-            {
-                Status = "OK",
-                UserInfo = new
-                {
-                    UserName = username,
-                    RobuxBalance = userBalance.robux,
-                    TicketsBalance = userBalance.tickets,
-                    IsAnyBuildersClubMember = true,
-                    ThumbnailUrl = $"https://www.projex.zip/Thumbs/Avatar.ashx?userId={userId}",
-                    UserID = userId
-                }
-            };
-            string jsonString = JsonConvert.SerializeObject(successJson);
-            return Content(jsonString, "application/json");
-        }
         [HttpGetBypass("download2")]
         public async Task<dynamic> DownloadPage()
         {

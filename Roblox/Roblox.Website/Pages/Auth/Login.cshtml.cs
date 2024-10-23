@@ -144,7 +144,7 @@ public class Login : RobloxPageModel
                 return new PageResult();
             }
             //and as final verify the totp code
-            if (!await services.users.VerifyTotp(totpInfo.secret, totpcode))
+            if (!services.users.VerifyTotp(totpInfo.secret, totpcode))
             {
                 errorMessage = "The 2FA code you entered is not valid";
                 return new PageResult();

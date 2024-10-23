@@ -8,6 +8,7 @@ using System.Text;
 using System.Web;
 using Roblox.Models.Users;
 using Roblox.Dto.Users;
+using Roblox.Services.App.FeatureFlags;
 namespace Roblox.Website.Controllers
 {
 
@@ -18,27 +19,48 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/login")]
         public async Task<dynamic> LoginV1([FromBody]LoginRequest request)
         {
+            FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
             long userId;
             string username = request.cvalue;
             string password = request.password;
+            string totpCode = "";
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
             }
-            else
-            {
-                try
-                {
-                    userId = await services.users.GetUserIdFromUsername(username);
 
-                    if (!await services.users.VerifyPassword(userId, password))
-                    {
-                        throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
-                    }
-                }
-                catch (RecordNotFoundException)
+            // Format: {username}|{2facode}
+            string[] splittedUsername = username.Split('|');
+
+            username = splittedUsername[0];
+            totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
+            
+            try
+            {
+                userId = await services.users.GetUserIdFromUsername(username);
+            }
+            catch (RecordNotFoundException)
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+            }
+
+            if (!await services.users.VerifyPassword(userId, password))
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+            }
+            //get totp info
+            TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+            if (totpInfo.status == TotpStatus.Enabled)
+            {
+                //null check
+                if (string.IsNullOrEmpty(totpCode))
                 {
-                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+                }
+                //verify totp code
+                if(!services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
+                {
+                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
                 }
             }
             var sess = await services.users.CreateSession(userId);
@@ -76,6 +98,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/login")]
         public async Task<dynamic> LoginV2()
         {
+            FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
             string requestBody;
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("App");
@@ -119,6 +142,7 @@ namespace Roblox.Website.Controllers
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
             }
+
             // Format: {username}|{2facode}
             string[] splittedUsername = username.Split('|');
 
@@ -148,11 +172,10 @@ namespace Roblox.Website.Controllers
                     throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
                 }
                 //verify totp code
-                if(!await services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
+                if(!services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
                 {
                     throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
                 }
-
             }
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
@@ -191,6 +214,83 @@ namespace Roblox.Website.Controllers
                     displayName = username
                 },
                 isBanned
+            };
+        }
+
+        [HttpPostBypass("mobileapi/login")]
+        public async Task<dynamic> LegacyLogin()
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
+            string username = Request.Form["username"]!;
+            string password = Request.Form["password"]!;
+            string totpCode = "";
+            long userId;
+            // Format: {username}|{2facode}
+            string[] splittedUsername = username.Split('|');
+
+            username = splittedUsername[0];
+            totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
+            }
+
+            try
+            {
+                userId = await services.users.GetUserIdFromUsername(username);
+            }
+            catch (RecordNotFoundException)
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+            }
+            //get totp info
+            TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+            if (totpInfo.status == TotpStatus.Enabled)
+            {
+                //null check
+                if (string.IsNullOrEmpty(totpCode))
+                {
+                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+                }
+                //verify totp code
+                if(!services.users.VerifyTotp(totpInfo.secret, splittedUsername[1]))
+                {
+                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
+                }
+            }
+
+            if (!await services.users.VerifyPassword(userId, password))
+            {
+                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+            }
+            var sess = await services.users.CreateSession(userId);
+            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+            {
+                sessionId = sess,
+                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            });
+            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
+            {
+                Domain = ".projex.zip",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.Unspecified,
+            });
+            var userBalance = await services.economy.GetUserBalance(userId);
+            return new
+            {
+                Status = "OK",
+                UserInfo = new
+                {
+                    UserName = username,
+                    RobuxBalance = userBalance.robux,
+                    TicketsBalance = userBalance.tickets,
+                    IsAnyBuildersClubMember = true,
+                    ThumbnailUrl = $"{Configuration.BaseUrl}/Thumbs/Avatar.ashx?userId={userId}",
+                    UserID = userId
+                }
             };
         }
     }
