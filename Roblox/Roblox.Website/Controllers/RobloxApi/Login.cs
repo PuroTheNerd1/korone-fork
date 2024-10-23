@@ -147,12 +147,10 @@ namespace Roblox.Website.Controllers
                 {
                     throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
                 }
-
-                //if 2FA code is not provided throw error
-                else
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
-                }
+                //else
+                //{
+                    //throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+                //}
             }
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
