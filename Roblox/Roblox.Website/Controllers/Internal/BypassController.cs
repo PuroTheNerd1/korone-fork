@@ -1147,6 +1147,11 @@ namespace Roblox.Website.Controllers
                 moderationStatus = ""
             };
         }
+        [HttpGetBypass("hor")]
+        public async Task<IActionResult> HallOfRetards()
+        {
+            return Content(await System.IO.File.ReadAllTextAsync("hor.txt"), "text/plan");
+        }
         [HttpGetBypass("/v1/avatar-fetch")]
         [HttpGetBypass("/v1.1/avatar-fetch")]
         public async Task<MVC.IActionResult> CharacterFetch(long userId)
@@ -1227,6 +1232,7 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(result);
             return Content(jsonString, "application/json");
         }
+        
         private void CheckServerAuth(string auth)
         {
             if (auth != Configuration.GameServerAuthorization)
@@ -1248,7 +1254,6 @@ namespace Roblox.Website.Controllers
                 updatedAt = result,
             };
         }
-
         [HttpPostBypass("/gs/ping")]
         public async Task ReportServerActivity([Required, MVC.FromBody] ReportActivity request)
         {
