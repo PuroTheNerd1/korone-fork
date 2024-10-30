@@ -686,7 +686,7 @@ public class AvatarService : ServiceBase, IService
                 image.Mutate(x => x.Resize(new ResizeOptions
                 {
                     Size = new Size(newX, newY),
-                    Mode = ResizeMode.Crop
+                    Mode = ResizeMode.Stretch
                 }));
 
                 using (MemoryStream resizedMemoryStream = new MemoryStream())
