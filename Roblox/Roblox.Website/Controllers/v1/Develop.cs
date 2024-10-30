@@ -64,7 +64,7 @@ public class DevelopControllerV1 : ControllerBase
         await services.assets.ValidatePermissions(place, safeUserSession.userId);
         await services.games.SetMaxPlayerCount(place, request.maxPlayers);
     }
-    [HttpPost("apisite/develop/v1/assets/upload-gameicon")]
+    [HttpPostBypass("apisite/develop/v1/assets/upload-gameicon")]
     public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
     {
         await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
