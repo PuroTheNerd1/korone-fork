@@ -4,27 +4,28 @@ import { useEffect } from "react";
 import { useRouter } from 'next/router';
 const useStyles = createUseStyles({
   container: {
-    marginTop: '3px',
+    marginTop: '0',
     marginBottom: 0,
     paddingBottom: 0,
     paddingLeft: '0',
+    width: '100%!important',
+    height: '100%!important'
   },
   linkEntry: {
     color: 'white',
-    fontWeight: 400,
-    marginBottom: 0,
-    paddingBottom: 0,
+    fontWeight: 500,
+    margin: 'auto',
     textAlign: 'center',
     fontSize: '16px',
-
+    display: 'inline',
     textDecoration: 'none',
-    padding: '4px 8px',
+    padding: '6px 9px!important',
     transition: 'none',
     '&:hover': {
       color: 'white',
       background: 'rgba(25,25,25,0.1)',
       cursor: 'pointer',
-      borderRadius: '4px',
+      borderRadius: '5px',
       transition: 'none',
     },
   },
@@ -43,12 +44,21 @@ const useStyles = createUseStyles({
   col: {
     paddingLeft: 0,
     marginLeft: 0,
+  },
+  row: {
+    margin: 0,
+    height: '100%'
+  },
+  linkContainer: {
+    display: 'flex',
+    margin: 0,
+    padding: 0
   }
 })
 
 const LinkEntry = props => {
   const s = useStyles();
-  return <div className='col-3'>
+  return <div className={`${s.linkContainer} col-3`}>
     <Link href={`/${props.url}`}>
       <a className={`${s.linkEntry} nav-link active pt-0`}>
         {props.children}
@@ -71,12 +81,12 @@ const NavigationLinks = props => {
 
     checkAuth();
   }, [router]);
-  return <div className={`${s.col} col-10 col-lg-5`}>
+  return <div className={`${s.col} col-10 col-lg-3`}>
     <div className={s.container}>
-      <div className='row'>
+      <div className={`${s.row} row`}>
         <LinkEntry url='games'>Games</LinkEntry>
         <LinkEntry url='catalog'>Catalog</LinkEntry>
-        <LinkEntry url='develop'>Develop</LinkEntry>
+        <LinkEntry url='develop'>Create</LinkEntry>
         <LinkEntry url='download'>Download</LinkEntry>
       </div>
     </div>

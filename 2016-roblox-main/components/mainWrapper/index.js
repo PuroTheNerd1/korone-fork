@@ -3,6 +3,7 @@ import { createUseStyles } from "react-jss"
 const useStyles = createUseStyles({
   main: {
     minHeight: '95vh',
+    paddingTop: '12px',
   }
 })
 

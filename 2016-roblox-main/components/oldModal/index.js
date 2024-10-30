@@ -86,7 +86,7 @@ const OldModal = props => {
         }}>X</div>
       </div>}
       <div className={s.innerSection} style={innerStyles}>
-        <div className='row'>
+        <div className={`${props.rowClass} row`}>
           {props.children}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createUseStyles } from "react-jss";
+import useButtonStyles from "../../styles/buttonStyles";
 
 const useBuyButtonStyles = createUseStyles({
   btn: {
@@ -29,12 +30,17 @@ const useBuyButtonStyles = createUseStyles({
 });
 
 const ActionButton = props => {
-  const s = useBuyButtonStyles();
+  const s2 = useBuyButtonStyles();
+  const s = useButtonStyles();
+  const bg = props.buttonStyle || s.buyButton;
+  const type = props.type || "submit"
 
   return <div className={props.divClassName}>
     <button
+      type={type}
+      value={type}
       disabled={props.disabled}
-      className={s.btn + ' ' + (props.className || s.defaultBg)}
+      className={`${s2.btn} ${props.className} ${bg}`}
       onClick={props.onClick}
       title={props.disabled ? props.tooltipText : ''}>{props.label || 'Buy Now'}</button>
   </div>

@@ -33,6 +33,16 @@
 	vertical-align: middle;
 }
 
+.icon-nav-message2 {
+	background-image: url('/img/2019svg.svg');
+	background-repeat: no-repeat;
+	background-size: auto auto;
+	width: 28px;
+	height: 28px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
 .icon-nav-menu {
 	background-position: 0 0;
 }
@@ -143,6 +153,19 @@ a:hover .icon-nav-profile {
 button:hover .icon-nav-message,
 a:hover .icon-nav-message {
 	background-position: -28px -196px;
+}
+
+.icon-nav-message2 {
+	background-position: 0 -448px;
+}
+
+.icon-nav-message2:hover {
+	background-position: -28px -448px;
+}
+
+button:hover .icon-nav-message2,
+a:hover .icon-nav-message2 {
+	background-position: -28px -448px;
 }
 
 .icon-nav-friends {

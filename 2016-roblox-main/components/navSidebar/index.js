@@ -13,22 +13,28 @@ const useNavSideBarStyles = createUseStyles({
   },
   card: {
     width: '175px',
-    background: '#f2f2f2',
+    background: '#fff',
     height: '100vh',
     paddingLeft: '10px',
     paddingRight: '10px',
+    marginTop: '12px',
+    boxShadow: '0 0 3px rgba(25, 25, 25, 0.3)',
   },
   username: {
-    fontSize: '18px',
+    fontSize: '16px',
+    fontWeight: '500',
     paddingTop: '8px',
     paddingBottom: '5px',
     marginBottom: 0,
     color: '#1e1e1f',
+    textDecoration: 'none'
   },
   divider: {
-    borderBottom: '2px solid #c3c3c3',
+    borderBottom: '1px solid #b8b8b8',
     height: '2px',
     width: '100%',
+    marginTop: '5px',
+    marginBottom: '8px'
   },
   upgradeNowButton: {
     marginTop: '10px',
@@ -73,8 +79,8 @@ const NavSideBar = props => {
   const isStaff = authStore.isStaff;
 
   return <div className={s.container}>
-    <div className={s.card} style={{ paddingTop: paddingTop }}>
-      <p className={s.username}>{authStore.username}</p>
+    <div className={s.card} style={{ paddingTop: '40px' }}>
+      <a href={'/users/' + authStore.userId + '/profile'} className={s.username}>{authStore.username}</a>
       <div className={s.divider} />
       <LinkEntry name='Home' url='/home' icon='icon-nav-home' />
       <LinkEntry name='Profile' url={'/users/' + authStore.userId + '/profile'} icon='icon-nav-profile' />
@@ -86,7 +92,7 @@ const NavSideBar = props => {
       <LinkEntry name='Groups' url='/My/Groups.aspx' icon='icon-nav-group' />
       <LinkEntry name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum' />
       {isStaff ? (
-        <LinkEntry name='Admin Panel' url='/admin' icon='icon-nav-friends' count={69} />
+        <LinkEntry name='Staff Panel' url='/admin' icon='icon-edit' count={69} />
       ) : null}
       <a href='/BuildersClub/Upgrade.ashx'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
     </div>

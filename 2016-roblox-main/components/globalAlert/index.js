@@ -57,7 +57,8 @@ const GlobalAlert = props => {
   }, []);
 
   if (alert === null || !alert.IsVisible) {
-    return <div className={s.fakeAlert}></div>;
+    //return <div className={s.fakeAlert}></div>;
+    return null
   }
 
   return <div className={s.alertBg}>

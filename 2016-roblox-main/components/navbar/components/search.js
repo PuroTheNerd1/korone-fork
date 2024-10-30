@@ -4,14 +4,18 @@ import { createUseStyles } from "react-jss";
 const useSearchIconStyles = createUseStyles({
   icon: {
     float: 'right',
-    marginTop: '-24px',
-    paddingTop: 0,
+    margin: 0,
+    padding: 0,
+    border: 'none',
+    cursor: 'pointer',
+    maxHeight: '28px',
+    maxWidth: '28px'
   }
 })
 
 const SearchIcon = (props) => {
   const s = useSearchIconStyles();
-  return <span className={`${s.icon} icon-nav-search`}></span>
+  return <span className={`col-2 ${s.icon} icon-nav-search`}></span>
 }
 
 const useSuggestionEntryStyles = createUseStyles({
@@ -71,22 +75,42 @@ const SearchSuggestionContainer = props => {
 
 const useSearchStyles = createUseStyles({
   wrapper: {
-    padding: '4px 2px',
+    padding: 0,
     background: 'white',
-    borderRadius: '2px',
-    border: '1px solid #c3c3c3',
+    borderRadius: '3px',
+    border: '1px solid rgba(0,0,0,0.15)',
     width: '100%',
+    height: '28px!important'
   },
   searchInput: {
-    width: '100%',
     border: 'none',
-    paddingTop: 0,
-    paddingBottom: 0,
+    padding: 0,
+    fontSize: '16px!important',
+    marginLeft: '12px',
+    marginTop: '2px',
+    float: 'left',
+    background: 'none',
+    color: '#191919',
+    fontWeight: '200',
+    display: 'block',
+    lineHeight: '1.5',
+    appearance: 'none',
+    borderRadius: '5.25px',
     '&:focus': {
       border: 'none!important',
       boxShadow: 'none!important',
+      outline: 0,
     },
+    '&::placeholder': {
+      color: '#B8B8B8'
+    }
   },
+  seniorClass: {
+    padding: 0,
+    margin: 0,
+    marginTop: 'auto',
+    marginBottom: 'auto',
+  }
 });
 
 const Search = props => {
@@ -99,10 +123,13 @@ const Search = props => {
     setShowSearchThing(query !== '');
   }, [query]);
 
-  return <div className='col-12 col-lg-5'>
+  return <div className={`${s.seniorClass} col-12 col-lg-3`}>
     <div style={{ width: '100%' }}>
       <div className={s.wrapper}>
-        <input ref={inputRef} value={query} className={`form-control ${s.searchInput}`} placeholder='Search' onInput={(v) => {
+        {/*<input ref={inputRef} value={query} className={`form-control col-10 ${s.searchInput}`} placeholder='Search' onInput={(v) => {
+          setQuery(v.currentTarget.value);
+        }}></input>*/}
+        <input ref={inputRef} value={query} className={`col-10 ${s.searchInput}`} placeholder='Search' onInput={(v) => {
           setQuery(v.currentTarget.value);
         }}></input>
         <SearchIcon></SearchIcon>

@@ -110,3 +110,8 @@ export const multiGetUniverseIcons = ({ universeIds, size }) => {
     return d;
   })
 }
+
+export const getAssetThumbnail = assetId => {
+  const data = request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${assetId}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
+  return data
+}
