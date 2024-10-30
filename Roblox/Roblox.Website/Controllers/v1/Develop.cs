@@ -64,16 +64,4 @@ public class DevelopControllerV1 : ControllerBase
         await services.assets.ValidatePermissions(place, safeUserSession.userId);
         await services.games.SetMaxPlayerCount(place, request.maxPlayers);
     }
-    [HttpPostBypass("apisite/develop/v1/assets/upload-gameicon")]
-    public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
-    {
-        await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
-        var details = await services.assets.GetAssetCatalogInfo(placeId);
-        if (details.assetType != Models.Assets.Type.Place) {
-            throw new BadRequestException(1, "Cannot upload a game icon for a non place");
-        }
-            
-        await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
-        return Ok();
-    }
 }
