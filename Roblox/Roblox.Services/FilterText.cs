@@ -32,7 +32,29 @@ public class FilterService : ServiceBase, IService
         {
             return @"\b" + string.Join(@"\s*", word.ToCharArray()) + @"\b";
         }
-        string[] filteredWords = {"nigger", "nigga", "1488", "nazi"};  
+        string[] filteredWords = 
+        {
+            "nigger", 
+            "nigga", 
+            "1488", 
+            "nazi",
+            "sex",
+            "cock",
+            "vagina",
+            "penis",
+            "breasts",
+            "tits",
+            "ass",
+            "dildo",
+            "masturbation",
+            "blowjob",
+            "ejaculation",
+            "fetish",
+            "orgasm",
+            "rape",
+            "porn",
+            "pornography"
+        };
         string[] filteredWordsPatterns = filteredWords.Select(word => buildFilteredWordPatern(word)).ToArray();
         foreach (string pattern in filteredWordsPatterns)
         {
