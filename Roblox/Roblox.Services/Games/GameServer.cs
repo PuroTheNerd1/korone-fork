@@ -36,6 +36,7 @@ public class GameServerService : ServiceBase
     private static Dictionary<long, long> gamePlayerCounts = new Dictionary<long, long>(); // placeid, playercount
     private static Dictionary<string, Process> jobRccs = new Dictionary<string, Process>(); // jobid, rcc process
     public static Dictionary<string, int> currentGameServerPorts = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
+    public static Dictionary<string, int> currentProxyPorts = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
     public static Dictionary<string, int> currentGameServerPortsPoland = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
     public static Dictionary<string, int> currentGameServerPortsEastUs = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
     private static Dictionary<long, string> currentPlaceIdsInUse = new Dictionary<long, string>(); // placeid, jobid
@@ -647,20 +648,6 @@ public class GameServerService : ServiceBase
             });
     }
 
-    public async Task<bool> IsPortTaken(int port)
-    {   
-        port = await db.QueryFirstOrDefaultAsync<int>(
-            "SELECT port FROM asset_server WHERE port = :gsport",
-            new
-            {
-                gsport = port,
-            });
-        if (port == 0)
-        {
-            return false;
-        }
-        return true;
-    }
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId)
     {   
         return await db.QueryAsync<GameServerDb>(
@@ -714,13 +701,15 @@ public class GameServerService : ServiceBase
         }
         long year = await games.GetYear(placeId);
         int mainRCCPort = RandomComponent.Next(30000, 40000);
-        int networkServerPort = 0;
+        int proxyPort = 0;
+        int networkServerPort = RandomComponent.Next(50000, 60000);
         //we need to check if the port isnt taken in the database if it is lets keep going trying to find a new port
         bool isUsable = false;
         while (!isUsable)
         {
-            networkServerPort = RandomComponent.Next(7000, 8000);
-            if (await IsPortTaken(networkServerPort))
+            proxyPort = RandomComponent.Next(7000, 8000);
+            //check both dictionaries if the port is in use
+            if (currentGameServerPorts.ContainsValue(proxyPort) || currentProxyPorts.ContainsValue(proxyPort))
             {
                 isUsable = false;
                 continue;
@@ -752,10 +741,10 @@ public class GameServerService : ServiceBase
                     id = jobId,
                     asset_id = placeId,
                     ip = Configuration.GameServerIp,
-                    port = networkServerPort,
-                    server_connection = $"{Configuration.GameServerIp}:{networkServerPort}", 
+                    port = proxyPort,
+                    server_connection = $"{Configuration.GameServerIp}:{proxyPort}", 
                 });  
-                await StartGameServer(placeId, mainRCCPort, networkServerPort, jobId, year, matchmaking, 43200); 
+                StartGameServer(placeId, mainRCCPort, proxyPort, networkServerPort, jobId, year, matchmaking, 43200); 
                 return new GameServerGetOrCreateResponse()
                 {
                     job = jobId,
@@ -771,12 +760,11 @@ public class GameServerService : ServiceBase
     }
 
     
-    public async Task StartGameServer(long placeId, int RCCPort, int networkServerPort, string jobId, long year, int matchmaking, int JobExpiration)
+    public async Task StartGameServer(long placeId, int RCCPort, int proxyPort, int networkServerPort, string jobId, long year, int matchmaking, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
         GamesService games = new GamesService();
         AssetsService assetsService = new AssetsService();
-        var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
         var uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();        
         //string originalScript;
         //string finalScript;
@@ -785,175 +773,19 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage arbiterrsp = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
-            HttpResponseMessage proxyplresponse = await client.GetAsync($"https://poland.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
-            HttpResponseMessage proxyeastusresponse = await client.GetAsync($"https://eastus.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
-            if (arbiterrsp.IsSuccessStatusCode && proxyplresponse.IsSuccessStatusCode && proxyeastusresponse.IsSuccessStatusCode)
+            HttpResponseMessage arbiterrsp = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
+            //HttpResponseMessage proxyplresponse = await client.GetAsync($"https://poland.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
+            //HttpResponseMessage proxyeastusresponse = await client.GetAsync($"https://eastus.projex.zip/startproxy?jobId={jobId}&gameserverPort={networkServerPort}");
+            if (arbiterrsp.IsSuccessStatusCode)
             {
-                int plProxyPort = int.Parse(await proxyplresponse.Content.ReadAsStringAsync());
-                int eastusProxyPort = int.Parse(await proxyeastusresponse.Content.ReadAsStringAsync());
-                currentGameServerPortsPoland.Add(jobId, plProxyPort);
-                currentGameServerPortsEastUs.Add(jobId, eastusProxyPort);
-                currentGameServerPorts.Add(jobId, networkServerPort);
+                //int plProxyPort = int.Parse(await proxyplresponse.Content.ReadAsStringAsync());
+                //int eastusProxyPort = int.Parse(await proxyeastusresponse.Content.ReadAsStringAsync());
+                //currentGameServerPortsPoland.Add(jobId, plProxyPort);
+                //currentGameServerPortsEastUs.Add(jobId, eastusProxyPort);
+                currentGameServerPorts.Add(jobId, proxyPort);
                 //return "OK";
             }
         }
-        //return "BAD";
-        //Console.WriteLine($"MaxPlayers = {maxplayers}");
-        /*
-        Process rccServer = null;
-        Process rccServer2017 = null;
-        Process rccServer2018 = null;
-        Process rccServer2019 = null;
-        Process rccServer2020 = null;
-        var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
-        var uni = (await gamesService.MultiGetPlaceDetails(new[] { placeId })).First();
-        if (AssetCatalogInfo.assetType != Models.Assets.Type.Place)
-        {
-            return "BAD";
-        }
-        switch (year)
-        {
-            case 2016:
-                rccServer = new Process();
-                rccServer.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                rccServer.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}RCCService.exe";
-                rccServer.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-                rccServer.StartInfo.CreateNoWindow = false;
-                rccServer.StartInfo.RedirectStandardError = false;
-                rccServer.StartInfo.RedirectStandardOutput = false;
-                rccServer.StartInfo.UseShellExecute = true;
-                rccServer.Start();            
-                originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServerFloatzel.lua");
-                finalScript = originalScript.Replace
-                    ("%port%", $"{networkServerPort}").Replace
-                    ("%placeId%", $"{placeId}").Replace
-                    ("%creatorId%", $"{uni.builderId}").Replace
-                    ("_AUTHORIZATION_STRING_", Configuration.GameServerAuthorization);
-                break;
-            case 2017:
-                rccServer2017 = new Process();
-                rccServer2017.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                rccServer2017.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2017\\RCCService.exe";
-                rccServer2017.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-                rccServer2017.StartInfo.CreateNoWindow = false;
-                rccServer2017.StartInfo.RedirectStandardError = false;
-                rccServer2017.StartInfo.RedirectStandardOutput = false;
-                rccServer2017.StartInfo.UseShellExecute = true;
-                rccServer2017.Start();            
-                originalScript = $@"
-                {{
-                    ""Mode"": ""GameServer"",
-                    ""Settings"": {{
-                        ""PlaceId"": {placeId},
-                        ""CreatorId"": ""{uni.builderId}"",
-                        ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""45.137.70.23"",
-                        ""MaxPlayers"": {maxplayers},
-                        ""MaxGameInstances"": 5,
-                        ""PreferredPlayerCapacity"": {maxplayers},
-                        ""UniverseId"": {placeId},
-                        ""BaseUrl"": ""projex.zip"",
-                        ""PlaceFetchUrl"": ""https://www.projex.zip"",
-                        ""MatchmakingContextId"": 1,
-                        ""CreatorType"": ""User"",
-                        ""PlaceVersion"": 1,
-                        ""JobId"": ""{jobId}"",
-                        ""PreferredPort"": {networkServerPort},
-                        ""PlaceVisitAccessKey"": ""{Configuration.RccAuthorization}"",
-                        ""ApiKey"": ""{Configuration.RccAuthorization}"",
-                        ""GsmInterval"": 5,
-                        ""GameCode"": """"
-                    }}
-                }}";
-                finalScript = originalScript.Replace("%", "&#37;");
-                break;
-            case 2018:
-                rccServer2018 = new Process();
-                rccServer2018.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                rccServer2018.StartInfo.FileName = $"{RenderingHandler.RccServicePathGames}\\RCCService2018\\RCCService.exe";
-                rccServer2018.StartInfo.Arguments = string.Format($@"-verbose -console {RCCPort} ");
-                rccServer2018.StartInfo.CreateNoWindow = false;
-                rccServer2018.StartInfo.RedirectStandardError = false;
-                rccServer2018.StartInfo.RedirectStandardOutput = false;
-                rccServer2018.StartInfo.UseShellExecute = true;
-                rccServer2018.Start();            
-                originalScript = $@"
-                {{
-                    ""Mode"": ""GameServer"",
-                    ""Settings"": {{
-                        ""PlaceId"": {placeId},
-                        ""CreatorId"": {uni.builderId},
-                        ""GameId"": ""{jobId}"",
-                        ""MachineAddress"": ""45.137.70.23"",
-                        ""MaxPlayers"": {maxplayers},
-                        ""MaxGameInstances"": 5,
-                        ""PreferredPlayerCapacity"": {maxplayers},
-                        ""UniverseId"": {placeId},
-                        ""BaseUrl"": ""projex.zip"",
-                        ""PlaceFetchUrl"": ""https://www.projex.zip"",
-                        ""MatchmakingContextId"": 1,
-                        ""CreatorType"": ""User"",
-                        ""PlaceVersion"": 1,
-                        ""JobId"": ""{jobId}"",
-                        ""PreferredPort"": {networkServerPort},
-                        ""PlaceVisitAccessKey"": ""{Configuration.RccAuthorization}"",
-                        ""ApiKey"": ""{Configuration.RccAuthorization}"",
-                        ""GsmInterval"": 5,
-                        ""GameCode"": """"
-                    }}
-                }}";
-                finalScript = originalScript.Replace("%", "&#37;");
-                break;
-            case 2019:
-            default:
-                return "Year not supported";
-        }
-
-        string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <OpenJobEx xmlns=""http://projex.zip/"">
-                        <job>
-                            <id>{jobId}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </OpenJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-        await WaitForPort(RCCPort);
-        await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
-        //await WaitForUDPPort(networkServerPort);  
-        //currentPlaceIdsInUse.Add(placeId, jobId);
-        currentGameServerPorts.Add(jobId, networkServerPort);
-        switch (year)
-        {
-            case 2016:
-                jobRccs.Add(jobId, rccServer);
-                break;
-            case 2017:
-                jobRccs.Add(jobId, rccServer2017);
-                break;
-            case 2018:
-                jobRccs.Add(jobId, rccServer2018);
-                break;
-        }
-        //jobRccs.Add(jobId, rccServer);
-        Thread.Sleep(5000);
-        return "OK";
-        */
     }
 
     public static async Task SendSoapRequestToRcc(string URL, string XML, string SOAPAction)

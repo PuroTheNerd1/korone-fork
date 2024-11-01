@@ -382,9 +382,11 @@ public class GamesService : ServiceBase, IService
     {
         GameServerService gameServer = new GameServerService();
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
+
+        int DataCenterId = 1;
+        /*
         int gamseserverPort;
         string gameserverIp;
-        int DataCenterId;
         var country = await GetInfoFromIp(ip);
         switch (country.countryCode) 
         {
@@ -413,12 +415,12 @@ public class GamesService : ServiceBase, IService
                 DataCenterId = 1;
                 break;
         }
-
+        */
         var joinScript = new
         {
             ClientPort = 0,
-            MachineAddress = gameserverIp,
-            ServerPort = gamseserverPort,
+            MachineAddress = Configuration.GameServerIp,
+            ServerPort = await gameServer.GetGameserverForJobId(jobId),
             PingUrl = "",
             PingInterval = 0,
             UserName = username,
