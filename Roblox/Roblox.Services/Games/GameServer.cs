@@ -744,7 +744,7 @@ public class GameServerService : ServiceBase
                     port = proxyPort,
                     server_connection = $"{Configuration.GameServerIp}:{proxyPort}", 
                 });  
-                StartGameServer(placeId, mainRCCPort, proxyPort, networkServerPort, jobId, year, matchmaking, 43200); 
+                await StartGameServer(placeId, mainRCCPort, proxyPort, networkServerPort, jobId, year, matchmaking, 43200); 
                 return new GameServerGetOrCreateResponse()
                 {
                     job = jobId,
@@ -769,7 +769,6 @@ public class GameServerService : ServiceBase
         //string originalScript;
         //string finalScript;
         long maxplayers = await games.GetMaxPlayerCount(placeId);
-        Console.WriteLine("Starting Gameserver");
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
@@ -783,7 +782,7 @@ public class GameServerService : ServiceBase
                 //currentGameServerPortsPoland.Add(jobId, plProxyPort);
                 //currentGameServerPortsEastUs.Add(jobId, eastusProxyPort);
                 currentGameServerPorts.Add(jobId, proxyPort);
-                //return "OK";
+                return;
             }
         }
     }
