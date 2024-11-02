@@ -760,7 +760,7 @@ public class GameServerService : ServiceBase
     }
 
     
-    public async Task StartGameServer(long placeId, int RCCPort, int proxyPort, int networkServerPort, string jobId, long year, int matchmaking, int JobExpiration)
+    public async Task<string> StartGameServer(long placeId, int RCCPort, int proxyPort, int networkServerPort, string jobId, long year, int matchmaking, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
         GamesService games = new GamesService();
@@ -782,9 +782,10 @@ public class GameServerService : ServiceBase
                 //currentGameServerPortsPoland.Add(jobId, plProxyPort);
                 //currentGameServerPortsEastUs.Add(jobId, eastusProxyPort);
                 currentGameServerPorts.Add(jobId, proxyPort);
-                return;
+                return "OK";
             }
         }
+        return "FAILURE";
     }
 
     public static async Task SendSoapRequestToRcc(string URL, string XML, string SOAPAction)
