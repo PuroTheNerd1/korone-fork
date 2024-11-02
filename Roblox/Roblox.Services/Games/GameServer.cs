@@ -198,10 +198,13 @@ public class GameServerService : ServiceBase
     public async Task OnPlayerLeave(long userId, long placeId, string serverId)
     {
         CurrentPlayersInGame.Remove(userId);
+        if (serverId == null)
+        {
+            serverId = await GetJobIdByUserId(userId);
+        }
         await db.ExecuteAsync(
-            "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
+            "DELETE FROM asset_server_player WHERE user_id = :user_id", new
             {
-                server_id = serverId,
                 user_id = userId,
             });
         Console.WriteLine("deleted from db line 195 onplayerleave");
