@@ -34,7 +34,7 @@ public class DataStoreService : ServiceBase, IService
     public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
     {
         return await db.QueryAsync<DataStoreEntry>(
-            "SELECT id, value from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope AND name = :name ORDER BY id DESC",
+            "SELECT id, value from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope AND name = :name ORDER BY id DESC LIMIT 50",
             new
             {
                 place_id = placeId,
