@@ -631,13 +631,14 @@ public class GameServerService : ServiceBase
     }
     public async Task<string> GetJobIdByUserId(long userId)
     {
-        var result = await db.QueryFirstOrDefaultAsync<Guid?>(
+        var result = await db.QueryFirstOrDefaultAsync<Guid>(
             "SELECT server_id FROM asset_server_player WHERE user_id = :userId",
             new { userId }
         );
         
-        return result.ToString() ?? "";
+        return result == Guid.Empty ? "" : result.ToString();
     }
+
     public async Task<int> GetGameserverForJobId(string jobId)
     {   
         return await db.QueryFirstOrDefaultAsync<int>(
