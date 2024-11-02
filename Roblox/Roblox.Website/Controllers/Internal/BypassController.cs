@@ -928,8 +928,8 @@ namespace Roblox.Website.Controllers
             try 
             {
                 //needed for matchmaking so we can select the best route
-                string ip = GetRequesterIpRaw(HttpContext);
-                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString(), ip);
+                //string ip = GetRequesterIpRaw(HttpContext);
+                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
             }
             catch (Exception e)
             {
