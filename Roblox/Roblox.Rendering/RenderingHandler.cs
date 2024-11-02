@@ -423,18 +423,18 @@ namespace Roblox.Rendering
         public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
         {
             string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
-            int RCCPort = 10000;//RandomComponent.Next(10003, 25000);
-            //Process renderRcc = new Process();
-            //renderRcc.StartInfo.UseShellExecute = false;
-            //renderRcc.StartInfo.CreateNoWindow = true;
-            //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            //renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
-            //renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            //renderRcc.StartInfo.RedirectStandardError = false;
-            //renderRcc.StartInfo.RedirectStandardOutput = false;
-            //renderRcc.StartInfo.UseShellExecute = false;
-            //renderRcc.StartInfo.CreateNoWindow = true;
-            //renderRcc.Start();
+            int RCCPort = RandomComponent.Next(10003, 25000);
+            Process renderRcc = new Process();
+            renderRcc.StartInfo.UseShellExecute = false;
+            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
+            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
+            renderRcc.StartInfo.RedirectStandardError = false;
+            renderRcc.StartInfo.RedirectStandardOutput = false;
+            renderRcc.StartInfo.UseShellExecute = false;
+            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.Start();
             string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Avatar.txt");
             string finalScript = originalScript.Replace
                 ("%characterAppearanceUrl%", $@"""{characterAppearanceUrl}""").Replace
@@ -466,26 +466,26 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            //await WaitForPort(RCCPort);
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            //renderRcc.Kill();
+            renderRcc.Kill();
             return result;
         }       
         public static async Task<string> RequestHeadshotThumbnail(long userId, int JobExpiration)
         {
             string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
-            int RCCPort = 10001;//RandomComponent.Next(10003, 25000);
-            //Process renderRcc = new Process();
-            //renderRcc.StartInfo.UseShellExecute = false;
-            //renderRcc.StartInfo.CreateNoWindow = true;
-            //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            //renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
-            //renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            //renderRcc.StartInfo.RedirectStandardError = false;
-            //renderRcc.StartInfo.RedirectStandardOutput = false;
-            //renderRcc.StartInfo.UseShellExecute = false;
-            //renderRcc.StartInfo.CreateNoWindow = true;
-            //renderRcc.Start();
+            int RCCPort = RandomComponent.Next(10003, 25000);
+            Process renderRcc = new Process();
+            renderRcc.StartInfo.UseShellExecute = false;
+            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
+            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
+            renderRcc.StartInfo.RedirectStandardError = false;
+            renderRcc.StartInfo.RedirectStandardOutput = false;
+            renderRcc.StartInfo.UseShellExecute = false;
+            renderRcc.StartInfo.CreateNoWindow = true;
+            renderRcc.Start();
             string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Closeup.txt");
             string finalScript = originalScript.Replace
                 ("%baseUrl%", $@"""{BaseUrl}""").Replace
@@ -517,9 +517,9 @@ namespace Roblox.Rendering
                     </BatchJobEx>
                 </soap:Body>
             </soap:Envelope>";
-            //await WaitForPort(RCCPort);
+            await WaitForPort(RCCPort);
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            //renderRcc.Kill();
+            renderRcc.Kill();
             return result;
         }
         static Task WaitForPort(int RCCPort)
