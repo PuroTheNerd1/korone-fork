@@ -42,7 +42,6 @@ public class GameServerService : ServiceBase
     private static Dictionary<long, string> currentPlaceIdsInUse = new Dictionary<long, string>(); // placeid, jobid
     public static Dictionary<long, long> CurrentPlayersInGame = new Dictionary<long, long>() { }; // userid, placeid
     public static Dictionary<Process, int> mainRCCPortsInUse = new Dictionary<Process, int>(); // Process, main RCC soap port
-    private static readonly object _lock = new object();
     public static void Configure(string newJwtKey)
     {
         jwtKey = "hello world 12345";
@@ -127,12 +126,9 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerJoin(long userId, long placeId, string serverId)
     {
-        lock (_lock)
+        if (CurrentPlayersInGame.ContainsKey(userId))
         {
-            if (CurrentPlayersInGame.ContainsKey(userId))
-            {
-                CurrentPlayersInGame.Remove(userId);
-            }
+            CurrentPlayersInGame.Remove(userId);
         }
         CurrentPlayersInGame.Add(userId, placeId);
         await db.ExecuteAsync(
