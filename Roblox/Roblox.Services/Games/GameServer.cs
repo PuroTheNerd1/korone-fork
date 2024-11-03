@@ -719,7 +719,7 @@ public class GameServerService : ServiceBase
         while (!isUsable)
         {
             proxyPort = RandomComponent.Next(7000, 8000);
-            if (!await IsPortTaken(proxyPort))
+            if (await IsPortTaken(proxyPort))
             {
                 continue;
             }
