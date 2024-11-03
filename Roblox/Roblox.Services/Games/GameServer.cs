@@ -446,7 +446,18 @@ public class GameServerService : ServiceBase
         53655,
 #endif
     };
-    
+    public async Task<bool> IsPortTaken(long port)
+    {
+        var result = await db.QueryFirstOrDefaultAsync<long?>("SELECT port FROM asset_server WHERE port = :port", new { port });
+        if (result.HasValue)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     private GameServerPort GetPreferredPortForGameServer(IEnumerable<GameServerMultiRunEntry> runningGames)
     {
         var games = runningGames.ToList();
@@ -708,10 +719,8 @@ public class GameServerService : ServiceBase
         while (!isUsable)
         {
             proxyPort = RandomComponent.Next(7000, 8000);
-            //check both dictionaries if the port is in use
-            if (currentGameServerPorts.ContainsValue(proxyPort) || currentProxyPorts.ContainsValue(proxyPort))
+            if (!await IsPortTaken(proxyPort))
             {
-                isUsable = false;
                 continue;
             }
             isUsable = true;
