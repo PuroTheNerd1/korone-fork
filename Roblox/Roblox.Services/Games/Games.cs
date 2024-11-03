@@ -382,45 +382,14 @@ public class GamesService : ServiceBase, IService
     {
         GameServerService gameServer = new GameServerService();
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
+        int gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
 
-        int DataCenterId = 1;
-        /*
-        int gamseserverPort;
-        string gameserverIp;
-        var country = await GetInfoFromIp(ip);
-        switch (country.countryCode) 
-        {
-            //ips are hardcoded for now TwT
-            //close to poland
-            case "RU": 
-            case "CZ": 
-            case "SK": 
-            case "UA": 
-            case "BY": 
-            case "PL": 
-            case "LT": 
-                gamseserverPort = GameServerService.currentGameServerPortsPoland[jobId];
-                gameserverIp = "20.215.233.251";
-                DataCenterId = 2;
-                break;
-            case "US":
-            case "CA":
-                gamseserverPort = GameServerService.currentGameServerPortsEastUs[jobId];
-                gameserverIp = "137.116.66.63";
-                DataCenterId = 3;
-                break;
-            default:
-                gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
-                gameserverIp = Configuration.GameServerIp;
-                DataCenterId = 1;
-                break;
-        }
-        */
+        
         var joinScript = new
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
-            ServerPort = await gameServer.GetGameserverForJobId(jobId),
+            ServerPort = gamseserverPort,
             PingUrl = "",
             PingInterval = 0,
             UserName = username,
@@ -451,7 +420,7 @@ public class GamesService : ServiceBase, IService
             GenerateTeleportJoin = generateTeleportJoin,
             IsUnknownOrUnder13 = false,
             SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.GameServerIp}|8|{formattedDateTime}|0|null|{cookie}|null|null|null",
-            DataCenterId,
+            DataCenterId = 0,
             UniverseId = universeId,
             BrowserTrackerId = 0,
             UsePortraitMode = false,
