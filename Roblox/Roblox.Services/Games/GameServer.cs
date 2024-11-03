@@ -739,28 +739,17 @@ public class GameServerService : ServiceBase
             };
         }
             
-
-        // use discard to make server so we dont have to wait
-        await InTransaction<dynamic>(async _ =>
-        {
-            await db.ExecuteAsync(
-                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
-                new
-                {
-                    id = jobId,
-                    asset_id = placeId,
-                    ip = Configuration.GameServerIp,
-                    port = proxyPort,
-                    server_connection = $"{Configuration.GameServerIp}:{proxyPort}", 
-                });  
-                await StartGameServer(placeId, mainRCCPort, proxyPort, networkServerPort, jobId, year, matchmaking, 43200); 
-                return new GameServerGetOrCreateResponse()
-                {
-                    job = jobId,
-                    status = JoinStatus.Loading
-                };
-        });
-        
+        await db.ExecuteAsync(
+            "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
+            new
+            {
+                id = jobId,
+                asset_id = placeId,
+                ip = Configuration.GameServerIp,
+                port = proxyPort,
+                server_connection = $"{Configuration.GameServerIp}:{proxyPort}", 
+            });  
+            await StartGameServer(placeId, mainRCCPort, proxyPort, networkServerPort, jobId, year, matchmaking, 43200); 
         return new GameServerGetOrCreateResponse()
         {
             job = jobId,
