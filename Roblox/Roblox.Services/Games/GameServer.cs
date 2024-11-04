@@ -684,17 +684,12 @@ public class GameServerService : ServiceBase
             }
 
             //dict check!!! if it doesnt contain it lets kill it!
-            if (!currentGameServerPorts.ContainsKey(jobid))
-            {
-                _ = ShutDownServerAsync(jobid);
-                continue;
-            }
-            // if server hasnt pinged for 10 minutes kill the server 
-            //if (server.updated_at.AddMinutes(10) < DateTime.UtcNow)
+            //if (!currentGameServerPorts.ContainsKey(jobid))
             //{
                 //_ = ShutDownServerAsync(jobid);
                 //continue;
             //}
+
             // we found a server to join or.... its loading depending
             return new GameServerGetOrCreateResponse()
             {
@@ -702,7 +697,6 @@ public class GameServerService : ServiceBase
                 status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
             };
         }
-        
         long year = await games.GetYear(placeId);
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort =  RandomComponent.Next(50000, 60000);;
