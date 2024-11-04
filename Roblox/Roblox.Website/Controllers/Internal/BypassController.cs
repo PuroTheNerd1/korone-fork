@@ -759,6 +759,7 @@ namespace Roblox.Website.Controllers
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
             long year = await services.games.GetYear(placeId);
+            Console.WriteLine("User Agent of rich presence:" + HttpContext.Request.Headers["User-Agent"].ToString());
             return new 
             {
                 Creator = placeInfo.creatorName,
