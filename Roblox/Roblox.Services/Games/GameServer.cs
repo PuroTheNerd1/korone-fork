@@ -730,7 +730,7 @@ public class GameServerService : ServiceBase
             };
         }
         
-        await db.ExecuteAsync(
+        _ = await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
             new
             {
