@@ -60,7 +60,7 @@ public class FilterService : ServiceBase, IService
             if (nonWhitespaceInput.Contains(word))
             {
                 //replace the string with # like roblox does
-                nonWhitespaceInput = new string('#', input.Length);
+                input = new string('#', input.Length);
                 break;
             }
         }
