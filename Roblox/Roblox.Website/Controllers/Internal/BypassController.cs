@@ -734,7 +734,7 @@ namespace Roblox.Website.Controllers
         }
         
         [HttpGetBypass("joinserver")]
-        public async Task<IActionResult> JoinServerFromJobId(long placeId, string jobId)
+        public async Task<IActionResult> JoinServerFromJobId(string jobId, long placeId)
         {
             string clientVer;
             if (userSession == null)
