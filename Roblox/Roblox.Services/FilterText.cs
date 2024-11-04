@@ -52,14 +52,15 @@ public class FilterService : ServiceBase, IService
             "pornography"
         };
         //remove all spaces
-        input = String.Join("", input.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
+        string nonWhitespaceInput;
+        nonWhitespaceInput = String.Join("", input.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
         foreach (string word in filteredWords)
         {
             //check if the chat msg contains one of the filtering words
-            if (input.Contains(word))
+            if (nonWhitespaceInput.Contains(word))
             {
                 //replace the string with # like roblox does
-                input = new string('#', input.Length);
+                nonWhitespaceInput = new string('#', input.Length);
                 break;
             }
         }
