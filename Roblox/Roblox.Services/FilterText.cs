@@ -28,10 +28,6 @@ public class FilterService : ServiceBase, IService
     }        
     public string FilterText(string input)
     {
-        string buildFilteredWordPatern(string word)
-        {
-            return @"\b" + string.Join(@"\s*", word.ToCharArray()) + @"\b";
-        }
         string[] filteredWords = 
         {
             "nigger", 
@@ -44,7 +40,6 @@ public class FilterService : ServiceBase, IService
             "penis",
             "breasts",
             "tits",
-            "ass",
             "dildo",
             "masturbation",
             "blowjob",
@@ -52,15 +47,20 @@ public class FilterService : ServiceBase, IService
             "fetish",
             "orgasm",
             "rape",
+            "cum",
             "porn",
             "pornography"
         };
-        string[] filteredWordsPatterns = filteredWords.Select(word => buildFilteredWordPatern(word)).ToArray();
-        foreach (string pattern in filteredWordsPatterns)
+        //remove all spaces
+        input.Replace(" ", "");
+        foreach (string word in filteredWords)
         {
-            if (Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase))
+            //check if the chat msg contains one of the filtering words
+            if (input.Contains(word))
             {
-                return new string('#', input.Length);
+                //replace the string with # like roblox does
+                input = new string('#', input.Length);
+                break;
             }
         }
         return input;
