@@ -52,7 +52,7 @@ public class FilterService : ServiceBase, IService
             "pornography"
         };
         //remove all spaces
-        input.Replace(" ", "");
+        input = String.Join("", input.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
         foreach (string word in filteredWords)
         {
             //check if the chat msg contains one of the filtering words
