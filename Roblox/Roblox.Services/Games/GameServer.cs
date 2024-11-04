@@ -690,11 +690,11 @@ public class GameServerService : ServiceBase
                 continue;
             }
             // if server hasnt pinged for 10 minutes kill the server 
-            if (server.updated_at.AddMinutes(10) < DateTime.UtcNow)
-            {
-                _ = ShutDownServerAsync(jobid);
-                continue;
-            }
+            //if (server.updated_at.AddMinutes(10) < DateTime.UtcNow)
+            //{
+                //_ = ShutDownServerAsync(jobid);
+                //continue;
+            //}
             // we found a server to join or.... its loading depending
             return new GameServerGetOrCreateResponse()
             {
