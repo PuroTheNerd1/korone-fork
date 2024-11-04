@@ -14,6 +14,14 @@ namespace Roblox.Services;
 public class GamesService : ServiceBase, IService
 {
     GameServerService gameServer = new GameServerService();
+    //ugh
+    public readonly Dictionary<long, string> clientVersionMap = new Dictionary<long, string>
+    {
+        { 2017, "2017L" },
+        { 2018, "2018L" },
+        { 2020, "2020L" },
+        { 2021, "2021M" }
+    };
     public async Task<long> GetMaxPlayerCount(long placeId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(

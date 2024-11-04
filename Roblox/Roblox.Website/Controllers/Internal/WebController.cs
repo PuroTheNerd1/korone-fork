@@ -408,31 +408,7 @@ public class WebController : ControllerBase
         // TODO: Rate limit, or caching, or something
         string clientVer;
         long year = await services.games.GetYear(placeId);
-
-        switch(year)
-        {
-            case 2015:
-                clientVer = "2015M";
-                break;
-            case 2016:
-                clientVer = "2016E";
-                break;
-            case 2017:
-                clientVer = "2017L";
-                break;
-            case 2018:
-                clientVer = "2018L";
-                break;
-            case 2020:
-                clientVer = "2020L";
-                break;
-            case 2021:
-                clientVer = "2021M";
-                break;
-            default:
-                clientVer = "2016E";
-                break;
-        }        
+        clientVer = services.games.clientVersionMap.TryGetValue(year, out var ver) ? ver : throw new BadRequestException();
         var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
@@ -453,35 +429,13 @@ public class WebController : ControllerBase
     {
         string clientVer;
         long year = await services.games.GetYear(placeId);
-        switch(year)
-        {
-            case 2015:
-                clientVer = "2015M";
-                break;
-            case 2016:
-                clientVer = "2016E";
-                break;
-            case 2017:
-                clientVer = "2017L";
-                break;
-            case 2018:
-                clientVer = "2018L";
-                break;
-            case 2020:
-                clientVer = "2020L";
-                break;
-            case 2021:
-                clientVer = "2021M";
-                break;
-            default:
-                clientVer = "2016E";
-                break;
-        }          
+        clientVer = services.games.clientVersionMap.TryGetValue(year, out var ver) ? ver : throw new BadRequestException();
+
         var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-        var bootstrapperArgs = $"://1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
             $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {Request.Cookies[".ROBLOSECURITY"]} --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true";
         return new

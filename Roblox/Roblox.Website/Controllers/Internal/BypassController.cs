@@ -732,18 +732,34 @@ namespace Roblox.Website.Controllers
         {
             return await services.games.GetInfoFromIp(ip);
         }
+        
+        [HttpGetBypass("joinserver")]
+        public async Task<IActionResult> JoinServerFromJobId(long placeId, string jobId)
+        {
+            string clientVer;
+            if (userSession == null)
+            {
+                throw new RobloxException(403, 1, "User is not authorized.");
+            }
+            long year = await services.games.GetYear(placeId);
+            clientVer = services.games.clientVersionMap.TryGetValue(year, out var ver) ? ver : throw new BadRequestException();
+            var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
+            if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
+            var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
+            if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
+            var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+            return Redirect($"projex-player{bootstrapperArgs}");
+        }
 
         [HttpGetBypass("getrichpresence")]
-        public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId)
+        public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId, string jobId)
         {
-            string jobId = "";
             string username = "";
             int playerCount = 0;
             try
             {
                 if (userId != 0)
                 {
-                    jobId = await services.gameServer.GetJobIdByUserId(userId);
                     var currentPlayerCount = await services.gameServer.GetGameServerPlayers(jobId);
                     playerCount = currentPlayerCount.Count();
                 }
@@ -756,10 +772,10 @@ namespace Roblox.Website.Controllers
             {
                 username = userSession.username;
             }
+
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
             long year = await services.games.GetYear(placeId);
-            Console.WriteLine("User Agent of rich presence:" + HttpContext.Request.Headers["User-Agent"].ToString());
             return new 
             {
                 Creator = placeInfo.creatorName,
