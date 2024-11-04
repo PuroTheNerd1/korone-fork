@@ -45,7 +45,15 @@ public class PlaceLauncherService : ServiceBase
     public async Task<PlaceLaunchResponse> RequestGameJob(string gameId, long placeId)
     {
         GamesService games = new GamesService();
-        
+        if (await games.IsFull(gameId, placeId))
+        {
+            return new PlaceLaunchResponse()
+            {
+                jobId = gameId,
+                status = (int)JoinStatus.GameFull,
+                message = "The game is full."
+            };
+        }
         return new PlaceLaunchResponse()
         {
             jobId = gameId,
