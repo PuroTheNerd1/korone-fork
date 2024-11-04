@@ -736,14 +736,15 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("getrichpresence")]
         public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId)
         {
-            string JobId = "";
+            string jobId = "";
+            string username = "";
             int playerCount = 0;
             try
             {
                 if (userId != 0)
                 {
-                    JobId = await services.gameServer.GetJobIdByUserId(userId);
-                    var currentPlayerCount = await services.gameServer.GetGameServerPlayers(JobId);
+                    jobId = await services.gameServer.GetJobIdByUserId(userId);
+                    var currentPlayerCount = await services.gameServer.GetGameServerPlayers(jobId);
                     playerCount = currentPlayerCount.Count();
                 }
             }
@@ -751,7 +752,10 @@ namespace Roblox.Website.Controllers
             {
                 playerCount = 0;
             }
-
+            if (userSession != null)
+            {
+                username = userSession.username;
+            }
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
             long year = await services.games.GetYear(placeId);
@@ -759,6 +763,7 @@ namespace Roblox.Website.Controllers
             {
                 Creator = placeInfo.creatorName,
                 Name = placeInfo.name,
+                Username = username,
                 Year = year,
                 MaxPlayers = maxplayers,
                 PartyId = Guid.NewGuid().ToString(),
