@@ -291,8 +291,8 @@ public class GamesService : ServiceBase, IService
     }
     public async Task SetMaxPlayerCount(long placeId, int maxPlayerCount)
     {
-        if (maxPlayerCount < 5)
-            throw new RobloxException(400, 0, "Max player count cannot be below 5");
+        if (maxPlayerCount < 1)
+            throw new RobloxException(400, 0, "Max player count cannot be below 1");
         if (maxPlayerCount > 100)
             throw new RobloxException(400, 0, "Max player count cannot exceed 100");
         
