@@ -654,7 +654,7 @@ public class GameServerService : ServiceBase
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId)
     {   
         return await db.QueryAsync<GameServerDb>(
-            "SELECT id, status FROM asset_server WHERE asset_id = :assetid",
+            "SELECT * FROM asset_server WHERE asset_id = :assetid",
             new
             {
                 assetid = placeId,
