@@ -2064,16 +2064,16 @@ Thank you for your understanding,
 
         await CopyItemFloodCheck();
         // Now backport the item!
-        var backportDetails = await services.assets.BackportAccessory(request.assetId);
+        long backportId = await services.assets.BackportAccessory(request.assetId);
         await db.ExecuteAsync("INSERT INTO moderation_migrate_asset(asset_id, roblox_asset_id, actor_id) VALUES (@assetId, @robloxAssetId, @actorId)",
             new
             {
-                assetId = backportDetails.assetId,
+                assetId = backportId,
                 robloxAssetId = request.assetId,
                 actorId = safeUserSession.userId,
             });
 
-        return backportDetails;
+        return backportId;
     }
     [HttpPost("asset/copy-from-roblox"), StaffFilter(Access.CreateAssetCopiedFromRoblox)]
     public async Task<dynamic> CopyAssetFromRoblox([Required, FromBody] CopyAssetRequest request)

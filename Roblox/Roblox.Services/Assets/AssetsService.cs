@@ -1245,7 +1245,7 @@ public class AssetsService : ServiceBase, IService
         }
     }
 
-    public async Task<dynamic> BackportAccessory(long assetId)
+    public async Task<long> BackportAccessory(long assetId)
     {
         var robloxApi = new RobloxApi();
         var assetsService = new AssetsService();
@@ -1291,16 +1291,10 @@ public class AssetsService : ServiceBase, IService
                 var assetDetails = await assetsService.CreateAsset(AccessoryDetailsRequest.Name, AccessoryDetailsRequest.Description, 1,
                                     CreatorType.User, 1, rbxmStream, (Type)AccessoryAsset.AssetTypeId, Genre.All, ModerationStatus.ReviewApproved,
                                     DateTime.UtcNow, DateTime.UtcNow, assetId);
-                return new
-                {
-                    assetId = assetDetails.assetId,
-                };
+                return assetDetails.assetId;
             }
         }
-        return new
-        {
-            assetId = 0,
-        };
+        return 0;
     }
     public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, long contentId)
     {
