@@ -1250,7 +1250,7 @@ public class AssetsService : ServiceBase, IService
         var robloxApi = new RobloxApi();
         var assetsService = new AssetsService();
         var AccessoryDetailsRequest = await robloxApi.GetProductInfo(assetId);
-        var AccessoryAsset = await robloxApi.GetProductInfoAssetDelivery(assetId);
+        var AccessoryAsset = await robloxApi.GetProductInfo(assetId);
         if ((int)AccessoryAsset.AssetTypeId >= 41 & (int)AccessoryAsset.AssetTypeId <= 47)
         {
             Stream RBXMStream = await robloxApi.GetAssetContentFromProxy(assetId);
@@ -1260,7 +1260,7 @@ public class AssetsService : ServiceBase, IService
             String MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
             String MeshId = EasyConverters.HexStringToString(MeshIdHexString);
 
-            var MeshAssetRequest = await robloxApi.GetProductInfoAssetDelivery(long.Parse(MeshId));
+            var MeshAssetRequest = await robloxApi.GetProductInfo(long.Parse(MeshId));
 
             if ((int)MeshAssetRequest.AssetTypeId == 4)
             {
