@@ -1251,9 +1251,9 @@ public class AssetsService : ServiceBase, IService
         var assetsService = new AssetsService();
         var AccessoryDetailsRequest = await robloxApi.GetProductInfo(assetId);
         var AccessoryAsset = await robloxApi.GetProductInfo(assetId);
-        if (!((int)AccessoryAsset.AssetTypeId >= 41 && (int)AccessoryAsset.AssetTypeId <= 47) && AccessoryAsset.AssetTypeId == 8)
+        if (!((int)AccessoryAsset.AssetTypeId >= 41 && (int)AccessoryAsset.AssetTypeId <= 47) && (int)AccessoryAsset.AssetTypeId == 8)
         {
-            {
+
             Stream RBXMStream = await robloxApi.GetAssetContentFromProxy(assetId);
             byte[] RBXMByte = EasyConverters.StreamToByte(RBXMStream);
             String RBXMHexString = Convert.ToHexString(RBXMByte);
