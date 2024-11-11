@@ -1265,7 +1265,7 @@ public class AssetsService : ServiceBase, IService
             Type.Head,
         };
         Console.WriteLine($"Backport asset type is: {AccessoryAsset.AssetTypeId}");
-        if (!allowedTypes.Contains(AccessoryAsset.AssetTypeId.Value))
+        if (allowedTypes.Contains(AccessoryAsset.AssetTypeId.Value))
         {
             Stream RBXMStream = await robloxApi.GetAssetContentFromProxy(assetId);
             byte[] RBXMByte = EasyConverters.StreamToByte(RBXMStream);
