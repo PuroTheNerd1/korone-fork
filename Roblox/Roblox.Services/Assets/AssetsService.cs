@@ -1252,7 +1252,7 @@ public class AssetsService : ServiceBase, IService
         var AccessoryDetailsRequest = await robloxApi.GetProductInfo(assetId);
         var AccessoryAsset = await robloxApi.GetProductInfo(assetId);
         Console.WriteLine($"Backport asset type is: {AccessoryAsset.AssetTypeId}");
-        if (((int)AccessoryAsset.AssetTypeId <= 41 || (int)AccessoryAsset.AssetTypeId >= 47) && (int)AccessoryAsset.AssetTypeId == 8)
+        if (!((int)AccessoryAsset.AssetTypeId >= 41 && (int)AccessoryAsset.AssetTypeId <= 47) && (int)AccessoryAsset.AssetTypeId == 8)
         {
             Stream RBXMStream = await robloxApi.GetAssetContentFromProxy(assetId);
             byte[] RBXMByte = EasyConverters.StreamToByte(RBXMStream);
