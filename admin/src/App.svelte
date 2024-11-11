@@ -42,6 +42,7 @@ import CopyRobloxBundle from "./pages/CopyRobloxBundle.svelte";
 import Permissions from "./pages/Permissions.svelte";
 import ForceApplication from "./pages/ForceApplication.svelte";
 import GiftAllUsers from "./pages/GiftAllUsers.svelte";
+	import CopyRobloxUgc from "./pages/CopyRobloxUGC.svelte";
 	// import 'bootstrap';
 
 	var pushState = history.pushState;
@@ -130,6 +131,9 @@ import GiftAllUsers from "./pages/GiftAllUsers.svelte";
 		</Route>
 		<Route path="/admin/asset/copy">
 			<CopyRobloxClothing />
+		</Route>
+		<Route path="/admin/asset/copy">
+			<CopyRobloxUgc />
 		</Route>
 		<Route path="/admin/bundle/copy">
 			<CopyRobloxBundle />
