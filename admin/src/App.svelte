@@ -132,7 +132,7 @@ import GiftAllUsers from "./pages/GiftAllUsers.svelte";
 		<Route path="/admin/asset/copy">
 			<CopyRobloxClothing />
 		</Route>
-		<Route path="/admin/asset/copy">
+		<Route path="/admin/asset/ugccopy">
 			<CopyRobloxUgc />
 		</Route>
 		<Route path="/admin/bundle/copy">
