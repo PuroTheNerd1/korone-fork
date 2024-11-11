@@ -25,7 +25,7 @@ namespace Roblox.Website.Controllers
             if (!IsRcc())
                 throw new RobloxException(400, 0, "BadRequest");
 
-            if (value == null) 
+            if (value == null)
                 value = int.Parse(Request.Form["value"][0]);
             string? result = await ds.Get(placeId, type, scope, key, target);
 
@@ -40,7 +40,7 @@ namespace Roblox.Website.Controllers
                     throw new RobloxException(400, 0, "InvalidValue");
                 }
             }
-            else 
+            else
             {
                 throw new RobloxException(400, 0, "InvalidValue");
             }
@@ -60,14 +60,14 @@ namespace Roblox.Website.Controllers
             var value = Request.Form["value"][0];
             await ServiceProvider.GetOrCreate<DataStoreService>()
                 .Set(placeId, key, type, scope, target, valueLength, value);
-            return new 
+            return new
             {
-                data = new 
+                data = new
                 {
                     Value = value,
                     Scope = scope,
                     Key = key,
-                    Target = target    
+                    Target = target
                 }
             };
         }
@@ -78,7 +78,7 @@ namespace Roblox.Website.Controllers
             // persistence/set?placeId=124921244&key=BF2%5Fds%5Ftest&&type=standard&scope=global&target=BF2%5Fds%5Fkey%5Ftmp&valueLength=31
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
             bool isEmpty = false;
-            dynamic result; 
+            dynamic result;
             if (!IsRcc())
                 throw new RobloxException(403, 0, "BadRequest");
             if (pageSize > 100)
@@ -86,7 +86,7 @@ namespace Roblox.Website.Controllers
             if (type != "sorted")
                 throw new RobloxException(400, 0, "TypeNotSorted");
             if (exclusiveStartKey == null)
-                exclusiveStartKey = 1;	
+                exclusiveStartKey = 1;
             else if (exclusiveStartKey < 1)
                 throw new RobloxException(400, 0, "InValidExclusiveStartKey");
 
@@ -117,7 +117,7 @@ namespace Roblox.Website.Controllers
                     addedTargets.Add(item.name);
                 }
             }
-            else 
+            else
             {
                 result = new List<GetKeyEntry>();
                 foreach (DataStoreEntry item in res)
@@ -168,7 +168,7 @@ namespace Roblox.Website.Controllers
             string qKeyscope;
             string qKeyTarget;
             string qKeyKey;
-            while (true) 
+            while (true)
             {
                 qKeyscope = Request.Form[$"qkeys[{countRequest}].scope"]!;
                 qKeyTarget = Request.Form[$"qkeys[{countRequest}].target"]!;
@@ -205,7 +205,6 @@ namespace Roblox.Website.Controllers
                 result = new List<string>();
             var finalData = new { data = result};
             string jsonString = JsonConvert.SerializeObject(finalData);
-            Console.WriteLine(jsonString);
             return Content(jsonString, "application/json");
         }
     }
