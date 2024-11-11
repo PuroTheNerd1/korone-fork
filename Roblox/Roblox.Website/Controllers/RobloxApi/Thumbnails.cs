@@ -106,7 +106,7 @@ public class RbxThumbnails : ControllerBase
     [HttpGetBypass("Game/Tools/ThumbnailAsset.ashx")]
     [HttpGetBypass("thumbs/asset.ashx")]
     public async Task<RedirectResult> GetAssetThumbnail(long assetId, long? aid)
-    {        
+    {
         if(aid != null)
             assetId = (long)aid;
         return await GetThumbnailUrl(assetId, ThumbnailType.Asset);
@@ -133,7 +133,7 @@ public class RbxThumbnails : ControllerBase
             Final = true,
             SubstitutionType = 0
         };
-    }     
+    }
 
     [HttpGetBypass("asset-gameicon/multiget")]
     public async Task<dynamic> GetGameIconMultiGet([FromQuery] List<long> universeId)
@@ -146,7 +146,7 @@ public class RbxThumbnails : ControllerBase
         var parsed = universeIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
         var result = await services.thumbnails.GetGameIcons(parsed);
-        var result2 = result.Select(thumbnail => 
+        var result2 = result.Select(thumbnail =>
             new ThumbnailEntry
             {
                 targetId = thumbnail.targetId,
@@ -204,7 +204,6 @@ public class RbxThumbnails : ControllerBase
         bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
         IEnumerable<BatchRequestEntry> requestEntries;
         var tasks = new List<Task<IEnumerable<dynamic>>>();
-        Console.WriteLine(isGzip);
         if (isGzip)
         {
             using (var decompressedStream = new MemoryStream())
@@ -221,7 +220,6 @@ public class RbxThumbnails : ControllerBase
                 using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
                 {
                     var json = await reader.ReadToEndAsync();
-                    Console.WriteLine(json);
                     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
                 }
             }
@@ -231,7 +229,6 @@ public class RbxThumbnails : ControllerBase
             using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
             {
                 var json = await reader.ReadToEndAsync();
-                Console.WriteLine(json);
                 requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
             }
         }
@@ -260,15 +257,15 @@ public class RbxThumbnails : ControllerBase
             {
                 case "Avatar":
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs, 
-                        "Avatar", 
+                        thumbs,
+                        "Avatar",
                         ids => services.thumbnails.GetUserThumbnails(new[] { entry.targetId })
                     ));
                     break;
                 case "AvatarThumbnail":
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs, 
-                        "AvatarThumbnail", 
+                        thumbs,
+                        "AvatarThumbnail",
                         ids => services.thumbnails.GetUserThumbnails(new[] { entry.targetId })
                     ));
                     break;
@@ -277,15 +274,15 @@ public class RbxThumbnails : ControllerBase
                     break;
                 case "GameIcon":
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs, 
-                        "GameIcon", 
+                        thumbs,
+                        "GameIcon",
                         ids => services.thumbnails.GetGameIcons(new[] { entry.targetId })
                     ));
                     break;
                 case "AssetThumbnail":
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs, 
-                        "AssetThumbnail", 
+                        thumbs,
+                        "AssetThumbnail",
                         ids => services.thumbnails.GetUserHeadshots(new[] { entry.targetId })
                     ));
                     break;
@@ -293,13 +290,13 @@ public class RbxThumbnails : ControllerBase
                     tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots));
                     break;
             }
-            
+
         }
-        
+
 
         var allResults = await Task.WhenAll(tasks);
 
-        
+
         var resultObject = new
         {
             data = allResults

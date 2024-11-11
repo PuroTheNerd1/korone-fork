@@ -193,7 +193,6 @@ public class CsrfMiddleware : ControllerServicesExtended
         {
             if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !bypassUrls.Contains(pathLower)  && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products"))
             {
-                Console.WriteLine(pathLower);
                 var token = await TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
                 if (token == null)

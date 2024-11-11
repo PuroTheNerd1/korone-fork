@@ -84,7 +84,7 @@ namespace Roblox.Website.Controllers
                 });
                 assetId = migrationResult.assetId;
             }
-            
+
             var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
             if (latestVersion.contentUrl is null)
             {
@@ -114,11 +114,11 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("asset")]
         public async Task<MVC.ActionResult> GetAssetById(long? playerId, long id, long? assetversionid = null)
         {
-            
+
 
             /*
             This is from corescripts from 2017 for more context
-            
+
             local CUSTOM_ICONS = {	-- Admins with special icons
             ['7210880'] = 'rbxassetid://134032333', -- Jeditkacheff
             ['13268404'] = 'rbxassetid://113059239', -- Sorcus
@@ -130,7 +130,7 @@ namespace Roblox.Website.Controllers
             if(id == 161078086){
                 id = 10812;
             }
-            
+
             */
 
             HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
@@ -141,11 +141,11 @@ namespace Roblox.Website.Controllers
             // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
             if(id == 507766388)
             {
-                return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766388.rbxm", "application/octet-stream");  
+                return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766388.rbxm", "application/octet-stream");
             }
             else if(id == 507766666)
             {
-                return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");      
+                return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");
             }
             if(assetversionid != null)
             {
@@ -168,7 +168,7 @@ namespace Roblox.Website.Controllers
             // Opt
             if (Services.Cache.distributed.StringGetMemory(invalidIdKey) != null)
                 throw new RobloxException(400, 0, "Asset is invalid or does not exist");
-            
+
             var isBotRequest = Request.Headers["bot-auth"].ToString() == Roblox.Configuration.BotAuthorization;
             var isLoggedIn = userSession != null;
             var encryptionEnabled = !isBotRequest; // bots can't handle encryption :(
@@ -195,11 +195,11 @@ namespace Roblox.Website.Controllers
             encryptionEnabled = false;
 #endif
             MultiGetEntry details;
-            try 
+            try
             {
                 details = await services.assets.GetAssetCatalogInfo(assetId);
-            } 
-            catch (RecordNotFoundException) 
+            }
+            catch (RecordNotFoundException)
             {
                 try
                 {
@@ -210,7 +210,7 @@ namespace Roblox.Website.Controllers
                 {
                     /*if (await Services.Cache.distributed.StringGetAsync(invalidIdKey) != null)
                         throw new RobloxException(400, 0, "Asset is invalid or does not exist");
-                    
+
                     try
                     {
                         // Doesn't exist yet, so create it
@@ -270,7 +270,7 @@ namespace Roblox.Website.Controllers
             }
             else
             {
-                assetVersion = 
+                assetVersion =
             }
             */
             Stream? assetContent = null;
@@ -430,7 +430,7 @@ namespace Roblox.Website.Controllers
         {
             List<BatchAssetRequest> requestData;
             bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
-            
+
             if (isGzip)
             {
                 using (var decompressedStream = new MemoryStream())
@@ -447,7 +447,6 @@ namespace Roblox.Website.Controllers
                     using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
                     {
                         var json = await reader.ReadToEndAsync();
-                        Console.WriteLine(json);
                         requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
                     }
                 }
@@ -457,7 +456,6 @@ namespace Roblox.Website.Controllers
                 using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
                 {
                     var json = await reader.ReadToEndAsync();
-                    Console.WriteLine(json);
                     requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
                 }
             }
@@ -474,7 +472,7 @@ namespace Roblox.Website.Controllers
                     Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
                     RequestId = request.requestId,
                     IsHashDynamic = true,
-                    IsCopyrightProtected = true, 
+                    IsCopyrightProtected = true,
                     IsArchived = false,
                 });
             }
@@ -484,7 +482,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
         {
-            return new 
+            return new
             {
                 UniverseId = await services.games.GetUniverseId(placeid)
             };
@@ -548,7 +546,7 @@ namespace Roblox.Website.Controllers
                 }
                 catch (Exception)
                 {
-                    
+
                 }
 
                 return "<Value Type=\"boolean\">"+(isInGroup ? "true" : "false")+"</Value>";
@@ -564,7 +562,7 @@ namespace Roblox.Website.Controllers
                 }
                 catch (Exception)
                 {
-                    
+
                 }
 
                 return "<Value Type=\"integer\">"+rank+"</Value>";
@@ -676,10 +674,10 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         public async Task<PlaceLaunchResponse> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
-        {     
+        {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long year = await services.games.GetYear(Placelauncher.placeId);
-        
+
             if (!ApplicationGuardMiddleware.IsRoblox(Request) || year == 2016){
                 return new PlaceLaunchResponse()
                 {
@@ -732,7 +730,7 @@ namespace Roblox.Website.Controllers
         {
             return await services.games.GetInfoFromIp(ip);
         }
-        
+
         [HttpGetBypass("joinserver")]
         public async Task<IActionResult> JoinServerFromJobId(string jobId, long placeId)
         {
@@ -776,7 +774,7 @@ namespace Roblox.Website.Controllers
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
             long year = await services.games.GetYear(placeId);
-            return new 
+            return new
             {
                 Creator = placeInfo.creatorName,
                 Name = placeInfo.name,
@@ -819,11 +817,11 @@ namespace Roblox.Website.Controllers
             gameDetail.PlayerCount = 10347;
             gameDetail.ImageId = 2311;
 
-            List<dynamic> gameDetailList = new List<dynamic>(); 
-            gameDetailList.Add(gameDetail); 
-            gameDetailList.Add(gameDetail); 
-            gameDetailList.Add(gameDetail); 
-            string jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(gameDetailList); 
+            List<dynamic> gameDetailList = new List<dynamic>();
+            gameDetailList.Add(gameDetail);
+            gameDetailList.Add(gameDetail);
+            gameDetailList.Add(gameDetail);
+            string jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(gameDetailList);
             return Content(jsonString, "application/json");
         }
         [HttpGetBypass("game/GetCurrentUser.ashx")]
@@ -865,7 +863,7 @@ namespace Roblox.Website.Controllers
             await services.assets.ValidatePermissions(place, safeUserSession.userId);
             await services.games.SetYear(place, year);
             return "ok";
-        } 
+        }
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, FromQuery] string suggest)
         {
@@ -925,7 +923,7 @@ namespace Roblox.Website.Controllers
                     characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
                     finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
-                case 2017:                  
+                case 2017:
                     finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2018:
@@ -943,11 +941,11 @@ namespace Roblox.Website.Controllers
                 default:
                     throw new InvalidOperationException($"This year does not exist: {uni.year}");
             }
-            
+
 
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             dynamic joinScript = null;
-            try 
+            try
             {
                 //needed for matchmaking so we can select the best route
                 //string ip = GetRequesterIpRaw(HttpContext);
@@ -1118,7 +1116,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2/stream-notifications/unread-count")]
         public dynamic PushNotif()
         {
-            return new 
+            return new
             {
                 unreadNotifications = 69,
                 statusMessage = string.Empty
@@ -1130,7 +1128,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("incoming-items/counts")]
         public dynamic IncomingItems()
         {
-            return new 
+            return new
             {
                 success = true
             };
@@ -1254,7 +1252,7 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(result);
             return Content(jsonString, "application/json");
         }
-        
+
         private void CheckServerAuth(string auth)
         {
             if (auth != Configuration.GameServerAuthorization)
@@ -1292,7 +1290,7 @@ namespace Roblox.Website.Controllers
         }
         //this is for the newer years that dont have a custom monitoring script
         [HttpPostBypass("presence/register-game-presence")]
-        public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType) 
+        public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType)
         {
             bool IsRCC = IsRcc();
             if(!IsRCC)
@@ -1396,8 +1394,8 @@ namespace Roblox.Website.Controllers
             /*
             HWID hwid = new HWID();
             long userId = safeUserSession.userId;
-            bool isBanned = false; 
-            string macAddress = null; 
+            bool isBanned = false;
+            string macAddress = null;
 
             using (StreamReader reader = new StreamReader(Request.Body))
             {
@@ -1412,10 +1410,10 @@ namespace Roblox.Website.Controllers
                     {
                         macAddress = parts[1];
                         isBanned = await hwid.CheckHWID(userId, macAddress);
-                        if (!isBanned) 
+                        if (!isBanned)
                         {
                             break;
-                        }                        
+                        }
                     }
                 }
             }
@@ -1549,7 +1547,7 @@ namespace Roblox.Website.Controllers
             {
                 foreach (var jobs in serverjobs)
                 {
-                    jobId = jobs.id.ToString(); 
+                    jobId = jobs.id.ToString();
                     await services.gameServer.ShutDownServerAsync(jobId);
                 }
                 return "OK!";
@@ -1590,7 +1588,7 @@ namespace Roblox.Website.Controllers
             return new
             {
                 success = true,
-                data = new 
+                data = new
                 {
                     white = text,
                     black = text
@@ -1675,7 +1673,7 @@ namespace Roblox.Website.Controllers
             else{
                 mode = "blacklist";
             }
-            return new 
+            return new
             {
                 ChatFilter = mode,
             };
@@ -1714,7 +1712,7 @@ namespace Roblox.Website.Controllers
             if (!IsRcc())
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
-            {  
+            {
                 "0.206.0pcplayer",
                 "0.235.0pcplayer",
                 "0.314.0pcplayer",
@@ -1768,7 +1766,7 @@ namespace Roblox.Website.Controllers
                         {
                             throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
                         }
-                        
+
                         decompressedStream.Position = 0;
 
                         await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, decompressedStream);
@@ -1782,7 +1780,7 @@ namespace Roblox.Website.Controllers
                 {
                     pendingAssetUploads--;
                 }
-                
+
             }
             return new
             {
@@ -1791,7 +1789,7 @@ namespace Roblox.Website.Controllers
         }
         private async Task<bool> AssetValidationV2(Stream stream)
         {
-            byte[] buffer = new byte[7]; 
+            byte[] buffer = new byte[7];
             await stream.ReadAsync(buffer, 0, buffer.Length);
             string startOfFile = Encoding.UTF8.GetString(buffer);
             return startOfFile == "<roblox";
@@ -1806,7 +1804,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("universes/{universeId:long}/cloudeditenabled")]
         public dynamic IsCloudEditEnabled(long universeId)
         {
-            return new 
+            return new
             {
                 enabled = false,
             };
@@ -1815,13 +1813,13 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("universes/get-aliases")]
         public async Task<dynamic> GetAliases(long universeId)
         {
-            
+
             return new
             {
                 FinalPage = true,
                 Aliases = new[]
                 {
-                    new 
+                    new
                     {
                         Name = "Test",
                         Type = (int)Models.Assets.Type.Hat,
@@ -1835,13 +1833,13 @@ namespace Roblox.Website.Controllers
                             CreatorType = (int)CreatorType.User,
                             CreatorTargetId = 1,
                             Created = "2017-03-31T12:16:46.547",
-                            Updated = "2017-03-31T12:16:46.547",   
+                            Updated = "2017-03-31T12:16:46.547",
                         },
                         Version = 0,
                     }
                 },
                 PageSize = 50
-            };   
+            };
         }
         */
         [HttpGetBypass("v1/user/{userId:long}/is-admin-developer-console-enabled")]
@@ -1850,7 +1848,7 @@ namespace Roblox.Website.Controllers
             long placeId = long.Parse(Request.Headers["roblox-place-id"].ToString());
             bool canManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
             bool isOwner =  StaffFilter.IsOwner(userId);
-            return new 
+            return new
             {
                 isAdminDeveloperConsoleEnabled = (canManagePlace || isOwner)
             };
@@ -1967,7 +1965,7 @@ namespace Roblox.Website.Controllers
         {
             var userInfo = await services.users.GetUserByName(username);
             var onlineStatus = (await services.users.MultiGetPresence(new[] {userInfo.userId})).First();
-            return new 
+            return new
             {
                 Id = userInfo.userId,
                 Username = username,
@@ -2022,14 +2020,14 @@ namespace Roblox.Website.Controllers
                         userId,
                     });
                 }
-                
+
                 var isFollowing = await services.friends.IsOneFollowingTwo(safeUserSession.userId, followerUserId);
                 result.Add(new
                 {
                     isFollowing,
                     userId,
                 });
-            
+
             return new
             {
                 followings = result,
@@ -2055,7 +2053,7 @@ namespace Roblox.Website.Controllers
             if (safeUserSession.userId == recipientUserId)
                 throw new BadRequestException(7, "The user cannot be friends with itself");
             await services.friends.RequestFriendship(safeUserSession.userId, recipientUserId);
-            
+
             return new
             {
                 success = true,
@@ -2070,7 +2068,7 @@ namespace Roblox.Website.Controllers
                 userId = safeUserSession.userId;
             }
             int amountFriends = await services.friends.CountFriends((long)userId);
-            return new 
+            return new
             {
                 success = true,
                 message = "Success",
@@ -2140,29 +2138,29 @@ namespace Roblox.Website.Controllers
             }
             catch (Exception)
             {
-                // lets just delete the gameserver if we couldnt close the gameserver 
+                // lets just delete the gameserver if we couldnt close the gameserver
                 await services.gameServer.DeleteGameServer(gameId);
                 return "Catch an error";
             }
         }
         */
-        [HttpPostBypass("v2/CreateOrUpdate")]        
+        [HttpPostBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v1/CreateOrUpdate")]
-        [HttpPostBypass("v1/CreateOrUpdate")]        
+        [HttpPostBypass("v1/CreateOrUpdate")]
         public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
         {
             bool IsRCC = IsRcc();
-            int roundPing = (int)Math.Round(ping, 0);            
+            int roundPing = (int)Math.Round(ping, 0);
             if(!IsRCC)
             {
                 return "Not RCC";
             }
-            
-            await services.gameServer.SetServerGSPing(gameId, roundPing);   
-            return "OK!";             
-            
-        }        
+
+            await services.gameServer.SetServerGSPing(gameId, roundPing);
+            return "OK!";
+
+        }
         [HttpPostBypass("v1.0/Refresh")]
         [HttpPostBypass("v2.0/Refresh")]
         [HttpGetBypass("v1.0/Refresh")]
@@ -2201,7 +2199,7 @@ namespace Roblox.Website.Controllers
             if (details.assetType != Models.Assets.Type.Place) {
                 throw new BadRequestException(1, "Cannot upload a game icon for a non place");
             }
-            
+
             await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
             return Ok();
         }
@@ -2220,7 +2218,7 @@ namespace Roblox.Website.Controllers
         {
             return Ok();
         }
-          
+
 #if DEBUG
         [HttpGetBypass("integration-test/create-account-and-set-cookie")]
         public async Task<string> CreateAccountAndSetCookie()
@@ -2238,7 +2236,7 @@ namespace Roblox.Website.Controllers
             });
             var joinId = await services.users.ProcessApplication(id, 1, UserApplicationStatus.Approved);
             await services.users.SetApplicationUserIdByJoinId(joinId, result.userId);
-            
+
             var sess = await services.users.CreateSession(result.userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {

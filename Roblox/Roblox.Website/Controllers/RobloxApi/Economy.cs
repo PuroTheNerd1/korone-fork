@@ -25,7 +25,7 @@ public class Economy : ControllerBase
     {
         FeatureFlags.FeatureCheck(FeatureFlag.EconomyEnabled);
     }
-    
+
     [HttpGetBypass("v1/users/{userId:long}/currency")]
     public async Task<dynamic> GetUserCurrency(long userId)
     {
@@ -76,7 +76,7 @@ public class Economy : ControllerBase
 
         var details = await services.assets.GetAssetCatalogInfo(assetId);
         var rsData = await services.assets.GetResaleData(assetId);
-        
+
         if (details.itemRestrictions == null || details.isForSale || !details.itemRestrictions.Contains("Limited") && !details.itemRestrictions.Contains("LimitedUnique"))
         {
             // Item cannot be sold at this time
@@ -148,7 +148,7 @@ public class Economy : ControllerBase
     private async Task PurchaseNormalItem(long assetId, PurchaseRequest request)
     {
         // Note: A lot of validation is duplicated in both this function and the transaction function. This is done because transactions and extra locks are slow - if someone starts spamming purchases where they don't have enough Robux, they could DOS transaction handling. If we do a ton of IF checks before starting the PG transaction, it's far less likely they'd take down our database (or cause unnecessary locks, breaking purchases for real customers, etc...)
-        
+
         // First, confirm user does not own item already (When purchase normal is used, user can only own one copy of the assetId at any given time)
         var ownedCopies = (await services.users.GetUserAssets(safeUserSession.userId, assetId)).ToList();
         if (ownedCopies.Count != 0)
@@ -214,7 +214,7 @@ public class Economy : ControllerBase
                 throw new BadRequestException(0, "Item is no longer for sale");
             }
         }
-        
+
         // Everything seems ok now, so purchase the item
         await services.users.PurchaseNormalItem(safeUserSession.userId, assetId, request.expectedCurrency);
     }
@@ -257,7 +257,6 @@ public class Economy : ControllerBase
             if (fixedJson.StartsWith("{") && !fixedJson.EndsWith("}"))
             {
                 fixedJson += "}";
-                Console.WriteLine(fixedJson);
             }
             request = JsonConvert.DeserializeObject<PurchaseRequest>(fixedJson);
         }
@@ -279,7 +278,7 @@ public class Economy : ControllerBase
                 throw new RobloxException(400, 0,
                     "You cannot purchase 18+ items until you confirm you are 18 or over.");
         }
-        /*   
+        /*
         if (request.userAssetId != null)
         {
             // User is making UAID purchase
@@ -366,10 +365,10 @@ public class Economy : ControllerBase
                 GroupPermission.SpendGroupFunds);
         if (!canViewFunds)
             throw new RobloxException(401, 0, "Unauthorized");
-        
+
         return await services.economy.GetBalance(CreatorType.Group, groupId);
     }
-    
+
     [HttpGetBypass("v1/groups/{groupId}/users-payout-eligibility")]
     public async Task<dynamic> GetUserPayoutEligibility(long groupId, string userIds)
     {
