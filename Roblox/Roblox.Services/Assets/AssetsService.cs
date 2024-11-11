@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Dynamic;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Dapper;
@@ -10,6 +11,7 @@ using Roblox.Dto.Assets;
 using Roblox.Dto.Users;
 using Roblox.Exceptions.Services.Assets;
 using Roblox.Libraries;
+using Roblox.Libraries.RobloxApi;
 using Roblox.Logging;
 using Roblox.Metrics;
 using Roblox.Models.Assets;
@@ -25,9 +27,160 @@ using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
+public class EasyConverters {
+    public static byte[] StreamToByte(Stream instream) // https://stackoverflow.com/questions/1080442/how-do-i-convert-a-stream-into-a-byte-in-c
+    {
+        if (instream is MemoryStream)
+            return ((MemoryStream) instream).ToArray();
 
+        using (var memoryStream = new MemoryStream())
+        {
+            instream.CopyTo(memoryStream);
+            return memoryStream.ToArray();
+        }
+    }
+
+    public static String StringToHexString(String str)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes(str);
+        return Convert.ToHexString(bytes);
+    }
+
+    public static String HexStringToString(String str)
+    {
+        byte[] bytes = Convert.FromHexString(str);
+        return Encoding.UTF8.GetString(bytes);
+    }
+}
+
+public struct ByteReader
+{
+    public ByteReader(byte[] bytebuffer)
+    {
+        buffer = bytebuffer;
+        index = 0;
+    }
+
+    private byte[] buffer { get; set; }
+    private long index { get; set; }
+
+    public void SetIndex(long n)
+    {
+        this.index = n;
+        return;
+    }
+
+    public long GetIndex()
+    {
+        return this.index;
+    }
+
+    public long GetRemaining()
+    {
+        return buffer.Length - this.index;
+    }
+
+    public long GetLength()
+    {
+        return buffer.Length;
+    }
+
+    public void Jump(Int32 n)
+    {
+        this.index += n;
+        return;
+    }
+
+    public long Byte()
+    {
+        this.index++;
+        return buffer[index - 1];
+    }
+
+    public long UInt8()
+    {
+        this.index++;
+        return buffer[index - 1];
+    }
+
+    public long UInt16LE()
+    {
+        byte[] byteArray = new byte[2];
+        Array.Copy(buffer, index, byteArray, 0, 2);
+        this.Jump(2);
+        return BitConverter.ToUInt16(byteArray, 0);
+    }
+
+    public long UInt32LE()
+    {
+        byte[] byteArray = new byte[4];
+        Array.Copy(buffer, index, byteArray, 0, 4);
+        this.Jump(4);
+        return BitConverter.ToUInt32(byteArray, 0);
+    }
+
+    public long UInt64LE()
+    {
+        byte[] byteArray = new byte[8];
+        Array.Copy(buffer, index, byteArray, 0, 8);
+        this.Jump(8);
+        return (long)BitConverter.ToUInt64(byteArray, 0);
+    }
+
+    public long Int8()
+    {
+        this.index++;
+        return Convert.ToSByte(buffer[index - 1]);
+    }
+
+    public long Int16LE()
+    {
+        byte[] byteArray = new byte[2];
+        Array.Copy(buffer, index, byteArray, 0, 2);
+        this.Jump(2);
+        return BitConverter.ToInt16(byteArray, 0);
+    }
+
+    public long Int32LE()
+    {
+        byte[] byteArray = new byte[4];
+        Array.Copy(buffer, index, byteArray, 0, 4);
+        this.Jump(4);
+        return BitConverter.ToInt32(byteArray, 0);
+    }
+
+    public long Int64LE()
+    {
+        byte[] byteArray = new byte[8];
+        Array.Copy(buffer, index, byteArray, 0, 8);
+        this.Jump(8);
+        return BitConverter.ToInt64(byteArray, 0);
+    }
+
+    public float FloatLE()
+    {
+        byte[] byteArray = new byte[4];
+        Array.Copy(buffer, index, byteArray, 0, 4);
+        this.Jump(4);
+        return BitConverter.ToSingle(byteArray, 0);
+    }
+
+    public String String(Int32 n)
+    {
+        byte[] byteArray = new byte[n];
+        Array.Copy(buffer, index, byteArray, 0, n);
+        this.Jump(n);
+        return Encoding.UTF8.GetString(byteArray);
+    }
+}
 public class AssetsService : ServiceBase, IService
 {
+    private static void assert(bool Bool, String Message) {
+        if (Bool != true) {
+            throw new Exception(Message);
+        }
+        return;
+    }
     public async Task<long> GetAssetIdFromRobloxAssetId(long robloxAssetId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetId>(
@@ -82,7 +235,7 @@ public class AssetsService : ServiceBase, IService
             Metrics.SecurityMetrics.ReportBadCharacterFoundInAssetContentName(key, "/", "GetAssetContent");
             throw new ArgumentException("GetAssetContent error 1");
         }
-        
+
         var fullPath = Configuration.AssetDirectory + key;
         for (var i = 0; i < 10; i++)
         {
@@ -97,7 +250,7 @@ public class AssetsService : ServiceBase, IService
                 Writer.Info(LogGroup.AssetDelivery, "GetAssetContent IO exception. Message = {0}\n{1}", e.Message, e.StackTrace);
                 if (e.Message.Contains("Could not find file"))
                     throw;
-                
+
                 await Task.Delay(TimeSpan.FromMilliseconds(100 * (i+1)));
             }
         }
@@ -153,7 +306,7 @@ public class AssetsService : ServiceBase, IService
             Metrics.SecurityMetrics.ReportBadCharacterFoundInAssetContentName(key, "/", "DeleteAssetContent");
             throw new ArgumentException("DeleteAssetContent error 1");
         }
-        
+
         directory ??= Configuration.AssetDirectory;
 
         var fullPath = directory + key;
@@ -231,7 +384,7 @@ public class AssetsService : ServiceBase, IService
         Writer.Info(LogGroup.AssetValidation, "validating asset. type = {0}", assetType);
 
         string tempFilePath = Path.GetTempFileName();
-        
+
         try
         {
             using (var tempFileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -242,7 +395,7 @@ public class AssetsService : ServiceBase, IService
             using (var content = new ByteArrayContent(fileBytes))
             {
                 content.Headers.Add("robloxAuthorization", Configuration.AssetValidationServiceAuthorization);
-                
+
                 var url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-item";
                 if (assetType == Type.Place)
                 {
@@ -324,7 +477,7 @@ public class AssetsService : ServiceBase, IService
 
         return null;
     }
-    
+
     private static AsyncLimit audioConversionLimit { get; } = new("AudioConversionLimit", 5);
 
     public async Task<Stream> GetAudioContentAsWav(long assetId, string contentUrl)
@@ -504,7 +657,7 @@ public class AssetsService : ServiceBase, IService
             var key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
             await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.ReviewApproved);
         }
-    }  
+    }
     /*
     private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
@@ -666,7 +819,7 @@ public class AssetsService : ServiceBase, IService
             {
                 Writer.Info(LogGroup.GameIconRender, "custom icon failed", assetId);
             }
-            
+
             byte[] imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
 
             using (var imageStream = new MemoryStream(imageBytes))
@@ -709,7 +862,7 @@ public class AssetsService : ServiceBase, IService
             await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.AwaitingApproval);
         }
     }
-    
+
     private async Task CreateHeadThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
@@ -752,7 +905,7 @@ public class AssetsService : ServiceBase, IService
                 thumbRequests.Add(CreateHeadThumbnail(assetId, assetType, cancellationToken));
                 break;
             case Type.Torso:
-            case Type.LeftArm: 
+            case Type.LeftArm:
             case Type.RightArm:
             case Type.LeftLeg:
             case Type.RightLeg:
@@ -825,7 +978,330 @@ public class AssetsService : ServiceBase, IService
     {
         Task.Run(async () => { await RenderAssetAsync(assetId, assetType); });
     }
+    private static byte[] ConvertBinaryMesh(byte[] buffer, String version)
+    {
+        ByteReader reader = new ByteReader(buffer);
+        assert(reader.String(12) == $"version {version}", "Bad header");
+        long newline = reader.Byte();
+        assert(newline == 0x0A || newline == 0x0D && reader.Byte() == 0x0A, "Bad newline");
 
+        long begin = reader.GetIndex();
+
+        long headerSize = 0;
+        long vertexSize = 0;
+        long faceSize = 12;
+        long lodSize = 4;
+        long nameTableSize = 0;
+        long facsDataSize = 0;
+
+        long lodCount = 0;
+        long vertexCount = 0;
+        long faceCount = 0;
+        long boneCount = 0;
+        long subsetCount = 0;
+
+        if (version.StartsWith("3."))
+        {
+            headerSize = reader.UInt16LE();
+            assert(headerSize >= 16, $"Invalid header size {headerSize}");
+
+            vertexSize = reader.Byte();
+            faceSize = reader.Byte();
+            lodSize = reader.UInt16LE();
+            lodCount = reader.UInt16LE();
+            vertexCount = reader.UInt32LE();
+            faceCount = reader.UInt32LE();
+
+        }
+        else if (version.StartsWith("4."))
+        {
+            headerSize = reader.UInt16LE();
+            assert(headerSize >= 24, $"Invalid header size {headerSize}");
+
+            reader.Jump(2); // uint16 lodType;
+            vertexCount = reader.UInt32LE();
+            faceCount = reader.UInt32LE();
+            lodCount = reader.UInt16LE();
+            boneCount = reader.UInt16LE();
+            nameTableSize = reader.UInt32LE();
+            subsetCount = reader.UInt16LE();
+            reader.Jump(2); // byte numHighQualityLODs, unused;
+            vertexSize = 40;
+
+        }
+        else if (version.StartsWith("5."))
+        {
+            headerSize = reader.UInt16LE();
+            assert(headerSize >= 32, $"Invalid header size {headerSize}");
+
+            reader.Jump(2); // uint16 meshCount;
+            vertexCount = reader.UInt32LE();
+            faceCount = reader.UInt32LE();
+            lodCount = reader.UInt16LE();
+            boneCount = reader.UInt16LE();
+            nameTableSize = reader.UInt32LE();
+            subsetCount = reader.UInt16LE();
+            reader.Jump(2); // byte numHighQualityLODs, unused;
+            reader.Jump(4); // uint32 facsDataFormat;
+            facsDataSize = reader.UInt32LE();
+
+            vertexSize = 40;
+        }
+
+        reader.SetIndex(begin + headerSize);
+
+        assert(vertexSize >= 36, $"Invalid vertex size {vertexSize}");
+        assert(faceSize >= 12, $"Invalid face size {faceSize}");
+        assert(lodSize >= 4, $"Invalid lod size {lodSize}");
+
+        long fileEnd = reader.GetIndex() + (vertexCount * vertexSize) + (boneCount > 0 ? vertexCount * 8 : 0) + (faceCount * faceSize) + (lodCount * lodSize) + (boneCount * 60) + (nameTableSize) + (subsetCount * 72) + (facsDataSize);
+
+        assert(fileEnd == reader.GetLength(), $"Invalid file size (expected {reader.GetLength()}, got {fileEnd})");
+
+        long[] faces = new long[faceCount * 3];
+        float[] vertices = new float[vertexCount * 3];
+        float[] normals = new float[vertexCount * 3];
+        float[] uvs = new float[vertexCount * 2];
+        long[] tangents = new long[vertexCount * 4];
+        bool enableVertexColors = vertexSize >= 40;
+        long[] vertexColors = new long[vertexCount * 4];
+        long[] lods = new long[2] {
+    0,
+    faceCount
+  };
+
+        // Vertex[vertexCount]
+        for (int i = 0; i < vertexCount; i++)
+        {
+            vertices[i * 3] = reader.FloatLE();
+            vertices[i * 3 + 1] = reader.FloatLE();
+            vertices[i * 3 + 2] = reader.FloatLE();
+
+            normals[i * 3] = reader.FloatLE();
+            normals[i * 3 + 1] = reader.FloatLE();
+            normals[i * 3 + 2] = reader.FloatLE();
+
+            uvs[i * 2] = reader.FloatLE();
+            uvs[i * 2 + 1] = 1 - reader.FloatLE();
+
+            // tangents are mapped from [0, 254] to [-1, 1]
+            // byte tx, ty, tz, ts;
+            tangents[i * 4] = reader.Byte() / 127 - 1;
+            tangents[i * 4 + 1] = reader.Byte() / 127 - 1;
+            tangents[i * 4 + 2] = reader.Byte() / 127 - 1;
+            tangents[i * 4 + 3] = reader.Byte() / 127 - 1;
+
+            if (enableVertexColors)
+            {
+                // byte r, g, b, a
+                vertexColors[i * 4] = reader.Byte();
+                vertexColors[i * 4 + 1] = reader.Byte();
+                vertexColors[i * 4 + 2] = reader.Byte();
+                vertexColors[i * 4 + 3] = reader.Byte();
+
+                reader.Jump((int)vertexSize - 40);
+            }
+            else
+            {
+                reader.Jump((int)vertexSize - 36);
+            }
+        }
+
+        // Envelope[vertexCount]
+        if (boneCount > 0)
+        {
+            reader.Jump((int)vertexCount * 8);
+        }
+
+        // Face[faceCount]
+        for (int i = 0; i < faceCount; i++)
+        {
+            faces[i * 3] = reader.UInt32LE();
+            faces[i * 3 + 1] = reader.UInt32LE();
+            faces[i * 3 + 2] = reader.UInt32LE();
+
+            reader.Jump((int)faceSize - 12);
+        }
+
+        // LodLevel[lodCount]
+        if (lodCount <= 2)
+        {
+            // Lod levels are pretty much ignored if lodCount
+            // is not at least 3, so we can just skip reading
+            // them completely.
+            reader.Jump((int)lodCount * (int)lodSize);
+        }
+        else
+        {
+            lods = new long[lodCount];
+            for (int i = 0; i < lodCount; i++)
+            {
+                lods[i] = reader.UInt32LE();
+                reader.Jump((int)lodSize - 4);
+            }
+        }
+
+        // Bone[boneCount]
+        if (boneCount > 0)
+        {
+            reader.Jump((int)boneCount * 60);
+        }
+
+        // byte[nameTableSize]
+        if (nameTableSize > 0)
+        {
+            reader.Jump((int)nameTableSize);
+        }
+
+        // MeshSubset[subsetCount]
+        if (subsetCount > 0)
+        {
+            reader.Jump((int)subsetCount * 72); // subsetCount * (UInt32 * 5 + UInt16 * 26)
+        }
+
+        if (facsDataSize > 0)
+        {
+            reader.Jump((int)facsDataSize);
+        }
+
+        // Convertion to mesh v1.00
+        int facearraylength = ((int)lods[1] * 3) - ((int)lods[0] * 3);
+        ArraySegment<long> actualfaces = new ArraySegment<long>(faces, (int)lods[0] * 3, (int)lods[1] * 3);
+
+        String data = $"version 1.00\n{(facearraylength / 3).ToString()}\n";
+
+        String s(float f)
+        { // Convert float to string
+            if (f == null)
+            {
+                f = 0;
+            }
+            String expf = f.ToString("e5");
+            String str = expf;
+            if (str.IndexOf("e+000") != -1)
+            { // yandere dev ass code but i dont care im sleepy asf
+                str = Math.Round(f, 5).ToString();
+            }
+            else if (str.IndexOf("e-001") != -1)
+            {
+                str = Math.Round(f, 6).ToString();
+            }
+            else if (str.IndexOf("e-000") != -1)
+            {
+                str = Math.Round(f, 5).ToString();
+            }
+            else if (str.IndexOf("e-002") != -1)
+            {
+                str = Math.Round(f, 7).ToString();
+            }
+            else
+            {
+                str = str.Replace("+00", "+").Replace("-00", "-");
+            }
+
+            return str;
+        }
+
+        void addFaceToData(int index)
+        {
+            var indexVertex = index * 3;
+            var indexUV = index * 2;
+
+            data = $"{data}[{s((float)(vertices[indexVertex]/0.5))},{s((float)(vertices[indexVertex+1]/0.5))},{s((float)(vertices[indexVertex+2]/0.5))}]"; // vertex
+            data = $"{data}[{s(normals[indexVertex])},{s(normals[indexVertex+1])},{s(normals[indexVertex+2])}]"; // normals
+            data = $"{data}[{s(uvs[indexUV])},{s(uvs[indexUV+1])},0]"; // uvs
+            return;
+        }
+
+        for (int i = 0; i < facearraylength; i += 3)
+        {
+            addFaceToData((int)actualfaces[i]);
+            addFaceToData((int)actualfaces[i + 1]);
+            addFaceToData((int)actualfaces[i + 2]);
+        }
+
+        return Encoding.UTF8.GetBytes(data);
+    }
+
+    private static byte[] ConvertMesh(byte[] buffer)
+    {
+        ByteReader reader = new ByteReader(buffer);
+        assert(reader.String(8) == "version ", "Invalid mesh file");
+        String version = reader.String(4);
+        switch (version)
+        {
+            case "1.00":
+            case "1.01":
+            case "2.00":
+                throw new Exception($"Upload this accessory using conventional methods (mesh version {version})");
+            case "3.00":
+            case "3.01":
+            case "4.00":
+            case "4.01":
+            case "5.00":
+                return ConvertBinaryMesh(buffer, version);
+            default:
+                throw new Exception($"Unsupported mesh version {version}");
+        }
+    }
+
+    public async Task<dynamic> BackportAccessory(long assetId)
+    {
+        var robloxApi = new RobloxApi();
+        var assetsService = new AssetsService();
+        var AccessoryDetailsRequest = await robloxApi.GetProductInfo(assetId);
+        var AccessoryAsset = await robloxApi.GetProductInfoAssetDelivery(assetId);
+        if ((int)AccessoryAsset.AssetTypeId >= 41 & (int)AccessoryAsset.AssetTypeId <= 47)
+        {
+            Stream RBXMStream = await robloxApi.GetAssetContentFromProxy(assetId);
+            byte[] RBXMByte = EasyConverters.StreamToByte(RBXMStream);
+            String RBXMHexString = Convert.ToHexString(RBXMByte);
+
+            String MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
+            String MeshId = EasyConverters.HexStringToString(MeshIdHexString);
+
+            var MeshAssetRequest = await robloxApi.GetProductInfoAssetDelivery(long.Parse(MeshId));
+
+            if ((int)MeshAssetRequest.AssetTypeId == 4)
+            {
+                Stream MeshStream = await robloxApi.GetAssetContentFromProxy(long.Parse(MeshId));
+                byte[] MeshByte = EasyConverters.StreamToByte(MeshStream);
+
+                byte[] NewMeshByte = ConvertMesh(MeshByte); // this is the new mesh, as byte[], do whatever you want with this
+                // convert to stream
+                Stream meshStream = new MemoryStream(NewMeshByte);
+
+                var meshDetails = await assetsService.CreateAsset(AccessoryDetailsRequest.Name, AccessoryDetailsRequest.Description, 1,
+                    CreatorType.User, 1, meshStream, Type.Mesh, Genre.All, ModerationStatus.ReviewApproved,
+                    DateTime.UtcNow, DateTime.UtcNow, long.Parse(MeshId));
+                long NewMeshIdLong = meshDetails.assetId; // example, is a long just incase
+                String NewMeshId = NewMeshIdLong.ToString(); // convert to string
+                String NewMeshIdHex = EasyConverters.StringToHexString(NewMeshId);
+                if (NewMeshId.Length > MeshId.Length)
+                {
+                    throw new Exception("New MeshId too long");
+                }
+                for (int i = 0; i < (MeshId.Length - NewMeshId.Length); i++)
+                {
+                    NewMeshIdHex = $"{NewMeshIdHex}00";
+                }
+                RBXMHexString = RBXMHexString.Replace(MeshIdHexString, NewMeshIdHex);
+                byte[] NewRBXMByte = Convert.FromHexString(RBXMHexString); // this is the new RBXM, as byte[], do whatever you want with this
+                Stream rbxmStream = new MemoryStream(NewRBXMByte);
+                var assetDetails = await assetsService.CreateAsset(AccessoryDetailsRequest.Name, AccessoryDetailsRequest.Description, 1,
+                                    CreatorType.User, 1, rbxmStream, (Type)AccessoryAsset.AssetTypeId, Genre.All, ModerationStatus.ReviewApproved,
+                                    DateTime.UtcNow, DateTime.UtcNow, assetId);
+                return new
+                {
+                    assetId = assetDetails.assetId,
+                };
+            }
+        }
+        return new
+        {
+            assetId = 0,
+        };
+    }
     public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, long contentId)
     {
         var latest = await GetLatestAssetVersion(assetId);
@@ -840,7 +1316,7 @@ public class AssetsService : ServiceBase, IService
             updated_at = created,
             content_id = contentId,
         });
-        
+
         await UpdateAsset(assetId);
 
         return new()
@@ -949,7 +1425,7 @@ public class AssetsService : ServiceBase, IService
                             id = contentId.Value,
                         });
                 }
-                
+
                 if (previouslyUploaded != null)
                 {
                     moderationStatus = ModerationStatus.AwaitingApproval;
@@ -972,7 +1448,7 @@ public class AssetsService : ServiceBase, IService
             };
             if (assetIdOverride != null)
                 request.Add("id", assetIdOverride);
-            
+
             assetId = await InsertAsync("asset", request);
             if (TypesToGrantOnCreation.Contains(assetType))
             {
@@ -1075,11 +1551,11 @@ public class AssetsService : ServiceBase, IService
             throw new ArgumentException(nameof(priceRobux) + " cannot be less than 0");
         if (priceTickets is < 0)
             throw new ArgumentException(nameof(priceTickets) + " cannot be less than 0");
-        
+
         if (priceTickets == 0)
             priceTickets = null;
-        
-        
+
+
         await db.ExecuteAsync("UPDATE asset SET price_robux = :r, price_tix = :t WHERE id = :id", new
         {
             id = assetId,
@@ -1087,7 +1563,7 @@ public class AssetsService : ServiceBase, IService
             r = priceRobux,
         });
     }
-    
+
     public async Task UpdateAssetMarketInfo(long assetId, bool isForSale, bool isLimited, bool isLimitedUnique, int? maxCopies, DateTime? offsaleDeadline)
     {
         if (isLimitedUnique && !isLimited)
@@ -1287,11 +1763,11 @@ public class AssetsService : ServiceBase, IService
 
 (case when asset.creator_type = 1 then ""user"".username else ""group"".name end) as creatorName
 
-FROM asset 
+FROM asset
 
-LEFT JOIN ""user"" ON asset.creator_id = ""user"".id AND asset.creator_type = 1 
-LEFT JOIN ""group"" ON asset.creator_id = ""group"".id AND asset.creator_type = 2 
-                
+LEFT JOIN ""user"" ON asset.creator_id = ""user"".id AND asset.creator_type = 1
+LEFT JOIN ""group"" ON asset.creator_id = ""group"".id AND asset.creator_type = 2
+
 WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER BY asset.id DESC LIMIT :limit",
             new
             {
@@ -1428,7 +1904,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         var cat = request.category?.ToLower();
         var sub = request.subcategory?.ToLower();
-        
+
         if (cat is "bodyparts" or "bodypart")
         {
             if (sub is "all" or null)
@@ -1442,7 +1918,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             builder.Where(
                 $"(asset.asset_type = {(int) Models.Assets.Type.Gear})");
         }
-        
+
         if (sub is "accessories" or "communitycreations")
         {
             builder.Where(
@@ -1514,7 +1990,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 builder.Where($"asset.asset_genre = {(int) item}");
             }
         }
-        
+
         var totalResults =
             await db.QuerySingleOrDefaultAsync<Total>(countTemplate.RawSql, countTemplate.Parameters);
         if (totalResults.total != 0)
@@ -1616,7 +2092,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             nearestDay = nearestDay.Add(TimeSpan.FromHours(5));
             if (nearestDay >= DateTime.UtcNow)
                 continue;
-            
+
             if (!salesDict.ContainsKey(nearestDay))
             {
                 salesDict[nearestDay] = new AssetResaleChartEntry();
@@ -1693,7 +2169,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     {
         // todo: move IsOwner() to service
         if (userId == 12) return true;
-        
+
         var details = await GetAssetCatalogInfo(assetId);
         switch (details.creatorType)
         {
@@ -1773,7 +2249,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         var match = commentRegex.Matches(comment);
         if (match.Count == 0)
             return false;
-        
+
         var m = "";
         for (var i = 0; i < match.Count; i++)
         {
@@ -1999,7 +2475,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             var isAd18Plus = await assets.Is18Plus(item.advertisementAssetId);
             if (isAd18Plus && !allow18Plus)
                 continue;
-            
+
             for (long i = 0; i < item.bidAmountRobuxLastRun; i++)
             {
                 adIds.Add(idx);
@@ -2215,7 +2691,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     {
         if (content.Position != 0)
             content.Position = 0;
-        
+
         var sha256 = SHA256.Create();
         var bin = await sha256.ComputeHashAsync(content);
         content.Position = 0;
@@ -2278,7 +2754,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 shirt = Models.Assets.Type.Shirt,
                 pants = Models.Assets.Type.Pants,
                 special = Models.Assets.Type.Special,
-                
+
                 mod_status = ModerationStatus.AwaitingApproval,
             });
         return result.total;
@@ -2523,6 +2999,6 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     {
         return false;
     }
-    
-    
+
+
 }

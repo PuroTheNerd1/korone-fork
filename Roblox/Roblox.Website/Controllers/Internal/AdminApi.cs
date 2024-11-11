@@ -245,7 +245,7 @@ public class AdminApiController : ControllerBase
             throw new StaffException("URL is over 255 characters");
         if (string.IsNullOrWhiteSpace(request.url))
             request.url = null;
-        
+
         if (request.url != null)
         {
             var url = new Uri(request.url);
@@ -269,7 +269,7 @@ public class AdminApiController : ControllerBase
             throw new StaffException("Bad username");
         if (req.password == null)
             throw new StaffException("Bad password");
-        
+
         return await services.users.CreateUser(req.username, req.password, Gender.Unknown, req.userId);
     }
 
@@ -281,7 +281,7 @@ public class AdminApiController : ControllerBase
 
         var inviteId = services.users.GetUserInvite(req.userId);
 
-        
+
         if (inviteId != null)
             await services.users.DeleteUserInvite(req.userId);
 
@@ -332,7 +332,7 @@ public class AdminApiController : ControllerBase
         if (details.itemRestrictions.Contains("LimitedUnique") || details.itemRestrictions.Contains("Limited"))
             throw new StaffException("This item is a limited");
 
-        
+
         var giftOwners = await db.QueryAsync<CollectibleUserAssetEntry>(
             "SELECT id AS userAssetId, asset_id AS assetId, user_id AS userId, price, serial, created_at AS createdAt, updated_at AS updatedAt " +
             "FROM user_asset WHERE asset_id = :giftId", new
@@ -348,7 +348,7 @@ public class AdminApiController : ControllerBase
                 "INSERT INTO user_asset (asset_id, user_id, serial) VALUES (:assetId, :userId, :serial) RETURNING id", new
                 {
                     assetId = req.assetId,
-                    userId = owner.userId,  
+                    userId = owner.userId,
                     serial = serial
                 }
             );
@@ -384,7 +384,7 @@ public class AdminApiController : ControllerBase
         var version = await services.assets.GetLatestAssetVersion(assetId);
         if (version.contentUrl != null)
             return await services.assets.GetAssetContent(version.contentUrl);
-        
+
         throw new StaffException("Unsupported action");
     }
 
@@ -464,7 +464,7 @@ public class AdminApiController : ControllerBase
         }
         if (details.canEarnRobuxFromApproval)
             await AwardCommissionForModeration();
-        
+
         var newStatus = request.isApproved ? ModerationStatus.ReviewApproved : ModerationStatus.Declined;
 
         await db.ExecuteAsync("UPDATE asset SET moderation_status = :status, is_18_plus = :is_18_plus WHERE id = :id", new
@@ -516,13 +516,13 @@ public class AdminApiController : ControllerBase
         // 30 deletions/hour
         if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Hour", 30, TimeSpan.FromHours(1)))
             throw new StaffException("Asset deletion rate limit exceeded (hour). Contact an administrator.");
-        
+
         // 100/day
         if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Day", 100, TimeSpan.FromDays(1)))
             throw new StaffException("Asset deletion rate limit exceeded (day). Contact an administrator.");
 
         await ModerateAsset(request);
-        
+
         if (!request.isApproved)
         {
             var details = await services.assets.GetAssetCatalogInfo(request.assetId);
@@ -575,7 +575,7 @@ public class AdminApiController : ControllerBase
             throw new StaffException(
                 "You can only moderate items in a pending state. This item was already approved or declined.");
         }
-        
+
         await AwardCommissionForModeration();
 
         if (request.isApproved)
@@ -585,7 +585,7 @@ public class AdminApiController : ControllerBase
                 id = request.iconId,
                 status = ModerationStatus.ReviewApproved,
             });
-            
+
             if (request.is18Plus)
             {
                 // update asset
@@ -646,13 +646,13 @@ public class AdminApiController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.name))
             throw new StaffException("Invalid icon");
-        
+
         if (request.name.IndexOf("/", StringComparison.Ordinal) != -1)
         {
             var loc = request.name.LastIndexOf("/", StringComparison.Ordinal) + 1;
             request.name = request.name[loc..];
         }
-        
+
         if (request.name.IndexOf("/", StringComparison.Ordinal) != -1 || request.name.IndexOf("\\", StringComparison.Ordinal) != -1)
         {
             throw new StaffException("Invalid filename: " + request.name);
@@ -670,7 +670,7 @@ public class AdminApiController : ControllerBase
                 "The icon URL is no longer valid. Maybe the group owner created a new icon before the previous one was approved?");
 
         await AwardCommissionForModeration();
-        
+
         if (request.approved == 2)
         {
             await services.assets.DeleteAssetContent(request.name, Configuration.GroupIconsDirectory);
@@ -778,7 +778,7 @@ public class AdminApiController : ControllerBase
         var joinApp = await services.users.GetApplicationByUserId(userId);
         var membership = await services.users.GetUserMembership(userId);
         var year = await services.users.GetYear(userId);
-        
+
         if (result.thumbnail_url != null)
             result.thumbnail_url = Configuration.CdnBaseUrl + result.thumbnail_url;
         result.theme = ((ThemeTypes) result.theme).ToString();
@@ -831,13 +831,13 @@ public class AdminApiController : ControllerBase
         // actually unban
         await db.ExecuteAsync("DELETE FROM user_ban WHERE user_id = :id", new { id = request.userId });
     }
-    
+
     [HttpPost("ban"), StaffFilter(Access.BanUser)]
     public async Task BanUser([Required, FromBody] BanUserRequest request)
     {
         DateTime? expirationDate = string.IsNullOrWhiteSpace(request.expires) ? null : DateTime.Parse(request.expires);
         var doesExpire = expirationDate != null;
-        
+
         var info = await services.users.GetUserById(request.userId);
         if (userSession.userId == request.userId)
         {
@@ -988,7 +988,7 @@ public class AdminApiController : ControllerBase
                 user_id = userId,
             });
     }
-    
+
     [HttpDelete("user/status"), StaffFilter(Access.DeleteUserStatus)]
     public async Task DeleteUserStatus([Required, FromQuery] long userId, [Required, FromQuery] long statusId)
     {
@@ -1064,7 +1064,7 @@ public class AdminApiController : ControllerBase
                 bd,
             });
         }
-        
+
         // delete transaction
         await db.ExecuteAsync("DELETE FROM user_transaction WHERE id = :id", new
         {
@@ -1125,7 +1125,7 @@ public class AdminApiController : ControllerBase
     public async Task<dynamic> GetModerationLogs(string logType, int limit = 10, int offset = 0)
     {
         if (limit is > 100 or < 1) limit = 10;
-        
+
         switch (logType)
         {
             case "ban":
@@ -1159,7 +1159,7 @@ public class AdminApiController : ControllerBase
                     "SELECT ub.id, ub.created_at, ub.user_id, u1.username, ub.actor_id, u2.username as author_username FROM moderation_unban ub INNER JOIN \"user\" u1 ON u1.id = ub.user_id INNER JOIN \"user\" u2 ON u2.id = ub.actor_id ORDER BY ub.id DESC LIMIT :limit OFFSET :offset",
                     new
                     {
-                        limit, 
+                        limit,
                         offset,
                     });
                 return new
@@ -1531,7 +1531,7 @@ public class AdminApiController : ControllerBase
         var details = await services.assets.GetAssetCatalogInfo(request.assetId);
         if (!details.itemRestrictions.Contains("LimitedUnique") && request.giveSerial)
             throw new StaffException("This asset is not limited unique, cannot give serial");
-        
+
         // try to get term copies
         var terminatedCopies = (await GetGiveItemCirc(request.assetId, request.copies)).ToList();
         if (terminatedCopies.Count < request.copies)
@@ -1557,7 +1557,7 @@ public class AdminApiController : ControllerBase
                         user_asset_id = (long)id.id,
                         author_user_id = userSession.userId,
                     });
-                
+
                 if (serial != null)
                 {
                     // create fake transaction as well
@@ -1603,7 +1603,7 @@ public class AdminApiController : ControllerBase
             throw new StaffException(
                 "An account deletion was already requested recently. Try again in about 10 seconds.");
         await redis.StringSetAsync(k, "{}", TimeSpan.FromSeconds(10));
-        
+
         await services.users.DeleteUser(request.userId, true);
         // reset av
         await ResetAvatar(request);
@@ -1671,7 +1671,7 @@ Thank you for your understanding,
             user_id = userId,
         });
     }
-    
+
     [HttpPost("delete-forum-post"), StaffFilter(Access.DeleteForumPost)]
     public async Task DeleteForumPost([Required, FromBody] DeleteForumPostRequest request)
     {
@@ -1807,7 +1807,7 @@ Thank you for your understanding,
         var details = await services.assets.GetAssetCatalogInfo(request.assetId);
         services.assets.RenderAsset(request.assetId, details.assetType);
     }
-    
+
     [HttpGet("asset/details"), StaffFilter(Access.GetProductDetails)]
     public async Task<dynamic> GetAssetDetails(long assetId)
     {
@@ -1854,7 +1854,7 @@ Thank you for your understanding,
                 // cannot update a limited item
                 if (details.isLimited || details.isLimitedUnique)
                     throw new StaffException("You do not have permission to update a limited item");
-                
+
                 request.isLimited = false;
                 request.isLimitedUnique = false;
                 request.maxCopies = null;
@@ -1900,7 +1900,7 @@ Thank you for your understanding,
 
         await services.assets.UpdateAssetMarketInfoName(request.assetId, request.assetName);
         await services.assets.UpdateAssetMarketDescriptionInfo(request.assetId, request.description);
-        
+
         await services.assets.UpdateAssetMarketInfo(request.assetId, request.isForSale, request.isLimited, request.isLimitedUnique, request.maxCopies, request.offsaleDeadline);
         await services.assets.SetItemPrice(request.assetId, request.priceRobux, request.priceTickets);
     }
@@ -1913,7 +1913,7 @@ Thank you for your understanding,
                 "CopyItemFromRobloxV1:" + safeUserSession.userId, 10, TimeSpan.FromHours(1));
             if (!canUploadLocal)
                 throw new StaffException("Flood check reached for asset uploads on your account (hour). Try again in an hour");
-            
+
             var canUploadLocalDay = await services.cooldown.TryIncrementBucketCooldown(
                 "CopyItemFromRobloxV1:" + safeUserSession.userId, 20, TimeSpan.FromHours(12));
             if (!canUploadLocalDay)
@@ -1932,7 +1932,7 @@ Thank you for your understanding,
     {
         var details = await services.robloxApi.GetBundle(bundleId);
         if (details.bundleType != "BodyParts") throw new StaffException("Invalid bundleType " + details.bundleType);
-        
+
         // Check if duplicate?
         var alreadyExists = await services.assets.SearchCatalog(new CatalogSearchRequest()
         {
@@ -1961,7 +1961,7 @@ Thank you for your understanding,
             if (item.type != "Asset") continue;
             Console.WriteLine("Getting {0}", item.id);
             var info = await services.robloxApi.GetProductInfo(item.id, false);
-            
+
             var content = await services.robloxApi.GetAssetContent(item.id);
             var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId.Value);
             if (!isOk)
@@ -1990,9 +1990,8 @@ Thank you for your understanding,
             packageAssetIds = string.Join(",", ids.Select(c => c.ToString())),
         });
     }
-
-    [HttpPost("asset/copy-from-roblox"), StaffFilter(Access.CreateAssetCopiedFromRoblox)]
-    public async Task<dynamic> CopyAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
+    [HttpPost("asset/backport-from-roblox"), StaffFilter(Access.CreateAssetCopiedFromRoblox)]
+    public async Task<dynamic> BackportAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
     {
         var permissions = (await services.users.GetStaffPermissions(safeUserSession.userId)).Select(c => c.permission).ToArray();
         if (!request.force)
@@ -2012,7 +2011,7 @@ Thank you for your understanding,
                 // Don't care
             }
         }
-        
+
         var details = await services.robloxApi.GetProductInfo(request.assetId, true);
         var allowedTypes = new List<Models.Assets.Type>()
         {
@@ -2034,13 +2033,98 @@ Thank you for your understanding,
             throw new StaffException("Name cannot be null or empty");
         if (details.IsLimited == null || details.IsLimitedUnique == null)
             throw new StaffException("Product details were invalid for this item. Try again");
-        
+
         if (details.IsLimited == true || details.IsLimitedUnique == true)
         {
             if (!permissions.Contains(Access.MakeItemLimited))
                 throw new StaffException("You do not have permission to copy a limited item");
         }
-        
+
+        if (!request.force)
+        {
+            // Check if duplicate?
+            var alreadyExists = await services.assets.SearchCatalog(new CatalogSearchRequest()
+            {
+                limit = 10,
+                include18Plus = true,
+                includeNotForSale = true,
+                creatorType = CreatorType.User,
+                creatorTargetId = 1,
+                keyword = details.Name,
+            });
+            if (alreadyExists._total != 0 && alreadyExists.data != null)
+                foreach (var item in alreadyExists.data)
+                {
+                    var info = await services.assets.GetAssetCatalogInfo(item.id);
+                    if (info.assetType == details.AssetTypeId)
+                        throw new StaffException("It looks like this item already exists: AssetID=" + info.id +
+                                                 "\nIf this is incorrect, click the 'force' button to upload this item anyway.");
+                }
+        }
+
+        await CopyItemFloodCheck();
+        // Now backport the item!
+        var backportDetails = await services.assets.BackportAccessory(request.assetId);
+        await db.ExecuteAsync("INSERT INTO moderation_migrate_asset(asset_id, roblox_asset_id, actor_id) VALUES (@assetId, @robloxAssetId, @actorId)",
+            new
+            {
+                assetId = backportDetails.assetId,
+                robloxAssetId = request.assetId,
+                actorId = safeUserSession.userId,
+            });
+
+        return backportDetails;
+    }
+    [HttpPost("asset/copy-from-roblox"), StaffFilter(Access.CreateAssetCopiedFromRoblox)]
+    public async Task<dynamic> CopyAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
+    {
+        var permissions = (await services.users.GetStaffPermissions(safeUserSession.userId)).Select(c => c.permission).ToArray();
+        if (!request.force)
+        {
+            // Check duplicate id first
+            try
+            {
+                // Check if already exists
+                var ourAssetId = await services.assets.GetAssetIdFromRobloxAssetId(request.assetId);
+                return new
+                {
+                    assetId = ourAssetId,
+                };
+            }
+            catch (RecordNotFoundException)
+            {
+                // Don't care
+            }
+        }
+
+        var details = await services.robloxApi.GetProductInfo(request.assetId, true);
+        var allowedTypes = new List<Models.Assets.Type>()
+        {
+            Type.Hat,
+            Type.HairAccessory,
+            Type.FrontAccessory,
+            Type.BackAccessory,
+            Type.WaistAccessory,
+            Type.NeckAccessory,
+            Type.Gear,
+            Type.Face,
+            Type.ShoulderAccessory,
+            Type.FaceAccessory,
+            Type.Head,
+        };
+        if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
+            throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);
+        if (string.IsNullOrWhiteSpace(details.Name))
+            throw new StaffException("Name cannot be null or empty");
+        if (details.IsLimited == null || details.IsLimitedUnique == null)
+            throw new StaffException("Product details were invalid for this item. Try again");
+
+        if (details.IsLimited == true || details.IsLimitedUnique == true)
+        {
+            if (!permissions.Contains(Access.MakeItemLimited))
+                throw new StaffException("You do not have permission to copy a limited item");
+        }
+
         if (!request.force)
         {
             // Check if duplicate?
@@ -2079,7 +2163,7 @@ Thank you for your understanding,
                 robloxAssetId = request.assetId,
                 actorId = safeUserSession.userId,
             });
-        
+
         return new
         {
             assetId = assetDetails.assetId,
@@ -2096,7 +2180,7 @@ Thank you for your understanding,
         var isPackage = request.assetTypeId == Type.Package;
         var disableRender = isPackage;
         IEnumerable<long>? packageAssetIds = null;
-        
+
         if (!isPackage && request.rbxm == null)
             throw new StaffException("No file specified");
 
@@ -2161,7 +2245,7 @@ Thank you for your understanding,
         {
             if (packageAssetIds == null)
                 throw new StaffException("packageAssetIds cannot be null when creating a package");
-            
+
             foreach (var id in packageAssetIds.Distinct())
             {
                 await services.assets.InsertPackageAsset(assetDetails.assetId, id);
@@ -2181,7 +2265,7 @@ Thank you for your understanding,
     {
         if (request.file == null)
             throw new StaffException("No file specified");
-        
+
         var buf = request.file.OpenReadStream();
         var ok = await services.assets.ValidateClothing(buf, request.assetTypeId);
         if (ok == null) throw new StaffException("Invalid file provided");
@@ -2222,7 +2306,7 @@ Thank you for your understanding,
     {
         if (request.rbxm == null)
             throw new StaffException("No file specified");
-        
+
         var info = await services.assets.GetAssetCatalogInfo(request.assetId);
         var canUpload = false;
         if (info.creatorType is CreatorType.User && info.creatorTargetId == 1)
@@ -2258,7 +2342,7 @@ Thank you for your understanding,
     {
         await FeatureFlags.EnableFlag(Enum.Parse<FeatureFlag>(featureFlag));
     }
-    
+
     [HttpPost("feature-flags/disable"), StaffFilter(Access.ManageFeatureFlags)]
     public async Task DisableFlag(string featureFlag)
     {
@@ -2288,7 +2372,7 @@ Thank you for your understanding,
 
         foreach (var row in OnlineUserNames)
         {
-            var username = (string)row.username; 
+            var username = (string)row.username;
             usernames.Add(username);
         }
 
@@ -2306,7 +2390,7 @@ Thank you for your understanding,
     {
         return await services.economy.GetTransactions(userId, CreatorType.User, type, limit, offset);
     }
-    
+
     [HttpGet("users/{userId:long}/all-transactions"), StaffFilter(Access.GetUserTransactions)]
     public async Task<dynamic> GetAllUserTransactions(long userId, int offset, int limit)
     {
@@ -2378,7 +2462,7 @@ Thank you for your understanding,
         var parsed = ids.Split(",");
         if (parsed.Length is < 0 or > 10)
             return;
-        
+
         await services.users.AcquireApplicationLocks(userSession.userId, parsed);
     }
 
@@ -2422,7 +2506,7 @@ Thank you for your understanding,
             joinId = result,
         };
     }
-    
+
     [HttpPost("applications/{applicationId}/decline"), StaffFilter(Access.ManageApplications)]
     public async Task DeclineApplication(string applicationId, string reason)
     {
@@ -2433,7 +2517,7 @@ Thank you for your understanding,
         }
         await services.users.ProcessApplication(applicationId, userSession.userId, UserApplicationStatus.Rejected, reason);
     }
-    
+
     [HttpPost("applications/{applicationId}/decline-silent"), StaffFilter(Access.ManageApplications)]
     public async Task DeclineApplicationSilently(string applicationId)
     {
@@ -2444,7 +2528,7 @@ Thank you for your understanding,
         }
         await services.users.ProcessApplication(applicationId, userSession.userId, UserApplicationStatus.SilentlyRejected);
     }
-    
+
     [HttpPost("applications/{applicationId}/clear"), StaffFilter(Access.ClearApplications)]
     public async Task ClearApplication(string applicationId)
     {
@@ -2485,14 +2569,14 @@ Thank you for your understanding,
                 limit,
                 offset,
             });
-        
+
         if (exclusiveStartId != null)
             q.Where("asset_comment.id > :start_id", new
             {
                 start_id = exclusiveStartId.Value,
             });
         q.OrderBy(sortOrder == "desc" ? "asset_comment.id DESC" : "asset_comment.id ASC");
-        
+
         return await db.QueryAsync<StaffAssetCommentEntry>(t.RawSql, t.Parameters);
     }
 
@@ -2514,7 +2598,7 @@ Thank you for your understanding,
             });
 
         q.OrderBy(sortOrder == "desc" ? "gw.id desc" : "gw.id asc");
-        
+
         return await db.QueryAsync<StaffWallEntry>(t.RawSql, t.Parameters);
     }
 
@@ -2544,7 +2628,7 @@ Thank you for your understanding,
             {
                 start_id = exclusiveStartId.Value,
             });
-        
+
         return await db.QueryAsync<GroupWallPostStaff>(t.RawSql, t.Parameters);
     }
 
@@ -2573,7 +2657,7 @@ Thank you for your understanding,
             {
                 start_id = exclusiveStartId.Value,
             });
-        
+
         q.OrderBy(sortOrder == "desc" ? "s.id DESC" : "s.id ASC");
         return await db.QueryAsync<StaffUserStatusEntry>(t.RawSql, t.Parameters);
     }
@@ -2582,7 +2666,7 @@ Thank you for your understanding,
     {
         "id",
     };
-    
+
     [HttpGet("groups/list"), StaffFilter(Access.GetGroupManageInfo)]
     public async Task<dynamic> GetGroupList(int offset, int limit, string sortColumn, string sortOrder)
     {
@@ -2734,7 +2818,7 @@ Thank you for your understanding,
         {
             clock = DateTime.UtcNow,
         }));
-        
+
         var forumPosts = await services.forums.GetAllPosts(0, 100, "desc", null);
         var comments = await GetAllAssetComments(100, 0, "desc");
         var wall = await GetAllWallPosts(100, 0, "desc");
@@ -2754,9 +2838,9 @@ Thank you for your understanding,
             {
                 robuxAmount,
             };
-        
+
         robuxAmount *= robuxMultiplier;
-        
+
         if (robuxAmount > 150)
         {
             robuxAmount = 150;
@@ -2774,7 +2858,7 @@ Thank you for your understanding,
             user_id_one = userSession.userId,
             user_id_two = 1,
         });
-        
+
         return new
         {
             robuxAmount,
@@ -2813,7 +2897,7 @@ Thank you for your understanding,
         await services.abuseReport.SetReportStatus(id, AbuseReportStatus.Valid, safeUserSession.userId);
         await RewardForReportReview();
     }
-    
+
     [HttpPost("reports/{id}/decline"), StaffFilter(Access.ManageReports)]
     public async Task DeclineReport(string id)
     {
@@ -2823,7 +2907,7 @@ Thank you for your understanding,
         await services.abuseReport.SetReportStatus(id, AbuseReportStatus.InvalidGood, safeUserSession.userId);
         await RewardForReportReview();
     }
-    
+
     [HttpPost("reports/{id}/invalid"), StaffFilter(Access.ManageReports)]
     public async Task DeclineReportInvalid(string id)
     {
@@ -2854,7 +2938,7 @@ Thank you for your understanding,
             return new();
 
         var response = new StaffAssetResolveThumbnailResponse();
-        
+
         var assetUrl = matchAssetThumbRegex.Match(url);
         if (assetUrl.Success)
         {

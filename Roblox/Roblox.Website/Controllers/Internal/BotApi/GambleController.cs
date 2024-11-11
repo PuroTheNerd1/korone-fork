@@ -47,6 +47,7 @@ namespace Roblox.Website.Controllers
                     status = (int)GamblingStatus.UnknownError
                 };
             }
+            
             //limit is 20 coinflips per day
             if (!await services.cooldown.TryIncrementBucketCooldown($"CoinFlipV1_Day:{userInfo.userId}", 20, TimeSpan.FromDays(1)))
                 return new GamblingResponse

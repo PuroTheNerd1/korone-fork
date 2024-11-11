@@ -37,6 +37,7 @@ public class AssetDeliveryV2Response
     public IEnumerable<AssetDeliveryEntry>? locations { get; set; }
 }
 
+
 public class ProductInfoWithAssetDelivery : ProductDataResponse
 {
     public string? location { get; set; }
@@ -181,7 +182,7 @@ public class RobloxApi
             Description = "ConversionV1.0",
             Created = DateTime.UtcNow,
             Updated = DateTime.UtcNow,
-            
+
             location = json.locations?.FirstOrDefault(a => a.assetFormat == "source")?.location,
         };
     }
@@ -259,7 +260,7 @@ public class RobloxApi
                 cancel.Token);
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response: " + result.StatusCode);
-        
+
         var str = await result.Content.ReadAsStringAsync(cancel.Token);
         return str switch
         {
@@ -268,20 +269,20 @@ public class RobloxApi
             _ => throw new Exception("Unexpected response body: " + str)
         };
     }
-    
+
     public async Task<ProductDataResponse> GetProductInfo(long assetId, bool allFieldsRequired = false)
     {
         var watch = new Stopwatch();
         watch.Start();
         const int maxAttemptTimeMs = 5000;
-        
+
         while (watch.ElapsedMilliseconds < maxAttemptTimeMs)
         {
             try
             {
                 using var cancel = new CancellationTokenSource();
                 cancel.CancelAfter(TimeSpan.FromMilliseconds(maxAttemptTimeMs));
-                var url = $"https://economy.roblox.com/v2/assets/{assetId}/details";
+                var url = $"https://economy.roproxy.com/v2/assets/{assetId}/details";
                 var result = await _client.GetAsync(url, cancel.Token);
                 if (result.StatusCode is HttpStatusCode.TooManyRequests)
                 {
@@ -317,7 +318,15 @@ public class RobloxApi
             throw new Exception("Bad response in GetStreamAsync: " + strResult.StatusCode);
         return await strResult.Content.ReadAsStreamAsync();
     }
-
+    public async Task<Stream> GetAssetContentFromProxy(long assetId)
+    {
+        var result = await _client.GetAsync($"https://assetdelivery.roproxy.com/v1/asset?id={assetId}");
+        if (!result.IsSuccessStatusCode)
+            throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
+        if (result == null)
+            throw new Exception("Null response from Roblox");
+        return result.Content.ReadAsStream();
+    }
     public async Task<Stream> GetAssetContent(long assetId)
     {
         while (true)
@@ -343,7 +352,7 @@ public class RobloxApi
     }
 
     private static Regex assetMatchUrlRegex = new Regex("data-mediathumb-url=\"(.+?)\"");
-    
+
     public async Task<Stream> GetAssetAudioContent(long assetId)
     {
         var result = await _client.GetAsync($"https://www.roblox.com/library/{assetId}/--");
@@ -376,7 +385,7 @@ public class RobloxApi
     }
 
     private string _csrf { get; set; } = "";
-    
+
     public async Task<MultiGetDetailsResponse> MultiGetAssetDetails(IEnumerable<MultiGetDetailsRequestEntry> request)
     {
         var attempts = 0;
@@ -389,7 +398,7 @@ public class RobloxApi
             var msg = new HttpRequestMessage(HttpMethod.Post, "https://catalog.roblox.com/v1/catalog/items/details");
             msg.Content = new StringContent(s, Encoding.UTF8, "application/json");
             msg.Headers.Add("x-csrf-token", _csrf);
-            
+
             var result = await _client.SendAsync(msg);
             if (result.StatusCode == HttpStatusCode.Forbidden && result.Headers.Contains("x-csrf-token"))
             {
@@ -424,7 +433,7 @@ public class RobloxApi
             throw new Exception("Null follower count response from Roblox");
         return json.count;
     }
-    
+
     public async Task<long> CountFriends(long userId)
     {
         var result = await _client.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/friends/count");
@@ -443,7 +452,7 @@ public class RobloxApi
         var result = await _client.GetAsync(url);
         if (result.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Forbidden)
             throw new InvalidUserException();
-        
+
         if (!result.IsSuccessStatusCode)
             throw new Exception("Inventory error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
