@@ -84,15 +84,15 @@ function blobToBase64(blob) {
 const Icon = props => {
   const s = useStyles();
   const [feedback, setFeedback] = useState(null);
-  const [gameIcon, setGameIcon] = useState('/placeholder_game_icon.png');
+  const [gameIcon, setGameIcon] = useState('/img/placeholder/icon_one.png');
   const store = updatePlaceStore.useContainer();
 
   const refreshGameIcon = () => {
-    setGameIcon('/placeholder_game_icon.png')
+    setGameIcon('/img/placeholder/icon_one.png')
   }
 
   useEffect(() => {
-    if (gameIcon == '/placeholder_game_icon.png') {
+    if (gameIcon == '/img/placeholder/icon_one.png') {
       getAssetThumbnail(
         store.placeId
       )

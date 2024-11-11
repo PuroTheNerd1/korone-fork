@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss"
-import {getItemUrl, itemNameToEncodedName} from "../../../services/catalog";
+import { getItemUrl, itemNameToEncodedName } from "../../../services/catalog";
 import GearDropdown from "../../gearDropdown";
 import AssetListAdEntry from "./assetListAdEntry";
 import AssetListCatalogEntry from "./assetListCatalogEntry";
@@ -8,35 +8,42 @@ import AssetListGameEntry from "./assetListGameEntry";
 import thumbnailStore from "../../../stores/thumbnailStore";
 import Link from "../../link";
 import getFlag from "../../../lib/getFlag";
-import {getGameUrl} from "../../../services/games";
+import { getGameUrl } from "../../../services/games";
+import { getAssetThumbnail, getUniverseIcon, multiGetUniverseIcons } from "../../../services/thumbnails";
+import ActionButton from "../../actionButton";
+import useButtonStyles from "../../../styles/buttonStyles";
 
 const useStyles = createUseStyles({
   image: {
-    margin: '0 auto',
     display: 'block',
     height: '70px',
     width: '70px',
     objectFit: 'cover',
+    margin: '0 6px 0 12px',
   },
   row: {
     borderBottom: '1px solid #f2f2f2',
     paddingBottom: '4px',
   },
   gearDropdownWrapper: {
-    marginBottom: '-1rem',
-    position: 'relative', 
-    zIndex: '999', 
-    overflow: 'visible',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    float: 'right',
+    marginLeft: 'auto',
+    width: 'auto',
   },
 });
 
 const AssetEntry = props => {
   const s = useStyles();
+  const buttonStyles = useButtonStyles();
   const thumbs = thumbnailStore.useContainer();
   const isPlace = props.assetType === 9;
   const isAd = props.ad !== undefined && props.target !== undefined;
+  const [thumbnail, setThumbnail] = useState('/img/placeholder/icon_one.png');
 
-  const assetUrl = isPlace ? getGameUrl({placeId: props.assetId, name: props.name}) : getItemUrl({assetId: props.assetId, name: props.name})
+  const assetUrl = isPlace ? getGameUrl({ placeId: props.assetId, name: props.name }) : getItemUrl({ assetId: props.assetId, name: props.name })
   const url = isPlace ? `/universes/configure?id=${props.universeId}` : assetUrl;
 
   const imageAssetId = isAd ? props.ad.advertisementAssetId : props.assetId;
@@ -96,27 +103,44 @@ const AssetEntry = props => {
         e.preventDefault();
         const confirmation = window.confirm("Do you want to shut down all servers?");
         if (confirmation) {
-          fetch(`https://www.projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
+          fetch(`https://projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
             method: "GET",
           })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-          })
-          .catch(error => {
-            console.error('There was a problem with the fetch operation:', error);
-          });
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+            })
+            .catch(error => {
+              console.error('There was a problem with the fetch operation:', error);
+            });
         }
       },
     },
   ];
 
+  useEffect(() => {
+    if (thumbnail !== '/img/placeholder/icon_one.png')
+      if (isPlace) {
+        getUniverseIcon({ universeId: props.universeId }).then((result) => {
+          if (result?.data?.data[0]?.imageUrl)
+            setThumbnail(result.data.data[0].imageUrl);
+        })
+      } else {
+        getAssetThumbnail({ imageAssetId }).then((result) => {
+          if (result)
+            setThumbnail(result)
+        })
+      }
+  }, [props?.ad?.advertisementAssetId, props?.assetId, props?.universeId])
+
   return <div className={'row ' + s.row}>
-    <div className='col-2'>
-      <img className={s.image} src={thumbs.getAssetThumbnail(imageAssetId)}/>
+    <div className='col-2' style={{ padding: '0!important', width: 'auto!important' }}>
+      <img className={s.image} src={thumbnail} />
     </div>
-    <div className='col-9 ps-0'>
+    <div className={
+      //isPlace ? 'col-7 ps-0' : 
+      'col-9 ps-0'}>
       <p className='mb-0'>
         <Link href={url}>
           <a>
@@ -125,14 +149,19 @@ const AssetEntry = props => {
         </Link>
       </p>
       {
-        isAd ? <AssetListAdEntry ad={props.ad} target={props.target} runMenuOpen={runMenuOpen} setRunMenuOpen={setRunMenuOpen}/>
+        isAd ? <AssetListAdEntry ad={props.ad} target={props.target} runMenuOpen={runMenuOpen} setRunMenuOpen={setRunMenuOpen} />
           : props.assetType === 9 ?
-            <AssetListGameEntry url={assetUrl} startPlaceName={props.name}/>
-            : <AssetListCatalogEntry created={props.created}/>
+            <AssetListGameEntry url={assetUrl} startPlaceName={props.name} />
+            : <AssetListCatalogEntry created={props.created} />
       }
     </div>
-    <div className='col-1'>
-      <GearDropdown boxDropdownRightAmount={0} options={gearOptions.filter(v => !!v)}/>
+    <div className={
+      //isPlace ? `col-4 ${s.gearDropdownWrapper}` : 
+      'col-1'}>
+      {/*isPlace && <div className={s.editWrapper}>
+        <ActionButton onClick={() => {}} disabled={true} label='Edit' buttonStyle={buttonStyles.cancelButton}></ActionButton>
+      </div>*/}
+      <GearDropdown boxDropdownRightAmount={0} options={gearOptions.filter(v => !!v)} />
     </div>
   </div>
 }
@@ -142,7 +171,7 @@ const AssetList = props => {
     <div className='col-12'>
       {
         props.assets.map(v => {
-          return <AssetEntry key={v.assetId || v.ad.id} {...v}/>
+          return <AssetEntry key={v.assetId || v.ad.id} {...v} />
         })
       }
     </div>

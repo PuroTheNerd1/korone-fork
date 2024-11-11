@@ -10,12 +10,19 @@ const useSearchIconStyles = createUseStyles({
     cursor: 'pointer',
     maxHeight: '28px',
     maxWidth: '28px'
-  }
+  },
+  searchIconContainer: {
+    width: '20%',
+    float: 'right',
+    paddingRight: '3px'
+  },
 })
 
 const SearchIcon = (props) => {
   const s = useSearchIconStyles();
-  return <span className={`col-2 ${s.icon} icon-nav-search`}></span>
+  return <div className={s.searchIconContainer}>
+    <span className={`col-2 ${s.icon} icon-nav-search`}></span>
+  </div>
 }
 
 const useSuggestionEntryStyles = createUseStyles({
@@ -96,6 +103,7 @@ const useSearchStyles = createUseStyles({
     lineHeight: '1.5',
     appearance: 'none',
     borderRadius: '5.25px',
+    width: 'calc(80% - 12px)',
     '&:focus': {
       border: 'none!important',
       boxShadow: 'none!important',
@@ -110,6 +118,10 @@ const useSearchStyles = createUseStyles({
     margin: 0,
     marginTop: 'auto',
     marginBottom: 'auto',
+    '@media(max-width: 991px)': {
+      marginLeft: '6px',
+      width: 'calc(40% - 6px)',
+    }
   }
 });
 

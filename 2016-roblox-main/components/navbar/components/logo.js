@@ -17,11 +17,15 @@ const useLogoStyles = createUseStyles({
     backgroundPosition: 'center'
   },
   imgMobile: {
-    backgroundImage: `url(/img/logo_R.svg)`,
+    //backgroundImage: `url(/img/logo_R.svg)`,
+    backgroundImage: 'url(/img/favicon.png)',
     width: '30px',
     height: '30px',
     display: 'block',
     backgroundSize: '30px',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    marginLeft: '6px',
     '@media(min-width: 1301px)': {
       display: 'none',
     },
@@ -36,9 +40,15 @@ const useLogoStyles = createUseStyles({
     display: 'flex',
     justifyContent: 'start',
     alignItems: 'center',
-    '@media(min-width: 992px)':{
-      width: '6%'
-    }
+    '@media(max-width: 1300px)': {
+      margin: '0 6px',
+      width: 'auto',
+    },
+    '@media(max-width: 992px)': {
+      width: '20%',
+      margin: 0,
+      marginBottom: '6px',
+    },
   },
   openSideNavMobile: {
     display: 'none',
@@ -60,9 +70,10 @@ const Logo = () => {
       navStore.setIsSidebarOpen(!navStore.isSidebarOpen);
     }}></div>
     <a className={s.imgDesktop} href='/home'></a>
-    <div className={s.imgMobileWrapper}>
-      <div className={s.imgMobile}></div>
-    </div>
+    <a className={s.imgMobile} href='/home'></a>
+    {/*<div className={s.imgMobileWrapper}>
+      
+    </div>*/}
   </div>
 }
 

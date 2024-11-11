@@ -2,13 +2,14 @@ import React from "react";
 import Ads from "./components/subPages/ads";
 import Clothing from "./components/subPages/clothing";
 import GamesSubPage from "./components/subPages/games";
+import GamePasses from "./components/subPages/gamepasses";
 
 const developerPages = [
   {
     id: 0,
     name: 'Games',
     url: '/develop?View=0',
-    element: props => <GamesSubPage {...props}/>,
+    element: props => <GamesSubPage {...props} />,
   },
   {
     id: 9,
@@ -41,16 +42,23 @@ const developerPages = [
     disabled: true,
   },
   {
-    id: 100,
-    name: 'Passes',
-    url: '/develop?View=100',
+    id: 34,
+    name: 'Game Passes',
+    url: '/develop?View=34',
     disabled: true,
+    //element: props => <GamePasses id={34} {...props} />,
+  },
+  {
+    id: 62,
+    name: 'Videos',
+    url: '/develop?View=62',
+    element: props => <Clothing id={62} {...props} />,
   },
   {
     id: 3,
     name: 'Audio',
     url: '/develop?View=3',
-    element: props => <Clothing id={3} {...props}/>,
+    element: props => <Clothing id={3} {...props} />,
   },
   {
     id: 24,
@@ -68,7 +76,7 @@ const developerPages = [
     id: 101,
     name: 'User Ads',
     url: '/develop?View=101',
-    element: props => <Ads {...props}/>,
+    element: props => <Ads {...props} />,
   },
   {
     id: 102,
@@ -80,31 +88,25 @@ const developerPages = [
     id: 11,
     name: 'Shirts',
     url: '/develop?View=11',
-    element: props => <Clothing id={11} {...props}/>,
+    element: props => <Clothing id={11} {...props} />,
   },
   {
     id: 2,
     name: 'T-Shirts',
     url: '/develop?View=2',
-    element: props => <Clothing id={2} {...props}/>,
+    element: props => <Clothing id={2} {...props} />,
   },
   {
     id: 12,
     name: 'Pants',
     url: '/develop?View=12',
-    element: props => <Clothing id={12} {...props}/>,
+    element: props => <Clothing id={12} {...props} />,
   },
   {
     id: 38,
     name: 'Plugins',
     url: '/develop?View=38',
     disabled: true,
-  },
-  {
-    id: 62,
-    name: 'Videos',
-    url: '/develop?View=62',
-    element: props => <Clothing id={62} {...props}/>,
   },
 ];
 

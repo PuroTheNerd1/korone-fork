@@ -8,10 +8,11 @@ const useBuyButtonStyles = createUseStyles({
     padding: '1px 13px 3px 13px',
     fontSize: '20px',
     color: 'white',
-    border: '1px solid #357ebd',
+    border: '1px solid #084ea6',
     margin: '0 auto',
     display: 'block',
     fontWeight: 'normal',
+    userSelect: 'none',
     '&:disabled': {
       opacity: '0.5',
     },

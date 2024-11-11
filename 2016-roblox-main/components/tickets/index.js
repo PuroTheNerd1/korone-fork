@@ -21,7 +21,7 @@ const useTicketStyles = createUseStyles({
   },
 });
 
-const Robux = props => {
+const Tickets = props => {
   const s = useTicketStyles();
   return <>
     {props.prefix ? <span className={s.text + ' ' + s.prefix}>{props.prefix}</span> : null}
@@ -30,4 +30,4 @@ const Robux = props => {
   </>
 }
 
-export default Robux;
+export default Tickets;

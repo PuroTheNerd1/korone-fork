@@ -112,6 +112,11 @@ export const multiGetUniverseIcons = ({ universeIds, size }) => {
 }
 
 export const getAssetThumbnail = assetId => {
-  const data = request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${assetId}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
+  const data = request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${assetId}&format=png&size=420x420`))
+  return data
+}
+
+export const getUniverseIcon = ({ universeId, size = '150x150' }) => {
+  const data = request('get', getFullUrl('thumbnails', `/v1/games/icons?size=${size}&format=png&universeIds=${universeId}`))
   return data
 }

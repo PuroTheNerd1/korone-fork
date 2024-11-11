@@ -11,7 +11,7 @@ const useStyles = createUseStyles({
   developerContainer: {
     backgroundColor: '#fff',
     padding: '4px 8px',
-    overflow: 'hidden',
+    overflow: 'visible',
   },
 });
 
@@ -78,10 +78,10 @@ const Develop = props => {
         name: 'Library',
         element: <NotAvailable />,
       },
-      {
+      /*{
         name: 'Developer Exchange',
         element: <NotAvailable />,
-      },
+      },*/
     ];
     if (tab === null)
       setTab(defaultOpts[0].name);

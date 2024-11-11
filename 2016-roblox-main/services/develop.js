@@ -1,13 +1,16 @@
 import getFlag from "../lib/getFlag";
 import request, { getBaseUrl, getFullUrl } from "../lib/request"
 
-export const uploadAsset = ({ name, assetTypeId, file, groupId }) => {
+export const uploadAsset = ({ name, assetTypeId, file, groupId, description=null }) => {
   let formData = new FormData();
   formData.append('name', name);
   formData.append('assetType', assetTypeId);
   formData.append('file', file);
   if (groupId) {
     formData.append('groupId', groupId);
+  }
+  if (description != null) {
+    formData.append('description', description);
   }
   return request('POST', getBaseUrl() + '/develop/upload', formData);
 }

@@ -44,6 +44,15 @@ const useStyles = createUseStyles({
   col: {
     paddingLeft: 0,
     marginLeft: 0,
+    '@media(max-width: 1300px)': {
+      width: 'auto',
+    },
+    '@media(max-width: 991px)': {
+      padding: 0,
+      margin: 0,
+      marginBottom: '6px',
+      width: '80%',
+    }
   },
   row: {
     margin: 0,
@@ -52,7 +61,10 @@ const useStyles = createUseStyles({
   linkContainer: {
     display: 'flex',
     margin: 0,
-    padding: 0
+    padding: 0,
+    '@media(max-width: 1300px)': {
+      width: 'auto',
+    },
   }
 })
 

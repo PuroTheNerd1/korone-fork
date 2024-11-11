@@ -27,14 +27,16 @@ const useNavBarStyles = createUseStyles({
   row: {
     width: '100%',
     margin: '0!important',
-    padding: '0!important'
+    padding: '0!important',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   wrapper: {
     marginBottom: '40px',
     maxWidth: '100vw',
     overflow: 'auto',
     '@media(max-width: 991px)': {
-      marginBottom: '98px',
+      marginBottom: '90px',
     }
   },
   rowOne: {
@@ -42,7 +44,10 @@ const useNavBarStyles = createUseStyles({
   },
   column: {
     margin: 0,
-    padding: 0
+    padding: 0,
+    '@media(max-width: 991px)': {
+      padding: '6px',
+    }
   }
 });
 

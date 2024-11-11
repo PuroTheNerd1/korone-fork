@@ -86,6 +86,11 @@ const useLoginAreaStyles = createUseStyles({
     float: "right",
     marginLeft: "auto",
     marginRight: "3px",
+    '@media(max-width: 991px)': {
+      marginLeft: '0',
+      padding: 0,
+      width: 'calc(60% - 3px)',
+    }
   },
   row: {
     display: "block",
@@ -101,12 +106,13 @@ const useLoginAreaStyles = createUseStyles({
     },
   },
   ageNameContainer: {
-    display: "inline-block",
     float: "left",
     color: "#fff",
     marginRight: "0",
     fontSize: "12px",
     fontWeight: "500",
+    display: 'flex',
+    gap: '2px',
   },
   nameLink: {
     color: "inherit",
@@ -118,6 +124,10 @@ const useLoginAreaStyles = createUseStyles({
     color: "inherit",
     display: "inline",
     fontWeight: '400',
+    textDecoration: 'none',
+    '&:hover': {
+      textDecoration: 'underline',
+    },
     "&:after": {
       content: '": "',
     },
@@ -198,7 +208,7 @@ const useLoginAreaStyles = createUseStyles({
     marginRight: '0'
   },
 
-  currencySpan:{
+  currencySpan: {
     color: '#fff',
     display: 'inline',
     marginLeft: '5px',
@@ -206,6 +216,11 @@ const useLoginAreaStyles = createUseStyles({
     fontSize: '16px',
     height: '100%',
     marginBottom: '2px'
+  },
+  hideOnMobile: {
+    '@media(max-width: 991px)': {
+      display: 'none!important'
+    }
   },
 });
 
@@ -219,16 +234,16 @@ const LoggedInArea = (props) => {
     <div className={`${s.linkContainerCol} `}>
       <div className={`${s.row} row`}>
         <ul className={`${s.linkContainer}`}>
-          <div className={`${s.ageNameContainer}`}>
+          <div className={`${s.ageNameContainer} ${s.hideOnMobile}`}>
             <a
-              href={`/users/${authStore.userId}/profile`}
+              href={`https://projex.zip/users/${authStore.userId}/profile`}
               className={`${s.nameLink}`}
             >
               <span className={`${s.nameSpan}`}>{authStore.username}</span>
             </a>
             <span className={`${s.ageSpan}`}>13+</span>
           </div>
-          <li className={`${s.messagesContainer}`}>
+          <li className={`${s.messagesContainer} ${s.hideOnMobile}`}>
             <a href="/My/Messages" className={`${s.messagesLink}`}>
               <span className="icon-nav-message2" />
             </a>
