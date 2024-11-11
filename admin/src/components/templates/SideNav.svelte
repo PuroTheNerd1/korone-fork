@@ -101,7 +101,7 @@
 	] as any[];
 
 	let active: string = "/";
-rank.</script>
+</script>
 
 <div class="row">
 	<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark text-white sidebar collapse">
