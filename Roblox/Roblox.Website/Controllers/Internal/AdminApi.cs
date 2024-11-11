@@ -2075,7 +2075,10 @@ Thank you for your understanding,
                 actorId = safeUserSession.userId,
             });
 
-        return backportId;
+        return new
+        {
+            assetId = backportId
+        };
     }
     [HttpPost("asset/copy-from-roblox"), StaffFilter(Access.CreateAssetCopiedFromRoblox)]
     public async Task<dynamic> CopyAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
