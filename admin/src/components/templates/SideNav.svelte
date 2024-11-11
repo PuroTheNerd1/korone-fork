@@ -101,7 +101,7 @@
 	] as any[];
 
 	let active: string = "/";
-</script>
+rank.</script>
 
 <div class="row">
 	<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark text-white sidebar collapse">
@@ -161,6 +161,11 @@
 				{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
 					<li class="nav-item ml-4">
 						<a use:link class="nav-link" href="/admin/asset/copy"><CopyIcon /> Copy Asset</a>
+					</li>
+				{/if}
+				{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
+					<li class="nav-item ml-4">
+						<a use:link class="nav-link" href="/admin/asset/ugccopy"><CopyIcon /> Copy UGC</a>
 					</li>
 				{/if}
 				{#if rank.hasPermission("CreateBundleCopiedFromRoblox")}
