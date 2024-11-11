@@ -1249,53 +1249,113 @@ public class AssetsService : ServiceBase, IService
     {
         var robloxApi = new RobloxApi();
         var assetsService = new AssetsService();
+
+        Console.WriteLine($"Starting to backport accessory with AssetId: {assetId}");
+
         var AccessoryDetailsRequest = await robloxApi.GetProductInfo(assetId);
+        Console.WriteLine($"Fetched AccessoryDetails for AssetId {assetId}: {AccessoryDetailsRequest.Name}");
+
         var AccessoryAsset = await robloxApi.GetProductInfo(assetId);
+        Console.WriteLine($"Fetched AccessoryAsset for AssetId {assetId}: AssetTypeId = {AccessoryAsset.AssetTypeId}");
+
         if ((int)AccessoryAsset.AssetTypeId >= 41 & (int)AccessoryAsset.AssetTypeId <= 47)
         {
+            Console.WriteLine($"AssetTypeId {AccessoryAsset.AssetTypeId} is valid for processing.");
+
             Stream RBXMStream = await robloxApi.GetAssetContentFromProxy(assetId);
             byte[] RBXMByte = EasyConverters.StreamToByte(RBXMStream);
             String RBXMHexString = Convert.ToHexString(RBXMByte);
 
-            String MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
+            Console.WriteLine("Parsed RBXM Hex string successfully.");
+
+            String MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1]
+                                                   .Split(EasyConverters.StringToHexString("rbxassetid://"))[1]
+                                                   .Split(EasyConverters.StringToHexString("PROP"))[0];
             String MeshId = EasyConverters.HexStringToString(MeshIdHexString);
 
+            Console.WriteLine($"Extracted MeshId: {MeshId}");
+
             var MeshAssetRequest = await robloxApi.GetProductInfo(long.Parse(MeshId));
+            Console.WriteLine($"Fetched MeshAsset for MeshId {MeshId}: AssetTypeId = {MeshAssetRequest.AssetTypeId}");
 
             if ((int)MeshAssetRequest.AssetTypeId == 4)
             {
+                Console.WriteLine("MeshAsset is valid (AssetTypeId == 4). Proceeding with mesh modification.");
+
                 Stream MeshStream = await robloxApi.GetAssetContentFromProxy(long.Parse(MeshId));
                 byte[] MeshByte = EasyConverters.StreamToByte(MeshStream);
 
-                byte[] NewMeshByte = ConvertMesh(MeshByte); // this is the new mesh, as byte[], do whatever you want with this
-                // convert to stream
+                Console.WriteLine("Fetched mesh content and converting to new mesh.");
+
+                byte[] NewMeshByte = ConvertMesh(MeshByte); // This is the new mesh, as byte[], do whatever you want with this
                 Stream meshStream = new MemoryStream(NewMeshByte);
 
-                var meshDetails = await assetsService.CreateAsset(AccessoryDetailsRequest.Name, AccessoryDetailsRequest.Description, 1,
-                    CreatorType.User, 1, meshStream, Type.Mesh, Genre.All, ModerationStatus.ReviewApproved,
-                    DateTime.UtcNow, DateTime.UtcNow, long.Parse(MeshId));
-                long NewMeshIdLong = meshDetails.assetId; // example, is a long just incase
-                String NewMeshId = NewMeshIdLong.ToString(); // convert to string
+                var meshDetails = await assetsService.CreateAsset(
+                    AccessoryDetailsRequest.Name,
+                    AccessoryDetailsRequest.Description,
+                    1,
+                    CreatorType.User,
+                    1,
+                    meshStream,
+                    Type.Mesh,
+                    Genre.All,
+                    ModerationStatus.ReviewApproved,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow,
+                    long.Parse(MeshId));
+
+                long NewMeshIdLong = meshDetails.assetId;
+                Console.WriteLine($"New Mesh created with AssetId: {NewMeshIdLong}");
+
+                String NewMeshId = NewMeshIdLong.ToString();
                 String NewMeshIdHex = EasyConverters.StringToHexString(NewMeshId);
+
                 if (NewMeshId.Length > MeshId.Length)
                 {
+                    Console.WriteLine("Error: New MeshId is longer than the original MeshId.");
                     throw new Exception("New MeshId too long");
                 }
+
                 for (int i = 0; i < (MeshId.Length - NewMeshId.Length); i++)
                 {
                     NewMeshIdHex = $"{NewMeshIdHex}00";
                 }
+
+                Console.WriteLine($"Replacing old MeshIdHexString with new MeshIdHexString.");
                 RBXMHexString = RBXMHexString.Replace(MeshIdHexString, NewMeshIdHex);
-                byte[] NewRBXMByte = Convert.FromHexString(RBXMHexString); // this is the new RBXM, as byte[], do whatever you want with this
+                byte[] NewRBXMByte = Convert.FromHexString(RBXMHexString);
                 Stream rbxmStream = new MemoryStream(NewRBXMByte);
-                var assetDetails = await assetsService.CreateAsset(AccessoryDetailsRequest.Name, AccessoryDetailsRequest.Description, 1,
-                                    CreatorType.User, 1, rbxmStream, (Type)AccessoryAsset.AssetTypeId, Genre.All, ModerationStatus.ReviewApproved,
-                                    DateTime.UtcNow, DateTime.UtcNow, assetId);
+
+                var assetDetails = await assetsService.CreateAsset(
+                    AccessoryDetailsRequest.Name,
+                    AccessoryDetailsRequest.Description,
+                    1,
+                    CreatorType.User,
+                    1,
+                    rbxmStream,
+                    (Type)AccessoryAsset.AssetTypeId,
+                    Genre.All,
+                    ModerationStatus.ReviewApproved,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow,
+                    assetId);
+
+                Console.WriteLine($"Created new asset with AssetId: {assetDetails.assetId}");
                 return assetDetails.assetId;
             }
+            else
+            {
+                Console.WriteLine($"MeshAsset is not of type Mesh (AssetTypeId: {MeshAssetRequest.AssetTypeId}).");
+            }
         }
+        else
+        {
+            Console.WriteLine($"AssetTypeId {AccessoryAsset.AssetTypeId} is not valid for backporting.");
+        }
+
         return 0;
     }
+
     public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, long contentId)
     {
         var latest = await GetLatestAssetVersion(assetId);
