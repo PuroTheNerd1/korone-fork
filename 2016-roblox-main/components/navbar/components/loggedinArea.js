@@ -90,6 +90,9 @@ const useLoginAreaStyles = createUseStyles({
       marginLeft: '0',
       padding: 0,
       width: 'calc(60% - 3px)',
+    },
+    '@media(max-width: 400px)': {
+      width: 'calc(68% - 3px)',
     }
   },
   row: {
@@ -215,7 +218,10 @@ const useLoginAreaStyles = createUseStyles({
     marginRight: '14px',
     fontSize: '16px',
     height: '100%',
-    marginBottom: '2px'
+    marginBottom: '2px',
+    '@media(max-width: 400px)': {
+      marginRight: '4px'
+    }
   },
   hideOnMobile: {
     '@media(max-width: 991px)': {
@@ -236,7 +242,7 @@ const LoggedInArea = (props) => {
         <ul className={`${s.linkContainer}`}>
           <div className={`${s.ageNameContainer} ${s.hideOnMobile}`}>
             <a
-              href={`https://projex.zip/users/${authStore.userId}/profile`}
+              href={`https://goober.top/users/${authStore.userId}/profile`}
               className={`${s.nameLink}`}
             >
               <span className={`${s.nameSpan}`}>{authStore.username}</span>

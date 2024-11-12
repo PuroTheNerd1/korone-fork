@@ -121,6 +121,9 @@ const useSearchStyles = createUseStyles({
     '@media(max-width: 991px)': {
       marginLeft: '6px',
       width: 'calc(40% - 6px)',
+    },
+    '@media(max-width: 400px)': {
+      width: 'calc(32% - 6px)'
     }
   }
 });

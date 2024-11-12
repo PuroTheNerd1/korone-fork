@@ -28,6 +28,9 @@ const useStyles = createUseStyles({
       borderRadius: '5px',
       transition: 'none',
     },
+    '@media(max-width: 400px)': {
+      padding: '0 5px!important'
+    }
   },
   navItem: {
     paddingRight: '2rem',
@@ -56,7 +59,10 @@ const useStyles = createUseStyles({
   },
   row: {
     margin: 0,
-    height: '100%'
+    height: '100%',
+    '@media(max-width: 400px)': {
+      flexWrap: 'nowrap',
+    }
   },
   linkContainer: {
     display: 'flex',

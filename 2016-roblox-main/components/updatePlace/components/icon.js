@@ -103,6 +103,8 @@ const Icon = props => {
             })
           })*/
           setGameIcon(result.data.data[0].imageUrl)
+          if (result?.data?.data[0]?.state === 'Pending')
+            setGameIcon('/img/placeholder.png')
         })
     }
   })

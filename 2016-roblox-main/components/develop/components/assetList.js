@@ -18,8 +18,10 @@ const useStyles = createUseStyles({
     display: 'block',
     height: '70px',
     width: '70px',
-    objectFit: 'cover',
+    //objectFit: 'cover',
     margin: '0 6px 0 12px',
+    cursor: 'pointer',
+    userSelect: 'none',
   },
   row: {
     borderBottom: '1px solid #f2f2f2',
@@ -43,7 +45,8 @@ const AssetEntry = props => {
   const isAd = props.ad !== undefined && props.target !== undefined;
   const [thumbnail, setThumbnail] = useState('/img/placeholder/icon_one.png');
 
-  const assetUrl = isPlace ? getGameUrl({ placeId: props.assetId, name: props.name }) : getItemUrl({ assetId: props.assetId, name: props.name })
+  const assetUrl = isPlace ? getGameUrl({ placeId: props.assetId, name: props.name }) : isAd ? '#' : getItemUrl({ assetId: props.assetId, name: props.name })
+  const genericAssetURL = isPlace ? `/games/${props.assetId}/--` : `/catalog/${props.assetId}/--`
   const url = isPlace ? `/universes/configure?id=${props.universeId}` : assetUrl;
 
   const imageAssetId = isAd ? props.ad.advertisementAssetId : props.assetId;
@@ -103,7 +106,7 @@ const AssetEntry = props => {
         e.preventDefault();
         const confirmation = window.confirm("Do you want to shut down all servers?");
         if (confirmation) {
-          fetch(`https://projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
+          fetch(`https://goober.top/rcc/killallservers?placeId=${props.assetId}`, {
             method: "GET",
           })
             .then(response => {
@@ -120,26 +123,35 @@ const AssetEntry = props => {
   ];
 
   useEffect(() => {
-    if (thumbnail !== '/img/placeholder/icon_one.png')
+    if (thumbnail === '/img/placeholder/icon_one.png') {
       if (isPlace) {
         getUniverseIcon({ universeId: props.universeId }).then((result) => {
           if (result?.data?.data[0]?.imageUrl)
             setThumbnail(result.data.data[0].imageUrl);
+          if (result?.data?.data[0]?.state === 'Pending')
+            setThumbnail('/img/placeholder.png')
         })
       } else {
-        getAssetThumbnail({ imageAssetId }).then((result) => {
-          if (result)
-            setThumbnail(result)
+        getAssetThumbnail(imageAssetId).then((result) => {
+          if (result?.data?.data[0]?.imageUrl)
+            setThumbnail(result.data.data[0].imageUrl);
+          if (result?.data?.data[0]?.state === 'Pending')
+            setThumbnail('/img/placeholder.png')
         })
       }
+    }
   }, [props?.ad?.advertisementAssetId, props?.assetId, props?.universeId])
 
   return <div className={'row ' + s.row}>
     <div className='col-2' style={{ padding: '0!important', width: 'auto!important' }}>
-      <img className={s.image} src={thumbnail} />
+      <Link href={genericAssetURL}>
+        <a href={genericAssetURL}>
+          <img className={s.image} src={thumbnail} />
+        </a>
+      </Link>
     </div>
     <div className={
-      //isPlace ? 'col-7 ps-0' : 
+      //isPlace ? 'col-7 ps-0' :
       'col-9 ps-0'}>
       <p className='mb-0'>
         <Link href={url}>
@@ -156,7 +168,7 @@ const AssetEntry = props => {
       }
     </div>
     <div className={
-      //isPlace ? `col-4 ${s.gearDropdownWrapper}` : 
+      //isPlace ? `col-4 ${s.gearDropdownWrapper}` :
       'col-1'}>
       {/*isPlace && <div className={s.editWrapper}>
         <ActionButton onClick={() => {}} disabled={true} label='Edit' buttonStyle={buttonStyles.cancelButton}></ActionButton>
