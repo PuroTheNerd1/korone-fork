@@ -106,7 +106,7 @@ const AssetEntry = props => {
         e.preventDefault();
         const confirmation = window.confirm("Do you want to shut down all servers?");
         if (confirmation) {
-          fetch(`https://goober.top/rcc/killallservers?placeId=${props.assetId}`, {
+          fetch(`https://projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
             method: "GET",
           })
             .then(response => {
