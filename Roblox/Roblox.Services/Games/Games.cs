@@ -471,7 +471,7 @@ public class GamesService : ServiceBase, IService
             description = c.description,
             rootPlaceId = c.rootAssetId,
             isActive = true,
-            privacyType = c.isPublic ? PrivacyType.Public : PrivacyType.Private,
+            privacyType = PrivacyType.Public,
             creatorType = (int) creatorType,
             creatorTargetId = creatorId,
             creatorName = username,
