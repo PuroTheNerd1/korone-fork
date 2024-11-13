@@ -34,7 +34,7 @@ public class MultiGetUniverseEntry
     public long favoritedCount { get; set; }
     public bool isFavoritedByUser { get; set; }
     public bool isAllGenre => genre == Genre.All;
-    public string universeAvatarType { get; set; } = "MorphToR6";
+    public ForceMorphType universeAvatarType { get; set; }
     public bool studioAccessToApisAllowed { get; set; }
     public long? price { get; set; }
     public bool isGenreEnforced { get; set; } = false;
@@ -136,6 +136,13 @@ public enum PrivacyType
     Private
 }
 
+public enum ForceMorphType
+{
+    PlayerChoice = 1,
+    MorphToR6 = 2,
+    MorphToR15 = 3
+}
+
 public class UniverseConfiguration
 {
     public bool allowPrivateServers { get; set;}
@@ -143,12 +150,12 @@ public class UniverseConfiguration
     public bool isMeshTextureApiAccessAllowed { get; set;}
     public long id { get; set; }
     public string name { get; set; }
-    public long universeAvatarType { get; set; }
-    public long universeScaleType { get; set; }
-    public long universeAnimationType { get; set; }
-    public long universeCollisionType { get; set; }
-    public long universeBodyType { get; set; }
-    public long universeJointPositioningType { get; set; }
+    public ForceMorphType universeAvatarType { get; set; }
+    public string universeScaleType { get; set; }
+    public string universeAnimationType { get; set; }
+    public string universeCollisionType { get; set; }
+    public string universeBodyType { get; set; }
+    public string universeJointPositioningType { get; set; }
     public bool isArchived { get; set; }
     public bool isFriendsOnly { get; set; }
     public Genre genre { get; set; }

@@ -100,6 +100,7 @@ public class GamesService : ServiceBase, IService
                 universe.id,
                 universe.root_asset_id as rootPlaceId,
                 universe.is_public as isPublic,
+                universe.forcemorph_type as universeAvatarType,
                 asset.name as sourceName,
                 asset.description as sourceDescription,
                 asset.name,
