@@ -242,7 +242,7 @@ const LoggedInArea = (props) => {
         <ul className={`${s.linkContainer}`}>
           <div className={`${s.ageNameContainer} ${s.hideOnMobile}`}>
             <a
-              href={`https://goober.top/users/${authStore.userId}/profile`}
+              href={`https://www.projex.zip/users/${authStore.userId}/profile`}
               className={`${s.nameLink}`}
             >
               <span className={`${s.nameSpan}`}>{authStore.username}</span>
