@@ -58,14 +58,19 @@ public class GamesService : ServiceBase, IService
             throw new RobloxException(400, 0, "Invalid universe ID");
         return arr[0].rootPlaceId;
     }
-    
+
     public async Task<long> GetUniverseId(long placeId)
     {
-        var details = await MultiGetPlaceDetails(new []{placeId});
-        var arr = details.ToArray();
-        if (arr.Length == 0)
+        var result = await db.QuerySingleOrDefaultAsync<long>(
+            "SELECT universe_id FROM universe_asset WHERE asset_id = :id LIMIT 1", new
+            {
+                id = placeId,
+            });
+        //var details = await MultiGetPlaceDetails(new []{placeId});
+        //var arr = details.ToArray();
+        if (result == 0)
             throw new RobloxException(400, 0, "Invalid place ID");
-        return arr[0].universeId;
+        return result;
     }
     public async Task EnableCloudEdit(long universeId)
     {
@@ -85,7 +90,7 @@ public class GamesService : ServiceBase, IService
         var ids = universeIds.ToArray();
         if (!ids.Any())
             return Array.Empty<MultiGetUniverseEntry>();
-        
+
         var build = new SqlBuilder();
         var temp = build.AddTemplate(
             "SELECT universe.id, universe.root_asset_id as rootPlaceId, asset.name as sourceName, asset.description as sourceDescription, asset.name, asset.description, asset.asset_genre as genre, asset.created_at as created, asset.updated_at as updated, asset_place.max_player_count as maxPlayers, asset_place.year as year, asset_place.visit_count as visits, asset_place.is_vip_enabled as createVipServersAllowed, asset.price_robux as price, asset.creator_id as creatorId, asset.creator_type as creatorType, (SELECT COUNT(*) as playing FROM asset_server_player WHERE asset_id = universe.root_asset_id), (case when \"asset\".creator_type = 1 then \"user\".username else \"group\".name end) as creatorName FROM universe INNER JOIN asset ON asset.id = universe.root_asset_id INNER JOIN asset_place ON asset_place.asset_id = universe.root_asset_id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id LEFT JOIN \"user\" ON \"user\".id = asset.creator_id /**where**/ LIMIT 1000");
@@ -160,7 +165,7 @@ public class GamesService : ServiceBase, IService
 
         return count;
     }
-    
+
     public async Task<int> GetVisitCount(long placeId)
     {
         var query = await db.QuerySingleOrDefaultAsync<Total>(
@@ -193,7 +198,7 @@ public class GamesService : ServiceBase, IService
                 keyword = "%" + keyword + "%",
             });
         }
-        
+
         if (genre != null && genre != Genre.All && Enum.IsDefined(genre.Value))
         {
             query.Where("asset.asset_genre = :genre", new
@@ -218,7 +223,7 @@ public class GamesService : ServiceBase, IService
             case "recent":
                 if (contextUserId is 0 or null)
                     throw new RobloxException(401, 0, "Unauthorized");
-                
+
                 sortOrder = (await GetRecentGames(contextUserId.Value, maxRows)).ToList();
                 foreach (var item in sortOrder)
                 {
@@ -226,7 +231,7 @@ public class GamesService : ServiceBase, IService
                 }
                 break;
             case "roulette":
-                query.OrderBy("RANDOM()"); 
+                query.OrderBy("RANDOM()");
                 sortRequired = false;
                 break;
             case "recentlyupdated":
@@ -256,7 +261,7 @@ public class GamesService : ServiceBase, IService
             var oldResult = result.ToList();
             foreach (var id in sortOrder)
             {
-                var row = oldResult.FirstOrDefault(c => c.placeId == id); 
+                var row = oldResult.FirstOrDefault(c => c.placeId == id);
                 if (row != null)
                     newResults.Add(row);
             }
@@ -269,8 +274,8 @@ public class GamesService : ServiceBase, IService
             var newResults = result.ToList();
             newResults.Sort((a, b) =>
             {
-                return a.playerCount > b.playerCount ? -1 : a.playerCount == b.playerCount ? 
-                    (a.visitCount > b.visitCount ? -1 : a.visitCount == b.visitCount ? 0 : 1) 
+                return a.playerCount > b.playerCount ? -1 : a.playerCount == b.playerCount ?
+                    (a.visitCount > b.visitCount ? -1 : a.visitCount == b.visitCount ? 0 : 1)
                     : 1;
             });
             result = newResults;
@@ -282,7 +287,7 @@ public class GamesService : ServiceBase, IService
     {
         if (year != 2017 && year != 2018 && year != 2019 && year != 2020 && year != 2021)
             throw new ArgumentException("Year can only be 2015, 2016, 2017, 2018, 2019 2020, 2021");
-            
+
         await db.ExecuteAsync("UPDATE asset_place SET year = :year WHERE asset_id = :id", new
         {
             id = placeId,
@@ -295,7 +300,7 @@ public class GamesService : ServiceBase, IService
             throw new RobloxException(400, 0, "Max player count cannot be below 1");
         if (maxPlayerCount > 100)
             throw new RobloxException(400, 0, "Max player count cannot exceed 100");
-        
+
         await db.ExecuteAsync("UPDATE asset_place SET max_player_count = :max WHERE asset_id = :id", new
         {
             id = placeId,
@@ -338,7 +343,7 @@ public class GamesService : ServiceBase, IService
             name = c.name,
             description = c.description,
             rootPlaceId = c.rootAssetId,
-            creatorType = (int) creatorType, 
+            creatorType = (int) creatorType,
             creatorTargetId = creatorId,
             creatorName = username,
             created = c.created,
@@ -392,7 +397,7 @@ public class GamesService : ServiceBase, IService
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
         int gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
 
-        
+
         var joinScript = new
         {
             ClientPort = 0,
@@ -439,8 +444,8 @@ public class GamesService : ServiceBase, IService
             {
                 new
                 {
-                    Port = gamseserverPort, 
-                    Address = Configuration.GameServerIp, 
+                    Port = gamseserverPort,
+                    Address = Configuration.GameServerIp,
                 }
             },
             */
