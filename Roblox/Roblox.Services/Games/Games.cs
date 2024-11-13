@@ -52,11 +52,16 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<long> GetRootPlaceId(long universeId)
     {
-        var details = await MultiGetUniverseInfo(new []{universeId});
-        var arr = details.ToArray();
-        if (arr.Length == 0)
+        //var details = await MultiGetUniverseInfo(new []{universeId});
+        //var arr = details.ToArray();
+        var result = await db.QuerySingleOrDefaultAsync<long>(
+            "SELECT root_asset_id FROM universe WHERE id = :id LIMIT 1", new
+            {
+                id = universeId,
+            });
+        if (result == 0)
             throw new RobloxException(400, 0, "Invalid universe ID");
-        return arr[0].rootPlaceId;
+        return result;
     }
 
     public async Task<long> GetUniverseId(long placeId)
