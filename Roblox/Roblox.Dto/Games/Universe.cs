@@ -138,9 +138,6 @@ public enum PrivaceType
 
 public class UniverseConfiguration
 {
-
-
-
     public bool allowPrivateServers { get; set;}
     public long privateServerPrice { get; set;}
     public bool isMeshTextureApiAccessAllowed { get; set;}
@@ -159,7 +156,7 @@ public class UniverseConfiguration
     public bool isForSale { get; set; }
     public int price { get; set; }
     public bool isStudioAccessToApisAllowed { get; set; }
-    public privacyType privacyType { get; set;}
+    public PrivaceType privacyType { get; set;}
 }
 public class GamesForCreatorEntry
 {
