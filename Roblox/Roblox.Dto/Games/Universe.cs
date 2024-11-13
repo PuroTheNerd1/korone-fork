@@ -130,7 +130,7 @@ public class GamesForCreatorDevelop
     public DateTime updated { get; set; }
 }
 
-public enum PrivaceType
+public enum PrivacyType
 {
     Public = 1,
     Private
@@ -151,12 +151,12 @@ public class UniverseConfiguration
     public long universeJointPositioningType { get; set; }
     public bool isArchived { get; set; }
     public bool isFriendsOnly { get; set; }
-    public IEnumerable<Genre> genre { get; set; }
+    public Genre genre { get; set; }
     public List<long> playableDevices { get; set; }
     public bool isForSale { get; set; }
     public int price { get; set; }
     public bool isStudioAccessToApisAllowed { get; set; }
-    public PrivaceType privacyType { get; set;}
+    public PrivacyType privacyType { get; set;}
 }
 public class GamesForCreatorEntry
 {
