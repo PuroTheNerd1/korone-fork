@@ -407,11 +407,15 @@ public class GamesService : ServiceBase, IService
         int offset, string? sort, string? accessFilter)
     {
         var qu = await db.QueryAsync<GamesForCreatorEntryDb>(
-            @"SELECT u.id, a.name, a.description, u.root_asset_id as rootAssetId, ap.visit_count as visitCount, a.created_at as created, a.updated_at as updated
+            @"SELECT u.id, a.name, a.description,
+            u.root_asset_id as rootAssetId,
+            ap.visit_count as visitCount,
+            a.created_at as created,
+            a.updated_at as updated
             FROM universe AS u
             INNER JOIN asset a ON a.id = u.root_asset_id
             INNER JOIN asset_place ap ON ap.asset_id = u.root_asset_id
-            WHERE u.creator_type = :type AND u.creator_id = :id
+            WHERE u.creator_type = :type AND u.creator_id = :id AND u.is_public = true
             LIMIT :limit OFFSET :offset",
             new
             {
