@@ -129,11 +129,13 @@ public class GamesForCreatorDevelop
     public DateTime created { get; set; }
     public DateTime updated { get; set; }
 }
-public enum privacyType
+
+public enum PrivaceType
 {
     Public = 1,
     Private
 }
+
 public class UniverseConfiguration
 {
 
