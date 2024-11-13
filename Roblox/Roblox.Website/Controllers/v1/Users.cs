@@ -50,10 +50,10 @@ public class UsersControllerV1 : ControllerBase
 
         var info = await services.users.GetUserById(userId);
         var isBanned =
-            info.accountStatus != AccountStatus.Ok && 
-            info.accountStatus != AccountStatus.MustValidateEmail && 
+            info.accountStatus != AccountStatus.Ok &&
+            info.accountStatus != AccountStatus.MustValidateEmail &&
             info.accountStatus != AccountStatus.Suppressed;
-        
+
         return new
         {
             id = info.userId,
@@ -62,6 +62,7 @@ public class UsersControllerV1 : ControllerBase
             info.description,
             info.created,
             isBanned,
+            isStaff = await StaffFilter.IsStaff(userId),
             inventory_rap = totalRap
         };
     }
