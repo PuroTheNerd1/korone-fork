@@ -5,6 +5,7 @@ using Roblox.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Studio;
+using Roblox.Services.Exceptions;
 namespace Roblox.Website.Controllers;
 [ApiController]
 [Route("")]
@@ -90,6 +91,19 @@ public class UniverseV1 : ControllerBase
             data = new List<object>()
         };
     }
+
+    [HttpGet("v2/universes/{universeId}/permissions")]
+    public async Task<dynamic> CanManageV2(long universeId)
+    {
+        bool canManage = await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        if (!canManage)
+            throw new RobloxException(403, 0, "The user is not authorized to perform this action.");
+        return new
+        {
+            data = new List<object>()
+        };
+    }
+
     [HttpGet("v1/universes/{universeId}/permissions")]
     public async Task<dynamic> CanManage(long universeId)
     {
