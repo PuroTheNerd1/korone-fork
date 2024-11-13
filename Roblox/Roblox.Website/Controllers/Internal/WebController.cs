@@ -81,7 +81,7 @@ public class WebController : ControllerBase
     {
         if (pageNumber < 1) pageNumber = 1;
         if (itemsPerPage < 1 || itemsPerPage > 100) itemsPerPage = 10;
-        
+
         // /users/favorites/list-json?assetTypeId=9&itemsPerPage=100&pageNumber=1&userId=3081467602
         var favs = await services.assets.GetFavoritesOfType(userId, assetTypeId, itemsPerPage,
             (itemsPerPage * pageNumber) - itemsPerPage);
@@ -89,7 +89,7 @@ public class WebController : ControllerBase
         var universeStuff =
             await services.games.MultiGetPlaceDetails(details.Where(c => c.assetType == Models.Assets.Type.Place)
                 .Select(c => c.id));
-        
+
         return new
         {
             IsValid = true,
@@ -101,7 +101,7 @@ public class WebController : ControllerBase
                 Items = details.Select(c =>
                 {
                     var details = universeStuff.FirstOrDefault(x => x.placeId == c.id);
-                    
+
                     return new
                     {
                         AssetRestrictionIcon = new
@@ -247,17 +247,17 @@ public class WebController : ControllerBase
     {
         bool canManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
         bool isOwner =  StaffFilter.IsOwner(userId);
-        
+
         dynamic json = new { Success = canManagePlace || isOwner, CanManage = canManagePlace || isOwner };
         return Content(JsonConvert.SerializeObject(json), "application/json");
     }
-    
+
     [HttpPost("users/set-builders-club")]
     public async Task SetBuildersClub(MembershipType membershipType)
     {
         if (userSession == null || !Enum.IsDefined(membershipType))
             return;
-        
+
         await services.users.InsertOrUpdateMembership(userSession.userId, membershipType);
     }
 
@@ -275,11 +275,11 @@ public class WebController : ControllerBase
                     data = new { },
                     error = "You do not own this item",
                 };
-            
+
             if (!currentCollection.Contains(request.assetId))
             {
                 await services.inventory.SetCollections(safeUserSession.userId, currentCollection.Prepend(request.assetId).Distinct());
-            }   
+            }
         }
         else
         {
@@ -355,7 +355,7 @@ public class WebController : ControllerBase
         var com = await services.assets.GetComments(assetId, startIndex, 10);
         var isModerator = userSession != null && (await services.users.GetStaffPermissions(userSession.userId))
             .Any(a => a.permission == Access.DeleteComment);
-        
+
         return new
         {
             IsUserModerator = isModerator,
@@ -466,18 +466,18 @@ public class WebController : ControllerBase
 
         foreach (var server in servers)
         {
-            var jobId = server.id; 
+            var jobId = server.id;
             var players = server.players.ToList();
-            long Ping = await services.gameServer.GetServerStat(server.id); 
+            long ping = await services.gameServer.GetServerStat(server.id);
             collection.Add(new
             {
                 placeId,
                 Capacity = details.maxPlayerCount,
-                Ping = Ping, 
-                Fps = 60, 
-                ShowSlowGameMessage = false, // todo
+                Ping = ping,
+                Fps = 60,
+                ShowSlowGameMessage = ping > 200,
                 UserCanJoin = true, // todo: false if vip server
-                ShowShutdownButton = false, // todo: true if vip server player owns or user has perms
+                ShowShutdownButton = details.builderId == safeUserSession.userId,
                 jobId,
                 FriendsMouseover = "",
                 FriendsDescription = "",
@@ -499,7 +499,7 @@ public class WebController : ControllerBase
         return new
         {
             PlaceId = placeId,
-            ShowShutdownAllButton = false, // todo: enable if user has perms
+            ShowShutdownAllButton = details.builderId == safeUserSession.userId,
             Collection = collection,
             TotalCollectionSize = servers.Count,
         };
@@ -604,7 +604,7 @@ public class WebController : ControllerBase
     }
     private async Task<bool> AssetValidationV2(Stream stream)
     {
-        byte[] buffer = new byte[7]; 
+        byte[] buffer = new byte[7];
         await stream.ReadAsync(buffer, 0, buffer.Length);
         string startOfFile = Encoding.UTF8.GetString(buffer);
         return startOfFile == "<roblox";
@@ -619,7 +619,7 @@ public class WebController : ControllerBase
         await services.cooldown.CooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5));
         // IP flood check too! same limit as userId for now
         await services.cooldown.CooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5));
-        
+
         var isClothing = request.assetType is Models.Assets.Type.Shirt or Models.Assets.Type.Pants or Models.Assets.Type.TeeShirt;
         var isAudio = request.assetType is Models.Assets.Type.Audio;
         var isImage = request.assetType is Models.Assets.Type.Image;
@@ -627,7 +627,7 @@ public class WebController : ControllerBase
 
         if (!isClothing && !isAudio && !isImage && !isVideo)
             throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
-        
+
         // Limit of 50 assets globally pending approval before failure
         var pendingAssets = await services.assets.CountAssetsPendingApproval();
         if (pendingAssets >= 50)
@@ -635,7 +635,7 @@ public class WebController : ControllerBase
             Metrics.UserMetrics.ReportGlobalPendingAssetsFloodCheckReached(userSession.userId);
             throw new RobloxException(400, 0, "There are too many pending items. Try again in a few minutes.");
         }
-        
+
         var groupId = request.groupId == null ? 0 : request.groupId.Value;
         var creatorType = groupId == 0 ? CreatorType.User : CreatorType.Group;
         var creatorId = creatorType == CreatorType.User ? userSession.userId : groupId;
@@ -647,7 +647,7 @@ public class WebController : ControllerBase
             if (!hasPermission)
                 throw new RobloxException(401, 0, "Unauthorized");
         }
-        
+
         // Limit of 10 pending assets per user/group
         if (groupId == 0)
         {
@@ -722,7 +722,7 @@ public class WebController : ControllerBase
                         default, default, default, imageAsset.assetId);
 
                     await services.users.CreateUserAsset(userSession.userId, asset.assetId);
-                    
+
                     return asset;
                 }
             }
@@ -759,7 +759,7 @@ public class WebController : ControllerBase
                     await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
                         pictureData.width, pictureData.height, pictureData.imageFormat,
                         await services.assets.GenerateImageHash(memoryStream));
-                    
+
                     return imageAsset;
                 }
             }
