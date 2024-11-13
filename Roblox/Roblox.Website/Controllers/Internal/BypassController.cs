@@ -1810,18 +1810,19 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
         public async Task<OkObjectResult> EnableCloudEdit(long universeId)
         {
-            await services.games.EnableCloudEdit(universeId);
+            await services.games.SetCloudedit(true, universeId);
             return Ok(new { });
         }
 
         [HttpGetBypass("universes/{universeId:long}/cloudeditenabled")]
-        public dynamic IsCloudEditEnabled(long universeId)
+        public async Task<dynamic> IsCloudEditEnabled(long universeId)
         {
             return new
             {
-                enabled = false,
+                enabled = await services.games.IsCloudeditEnabled(universeId)
             };
         }
+
         /*
         [HttpGetBypass("universes/get-aliases")]
         public async Task<dynamic> GetAliases(long universeId)
