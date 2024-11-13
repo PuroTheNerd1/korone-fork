@@ -62,6 +62,15 @@ public class GamesService : ServiceBase, IService
             });
         return result?.year ?? 0;
     }
+    public async Task<bool> IsCloudeditEnabled(long universeId)
+    {
+        bool result = await db.QuerySingleOrDefaultAsync<bool>(
+            "SELECT cloudedit FROM universe WHERE id = :id,", new
+            {
+                id = universeId,
+            });
+        return result;
+    }
     public async Task<long> GetRootPlaceId(long universeId)
     {
         //var details = await MultiGetUniverseInfo(new []{universeId});
