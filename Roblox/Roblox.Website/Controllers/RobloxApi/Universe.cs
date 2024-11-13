@@ -41,7 +41,7 @@ public class UniverseV1 : ControllerBase
     {
         int offset = int.Parse("0");
         var result =
-            (await services.games.GetGamesForTypeDevelop(CreatorType.User, userSession.userId, userSession.username, 50, offset, null, null)).ToList();
+            (await services.games.GetGamesForTypeDevelop(CreatorType.User, safeUserSession.userId, safeUserSession.username, 50, offset, null, null)).ToList();
         return new RobloxCollectionPaginated<GamesForCreatorDevelop>()
         {
             data = result
@@ -53,7 +53,7 @@ public class UniverseV1 : ControllerBase
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
         var result =
-            (await services.games.GetGamesForTypeDevelop(CreatorType.User, userSession.userId, userSession.username, limit, offset, sortOrder ?? "asc", accessFilter ?? "All")).ToList();
+            (await services.games.GetGamesForTypeDevelop(CreatorType.User, safeUserSession.userId, safeUserSession.username, limit, offset, sortOrder ?? "asc", accessFilter ?? "All")).ToList();
         return new RobloxCollectionPaginated<GamesForCreatorDevelop>()
         {
             nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
