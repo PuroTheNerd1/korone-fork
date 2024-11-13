@@ -66,8 +66,6 @@ public class GamesService : ServiceBase, IService
             {
                 id = placeId,
             });
-        //var details = await MultiGetPlaceDetails(new []{placeId});
-        //var arr = details.ToArray();
         if (result == 0)
             throw new RobloxException(400, 0, "Invalid place ID");
         return result;
