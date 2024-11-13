@@ -114,7 +114,8 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpPatch("universes/{universeId}/configuration")]
+    [HttpPatch("v1/universes/{universeId}/configuration")]
+    [HttpPatch("v2/universes/{universeId}/configuration")]
     public async Task<dynamic> SetUniverseConfiguration(long universeId, [FromBody] UniverseConfiguration configuration)
     {
         if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
@@ -148,6 +149,12 @@ public class UniverseV1 : ControllerBase
             isFriendsOnly = false,
             genre = uni.genre,
             playableDevices = playableDevices,
+            permissions = new
+            {
+                IsThirdPartyTeleportAllowed = true,
+                IsThirdPartyAssetAllowed = true,
+                IsThirdPartyPurchaseAllowed = true,
+            },
             isForSale = false,
             price = 0,
             isStudioAccessToApisAllowed = true,
@@ -155,6 +162,7 @@ public class UniverseV1 : ControllerBase
         };
     }
 
+    [HttpGet("v2/universes/{universeId}/configuration")]
     [HttpGet("v1/universes/{universeId}/configuration")]
     public async Task<dynamic> GetUniverseConfiguration(long universeId)
     {
@@ -184,6 +192,12 @@ public class UniverseV1 : ControllerBase
             isFriendsOnly = false,
             genre = uni.genre,
             playableDevices = playableDevices,
+            permissions = new
+            {
+                IsThirdPartyTeleportAllowed = true,
+                IsThirdPartyAssetAllowed = true,
+                IsThirdPartyPurchaseAllowed = true,
+            },
             isForSale = false,
             price = 0,
             isStudioAccessToApisAllowed = true,

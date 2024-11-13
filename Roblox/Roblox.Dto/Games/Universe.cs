@@ -161,7 +161,7 @@ public class UniverseConfiguration
     public bool isFriendsOnly { get; set; } = false;
     public Genre genre { get; set; }
     public List<string> playableDevices { get; set; }
-    public List<string> permissions { get; set; }
+    public dynamic permissions { get; set; }
     public bool isForSale { get; set; }
     public int price { get; set; }
     public bool isStudioAccessToApisAllowed { get; set; }
