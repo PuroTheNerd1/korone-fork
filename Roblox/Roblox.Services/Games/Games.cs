@@ -96,7 +96,38 @@ public class GamesService : ServiceBase, IService
 
         var build = new SqlBuilder();
         var temp = build.AddTemplate(
-            "SELECT universe.id, universe.root_asset_id as rootPlaceId, asset.name as sourceName, asset.description as sourceDescription, asset.name, asset.description, asset.asset_genre as genre, asset.created_at as created, asset.updated_at as updated, asset_place.max_player_count as maxPlayers, asset_place.year as year, asset_place.visit_count as visits, asset_place.is_vip_enabled as createVipServersAllowed, asset.price_robux as price, asset.creator_id as creatorId, asset.creator_type as creatorType, (SELECT COUNT(*) as playing FROM asset_server_player WHERE asset_id = universe.root_asset_id), (case when \"asset\".creator_type = 1 then \"user\".username else \"group\".name end) as creatorName FROM universe INNER JOIN asset ON asset.id = universe.root_asset_id INNER JOIN asset_place ON asset_place.asset_id = universe.root_asset_id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id LEFT JOIN \"user\" ON \"user\".id = asset.creator_id /**where**/ LIMIT 1000");
+            @"SELECT
+                universe.id,
+                universe.root_asset_id as rootPlaceId,
+                universe.is_public as isPublic,
+                asset.name as sourceName,
+                asset.description as sourceDescription,
+                asset.name,
+                asset.description,
+                asset.asset_genre as genre,
+                asset.created_at as created,
+                asset.updated_at as updated,
+                asset_place.max_player_count as maxPlayers,
+                asset_place.year as year,
+                asset_place.visit_count as visits,
+                asset_place.is_vip_enabled as createVipServersAllowed,
+                asset.price_robux as price,
+                asset.creator_id as creatorId,
+                asset.creator_type as creatorType,
+                (SELECT COUNT(*) as playing FROM asset_server_player WHERE asset_id = universe.root_asset_id),
+                (case when ""asset"".creator_type = 1 then ""user"".username else ""group"".name end) as creatorName
+            FROM
+                universe
+            INNER JOIN
+                asset ON asset.id = universe.root_asset_id
+            INNER JOIN
+                asset_place ON asset_place.asset_id = universe.root_asset_id
+            LEFT JOIN
+                ""group"" ON ""group"".id = asset.creator_id
+            LEFT JOIN
+                ""user"" ON ""user"".id = asset.creator_id
+            /**where**/
+            LIMIT 1000");
         foreach (var id in ids)
         {
             build.OrWhere("universe.id = " + id);
@@ -286,6 +317,16 @@ public class GamesService : ServiceBase, IService
 
         return result;
     }
+
+    public async Task SetRootPlaceId(long universeId, long placeId)
+    {
+        await db.ExecuteAsync("UPDATE universe SET root_asset_id = :placeId WHERE id = :id", new
+        {
+            id = universeId,
+            placeId,
+        });
+    }
+
     public async Task SetYear(long placeId, int year)
     {
         if (year != 2017 && year != 2018 && year != 2019 && year != 2020 && year != 2021)

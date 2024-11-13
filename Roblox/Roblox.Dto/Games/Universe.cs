@@ -11,16 +11,17 @@ public class UniverseCreator
     public CreatorType type { get; set; }
     public bool isRNVAccount { get; set; } = false;
     public bool hasVerifiedBadge { get; set; } = false;
-    
+
 }
 
 public class MultiGetUniverseEntry
 {
     public long id { get; set; }
     public long rootPlaceId { get; set; }
+    public bool isPublic { get; set; }
     public string name { get; set; }
     public string? description { get; set; }
-    public string sourceName { get; set; } 
+    public string sourceName { get; set; }
     public string? sourceDescription { get; set; }
     public Genre genre { get; set; }
 
