@@ -1566,8 +1566,8 @@ namespace Roblox.Website.Controllers
                 return "OK!";
             }
             return "Unauthorized";
-
         }
+
         [HttpGetBypass("rcc/kickplayer")]
         public async Task<dynamic> KickPlayerAsync(long userId)
         {

@@ -207,9 +207,9 @@ public class GameServerService : ServiceBase
             {
                 id = latestSession.id,
             });
-            
+
             if (latestSession.createdAt.Year != DateTime.UtcNow.Year) return;
-            
+
             var playTimeMinutes = (long)Math.Truncate((DateTime.UtcNow - latestSession.createdAt).TotalMinutes);
             var earnedTickets = Math.Min(playTimeMinutes * 10, 60); // temp cap, might reduce in the future?
             // cap is 10k tickets per 12 hours (about 1k robux)
@@ -218,11 +218,11 @@ public class GameServerService : ServiceBase
             {
                 var earningsToday =
                     await ec.CountTransactionEarningsOfType(userId, PurchaseType.PlayingGame, null, TimeSpan.FromHours(12));
-                
+
                 if (earningsToday >= maxEarningsPerPeriod)
                     return;
             }
-            
+
             await InTransaction(async _ =>
             {
                 using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
@@ -293,7 +293,7 @@ public class GameServerService : ServiceBase
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
             HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/evict-player?jobId={jobId}&userId={userId}");
-        } 
+        }
     }
     public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
     {
@@ -312,7 +312,7 @@ public class GameServerService : ServiceBase
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
             HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/kill-game-server?jobId={serverId}");
-        }            
+        }
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
         //currentGameServerPorts.Remove(placeJobId);
@@ -322,17 +322,17 @@ public class GameServerService : ServiceBase
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
         //Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
     }
-    
+
     public static void RemoveAllPlayersFromPlaceId(long placeId)
     {
         List<long> playersToRemove = CurrentPlayersInGame.Where(kvp => kvp.Value == placeId).Select(kvp => kvp.Key).ToList();
-    
+
         foreach (var playerID in playersToRemove)
         {
             CurrentPlayersInGame.Remove(playerID);
         }
     }
-    
+
     public static long GetUserPlaceId(long userId) // get user game is in
     {
         bool isInGame = CurrentPlayersInGame.ContainsKey(userId);
@@ -341,7 +341,7 @@ public class GameServerService : ServiceBase
 
         return CurrentPlayersInGame[userId];
     }
-    
+
     public static long GetPlaceIdByJobId(string jobId)
     {
         foreach (var kvp in currentPlaceIdsInUse)
@@ -351,7 +351,7 @@ public class GameServerService : ServiceBase
                 return kvp.Key;
             }
         }
-            
+
         return 0; // we never throw exceptions. EVER.
     }
 
@@ -361,7 +361,7 @@ public class GameServerService : ServiceBase
         {
             id = serverId,
         });
-       
+
         return (DateTime) result.updated_at;
     }
     public async Task<long> GetServerStat(string serverId)
@@ -373,10 +373,10 @@ public class GameServerService : ServiceBase
         if (result == 0)
         {
             throw new Exception($"No server found with ID: {serverId}");
-        }      
+        }
 
         return result;
-    }    
+    }
     public async Task SetServerGSFPS(string serverId, long fps)
     {
         long roundedFps = (long)Math.Round((double)fps);
@@ -385,7 +385,7 @@ public class GameServerService : ServiceBase
             GSFPS = roundedFps,
             id = serverId,
         });
-    }    
+    }
     public async Task SetServerGSPing(string serverId, long ping)
     {
         await db.ExecuteAsync("UPDATE asset_server SET ping = :GSP WHERE id = :id::uuid", new
@@ -409,7 +409,7 @@ public class GameServerService : ServiceBase
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
     }
-    
+
     private static readonly IEnumerable<int> GameServerPorts = new []
     {
         // this must always stay in sync with nginx config file
@@ -432,7 +432,7 @@ public class GameServerService : ServiceBase
         53655,
 #endif
     };
-    
+
     private GameServerPort GetPreferredPortForGameServer(IEnumerable<GameServerMultiRunEntry> runningGames)
     {
         var games = runningGames.ToList();
@@ -450,7 +450,7 @@ public class GameServerService : ServiceBase
                 break;
             }
         }
-        
+
         if (port == 0)
         {
             throw new Exception("Cannot find a free port for game server");
@@ -472,7 +472,7 @@ public class GameServerService : ServiceBase
 
         throw new ArgumentOutOfRangeException();
     }
-    
+
     public async Task<List<Tuple<GameServerInfoResponse,GameServerConfigEntry>>> GetAllGameServers()
     {
         var getServerDataTasks = new List<Task<GameServerInfoResponse?>>();
@@ -508,7 +508,7 @@ public class GameServerService : ServiceBase
         using (var gs = ServiceProvider.GetOrCreate<GamesService>())
         {
             maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
-        } 
+        }
         // First, try to see if this game is already running. If it is, we should make the player join that.
         foreach (var (serverInfo, entry) in serverData)
         {
@@ -531,7 +531,7 @@ public class GameServerService : ServiceBase
                 {
                     status = JoinStatus.Joining,
                     job = CreateGameServerTicket(placeId, joinUrl),
-                };   
+                };
             }
         }
         // Sort by least loaded
@@ -545,9 +545,9 @@ public class GameServerService : ServiceBase
         Writer.Info(LogGroup.GameServerJoin, "Least loaded server is {0} with {1} games running", serverData[0].Item2.ip, serverData[0].Item1!.data.Count());
         foreach (var (serverInfo, entry) in serverData)
         {
-            
+
             string ip = "85.125.186.154";
-            
+
             int mainRCCPort = RandomComponent.Next(30000, 40000);
             int networkServerPort = RandomComponent.Next(50000, 60000);
             var runningCount = serverInfo!.data.Count();
@@ -592,7 +592,7 @@ public class GameServerService : ServiceBase
                 job = CreateGameServerTicket(placeId, gamePort.ApplyIdToUrl(entry.domain)),
             };
         }
-        
+
         // Default
         return new()
         {
@@ -628,7 +628,7 @@ public class GameServerService : ServiceBase
         return result.ToString();
     }
     public async Task<int> GetGameserverForJobId(string jobId)
-    {   
+    {
         return await db.QueryFirstOrDefaultAsync<int>(
             "SELECT port FROM asset_server WHERE id = :jobid",
             new
@@ -638,7 +638,7 @@ public class GameServerService : ServiceBase
     }
 
     public async Task<bool> IsPortTaken(int port)
-    {   
+    {
         port = await db.QueryFirstOrDefaultAsync<int>(
             "SELECT port FROM asset_server WHERE port = :gsport",
             new
@@ -652,7 +652,7 @@ public class GameServerService : ServiceBase
         return true;
     }
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId)
-    {   
+    {
         return await db.QueryAsync<GameServerDb>(
             "SELECT * FROM asset_server WHERE asset_id = :assetid",
             new
@@ -677,9 +677,15 @@ public class GameServerService : ServiceBase
             string jobid = server.id.ToString();
             var currentPlayerCount = await GetGameServerPlayers(jobid);
 
-            // if the server is full continue the search for a good one 
+            // if the server is full continue the search for a good one
             if (currentPlayerCount.Count() >= maxPlayerCount)
             {
+                continue;
+            }
+            // if the server is older than 5 minutes then shutdown the server
+            if (server.updated_at.AddMinutes(5) < DateTime.UtcNow)
+            {
+                await ShutDownServerAsync(jobid);
                 continue;
             }
 
@@ -719,17 +725,22 @@ public class GameServerService : ServiceBase
             {
                 status = JoinStatus.Loading,
             };
-        _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);   
-        await db.ExecuteAsync(
-            "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
-            new
-            {
-                id = jobId,
-                asset_id = placeId,
-                ip = Configuration.GameServerIp,
-                port = proxyPort,
-                server_connection = $"{Configuration.GameServerIp}:{proxyPort}", 
-            });
+
+        await InTransaction(async _ =>
+        {
+            await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);
+            await db.ExecuteAsync(
+                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
+                new
+                {
+                    id = jobId,
+                    asset_id = placeId,
+                    ip = Configuration.GameServerIp,
+                    port = proxyPort,
+                    server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
+                });
+            return 0;
+        });
         return new GameServerGetOrCreateResponse()
         {
             job = jobId,
@@ -737,14 +748,14 @@ public class GameServerService : ServiceBase
         };
     }
 
-    
+
     public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, int proxyPort, string jobId, long year, int matchmaking, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
         GamesService games = new GamesService();
         AssetsService assetsService = new AssetsService();
         var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
-        var uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();        
+        var uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         //string originalScript;
         //string finalScript;
         long maxplayers = await games.GetMaxPlayerCount(placeId);
@@ -784,7 +795,7 @@ public class GameServerService : ServiceBase
                 rccServer.StartInfo.RedirectStandardError = false;
                 rccServer.StartInfo.RedirectStandardOutput = false;
                 rccServer.StartInfo.UseShellExecute = true;
-                rccServer.Start();            
+                rccServer.Start();
                 originalScript = File.ReadAllText("C:\\ProjectX\\services\\Roblox\\Roblox.Rendering\\internalscripts\\GameServerFloatzel.lua");
                 finalScript = originalScript.Replace
                     ("%port%", $"{networkServerPort}").Replace
@@ -801,7 +812,7 @@ public class GameServerService : ServiceBase
                 rccServer2017.StartInfo.RedirectStandardError = false;
                 rccServer2017.StartInfo.RedirectStandardOutput = false;
                 rccServer2017.StartInfo.UseShellExecute = true;
-                rccServer2017.Start();            
+                rccServer2017.Start();
                 originalScript = $@"
                 {{
                     ""Mode"": ""GameServer"",
@@ -838,7 +849,7 @@ public class GameServerService : ServiceBase
                 rccServer2018.StartInfo.RedirectStandardError = false;
                 rccServer2018.StartInfo.RedirectStandardOutput = false;
                 rccServer2018.StartInfo.UseShellExecute = true;
-                rccServer2018.Start();            
+                rccServer2018.Start();
                 originalScript = $@"
                 {{
                     ""Mode"": ""GameServer"",
@@ -896,7 +907,7 @@ public class GameServerService : ServiceBase
             </soap:Envelope>";
         await WaitForPort(RCCPort);
         await SendSoapRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "OpenJobEx");
-        //await WaitForUDPPort(networkServerPort);  
+        //await WaitForUDPPort(networkServerPort);
         //currentPlaceIdsInUse.Add(placeId, jobId);
         currentGameServerPorts.Add(jobId, networkServerPort);
         switch (year)
@@ -999,7 +1010,7 @@ public class GameServerService : ServiceBase
             limit,
             offset,
         })).ToList();
-        
+
         foreach (var server in result)
         {
             server.players = await GetGameServerPlayers(server.id);
@@ -1017,14 +1028,14 @@ public class GameServerService : ServiceBase
                 {
                     client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
                     //Console.WriteLine("did not find port");
-                    break; 
+                    break;
                 }
             }
             catch (SocketException)
             {
-                Thread.Sleep(0); 
+                Thread.Sleep(0);
             }
-        }   
+        }
         //Console.WriteLine($"found port: {RCCPort}");
         return Task.CompletedTask;
     }
@@ -1037,5 +1048,5 @@ public class GameServerService : ServiceBase
                 id = userId,
             });
     }
-    
+
 }
