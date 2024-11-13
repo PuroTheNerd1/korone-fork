@@ -147,7 +147,8 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpPatch("v1/universes/{universeId}/configuration")]
-    [HttpPatch("v2/universes/{universeId}/configuration")]
+    [HttpPost("v2/universes/{universeId}/configuration")]
+    [HttpPostBypass("v2/universes/{universeId}/configuration")]
     public async Task<dynamic> SetUniverseConfiguration(long universeId, [FromBody] UniverseConfiguration configuration)
     {
         if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))

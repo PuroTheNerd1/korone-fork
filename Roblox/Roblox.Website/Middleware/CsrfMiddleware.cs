@@ -195,6 +195,11 @@ public class CsrfMiddleware : ControllerServicesExtended
             {
                 var token = await TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
+                if (ctx.Request.Headers["User-Agent"].ToString().Contains("RobloxStudio"))
+                {
+                    await _next(ctx);
+                    return;
+                }
                 if (token == null)
                 {
 #if DEBUG
