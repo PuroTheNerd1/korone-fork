@@ -7,10 +7,10 @@ using Roblox.Models.Assets;
 using Roblox.Models.Studio;
 namespace Roblox.Website.Controllers;
 [ApiController]
-[Route("/v1")]
+[Route("")]
 public class UniverseV1 : ControllerBase
 {
-    [HttpGet("gametemplates")]
+    [HttpGet("v1/gametemplates")]
     public dynamic StudioTemplates()
     {
         var Templates = new
@@ -37,7 +37,7 @@ public class UniverseV1 : ControllerBase
         string json = JsonConvert.SerializeObject(data);
         return Content(json, "application/json");
     }
-    [HttpGet("search/universes")]
+    [HttpGet("v1/search/universes")]
     public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames()
     {
         int offset = int.Parse("0");
@@ -48,7 +48,7 @@ public class UniverseV1 : ControllerBase
             data = result
         };
     }
-    [HttpGet("user/universes")]
+    [HttpGet("v1/user/universes")]
     public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames(string? sortOrder, string? accessFilter, int limit, string? cursor = null)
     {
         if (limit is > 100 or < 1) limit = 10;
@@ -62,7 +62,7 @@ public class UniverseV1 : ControllerBase
             data = result
         };
     }
-    [HttpGet("universes/{universeId}/places")]
+    [HttpGet("v1/universes/{universeId}/places")]
     public async Task<dynamic> GetUniverseAttachedPlaces(long universeId)
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
@@ -82,7 +82,7 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
-    [HttpGet("universes/{universeId}/permissions")]
+    [HttpGet("v1/universes/{universeId}/permissions")]
     public async Task<dynamic> CanManage(long universeId)
     {
         bool canManage = await services.games.CanManageUniverse(safeUserSession.userId, universeId);
@@ -92,7 +92,7 @@ public class UniverseV1 : ControllerBase
             canCloudEdit = canManage
         };
     }
-    [HttpGet("universes/{universeId}")]
+    [HttpGet("v1/universes/{universeId}")]
     public async Task<dynamic> UniverseInfo(long universeId)
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
@@ -155,7 +155,7 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpGet("universes/{universeId}/configuration")]
+    [HttpGet("v1/universes/{universeId}/configuration")]
     public async Task<dynamic> GetUniverseConfiguration(long universeId)
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();

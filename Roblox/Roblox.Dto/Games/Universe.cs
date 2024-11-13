@@ -158,9 +158,10 @@ public class UniverseConfiguration
     public string universeBodyType { get; set; }
     public string universeJointPositioningType { get; set; }
     public bool isArchived { get; set; }
-    public bool isFriendsOnly { get; set; }
+    public bool isFriendsOnly { get; set; } = false;
     public Genre genre { get; set; }
     public List<string> playableDevices { get; set; }
+    public List<string> permissions { get; set; }
     public bool isForSale { get; set; }
     public int price { get; set; }
     public bool isStudioAccessToApisAllowed { get; set; }
