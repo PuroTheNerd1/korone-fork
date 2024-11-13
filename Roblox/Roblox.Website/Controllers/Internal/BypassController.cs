@@ -1537,14 +1537,27 @@ namespace Roblox.Website.Controllers
         {
             return Ok();
         }
+
+        [HttpGetBypass("rcc/killserver")]
+        public async Task<dynamic> ShutdownSpecificServerForPlace(long placeId, string jobId)
+        {
+            bool canManagePlace = await services.assets.CanUserModifyItem(placeId, safeUserSession.userId);
+            if (canManagePlace)
+            {
+                await services.gameServer.ShutDownServerAsync(jobId);
+                return "OK!";
+            }
+            return "Unauthorized";
+        }
+
         [HttpGetBypass("rcc/killallservers")]
         public async Task<dynamic> ShutdownServersForPlace(long placeId)
         {
             string jobId;
-            var serverjobs = await services.gameServer.GetGameServersForPlace(placeId);
             bool canManagePlace = await services.assets.CanUserModifyItem(placeId, safeUserSession.userId);
             if (canManagePlace)
             {
+                var serverjobs = await services.gameServer.GetGameServersForPlace(placeId);
                 foreach (var jobs in serverjobs)
                 {
                     jobId = jobs.id.ToString();
@@ -1552,9 +1565,8 @@ namespace Roblox.Website.Controllers
                 }
                 return "OK!";
             }
-            else{
-                return "Unauthorized";
-            }
+            return "Unauthorized";
+
         }
         [HttpGetBypass("rcc/kickplayer")]
         public async Task<dynamic> KickPlayerAsync(long userId)
