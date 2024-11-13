@@ -1137,9 +1137,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1.1/game-start-info")]
         public dynamic GameStartInfo(long universeId)
         {
+            var uni = services.games.MultiGetUniverseInfo(new[] { universeId }).Result.First();
             return new
             {
-                gameAvatarType = "PlayerChoice",
+                gameAvatarType = uni.universeAvatarType,
                 allowCustomAnimations = "True",
                 universeAvatarCollisionType = "OuterBox",
                 universeAvatarBodyType = "Standard",
