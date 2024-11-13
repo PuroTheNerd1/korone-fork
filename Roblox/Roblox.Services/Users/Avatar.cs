@@ -525,6 +525,7 @@ public class AvatarService : ServiceBase, IService
         if (gear > 1) return false;
         if (tShirt > 1 || shirt > 1 || pants > 1) return false;
         if (face > 1) return false;
+        // Orginal is 7
         if (accessories > 15) return false;
         if (leftArm > 1 || rightArm > 1 || leftLeg > 1 || rightLeg > 1 || torso > 1 || head > 1) return false;
         return true;
