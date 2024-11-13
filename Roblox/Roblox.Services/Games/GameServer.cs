@@ -282,7 +282,6 @@ public class GameServerService : ServiceBase
         }
         catch (Exception e) when (e is TaskCanceledException or TimeoutException or HttpRequestException)
         {
-            // TODO: log this somewhere, should not happen
             return null;
         }
     }
