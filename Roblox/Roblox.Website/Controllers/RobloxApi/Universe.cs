@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Games;
+using Roblox.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Studio;
@@ -113,11 +114,15 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpGet("universes/{universeId}/configuration")]
-    public async Task<dynamic> UniverseConfiguration(long universeId)
+    [HttpPatch("universes/{universeId}/configuration")]
+    public async Task<dynamic> SetUniverseConfiguration(long universeId, [FromBody] UniverseConfiguration configuration)
     {
-        var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
-        var details = await services.assets.GetAssetCatalogInfo(uni.rootPlaceId);
+        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
+        {
+            throw new ForbiddenException(0, "You are not authorized to configure this universe.");
+        }
+        await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
+        var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         List<string> playableDevices = new List<string>
         {
             "Computer",
@@ -143,7 +148,43 @@ public class UniverseV1 : ControllerBase
             isFriendsOnly = false,
             genre = uni.genre,
             playableDevices = playableDevices,
-            isForSale = details.isForSale,
+            isForSale = false,
+            price = 0,
+            isStudioAccessToApisAllowed = true,
+            privacyType = PrivacyType.Public,
+        };
+    }
+
+    [HttpGet("universes/{universeId}/configuration")]
+    public async Task<dynamic> GetUniverseConfiguration(long universeId)
+    {
+        var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        List<string> playableDevices = new List<string>
+        {
+            "Computer",
+            "Phone",
+            "Tablet",
+            "Console",
+            "VR"
+        };
+
+        return new UniverseConfiguration
+        {
+            allowPrivateServers = false,
+            privateServerPrice = 0,
+            id = universeId,
+            name = uni.name,
+            universeAvatarType = uni.universeAvatarType,
+            universeScaleType = "AllScales",
+            universeAnimationType = "Standard",
+            universeCollisionType = "Outerbox",
+            universeBodyType = "Standard",
+            universeJointPositioningType = "ArtistIntent",
+            isArchived = false,
+            isFriendsOnly = false,
+            genre = uni.genre,
+            playableDevices = playableDevices,
+            isForSale = false,
             price = 0,
             isStudioAccessToApisAllowed = true,
             privacyType = PrivacyType.Public,
