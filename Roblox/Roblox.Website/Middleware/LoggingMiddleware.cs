@@ -11,7 +11,7 @@ public class RobloxLoggingMiddleware
     {
         _next = next;
     }
-    
+
     public async Task InvokeAsync(HttpContext ctx)
     {
         string userAgent = ctx.Request.Headers["User-Agent"].ToString();
@@ -22,6 +22,10 @@ public class RobloxLoggingMiddleware
 
         var str = $"[{ctx.Request.Method.ToUpper()}] {ctx.Request.GetEncodedUrl()} - {watch.ElapsedMilliseconds}ms";
         if(ctx.Request.GetEncodedUrl().Contains("e.png"))
+        {
+            return;
+        }
+        if (!userAgent.ToLower().Contains("studio"))
         {
             return;
         }
