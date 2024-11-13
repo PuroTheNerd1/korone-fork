@@ -25,14 +25,14 @@ public class FilterService : ServiceBase, IService
     {
         Regex regex = new Regex(@"[\u0400-\u04FF]");
         return regex.IsMatch(input);
-    }        
+    }
     public string FilterText(string input)
     {
-        string[] filteredWords = 
+        string[] filteredWords =
         {
-            "nigger", 
-            "nigga", 
-            "1488", 
+            "nigger",
+            "nigga",
+            "1488",
             "nazi",
             "sex",
             "cock",
@@ -57,7 +57,7 @@ public class FilterService : ServiceBase, IService
         foreach (string word in filteredWords)
         {
             //check if the chat msg contains one of the filtering words
-            if (nonWhitespaceInput.Contains(word))
+            if (nonWhitespaceInput.ToLower().Contains(word))
             {
                 //replace the string with # like roblox does
                 input = new string('#', input.Length);
