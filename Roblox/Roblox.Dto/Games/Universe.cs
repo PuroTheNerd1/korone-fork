@@ -104,6 +104,7 @@ public class GamesForCreatorEntryDb
     public string name { get; set; }
     public string? description { get; set; }
     public long rootAssetId { get; set; }
+    public bool isPublic { get; set; }
     public DateTime created { get; set; }
     public DateTime updated { get; set; }
     public long visitCount { get; set; }
@@ -122,7 +123,7 @@ public class GamesForCreatorDevelop
     public bool isArchived { get; set;} = false;
     public long rootPlaceId { get; set; }
     public bool isActive { get; set;} = true;
-    public string privacyType { get; set;} = "Public";
+    public PrivacyType privacyType { get; set;}
     public int creatorType { get; set; }
     public long creatorTargetId { get; set;}
     public string creatorName { get; set;}
