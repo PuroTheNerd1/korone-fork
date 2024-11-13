@@ -1524,7 +1524,7 @@ public class AdminApiController : ControllerBase
     [HttpPost("giveitem"), StaffFilter(Access.GiveUserItem)]
     public async Task GiveItem([Required, FromBody] GiveItemRequest request)
     {
-        // temporary
+        // give paw job whitelist for now
         if (!StaffFilter.IsOwner(userSession.userId) && userSession.userId != 866)
             throw new StaffException("Cannot give items to this user");
         Console.WriteLine(request.assetId);

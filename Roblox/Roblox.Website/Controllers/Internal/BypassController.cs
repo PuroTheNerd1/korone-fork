@@ -754,6 +754,8 @@ namespace Roblox.Website.Controllers
         {
             string username = "";
             int playerCount = 0;
+            bool IsFurry = false;
+            long fluffyHat = 18306;
             try
             {
                 if (userId != 0)
@@ -770,20 +772,28 @@ namespace Roblox.Website.Controllers
             {
                 username = userSession.username;
             }
-
+            // check if the user owns fluffy ha
+            var owned = await services.users.GetUserAssets(userId, fluffyHat);
+            if (owned.Any())
+            {
+                IsFurry = true;
+            }
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
             long year = await services.games.GetYear(placeId);
+
             return new
             {
                 Creator = placeInfo.creatorName,
                 Name = placeInfo.name,
                 Username = username ?? "",
                 Year = year,
+                IsFurry,
                 MaxPlayers = maxplayers,
                 PartyId = Guid.NewGuid().ToString(),
                 CurrentPlayers = playerCount,
             };
+
         }
         [HttpGetBypass("My/Places.aspx")]
         public ActionResult<dynamic?> MyPlaces()
@@ -1944,9 +1954,14 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("/ownership/hasasset")]
-        public async Task<string> DoesOwnAsset(long userId, long assetId)
+        public async Task<bool> DoesOwnAsset(long userId, long assetId)
         {
-            return (await services.users.GetUserAssets(userId, assetId)).Any() ? "true" : "false";
+            var owned = await services.users.GetUserAssets(userId, assetId);
+            if (owned.Any())
+            {
+                return true;
+            }
+            return false;
         }
 
         [HttpGetBypass("sign-out/v1")]
