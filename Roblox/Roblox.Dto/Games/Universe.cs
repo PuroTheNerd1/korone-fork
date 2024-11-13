@@ -122,7 +122,7 @@ public class GamesForCreatorDevelop
     public string? description { get; set; }
     public bool isArchived { get; set;} = false;
     public long rootPlaceId { get; set; }
-    public bool isActive { get; set;} = true;
+    public bool isActive { get; set;}
     public PrivacyType privacyType { get; set;}
     public int creatorType { get; set; }
     public long creatorTargetId { get; set;}
