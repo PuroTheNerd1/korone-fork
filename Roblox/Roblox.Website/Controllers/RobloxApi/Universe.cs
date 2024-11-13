@@ -82,6 +82,14 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
+    [HttpGet("v1/users/groups/canmanage")]
+    public dynamic CanManageGroup()
+    {
+        return new
+        {
+            data = new List<object>()
+        };
+    }
     [HttpGet("v1/universes/{universeId}/permissions")]
     public async Task<dynamic> CanManage(long universeId)
     {
