@@ -318,6 +318,15 @@ public class GamesService : ServiceBase, IService
         return result;
     }
 
+    public async Task SetPlaceVisibility(long universeId, bool isVisible)
+    {
+        await db.ExecuteAsync("UPDATE universe SET is_public = :visible WHERE id = :id", new
+        {
+            id = universeId,
+            visible = isVisible,
+        });
+    }
+
     public async Task SetRootPlaceId(long universeId, long placeId)
     {
         await db.ExecuteAsync("UPDATE universe SET root_asset_id = :placeId WHERE id = :id", new
