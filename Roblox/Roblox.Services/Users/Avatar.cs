@@ -71,9 +71,9 @@ public class AvatarService : ServiceBase, IService
             {
                 avatar_type = type,
                 user_id = userId,
-            });        
+            });
     }
-    
+
     public async Task<AvatarWithColors> GetAvatar(long userId)
     {
         var existingAvatar = await db.QuerySingleOrDefaultAsync<DatabaseAvatarWithImages>(
@@ -117,7 +117,7 @@ public class AvatarService : ServiceBase, IService
 
     private readonly Models.Assets.Type[] _wearableAssetTypes = new[]
     {
-        
+
         Type.Shirt,
         Type.Pants,
         Type.TeeShirt,
@@ -132,14 +132,14 @@ public class AvatarService : ServiceBase, IService
         Type.ShoulderAccessory,
         Type.FaceAccessory,
 
-        //body 
+        //body
         Type.LeftArm,
         Type.RightArm,
         Type.LeftLeg,
         Type.RightLeg,
         Type.Torso,
         Type.Head,
-        
+
         //anims
         Type.ClimbAnimation,
         Type.DeathAnimation,
@@ -153,7 +153,7 @@ public class AvatarService : ServiceBase, IService
         //gears
         Type.Gear,
     };
-    
+
     /// <summary>
     /// Filter the dirtyAssetIds. This will remove moderated/pending items, items the user doesn't own, invalid items, etc.
     /// </summary>
@@ -525,7 +525,7 @@ public class AvatarService : ServiceBase, IService
         if (gear > 1) return false;
         if (tShirt > 1 || shirt > 1 || pants > 1) return false;
         if (face > 1) return false;
-        if (accessories > 7) return false;
+        if (accessories > 15) return false;
         if (leftArm > 1 || rightArm > 1 || leftLeg > 1 || rightLeg > 1 || torso > 1 || head > 1) return false;
         return true;
     }
@@ -700,7 +700,7 @@ public class AvatarService : ServiceBase, IService
         catch (Exception e)
         {
             Console.WriteLine(e.ToString());
-            return null; 
+            return null;
         }
     }
 
