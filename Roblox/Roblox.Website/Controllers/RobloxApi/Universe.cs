@@ -82,7 +82,7 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
-    [HttpGet("v1/users/groups/canmanage")]
+    [HttpGet("v1/user/groups/canmanage")]
     public dynamic CanManageGroup()
     {
         return new
