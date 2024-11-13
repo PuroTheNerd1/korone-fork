@@ -77,7 +77,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/v1/games/{universeId:long}/favorites")]
         public async Task<dynamic> GetFavoriteStatus(long universeId)
         {
-            return new 
+            return new
             {
                 isFavorited = await services.assets.GetFavoriteStatus(safeUserSession.userId, universeId)
             };
@@ -167,7 +167,7 @@ namespace Roblox.Website.Controllers
                 data = result,
             };
         }
-        
+
         [HttpGetBypass("v2/groups/{groupId:long}/games")]
         public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetGroupGames(long groupId,
             string? sortOrder, string? accessFilter, int limit, string? cursor = null)
@@ -187,6 +187,7 @@ namespace Roblox.Website.Controllers
         /// <summary>
         /// Endpoint is only valid for custom media (such as videos or custom thumbnails. Auto generated and/or default thumbnails are not returned.
         /// </summary>
+        [HttpGetBypass("v1/games/{universeId}/media")]
         [HttpGetBypass("v2/games/{universeId}/media")]
         public async Task<RobloxCollection<GameMediaEntry>> GetGameMedia(long universeId)
         {
