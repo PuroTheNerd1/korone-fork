@@ -12,7 +12,7 @@ public class PlaceEntry
     public CreatorType builderType { get; set; }
     public string builder { get; set; }
     public long universeId { get; set; }
-    public long unvierseRootPlaceId { get; set; }
+    public long universeRootPlaceId { get; set; }
     public long? price { get; set; }
     public bool isPlayable { get; set; }
     public string imageToken => "T_" + placeId + "_icon";
