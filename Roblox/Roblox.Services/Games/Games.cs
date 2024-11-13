@@ -248,8 +248,7 @@ public class GamesService : ServiceBase, IService
             INNER JOIN universe ON universe.id = universe_asset.universe_id
             LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
             LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
-            WHERE
-            universe.is_public = true
+            /**where**/
             /**orderby**/
             LIMIT :limit",
             new
