@@ -114,6 +114,16 @@ public class UniverseV1 : ControllerBase
         };
     }
 
+    [HttpGet("v1/universes/{universeId}/icon")]
+    public dynamic GetUniverseIcon(long universeId)
+    {
+        return new
+        {
+            id = (int?)null,
+            isApproved = true
+        };
+    }
+
     [HttpPatch("v1/universes/{universeId}/configuration")]
     [HttpPatch("v2/universes/{universeId}/configuration")]
     public async Task<dynamic> SetUniverseConfiguration(long universeId, [FromBody] UniverseConfiguration configuration)
