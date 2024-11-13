@@ -41,6 +41,18 @@ public class GamesService : ServiceBase, IService
         }
         return false;
     }
+
+    public async Task<bool> CanManageUniverse(long userId, long universeId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
+            "SELECT COUNT(*) AS total FROM universe WHERE id = :id AND creator_id = :userId", new
+            {
+                id = universeId,
+                userId,
+            });
+        return result?.total > 0;
+    }
+
     public async Task<long> GetYear(long placeId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Year>(
