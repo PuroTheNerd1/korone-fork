@@ -65,7 +65,7 @@ public class GamesService : ServiceBase, IService
     public async Task<bool> IsCloudeditEnabled(long universeId)
     {
         bool result = await db.QuerySingleOrDefaultAsync<bool>(
-            "SELECT cloudedit FROM universe WHERE id = :id,", new
+            "SELECT cloudedit FROM universe WHERE id = :id", new
             {
                 id = universeId,
             });
