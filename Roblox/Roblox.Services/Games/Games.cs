@@ -226,12 +226,36 @@ public class GamesService : ServiceBase, IService
     {
         var query = new SqlBuilder();
         var temp = query.AddTemplate(
-            "SELECT asset.creator_id as creatorId, asset.creator_type as creatorTypeId, asset_place.year as year, universe_asset.universe_id as universeId, asset.name, asset.id as placeId, asset.description as gameDescription, asset.asset_genre as genre, (select count(*) as playerCount FROM asset_server_player WHERE asset_server_player.asset_id = asset.id), (select count(*) from asset_favorite where asset_id = asset_place.asset_id) as favorite_count, (case when asset.creator_type = 1 then \"user\".username else \"group\".name end) as creatorName, asset_place.visit_count as visitCount, (select count(*) as totalUpVotes from asset_vote where asset_id = asset_place.asset_id and type = :upvote), (select count(*) as totalDownVotes from asset_vote where asset_id = asset_place.asset_id and type = :downvote) FROM asset INNER JOIN universe_asset ON universe_asset.asset_id = asset.id INNER JOIN asset_place ON asset_place.asset_id = asset.id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id AND asset.creator_type = 2 LEFT JOIN \"user\" ON \"user\".id = asset.creator_id AND asset.creator_type = 1 /**where**/ /**orderby**/ LIMIT :limit",
+            @"SELECT
+            asset.creator_id as creatorId,
+            asset.creator_type as creatorTypeId,
+            asset_place.year as year,
+            universe_asset.universe_id as universeId,
+            asset.name,
+            asset.id as placeId,
+            asset.description as gameDescription,
+            asset.asset_genre as genre,
+            (select count(*) as playerCount FROM asset_server_player WHERE asset_server_player.asset_id = asset.id),
+            (select count(*) from asset_favorite where asset_id = asset_place.asset_id) as favorite_count,
+            (case when asset.creator_type = 1 then ""user"".username else ""group"".name end) as creatorName,
+            asset_place.visit_count as visitCount,
+            (select count(*) as totalUpVotes from asset_vote where asset_id = asset_place.asset_id and type = :upvote),
+            (select count(*) as totalDownVotes from asset_vote where asset_id = asset_place.asset_id and type = :downvote)
+            FROM
+            asset
+            INNER JOIN universe_asset ON universe_asset.asset_id = asset.id
+            INNER JOIN asset_place ON asset_place.asset_id = asset.id
+            LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
+            LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
+            WHERE
+            universe_asset.is_public = true
+            /**orderby**/
+            LIMIT :limit",
             new
             {
-                limit = maxRows,
-                upvote = AssetVoteType.Upvote,
-                downvote = AssetVoteType.Downvote,
+            limit = maxRows,
+            upvote = AssetVoteType.Upvote,
+            downvote = AssetVoteType.Downvote,
             });
         // wheres that apply to all filters
         query.Where("asset.moderation_status = :mod_status", new
