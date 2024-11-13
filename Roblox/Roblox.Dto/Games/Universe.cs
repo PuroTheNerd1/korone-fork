@@ -123,7 +123,7 @@ public class GamesForCreatorDevelop
     public bool isArchived { get; set;} = false;
     public long rootPlaceId { get; set; }
     public bool isActive { get; set;} = true;
-    public PrivacyType privacyType { get; set;}
+    public PrivacyType privacyType { get; set;} = PrivacyType.Public;
     public int creatorType { get; set; }
     public long creatorTargetId { get; set;}
     public string creatorName { get; set;}
