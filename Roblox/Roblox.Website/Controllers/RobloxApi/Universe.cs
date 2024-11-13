@@ -119,7 +119,7 @@ public class UniverseV1 : ControllerBase
     {
         return new
         {
-            id = (int?)null,
+            imageId = (int?)null,
             isApproved = true
         };
     }
