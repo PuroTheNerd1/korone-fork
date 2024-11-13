@@ -63,6 +63,8 @@ public class UniverseV1 : ControllerBase
             data = result
         };
     }
+
+    [HttpGet("v2/universes/{universeId}/places")]
     [HttpGet("v1/universes/{universeId}/places")]
     public async Task<dynamic> GetUniverseAttachedPlaces(long universeId)
     {
@@ -75,10 +77,17 @@ public class UniverseV1 : ControllerBase
             {
                 new
                 {
+                    maxPlayerCount = uni.maxPlayers,
+                    socialSlotType = "Automatic",
+                    allowCopying = false,
+                    currentSavedVersion = 1,
+                    allowedGearTypes = (string?)null,
+                    maxPlayersAllowed = 0,
                     id = uni.rootPlaceId,
                     universeId = universeId,
                     name = uni.name,
-                    description = uni.description
+                    description = uni.description,
+                    isRootPlace = true
                 }
             }
         };
