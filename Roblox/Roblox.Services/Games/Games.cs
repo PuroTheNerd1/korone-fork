@@ -87,11 +87,12 @@ public class GamesService : ServiceBase, IService
             throw new RobloxException(400, 0, "Invalid place ID");
         return result;
     }
-    public async Task EnableCloudEdit(long universeId)
+    public async Task SetCloudedit(bool isEnabled, long universeId)
     {
-        await db.ExecuteAsync("UPDATE universe SET cloudedit = true WHERE id = :universeId",
+        await db.ExecuteAsync("UPDATE universe SET cloudedit = :isEnabled WHERE id = :universeId",
             new
             {
+                isEnabled = isEnabled,
                 universeId = universeId,
             });
     }
