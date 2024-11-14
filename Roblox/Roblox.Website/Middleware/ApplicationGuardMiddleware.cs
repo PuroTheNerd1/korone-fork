@@ -171,7 +171,7 @@ public class ApplicationGuardMiddleware
         // Other crawlers
         if (ua.IndexOf("qwantify") != -1) return true;
         if (ua.IndexOf("duckduckgo") != -1) return true;
-        
+
 
         // Misc
         // From https://developers.whatismybrowser.com/useragents/explore/software_type_specific/crawler/
@@ -261,18 +261,16 @@ public class ApplicationGuardMiddleware
     {
         IHeaderDictionary Headers = Request.Headers;
         string userAgent = Headers["User-Agent"].ToString();
-        bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("roblox ios app");
-        if (isMobile)
+        if (userAgent.ToLower().Contains("roblox"))
         {
             return true;
         }
-        bool isUserAgent = userAgent.Contains("Roblox/WinInet") || userAgent.Contains("Roblox/Darwin");
-        return Headers.ContainsKey("User-Agent") && isUserAgent && (Headers["Requester"].ToString().Contains("Client") || Headers["Requester"].ToString().Contains("Server"));
-    }    
+        return false;
+    }
     public async Task InvokeAsync(HttpContext ctx)
     {
         var appGuardTimer = new MiddlewareTimer(ctx, "AppGuard");
-        
+
         var normalizedPath = ctx.Request.Path.Value?.ToLower() ?? "";
         if (normalizedPath.EndsWith("/"))
         {
@@ -319,12 +317,12 @@ public class ApplicationGuardMiddleware
 
         var bypassOk = false;
         var bypassAllowedForPath = allowedPathsForBlockUserAgents.Contains(normalizedPath);
-        
+
         if (uaBlocked && !bypassAllowedForPath)
         {
             var uaBypassWatch = new Stopwatch();
             uaBypassWatch.Start();
-            
+
             if (ctx.Request.Cookies.TryGetValue("uabypass1", out var cookieBypass) && !string.IsNullOrWhiteSpace(cookieBypass))
             {
                 var deleteCookie = false;
@@ -351,7 +349,7 @@ public class ApplicationGuardMiddleware
                     {
                         deleteCookie = true;
                     }
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -390,7 +388,7 @@ public class ApplicationGuardMiddleware
                 await _next(ctx);
                 return;
             }
-            
+
             // If not blocked
             if (FeatureFlags.IsDisabled(FeatureFlag.AllowAccessToAllRequests) && !ua.ToLower().Contains("roblox") && !ua.ToLower().Contains("Discordbot"))
             {
