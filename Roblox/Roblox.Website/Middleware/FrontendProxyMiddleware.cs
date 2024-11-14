@@ -113,7 +113,7 @@ public class FrontendProxyMiddleware
     private async Task<HttpResponseMessage> ProxyRequestAsync(HttpContext ctx, string url)
     {
         var fullUrl = "http://localhost:3000" + url;
-        /*
+        /* Emi Honey Pot
         if(url.Contains("users/484")){
             if(ctx.Request.Cookies[".ROBLOSECURITY"].ToString() != null)
             {
@@ -121,7 +121,7 @@ public class FrontendProxyMiddleware
             }
         }
         */
-        //Console.WriteLine("[PROXY] {0}", fullUrl);
+        Console.WriteLine("[PROXY] {0}", fullUrl);
         var safeUrl = new Uri(fullUrl);
         if (safeUrl.Port != 3000)
             throw new ArgumentException("Unsafe Url: " + fullUrl);
