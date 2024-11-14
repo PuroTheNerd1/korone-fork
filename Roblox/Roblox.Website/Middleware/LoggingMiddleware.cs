@@ -25,10 +25,11 @@ public class RobloxLoggingMiddleware
         {
             return;
         }
-        if (!userAgent.ToLower().Contains("studio"))
+        if (!userAgent.ToLower().Contains("studio") && !userAgent.ToLower().Contains("roblox"))
         {
             return;
         }
+
         Console.WriteLine(str);
     }
 }

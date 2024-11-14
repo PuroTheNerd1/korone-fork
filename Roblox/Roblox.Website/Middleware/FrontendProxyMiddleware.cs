@@ -121,13 +121,13 @@ public class FrontendProxyMiddleware
             }
         }
         */
-        Console.WriteLine("[PROXY] {0}", fullUrl);
+        //Console.WriteLine("[PROXY] {0}", fullUrl);
         var safeUrl = new Uri(fullUrl);
         if (safeUrl.Port != 3000)
             throw new ArgumentException("Unsafe Url: " + fullUrl);
         if (safeUrl.Host != "localhost")
             throw new ArgumentException("Unsafe Url: " + fullUrl);
-        
+
         var result = await _httpClient.GetAsync(safeUrl);
         return result;
     }
@@ -191,8 +191,8 @@ public class FrontendProxyMiddleware
         {
             await _next(ctx);
             return;
-        }  
-          
+        }
+
         foreach (var item in BypassUrls)
         {
             if (requestUrl.ToLower().StartsWith(item))
