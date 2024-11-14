@@ -22,9 +22,9 @@ public class PlaceLaunchResponse
 {
     public string? jobId { get; set; }
     public int status { get; set; }
-    public string? joinScriptUrl { get; set; }
-    public string? authenticationUrl { get; set; }
-    public string? authenticationTicket { get; set; }
-    public string? message { get; set; }
+    public string joinScriptUrl { get; set; }
+    public string authenticationUrl { get; set; }
+    public string authenticationTicket { get; set; }
+    public string message { get; set; }
     public dynamic joinScript { get; set; }
 }
