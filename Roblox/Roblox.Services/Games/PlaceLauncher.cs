@@ -122,10 +122,28 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
     {
+        GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
+        UsersService users = new UsersService();
+        SignService sign = new SignService();
+        string membership;
+        var membership2 = await users.GetUserMembership((long)userId);
+        string charApp = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId=1&placeId={placeId}";
         var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
+        var userInfo = await users.GetUserById((long)userId);
+        var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
+        if (membership2 == null)
+        {
+            membership = "None";
+        }
+        else
+        {
+            membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
+        }
         if (result.status == JoinStatus.Joining)
         {
+
+            string ticket = sign.GenerateClientTicketV4((long)userId, username, charApp, membership, result.job, DateTime.Now.ToString("M/d/yyyy h:mm:ss tt"), accountAgeDays, placeId);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,
@@ -137,11 +155,11 @@ public class PlaceLauncherService : ServiceBase
                     SessionId = 0,
                     GameId = result.job,
                     PlaceId = placeId,
-                    CharacterAppearance = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId=1&placeId={placeId}",
+                    CharacterAppearance = charApp,
                     MachineAddress = result.ip,
                     ServerPort = result.port,
                     UserName = username,
-                    ClientTicket = "",
+                    ClientTicket = ticket,
                 },
                 authenticationTicket = "hi",
                 message = (string?)null,
