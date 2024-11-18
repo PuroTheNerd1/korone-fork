@@ -122,6 +122,10 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
     {
+        if (userId != 3 && userId != 16)
+        {
+            throw new BadRequestException("You are not allowed to join this game.");
+        }
         GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
         UsersService users = new UsersService();
