@@ -1007,7 +1007,7 @@ public class GameServerService : ServiceBase
 
     public async Task<IEnumerable<GameServerEntryWithPlayers>> GetGameServers(long placeId, int offset, int limit)
     {
-        var result = (await db.QueryAsync<GameServerEntryWithPlayers>("SELECT id::text, asset_id as assetId FROM asset_server WHERE asset_id = :id LIMIT :limit OFFSET :offset", new
+        var result = (await db.QueryAsync<GameServerEntryWithPlayers>("SELECT id::text, asset_id as assetId FROM asset_server WHERE asset_id = :id AND type = 1 LIMIT :limit OFFSET :offset", new
         {
             id = placeId,
             limit,
