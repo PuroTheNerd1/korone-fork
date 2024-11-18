@@ -657,6 +657,7 @@ public class GameServerService : ServiceBase
             new
             {
                 assetid = placeId,
+                type = matchmaking,
             });
     }
 
