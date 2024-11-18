@@ -650,10 +650,10 @@ public class GameServerService : ServiceBase
         }
         return true;
     }
-    public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId)
+    public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId, int? matchmaking = 1)
     {
         return await db.QueryAsync<GameServerDb>(
-            "SELECT * FROM asset_server WHERE asset_id = :assetid",
+            "SELECT * FROM asset_server WHERE asset_id = :assetid AND type = :type",
             new
             {
                 assetid = placeId,
@@ -665,7 +665,7 @@ public class GameServerService : ServiceBase
         GamesService games = new GamesService();
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
-        var GameServers = await GetGameServersForPlace(placeId);
+        var GameServers = await GetGameServersForPlace(placeId, matchmaking);
 
         foreach (GameServerDb server in GameServers)
         {
@@ -731,7 +731,7 @@ public class GameServerService : ServiceBase
         {
             await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);
             await db.ExecuteAsync(
-                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
+                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
                 new
                 {
                     id = jobId,
@@ -739,6 +739,7 @@ public class GameServerService : ServiceBase
                     ip = Configuration.GameServerIp,
                     port = proxyPort,
                     server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
+                    type = matchmaking
                 });
             return 0;
         });
