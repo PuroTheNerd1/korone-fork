@@ -695,6 +695,7 @@ namespace Roblox.Website.Controllers
             }
             Placelauncher.cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"].ToString();
             Placelauncher.userId = userSession.userId;
+            Placelauncher.username = userSession.username;
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 
