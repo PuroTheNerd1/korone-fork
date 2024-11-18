@@ -110,6 +110,7 @@ namespace Roblox.Website.Controllers
         {
             return await services.games.MultiGetPlaceDetails(placeIds.Split(",").Select(long.Parse));
         }
+
         [HttpGetBypass("v1/games/votes")]
         public async Task<dynamic> GetGameVotes(string universeIds)
         {

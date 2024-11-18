@@ -30,15 +30,15 @@ public class PlaceLauncherService : ServiceBase
             case "RequestGame":
                 return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.Default, plRequest.cookie, plRequest.special, plRequest.username, plRequest.userId);
             case "CloudEdit":
-                return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.CloudEdit, plRequest.cookie);
+                return await RequestCloudEdit(plRequest.placeId, (long)plRequest.userId, plRequest.username);
             case "RequestPrivateGame":
                 break;
         }
-        //default 
+        //default
         return new PlaceLaunchResponse()
         {
             status = (int)JoinStatus.Error,
-            message = "An error occured while starting the game."  
+            message = "An error occured while starting the game."
         };
     }
 
@@ -64,6 +64,7 @@ public class PlaceLauncherService : ServiceBase
             message = (string)null,
         };
     }
+
     public async Task<PlaceLaunchResponse> RequestGame(long placeId, int matchmaking, string cookie, bool? Special = false, string? username = null, long? userId = null)
     {
         GamesService games = new GamesService();
@@ -109,7 +110,41 @@ public class PlaceLauncherService : ServiceBase
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = cookie,
                 message = (string?)null,
-                joinScript = (bool)Special ? joinScript : null 
+                joinScript = (bool)Special ? joinScript : null
+            };
+        }
+        return new PlaceLaunchResponse()
+        {
+            jobId = (string?)null,
+            status = (int)JoinStatus.Loading,
+            message = "Server found, loading...",
+        };
+    }
+    public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
+    {
+        GameServerService gameServer = new GameServerService();
+        var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
+        if (result.status == JoinStatus.Joining)
+        {
+            return new PlaceLaunchResponse()
+            {
+                jobId = result.job,
+                status = (int)result.status,
+                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
+                authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
+                settings = new
+                {
+                    SessionId = 0,
+                    GameId = result.job,
+                    PlaceId = placeId,
+                    CharacterAppearance = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId=1&placeId={placeId}",
+                    MachineAddress = result.ip,
+                    ServerPort = result.port,
+                    UserName = username,
+                    ClientTicket = "",
+                },
+                authenticationTicket = "hi",
+                message = (string?)null,
             };
         }
         return new PlaceLaunchResponse()

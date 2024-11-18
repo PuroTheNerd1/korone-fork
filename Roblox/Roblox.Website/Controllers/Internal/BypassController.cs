@@ -694,6 +694,7 @@ namespace Roblox.Website.Controllers
                 };
             }
             Placelauncher.cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"].ToString();
+            Placelauncher.userId = userSession.userId;
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 

@@ -6,6 +6,8 @@ namespace Roblox.Dto.Games;
 public class GameServerGetOrCreateResponse
 {
     public JoinStatus status { get; set; }
+    public string ip { get; set; }
+    public long port { get; set; }
     public string? job { get; set; }
 }
 
@@ -28,6 +30,7 @@ public enum ServerStatus
 public class GameServerDb
 {
     public Guid id { get; set; }
+    public long port { get; set; }
     public DateTime updated_at { get; set; }
     public ServerStatus status;
 }
@@ -39,7 +42,7 @@ public class GameServerInfoResponse
 
 public class GameServerEmptyResponse
 {
-    
+
 }
 
 public class GameServerPlayer

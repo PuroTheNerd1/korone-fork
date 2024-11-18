@@ -699,6 +699,8 @@ public class GameServerService : ServiceBase
             return new GameServerGetOrCreateResponse()
             {
                 job = jobid,
+                ip = Configuration.GameServerIp,
+                port = server.port,
                 status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
             };
         }

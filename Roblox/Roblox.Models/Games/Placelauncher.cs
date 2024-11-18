@@ -25,6 +25,7 @@ public class PlaceLaunchResponse
     public string joinScriptUrl { get; set; }
     public string authenticationUrl { get; set; }
     public string authenticationTicket { get; set; }
+    public dynamic settings { get; set; }
     public string message { get; set; }
     public dynamic joinScript { get; set; }
 }
