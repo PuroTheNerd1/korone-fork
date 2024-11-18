@@ -132,6 +132,8 @@ public class PlaceLauncherService : ServiceBase
         var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
         var userInfo = await users.GetUserById((long)userId);
         var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
+        DateTime currentUtcDateTime = DateTime.UtcNow;
+        string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
         if (membership2 == null)
         {
             membership = "None";
@@ -142,7 +144,7 @@ public class PlaceLauncherService : ServiceBase
         }
         if (result.status == JoinStatus.Joining)
         {
-            string ticket = sign.GenerateClientTicketV4((long)userId, username, charApp, membership, result.job, DateTime.Now.ToString("M/d/yyyy h:mm:ss tt"), accountAgeDays, placeId);
+            string ticket = sign.GenerateClientTicketV4((long)userId, username, charApp, membership, result.job, formattedDateTime, accountAgeDays, placeId);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,

@@ -149,7 +149,7 @@ public class SignService : ServiceBase
 
         string customTimestamp = utcNow.ToString("MM/dd/yyyy hh:mm:ss tt");
         string countryCode = "US";
-        string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{customTimestamp}";
+        string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";
         string ticket2Signature = SignString2048New(ticket2);
         string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership.Length}\n{membership}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
         string ticketSignature = SignString2048New(ticket);
