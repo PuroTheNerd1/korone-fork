@@ -159,6 +159,7 @@ public class PlaceLauncherService : ServiceBase
                     ServerPort = result.port,
                     UserName = username,
                     ClientTicket = ticket,
+                    NewClientTicket = ticket
                 },
                 authenticationTicket = "hi",
                 message = (string?)null,
