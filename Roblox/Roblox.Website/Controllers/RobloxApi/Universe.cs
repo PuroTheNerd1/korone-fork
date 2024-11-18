@@ -123,6 +123,16 @@ public class UniverseV1 : ControllerBase
             canCloudEdit = canManage
         };
     }
+
+    [HttpGet("v1/universes/{universeId}/teamcreate")]
+    public async Task<dynamic> TeamCreateSettings(long universeId)
+    {
+        return new
+        {
+            isEnabled = await services.games.IsCloudeditEnabled(universeId),
+        };
+    }
+
     [HttpGet("v1/universes/{universeId}")]
     public async Task<dynamic> UniverseInfo(long universeId)
     {
