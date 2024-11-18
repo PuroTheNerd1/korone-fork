@@ -126,43 +126,38 @@ public class PlaceLauncherService : ServiceBase
         GameServerService gameServer = new GameServerService();
         UsersService users = new UsersService();
         SignService sign = new SignService();
-        string membership;
-        var membership2 = await users.GetUserMembership((long)userId);
-        string charApp = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId=1&placeId={placeId}";
+        string finalTicket;
+        dynamic settings;
+        string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
         var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
-        var userInfo = await users.GetUserById((long)userId);
-        var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-        DateTime currentUtcDateTime = DateTime.UtcNow;
-        string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
-        if (membership2 == null)
-        {
-            membership = "None";
-        }
-        else
-        {
-            membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
-        }
         if (result.status == JoinStatus.Joining)
         {
-            string ticket = sign.GenerateClientTicketV4((long)userId, username, charApp, membership, result.job, formattedDateTime, accountAgeDays, placeId);
+            var jobPlayers = await gameServer.GetGameServerPlayers(result.job);
+            PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
+            long year = await games.GetYear(placeId);
+            string membership;
+            var membership2 = await users.GetUserMembership((long)userId);
+            DateTime currentUtcDateTime = DateTime.UtcNow;
+            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            var userInfo = await users.GetUserById((long)userId);
+            var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
+            if (membership2 == null)
+            {
+                membership = "None";
+            }
+            else
+            {
+                membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
+            }
+            finalTicket = sign.GenerateClientTicketV4((long)userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
+            settings = await games.GetJoinScript(year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, null);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,
                 status = (int)result.status,
                 joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
-                settings = new
-                {
-                    SessionId = 0,
-                    GameId = result.job,
-                    PlaceId = placeId,
-                    CharacterAppearance = charApp,
-                    MachineAddress = result.ip,
-                    ServerPort = result.port,
-                    UserName = username,
-                    ClientTicket = ticket,
-                    NewClientTicket = ticket
-                },
+                settings = settings,
                 authenticationTicket = "hi",
                 message = (string?)null,
             };
