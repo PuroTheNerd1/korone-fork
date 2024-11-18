@@ -142,7 +142,6 @@ public class PlaceLauncherService : ServiceBase
         }
         if (result.status == JoinStatus.Joining)
         {
-
             string ticket = sign.GenerateClientTicketV4((long)userId, username, charApp, membership, result.job, DateTime.Now.ToString("M/d/yyyy h:mm:ss tt"), accountAgeDays, placeId);
             return new PlaceLaunchResponse()
             {
