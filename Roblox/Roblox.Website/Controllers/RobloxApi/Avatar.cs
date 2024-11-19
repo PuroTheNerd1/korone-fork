@@ -237,7 +237,7 @@ public class AvatarRBX : ControllerBase
         {
             existingAvatar = await services.avatar.GetAvatar(userId);
         }
-        catch (RecordNotFoundException)
+        catch (Exception)
         {
             return Redirect("https://avatar.roblox.com/v1/avatar-fetch?userId=" + userId);
         }
