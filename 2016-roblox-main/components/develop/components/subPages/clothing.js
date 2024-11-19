@@ -107,8 +107,12 @@ const Clothing = props => {
       cursor: '',
       assetType: id,
       groupId,
-    }).then(d => {
-      setAssetList(d);
+    }).then(asset => {
+      asset.data = asset.data.map(data => ({
+        ...data,
+        assetType: id
+      }))
+      setAssetList(asset);
     });
   }, [auth.userId, id, groupId]);
 
@@ -126,10 +130,10 @@ const Clothing = props => {
     <div className='col-12'>
       <div className='ms-4 me-4 mt-4'>
         {details.templateUrl ? <p>Did you use the template? If not, <a href={details.templateUrl}>download it here</a>.</p> : null}
-        <p>Find your {details.fileLabel}: <input ref={fileRef} type='file'/> {feedback && <span className='text-danger'>{feedback}</span>}</p>
-        <p>{details.name} Name: <input ref={nameRef} type='text' className={s.inputItemName}/></p>
+        <p>Find your {details.fileLabel}: <input ref={fileRef} type='file' /> {feedback && <span className='text-danger'>{feedback}</span>}</p>
+        <p>{details.name} Name: <input ref={nameRef} type='text' className={s.inputItemName} /></p>
         <div className='float-left'>
-          <ActionButton disabled={locked} label='Upload' onClick={onSubmit}/>
+          <ActionButton disabled={locked} label='Upload' onClick={onSubmit} />
         </div>
       </div>
     </div>
@@ -137,7 +141,7 @@ const Clothing = props => {
       {assetList ? (
         assetList.data.length === 0 ?
           <p>You haven't created any {details.namePlural.toLowerCase()}.</p>
-          : <AssetList assets={assetList.data}/>
+          : <AssetList assets={assetList.data} />
       ) : null}
     </div>
   </div>

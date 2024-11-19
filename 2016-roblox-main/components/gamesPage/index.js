@@ -1,28 +1,50 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import { createUseStyles } from "react-jss";
 import getFlag from "../../lib/getFlag";
 import AuthenticationStore from "../../stores/authentication";
 import GamesPageStore from "../../stores/gamesPage";
 import AdBanner from "../ad/adBanner";
 import Selector from "../selector";
-import {getQueryParams} from "../../lib/getQueryParams";
+import { getQueryParams } from "../../lib/getQueryParams";
 import GamesList from './components/games';
 
 const useStyles = createUseStyles({
   authContainer: {
     '@media(min-width: 1300px)': {
       marginLeft: '180px',
-    }
+    },
+    '@media(max-width: 994px)': {
+      margin: 0,
+      padding: 0,
+    },
   },
   selectorSort: {
     width: '200px',
     float: 'left',
+    '@media(max-width: 994px)': {
+      width: '100%',
+      paddingRight: 'calc(.5* var(--bs-gutter-x))',
+      marginLeft: '6px!important'
+    },
   },
   gamesContainer: {
     backgroundColor: '#e3e3e3',
     paddingTop: '8px',
     marginLeft: '15px',
     marginRight: '15px',
+    '@media(max-width: 994px)': {
+      paddingTop: '0',
+    },
+  },
+
+  selectorContainer: {
+    '@media(max-width: 994px)': {
+      marginBottom: '6px',
+    },
+  },
+
+  container: {
+    paddingRight: 0,
   },
 })
 
@@ -31,29 +53,37 @@ const Games = props => {
   const store = GamesPageStore.useContainer();
   const auth = AuthenticationStore.useContainer();
   const s = useStyles();
-  const showGenre = getFlag('gameGenreFilterSupported', false) && !query.keyword;
-  const showSortDropdown = getFlag('gameCustomSortDropdown', false) && !query.keyword;
+  const showGenre = getFlag('gameGenreFilterSupported', false) && !query.sortFilter && !query.keyword;
+  const showSortDropdown = getFlag('gameCustomSortDropdown', false) && !query.sortFilter && !query.keyword;
+  const selectorContainerClass = showSortDropdown ? s.selectorContainer : '';
 
   useEffect(() => {
+    //store.setQuery(null);
+    //store.setSortToken(null);
     if (query.keyword)
       store.setQuery(query.keyword);
+    if (query.sortFilter)
+      store.setSortToken(query.sortFilter);
 
     store.loadGames({
+      // @ts-ignore
       query: query.keyword,
       genreFilter: store.genreFilter,
+      // @ts-ignore
+      sortToken: query.sortFilter,
     });
   }, [store.genreFilter]);
 
   // if (!store.sorts || !store.games || !store.icons) return null;
   return <div className={'row ' + (auth.isAuthenticated ? s.authContainer : '')}>
     <div className='col-12'>
-      <AdBanner context='gamesPage'/>
+      <AdBanner context='gamesPage' />
     </div>
-    <div className='col-12 ps-0 pb-0'>
+    <div className={`col-12 ps-0 pb-0 ${s.container}`}>
       <div className={'row pb-2 ' + s.gamesContainer}>
-        <div className='col-12'>
+        <div className={`${selectorContainerClass} col-12`}>
           {showSortDropdown &&
-            <div className={s.selectorSort}>
+            <div className={`row ${s.selectorSort}`}>
               <Selector
                 onChange={(newValue) => {
                   // TODO
@@ -92,7 +122,7 @@ const Games = props => {
                     name: 'Builders Club',
                     value: 'builders-club',
                   },
-                ]}/>
+                ]} />
             </div>
           }
           {showGenre &&
@@ -103,7 +133,7 @@ const Games = props => {
                   console.log('[info] use genre', newValue);
                   store.setGenreFilter(newValue.value);
                 }}
-                options={store.selectorSorts}/>
+                options={store.selectorSorts} />
             </div>
           }
         </div>

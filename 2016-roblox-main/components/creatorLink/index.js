@@ -1,5 +1,17 @@
 import {itemNameToEncodedName} from "../../services/catalog";
 import Link from "../link";
+import { createUseStyles } from "react-jss";
+
+const useStyles = createUseStyles({
+  aLink: {
+    textDecoration: 'none!important',
+    color: '#00A2FF',
+    '&:hover': {
+      color: '#00A2FF',
+      textDecoration: 'underline!important'
+    }
+  }
+})
 
 /**
  * Creator link
@@ -7,9 +19,10 @@ import Link from "../link";
  * @returns 
  */
 const CreatorLink = (props) => {
-  const url = (props.type === 'User' || props.type === 1) ? '/User.aspx?ID=' + props.id : '/My/Groups.aspx?gid=' + props.id;
+  const url = (props.type === 'Group' || props.type === 1) ? '/My/Groups.aspx?gid=' + props.id : '/User.aspx?ID=' + props.id;
+  const s = useStyles();
   return <Link href={url}>
-    <a>
+    <a className={s.aLink}>
       {props.name}
     </a>
   </Link>

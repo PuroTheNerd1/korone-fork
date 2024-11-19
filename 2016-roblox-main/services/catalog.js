@@ -112,3 +112,11 @@ export const createFavorite = async ({assetId, userId}) => {
 export const deleteFavorite = async ({assetId, userId}) => {
   return await request('DELETE', getFullUrl('catalog', '/v1/favorites/users/'+userId+'/assets/'+assetId+'/favorite'));
 }
+
+export const getAudio = async ({audioId}) => {
+  return await request('GET',`${getBaseUrl()}/asset/?id=${audioId}`).then(d => d.data);
+}
+
+export const getAudioURL = async ({audioId}) => {
+  return `${getBaseUrl()}/asset/?id=${audioId}`;
+}

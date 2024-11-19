@@ -4,7 +4,7 @@ import getFlag from "../../../lib/getFlag";
 import { launchGame } from "../../../services/games";
 import AuthenticationStore from "../../../stores/authentication";
 import useButtonStyles from "../../../styles/buttonStyles";
-import ActionButton from "../../actionButton";
+import ActionButton from "../../actionButtonNew";
 
 const useStyles = createUseStyles({
   buttonWrapper: {

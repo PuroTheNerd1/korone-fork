@@ -37,7 +37,7 @@ const PlayerImage = (props) => {
     setImage(thumbs.getUserThumbnail(props.id, '420x420'));
   }, [thumbs.thumbnails]);
 
-  return <img className={s.image} src={image} alt={props.name} onError={(e) => {
+  return <img className={`${s.image} ${props.className}`} src={image} alt={props.name} onError={(e) => {
     if (retryCount >= 3) return;
     reportImageFail({
       errorEvent: e,

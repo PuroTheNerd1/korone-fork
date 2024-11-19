@@ -6,11 +6,14 @@ import { getCollections } from "../../../services/inventory";
 import useCardStyles from "../styles/card";
 import SmallButtonLink from "./smallButtonLink";
 import Subtitle from "./subtitle";
+import SmallTextLink from "./smallTextLink";
+import useButtonWrapperStyle from '../styles/buttonWrapper'
 
 const useCollectionStyles = createUseStyles({
   imageWrapper: {
     border: '1px solid #c3c3c3',
-    borderRadius: '4px',
+    //borderRadius: '4px',
+    borderRadius: 0,
   },
   image: {
     width: '100%',
@@ -18,17 +21,11 @@ const useCollectionStyles = createUseStyles({
     display: 'block',
   },
   itemLabel: {
-    fontWeight: 300,
+    fontWeight: 500,
     fontSize: '16px',
-    color: '#666',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
-  },
-  buttonWrapper: {
-    width: '100px',
-    float: 'right',
-    marginTop: '10px',
   },
   labelWrapper: {
     width: '100%',
@@ -48,6 +45,7 @@ const useCollectionStyles = createUseStyles({
 const Collections = props => {
   const { userId } = props;
   const s = useCollectionStyles();
+  const s2 =useButtonWrapperStyle();
   const cardStyles = useCardStyles();
   const [collections, setCollections] = useState(null);
   useEffect(() => {
@@ -57,18 +55,18 @@ const Collections = props => {
   if (!collections || collections.length === 0) {
     return null;
   }
-  return <div className='row'>
+  return <div className='flex'>
     <div className='col-10'>
       <Subtitle>Collections</Subtitle>
     </div>
     <div className='col-2'>
-      <div className={s.buttonWrapper}>
-        <SmallButtonLink href={`/users/${userId}/inventory`}>Inventory</SmallButtonLink>
+      <div className={`${s2.buttonWrapper}`}>
+        <SmallTextLink href={`/users/${userId}/inventory`}>Inventory</SmallTextLink>
       </div>
     </div>
     <div className='col-12'>
       <div className={cardStyles.card}>
-        <div className='row ps-4 pe-4 pt-4 pb-4'>
+        <div className='flex ps-4 pe-4 pt-4 pb-4'>
           {
             collections.map((v, i) => {
               const assetId = v.Id;
@@ -77,7 +75,7 @@ const Collections = props => {
               const isLimitedUnique = v.AssetRestrictionIcon && v.AssetRestrictionIcon.CssTag === "limited-unique";
               const hasOverlay = isLimited || isLimitedUnique;
 
-              return <div className='col-4 col-lg-2' key={i}>
+              return <div className='col-4 col-lg-2 ml-1 mr-1' key={i}>
                 <a href={url}>
                   <div className={s.imageWrapper}>
                     <img src={v.Thumbnail.Url.startsWith('http') ? v.Thumbnail.Url : getBaseUrl() + v.Thumbnail.Url} className={s.image}/>
@@ -88,7 +86,7 @@ const Collections = props => {
                       }
                     </div> : null}
                   </div>
-                  <p className={`mb-0 ${s.itemLabel}`}>{v.Name}</p>
+                  <p className={`mb-0 link2019 ${s.itemLabel}`}>{v.Name}</p>
                 </a>
               </div>
             })

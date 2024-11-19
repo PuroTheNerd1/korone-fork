@@ -55,7 +55,10 @@ const useSaleCountStyles = createUseStyles({
   text: {
     color: '#666',
     fontSize: '12px',
-  }
+  },
+  actionButton: {
+    padding: '1px 13px 3px 13px',
+  },
 })
 
 const SaleCount = props => {
@@ -92,6 +95,7 @@ const PriceTickets = props => {
 }
 
 const BuyAction = props => {
+  const s = useSaleCountStyles();
   const currency = props.currency; // 1 = Robux, 2 = Tickets
   const store = CatalogDetailsPage.useContainer();
   const authenticationStore = AuthenticationStore.useContainer();
@@ -138,7 +142,7 @@ const BuyAction = props => {
     }
     <ActionButton onClick={(e) => {
       modalStore.openPurchaseModal(store.getPurchaseDetails(), auth.robux, auth.tix, currency);
-    }} label={actionBuyText} disabled={isDisabled} tooltipText={tooltipTitle}/>
+    }} label={actionBuyText} className={s.actionButton} disabled={isDisabled} tooltipText={tooltipTitle}/>
   </div>
 }
 

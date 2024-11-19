@@ -41,7 +41,7 @@ const GroupGridEntry = props => {
     <Link href={`/My/Groups.aspx?gid=${props.group.group.id}`}>
       <a>
         <div className='card pt-1 pb-1 pe-1 ps-1'>
-          <img className={s.groupImage} src={props.icon}/>
+          <img className={s.groupImage} src={props.icon} />
           <div className='pe-1 ps-1'>
             <p className={s.name}>{props.group.group.name}</p>
             <p className={s.memberCount}>{abbreviateNumber(props.group.group.memberCount)} Members</p>
@@ -55,7 +55,7 @@ const GroupGridEntry = props => {
 
 const GroupGrid = (props) => {
   const store = UserProfileStore.useContainer();
-  return <div className='row ps-3 pe-3'>
+  return <div className='flex'>
     {
       store.groups.map(v => {
         return <GroupGridEntry key={v.group.id} group={v} icon={props.icons[v.group.id]}></GroupGridEntry>
@@ -67,20 +67,22 @@ const GroupGrid = (props) => {
 
 const useGroupSquareStatStyles = createUseStyles({
   header: {
-    color: '#c3c3c3',
+    color: '#b8b8b8',
     fontSize: '16px',
-    fontWeight: 400,
+    lineHeight: '1.4em',
+    fontWeight: 500,
     marginBottom: 0,
   },
   value: {
     fontSize: '16px',
-    fontWeight: 400,
+    fontWeight: 500,
+    marginBottom: 0,
   },
 });
 
 const GroupSquareStat = props => {
   const s = useGroupSquareStatStyles();
-  return <div className='row'>
+  return <div className='flex'>
     <div className='col-12'>
       <p className={s.header}>{props.header}</p>
       <p className={s.value}>{props.value}</p>
@@ -93,21 +95,27 @@ const useGroupSquareStyles = createUseStyles({
     background: '#0074bd',
     borderRadius: 0,
     height: '100%',
+    alignItems: 'center'
   },
   groupName: {
-    fontWeight: 400,
+    fontWeight: 800,
     margin: 0,
-    fontSize: '30px',
-    borderBottom: '1px solid #c3c3c3',
+    fontSize: '32px',
+    borderBottom: '1px solid #fff',
+    padding: '5px 0',
   },
   description: {
-    fontWeight: 300,
-    marginBottom: 0,
-    height: '150px',
+    fontWeight: 400,
+    margin: 0,
+    borderTop: '1px solid #B8B8B8',
+    height: '100px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    marginTop: '4px',
     fontSize: '16px',
+    wordWrap: 'break-word',
+    hyphens: 'none',
+    whiteSpace: 'pre-wrap',
+    lineHeight: '1.5em',
   },
   cursor: {
     height: '50px',
@@ -149,10 +157,17 @@ const useGroupSquareStyles = createUseStyles({
     display: 'block',
     margin: '0 auto',
     borderRadius: '12px',
-    boxShadow: '0 0 6px 0 rgb(0 0 0 / 49%)',
+
+    //boxShadow: '0 0 6px 0 rgb(0 0 0 / 49%)',
   },
   imageWrapper: {
-    paddingTop: '20px',
+    //paddingTop: '20px',
+  },
+  groupCard: {
+    padding: '20px 30px',
+    height: '300px',
+    border: 0,
+    borderRadius: 0,
   },
 });
 
@@ -163,7 +178,7 @@ const GroupSquareEntry = props => {
   const store = UserProfileStore.useContainer();
   const group = store.groups[offset];
 
-  return <div className='row' onMouseEnter={() => {
+  return <div className='flex' onMouseEnter={() => {
     if (store.groups.length === 1) {
       return
     }
@@ -184,21 +199,21 @@ const GroupSquareEntry = props => {
         <div className={s.imageWrapper}>
           <Link href={`/My/Groups.aspx?gid=${group.group.id}`}>
             <a>
-              <img className={s.image} src={props.icons[group.group.id]}/>
+              <img className={s.image} src={props.icons[group.group.id]} />
             </a>
           </Link>
         </div>
       </div>
     </div>
     <div className='col-12 col-lg-6 ps-lg-0'>
-      <div className='card pt-4 pb-4 ps-4 pe-4'>
+      <div className={`card ${s.groupCard}`}>
         <h3 className={s.groupName}>
           {group.group.name}
         </h3>
         <p className={s.description}>
           {group.group.description}
         </p>
-        <div className='row'>
+        <div className='flex' style={{ marginTop: 'auto' }}>
           <div className='col-6'>
             <GroupSquareStat header='Members' value={abbreviateNumber(group.group.memberCount)}></GroupSquareStat>
           </div>
@@ -221,7 +236,7 @@ const GroupSquareEntry = props => {
 
 const useGroupStyles = createUseStyles({
   buttonsGroup: {
-    paddingTop: '10px',
+    //paddingTop: '10px',
   },
   buttonInUse: {
     paddingTop: 0,
@@ -232,6 +247,10 @@ const useGroupStyles = createUseStyles({
     border: '1px solid #c3c3c3',
     paddingTop: 0,
     paddingBottom: 0,
+  },
+  groupHeaders: {
+    flexDirection: 'row',
+    display: 'flex',
   },
 })
 
@@ -257,31 +276,29 @@ const Groups = props => {
   if (!store.groups || !store.groups.length) {
     return null;
   }
-  return <div className='row'>
-    <div className='col-6'>
-      <Subtitle>Groups</Subtitle>
-    </div>
-    <div className={'col-3 col-lg-1 offset-lg-4 pe-1 ' + s.buttonsGroup}>
-      <SmallButtonLink onClick={(e) => {
-        e.preventDefault();
-        setMode('Square');
-      }} className={mode === 'Square' ? s.buttonInUse : s.buttonNotInUse}>
-        <span className='container-buttons'>
-          <span className='icon-slideshow'>
-
+  return <div className='flex' style={{ margin: '0 0 18px', flexDirection: 'column' }}>
+    <div className={s.groupHeaders}>
+    <Subtitle>Groups</Subtitle>
+      <div className={'col-lg-1 ' + s.buttonsGroup} style={{marginLeft: 'auto'}}>
+        <SmallButtonLink onClick={(e) => {
+          e.preventDefault();
+          setMode('Square');
+        }} className={mode === 'Square' ? s.buttonInUse : s.buttonNotInUse}>
+          <span className='container-buttons'>
+            <span className='icon-slideshow' />
           </span>
-        </span>
-      </SmallButtonLink>
-    </div>
-    <div className={'col-3 col-lg-1 ps-1 ' + s.buttonsGroup}>
-      <SmallButtonLink onClick={(e) => {
-        e.preventDefault();
-        setMode('Grid');
-      }} className={mode === 'Grid' ? s.buttonInUse : s.buttonNotInUse}>
-        <span className='container-buttons'>
-          <span className='icon-grid'></span>
-        </span>
-      </SmallButtonLink>
+        </SmallButtonLink>
+      </div>
+      <div className={'col-lg-1 ' + s.buttonsGroup} style={{paddingLeft: '.5em'}}>
+        <SmallButtonLink onClick={(e) => {
+          e.preventDefault();
+          setMode('Grid');
+        }} className={mode === 'Grid' ? s.buttonInUse : s.buttonNotInUse}>
+          <span className='container-buttons'>
+            <span className='icon-grid'></span>
+          </span>
+        </SmallButtonLink>
+      </div>
     </div>
     <div className='col-12'>
       {mode === 'Square' ? <GroupSquareEntry icons={icons}></GroupSquareEntry> : <GroupGrid icons={icons}></GroupGrid>}

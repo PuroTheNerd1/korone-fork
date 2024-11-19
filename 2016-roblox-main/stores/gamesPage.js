@@ -30,6 +30,7 @@ const GamesPageStore = createContainer(() => {
   const iconsRef = useRef({});
   const [icons, setIconsInternal] = useState({});
   const [query, setQuery] = useState(null);
+  const [sortToken, setSortToken] = useState(null);
   const setIcons = newIcons => {
     setIconsInternal(newIcons);
     iconsRef.current = newIcons;
@@ -81,14 +82,14 @@ const GamesPageStore = createContainer(() => {
   };
 
 
-  const loadGames = ({query, genreFilter}) => {
+  const loadGames = ({query='', genreFilter, sortToken=''}) => {
     setSorts(null);
     setGames(null);
     setInfiniteGamesGrid(null);
 
-    if (query) {
+    if (query || sortToken) {
       getGameList({
-        sortToken: '',
+        sortToken,
         limit: 100,
         genre: [],
         keyword: query,
@@ -133,6 +134,8 @@ const GamesPageStore = createContainer(() => {
     infiniteGamesGrid,
     query,
     setQuery,
+    sortToken,
+    setSortToken,
     genreFilter,
     setGenreFilter,
     selectorSorts,

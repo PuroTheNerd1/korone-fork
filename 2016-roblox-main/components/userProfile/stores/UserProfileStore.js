@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import getFlag from "../../../lib/getFlag";
 import { getFollowersCount, getFollowingsCount, getFriends, getFriendStatus, isAuthenticatedUserFollowingUserId } from "../../../services/friends";
-import { getUserGames } from "../../../services/games";
+import { getUserGames, multiGetPlaceDetails } from "../../../services/games";
 import { getUserGroups } from "../../../services/groups";
 import { getPreviousUsernames, getUserInfo, getUserStatus } from "../../../services/users";
 

@@ -37,10 +37,10 @@ const Tabs = props => {
   const s = useTabStyles();
   const store = UserProfileStore.useContainer();
 
-  return <div className='row mt-4'>
+  return <div className='flex'>
     <div className='col-12'>
       <div className={cardStyles.card}>
-        <div className='row'>
+        <div className='flex'>
           <div className='col-6 pe-0'>
             <TabEntry>About</TabEntry>
           </div>

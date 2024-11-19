@@ -30,12 +30,12 @@ const CreationsTab = props => {
         return {
           name: v.name,
           url: v.url,
-          disabled: v.disabled,
+          disabled: v.disabled
         }
       })} />
     </div>
     <div className='col-8 mt-4'>
-      {selected.element({
+      {selected?.element && selected.element({
         isGroupTab: props.isGroupTab,
         groupId: props.groupId,
       })}

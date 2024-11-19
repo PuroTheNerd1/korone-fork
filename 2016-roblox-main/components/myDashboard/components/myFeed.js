@@ -3,6 +3,8 @@ import { logger } from "../../../lib/logger";
 import { getUrlWithProxy } from "../../../lib/request";
 import { getBaseUrl } from "../../../lib/request";
 
+// needs to be COMPLETELY redone once shika finishes api for feed
+
 const css = `
 a.list-header {
   display: inline-block;

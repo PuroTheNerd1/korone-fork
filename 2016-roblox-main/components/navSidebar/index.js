@@ -19,6 +19,10 @@ const useNavSideBarStyles = createUseStyles({
     paddingRight: '10px',
     marginTop: '12px',
     boxShadow: '0 0 3px rgba(25, 25, 25, 0.3)',
+    paddingTop: '40px',
+    '@media(max-width: 991px)': {
+      paddingTop: '75px',
+    }
   },
   username: {
     fontSize: '16px',
@@ -72,14 +76,14 @@ const NavSideBar = props => {
   }, []);
   const paddingTop = mainNavBarRef.current && mainNavBarRef.current.clientHeight + 'px' || 0;
 
-  if (navStore.isSidebarOpen === false && dimensions.width <= 1300) {
+  if (navStore.isSidebarOpen === false && dimensions.width <= 1324) {
     return null;
   }
 
   const isStaff = authStore.isStaff;
 
   return <div className={s.container}>
-    <div className={s.card} style={{ paddingTop: '40px' }}>
+    <div className={s.card}>
       <a href={'/users/' + authStore.userId + '/profile'} className={s.username}>{authStore.username}</a>
       <div className={s.divider} />
       <LinkEntry name='Home' url='/home' icon='icon-nav-home' />

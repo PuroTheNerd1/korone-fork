@@ -17,9 +17,11 @@ const useAvatarStyles = createUseStyles({
     background: '#3b7599',
     height: '100%',
     borderRadius: 0,
+    border: '0!important'
   },
   avatarImageCard: {
     borderRadius: 0,
+    border: 0,
   },
   pagination: {
     textAlign: 'center',
@@ -53,7 +55,7 @@ const Avatar = props => {
     })
   }, [userId]);
 
-  return <div className='row'>
+  return <div className='flex' style={{margin: '0 0 18px'}}>
     <div className='col-12'>
       <Subtitle>Currently Wearing</Subtitle>
     </div>
@@ -66,7 +68,7 @@ const Avatar = props => {
     </div>
     <div className='col-12 col-lg-6 ps-0'>
       <div className={'card ' + s.assetContainerCard}>
-        <div className='row ps-4 pe-4 pt-4 pb-4'>
+        <div className='flex ps-4 pe-4 pt-4 pb-4'>
           {selectedAssets && selectedAssets.map(v => {
             return <div className='col-3 pt-2 ps-1 pe-1' key={v.id}>
               <div className='card' title={v.name}>
@@ -79,7 +81,7 @@ const Avatar = props => {
             </div>
           })}
         </div>
-        <div className='row'>
+        <div className='flex'>
           <div className='col-12'>
             {
               assetPages > 1 && <p className={s.pagination}>

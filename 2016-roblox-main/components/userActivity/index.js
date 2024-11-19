@@ -24,7 +24,7 @@ const Activity = props => {
     </div>
   } else if (activity === 'Studio') {
     return <div>
-      <span className='avatar-status friend-status icon-studio' title='Developing'/>
+      <span className='avatar-status friend-status icon-studio' title='Creating'/>
     </div>
   }
   return null;

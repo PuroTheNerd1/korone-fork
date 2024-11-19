@@ -98,7 +98,7 @@ const useStyles = createUseStyles({
  * @returns 
  */
 const SmallGameCard = props => {
-  const {hideVoting} = props;
+  const { hideVoting } = props;
   const [year, setYear] = useState(null);
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
@@ -120,7 +120,7 @@ const SmallGameCard = props => {
   const [boxWidth, setBoxWidth] = useState(0);
   const cardRef = useRef(null);
 
-  let likePercent = (props.likes / (props.likes+props.dislikes));
+  let likePercent = (props.likes / (props.likes + props.dislikes));
   if (isNaN(likePercent) || likePercent < 0) {
     likePercent = 0;
   }
@@ -174,7 +174,7 @@ const SmallGameCard = props => {
     setYear(props.year);
   }, [props.year]);
   const Voting = (props) => {
-    const {color} = props;
+    const { color } = props;
     const sGreen = color ? s.solidGreenColor : s.solidGreen;
     const sRed = color ? s.solidRedColor : s.solidRed;
 
@@ -184,11 +184,11 @@ const SmallGameCard = props => {
           const widthGreen = boxWidth * v.percentGreen;
           const widthRed = boxWidth - widthGreen;
           return <div key={i} className={s.radioBoxPartContainer}>
-            <div className={s.ratioBoxPart + ' ' + sGreen} style={{width: widthGreen}} />
-            <div className={s.ratioBoxPart + ' ' + sRed} style={{width: widthRed}} />
+            <div className={s.ratioBoxPart + ' ' + sGreen} style={{ width: widthGreen }} />
+            <div className={s.ratioBoxPart + ' ' + sRed} style={{ width: widthRed }} />
           </div>
         }
-        return <div key={i} className={s.ratioBox + ' ' + (v.solidGreen ? sGreen : v.solidRed ? sRed : '')} style={{width: boxWidth}} />
+        return <div key={i} className={s.ratioBox + ' ' + (v.solidGreen ? sGreen : v.solidRed ? sRed : '')} style={{ width: boxWidth }} />
       })}
     </div>
   }
@@ -201,16 +201,16 @@ const SmallGameCard = props => {
     <div className={cardStyles.card + ' '} ref={colRef}>
       <Link href={url}>
         <a>
-          <div className={s.imageWrapper} style={{position: 'relative'}}>
-                <img className={s.image} src={iconUrl} alt={props.name} onLoad={(e) => {
-                }} onError={(e) => {
-                  if (!iconUrl || iconUrl.indexOf('empty.png') !== -1) return;
-                  setIconUrl('/img/empty.png');
-                  setTimeout(() => {
-                    setIconUrl(props.iconUrl);
-                  }, 1000);
-                }}/>
-              <p className={s.yearText}>{year}</p>
+          <div className={s.imageWrapper} style={{ position: 'relative' }}>
+            <img className={s.image} src={iconUrl} alt={props.name} onLoad={(e) => {
+            }} onError={(e) => {
+              if (!iconUrl || iconUrl.indexOf('empty.png') !== -1) return;
+              setIconUrl('/img/empty.png');
+              setTimeout(() => {
+                setIconUrl(props.iconUrl);
+              }, 1000);
+            }} />
+            <p className={s.yearText}>{year}</p>
           </div>
         </a>
       </Link>
@@ -219,28 +219,28 @@ const SmallGameCard = props => {
         <p className={s.labelPlaying + ' truncate'}>{abbreviateNumber(props.playerCount)} Playing</p>
         {
           !showCreator && !hideVoting && <p className={s.thumbsUp + ' mt-2 d-inline-block'}>
-            <span className='icon-thumbs-up'/>
+            <span className='icon-thumbs-up' />
           </p> || null
         }
 
         {
-          !showCreator && !hideVoting ?  <Voting /> : null
+          !showCreator && !hideVoting ? <Voting /> : null
         }
 
         {
           showCreator && <div className={s.creatorDetailsCard + ' ' + cardStyles.card} style={colRef ? { width: colRef.current.clientWidth + 'px' } : undefined}>
             {!hideVoting ?
-            <>
-              <p className={s.thumbsUp + ' ps-2 pe-2 mt-2'}>
-                <span className='icon-thumbs-up colored'/>
-                <Voting color={true} />
-                <span className={'icon-thumbs-down colored ' + s.floatRight}/>
-              </p>
-              <div className='ps-1 pt-2 pe-1'>
-                <div className='divider-top'/>
-              </div>
-            </> : null}
-            <p className={'ps-2 pt-2 pb-0 ' + s.creatorText}>By <CreatorLink type={props.creatorType} name={props.creatorName} id={props.creatorId}/></p>
+              <>
+                <p className={s.thumbsUp + ' ps-2 pe-2 mt-2'}>
+                  <span className='icon-thumbs-up colored' />
+                  <Voting color={true} />
+                  <span className={'icon-thumbs-down colored ' + s.floatRight} />
+                </p>
+                <div className='ps-1 pt-2 pe-1'>
+                  <div className='divider-top' />
+                </div>
+              </> : null}
+            <p className={'ps-2 pt-2 pb-0 ' + s.creatorText}>By <CreatorLink type={props.creatorType} name={props.creatorName} id={props.creatorId} /></p>
           </div>
         }
       </div>

@@ -14,7 +14,7 @@ const useStyles = createUseStyles({
 
 const AdBanner = props => {
   const s = useStyles();
-  return <div className='row'>
+  return <div className={`row ${props.className}`}>
     <div className='col-12'>
       <UserAdvertisement type={1}></UserAdvertisement>
     </div>

@@ -8,7 +8,7 @@ import AssetListGameEntry from "./assetListGameEntry";
 import thumbnailStore from "../../../stores/thumbnailStore";
 import Link from "../../link";
 import getFlag from "../../../lib/getFlag";
-import { getGameUrl } from "../../../services/games";
+import { getGameUrl, getLibraryItemUrl, isLibraryItem, shutdownPlaceServers } from "../../../services/games";
 import { getAssetThumbnail, getUniverseIcon, multiGetUniverseIcons } from "../../../services/thumbnails";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
@@ -42,11 +42,12 @@ const AssetEntry = props => {
   const buttonStyles = useButtonStyles();
   const thumbs = thumbnailStore.useContainer();
   const isPlace = props.assetType === 9;
+  const isLibrary = isLibraryItem({ assetTypeId: props.assetType });
   const isAd = props.ad !== undefined && props.target !== undefined;
   const [thumbnail, setThumbnail] = useState('/img/placeholder/icon_one.png');
 
-  const assetUrl = isPlace ? getGameUrl({ placeId: props.assetId, name: props.name }) : isAd ? '#' : getItemUrl({ assetId: props.assetId, name: props.name })
-  const genericAssetURL = isPlace ? `/games/${props.assetId}/--` : `/catalog/${props.assetId}/--`
+  const assetUrl = isPlace ? getGameUrl({ placeId: props.assetId, name: props.name }) : isAd ? '#' : isLibrary ? getLibraryItemUrl({ assetId: props.assetId, name: props.name }) : getItemUrl({ assetId: props.assetId, name: props.name })
+  const genericAssetURL = isPlace ? `/games/${props.assetId}/--` : isLibrary ? `/library/${props.assetId}/--` : `/catalog/${props.assetId}/--`
   const url = isPlace ? `/universes/configure?id=${props.universeId}` : assetUrl;
 
   const imageAssetId = isAd ? props.ad.advertisementAssetId : props.assetId;
@@ -106,7 +107,11 @@ const AssetEntry = props => {
         e.preventDefault();
         const confirmation = window.confirm("Do you want to shut down all servers?");
         if (confirmation) {
-          fetch(`https://www.projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
+          shutdownPlaceServers({placeId: props.assetId}).then(() => {}).catch(error => {
+            console.error('There was a problem shutting down all servers for a place:', error);
+            window.confirm(`There was a problem shutting down all servers: ${error}`)
+          })
+          /*fetch(`https://projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
             method: "GET",
           })
             .then(response => {
@@ -116,7 +121,7 @@ const AssetEntry = props => {
             })
             .catch(error => {
               console.error('There was a problem with the fetch operation:', error);
-            });
+            });*/
         }
       },
     },
@@ -151,7 +156,7 @@ const AssetEntry = props => {
       </Link>
     </div>
     <div className={
-      //isPlace ? 'col-7 ps-0' :
+      //isPlace ? 'col-7 ps-0' : 
       'col-9 ps-0'}>
       <p className='mb-0'>
         <Link href={url}>
@@ -168,7 +173,7 @@ const AssetEntry = props => {
       }
     </div>
     <div className={
-      //isPlace ? `col-4 ${s.gearDropdownWrapper}` :
+      //isPlace ? `col-4 ${s.gearDropdownWrapper}` : 
       'col-1'}>
       {/*isPlace && <div className={s.editWrapper}>
         <ActionButton onClick={() => {}} disabled={true} label='Edit' buttonStyle={buttonStyles.cancelButton}></ActionButton>

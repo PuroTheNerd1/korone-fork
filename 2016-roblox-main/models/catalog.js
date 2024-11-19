@@ -9,6 +9,7 @@
  * @property {number} favoriteCount
  * @property {string[]} genres
  * @property {number} id
+ * @property {number | null} saleCount
  * @property {boolean} isForSale
  * @property {string[]} itemRestrictions
  * @property {string} itemType

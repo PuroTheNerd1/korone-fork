@@ -3,9 +3,20 @@ import { multiGetUniverseIcons } from "../../../services/thumbnails";
 import SmallGameCard from "../../smallGameCard";
 import UserProfileStore from "../stores/UserProfileStore";
 import Subtitle from "./subtitle";
+import NewGameCard from "../../newGameCard";
+import { createUseStyles } from "react-jss";
+
+const useStyles = createUseStyles({
+  listItem: {
+    '@media(max-width: 767px)': {
+      minWidth: '144px',
+    },
+  },
+})
 
 const Creations = props => {
   const store = UserProfileStore.useContainer();
+  const s = useStyles();
   const [icons, setIcons] = useState({});
   useEffect(() => {
     if (!store.createdGames || store.createdGames.length === 0) return
@@ -24,15 +35,15 @@ const Creations = props => {
     return null;
   }
 
-  return <div className='row'>
+  return <div className='flex'>
     <div className='col-12'>
       <Subtitle>Games</Subtitle>
     </div>
-    <div className='col-12 ps-4 pe-4'>
-      <div className='row'>
+    <div className='col-12'>
+      <div className='flex'>
         {
           store.createdGames.map(v => {
-            return <SmallGameCard key={v.id}
+            return <NewGameCard key={v.id}
               name={v.name}
               likes={0}
               dislikes={0}
@@ -43,7 +54,8 @@ const Creations = props => {
               creatorType='User'
               creatorId={store.userId}
               creatorName={store.username}
-            ></SmallGameCard>
+              className={s.listItem}
+            ></NewGameCard>
           })
         }
       </div>

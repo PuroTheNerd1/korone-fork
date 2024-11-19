@@ -9,9 +9,9 @@ import Subtitle from "./subtitle";
 const useStyles = createUseStyles({
   body: {
     fontWeight: 300,
-    marginBottom: 0,
     fontSize: '16px',
-    padding: '15px 20px',
+    padding: '15px!important',
+    marginBottom: '15px',
     whiteSpace: 'break-spaces',
   },
   report: {
@@ -26,7 +26,7 @@ const Description = props => {
   const s = useStyles();
   const cardStyles = useCardStyles();
   const store = UserProfileStore.useContainer();
-  return <div className='row'>
+  return <div className='flex'>
     <div className='col-12'>
       <Subtitle>About</Subtitle>
       <div className={cardStyles.card}>
@@ -34,7 +34,7 @@ const Description = props => {
           {store.userInfo && store.userInfo.description}
         </p>
         <div className='divider-top me-4 ms-4'></div>
-        <div className='row'>
+        <div className='flex'>
           <div className='col-6'>
             <PreviousUsernames></PreviousUsernames>
           </div>

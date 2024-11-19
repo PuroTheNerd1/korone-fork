@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss"
 import { getUserRobloxBadges } from "../../../services/accountInformation";
-import SmallButtonLink from "./smallButtonLink";
+import SmallTextLink from "./smallTextLink";
 import Subtitle from "./subtitle";
 import Link from "../../link";
 
@@ -11,17 +11,21 @@ const useBadgeStyles = createUseStyles({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
+    fontSize: '16px',
+    lineHeight: '1.4em',
+    fontWeight: 500,
   },
   imageWrapper: {
     border: '1px solid #b8b8b8',
-    borderRadius: '4px',
-    width: '100%',
-    height: 'auto',
+    //borderRadius: '4px',
+    borderRadius: 0,
+    width: '142px',
+    height: '142px',
     overflow: 'hidden',
     minWidth: '142px',
   },
   buttonWrapper: {
-    width: '100px',
+    //width: '100px',
     float: 'right',
   },
   badgeLink: {
@@ -39,32 +43,35 @@ const RobloxBadges = props => {
 
   if (!badges || !badges.length) return null;
 
-  return <div className='row d-none d-lg-flex'>
+  return <div className='flex d-none d-lg-flex'>
     <div className='col-10'>
-      <Subtitle>Project X Badges ({badges.length})</Subtitle>
+      <Subtitle>Project X Badges ({badges?.length || 0})</Subtitle>
     </div>
     <div className='col-6 col-lg-2'>
-      {badges.length > 6 &&
+      {badges && badges.length > 6 &&
         <div className={s.buttonWrapper + ' mt-2'}>
-          <SmallButtonLink onClick={(e) => {
+          <SmallTextLink onClick={(e) => {
             e.preventDefault();
             setShowAll(!showAll);
-          }}>{showAll ? 'See Less' : 'See More'}</SmallButtonLink>
+          }}>{showAll ? 'See Less' : 'See More'}</SmallTextLink>
         </div>
       }
     </div>
     <div className='col-12'>
-      <div className='card pt-4 pb-4 pe-4 ps-4'>
-        <div className='row'>
+      <div className='card pt-4 pb-4 pe-4 ps-4' style={{
+        border: 0,
+        borderRadius: 0
+      }}>
+        <div className='flex'>
           {
-            badges.slice(0, showAll ? badges.length : 6).map((v, i) => {
+            badges && badges.slice(0, showAll ? badges.length : 6).map((v, i) => {
               return <div className='col-4 col-lg-2' key={i}>
                 <Link href='/Badges.aspx' className={s.badgeLink}>
                   <a>
                     <div className={s.imageWrapper}>
-                      <span className={`icon-${v.name.toLowerCase().replace(/ /g, '-')}`}/>
+                      <span className={`icon-${v.name.toLowerCase().replace(/ /g, '-')}`} />
                     </div>
-                    <p className={`${s.label} mb-0 text-dark`}>{v.name}</p>
+                    <p className={`${s.label} link2019 mb-0 text-dark`}>{v.name}</p>
                   </a>
                 </Link>
               </div>

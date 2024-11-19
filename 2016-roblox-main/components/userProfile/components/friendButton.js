@@ -3,9 +3,21 @@ import { acceptFriendRequest, sendFriendRequest, unfriendUser } from "../../../s
 import AuthenticationStore from "../../../stores/authentication";
 import UserProfileStore from "../stores/UserProfileStore";
 import Button from "./button";
+import { createUseStyles } from "react-jss";
+import useButtonStyles from "../../../styles/buttonStyles";
 
+const useStyles = createUseStyles({
+  buttonHover: {
+    '&:hover':{
+      border: '1px solid red!important',
+      color: 'red!important'
+    }
+  }
+})
 
 const FriendButton = props => {
+  const s = useButtonStyles()
+  const s2 = useStyles()
   const store = UserProfileStore.useContainer();
   const auth = AuthenticationStore.useContainer();
   const isAlreadyFriend = store.friends && store.friends.find(v => v.id === auth.userId) !== undefined;
@@ -14,10 +26,14 @@ const FriendButton = props => {
   const isRequestSent = store.friendStatus === 'RequestSent';
   const isRequestRecieved = store.friendStatus === 'RequestReceived';
 
-  const text = isAlreadyFriend ? 'Remove' : isRequestRecieved ? 'Accept' : isRequestSent ? 'Pending' : 'Add Friend';
+  const text = isAlreadyFriend ? 'Unfriend' : isRequestRecieved ? 'Accept' : isRequestSent ? 'Pending' : 'Add Friend';
   const canFriend = isAlreadyFriend || !isOwnProfile && isAuthenticated && !isRequestSent || isRequestRecieved;
+  const disabledClass = store.friendStatus == 'RequestSent' ? s.newDisabledCancelButton : null
+  const hoverClass = isAlreadyFriend ? s2.buttonHover : null
 
-  return <Button disabled={!canFriend} style={isAlreadyFriend && { border: '1px solid red', color: 'red' } || undefined} onClick={(e) => {
+  return <Button className={`text-dark ${disabledClass} ${hoverClass}`} disabled={!canFriend} 
+  //style={isAlreadyFriend && { '&:hover': { border: '1px solid red', color: 'red' } } || undefined} 
+  onClick={(e) => {
     e.preventDefault();
     if (isRequestRecieved) {
       // Accept request
@@ -42,7 +58,9 @@ const FriendButton = props => {
         store.setFriendStatus('RequestSent')
       })
     }
-  }}>{text}</Button>
+  }}>
+    {text}
+  </Button>
 }
 
 export default FriendButton;

@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { abbreviateNumber } from "../../lib/numberUtils";
 
@@ -23,7 +23,7 @@ const useStyles = createUseStyles({
       background: '#f2f2f2'
     },
   },
-  spanText:{
+  spanText: {
     display: 'inline-block',
     margin: 0,
     fontWeight: '500',
@@ -51,7 +51,7 @@ const useStyles = createUseStyles({
   vTabUnselected: {
     cursor: 'pointer',
     // 9e9e9e
-    '&:not(:hover)':{
+    '&:not(:hover)': {
       boxShadow: 'none'
     }
   },
@@ -61,7 +61,7 @@ const useStyles = createUseStyles({
     paddingLeft: '4px',
     paddingRight: '4px',
   },
-  selectedElement:{
+  selectedElement: {
     marginTop: '6px',
     marginBottom: '6px',
   }
@@ -69,14 +69,27 @@ const useStyles = createUseStyles({
 
 /**
  * Vertical tabs in new style
- * @param {{options: {name: string; element: JSX.Element; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string}} props 
+ * @param {{options: {name: string; element: JSX.Element; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string; elementClass?: string;}} props 
  */
 const horizontalTabs = props => {
   const s = useStyles();
   const { options } = props;
-  const [selected, setSelected] = useState(props.default ? options.find(v => v.name === props.default) : options[0]);
+  const hash = window.location.hash.substring(1);
+  const hashtagSelected = options.find(v => v.name.toLowerCase() === hash.toLowerCase())
+  const [selected, setSelected] = useState(
+    hashtagSelected
+      ? hashtagSelected
+      : props.default
+        ? options.find(v => v.name === props.default)
+        : options[0]);
   useEffect(() => {
-    setSelected(props.default ? options.find(v => v.name === props.default) : options[0]);
+    setSelected(
+      hashtagSelected
+        ? hashtagSelected
+        : props.default
+          ? options.find(v => v.name === props.default)
+          : options[0]
+    );
   }, [props.default, options]);
   return <div>
     <div className={`${s.buttonCol} col-12`}>
@@ -85,13 +98,14 @@ const horizontalTabs = props => {
           const isSelected = v.name === selected.name;
           return <div key={v.name} className={s.vTab} onClick={() => {
             setSelected(v);
+            window.location.hash = v.name.toLowerCase()
             if (props.onChange) {
               props.onChange(v);
             }
           }}>
             <p className={`${!isSelected ? s.vTabUnselected : ''} ${s.vTabLabel}`}>
               <span className={s.spanText}>
-              {v.name} {typeof v.count === 'number' ? <span className={s.count}>{abbreviateNumber(v.count)}</span> : null}
+                {v.name} {typeof v.count === 'number' ? <span className={s.count}>{abbreviateNumber(v.count)}</span> : null}
               </span>
             </p>
             {/*{isSelected && <div className={s.btnBottomSeperator}/>}*/}
@@ -99,7 +113,7 @@ const horizontalTabs = props => {
         })
       }
     </div>
-    <div className={'col-12 '  + s.selectedElement}>
+    <div className={'col-12 ' + s.selectedElement + ' ' + props.elementClass}>
       {selected.element}
     </div>
   </div>

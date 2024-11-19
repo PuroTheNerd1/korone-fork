@@ -2,11 +2,12 @@ import { createUseStyles } from "react-jss";
 
 const useSubtitleStyles = createUseStyles({
   header: {
-    fontWeight: 300,
-    fontSize: '26px',
-    margin: 0,
-    marginBottom: '5px',
-    marginTop: '10px',
+    fontWeight: 700,
+    fontSize: '20px',
+    lineHeight: '1.4em',
+    marginBottom: '0',
+    //margin: '15px 0 5px',
+    padding: '0 0 5px',
   },
 });
 

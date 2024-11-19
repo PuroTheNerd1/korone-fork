@@ -7,9 +7,9 @@ import GameDetailsStore from "../gameDetails/stores/gameDetailsStore";
 import getFlag from "../../lib/getFlag";
 import { logger } from "../../lib/logger";
 import redirectIfNotEqual from "../../lib/redirectIfNotEqual";
-import {getItemDetails, getItemUrl, getProductInfoLegacy, itemNameToEncodedName} from "../../services/catalog";
-import { getGameUrl, multiGetPlaceDetails, multiGetUniverseDetails } from "../../services/games";
-import {useRouter} from "next/dist/client/router";
+import { getItemDetails, getItemUrl, getProductInfoLegacy, itemNameToEncodedName } from "../../services/catalog";
+import { getGameUrl, getLibraryItemUrl, isLibraryItem, multiGetPlaceDetails, multiGetUniverseDetails } from "../../services/games";
+import { useRouter } from "next/dist/client/router";
 
 const getUrlForAssetType = ({ assetTypeId, assetId, name }) => {
   if (assetTypeId === 9) {
@@ -18,9 +18,15 @@ const getUrlForAssetType = ({ assetTypeId, assetId, name }) => {
       placeId: assetId,
       name,
     });
+  } else if (isLibraryItem({ assetTypeId })) {
+    // Library item
+    return getLibraryItemUrl({
+      assetId,
+      name,
+    });
   }
   // Anything else
-  return getItemUrl({assetId: assetId, name: name});
+  return getItemUrl({ assetId: assetId, name: name });
 }
 
 const AssetPage = props => {
@@ -36,7 +42,7 @@ const AssetPage = props => {
   const [details, setDetails] = useState(null);
   const [error, setError] = useState(null);
 
-  const redirectIfBadUrl = ({assetTypeId, name}) => {
+  const redirectIfBadUrl = ({ assetTypeId, name }) => {
     const expectedUrl = getUrlForAssetType({
       assetTypeId: assetTypeId,
       assetId: assetId,
@@ -57,15 +63,15 @@ const AssetPage = props => {
         throw new Error('NotFound');
       }
       setDetails(newDetails);
-      redirectIfBadUrl({assetTypeId: newDetails.assetType, name: newDetails.name})
+      redirectIfBadUrl({ assetTypeId: newDetails.assetType, name: newDetails.name })
     }).catch(e => {
       if (e.response && e.response.status === 406) {
         const isBadAssetType = e.response.data.errors.find(v => v.code === 11);
         if (isBadAssetType) {
           // Get from place details endpoint
-          multiGetPlaceDetails({placeIds: [assetId]}).then(resp => {
+          multiGetPlaceDetails({ placeIds: [assetId] }).then(resp => {
             const place = resp[0];
-            return multiGetUniverseDetails({universeIds: [place.universeId]}).then(data => {
+            return multiGetUniverseDetails({ universeIds: [place.universeId] }).then(data => {
               const uni = data[0];
               setDetails({
                 name: uni.name,
@@ -88,11 +94,11 @@ const AssetPage = props => {
               })
             })
           }).catch(e => {
-            console.error('could not get place details',e);
+            console.error('could not get place details', e);
             setError(e);
           });
           return;
-        }else{
+        } else {
           setError(e);
         }
       }
@@ -120,13 +126,13 @@ const AssetPage = props => {
   if (details.assetType === 9) {
     // Place
     return <GameDetailsStore.Provider>
-      <GameDetails details={details}/>
+      <GameDetails details={details} />
     </GameDetailsStore.Provider>;
   }
   // Anything else (e.g. hat, shirt, model)
   return <CatalogDetailsPage.Provider>
     <CatalogDetailsPageModal.Provider>
-      <CatalogDetails details={details}/>
+      <CatalogDetails details={details} />
     </CatalogDetailsPageModal.Provider>
   </CatalogDetailsPage.Provider>;
 }

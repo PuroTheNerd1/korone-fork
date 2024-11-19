@@ -6,6 +6,9 @@ import useCardStyles from "../styles/card";
 import SmallButtonLink from "./smallButtonLink";
 import Subtitle from "./subtitle"
 import Link from "../../link";
+import SmallTextLink from "./smallTextLink";
+import useButtonWrapperStyle from '../styles/buttonWrapper'
+import PlayerImage from "../../playerImage";
 
 const useFriendStyles = createUseStyles({
   friendCol: {
@@ -30,14 +33,72 @@ const useFriendStyles = createUseStyles({
     paddingLeft: '8px',
     paddingRight: '8px',
   },
-  buttonWrapper: {
-    marginTop: '10px',
-    width: '100px',
-    float: 'right',
-  },
   sideRow: {
+    //flexFlow: 'row',
+    //overflow: 'auto',
+    maxHeight: '150px',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    display: 'flex',
+    flexDirection: 'row',
     flexFlow: 'row',
-    overflow: 'auto',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    padding: '15px!important',
+    marginBottom: '0',
+  },
+
+  listItemFriend: {
+    width: '11.11111%',
+    height: '120px',
+    position: 'relative',
+    float: 'left',
+    listStyle: 'none',
+    minWidth: '100px',
+  },
+  avatarContainer: {
+    margin: 'auto',
+    fontSize: '16px',
+    fontWeight: '400',
+    lineHeight: '1.4em',
+    width: '90px',
+    position: 'relative',
+  },
+  friendLink: {
+    margin: '0 auto',
+    position: 'relative',
+    textDecoration: 'none',
+  },
+  avatarWrapper: {
+    backgroundColor: '#d1d1d1',
+    textAlign: 'center',
+    border: 0,
+    borderRadius: '50%',
+    width: '100%',
+    height: '100%',
+    display: 'block',
+    //margin: '3px auto',
+  },
+  playerName: {
+    margin: '3px 0 0',
+    textAlign: 'center',
+    fontSize: '12px',
+    fontWeight: '500',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    textDecoration: 'none',
+    color: '#000',
+    display: 'block',
+    lineHeight: '1.867em',
+    '&:hover': {
+      color: '#00A2FF'
+    }
+  },
+  image: {
+    borderRadius: '50%',
+    verticalAlign: 'bottom',
+    backgroundColor: '#d1d1d1',
   },
 })
 
@@ -45,24 +106,38 @@ const Friends = props => {
   const store = UserProfileStore.useContainer();
   const cardStyles = useCardStyles();
   const s = useFriendStyles();
-  if (!store.friends || store.friends.length === 0) {
+  const s2 = useButtonWrapperStyle();
+  /*if (!store.friends || store.friends.length === 0) {
     return null;
-  }
-  return <div className='row'>
+  }*/
+  return <div className='flex'>
     <div className='col-10'>
-      <Subtitle>Friends ({store.friends.length})</Subtitle>
+      <Subtitle>Friends ({store.friends?.length || 0})</Subtitle>
     </div>
     <div className='col-2'>
-      <div className={s.buttonWrapper}>
-        <SmallButtonLink href={`/users/${store.userId}/friends`}>See All</SmallButtonLink>
+      <div className={`${s2.buttonWrapper}`}>
+        <SmallTextLink href={`/users/${store.userId}/friends`}>See All</SmallTextLink>
       </div>
     </div>
     <div className='col-12'>
       <div className={cardStyles.card}>
-        <div className={'row pt-3 pb-3 pe-3 ps-3 me-0 ms-0 ' + s.sideRow}>
+        <ul className={'flex pt-3 pb-3 pe-3 ps-3 me-0 ms-0 ' + s.sideRow}>
           {
-            store.friends.slice(0, 10).map(v => {
-              return <div className={`col-1 ${s.friendCol}`} key={v.id}>
+            store.friends && store.friends.slice(0, 10).map(v => {
+              return <li className={s.listItemFriend}>
+                <div className={s.avatarContainer}>
+                  <Link href={`/users/${v.id}/profile`}>
+                    <a className={s.friendLink}>
+                      <span className={s.avatarWrapper}>
+                        <PlayerImage className={s.image} id={v.id} name={s.username} />
+                      </span>
+                      <span className={s.playerName}>{v.name}</span>
+                    </a>
+                  </Link>
+                </div>
+              </li>
+
+              /*<div className={`col-1 ${s.friendCol}`} key={v.id}>
                 <div className={s.cardWrapper}>
                   <Link href={`/users/${v.id}/profile`}>
                     <a>
@@ -73,10 +148,10 @@ const Friends = props => {
                     </a>
                   </Link>
                 </div>
-              </div>
+              </div>*/
             })
           }
-        </div>
+        </ul>
       </div>
     </div>
   </div>

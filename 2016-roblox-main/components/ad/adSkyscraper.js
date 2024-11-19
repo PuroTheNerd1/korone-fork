@@ -13,7 +13,7 @@ const useStyles = createUseStyles({
 
 const AdSkyscraper = props => {
   const s = useStyles();
-  return <div className='row'>
+  return <div className={`row ${props.className}`}>
     <div className='col-12'>
       <UserAdvertisement type={2}></UserAdvertisement>
     </div>

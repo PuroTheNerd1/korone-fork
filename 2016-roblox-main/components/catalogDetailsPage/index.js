@@ -24,6 +24,7 @@ import { getCollections } from "../../services/inventory";
 import getFlag from "../../lib/getFlag";
 import Owners from "./components/owners";
 import Favorite from "./components/favorite";
+import AudioPlayButton from './components/audioPlayButton';
 
 const emptyDescriptionMessage = 'No description available.';
 const filterTextForEmpty = str => {
@@ -178,6 +179,7 @@ const CatalogDetails = props => {
             <div className='row'>
               <div className='col-12 col-md-6 col-lg-5'>
                 <ItemImage id={details.id} name={details.name}/>
+                {store.details.assetType === 3 ? <AudioPlayButton /> : null}
                 {isLimitedUnique && <LimitedUniqueOverlay/> || isLimited && <LimitedOverlay/> || null}
               </div>
               <div className='col-12 col-md-6 col-lg-4'>

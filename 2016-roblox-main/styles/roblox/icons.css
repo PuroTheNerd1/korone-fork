@@ -307,6 +307,8 @@ a:hover .icon-nav-shop {
 .icon-moreinfo,
 .icon-play,
 .icon-pause,
+.icon-play-big,
+.icon-pause-big,
 .icon-menu,
 .icon-right,
 .icon-left,
@@ -667,8 +669,34 @@ a:hover .icon-moreinfo {
 	background-position: 0 -308px;
 }
 
+.icon-play:hover {
+	background-position: -28px -308px;
+}
+
 .icon-pause {
 	background-position: 0 -336px;
+}
+
+.icon-pause:hover {
+	background-position: -28px -336px;
+}
+
+.icon-play-big {
+	background-position: 0 -528px;
+	background-image: url('/img/generic-2019.svg');
+}
+
+.icon-play-big:hover {
+	background-position: -48px -528px;
+}
+
+.icon-pause-big {
+	background-position: 0 -576px;
+	background-image: url('/img/generic-2019.svg');
+}
+
+.icon-pause-big:hover {
+	background-position: -48px -576px;
 }
 
 .icon-menu {
@@ -1169,7 +1197,8 @@ a:hover .icon-lock {
 	background-position: 0 0;
 }
 
-.icon-thumbs-up:hover, .icon-thumbs-up.colored {
+.icon-thumbs-up:hover,
+.icon-thumbs-up.colored {
 	background-position: -16px 0;
 }
 
@@ -1182,7 +1211,8 @@ a:hover .icon-thumbs-up {
 	background-position: 0 -16px;
 }
 
-.icon-thumbs-down:hover, .icon-thumbs-down.colored {
+.icon-thumbs-down:hover,
+.icon-thumbs-down.colored {
 	background-position: -16px -16px;
 }
 
@@ -1462,6 +1492,7 @@ div.GamesInfoIcon.Scary {
 div.GamesInfoIcon.Fantasy {
 	background-position: -16px 0;
 }
+
 div.GamesInfoIcon.TownAndCity,
 div.GamesInfoIcon.Town.City {
 	background-position: -32px 0;
@@ -1494,6 +1525,7 @@ div.GamesInfoIcon.Pirate {
 div.GamesInfoIcon.Sci-Fi {
 	background-position: -32px 16px;
 }
+
 div.GamesInfoIcon.SkatePark,
 div.GamesInfoIcon.Skate.Park {
 	background-position: -48px 16px;
@@ -1522,23 +1554,26 @@ div.GamesInfoIcon.RPG {
 	display: inline-block;
 	vertical-align: middle;
 }
+
 .icon-game {
 	background-position: 0 0;
 }
+
 .icon-studio {
 	background-position: 0 -28px;
 }
+
 .icon-online {
 	background-position: 0 -56px;
 }
 
 span.game-privacy-symbol {
-  padding-left: 18px;
-  font-size: 12px;
-  background-image: url("/img/ico-game_privacy.png");
-  background-repeat: no-repeat;
-  display: inline;
-  height: 15px;
+	padding-left: 18px;
+	font-size: 12px;
+	background-image: url("/img/ico-game_privacy.png");
+	background-repeat: no-repeat;
+	display: inline;
+	height: 15px;
 }
 
 span.game-privacy-symbol.gps-inactive {
@@ -1549,7 +1584,10 @@ span.game-privacy-symbol.gps-active {
 	background-position: 0 0;
 }
 
-.tiny-thumbs-up, .tiny-thumbs-down, .upvote.tiny, .downvote.tiny {
+.tiny-thumbs-up,
+.tiny-thumbs-down,
+.upvote.tiny,
+.downvote.tiny {
 	background: url('/img/thumbsup.png') no-repeat 0 -170px;
 	width: 12px;
 	height: 13px;

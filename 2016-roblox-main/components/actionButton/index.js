@@ -6,13 +6,15 @@ const useBuyButtonStyles = createUseStyles({
   btn: {
     textAlign: 'center',
     padding: '1px 13px 3px 13px',
+    //padding: '9px',
     fontSize: '20px',
     color: 'white',
-    border: '1px solid #084ea6',
+    border: '1px solid transparent',
     margin: '0 auto',
     display: 'block',
     fontWeight: 'normal',
     userSelect: 'none',
+    lineHeight: 'normal',
     '&:disabled': {
       opacity: '0.5',
     },
@@ -30,20 +32,36 @@ const useBuyButtonStyles = createUseStyles({
   },
 });
 
+/**
+ * 
+ * @param {{
+ * onClick?: (e: any) => void;
+ * disabled?: boolean;
+ * buttonStyle?: string;
+ * type?: any;
+ * divClassName?: string;
+ * className?: string;
+ * tooltipText?: string;
+ * label?: any;
+ * children?: any;
+ * }} props 
+ * @returns 
+ */
 const ActionButton = props => {
   const s2 = useBuyButtonStyles();
   const s = useButtonStyles();
   const bg = props.buttonStyle || s.buyButton;
+  const disabled = props.disabled || false;
   const type = props.type || "submit"
 
   return <div className={props.divClassName}>
     <button
       type={type}
       value={type}
-      disabled={props.disabled}
+      disabled={disabled}
       className={`${s2.btn} ${props.className} ${bg}`}
       onClick={props.onClick}
-      title={props.disabled ? props.tooltipText : ''}>{props.label || 'Buy Now'}</button>
+      title={props.disabled ? props.tooltipText : ''}>{props.label || props.children || 'Buy Now'}</button>
   </div>
 }
 

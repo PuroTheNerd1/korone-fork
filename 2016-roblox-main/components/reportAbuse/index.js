@@ -8,7 +8,7 @@ const useReportStyles = createUseStyles({
     '&:hover > a': {
       color: '#F00',
     },
-    '&:hover > span': {
+    '&:hover > a > span': {
       backgroundImage: `url("/img/abuse.png")`,
     },
   },
@@ -26,17 +26,23 @@ const useReportStyles = createUseStyles({
 
 /**
  * ReportAbuse button
- * @param {{assetId?: number; id?: number; url?: string; type?: string;}} props 
+ * @param {{assetId?: number; id?: number; url?: string; type?: string; smallText?: boolean}} props 
  * @returns 
  */
 const ReportAbuse = props => {
   const url = props.url || window.location.href;
   const s = useReportStyles();
   return <p className={s.text}>
-    <span className={s.image}></span>
-    <a className={s.link} href={`/abusereport/${props.type || 'asset'}?id=${props.assetId || props.id}&RedirectUrl=${encodeURIComponent(url)}`}>
-      Report Abuse
-    </a>
+    {props?.smallText === true ?
+      <a className={s.link} href={`/abusereport/${props.type || 'asset'}?id=${props.assetId || props.id}&RedirectUrl=${encodeURIComponent(url)}`}>
+        <span className={s.image}></span>
+        Report
+      </a>
+      :
+      <a className={s.link} href={`/abusereport/${props.type || 'asset'}?id=${props.assetId || props.id}&RedirectUrl=${encodeURIComponent(url)}`}>
+        <span className={s.image}></span>
+        Report Abuse
+      </a>}
   </p>
 }
 

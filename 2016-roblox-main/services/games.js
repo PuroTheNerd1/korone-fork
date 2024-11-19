@@ -5,8 +5,29 @@ import { itemNameToEncodedName } from "./catalog";
 const gamePage2015Enabled = getFlag('2015GameDetailsPageEnabled', false);
 const csrEnabled = getFlag('clientSideRenderingEnabled', false);
 
+export const isLibraryItem = ({ assetTypeId }) => {
+  if (assetTypeId === 62 ||
+    assetTypeId === 40 ||
+    assetTypeId === 38 ||
+    assetTypeId === 24 ||
+    assetTypeId === 13 ||
+    assetTypeId === 10 ||
+    assetTypeId === 5 ||
+    assetTypeId === 4 ||
+    assetTypeId === 3 ||
+    assetTypeId === 1) {
+      return true;
+    } else {
+      return false;
+    }
+}
+
 export const getGameUrl = ({ placeId, name }) => {
   return `/games/${placeId}/${itemNameToEncodedName(name)}`;
+}
+
+export const getLibraryItemUrl = ({ assetId, name }) => {
+  return `/library/${assetId}/${itemNameToEncodedName(name)}`;
 }
 
 export const getUserGames = ({ userId, cursor }) => {
@@ -19,6 +40,10 @@ export const getGroupGames = ({ groupId, cursor }) => {
 
 export const getGameSorts = ({ gameSortsContext }) => {
   return request('GET', getFullUrl('games', `/v1/games/sorts?gameSortsContext=${encodeURIComponent(gameSortsContext || '')}`)).then(d => d.data)
+}
+
+export const getRecommendedGames = ({ placeId, limit }) => {
+  return request('GET', getFullUrl('games', `/v1/games/recommendations/game/${placeId}?maxRows=${limit}`)).then(d => d.data)
 }
 
 export const getGameList = ({ sortToken, limit, genre = 0, keyword }) => {
@@ -43,6 +68,12 @@ export const launchGame = async ({ placeId }) => {
 }
 
 export const launchGameFromJobId = async ({ placeId, jobId }) => {
+
+  if (navigator.userAgent.includes("ROBLOX Android App") || navigator.userAgent.includes("ROBLOX iOS App")) {
+    window.location.href = 'games/start?placeid=' + placeId;
+    return;
+  }
+
   const result = await request('GET', getBaseUrl() + '/game/get-join-script-fromjobid?placeId=' + encodeURIComponent(placeId) + "&jobId=" + encodeURIComponent(jobId));
   const toClick = result.data.joinUrl;
   const aTag = document.createElement('a');
@@ -67,12 +98,20 @@ export const getServers = ({ placeId, offset }) => {
   return request('GET', getBaseUrl() + `/games/getgameinstancesjson?placeId=${placeId}&startIndex=${offset}`).then(d => d.data);
 }
 
-export const multiGetGameVotes = ({universeIds}) => {
+export const multiGetGameVotes = ({ universeIds }) => {
   return request('GET', getFullUrl('games', '/v1/games/votes?universeIds=' + encodeURIComponent(universeIds.join(',')))).then(d => d.data.data);
 }
 
-export const voteOnGame = ({universeId, isUpvote}) => {
-  return request('PATCH', getFullUrl('games', '/v1/games/'+universeId+'/user-votes'), {
+export const voteOnGame = ({ universeId, isUpvote }) => {
+  return request('PATCH', getFullUrl('games', '/v1/games/' + universeId + '/user-votes'), {
     vote: isUpvote,
   }).then(d => d.data.data);
+}
+
+export const shutdownPlaceServers = ({ placeId }) => {
+  return request('GET', getBaseUrl() + `/rcc/killallservers?placeId=${placeId}`).then(d => d.data);
+}
+
+export const shutdownSpecificServer = ({ placeId, jobId }) => {
+  return request('GET', getBaseUrl() + `/rcc/killserver?placeId=${placeId}?jobId=${jobId}`).then(d => d.data);
 }

@@ -3,7 +3,9 @@ import { createUseStyles } from "react-jss";
 
 const useSelectorStyles = createUseStyles({
   selectorWrapper: {
-
+    '@media(max-width: 994px)': {
+      paddingLeft: 0,
+    },
   },
   selectorClosed: {
     padding: '10px 15px',

@@ -33,7 +33,7 @@ const ItemImage = (props) => {
     })
     setRetryCount(retryCount + 1);
     setImage(store.getPlaceholder())
-  }}/>
+  }} />
 }
 
 export default ItemImage;

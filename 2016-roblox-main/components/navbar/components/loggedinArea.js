@@ -4,6 +4,7 @@ import getFlag from "../../../lib/getFlag";
 import { logout } from "../../../services/auth";
 import AuthenticationStore from "../../../stores/authentication";
 import Link from "../../link";
+import Dropdown2016 from "../../dropdown2016";
 
 const useDropdownStyles = createUseStyles({
   wrapper: {
@@ -228,6 +229,9 @@ const useLoginAreaStyles = createUseStyles({
       display: 'none!important'
     }
   },
+  dropdownClass: {
+    marginTop: '18px',
+  },
 });
 
 const LoggedInArea = (props) => {
@@ -242,7 +246,7 @@ const LoggedInArea = (props) => {
         <ul className={`${s.linkContainer}`}>
           <div className={`${s.ageNameContainer} ${s.hideOnMobile}`}>
             <a
-              href={`https://www.projex.zip/users/${authStore.userId}/profile`}
+              href={`/users/${authStore.userId}/profile`}
               className={`${s.nameLink}`}
             >
               <span className={`${s.nameSpan}`}>{authStore.username}</span>
@@ -287,7 +291,28 @@ const LoggedInArea = (props) => {
               ></span>
             </a>
           </li>
-          {settingsOpen && <SettingsDropdown />}
+          {//settingsOpen && <SettingsDropdown />}
+          }
+          {settingsOpen && <Dropdown2016 dropdownClass={s.dropdownClass} onlyDropdown={true} options={[
+            {
+              name: 'Settings',
+              url: '/My/Account',
+            },
+            {
+              name: 'Help',
+              url: '/help',
+            },
+            {
+              name: 'Logout',
+              onClick: (e) => {
+                if (e)
+                  e?.preventDefault();
+                logout().then(() => {
+                  window.location.reload();
+                })
+              },
+            },
+          ]} />}
         </ul>
       </div>
     </div>

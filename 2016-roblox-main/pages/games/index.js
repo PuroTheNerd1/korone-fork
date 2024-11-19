@@ -5,7 +5,7 @@ import GamesPageStore from "../../stores/gamesPage";
 const GamesPage = props => {
   return <Theme2016>
     <GamesPageStore.Provider>
-      <Games/>
+      <Games />
     </GamesPageStore.Provider>
   </Theme2016>
 }

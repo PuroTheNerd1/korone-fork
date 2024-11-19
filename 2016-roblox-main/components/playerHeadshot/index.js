@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
 
 /**
  * Player headshot
- * @param {{id: number; name: string; size?: string;}} props 
+ * @param {{id: number; name?: string; size?: string; className?: any;}} props 
  * @returns 
  */
 const PlayerHeadshot = (props) => {
@@ -37,7 +37,7 @@ const PlayerHeadshot = (props) => {
     });
   }, [props.id]);
 
-  return <img className={s.image} src={image} alt={props.name} onError={(e) => {
+  return <img className={`${s.image} ${props.className}`} src={image} alt={props?.name || ''} onError={(e) => {
     if (retryCount >= 3) return;
     reportImageFail({
       errorEvent: e,
