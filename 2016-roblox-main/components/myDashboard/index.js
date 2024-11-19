@@ -193,7 +193,7 @@ const useStyles = createUseStyles({
 })
 
 const sorts = [{
-    token: 'RecentlyPlayed',
+    token: 'recent',
     name: 'recently_played',
     displayName: 'Recently Played',
     games: [],
