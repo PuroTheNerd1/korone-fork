@@ -395,12 +395,23 @@ const Comments = (props) => {
                 return;
             }
             setAreMoreAvailable(data.Comments.length >= data.MaxRows)
+            //if (comments) {
+            //  comments.Comments.reverse().forEach(v => {
+            //    data.Comments.unshift(v);
+            // })
+            // }
+
             if (comments) {
-                comments.Comments.reverse().forEach(v => {
-                    data.Comments.unshift(v);
-                })
+                const newComments = data.Comments.filter(newComment =>
+                    !comments.Comments.some(oldComment => oldComment.Id === newComment.Id)
+                );
+                setComments({
+                    ...data,
+                    Comments: [...comments.Comments, ...newComments]
+                });
+            } else {
+                setComments(data);
             }
-            setComments(data);
         })
     }, [props, offset]);
 
@@ -413,6 +424,7 @@ const Comments = (props) => {
         </div>*/
     }
 
+    console.log(comments)
     return <div className={`row ${s.recommendedGamesContainer}`}>
         {''//col-lg-9
         }
@@ -425,11 +437,16 @@ const Comments = (props) => {
                 /*comments && comments.length === 0 ? <p>No comments found.</p> : comments && comments.Comments.map(v => {
                     return <CommentEntry key={v.Id} {...v} />
                 })*/
-                comments && comments.Comments.length === 0 ? <p className={s.noCommentFound}>No comments found.</p>
+                comments && comments.Comments && comments.Comments.length === 0 ? <p className={s.noCommentFound}>No comments found.</p>
                     :
-                    comments && comments.Comments.map(v => {
+                    comments && comments.Comments && comments.Comments.map(v => {
                         return <CommentEntry key={v.Id} {...v} />
                     })
+            }
+            {
+                !locked && comments && areMoreAvailable && <p className={`mb-0 text-center mt-2 ${s.loadMore}`} onClick={() => {
+                    setOffset(offset + comments.MaxRows)
+                }}>More</p>
             }
         </div>
         {/*<div className='col-12'>

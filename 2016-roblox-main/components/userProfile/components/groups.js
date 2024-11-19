@@ -95,7 +95,7 @@ const useGroupSquareStyles = createUseStyles({
     background: '#0074bd',
     borderRadius: 0,
     height: '100%',
-    alignItems: 'center'
+    alignContent: 'center',
   },
   groupName: {
     fontWeight: 800,

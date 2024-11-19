@@ -1,11 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { abbreviateNumber } from "../../lib/numberUtils";
-import { itemNameToEncodedName } from "../../services/catalog";
 import { getGameUrl } from "../../services/games";
 import CreatorLink from "../creatorLink";
-import useCardStyles from "../userProfile/styles/card";
-import Link from "../link";
 
 const useStyles = createUseStyles({
     listItem: {
@@ -69,8 +65,19 @@ const useStyles = createUseStyles({
             margin: 'auto',
             verticalAlign: 'middle',
             border: 0,
-            overflowClipMargin: 'content-box'
+            overflowClipMargin: 'content-box',
         },
+    },
+    gameCardThumbnailContainer: {
+        overflow: 'hidden',
+        position: 'relative',
+        '& img': {
+            aspectRatio: '16/9',
+            width: 'auto',
+            position: 'absolute',
+            top: 0,
+            left: '-40%'
+        }
     },
     gameCardTitle: {
         margin: '3px 0',
@@ -301,8 +308,22 @@ const useStyles = createUseStyles({
     },
 });
 
+function getImageAspectRatio(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            const aspectRatio = img.naturalWidth / img.naturalHeight;
+            resolve(aspectRatio);
+        };
+        img.onerror = (error) => {
+            reject(error);
+        };
+        img.src = url;
+    });
+}
+
 /**
- * SmallGameCard
+ * NewGameCard
  * @param {{
  * name: string;
  *  playerCount: number;
@@ -323,6 +344,7 @@ const useStyles = createUseStyles({
 const NewGameCard = props => {
     const s = useStyles();
     const [iconUrl, setIconUrl] = useState('/img/placeholder/icon_one.png');
+    const [isThumbnail, setIsThumbnail] = useState(false);
     const url = getGameUrl({
         placeId: props.placeId,
         name: props.name,
@@ -334,6 +356,13 @@ const NewGameCard = props => {
             return
         }
         setIconUrl(props.iconUrl);
+        getImageAspectRatio(iconUrl).then(aspectRatio => {
+            if (aspectRatio === 1) { // game icon
+                setIsThumbnail(false)
+            } else { // thumbnail
+                setIsThumbnail(true)
+            }
+        })
     }, [props.iconUrl]);
 
     const [linkHover, setLinkHover] = useState(false);
@@ -353,8 +382,9 @@ const NewGameCard = props => {
     const thumbsUpClass = (linkHover) ? s.thumbsUpColored : '';
     const thumbsDownClass = (linkHover) ? s.thumbsDownColored : '';
     const votePercentageClass = (linkHover) ? s.hasVotesPercentage : '';
-    const guh = createUseStyles({width: {width: `calc(100 * ${props.width}%)`}});
+    const guh = createUseStyles({ width: { width: `calc(100 * ${props.width}%)` } });
     const s2 = guh();
+    const thumbnail = isThumbnail ? s.gameCardThumbnailContainer : '';
 
     const width = props?.width ? s2.width : '';
 
@@ -362,7 +392,7 @@ const NewGameCard = props => {
     >
         <div className={s.gameCardContainer} onMouseEnter={hoverEnable} onMouseLeave={hoverDisable}>
             <a href={url} className={s.gameCardLink} onMouseEnter={linkHoverEnable} onMouseLeave={linkHoverDisable}>
-                <div className={s.gameCardThumbContainer}>
+                <div className={`${s.gameCardThumbContainer} ${thumbnail}`}>
                     {/*<div>
                         <div className={s.triangleRight}></div>
                         <div className={s.yearDiv}>
