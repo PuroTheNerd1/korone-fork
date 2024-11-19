@@ -1,7 +1,6 @@
 import { createUseStyles } from "react-jss";
 import useButtonStyles from "../../../styles/buttonStyles";
 import ActionButton from "../../actionButton";
-import Link from "../../link";
 
 const useStyles = createUseStyles({
   button: {
@@ -35,9 +34,7 @@ const SmallButtonLink = (props) => {
   }
   //return <a className={s.button} href={props.href} onClick={props.onClick}></a>
   //return <ActionButton buttonStyle={buttonStyles.} disabled={false} onClick={props.onClick || hrefLink} className={`${props.className}`} children={props.children}></ActionButton>
-  return <Link href={props.href}>
-    <a className={s.button} href={props.href} onClick={props.onClick}><div className={s.buttonWrapper + ' ' + (props.className || '')}>{props.children}</div></a>
-  </Link>
+  return <a className={s.button} href={props.href} onClick={props.onClick}><div className={s.buttonWrapper + ' ' + (props.className || '')}>{props.children}</div></a>
 }
 
 export default SmallButtonLink;

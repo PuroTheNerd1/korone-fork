@@ -5,6 +5,7 @@ import SmallButtonLink from "./smallButtonLink";
 import { createUseStyles } from "react-jss";
 import GameRow from "./GameRow";
 import SmallGameCard from "../../smallGameCard";
+import { multiGetUniverseIcons } from "../../../services/thumbnails";
 import SmallTextLink from "./smallTextLink";
 import useButtonWrapperStyle from '../styles/buttonWrapper'
 import { multiGetPlaceDetails, multiGetUniverseDetails } from "../../../services/games";

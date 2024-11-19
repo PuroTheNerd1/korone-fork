@@ -60,7 +60,7 @@ const GameRow = props => {
         {
             games.map((game) => {
                 var thumbnail;
-                var gameThumbnail = store.getGameIcon(game.universeId, '420x420');
+                var gameThumbnail = store.getAssetThumbnail(game.placeId, '420x420');
                 gameThumbnail ? thumbnail = gameThumbnail : thumbnail = '/img/placeholder/icon_one.png';
                 return <GameCard
                     name={game.name}
@@ -71,7 +71,7 @@ const GameRow = props => {
                     creatorType={game.builderType}
                     creatorName={game.builder}
                     iconUrl={thumbnail}
-                    year={game.year || '????'}
+                    year={game.year || 2012}
                     placeId={game.placeId}
                     width={customWidth}
                 />
