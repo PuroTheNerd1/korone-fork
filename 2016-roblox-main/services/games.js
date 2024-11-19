@@ -113,5 +113,5 @@ export const shutdownPlaceServers = ({ placeId }) => {
 }
 
 export const shutdownSpecificServer = ({ placeId, jobId }) => {
-  return request('GET', getBaseUrl() + `/rcc/killserver?placeId=${placeId}?jobId=${jobId}`).then(d => d.data);
+  return request('GET', getBaseUrl() + `/rcc/killserver?placeId=${placeId}&jobId=${jobId}`).then(d => d.data);
 }
