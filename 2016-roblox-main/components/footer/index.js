@@ -40,7 +40,7 @@ const useFooterStyles = createUseStyles({
 
 const footerLinks = {
   '/about-us': 'About Us',
-  'https://discord.gg/projectx': 'Discord',
+  'https://discord.gg/pekora': 'Discord',
   '/internal/robuxexchange': 'Robux Exchange',
   '/internal/tixexchange': 'Tix Exchange',
   '/auth/tos': 'Terms',
