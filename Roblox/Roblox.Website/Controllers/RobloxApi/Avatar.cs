@@ -231,16 +231,10 @@ public class AvatarRBX : ControllerBase
     {
         var assets = await services.avatar.GetWornAssets(userId);
         var multiGetResults = await services.assets.MultiGetInfoById(assets);
-        dynamic existingAvatar;
+        var existingAvatar = await services.avatar.GetAvatar(userId);
         // If we dont have an avatar then its most likely a game loading a avatar from roblox
-        try
-        {
-            existingAvatar = await services.avatar.GetAvatar(userId);
-        }
-        catch (Exception)
-        {
+        if (existingAvatar == null)
             return Redirect("https://avatar.roblox.com/v1/avatar-fetch?userId=" + userId);
-        }
 
         return new
         {
