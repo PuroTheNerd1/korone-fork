@@ -7,6 +7,7 @@ using Roblox.Exceptions;
 using Roblox.Models.Avatar;
 using Roblox.Services.App.FeatureFlags;
 using ServiceProvider = Roblox.Services.ServiceProvider;
+using Roblox.Services.Exceptions;
 #pragma warning disable CS8600
 
 namespace Roblox.Website.Controllers;
@@ -19,7 +20,7 @@ public class AvatarRBX : ControllerBase
     {
         FeatureFlags.FeatureCheck(FeatureFlag.AvatarsEnabled);
     }
-    
+
     private async void AttemptScheduleRender(bool forceRedraw = false)
     {
         var userId = safeUserSession.userId;
@@ -29,8 +30,8 @@ public class AvatarRBX : ControllerBase
             {
                 if (!cache.AttemptScheduleRender(userId)) return;
             }
-        }        
-        
+        }
+
         await Task.Run(async () =>
         {
             await Task.Delay(TimeSpan.FromSeconds(2));
@@ -54,7 +55,7 @@ public class AvatarRBX : ControllerBase
         });
     }
 
-    
+
     [HttpPostBypass("v1/avatar/redraw-thumbnail")]
     public void RequestRedrawAvatar()
     {
@@ -66,10 +67,10 @@ public class AvatarRBX : ControllerBase
     public async Task SetWornAssets([Required, FromBody] SetWearingAssetsRequest request)
     {
         FeatureCheck();
-        
+
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, request.assetIds);
-        
+
         AttemptScheduleRender();
     }
 
@@ -85,7 +86,7 @@ public class AvatarRBX : ControllerBase
 
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, currentlyWorn);
-        
+
         AttemptScheduleRender();
     }
 
@@ -102,10 +103,10 @@ public class AvatarRBX : ControllerBase
     public async Task SetBodyColors([Required, FromBody] SetColorsRequest colors)
     {
         FeatureCheck();
-        
+
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetColors(safeUserSession.userId, colors);
-        
+
         AttemptScheduleRender();
     }
 
@@ -189,10 +190,10 @@ public class AvatarRBX : ControllerBase
         var info = await services.avatar.GetOutfitById(outfitId);
         if (info.details.userId != safeUserSession.userId)
             throw new ForbiddenException(0, "Forbidden");
-        
+
         await services.avatar.DeleteOutfit(outfitId);
     }
-    
+
     /// <summary>
     /// Update an outfit
     /// </summary>
@@ -229,8 +230,17 @@ public class AvatarRBX : ControllerBase
     public async Task<dynamic> GetAvatar(long userId)
     {
         var assets = await services.avatar.GetWornAssets(userId);
-        var existingAvatar = await services.avatar.GetAvatar(userId);
         var multiGetResults = await services.assets.MultiGetInfoById(assets);
+        dynamic existingAvatar;
+        // If we dont have an avatar then its most likely a game loading a avatar from roblox
+        try
+        {
+            existingAvatar = await services.avatar.GetAvatar(userId);
+        }
+        catch (RecordNotFoundException)
+        {
+            return Redirect("https://avatar.roblox.com/v1/avatar-fetch?userId=" + userId);
+        }
 
         return new
         {
@@ -433,7 +443,7 @@ public class AvatarRBX : ControllerBase
 					brickColorId = 1001,
 					hexColor = "#F8F8F8",
 					name = "Institutional white",
-				},  
+				},
             },
             minimumDeltaEBodyColorDifference = 11.4,
             defaultClothingAssetLists = new
@@ -449,6 +459,6 @@ public class AvatarRBX : ControllerBase
     [HttpPostBypass("v1/avatar/set-scales"), HttpPostBypass("v1/avatar/set-player-avatar-type")]
     public void AvatarNoOp()
     {
-        
+
     }
 }
