@@ -1,4 +1,5 @@
 import { createUseStyles } from "react-jss";
+import Link from "../../link";
 
 const useStyles = createUseStyles({
   button: {
@@ -17,7 +18,9 @@ const useStyles = createUseStyles({
 
 const SmallTextLink = (props) => {
   const s = useStyles();
-  return <a className={s.button} href={props.href} onClick={props.onClick}>{props.children}</a>
+  return <Link href={props.href}>
+    <a className={s.button} href={props.href} onClick={props.onClick}>{props.children}</a>
+  </Link>
 }
 
 export default SmallTextLink;

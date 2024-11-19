@@ -200,9 +200,11 @@ const GameRow = props => {
     <div className={s.containerHeader}>
       <h3>{String(props.title).charAt(0).toUpperCase() + String(props.title).slice(1)}</h3>
       <span>
-        <a href={`/games?sortFilter=${props.token}`}>
-          <ActionButton buttonStyle={buttonStyles.newContinueButton} className={s.seeAllButton} label='See All' />
-        </a>
+        <Link href={`/games?sortFilter=${props.token}`}>
+          <a href={`/games?sortFilter=${props.token}`}>
+            <ActionButton buttonStyle={buttonStyles.newContinueButton} className={s.seeAllButton} label='See All' />
+          </a>
+        </Link>
       </span>
     </div>
     <div className={`${props.ads ? 'col-12 col-lg-9' : 'col-12'} ${s.uselessFuckingClass}`} ref={rowRef}>

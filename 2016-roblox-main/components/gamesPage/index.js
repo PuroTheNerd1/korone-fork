@@ -76,9 +76,9 @@ const Games = props => {
 
   // if (!store.sorts || !store.games || !store.icons) return null;
   return <div className={'row ' + (auth.isAuthenticated ? s.authContainer : '')}>
-    <div className='col-12'>
+    {/*<div className='col-12'>
       <AdBanner context='gamesPage' />
-    </div>
+    </div>*/}
     <div className={`col-12 ps-0 pb-0 ${s.container}`}>
       <div className={'row pb-2 ' + s.gamesContainer}>
         <div className={`${selectorContainerClass} col-12`}>

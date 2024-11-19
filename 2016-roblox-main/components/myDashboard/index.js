@@ -190,10 +190,14 @@ const useStyles = createUseStyles({
     noGames: {
         padding: 'calc((235px - 1.4em) / 2)!important',
     },
+
+    listItem: {
+        maxWidth: '166px',
+    },
 })
 
 const sorts = [{
-    token: 'recent',
+    token: 'RecentlyPlayed',
     name: 'recently_played',
     displayName: 'Recently Played',
     games: [],
@@ -320,7 +324,7 @@ const MyDashboard = props => {
 
                             {sort.games.length === 0 && <div className={`section-content-off ${s.noGames}`}>No games found.</div>
                                 ||
-                                <GameRow key={sort.token} games={sort.games} />
+                                <GameRow key={sort.token} listItemClass={s.listItem} games={sort.games} />
                             }
                         </div>
                     })

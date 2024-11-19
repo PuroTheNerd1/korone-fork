@@ -17,7 +17,7 @@ const useStyles = createUseStyles({
             gap: '12px',
         },
     },
-    gameCard:{
+    gameCard: {
 
     }
 });
@@ -38,15 +38,15 @@ const GameRow = props => {
 
     var customWidth = null;
 
-    if (props.games){
-        customWidth = 1/props.games.length;
+    if (props.games) {
+        customWidth = 1 / props.games.length;
     }
-    
+
     return <ul className={`row ${s.gameCardsContainer}`}>
         {
             props.games && props.games.map((game) => {
                 var thumbnail;
-                var gameThumbnail = store.getAssetThumbnail(game.placeId, '420x420');
+                var gameThumbnail = store.getGameIcon(game.universeId, '420x420');
                 gameThumbnail ? thumbnail = gameThumbnail : thumbnail = '/img/placeholder/icon_one.png';
                 return <GameCard
                     name={game.name}

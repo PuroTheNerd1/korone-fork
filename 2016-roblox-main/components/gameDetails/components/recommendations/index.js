@@ -38,6 +38,7 @@ const useStyles = createUseStyles({
     },
     marginBottom: {
         marginBottom: '6px',
+        maxWidth: '166px',
         '@media (max-width: 991px)': {
             padding: 0,
         },

@@ -340,7 +340,7 @@ function getImageAspectRatio(url) {
  *  hideVoting?: boolean;
  *  width?: number;
  * }} props
- * @returns
+ * @returns 
  */
 const NewGameCard = props => {
     const s = useStyles();

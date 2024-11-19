@@ -20,7 +20,6 @@ const useStyles = createUseStyles({
     lineHeight: '1.4em',
     textRendering: 'auto',
     fontWeight: '400',
-    fontFamily: 'HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif',
     width: '100%',
   },
   allContainer: {
