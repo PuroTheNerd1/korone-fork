@@ -2605,7 +2605,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             var itemInfo = (await MultiGetAssetDeveloperDetails(new[] {targetId})).First();
             if (!allowedAssetTypesForAdvertisements.Contains((Type) itemInfo.typeId))
             {
-                throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
+                throw new RobloxException(RobloxException.BadRequest, 0, "Asset type not supported");
             }
 
             if (itemInfo.moderationStatus != ModerationStatus.ReviewApproved)
