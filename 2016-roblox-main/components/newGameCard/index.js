@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { getGameUrl } from "../../services/games";
 import CreatorLink from "../creatorLink";
+import Link from "../link";
 
 const useStyles = createUseStyles({
     listItem: {
@@ -339,7 +340,7 @@ function getImageAspectRatio(url) {
  *  hideVoting?: boolean;
  *  width?: number;
  * }} props
- * @returns 
+ * @returns
  */
 const NewGameCard = props => {
     const s = useStyles();
@@ -391,44 +392,46 @@ const NewGameCard = props => {
     return <li className={`${s.listItem} ${props.className} ${width}`}
     >
         <div className={s.gameCardContainer} onMouseEnter={hoverEnable} onMouseLeave={hoverDisable}>
-            <a href={url} className={s.gameCardLink} onMouseEnter={linkHoverEnable} onMouseLeave={linkHoverDisable}>
-                <div className={`${s.gameCardThumbContainer} ${thumbnail}`}>
-                    {/*<div>
+            <Link href={url}>
+                <a href={url} className={s.gameCardLink} onMouseEnter={linkHoverEnable} onMouseLeave={linkHoverDisable}>
+                    <div className={`${s.gameCardThumbContainer} ${thumbnail}`}>
+                        {/*<div>
                         <div className={s.triangleRight}></div>
                         <div className={s.yearDiv}>
                             <div className={s.yearText}>{props.year}</div>
                         </div>
                     </div>*/}
-                    <img src={iconUrl} />
-                </div>
-                <div className={s.gameCardTitle} title={props.name}>{props.name}</div>
-                <div className={s.gameCardPlaying}>
-                    <p className={s.playerCount}>{props.playerCount} Playing</p>
-                    <p className={s.yearText3}>{props?.year || '????'}</p>
-                </div>
-                <div className={s.gameCardVote}>
-                    <div className={s.voteBar}>
-                        <div className={s.voteThumbsUp}>
-                            <span className={`icon-thumbs-up ${thumbsUpClass}`}></span>
-                        </div>
+                        <img src={iconUrl} />
+                    </div>
+                    <div className={s.gameCardTitle} title={props.name}>{props.name}</div>
+                    <div className={s.gameCardPlaying}>
+                        <p className={s.playerCount}>{props.playerCount} Playing</p>
+                        <p className={s.yearText3}>{props?.year || '????'}</p>
+                    </div>
+                    <div className={s.gameCardVote}>
+                        <div className={s.voteBar}>
+                            <div className={s.voteThumbsUp}>
+                                <span className={`icon-thumbs-up ${thumbsUpClass}`}></span>
+                            </div>
 
-                        <div className={s.voteContainer}>
-                            <div className={`${s.voteBackground} ${hasVotes}`}></div>
-                            <div className={`${s.votePercentage} ${votePercentageClass}`} style={{ width: greenPercent + '%' }}></div>
-                            <div className=" ">
-                                <div className={s.segment + ' ' + s.seg1}></div>
-                                <div className={s.segment + ' ' + s.seg2}></div>
-                                <div className={s.segment + ' ' + s.seg3}></div>
-                                <div className={s.segment + ' ' + s.seg4}></div>
+                            <div className={s.voteContainer}>
+                                <div className={`${s.voteBackground} ${hasVotes}`}></div>
+                                <div className={`${s.votePercentage} ${votePercentageClass}`} style={{ width: greenPercent + '%' }}></div>
+                                <div className=" ">
+                                    <div className={s.segment + ' ' + s.seg1}></div>
+                                    <div className={s.segment + ' ' + s.seg2}></div>
+                                    <div className={s.segment + ' ' + s.seg3}></div>
+                                    <div className={s.segment + ' ' + s.seg4}></div>
+                                </div>
+                            </div>
+
+                            <div className={s.voteThumbsDown}>
+                                <span className={`icon-thumbs-down ${thumbsDownClass}`}></span>
                             </div>
                         </div>
-
-                        <div className={s.voteThumbsDown}>
-                            <span className={`icon-thumbs-down ${thumbsDownClass}`}></span>
-                        </div>
                     </div>
-                </div>
-            </a>
+                </a>
+            </Link>
             <div className={`${s.gameCardFooterContainer} ${gameFooterClass}`}>
                 <div className={`${s.voteCounts} ${voteCountsClass}`}>
                     <div className={s.downvoteCount}>{props.dislikes}</div>
