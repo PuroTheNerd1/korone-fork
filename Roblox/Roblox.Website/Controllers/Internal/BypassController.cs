@@ -1193,7 +1193,17 @@ namespace Roblox.Website.Controllers
             List<long> equippedGearVersionIds = new List<long>();
             string userAgent = Request.Headers["User-Agent"].ToString();
             var wornAssets = await services.avatar.GetWornAssets(userId);
-            var avatar = await services.avatar.GetAvatar(userId);
+            dynamic avatar;
+            // If we dont have an avatar then its most likely a game loading a avatar
+            try
+            {
+                avatar = await services.avatar.GetAvatar(userId);
+            }
+            catch (RecordNotFoundException)
+            {
+                return Redirect("https://avatar.roblox.com/v1/avatar-fetch?userId=" + userId);
+            }
+
             List<dynamic> emotes = new List<dynamic>
             {
                 new

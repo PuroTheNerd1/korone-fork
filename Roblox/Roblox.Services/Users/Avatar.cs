@@ -83,7 +83,7 @@ public class AvatarService : ServiceBase, IService
                 user_id = userId,
             });
         if (existingAvatar == null)
-            return null;
+            throw new RecordNotFoundException();
         return new AvatarWithColors()
         {
             headColorId = existingAvatar.head_color_id,
