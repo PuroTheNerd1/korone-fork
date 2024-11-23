@@ -1289,8 +1289,8 @@ public class AssetsService : ServiceBase, IService
                     CreatorType.User, 1, meshStream, Type.Mesh, Genre.All, ModerationStatus.ReviewApproved,
                     DateTime.UtcNow, DateTime.UtcNow, long.Parse(MeshId));
                 long NewMeshIdLong = meshDetails.assetId; // example, is a long just incase
-                String NewMeshId = NewMeshIdLong.ToString(); // convert to string
-                String NewMeshIdHex = EasyConverters.StringToHexString(NewMeshId);
+                string NewMeshId = NewMeshIdLong.ToString(); // convert to string
+                string NewMeshIdHex = EasyConverters.StringToHexString(NewMeshId);
                 if (NewMeshId.Length > MeshId.Length)
                 {
                     throw new Exception("New MeshId too long");
