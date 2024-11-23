@@ -201,8 +201,7 @@ namespace Roblox.Website.Controllers
             {
                 try
                 {
-                    var ourId = await services.assets.GetAssetIdFromRobloxAssetId(assetId);
-                    assetId = ourId;
+                    assetId = await services.assets.GetAssetIdFromRobloxAssetId(assetId);
                 }
                 catch (RecordNotFoundException)
                 {
