@@ -173,6 +173,7 @@ public struct ByteReader
         return Encoding.UTF8.GetString(byteArray);
     }
 }
+
 public class AssetsService : ServiceBase, IService
 {
     private static void assert(bool Bool, String Message) {

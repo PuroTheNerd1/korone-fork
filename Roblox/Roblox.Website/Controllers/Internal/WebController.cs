@@ -768,7 +768,7 @@ public class WebController : ControllerBase
                 // check if has enough
                 var balance = await services.economy.GetBalance(creatorType, creatorId);
                 //choke is a audio uploader we dont need to check for the balance
-                if (balance.robux < 100 && userSession.userId != 7)
+                if (balance.robux < 20 && userSession.userId != 7)
                     throw new BadRequestException(0, "Not enough Robux for purchase");
                 // validate auto
 
