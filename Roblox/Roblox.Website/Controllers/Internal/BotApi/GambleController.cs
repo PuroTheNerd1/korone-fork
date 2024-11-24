@@ -88,15 +88,12 @@ namespace Roblox.Website.Controllers
                     status = (int)GamblingStatus.Won,
                 };
             }
-            else
+            return new GamblingResponse
             {
-                return new GamblingResponse
-                {
-                    message = "You have flipped tails and lost",
-                    submessage = $"\nYou have lost **{amount}** R$, your balance is updated to **{(currentBalance - amount).ToString("N0", CultureInfo.CurrentCulture)}** R$",
-                    status = (int)GamblingStatus.Lost,
-                };
-            }
+                message = "You have flipped tails and lost",
+                submessage = $"\nYou have lost **{amount}** R$, your balance is updated to **{(currentBalance - amount).ToString("N0", CultureInfo.CurrentCulture)}** R$",
+                status = (int)GamblingStatus.Lost,
+            };
         }
     }
 }
