@@ -16,7 +16,7 @@ namespace Roblox.Website.Controllers
         public async Task<GamblingResponse> CoinFlip(string discordid, int amount)
         {
             Dto.Users.UserInfo userInfo;
-
+            // paranoia check!
             if (amount > 250 || amount < 1)
             {
                 return new GamblingResponse
