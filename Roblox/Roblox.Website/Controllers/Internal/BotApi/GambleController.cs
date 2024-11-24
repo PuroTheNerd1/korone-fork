@@ -72,7 +72,7 @@ namespace Roblox.Website.Controllers
             }
 
             // calculate if win
-            int chance = RandomNumberGenerator.GetInt32(1, 101);
+            int chance = RandomNumberGenerator.GetInt32(1, 100);
 
             // 50% chance to win
             bool isWinner = chance <= 50;
