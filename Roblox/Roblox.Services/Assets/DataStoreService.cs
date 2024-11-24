@@ -20,7 +20,7 @@ public class DataStoreService : ServiceBase, IService
             return KeyType.Standard;
         throw new ArgumentException("Invalid " + nameof(type));
     }
-    public async Task<IEnumerable<DataStoreEntry>> GetOrderedEntry(long placeId, string key, string scope, long pageSize)
+    public async Task<IEnumerable<DataStoreEntry>> GetOrderedEntry(long placeId, string key, string scope, int pageSize)
     {
         return await db.QueryAsync<DataStoreEntry>(
             "SELECT id, value, name from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope ORDER BY updated_at DESC LIMIT :pageSize",
