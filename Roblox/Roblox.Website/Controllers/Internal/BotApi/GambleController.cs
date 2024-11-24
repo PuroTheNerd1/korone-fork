@@ -3,6 +3,7 @@ using MVC = Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Gambling;
 using System.Globalization;
 using System.Security.Cryptography;
+using Roblox.Services.Exceptions;
 
 namespace Roblox.Website.Controllers
 {
@@ -29,7 +30,7 @@ namespace Roblox.Website.Controllers
             {
                 userInfo = await services.users.GetUserByDiscordId(discordid);
             }
-            catch (Exception)
+            catch (RecordNotFoundException)
             {
                 return new GamblingResponse
                 {
