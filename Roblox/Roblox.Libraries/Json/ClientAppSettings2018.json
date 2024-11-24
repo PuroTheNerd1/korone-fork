@@ -746,7 +746,7 @@
 "DFIntPointsServiceBatchingImplMinuteSeconds":60,
 "FFlagLuaDebuggerBreakOnError":true,
 "FFlagLuaDebugger":false,
-"DFFlagLocalizationAnalyticsLetterContentOnly":true,
+"DFFlagLocalizationAnalyticsLetterContentOnly":false,
 "DFStringCrashUploadToBacktraceBlackholeToken":"7705528468a303e4e34a13fbcf9e42e219633ed6868e143e5ab16cd33bd2a069",
 "DFStringCrashUploadToBacktraceMacStudioToken":"71f38d9e22eac3ed9fdb80607d798f829e051303baa63cb9766e6f2e9d0584d8",
 "DFStringCrashUploadToBacktraceLinuxRCCToken":"82fc562ca79e6df76a1add3c37aca015601a7326f48d4476fdc37bfe85e44673",
