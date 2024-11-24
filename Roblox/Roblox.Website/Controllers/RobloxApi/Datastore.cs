@@ -90,7 +90,7 @@ namespace Roblox.Website.Controllers
             else if (exclusiveStartKey < 1)
                 throw new RobloxException(400, 0, "InValidExclusiveStartKey");
 
-            var res = await ds.GetOrderedEntry(placeId, key, scope);
+            var res = await ds.GetOrderedEntry(placeId, key, scope, pageSize);
             if (type == "sorted")
             {
                 result = new List<GetKeyEntrySorted>();
