@@ -92,7 +92,7 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
-    [HttpGet("teamtest/{placeId}/runninggames")]
+    [HttpGetBypass("teamtest/{placeId}/runninggames")]
     [HttpGet("v1/teamtest/places/{placeId}/runninggames")]
     public dynamic GetTeamTestRunningGames(long placeId)
     {
