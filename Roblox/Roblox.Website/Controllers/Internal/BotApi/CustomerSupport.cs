@@ -12,7 +12,7 @@ namespace Roblox.Website.Controllers
     public class CustomerSupport : ControllerBase
     {
         [BotAuthorization]
-        [HttpGet("bot/resetpassword")]
+        [HttpGetBypass("bot/resetpassword")]
         public async Task<dynamic> ResetPassword(string discordId, long userId)
         {
             UserInfo userDiscordInfo = null;
