@@ -37,7 +37,6 @@ public class ChatControllerV2 : ControllerBase
         throw new NotImplementedException();
     }
 
-    [HttpGetBypass("v1/chat-settings")]
     [HttpGet("chat-settings")]
     public dynamic GetChatSettings()
     {
