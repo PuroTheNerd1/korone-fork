@@ -92,6 +92,34 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
+
+    [HttpGet("v1/places/{placeId}/teamcreate/active_session/members")]
+    public async Task<dynamic> GetTeamCreateMembers(long placeId)
+    {
+        List<dynamic> players = new List<dynamic>();
+        var startIndex = 0;
+        var limit = 1;
+        var offset = startIndex;
+        var servers = (await services.gameServer.GetGameServers(placeId, offset, limit, 2)).ToList();
+
+        foreach (var server in servers)
+        {
+            var gameServerPlayers = server.players.Select(player => new
+            {
+                id = player.userId,
+                name = player.username,
+                displayName = player.username
+            }).ToList();
+
+            players.AddRange(gameServerPlayers);
+        }
+
+        return new
+        {
+            data = players
+        };
+    }
+
     [HttpGet("v1/user/groups/canmanage")]
     public dynamic CanManageGroup()
     {
