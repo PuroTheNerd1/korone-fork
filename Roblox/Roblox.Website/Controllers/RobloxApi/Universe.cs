@@ -100,7 +100,7 @@ public class UniverseV1 : ControllerBase
         var startIndex = 0;
         var limit = 1;
         var offset = startIndex;
-        var servers = (await services.gameServer.GetGameServers(placeId, offset, limit, 2)).ToList();
+        var servers = (await services.gameServer.GetGameServers(placeId, offset, limit, 3)).ToList();
 
         foreach (var server in servers)
         {
