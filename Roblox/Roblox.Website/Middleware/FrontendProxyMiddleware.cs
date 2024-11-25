@@ -121,7 +121,7 @@ public class FrontendProxyMiddleware
             }
         }
         */
-        Console.WriteLine("[PROXY] {0}", fullUrl);
+        Console.WriteLine("[PROXY] {0}", ctx.Request.GetEncodedUrl());
         var safeUrl = new Uri(fullUrl);
         if (safeUrl.Port != 3000)
             throw new ArgumentException("Unsafe Url: " + fullUrl);
