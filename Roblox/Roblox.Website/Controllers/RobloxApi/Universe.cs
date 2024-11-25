@@ -92,7 +92,17 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
-
+    [HttpGet("teamtest/{placeId}/runninggames")]
+    [HttpGet("v1/teamtest/places/{placeId}/runninggames")]
+    public dynamic GetTeamTestRunningGames(long placeId)
+    {
+        return new
+        {
+            previousPageCursor = (string?)null,
+            nextPageCursor  = (string?)null,
+            data = new List<object>()
+        };
+    }
     [HttpGet("v1/places/{placeId}/teamcreate/active_session/members")]
     public async Task<dynamic> GetTeamCreateMembers(long placeId)
     {
