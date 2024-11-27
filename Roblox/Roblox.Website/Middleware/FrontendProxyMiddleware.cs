@@ -187,12 +187,18 @@ public class FrontendProxyMiddleware
     public async Task InvokeAsync(HttpContext ctx)
     {
         var requestUrl = ctx.Request.GetEncodedPathAndQuery();
+        var requestFullUrl = ctx.Request.GetEncodedUrl();
         if (requestUrl.Contains("/canmanage/") || Regex.IsMatch(requestUrl, @"^/users/\d+$") || Regex.IsMatch(requestUrl, @"^/Users/\d+$") || requestUrl.Contains("/universes/"))
         {
             await _next(ctx);
             return;
         }
-
+        // Only www. should be proxied, all other are apis
+        if (!requestFullUrl.Contains("www."))
+        {
+            await _next(ctx);
+            return;
+        }
         foreach (var item in BypassUrls)
         {
             if (requestUrl.ToLower().StartsWith(item))
