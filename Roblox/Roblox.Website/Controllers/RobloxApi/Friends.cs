@@ -24,10 +24,32 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class Friends: ControllerBase
     {
+        [HttpGetBypass("my/friendsonline")]
+        public async Task<dynamic> GetFriendsOnline()
+        {
+            var result = await services.friends.GetFriends(safeUserSession.userId);
+            List<dynamic> onlineFriends = new List<dynamic>();
+            foreach (FriendEntry friend in result)
+            {
+                var onlineStatus = (await services.users.MultiGetPresence(new[] { friend.id })).First();
+                onlineFriends.Add(new
+                {
+                    VisitorId = friend.id,
+                    GameId = onlineStatus.gameId,
+                    IsOnline = friend.isOnline,
+                    LastOnline = onlineStatus.lastOnline,
+                    LastLocation = onlineStatus.lastLocation,
+                    LocationType = (int)onlineStatus.userPresenceType,
+                    PlaceId = onlineStatus.placeId,
+                    UserName = friend.name,
+                });
+            }
+            return onlineFriends;
+        }
         [HttpGetBypass("v1/users/{userId}/friends/statuses")]
         public async Task<dynamic> MultiGetFriendshipStatus(string userIds)
         {
-            dynamic ids = null; 
+            dynamic ids = null;
             try
             {
                 ids = userIds.Split(",").Select(long.Parse).Distinct().ToList();
@@ -103,7 +125,7 @@ namespace Roblox.Website.Controllers
             if (safeUserSession.userId == userIdToRequest)
                 throw new BadRequestException(7, "The user cannot be friends with itself");
             await services.friends.RequestFriendship(safeUserSession.userId, userIdToRequest);
-            
+
             return new
             {
                 success = true,
@@ -166,7 +188,7 @@ namespace Roblox.Website.Controllers
                 count = result,
             };
         }
-        
+
         [HttpGetBypass("v1/users/{userId:long}/followings/count")]
         public async Task<dynamic> CountFollowings(long userId)
         {
@@ -207,7 +229,7 @@ namespace Roblox.Website.Controllers
                     });
                     continue;
                 }
-                
+
                 var isFollowing = await services.friends.IsOneFollowingTwo(userSession.userId, userId);
                 result.Add(new
                 {
@@ -215,7 +237,7 @@ namespace Roblox.Website.Controllers
                     userId,
                 });
             }
-            
+
             return new
             {
                 followings = result,
