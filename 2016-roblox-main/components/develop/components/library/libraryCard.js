@@ -15,6 +15,7 @@ import thumbnailStore from "../../../../stores/thumbnailStore";
 import Link from "../../../link";
 import Tickets from "../../../tickets";
 import AudioPlayButton from "../../../catalogDetailsPage/components/audioPlayButton";
+import { getLibraryItemUrl } from "../../../../services/games";
 
 const useCatalogPageStyles = createUseStyles({
   image: {
@@ -173,8 +174,8 @@ const CatalogPageCard = props => {
 
   return <div className={`${c}`} onMouseEnter={() => setShowDetails(true)} onMouseLeave={() => setShowDetails(false)}>
     <div ref={cardRef} className={isLarge ? s.imageBig : s.imageSmall} >
-      <Link href={getItemUrl({ assetId: props.id, name: props.name })}>
-        <a>
+      <Link href={getLibraryItemUrl({ assetId: props.id, name: props.name })}>
+        <a href={getLibraryItemUrl({ assetId: props.id, name: props.name })}>
           <div style={{ zIndex: showDetails ? 10 : 0, position: 'relative' }}>
             {isTimedItem ? <TimerOverlay /> : null}
             {isNew ? <NewOverlay /> : isSale ? <SaleOverlay /> : null}
