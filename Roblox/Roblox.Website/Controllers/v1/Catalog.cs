@@ -703,7 +703,7 @@ public class CatalogControllerV1 : ControllerBase
     }
 
     [HttpGet("search/items")]
-    public async Task<SearchResponse> SearchItems(string? category, string? subcategory, string? sortType, string? keyword, string? cursor, int limit = 10, CreatorType? creatorType = null, long? creatorTargetId = null, bool includeNotForSale = false, string? _genreFilterCsv = null)
+    public async Task<SearchResponse> SearchItems(string? category, string? subcategory, string? sortType, string? keyword, string? cursor, int limit = 10, CreatorType? creatorType = null, long? creatorTargetId = null, string? creatorName = null, bool includeNotForSale = false, string? _genreFilterCsv = null)
     {
 	    var include18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
 	    var request = new CatalogSearchRequest()
@@ -721,6 +721,12 @@ public class CatalogControllerV1 : ControllerBase
 		    include18Plus = include18Plus,
 	    };
 	    if (request.limit is > 100 or < 1) request.limit = 10;
+		if (creatorTargetId == null && creatorName != null) {
+			long userId = await services.users.GetUserIdFromUsername(creatorName);
+			// see if group id can be found by name
+			request.creatorTargetId = userId;
+			//request.creatorType = CreatorType.User; // should be done by client
+		}
 	    return await services.assets.SearchCatalog(request);
     }
 

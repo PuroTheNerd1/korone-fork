@@ -27,11 +27,12 @@ using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
-public class EasyConverters {
+public class EasyConverters
+{
     public static byte[] StreamToByte(Stream instream) // https://stackoverflow.com/questions/1080442/how-do-i-convert-a-stream-into-a-byte-in-c
     {
         if (instream is MemoryStream)
-            return ((MemoryStream) instream).ToArray();
+            return ((MemoryStream)instream).ToArray();
 
         using (var memoryStream = new MemoryStream())
         {
@@ -176,8 +177,10 @@ public struct ByteReader
 
 public class AssetsService : ServiceBase, IService
 {
-    private static void assert(bool Bool, String Message) {
-        if (Bool != true) {
+    private static void assert(bool Bool, String Message)
+    {
+        if (Bool != true)
+        {
             throw new Exception(Message);
         }
         return;
@@ -223,7 +226,7 @@ public class AssetsService : ServiceBase, IService
         if (string.IsNullOrEmpty(name)) throw new AssetNameTooShortException();
         if (name.Length > Models.Assets.Rules.NameMaxLength)
             throw new AssetNameTooLongException();
-        if (description is {Length: > Models.Assets.Rules.DescriptionMaxLength})
+        if (description is { Length: > Models.Assets.Rules.DescriptionMaxLength })
             throw new AssetDescriptionTooLongException();
 
         return;
@@ -252,7 +255,7 @@ public class AssetsService : ServiceBase, IService
                 if (e.Message.Contains("Could not find file"))
                     throw;
 
-                await Task.Delay(TimeSpan.FromMilliseconds(100 * (i+1)));
+                await Task.Delay(TimeSpan.FromMilliseconds(100 * (i + 1)));
             }
         }
 
@@ -646,7 +649,8 @@ public class AssetsService : ServiceBase, IService
             await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.ReviewApproved);
         }
     }
-    private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null) {
+    private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    {
         var latestVersion = await GetLatestAssetVersion(assetId);
         var assets = await GetPackageAssets(assetId);
         string assetUrls = string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c));
@@ -737,7 +741,7 @@ public class AssetsService : ServiceBase, IService
 
     private async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
-        var modInfo = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
+        var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
         {
             return;
@@ -795,7 +799,7 @@ public class AssetsService : ServiceBase, IService
 
     public async Task CreateGameIcon(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
-        var modInfo = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
+        var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
         {
             return;
@@ -813,10 +817,10 @@ public class AssetsService : ServiceBase, IService
             }
             Writer.Info(LogGroup.GameIconRender, "game icon render over. placeId={0}", assetId);
         }
-        else if(thumbnailToUse != null)
+        else if (thumbnailToUse != null)
         {
             var pictureData = await ValidateImage(thumbnailToUse);
-            if(pictureData == null)
+            if (pictureData == null)
             {
                 Writer.Info(LogGroup.GameIconRender, "custom icon failed", assetId);
             }
@@ -1208,9 +1212,9 @@ public class AssetsService : ServiceBase, IService
             var indexVertex = index * 3;
             var indexUV = index * 2;
 
-            data = $"{data}[{s((float)(vertices[indexVertex]/0.5))},{s((float)(vertices[indexVertex+1]/0.5))},{s((float)(vertices[indexVertex+2]/0.5))}]"; // vertex
-            data = $"{data}[{s(normals[indexVertex])},{s(normals[indexVertex+1])},{s(normals[indexVertex+2])}]"; // normals
-            data = $"{data}[{s(uvs[indexUV])},{s(uvs[indexUV+1])},0]"; // uvs
+            data = $"{data}[{s((float)(vertices[indexVertex] / 0.5))},{s((float)(vertices[indexVertex + 1] / 0.5))},{s((float)(vertices[indexVertex + 2] / 0.5))}]"; // vertex
+            data = $"{data}[{s(normals[indexVertex])},{s(normals[indexVertex + 1])},{s(normals[indexVertex + 2])}]"; // normals
+            data = $"{data}[{s(uvs[indexUV])},{s(uvs[indexUV + 1])},0]"; // uvs
             return;
         }
 
@@ -1465,7 +1469,7 @@ public class AssetsService : ServiceBase, IService
                 {
                     asset_id = assetId,
                     user_id = creatorUserId,
-                    serial = (int?) null,
+                    serial = (int?)null,
                 });
             }
             // contentKey = asset url
@@ -1522,7 +1526,7 @@ public class AssetsService : ServiceBase, IService
         {
             name,
             description,
-            asset_genre = (int) genres.ToArray()[0], // todo: multi genre support
+            asset_genre = (int)genres.ToArray()[0], // todo: multi genre support
             comments_enabled = enableComments,
         });
     }
@@ -1635,13 +1639,13 @@ public class AssetsService : ServiceBase, IService
     {
         var result = await db.QuerySingleOrDefaultAsync<MultiGetEntryLowestSeller>(
             "SELECT user_asset.price as price, asset_id as assetId, user_id as userId, user_asset.id as userAssetId, \"user\".username, user_asset.asset_id as assetId FROM user_asset INNER JOIN \"user\" ON \"user\".id = user_asset.user_id WHERE asset_id = :asset_id AND user_asset.price > 0 ORDER BY price ASC LIMIT 1",
-            new {asset_id = assetId});
+            new { asset_id = assetId });
         return result;
     }
 
     public async Task<MultiGetEntry> GetAssetCatalogInfo(long assetId)
     {
-        var entry = (await MultiGetInfoById(new List<long>() {assetId})).ToList();
+        var entry = (await MultiGetInfoById(new List<long>() { assetId })).ToList();
         if (entry.Count <= 0) throw new RecordNotFoundException("Asset " + assetId + " does not exist");
         return entry[0];
     }
@@ -1697,8 +1701,8 @@ public class AssetsService : ServiceBase, IService
             new
             {
                 asset_id = assetId,
-                sale_type = (int) PurchaseType.Purchase,
-                sub_sale_type = (int) TransactionSubType.ItemPurchase,
+                sale_type = (int)PurchaseType.Purchase,
+                sub_sale_type = (int)TransactionSubType.ItemPurchase,
             });
         lock (saleCountsLock)
         {
@@ -1745,7 +1749,7 @@ public class AssetsService : ServiceBase, IService
             watch.Restart();
             var multiGetResult = await Task.WhenAll(limitedItems.Select(c => GetLowestPrice(c.id)));
             watch.Stop();
-            Writer.Info(LogGroup.PerformanceDebugging , "it took {0}ms to run MultiGetCatalog get lowest price query", watch.ElapsedMilliseconds);
+            Writer.Info(LogGroup.PerformanceDebugging, "it took {0}ms to run MultiGetCatalog get lowest price query", watch.ElapsedMilliseconds);
             foreach (var item in multiGetResult)
             {
                 if (item == null) continue;
@@ -1780,7 +1784,7 @@ LEFT JOIN ""group"" ON asset.creator_id = ""group"".id AND asset.creator_type = 
 WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER BY asset.id DESC LIMIT :limit",
             new
             {
-                asset_type = (int) assetType,
+                asset_type = (int)assetType,
                 id = contextAssetId,
                 limit,
             });
@@ -1900,11 +1904,6 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             builder.OrderBy(column + " " + mode);
         }
 
-        if (!request.includeNotForSale)
-        {
-            builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
-        }
-
         // If community creations, exclude system account
         if (request.subcategory == "CommunityCreations")
         {
@@ -1914,57 +1913,123 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         var cat = request.category?.ToLower();
         var sub = request.subcategory?.ToLower();
 
+        bool libraryItem = false;
+        switch (cat)
+        {
+            case "audio":
+            case "audios":
+            case "model":
+            case "models":
+            case "image":
+            case "images":
+            case "decal":
+            case "decals":
+            case "mesh":
+            case "meshes":
+            case "plugin":
+            case "plugins":
+            case "videos":
+            case "video":
+                libraryItem = true;
+                builder.Where("asset.creator_id != 2");
+                break;
+        }
+
+        if (!request.includeNotForSale && libraryItem == false)
+        {
+            builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
+        }
+
         if (cat is "bodyparts" or "bodypart")
         {
             if (sub is "all" or null)
             {
                 builder.Where(
-                    $"(asset.asset_type = {(int) Models.Assets.Type.Face} OR asset.asset_type = {(int) Models.Assets.Type.LeftArm} OR asset.asset_type = {(int) Models.Assets.Type.RightArm} OR asset.asset_type = {(int) Models.Assets.Type.LeftLeg} OR asset.asset_type = {(int) Models.Assets.Type.RightLeg} OR asset.asset_type = {(int) Models.Assets.Type.Head} OR asset.asset_type = {(int) Models.Assets.Type.Torso})");
+                    $"(asset.asset_type = {(int)Models.Assets.Type.Face} OR asset.asset_type = {(int)Models.Assets.Type.LeftArm} OR asset.asset_type = {(int)Models.Assets.Type.RightArm} OR asset.asset_type = {(int)Models.Assets.Type.LeftLeg} OR asset.asset_type = {(int)Models.Assets.Type.RightLeg} OR asset.asset_type = {(int)Models.Assets.Type.Head} OR asset.asset_type = {(int)Models.Assets.Type.Torso})");
             }
-        }else if (cat is "gear" or "gears")
+        }
+        else if (cat is "gear" or "gears")
         {
             // we ignore subcategory for now. in the future, that will be the gear type (e.g. "ranged" or "explosive")
             builder.Where(
-                $"(asset.asset_type = {(int) Models.Assets.Type.Gear})");
+                $"(asset.asset_type = {(int)Models.Assets.Type.Gear})");
         }
+        // library section:
+        else if (cat is "audio" or "audios")
+        {
+            // we ignore subcategory for now.
+            builder.Where(
+                $"(asset.asset_type = {(int)Models.Assets.Type.Audio})");
+        }
+        else if (cat is "video" or "videos")
+        {
+            // we ignore subcategory for now.
+            builder.Where(
+                $"(asset.asset_type = {(int)Models.Assets.Type.Video})");
+        }
+        else if (cat is "model" or "models")
+        {
+            // we ignore subcategory for now.
+            builder.Where(
+                $"(asset.asset_type = {(int)Models.Assets.Type.Model})");
+        }
+        else if (cat is "decal" or "decals" or "image" or "images")
+        {
+            // we ignore subcategory for now.
+            builder.Where(
+                $"(asset.asset_type = {(int)Models.Assets.Type.Image})");
+        }
+        else if (cat is "meshes" or "mesh")
+        {
+            // we ignore subcategory for now.
+            builder.Where(
+                $"(asset.asset_type = {(int)Models.Assets.Type.Mesh})");
+        }
+        else if (cat is "plugin" or "plugins")
+        {
+            // we ignore subcategory for now.
+            builder.Where(
+                $"(asset.asset_type = {(int)Models.Assets.Type.Plugin})");
+        }
+        // end of library seciton
 
         if (sub is "accessories" or "communitycreations")
         {
             builder.Where(
-                $"(asset.asset_type = {(int) Models.Assets.Type.Hat} OR asset.asset_type = {(int) Models.Assets.Type.HairAccessory} OR asset.asset_type = {(int) Models.Assets.Type.FaceAccessory} OR asset.asset_type = {(int) Models.Assets.Type.FrontAccessory} OR asset.asset_type = {(int) Models.Assets.Type.BackAccessory} OR asset.asset_type = {(int) Models.Assets.Type.WaistAccessory} OR asset.asset_type = {(int) Models.Assets.Type.ShoulderAccessory} OR asset.asset_type = {(int) Models.Assets.Type.NeckAccessory})");
+                $"(asset.asset_type = {(int)Models.Assets.Type.Hat} OR asset.asset_type = {(int)Models.Assets.Type.HairAccessory} OR asset.asset_type = {(int)Models.Assets.Type.FaceAccessory} OR asset.asset_type = {(int)Models.Assets.Type.FrontAccessory} OR asset.asset_type = {(int)Models.Assets.Type.BackAccessory} OR asset.asset_type = {(int)Models.Assets.Type.WaistAccessory} OR asset.asset_type = {(int)Models.Assets.Type.ShoulderAccessory} OR asset.asset_type = {(int)Models.Assets.Type.NeckAccessory})");
         }
         else if (sub is "faces")
         {
-            builder.Where($"asset.asset_type = {(int) Models.Assets.Type.Face}");
+            builder.Where($"asset.asset_type = {(int)Models.Assets.Type.Face}");
         }
         else if (sub is "clothing")
         {
             builder.Where(
-                $"(asset.asset_type = {(int) Models.Assets.Type.Shirt} OR asset.asset_type = {(int) Models.Assets.Type.Pants} OR asset.asset_type = {(int) Models.Assets.Type.TeeShirt})");
+                $"(asset.asset_type = {(int)Models.Assets.Type.Shirt} OR asset.asset_type = {(int)Models.Assets.Type.Pants} OR asset.asset_type = {(int)Models.Assets.Type.TeeShirt})");
         }
         else if (sub is "bodyparts")
         {
             builder.Where(
-                $"(asset.asset_type = {(int) Models.Assets.Type.Face} OR asset.asset_type = {(int) Models.Assets.Type.LeftArm} OR asset.asset_type = {(int) Models.Assets.Type.RightArm} OR asset.asset_type = {(int) Models.Assets.Type.LeftLeg} OR asset.asset_type = {(int) Models.Assets.Type.RightLeg} OR asset.asset_type = {(int) Models.Assets.Type.Head} OR asset.asset_type = {(int) Models.Assets.Type.Torso})");
+                $"(asset.asset_type = {(int)Models.Assets.Type.Face} OR asset.asset_type = {(int)Models.Assets.Type.LeftArm} OR asset.asset_type = {(int)Models.Assets.Type.RightArm} OR asset.asset_type = {(int)Models.Assets.Type.LeftLeg} OR asset.asset_type = {(int)Models.Assets.Type.RightLeg} OR asset.asset_type = {(int)Models.Assets.Type.Head} OR asset.asset_type = {(int)Models.Assets.Type.Torso})");
         }
         else if (sub is "packages" or "package")
         {
             builder.Where(
-                $"(asset.asset_type = {(int) Models.Assets.Type.Package})");
+                $"(asset.asset_type = {(int)Models.Assets.Type.Package})");
         }
         else if (sub != "collectibles")
         {
             Models.Assets.Type type;
             if (Enum.TryParse<Models.Assets.Type>(request.subcategory, out type))
             {
-                builder.Where($"asset.asset_type = {(int) type}");
+                builder.Where($"asset.asset_type = {(int)type}");
             }
             else
             {
                 var otherType = GetTypeFromPluralString(request.subcategory);
                 if (otherType != null)
                 {
-                    builder.Where($"asset.asset_type = {(int) otherType}");
+                    builder.Where($"asset.asset_type = {(int)otherType}");
                 }
             }
         }
@@ -1996,7 +2061,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         {
             foreach (var item in request.genres)
             {
-                builder.Where($"asset.asset_genre = {(int) item}");
+                builder.Where($"asset.asset_genre = {(int)item}");
             }
         }
 
@@ -2015,7 +2080,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         }
 
         if (resp.data == null)
-            return new SearchResponse() {keyword = request.keyword};
+            return new SearchResponse() { keyword = request.keyword };
 
         var sortedList = resp.data.ToList();
         if (doIdSort)
@@ -2068,7 +2133,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         {
             name,
             description,
-            asset_genre = (int) genre,
+            asset_genre = (int)genre,
             comments_enabled = areCommentsAllowed,
             // is_copying_allowed = isCopyingAllowed,
         });
@@ -2185,11 +2250,11 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             case CreatorType.User:
                 return details.creatorTargetId == userId;
             case CreatorType.Group:
-            {
-                using var gs = ServiceProvider.GetOrCreate<GroupsService>(this);
-                var role = await gs.GetUserRoleInGroup(details.creatorTargetId, userId);
-                return role.HasPermission(GroupPermission.ManageItems);
-            }
+                {
+                    using var gs = ServiceProvider.GetOrCreate<GroupsService>(this);
+                    var role = await gs.GetUserRoleInGroup(details.creatorTargetId, userId);
+                    return role.HasPermission(GroupPermission.ManageItems);
+                }
             default:
                 throw new Exception("Unsupported creatorType: " + details.creatorType);
         }
@@ -2206,8 +2271,8 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 limit = limit,
                 offset = offset,
                 creator_id = creatorId,
-                creator_type = (int) creatorType,
-                asset_type = (int) assetType,
+                creator_type = (int)creatorType,
+                asset_type = (int)assetType,
             });
     }
 
@@ -2224,7 +2289,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     {
         return await db.QueryAsync<CommentEntry>(
             "SELECT asset_comment.id, asset_comment.created_at as createdAt, u.username, asset_comment.user_id as userId, asset_comment.comment as comment FROM asset_comment INNER JOIN \"user\" u ON u.id = asset_comment.user_id WHERE asset_comment.asset_id = :id ORDER BY asset_comment.id desc LIMIT :limit OFFSET :offset",
-            new {limit = limit, offset = offset, id = assetId});
+            new { limit = limit, offset = offset, id = assetId });
     }
 
     public async Task<bool> IsInCommentCooldown(long userId)
@@ -2278,7 +2343,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         //var details = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
         //if (!details.enableComments)
-            //throw new ArgumentException("Asset does not support comments");
+        //throw new ArgumentException("Asset does not support comments");
         if (await IsInCommentCooldown(userId)) throw new FloodcheckException();
         if (await IsInCommentCooldownGlobal()) throw new FloodcheckException();
         await InsertAsync("asset_comment", new
@@ -2296,7 +2361,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         {
             var versions = await db.QueryAsync<AssetVersionEntry>(
                 "SELECT content_url as contentUrl, id as assetVersionId FROM asset_version WHERE asset_id = :id",
-                new {id = assetId});
+                new { id = assetId });
             // delete asset versions
             foreach (var version in versions)
             {
@@ -2304,7 +2369,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 // make sure no other assets depend on it
                 var refs = await db.QuerySingleOrDefaultAsync<Total>(
                     "SELECT COUNT(*) as total FROM asset_version WHERE content_url = :url",
-                    new {url = version.contentUrl});
+                    new { url = version.contentUrl });
                 if (refs.total <= 1)
                 {
                     // we can safely delete it - only person depending on it is current asset
@@ -2321,10 +2386,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             // delete thumbnails
             var allThumbnails =
                 await db.QueryAsync("SELECT content_url FROM asset_thumbnail WHERE asset_id = :id",
-                    new {id = assetId});
+                    new { id = assetId });
             foreach (var thumb in allThumbnails)
             {
-                var url = (string?) thumb.content_url;
+                var url = (string?)thumb.content_url;
                 if (url != null)
                 {
                     await DeleteAssetContent(url + ".png", Configuration.ThumbnailsDirectory);
@@ -2397,7 +2462,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         return await db.QueryAsync<AdvertisementEntry>(
             "SELECT " + UserAdColumns +
             " FROM asset_advertisement WHERE target_id = :asset_id AND target_type = :target_type",
-            new {asset_id = assetId, target_type = UserAdvertisementTargetType.Asset});
+            new { asset_id = assetId, target_type = UserAdvertisementTargetType.Asset });
     }
 
     public async Task<IEnumerable<AdvertisementEntry>> GetAdvertisementsByUser(long userId)
@@ -2405,7 +2470,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         return await db.QueryAsync<AdvertisementEntry>(
             "SELECT " + UserAdColumns +
             " FROM asset_advertisement WHERE target_id IN (SELECT id FROM asset WHERE asset.creator_type = 1 AND asset.creator_id = :user_id) AND target_type = :asset",
-            new {user_id = userId, asset = UserAdvertisementTargetType.Asset});
+            new { user_id = userId, asset = UserAdvertisementTargetType.Asset });
     }
 
     public async Task<IEnumerable<AdvertisementEntry>> GetAdvertisementsByGroup(long groupId)
@@ -2425,7 +2490,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     public async Task<AdvertisementEntry> GetAdvertisementById(long advertisementId)
     {
         var details = await db.QuerySingleOrDefaultAsync<AdvertisementEntry>(
-            "SELECT " + UserAdColumns + " FROM asset_advertisement WHERE id = :id", new {id = advertisementId});
+            "SELECT " + UserAdColumns + " FROM asset_advertisement WHERE id = :id", new { id = advertisementId });
         if (details == null) throw new RecordNotFoundException();
         return details;
     }
@@ -2514,7 +2579,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 throw new ArgumentException("Cannot run an ad that is already running");
             }
 
-            var imageDetails = (await MultiGetAssetDeveloperDetails(new[] {details.advertisementAssetId})).First();
+            var imageDetails = (await MultiGetAssetDeveloperDetails(new[] { details.advertisementAssetId })).First();
             if (imageDetails.moderationStatus != ModerationStatus.ReviewApproved)
                 throw new RobloxException(RobloxException.BadRequest, 0,
                     "BadRequest"); // cannot run an ad that hasn't been approved
@@ -2546,7 +2611,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             }
 
             var balance = await db.QuerySingleOrDefaultAsync<UserEconomy>(
-                "SELECT balance_robux as robux FROM user_economy WHERE user_id =:id", new {id = contextUserId});
+                "SELECT balance_robux as robux FROM user_economy WHERE user_id =:id", new { id = contextUserId });
             if (balance.robux < bidAmount)
                 throw new ArgumentException("User does not enough Robux to purchase this ad");
             // Start the ad
@@ -2603,8 +2668,8 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             await ValidatePermissions(targetId, contextUserId);
 
             // confirm exists & mod status is ok
-            var itemInfo = (await MultiGetAssetDeveloperDetails(new[] {targetId})).First();
-            if (!allowedAssetTypesForAdvertisements.Contains((Type) itemInfo.typeId))
+            var itemInfo = (await MultiGetAssetDeveloperDetails(new[] { targetId })).First();
+            if (!allowedAssetTypesForAdvertisements.Contains((Type)itemInfo.typeId))
             {
                 throw new RobloxException(RobloxException.BadRequest, 0, "Asset type not supported");
             }
@@ -2925,7 +2990,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         {
             id = assetId
         });
-        return result.Select(c => (long) c.asset_id);
+        return result.Select(c => (long)c.asset_id);
     }
 
     public async Task<long> CountFavorites(long assetId)
