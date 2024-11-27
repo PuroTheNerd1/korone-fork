@@ -2005,6 +2005,7 @@ namespace Roblox.Website.Controllers
             FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
             if (followedUserId == safeUserSession.userId)
                 throw new BadRequestException();
+            Console.WriteLine("Following user " + followedUserId);
             await services.friends.FollowerUser(safeUserSession.userId, followedUserId);
 
             return new
