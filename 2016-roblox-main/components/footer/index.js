@@ -1,42 +1,5 @@
 import { createUseStyles } from "react-jss";
-
-const useFooterStyles = createUseStyles({
-  text: {
-    color: '#B8B8B8',
-    fontSize: '12px',
-    fontWeight: '400',
-  },
-  text2: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  link: {
-    fontSize: '16px',
-    textAlign: 'center',
-    fontWeight: '500',
-    textDecoration: 'none',
-    '&:hover': {
-      color: '#191919',
-    },
-  },
-  footer: {
-    background: '#ffffff',
-
-  },
-  footerContainer: {
-    paddingTop: '5px',
-    paddingBottom: '20px',
-  },
-  footerRow: {
-    justifyContent: 'center',
-    marginTop: '20px',
-  },
-  lowerFooterContainer: {
-    marginTop: '32px',
-    borderTop: '1px solid #e3e3e3',
-    paddingTop: '24px',
-  },
-});
+import { getTheme, themeType } from "../../services/theme";
 
 const footerLinks = {
   '/about-us': 'About Us',
@@ -50,7 +13,7 @@ const footerLinks = {
 const useFooterStyles2 = createUseStyles({
   footerContainer:{
     padding: '12px',
-    background: '#fff',
+    background: p => p.theme === themeType.obc2016 ? '#393939' : '#fff',
     width: '100%',
     marginTop: '40px',
     boxShadow: '0 0 3px rgba(25, 25, 25, 0.3)',
@@ -86,11 +49,11 @@ const useFooterStyles2 = createUseStyles({
     '& a':{
       fontSize: '16px',
       fontWeight: '500',
-      color: '#b8b8b8',
+      color: p => p.theme === themeType.obc2016 ? '#5a5a5a' : '#b8b8b8',
       textDecoration: 'none',
       '&:hover':{
         textDecoration: 'none',
-        color: '#191919',
+        color: p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
       }
     }
   },
@@ -101,7 +64,7 @@ const useFooterStyles2 = createUseStyles({
     margin: '12px auto',
     textAlign: 'center',
     width: '78%',
-    color: '#b8b8b8',
+    color: p => p.theme === themeType.obc2016 ? '#5a5a5a' : '#b8b8b8',
     lineHeight: '1.5em',
     wordWrap: 'break-word',
     hyphens: 'none',
@@ -109,7 +72,7 @@ const useFooterStyles2 = createUseStyles({
 });
 
 const Footer = props => {
-  const s = useFooterStyles2();
+  const s = useFooterStyles2({ theme: getTheme() });
   return <footer className={s.footerContainer}>
     <div className={s.footer}>
       <ul className={s.footerLinks}>

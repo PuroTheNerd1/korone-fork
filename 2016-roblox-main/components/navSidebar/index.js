@@ -3,6 +3,7 @@ import { createUseStyles } from "react-jss";
 import AuthenticationStore from "../../stores/authentication";
 import NavigationStore from "../../stores/navigation";
 import LinkEntry from "./components/linkEntry";
+import { getTheme, themeType } from "../../services/theme";
 
 const useNavSideBarStyles = createUseStyles({
   container: {
@@ -13,7 +14,8 @@ const useNavSideBarStyles = createUseStyles({
   },
   card: {
     width: '175px',
-    background: '#fff',
+    background: p => p.theme === themeType.obc2016 ? '#393939' : '#fff',
+    color:  p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
     height: '100vh',
     paddingLeft: '10px',
     paddingRight: '10px',
@@ -30,11 +32,12 @@ const useNavSideBarStyles = createUseStyles({
     paddingTop: '8px',
     paddingBottom: '5px',
     marginBottom: 0,
-    color: '#1e1e1f',
+    color:  p => p.theme === themeType.obc2016 ? '#fff' : '#1e1e1f',
     textDecoration: 'none'
   },
   divider: {
     borderBottom: '1px solid #b8b8b8',
+    borderColor: p => p.theme === themeType.obc2016 ? 'rgba(255, 255, 255, 0.2)' : '#b8b8b8',
     height: '2px',
     width: '100%',
     marginTop: '5px',
@@ -65,7 +68,7 @@ const NavSideBar = props => {
     height: window.innerHeight,
     width: window.innerWidth
   })
-  const s = useNavSideBarStyles();
+  const s = useNavSideBarStyles({theme: getTheme()});
   useEffect(() => {
     window.addEventListener('resize', () => {
       setDimensions({
@@ -86,17 +89,17 @@ const NavSideBar = props => {
     <div className={s.card}>
       <a href={'/users/' + authStore.userId + '/profile'} className={s.username}>{authStore.username}</a>
       <div className={s.divider} />
-      <LinkEntry name='Home' url='/home' icon='icon-nav-home' />
-      <LinkEntry name='Profile' url={'/users/' + authStore.userId + '/profile'} icon='icon-nav-profile' />
-      <LinkEntry name='Messages' url='/My/Messages' icon='icon-nav-message' count={authStore.notificationCount.messages} />
-      <LinkEntry name='Friends' url={'/users/' + authStore.userId + '/friends'} icon='icon-nav-friends' count={authStore.notificationCount.friendRequests} />
-      <LinkEntry name='Character' url='/My/Character.aspx' icon='icon-nav-charactercustomizer' />
-      <LinkEntry name='Inventory' url={'/users/' + authStore.userId + '/inventory'} icon='icon-nav-inventory' />
-      <LinkEntry name='Trade' url='/My/Trades.aspx' icon='icon-nav-trade' count={authStore.notificationCount.trades} />
-      <LinkEntry name='Groups' url='/My/Groups.aspx' icon='icon-nav-group' />
-      <LinkEntry name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum' />
+      <LinkEntry theme={getTheme()} name='Home' url='/home' icon='icon-nav-home' />
+      <LinkEntry theme={getTheme()} name='Profile' url={'/users/' + authStore.userId + '/profile'} icon='icon-nav-profile' />
+      <LinkEntry theme={getTheme()} name='Messages' url='/My/Messages' icon='icon-nav-message' count={authStore.notificationCount.messages} />
+      <LinkEntry theme={getTheme()} name='Friends' url={'/users/' + authStore.userId + '/friends'} icon='icon-nav-friends' count={authStore.notificationCount.friendRequests} />
+      <LinkEntry theme={getTheme()} name='Character' url='/My/Character.aspx' icon='icon-nav-charactercustomizer' />
+      <LinkEntry theme={getTheme()} name='Inventory' url={'/users/' + authStore.userId + '/inventory'} icon='icon-nav-inventory' />
+      <LinkEntry theme={getTheme()} name='Trade' url='/My/Trades.aspx' icon='icon-nav-trade' count={authStore.notificationCount.trades} />
+      <LinkEntry theme={getTheme()} name='Groups' url='/My/Groups.aspx' icon='icon-nav-group' />
+      <LinkEntry theme={getTheme()} name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum' />
       {isStaff ? (
-        <LinkEntry name='Staff Panel' url='/admin' icon='icon-edit' count={69} />
+        <LinkEntry theme={getTheme()} name='Staff Panel' url='/admin' icon='icon-edit' count={69} />
       ) : null}
       <a href='/BuildersClub/Upgrade.ashx'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
     </div>

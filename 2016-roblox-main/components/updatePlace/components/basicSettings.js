@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
 import {updateAsset} from "../../../services/develop";
+import { getGameUrl } from "../../../services/games";
 /*
     public enum Genre
     {
@@ -173,6 +174,7 @@ const BasicSettings = props => {
 
           <ActionButton disabled={store.locked} className={s.normal + ' ' + s.cancelButton} label='Cancel' onClick={() => {
             resetForm();
+            window.location.href = getGameUrl({ placeId: store.placeId, name: 'placeholder' })
           }} />
         </div>
       </div>

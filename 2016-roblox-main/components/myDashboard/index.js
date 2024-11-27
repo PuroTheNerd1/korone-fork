@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { createUseStyles } from "react-jss";
+import { createUseStyles, useTheme } from "react-jss";
 //import getFlag from "../../lib/getFlag";
 import { getFriends } from "../../services/friends";
 import { getGameList, getGameSorts } from "../../services/games";
@@ -19,6 +19,7 @@ import Link from "../link";
 import ActionButton from "../actionButton";
 import useButtonStyles from "../../styles/buttonStyles";
 import GameRow from "../gameDetails/components/recommendations/GameRow";
+import { getTheme, themeType } from "../../services/theme";
 
 const useStyles = createUseStyles({
     containerHeader: {
@@ -29,6 +30,7 @@ const useStyles = createUseStyles({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingBottom: '5px',
+        color: p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
         '& h3': {
             fontSize: '24px',
             fontWeight: 300,
@@ -45,12 +47,17 @@ const useStyles = createUseStyles({
         paddingTop: '12px',
         margin: '0 auto',
         display: 'flex',
-        padding: 0,
+        '@media (max-width: 1682px)': {
+            paddingLeft: '185.5px',
+        },
         '@media (max-width: 1338px)': {
             maxWidth: '1154px',
+            marginLeft: '10px',
+            paddingLeft: '10.5px',
         },
         '@media (max-width: 1154px)': {
             maxWidth: '970px',
+            margin: '0 auto!important',
             padding: '0 5px',
         },
     },
@@ -61,6 +68,9 @@ const useStyles = createUseStyles({
         minHeight: '600px',
         float: 'left',
         '@media (max-width: 1358px)': {
+            opacity: 0,
+        },
+        '@media (max-width: 1324px)': {
             display: 'none'
         },
     },
@@ -132,7 +142,7 @@ const useStyles = createUseStyles({
         lineHeight: '1em',
         cursor: 'pointer',
         textDecoration: 'none!important',
-        color: 'inherit',
+        color: p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
     },
     friendSection: {
         minHeight: '1px',
@@ -214,7 +224,7 @@ const sorts = [{
 }]
 
 const MyDashboard = props => {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     const buttonStyles = useButtonStyles();
     const auth = AuthenticationStore.useContainer();
     const { friends, setFriends, friendStatus } = DashboardStore.useContainer();
@@ -264,7 +274,7 @@ const MyDashboard = props => {
         })
     }, []);
 
-    if (!friends || !auth.userId)
+    if (!auth.userId)
         return null;
 
     return <div className={`container ${s.container}`}>
@@ -300,7 +310,7 @@ const MyDashboard = props => {
                 <div className={`section-content`}>
                     <ul className={s.friendsList}>
                         {
-                            friends.map(v => {
+                            friends && friends.map(v => {
                                 return <FriendEntry key={v.id} {...v} />
                             })
                         }

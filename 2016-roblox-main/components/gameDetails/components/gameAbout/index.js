@@ -21,6 +21,7 @@ const useStyles = createUseStyles({
     textRendering: 'auto',
     fontWeight: '400',
     width: '100%',
+    fontFamily: 'Source Sans Pro,Arial,Helvetica,sans-serif',
   },
   allContainer: {
   },

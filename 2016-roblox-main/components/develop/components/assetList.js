@@ -12,6 +12,7 @@ import { getGameUrl, getLibraryItemUrl, isLibraryItem, shutdownPlaceServers } fr
 import { getAssetThumbnail, getUniverseIcon, multiGetUniverseIcons } from "../../../services/thumbnails";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
+import AudioPlayButton from "../../catalogDetailsPage/components/audioPlayButton";
 
 const useStyles = createUseStyles({
   image: {
@@ -42,6 +43,7 @@ const AssetEntry = props => {
   const buttonStyles = useButtonStyles();
   const thumbs = thumbnailStore.useContainer();
   const isPlace = props.assetType === 9;
+  const isAudio = props.assetType === 3;
   const isLibrary = isLibraryItem({ assetTypeId: props.assetType });
   const isAd = props.ad !== undefined && props.target !== undefined;
   const [thumbnail, setThumbnail] = useState('/img/placeholder/icon_one.png');
@@ -152,6 +154,7 @@ const AssetEntry = props => {
       <Link href={genericAssetURL}>
         <a href={genericAssetURL}>
           <img className={s.image} src={thumbnail} />
+          {isAudio && <AudioPlayButton small={true} audioId={imageAssetId} />}
         </a>
       </Link>
     </div>

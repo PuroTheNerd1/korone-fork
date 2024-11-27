@@ -50,10 +50,13 @@ const useDropdownStyles = createUseStyles({
     borderBottom: '1px solid #c3c3c3',
     width: '100%',
   },
+  selected: {
+    backgroundColor: '#cccccc!important'
+  },
 });
 /**
  * Ancient dropdown used for catalog page + other stuff
- * @param {{title: JSX.Element; onClick: (e: any, data: any) => void; items: {name: string; clickData: any; children?: {title: string; children?: {name: string; clickData: any;}[]}}[]}} props
+ * @param {{textClass?: string; selected?: any; title?: JSX.Element; onClick: (e: any, data: any) => void; items: {name: string; clickData: any; children?: {title: string; children?: {name: string; clickData: any;}[]}}[]}} props
  */
 const Dropdown = props => {
   const s = useDropdownStyles();
@@ -70,16 +73,17 @@ const Dropdown = props => {
     setLeftMenu(null);
   }}>
     <div className={s.wrapper} ref={wrapperRef}>
-      <div className={s.heading}>
+      {props.title && <div className={s.heading}>
         {props.title}
       </div>
+      }
       {leftMenu && <div ref={leftMenuRef} className={s.leftMenu} style={leftMenuStyles}>
         <h2 className={s.leftMenuTitle}>{leftMenu.title}</h2>
         <div className={s.separator}></div>
         {
           leftMenu.children.map(v => {
             return <div key={v.name} className={s.itemDiv}>
-              <p className={`mb-0 mt-0`} onClick={(e) => {
+              <p className={`mb-0 mt-0 ${props.textClass}`} onClick={(e) => {
                 props.onClick(e, v.clickData);
               }}>{v.name}</p>
             </div>
@@ -92,12 +96,12 @@ const Dropdown = props => {
             if (v.name === 'separator') {
               return <div key={'separator' + i} className={s.separator}></div>
             }
-            return <div key={v.name} className={s.itemDiv} onMouseEnter={() => {
+            return <div key={v.name} className={`${s.itemDiv} ${props.selected && props.selected === v.name ? s.selected : ''}`} onMouseEnter={() => {
               if (v.children) {
                 setLeftMenu(v.children);
               }
             }}>
-              <p className={`mb-0 mt-0`} onClick={(e) => {
+              <p className={`mb-0 mt-0`} style={{lineHeight: '1.7em'}} onClick={(e) => {
                 props.onClick(e, v.clickData);
               }}>{v.name} {v.children && <span className={s.caret}>►</span>}</p>
             </div>
