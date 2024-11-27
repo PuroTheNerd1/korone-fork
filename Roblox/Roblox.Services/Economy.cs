@@ -43,7 +43,7 @@ public class EconomyService : ServiceBase, IService
         */
         return result;
     }
-    
+
     public async Task<IAsyncDisposable> AcquireEconomyLock(CreatorType creatorType, long creatorId)
     {
         if (!Enum.IsDefined(creatorType))
@@ -70,7 +70,7 @@ public class EconomyService : ServiceBase, IService
                 });
         }
     }
-    
+
     private async Task<UserEconomy> GetGroupBalance(long groupId)
     {
         var result = await db.QuerySingleOrDefaultAsync<UserEconomy?>(
@@ -85,7 +85,7 @@ public class EconomyService : ServiceBase, IService
     {
         if (amount < 0)
             throw new ArgumentException("Amount must be zero or more");
-            
+
         await db.ExecuteAsync("UPDATE user_economy SET balance_robux = balance_robux + :amt WHERE user_id = :user_id",
             new
             {
@@ -93,7 +93,7 @@ public class EconomyService : ServiceBase, IService
                 amt = amount,
             });
     }
-    
+
     private async Task UnsafeIncrementUserTickets(long userId, long amount)
     {
         if (amount < 0)
@@ -105,7 +105,7 @@ public class EconomyService : ServiceBase, IService
                 amt = amount,
             });
     }
-    
+
     private async Task UnsafeDecrementUserRobux(long userId, long amount)
     {
         if (amount < 0)
@@ -117,7 +117,7 @@ public class EconomyService : ServiceBase, IService
                 amt = amount,
             });
     }
-    
+
     private async Task UnsafeDecrementUserTickets(long userId, long amount)
     {
         if (amount < 0)
@@ -129,7 +129,7 @@ public class EconomyService : ServiceBase, IService
                 amt = amount,
             });
     }
-    
+
     private async Task UnsafeIncrementGroupRobux(long groupId, long amount)
     {
         if (amount < 0)
@@ -141,7 +141,7 @@ public class EconomyService : ServiceBase, IService
                 amt = amount,
             });
     }
-    
+
     private async Task UnsafeIncrementGroupTickets(long groupId, long amount)
     {
         if (amount < 0)
@@ -153,7 +153,7 @@ public class EconomyService : ServiceBase, IService
                 amt = amount,
             });
     }
-    
+
     private async Task UnsafeDecrementGroupRobux(long groupId, long amount)
     {
         if (amount < 0)
@@ -165,7 +165,7 @@ public class EconomyService : ServiceBase, IService
                 amt = amount,
             });
     }
-    
+
     private async Task UnsafeDecrementGroupTickets(long groupId, long amount)
     {
         if (amount < 0)
@@ -183,7 +183,7 @@ public class EconomyService : ServiceBase, IService
     {
         await IncrementCurrency(CreatorType.User, userId, currency, amount);
     }
-    
+
     public async Task IncrementCurrency(CreatorType creatorType, long creatorId, CurrencyType currency, long amount)
     {
         long newBalance;
@@ -207,7 +207,7 @@ public class EconomyService : ServiceBase, IService
             if (creatorType == CreatorType.User)
             {
                 await UnsafeIncrementUserTickets(creatorId, amount);
-                newBalance = (await GetUserBalance(creatorId)).tickets;   
+                newBalance = (await GetUserBalance(creatorId)).tickets;
             }else if (creatorType == CreatorType.Group)
             {
                 await UnsafeIncrementGroupTickets(creatorId, amount);
@@ -226,13 +226,13 @@ public class EconomyService : ServiceBase, IService
         if (newBalance < 0)
             throw new Exception("After increment, new balance was less than zero: " + newBalance);
     }
-    
+
     [Obsolete("Use the overload with a creatorType instead")]
     public async Task DecrementCurrency(long userId, CurrencyType currency, long amount)
     {
         await DecrementCurrency(CreatorType.User, userId, currency, amount);
     }
-    
+
     public async Task DecrementCurrency(CreatorType creatorType, long creatorId, CurrencyType currency, long amount)
     {
         long newBalance = -1;
@@ -271,12 +271,12 @@ public class EconomyService : ServiceBase, IService
         {
             throw new NotImplementedException();
         }
-        
+
         if (newBalance < 0)
             throw new Exception("After increment, new balance was less than zero: " + newBalance);
     }
-    
-    
+
+
     [Obsolete("Use method with a CreatorType instead")]
     public async Task<IEnumerable<TransactionEntryDb>> GetTransactions(long userId, PurchaseType purchaseType, int limit, int offset)
     {
@@ -290,7 +290,7 @@ public class EconomyService : ServiceBase, IService
             "SELECT t.id, t.created_at as createdAt, t.user_id_two as userIdTwo, u.username, t.group_id_two as groupIdTwo, g.name as groupName, t.amount, t.currency_type as currency, t.type, t.sub_type as subType, t.asset_id as assetId, a.name as assetName, t.user_asset_id as userAssetId, t.old_username as oldUsername, t.new_username as newUsername FROM user_transaction AS t LEFT JOIN \"user\" u ON u.id = user_id_two LEFT JOIN asset a ON a.id = t.asset_id LEFT JOIN \"group\" g ON g.id = t.group_id_two /**where**/ /**orderby**/");
         return new Tuple<SqlBuilder, SqlBuilder.Template>(query, t);
     }
-    
+
     public async Task<IEnumerable<TransactionEntryDb>> GetTransactions(long creatorId, CreatorType creatorType, PurchaseType purchaseType, int limit, int offset)
     {
         var (query, template) = GetTransactionQuery();
@@ -318,7 +318,7 @@ public class EconomyService : ServiceBase, IService
         {
             throw new ArgumentException("Invalid creatorType");
         }
-        
+
         return await db.QueryAsync<TransactionEntryDb>(template.RawSql, template.Parameters);
     }
 
@@ -347,7 +347,7 @@ public class EconomyService : ServiceBase, IService
         {
             throw new ArgumentException("Invalid creatorType");
         }
-        
+
         return await db.QueryAsync<TransactionEntryDb>(template.RawSql, template.Parameters);
     }
 
@@ -382,7 +382,7 @@ public class EconomyService : ServiceBase, IService
 
         return model;
     }
-    
+
     public async Task<UserTransactionTotals> GetGroupTransactionTotals(long groupId, TimeSpan timeFrame)
     {
         var fullTime = DateTime.UtcNow.Subtract(timeFrame);
@@ -421,11 +421,11 @@ public class EconomyService : ServiceBase, IService
         {
             var balance = await GetBalance(creatorType, creatorId);
             //forgot to put the whitelist here too choke is whitelisted here
-            if (balance.robux < 100 && creatorId != 7)
+            if (balance.robux < 20 && creatorId != 7)
                 throw new LogicException(FailType.Unknown, 0, "Cannot charge user more than they own");
             if (creatorId != 7)
             {
-                await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 100);
+                await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 20);
                 await InsertTransaction(new AudioUploadTransaction(creatorType, creatorId));
             }
             return 0;
@@ -492,7 +492,7 @@ public class EconomyService : ServiceBase, IService
             });
         return result.total;
     }
-    
+
     public async Task<long> CountTransactionEarningsOfType(long userId, PurchaseType type, TransactionSubType? subType, TimeSpan period)
     {
         var dt = DateTime.UtcNow.Subtract(period);
@@ -515,8 +515,8 @@ public class EconomyService : ServiceBase, IService
             trx.GetDto());
         return (long)id.id;
     }
-    
-    
+
+
     public async Task InsertTransaction(params IEconomyTransaction[] transactions)
     {
         foreach (var trx in transactions)
@@ -524,7 +524,7 @@ public class EconomyService : ServiceBase, IService
             await InsertTransaction(trx);
         }
     }
-    
+
     public bool IsThreadSafe()
     {
         return false;

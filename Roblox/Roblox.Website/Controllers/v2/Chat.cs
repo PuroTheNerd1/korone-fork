@@ -120,7 +120,7 @@ public class ChatControllerV2 : ControllerBase
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
         await services.chat.StartTyping(request.conversationId, safeUserSession.userId);
     }
-    
+
     [HttpPost("send-message")]
     public async Task<dynamic> SendMessage([Required, FromBody] Dto.Chat.SendMessageRequest request)
     {
@@ -142,7 +142,7 @@ public class ChatControllerV2 : ControllerBase
         var ids = conversationIds.Split(",").Select(long.Parse).Distinct().ToArray();
         if (ids.Length == 0 || ids.Length > 100)
             throw new RobloxException(400, 0, "BadRequest");
-        
+
         var result = new List<dynamic>();
         foreach (var id in ids)
         {
@@ -180,9 +180,9 @@ public class ChatControllerV2 : ControllerBase
             throw new RobloxException(400, 0, "BadRequest");
         if (!await services.chat.IsUserInConversation(conversationId, safeUserSession.userId))
             throw new RobloxException(403, 0, "Forbidden");
-        
+
         var messages = await services.chat.GetLatestMessagesInConversation(conversationId, exclusiveStartMessageId, pageSize);
-        
+
         var response = new List<dynamic>();
         foreach (var message in messages)
         {

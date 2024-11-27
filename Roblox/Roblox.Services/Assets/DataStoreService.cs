@@ -15,20 +15,21 @@ public class DataStoreService : ServiceBase, IService
     {
         if (type == "sorted")
             return KeyType.Sorted;
-        
+
         if (string.IsNullOrWhiteSpace(type) || type == "standard")
             return KeyType.Standard;
         throw new ArgumentException("Invalid " + nameof(type));
     }
-    public async Task<IEnumerable<DataStoreEntry>> GetOrderedEntry(long placeId, string key, string scope)
+    public async Task<IEnumerable<DataStoreEntry>> GetOrderedEntry(long placeId, string key, string scope, int pageSize)
     {
         return await db.QueryAsync<DataStoreEntry>(
-            "SELECT id, value, name from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope ORDER BY updated_at DESC",
+            "SELECT id, value, name from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope ORDER BY updated_at DESC LIMIT :pageSize",
             new
             {
                 place_id = placeId,
                 key,
                 scope,
+                pageSize,
             });
     }
     public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
@@ -66,22 +67,22 @@ public class DataStoreService : ServiceBase, IService
             throw new Exception("ValueLength != value.length");
         if (valueLength > 1024 * 1024 * 1)
             throw new Exception("Value length limit exceeded, max 1MB");
-        
+
         // target is the data store target (e.g. would be "DS" in game:GetService("DataStoreService"):GetDataStore("DS")
         // key is the DS key
         // scope is either global or a custom scope - essentially a key prefix
-        
+
         //var t = ParseType(type);
         //if (t != KeyType.Standard)
             //return; // ignore for now
-        
+
         var uni = placeId == 0 ? 0 : await ServiceProvider.GetOrCreate<GamesService>().GetUniverseId(placeId);
 
         var entries = (await GetAllEntries(placeId, key, scope, target)).ToArray();
         await PurgeExpiredEntries(entries);
         if (entries.Length > 0 && entries[0].value == value)
             return; // No need to set
-        
+
         await db.ExecuteAsync(
             "INSERT INTO asset_datastore (asset_id, universe_id, scope, key, name, value) VALUES (:place_id, :universe_id, :scope, :key, :name, :value)",
             new
@@ -105,7 +106,7 @@ public class DataStoreService : ServiceBase, IService
         //}
 
         // Type can be "standard" or "sorted"
-        // long placeId, string type, string scope   
+        // long placeId, string type, string scope
         var ent = await GetAllEntries(placeId, key, scope, target);
         if (ent.Any())
         {
@@ -113,7 +114,7 @@ public class DataStoreService : ServiceBase, IService
         }
         return null;
     }
-    
+
     public bool IsThreadSafe()
     {
         return false;

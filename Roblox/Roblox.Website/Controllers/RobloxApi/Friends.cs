@@ -24,10 +24,87 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class Friends: ControllerBase
     {
+        [HttpGetBypass("my/friendsonline")]
+        public async Task<dynamic> GetFriendsOnline()
+        {
+            var result = await services.friends.GetFriends(safeUserSession.userId);
+            List<dynamic> onlineFriends = new List<dynamic>();
+            foreach (FriendEntry friend in result)
+            {
+                if (!friend.isOnline)
+                    continue;
+                var onlineStatus = (await services.users.MultiGetPresence(new[] { friend.id })).First();
+                onlineFriends.Add(new
+                {
+                    VisitorId = friend.id,
+                    GameId = onlineStatus.gameId,
+                    IsOnline = friend.isOnline,
+                    LastOnline = onlineStatus.lastOnline,
+                    LastLocation = onlineStatus.lastLocation,
+                    LocationType = (int)onlineStatus.userPresenceType,
+                    PlaceId = onlineStatus.placeId,
+                    UserName = friend.name,
+                });
+            }
+            return onlineFriends;
+        }
+        [HttpPostBypass("user/following-exists")]
+        [HttpGetBypass("user/following-exists")]
+        public async Task<dynamic> FollowingExists(long userId, long followerUserId)
+        {
+            return new
+            {
+                success = true,
+                data = "Success",
+                isFollowing = await services.friends.IsOneFollowingTwo(userId, followerUserId),
+            };
+        }
+        [HttpPost("user/unfollow")]
+        public async Task DeleteFollowingLegacy(long followedUserId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
+            await services.friends.DeleteFollowing(safeUserSession.userId, followedUserId);
+        }
+        [HttpPost("user/decline-friend-request")]
+        public async Task DeclineFriendRequestLegacy(long requesterUserId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
+            await services.friends.DeclineFriendRequest(safeUserSession.userId, requesterUserId);
+        }
+        [HttpGetBypass("user/request-friendship")]
+        [HttpPostBypass("user/request-friendship")]
+        public async Task<dynamic> RequestFriendshipLegacy(long recipientUserId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
+            if (safeUserSession.userId == recipientUserId)
+                throw new BadRequestException(7, "The user cannot be friends with itself");
+            await services.friends.RequestFriendship(safeUserSession.userId, recipientUserId);
+
+            return new
+            {
+                success = true,
+                isCaptchaRequired = false,
+            };
+        }
+        [HttpGetBypass("user/get-friendship-count")]
+        public async Task<dynamic> GetFriendsAmount(long? userId)
+        {
+            if (userId == null)
+            {
+                userId = safeUserSession.userId;
+            }
+            int amountFriends = await services.friends.CountFriends((long)userId);
+            return new
+            {
+                success = true,
+                message = "Success",
+                count = amountFriends
+            };
+        }
         [HttpGetBypass("v1/users/{userId}/friends/statuses")]
         public async Task<dynamic> MultiGetFriendshipStatus(string userIds)
         {
-            dynamic ids = null; 
+            dynamic ids = null;
             try
             {
                 ids = userIds.Split(",").Select(long.Parse).Distinct().ToList();
@@ -103,7 +180,7 @@ namespace Roblox.Website.Controllers
             if (safeUserSession.userId == userIdToRequest)
                 throw new BadRequestException(7, "The user cannot be friends with itself");
             await services.friends.RequestFriendship(safeUserSession.userId, userIdToRequest);
-            
+
             return new
             {
                 success = true,
@@ -166,7 +243,7 @@ namespace Roblox.Website.Controllers
                 count = result,
             };
         }
-        
+
         [HttpGetBypass("v1/users/{userId:long}/followings/count")]
         public async Task<dynamic> CountFollowings(long userId)
         {
@@ -207,7 +284,7 @@ namespace Roblox.Website.Controllers
                     });
                     continue;
                 }
-                
+
                 var isFollowing = await services.friends.IsOneFollowingTwo(userSession.userId, userId);
                 result.Add(new
                 {
@@ -215,7 +292,7 @@ namespace Roblox.Website.Controllers
                     userId,
                 });
             }
-            
+
             return new
             {
                 followings = result,
