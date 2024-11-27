@@ -83,6 +83,7 @@ namespace Roblox.Website.Controllers
             return new
             {
                 success = true,
+                message = "Success",
                 isCaptchaRequired = false,
             };
         }
