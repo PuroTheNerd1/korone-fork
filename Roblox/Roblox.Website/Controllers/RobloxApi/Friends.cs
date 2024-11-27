@@ -31,6 +31,8 @@ namespace Roblox.Website.Controllers
             List<dynamic> onlineFriends = new List<dynamic>();
             foreach (FriendEntry friend in result)
             {
+                if (!friend.isOnline)
+                    continue;
                 var onlineStatus = (await services.users.MultiGetPresence(new[] { friend.id })).First();
                 onlineFriends.Add(new
                 {
