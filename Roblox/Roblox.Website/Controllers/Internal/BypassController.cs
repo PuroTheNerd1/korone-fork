@@ -2060,74 +2060,7 @@ namespace Roblox.Website.Controllers
             string jsonString = JsonConvert.SerializeObject(jsonData);
             return Content(jsonString, "application/json");
         }
-        [HttpPostBypass("user/following-exists")]
-        [HttpGetBypass("user/following-exists")]
-        public async Task<dynamic> FollowingExists(long userId, long followerUserId)
-        {
-            var result = new List<dynamic>();
-                if (userSession is null)
-                {
-                    result.Add(new
-                    {
-                        isFollowing = false,
-                        userId,
-                    });
-                }
 
-                var isFollowing = await services.friends.IsOneFollowingTwo(safeUserSession.userId, followerUserId);
-                result.Add(new
-                {
-                    isFollowing,
-                    userId,
-                });
-
-            return new
-            {
-                followings = result,
-            };
-        }
-        [HttpPost("user/unfollow")]
-        public async Task DeleteFollowing(long followedUserId)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            await services.friends.DeleteFollowing(safeUserSession.userId, followedUserId);
-        }
-        [HttpPost("user/decline-friend-request")]
-        public async Task DeclineFriendRequest(long requesterUserId)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
-            await services.friends.DeclineFriendRequest(safeUserSession.userId, requesterUserId);
-        }
-        [HttpGetBypass("user/request-friendship")]
-        [HttpPostBypass("user/request-friendship")]
-        public async Task<dynamic> RequestFriendship(long recipientUserId)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
-            if (safeUserSession.userId == recipientUserId)
-                throw new BadRequestException(7, "The user cannot be friends with itself");
-            await services.friends.RequestFriendship(safeUserSession.userId, recipientUserId);
-
-            return new
-            {
-                success = true,
-                isCaptchaRequired = false,
-            };
-        }
-        [HttpGetBypass("user/get-friendship-count")]
-        public async Task<dynamic> GetFriendsAmount(long? userId)
-        {
-            if(userId == null)
-            {
-                userId = safeUserSession.userId;
-            }
-            int amountFriends = await services.friends.CountFriends((long)userId);
-            return new
-            {
-                success = true,
-                message = "Success",
-                count = amountFriends
-            };
-        }
         [HttpGetBypass("/asset/getyear")]
         public async Task<dynamic> GetPlaceYear(long placeId)
         {
