@@ -10,7 +10,7 @@ const useLogoStyles = createUseStyles({
     backgroundImage: `url(/img/roblox_logo.svg)`,
     backgroundSize: '118px 30px',
     display: 'none',
-    '@media(min-width: 1301px)': {
+    '@media(min-width: 1325px)': {
       display: 'block',
     },
     backgroundRepeat: 'no-repeat',
@@ -26,7 +26,7 @@ const useLogoStyles = createUseStyles({
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
     marginLeft: '6px',
-    '@media(min-width: 1301px)': {
+    '@media(min-width: 1325px)': {
       display: 'none',
     },
   },
@@ -40,7 +40,7 @@ const useLogoStyles = createUseStyles({
     display: 'flex',
     justifyContent: 'start',
     alignItems: 'center',
-    '@media(max-width: 1300px)': {
+    '@media(max-width: 1324px)': {
       margin: '0 6px',
       width: 'auto',
     },
@@ -52,7 +52,7 @@ const useLogoStyles = createUseStyles({
   },
   openSideNavMobile: {
     display: 'none',
-    '@media(max-width: 1300px)': {
+    '@media(max-width: 1324px)': {
       display: 'block',
       float: 'left',
       height: '30px',

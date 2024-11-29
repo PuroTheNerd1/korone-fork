@@ -72,7 +72,7 @@ const Games = props => {
       // @ts-ignore
       sortToken: query.sortFilter,
     });
-  }, [store.genreFilter]);
+  }, [store.genreFilter, query.sortFilter, query.keyword]);
 
   // if (!store.sorts || !store.games || !store.icons) return null;
   return <div className={'row ' + (auth.isAuthenticated ? s.authContainer : '')}>

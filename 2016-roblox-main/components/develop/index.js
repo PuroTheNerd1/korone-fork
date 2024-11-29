@@ -1,9 +1,10 @@
 import React, {useEffect, useReducer, useState} from "react";
 import { createUseStyles } from "react-jss";
 import AdBanner from "../ad/adBanner";
-import OldVerticalTabs from "../oldVerticalTabs";
+import OldVerticalTabs from "../oldVerticalTabs2";
 import CreationsTab from './components/creationsTab';
 import NotAvailable from "./components/notAvailable";
+import Library from "./components/library"
 import authentication from "../../stores/authentication";
 import {getPermissionsForRoleset, getUserGroups} from "../../services/groups";
 
@@ -46,6 +47,7 @@ const Develop = props => {
           rolesetId: v.role.id,
         }).then(roleData => {
           if (roleData.permissions.groupEconomyPermissions.manageGroupGames) {
+            // @ts-ignore
             dispatchGroups({
               action: 'ADD',
               group: v.group,
@@ -67,16 +69,19 @@ const Develop = props => {
   useEffect(() => {
     let defaultOpts = [
       {
-        name: 'My Creations',
+        name: 'MyCreations',
+        displayName: 'My Creations',
         element: <CreationsTab id={props.id} />,
       },
       {
-        name: 'Group Creations',
+        name: 'GroupCreations',
+        displayName: 'Group Creations',
         element: <CreationsTab id={props.id} group={true} groupId={groupId} groups={groups} setGroupId={setGroupId} />,
       },
       {
         name: 'Library',
-        element: <NotAvailable />,
+        displayName: 'Library',
+        element: <Library />,
       },
       /*{
         name: 'Developer Exchange',

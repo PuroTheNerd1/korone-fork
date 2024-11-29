@@ -179,7 +179,7 @@ const CatalogDetails = props => {
             <div className='row'>
               <div className='col-12 col-md-6 col-lg-5'>
                 <ItemImage id={details.id} name={details.name}/>
-                {store.details.assetType === 3 ? <AudioPlayButton /> : null}
+                {store.details.assetType === 3 ? <AudioPlayButton audioId={details.id} /> : null}
                 {isLimitedUnique && <LimitedUniqueOverlay/> || isLimited && <LimitedOverlay/> || null}
               </div>
               <div className='col-12 col-md-6 col-lg-4'>

@@ -46,7 +46,12 @@ const useSuggestionEntryStyles = createUseStyles({
 
 const SearchSuggestionEntry = props => {
   const s = useSuggestionEntryStyles();
-  return <a className={s.link + ' '} href={`${props.url}?keyword=${encodeURIComponent(props.query)}`}>
+  var url = `${props.url}?keyword=${encodeURIComponent(props.query)}`
+
+  if (props.gay)
+    url = props.url;
+
+  return <a className={s.link + ' '} href={url}>
     <p className={s.text}>
       Search "{props.query}" in {props.mode}
     </p>
@@ -72,11 +77,11 @@ const SearchSuggestionContainer = props => {
   }, [input.clientWidth]);
   const s = useSuggestionStyles();
   return <div className={s.container} style={{ width: input.clientWidth + 'px' }}>
-    <SearchSuggestionEntry mode='Catalog' url='/catalog' query={props.query}></SearchSuggestionEntry>
-    <SearchSuggestionEntry mode='People' url='/search/users' query={props.query}></SearchSuggestionEntry>
-    <SearchSuggestionEntry mode='Games' url='/games' query={props.query}></SearchSuggestionEntry>
-    <SearchSuggestionEntry mode='Groups' url='/My/Groups.aspx' query={props.query}></SearchSuggestionEntry>
-    <SearchSuggestionEntry mode='Library' url='/' query={props.query}></SearchSuggestionEntry>
+    <SearchSuggestionEntry mode='Catalog' url='/catalog' query={props.query} />
+    <SearchSuggestionEntry mode='People' url='/search/users' query={props.query} />
+    <SearchSuggestionEntry mode='Games' url='/games' query={props.query} />
+    <SearchSuggestionEntry mode='Groups' url='/My/Groups.aspx' query={props.query} />
+    <SearchSuggestionEntry gay={true} mode='Library' url={`/develop?keyword=${encodeURIComponent(props.query)}#library`} query={props.query} />
   </div>
 }
 

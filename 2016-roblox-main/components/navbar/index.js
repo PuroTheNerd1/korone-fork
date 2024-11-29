@@ -14,7 +14,8 @@ const useNavBarStyles = createUseStyles({
     backgroundColor: p => p.theme === themeType.obc2016 ? '#393939' : '#0074BD',
     paddingTop: '0!important',
     paddingBottom: '0!important',
-    display: 'block'
+    display: 'block',
+    boxShadow: '0 3px 3px -3px rgba(25, 25, 25, 0.3)',
   },
   navContainer: {
     maxWidth: '100%!important',

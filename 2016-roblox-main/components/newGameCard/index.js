@@ -391,9 +391,9 @@ const NewGameCard = props => {
 
     return <li className={`${s.listItem} ${props.className} ${width}`}
     >
-        <div className={s.gameCardContainer} onMouseEnter={hoverEnable} onMouseLeave={hoverDisable}>
+        <div className={s.gameCardContainer} onTouchStart={hoverEnable} onTouchEnd={hoverDisable} onMouseEnter={hoverEnable} onMouseLeave={hoverDisable}>
             <Link href={url}>
-                <a href={url} className={s.gameCardLink} onMouseEnter={linkHoverEnable} onMouseLeave={linkHoverDisable}>
+                <a href={url} className={s.gameCardLink} onTouchStart={linkHoverEnable} onTouchEnd={linkHoverDisable} onMouseEnter={linkHoverEnable} onMouseLeave={linkHoverDisable}>
                     <div className={`${s.gameCardThumbContainer} ${thumbnail}`}>
                         {/*<div>
                         <div className={s.triangleRight}></div>

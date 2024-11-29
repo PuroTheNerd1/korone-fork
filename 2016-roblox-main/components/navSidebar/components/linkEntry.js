@@ -1,5 +1,7 @@
 import { createUseStyles } from "react-jss";
 import Link from "../../link";
+import { themeType } from "../../../services/theme";
+import { useState } from "react";
 
 const formatCount = num => {
   if (num > 99) return '99+';
@@ -10,12 +12,15 @@ const useStyles = createUseStyles({
   linkEntry: {
     marginBottom: '0',
     paddingTop: '5px',
+    color: 'inherit',
   },
   name: {
     fontSize: '16px',
     verticalAlign: 'middle',
+    color: 'inherit',
   },
   wrapper: {
+    color: 'inherit!important',
     '&:hover': {
       cursor: 'pointer',
     },
@@ -33,23 +38,34 @@ const useStyles = createUseStyles({
     borderRadius: '10px',
     padding: '2px 7px',
   },
+  icon: {
+    filter: p => p.theme === themeType.obc2016 ? 'invert(100%)' : 'none',
+  },
+  iconNoFilter: {
+    filter: 'none!important',
+  },
 });
 
 /**
  * Nav sidebar link entry
- * @param {{count?: number; name: string; icon: string; url: string;}} props 
+ * @param {{count?: number; name: string; icon: string; url: string; theme: any;}} props 
  * @returns 
  */
 const LinkEntry = props => {
-  const s = useStyles();
+  const s = useStyles({ theme: props.theme });
+  const [hover, setHover] = useState(false);
+
   return <Link href={props.url}>
-    <a className={s.link}>
-      <div className={s.wrapper + ' hover-' + props.icon}>
+    <a className={s.link} style={{ color: 'inherit' }}>
+      <div className={s.wrapper + ' hover-' + props.icon}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+      >
         <p className={s.linkEntry}>
-          <span className={props.icon}></span> <span className={s.name}>{props.name}</span>
+          <span className={`${props.icon} ${s.icon} ${hover ? s.iconNoFilter : null}`}></span> <span className={s.name}>{props.name}</span>
           {props.count && <span className={s.countWrapper}>
-          <span className={s.count}>{formatCount(props.count)}</span>
-        </span> || null}
+            <span className={s.count}>{formatCount(props.count)}</span>
+          </span> || null}
         </p>
       </div>
     </a>

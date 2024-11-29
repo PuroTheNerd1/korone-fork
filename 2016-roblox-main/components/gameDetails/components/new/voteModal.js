@@ -25,7 +25,7 @@ const VoteModal = props => {
     </div>
     <div className='col-8 offset-2'>
       <div className={s.buttonsWrapper}>
-        <div className='row'>
+        <div className='row' style={{justifyContent: 'center', alignItems: 'center'}}>
           <div className='col-4 ps-1 pe-0'>
             <ActionButton className={buttonStyles.cancelButton} onClick={() => {
               props.onClose();

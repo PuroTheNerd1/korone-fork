@@ -303,7 +303,7 @@ const LoggedInArea = (props) => {
               url: '/help',
             },
             {
-              name: 'Logout',
+              name: 'Logout (unlike Solario, we give you the choice!)',
               onClick: (e) => {
                 if (e)
                   e?.preventDefault();

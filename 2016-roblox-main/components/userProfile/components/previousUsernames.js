@@ -7,27 +7,49 @@ const useStyles = createUseStyles({
   body: {
     fontWeight: 300,
     marginBottom: 0,
-    fontSize: '16px',
-    padding: '15px 20px',
+    fontSize: '12px',
+    padding: '10px 20px',
   },
   previousNamesLabel: {
-    fontSize: '18px',
+    fontSize: '12px',
+    fontWeight: 500,
     cursor: 'pointer',
     userSelect: 'none',
+    color: '#b8b8b8',
+  },
+  span: {
+    color: 'inherit',
   },
   icon: {
-
+    backgroundSize: '40px auto',
+    width: '20px',
+    height: '20px',
+    backgroundPosition: '0 -780px',
+    opacity: '.5',
+    '&:hover': {
+      cursor: 'pointer',
+      backgroundPosition: '-20px -780px',
+    }
   },
   previousNamesToolTip: {
     position: 'absolute',
+    display: 'flex',
+    flexDirection: 'column',
     width: '150px',
     padding: '4px 8px',
     background: 'rgba(0,0,0,0.65)',
     zIndex: 99,
+    overflow: "visible",
+    transition: 'opacity .15s linear',
+    opacity: 0,
+  },
+  opacity: {
+    opacity: 1,
   },
   previousName: {
     color: '#fff',
     marginBottom: 0,
+    display: 'flex',
   },
 });
 
@@ -36,6 +58,7 @@ const PreviousUsernames = props => {
   const [hasTouchScreen] = useState(isTouchDevice());
   const s = useStyles();
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [clickTipOpen, setClickTipOpen] = useState(false);
 
   const onMouseEnter = () => {
     if (hasTouchScreen) return;
@@ -48,17 +71,20 @@ const PreviousUsernames = props => {
   }
 
   const onClick = () => {
-    if (!hasTouchScreen) return;
-    setTooltipOpen(!tooltipOpen);
+    if (hasTouchScreen) return;
+    setClickTipOpen(!clickTipOpen);
   }
 
   if (store.previousNames === null || store.previousNames.length === 0) return null;
-  const requiredHeight = store.previousNames.length * 19.41;
+
+  console.log(clickTipOpen)
+  console.log(tooltipOpen)
+
   return <div>
     <p className={s.previousNamesLabel + ' ' + s.body}>
-      <span onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={onClick}><span className={'icon-pastname ' + s.icon} /> Previous Names</span>
+      <span className={s.span} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={onClick}><span className={'icon-pastname ' + s.icon} /> Past usernames</span>
     </p>
-    {tooltipOpen && <div style={{ height: requiredHeight }} className={s.previousNamesToolTip + ' truncate'}>{store.previousNames.map((v, i) => <p key={i} className={s.previousName}>{v}</p>)}</div>}
+    <div className={`${s.previousNamesToolTip} truncate ${tooltipOpen || clickTipOpen ? s.opacity : null}`}>{store.previousNames.map((v, i) => <p key={i} className={s.previousName}>{v}</p>)}</div>
   </div>
 }
 
