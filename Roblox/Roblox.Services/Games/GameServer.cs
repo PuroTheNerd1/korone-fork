@@ -616,10 +616,7 @@ public class GameServerService : ServiceBase
         {
             return result.Value;
         }
-        else
-        {
-            throw new Exception("Port not found or NULL.");
-        }
+        throw new Exception("Port not found or NULL.");
     }
     public async Task<string?> GetJobIdByUserId(long userId)
     {
