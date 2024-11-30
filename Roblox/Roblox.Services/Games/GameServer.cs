@@ -123,7 +123,12 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerJoin(long userId, long placeId, string serverId)
     {
-        CurrentPlayersInGame.Add(userId, placeId);
+        lock (CurrentPlayersInGame)
+        {
+            CurrentPlayersInGame.Remove(userId);
+            CurrentPlayersInGame.Add(userId, placeId);
+        }
+
         await db.ExecuteAsync(
             "INSERT INTO asset_server_player (asset_id, user_id, server_id) VALUES (:asset_id, :user_id, :server_id::uuid)",
             new
@@ -186,7 +191,11 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerLeave(long userId, long placeId, string serverId)
     {
-        CurrentPlayersInGame.Remove(userId);
+        lock (CurrentPlayersInGame)
+        {
+            CurrentPlayersInGame.Remove(userId);
+        }
+
         await db.ExecuteAsync(
             "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
             {

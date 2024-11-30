@@ -71,7 +71,7 @@ namespace Roblox.Website.Controllers
             FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
             await services.friends.DeclineFriendRequest(safeUserSession.userId, requesterUserId);
         }
-        [HttpGetBypass("user/request-friendship")]
+
         [HttpPostBypass("user/request-friendship")]
         public async Task<dynamic> RequestFriendshipLegacy(long recipientUserId)
         {
@@ -83,6 +83,7 @@ namespace Roblox.Website.Controllers
             return new
             {
                 success = true,
+                message = "Success",
                 isCaptchaRequired = false,
             };
         }
