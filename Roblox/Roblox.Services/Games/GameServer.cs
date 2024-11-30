@@ -387,10 +387,9 @@ public class GameServerService : ServiceBase
     }
     public async Task SetServerGSFPS(string serverId, long fps)
     {
-        long roundedFps = (long)Math.Round((double)fps);
         await db.ExecuteAsync("UPDATE asset_server SET fps = :GSFPS WHERE id = :id::uuid", new
         {
-            GSFPS = roundedFps,
+            GSFPS = (long)Math.Round((double)fps),
             id = serverId,
         });
     }
