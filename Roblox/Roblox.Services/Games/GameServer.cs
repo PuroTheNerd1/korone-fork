@@ -125,6 +125,7 @@ public class GameServerService : ServiceBase
     {
         lock (CurrentPlayersInGame)
         {
+            CurrentPlayersInGame.Remove(userId);
             CurrentPlayersInGame.Add(userId, placeId);
         }
 
@@ -190,7 +191,11 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerLeave(long userId, long placeId, string serverId)
     {
-        CurrentPlayersInGame.Remove(userId);
+        lock (CurrentPlayersInGame)
+        {
+            CurrentPlayersInGame.Remove(userId);
+        }
+
         await db.ExecuteAsync(
             "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
             {
