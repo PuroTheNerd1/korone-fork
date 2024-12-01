@@ -421,7 +421,7 @@ public class EconomyService : ServiceBase, IService
         {
             var balance = await GetBalance(creatorType, creatorId);
             //forgot to put the whitelist here too choke is whitelisted here
-            if (balance.robux < 20 && creatorId != 7)
+            if (balance.robux < 20)
                 throw new LogicException(FailType.Unknown, 0, "Cannot charge user more than they own");
             if (creatorId != 7)
             {
