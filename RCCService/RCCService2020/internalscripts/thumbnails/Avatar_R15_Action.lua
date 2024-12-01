@@ -16,6 +16,9 @@ player:LoadCharacterBlocking()
 ThumbnailGenerator:AddProfilingCheckpoint("PlayerCharacterLoaded")
 
 local poseAnimationId = "http://www.roblox.com/asset/?id=532421348"
+if characterAppearanceUrl == baseUrl .. "/v1.1/avatar-fetch?placeId=0&userId=68" then
+    poseAnimationId = "http://www.roblox.com/asset/?id=657595757"
+end
 
 local function getJointBetween(part0, part1)
     for _, obj in pairs(part1:GetChildren()) do
