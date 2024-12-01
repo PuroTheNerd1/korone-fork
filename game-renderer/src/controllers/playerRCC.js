@@ -12,7 +12,7 @@ export const RequestAvatarThumbnail = async (req, res) => {
     try {
         const schema = joi.object({
             userId: joi.number().required().integer(),
-            jobExpiration: joi.number().required().max(60).integer(),
+            jobExpiration: joi.number().max(60).default(20).integer(),
         })
         const { error } = schema.validate(req.body)
         if (error) {
