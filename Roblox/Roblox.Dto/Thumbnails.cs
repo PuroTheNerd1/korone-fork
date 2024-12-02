@@ -13,7 +13,7 @@ public class ThumbnailEntry
 }
 public class ThumbnailEntryRBX
 {
-    public long targetId { get; set; }
+    //public long targetId { get; set; }
     public long TargetId { get; set; }
     public ThumbnailState State { get; set; }
     public string? Url { get; set; }
