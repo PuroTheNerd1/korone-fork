@@ -27,14 +27,35 @@ public class UniverseV1 : ControllerBase
         };
     }
 
+    [HttpGetBypass("universes/get-universe-places")]
+    public async Task<dynamic> GetPlaces(long universeId)
+    {
+        var place = await services.games.GetRootPlaceId(universeId);
+        var placeInfo = await services.assets.GetAssetCatalogInfo(place);
+        return new
+        {
+            FinalPage = true,
+            RootPlace = place,
+            Places = new List<dynamic>
+            {
+                new
+                {
+                    PlaceId = place,
+                    Name = placeInfo.name,
+                }
+            },
+            PageSize = 50
+        };
+    }
+
     [HttpGetBypass("developerproducts/list")]
     public dynamic GetDeveloperProducts()
     {
         return new
         {
-            DeveloperProducts = new List<string>(),
             FinalPage = true,
-            PageSize = 1000
+            DeveloperProducts = new List<string>(),
+            PageSize = 50
         };
     }
 
@@ -43,9 +64,9 @@ public class UniverseV1 : ControllerBase
     {
         return new
         {
-            Aliases = new List<string>(),
             FinalPage = true,
-            PageSize = 1000
+            Aliases = new List<string>(),
+            PageSize = 50
         };
     }
 

@@ -1869,23 +1869,7 @@ namespace Roblox.Website.Controllers
                 isAdminDeveloperConsoleEnabled = (canManagePlace || isOwner)
             };
         }
-        [HttpGetBypass("universes/get-universe-places")]
-        public async Task<dynamic> GetPlaces(long universeId)
-        {
-            var place = await services.games.GetRootPlaceId(universeId);
-            var placeInfo = await services.assets.GetAssetCatalogInfo(place);
-            return new
-            {
-                FinalPage = true,
-                RootPlace = place,
-                Places = new
-                {
-                    PlaceId = place,
-                    Name = placeInfo.name,
-                },
-                PageSize = 50
-            };
-        }
+
 
         [HttpGetBypass("game/validate-place-join")]
         [HttpPostBypass("universes/validate-place-join")]
