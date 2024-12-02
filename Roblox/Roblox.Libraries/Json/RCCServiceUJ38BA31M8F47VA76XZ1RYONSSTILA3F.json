@@ -1,6 +1,6 @@
 {
-  "FFlagDebugRCCServerConfigurerEnabled": "False",
-  "DFFlagDebugRCCServerConfigurerEnabled": "False",
+  "FFlagDebugRCCServerConfigurerEnabled": "True",
+  "DFFlagDebugRCCServerConfigurerEnabled": "True",
   "FFlagRCCUseBundledMonitoringScript": "True",
   "DFFlagRCCUseBundledMonitoringScript": "True",
   "FFlagCoreScriptShowVisibleAgeV2": "True",
