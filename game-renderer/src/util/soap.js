@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
+import conf from './config.js';
 
 export const soap = (baseUrl, jobExpiration, finalScript) => {
     return `
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rob="http://projex.zip/">
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rob="${conf.baseUrl}">
    <soapenv:Header/>
    <soapenv:Body>
       <rob:BatchJob>

@@ -22,12 +22,12 @@ export const RequestHatThumbnail = async (req, res) => {
         }
 
         var { assetId, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 15 }
+        if (jobExpiration == undefined) { jobExpiration = 20 }
         const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
 
         const xml = JSON.parse(JSON.stringify(HatTemplate));
         xml.Settings.Arguments[0] = assetUrl;
-        xml.Settings.Arguments[5] = conf.baseUrl;
+        xml.Settings.Arguments[4] = conf.baseUrl;
 
         const response = await request({
             RCC: port,
