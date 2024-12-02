@@ -28,13 +28,12 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGetBypass("universes/get-aliases")]
-    public async Task<dynamic> GetAliases(long universeId)
+    public dynamic GetAliases(long universeId)
     {
-
         return new
         {
             FinalPage = true,
-            Aliases = (List<object>?)null,
+            Aliases = new List<string>(),
             PageSize = 50
         };
     }
