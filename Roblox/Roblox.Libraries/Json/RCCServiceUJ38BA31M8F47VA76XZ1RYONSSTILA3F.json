@@ -1500,5 +1500,6 @@
   "VerifyIncomingFriendRequestsBeforeNotifying": "False",
   "DFFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
   "DFFlagUS27664p3": "False",
+  "FFlagDebugLocalRccServerConnection": "False",
   "DFFlagRCCSupportCloudEdit": "True"
 }
