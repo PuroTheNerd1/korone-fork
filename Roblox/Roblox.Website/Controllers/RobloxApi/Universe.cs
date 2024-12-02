@@ -27,6 +27,15 @@ public class UniverseV1 : ControllerBase
         };
     }
     [HttpGetBypass("developerproducts/list")]
+    public dynamic GetDeveloperProducts(long universeId)
+    {
+        return new
+        {
+            FinalPage = true,
+            DeveloperProducts = new List<string>(),
+            PageSize = 50
+        };
+    }
     [HttpGetBypass("universes/get-aliases")]
     public dynamic GetAliases(long universeId)
     {
