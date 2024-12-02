@@ -1857,39 +1857,7 @@ namespace Roblox.Website.Controllers
             };
         }
 
-        /*
-        [HttpGetBypass("universes/get-aliases")]
-        public async Task<dynamic> GetAliases(long universeId)
-        {
 
-            return new
-            {
-                FinalPage = true,
-                Aliases = new[]
-                {
-                    new
-                    {
-                        Name = "Test",
-                        Type = (int)Models.Assets.Type.Hat,
-                        TargetId = 164,
-                        Asset = new
-                        {
-                            Id = 164,
-                            TypeId = (int)Models.Assets.Type.Hat,
-                            Name = "Name",
-                            Description = "Name",
-                            CreatorType = (int)CreatorType.User,
-                            CreatorTargetId = 1,
-                            Created = "2017-03-31T12:16:46.547",
-                            Updated = "2017-03-31T12:16:46.547",
-                        },
-                        Version = 0,
-                    }
-                },
-                PageSize = 50
-            };
-        }
-        */
         [HttpGetBypass("v1/user/{userId:long}/is-admin-developer-console-enabled")]
         public async Task<dynamic> NewCanManage(long userId)
         {
