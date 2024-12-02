@@ -11,6 +11,23 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class CustomerSupport : ControllerBase
     {
+        // TODO: Finish this
+        [BotAuthorization]
+        [HttpGetBypass("bot/claimboost")]
+        public async Task<dynamic> ClaimBoost(string discordId)
+        {
+            var userInfo = await services.users.GetUserByDiscordId(discordId);
+            //bool isOwned = await services.users.GetUserAssets(userInfo.userId, assetId).Any();
+            if (true)
+            {
+                return new
+                {
+                    success = false,
+                    message = "You already claimed your booster rewards.",
+                };
+            }
+            return "a";
+        }
         [BotAuthorization]
         [HttpGetBypass("bot/resetpassword")]
         public async Task<dynamic> ResetPassword(string discordId, long userId)

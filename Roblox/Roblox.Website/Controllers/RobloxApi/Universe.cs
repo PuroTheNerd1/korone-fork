@@ -11,6 +11,22 @@ namespace Roblox.Website.Controllers;
 [Route("")]
 public class UniverseV1 : ControllerBase
 {
+
+    [HttpGet("universes/get-info")]
+    public async Task<dynamic> GetUniverseInfo(long universeId)
+    {
+        var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
+        return new
+        {
+            Name = uni.name,
+            Description = uni.description,
+            RootPlace = uni.rootPlaceId,
+            StudioAccessToApisAllowed = true,
+            CurrentUserHasEditPermissions = uni.creatorId == safeUserSession.userId,
+            UniverseAvatarType = uni.universeAvatarType,
+        };
+    }
+
     [HttpGet("v1/gametemplates")]
     public dynamic StudioTemplates()
     {
@@ -38,6 +54,7 @@ public class UniverseV1 : ControllerBase
         string json = JsonConvert.SerializeObject(data);
         return Content(json, "application/json");
     }
+
     [HttpGet("v1/search/universes")]
     public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames()
     {
