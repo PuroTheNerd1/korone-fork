@@ -23,7 +23,7 @@ public class ThumbnailsService : ServiceBase, IService
     {
         var query = (await db.QueryAsync<Dto.Assets.AssetIdWithType>(
             "SELECT asset.id as assetId, asset.asset_type as assetType FROM asset INNER JOIN asset_thumbnail at on asset.id = at.asset_id WHERE (select asset_version.updated_at from asset_version where asset_id = asset.id ORDER BY id DESC LIMIT 1) > at.updated_at AND asset_type = 9")).ToArray();
-        Writer.Info(LogGroup.FixBrokenThumbnails, "There are {0} out of date places",query.Length);
+        Writer.Info(LogGroup.FixBrokenThumbnails, "There are {0} out of date places", query.Length);
         return query;
     }
 
@@ -52,7 +52,7 @@ public class ThumbnailsService : ServiceBase, IService
                     Models.Assets.Type.BackAccessory,
                     Models.Assets.Type.WaistAccessory,
                     Models.Assets.Type.Image,
-                    
+
                     Models.Assets.Type.Face,
                     //Models.Assets.Type.Place,
                     Models.Assets.Type.Mesh,
@@ -65,11 +65,11 @@ public class ThumbnailsService : ServiceBase, IService
         response.AddRange(query);
         return response;
     }
-    
+
     public async Task<IEnumerable<ThumbnailEntry>> GetUserHeadshots(IEnumerable<long> userIds)
     {
         var ids = userIds.Distinct().ToList();
-        if (ids.Count == 0) 
+        if (ids.Count == 0)
             return Array.Empty<ThumbnailEntry>();
         var query = new SqlBuilder();
         var t = query.AddTemplate(
@@ -102,7 +102,7 @@ public class ThumbnailsService : ServiceBase, IService
             return c;
         });
     }
-    
+
     public async Task<IEnumerable<ThumbnailEntry>> GetAssetThumbnails(IEnumerable<long> userIds)
     {
         var ids = userIds.Distinct().ToList();
@@ -114,22 +114,22 @@ public class ThumbnailsService : ServiceBase, IService
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
-            if (c.moderationStatus != ModerationStatus.ReviewApproved)
+            if (c.moderationStatus == ModerationStatus.Declined)
+            {
+                c.imageUrl = "/img/blocked.png";
+            }
+            else if (c.moderationStatus != ModerationStatus.ReviewApproved)
             {
                 c.imageUrl = null;
-            } 
+            }
             else if (c.type == Type.Audio)
             {
                 c.imageUrl = "/img/Audio.png";
             }
-            else if (c.type == Type.Video)
-            {
-                c.imageUrl = "/img/Video.png";
-            }
             else if (c.type is Type.Model or Type.Lua)
             {
                 c.imageUrl = "/img/Model.png";
-            } 
+            }
             else if (!string.IsNullOrEmpty(c.imageUrl))
             {
                 c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
@@ -142,7 +142,7 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 targetId = c.targetId,
                 imageUrl = c.imageUrl,
-                state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                state = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
             };
         });
     }
@@ -164,7 +164,7 @@ public class ThumbnailsService : ServiceBase, IService
             return c;
         });
     }
-    
+
     public async Task<IEnumerable<ThumbnailEntry>> GetGroupIcons(IEnumerable<long> groupIds)
     {
         var ids = groupIds.Distinct().ToList();
@@ -201,15 +201,19 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 c.imageUrl = null;
             }
-            
+
             if (!string.IsNullOrEmpty(c.imageUrl))
             {
                 c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
             }
-            if(universeIds.Count() == 1)
+            if (universeIds.Count() == 1)
             {
                 //why? if studio requests only 1 game icon it will keep looping and never getting the gameicon
                 throw new RobloxException(401, 1, "Not authorized");
+            }
+            if (c.moderationStatus == ModerationStatus.Declined)
+            {
+                c.imageUrl = "/img/blocked.png";
             }
             if (c.imageUrl != null)
                 c.imageUrl = Roblox.Configuration.BaseUrl + c.imageUrl;
@@ -218,10 +222,10 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 targetId = c.targetId,
                 Url = c.imageUrl,
-                State = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                State = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
             };
         });
-    }    
+    }
     public async Task<IEnumerable<ThumbnailEntry>> GetGameIcons(IEnumerable<long> universeIds)
     {
         var ids = universeIds.Distinct().ToList();
@@ -237,20 +241,25 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 c.imageUrl = null;
             }
-            
+
             if (!string.IsNullOrEmpty(c.imageUrl))
             {
                 c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
             }
-            
+
             if (c.imageUrl != null)
                 c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
+
+            if (c.moderationStatus == ModerationStatus.Declined)
+            {
+                c.imageUrl = "/img/blocked.png";
+            }
 
             return new ThumbnailEntry()
             {
                 targetId = c.targetId,
                 imageUrl = c.imageUrl,
-                state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed,
+                state = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
             };
         });
     }

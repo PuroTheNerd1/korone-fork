@@ -1932,6 +1932,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             case "video":
                 libraryItem = true;
                 builder.Where("asset.creator_id != 2");
+                //builder.Where("asset.description != 'Shirt Image'");
                 break;
         }
 
