@@ -109,7 +109,7 @@ public class UniverseV1 : ControllerBase
         return Content(json, "application/json");
     }
 
-    [HttpGetBypass("places/{placeId}/settings")]
+    [HttpGet("places/{placeId}/settings")]
     public async Task<dynamic> GetPlaceSettings(long placeId)
     {
         var place = await services.assets.GetAssetCatalogInfo(placeId);
