@@ -185,7 +185,7 @@ public class FrontendProxyMiddleware
     }
 
     public async Task InvokeAsync(HttpContext ctx)
-    {places/{placeId}
+    {
         var requestUrl = ctx.Request.GetEncodedPathAndQuery();
         var requestFullUrl = ctx.Request.GetEncodedUrl();
         if (requestUrl.Contains("/canmanage/") || Regex.IsMatch(requestUrl, @"^/users/\d+$") || Regex.IsMatch(requestUrl, @"^/Users/\d+$") || Regex.IsMatch(requestUrl, @"^places/\d+$/settings") || requestUrl.Contains("/universes/"))
