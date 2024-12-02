@@ -163,6 +163,25 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
+    [HttpGetBypass("/v1/universes/{universeId}/teamcreate/memberships")]
+    public async Task<dynamic> GetMembershipsForUniverse(long universeId)
+    {
+        return new
+        {
+            previousPageCursor = (string?)null,
+            nextPageCursor = (string?)null,
+            data = new List<dynamic>
+            {
+                new
+                {
+                    buildersClubMembershipType = "None",
+                    userId = safeUserSession.userId,
+                    username = safeUserSession.username,
+                    displayName = safeUserSession.username,
+                }
+            }
+        };
+    }
     /*
     [HttpGetBypass("teamtest/{placeId}/runninggames")]
     [HttpGet("v1/teamtest/places/{placeId}/runninggames")]
