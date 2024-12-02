@@ -130,9 +130,9 @@ public class RbxThumbnails : ControllerBase
         var result = (await services.thumbnails.GetUserHeadshots(new[] { userId })).ToList();
         return new
         {
-            Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
+            Url = $"{Configuration.BaseUrl}{result[0].imageUrl.Replace(".png", "")}",
             Final = true,
-            RetryUrl = Configuration.BaseUrl + $"/Thumbs/Headshot.ashx?userid=" + userId,
+            RetryUrl = Configuration.BaseUrl + $"/Thumbs/Avatar-Headshot.ashx?userid=" + userId,
         };
     }
 
