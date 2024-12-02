@@ -132,7 +132,7 @@ public class PlaceLauncherService : ServiceBase
         SignService sign = new SignService();
         string finalTicket;
         dynamic settings;
-        string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
+        string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
         var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {
@@ -173,7 +173,6 @@ public class PlaceLauncherService : ServiceBase
                 default:
                     throw new InvalidOperationException($"This year does not exist: {uni.year}");
             }
-            finalTicket = sign.GenerateClientTicketV4((long)userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
             settings = await games.GetJoinScript(year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, null);
             return new PlaceLaunchResponse()
             {
