@@ -21,19 +21,20 @@ public class UniverseV1 : ControllerBase
             Name = uni.name,
             Description = uni.description,
             RootPlace = uni.rootPlaceId,
-            StudioAccessToApisAllowed = true,
+            StudioAccessToApisAllowed = false,
             CurrentUserHasEditPermissions = uni.creatorId == safeUserSession.userId,
             UniverseAvatarType = uni.universeAvatarType,
         };
     }
+
     [HttpGetBypass("developerproducts/list")]
     public dynamic GetDeveloperProducts(long universeId)
     {
         return new
         {
-            FinalPage = true,
             DeveloperProducts = new List<string>(),
-            PageSize = 50
+            FinalPage = true,
+            PageSize = 1000
         };
     }
     [HttpGetBypass("universes/get-aliases")]
@@ -41,9 +42,9 @@ public class UniverseV1 : ControllerBase
     {
         return new
         {
-            FinalPage = true,
             Aliases = new List<string>(),
-            PageSize = 50
+            FinalPage = true,
+            PageSize = 1000
         };
     }
 
