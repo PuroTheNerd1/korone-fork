@@ -28,7 +28,7 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGetBypass("developerproducts/list")]
-    public dynamic GetDeveloperProducts(long universeId)
+    public dynamic GetDeveloperProducts()
     {
         return new
         {
@@ -37,8 +37,9 @@ public class UniverseV1 : ControllerBase
             PageSize = 1000
         };
     }
+
     [HttpGetBypass("universes/get-aliases")]
-    public dynamic GetAliases(long universeId)
+    public dynamic GetAliases()
     {
         return new
         {
