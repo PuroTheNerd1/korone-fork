@@ -221,6 +221,7 @@ public class ThumbnailsService : ServiceBase, IService
             return new ThumbnailEntryRBX()
             {
                 targetId = c.targetId,
+                TargetId = c.targetId,
                 Url = c.imageUrl,
                 State = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
             };
