@@ -305,7 +305,7 @@ public class WebController : ControllerBase
             Creator = new
             {
                 Name = place.creatorName,
-                CreatorType = (int)1,
+                CreatorType = (int)0,
                 CreatorTargetId = place.creatorTargetId,
             }
         };
