@@ -27,6 +27,18 @@ public class UniverseV1 : ControllerBase
         };
     }
 
+    [HttpGetBypass("universes/get-aliases")]
+    public async Task<dynamic> GetAliases(long universeId)
+    {
+
+        return new
+        {
+            FinalPage = true,
+            Aliases = (List<object>?)null,
+            PageSize = 50
+        };
+    }
+
     [HttpGet("v1/gametemplates")]
     public dynamic StudioTemplates()
     {
