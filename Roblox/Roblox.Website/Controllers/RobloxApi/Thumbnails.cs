@@ -125,14 +125,14 @@ public class RbxThumbnails : ControllerBase
     }
 
     [HttpGetBypass("thumbnail/avatar-headshot")]
-    public async Task<dynamic> GetHeadshotThumbnailJson([Required] long userId)
+    public async Task<dynamic> GetHeadshotThumbnailJson(long userId)
     {
         var result = (await services.thumbnails.GetUserHeadshots(new[] { userId })).ToList();
         return new
         {
             Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
             Final = true,
-            SubstitutionType = 0
+            RetryUrl = Configuration.BaseUrl + $"/Thumbs/Headshot.ashx?userid=" + userId,
         };
     }
 
