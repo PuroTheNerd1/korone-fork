@@ -163,7 +163,7 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
-
+    /*
     [HttpGetBypass("teamtest/{placeId}/runninggames")]
     [HttpGet("v1/teamtest/places/{placeId}/runninggames")]
     public dynamic GetTeamTestRunningGames(long placeId)
@@ -175,7 +175,7 @@ public class UniverseV1 : ControllerBase
             PageSize = 50
         };
     }
-
+    */
     [HttpGet("v1/places/{placeId}/teamcreate/active_session/members")]
     public async Task<dynamic> GetTeamCreateMembers(long placeId)
     {
