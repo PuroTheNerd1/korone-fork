@@ -206,11 +206,11 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
             }
-            if (universeIds.Count() == 1)
-            {
+            //if (universeIds.Count() == 1)
+            //{
                 //why? if studio requests only 1 game icon it will keep looping and never getting the gameicon
-                throw new RobloxException(401, 1, "Not authorized");
-            }
+               // throw new RobloxException(401, 1, "Not authorized");
+            //}
             if (c.moderationStatus == ModerationStatus.Declined)
             {
                 c.imageUrl = "/img/blocked.png";
