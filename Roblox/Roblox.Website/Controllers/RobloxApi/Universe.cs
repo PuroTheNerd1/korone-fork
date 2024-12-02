@@ -48,13 +48,24 @@ public class UniverseV1 : ControllerBase
         };
     }
 
+    [HttpGetBypass("badges/list-badges-for-place/json")]
+    public dynamic GetGameBadges()
+    {
+        return new
+        {
+            FinalPage = true,
+            DeveloperProducts = new List<string>(),
+            PageSize = 50
+        };
+    }
+
     [HttpGetBypass("developerproducts/list")]
     public dynamic GetDeveloperProducts()
     {
         return new
         {
             FinalPage = true,
-            DeveloperProducts = new List<string>(),
+            GameBadges = new List<string>(),
             PageSize = 50
         };
     }
