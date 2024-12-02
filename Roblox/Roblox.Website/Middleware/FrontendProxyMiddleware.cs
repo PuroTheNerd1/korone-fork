@@ -193,12 +193,7 @@ public class FrontendProxyMiddleware
             await _next(ctx);
             return;
         }
-        // Only www. should be proxied, all other are apis
-        if (!requestFullUrl.Contains("www."))
-        {
-            await _next(ctx);
-            return;
-        }
+
         foreach (var item in BypassUrls)
         {
             if (requestUrl.ToLower().StartsWith(item))
