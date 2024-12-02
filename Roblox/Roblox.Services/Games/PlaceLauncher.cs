@@ -153,6 +153,26 @@ public class PlaceLauncherService : ServiceBase
             {
                 membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
+            switch (uni.year)
+            {
+                case 2017:
+                    finalTicket = sign.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
+                    break;
+                case 2018:
+                case 2019:
+                    finalTicket = sign.GenerateClientTicketV2(userId, username, result.job, characterAppearanceUrl);
+                    break;
+                case 2020:
+                    characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
+                    finalTicket = sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
+                    break;
+                case 2021:
+                    characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
+                    finalTicket = sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
+                    break;
+                default:
+                    throw new InvalidOperationException($"This year does not exist: {uni.year}");
+            }
             finalTicket = sign.GenerateClientTicketV4((long)userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
             settings = await games.GetJoinScript(year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, null);
             return new PlaceLaunchResponse()
