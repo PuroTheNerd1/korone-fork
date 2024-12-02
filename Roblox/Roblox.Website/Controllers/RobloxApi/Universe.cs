@@ -54,7 +54,7 @@ public class UniverseV1 : ControllerBase
         return new
         {
             FinalPage = true,
-            DeveloperProducts = new List<string>(),
+            GameBadges = new List<string>(),
             PageSize = 50
         };
     }
