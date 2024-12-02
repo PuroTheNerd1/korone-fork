@@ -26,7 +26,7 @@ public class UniverseV1 : ControllerBase
             UniverseAvatarType = uni.universeAvatarType,
         };
     }
-
+    [HttpGetBypass("developerproducts/list")]
     [HttpGetBypass("universes/get-aliases")]
     public dynamic GetAliases(long universeId)
     {
