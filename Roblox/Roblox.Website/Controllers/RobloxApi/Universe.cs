@@ -109,20 +109,6 @@ public class UniverseV1 : ControllerBase
         return Content(json, "application/json");
     }
 
-    [HttpGet("places/{placeId}/settings")]
-    public async Task<dynamic> GetPlaceSettings(long placeId)
-    {
-        var place = await services.assets.GetAssetCatalogInfo(placeId);
-        return new
-        {
-            Creator = new
-            {
-                Name = place.creatorName,
-                CreatorType = (int)place.creatorType,
-                CreatorTargetId = place.creatorTargetId,
-            }
-        };
-    }
     [HttpGetBypass("v1/universes/multiget")]
     public async Task<dynamic> MultiGetUniverseInfo([FromQuery] List<long> ids)
     {

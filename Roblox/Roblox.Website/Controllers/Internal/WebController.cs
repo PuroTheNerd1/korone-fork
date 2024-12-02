@@ -296,6 +296,21 @@ public class WebController : ControllerBase
         };
     }
 
+    [HttpGet("places/{placeId}/settings")]
+    public async Task<dynamic> GetPlaceSettings(long placeId)
+    {
+        var place = await services.assets.GetAssetCatalogInfo(placeId);
+        return new
+        {
+            Creator = new
+            {
+                Name = place.creatorName,
+                CreatorType = (int)place.creatorType,
+                CreatorTargetId = place.creatorTargetId,
+            }
+        };
+    }
+
     [HttpGet("users/profile/robloxcollections-json")]
     public async Task<dynamic> GetUserCollections(long userId)
     {
