@@ -1972,12 +1972,13 @@ namespace Roblox.Website.Controllers
             var userInfo = await services.users.GetUserByName(username);
             var onlineStatus = (await services.users.MultiGetPresence(new[] {userInfo.userId})).First();
             bool isOnline = onlineStatus.userPresenceType == PresenceType.Online;
+            var result = (await services.thumbnails.GetUserHeadshots(new[] { userInfo.userId })).ToList();
             return new
             {
                 Id = userInfo.userId,
                 Username = username,
-                AvatarUri = (string?)null,
-                AvatarFinal = false,
+                AvatarUri = Configuration.BaseUrl + result?.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png",
+                AvatarFinal = true,
                 IsOnline = isOnline,
             };
         }
