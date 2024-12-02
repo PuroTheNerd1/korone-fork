@@ -1971,13 +1971,14 @@ namespace Roblox.Website.Controllers
         {
             var userInfo = await services.users.GetUserByName(username);
             var onlineStatus = (await services.users.MultiGetPresence(new[] {userInfo.userId})).First();
+            bool isOnline = onlineStatus.userPresenceType == PresenceType.Online;
             return new
             {
                 Id = userInfo.userId,
                 Username = username,
-                AvatarUri = "null",
+                AvatarUri = (string?)null,
                 AvatarFinal = false,
-                IsOnline = onlineStatus.userPresenceType,
+                IsOnline = isOnline,
             };
         }
         [HttpGetBypass("users/account-info")]
