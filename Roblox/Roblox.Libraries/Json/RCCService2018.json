@@ -1490,5 +1490,6 @@
   "FFlagCorescriptSetCoreChatActiveEnabled": "True",
   "FFlagOnlyShowHealthWhenDamaged": "True",
   "FFlagUserChatPrivacySetting": "True",
-  "FFlagCorescriptNewChatSetCoresEnabled": "True"
+  "FFlagCorescriptNewChatSetCoresEnabled": "True",
+    "DFFlagRCCSupportCloudEdit": "True"
 }
