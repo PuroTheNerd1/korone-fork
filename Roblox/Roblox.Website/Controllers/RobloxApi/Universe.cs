@@ -109,6 +109,46 @@ public class UniverseV1 : ControllerBase
         return Content(json, "application/json");
     }
 
+    [HttpGetBypass("places/{placeId}/settings")]
+    public async Task<dynamic> GetPlaceSettings(long placeId)
+    {
+        var place = await services.assets.GetAssetCatalogInfo(placeId);
+        return new
+        {
+            Creator = new
+            {
+                Name = place.creatorName,
+                CreatorType = (int)place.creatorType,
+                CreatorTargetId = place.creatorTargetId,
+            }
+        };
+    }
+    [HttpGetBypass("v1/universes/multiget")]
+    public async Task<dynamic> MultiGetUniverseInfo([FromQuery] List<long> ids)
+    {
+        var universes = await services.games.MultiGetUniverseInfo(ids);
+        return new
+        {
+            data = universes.Select(c =>
+            {
+                return new
+                {
+                    id = c.id,
+                    name = c.name,
+                    description = c.description,
+                    isArchived = false,
+                    rootPlaceId = c.rootPlaceId,
+                    isActive = true,
+                    privacyType = c.isPublic ? "Public" : "Private",
+                    creatorType = c.creatorType,
+                    creatorTargetId = c.creatorId,
+                    creatorName = c.creatorName,
+                    created = c.created,
+                    updated = c.updated
+                };
+            })
+        };
+    }
     [HttpGet("v1/search/universes")]
     public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames()
     {
@@ -120,6 +160,7 @@ public class UniverseV1 : ControllerBase
             data = result
         };
     }
+
     [HttpGet("v1/user/universes")]
     public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames(string? sortOrder, string? accessFilter, int limit, string? cursor = null)
     {
@@ -163,7 +204,8 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
-    [HttpGetBypass("/v1/universes/{universeId}/teamcreate/memberships")]
+
+    [HttpGetBypass("v1/universes/{universeId}/teamcreate/memberships")]
     public async Task<dynamic> GetMembershipsForUniverse(long universeId)
     {
         return new
