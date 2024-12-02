@@ -123,6 +123,19 @@ public class RbxThumbnails : ControllerBase
             SubstitutionType = 0
         };
     }
+
+    [HttpGetBypass("thumbnail/avatar-headshot")]
+    public async Task<dynamic> GetHeadshotThumbnailJson([Required] long userId)
+    {
+        var result = (await services.thumbnails.GetUserHeadshots(new[] { userId })).ToList();
+        return new
+        {
+            Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
+            Final = true,
+            SubstitutionType = 0
+        };
+    }
+
     [HttpGetBypass("asset-thumbnail/json")]
     public async Task<dynamic> GetAssetThumbnailJson([Required] long assetId)
     {
