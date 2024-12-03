@@ -156,15 +156,12 @@ namespace Roblox.Website.Controllers
 
             var isBotRequest = Request.Headers["bot-auth"].ToString() == Roblox.Configuration.BotAuthorization;
             var isLoggedIn = userSession != null;
-            var encryptionEnabled = !isBotRequest; // bots can't handle encryption :(
-#if DEBUG == false
             var userAgent = Request.Headers["User-Agent"].FirstOrDefault()?.ToLower();
             var requester = Request.Headers["Requester"].FirstOrDefault()?.ToLower();
             if (!isBotRequest && !isLoggedIn && (userAgent == null || requester == null || (requester != "client" && requester != "server") || !BypassControllerMetadata.allowedUserAgents.Contains(userAgent)))
             {
                 throw new BadRequestException();
             }
-#endif
 
             var isMaterialOrShader = BypassControllerMetadata.materialAndShaderAssetIds.Contains(assetId);
             if (isMaterialOrShader)
@@ -174,8 +171,6 @@ namespace Roblox.Website.Controllers
 
             var isRcc = IsRcc();
 
-            if (isRcc)
-                encryptionEnabled = false;
             MultiGetEntry details;
             try
             {
@@ -273,7 +268,6 @@ namespace Roblox.Website.Controllers
                     var isAuthorized = false;
                     if (isRcc)
                     {
-                        encryptionEnabled = false;
                         var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
                         long placeId = 0;
                         long.TryParse(placeIdHeader, out placeId);
@@ -299,7 +293,7 @@ namespace Roblox.Website.Controllers
                         }
                     }
                     // It's not RCC making the request. are we authorized?
-                    else if (userSession != null)
+                    else if (isLoggedIn)
                     {
                         // Use current user as access check
                         isAuthorized = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
