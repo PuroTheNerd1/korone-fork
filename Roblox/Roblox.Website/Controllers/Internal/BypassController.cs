@@ -283,7 +283,7 @@ namespace Roblox.Website.Controllers
                     if (isRcc)
                     {
                         encryptionEnabled = false;
-                        var placeIdHeader = Request.Headers["roblox-place-id"].ToString();
+                        var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
                         long placeId = 0;
                         long.TryParse(placeIdHeader, out placeId);
                         // if rcc is trying to access current place, allow through
