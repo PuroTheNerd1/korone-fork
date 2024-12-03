@@ -3,6 +3,7 @@ using Dapper;
 using Newtonsoft.Json;
 using Roblox.Dto.Chat;
 using Roblox.Logging;
+using Roblox.Models.Chat;
 using Roblox.Services.Exceptions;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -17,7 +18,7 @@ public class ChatService : ServiceBase, IService
             userId,
         });
     }
-    
+
     public async Task<IEnumerable<Participant>> GetChatParticipants(long conversationId)
     {
         return await db.QueryAsync<Participant>("SELECT user_id as userId, conversation_id as conversationId, created_at as createdAt FROM user_conversation_participant WHERE conversation_id = @conversationId", new
@@ -33,7 +34,7 @@ public class ChatService : ServiceBase, IService
             conversationId,
         });
     }
-    
+
     public async Task<IEnumerable<Message>> GetLatestMessagesInConversation(long conversationId, string exclusiveStartId, int limit)
     {
         return await db.QueryAsync<Message>("SELECT id, conversation_id as conversationId, user_id as userId, message, created_at as createdAt FROM user_conversation_message WHERE conversation_id = @conversationId ORDER BY created_at desc LIMIT :limit", new
@@ -82,7 +83,7 @@ public class ChatService : ServiceBase, IService
     {
         var msg = await GetMessageById(messageId);
         if (msg == null) return false; // ?
-        
+
         var result = await db.QuerySingleOrDefaultAsync<MessageRead>(
             "SELECT updated_at as lastReadAt FROM user_conversation_message_read WHERE user_id = :user_id AND conversation_id = :conversation_id",
             new
@@ -92,10 +93,10 @@ public class ChatService : ServiceBase, IService
             });
         if (result == null)
             return false;
-        
+
         return msg.createdAt <= result.lastReadAt;
     }
-    
+
     public async Task MarkMessageAsRead(long conversationId, string messageId, long userId)
     {
         var data = await GetMessageById(messageId);
@@ -121,7 +122,15 @@ public class ChatService : ServiceBase, IService
             });
         return result;
     }
-
+    public async Task<Conversation> GetUniverseConversation(long universeId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Conversation>("SELECT id, created_at as createdAt, creator_id as creatorId, title, conversation_type as conversationType FROM user_conversation WHERE universe_id = :uni_id",
+            new
+            {
+                uni_id = universeId,
+            });
+        return result;
+    }
     private string GetCreateConvoLock(long userIdA, long userIdB)
     {
         if (userIdA > userIdB)
@@ -138,19 +147,62 @@ public class ChatService : ServiceBase, IService
                 conversation_id = conversationId,
             });
     }
-    
+
+    public async Task<Conversation> CreateCloudEditConversation(long userIdInitiating, long universeId)
+    {
+        using var friends = ServiceProvider.GetOrCreate<FriendsService>(this);
+
+        var dupeLockKey = GetCreateConvoLock(userIdInitiating, universeId);
+        await using var redlock = await Services.Cache.redLock.CreateLockAsync(dupeLockKey, TimeSpan.FromSeconds(5));
+        if (!redlock.IsAcquired)
+            throw new RobloxException(400, 0, "Failed to acquire lock for conversation creation.");
+
+        // check if it already exists
+        var conversation = await GetUniverseConversation(universeId);
+
+        if (conversation != null)
+        {
+            var participants = await GetChatParticipants(conversation.id);
+            foreach (var item in participants)
+            {
+                // if the user already exists in the cloudedit conversation the return that
+                if (item.userId == userIdInitiating)
+                {
+                    return conversation;
+                }
+            }
+            // if he doesnt them add and return
+            await AddUserToConversation(conversation.id, userIdInitiating);
+            return conversation;
+        }
+
+        // doesn't exist, so we can create it.
+        return await InTransaction(async (trx) =>
+        {
+            var result = await db.QuerySingleOrDefaultAsync<Conversation>("INSERT INTO user_conversation (creator_id, conversation_type, universe_id) VALUES (:creator_id, :conversation_type, :uni_id) RETURNING id, created_at as createdAt, creator_id as creatorId, title, conversation_type as conversationType",
+                new
+                {
+                    creator_id = userIdInitiating,
+                    conversation_type = (int)ConversationType.CloudEditConversation,
+                    uni_id = universeId,
+                });
+
+            await AddUserToConversation(result.id, userIdInitiating);
+            return result;
+        });
+    }
     public async Task<Conversation> CreateOneToOneConversation(long userIdInitiating, long userId)
     {
         using var friends = ServiceProvider.GetOrCreate<FriendsService>(this);
         var areFriends = await friends.AreAlreadyFriends(userIdInitiating, userId);
         if (!areFriends)
             throw new RobloxException(403, 0, "Forbidden");
-        
+
         var dupeLockKey = GetCreateConvoLock(userIdInitiating, userId);
         await using var redlock = await Services.Cache.redLock.CreateLockAsync(dupeLockKey, TimeSpan.FromSeconds(5));
         if (!redlock.IsAcquired)
             throw new RobloxException(400, 0, "Failed to acquire lock for conversation creation.");
-        
+
         // check if it already exists
         var first = await GetAllConversationsInitiatedByUser(userIdInitiating);
         foreach (var item in first)
@@ -182,7 +234,7 @@ public class ChatService : ServiceBase, IService
 
             await AddUserToConversation(result.id, userIdInitiating);
             await AddUserToConversation(result.id, userId);
-            
+
             return result;
         });
     }
@@ -214,7 +266,7 @@ public class ChatService : ServiceBase, IService
             }
         });
     }
-    
+
     private static async Task ListenForMessagesFromRedis(Action<MessageEvent> handler, Action<AddedToConversationEvent> addedToConversation, Action<TypingEvent> typing)
     {
         await GenericHandler(handler, redisMessagesChannel);
@@ -262,7 +314,7 @@ public class ChatService : ServiceBase, IService
                 {
                     handlers = messageHandlers;
                 }
-                
+
                 foreach (var item in handlers!)
                 {
                     item.onMessage(msg);
@@ -274,7 +326,7 @@ public class ChatService : ServiceBase, IService
                 {
                     handlers = messageHandlers;
                 }
-                
+
                 foreach (var item in handlers!)
                 {
                     item.onAddedToConversation(added);
@@ -286,7 +338,7 @@ public class ChatService : ServiceBase, IService
                 {
                     handlers = messageHandlers;
                 }
-                
+
                 foreach (var item in handlers!)
                 {
                     item.onTyping(typing);
@@ -296,7 +348,7 @@ public class ChatService : ServiceBase, IService
 
         return ev;
     }
-    
+
     public async Task<Roblox.Dto.Chat.EventHandler> ListenForMessages(long userId, Action<MessageEvent> messageHandler, Action<AddedToConversationEvent> addedHandler, Action<TypingEvent> typingHandler)
     {
         var ev = new Roblox.Dto.Chat.EventHandler();
@@ -339,7 +391,7 @@ public class ChatService : ServiceBase, IService
             .ToArray();
         if (partners.Length == 0)
             return;
-        
+
         await Roblox.Cache.DistributedCache.redis.GetDatabase(0)
             .PublishAsync(redisMessagesChannel, JsonSerializer.Serialize(new MessageEvent()
             {
@@ -360,7 +412,7 @@ public class ChatService : ServiceBase, IService
         if (!await IsUserInConversation(conversationId, userId))
             throw new RobloxException(403, 3,
                 "Failed to send GRPC request.\r\n\tService: roblox.chat.chatgateway.v1.ChatGatewayAPI\r\n\tMethod: SendMessageV3\r\n\tHost: 10.0.27.165:22105\r\n\tStatus: PermissionDenied (User is not part of the conversation. UserId: "+userId+". ConversationId: "+conversationId+". Context: None.)\r\n");
-        
+
         // Insert
         var messageId = Guid.NewGuid().ToString();
         var created = DateTime.UtcNow;
@@ -395,7 +447,7 @@ public class ChatService : ServiceBase, IService
         if (!await IsUserInConversation(conversationId, userId))
             throw new RobloxException(403, 3,
                 "Failed to send GRPC request.\r\n\tService: roblox.chat.chatgateway.v1.ChatGatewayAPI\r\n\tMethod: StartTyping\r\n\tHost: 10.0.27.165:22105\r\n\tStatus: PermissionDenied (User is not part of the conversation. UserId: "+userId+". ConversationId: "+conversationId+". Context: None.)\r\n");
-        
+
         var ev = new TypingEvent()
         {
             conversationId = conversationId,
