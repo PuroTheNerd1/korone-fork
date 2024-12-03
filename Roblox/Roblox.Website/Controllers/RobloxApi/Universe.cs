@@ -136,15 +136,46 @@ public class UniverseV1 : ControllerBase
         };
     }
     [HttpGet("v1/search/universes")]
-    public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames()
+    public async Task<dynamic> SearchUniverse(string q)
     {
         int offset = int.Parse("0");
-        var result =
-            (await services.games.GetGamesForTypeDevelop(CreatorType.User, safeUserSession.userId, safeUserSession.username, 50, offset, null, null)).ToList();
-        return new RobloxCollectionPaginated<GamesForCreatorDevelop>()
+        if (q.Contains("Team"))
         {
-            data = result
-        };
+            var result = await services.games.GetTeamcreateMembershipsForUser(safeUserSession.userId);
+            return new
+            {
+                previousPageCursor = (string?)null,
+                nextPageCursor = (string?)null,
+                data = result.Select(c =>
+                {
+                    return new
+                    {
+                        id = c.id,
+                        name = c.name,
+                        description = c.description,
+                        isArchived = false,
+                        rootPlaceId = c.rootPlaceId,
+                        isActive = c.isPublic,
+                        privacyType = c.isPublic ? PrivacyType.Public : PrivacyType.Private,
+                        creatorType = c.creator.type,
+                        creatorTargetId = c.creatorId,
+                        creatorName = c.creatorName,
+                        created = c.created,
+                        updated = c.updated
+                    };
+                })
+            };
+        }
+        else
+        {
+            var result =
+                (await services.games.GetGamesForTypeDevelop(CreatorType.User, safeUserSession.userId, safeUserSession.username, 50, offset, null, null)).ToList();
+            return new RobloxCollectionPaginated<GamesForCreatorDevelop>()
+            {
+                data = result
+            };
+        }
+
     }
 
     [HttpGet("v1/user/universes")]
