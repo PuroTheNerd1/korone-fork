@@ -368,23 +368,20 @@ namespace Roblox.Website.Controllers
                             }
                         }
                     }
-                    else
+                    // It's not RCC making the request. are we authorized?
+                    else if (userSession != null)
                     {
-                        // It's not RCC making the request. are we authorized?
-                        if (userSession != null)
+                        // Use current user as access check
+                        ok = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
+                        if (!ok)
                         {
-                            // Use current user as access check
-                            ok = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
-                            if (!ok)
-                            {
-                                // Note that all users have access to "Roblox"'s content for legacy reasons
-                                ok = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
-                            }
-                            // Don't encrypt assets being sent to authorized users - they could be trying to download their own place to give to a friend or something
-                            if (ok)
-                            {
-                                encryptionEnabled = false;
-                            }
+                            // Note that all users have access to "Roblox"'s content for legacy reasons
+                            ok = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
+                        }
+                        // Don't encrypt assets being sent to authorized users - they could be trying to download their own place to give to a friend or something
+                        if (ok)
+                        {
+                            encryptionEnabled = false;
                         }
                     }
 
