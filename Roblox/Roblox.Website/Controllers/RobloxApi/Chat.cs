@@ -10,7 +10,7 @@ namespace Roblox.Website.Controllers;
 [Route("")]
 public class Chat : ControllerBase
 {
-    [HttpGet("metadata")]
+    [HttpGetBypass("v2/metadata")]
     public dynamic GetMetadata()
     {
         return new
@@ -40,13 +40,13 @@ public class Chat : ControllerBase
         };
     }
 
-    [HttpGet("get-unread-conversation-count")]
+    [HttpGetBypass("v2/get-unread-conversation-count")]
     public dynamic GetUnreadConversationCount()
     {
         throw new NotImplementedException();
     }
 
-    [HttpGet("chat-settings")]
+    [HttpGetBypass("v2/chat-settings")]
     public dynamic GetChatSettings()
     {
         return new
@@ -56,7 +56,7 @@ public class Chat : ControllerBase
         };
     }
 
-    [HttpGet("get-user-conversations")]
+    [HttpGetBypass("v2/get-user-conversations")]
     public async Task<dynamic> GetAuthenticatedUserConversations(int pageNumber, int pageSize)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
@@ -102,14 +102,14 @@ public class Chat : ControllerBase
         return response;
     }
 
-    [HttpPost("mark-as-read")]
+    [HttpPostBypass("v2/mark-as-read")]
     public async Task MarkMessageAsRead([Required, FromBody] Dto.Chat.MarkAsReadRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
         await services.chat.MarkMessageAsRead(request.conversationId, request.endMessageId, safeUserSession.userId);
     }
 
-    [HttpPost("start-one-to-one-conversation")]
+    [HttpPostBypass("v2/start-one-to-one-conversation")]
     public async Task<dynamic> StartOneToOneConversation([Required, FromBody] Dto.Chat.StartConversationRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
@@ -123,14 +123,14 @@ public class Chat : ControllerBase
         };
     }
 
-    [HttpPost("update-user-typing-status")]
+    [HttpPostBypass("v2/update-user-typing-status")]
     public async Task UpdateUserTypingStatus([Required, FromBody] Dto.Chat.UpdateTypingStatusRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
         await services.chat.StartTyping(request.conversationId, safeUserSession.userId);
     }
 
-    [HttpPost("send-message")]
+    [HttpPostBypass("v2/send-message")]
     public async Task<dynamic> SendMessage([Required, FromBody] Dto.Chat.SendMessageRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
@@ -144,7 +144,7 @@ public class Chat : ControllerBase
         };
     }
 
-    [HttpGet("multi-get-latest-messages")]
+    [HttpGetBypass("v2/multi-get-latest-messages")]
     public async Task<dynamic> MultiGetLatestMessages(string conversationIds)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
@@ -180,7 +180,7 @@ public class Chat : ControllerBase
         return result;
     }
 
-    [HttpGet("get-messages")]
+    [HttpGetBypass("v2/get-messages")]
     public async Task<dynamic> GetMessages(long conversationId, int pageSize, string? exclusiveStartMessageId = null)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
