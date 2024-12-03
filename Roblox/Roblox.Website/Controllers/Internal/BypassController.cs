@@ -145,10 +145,8 @@ namespace Roblox.Website.Controllers
             {
                 return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");
             }
-            if(assetversionid != null)
-            {
-                id = (long)assetversionid;
-            }
+            // If assetversionid isnt null, set id to assetveresionid
+            id = assetversionid ?? id;
             var is18OrOver = false;
             if (userSession != null)
             {
