@@ -303,10 +303,11 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> CanManage(long universeId)
     {
         bool canManage = await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        bool canCloudEdit = await services.games.CanCloudEdit(safeUserSession.userId, universeId) ? canManage : false;
         return new
         {
             canManage,
-            canCloudEdit = canManage
+            canCloudEdit
         };
     }
 
