@@ -359,7 +359,16 @@ public class UniverseV1 : ControllerBase
             canCloudEdit
         };
     }
-
+    [HttpPatch("v1/universes/{universeId}/teamcreate")]
+    public async Task<dynamic> SetTeamCreateSettings([FromBody] TeamCreateSettings request, long universeId)
+    {
+        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
+        {
+            throw new ForbiddenException(0, "You are not authorized to configure this universe.");
+        }
+        await services.games.SetCloudedit(request.isEnabled, universeId);
+        return Content("{}", "application/json");
+    }
     [HttpGet("v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> TeamCreateSettings(long universeId)
     {

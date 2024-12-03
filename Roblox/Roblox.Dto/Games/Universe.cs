@@ -144,6 +144,11 @@ public enum ForceMorphType
     MorphToR15 = 3
 }
 
+public class TeamCreateSettings
+{
+    public bool isEnabled { get; set; }
+}
+
 public class UniverseConfiguration
 {
     public bool allowPrivateServers { get; set;}
