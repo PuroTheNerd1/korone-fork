@@ -539,17 +539,6 @@ namespace Roblox.Website.Controllers
             return new MVC.RedirectResult("/");
         }
 
-        [HttpGetBypass("v2/chat-settings")]
-        [HttpGetBypass("v1/chat-settings")]
-        public dynamic GetChatSettings()
-        {
-            return new
-            {
-                chatEnabled = FeatureFlags.IsEnabled(FeatureFlag.WebsiteChat),
-                isActiveChatUser = true, // todo
-            };
-        }
-
         [HttpPostBypass("/v1/join-game")]
         public async Task<PlaceLaunchResponse> JoinGameMobile([FromBody] JoinGame request)
         {

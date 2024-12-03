@@ -47,6 +47,7 @@ public class Chat : ControllerBase
     }
 
     [HttpGetBypass("v2/chat-settings")]
+    [HttpGetBypass("v1/chat-settings")]
     public dynamic GetChatSettings()
     {
         return new
