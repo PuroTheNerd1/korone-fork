@@ -618,6 +618,7 @@ public class WebController : ControllerBase
             }
         }
     }
+
     private async Task<bool> AssetValidationV2(Stream stream)
     {
         byte[] buffer = new byte[7];
@@ -625,6 +626,7 @@ public class WebController : ControllerBase
         string startOfFile = Encoding.UTF8.GetString(buffer);
         return startOfFile == "<roblox";
     }
+
     [HttpPost("develop/upload")]
     public async Task<CreateResponse> UploadItem([Required, FromForm] UploadAssetRequest request)
     {
@@ -635,14 +637,6 @@ public class WebController : ControllerBase
         await services.cooldown.CooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5));
         // IP flood check too! same limit as userId for now
         await services.cooldown.CooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5));
-
-        var isClothing = request.assetType is Models.Assets.Type.Shirt or Models.Assets.Type.Pants or Models.Assets.Type.TeeShirt;
-        var isAudio = request.assetType is Models.Assets.Type.Audio;
-        var isImage = request.assetType is Models.Assets.Type.Image;
-        var isVideo = request.assetType is Models.Assets.Type.Video;
-
-        if (!isClothing && !isAudio && !isImage && !isVideo)
-            throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
 
         // Limit of 50 assets globally pending approval before failure
         var pendingAssets = await services.assets.CountAssetsPendingApproval();
@@ -665,26 +659,12 @@ public class WebController : ControllerBase
         }
 
         // Limit of 10 pending assets per user/group
-        if (groupId == 0)
+        var myPendingItems =
+            await services.assets.CountAssetsByCreatorPendingApproval(groupId, CreatorType.Group);
+        if (myPendingItems >= 20)
         {
-            var myPendingItems =
-                await services.assets.CountAssetsByCreatorPendingApproval(userSession.userId, CreatorType.User);
-            if (myPendingItems >= 20)
-            {
-                Metrics.UserMetrics.ReportPendingAssetsFloodCheckReached(userSession.userId);
-                throw new RobloxException(409, 0,
-                    "You have uploaded too many items in a short period of time. Wait a few minutes and try again.");
-            }
-        }
-        else
-        {
-            var myPendingItems =
-                await services.assets.CountAssetsByCreatorPendingApproval(groupId, CreatorType.Group);
-            if (myPendingItems >= 20)
-            {
-                Metrics.UserMetrics.ReportPendingAssetsFloodCheckReached(userSession.userId);
-                throw new RobloxException(409, 0, "You have uploaded too many items in a short period of time. Wait a few minutes and try again.");
-            }
+            Metrics.UserMetrics.ReportPendingAssetsFloodCheckReached(userSession.userId);
+            throw new RobloxException(409, 0, "You have uploaded too many items in a short period of time. Wait a few minutes and try again.");
         }
         // Global max of 5 pending asset uploads. To prevent people spamming stuff from a million IPs and accounts.
         // Note that this is not distributed right now, it's just local per server.
@@ -698,140 +678,26 @@ public class WebController : ControllerBase
             pendingAssetUploads++;
         }
 
+
+        var stream = request.file.OpenReadStream();
+
         try
         {
-            if (isClothing)
+            switch (request.assetType)
             {
-                var stream = request.file.OpenReadStream();
-                var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
-                stream.Position = 0;
-                if (pictureData == null)
-                    throw new BadRequestException(0, "Invalid image file");
-                stream.Position = 0;
-                stream.Position = 0;
-                using (var originalImage = new Bitmap(stream))
-                {
-                    var memoryStream = new MemoryStream();
-
-                    using (var newBitmap = new Bitmap(originalImage.Width, originalImage.Height))
-                    {
-                        using (var graphics = Graphics.FromImage(newBitmap))
-                        {
-                            graphics.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
-                        }
-                        newBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
-                    }
-
-                    memoryStream.Position = 0;
-
-                    var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image",
-                        userSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
-                        Genre.All,
-                        ModerationStatus.AwaitingApproval);
-
-                    memoryStream.Position = 0;
-                    await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
-                        pictureData.width, pictureData.height, pictureData.imageFormat,
-                        await services.assets.GenerateImageHash(memoryStream));
-
-                    var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default,
-                        default, default, default, imageAsset.assetId);
-
-                    await services.users.CreateUserAsset(userSession.userId, asset.assetId);
-
-                    return asset;
-                }
+                case Models.Assets.Type.Shirt:
+                case Models.Assets.Type.Pants:
+                case Models.Assets.Type.TeeShirt:
+                    return await UploadClothing(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.Audio:
+                    return await UploadAudio(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.Image:
+                    return await UploadImage(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.Video:
+                    return await UploadVideo(request, stream, creatorId, creatorType);
+                default:
+                    throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
             }
-            else if (isImage)
-            {
-                var stream = request.file.OpenReadStream();
-
-                var pictureData = await services.assets.ValidateImage(stream);
-                if (pictureData == null)
-                    throw new BadRequestException(0, "Invalid image file");
-                stream.Position = 0;
-                using (var originalImage = new Bitmap(stream))
-                {
-                    var memoryStream = new MemoryStream();
-
-                    using (var newBitmap = new Bitmap(originalImage.Width, originalImage.Height))
-                    {
-                        using (var graphics = Graphics.FromImage(newBitmap))
-                        {
-                            graphics.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
-                        }
-
-                        newBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
-                    }
-
-                   memoryStream.Position = 0;
-                   var imageAsset = await services.assets.CreateAsset(request.name, "Image",
-                        userSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
-                        Genre.All,
-                        ModerationStatus.AwaitingApproval);
-
-                    memoryStream.Position = 0;
-
-                    await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
-                        pictureData.width, pictureData.height, pictureData.imageFormat,
-                        await services.assets.GenerateImageHash(memoryStream));
-
-                    return imageAsset;
-                }
-            }
-            else if (isAudio)
-            {
-                // check if has enough
-                var balance = await services.economy.GetBalance(creatorType, creatorId);
-
-                if (balance.robux < 20)
-                    throw new BadRequestException(0, "Not enough Robux for purchase");
-                // validate auto
-
-                var stream = request.file.OpenReadStream();
-                stream.Position = 0;
-                var ok = await services.assets.IsAudioValid(stream);
-                stream.Position = 0;
-                if (ok != AudioValidation.Ok)
-                {
-                    throw new BadRequestException(0, "Bad audio file. Error = " + ok.ToString());
-                }
-                // charge
-                stream.Position = 0;
-                await services.economy.ChargeForAudioUpload(creatorType, creatorId);
-                stream.Position = 0;
-                // create item
-                var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, CreatorType.User,
-                    userSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
-                return asset;
-            }
-            else if(isVideo)
-            {
-                // check if has enough
-                var balance = await services.economy.GetBalance(creatorType, creatorId);
-                if (balance.robux < 100 && userSession.userId != 7)
-                    throw new BadRequestException(0, "Not enough Robux for purchase");
-                // validate auto
-
-                var stream = request.file.OpenReadStream();
-                stream.Position = 0;
-                var ok = await services.assets.IsVideoValid(stream);
-                stream.Position = 0;
-                if (ok != VideoValidation.Ok)
-                {
-                    throw new BadRequestException(0, "Bad video file. Error = " + ok.ToString());
-                }
-                // charge
-                stream.Position = 0;
-                await services.economy.ChargeForVideoUpload(creatorType, creatorId);
-                stream.Position = 0;
-                // create item
-                var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, CreatorType.User,
-                    userSession.userId, stream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
-                return asset;
-            }
-
-            throw new BadRequestException(0, "Invalid assetType");
         }
         finally
         {
@@ -841,5 +707,113 @@ public class WebController : ControllerBase
             }
         }
     }
+    // helper functions ugh
+    private async Task<CreateResponse> UploadClothing(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
+        if (pictureData == null) throw new BadRequestException(0, "Invalid image file");
 
+        stream.Position = 0;
+        using var originalImage = new Bitmap(stream);
+        using var memoryStream = new MemoryStream();
+        using (var newBitmap = new Bitmap(originalImage.Width, originalImage.Height))
+        {
+            using var graphics = Graphics.FromImage(newBitmap);
+            graphics.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
+            newBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+        }
+
+        memoryStream.Position = 0;
+        var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", userSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
+
+        memoryStream.Position = 0;
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length, pictureData.width, pictureData.height, pictureData.imageFormat, await services.assets.GenerateImageHash(memoryStream));
+
+        var clothingAsset = await services.assets.CreateAsset(request.name, null, userSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default, default, default, default, imageAsset.assetId);
+        await services.users.CreateUserAsset(userSession.userId, clothingAsset.assetId);
+
+        return clothingAsset;
+    }
+    private async Task<CreateResponse> UploadAudio(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        var balance = await services.economy.GetBalance(creatorType, creatorId);
+        // check if has enough
+        if (balance.robux < 20)
+            throw new BadRequestException(0, "Not enough Robux for purchase");
+        // validate auto
+        stream.Position = 0;
+        var isOk = await services.assets.IsAudioValid(stream);
+        stream.Position = 0;
+        if (isOk != AudioValidation.Ok)
+        {
+            throw new BadRequestException(0, "Bad audio file. Error = " + isOk.ToString());
+        }
+        // charge
+        stream.Position = 0;
+        await services.economy.ChargeForAudioUpload(creatorType, creatorId);
+        stream.Position = 0;
+        // create item
+        var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, CreatorType.User,
+            userSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
+        return asset;
+    }
+    private async Task<CreateResponse> UploadImage(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        var imageData = await services.assets.ValidateImage(stream);
+        if (imageData == null)
+            throw new BadRequestException(0, "Invalid image file");
+        stream.Position = 0;
+        using (var originalImage = new Bitmap(stream))
+        {
+            var memoryStream = new MemoryStream();
+
+            using (var newBitmap = new Bitmap(originalImage.Width, originalImage.Height))
+            {
+                using (var graphics = Graphics.FromImage(newBitmap))
+                {
+                    graphics.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
+                }
+
+                newBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+            }
+
+            memoryStream.Position = 0;
+            var imageAsset = await services.assets.CreateAsset(request.name, "Image",
+                 userSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
+                 Genre.All,
+                 ModerationStatus.AwaitingApproval);
+
+            memoryStream.Position = 0;
+
+            await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
+                imageData.width, imageData.height, imageData.imageFormat,
+                await services.assets.GenerateImageHash(memoryStream));
+
+            return imageAsset;
+        }
+    }
+    private async Task<CreateResponse> UploadVideo(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        var balance = await services.economy.GetBalance(creatorType, creatorId);
+        // check if has enough
+        if (balance.robux < 100)
+            throw new BadRequestException(0, "Not enough Robux for purchase");
+        // validate auto
+
+        stream.Position = 0;
+        var isOk = await services.assets.IsVideoValid(stream);
+        stream.Position = 0;
+        if (isOk != VideoValidation.Ok)
+        {
+            throw new BadRequestException(0, "Bad video file. Error = " + isOk.ToString());
+        }
+        // charge
+        stream.Position = 0;
+        await services.economy.ChargeForVideoUpload(creatorType, creatorId);
+        stream.Position = 0;
+        // create item
+        var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, CreatorType.User,
+            userSession.userId, stream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
+        return asset;
+    }
 }

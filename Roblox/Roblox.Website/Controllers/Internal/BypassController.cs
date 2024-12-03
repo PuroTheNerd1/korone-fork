@@ -1770,7 +1770,7 @@ namespace Roblox.Website.Controllers
         }
         private static int pendingAssetUploads { get; set; } = 0;
         private static readonly Mutex pendingAssetUploadsMux = new();
-
+        [HttpPostBypass("UploadFromCloudedit")]
         [HttpPostBypass("Data/Upload.ashx")]
         public async Task<dynamic> Upload(long assetId)
         {
