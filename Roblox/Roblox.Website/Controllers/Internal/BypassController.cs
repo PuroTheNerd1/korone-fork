@@ -279,7 +279,7 @@ namespace Roblox.Website.Controllers
                     break;
                 default:
                     // anything else requires auth
-                    var ok = false;
+                    var isAuthorized = false;
                     if (isRcc)
                     {
                         encryptionEnabled = false;
@@ -287,15 +287,15 @@ namespace Roblox.Website.Controllers
                         long placeId = 0;
                         long.TryParse(placeIdHeader, out placeId);
                         // if rcc is trying to access current place, allow through
-                        ok = placeId == assetId;
+                        isAuthorized = placeId == assetId;
                         // If game server is trying to load a new place (current placeId is empty), then allow it
-                        if (!ok && details.assetType == Type.Place && placeId == 0)
+                        if (!isAuthorized && details.assetType == Type.Place && placeId == 0)
                         {
                             // Game server is trying to load, so allow it
-                            ok = true;
+                            isAuthorized = true;
                         }
                         // If rcc is making the request, but it's not for a place, validate the request:
-                        if (!ok)
+                        if (!isAuthorized)
                         {
                             // Check permissions
                             var placeDetails = await services.assets.GetAssetCatalogInfo(placeId);
@@ -303,7 +303,7 @@ namespace Roblox.Website.Controllers
                                 placeDetails.creatorTargetId == details.creatorTargetId)
                             {
                                 // We are authorized
-                                ok = true;
+                                isAuthorized = true;
                             }
                         }
                     }
@@ -311,20 +311,20 @@ namespace Roblox.Website.Controllers
                     else if (userSession != null)
                     {
                         // Use current user as access check
-                        ok = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
-                        if (!ok)
+                        isAuthorized = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
+                        if (!isAuthorized)
                         {
                             // Note that all users have access to "Roblox"'s content for legacy reasons
-                            ok = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
+                            isAuthorized = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
                         }
                         // Don't encrypt assets being sent to authorized users - they could be trying to download their own place to give to a friend or something
-                        if (ok)
+                        if (isAuthorized)
                         {
                             encryptionEnabled = false;
                         }
                     }
 
-                    if (ok && assetVersion.contentUrl != null)
+                    if (isAuthorized && assetVersion.contentUrl != null)
                     {
                         assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     }
