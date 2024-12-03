@@ -189,9 +189,6 @@ namespace Roblox.Website.Controllers
 
             if (isRcc)
                 encryptionEnabled = false;
-#if DEBUG
-            encryptionEnabled = false;
-#endif
             MultiGetEntry details;
             try
             {
