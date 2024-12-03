@@ -382,7 +382,13 @@ public class AssetsService : ServiceBase, IService
     }
 
     private static HttpClient assetValidationClient { get; } = new();
-
+    public async Task<bool> PlaceValidation(Stream stream)
+    {
+        byte[] buffer = new byte[7];
+        await stream.ReadAsync(buffer, 0, buffer.Length);
+        string startOfFile = Encoding.UTF8.GetString(buffer);
+        return startOfFile == "<roblox";
+    }
     public async Task<bool> ValidateAssetFile(Stream file, Models.Assets.Type assetType)
     {
         Writer.Info(LogGroup.AssetValidation, "validating asset. type = {0}", assetType);

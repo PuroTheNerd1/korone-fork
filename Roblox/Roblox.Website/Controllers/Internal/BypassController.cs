@@ -1663,19 +1663,23 @@ namespace Roblox.Website.Controllers
         }
         private static int pendingAssetUploads { get; set; } = 0;
         private static readonly Mutex pendingAssetUploadsMux = new();
-        [HttpPostBypass("UploadFromCloudedit")]
+
+        [HttpPostBypass("ide/publish/UploadFromCloudEdit")]
         [HttpPostBypass("Data/Upload.ashx")]
-        public async Task<dynamic> Upload(long assetId)
+        public async Task<dynamic> UploadPlaceFromStudio(long? assetId)
         {
-            var info = await services.assets.GetAssetCatalogInfo(assetId);
-            var canUpload = await services.assets.CanUserModifyItem(info.id, safeUserSession.userId);
+            // if assetId is null, try to get it from the headers
+            long assetid = assetId ?? (long.TryParse(Request.Headers["Roblox-Place-Id"].ToString(), out long placeId) ? placeId : 0);
+            var info = await services.assets.GetAssetCatalogInfo(assetid);
+            // check if the user can upload if they cant then check if rcc can
+            var canUpload = await services.assets.CanUserModifyItem(info.id, safeUserSession.userId) || IsRcc();
 
             if (info.assetType != Models.Assets.Type.Place)
             {
                 canUpload = false;
             }
 
-            if (canUpload == false)
+            if (!canUpload)
                 throw new RobloxException(403, 0, "Unauthorized");
 
             lock (pendingAssetUploadsMux)
@@ -1697,16 +1701,15 @@ namespace Roblox.Website.Controllers
                         await gzipStream.CopyToAsync(decompressedStream);
                         decompressedStream.Position = 0;
 
-                        bool assetValidated = await services.assets.ValidateAssetFile(decompressedStream, Type.Place);
-                        if (!assetValidated)
+                        if (!await services.assets.PlaceValidation(decompressedStream))
                         {
                             throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
                         }
 
                         decompressedStream.Position = 0;
-
-                        await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, decompressedStream);
-                        await services.assets.RenderAssetAsync(assetId, info.assetType);
+                        // Create asset version in background
+                        _ = await services.assets.CreateAssetVersion(assetid, safeUserSession.userId, decompressedStream);
+                        services.assets.RenderAsset(assetid, info.assetType);
                     }
                 }
             }
@@ -1723,13 +1726,7 @@ namespace Roblox.Website.Controllers
                 success = true,
             };
         }
-        private async Task<bool> AssetValidationV2(Stream stream)
-        {
-            byte[] buffer = new byte[7];
-            await stream.ReadAsync(buffer, 0, buffer.Length);
-            string startOfFile = Encoding.UTF8.GetString(buffer);
-            return startOfFile == "<roblox";
-        }
+
         [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
         public async Task<OkObjectResult> EnableCloudEdit(long universeId)
         {

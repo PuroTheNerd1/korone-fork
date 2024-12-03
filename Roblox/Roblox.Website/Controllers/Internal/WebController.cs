@@ -602,7 +602,7 @@ public class WebController : ControllerBase
         try
         {
             var fs = request.file.OpenReadStream();
-            if (!await AssetValidationV2(fs))
+            if (!await services.assets.PlaceValidation(fs))
                 throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
             fs.Position = 0;
 
@@ -619,13 +619,7 @@ public class WebController : ControllerBase
         }
     }
 
-    private async Task<bool> AssetValidationV2(Stream stream)
-    {
-        byte[] buffer = new byte[7];
-        await stream.ReadAsync(buffer, 0, buffer.Length);
-        string startOfFile = Encoding.UTF8.GetString(buffer);
-        return startOfFile == "<roblox";
-    }
+
 
     [HttpPost("develop/upload")]
     public async Task<CreateResponse> UploadItem([Required, FromForm] UploadAssetRequest request)
