@@ -1650,7 +1650,7 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("ide/publish/UploadFromCloudEdit")]
         [HttpPostBypass("Data/Upload.ashx")]
-        public async Task<dynamic> UploadPlaceFromStudio(long? assetId)
+        public async Task<dynamic> UploadPlaceFromStudio(long? assetId = null)
         {
             // if assetId is 0 try getting it from the headers
             long placeId = assetId ?? 0;
