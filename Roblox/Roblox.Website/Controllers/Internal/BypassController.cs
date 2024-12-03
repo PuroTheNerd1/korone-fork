@@ -346,21 +346,11 @@ namespace Roblox.Website.Controllers
                         encryptionEnabled = false;
                         var placeIdHeader = Request.Headers["roblox-place-id"].ToString();
                         long placeId = 0;
-                        if (!string.IsNullOrEmpty(placeIdHeader))
-                        {
-                            try
-                            {
-                                placeId = long.Parse(Request.Headers["roblox-place-id"].ToString());
-                            }
-                            catch (FormatException)
-                            {
-                                // Ignore
-                            }
-                        }
+                        long.TryParse(placeIdHeader, out placeId);
                         // if rcc is trying to access current place, allow through
-                        ok = (placeId == assetId);
+                        ok = placeId == assetId;
                         // If game server is trying to load a new place (current placeId is empty), then allow it
-                        if (!ok && details.assetType == Models.Assets.Type.Place && placeId == 0)
+                        if (!ok && details.assetType == Type.Place && placeId == 0)
                         {
                             // Game server is trying to load, so allow it
                             ok = true;
