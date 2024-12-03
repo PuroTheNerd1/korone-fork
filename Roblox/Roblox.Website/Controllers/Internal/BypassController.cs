@@ -249,8 +249,9 @@ namespace Roblox.Website.Controllers
                 case Models.Assets.Type.PoseAnimation:
                 case Models.Assets.Type.SolidModel:
                 case Models.Assets.Type.Video:
+                    // todo: should we log this?
                     if (assetVersion.contentUrl is null)
-                        break; // todo: should we log this?
+                        break;
                     //if (details.assetType == Models.Assets.Type.Audio)
                     //we dont have a web client so we dont need this anymore
                     //{
