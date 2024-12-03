@@ -162,9 +162,8 @@ namespace Roblox.Website.Controllers
             {
                 throw new BadRequestException();
             }
-
-            var isMaterialOrShader = BypassControllerMetadata.materialAndShaderAssetIds.Contains(assetId);
-            if (isMaterialOrShader)
+            // If the bypasscontroller metadtata contains the asset id redirect to the shader endpoint
+            if (BypassControllerMetadata.materialAndShaderAssetIds.Contains(assetId))
             {
                 return new MVC.RedirectResult("/asset/shader?id=" + assetId);
             }
