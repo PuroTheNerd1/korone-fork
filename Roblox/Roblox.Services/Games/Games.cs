@@ -111,11 +111,7 @@ public class GamesService : ServiceBase, IService
             {
                 id = userId,
             });
-        var universeIds = result
-            .Select(c => (long?)c.universeId)
-            .Where(id => id.HasValue)
-            .Select(id => id.Value);
-        return await MultiGetUniverseInfo(universeIds);
+        return await MultiGetUniverseInfo(result.ToList().Select(c => (long)c.universeId));
     }
     public async Task SetCloudedit(bool isEnabled, long universeId)
     {
