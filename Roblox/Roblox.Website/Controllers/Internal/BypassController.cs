@@ -388,15 +388,8 @@ namespace Roblox.Website.Controllers
                             if (!ok)
                             {
                                 // Note that all users have access to "Roblox"'s content for legacy reasons
-                                ok = (details.creatorType == CreatorType.User && details.creatorTargetId == 1);
+                                ok = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
                             }
-#if DEBUG
-                            // If staff, allow access in debug builds
-                            if (UsersService.IsUserStaff(userSession.userId))
-                            {
-                                ok = true;
-                            }
-#endif
                             // Don't encrypt assets being sent to authorized users - they could be trying to download their own place to give to a friend or something
                             if (ok)
                             {
