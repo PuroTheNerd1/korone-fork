@@ -293,11 +293,9 @@ namespace Roblox.Website.Controllers
                     {
                         // Use current user as access check
                         isAuthorized = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
+                        // Note that all users have access to "Roblox"'s content for legacy reasons
                         if (!isAuthorized)
-                        {
-                            // Note that all users have access to "Roblox"'s content for legacy reasons
                             isAuthorized = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
-                        }
                     }
 
                     if (isAuthorized && assetVersion.contentUrl != null)
