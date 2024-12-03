@@ -1655,7 +1655,7 @@ namespace Roblox.Website.Controllers
             // if assetId is 0 try getting it from the headers
             long placeId = assetId ?? 0;
             bool isRcc = IsRcc();
-            if (assetId == 0)
+            if (placeId == 0)
             {
                 long.TryParse(Request.Headers["roblox-place-id"].ToString(), out placeId);
             }
