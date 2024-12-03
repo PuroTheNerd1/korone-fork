@@ -96,13 +96,16 @@ public class GamesService : ServiceBase, IService
             throw new RobloxException(400, 0, "Invalid place ID");
         return result;
     }
-    public async Task<dynamic> GetTeamcreateMembershipsForUniverse(long universeId)
+    public async Task<IEnumerable<Dto.Users.MultiGetEntry>> GetTeamcreateMembershipsForUniverse(long universeId)
     {
-        return await db.QueryAsync<dynamic>(
-            "SELECT user_id as userId, u.username FROM teamcreate_memberships INNER JOIN \"user\" u ON u.id = teamcreate_memberships.user_id WHERE universe_id = :id", new
+        UsersService user = new UsersService();
+        var result = await db.QueryAsync<dynamic>(
+            "SELECT user_id FROM teamcreate_memberships WHERE universe_id = :id", new
             {
                 id = universeId,
             });
+        var userInfo = await user.MultiGetUsersById(result.Select(r => (long)r.user_id));
+        return userInfo;
     }
     public async Task<IEnumerable<MultiGetUniverseEntry>> GetTeamcreateMembershipsForUser(long userId)
     {

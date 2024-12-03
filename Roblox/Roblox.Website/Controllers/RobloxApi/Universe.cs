@@ -221,20 +221,21 @@ public class UniverseV1 : ControllerBase
     [HttpGetBypass("v1/universes/{universeId}/teamcreate/memberships")]
     public async Task<dynamic> GetMembershipsForUniverse(long universeId)
     {
+        var memberships = await services.games.GetTeamcreateMembershipsForUniverse(universeId);
         return new
         {
             previousPageCursor = (string?)null,
             nextPageCursor = (string?)null,
-            data = new List<dynamic>
+            data = memberships.Select(c =>
             {
-                new
+                return new
                 {
                     buildersClubMembershipType = "None",
-                    userId = safeUserSession.userId,
-                    username = safeUserSession.username,
-                    displayName = safeUserSession.username,
-                }
-            }
+                    userId = c.id,
+                    username = c.name,
+                    displayName = c.name,
+                };
+            })
         };
     }
     /*
