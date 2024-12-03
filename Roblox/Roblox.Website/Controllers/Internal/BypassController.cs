@@ -198,16 +198,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
-            dynamic assetVersion = await services.assets.GetLatestAssetVersion(assetId);
-
-            if (assetversion != null)
-            {
-                assetVersion = await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion);
-            }
-            else
-            {
-                assetVersion = await services.assets.GetLatestAssetVersion(assetId);
-            }
+            dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
 
             Stream? assetContent = null;
             switch (details.assetType)
