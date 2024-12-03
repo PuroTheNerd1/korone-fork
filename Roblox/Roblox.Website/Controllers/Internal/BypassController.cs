@@ -250,7 +250,7 @@ namespace Roblox.Website.Controllers
                 case Models.Assets.Type.SolidModel:
                 case Models.Assets.Type.Video:
                     if (assetVersion.contentUrl is null)
-                        throw new RobloxException(400, 0, "BadRequest"); // todo: should we log this?
+                        break; // todo: should we log this?
                     //if (details.assetType == Models.Assets.Type.Audio)
                     //we dont have a web client so we dont need this anymore
                     //{
