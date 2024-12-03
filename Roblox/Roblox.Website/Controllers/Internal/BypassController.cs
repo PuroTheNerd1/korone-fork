@@ -257,10 +257,7 @@ namespace Roblox.Website.Controllers
                         // Convert to WAV file since that's what web client requires
                         //assetContent = await services.assets.GetAudioContentAsWav(assetId, assetVersion.contentUrl);
                     //}
-                    else
-                    {
-                        assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
-                    }
+                    assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     break;
                 default:
                     // anything else requires auth
