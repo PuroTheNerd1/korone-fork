@@ -1603,12 +1603,7 @@ namespace Roblox.Website.Controllers
         {
             string mode;
             bool IsOwner = StaffFilter.IsOwner(userId);
-            if (StaffFilter.IsOwner(userId)){
-                mode = "whitelist";
-            }
-            else{
-                mode = "blacklist";
-            }
+            mode = IsOwner ? "whitelist" : "blacklist";
             return new
             {
                 ChatFilter = mode,
@@ -1661,6 +1656,7 @@ namespace Roblox.Website.Controllers
             var jsonString = JsonConvert.SerializeObject(allowedList);
             return new { data = jsonString };
         }
+
         private static int pendingAssetUploads { get; set; } = 0;
         private static readonly Mutex pendingAssetUploadsMux = new();
 
