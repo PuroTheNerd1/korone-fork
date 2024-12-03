@@ -180,12 +180,12 @@ namespace Roblox.Website.Controllers
                 try
                 {
                     assetId = await services.assets.GetAssetIdFromRobloxAssetId(assetId);
+                    details = await services.assets.GetAssetCatalogInfo(assetId);
                 }
                 catch (RecordNotFoundException)
                 {
                     return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
                 }
-                details = await services.assets.GetAssetCatalogInfo(assetId);
             }
 
             if (details.is18Plus && !isRcc && !isBotRequest)
