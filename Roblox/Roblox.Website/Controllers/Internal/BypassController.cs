@@ -103,8 +103,7 @@ namespace Roblox.Website.Controllers
         public bool IsRcc()
         {
             var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
-            var isRcc = rccAccessKey == Configuration.RccAuthorization;
-            return isRcc;
+            return rccAccessKey == Configuration.RccAuthorization;
         }
 
         [HttpGetBypass("v2/asset")]
