@@ -3697,7 +3697,7 @@
 	"FFlagStudioShowInExplorerAtBreakpoint": true,
 	"FFlagStudioShowInExplorerChangeFocus": true,
 	"FFlagStudioSkinnedMeshBeta": false,
-	"FFlagStudioSkipTeamTestConnectDialog": true,
+	"FFlagStudioSkipTeamTestConnectDialog": false,
 	"FFlagStudioSortInTabOrder": true,
 	"FFlagStudioSplitUserAgreementTimingForTelemetry": true,
 	"FFlagStudioStartServerIfNotStartedWhenStartingClient": true,
