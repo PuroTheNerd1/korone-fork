@@ -188,7 +188,7 @@ namespace Roblox.Website.Controllers
                 }
             }
 
-            if (!isRcc && !isBotRequest)
+            if (!isLoggedIn && !isRcc && !isBotRequest)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
