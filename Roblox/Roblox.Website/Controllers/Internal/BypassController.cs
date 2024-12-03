@@ -147,17 +147,6 @@ namespace Roblox.Website.Controllers
             }
             // If assetversionid isnt null, set id to assetveresionid
             id = assetversionid ?? id;
-            var is18OrOver = false;
-            if (userSession != null)
-            {
-                is18OrOver = await services.users.Is18Plus(safeUserSession.userId);
-            }
-
-            // TEMPORARY UNTIL AUTH WORKS ON STUDIO! REMEMBER TO REMOVE
-            if (HttpContext.Request.Headers.ContainsKey("RbxTempBypassFor18PlusAssets"))
-            {
-                is18OrOver = true;
-            }
 
             var assetId = id;
             var invalidIdKey = "InvalidAssetIdForConversionV1:" + assetId;
@@ -205,7 +194,7 @@ namespace Roblox.Website.Controllers
                 details = await services.assets.GetAssetCatalogInfo(assetId);
             }
 
-            if (details.is18Plus && !isRcc && !isBotRequest && !is18OrOver)
+            if (details.is18Plus && !isRcc && !isBotRequest)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
