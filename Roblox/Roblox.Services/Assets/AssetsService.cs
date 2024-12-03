@@ -554,7 +554,7 @@ public class AssetsService : ServiceBase, IService
     }
 
     private static long maxAudioFileSizeBytes = 20447232;
-    private static long maxVideoFileSizeBytes = 40894464;
+    private static long maxVideoFileSizeBytes = 41943040;
     public async Task<AudioValidation> IsAudioValid(Stream content)
     {
         if (content.Length > maxAudioFileSizeBytes) return AudioValidation.FileTooLarge;
