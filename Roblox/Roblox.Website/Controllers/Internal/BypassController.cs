@@ -1654,6 +1654,7 @@ namespace Roblox.Website.Controllers
         {
             // if assetId is 0 try getting it from the headers
             long placeId = assetId ?? 0;
+            long userId = 0;
             bool isRcc = IsRcc();
             if (placeId == 0)
             {
@@ -1664,9 +1665,17 @@ namespace Roblox.Website.Controllers
             bool canUpload = false;
             // check if the user can upload if they cant then check if rcc can
             if (userSession != null)
+            {
+                userId = userSession.userId;
                 canUpload = await services.assets.CanUserModifyItem(placeId, userSession.userId);
+            }
+
             if (!canUpload)
+            {
+                userId = info.creatorTargetId;
                 canUpload = isRcc;
+            }
+
             Console.WriteLine($"placeid: {placeId} isRcc: {isRcc} canUpload: {canUpload}");
             if (info.assetType != Models.Assets.Type.Place)
                 canUpload = false;
@@ -1702,7 +1711,7 @@ namespace Roblox.Website.Controllers
 
                         decompressedStream.Position = 0;
                         // Create asset version in background
-                        _ = await services.assets.CreateAssetVersion(placeId, safeUserSession.userId, decompressedStream);
+                        _ = await services.assets.CreateAssetVersion(placeId, userId, decompressedStream);
                         services.assets.RenderAsset(placeId, info.assetType);
                     }
                 }
