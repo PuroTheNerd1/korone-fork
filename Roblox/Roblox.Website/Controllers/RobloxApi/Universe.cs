@@ -190,7 +190,34 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
-
+    [HttpGetBypass("v1/user/teamcreate/memberships")]
+    public async Task<dynamic> GetMembershipsForCurrentUser()
+    {
+        var memberships = await services.games.GetTeamcreateMembershipsForUser(safeUserSession.userId);
+        return new
+        {
+            previousPageCursor = (string?)null,
+            nextPageCursor = (string?)null,
+            data = memberships.Select(c =>
+            {
+                return new
+                {
+                    id = c.id,
+                    name = c.name,
+                    description = c.description,
+                    isArchived = false,
+                    rootPlaceId = c.rootPlaceId,
+                    isActive = c.isPublic,
+                    privacyType = c.isPublic ? PrivacyType.Public : PrivacyType.Private,
+                    creatorType = c.creator.type,
+                    creatorTargetId = c.creatorId,
+                    creatorName = c.creatorName,
+                    created = c.created,
+                    updated = c.updated
+                };
+            }).ToList()
+        };
+    }
     [HttpGetBypass("v1/universes/{universeId}/teamcreate/memberships")]
     public async Task<dynamic> GetMembershipsForUniverse(long universeId)
     {

@@ -96,6 +96,23 @@ public class GamesService : ServiceBase, IService
             throw new RobloxException(400, 0, "Invalid place ID");
         return result;
     }
+    public async Task<dynamic> GetTeamcreateMembershipsForUniverse(long universeId)
+    {
+        return await db.QueryAsync<dynamic>(
+            "SELECT user_id as userId, u.username FROM teamcreate_memberships INNER JOIN \"user\" u ON u.id = teamcreate_memberships.user_id WHERE universe_id = :id", new
+            {
+                id = universeId,
+            });
+    }
+    public async Task<IEnumerable<MultiGetUniverseEntry>> GetTeamcreateMembershipsForUser(long userId)
+    {
+        var result = await db.QueryAsync<dynamic>(
+            "SELECT universe_id as universeId FROM teamcreate_memberships WHERE user_id = :id", new
+            {
+                id = userId,
+            });
+        return await MultiGetUniverseInfo(result.Select(c => (long) c.universeId));
+    }
     public async Task SetCloudedit(bool isEnabled, long universeId)
     {
         await db.ExecuteAsync("UPDATE universe SET cloudedit = :isEnabled WHERE id = :universeId",
@@ -166,6 +183,8 @@ public class GamesService : ServiceBase, IService
         }
         return result;
     }
+
+
 
     public async Task<PlayEntry?> GetOldestPlay(long userId)
     {
