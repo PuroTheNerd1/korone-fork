@@ -1742,8 +1742,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("universes/{universeId:long}/cloudeditenabled")]
         public async Task<dynamic> IsCloudEditEnabled(long universeId)
         {
-            if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
-                throw new RobloxException(403, 0, "Unauthorized");
             return new
             {
                 enabled = await services.games.IsCloudeditEnabled(universeId)
