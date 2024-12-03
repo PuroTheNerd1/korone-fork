@@ -1652,16 +1652,22 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("Data/Upload.ashx")]
         public async Task<dynamic> UploadPlaceFromStudio(long? assetId)
         {
-            // if assetId is null, try to get it from the headers
-            long assetid = assetId ?? (long.TryParse(Request.Headers["Roblox-Place-Id"].ToString(), out long placeId) ? placeId : 0);
-            var info = await services.assets.GetAssetCatalogInfo(assetid);
+            // if assetId is 0 try getting it from the headers
+            long placeId = assetId ?? 0;
+            bool isRcc = IsRcc();
+            if (assetId == 0)
+            {
+                long.TryParse(Request.Headers["roblox-place-id"].ToString(), out placeId);
+            }
+
+            var info = await services.assets.GetAssetCatalogInfo(placeId);
             bool canUpload = false;
             // check if the user can upload if they cant then check if rcc can
             if (userSession != null)
-                canUpload = await services.assets.CanUserModifyItem(assetid, userSession.userId);
+                canUpload = await services.assets.CanUserModifyItem(placeId, userSession.userId);
             if (!canUpload)
-                canUpload = IsRcc();
-
+                canUpload = isRcc;
+            Console.WriteLine($"placeid: {placeId} isRcc: {isRcc} canUpload: {canUpload}");
             if (info.assetType != Models.Assets.Type.Place)
                 canUpload = false;
 
@@ -1696,8 +1702,8 @@ namespace Roblox.Website.Controllers
 
                         decompressedStream.Position = 0;
                         // Create asset version in background
-                        _ = await services.assets.CreateAssetVersion(assetid, safeUserSession.userId, decompressedStream);
-                        services.assets.RenderAsset(assetid, info.assetType);
+                        _ = await services.assets.CreateAssetVersion(placeId, safeUserSession.userId, decompressedStream);
+                        services.assets.RenderAsset(placeId, info.assetType);
                     }
                 }
             }
