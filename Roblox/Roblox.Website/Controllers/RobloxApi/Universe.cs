@@ -251,6 +251,23 @@ public class UniverseV1 : ControllerBase
         };
     }
     */
+    [HttpGetBypass("universes/{universeId}/listcloudeditors")]
+    public async Task<dynamic> GetCloudEditors(long universeId)
+    {
+        var editors = await services.games.GetTeamcreateMembershipsForUniverse(universeId);
+        return new
+        {
+            finalPage = true,
+            users = editors.Select(c =>
+            {
+                return new
+                {
+                    userId = c.id,
+                    isAdmin = false,
+                };
+            })
+        };
+    }
     [HttpGet("v1/places/{placeId}/teamcreate/active_session/members")]
     public async Task<dynamic> GetTeamCreateMembers(long placeId)
     {
@@ -299,7 +316,8 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpGet("v1/universes/{universeId}/permissions")]
+    [HttpGetBypass("v1/universes/{universeId}/context-permission")]
+    [HttpGetBypass("v1/universes/{universeId}/permissions")]
     public async Task<dynamic> CanManage(long universeId)
     {
         bool canManage = await services.games.CanManageUniverse(safeUserSession.userId, universeId);
