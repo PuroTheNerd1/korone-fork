@@ -554,7 +554,7 @@ public class AssetsService : ServiceBase, IService
     }
 
     private static long maxAudioFileSizeBytes = 20447232;
-
+    private static long maxVideoFileSizeBytes = 40894464;
     public async Task<AudioValidation> IsAudioValid(Stream content)
     {
         if (content.Length > maxAudioFileSizeBytes) return AudioValidation.FileTooLarge;
@@ -603,7 +603,7 @@ public class AssetsService : ServiceBase, IService
 
     public async Task<VideoValidation> IsVideoValid(Stream content)
     {
-        if (content.Length > maxAudioFileSizeBytes) return VideoValidation.FileTooLarge;
+        if (content.Length > maxVideoFileSizeBytes) return VideoValidation.FileTooLarge;
         if (content.Length == 0) return VideoValidation.EmptyStream;
         content.Position = 0;
         IMediaAnalysis mediaInfo;
