@@ -205,56 +205,11 @@ namespace Roblox.Website.Controllers
                 }
                 catch (RecordNotFoundException)
                 {
-                    /*if (await Services.Cache.distributed.StringGetAsync(invalidIdKey) != null)
-                        throw new RobloxException(400, 0, "Asset is invalid or does not exist");
-
-                    try
-                    {
-                        // Doesn't exist yet, so create it
-                        var migrationResult = await MigrateItem.MigrateItemFromRoblox(assetId.ToString(), false, null,
-                            new List<Type>()
-                            {
-                                Type.Image,
-                                Type.Audio,
-                                Type.Mesh,
-                                Type.Lua,
-                                Type.Model,
-                                Type.Decal,
-                                Type.Animation,
-                                Type.SolidModel,
-                                Type.MeshPart,
-                                Type.ClimbAnimation,
-                                Type.DeathAnimation,
-                                Type.FallAnimation,
-                                Type.IdleAnimation,
-                                Type.JumpAnimation,
-                                Type.RunAnimation,
-                                Type.SwimAnimation,
-                                Type.WalkAnimation,
-                                Type.PoseAnimation,
-                            }, default, default, true);
-                        assetId = migrationResult.assetId;
-                    }
-                    catch (AssetTypeNotAllowedException)
-                    {
-                        // TODO: permanently insert as invalid for AssetTypeNotAllowedException in a table
-                        await Services.Cache.distributed.StringSetAsync(invalidIdKey,
-                            "{}", TimeSpan.FromDays(7));
-                        throw new RobloxException(400, 0, "Asset is invalid or does not exist");
-                    }
-                    catch (Exception e)
-                    {
-                        // temporary failure? mark as invalid, but only temporarily
-                        Writer.Info(LogGroup.AssetDelivery, "Failed to migrate asset " + assetId + " - " + e.Message + "\n" + e.StackTrace);
-                        await Services.Cache.distributed.StringSetAsync(invalidIdKey,
-                            "{}", TimeSpan.FromMinutes(1));
-                        throw new RobloxException(400, 0, "Asset is invalid or does not exist");
-                    }
-                    */
                     return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
                 }
                 details = await services.assets.GetAssetCatalogInfo(assetId);
             }
+
             if (details.is18Plus && !isRcc && !isBotRequest && !is18OrOver)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             if (details.moderationStatus != ModerationStatus.ReviewApproved && !isRcc && !isBotRequest)
@@ -389,7 +344,6 @@ namespace Roblox.Website.Controllers
                     {
                         assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     }
-
                     break;
             }
 
