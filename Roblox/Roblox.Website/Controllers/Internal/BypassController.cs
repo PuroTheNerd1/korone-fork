@@ -1656,13 +1656,18 @@ namespace Roblox.Website.Controllers
             // if assetId is null, try to get it from the headers
             long assetid = assetId ?? (long.TryParse(Request.Headers["Roblox-Place-Id"].ToString(), out long placeId) ? placeId : 0);
             var info = await services.assets.GetAssetCatalogInfo(assetid);
+            bool canUpload = false;
             // check if the user can upload if they cant then check if rcc can
-            var canUpload = await services.assets.CanUserModifyItem(info.id, safeUserSession.userId) || IsRcc();
-
-            if (info.assetType != Models.Assets.Type.Place)
+            if (userSession != null)
             {
-                canUpload = false;
+                canUpload = await services.assets.CanUserModifyItem(assetid, safeUserSession.userId);
             }
+            else
+            {
+                canUpload = IsRcc();
+            }
+            if (info.assetType != Models.Assets.Type.Place)
+                canUpload = false;
 
             if (!canUpload)
                 throw new RobloxException(403, 0, "Unauthorized");
