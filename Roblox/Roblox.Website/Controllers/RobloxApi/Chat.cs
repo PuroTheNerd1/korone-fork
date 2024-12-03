@@ -108,7 +108,22 @@ public class Chat : ControllerBase
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
         await services.chat.MarkMessageAsRead(request.conversationId, request.endMessageId, safeUserSession.userId);
     }
-
+    [HttpPostBypass("v2/start-cloud-edit-conversation")]
+    public async Task<dynamic> StartCloudEditConversation([Required, FromBody] Dto.Chat.StartCloudeditConversationRequest request)
+    {
+        FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
+        long universeId = await services.games.GetUniverseId(request.placeId);
+        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
+            throw new RobloxException(400, 0, "BadRequest");
+        var result = await services.chat.CreateCloudEditConversation(safeUserSession.userId, request.placeId);
+        return new
+        {
+            conversation = new
+            {
+                id = result.id,
+            },
+        };
+    }
     [HttpPostBypass("v2/start-one-to-one-conversation")]
     public async Task<dynamic> StartOneToOneConversation([Required, FromBody] Dto.Chat.StartConversationRequest request)
     {
