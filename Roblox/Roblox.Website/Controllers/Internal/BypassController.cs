@@ -1662,11 +1662,13 @@ namespace Roblox.Website.Controllers
             if (!canUpload)
                 canUpload = IsRcc();
 
+            if (info.assetType != Models.Assets.Type.Place)
+                canUpload = false;
+
             if (!canUpload)
                 throw new RobloxException(403, 0, "Unauthorized");
 
-            if (info.assetType != Models.Assets.Type.Place)
-                canUpload = false;
+
 
             lock (pendingAssetUploadsMux)
             {
