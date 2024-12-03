@@ -266,7 +266,7 @@ namespace Roblox.Website.Controllers
                     if (isRcc)
                     {
                         var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
-                        long placeId = 0;
+                        long placeId;
                         long.TryParse(placeIdHeader, out placeId);
                         // if rcc is trying to access current place, allow through
                         isAuthorized = placeId == assetId;
