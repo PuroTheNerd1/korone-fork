@@ -317,11 +317,6 @@ namespace Roblox.Website.Controllers
                             // Note that all users have access to "Roblox"'s content for legacy reasons
                             isAuthorized = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
                         }
-                        // Don't encrypt assets being sent to authorized users - they could be trying to download their own place to give to a friend or something
-                        if (isAuthorized)
-                        {
-                            encryptionEnabled = false;
-                        }
                     }
 
                     if (isAuthorized && assetVersion.contentUrl != null)
