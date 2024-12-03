@@ -215,7 +215,7 @@ public class UniverseV1 : ControllerBase
                     created = c.created,
                     updated = c.updated
                 };
-            }).ToList()
+            })
         };
     }
     [HttpGetBypass("v1/universes/{universeId}/teamcreate/memberships")]

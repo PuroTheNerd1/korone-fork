@@ -107,11 +107,12 @@ public class GamesService : ServiceBase, IService
     public async Task<IEnumerable<MultiGetUniverseEntry>> GetTeamcreateMembershipsForUser(long userId)
     {
         var result = await db.QueryAsync<dynamic>(
-            "SELECT universe_id as universeId FROM teamcreate_memberships WHERE user_id = :id", new
+            "SELECT universe_id FROM teamcreate_memberships WHERE user_id = :id", new
             {
                 id = userId,
             });
-        return await MultiGetUniverseInfo(result.ToList().Select(c => (long)c.universeId));
+
+        return await MultiGetUniverseInfo(result.Select(r => (long)r.universe_id));
     }
     public async Task SetCloudedit(bool isEnabled, long universeId)
     {
