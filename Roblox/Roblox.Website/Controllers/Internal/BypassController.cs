@@ -189,7 +189,8 @@ namespace Roblox.Website.Controllers
 
             if (!isLoggedIn && !isRcc && !isBotRequest)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
-            if (details.moderationStatus != ModerationStatus.ReviewApproved && !isBotRequest)
+            // TODO: Fix for this is using a diffrent access key for rendering
+            if (details.moderationStatus != ModerationStatus.ReviewApproved && details.moderationStatus != ModerationStatus.AwaitingModerationDecision && !IsRcc() && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
             dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
 
