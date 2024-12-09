@@ -628,7 +628,8 @@ public class WebController : ControllerBase
         if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null) throw new BadRequestException();
         // flood check Start
         // 1 attempt every 5 seconds per user
-        if (await services.cooldown.TryCooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5)))
+        // IP flood check too! same limit as userId for now
+        if (!await services.cooldown.TryCooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
         {
             throw new RobloxException(429, 0, "Too many requests");
         }
