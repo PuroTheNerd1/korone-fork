@@ -3,8 +3,8 @@ import conf from './config.js';
 import { soap } from './soap.js';
 
 /**
- * 
- * @param {{RCC: number; XML: string; jobExpiration: number;}} param0 
+ *
+ * @param {{RCC: number; XML: string; jobExpiration: number;}} param0
  */
 const request = async ({ RCC, XML, jobExpiration }) => {
     try {

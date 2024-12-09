@@ -628,9 +628,13 @@ public class WebController : ControllerBase
         if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null) throw new BadRequestException();
         // flood check Start
         // 1 attempt every 5 seconds per user
-        await services.cooldown.CooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5));
         // IP flood check too! same limit as userId for now
-        await services.cooldown.CooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5));
+        if (await services.cooldown.TryCooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5)) || await services.cooldown.TryCooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
+        {
+            throw new RobloxException(429, 0, "Too many requests");
+        }
+
+
 
         // Limit of 50 assets globally pending approval before failure
         var pendingAssets = await services.assets.CountAssetsPendingApproval();

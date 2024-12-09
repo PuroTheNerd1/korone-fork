@@ -1,4 +1,8 @@
-echo "Starting Player Thumbnail RCC"
-start /b RCCService.exe -console -verbose -port 10000
-echo "Starting Player Headshot RCC"
-start /b RCCService.exe -console -verbose -port 10001
+echo "Starting Player Render RCC"
+start /b RCCPlayerRender.bat
+echo "Starting Image Render RCC"
+start /b RCCImageRender.bat
+echo "Starting Game Render RCC"
+start /b RCCGameRender.bat
+echo "Starting Catalog Render RCC"
+start /b RCCCatalogRender.bat
