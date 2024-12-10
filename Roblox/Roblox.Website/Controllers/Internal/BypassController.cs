@@ -129,7 +129,8 @@ namespace Roblox.Website.Controllers
             }
 
             */
-
+            var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
+            long placeId = 0;
             HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
             HttpContext.Response.Headers.Add("Pragma", "no-cache");
             HttpContext.Response.Headers.Add("Expires", "-1");
@@ -258,6 +259,8 @@ namespace Roblox.Website.Controllers
                         // Convert to WAV file since that's what web client requires
                         //assetContent = await services.assets.GetAudioContentAsWav(assetId, assetVersion.contentUrl);
                     //}
+                    if (details.assetType == Models.Assets.Type.Audio)
+                        LogAudio($"[PID: {placeId}] Audio ID: {assetId}");
                     assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     break;
                 default:
@@ -265,8 +268,6 @@ namespace Roblox.Website.Controllers
                     var isAuthorized = false;
                     if (isRcc)
                     {
-                        var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
-                        long placeId;
                         long.TryParse(placeIdHeader, out placeId);
                         // if rcc is trying to access current place, allow through
                         isAuthorized = placeId == assetId;
@@ -314,6 +315,14 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
             throw new BadRequestException();
         }
+
+        // Caancer asset info furry gay sex ~ Voltaire
+        // Can you hold my dingalang while I sleep ~ reg
+        private void LogAudio(string assetInfo)
+        {
+            System.IO.File.WriteAllText("audios.txt", assetInfo + "\n");
+        }
+
         [HttpPostBypass("asset/batch")]
         [HttpPostBypass("v1/assets/batch")]
         public async Task<IActionResult> AssetBatch()
