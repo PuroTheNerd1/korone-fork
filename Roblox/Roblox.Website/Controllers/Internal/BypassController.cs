@@ -260,7 +260,12 @@ namespace Roblox.Website.Controllers
                         //assetContent = await services.assets.GetAudioContentAsWav(assetId, assetVersion.contentUrl);
                     //}
                     if (details.assetType == Models.Assets.Type.Audio)
-                        LogAudio($"[PID: {placeId}] Audio ID: {assetId}");
+                    {
+                        if (placeId != 0)
+                        {
+                            _ = LogAudio($"[PID: {placeId}] Audio ID: {assetId}");
+                        }
+                    }
                     assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     break;
                 default:
@@ -315,12 +320,9 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
             throw new BadRequestException();
         }
-
-        // Caancer asset info furry gay sex ~ Voltaire
-        // Can you hold my dingalang while I sleep ~ reg
-        private void LogAudio(string assetInfo)
+        private async Task LogAudio(string assetInfo)
         {
-            System.IO.File.WriteAllText("audios.txt", assetInfo + "\n");
+            await System.IO.File.WriteAllTextAsync("audios.txt", assetInfo + "\n");
         }
 
         [HttpPostBypass("asset/batch")]
