@@ -629,7 +629,8 @@ public class AssetsService : ServiceBase, IService
         {
             File.Delete(tempFile);
         }
-        if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.Duration.TotalSeconds == 0)
+        // Null check
+        if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.VideoStreams == null || mediaInfo.Duration.TotalSeconds == 0)
             return VideoValidation.UnsupportedFormat;
         // Max 5 mins
         if (mediaInfo.Duration.TotalSeconds > 300)
