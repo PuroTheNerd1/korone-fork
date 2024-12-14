@@ -1853,22 +1853,6 @@ namespace Roblox.Website.Controllers
             return Ok();
         }
 
-        [HttpGetBypass("user/follow")]
-        [HttpPost("user/follow")]
-        public async Task<dynamic> FollowUser(long followedUserId)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            if (followedUserId == safeUserSession.userId)
-                throw new BadRequestException();
-            Console.WriteLine("Following user " + followedUserId);
-            await services.friends.FollowerUser(safeUserSession.userId, followedUserId);
-
-            return new
-            {
-                success = true,
-                isCaptchaRequired = false,
-            };
-        }
         [HttpGetBypass("users/get-by-username")]
         public async Task<dynamic> GetByUsername(string username)
         {

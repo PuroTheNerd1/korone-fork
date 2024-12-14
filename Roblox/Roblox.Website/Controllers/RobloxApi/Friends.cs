@@ -48,6 +48,23 @@ namespace Roblox.Website.Controllers
             }
             return onlineFriends;
         }
+
+        [HttpPostBypass("user/follow")]
+        public async Task<dynamic> FollowUser(long followedUserId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
+            if (followedUserId == safeUserSession.userId)
+                throw new BadRequestException();
+            Console.WriteLine("Following user " + followedUserId);
+            await services.friends.FollowerUser(safeUserSession.userId, followedUserId);
+
+            return new
+            {
+                success = true,
+                isCaptchaRequired = false,
+            };
+        }
+
         [HttpPostBypass("user/following-exists")]
         [HttpGetBypass("user/following-exists")]
         public async Task<dynamic> FollowingExists(long userId, long followerUserId)
