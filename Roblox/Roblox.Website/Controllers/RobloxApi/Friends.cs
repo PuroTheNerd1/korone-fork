@@ -50,7 +50,7 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("user/follow")]
-        public async Task<dynamic> FollowUser(long followedUserId)
+        public async Task<dynamic> FollowUserLegacy(long followedUserId)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
             if (followedUserId == safeUserSession.userId)
