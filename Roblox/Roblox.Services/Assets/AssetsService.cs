@@ -612,13 +612,22 @@ public class AssetsService : ServiceBase, IService
         var tempFile = Path.GetTempFileName();
         try
         {
+
             await using (var fs = File.OpenWrite(tempFile))
             {
                 content.Seek(0, SeekOrigin.Begin);
                 await content.CopyToAsync(fs);
             }
 
-            mediaInfo = await FFProbe.AnalyseAsync(tempFile);
+            // If the video takes too long (15 secs) to analyse we'll just return unsupported format
+            var analysisTask = FFProbe.AnalyseAsync(tempFile);
+
+            if (await Task.WhenAny(analysisTask, Task.Delay(TimeSpan.FromSeconds(15))) != analysisTask)
+            {
+                Console.WriteLine("[error] video processing timed out");
+                return VideoValidation.UnsupportedFormat;
+            }
+            mediaInfo = await analysisTask;
         }
         catch (Exception e)
         {
