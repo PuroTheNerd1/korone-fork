@@ -91,15 +91,11 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> GetFriendsAmount(long? userId)
         {
             if (userId == null)
-            {
                 userId = safeUserSession.userId;
-            }
-            int amountFriends = await services.friends.CountFriends((long)userId);
             return new
             {
                 success = true,
-                message = "Success",
-                count = amountFriends
+                count = await services.friends.CountFriends((long)userId),
             };
         }
         [HttpGetBypass("v1/users/{userId}/friends/statuses")]
