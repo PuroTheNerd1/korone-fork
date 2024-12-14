@@ -9,6 +9,7 @@ namespace Roblox.Website.Controllers
     public class Telementry : ControllerBase
     {
         [HttpGetBypass("client/pbe")]
+        [HttpPostBypass("client/pbe")]
         [HttpGetBypass("mobile/pbe")]
         public OkResult PBE()
         {
@@ -19,7 +20,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/enrollments")]
         public dynamic Enrollments()
         {
-            return new 
+            return new
             {
                 data = new[]
                 {
