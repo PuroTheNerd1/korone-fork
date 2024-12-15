@@ -1174,6 +1174,7 @@ namespace Roblox.Website.Controllers
                 bodyColors,
                 emotes
             };
+
             string jsonString = JsonConvert.SerializeObject(result);
             return Content(jsonString, "application/json");
         }

@@ -13,14 +13,27 @@ namespace Roblox.Rendering
         public static string RccServicePath = "C:\\ProjectX\\services\\RCCService\\";
         public static string RccServicePathGames = "C:\\ProjectX\\services\\RCCService\\";
         private static Random RandomComponent = new Random();
+        private static HttpClient httpClient = new HttpClient();
+        // TODO: REWRITE RENDERING HANDLER
+        private enum RenderType
+        {
+            Avatar = 0,
+            Headshot,
+            Package,
+            Place,
 
+        }
         public static void Configure(string baseUrl, string rccPath, string luaScriptPath, string rccPathGames)
         {
             BaseUrl = baseUrl;
             RccServicePath = rccPath;
             LuaScriptPath = luaScriptPath;
         }
-        
+
+        private async Task<dynamic> SendRenderRequest()
+        {
+            return null;
+        }
 
         public static async Task<string> SendRequestToRcc(string URL, string XML, string SOAPAction)
         {
@@ -36,7 +49,7 @@ namespace Roblox.Rendering
                     {
                         Console.WriteLine($"[RCCSendRequest] Recieved not OK status request: {RccHttpClientPost.StatusCode}, full response: {RccHttpClientResponse}");
                     }
-                    
+
                     XDocument Doc = XDocument.Parse(RccHttpClientResponse);
                     XNamespace ns1 = "http://projex.zip/";
                     XElement Element = Doc.Descendants(ns1 + "value").FirstOrDefault()!;
@@ -48,9 +61,9 @@ namespace Roblox.Rendering
                     Console.WriteLine($"[RCCSendRequest] Failed to send request to RCC: {e}");
                 }
             }
-            return "FAILURE"; 
+            return "FAILURE";
         }
-        
+
         public static async Task<string> RequestHatThumbnail(long assetId, int JobExpiration)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
@@ -69,7 +82,7 @@ namespace Roblox.Rendering
             string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Hat.txt");
             string finalScript = originalScript.Replace
                 ("%assetUrl%", $@"""{assetUrl}""");
-            
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -94,12 +107,12 @@ namespace Roblox.Rendering
                 </soap:Body>
             </soap:Envelope>";
             await WaitForPort(RCCPort);
-            
+
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
         }
-        
+
         public static async Task<string> RequestMeshThumbnail(long assetId, int JobExpiration)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
@@ -122,7 +135,7 @@ namespace Roblox.Rendering
                 ("%x%", @"""1260""").Replace
                 ("%y%", @"""1260""").Replace
                 ("%baseUrl%", $@"""{BaseUrl}/""");
-            
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -151,7 +164,7 @@ namespace Roblox.Rendering
             renderRcc.Kill();
             return result;
         }
-        
+
         public static async Task<string> RequestImageThumbnail(long assetId, int JobExpiration, bool isFace = false)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
@@ -178,7 +191,7 @@ namespace Roblox.Rendering
                 ("%y%", @$"""{y}""").Replace
                 ("%baseUrl%", $@"""{BaseUrl}/""").Replace(
                 "%isFace%", isFace.ToString().ToLower());
-            
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -207,7 +220,7 @@ namespace Roblox.Rendering
             renderRcc.Kill();
             return result;
         }
-        
+
         public static async Task<string> RequestPlaceRender(long assetId, int JobExpiration, int x, int y)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
@@ -230,7 +243,7 @@ namespace Roblox.Rendering
                 ("%y%", $@"{y}").Replace
                 ("%baseUrl%", $@"{BaseUrl}/").Replace
                 ("%universeId%", $@"{assetId}");
-            
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -260,7 +273,7 @@ namespace Roblox.Rendering
             renderRcc.Kill();
             return result;
         }
-        
+
         public static async Task<string> RequestClothingRender(long assetId, int JobExpiration)
         {
             string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
@@ -284,8 +297,8 @@ namespace Roblox.Rendering
                 ("%y%", $@"""{1680}""").Replace
                 ("%baseUrl%", $@"""{BaseUrl}/""").Replace
                 ("%mannequinId%", $@"""{1785197}""");
-            
-            
+
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -338,7 +351,7 @@ namespace Roblox.Rendering
                 ("%y%", $@"""{1680}""").Replace
                 ("%baseUrl%", $@"""{BaseUrl}/""").Replace
                 ("%mannequinId%", $@"""{1785197}""");
-            
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -390,8 +403,8 @@ namespace Roblox.Rendering
                 ("%y%", $@"""{1680}""").Replace
                 ("%baseUrl%", $@"""{BaseUrl}/""").Replace
                 ("%RigURL%", $@"""{BaseUrl}/asset/?id=1785197""");
-            
-            
+
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -442,7 +455,7 @@ namespace Roblox.Rendering
                 ("%fileExtension%", @"""png""").Replace
                 ("%x%", "840").Replace
                 ("%y%", "840");
-            
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -470,7 +483,7 @@ namespace Roblox.Rendering
             string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
             renderRcc.Kill();
             return result;
-        }       
+        }
         public static async Task<string> RequestHeadshotThumbnail(long userId, int JobExpiration)
         {
             string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
@@ -493,7 +506,7 @@ namespace Roblox.Rendering
                 ("%fileExtension%", @"""png""").Replace
                 ("%x%", "720").Replace
                 ("%y%", "720");
-            
+
             string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
             <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
@@ -532,14 +545,14 @@ namespace Roblox.Rendering
                     {
                         client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
                         Console.WriteLine("did not find port");
-                        break; 
+                        break;
                     }
                 }
                 catch (SocketException)
                 {
-                    Thread.Sleep(0); 
+                    Thread.Sleep(0);
                 }
-            }   
+            }
             Console.WriteLine($"found port: {RCCPort}");
             return Task.CompletedTask;
         }
