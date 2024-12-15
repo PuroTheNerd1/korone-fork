@@ -47,7 +47,7 @@
                         @Model.errorMessage
                     </div>
                 }
-                         
+
                 <h3>Application</h3>
                 <p>To join this website, you must fill out an application. This is done to prevent bots and malicious users from joining.</p>
 
@@ -85,7 +85,7 @@
                 {
                     <form method="post">
                         <div class="input-padding"></div>
-                        
+
                         <div>
                             <h4>Requirements</h4>
                             <ul>
@@ -93,9 +93,9 @@
                                 <li>You must have an active account on a public website such as Roblox or Twitter.</li>
                             </ul>
                         </div>
-                        
+
                         <div class="input-padding"></div>
-                        
+
 
                         <div class="application-form-entry">
                             <div class="stage-1">
@@ -105,9 +105,9 @@
                                     <textarea placeholder="About me (up to 4,000 characters)" disabled="@Model.submitDisabled" class="form-control w-100" rows="4" name="about" maxlength="4096">@Model.about</textarea>
                                 </div>
                             </div>
-                            
+
                             <div class="input-padding"></div>
-                            
+
                             <div class="stage-2">
                                 <h4>Step 2 - Roblox Profile</h4>
                                 <div class="p-2">
@@ -120,10 +120,10 @@
                                 <h4>Step 3 - Discord ID</h4>
                                 <div class="p-2">
                                     <p class="mb-0">Please put your Discord ID here. Don't know how to get it? Click <a href="https://www.electronicshub.org/how-to-find-discord-user-id/" target="_blank">here</a>.</p>
-                                    <p class="mb-2 mt-2"><span class="fw-bold">You must be in the Project X Discord server</span>, to join click <a href="https://www.projex.zip/auth/discord" target="_blank">here</a></p>
+                                    <p class="mb-2 mt-2"><span class="fw-bold">You must be in the Pekora Discord server</span>, to join click <a href="https://www.projex.zip/auth/discord" target="_blank">here</a></p>
                                     <input placeholder="Example: 1124385331827966032" value="@Model.discordId || ''" disabled="@Model.submitDisabled" type="number" class="form-control" name="discordId" maxlength="22" style="appearance: textfield; -moz-appearance: textfield; -webkit-inner-spin-button: none; -webkit-outer-spin-button: none;" oninput="this.value = !!this.value ? Math.abs(this.value) : '';">
                                 </div>
-                            </div>                            
+                            </div>
                             <div class="input-padding"></div>
                             <div class="stage-4">
                                 <h4>Step 4 - Verification</h4>
@@ -132,17 +132,17 @@
                                     <div class="alert alert-primary mt-2 mb-2">
                                         <p class="mb-0">@Model.verificationPhrase</p>
                                     </div>
-                                    
+
                                     <div class="mt-2">
                                         <label>Code not working or getting filtered? </label>
                                         <input type="submit" class="btn btn-outline-primary btn-sm" name="action" value="Get New Code"/>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="input-padding"></div>
-                            
-                            
+
+
                             <div class="stage-5">
                                 <h4>Step 5 - Captcha</h4>
                                 <div class="p-2">
@@ -151,13 +151,13 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="stage-submit">
                             <div class="input-padding"></div>
                             <input type="submit" class="btn btn-primary mt-2" value="Submit Application"/>
                             @Html.AntiForgeryToken()
                         </div>
-                        
+
                     </form>
                 }
             </div>

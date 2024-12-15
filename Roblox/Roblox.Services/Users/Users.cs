@@ -28,7 +28,7 @@ namespace Roblox.Services;
 
 public class UsersService : ServiceBase, IService
 {
-    private static TwoFactorAuth tfa = new TwoFactorAuth("Project X");
+    private static TwoFactorAuth tfa = new TwoFactorAuth("Pekora");
     public async Task<bool> IsNameAvailableForNameChange(long contextUserId, string username)
     {
         var alreadyInUse = await db.QuerySingleOrDefaultAsync("SELECT username FROM \"user\" WHERE username ilike :name",

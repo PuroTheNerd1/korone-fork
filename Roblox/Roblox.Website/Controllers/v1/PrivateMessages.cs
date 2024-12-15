@@ -14,7 +14,7 @@ public class PrivateMessagesControllerV1 : ControllerBase
     {
         FeatureFlags.FeatureCheck(FeatureFlag.PrivateMessagesEnabled);
     }
-    
+
     public static List<dynamic> GlobalMessages = new List<dynamic>()
     {
         new
@@ -26,7 +26,7 @@ public class PrivateMessagesControllerV1 : ControllerBase
                 name = "ROBLOX",
                 displayName = "ROBLOX",
             },
-            subject = "Welcome to Project X",
+            subject = "Welcome to Pekora",
             body = "",
             created = "2021-01-13T12:00:00.42Z",
             updated = "2021-01-13T12:00:00.42Z",
@@ -73,7 +73,7 @@ public class PrivateMessagesControllerV1 : ControllerBase
                 shortMessage = "FloodCheck",
                 message = "Too many messages. Try again in a few minutes.",
             };
-        
+
         try
         {
             await services.privateMessages.CreateMessage(request.recipientid, userSession.userId, request.subject,
@@ -108,7 +108,7 @@ public class PrivateMessagesControllerV1 : ControllerBase
             await services.privateMessages.SetReadStatus(item, true);
         }
     }
-    
+
     [HttpPost("messages/mark-unread")]
     public async Task MarkMessagesAsUnread([Required, FromBody] MultiUpdateMessagesRequest request)
     {
@@ -121,7 +121,7 @@ public class PrivateMessagesControllerV1 : ControllerBase
             await services.privateMessages.SetReadStatus(item, false);
         }
     }
-    
+
     [HttpPost("messages/archive")]
     public async Task MarkMessagesAsArchived([Required, FromBody] MultiUpdateMessagesRequest request)
     {
@@ -134,7 +134,7 @@ public class PrivateMessagesControllerV1 : ControllerBase
             await services.privateMessages.SetArchiveStatus(item, true);
         }
     }
-    
+
     [HttpPost("messages/unarchive")]
     public async Task MarkMessagesAsUnarchived([Required, FromBody] MultiUpdateMessagesRequest request)
     {
@@ -191,5 +191,5 @@ public class PrivateMessagesControllerV1 : ControllerBase
             isReportAbuseDisplayed = msg.isReportAbuseDisplayed,
         };
     }
-    
+
 }
