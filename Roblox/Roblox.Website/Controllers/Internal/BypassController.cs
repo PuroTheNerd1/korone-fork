@@ -42,6 +42,7 @@ using System.IO.Compression;
 using Roblox.Models;
 using Roblox.Dto.Assets;
 using Roblox.Models.Games;
+using System.Diagnostics.CodeAnalysis;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -1318,17 +1319,12 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("/v1/user/currency")]
         [HttpGetBypass("/my/balance")]
-        public async Task<ActionResult<dynamic>> MyBalance()
+        public async Task<dynamic> MyBalance()
         {
-
-            var bal = await services.economy.GetUserRobux(safeUserSession.userId);
-            var json = new
+            return new
             {
-                robux = bal
+                robux = await services.economy.GetUserRobux(safeUserSession.userId),
             };
-
-            string? jsonString = JsonConvert.SerializeObject(json);
-            return Content(jsonString, "application/json");
         }
         [HttpGetBypass("Users/ListStaff.ashx")]
         public async Task<dynamic> GetStaffList()
