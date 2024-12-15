@@ -1581,5 +1581,6 @@
   "DFFlagDisableFriendServiceLoadFriendRequests": "False",
   "FFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
   "VerifyIncomingFriendRequestsBeforeNotifying": "False",
-  "DFFlagVerifyIncomingFriendRequestsBeforeNotifying": "False"
+  "DFFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
+  "FStringGetFriendsUrl": "%sv1/users/%i/friends"
 }

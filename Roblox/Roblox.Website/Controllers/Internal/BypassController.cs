@@ -1315,48 +1315,6 @@ namespace Roblox.Website.Controllers
                 success = true,
                 message = "",
             };
-            /*
-            HWID hwid = new HWID();
-            long userId = safeUserSession.userId;
-            bool isBanned = false;
-            string macAddress = null;
-
-            using (StreamReader reader = new StreamReader(Request.Body))
-            {
-                string rawBody = await reader.ReadToEndAsync();
-
-                string[] macAddresses = rawBody.Split('&');
-                List<string> processedMacAddresses = new List<string>();
-                foreach (string macAddressString in macAddresses)
-                {
-                    string[] parts = macAddressString.Split('=');
-                    if (parts.Length == 2)
-                    {
-                        macAddress = parts[1];
-                        isBanned = await hwid.CheckHWID(userId, macAddress);
-                        if (!isBanned)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (macAddress == null)
-            {
-                return new
-                {
-                    success = false,
-                    message = "Invalid Data",
-                };
-            }
-
-            return new
-            {
-                success = isBanned,
-                message = "",
-            };
-            */
         }
         [HttpGetBypass("/v1/user/currency")]
         [HttpGetBypass("/my/balance")]
