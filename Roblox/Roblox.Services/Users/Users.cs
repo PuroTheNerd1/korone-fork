@@ -28,7 +28,7 @@ namespace Roblox.Services;
 
 public class UsersService : ServiceBase, IService
 {
-    public static TwoFactorAuth tfa = new TwoFactorAuth("Project X");
+    private static TwoFactorAuth tfa = new TwoFactorAuth("Project X");
     public async Task<bool> IsNameAvailableForNameChange(long contextUserId, string username)
     {
         var alreadyInUse = await db.QuerySingleOrDefaultAsync("SELECT username FROM \"user\" WHERE username ilike :name",
@@ -167,7 +167,7 @@ public class UsersService : ServiceBase, IService
                 status = TotpStatus.Disabled,
             };
         }
-        // we have a result of the user lets return it 
+        // we have a result of the user lets return it
         return storedTotp;
     }
 
@@ -313,7 +313,7 @@ public class UsersService : ServiceBase, IService
     {
         if (await IsBadUsername(usernameToAdd))
             return;
-        
+
         await db.ExecuteAsync("INSERT INTO moderation_bad_username (username) VALUES (:name)", new
         {
             name = usernameToAdd,
@@ -367,7 +367,7 @@ public class UsersService : ServiceBase, IService
         if (!normalizedNameArray.Success) return false;
         var normalizedName = normalizedNameArray.Value;
         if (normalizedName != nameToCheck) return false;
-        
+
         // check for duplicate whitespace
         for (var i = 1; i < normalizedName.Length; i++)
         {
@@ -391,7 +391,7 @@ public class UsersService : ServiceBase, IService
         var blocked = await IsBadUsername(nameToCheck);
         if (blocked)
             return false;
-        
+
 
         return true;
     }
@@ -509,7 +509,7 @@ public class UsersService : ServiceBase, IService
         var (exists, cached) = userInfoCache.Get(userId);
         if (exists && cached != null)
             return cached;
-        
+
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE id = :id", new { id = userId });
         if (res == null) throw new RecordNotFoundException();
         userInfoCache.Set(userId, res);
@@ -525,7 +525,7 @@ public class UsersService : ServiceBase, IService
     {
         var ids = userIds.Distinct().ToList();
         if (ids.Count == 0) return Array.Empty<MultiGetAccountStatusEntry>();
-        
+
         var sql = new SqlBuilder();
         var t = sql.AddTemplate("SELECT id as userId, u.status as accountStatus FROM \"user\" u /**where**/");
         sql.OrWhereMulti("u.id = $1", ids);
@@ -690,9 +690,9 @@ public class UsersService : ServiceBase, IService
         else
         {
             var result = await redis.StringGetAsync(redisKeyPrefix + sessionId);
-            if (result == null) 
+            if (result == null)
                 throw new RecordNotFoundException();
-            
+
             mySess = JsonSerializer.Deserialize<SessionEntry>(result);
             sessCache.Set(sessionId, mySess);
 
@@ -739,7 +739,7 @@ public class UsersService : ServiceBase, IService
             app = await GetApplicationByUserId(userId);
             appCache.Set(userId, app);
         }
-        
+
         if (app is {status: UserApplicationStatus.Approved})
             return true;
 
@@ -756,12 +756,12 @@ public class UsersService : ServiceBase, IService
             "SELECT COUNT(discord_id) FROM join_application WHERE join_application.discord_id = :discord_id AND (join_application.status = :status1 OR join_application.status = :status2 OR join_application.status = :status3)",
             new { discord_id = discordId, status1 = UserApplicationStatus.Approved, status2 = UserApplicationStatus.SilentlyRejected, status3 = UserApplicationStatus.Pending }
         );
-        
+
         return isDuplicate > 0;
     }
     public async Task<string> GenerateAuthCode(string discordId)
     {
-        
+
         string existingAuthCode = await db.QuerySingleOrDefaultAsync<string>(
             "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
             new
@@ -774,7 +774,7 @@ public class UsersService : ServiceBase, IService
         {
             return existingAuthCode;
         }
-        
+
         string alreadyVerified = await db.QuerySingleOrDefaultAsync<string>(
             "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
             new
@@ -812,9 +812,9 @@ public class UsersService : ServiceBase, IService
             new
             {
                 linkcode = discordAuthCode,
-                status = (int)DiscordLinkstatus.PendingVerification 
+                status = (int)DiscordLinkstatus.PendingVerification
             });
-        
+
         if (discordId != null)
         {
             await db.ExecuteAsync(
@@ -871,7 +871,7 @@ public class UsersService : ServiceBase, IService
         });
         return await db.QuerySingleOrDefaultAsync<UserApplicationEntry>(t.RawSql, t.Parameters);
     }
-    
+
     public async Task<UserApplicationEntry?> GetApplicationByJoinId(string joinId)
     {
         var (q,t) = GetApplicationQuery();
@@ -881,7 +881,7 @@ public class UsersService : ServiceBase, IService
         });
         return await db.QuerySingleOrDefaultAsync<UserApplicationEntry>(t.RawSql, t.Parameters);
     }
-    
+
     public async Task<UserApplicationEntry?> GetApplicationByUserId(long userId)
     {
         var (q,t) = GetApplicationQuery();
@@ -948,7 +948,7 @@ public class UsersService : ServiceBase, IService
         await using var getAppsLock = await Cache.redLock.CreateLockAsync("GetApplicationsV1", TimeSpan.FromSeconds(5));
         if (!getAppsLock.IsAcquired)
             throw new LockNotAcquiredException();
-        
+
         if (contextUserId != null)
             await ReleaseApplicationLocks(contextUserId.Value);
         var (q,t) = GetApplicationQuery();
@@ -1044,7 +1044,7 @@ public class UsersService : ServiceBase, IService
     {
         if (app == null)
             return ApplicationRedemptionFailureReason.DoesNotExist;
-        if (app.createdAt <= DateTime.UtcNow.Subtract(TimeSpan.FromDays(30))) 
+        if (app.createdAt <= DateTime.UtcNow.Subtract(TimeSpan.FromDays(30)))
             return ApplicationRedemptionFailureReason.Expired;
         if (app.userId is not null)
             return ApplicationRedemptionFailureReason.AlreadyAssociatedWithUser;
@@ -1080,7 +1080,7 @@ public class UsersService : ServiceBase, IService
             status = UserApplicationStatus.Approved,
         });
     }
-    
+
     public async Task DeleteUnusedAppsWithSameUrlUnverified(string socialUrl)
     {
         await db.ExecuteAsync("DELETE FROM join_application WHERE social_presence = :url AND status = :status AND user_id is null", new
@@ -1118,7 +1118,7 @@ public class UsersService : ServiceBase, IService
     {
         if (!Enum.IsDefined(gender))
             throw new ArgumentException(nameof(gender) + " is invalid: " + gender);
-        
+
         var result = await InTransaction(async _ =>
         {
             // Confirm still doesn't exist
@@ -1204,7 +1204,7 @@ public class UsersService : ServiceBase, IService
             {
                 await CreateUserAsset(userId, id);
             }
-             
+
             return new UserId
             {
                 userId = userId,
@@ -1286,11 +1286,11 @@ public class UsersService : ServiceBase, IService
         await InTransaction(async _ =>
         {
             await using var userAssetLock = await AcquireUserAssetLock(userAssetId);
-            
+
             var currentOwner = await GetUserAssetById(userAssetId);
             if (currentOwner.userId != userId)
                 throw new RobloxException(401, 0, "Cannot change the price of this item");
-            
+
             await UpdateAsync("user_asset", userAssetId, new
             {
                 price = newPrice,
@@ -1362,7 +1362,7 @@ public class UsersService : ServiceBase, IService
             sub_type = TransactionSubType.ItemPurchase,
         })).total > 0;
     }
-    
+
     private async Task<UserEconomy> GetTotalCurrencyExchangedWithInvitedUsers(long userId, TimeSpan period)
     {
         var result = new UserEconomy()
@@ -1411,7 +1411,7 @@ public class UsersService : ServiceBase, IService
         var details = await assets.GetAssetCatalogInfo(assetId);
         var restrictions = details.itemRestrictions.ToArray();
         var isLimited = restrictions.Contains("Limited") || restrictions.Contains("LimitedUnique");
-        
+
         // don't check free items
         if (details.isForSale && details.price == 0 && currency == CurrencyType.Robux)
             return PurchaseAbuseFailureReason.Ok;
@@ -1420,7 +1420,7 @@ public class UsersService : ServiceBase, IService
         // don't check Roblox or UGC items
         if ((sellerId is 1 or 2) && details.creatorType == CreatorType.User && !isLimited)
             return PurchaseAbuseFailureReason.Ok;
-        
+
         if (details.creatorType == CreatorType.Group)
         {
             // just check group creator for now
@@ -1436,9 +1436,9 @@ public class UsersService : ServiceBase, IService
         var didBuyerJoinFromSeller = sellerInvite?.authorId == buyerUserId;
         var didSellerJoinFromBuyer = buyerInvite?.authorId == sellerId;
         var usersInvitedBySamePerson = sellerInvite != null && buyerInvite != null && sellerInvite.authorId == buyerInvite.authorId;
-        var didAnyUserJoinFromInviteByRelatedParty = 
-            didBuyerJoinFromSeller || 
-            didSellerJoinFromBuyer || 
+        var didAnyUserJoinFromInviteByRelatedParty =
+            didBuyerJoinFromSeller ||
+            didSellerJoinFromBuyer ||
             usersInvitedBySamePerson;
 
         if (didAnyUserJoinFromInviteByRelatedParty)
@@ -1472,7 +1472,7 @@ public class UsersService : ServiceBase, IService
             // check half as well (roughly 30 robux + 300 tickets would equal 60 robux, hitting the max)
             if (sellerEarnings.robux > maxRobuxPerDay/2 && sellerEarnings.tickets > maxTicketsPerDay/2)
                 return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransacted;
-            
+
             if (currency == CurrencyType.Robux)
             {
                 if (sellerEarnings.robux + details.price > maxRobuxPerDay)
@@ -1508,7 +1508,7 @@ public class UsersService : ServiceBase, IService
                 return PurchaseAbuseFailureReason.UsersRelatedPurchasedTooMany;
         }
         Writer.Info(LogGroup.AbuseDetection, "CanAssetBePurchased true");
-        
+
         return PurchaseAbuseFailureReason.Ok;
     }
 
@@ -1556,7 +1556,7 @@ public class UsersService : ServiceBase, IService
         if (!redLock.IsAcquired)
             throw new RobloxException(429, 0, "TooManyRequests");
         log.Info($"got PurchaseAsset lock");
-        
+
         await InTransaction(async _ =>
         {
             // Double check that user still doesn't own item yet
@@ -1584,7 +1584,7 @@ public class UsersService : ServiceBase, IService
 
             if (isExpired)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.AssetExpired);
-            
+
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
             await using var buyerLock = await ec.AcquireEconomyLock(CreatorType.User, userIdBuyer);
             // Check balance
@@ -1599,7 +1599,7 @@ public class UsersService : ServiceBase, IService
 
             if (realPrice is < 0)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.AssetPriceLessThanZero);
-            
+
             if (balance < realPrice)
             {
                 if (expectedCurrency == CurrencyType.Robux)
@@ -1607,7 +1607,7 @@ public class UsersService : ServiceBase, IService
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.BalanceLessThanPrice);
             }
             log.Info("buyer balance = {0} item price = {1}", balance, assetDetails.priceRobux);
-            
+
             // Not all groups have an economy yet. Create if required.
             if (assetDetails.creatorType == CreatorType.Group)
             {
@@ -1756,7 +1756,7 @@ public class UsersService : ServiceBase, IService
         await using var userAssetLock = await AcquireUserAssetLock(userAssetId);
         // Buyer lock
         await using var buyerLock = await AcquireEconomyLock(userIdBuyer);
-        
+
         await InTransaction(async _ =>
         {
             // Double check that everything is still valid
@@ -1773,7 +1773,7 @@ public class UsersService : ServiceBase, IService
             if (copies.Count() >= maxPossibleCopies)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason
                     .UserWouldExceedMaximumCopiesIfPurchased);
-            
+
             // Check balance
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
             var buyerBalanceOriginal = await ec.GetUserRobux(userIdBuyer);
@@ -1915,7 +1915,7 @@ public class UsersService : ServiceBase, IService
             // User already got daily robux in the past timespan, so do nothing
             return;
         }
-        
+
         // WEB-36
         var l = "TicketsStipendLockV1:" + userId;
         await using var robuxLock = await Cache.redLock.CreateLockAsync(l, TimeSpan.FromSeconds(5));
@@ -2016,7 +2016,7 @@ public class UsersService : ServiceBase, IService
 
     private static readonly Mutex OnlineStatusUpdateMux = new();
     private static readonly Dictionary<long, bool> OnlineStatusUpdatedList = new();
-    
+
     public bool TrySetOnlineTimeUpdated(long userId)
     {
         bool result;
@@ -2036,7 +2036,7 @@ public class UsersService : ServiceBase, IService
                 OnlineStatusUpdatedList.Remove(userId);
             }
         });
-        
+
         return result;
     }
 
@@ -2100,7 +2100,7 @@ public class UsersService : ServiceBase, IService
     {
         return "GlobalAlert:v2";
     }
-    
+
     public async Task<Alert?> GetGlobalAlert()
     {
         var result = await redis.StringGetAsync(GetAlertKey());
@@ -2116,7 +2116,7 @@ public class UsersService : ServiceBase, IService
             await redis.KeyDeleteAsync(GetAlertKey());
             return;
         }
-        
+
         await redis.StringSetAsync(GetAlertKey(), JsonSerializer.Serialize(new Alert()
         {
             url = newUrl,
@@ -2130,7 +2130,7 @@ public class UsersService : ServiceBase, IService
         var (exists, year) = s.Get(userId);
         if (exists)
             return year;
-        
+
         var result = await redis.StringGetAsync("useryeartheme:v1:" + userId);
         if (result == null)
         {
@@ -2169,15 +2169,15 @@ public class UsersService : ServiceBase, IService
             if (is18OrOver.ContainsKey(userId))
                 return is18OrOver[userId];
         }
-        
+
         var result = await db.QuerySingleOrDefaultAsync<User18OrOver>("SELECT is_18_plus as is18Plus FROM \"user\" WHERE id = :id ", new
         {
             id = userId,
         });
-        
+
         if (result == null)
             return false;
-        
+
         lock (is18OrOverMapMux)
         {
             is18OrOver[userId] = result.is18Plus;
@@ -2192,7 +2192,7 @@ public class UsersService : ServiceBase, IService
         {
             is18OrOver[userId] = true;
         }
-        
+
         await Database.connection.ExecuteAsync("UPDATE \"user\" SET is_18_plus = true WHERE id = :id", new
         {
             id = userId,
@@ -2332,7 +2332,7 @@ public class UsersService : ServiceBase, IService
     {
         if (!Enum.IsDefined(newMembershipType))
             throw new ArgumentException("Invalid " + nameof(newMembershipType));
-        
+
         await using var memLock = await GetUpdateMembershipLock(userId);
         await InTransaction(async _ =>
         {
@@ -2377,7 +2377,7 @@ public class UsersService : ServiceBase, IService
         return await db.QueryAsync<UserId>(
             "SELECT distinct user_id as userId FROM user_permission");
     }
-    
+
     public async Task<IEnumerable<StaffUserPermissionEntry>> GetStaffPermissions(long userId)
     {
         return await db.QueryAsync<StaffUserPermissionEntry>(
@@ -2412,7 +2412,7 @@ public class UsersService : ServiceBase, IService
             throw new ArgumentException(nameof(socialUrl) + " cannot be null");
         if (string.IsNullOrWhiteSpace(verificationPhrase))
             throw new ArgumentException(nameof(verificationPhrase) + " cannot be null");
-        
+
         var uuid = Guid.NewGuid().ToString();
         await db.ExecuteAsync("INSERT INTO user_password_reset (user_id, id, created_at, status, social_url, verification_phrase) VALUES (:user_id, :id, :created_at, :status, :social_url, :verification_phrase)", new
         {
@@ -2449,7 +2449,7 @@ public class UsersService : ServiceBase, IService
         var ticket = await GetPasswordResetEntry(id);
         if (ticket == null)
             throw new ArgumentException("Invalid " + nameof(id));
-        
+
         var updated = await db.ExecuteAsync("UPDATE user_password_reset SET status = :status WHERE id = :id AND status = :old_status", new
         {
             id = id,
@@ -2458,9 +2458,9 @@ public class UsersService : ServiceBase, IService
         });
         if (updated != 1)
             throw new ArgumentException("Password reset was already redeemed");
-        
+
         await UpdatePassword(ticket.userId, newPassword);
-        
+
         // Unlock the account, if required
         var info = await GetUserById(ticket.userId);
         if (info.accountStatus == AccountStatus.MustValidateEmail)
