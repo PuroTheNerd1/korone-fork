@@ -1217,11 +1217,8 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-game-presence")]
         public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType)
         {
-            bool IsRCC = IsRcc();
-            if(!IsRCC)
-            {
+            if(!IsRcc())
                 throw new UnauthorizedAccessException();
-            }
 
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
             return Ok();
@@ -1230,16 +1227,11 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
-            bool IsRCC = IsRcc();
-            if(!IsRCC)
-            {
-                return;
-            }
+            if(!IsRcc())
+                throw new UnauthorizedAccessException();
             string JobId = await services.gameServer.GetJobIdByUserId(visitorId);
             if(JobId == null)
-            {
                 return;
-            }
             long placeId = GameServerService.GetUserPlaceId(visitorId);
 
             await services.gameServer.OnPlayerLeave(visitorId, placeId, JobId);
