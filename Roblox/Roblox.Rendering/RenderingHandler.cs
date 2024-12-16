@@ -44,41 +44,46 @@ namespace Roblox.Rendering
             // Hacky asf
             dynamic renderRequest = new
             {
-                assetId = id,
-                placeId = id,
-                userId = id,
-                isFace = isFace,
-                x = x,
-                y = y,
             };
 
             switch (type)
             {
                 case RenderType.Avatar:
+                    renderRequest.userId = id;
                     url = "player/thumbnail";
                     break;
                 case RenderType.Headshot:
+                    renderRequest.userId = id;
                     url = "player/headshot";
                     break;
                 case RenderType.Package:
                     url = "catalog/package";
                     break;
                 case RenderType.Head:
+                    renderRequest.assetId = id;
                     url = "catalog/head";
                     break;
                 case RenderType.Image:
+                    renderRequest.assetId = id;
+                    renderRequest.isFace = isFace;
                     url = "image/image";
                     break;
                 case RenderType.Clothing:
+                    renderRequest.assetId = id;
                     url = "image/clothing";
                     break;
                 case RenderType.Mesh:
+                    renderRequest.assetId = id;
                     url = "catalog/mesh";
                     break;
                 case RenderType.Hat:
+                    renderRequest.assetId = id;
                     url = "catalog/hat";
                     break;
                 case RenderType.Place:
+                    renderRequest.placeId = id;
+                    renderRequest.x = x;
+                    renderRequest.y = y;
                     url = "game/thumbnail";
                     break;
             }
