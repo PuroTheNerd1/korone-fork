@@ -32,6 +32,12 @@ namespace Roblox.Rendering
             Place,
 
         }
+        private class RenderResponse
+        {
+            public bool success { get; set; }
+            public string message { get; set; }
+            public string data { get; set; }
+        }
         public static void Configure(string baseUrl, string rccPath, string luaScriptPath, string rccPathGames)
         {
             BaseUrl = baseUrl;
@@ -89,9 +95,8 @@ namespace Roblox.Rendering
             // i will add error handling to this later
             var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await client.PostAsync("http://localhost:3043/" + url, content);
-            Console.WriteLine(await response.Content.ReadAsStringAsync());
-            var request = await response.Content.ReadFromJsonAsync<dynamic>();
-            return request?.data ?? "FAILURE";
+            var request = await response.Content.ReadFromJsonAsync<RenderResponse>();
+            return request.data ?? "FAILURE";
         }
 
 
