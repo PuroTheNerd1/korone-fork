@@ -47,6 +47,8 @@ namespace Roblox.Rendering
 
         private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             string url = "";
             // Hacky asf
             dynamic renderRequest = new ExpandoObject();
@@ -95,8 +97,10 @@ namespace Roblox.Rendering
             // i will add error handling to this later
             var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await client.PostAsync("http://localhost:3043/" + url, content);
+            sw.Stop();
             var request = await response.Content.ReadFromJsonAsync<RenderResponse>();
-            return request.data ?? "FAILURE";
+            Console.WriteLine($"[RenderingHandler] Request took {sw.ElapsedMilliseconds}ms");
+            return request?.data ?? "FAILURE";
         }
 
 
