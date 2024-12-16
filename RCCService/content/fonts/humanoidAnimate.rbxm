@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="Script" referent="RBX0">
@@ -27,7 +27,7 @@ function onTeamChanged(player)
 	local char = player.Character
 	if char == nil then return end
 
-	if player.Neutral then 
+	if player.Neutral then
 		-- Replacing the current BodyColor object will force a reset
 		local old = char:findFirstChild(&quot;Body Colors&quot;)
 		if not old then return end
@@ -35,11 +35,11 @@ function onTeamChanged(player)
 		old.Parent = nil
 	else
 		local head = char:findFirstChild(&quot;Head&quot;)
-		local torso = char:findFirstChild(&quot;Torso&quot;) 
-		local left_arm = char:findFirstChild(&quot;Left Arm&quot;) 
-		local right_arm = char:findFirstChild(&quot;Right Arm&quot;) 
-		local left_leg = char:findFirstChild(&quot;Left Leg&quot;) 
-		local right_leg = char:findFirstChild(&quot;Right Leg&quot;) 
+		local torso = char:findFirstChild(&quot;Torso&quot;)
+		local left_arm = char:findFirstChild(&quot;Left Arm&quot;)
+		local right_arm = char:findFirstChild(&quot;Right Arm&quot;)
+		local left_leg = char:findFirstChild(&quot;Left Leg&quot;)
+		local right_leg = char:findFirstChild(&quot;Right Leg&quot;)
 
 		if head then head.BrickColor = BrickColor.new(24) end
 		if torso then torso.BrickColor = player.TeamColor end
@@ -154,7 +154,7 @@ function moveSit()
 	LeftHip:SetDesiredAngle(-3.14 /2)
 end
 
-function getTool()	
+function getTool()
 	for _, kid in ipairs(Figure:GetChildren()) do
 		if kid.className == &quot;Tool&quot; then return kid end
 	end
@@ -171,7 +171,7 @@ function getToolAnim(tool)
 end
 
 function animateTool()
-	
+
 	if (toolAnim == &quot;None&quot;) then
 		RightShoulder:SetDesiredAngle(1.57)
 		return
@@ -209,21 +209,21 @@ function move(time)
 		moveFreeFall()
 		return
 	end
- 
+
 	if (pose == &quot;Seated&quot;) then
 		moveSit()
 		return
 	end
 
 	local climbFudge = 0
-	
+
 	if (pose == &quot;Running&quot;) then
 		RightShoulder.MaxVelocity = 0.15
 		LeftShoulder.MaxVelocity = 0.15
 		amplitude = 1
 		frequency = 9
 	elseif (pose == &quot;Climbing&quot;) then
-		RightShoulder.MaxVelocity = 0.5 
+		RightShoulder.MaxVelocity = 0.5
 		LeftShoulder.MaxVelocity = 0.5
 		amplitude = 1
 		frequency = 9
@@ -244,7 +244,7 @@ function move(time)
 	local tool = getTool()
 
 	if tool then
-	
+
 		animStringValueObject = getToolAnim(tool)
 
 		if animStringValueObject then
@@ -261,7 +261,7 @@ function move(time)
 
 		animateTool()
 
-		
+
 	else
 		toolAnim = &quot;None&quot;
 		toolAnimTime = 0

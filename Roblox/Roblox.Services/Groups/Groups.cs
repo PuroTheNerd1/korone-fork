@@ -24,19 +24,19 @@ public class GroupsService : ServiceBase, IService
         var groupInfo = await GetGroupById(groupId);
         if (groupInfo.isLocked)
             return false;
-        
+
         var role = await GetUserRoleInGroup(groupId, userId);
         // Check owner
         if (permission == GroupPermission.Owner)
             return role.rank == 255;
-        
+
         // Check permissions
         if (role.HasPermission(permission))
             return true;
         // Does not have permission
         return false;
     }
-    
+
     public async Task<long> GetMemberCount(long groupId)
     {
         var roles = await db.QueryAsync("SELECT member_count FROM group_role WHERE group_id = :id", new
@@ -45,7 +45,7 @@ public class GroupsService : ServiceBase, IService
         });
         return roles.Select(c => (long) c.member_count).Sum();
     }
-    
+
     public async Task<IEnumerable<SearchGroupEntry>> SearchGroups(string searchQuery, string? cursor, int limit)
     {
         searchQuery = FilterKeyword(searchQuery);
@@ -112,7 +112,7 @@ public class GroupsService : ServiceBase, IService
             updated = result.updated,
         };
     }
-    
+
     public async Task<GroupWithShout> GetGroupWithShoutById(long groupId)
     {
         var dbResult = await db.QuerySingleOrDefaultAsync<GroupEntryDb>(
@@ -187,7 +187,7 @@ public class GroupsService : ServiceBase, IService
                 id = roleSetId,
             });
     }
-    
+
     public async Task<IEnumerable<RoleWithPermissions>> GetRolesInGroupWithPermissions(long groupId)
     {
         var role = (await db.QueryAsync<RoleWithPermissions>(
@@ -219,11 +219,11 @@ public class GroupsService : ServiceBase, IService
         {
             return await GetRoleInGroupByRank(groupId, 0);
         }
-        
+
         role.permissions = await GetPermissions(role.id);
         return role;
     }
-    
+
     public async Task<IEnumerable<RoleEntry>> GetAllRolesForUser(long userId)
     {
         var role = await db.QueryAsync<RoleEntry>(
@@ -231,7 +231,7 @@ public class GroupsService : ServiceBase, IService
             {
                 user_id = userId,
             });
-        
+
         return role;
     }
 
@@ -300,23 +300,23 @@ public class GroupsService : ServiceBase, IService
                 new_owner_user_id = userId,
                 action = AuditActionType.Claim,
             });
-            
+
             return 0;
         });
     }
-    
+
     public async Task<IEnumerable<GroupMemberEntry>> GetGroupMembersByRoleSet(long groupId, long roleSetId, int limit, int offset, string sortOrder)
     {
         if (sortOrder != "asc" && sortOrder != "desc")
             sortOrder = "asc";
-        
+
         var sq = new SqlBuilder();
         var t = sq.AddTemplate(
             "SELECT group_user.user_id as userId, \"user\".username, group_role.name, group_role.rank, group_role.member_count as memberCount, group_role.id as roleId FROM group_user INNER JOIN \"user\" ON \"user\".id = group_user.user_id INNER JOIN group_role ON group_role.id = group_user.group_role_id /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new
             {
                 limit, offset,
             });
-        
+
         sq.OrWhere("group_role_id = " + roleSetId);
         sq.OrderBy("group_user.id " + sortOrder);
 
@@ -408,7 +408,7 @@ public class GroupsService : ServiceBase, IService
         var pastMinute = await GetUserWallPostCount(userId, TimeSpan.FromMinutes(1));
         if (pastMinute >= 2)
             return true;
-        
+
         var pastHour = await GetUserWallPostCount(userId, TimeSpan.FromHours(1));
         if (pastHour >= 25)
         {
@@ -444,16 +444,16 @@ public class GroupsService : ServiceBase, IService
 
         return false;
     }
-    
+
     public async Task<WallEntry> CreateWallPost(long groupId, long userId, string body)
     {
         if (await IsFloodCheckedForWallPost(groupId, userId))
             throw new CooldownException();
-        
+
         var postCount = await GetPostCountByUserInTimeSpan(userId, TimeSpan.FromSeconds(5));
         if (postCount >= 1)
             throw new CooldownException();
-        
+
         var createdAt = DateTime.UtcNow;
         var id = await InsertAsync("group_wall", new
         {
@@ -479,11 +479,11 @@ public class GroupsService : ServiceBase, IService
     // Example URL: https://discord.gg/abcd123
     private static readonly Regex DiscordUrlRegex = new Regex("https?:\\/\\/discord.gg\\/[0-9a-zA-Z]+");
 
-    // Example URL (www is optional): https://www.projex.zip/groups/1/name#!/about
-    private static readonly Regex RobloxGroupUrlRegex = new("https:\\/\\/(www\\.)?projex.zip\\/groups\\/[0-9]+\\/[a-zA-Z\\-0-9]+", RegexOptions.IgnoreCase);
-    
-    // Example URL (www is optional): https://projex.zip/My/Groups.aspx?gid=4
-    private static readonly Regex RobloxGroupUrlRegexOld = new("https:\\/\\/(www\\.)?projex.zip\\/my\\/groups\\.aspx\\?gid=[0-9]+", RegexOptions.IgnoreCase);
+    // Example URL (www is optional): https://www.pekora.zip/groups/1/name#!/about
+    private static readonly Regex RobloxGroupUrlRegex = new("https:\\/\\/(www\\.)?pekora.zip\\/groups\\/[0-9]+\\/[a-zA-Z\\-0-9]+", RegexOptions.IgnoreCase);
+
+    // Example URL (www is optional): https://pekora.zip/My/Groups.aspx?gid=4
+    private static readonly Regex RobloxGroupUrlRegexOld = new("https:\\/\\/(www\\.)?pekora.zip\\/my\\/groups\\.aspx\\?gid=[0-9]+", RegexOptions.IgnoreCase);
 
     private bool IsLinkValid(SocialLinkType type, string url, string title)
     {
@@ -507,7 +507,7 @@ public class GroupsService : ServiceBase, IService
             var ok = RobloxGroupUrlRegex.Match(url);
             if (ok.Success && ok.Value == url)
                 return true;
-            
+
             var oldFormat = RobloxGroupUrlRegexOld.Match(url);
             if (oldFormat.Success && oldFormat.Value == url)
                 return true;
@@ -552,7 +552,7 @@ public class GroupsService : ServiceBase, IService
     {
         if (!IsLinkValid(type, url, title))
             throw new Exception("Invalid social media link");
-        
+
         // method is called "Add" but it's actually "add or update"
         await InTransaction(async _ =>
         {
@@ -590,7 +590,7 @@ public class GroupsService : ServiceBase, IService
             });
         return total.total;
     }
-    
+
     public async Task<StatusEntry> SetGroupStatus(long groupId, long userId, string status)
     {
         // floodcheck
@@ -626,7 +626,7 @@ public class GroupsService : ServiceBase, IService
             var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
             await using var economyLock = await ec.AcquireEconomyLock(CreatorType.Group, groupId);
             await ec.CreateGroupBalanceIfRequired(groupId);
-            
+
             var actorRole = await GetUserRoleInGroup(groupId, userIdPerformingAction);
             if (actorRole.rank == 255 && userId == userIdPerformingAction)
             {
@@ -636,7 +636,7 @@ public class GroupsService : ServiceBase, IService
             }
 
             if (actorRole.rank == 0) return 0;
-            
+
             var roles = await GetRolesInGroup(groupId);
             var didOwnerLeave = false;
             foreach (var role in roles)
@@ -716,7 +716,7 @@ public class GroupsService : ServiceBase, IService
 
             if (userRole.rank == 0)
                 throw new ArgumentException("Cannot set user rank of guest");
-            
+
             // Everything seems ok, so perform actions:
             // Update user's rank
             await db.ExecuteAsync(
@@ -754,21 +754,21 @@ public class GroupsService : ServiceBase, IService
         if (description is {Length: > 1000})
             throw new ArgumentException("Bad description");
     }
-    
+
     public async Task<RoleEntry> CreateRoleSet(long groupId, string name, string? description, int rank, long userIdPerformingAction)
     {
         ValidateRoleSetInformation(name, description);
         // 0 = Guest, 255 = Owner
         if (rank is <= 0 or >= 255)
             throw new ArgumentException("Rank value is out of bounds");
-        
+
         return await InTransaction(async _ =>
         {
             var existingRoles = (await GetRolesInGroup(groupId)).ToList();
             if (existingRoles.Count >= 40)
                 throw new Exception("Limit for roles have been reached on this group");
             var exists = existingRoles.Find(c => c.rank == rank) != null;
-            
+
             if (exists)
                 throw new ArgumentException("Rank value already exists");
 
@@ -787,7 +787,7 @@ public class GroupsService : ServiceBase, IService
             {
                 group_role_id = roleSetId,
             });
-            
+
             // deduct cost from user
             var updated =await db.ExecuteAsync(
                 "UPDATE user_economy SET balance_robux = balance_robux - :robux WHERE user_id = :user_id AND balance_robux >= :robux", new
@@ -839,7 +839,7 @@ public class GroupsService : ServiceBase, IService
             var oldInfo = allRoles.Find(c => c.id == roleSetId);
             if (oldInfo == null)
                 throw new Exception("Tried to update non-existent role");
-            
+
             if (oldInfo.rank == 255 && rank != 255)
                 throw new Exception("Cannot update the rank property of this role");
 
@@ -849,7 +849,7 @@ public class GroupsService : ServiceBase, IService
                 description,
                 rank,
             });
-            
+
             // If name or description updated
             if (oldInfo.name != name || oldInfo.description != description)
             {
@@ -878,7 +878,7 @@ public class GroupsService : ServiceBase, IService
                     action = AuditActionType.UpdateRolesetRank,
                 });
             }
-            
+
             return 0;
         });
     }
@@ -907,14 +907,14 @@ public class GroupsService : ServiceBase, IService
             return 0;
         });
     }
-    
+
     public async Task UpdateRolePermissions(long groupId, long roleId, Dictionary<string, bool> newPermissions,
         long userIdPerformingAction)
     {
         var roleInfo = await GetRoleInGroupById(groupId, roleId);
         if (roleInfo.rank == 255)
             throw new Exception("Cannot edit owner rank");
-        
+
         if (roleInfo.rank == 0)
         {
             // Guests can only have ViewWall and ViewStatus permissions changed
@@ -931,7 +931,7 @@ public class GroupsService : ServiceBase, IService
             await UpdateAsync("group_role_permission", "group_role_id", roleId, updateObject.GetUpdateObject());
         }
     }
-    
+
     public async Task<IEnumerable<dynamic>> GetAuditLog(long groupId, int offset, int limit)
     {
         // Good luck to anyone who has to edit this...
@@ -1007,7 +1007,7 @@ public class GroupsService : ServiceBase, IService
                     };
                     break;
             }
-            
+
             var obj = new
             {
                 actor = new
@@ -1043,7 +1043,7 @@ public class GroupsService : ServiceBase, IService
             throw new ArgumentException("You cannot join a closed group");
         if (!status.publicEntryAllowed)
             throw new NotImplementedException("TODO: non-public entry groups");
-        
+
         await using var joinGroupLock = await Cache.redLock.CreateLockAsync("JoinGroup:" + userId, TimeSpan.FromMinutes(2));
         await InTransaction(async _ =>
         {
@@ -1069,7 +1069,7 @@ public class GroupsService : ServiceBase, IService
             {
                 lowestRank.id,
             });
-            
+
             return 0;
         });
     }
@@ -1085,7 +1085,7 @@ public class GroupsService : ServiceBase, IService
     {
         await redis.StringSetAsync("PrimaryGroup:V1:" + userId, groupId);
     }
-    
+
     public async Task DeletePrimaryGroupId(long userId)
     {
         await redis.KeyDeleteAsync("PrimaryGroup:V1:" + userId);
@@ -1116,7 +1116,7 @@ public class GroupsService : ServiceBase, IService
         if (result == null) throw new RecordNotFoundException();
         return result;
     }
-    
+
     public async Task SetGroupSettings(long groupId, GroupSettingsEntry settings)
     {
         await db.ExecuteAsync(
@@ -1148,11 +1148,11 @@ public class GroupsService : ServiceBase, IService
 
             if (actorRole.rank != 255 || groupDetails.owner == null || groupDetails.owner.userId != userIdPerformingAction)
                 throw new ArgumentException("User making request is no longer owner");
-            
+
             var funds = await ec.GetBalance(CreatorType.Group, groupId);
             if (funds.robux != 0 || funds.tickets != 0)
                 throw new RobloxException(403, 0, "Group owner cannot be modified until funds are withdrawn");
-            
+
             // make owner
             await db.ExecuteAsync("UPDATE \"group\" SET user_id = :user_id WHERE id = :gid", new
             {
@@ -1299,7 +1299,7 @@ public class GroupsService : ServiceBase, IService
     {
         if (rawImageStream.Length >= MaxIconStartFileSizeBytes)
             throw new Exception("Stream is too large");
-        
+
         rawImageStream.Position = 0;
         using var img = await Image.LoadAsync(rawImageStream);
         if (img == null)
@@ -1325,7 +1325,7 @@ public class GroupsService : ServiceBase, IService
     {
         if (groupIconSafe.finalIconStream == null)
             throw new ArgumentException("SetGroupIcon finalIconStream cannot be null");
-        
+
         groupIconSafe.finalIconStream.Position = 0;
         // write image
         var sha = SHA256.Create();
@@ -1338,7 +1338,7 @@ public class GroupsService : ServiceBase, IService
             await Cache.redLock.CreateLockAsync("GlobalGroupIconUploadV1", TimeSpan.FromSeconds(10));
         if (!groupIconLock.IsAcquired)
             throw new LockNotAcquiredException();
-        
+
         // only write image file if it doesn't already exist
         if (!File.Exists(fullFilePath))
         {
@@ -1371,7 +1371,7 @@ public class GroupsService : ServiceBase, IService
 
     private static readonly Regex NameValidationRegex = new("[a-zA-Z0-9]+");
     private static readonly Regex RudimentaryTextFilter = new("https?\\:\\/\\/|fuck|nigga|nigger|dick|cock|bitch");
-    
+
     public async Task<GroupCreationResponse> CreateGroup(string name, string description, Stream iconStream, long userId)
     {
         var nameValidationResult = NameValidationRegex.Match(name);
@@ -1528,9 +1528,9 @@ public class GroupsService : ServiceBase, IService
     public async Task<IEnumerable<FeedEntry>> MultiGetGroupStatus(IEnumerable<long> ids, int limit)
     {
         var groupIds = ids.ToList();
-        if (groupIds.Count == 0) 
+        if (groupIds.Count == 0)
             return Array.Empty<FeedEntry>();
-        
+
         var s = new SqlBuilder();
         var t = s.AddTemplate(
             "SELECT group_status.id as feedId, group_status.user_id as userId, group_status.group_id as groupId, group_status.status as content, group_status.created_at as createdAt, u.username, g.name as groupName, gi.name as groupImage FROM group_status INNER JOIN \"user\" AS u ON u.id = group_status.user_id INNER JOIN \"group\" g on g.id = group_status.group_id INNER JOIN group_icon gi ON gi.group_id = group_status.group_id AND gi.is_approved = 1 /**where**/ ORDER BY group_status.id DESC LIMIT :limit", new
@@ -1573,7 +1573,7 @@ public class GroupsService : ServiceBase, IService
         var recipientInGroup = await GetUserRoleInGroup(groupId, recipientUserId);
         if (recipientInGroup.rank == 0)
             throw new RobloxException(400, 0, "Recipient must be a member of this group");
-        
+
         await InTransaction(async _ =>
         {
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);

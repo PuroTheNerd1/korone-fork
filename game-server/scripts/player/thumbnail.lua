@@ -1,7 +1,7 @@
 local jobId = "InsertJobIdHere";
 local userId = 65789275746246;
 local mode = "R6";
-local baseURL = "http://www.projex.zip";
+local baseURL = "http://www.pekora.zip";
 local uploadURL = "UPLOAD_URL_HERE";
 local ScriptContext = game:GetService("ScriptContext");
 local Lighting = game:GetService('Lighting');
@@ -15,11 +15,11 @@ game:GetService('ThumbnailGenerator').GraphicsMode = 2;
 HttpService.HttpEnabled = true;
 ScriptContext.ScriptsDisabled = true
 Lighting.Outlines = false
-ContentProvider:SetBaseUrl('http://www.projex.zip')
+ContentProvider:SetBaseUrl('http://www.pekora.zip')
 local Insert = game:GetService("InsertService")
 
 local function applyMesh(Player, children, limb)
-    local ok, msg = pcall(function() 
+    local ok, msg = pcall(function()
         local specialMesh = children[1]
         local head = Player.Character[limb]
         local m = head:FindFirstChild("Mesh")
@@ -40,7 +40,7 @@ local function applyMesh(Player, children, limb)
 end
 
 local function applyPackage(Player, children)
-    local ok, msg = pcall(function() 
+    local ok, msg = pcall(function()
         print("applyPackage children", children, #children)
         for _, asset in pairs(children) do
              print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Child package",asset)
@@ -158,7 +158,7 @@ end
         guy['Right Leg']:remove()
         guy['Left Leg']:remove()
         ]]--
-        
+
         -- local humanoid = Player.Character.Humanoid
         -- humanoid:BuildRigFromAttachments()
         print("[debug] render avatar")

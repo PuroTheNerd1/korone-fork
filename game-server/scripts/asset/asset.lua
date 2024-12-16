@@ -1,7 +1,7 @@
 local assetId = {1234};
 local jobId = "InsertJobIdHere";
 local mode = "R6";
-local baseURL = "http://projex.zip";
+local baseURL = "http://pekora.zip";
 local uploadURL = "UPLOAD_URL_HERE";
 local ScriptContext = game:GetService("ScriptContext");
 local Lighting = game:GetService('Lighting');
@@ -15,7 +15,7 @@ game:GetService('ThumbnailGenerator').GraphicsMode = 2;
 HttpService.HttpEnabled = true;
 ScriptContext.ScriptsDisabled = true
 Lighting.Outlines = false
-ContentProvider:SetBaseUrl('http://www.projex.zip')
+ContentProvider:SetBaseUrl('http://www.pekora.zip')
 
     local function render()
         local model = Instance.new("Model");

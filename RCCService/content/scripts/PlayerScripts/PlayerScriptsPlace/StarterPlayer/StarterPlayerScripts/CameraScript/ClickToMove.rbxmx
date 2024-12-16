@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="ModuleScript" referent="RBXA370868CA98D4E28A69B701C1F6D966E">
@@ -1135,13 +1135,13 @@ local function OnTap(tapPositions, goToPoint)
 						end
 					end
 				end
-			elseif hitPt and character and CurrentSeatPart then 
+			elseif hitPt and character and CurrentSeatPart then
 				local destinationGlobe = CreateDestinationIndicator(hitPt)
 				destinationGlobe.Parent = camera
 				ExistingIndicator = destinationGlobe
-				DrivingTo = hitPt		
+				DrivingTo = hitPt
 				local ConnectedParts = CurrentSeatPart:GetConnectedParts(true)
-				
+
 				while wait() do
 					if CurrentSeatPart and ExistingIndicator == destinationGlobe then
 						local ExtentsSize = getExtentsSize(ConnectedParts)
@@ -1160,8 +1160,8 @@ local function OnTap(tapPositions, goToPoint)
 						destinationGlobe = nil
 						break
 					end
-				end		
-				
+				end
+
 			else
 				-- no hit pt
 			end
@@ -1242,11 +1242,11 @@ local function CreateClickToMoveModule()
 	local function IsFinite(num)
 		return num == num and num ~= 1/0 and num ~= -1/0
 	end
-	
+
 	local function findAngleBetweenXZVectors(vec2, vec1)
 		return math.atan2(vec1.X*vec2.Z-vec1.Z*vec2.X, vec1.X*vec2.X + vec1.Z*vec2.Z)
 	end
-	
+
 	-- Setup the camera
 	CameraModule = ClassicCameraModule()
 
@@ -1405,7 +1405,7 @@ local function CreateClickToMoveModule()
 			end
 			AutoJumperInstance = AutoJumper()
 		end
-		
+
 		local function getThrottleAndSteer(object, point)
 			local lookVector = (point - object.Position)
 			lookVector = Vector3.new(lookVector.X, 0, lookVector.Z).unit
@@ -1451,7 +1451,7 @@ local function CreateClickToMoveModule()
 			end
 			return throttle, steer
 		end
-		
+
 		local function Update()
 			if CameraModule then
 				if CameraModule.UserPanningTheCamera then
@@ -1474,7 +1474,7 @@ local function CreateClickToMoveModule()
 				end
 			end
 		end
-		
+
 		local success = pcall(function() RunService:BindToRenderStep("ClickToMoveRenderUpdate",Enum.RenderPriority.Camera.Value - 1,Update) end)
 		if not success then
 			if RenderSteppedConn then
@@ -1482,9 +1482,9 @@ local function CreateClickToMoveModule()
 			end
 			RenderSteppedConn = RunService.RenderStepped:connect(Update)
 		end
-		
+
 		local WasAutoJumper = false
-		local WasAutoJumpMobile = false		
+		local WasAutoJumpMobile = false
 		local function onSeated(child, active, currentSeatPart)
 			if active then
 				if BindableEvent_EnableTouchJump then

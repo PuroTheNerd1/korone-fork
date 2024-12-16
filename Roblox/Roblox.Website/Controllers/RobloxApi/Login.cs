@@ -34,7 +34,7 @@ namespace Roblox.Website.Controllers
 
             username = splittedUsername[0];
             totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
-            
+
             try
             {
                 userId = await services.users.GetUserIdFromUsername(username);
@@ -71,7 +71,7 @@ namespace Roblox.Website.Controllers
             });
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
             {
-                Domain = ".projex.zip",
+                Domain = ".pekora.zip",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
@@ -80,10 +80,10 @@ namespace Roblox.Website.Controllers
             });
             var info = await services.users.GetUserById(userId);
             var isBanned =
-                info.accountStatus != AccountStatus.Ok && 
-                info.accountStatus != AccountStatus.MustValidateEmail && 
+                info.accountStatus != AccountStatus.Ok &&
+                info.accountStatus != AccountStatus.MustValidateEmail &&
                 info.accountStatus != AccountStatus.Suppressed;
-            return new 
+            return new
             {
                 user = new
                 {
@@ -186,7 +186,7 @@ namespace Roblox.Website.Controllers
 
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
             {
-                Domain = ".projex.zip",
+                Domain = ".pekora.zip",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
@@ -271,7 +271,7 @@ namespace Roblox.Website.Controllers
             });
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
             {
-                Domain = ".projex.zip",
+                Domain = ".pekora.zip",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,

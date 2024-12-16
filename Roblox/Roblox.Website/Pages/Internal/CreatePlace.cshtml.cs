@@ -13,10 +13,10 @@ public class CreatePlace : RobloxPageModel
 {
     public string? errorMessage { get; set; }
     public string? successUrl { get; set; }
-    
+
     public void OnGet()
     {
-        
+
     }
 
     public enum PlaceCreationFailureReason
@@ -47,14 +47,14 @@ public class CreatePlace : RobloxPageModel
     {
         var log = Writer.CreateWithId(LogGroup.AbuseDetection);
         log.Info("start IsActiveEnoughForPlace with userId={0}", userId);
-        
+
         var latestPlay = await services.games.GetOldestPlay(userId);
         if (latestPlay == null || latestPlay.createdAt > DateTime.UtcNow.Subtract(TimeSpan.FromDays(5)))
         {
             log.Info("user has not played any games");
             return false;
         }
-        
+
         var friends = await services.friends.CountFriends(userId);
         //if (friends < 2)
         //{
@@ -87,7 +87,7 @@ public class CreatePlace : RobloxPageModel
             log.Info("user has not played for at least 10 minutes");
             return false;
         }
-        
+
         // must have played at least 3 unique games...
         if (gamesPlayed.Select(c => c.placeId).Distinct().Count() < 3)
         {
@@ -107,11 +107,11 @@ public class CreatePlace : RobloxPageModel
 
             return false;
         }) != null;
-        
+
         // or, user should have some trades
         var tradeHistory = await services.trades.GetTradesOfType(userId, TradeType.Completed, 100, 0);
         var hasTradeHistory = tradeHistory.Any();
-        
+
         // or they could own a group.
         // user should be in at least 1 group as well
         var groups = (await services.groups.GetAllRolesForUser(userId)).ToArray();
@@ -120,7 +120,7 @@ public class CreatePlace : RobloxPageModel
             log.Info("user is not in any groups");
             return false;
         }
-        
+
         var doesOwnGroup = groups.FirstOrDefault(c => c.rank == 255) != null;
 
         if (!hasLimitedOrForSale && !hasTradeHistory && !doesOwnGroup)
@@ -140,7 +140,7 @@ public class CreatePlace : RobloxPageModel
 
         return true; // OK
     }
-    
+
     public async Task<PlaceCreationFailureReason> CanCreatePlace(long userId)
     {
         var log = Writer.CreateWithId(LogGroup.AbuseDetection);
@@ -162,11 +162,11 @@ public class CreatePlace : RobloxPageModel
                 log.Info("account has too many places {0}", createdPlaces.Length);
                 return PlaceCreationFailureReason.TooManyPlaces;
             }
-            
+
             var placeDetails = (await services.games.MultiGetPlaceDetails(createdPlaces
                     .Select(c => c.assetId)))
                 .ToArray();
-            
+
             if (placeDetails.Length != createdPlaces.Length)
             {
                 // uhhh
@@ -175,10 +175,10 @@ public class CreatePlace : RobloxPageModel
                     throw new Exception("Place details len is zero while createdPlaces len is not zero");
             }
 
-            
+
             var isAnyPlaceCreatedLessThanADayAgo =
                 placeDetails.FirstOrDefault(v => v.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1))) != null;
-            
+
 
             if (isAnyPlaceCreatedLessThanADayAgo)
             {
@@ -213,10 +213,10 @@ public class CreatePlace : RobloxPageModel
             log.Info("user has no app or it is not approved {0}", app?.status.ToString());
             return PlaceCreationFailureReason.NoApplication;
         }
-        
+
         // lol
         // anti brandon/sleep/xlxi check
-        /*        
+        /*
         if (userId < 200)
         {
             log.Info("account is too inactive (branch X)");
@@ -269,7 +269,7 @@ public class CreatePlace : RobloxPageModel
         await using var createGameLock =
             await Roblox.Services.Cache.redLock.CreateLockAsync("CreatePlaceSelfServiceV1:UserId:" + userSession.userId,
                 TimeSpan.FromSeconds(10));
-        
+
         if (!createGameLock.IsAcquired)
         {
             Writer.Info(LogGroup.AbuseDetection, "CreatePlace OnPost could not acquire createGameLock");
@@ -289,6 +289,6 @@ public class CreatePlace : RobloxPageModel
         // create universe too
         await services.games.CreateUniverse(asset.placeId);
         // give url
-        successUrl = "https://www.projex.zip/internal/place-update?id=" + asset.placeId;
+        successUrl = "https://www.pekora.zip/internal/place-update?id=" + asset.placeId;
     }
 }

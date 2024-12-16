@@ -249,8 +249,8 @@ public class AdminApiController : ControllerBase
         if (request.url != null)
         {
             var url = new Uri(request.url);
-            if (!url.Host.EndsWith(".projex.zip") && url.Host != "projex.zip")
-                throw new StaffException("All URLs must link to projex.zip. Base was " + url.Host);
+            if (!url.Host.EndsWith(".pekora.zip") && url.Host != "pekora.zip")
+                throw new StaffException("All URLs must link to pekora.zip. Base was " + url.Host);
         }
         Writer.Info(LogGroup.AbuseDetection, "User {0} is setting alert to '{1}'", userSession.userId, request.text);
         await services.users.SetGlobalAlert(request.text, request.url);

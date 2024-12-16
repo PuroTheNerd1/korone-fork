@@ -97,7 +97,7 @@ const Icon = props => {
         store.placeId
       )
         .then((result) => {
-          /*getImage(`projex.zip${result.data.data[0].imageUrl}`).then((img) => {
+          /*getImage(`pekora.zip${result.data.data[0].imageUrl}`).then((img) => {
             blobToBase64(img.data).then(base64 => {
               setGameIcon(base64)
             })

@@ -14,7 +14,7 @@ public class AccountSettingsControllerV1 : ControllerBase
     {
         return new
         {
-            emailAddress = "ProjectX@projex.zip",
+            emailAddress = "ProjectX@pekora.zip",
             verified = true,
         };
     }
@@ -74,7 +74,7 @@ public class AccountSettingsControllerV1 : ControllerBase
             tradePrivacy = res,
         };
     }
-    
+
     [HttpPost("trade-privacy")]
     public async Task SetTradePrivacy([Required, FromBody] SetTradePrivacyRequest request)
     {

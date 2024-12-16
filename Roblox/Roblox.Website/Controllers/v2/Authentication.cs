@@ -89,7 +89,7 @@ public class AuthenticationControllerV2 : ControllerBase
     [HttpPost("login")]
     public async Task Login([Required, FromBody] LoginRequest request)
     {
-        //throw new RobloxException(503, 0, "Please use https://projex.zip/auth/login");
+        //throw new RobloxException(503, 0, "Please use https://pekora.zip/auth/login");
         FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
         if (request.ctype != "username")
         {
@@ -131,7 +131,7 @@ public class AuthenticationControllerV2 : ControllerBase
         var passwordValid = services.users.IsPasswordValid(request.password);
         if (!passwordValid)
             throw new ForbiddenException(9, "Password is too simple");
-        
+
         // Initial cooldown check - to prevent people spamming attempts
         await services.cooldown.CooldownCheck($"signup:step1:" + GetIP(), TimeSpan.FromSeconds(5));
         // Now make the account
@@ -139,7 +139,7 @@ public class AuthenticationControllerV2 : ControllerBase
             await services.users.CreateUser(request.username, request.password, Enum.Parse<Gender>(request.gender));
 
         await CreateSessionAndSetCookie(createdUser.userId);
-        
+
         return new SignupResponse()
         {
             userId = createdUser.userId,

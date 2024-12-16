@@ -56,10 +56,10 @@ if url~=nil then
 	game:GetService("InsertService"):SetCollectionUrl(url .. "/Game/Tools/InsertAsset.ashx?sid=%d")
 	game:GetService("InsertService"):SetAssetUrl(url .. "/Asset/?id=%d")
 	game:GetService("InsertService"):SetAssetVersionUrl(url .. "/Asset/?assetversionid=%d")
-	
+
 	pcall(function() loadfile(url .. "/Game/LoadPlaceInfo.ashx?PlaceId=" .. placeId)() end)
-	
-	-- pcall(function() 
+
+	-- pcall(function()
 	--			if access then
 	--				loadfile(url .. "/Game/PlaceSpecificScript.ashx?PlaceId=" .. placeId .. "&" .. access)()
 	--			end
@@ -84,14 +84,14 @@ end)
 if placeId~=nil and url~=nil then
 	-- yield so that file load happens in the heartbeat thread
 	wait()
-	
+
 	-- load the game
-	game:Load("http://www.projex.zip/asset?id=699")
+	game:Load("http://www.pekora.zip/asset?id=699")
  print("game load request sent!")
 end
 
 -- Now start the connection
-ns:Start(port) 
+ns:Start(port)
 
 
 scriptContext:SetTimeout(10)
@@ -103,10 +103,10 @@ scriptContext.ScriptsDisabled = false
 
 
 
--- StartGame -- 
+-- StartGame --
 game:GetService("RunService"):Run()
 
 
 
 end
-start(1818, 53640, "http://www.projex.zip")
+start(1818, 53640, "http://www.pekora.zip")

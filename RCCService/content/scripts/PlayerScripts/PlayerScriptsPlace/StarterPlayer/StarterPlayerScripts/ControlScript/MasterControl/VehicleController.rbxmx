@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="ModuleScript" referent="RBXB523CD8AA51D47C9AD19485522A7C634">
@@ -10,7 +10,7 @@
 	// Version 1.0
 	// Written by: jmargh
 	// Description: Implements in-game vehicle controls for all input devices
-	
+
 	// NOTE: This works for basic vehicles (single vehicle seat). If you use custom VehicleSeat code,
 	// multiple VehicleSeats or your own implementation of a VehicleSeat this will not work.
 --]]
@@ -102,7 +102,7 @@ local function getClosestFittingValue(value)
 	elseif value < -0.5 then
 		return -1
 	end
-	return 0 
+	return 0
 end
 
 local function onRenderStepped()

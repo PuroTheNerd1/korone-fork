@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="ModuleScript" referent="RBXE641B80103E7430C9C0F793537702C63">
@@ -140,7 +140,7 @@ end
 
 local function OnCharacterAdded(character)
 	Character = character
-	
+
 	TrackedLimbs = {}
 	for _, child in pairs(Character:GetChildren()) do
 		if child:IsA('BasePart') and LIMB_TRACKING_SET[child.Name] then
@@ -182,7 +182,7 @@ function Invisicam:Update()
 	-- Make a list of world points to raycast to
 	local castPoints = {}
 	Behaviors[Mode](castPoints)
-	
+
 	-- Cast to get a list of objects between the camera and the cast points
 	local currentHits = {}
 	local ignoreList = {Character}
@@ -206,7 +206,7 @@ function Invisicam:Update()
 			end
 		until not hitPart
 	end
-	
+
 	-- Fade out objects that are in the way, restore those that aren't anymore
 	for hit, originalFade in pairs(SavedHits) do
 		local currentFade = hit.LocalTransparencyModifier

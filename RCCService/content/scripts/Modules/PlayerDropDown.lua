@@ -23,7 +23,7 @@ local TEXT_STROKE_TRANSPARENCY = 0.75
 local TEXT_COLOR = Color3.new(1, 1, 243/255)
 local TEXT_STROKE_COLOR = Color3.new(34/255, 34/255, 34/255)
 local MAX_FRIEND_COUNT = 200
-local FRIEND_IMAGE = 'http://www.projex.zip/thumbs/avatar.ashx?userId='
+local FRIEND_IMAGE = 'http://www.pekora.zip/thumbs/avatar.ashx?userId='
 
 --[[ Fast Flags ]]--
 local followerSuccess, isFollowersEnabled = pcall(function() return settings():GetFFlag("EnableLuaFollowers") end)
@@ -239,7 +239,7 @@ end
 
 local function isMuted(userId)
 	if (MutedList[userId] ~= nil and MutedList[userId] == true) then
-		return true	
+		return true
 	end
 	return false
 end
@@ -298,9 +298,9 @@ function createPlayerDropDown()
 	playerDropDown.PopupFrame = nil
 	playerDropDown.HidePopupImmediately = false
 	playerDropDown.PopupFrameOffScreenPosition = nil -- if this is set the popup frame tweens to a different offscreen position than the default
-	
+
 	playerDropDown.HiddenSignal = createSignal()
-	
+
 	--[[ Functions for when options in the dropdown are pressed ]]--
 	local function onFriendButtonPressed()
 		if playerDropDown.Player then
@@ -327,14 +327,14 @@ function createPlayerDropDown()
 			playerDropDown:Hide()
 		end
 	end
-	
+
 	local function onDeclineFriendButonPressed()
 		if playerDropDown.Player then
 			LocalPlayer:RevokeFriendship(playerDropDown.Player)
 			playerDropDown:Hide()
 		end
 	end
-	
+
 	-- Client unfollows followedUserId
 	local function onUnfollowButtonPressed()
 		if not playerDropDown.Player then return end
@@ -381,14 +381,14 @@ function createPlayerDropDown()
 			playerDropDown:Hide()
 		end
 	end
-	
+
 	local function onReportButtonPressed()
 		if playerDropDown.Player then
 			settingsHub:ReportPlayer(playerDropDown.Player)
 			playerDropDown:Hide()
 		end
 	end
-	
+
 	-- Client follows followedUserId
 	local function onFollowButtonPressed()
 		if not playerDropDown.Player then return end
@@ -416,7 +416,7 @@ function createPlayerDropDown()
 
 		playerDropDown:Hide()
 	end
-	
+
 	--[[ GUI Creation Functions ]]--
 	local function createPersonalServerDialog(buttons, selectedPlayer)
 		local showPersonalServerRanks = IsPersonalServer and LocalPlayer.PersonalServerRank >= PRIVILEGE_LEVEL.ADMIN and LocalPlayer.PersonalServerRank > selectedPlayer.PersonalServerRank
@@ -452,7 +452,7 @@ function createPlayerDropDown()
 				})
 		end
 	end
-	
+
 	local function createPopupFrame(buttons)
 		local frame = Instance.new('Frame')
 		frame.Name = "PopupFrame"
@@ -482,7 +482,7 @@ function createPlayerDropDown()
 
 		return frame
 	end
-	
+
 	--[[ PlayerDropDown Functions ]]--
 	function playerDropDown:Hide()
 		if playerDropDown.PopupFrame then
@@ -505,10 +505,10 @@ function createPlayerDropDown()
 		end
 		playerDropDown.HiddenSignal:fire()
 	end
-	
+
 	function playerDropDown:CreatePopup(Player)
 		playerDropDown.Player = Player
-		
+
 		local buttons = {}
 
 		local status = getFriendStatus(playerDropDown.Player)
@@ -546,7 +546,7 @@ function createPlayerDropDown()
 		if IsServerFollowers or IsFollowersEnabled then
 			local following = isFollowing(playerDropDown.Player.userId, LocalPlayer.userId)
 			local followerText = following and "Unfollow Player" or "Follow Player"
-			
+
 			if not blocked then
 				table.insert(buttons, {
 					Name = "FollowerButton",
@@ -575,14 +575,14 @@ function createPlayerDropDown()
 		playerDropDown.PopupFrame = createPopupFrame(buttons)
 		return playerDropDown.PopupFrame
 	end
-	
+
 	--[[ PlayerRemoving Connection ]]--
-	PlayersService.PlayerRemoving:connect(function(leavingPlayer) 
+	PlayersService.PlayerRemoving:connect(function(leavingPlayer)
 		if playerDropDown.Player == leavingPlayer then
 			playerDropDown:Hide()
 		end
 	end)
-	
+
 	return playerDropDown
 end
 
@@ -596,23 +596,23 @@ do
 
 	function moduleApiTable:CreateBlockingUtility()
 		local blockingUtility = {}
-		
+
 		function blockingUtility:BlockPlayerAsync(player)
 			return BlockPlayerAsync(player)
 		end
-		
+
 		function blockingUtility:UnblockPlayerAsync(player)
 			return UnblockPlayerAsync(player)
 		end
-		
+
 		function blockingUtility:MutePlayer(player)
 			return MutePlayer(player)
 		end
-		
+
 		function blockingUtility:UnmutePlayer(player)
 			return UnmutePlayer(player)
 		end
-		
+
 		function blockingUtility:IsPlayerBlockedByUserId(userId)
 			return isBlocked(userId)
 		end
@@ -620,11 +620,11 @@ do
 		function blockingUtility:GetBlockedStatusChangedEvent()
 			return BlockStatusChanged
 		end
-		
+
 		function blockingUtility:IsPlayerMutedByUserId(userId)
 			return isMuted(userId)
 		end
-		
+
 		return blockingUtility
 	end
 end

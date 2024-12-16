@@ -22,7 +22,7 @@ const isPortAvailable = (port: number): Promise<boolean> => {
 		let didAnything = false;
 		let timer = setTimeout(() => {
 			if (didAnything) return;
-			
+
 			console.log('[info] isPortAvailable timeout for',port);
 			res(false);
 			try {
@@ -113,7 +113,7 @@ interface IGameEntry {
 	exitCode: number|string;
 
 	createdAt: number;
-	
+
 	renderCount: number;
 	runningGames: number;
 	placeId: number;
@@ -154,7 +154,7 @@ export default class CommandHandler extends StdExceptions {
 		games: [],
 	}
 	private reservedPorts: number[] = [];
-	
+
 	constructor() {
 		super();
 	}
@@ -256,7 +256,7 @@ export default class CommandHandler extends StdExceptions {
 				}
 			}, 1000);
 		});
-		
+
 		game.rccReference = {
 			id: this.randomId(),
 			port: portToRunOn,
@@ -392,7 +392,7 @@ export default class CommandHandler extends StdExceptions {
 		const xml = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
-    <OpenJobEx xmlns="http://projex.zip/">
+    <OpenJobEx xmlns="http://pekora.zip/">
         <job>
             <id>${jobId}</id>
             <category>0</category>
@@ -421,7 +421,7 @@ export default class CommandHandler extends StdExceptions {
 		const xml = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
-    <CloseJob xmlns="http://projex.zip/" jobID="${jobId}">
+    <CloseJob xmlns="http://pekora.zip/" jobID="${jobId}">
 		<jobID>${jobId}</jobID>
         <job>
             <id>${jobId}</id>
@@ -722,7 +722,7 @@ export default class CommandHandler extends StdExceptions {
 		// wait until over
 		await awaitResult(job.jobId);
 	}
-	
+
 	private async requestRccThumbnailerClose(rcc: IGameEntry) {
 		if (rcc.rccReference && !rcc.rccClosed) {
 			rcc.rccReference.close();
@@ -813,7 +813,7 @@ export default class CommandHandler extends StdExceptions {
 	}
 
 	private async GetTeeShirtThumb(assetId: number): Promise<Buffer> {
-		// https://projex.zip
+		// https://pekora.zip
 		const result = await axiosClient.get(`${conf.baseUrl}/asset/?id=${assetId}`, {
 			responseType: 'arraybuffer',
 			headers: {
@@ -823,7 +823,7 @@ export default class CommandHandler extends StdExceptions {
 		});
 		return Buffer.from(result.data, 'binary');
 	}
-	
+
 	private bgBuffer?: Buffer = undefined;
 
 	public async GenerateThumbnailTeeShirt(assetId: number, contentId: number): Promise<string> {
@@ -871,8 +871,8 @@ export default class CommandHandler extends StdExceptions {
 
 	/**
 	 * Generate a thumbnail for a texture (such as a Decal or Texture)
-	 * @param assetId 
-	 * @returns 
+	 * @param assetId
+	 * @returns
 	 */
 	public async GenerateThumbnailTexture(assetId: number, assetTypeId: number): Promise<string> {
 		const jobRequest = this.createSoapRequest(
@@ -886,7 +886,7 @@ export default class CommandHandler extends StdExceptions {
 
 	/**
 	 * Generate a user avatar headshot
-	 * @param user 
+	 * @param user
 	 */
 	public async GenerateThumbnailHeadshot(user: models.AvatarRenderRequest): Promise<string> {
 		console.log(`[info] thumbnail requested`, user);
@@ -909,7 +909,7 @@ export default class CommandHandler extends StdExceptions {
 
 	/**
 	 * Generate a user avatar thumbnail
-	 * @param user 
+	 * @param user
 	 */
 	public async GenerateThumbnail(user: models.AvatarRenderRequest): Promise<string> {
 		console.log(`[info] thumbnail requested`, user);

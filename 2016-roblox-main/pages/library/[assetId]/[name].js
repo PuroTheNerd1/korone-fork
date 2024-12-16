@@ -8,10 +8,10 @@ const ItemPage = ({ name, description, assetId, ...props }) => {
         <Head>
           <title>{name} - Project X</title>
           <meta property="og:title" content={name} />
-          <meta property="og:url" content={`https://www.projex.zip/library/${assetId}/--`} />
+          <meta property="og:url" content={`https://www.pekora.zip/library/${assetId}/--`} />
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={description} />
-          <meta property="og:image" content={`https://www.projex.zip/thumbs/asset.ashx?assetId=${assetId}`} />
+          <meta property="og:image" content={`https://www.pekora.zip/thumbs/asset.ashx?assetId=${assetId}`} />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="og:site_name" content="Project X" />
           <meta name="theme-color" content="#E2231A" />

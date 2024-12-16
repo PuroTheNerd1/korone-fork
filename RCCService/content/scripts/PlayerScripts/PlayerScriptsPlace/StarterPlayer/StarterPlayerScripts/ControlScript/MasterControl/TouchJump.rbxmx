@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="ModuleScript" referent="RBX4905BF716A1B45589012BF53D6C53E50">
@@ -124,10 +124,10 @@ function TouchJump:Create(parentFrame)
 		JumpButton:Destroy()
 		JumpButton = nil
 	end
-	
+
 	local isSmallScreen = parentFrame.AbsoluteSize.y <= 500
 	local jumpButtonSize = isSmallScreen and 70 or 120
-	
+
 	JumpButton = Instance.new('ImageButton')
 	JumpButton.Name = "JumpButton"
 	JumpButton.Visible = false
@@ -136,7 +136,7 @@ function TouchJump:Create(parentFrame)
 	JumpButton.ImageRectOffset = Vector2.new(176, 222)
 	JumpButton.ImageRectSize = Vector2.new(174, 174)
 	JumpButton.Size = UDim2.new(0, jumpButtonSize, 0, jumpButtonSize)
-	
+
 	if not repositionJumpButton then
 		JumpButton.Position = isSmallScreen and UDim2.new(1, jumpButtonSize * -2.25, 1, -jumpButtonSize - 20) or
 			UDim2.new(1, jumpButtonSize * -2.75, 1, -jumpButtonSize - 120)
@@ -144,40 +144,40 @@ function TouchJump:Create(parentFrame)
 		JumpButton.Position = isSmallScreen and UDim2.new(1, -(jumpButtonSize*1.5-10), 1, -jumpButtonSize - 20) or
 			UDim2.new(1, -(jumpButtonSize*1.5-10), 1, -jumpButtonSize * 1.75)
 	end
-	
-	local touchObject = nil	
+
+	local touchObject = nil
 	JumpButton.InputBegan:connect(function(inputObject)
 		if touchObject or inputObject.UserInputType ~= Enum.UserInputType.Touch then
 			return
 		end
-		
+
 		touchObject = inputObject
 		JumpButton.ImageRectOffset = Vector2.new(0, 222)
 		MasterControl:SetIsJumping(true)
 	end)
-	
+
 	OnInputEnded = function()
 		touchObject = nil
 		MasterControl:SetIsJumping(false)
 		JumpButton.ImageRectOffset = Vector2.new(176, 222)
 	end
-	
+
 	JumpButton.InputEnded:connect(function(inputObject)
 		if inputObject == touchObject then
 			OnInputEnded()
 		end
 	end)
-	
+
 	GuiService.MenuOpened:connect(function()
 		if touchObject then
 			OnInputEnded()
 		end
 	end)
-	
+
 	if not CharacterAddedConnection then
 		setupCharacterAddedFunction()
 	end
-	
+
 	JumpButton.Parent = parentFrame
 end
 

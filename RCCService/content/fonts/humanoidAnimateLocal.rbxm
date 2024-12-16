@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="LocalScript" referent="RBX0">
@@ -116,7 +116,7 @@ function moveSit()
 	LeftHip:SetDesiredAngle(-3.14 /2)
 end
 
-function getTool()	
+function getTool()
 	for _, kid in ipairs(Figure:GetChildren()) do
 		if kid.className == &quot;Tool&quot; then return kid end
 	end
@@ -133,7 +133,7 @@ function getToolAnim(tool)
 end
 
 function animateTool()
-	
+
 	if (toolAnim == &quot;None&quot;) then
 		RightShoulder:SetDesiredAngle(1.57)
 		return
@@ -161,7 +161,7 @@ end
 function move(time)
 	local amplitude
 	local frequency
-  
+
 	if (pose == &quot;Jumping&quot;) then
 		moveJump()
 		return
@@ -171,29 +171,29 @@ function move(time)
 		moveFreeFall()
 		return
 	end
- 
+
 	if (pose == &quot;Seated&quot;) then
 		moveSit()
 		return
 	end
 
 	local climbFudge = 0
-	
+
 	if (pose == &quot;Running&quot;) then
     if (RightShoulder.CurrentAngle &gt; 1.5 or RightShoulder.CurrentAngle &lt; -1.5) then
 			RightShoulder.MaxVelocity = jumpMaxLimbVelocity
-		else			
+		else
 			RightShoulder.MaxVelocity = 0.15
 		end
 		if (LeftShoulder.CurrentAngle &gt; 1.5 or LeftShoulder.CurrentAngle &lt; -1.5) then
 			LeftShoulder.MaxVelocity = jumpMaxLimbVelocity
-		else			
+		else
 			LeftShoulder.MaxVelocity = 0.15
 		end
 		amplitude = 1
 		frequency = 9
 	elseif (pose == &quot;Climbing&quot;) then
-		RightShoulder.MaxVelocity = 0.5 
+		RightShoulder.MaxVelocity = 0.5
 		LeftShoulder.MaxVelocity = 0.5
 		amplitude = 1
 		frequency = 9
@@ -214,7 +214,7 @@ function move(time)
 	local tool = getTool()
 
 	if tool then
-	
+
 		animStringValueObject = getToolAnim(tool)
 
 		if animStringValueObject then
@@ -231,7 +231,7 @@ function move(time)
 
 		animateTool()
 
-		
+
 	else
 		toolAnim = &quot;None&quot;
 		toolAnimTime = 0

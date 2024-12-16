@@ -130,15 +130,15 @@ if isTenFootInterface then
 	TEXT_STROKE_TRANSPARENCY = 1
 	TILE_SPACING = 5
 end
-local SHADOW_IMAGE = 'rbxasset://textures/ui/PlayerList/TileShadowMissingTop.png'--'http://www.projex.zip/asset?id=286965900'
+local SHADOW_IMAGE = 'rbxasset://textures/ui/PlayerList/TileShadowMissingTop.png'--'http://www.pekora.zip/asset?id=286965900'
 local SHADOW_SLICE_SIZE = 5
 local SHADOW_SLICE_RECT = Rect.new(SHADOW_SLICE_SIZE+1, SHADOW_SLICE_SIZE+1, SHADOW_SLICE_SIZE*2-1, SHADOW_SLICE_SIZE*2-1)
 
 local ADMINS = {	-- Admins with special icons
-    ['7210880'] = 'http://www.projex.zip/asset/?id=134032333', -- Jeditkacheff
-    ['13268404'] = 'http://www.projex.zip/asset/?id=113059239', -- Sorcus
-    ['261'] = 'http://www.projex.zip/asset/?id=105897927', -- shedlestky
-    ['20396599'] = 'http://www.projex.zip/asset/?id=161078086', -- Robloxsai
+    ['7210880'] = 'http://www.pekora.zip/asset/?id=134032333', -- Jeditkacheff
+    ['13268404'] = 'http://www.pekora.zip/asset/?id=113059239', -- Sorcus
+    ['261'] = 'http://www.pekora.zip/asset/?id=105897927', -- shedlestky
+    ['20396599'] = 'http://www.pekora.zip/asset/?id=161078086', -- Robloxsai
 }
 
 local ABUSES = {
@@ -793,8 +793,8 @@ local function onEntryFrameSelected(selectedFrame, selectedPlayer)
 			end
 			-- NOTE: Core script only
 			ScrollList.ScrollingEnabled = false
-			
-			local PopupFrame = playerDropDown:CreatePopup(selectedPlayer)		
+
+			local PopupFrame = playerDropDown:CreatePopup(selectedPlayer)
 			PopupFrame.Position = UDim2.new(1, 1, 0, selectedFrame.Position.Y.Offset - ScrollList.CanvasPosition.y)
 			PopupFrame.Parent = PopupClipFrame
 			PopupFrame:TweenPosition(UDim2.new(0, 0, 0, selectedFrame.Position.Y.Offset - ScrollList.CanvasPosition.y), Enum.EasingDirection.InOut, Enum.EasingStyle.Quad, TWEEN_TIME, true)
@@ -1395,7 +1395,7 @@ end
 --[[ Insert/Remove Player Functions ]]--
 local function setupEntry(player, newEntry, isTopStat)
 	setLeaderStats(newEntry)
-	
+
 	if isTopStat then
 		newEntry.Frame.Parent = Container
 		table.insert(PlayerEntries, newEntry)
@@ -1404,7 +1404,7 @@ local function setupEntry(player, newEntry, isTopStat)
 		table.insert(PlayerEntries, newEntry)
 		setScrollListSize()
 	end
-		
+
 	updateLeaderstatFrames()
 
 	player.Changed:connect(function(property)
@@ -1645,7 +1645,7 @@ local setVisible = function(state, fromTemp)
 		if isUsingGamepad then
 			UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
 		end
-		
+
 		ContextActionService:UnbindCoreAction("CloseList")
 		ContextActionService:UnbindCoreAction("StopAction")
 
@@ -1674,7 +1674,7 @@ end
 Playerlist.HideTemp = function(self, key, hidden)
 	if not playerlistCoreGuiEnabled then return end
 	if IsSmallScreenDevice then return end
-	
+
 	TempHideKeys[key] = hidden and true or nil
 
 	if next(TempHideKeys) == nil then
@@ -1703,13 +1703,13 @@ local function onCoreGuiChanged(coreGuiType, enabled)
 			Container.Visible = false
 			return
 		end
-		
+
 		setVisible(playerlistCoreGuiEnabled and isOpen and next(TempHideKeys) == nil, true)
-		
+
 		if isTenFootInterface and topStat then
 			topStat:SetTopStatEnabled(playerlistCoreGuiEnabled)
 		end
-		
+
 		if playerlistCoreGuiEnabled then
 			ContextActionService:BindCoreAction("RbxPlayerListToggle", Playerlist.ToggleVisibility, false, Enum.KeyCode.Tab)
 		else

@@ -109,7 +109,7 @@ local function Initialize()
 				friendLabel.Text = ''
 				friendLabel.BackgroundTransparency = 1
 				friendLabel.Position = UDim2.new(1,-198,0,7)
-			elseif status == Enum.FriendStatus.Friend then 
+			elseif status == Enum.FriendStatus.Friend then
 				friendLabel = Instance.new('TextButton')
 				friendLabel.Text = 'Friend'
 				friendLabel.BackgroundTransparency = 1
@@ -274,7 +274,7 @@ local function Initialize()
 					table.insert(existingPlayerLabels, index, frame)
 				end
 				frame.Name = 'PlayerLabel'..player.Name
-				frame.Icon.Image = 'http://www.projex.zip/Thumbs/Avatar.ashx?x=100&y=100&userId='..math.max(1, player.userId)
+				frame.Icon.Image = 'http://www.pekora.zip/Thumbs/Avatar.ashx?x=100&y=100&userId='..math.max(1, player.userId)
 				frame.NameLabel.Text = player.Name
 				frame.ImageTransparency = frameDefaultTransparency
 

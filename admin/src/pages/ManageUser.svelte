@@ -201,12 +201,12 @@
 					</div>
 				</div>
 				<ManageTextContent userId={userId} />
-				
+
 				{#if rank.is("owner")}
 					<ManagePermissions userId={userId} />
 				{/if}
 			</div>
-			
+
 			<div class="col-12 col-md-6 col-lg-3 actions">
 				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Account Actions</h4></div>
@@ -403,7 +403,7 @@
 						modalCb = (t) => {
 							if (t) {
 								request
-									.get("https://www.projex.zip/rcc/kickplayer?userId=" + userId+ "&reason=Kicked by administrat343or", {})
+									.get("https://www.pekora.zip/rcc/kickplayer?userId=" + userId+ "&reason=Kicked by administrat343or", {})
 									.then(() => {
 										window.location.reload();
 									})
@@ -417,7 +417,7 @@
 				>
 					<DatabaseIcon /> Kick player from the game
 				</button>
-				{/if}				
+				{/if}
 				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Economy Actions</h4></div>
 				</div>

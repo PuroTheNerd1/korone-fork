@@ -6,7 +6,7 @@ import UserProfileStore from "../../../components/userProfile/stores/UserProfile
 import { getUserInfo } from "../../../services/users";
 const UserProfilePage = ({ username, userId, description, ...props }) => {
   const ogTitle = username + "'s Profile" || "Project X";
-  const ogUrl = userId ? `https://projex.zip/users/${userId}/profile` : '';
+  const ogUrl = userId ? `https://pekora.zip/users/${userId}/profile` : '';
   const ogDesc = description || 'Join Project X and explore together!';
 
   return (
@@ -18,7 +18,7 @@ const UserProfilePage = ({ username, userId, description, ...props }) => {
           <meta property="og:url" content={ogUrl} />
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={ogDesc} />
-          <meta property="og:image" content={`https://projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
+          <meta property="og:image" content={`https://pekora.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
           <meta name="og:site_name" content="Project X" />
           <meta name="theme-color" content="#E2231A" />
         </Head>
@@ -37,7 +37,7 @@ export async function getServerSideProps(context) {
   // we will get the username, desc
   try {
     const info = await getUserInfo({ userId });
-    const username = info.name || "Project X"; 
+    const username = info.name || "Project X";
     const description = info.description || "No description available";
     return {
       props: {
@@ -50,7 +50,7 @@ export async function getServerSideProps(context) {
     console.error("Error fetching user info in profile.js" + error);
     return {
       props: {
-        username: "Project X", 
+        username: "Project X",
         description: "Join Project X and explore together!",
         userId
       }

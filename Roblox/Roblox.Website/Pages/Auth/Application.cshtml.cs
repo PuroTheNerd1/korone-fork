@@ -144,7 +144,7 @@ public class Application : RobloxPageModel
         }
         await ApplyBanner();
         await ApplyApplication();
-        
+
         try
         {
             FeatureFlags.FeatureCheck(FeatureFlag.ApplicationsEnabled);
@@ -155,7 +155,7 @@ public class Application : RobloxPageModel
             submitDisabled = true;
             return new PageResult();
         }
-        
+
         if (await ShouldDisableSubmissions())
         {
             errorMessage = "There are too many applications pending at this time. Try again in a few hours.";
@@ -220,7 +220,7 @@ public class Application : RobloxPageModel
             submitDisabled = true;
             return new PageResult();
         }
-        
+
         if (await ShouldDisableSubmissions())
         {
             errorMessage = "There are too many applications pending at this time. Try again in a few hours.";
@@ -241,7 +241,7 @@ public class Application : RobloxPageModel
         }
         if (!userInfo.success)
         {
-            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord";
+            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord";
             return new PageResult();
         }
 
@@ -258,7 +258,7 @@ public class Application : RobloxPageModel
         }
         if(await services.users.CheckDuplicateDiscord(discordId))
         {
-            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.projex.zip/auth/discord #1";
+            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord #1";
             return new PageResult();
         }
         await using var rateLimitLock =
@@ -290,7 +290,7 @@ public class Application : RobloxPageModel
             errorMessage = e.Message;
             return new PageResult();
         }
-        
+
         if (result.verifiedId != null)
             await services.users.DeleteUnusedApplicationsWithSameUrl(result.verifiedId);
         await services.users.DeleteUnusedAppsWithSameUrlUnverified(socialUrl);

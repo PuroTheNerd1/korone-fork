@@ -4,7 +4,7 @@ local http = game:GetService("HttpService");
 http.HttpEnabled = false;
 
 -- begin dynamiclly edited
-local url = "http://www.projex.zip";
+local url = "http://www.pekora.zip";
 local port = %port%;
 local placeId = %placeId%;
 local creatorType = Enum.CreatorType.User;
@@ -179,12 +179,12 @@ function CalculateAveragePing()
 	local replicatorCount = 0
 	local averagePing = 0
 	local status, err = pcall(function()
-		for _, r in ipairs(stats().Network:GetChildren()) do 
-			if r.Name ~= "Packets Thread" then 
+		for _, r in ipairs(stats().Network:GetChildren()) do
+			if r.Name ~= "Packets Thread" then
 				r:GetValue() -- hax
 				totalPing = totalPing + r.Ping:GetValue()
 				replicatorCount = replicatorCount + 1
-			end 
+			end
 		end
 		if replicatorCount > 0 then
 			averagePing = totalPing / replicatorCount
@@ -192,7 +192,7 @@ function CalculateAveragePing()
 	end)
 	if (not status) then
 		PrintDebugMessage("CalculateAveragePing error = " .. err)
-	end	
+	end
 	return averagePing
 end
 

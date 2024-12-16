@@ -1,11 +1,11 @@
 local jobId = "InsertJobIdHere";
 local userId = 65789275746246;
 local mode = 'R6'
-local baseURL = "http://projex.zip";
+local baseURL = "http://pekora.zip";
 local uploadURL = "UPLOAD_URL_HERE";
 
 local function applyMesh(Player, children, limb)
-    local ok, msg = pcall(function() 
+    local ok, msg = pcall(function()
         local specialMesh = children[1]
         local head = Player.Character[limb]
         local m = head:FindFirstChild("Mesh")
@@ -26,7 +26,7 @@ local function applyMesh(Player, children, limb)
 end
 
 local function applyPackage(Player, children)
-    local ok, msg = pcall(function() 
+    local ok, msg = pcall(function()
         print("applyPackage children", children, #children)
         for _, asset in pairs(children) do
              print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Child package",asset)
@@ -66,7 +66,7 @@ end
     HttpService.HttpEnabled = true
     ScriptContext.ScriptsDisabled = true
     Lighting.Outlines = false
-    ContentProvider:SetBaseUrl('http://www.projex.zip')
+    ContentProvider:SetBaseUrl('http://www.pekora.zip')
     game:GetService("ContentProvider"):SetAssetUrl(baseURL .. "/Asset/")
     game:GetService("InsertService"):SetAssetUrl(baseURL .. "/Asset/?id=%d")
     pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
@@ -95,7 +95,7 @@ end
                     return
                 end
                 local children = Asset:GetChildren()
-                
+
                 if asset.assetType.id == 17 then
                     applyMesh(Player, children, "Head")
                 end
@@ -155,10 +155,10 @@ end
         guy['Right Leg']:remove()
         guy['Left Leg']:remove()
         ]]--
-        
+
         -- local humanoid = Player.Character.Humanoid
         -- humanoid:BuildRigFromAttachments()
-        
+
         print('use cam')
         -- cam:Destroy()
         -- cam = Instance.new("Camera", game.Workspace)
@@ -188,7 +188,7 @@ end
             local handle = child:FindFirstChild("Handle")
 			if handle then
 				local attachment = FindFirstChildWhichIsA(handle, "Attachment")
-                
+
                 --legacy hat does not have attachment in it and should be considered when zoom out camera
 				if not FFlagOnlyCheckHeadAccessoryInHeadShot or not attachment or headAttachments[attachment.Name] then
 					local size = handle.Size / 2 + handle.Position - player.Character.Head.Position

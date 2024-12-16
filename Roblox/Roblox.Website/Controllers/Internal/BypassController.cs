@@ -711,7 +711,7 @@ namespace Roblox.Website.Controllers
 
             gameDetail.CreatorID = 20;
             gameDetail.CreatorName = "ass";
-            gameDetail.CreatorUrl = "https://www.projex.zip/users/20/profile";
+            gameDetail.CreatorUrl = "https://www.pekora.zip/users/20/profile";
             gameDetail.Plays = 1;
             gameDetail.Price = 0;
             gameDetail.ProductID = 0;
@@ -722,8 +722,8 @@ namespace Roblox.Website.Controllers
             gameDetail.TotalBought = 69;
             gameDetail.UniverseID = 189;
             gameDetail.HasErrorOcurred = false;
-            gameDetail.GameDetailReferralUrl = "https://www.projex.zip/games/189/Natural-Disaster-Survival";
-            gameDetail.Url = "https://www.projex.zip/images/thumbnails/e70dd27c44ca8bebebb14f48fbba28c5b5a2ba79ebb1e3c820c3a1e84fc8aed5.png";
+            gameDetail.GameDetailReferralUrl = "https://www.pekora.zip/games/189/Natural-Disaster-Survival";
+            gameDetail.Url = "https://www.pekora.zip/images/thumbnails/e70dd27c44ca8bebebb14f48fbba28c5b5a2ba79ebb1e3c820c3a1e84fc8aed5.png";
             gameDetail.RetryUrl = null;
             gameDetail.Final = true;
             gameDetail.Name = "Natural Disaster Survival";
@@ -783,7 +783,7 @@ namespace Roblox.Website.Controllers
         {
             HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
             {
-                Domain = ".projex.zip",
+                Domain = ".pekora.zip",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
@@ -845,11 +845,11 @@ namespace Roblox.Website.Controllers
                     finalTicket = services.sign.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2020:
-                    characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
+                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
                     finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
                     break;
                 case 2021:
-                    characterAppearanceUrl = $"http://www.projex.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
+                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
                     finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
                     break;
                 default:
@@ -925,7 +925,7 @@ namespace Roblox.Website.Controllers
                 IsSetPasswordNotificationEnabled = false,
                 ChangePasswordRequiresTwoStepVerification = false,
                 ChangeEmailRequiresTwoStepVerification = false,
-                UserEmail = "projectx@projex.zip",
+                UserEmail = "projectx@pekora.zip",
                 UserEmailMasked = true,
                 UserEmailVerified = true,
                 CanHideInventory = true,
@@ -1838,7 +1838,7 @@ namespace Roblox.Website.Controllers
                 Username = userSession.username,
                 DisplayName = userSession.username,
                 HasPasswordSet = true,
-                Email = "ProjectX@projex.zip",
+                Email = "ProjectX@pekora.zip",
                 MembershipType = 3,
                 RobuxBalance = userBalance.robux,
                 AgeBracket = 0,

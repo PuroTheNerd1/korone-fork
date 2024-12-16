@@ -53,7 +53,7 @@ local emptySelectionImage = Util:Create "ImageLabel" {
 }
 
 
-local AVATAR_IMAGE_URL = 'http://www.projex.zip/thumbs/avatar.ashx?userId=%d&x=%d&y=%d'
+local AVATAR_IMAGE_URL = 'http://www.pekora.zip/thumbs/avatar.ashx?userId=%d&x=%d&y=%d'
 
 local TEXT_COLOR = Color3.new(1, 1, 1)
 
@@ -84,7 +84,7 @@ local function IsDeveloperGroupEnabled()
 	return false
 end
 
-local WindowFrame = {} 
+local WindowFrame = {}
 do
 	local windows = {}
 	local WindowFrame_mt = { __index = WindowFrame }
@@ -149,7 +149,7 @@ do
 			ImageTransparency = WINDOW_BG_TRANSPARENCY,
 			ScaleType = Enum.ScaleType.Slice,
 			SliceCenter = Rect.new(10, 10, 10, 10)
-		}	
+		}
 
 		return setmetatable(instance, WindowFrame_mt)
 	end
@@ -166,7 +166,7 @@ do
 			Position = UDim2.new(0, CLOSE_BUTTON_OFFSET, 0, CLOSE_BUTTON_OFFSET),
 			Size = UDim2.new(0, CLOSE_BUTTON_SIZE, 0, CLOSE_BUTTON_SIZE),
 
-			BackgroundTransparency = 1, 
+			BackgroundTransparency = 1,
 
 			Image = CLOSE_BUTTON_IMG,
 			SelectionImageObject = Util:Create "ImageButton" {
@@ -273,7 +273,7 @@ do
 
 		Position = UDim2.new(0, 0, 0, 0),
 		Size = UDim2.new(1, 0, 1, 0),
-		
+
 		BackgroundTransparency = 1,
 		Text = "",
 
@@ -349,10 +349,10 @@ local function layoutNotificationsGroups()
 	end
 end
 
-local NotificationGroup = {} 
+local NotificationGroup = {}
 do
 	local NotificationGroup_mt = { __index = NotificationGroup }
-	function NotificationGroup.new(key, title, order) 
+	function NotificationGroup.new(key, title, order)
 		local self = setmetatable({}, NotificationGroup_mt)
 
 		self.key = key
@@ -474,7 +474,7 @@ local function doCallback(callback, ...)
 	end
 end
 
-local Notification = {} 
+local Notification = {}
 do
 	local Notification_mt = { __index = Notification }
 	function Notification.new(group, notificationInfo)
@@ -596,7 +596,7 @@ do
 
 			BackgroundTransparency = 1,
 
-			Text = detailText, 
+			Text = detailText,
 			TextWrapped = true,
 			TextColor3 = TEXT_COLOR,
 			TextXAlignment = Enum.TextXAlignment.Left,
@@ -643,20 +643,20 @@ do
 			self.detailsButton1, self.detailsButton1Text = createButton(BUTTON_1_POS, BUTTON_DOUBLE_SIZE, notificationInfo.Button1Text)
 			self.detailsButton2, self.detailsButton2Text = createButton(BUTTON_2_POS, BUTTON_DOUBLE_SIZE, notificationInfo.Button2Text)
 
-			self.detailsButton1.MouseButton1Click:connect(function() 
+			self.detailsButton1.MouseButton1Click:connect(function()
 				doCallback(notificationInfo.Callback, notificationInfo.Button1Text)
-				self:Dismiss() 
+				self:Dismiss()
 			end)
-			self.detailsButton2.MouseButton1Click:connect(function() 
+			self.detailsButton2.MouseButton1Click:connect(function()
 				doCallback(notificationInfo.Callback, notificationInfo.Button2Text)
-				self:Dismiss() 
+				self:Dismiss()
 			end)
 		elseif not notificationInfo.button2Text then
 			local text = notificationInfo.Button1Text or "Dismiss"
 			self.detailsButton1, self.detailsButton1Text = createButton(BUTTON_1_POS, BUTTON_SINGLE_SIZE, text)
-			self.detailsButton1.MouseButton1Click:connect(function() 
+			self.detailsButton1.MouseButton1Click:connect(function()
 				doCallback(notificationInfo.Callback, notificationInfo.Button1Text)
-				self:Dismiss() 
+				self:Dismiss()
 			end)
 		end
 
@@ -691,7 +691,7 @@ do
 		local group = notificationInfo.GroupName and notificationsGroups[notificationInfo.GroupName] --avoid error by nil index
 		if not group then
 			if IsDeveloperGroupEnabled() then
-				group = notificationsGroups.Developer 
+				group = notificationsGroups.Developer
 			else
 				return --ignore it, invalid group
 			end
@@ -749,7 +749,7 @@ do
 			if not NO_TRANSITION_ANIMATIONS then
 				detailsWindow:AnimateIn(nil)
 			end
-			
+
 			notificationsPanel:SetVisible(true)
 			detailsPanel:SetVisible(true)
 
@@ -780,7 +780,7 @@ do
 		NotificationHubModule.VisibilityStateChanged:Fire(visible)
 	end
 
-	
+
 	VRHub.ModuleOpened.Event:connect(function(moduleName, isExclusive, shouldCloseNonExclusive, shouldKeepTopbarOpen)
 		if moduleName ~= NotificationHubModule.ModuleName then
 			NotificationHubModule:SetVisible(false)

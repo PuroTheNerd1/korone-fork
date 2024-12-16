@@ -88,7 +88,7 @@ local doubleTapThreshold = .25
 
 
 local baseUrl = contentProvider.BaseUrl
-local domainUrl = baseUrl--"sitetest3.robloxlabs.com"	--"projex.zip"	--
+local domainUrl = baseUrl--"sitetest3.robloxlabs.com"	--"pekora.zip"	--
 	domainUrl = string.gsub(domainUrl,"/","")
 	domainUrl = string.gsub(domainUrl, "www.", "")		-- Trims pre-fixes out
 	domainUrl = string.gsub(domainUrl,"https:","")
@@ -163,7 +163,7 @@ local viewMode = false
 
 local reachedBottomOfCurrentPage = false
 
-local userId = game.Players.LocalPlayer.userId 
+local userId = game.Players.LocalPlayer.userId
 ---temporary code---	--todo:remove this code
 if userId <= 10 then
 	userId = 80254
@@ -259,7 +259,7 @@ if doTestHttpGet then
 end
 function testHttpGet(...)
 	assert(doTestHttpGet, 'HttpGet is not test mode')
-	
+
 	return testHttpGetFunc(...)
 end
 
@@ -313,7 +313,7 @@ function httpPost(...)
 				return response.success
 			end
 		end
-				
+
 		return false
 	end
 end
@@ -450,10 +450,10 @@ function adjustCameraProperties(instant)
 	camera.CameraType = Enum.CameraType.Scriptable
 	mainFrame.Size = UDim2.new(1,0,.5,18)
 	mainFrame.Position = UDim2.new(0,0,.5,-18)
-	
+
 	local targetCFrame = defaultCamera
 	local targetFOV = 70
-	
+
 	if page then
 		if page.CameraPositionOffset then
 			targetCFrame = targetCFrame * CFrame.new(page.CameraPositionOffset)
@@ -465,7 +465,7 @@ function adjustCameraProperties(instant)
 			targetFOV = page.CameraFOV
 		end
 	end
-	
+
 	if workspace:FindFirstChild'CameraPositionOffset' and not isCoreSetup then
 		targetCFrame = targetCFrame * CFrame.new(workspace.CameraPositionOffset.Value)
 	end
@@ -476,12 +476,12 @@ function adjustCameraProperties(instant)
 			math.rad(workspace.CameraRotationOffset.Value.z)
 		)
 	end
-	
+
 	if flagManager.AvatarEditorCameraZoomingEnabled then
 		if viewMode then
 			targetCFrame = fullViewCameraCF
 		end
-		
+
 		if instant then
 			camera.CFrame = targetCFrame
 			camera.FieldOfView = targetFOV
@@ -577,7 +577,7 @@ function sortAndEquipItemToCharacter(thing, assetInsertedContentList)
 				thing.Parent = head
 				table.insert(assetInsertedContentList, thing)
 			end
-	
+
 		elseif thing:IsA("Decal") then					-- Face
 			local head = character:FindFirstChild('Head')
 			if head then
@@ -588,15 +588,15 @@ function sortAndEquipItemToCharacter(thing, assetInsertedContentList)
 				thing.Parent = head
 				table.insert(assetInsertedContentList, thing)
 			end
-	
+
 		elseif thing:IsA("CharacterAppearance") then	-- Thing, just parent it.
 			thing.Parent = character
 			table.insert(assetInsertedContentList, thing)
-	
+
 		elseif thing:IsA("Accoutrement") then			-- Hat
 			equipItemToCharacter(thing)
 			table.insert(assetInsertedContentList, thing)
-	
+
 		elseif thing:IsA("Tool") then					-- Gear
 			equipItemToCharacter(thing)
 			holdToolPos('Up')
@@ -658,17 +658,17 @@ local currentWarning = 0
 function displayWarning(text)
 	fastSpawn(function()
 		closeWarning(true)
-		
+
 		topFrame.Warning.Visible = true
-		
+
 		local thisWarning = currentWarning + 1
 		currentWarning = thisWarning
-		
+
 		warningIsOpen = true
-		
+
 		local t = 0.3
 		local ttext = 0.1
-		
+
 		topFrame.Warning.WarningText.TextTransparency = 1
 		topFrame.Warning:TweenSizeAndPosition(UDim2.new(0, 266, 0, 70), UDim2.new(0.5, -133, 0.5, -35), nil, nil, t)
 		tween(topFrame.Warning.WarningIcon, 'Rotation', 'Number', 0, -360, t)
@@ -677,13 +677,13 @@ function displayWarning(text)
 		tween(topFrame.Warning.BackgroundFill, 'ImageTransparency', 'Number', 1, 0.25, t)
 		tween(topFrame.Warning.RoundedEnd, 'ImageTransparency', 'Number', 1, 0.25, t)
 		tween(topFrame.Warning.RoundedStart, 'ImageTransparency', 'Number', 1, 0.25, t)
-		
+
 		topFrame.Warning.WarningText.Text = text or 'errtext'
-		
+
 		wait(t)
-		
+
 		if thisWarning ~= currentWarning then return end
-		
+
 		tween(topFrame.Warning.WarningText, 'TextTransparency', 'Number', 1, 0, t)
 	end)
 end
@@ -692,19 +692,19 @@ function closeWarning(instant)
 	if warningIsOpen or instant then
 		fastSpawn(function()
 			warningIsOpen = false
-			
+
 			local t = instant and 0 or 0.3
 			local ttext = instant and 0 or 0.1
-		
+
 			local thisWarning = currentWarning + 1
 			currentWarning = thisWarning
-			
+
 			tween(topFrame.Warning.WarningText, 'TextTransparency', 'Number', nil, 1, ttext)
 			if not instant then
 				wait(ttext)
 				if thisWarning ~= currentWarning then return end
 			end
-			
+
 			if instant then
 				topFrame.Warning.Size = UDim2.new(0, 70, 0, 70)
 				topFrame.Warning.Position = UDim2.new(0.5, -35, 0.5, -35)
@@ -766,10 +766,10 @@ end
 local itemsOnR15 = {}
 function amendR15ForItemAdded(assetId)
 	amendR15ForItemRemoved(assetId)
-	
+
 	local model = insertService:LoadAsset(assetId)
 	recursiveDisable(model)
-	
+
 	local stillWearing = false
 	for i, v in next, currentlyWearing do
 		if v == assetId then
@@ -777,11 +777,11 @@ function amendR15ForItemAdded(assetId)
 			break
 		end
 	end
-	
+
 	if not stillWearing then return end
-	
+
 	local info = amendR15ForItemAddedAsModel(model)
-	
+
 	itemsOnR15[assetId] = info
 end
 
@@ -790,7 +790,7 @@ function repositionR15Joints(joints)
 		if v:IsA'JointInstance' then
 			local attachment0 = v.Part0:FindFirstChild(v.Name..'RigAttachment')
 			local attachment1 = v.Part1:FindFirstChild(v.Name..'RigAttachment')
-			
+
 			if attachment0 and attachment1 then
 				v.C0 = attachment0.CFrame
 				v.C1 = attachment1.CFrame
@@ -809,7 +809,7 @@ function amendR15ForItemAddedAsModel(model)
 	}
 	local bodyStuff = {}
 	local otherStuff = {}
-	
+
 	-- Collect assets
 	local stuff = {model}
 	if stuff[1].ClassName == 'Model' then
@@ -824,19 +824,19 @@ function amendR15ForItemAddedAsModel(model)
 			table.insert(otherStuff, thing)
 		end
 	end
-	
+
 	-- Replace body parts
 	for i, thing in next, bodyStuff do
 		if thing:IsA'MeshPart' then
 			info.replacesR15Parts[thing.Name] = true
-			
+
 			local oldThing = character:FindFirstChild(thing.Name)
 			if oldThing then
 				local thingClone = thing:Clone()
 				thing.Parent = character
-				
+
 				local repositionTheseJoints = {}
-				
+
 				-- Reassign old joints, move important stuff to the new part
 				for i, v in next, getDescendants(character) do
 					if v:IsA'JointInstance' then
@@ -862,9 +862,9 @@ function amendR15ForItemAddedAsModel(model)
 						end
 					end
 				end
-				
+
 				oldThing:Destroy()
-				
+
 				for i, v in next, thing:GetChildren() do
 					if v:IsA'Attachment' then
 						if thingClone:FindFirstChild(v.Name) then
@@ -874,14 +874,14 @@ function amendR15ForItemAddedAsModel(model)
 						end
 					end
 				end
-				
+
 				repositionR15Joints(repositionTheseJoints)
 			end
 		else
 			table.insert(otherStuff, thing)
 		end
 	end
-	
+
 	-- Equip tool
 	local tool
 	for i, thing in next, otherStuff do
@@ -894,7 +894,7 @@ function amendR15ForItemAddedAsModel(model)
 		elseif thing:IsA'CharacterAppearance' then
 			thing.Parent = character
 			table.insert(info.easyRemove, thing)
-			
+
 			-- have to refresh the character texture because clothes dont update
 			character.Head.Transparency = character.Head.Transparency+1
 			character.Head.Transparency = character.Head.Transparency-1
@@ -908,20 +908,20 @@ function amendR15ForItemAddedAsModel(model)
 			info.hasTool = true
 		end
 	end
-	
+
 	-- Rescale
 	refreshCharacterScale()
-	
+
 	-- Update colors
 	updateCharacterBodyColors()
-	
+
 	return info
 end
 
 function amendR15ForItemRemoved(assetId)
 	local info = itemsOnR15[assetId]
 	itemsOnR15[assetId] = nil
-	
+
 	if info then
 		if info.easyRemove then
 			for i, v in next, info.easyRemove do
@@ -931,13 +931,13 @@ function amendR15ForItemRemoved(assetId)
 		if info.replacesR15Parts then
 			local replaceFolder = Instance.new'Folder'
 			replaceFolder.Name = 'R15'
-			
+
 			for v in next, info.replacesR15Parts do
 				if game.ReplicatedStorage.CharacterR15:FindFirstChild(v) then
 					game.ReplicatedStorage.CharacterR15[v]:Clone().Parent = replaceFolder
 				end
 			end
-			
+
 			amendR15ForItemAddedAsModel(replaceFolder)
 		end
 		if info.replacesHead then
@@ -949,7 +949,7 @@ function amendR15ForItemRemoved(assetId)
 		if info.hasTool then
 			holdToolPos('Down')
 		end
-		
+
 		updateCharacterBodyColors()
 	end
 end
@@ -958,7 +958,7 @@ function replaceHead(newMesh)
 	if character:FindFirstChild'Head' and character.Head:FindFirstChild'Mesh' then
 		character.Head.Mesh:Destroy()
 	end
-	
+
 	newMesh.Parent = character.Head
 end
 
@@ -966,31 +966,31 @@ function replaceFace(newFace)
 	if character:FindFirstChild'Head' and character.Head:FindFirstChild'face' then
 		character.Head.face:Destroy()
 	end
-	
+
 	newFace.Parent = character.Head
 end
 
 function scaleCharacter(newBodyScale, newHeadScale) -- unfaithful lua implementation of Humanoid::scaleCharacter
 	if avatarType == 'R6' then return end
-	
+
 	local bodyScaleVector = newBodyScale
 	local headScaleVector = Vector3.new(newHeadScale, newHeadScale, newHeadScale)
-	
+
 	local jointInfo = {}
 	local parts = {}
 	local joints = {}
-	
+
 	for i, child in next, getDescendants(character) do
 		if child:IsA'JointInstance' then
 			jointInfo[child] = {Part0=child.Part0, Part1=child.Part1, Parent=child.Parent}
 			table.insert(joints, child)
 		end
 	end
-	
+
 	for i, part in next, character:GetChildren() do
 		if part:IsA'BasePart' and part.Name ~= 'HumanoidRootPart' then
 			local defaultScale = part:FindFirstChild'DefaultScale' and part.DefaultScale.Value or Vector3.new(1, 1, 1)
-			
+
 			local originalSize = part:FindFirstChild'OriginalSize' and part.OriginalSize.Value
 			if not originalSize then
 				local value = Instance.new'Vector3Value'
@@ -999,11 +999,11 @@ function scaleCharacter(newBodyScale, newHeadScale) -- unfaithful lua implementa
 				value.Parent = part
 				originalSize = value.Value
 			end
-			
+
 			local newScaleVector3 = part.Name == 'Head' and headScaleVector or bodyScaleVector
 			local currentScaleVector3 = part.Size/originalSize * defaultScale
 			local relativeScaleVector3 = newScaleVector3/currentScaleVector3
-			
+
 			for j, child in next, part:GetChildren() do
 				if child:IsA'Attachment' then
 					local pivot = child.Position
@@ -1012,25 +1012,25 @@ function scaleCharacter(newBodyScale, newHeadScale) -- unfaithful lua implementa
 					child.Scale = child.Scale * relativeScaleVector3
 				end
 			end
-			
+
 			part.Size = originalSize * newScaleVector3/defaultScale
-			
+
 			table.insert(parts, part)
 		end
 	end
-	
+
 	for joint, info in next, jointInfo do
 		joint.Part0 = info.Part0
 		joint.Part1 = info.Part1
 		joint.Parent = info.Parent
 	end
-	
+
 	for i, part in next, parts do
 		part.Parent = character
 	end
-	
+
 	repositionR15Joints(joints)
-	
+
 	humanoid.HipHeight = 1.5 * newBodyScale.y
 end
 
@@ -1109,7 +1109,7 @@ function createR15Rig()
 			end
 		end
 		populateAttachments(newCharacter)
-	
+
 		local function recursiveRig(thing)
 			for _,rigAttachment in pairs(thing:GetChildren()) do
 				local nameLength = string.len(rigAttachment.Name)
@@ -1162,7 +1162,7 @@ function createR15Rig()
 			queuedRebuild = false
 			createR15Rig()
 		end
-		
+
 		updateCharacterBodyColors()
 	else
 		queuedRebuild = true
@@ -1194,7 +1194,7 @@ function createR6Rig()
 		--put on assets
 		for _,assetId in pairs(currentlyWearing) do
 			local assetModel = insertService:LoadAsset(assetId) --Get all waiting overwith early
-	
+
 			local insertedStuff = {}
 			if not assetsLinkedContent[assetId] then
 				assetsLinkedContent[assetId] = insertedStuff
@@ -1324,7 +1324,7 @@ function unequipAsset(assetId)
 					end
 					assetsLinkedContent[assetId] = nil
 				end
-			
+
 				--Special cases where we need to replace removed asset with a default
 				if assetTypeName == 'Head' then
 					if character and character.Parent then
@@ -1396,21 +1396,21 @@ end
 function playLookAround()
 	pauseAnimation()
 	stopAllAnimationTracks()
-	
+
 	local thisLookAroundAnimation = currentLookAroundAnimation + 1
 	currentLookAroundAnimation = thisLookAroundAnimation
-	
+
 	local assets = getEquippedAnimationAssets('IdleAnimation')
-	
+
 	local options, totalWeight = getWeightedAnimations(assets[1]:GetChildren())
-	
+
 	local lightest, lightestWeight
 	for v, weight in next, options do
 		if lightest == nil or weight < lightestWeight then
 			lightest, lightestWeight = v, weight
 		end
 	end
-	
+
 	if lightest then
 		local track = humanoid:LoadAnimation(lightest)
 		track:Play()
@@ -1418,7 +1418,7 @@ function playLookAround()
 		track:Stop()
 		track:Destroy()
 	end
-	
+
 	if thisLookAroundAnimation == currentLookAroundAnimation then
 		resumeAnimation()
 	end
@@ -1426,20 +1426,20 @@ end
 
 function getWeightedAnimations(possible)
 	local options, totalWeight = {}, 0
-	
+
 	for i, v in next, possible do
 		local weight = v:FindFirstChild('Weight') and v.Weight.Value or 1
 		options[v] = weight
 		totalWeight = totalWeight + weight
 	end
-	
+
 	return options, totalWeight
 end
 
 function getEquippedAnimationAssets(assetTypeName)
 	local assetTypeId = assetTypeNames[assetTypeName]
 	local assetId
-	
+
 	if avatarType == 'R15' then
 		for i, asset in next, currentlyWearing do
 			local info = getAssetInfo(asset)
@@ -1449,7 +1449,7 @@ function getEquippedAnimationAssets(assetTypeName)
 			end
 		end
 	end
-	
+
 	if assetId then
 		return getAnimationAssets(assetId)
 	else
@@ -1459,7 +1459,7 @@ end
 
 function getDefaultAnimationAssets(assetTypeName)
 	local anims = {}
-	
+
 	if avatarType == 'R15' then
 		if assetTypeName == 'ClimbAnimation' then
 			table.insert(anims, game.ReplicatedStorage.CharacterR15.Animations.climb)
@@ -1495,20 +1495,20 @@ function getDefaultAnimationAssets(assetTypeName)
 		elseif assetTypeName == 'SwimAnimation' then
 			local swimAnim = game.ReplicatedStorage.CharacterR6.Animations.run:Clone()
 			swimAnim.Name = 'swim'
-			
+
 			table.insert(anims, swimAnim)
 		else
 			error('Tried to get bad default animation for R6 '..tostring(assetTypeName))
 		end
 	end
-	
+
 	return anims
 end
 
 function getAnimationAssets(assetId)
 	local asset = insertService:LoadAsset(assetId)
 	local animAssets = asset.R15Anim:GetChildren()
-	
+
 	return animAssets
 end
 
@@ -1531,12 +1531,12 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 	if currentAnimationPreview ~= nil then
 		stopAnimationPreview()
 	end
-	
+
 	local thisAnimationPreview = {}
 	currentAnimationPreview = thisAnimationPreview
-	
+
 	if thisAnimationPreview ~= currentAnimationPreview then return end
-	
+
 	local stop = false
 	local stopCurrentLoop = false
 	local pauseMainLoop = false
@@ -1547,14 +1547,14 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 	local currentAnimIndex = 1
 	local forceHeaviestAnim = true
 	local resumeMainLoopEvent = Instance.new('BindableEvent')
-	
+
 	thisAnimationPreview.Stop = function()
 		stop = true
 		if currentTrack and currentTrack.IsPlaying then
 			currentTrack:Stop()
 		end
 	end
-	
+
 	if isMultipleAnims then -- alternate between the animations when there's more than one
 		for i, v in next, animAssets do
 			if v.Name == 'swimidle' then
@@ -1562,7 +1562,7 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 				break
 			end
 		end
-		
+
 		fastSpawn(function()
 			while not stop do
 				switch = true
@@ -1573,29 +1573,29 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 			end
 		end)
 	end
-	
+
 	local loopAnimation = function()
 		stopCurrentLoop = false
-		
+
 		if switch then
 			currentAnimIndex = currentAnimIndex%#animAssets + 1
 			switch = false
 		end
-		
+
 		-- weighted random selection
 		local newAnim
 		local possibleAnims = animAssets[currentAnimIndex]:GetChildren()
 		local options, totalWeight = getWeightedAnimations(possibleAnims)
-		
+
 		if forceHeaviestAnim then
 			local heaviest, heaviestWeight
-			
+
 			for v, weight in next, options do
 				if heaviest == nil or weight > heaviestWeight then
 					heaviest, heaviestWeight = v, weight
 				end
 			end
-			
+
 			newAnim = heaviest
 			forceHeaviestAnim = false
 		else
@@ -1609,7 +1609,7 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 				end
 			end
 		end
-		
+
 		-- stop the old track, play the new one
 		if currentAnim == newAnim then
 			if not currentTrack.IsPlaying then
@@ -1617,7 +1617,7 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 			end
 		else
 			local fadeInTime = 0.1
-			
+
 			if currentTrack ~= nil then
 				if currentTrack.IsPlaying then
 					currentTrack:Stop(0.5)
@@ -1625,10 +1625,10 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 				end
 				currentTrack = nil
 			end
-			
+
 			currentTrack = humanoid:LoadAnimation(newAnim)
 			currentTrack:Play(fadeInTime)
-			
+
 			if newAnim.Parent.Name == 'swim' then
 				setAnimationRotation(-math.rad(60), 0, 0)
 			else
@@ -1636,15 +1636,15 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 			end
 		end
 		currentAnim = newAnim
-		
+
 		-- wait for the animation to end, or for the switcher to switch, or for the whole thing to be stopped
 		local animEnded = false
 		local animEndedCon = currentTrack.Stopped:connect(function()
 			animEnded = true
 		end)
-		
+
 		local lastTimePosition = 0 -- keep track of this so we know when it loops
-		
+
 		while true do
 			if animEnded then
 				break
@@ -1660,12 +1660,12 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 				renderWait()
 			end
 		end
-		
+
 		animEndedCon:disconnect()
-		
+
 		stopCurrentLoop = false
 	end
-	
+
 	local animationResumedConnection = resumeAnimationEvent.Event:connect(function()
 		stopCurrentLoop = true
 		pauseMainLoop = true
@@ -1674,16 +1674,16 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 		forceHeaviestAnim = true
 		resumeMainLoopEvent:Fire()
 	end)
-	
+
 	fastSpawn(function()
 		while not stop do
 			loopAnimation()
-			
+
 			if pauseMainLoop then
 				resumeMainLoopEvent.Event:wait()
 			end
 		end
-		
+
 		if currentTrack then
 			if currentTrack.IsPlaying then
 				currentTrack:Stop()
@@ -1694,7 +1694,7 @@ function startAnimationPreviewFromAssets(animAssets) -- Array of StringValues co
 		if currentAnim then
 			currentAnim = nil
 		end
-		
+
 		animationResumedConnection:disconnect()
 	end)
 end
@@ -1734,7 +1734,7 @@ function equipAsset(assetId, dontPlayAnimations)
 				end
 			end
 		end
-		
+
 		if not dontPlayAnimations and assetTypeName:find'Animation' and avatarType == 'R15' then
 			startAnimationPreview(assetId)
 		end
@@ -1758,7 +1758,7 @@ function equipAsset(assetId, dontPlayAnimations)
 		end
 
 		local assetModel = insertService:LoadAsset(assetId)
-		
+
 		local stillWearing = false
 		for i, v in next, currentlyWearing do
 			if v == assetId then
@@ -1766,13 +1766,13 @@ function equipAsset(assetId, dontPlayAnimations)
 				break
 			end
 		end
-		
+
 		if not stillWearing then return end
-		
+
 		-- If the new asset is not an animation then we need to update the render of the character
 		-- Also, after loading model, check to make sure it is still equipped before dressing character
 		if not string.find(assetTypeName, 'Animation') and findIfEquipped(assetId) then
-				
+
 			-- Render changes
 			if avatarType == 'R6' then
 				local insertedStuff = {}
@@ -1818,7 +1818,7 @@ function equipAsset(assetId, dontPlayAnimations)
 			end
 
 		end
-		
+
 		if assetInfo.AssetTypeId >= 25 and assetInfo.AssetTypeId <= 31 then
 			updateCharacterBodyColors()
 		end
@@ -1839,7 +1839,7 @@ for index=1, numberOfAllowedHats do
 				updateAccessoriesColumnVisuals()
 			end
 		end
-		
+
 		local showMenuFunction = function()
 			local assetId = currentHats[index]
 			if assetId then
@@ -1853,7 +1853,7 @@ for index=1, numberOfAllowedHats do
 				--guiService:OpenBrowserWindow("https://www."..domainUrl.."/catalog/"..assetId.."/a")
 			end
 		end
-		
+
 		local clickFunction = function()
 			if userInputService:IsKeyDown(Enum.KeyCode.Q) then
 				showMenuFunction()
@@ -1887,7 +1887,7 @@ function setViewMode(desiredViewMode)
 			else
 				cameraController.tweenCamera(nil, fullViewCameraCF, tweenTime, easeFilters.quad, easeFilters.easeInOut)
 			end
-			
+
 		else
 
 			tween(exitFullViewButton, 'ImageTransparency', 'Number', nil, 1, tweenTime, easeFilters.quad, easeFilters.easeInOut):connect(function(completed)
@@ -1944,14 +1944,14 @@ local detailsMenuCount = 0
 function openDetails(assetId)
 	--[[if isCoreSetup then
 		closeMenu()
-		guiService:OpenBrowserWindow("https://www.projex.zip/catalog/"..tostring(assetId).."/name")
+		guiService:OpenBrowserWindow("https://www.pekora.zip/catalog/"..tostring(assetId).."/name")
 	else]]
 		detailsMenuCount = detailsMenuCount + 1
 		local myDetailsMenuCount = detailsMenuCount
-	
+
 		local tweenTime = .35
 		detailsCloseImageLabel.ImageTransparency = .7
-	
+
 		if assetId then
 			fastSpawn(function()
 				local assetInfo = getAssetInfo(assetId)
@@ -1960,7 +1960,7 @@ function openDetails(assetId)
 						local productInfo = marketplaceService:GetProductInfo(assetId)
 						assetInfo.Description = productInfo.Description
 					end
-					
+
 					if assetInfo.Name then
 						detailsNameLabel.Text = assetInfo.Name
 					end
@@ -1976,9 +1976,9 @@ function openDetails(assetId)
 				end
 			end)
 		end
-	
+
 		closeMenu()
-	
+
 		detailsMenuFrame:TweenPosition(UDim2.new(0,15,.15,0),'InOut','Quad',tweenTime,true)
 		shadeLayer.Visible = true
 		fastSpawn(function()
@@ -2071,7 +2071,7 @@ end)
 do
 	local avatarToggleDebounce = false
 	local toggleTime = .1
-	
+
 	local function renderAvatarSwitch()
 		r6Label.TextColor3 = avatarType == 'R6' and Color3.new(1,1,1) or Color3.new(.44,.44,.44)
 		r15Label.TextColor3 = avatarType == 'R15' and Color3.new(1,1,1) or Color3.new(.44,.44,.44)
@@ -2100,7 +2100,7 @@ do
 				scalePageTab.BackgroundColor3 = page.name == 'Scale' and Color3.fromRGB(246*colorModefier,136*colorModefier,2*colorModefier) or Color3.fromRGB(255*colorModefier,255*colorModefier,255*colorModefier)
 			end
 			updateAvatarType()
-			
+
 			if flagManager.EnabledAvatarAnimationCategory then
 				if page.typeName and assetTypeNames[page.typeName] >= 48 and assetTypeNames[page.typeName] <= 56 then
 					startEquippedAnimationPreview(page.typeName:gsub(' ',''))
@@ -2108,7 +2108,7 @@ do
 					startEquippedAnimationPreview('IdleAnimation')
 				end
 			end
-			
+
 			if flagManager.AvatarEditorDisplaysWarningOnR15OnlyPages then
 				if page.r15only and avatarType == 'R6' then
 					displayWarning(page.r15onlyMessage or 'This feature is only available for R15')
@@ -2116,7 +2116,7 @@ do
 					closeWarning()
 				end
 			end
-			
+
 			wait(toggleTime)
 			avatarToggleDebounce = false
 		end
@@ -2152,7 +2152,7 @@ if avatarRulesRequest then
 			widthScaleIncrement = scaleWidthRules['increment'] or widthScaleIncrement
 		end
 	end
-	
+
 	local bodyColorsPalleteRequest = avatarRulesRequest['bodyColorsPalette']
 	if bodyColorsPalleteRequest then
 		bodyColorsPallete = bodyColorsPalleteRequest
@@ -2261,7 +2261,7 @@ if avatarFetchRequest then
 				end)
 			end
 		end
-		
+
 		--after all fetched assets are equipped, we can update the savedWearingAssets table.
 		waitingForInitialLoad = true
 		fastSpawn(function()
@@ -2285,7 +2285,7 @@ if avatarFetchRequest then
 				wait()
 			end
 			waitingForInitialLoad = false
-			
+
 			if flagManager.EnabledAvatarAnimationCategory then
 				startEquippedAnimationPreview('IdleAnimation')
 			end
@@ -2310,7 +2310,7 @@ local function wearOutfit(outfitId)
 	else
 		outfitData = httpGet(avatarUrlPrefix.."/v1/outfits/"..outfitId.."/details")
 	end
-	if outfitData then 
+	if outfitData then
 		--equip outfit assets
 		local outfitData = httpService:JSONDecode(outfitData)
 		if outfitData then
@@ -2336,12 +2336,12 @@ local function wearOutfit(outfitId)
 			end
 		end
 		updateCharacterBodyColors()
-		
+
 		-- animate
 		if flagManager.EnabledAvatarAnimationCategory then
 			playLookAround()
 		end
-		
+
 		-- scale
 		refreshCharacterScale()
 	end
@@ -2354,7 +2354,7 @@ local function outfitImageFetch(outfitId, attemptNumber)
 	if attemptNumber > 10 then
 		return 'OutfitFailedToLoad'
 	end
-	local returnString = httpGet("http://www.projex.zip/Outfit-Thumbnail/Json?userOutfitId="..outfitId.."&width=352&height=352&format=png")
+	local returnString = httpGet("http://www.pekora.zip/Outfit-Thumbnail/Json?userOutfitId="..outfitId.."&width=352&height=352&format=png")
 	if returnString then
 		local returnData = httpService:JSONDecode(returnString)
 		if returnData and returnData.Final then
@@ -2514,14 +2514,14 @@ function loadPage(assetTypeId, cursor)
 	else
 		cachedPages[assetTypeId] = {}
 	end
-	
+
 	local typeStuff = {}
 	local pageInfo = {
 		assets = {},
 		reachedBottom = false,
 		nextCursor = ''
 	}
-	
+
 	if doTestHttpGet then
 		typeStuff = testHttpGet(
 			'/users/inventory/list-json?assetTypeId=<assetTypeId>&itemsPerPage=<itemsPerPage>&userId=<userId>&cursor=<cursor>',
@@ -2530,19 +2530,19 @@ function loadPage(assetTypeId, cursor)
 	else
 		typeStuff = httpGet("https://www."..domainUrl.."/users/inventory/list-json?assetTypeId="..assetTypeId.."&itemsPerPage="..itemsPerPageNewUrl.."&userId="..userId.."&cursor="..cursor)
 	end
-	
+
 	typeStuff = httpService:JSONDecode(typeStuff)
 	if typeStuff and typeStuff.IsValid and typeStuff.Data and typeStuff.Data.Items then
 		pageInfo.nextCursor = typeStuff.Data.nextPageCursor
-		
+
 		if pageInfo.nextCursor == nil then
 			pageInfo.reachedBottom = true
 		end
-		
+
 		for i, item in next, typeStuff.Data.Items do
 			if (not item.UserItem or not item.UserItem.IsRentalExpired) then
 				table.insert(pageInfo.assets, item.Item.AssetId)
-				
+
 				cachedAssetInfo['id'..item.Item.AssetId] = {
 					AssetId = item.Item.AssetId,
 					AssetTypeId = assetTypeId,
@@ -2554,9 +2554,9 @@ function loadPage(assetTypeId, cursor)
 	else
 		--print('TYPESTUFF RESULT:',typeStuff,typeStuff and typeStuff.IsValid,typeStuff.Data,typeStuff.Data and typeStuff.Data.Items)
 	end
-	
+
 	cachedPages[assetTypeId][cursor] = pageInfo
-	
+
 	return pageInfo
 end
 
@@ -2575,11 +2575,11 @@ function loadMoreListContent()
 		if flagManager.AvatarEditorUsesNewAssetGetEndpoint then
 			local typeStuff = {}
 			local assetTypeId = assetTypeNames[page.typeName]
-			
+
 			local pageInfo = loadPage(assetTypeId, nextCursor)
 			reachedBottom = pageInfo.reachedBottom
 			nextCursor = pageInfo.nextCursor
-			
+
 			if thisLoadingContentCall == currentLoadingContentCall then
 				for i, assetId in next, pageInfo.assets do
 					if not isAssetInList[assetId] then
@@ -2597,7 +2597,7 @@ function loadMoreListContent()
 			else
 				typeStuff = httpGet(urlPrefix.."/v1/users/"..userId.."/inventory/"..urlTypeName.."?pageNumber="..desiredPageNumber.."&itemsPerPage="..itemsPerPage)
 			end
-			
+
 			if thisLoadingContentCall == currentLoadingContentCall then
 				typeStuff = httpService:JSONDecode(typeStuff)
 				if typeStuff and typeStuff['data'] then
@@ -2613,7 +2613,7 @@ function loadMoreListContent()
 	elseif page.name == 'Recent' or page.name == 'Recent All' then
 		--todo: implement maxNumberOfRecentAssets
 		assetList = copyTable(recentAssetList)
-		
+
 		for index = #assetList, 1, -1 do			--remove all assets from list that exceed index higher than maxNumberOfRecentAssets
 			if index <= maxNumberOfRecentAssets then
 				break
@@ -2714,7 +2714,7 @@ function loadMoreListContent()
 			selectionFrame.ImageColor3 = Color3.new(.2,.65,.9)
 		end
 		selectionFrame.ZIndex = scrollingFrame.ZIndex + 2
-		
+
 		local currentSkinColor = bodyColors.HeadColor
 
 		scrollingFrame.CanvasSize = UDim2.new(0,0,0,math.ceil(#skinColorList/buttonsPerRow) * (buttonSize+gridPadding) + gridPadding + extraVerticalShift)
@@ -2761,7 +2761,7 @@ function loadMoreListContent()
 			if bodyColors['HeadColor'] == brickColor.number then
 				selectionFrame.Parent = colorButton
 			end
-			
+
 			if currentSkinColor == brickColor.Number then
 				selectionFrame.Parent = colorButton
 			end
@@ -2783,9 +2783,9 @@ function loadMoreListContent()
 					outputLabel.Text = (percentDifference>=0 and [[+]] or '')..displayPercent..[[%]]
 				end
 			end
-			
+
 			scales.height = math.min(heightScaleMax, math.max(heightScaleMin, resultPercent) )
-			
+
 			refreshCharacterScale()
 		end
 		local sliderPercent = (scales.height - heightScaleMin) / (heightScaleMax - heightScaleMin)
@@ -2808,9 +2808,9 @@ function loadMoreListContent()
 					outputLabel.Text = (percentDifference>=0 and [[+]] or '')..displayPercent..[[%]]
 				end
 			end
-			
+
 			scales.width = math.min(widthScaleMax, math.max(widthScaleMin, resultPercent) )
-			
+
 			refreshCharacterScale()
 		end
 		local sliderPercent = (scales.width - widthScaleMin) / (widthScaleMax - widthScaleMin)
@@ -2834,7 +2834,7 @@ function loadMoreListContent()
 
 					if page.name == 'Outfits' then
 						assetButton = renderCard(i, "Outfit"..tostring(assetId),"", buttonSize, extraVerticalShift)
-	
+
 						local wearFunction = function()
 							closeMenu()
 							runParticleEmitter()
@@ -2842,7 +2842,7 @@ function loadMoreListContent()
 						end
 						assetButton.MouseButton1Click:connect(wearFunction)
 						assetButton.TouchLongPress:connect(wearFunction)
-	
+
 						assetButton.Parent = scrollingFrame
 						fastSpawn(function()
 							local imgUrl = outfitImageFetch(assetId)
@@ -2869,7 +2869,7 @@ function loadMoreListContent()
 							addToRecentAssetsList(assetId)
 							equipAsset(assetId)
 							closeMenu()
-							
+
 							local assetInfo = getAssetInfo(assetId)
 							local assetTypeName = assetTypeNames[assetInfo.AssetTypeId]
 							if not assetTypeName:find('Animation') and flagManager.EnabledAvatarAnimationCategory then
@@ -2926,7 +2926,7 @@ function loadMoreListContent()
 			if #assetList <= 0 then
 				if reachedBottom and not renderedNoAssetsMessage then
 					renderedNoAssetsMessage = true
-		
+
 					local noAssetsLabel = Instance.new('TextLabel')
 					noAssetsLabel.Text = "You don't have any "..page.name.."."
 					noAssetsLabel.BackgroundTransparency = 1
@@ -2938,7 +2938,7 @@ function loadMoreListContent()
 					noAssetsLabel.TextXAlignment = "Center"
 					noAssetsLabel.ZIndex = 3
 					noAssetsLabel.Parent = scrollingFrame
-		
+
 					scrollingFrame.CanvasSize = UDim2.new(0,scrollingFrame.AbsoluteSize.X,0,scrollingFrame.AbsoluteSize.Y)
 				end
 			else
@@ -3010,7 +3010,7 @@ function loadMoreListContent()
 	end
 
 	loadingContent = false
-	
+
 	return reachedBottom
 end
 
@@ -3087,7 +3087,7 @@ function selectPage(index, desiredPage)
 				startEquippedAnimationPreview('IdleAnimation')
 			end
 		end
-		
+
 		if flagManager.AvatarEditorDisplaysWarningOnR15OnlyPages then
 			if desiredPage.r15only and avatarType == 'R6' then
 				displayWarning(desiredPage.r15onlyMessage or 'This feature is only available for R15')
@@ -3107,7 +3107,7 @@ function selectPage(index, desiredPage)
 		nextCursor = ''
 
 		reachedBottomOfCurrentPage = loadMoreListContent()
-		
+
 		adjustCameraProperties()
 	end
 end
@@ -3251,7 +3251,7 @@ function selectCategory(category)
 		if #category.pages > 0 then
 			selectPage(1, category.pages[1])
 		end
-		
+
 		if flagManager.AvatarEditorUsesNewAssetGetEndpoint then
 			for i, page in next, category.pages do
 				if page.typeName then
@@ -3342,7 +3342,7 @@ selectCategory(categories[1])
 if flagManager.AvatarEditorUsesNewAssetGetEndpoint then
 	for i, cat in next, categories do
 		local firstPage = cat.pages[1]
-		
+
 		if firstPage and firstPage.typeName then
 			loadPage(assetTypeNames[firstPage.typeName], '')
 		end
@@ -3399,7 +3399,7 @@ function handleInput(input, soaked)
 				--This is used for doubletap detection
 				lastInputBeganPosition = input.Position
 			end
-			
+
 			if input.KeyCode == Enum.KeyCode.ButtonR3 then
 				playLookAround()
 			end
@@ -3454,11 +3454,11 @@ function onLastInputTypeChanged(inputType)
 	local isGamepad = inputType.Name:find('Gamepad')
 	local isTouch = inputType == Enum.UserInputType.Touch
 	local isMouse = inputType.Name:find('Mouse') or inputType == Enum.UserInputType.Keyboard
-	
+
 	if not isGamepad and not isTouch and not isMouse then
 		return
 	end
-	
+
 	if isGamepad then
 		userInputService.MouseIconEnabled = false
 	else
@@ -3506,7 +3506,7 @@ local showRotsGui = function()
 		tween(rotGui, 'TextTransparency', 'Number', nil, 0, 1)
 		tween(rotGuiInfo, 'TextStrokeTransparency', 'Number', nil, 1, 0.3)
 		tween(rotGuiInfo, 'TextTransparency', 'Number', nil, 0, 1)
-		
+
 		isRotsGuiVisible = true
 	end
 end
@@ -3517,7 +3517,7 @@ local hideRotsGui = function()
 		tween(rotGui, 'TextTransparency', 'Number', nil, 1, 1)
 		tween(rotGuiInfo, 'TextStrokeTransparency', 'Number', 0, 1, 0.3)
 		tween(rotGuiInfo, 'TextTransparency', 'Number', nil, 1, 1)
-		
+
 		isRotsGuiVisible = false
 	end
 end
@@ -3528,7 +3528,7 @@ while true do
 	local isRotatingNow = false
 	local tilt = 0
 	local offsetTheseRots = 0
-	
+
 	if downKeys[Enum.KeyCode.Left] or downKeys[Enum.KeyCode.A] then
 		rotation = rotation - delta*math.rad(180)
 		isRotatingNow = true
@@ -3538,11 +3538,11 @@ while true do
 	else
 		isRotatingNow = false
 	end
-	
+
 	if not vrService.VREnabled then
 		for i, gamepad in next, userInputService:GetNavigationGamepads() do
 			local state = userInputService:GetGamepadState(gamepad)
-			
+
 			for i, obj in next, state do
 				if obj.KeyCode == Enum.KeyCode.Thumbstick2 then
 					if math.abs(obj.Position.x) > 0.25 then
@@ -3560,7 +3560,7 @@ while true do
 			end
 		end
 	end
-	
+
 	local changeInRotation = false
 	if lastTouchInput then
 		rotationalMomentum = rotation - lastRotation
@@ -3573,12 +3573,12 @@ while true do
 			isRotatingNow = false
 		end
 		rotation = rotation + rotationalMomentum
-	end	
-	
+	end
+
 	if flagManager.AvatarEditorSpinCounter then
 		theseRots = theseRots + (rotation - lastRotation) + offsetTheseRots
 		local rots = math.abs(math.floor(theseRots/(math.pi*2)))
-		
+
 		if isRotatingNow then
 			if rots > 20 then
 				showRotsGui()
@@ -3595,7 +3595,7 @@ while true do
 			end
 		end
 	end
-	
+
 	lastRotation = rotation
 
 	local heightBonus = 3

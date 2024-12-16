@@ -6,7 +6,7 @@ import Head from "next/head";
 const UserInventoryPage = ({ username, userId }) => {
   const router = useRouter();
   const ogTitle = username ? `${username}'s Inventory` : "Project X";
-  const ogUrl = userId ? `https://projex.zip/users/${userId}/inventory` : '';
+  const ogUrl = userId ? `https://pekora.zip/users/${userId}/inventory` : '';
 
   return (
     <>
@@ -17,7 +17,7 @@ const UserInventoryPage = ({ username, userId }) => {
           <meta property="og:url" content={ogUrl} />
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={`View ${username}'s inventory`} />
-          <meta property="og:image" content={`https://projex.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
+          <meta property="og:image" content={`https://pekora.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
           <meta name="og:site_name" content="Project X" />
           <meta name="theme-color" content="#E2231A" />
         </Head>
@@ -31,7 +31,7 @@ export async function getServerSideProps(context) {
   const { userId } = context.query;
   try {
     const info = await getUserInfo({ userId });
-    const username = info.name || null; 
+    const username = info.name || null;
     return {
       props: {
         username,
@@ -42,7 +42,7 @@ export async function getServerSideProps(context) {
     console.error("Error fetching user info in inventory.js");
     return {
       props: {
-        username: null, 
+        username: null,
         userId
       }
     };

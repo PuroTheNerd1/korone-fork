@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="Script" referent="RBX440EE2113E074565A1C69E447652B15D">
@@ -6,7 +6,7 @@
 			<bool name="Disabled">false</bool>
 			<Content name="LinkedSource"><null></null></Content>
 			<string name="Name">Sound</string>
-			<ProtectedString name="Source"><![CDATA[---This server script creates the sounds and also exists so that it can be easily copied into an NPC and create sounds for that NPC. 
+			<ProtectedString name="Source"><![CDATA[---This server script creates the sounds and also exists so that it can be easily copied into an NPC and create sounds for that NPC.
 --Remove the local script if you copy this into an NPC.
 
 function waitForChild(parent, childName)
@@ -30,7 +30,7 @@ end
 -- declarations
 
 local sGettingUp = newSound("GettingUp", "rbxasset://sounds/action_get_up.mp3")
-local sDied = newSound("Died", "rbxasset://sounds/uuhhh.mp3") 
+local sDied = newSound("Died", "rbxasset://sounds/uuhhh.mp3")
 local sFreeFalling = newSound("FreeFalling", "rbxasset://sounds/action_falling.mp3")
 local sJumping = newSound("Jumping", "rbxasset://sounds/action_jump.mp3")
 local sLanding = newSound("Landing", "rbxasset://sounds/action_jump_land.mp3")
@@ -121,7 +121,7 @@ end
 
 function onClimbing(speed)
 	sRunning:Stop()
-	sSwimming:Stop()	
+	sSwimming:Stop()
 	if speed>0.01 then
 		sClimbing:Play()
 		sClimbing.Pitch = speed / 5.5
@@ -133,7 +133,7 @@ end
 -- connect up
 
 function stopLoopedSounds()
-	sRunning:Stop() 
+	sRunning:Stop()
 	sClimbing:Stop()
 	sSwimming:Stop()
 end
@@ -147,14 +147,14 @@ if hasPlayer == nil then
 	Humanoid.GettingUp:connect(function(state) stopLoopedSounds() onStateNoStop(state, sGettingUp) prevState = "GetUp" end)
 	Humanoid.FreeFalling:connect(function(state) stopLoopedSounds() onStateFall(state, sFreeFalling) prevState = "FreeFall" end)
 	Humanoid.FallingDown:connect(function(state) stopLoopedSounds() end)
-	Humanoid.StateChanged:connect(function(old, new) 
-		if not (new.Name == "Dead" or 
-				new.Name == "Running" or 
-				new.Name == "RunningNoPhysics" or 
-				new.Name == "Swimming" or 
-				new.Name == "Jumping" or 
-				new.Name == "GettingUp" or 
-				new.Name == "Freefall" or 
+	Humanoid.StateChanged:connect(function(old, new)
+		if not (new.Name == "Dead" or
+				new.Name == "Running" or
+				new.Name == "RunningNoPhysics" or
+				new.Name == "Swimming" or
+				new.Name == "Jumping" or
+				new.Name == "GettingUp" or
+				new.Name == "Freefall" or
 				new.Name == "FallingDown") then
 			stopLoopedSounds()
 		end
@@ -187,7 +187,7 @@ local Head = waitForChild(Figure, "Head")
 local Humanoid = waitForChild(Figure, "Humanoid")
 
 local sGettingUp = waitForChild(Head, "GettingUp")
-local sDied = waitForChild(Head, "Died") 
+local sDied = waitForChild(Head, "Died")
 local sFreeFalling = waitForChild(Head, "FreeFalling")
 local sJumping = waitForChild(Head, "Jumping")
 local sLanding = waitForChild(Head, "Landing")
@@ -272,7 +272,7 @@ end
 
 function onClimbing(speed)
 	sRunning:Stop()
-	sSwimming:Stop()	
+	sSwimming:Stop()
 	if speed>0.01 then
 		sClimbing:Play()
 		sClimbing.Pitch = speed / 5.5
@@ -284,7 +284,7 @@ end
 -- connect up
 
 function stopLoopedSounds()
-	sRunning:Stop() 
+	sRunning:Stop()
 	sClimbing:Stop()
 	sSwimming:Stop()
 end
@@ -297,14 +297,14 @@ Humanoid.Jumping:connect(function(state) onStateNoStop(state, sJumping) prevStat
 Humanoid.GettingUp:connect(function(state) stopLoopedSounds() onStateNoStop(state, sGettingUp) prevState = "GetUp" end)
 Humanoid.FreeFalling:connect(function(state) stopLoopedSounds() onStateFall(state, sFreeFalling) prevState = "FreeFall" end)
 Humanoid.FallingDown:connect(function(state) stopLoopedSounds() end)
-Humanoid.StateChanged:connect(function(old, new) 
-	if not (new.Name == "Dead" or 
-			new.Name == "Running" or 
-			new.Name == "RunningNoPhysics" or 
-			new.Name == "Swimming" or 
-			new.Name == "Jumping" or 
-			new.Name == "GettingUp" or 
-			new.Name == "Freefall" or 
+Humanoid.StateChanged:connect(function(old, new)
+	if not (new.Name == "Dead" or
+			new.Name == "Running" or
+			new.Name == "RunningNoPhysics" or
+			new.Name == "Swimming" or
+			new.Name == "Jumping" or
+			new.Name == "GettingUp" or
+			new.Name == "Freefall" or
 			new.Name == "FallingDown") then
 		stopLoopedSounds()
 	end

@@ -21,8 +21,8 @@ local ThirdPartyProductName = nil
 
 --[[ Flags ]]--
 local platform = UserInputService:GetPlatform()
-local IsNativePurchasing = platform == Enum.Platform.XBoxOne or 
-							platform == Enum.Platform.IOS or 
+local IsNativePurchasing = platform == Enum.Platform.XBoxOne or
+							platform == Enum.Platform.IOS or
 							platform == Enum.Platform.Android or
 							platform == Enum.Platform.UWP
 
@@ -150,7 +150,7 @@ local ASSET_TO_STRING = {
 	[32] = "Package";
 	[33] = "YouTube Video";
 	-- NOTE: GamePass and Plugin AssetTypeIds are different on ST1, ST2 and ST3
-	[34] = "Game Pass";	
+	[34] = "Game Pass";
 	[38] = "Plugin";
 	[0]  = "Product";
 }
@@ -656,7 +656,7 @@ local function getRobuxProductToBuyItem(amountNeeded)
 
 	--todo: we should clean all this up at some point so all the platforms have the
 	-- same product names, or at least names that are very similar
-	
+
 	local isUsingNewProductId = (platform == Enum.Platform.Android) or (platform == Enum.Platform.UWP)
 
 	local prependStr, appendStr, appPrefix = "", "", ""
@@ -702,7 +702,7 @@ local function setBuyMoreRobuxDialog(playerBalance)
 		ThirdPartyProductName, productCost = getRobuxProductToBuyItem(neededRobux)
 		--
 		if not ThirdPartyProductName then
-			descriptionText = "This item cost more ROBUX than you can purchase. Please visit www.projex.zip to purchase more ROBUX."
+			descriptionText = "This item cost more ROBUX than you can purchase. Please visit www.pekora.zip to purchase more ROBUX."
 			purchaseState = PURCHASE_STATE.FAILED
 			setButtonsVisible(OkButton)
 		else
@@ -737,11 +737,11 @@ local function onPurchaseFailed(failType)
 
 	local itemName = PurchaseData.ProductInfo and PurchaseData.ProductInfo["Name"] or ""
 	local failedText = string.gsub(PURCHASE_MSG.FAILED, "itemName", string.sub(itemName, 1, 20))
-	
+
 	if itemName == "" then
 		failedText = string.gsub(failedText, " of ", "")
 	end
-		
+
 	if failType == PURCHASE_FAILED.DEFAULT_ERROR then
 		failedText = string.gsub(failedText, "errorReason", ERROR_MSG.UNKNWON_FAILURE)
 	elseif failType == PURCHASE_FAILED.IN_GAME_PURCHASE_DISABLED then
@@ -754,17 +754,17 @@ local function onPurchaseFailed(failType)
 		failedText = "This item is not currently for sale. Your account has not been charged."
 		setPreviewImage(PurchaseData.ProductInfo, PurchaseData.AssetId)
 	elseif failType == PURCHASE_FAILED.NOT_ENOUGH_TIX then
-		failedText = "This item cost more tickets than you currently have. Try trading currency on www.projex.zip to get more tickets."
+		failedText = "This item cost more tickets than you currently have. Try trading currency on www.pekora.zip to get more tickets."
 		setPreviewImage(PurchaseData.ProductInfo, PurchaseData.AssetId)
 	elseif failType == PURCHASE_FAILED.UNDER_13 then
 		failedText = "Your account is under 13. Purchase of this item is not allowed. Your account has not been charged."
 	elseif failType == PURCHASE_FAILED.LIMITED then
-		failedText = "This limited item has no more copies. Try buying from another user on www.projex.zip. Your account has not been charged."
+		failedText = "This limited item has no more copies. Try buying from another user on www.pekora.zip. Your account has not been charged."
 		setPreviewImage(PurchaseData.ProductInfo, PurchaseData.AssetId)
 	elseif failType == PURCHASE_FAILED.DID_NOT_BUY_ROBUX then
 		failedText = string.gsub(failedText, "errorReason", ERROR_MSG.INVALID_FUNDS)
 	elseif failType == PURCHASE_FAILED.PROMPT_PURCHASE_ON_GUEST then
-		failedText = "You need to create a ROBLOX account to buy items, visit www.projex.zip for more info."
+		failedText = "You need to create a ROBLOX account to buy items, visit www.pekora.zip for more info."
 	elseif failType == PURCHASE_FAILED.THIRD_PARTY_DISABLED then
 		failedText = "Third-party item sales have been disabled for this place. Your account has not been charged."
 		setPreviewImage(PurchaseData.ProductInfo, PurchaseData.AssetId)
@@ -1048,7 +1048,7 @@ local function canPurchase(disableUpsell)
 			setButtonsVisible(OkButton)
 			return true
 		end
-		
+
 		-- most places will not need to sell third party assets.
 		if areThirdPartySalesRestricted() and not game:GetService("Workspace").AllowThirdPartySales then
 			local ProductCreator = tonumber(PurchaseData.ProductInfo["Creator"]["Id"])
@@ -1063,7 +1063,7 @@ local function canPurchase(disableUpsell)
 
 	if not isFree and isRestrictedThirdParty then
 		onPurchaseFailed(PURCHASE_FAILED.THIRD_PARTY_DISABLED)
-		return false    
+		return false
 	end
 
 	local playerBalance = getPlayerBalance()
@@ -1374,7 +1374,7 @@ function enableControllerInput()
 		CONTROLLER_CONFIRM_ACTION_NAME,
 		function(actionName, inputState, inputObject)
 			if inputState ~= Enum.UserInputState.Begin then return end
-			
+
 			if purchaseState == PURCHASE_STATE.SUCCEEDED then
 				onPromptEnded()
 			elseif purchaseState == PURCHASE_STATE.FAILED then

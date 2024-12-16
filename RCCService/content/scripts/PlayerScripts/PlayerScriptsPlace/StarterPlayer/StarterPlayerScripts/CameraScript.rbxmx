@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="LocalScript" referent="RBX3C5D0BEBF6ED413EA31B5A5E9C0B72A7">
@@ -34,11 +34,11 @@ local success, msg = pcall(function()
 	AllCamerasInLua = UserSettings():IsUserFeatureEnabled("UserAllCamerasInLua")
 end)
 if not success then
-	print("Couldn't get feature UserAllCamerasInLua because:" , msg) 
+	print("Couldn't get feature UserAllCamerasInLua because:" , msg)
 end
 
 
-local CameraTypeEnumMap = 
+local CameraTypeEnumMap =
 {
 	[Enum.CameraType.Attach] = AttachCamera;
 	[Enum.CameraType.Fixed] = FixedCamera;
@@ -167,7 +167,7 @@ local function OnCameraMovementModeChange(newCameraMode)
 		TransparencyController:SetEnabled(true)
 	else
 		local currentCameraType = workspace.CurrentCamera and workspace.CurrentCamera.CameraType
-		
+
 		if (currentCameraType == Enum.CameraType.Custom or not AllCamerasInLua) and newCameraMode == Enum.ComputerCameraMovementMode.Classic.Name then
 			SetEnabledCamera(ClassicCamera)
 			TransparencyController:SetEnabled(true)
@@ -260,7 +260,7 @@ do
 	while PlayersService.LocalPlayer == nil do wait() end
 	hasLastInput = pcall(function()
 		lastInputType = UserInputService:GetLastInputType()
-		UserInputService.LastInputTypeChanged:connect(function(newLastInputType) 
+		UserInputService.LastInputTypeChanged:connect(function(newLastInputType)
 			lastInputType = newLastInputType
 		end)
 	end)

@@ -24,7 +24,7 @@ local HEALTH_GREEN_COLOR = Color3.new(27/255, 252/255, 107/255)
 
 local HEALTH_PERCANTAGE_FOR_OVERLAY = 5 / 100
 
-local HURT_OVERLAY_IMAGE = "http://www.projex.zip/asset/?id=34854607"
+local HURT_OVERLAY_IMAGE = "http://www.pekora.zip/asset/?id=34854607"
 
 local DEBOUNCE_TIME = 0.25
 
@@ -478,7 +478,7 @@ local function CreateUsernameHealthMenuItem()
 				if healthDelta >= thresholdForHurtOverlay and health ~= humanoid.MaxHealth and game.StarterGui:GetCoreGuiEnabled("Health") == true then
 					AnimateHurtOverlay()
 				end
-				
+
 				healthFill.Size = UDim2.new(healthPercent, 0, 1, 0)
 				healthFill.BackgroundColor3 = healthColor
 
@@ -794,7 +794,7 @@ end
 local function CreateChatIcon()
 	local chatEnabled = game:GetService("UserInputService"):GetPlatform() ~= Enum.Platform.XBoxOne
 	if not chatEnabled then return end
-	
+
 	local ChatModule = require(GuiRoot.Modules.Chat)
 
 	local bubbleChatIsOn = not PlayersService.ClassicChat and PlayersService.BubbleChat
@@ -1245,7 +1245,7 @@ end
 
 if defeatableTopbar then
 	StarterGui:RegisterSetCore("TopbarEnabled", function(enabled)
-		if type(enabled) == "boolean" then 
+		if type(enabled) == "boolean" then
 			topbarEnabled = enabled
 			topBarEnabledChanged()
 		end

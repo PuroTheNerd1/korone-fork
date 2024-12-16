@@ -46,7 +46,7 @@ local IMAGES = {
 
 	ROBLOX_LOGO_256 = 'rbxasset://textures/loading/robloxlogo.png',
 
-	GAME_THUMBNAIL =  'http://www.projex.zip/Thumbs/Asset.ashx?format=png&width=420&height=230&assetId=',
+	GAME_THUMBNAIL =  'http://www.pekora.zip/Thumbs/Asset.ashx?format=png&width=420&height=230&assetId=',
 
 	GAME_BACKGROUND = 'rbxasset://textures/loading/loadingTexture.png'
 
@@ -94,7 +94,7 @@ local create = function(className, defaultParent)
 
 		local object = Instance.new(className)
 
-		
+
 
 		for index, value in next, propertyList do
 
@@ -118,7 +118,7 @@ local create = function(className, defaultParent)
 
 		end
 
-		
+
 
 		if object.Parent == nil then
 
@@ -126,7 +126,7 @@ local create = function(className, defaultParent)
 
 		end
 
-		
+
 
 		return object
 
@@ -182,7 +182,7 @@ end
 
 function InfoProvider:LoadAssets()
 
-	Spawn(function() 
+	Spawn(function()
 
 		if PLACEID <= 0 then
 
@@ -200,7 +200,7 @@ function InfoProvider:LoadAssets()
 
 		IMAGES.GAME_THUMBNAIL = IMAGES.GAME_THUMBNAIL .. tostring(PLACEID)
 
-		
+
 
 		-- load game asset info
 
@@ -226,7 +226,7 @@ function InfoProvider:LoadAssets()
 
 		end
 
-		
+
 
 	end)
 
@@ -246,13 +246,13 @@ function MainGui:GenerateMain()
 
 	}
 
-	
+
 
 	--
 
 	-- create descendant frames
 
-	
+
 
 	local mainBackgroundContainer = create 'Frame' {
 
@@ -264,7 +264,7 @@ function MainGui:GenerateMain()
 
 		Active = true,
 
-		
+
 
 		create 'Frame' {
 
@@ -284,7 +284,7 @@ function MainGui:GenerateMain()
 
 			ZIndex = 5,
 
-		
+
 
 			create 'ImageLabel' {
 
@@ -302,7 +302,7 @@ function MainGui:GenerateMain()
 
 				ZIndex = 6,
 
-				
+
 
 				create 'TextLabel' {
 
@@ -400,7 +400,7 @@ function MainGui:GenerateMain()
 
 		},
 
-		
+
 
 		create 'Frame' {
 
@@ -416,7 +416,7 @@ function MainGui:GenerateMain()
 
 			ZIndex = 5,
 
-			
+
 
 			create 'Frame' {
 
@@ -434,7 +434,7 @@ function MainGui:GenerateMain()
 
 				ZIndex = 5,
 
-			
+
 
 				create 'Frame' {
 
@@ -448,7 +448,7 @@ function MainGui:GenerateMain()
 
 					ZIndex = 8,
 
-					
+
 
 					create 'TextLabel' {
 
@@ -480,7 +480,7 @@ function MainGui:GenerateMain()
 
 					},
 
-					
+
 
 					create 'TextLabel' {
 
@@ -512,7 +512,7 @@ function MainGui:GenerateMain()
 
 					},
 
-					
+
 
 					create 'TextLabel' {
 
@@ -542,7 +542,7 @@ function MainGui:GenerateMain()
 
 					},
 
-					
+
 
 					create 'TextLabel' {
 
@@ -578,7 +578,7 @@ function MainGui:GenerateMain()
 
 		},
 
-		
+
 
 		create 'ImageLabel' {
 
@@ -594,7 +594,7 @@ function MainGui:GenerateMain()
 
 		},
 
-		
+
 
 		create 'ImageLabel' {
 
@@ -612,13 +612,13 @@ function MainGui:GenerateMain()
 
 		},
 
-		
+
 
 		Parent = screenGui
 
 	}
 
-	
+
 
 	local thumbnailContainer = create 'Frame' {
 
@@ -636,7 +636,7 @@ function MainGui:GenerateMain()
 
 		ZIndex = 8,
 
-		
+
 
 		create 'ImageLabel' {
 
@@ -936,13 +936,13 @@ function MainGui:GenerateMain()
 
 		},
 
-		
+
 
 		Parent = screenGui
 
 	}
 
-	
+
 
 	--
 
@@ -960,7 +960,7 @@ function MainGui:GenerateMain()
 
 	MainGui:RecalculateSizes(screenGui)
 
-	
+
 
 	--
 
@@ -1088,7 +1088,7 @@ function MainGui:RecalculateSizes(screenGui)
 
 	-- update names
 
-	
+
 
 	-- if we don't have a name yet, keep trying!
 
@@ -1128,7 +1128,7 @@ function MainGui:RecalculateSizes(screenGui)
 
 	end
 
-	
+
 
 	MainGui:RecalculateTextSize(screenGui)
 
@@ -1144,7 +1144,7 @@ function MainGui:Show()
 
 	currScreenGui.ThumbnailContainer.Visible = true
 
-	
+
 
 	currScreenGui.Changed:connect(function(prop)
 
@@ -1394,7 +1394,7 @@ local tweenStyle = Enum.EasingStyle.Sine
 
 local tweenVelocity = 1500
 
-local tweenTime = (currScreenGui.AbsoluteSize.X/2)/tweenVelocity 
+local tweenTime = (currScreenGui.AbsoluteSize.X/2)/tweenVelocity
 
 
 
@@ -1414,7 +1414,7 @@ function createBlock()
 
 	initBlock.Parent = currScreenGui.MainBackgroundContainer.BottomBar
 
-	
+
 
 	return initBlock
 
@@ -1448,25 +1448,25 @@ function rightScreenExit()
 
 	if not currScreenGui then return end
 
-	
+
 
 	local regSize = blocks[6].Size
 
 	local regPos = blocks[6].Position
 
-	
 
-	blocks[6].Size = blocks[1].Size 
+
+	blocks[6].Size = blocks[1].Size
 
 	blocks[6].Position = blocks[1].Position
 
-	
+
 
 	blocks[1].Size =  regSize
 
 	blocks[1].Position = regPos
 
-	
+
 
 	wait()
 
@@ -1486,7 +1486,7 @@ function rightScreenExit()
 
 			local blockSizeMultiplier = 4 - (i * 0.5)
 
-			
+
 
 			blocks[blockIndex]:TweenPosition(UDim2.new(1,0,yPosScale,yPosOffset),
 
@@ -1504,7 +1504,7 @@ function rightScreenExit()
 
 												tweenTime,true)
 
-					
+
 
 				wait(tweenTime * 1.1)
 
@@ -1546,7 +1546,7 @@ function leftScreenEntrance()
 
 	end
 
-	
+
 
 	blocks[1]:TweenPosition(UDim2.new(0.5,-blockSize/2,yPosScale,yPosOffset),Enum.EasingDirection.Out,tweenStyle,tweenTime,true,function()
 
@@ -1554,7 +1554,7 @@ function leftScreenEntrance()
 
 			local delayTime = tweenTime * (i - 1) * 0.5
 
-			
+
 
 			Delay(delayTime, function()
 
@@ -1566,7 +1566,7 @@ function leftScreenEntrance()
 
 				local blockSizeMultiplier = 1 + (i * 0.5)
 
-			
+
 
 				blocks[blockIndex]:TweenPosition(UDim2.new(0.5,-blockSize/2,yPosScale,yPosOffset),
 
@@ -1574,7 +1574,7 @@ function leftScreenEntrance()
 
 				  					  tweenTime,true)
 
-				
+
 
 				local newSize = blockSize * blockSizeMultiplier
 
@@ -1586,9 +1586,9 @@ function leftScreenEntrance()
 
 											tweenTime * 0.75,true)
 
-				
 
-				
+
+
 
 				if i == 4 then
 
@@ -1622,4 +1622,4 @@ end
 
 -- Animation Begin
 
-startLoadingAnimation() 
+startLoadingAnimation()

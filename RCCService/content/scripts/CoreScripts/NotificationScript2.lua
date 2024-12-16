@@ -64,9 +64,9 @@ local TWEEN_TIME = 0.35
 local DEFAULT_NOTIFICATION_DURATION = 5
 
 --[[ Images ]]--
-local PLAYER_POINTS_IMG = 'http://www.projex.zip/asset?id=206410433'
-local BADGE_IMG = 'http://www.projex.zip/asset?id=206410289'
-local FRIEND_IMAGE = 'http://www.projex.zip/thumbs/avatar.ashx?userId='
+local PLAYER_POINTS_IMG = 'http://www.pekora.zip/asset?id=206410433'
+local BADGE_IMG = 'http://www.pekora.zip/asset?id=206410289'
+local FRIEND_IMAGE = 'http://www.pekora.zip/thumbs/avatar.ashx?userId='
 
 --[[ Gui Creation ]]--
 local function createFrame(name, size, position, bgt)
@@ -236,7 +236,7 @@ end
 
 local lastTimeInserted = 0
 insertNotifcation = function(notification)
-	spawn(function() 
+	spawn(function()
 		while isPaused do wait() end
 		notification.IsActive = true
 		local size = #NotificationQueue
@@ -267,7 +267,7 @@ removeNotification = function(notification)
 	local frame = notification.Frame
 	if frame and frame.Parent then
 		notification.IsActive = false
-		spawn(function() 
+		spawn(function()
 			while isPaused do wait() end
 
 			frame:TweenPosition(UDim2.new(1, 0, 1, frame.Position.Y.Offset), EASE_DIR, EASE_STYLE, TWEEN_TIME, true,
@@ -290,7 +290,7 @@ local function sendNotifcation(title, text, image, duration, callback, button1Te
 	local notification = {}
 	local notificationFrame = createNotification(title, text, image)
 	--
-	
+
 	local button1 = nil
 	if button1Text and button1Text ~= "" then
 		notification.IsFriend = true -- Prevents other notifications overlapping the buttons
@@ -310,9 +310,9 @@ local function sendNotifcation(title, text, image, duration, callback, button1Te
 			end
 		end)
 	end
-	
+
 	if button2Text and button2Text ~= "" then
-		notification.IsFriend = true 
+		notification.IsFriend = true
 		local button2 = createTextButton("Button1", button2Text, UDim2.new(0.5, 2, 1, 2))
 		button2.Parent = notificationFrame
 		local button2ClickedConnection = nil
@@ -334,7 +334,7 @@ local function sendNotifcation(title, text, image, duration, callback, button1Te
 			button1.Size = UDim2.new(1, -2, .5, 0)
 		end
 	end
-	
+
 	notification.Frame = notificationFrame
 	notification.Duration = duration
 	insertNotifcation(notification)
@@ -403,7 +403,7 @@ local function onFriendRequestEvent(fromPlayer, toPlayer, event)
 			if FriendRequestBlacklist[fromPlayer] then return end
 			sendFriendNotification(fromPlayer)
 		elseif event == Enum.FriendRequestEvent.Accept then
-			sendNotifcation("New Friend", "You are now friends with "..fromPlayer.Name.."!", 
+			sendNotifcation("New Friend", "You are now friends with "..fromPlayer.Name.."!",
 				FRIEND_IMAGE..tostring(fromPlayer.userId).."&x=48&y=48", DEFAULT_NOTIFICATION_DURATION, nil)
 		end
 	end
@@ -526,8 +526,8 @@ end
 MarketplaceService.ClientLuaDialogRequested:connect(onClientLuaDialogRequested)
 
 --[[ Developer customization API ]]--
-local function createDeveloperNotification(notificationTable) 
-	if type(notificationTable) == "table" then 
+local function createDeveloperNotification(notificationTable)
+	if type(notificationTable) == "table" then
 		if type(notificationTable.Title) == "string" and type(notificationTable.Text) == "string" then
 			local iconImage = (type(notificationTable.Icon) == "string" and notificationTable.Icon or "")
 			local duration = (type(notificationTable.Duration) == "number" and notificationTable.Duration or DEFAULT_NOTIFICATION_DURATION)
@@ -536,7 +536,7 @@ local function createDeveloperNotification(notificationTable)
 			local button2Text = (type(notificationTable.Button2) == "string" and notificationTable.Button2 or "")
 			sendNotifcation(notificationTable.Title, notificationTable.Text, iconImage, duration, bindable, button1Text, button2Text)
 		end
-	end 
+	end
 end
 
 if allowDisableNotifications then

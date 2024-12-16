@@ -37,7 +37,7 @@ local Style; do
 	local frameColor = Color3_new(0.1, 0.1, 0.1)
 	local textColor = Color3_new(1, 1, 1)
 	local optionsFrameColor = Color3_new(1, 1, 1)
-	
+
 	pcall(function() -- Fun window colors for cool people
 		local Players = game:GetService("Players")
 		if not Players or not Players.LocalPlayer then
@@ -53,52 +53,52 @@ local Style; do
 			textColor = funColor[2] or textColor
 		end
 	end)
-	
+
 	Style = {
 		Font = Enum.Font.SourceSans;
 		FontBold = Enum.Font.SourceSansBold;
-		
+
 		HandleHeight = 24; -- How tall the top window handle is, as well as the width of the scroll bar
 		TabHeight = 28;
 		GearSize = 24;
 		BorderSize = 2;
 		CommandLineHeight = 22;
-		
+
 		OptionAreaHeight = 56;
-		
+
 		FrameColor = frameColor; -- Applies to pretty much everything, including buttons
 		FrameTransparency = 0.5;
 		OptionsFrameColor = optionsFrameColor;
-		
+
 		TextColor = textColor;
-		
+
 		MessageColors = {
 			[0] = Color3_new(1, 1, 1); -- Enum.MessageType.MessageOutput
 			[1] = Color3_new(0.4, 0.5, 1); -- Enum.MessageType.MessageInfo
 			[2] = Color3_new(1, 0.6, 0.4); -- Enum.MessageType.MessageWarning
 			[3] = Color3_new(1, 0, 0); -- Enum.MessageType.MessageError
 		};
-		
+
 		ScrollbarFrameColor = frameColor;
 		ScrollbarBarColor = frameColor;
-		
+
 		ScriptButtonHeight = 32;
 		ScriptButtonColor = Color3_new(0, 1/3, 2/3);
 		ScriptButtonTransparency = 0.5;
-		
+
 		CheckboxSize = 24;
-		
+
 		ChartTitleHeight = 20;
 		ChartGraphHeight = 64;
 		ChartDataHeight = 24;
 		ChartHeight = 0; -- This gets added up at end and set at end of block
 		ChartWidth = 620;
-		
+
 		-- (-1) means right to left
 		-- (1) means left to right
 		ChartGraphDirection = 1; -- the direction the bars move
-		
-		
+
+
 		GetButtonDownColor = function(normalColor)
 			local r, g, b = normalColor.r, normalColor.g, normalColor.b
 			return Color3_new(1 - 0.75 * (1 - r), 1 - 0.75 * (1 - g), 1 - 0.75 * (1 - b))
@@ -109,7 +109,7 @@ local Style; do
 		end;
 
 	}
-	
+
 	Style.ChartHeight = Style.ChartTitleHeight + Style.ChartGraphHeight + Style.ChartDataHeight + Style.BorderSize
 
 end
@@ -125,7 +125,7 @@ local Primitives = {}; do
 		return n
 	end
 	local unitSize = UDim2_new(1, 0, 1, 0)
-	
+
 	local function setupFrame(n)
 		n.BackgroundColor3 = Style.FrameColor
 		n.BackgroundTransparency = Style.FrameTransparency
@@ -136,7 +136,7 @@ local Primitives = {}; do
 		n.TextColor3 = Style.TextColor
 		n.Text = text or n.Text
 	end
-	
+
 	function Primitives.Frame(parent, name)
 		local n = new('Frame', parent, name)
 		setupFrame(n)
@@ -173,7 +173,7 @@ local Primitives = {}; do
 		n.Size = unitSize
 		return n
 	end
-	
+
 	-- An invisible frame of size (1, 0, 1, 0)
 	function Primitives.FolderFrame(parent, name) -- Should this be called InvisibleFrame? lol
 		local n = new('Frame', parent, name)
@@ -285,7 +285,7 @@ end
 
 function Methods.ResetFrameDimensions(devConsole)
 	devConsole.Frame.Size = UDim2_new(0.5, 20, 0.5, 20);
-	
+
 	local abSize = devConsole.Frame.AbsoluteSize
 	devConsole:SetFrameSize(abSize.x, abSize.y)
 	local newSize = devConsole.Frame.Size
@@ -317,7 +317,7 @@ function Methods.SetVisible(devConsole, visible, animate)
 	devConsole.VisibleChanged:fire(visible)
 	if devConsole.Frame then
 		devConsole.Frame.Visible = visible
-	end	
+	end
 	if visible then -- Open the console
 		devConsole:ResetFrameDimensions()
 	end
@@ -329,7 +329,7 @@ end
 function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 
 	local visibleChanged = CreateSignal()
-	
+
 	local devConsole = {
 		ScreenGui = screenGui;
 		Permissions = permissions;
@@ -340,11 +340,11 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 		CurrentOpenedTab = nil;	-- save last tab opened to set SelectedCoreObject for TenFootInterfaces
 		VisibleChanged = visibleChanged; -- Created by :Initialize(); It's used to stop and disconnect things when the window is hidden
 	}
-	
+
 	setmetatable(devConsole, Metatable)
 
 	devConsole:EnableGUIMouse()
-	
+
 	-- It's a button so it catches mouse events
 	local frame = Primitives.Button(screenGui, 'DeveloperConsole')
 	frame.AutoButtonColor = false
@@ -353,52 +353,52 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 	frame.Selectable = not isTenFootInterface
 	devConsole.Frame = frame
 	devConsole:ResetFrameDimensions()
-	
+
 	-- The bar at the top that you can drag around
 	local handle = Primitives.Button(frame, 'Handle')
 	handle.Size = UDim2_new(1, -(Style.HandleHeight + Style.BorderSize), 0, Style.HandleHeight)
 	handle.Selectable = not isTenFootInterface
 	handle.Modal = true -- Unlocks mouse
 	handle.AutoButtonColor = false
-	
-	
+
+
 	do -- Title
 		local title = Primitives.InvisibleTextLabel(handle, 'Title', "Roblox Developer Console")
 		title.Size = UDim2_new(1, -5, 1, 0)
-		title.Position = UDim2_new(0, 5, 0, 0)	
+		title.Position = UDim2_new(0, 5, 0, 0)
 		title.FontSize = Enum.FontSize.Size18
 		title.TextXAlignment = Enum.TextXAlignment.Left
 	end
-	
+
 	local function setCornerButtonImageSize(buttonImage, buttonImageSize)
 		buttonImage.Size = UDim2_new(buttonImageSize, 0, buttonImageSize, 0)
-		buttonImage.Position = UDim2_new((1 - buttonImageSize) / 2, 0, (1 - buttonImageSize) / 2, 0)		
+		buttonImage.Position = UDim2_new((1 - buttonImageSize) / 2, 0, (1 - buttonImageSize) / 2, 0)
 	end
-  
+
 	-- This is used for creating the square exit button and the square window resize button
 	local function createCornerButton(name, x, y, image, buttonImageSize)
 		-- Corners (x, y):
 		-- (0, 0) (1, 0)
 		-- (0, 1) (1, 1)
-		
+
 		local button = Primitives.Button(frame, name)
 		button.Size = UDim2_new(0, Style.HandleHeight, 0, Style.HandleHeight)
 		button.Position = UDim2_new(x, -x * Style.HandleHeight, y, -y * Style.HandleHeight)
-		
+
 		local buttonImage = Primitives.InvisibleImageLabel(button, 'Image', image)
 		setCornerButtonImageSize(buttonImage, buttonImageSize)
-		
+
 		return button, buttonImage
 	end
-	
+
 	do -- Create top right exit button
-		local exitButton, exitButtonImage = createCornerButton('Exit', 1, 0, 'https://www.projex.zip/asset/?id=261878266', 2/3)
+		local exitButton, exitButtonImage = createCornerButton('Exit', 1, 0, 'https://www.pekora.zip/asset/?id=261878266', 2/3)
 		exitButton.AutoButtonColor = false
 		exitButton.Visible = not isTenFootInterface
 		exitButton.Selectable = not isTenFootInterface
-		
+
 		local buttonEffectFunction = devConsole:CreateButtonEffectFunction(exitButton)
-		
+
 		devConsole:ConnectButtonHover(exitButton, function(clicking, hovering)
 			if hovering and not clicking then
 				setCornerButtonImageSize(exitButtonImage, 3/4)
@@ -407,24 +407,24 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			end
 			buttonEffectFunction(clicking, hovering)
 		end)
-		
+
 		exitButton.MouseButton1Click:connect(function()
 			devConsole:SetVisible(false, true)
 		end)
 	end
-	
+
 	do -- Repositioning and Resizing
-		
+
 		do -- Create bottom right window resize button and activate resize dragging
-			local resizeButton, resizeButtonImage = createCornerButton('Resize', 1, 1, 'https://www.projex.zip/asset/?id=261880743', 1)
+			local resizeButton, resizeButtonImage = createCornerButton('Resize', 1, 1, 'https://www.pekora.zip/asset/?id=261880743', 1)
 			resizeButtonImage.Position = UDim2_new(0, 0, 0, 0)
 			resizeButtonImage.Size = UDim2_new(1, 0, 1, 0)
 			resizeButton.Selectable = not isTenFootInterface
 
 			local dragging = false
-			
+
 			local buttonEffectFunction = devConsole:CreateButtonEffectFunction(resizeButton)
-			
+
 			devConsole:ConnectButtonDragging(resizeButton, function()
 				local x0, y0 = frame.AbsoluteSize.X, frame.AbsoluteSize.Y
 				return function(dx, dy)
@@ -434,15 +434,15 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				dragging = clicking
 				buttonEffectFunction(clicking, hovering)
 			end)
-			
+
 		end
-		
+
 		do -- Activate top handle dragging
 			local frame = devConsole.Frame
 			local handle = frame.Handle
-			
+
 			local buttonEffectFunction = devConsole:CreateButtonEffectFunction(handle)
-			
+
 			devConsole:ConnectButtonDragging(handle, function()
 				local x, y = frame.AbsolutePosition.X, frame.AbsolutePosition.Y
 				return function(dx, dy)
@@ -452,25 +452,25 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			end, buttonEffectFunction)
 		end
 	end
-	
+
 	-- interiorFrame contains tabContainer and window
 	local interiorFrame = Primitives.FolderFrame(frame, 'Interior')
 	interiorFrame.Position = UDim2_new(0, 0, 0, Style.HandleHeight)
 	interiorFrame.Size = UDim2_new(1, -(Style.HandleHeight + Style.BorderSize * 2), 1, -(Style.HandleHeight + Style.BorderSize))
-	
+
 	local windowContainer = Primitives.FolderFrame(interiorFrame, 'WindowContainer')
 	windowContainer.Size = UDim2_new(1, 0, 1, -(Style.TabHeight))
 	windowContainer.Position = UDim2_new(0, Style.BorderSize, 0, Style.TabHeight)
-	
+
 	-- This is what applies ClipsDescendants to tab contents
 	local window = Primitives.Frame(windowContainer, 'Window')
 	window.Size = UDim2_new(1, 0, 1, 0) -- The tab open/close methods, and the consoles also set this
 	window.Position = UDim2_new(0, 0, 0, 0)
 	window.ClipsDescendants = true
-	
+
 	-- This is the frame that moves around with the scroll bar
 	local body = Primitives.FolderFrame(window, 'Body')
-	
+
 	do -- Scrollbars
 		local scrollbar = devConsole:CreateScrollbar()
 		devConsole.WindowScrollbar = scrollbar
@@ -478,18 +478,18 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 		scrollbarFrame.Parent = frame
 		scrollbarFrame.Size = UDim2_new(0, Style.HandleHeight, 1, -(Style.HandleHeight + Style.BorderSize) * 2)
 		scrollbarFrame.Position = UDim2_new(1, -Style.HandleHeight, 0, Style.HandleHeight + Style.BorderSize)
-		
+
 		devConsole:ApplyScrollbarToFrame(scrollbar, window, body, frame)
 	end
-	
+
 	local tabContainer = Primitives.FolderFrame(interiorFrame, 'Tabs') -- Shouldn't this be named 'tabFrame'?
 	tabContainer.Size = UDim2_new(1, -(Style.GearSize + Style.BorderSize), 0, Style.TabHeight)
 	tabContainer.Position = UDim2_new(0, 0, 0, 0)
 	tabContainer.ClipsDescendants = true
-	
+
 	-- Options button
 	local optionsButton = Primitives.InvisibleButton(frame, 'OptionsButton')
-	
+
 	local optionsClippingFrame = Primitives.FolderFrame(interiorFrame, 'OptionsClippingFrame')
 	optionsClippingFrame.ClipsDescendants = true
 	optionsClippingFrame.Position = UDim2_new(0, 0, 0, 0)
@@ -499,13 +499,13 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 	optionsFrame.Position = UDim2_new(0, 0, 0, Style.OptionAreaHeight)
 	--optionsFrame.BackgroundColor3 = Style.OptionsFrameColor
 	do -- Options animation
-		
+
 		local gearSize = Style.GearSize
 		local tabHeight = Style.TabHeight
 		local offset = (tabHeight - gearSize) / 2
 		optionsButton.Size = UDim2_new(0, Style.GearSize, 0, Style.GearSize)
 		optionsButton.Position = UDim2_new(1, -(Style.GearSize + offset + Style.HandleHeight), 0, Style.HandleHeight + offset)
-		local gear = Primitives.InvisibleImageLabel(optionsButton, 'Image', 'https://www.projex.zip/asset/?id=261882463')
+		local gear = Primitives.InvisibleImageLabel(optionsButton, 'Image', 'https://www.pekora.zip/asset/?id=261882463')
 		--gear.ZIndex = ZINDEX + 1
 		local animationToggle = devConsole:GenerateOptionButtonAnimationToggle(interiorFrame, optionsButton, gear, tabContainer, optionsClippingFrame, optionsFrame)
 		local open = false
@@ -513,31 +513,31 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			open = not open
 			animationToggle(open)
 		end)
-		
+
 	end
-	
+
 	-- Console/Log and Stats options
 	local setShownOptionTypes; -- Toggles what options to show: setOptionType({Log = true})
-	
+
 	local textFilter, scriptStatFilter;
 	local textFilterChanged, scriptStatFilterChanged;
-	
+
 	local messageFilter;
 	local messageFilterChanged, messageTextWrappedChanged;
 	do -- Options contents/filters
-		
+
 		local function createCheckbox(color, callback)
 			local this = {
 				Value = true;
 			}
-			
+
 			local frame = Primitives.FolderFrame(nil, 'Checkbox')
 			this.Frame = frame
 			frame.Size = UDim2_new(0, Style.CheckboxSize, 0, Style.CheckboxSize)
 			frame.BackgroundColor3 = color
-			
+
 			local padding = 2
-			
+
 			local function f(xs, xp, yp) -- quick way to get an opaque border around a transparent center
 				local ys = 1 - xs
 				local f = Primitives.Frame(frame, 'Border')
@@ -550,23 +550,23 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			f(1, 0, 1)
 			f(0, 0, 0)
 			f(0, 1, 0)
-			
+
 			local button = Primitives.Button(frame, 'Button')
 			button.Size = UDim2_new(1, -padding * 2, 1, -padding * 2)
 			button.Position = UDim2_new(0, padding, 0, padding)
-			
+
 			local buttonEffectFunction = devConsole:CreateButtonEffectFunction(button)
-			
+
 			local check = Primitives.Frame(button, 'Check')
-			
+
 			local padding = 4
 			check.Size = UDim2_new(1, -padding * 2, 1, -padding * 2)
 			check.Position = UDim2_new(0, padding, 0, padding)
 			check.BackgroundColor3 = color
 			check.BackgroundTransparency = 0
-			
+
 			devConsole:ConnectButtonHover(button, buttonEffectFunction)
-			
+
 			function this.SetValue(this, value)
 				if value == this.Value then
 					return
@@ -576,33 +576,33 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				this.Value = value
 				callback(value)
 			end
-			
+
 			button.MouseButton1Click:connect(function()
 				this:SetValue(not this.Value)
 			end)
-			
+
 			return this
 		end
-		
+
 		local string_find = string.find
 		local containsString; -- the text typed into the search textBox, nil if equal to ""
-		
+
 		function textFilter(text)
 			return not containsString or string_find(text:lower(), containsString)
 		end
-		
+
 		local filterLookup = {} -- filterLookup[Enum.MessageType.x.Value] = true or false
 		function messageFilter(message)
 			return filterLookup[message.Type] and (not containsString or string_find(message.Message:lower(), containsString))
 		end
-		
+
 		-- Events
 		textFilterChanged = CreateSignal()
 		scriptStatFilterChanged = CreateSignal()
-		
+
 		messageFilterChanged = CreateSignal()
 		messageTextWrappedChanged = CreateSignal()
-		
+
 		local optionTypeContainers = {
 			--[OptionType] = Frame
 			--Log = Frame;
@@ -615,7 +615,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				container.Visible = shownOptionTypes[optionType] or false
 			end
 		end
-		
+
 		do -- Log options
 			local container = Primitives.FolderFrame(optionsFrame, 'Log')
 			container.Visible = false
@@ -626,7 +626,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			label.TextXAlignment = 'Left'
 			label.Size = UDim2_new(0, 54, 0, Style.CheckboxSize)
 			label.Position = UDim2_new(0, 4, 0, 2)
-	
+
 			do
 				local x = label.Size.X.Offset
 				local messageColors = Style.MessageColors
@@ -640,16 +640,16 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 					checkbox.Frame.Position = UDim2_new(0, x, 0, 4)
 					x = x + Style.CheckboxSize + 4
 				end
-				
+
 				do -- Word wrap
 					x = x + 8
-					
+
 					local label = Primitives.InvisibleTextLabel(container, 'WrapLabel', "Word Wrap")
 					label.FontSize = 'Size18'
 					label.TextXAlignment = 'Left'
 					label.Size = UDim2_new(0, 54 + Style.CheckboxSize, 0, Style.CheckboxSize)
 					label.Position = UDim2_new(0, x + 4, 0, 2)
-					
+
 					local checkbox = createCheckbox(Color3.new(0.65, 0.65, 0.65), function(value)
 						messageTextWrappedChanged:fire(value) -- an event isn't ideal here
 					end)
@@ -659,7 +659,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				end
 			end
 		end
-		
+
 		do -- Scripts options
 			local container = Primitives.FolderFrame(optionsFrame, 'Stats')
 			container.Visible = false
@@ -667,7 +667,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 
 			do
 				local x = 0
-				
+
 				do -- Show inactive
 					x = x + 4
 					local label = Primitives.InvisibleTextLabel(container, 'FilterLabel', "Show inactive")
@@ -676,7 +676,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 					label.Size = UDim2_new(0, label.TextBounds.X + 6, 0, Style.CheckboxSize)
 					label.Position = UDim2_new(0, x, 0, 2)
 					x = x + label.Size.X.Offset
-					
+
 					local showInactive;
 					local function getScriptCurrentlyActive(chartStat)
 						local stats = chartStat.Stats
@@ -692,7 +692,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 						return (showInactive or getScriptCurrentlyActive(chartStat))
 							and (not containsString or string_find(chartStat.Name:lower(), containsString))
 					end
-						
+
 					local checkbox = createCheckbox(Color3_new(1, 1, 1), function(value)
 						showInactive = value
 						scriptStatFilterChanged:fire()
@@ -701,18 +701,18 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 					checkbox.Frame.Parent = container
 					checkbox.Frame.Position = UDim2_new(0, x, 0, 4)
 					x = x + Style.CheckboxSize + 4
-				
+
 				end
 
 				x = x + 8
-				
+
 				--[[
 				local label = Primitives.InvisibleTextLabel(container, 'WrapLabel', "Word Wrap")
 				label.FontSize = 'Size18'
 				label.TextXAlignment = 'Left'
 				label.Size = UDim2_new(0, 54 + Style.CheckboxSize, 0, Style.CheckboxSize)
 				label.Position = UDim2_new(0, x + 4, 0, 2)
-				
+
 				local checkbox = createCheckbox(Color3.new(0.65, 0.65, 0.65), function(value)
 					messageTextWrappedChanged:fire(value)
 				end)
@@ -722,19 +722,19 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				--]]
 			end
 		end
-		
+
 		do -- Search/filter/contains textbox
-			
+
 			local container = Primitives.FolderFrame(optionsFrame, 'Search')
 			container.Visible = false
 			optionTypeContainers.Search = container
-      
+
 			local label = Primitives.InvisibleTextLabel(container, 'FilterLabel', "Contains:")
 			label.FontSize = 'Size18'
 			label.TextXAlignment = 'Left'
 			label.Size = UDim2_new(0, 60, 0, Style.CheckboxSize)
 			label.Position = UDim2_new(0, 4, 0, 4 + Style.CheckboxSize + 4)
-			
+
 			local textBox = Primitives.TextBox(container, 'ContainsFilter')
 			textBox.ClearTextOnFocus = true
 			textBox.FontSize = 'Size18'
@@ -742,10 +742,10 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			textBox.Size = UDim2_new(0, 150, 0, Style.CheckboxSize)
 			textBox.Position = UDim2_new(0, label.Position.X.Offset + label.Size.X.Offset + 4, 0, 4 + Style.CheckboxSize + 4)
 			textBox.Text = ""
-		
+
 			local runningColor = Color3.new(0, 0.5, 0)
 			local normalColor = textBox.BackgroundColor3
-			
+
 			connectPropertyChanged(textBox, 'Text', function(text)
 				text = text:lower()
 				if text == "" then
@@ -759,48 +759,48 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				messageFilterChanged:fire()
 				textFilterChanged:fire()
 			end)
-			
+
 			connectPropertyChanged(textBox, 'TextBounds', function(textBounds)
 				textBox.Size = UDim2_new(0, math.max(textBounds.X, 150), 0, Style.CheckboxSize)
 			end)
 		end
 	end
-	
+
 	----------
 	-- Tabs --
 	----------
 	do -- Console/Log tabs
-		
+
 		-- Wrapper for :AddTab
-		local function createConsoleTab(name, 
-        text, 
+		local function createConsoleTab(name,
+        text,
         width,
-        outputMessageSync, 
-        commandLineVisible, 
+        outputMessageSync,
+        commandLineVisible,
         commandInputtedCallback,
         openCallback)
 			local tabBody = Primitives.FolderFrame(body, name)
 			local output, commandLine;
 			local disconnector = CreateDisconnectSignal()
-			
+
 			local tab = devConsole:AddTab(text, width, tabBody, function(open)
 				if commandLine then
 					commandLine.Frame.Visible = open
 				end
-				
+
 				if open then
 					setShownOptionTypes({
 						Log = true;
             Search = true;
 					})
-					
+
 					if not output then
 						output = devConsole:CreateOutput(outputMessageSync:GetMessages(), messageFilter)
 						output.Frame.Parent = tabBody
 					end
-					
+
 					output:SetVisible(true)
-					
+
 					if commandLineVisible then
 						if open and not commandLine then
 							commandLine = devConsole:CreateCommandLine()
@@ -810,8 +810,8 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
                 0,
                 Style.CommandLineHeight)
 							commandLine.Frame.Position = UDim2_new(0,
-                Style.BorderSize, 
-                1, 
+                Style.BorderSize,
+                1,
                 -(Style.CommandLineHeight + Style.BorderSize))
 							commandLine.CommandInputted:connect(commandInputtedCallback)
 						end
@@ -821,21 +821,21 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 						and UDim2_new(1, 0, 1, -(Style.HandleHeight))
 						or  UDim2_new(1, 0, 1, 0)
 
-					
+
 					local messages = outputMessageSync:GetMessages()
-					
+
 					local height = output:RefreshMessages()
 					body.Size = UDim2_new(1, 0, 0, height)
-					
+
 					disconnector:connect(output.HeightChanged:connect(function(height)
 						body.Size = UDim2_new(1, 0, 0, height)
 					end))
 					body.Size = UDim2_new(1, 0, 0, output.Height)
-					
+
 					disconnector:connect(outputMessageSync.MessageAdded:connect(function(message)
 						output:RefreshMessages(#messages)
 					end))
-					
+
 					disconnector:connect(messageFilterChanged:connect(function()
 						output:RefreshMessages()
 					end))
@@ -856,7 +856,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 
 			return tab
 		end
-		
+
 		-- Client Log tab --
 		if permissions.MayViewClientLog then
 			local tab = createConsoleTab(
@@ -867,7 +867,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			tab:SetVisible(true)
 			tab:SetOpen(true)
 		end
-		
+
 		-- Server Log tab --
 		if permissions.MayViewServerLog then
 			local LogService = game:GetService('LogService')
@@ -888,9 +888,9 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			tab:SetVisible(true)
 		end
 	end
-	
+
 	do -- Stats tabs
-		
+
 		local function generateGreenYellowRedColor(unit) -- 0 <= unit <= 1
 			--[[
 				0   -> 0,   223, 0
@@ -912,23 +912,23 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				return Color3.new(1, 0, 0)
 			end
 		end
-		
+
 		-- Wrapper for :AddTab
-		local function createStatsTab(name, text, width, config, 
+		local function createStatsTab(name, text, width, config,
         openCallback, filterStats, shownOptionTypes)
 			local statsSyncServer = devConsole.MessagesAndStats.StatsSyncServer
-			
+
 			local open = false
-			
+
 			local statList = devConsole:CreateChartList(config)
-			
+
 			local tabBody = statList.Frame
 			tabBody.Parent = body
 			tabBody.Name = name
 			tabBody.BackgroundTransparency = 1
 			tabBody.Size = UDim2_new(1, 0, 1, 0)
 			statList.SideMenu.Parent = windowContainer -- so the left side menu doesn't resize with the contents on right
-			
+
 			statsSyncServer:GetStats()
 			statsSyncServer.StatsReceived:connect(function(stats)
 				local statsFiltered = filterStats(stats)
@@ -936,7 +936,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 					statList:UpdateStats(statsFiltered)
 				end
 			end)
-			
+
 			local tab = devConsole:AddTab(text, width, tabBody, function(openNew)
 				open = openNew
 				if open then
@@ -949,15 +949,15 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				end
 			end)
 			tab:SetVisible(true)
-			
+
 			return tab, statList
 		end
-		
+
 		-- Server Scripts --
 		if permissions.MayViewServerScripts then
-			
+
 			local open = false
-			
+
 			local config = {
 				GetNotifyColor = function(chartButton)
 					local chartStat = chartButton.ChartStat
@@ -981,16 +981,16 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 					local chart2 = devConsole:CreateChart(chartStat.Stats, "Script Rate", 2, function(point)
 						return point and (math.floor(point * 100000) / 100000) .. "/s" or ""
 					end)
-					
+
 					local y = 16
 					chart1.Frame.Parent = statsBody
 					chart1.Frame.Position = UDim2_new(0, 16, 0, y)
 					y = y + 16 + chart1.Frame.Size.Y.Offset
-					
+
 					chart2.Frame.Parent = statsBody
 					chart2.Frame.Position = UDim2_new(0, 16, 0, y)
 					y = y + 16 + chart2.Frame.Size.Y.Offset
-					
+
 					local this = {}
 					function this.OnPointAdded(this)
 						chart1:OnPointAdded()
@@ -1025,10 +1025,10 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			local function openCallback(openNew)
 				open = openNew
 			end
-			
+
 			local tab, statList = createStatsTab('ServerScripts', "Server Scripts",
-          80, config, openCallback, filterStats, 
-          { 
+          80, config, openCallback, filterStats,
+          {
             Scripts = true;
             Search = true;
           })
@@ -1042,12 +1042,12 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 
 			tab:SetVisible(true)
 		end
-		
+
 		-- Server Stats --
 		if permissions.MayViewServerStats then
 
 			local open = false
-			
+
 			local config = {
 				GetNotifyColor = function(chartButton)
 					return Color3.new(0.5, 0.5, 0.5)
@@ -1055,7 +1055,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				CreateChartPage = function(chartButton, statsBody)
 					local chartStat = chartButton.ChartStat
 					local chart1 = devConsole:CreateChart(chartStat.Stats, chartStat.Name, 1)
-					
+
 					local y = 16
 					chart1.Frame.Parent = statsBody
 					chart1.Frame.Position = UDim2_new(0, 16, 0, y)
@@ -1078,7 +1078,7 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 					return textFilter(chartButton.ChartStat.Name)
 				end;
 			}
-			
+
 			local function filterStats(stats)
 				local statsFiltered = {}
 				for k, v in pairs(stats) do
@@ -1088,30 +1088,30 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				end
 				return statsFiltered
 			end
-			
+
 			local function openCallback(openNew)
 				open = openNew
 			end
 
 			local tab, statList = createStatsTab('ServerStats', "Server Stats",
-        70, config, openCallback, filterStats, 
+        70, config, openCallback, filterStats,
         {
           Stats = true;
-          Search = true; 
+          Search = true;
         })
-			
+
 			textFilterChanged:connect(function()
 				statList:Refresh()
 			end)
-						
+
 			tab:SetVisible(true)
-		end	
+		end
 
 		-- Server Jobs --
 		if permissions.MayViewServerJobs then
 
 			local open = false
-			
+
 			local config = {
 				GetNotifyColor = function(chartButton)
 					return Color3.new(0.5, 0.5, 0.5)
@@ -1127,20 +1127,20 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 					local chart3 = devConsole:CreateChart(chartStat.Stats, "Step Time", 3, function(point)
 						return point and (math.floor(point * 10000000 + 0.5) / 10000) .. "ms" or ""
 					end)
-					
+
 					local y = 16
 					chart1.Frame.Parent = statsBody
 					chart1.Frame.Position = UDim2_new(0, 16, 0, y)
 					y = y + 16 + chart1.Frame.Size.Y.Offset
-					
+
 					chart2.Frame.Parent = statsBody
 					chart2.Frame.Position = UDim2_new(0, 16, 0, y)
 					y = y + 16 + chart2.Frame.Size.Y.Offset
-					
+
 					chart3.Frame.Parent = statsBody
 					chart3.Frame.Position = UDim2_new(0, 16, 0, y)
 					y = y + 16 + chart3.Frame.Size.Y.Offset
-					
+
 					local this = {}
 					function this.OnPointAdded(this)
 						chart1:OnPointAdded()
@@ -1161,8 +1161,8 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 				FilterButton = function(chartButton)
 					return textFilter(chartButton.ChartStat.Name)
 				end;
-			}		
-			
+			}
+
 			local function filterStats(stats)
 				return stats.Jobs
 			end
@@ -1170,47 +1170,47 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
 			local function openCallback(openNew)
 				open = openNew
 			end
-			
-			local tab, statList = createStatsTab('ServerJobs', "Server Jobs", 70, 
-        config, openCallback, filterStats, 
+
+			local tab, statList = createStatsTab('ServerJobs', "Server Jobs", 70,
+        config, openCallback, filterStats,
         {
           Stats = true;
-          Search = true; 
+          Search = true;
         })
-			
+
 			textFilterChanged:connect(function()
 				statList:Refresh()
 			end)
-			
+
 			tab:SetVisible(true)
 		end
 	end
-	
-  
+
+
 	do -- Client Memory tab
-    
-    local getFlagSuccess, flagValue = pcall(function() 
-        return settings():GetFFlag("EnableClientMemoryUIInDevConsole") 
-      end)		
-        
+
+    local getFlagSuccess, flagValue = pcall(function()
+        return settings():GetFFlag("EnableClientMemoryUIInDevConsole")
+      end)
+
     local showClientMemoryTab = getFlagSuccess and flagValue
- 
+
     if (showClientMemoryTab) then
       local tabBody = Primitives.FolderFrame(body, 'ClientMemory')
-      
+
       local memoryAnalyzer = MemoryAnalyzerClass.new(tabBody)
-            
+
       -- When memory analyzer decides it's new size, we get notified.
       memoryAnalyzer:setHeightChangedCallback(function(newHeight)
           body.Size = UDim2.new(1, 0, 0, newHeight)
           -- body.Size = UDim2.new(1, 0, 0, newHeight)
         end)
-      
-      -- Considering all state (is dev console even showing, which tab is showing), 
+
+      -- Considering all state (is dev console even showing, which tab is showing),
       -- do I need to update the memory stats tab right now, and should I be listening
       -- for regular updats?
       function syncMemoryAnalyzerVisibility()
-        if (tab.Open and tab.Visible and devConsole.Visible) then 
+        if (tab.Open and tab.Visible and devConsole.Visible) then
           memoryAnalyzer:renderUpdates()
           memoryAnalyzer:startListeningForUpdates()
           body.Size = UDim2.new(1, 0, 0, memoryAnalyzer:getHeightInPix())
@@ -1218,40 +1218,40 @@ function DeveloperConsole.new(screenGui, permissions, messagesAndStats)
           memoryAnalyzer:stopListeningForUpdates()
         end
       end
-      
+
       -- 80 is the tab width
       -- Every time 'open' state changes, call syncVisibility.
-      tab = devConsole:AddTab("Client Memory", 80, tabBody, function(open)      
+      tab = devConsole:AddTab("Client Memory", 80, tabBody, function(open)
           if (open) then
             setShownOptionTypes({})
           end
-          
+
           syncMemoryAnalyzerVisibility()
         end)
-      tab:SetVisible(true)   
-      
+      tab:SetVisible(true)
+
       -- Every time dev console's open state changes, call syncVisibility.
       devConsole.VisibleChanged:connect(function(visible)
           syncMemoryAnalyzerVisibility()
       end)
-    end 
+    end
 	end
 
 
-  
+
 	--[[
 	do -- Sample tab
 		local tabBody = Primitives.FolderFrame(body, 'TabName')
-		
+
 		-- 80 is the tab width
 		local tab = devConsole:AddTab("Tab Name", 80, tabBody)
 		tab:SetVisible(true)
 		--tab:SetOpen(true)
 	end
 	--]]
-	
+
 	return devConsole
-	
+
 end
 
 ----------------------
@@ -1266,13 +1266,13 @@ do -- This doesn't support multiple windows very well
 		label.Image = "rbxasset://Textures/ArrowFarCursor.png"
 		label.Name = "BackupMouse"
 		label.ZIndex = ZINDEX + 2
-		
+
 		local disconnector = CreateDisconnectSignal()
-		
+
 		local enabled = false
-		
+
 		local mouse = game:GetService("Players").LocalPlayer:GetMouse()
-		
+
 		local function Refresh()
 			local enabledNew = devConsole.Visible and not UserInputService.MouseIconEnabled
 			if enabledNew == enabled then
@@ -1294,7 +1294,7 @@ do -- This doesn't support multiple windows very well
 				end))
 			end
 		end
-		
+
 		Refresh()
 		local userInputServiceListener;
 		devConsole.VisibleChanged:connect(function(visible)
@@ -1302,12 +1302,12 @@ do -- This doesn't support multiple windows very well
 				userInputServiceListener:disconnect()
 				userInputServiceListener = nil
 			end
-			
+
 			userInputServiceListener = UserInputService.Changed:connect(Refresh)
-			
+
 			Refresh()
 		end)
-		
+
 	end
 end
 
@@ -1318,7 +1318,7 @@ end
 
 
 do -- Script performance/Chart list
-	
+
 	--[[
 	local chartStatExample = {
 		Name = "RoundScript";
@@ -1329,20 +1329,20 @@ do -- Script performance/Chart list
 		}
 	}
 	--]]
-	
+
 	-- this manages the button and the chartPage
 	local function createChartButton(devConsole, chartList, chartStat, config)
-		
+
 		local this = {
 			ChartList = chartList;
 			ChartStat = chartStat;
 			Open = false;
 		}
-		
+
 		local button = Primitives.Button(nil, 'Button')
 		this.Frame = button
 		this.Button = button
-		
+
 		button.AutoButtonColor = false
 		local size0 = UDim2_new(1, -12 - chartList.ScrollingFrame.ScrollBarThickness, 0, 16) -- Size when script is closed
 		local size1 = UDim2_new(1, -2  - chartList.ScrollingFrame.ScrollBarThickness, 0, 16) -- Size when script is open
@@ -1353,19 +1353,19 @@ do -- Script performance/Chart list
 		end
 		button.BackgroundColor3 = Style.ScriptButtonColor
 		button.BackgroundTransparency = Style.ScriptBackgroundTransparency
-		
+
 		local notifyFrame = Primitives.Frame(button, 'NotifyFrame')
 		notifyFrame.BackgroundTransparency = 0
 		notifyFrame.Size = UDim2.new(0, 8, 1, 0)
 		notifyFrame.BackgroundColor3 = Color3.new(0, 0.75, 0)
-		
+
 		local label = Primitives.InvisibleTextLabel(button, 'Label', chartStat.Name)
 		label.Size = UDim2_new(1, -notifyFrame.Size.X.Offset - 4 - 1, 1, 0)
 		label.Position = UDim2_new(0, notifyFrame.Size.X.Offset + 4, 0, 0)
 		label.FontSize = 'Size14'
 		label.TextXAlignment = 'Left' -- Enum.TextXAlignment.Left
 		--label.TextWrap = true
-		
+
 		local buttonEffectFunction = devConsole:CreateButtonEffectFunction(button)
 		devConsole:ConnectButtonHover(button, function(clicking, hovering)
 			buttonEffectFunction(clicking, hovering)
@@ -1380,66 +1380,66 @@ do -- Script performance/Chart list
 			end
 			this:SetOpen(true)
 		end)
-		
+
 		-- This fires when the button opens/closes
 		local disconnector = CreateDisconnectSignal()
 		-- This fires when the button disposes
 		local disconnector2 = CreateDisconnectSignal() -- (Best variable name ever)
-		
+
 		local function refreshNotifyFrame()
 			notifyFrame.BackgroundColor3 = config.GetNotifyColor(this)
 		end
 		refreshNotifyFrame()
 		disconnector2:connect(chartList.OnStatUpdate:connect(refreshNotifyFrame))
-				
+
 		function this.SetOpen(this, open)
 			if this.Open == open then
 				return
 			end
 			this.Open = open
-			
+
 			button:TweenSize(open and size1 or size0, "Out", "Sine", 0.25, true)
-			
+
 			disconnector:fire()
-			
+
 			if open then
-				
+
 				-- The chart page is initialized directly from the button, (this is not ideal, but it works)
 				local statsBody = Primitives.FolderFrame(chartList.Body, 'StatsBody') -- Button container
-				
+
 				local chartPage = config.CreateChartPage(this, statsBody)
-				
+
 				chartPage:SetVisible(true)
-				
+
 				disconnector:connect(chartList.OnStatUpdate:connect(function()
 					chartPage:OnPointAdded()
 				end))
-				
+
 				disconnector:connect(function()
 					chartPage:Dispose()
 					statsBody:Destroy()
 				end)
-				
+
 			end
-			
+
 		end
-		
+
 		function this.Dispose(this)
 			button:Destroy()
 			disconnector:fire()
 			disconnector2:fire()
 		end
-		
+
 		return this
 	end
-	
-	
+
+
 	local function defaultSorter(a, b) -- this sorts chartButtons
 		return a.ChartStat.Name < b.ChartStat.Name
 	end
 
 	function Methods.CreateChartList(devConsole, config)
-		
+
 		local this = {
 			Config = config;
 			Visible = false;
@@ -1447,21 +1447,21 @@ do -- Script performance/Chart list
 			ChartButtons = {}; -- usage: chartButtons[position] = scriptButton
 			ChartStats = {}; -- usage: chartStats[chartStat.Name] = chartStat
 		}
-		
+
 		local frame = Primitives.FolderFrame(nil, 'ScriptList')
 		this.Frame = frame
 		frame.Visible = false
-		
+
 		local sideMenu = Primitives.Frame(frame, 'SideMenu') -- not necessarily parented to frame!
 		sideMenu.Size = UDim2_new(0, 196, 1, 0)
 		this.SideMenu = sideMenu
 		sideMenu.Visible = false
-		
+
 		local body = Primitives.FolderFrame(frame, 'Body')
 		this.Body = body
 		body.Size = UDim2_new(1, -sideMenu.Size.X.Offset, 1, 0)
 		body.Position = UDim2_new(0, sideMenu.Size.X.Offset, 0, 0)
-		
+
 		local scrollingFrame = Instance.new("ScrollingFrame", sideMenu)
 		scrollingFrame.BorderSizePixel = 0
 		scrollingFrame.ZIndex = ZINDEX
@@ -1474,12 +1474,12 @@ do -- Script performance/Chart list
 			scrollingFrame.Position = UDim2_new(0, 0, 0, y)
 			scrollingFrame.BackgroundTransparency = 1
 		end
-		
+
 		local chartButtons = this.ChartButtons
 		local chartStats = this.ChartStats
 
 		local sorter = defaultSorter
-		
+
 		function this.SetChartButtonSorter(this, sorterNew)
 			if sorter == sorterNew then
 				return
@@ -1488,7 +1488,7 @@ do -- Script performance/Chart list
 			table.sort(chartButtons, sorter)
 			this:Refresh()
 		end
-		
+
 		function this.GetChartButton(this, name) -- not used?
 			for i = #chartButtons, 1, -1 do
 				local chartButton = chartButtons[i]
@@ -1497,7 +1497,7 @@ do -- Script performance/Chart list
 				end
 			end
 		end
-		
+
 		function this.RemoveChart(this, name)
 			chartStats[name] = nil
 			for i = #chartButtons, 1, -1 do
@@ -1509,20 +1509,20 @@ do -- Script performance/Chart list
 				end
 			end
 		end
-		
+
 		function this.UpdateStats(this, newStats)
-			
+
 			local timeStamp = os_time() -- Should it use tick instead?
-			
+
 			local scriptAddedOrRemoved = false
-			
+
 			for name, stat in pairs(chartStats) do
 				if not newStats[name] then
 					scriptAddedOrRemoved = true
 					this:RemoveChart(name)
 				end
 			end
-			
+
 			for name, newStat in pairs(newStats) do
 				local chartStat = chartStats[name]
 				if not chartStats[name] then
@@ -1540,17 +1540,17 @@ do -- Script performance/Chart list
 				local stats = chartStat.Stats
 				stats[#stats + 1] = newStat
 			end
-			
+
 			table.sort(chartButtons, sorter)
-			
+
 			this:Refresh()
-			
+
 			this.OnStatUpdate:fire()
-			
+
 		end
-		
+
 		function this.Refresh(this)
-			
+
 			if not this.Visible then
 				for i = #chartButtons, 1, -1 do
 					chartButtons[i]:Dispose()
@@ -1558,9 +1558,9 @@ do -- Script performance/Chart list
 				end
 				return
 			end
-			
+
 			table.sort(chartButtons, sorter)
-			
+
 			local y = 0
 			for i = 1, #chartButtons do
 				local chartButton = chartButtons[i]
@@ -1572,21 +1572,21 @@ do -- Script performance/Chart list
 					y = y + button.AbsoluteSize.Y + 1
 				end
 			end
-			
+
 			scrollingFrame.CanvasSize = UDim2_new(0, 0, 0, y)
-			
+
 		end
 		this:Refresh()
-		
+
 		function this.SetVisible(this, visible)
 			if visible == this.Visible then
 				return
 			end
 			this.Visible = visible
-			
+
 			frame.Visible = visible
 			sideMenu.Visible = visible
-			
+
 			if visible then
 				for name, chartStat in pairs(chartStats) do
 					local chartButton = createChartButton(devConsole, this, chartStat, config)
@@ -1601,47 +1601,47 @@ do -- Script performance/Chart list
 				end
 			end
 		end
-		
+
 		return this
 	end
 end
 
 do -- Chart
-	
+
 	local barWidth = 4
 	local numBars = math.ceil((Style.ChartWidth - Style.BorderSize * 2) / (barWidth + 1))
-	
+
 	local function round(x)
 		return math.floor(x * 1000 + 0.5) / 1000
 	end
-	
+
 	local function CreateBar()
 		local bar = Primitives.Frame()
 		bar.BackgroundTransparency = 0
 		bar.BackgroundColor3 = Color3_new(0, 0.5, 1)
 		return bar
 	end
-	
+
 	local function CreateGraph(points, statIndex, autoScale)
 		-- point = points[i][statIndex]
-		
+
 		local this = {}
-		
+
 		local direction = Style.ChartGraphDirection -- -1 means coming from right, 1 means coming from left
-		
+
 		local frame = Primitives.Frame(nil, 'Graph')
 		this.Frame = frame
 		frame.ClipsDescendants = true
-		
+
 		local scaleFrame = Primitives.FolderFrame(frame, 'ScaleFrame')
-		
+
 		local body = Primitives.FolderFrame(scaleFrame, 'Body')
 		body.Size = UDim2_new(0, barWidth, 1, 0)
-		
+
 		local bars = {}
 		local barHeights = {}
 		local barPositions = {}
-		
+
 		do -- reference notches
 			local function getReferenceHeight(position)
 				if position % 60 == 0 then
@@ -1669,18 +1669,18 @@ do -- Chart
 			end
 		end
 		local scale = 1
-		
+
 		local position = 0
-		
+
 		local visible = false
-		
+
 		local function generateSizeAndPosition(height, position)
 			height = height * scale
 			return
 				UDim2_new(0, barWidth, height, 0),
 				UDim2_new(0, (barWidth + 1) * position * -direction + 1, 1 - height, 0)
 		end
-		
+
 		local function RefreshScale(animate)
 			if not autoScale then
 				return
@@ -1692,7 +1692,7 @@ do -- Chart
 					heightMax = height
 				end
 			end
-			
+
 			if not heightMax or heightMax <= 0 then
 				local size, position = UDim2_new(1, 0, 1, 0), UDim2_new(0, 0, 0, 0)
 				if animate then
@@ -1702,14 +1702,14 @@ do -- Chart
 				end
 				return
 			end
-			
+
 			local scaleNew = 1 / heightMax * 0.95
 			if math.abs(scale - scaleNew) < 0.0000001 then
 				return
 			end
 			-- Possible performance boost Todo: if the scale isn't significantly different (within like 0.5-4), just adjust scaleFrame's size
 			scale = scaleNew
-			
+
 			for i = 1, #bars do
 				local bar = bars[i]
 				local height = barHeights[i]
@@ -1720,18 +1720,18 @@ do -- Chart
 					bar.Size, bar.Position = barSize, barPosition
 				end
 			end
-			
+
 			--local scale = 1 / heightMax * 0.95
 			--scaleFrame:TweenSizeAndPosition(UDim2_new(1, 0, scale, 0), UDim2_new(0, 0, 1 - scale, 0), 'Out', 'Sine', 0.25, true)
 
 		end
-		
+
 		function this.OnPointAdded(this)
 			if not visible then
 				return
 			end
 			local bar;
-			
+
 			-- possible game crasher
 			while #bars > numBars do
 				if bar then
@@ -1741,27 +1741,27 @@ do -- Chart
 				table.remove(bars, 1)
 				table.remove(barHeights, 1)
 				table.remove(barPositions, 1)
-			end 
-			
+			end
+
 			local point = points[#points] and points[#points][statIndex]
 			assert(point)
 			if not bar then
 				bar = CreateBar()
 				bar.Parent = body
 			end
-			
+
 			local height = point
-			
+
 			bars[#bars + 1] = bar
 			barHeights[#barHeights + 1] = height
 			barPositions[#barPositions + 1] = position
-			
+
 			bar.Size, bar.Position = generateSizeAndPosition(height, position)
-			
+
 			body:TweenPosition(UDim2_new(1 - (direction * 0.5 + 0.5), (barWidth + 1) * position * direction, 0, 0), 'Out', 'Sine', 0.25, true)
-			
+
 			position = position + 1
-			
+
 			RefreshScale(true)
 		end
 
@@ -1791,33 +1791,33 @@ do -- Chart
 
 				local point = points[i][statIndex]
 				local height = point
-				
+
 				barHeights[position + 1] = height
 				barPositions[position + 1] = position
-				
+
 				bar.Size, bar.Position = generateSizeAndPosition(height, position)
-				
+
 				position = position + 1
 			end
-			
+
 			body.Position = UDim2_new(1 - (direction * 0.5 + 0.5), (barWidth + 1) * (position - 1) * direction, 0, 0)
-			
+
 			RefreshScale(false)
-			
+
 		end
-		
+
 		return this
 	end
-	
+
 	local function createLabel(...)
 		local n = Primitives.InvisibleTextLabel(...)
 		n.TextXAlignment = 'Left'
 		n.FontSize = 'Size14'
 		return n
 	end
-	
+
 	function Methods.CreateChart(devConsole, points, title, statIndex, pointToString)
-	
+
 		pointToString = pointToString or function(point)
 			if point then
 				local precision = 10000
@@ -1831,33 +1831,33 @@ do -- Chart
 				return ""
 			end
 		end
-		
+
 		local chart = {}
-		
+
 		local frame = Primitives.Frame(nil, 'Chart')
 		chart.Frame = frame
 		frame.Size = UDim2_new(0, Style.ChartWidth, 0, Style.ChartHeight)
-		
+
 		local labelCurrent = createLabel(frame, 'Current', "Current: " .. pointToString(points[#points] and points[#points][statIndex]))
 		labelCurrent.Size = UDim2_new(0, 0.5, 0, Style.ChartTitleHeight)
 		labelCurrent.Position = UDim2_new(0, 4, 0, Style.ChartTitleHeight + 1)
-		
+
 		local graph = CreateGraph(points, statIndex, true)
 		graph.Frame.Parent = frame
 		graph.Frame.Size = UDim2_new(0, Style.ChartWidth - Style.BorderSize * 2, 0, Style.ChartGraphHeight)
 		graph.Frame.Position = UDim2_new(0, Style.BorderSize, 0, Style.ChartTitleHeight + Style.ChartDataHeight)
-		
+
 		do
 			local bar = Primitives.Frame(frame, 'Bar')
 			bar.Size = UDim2_new(1, 0, 0, Style.ChartTitleHeight)
-			
+
 			local label = Primitives.InvisibleTextLabel(bar, 'Title', title)
 			label.TextXAlignment = 'Left' -- Enum.TextXAlignment.Left
 			label.Size = UDim2_new(1, -4, 1, 0)
 			label.Position = UDim2_new(0, 4, 0, 0)
 			label.FontSize = 'Size18'
 		end
-		
+
 		local visible = false
 		function chart.SetVisible(chart, visibleNew)
 			if visibleNew == visible then
@@ -1866,19 +1866,19 @@ do -- Chart
 			visible = visibleNew
 			graph:SetVisible(visible)
 		end
-		
+
 		function chart.OnPointAdded(chart)
 			local point = points[#points]
-			
+
 			if not point then
 				return
 			end
-			
+
 			labelCurrent.Text = "Current: " .. pointToString(point and point[statIndex])
-			
+
 			graph:OnPointAdded()
 		end
-		
+
 		return chart
 	end
 end
@@ -1891,23 +1891,23 @@ do
 		local this = {
 			CommandInputted = CreateSignal();
 		}
-		
+
 		local frame = Primitives.FolderFrame(nil, 'CommandLine')
 		this.Frame = frame
 		frame.Size = UDim2_new(1, 0, 0, Style.CommandLineHeight)
-		
+
 		local textBoxFrame = Primitives.Frame(frame, 'TextBoxFrame')
 		textBoxFrame.Size = UDim2_new(1, 0, 0, Style.CommandLineHeight)
 		textBoxFrame.Position = UDim2_new(0, 0, 0, 0)
 		textBoxFrame.ClipsDescendants = true
-		
+
 		local label = Primitives.InvisibleTextLabel(textBoxFrame, 'Label', ">")
 		label.Position = UDim2_new(0, 4, 0, 0)
 		label.Size = UDim2_new(0, 12, 1, -1)
 		label.FontSize = 'Size14'
-		
+
 		local DEFAULT_COMMAND_BAR_TEXT = "Type command here"
-		
+
 		local textBox = Primitives.TextBox(textBoxFrame, 'TextBox')
 		--textBox.TextWrapped = true -- This needs to auto-resize
 		textBox.BackgroundTransparency = 1
@@ -1934,11 +1934,11 @@ do
 
 			textBox.SelectionImageObject = selectionImage
 		end
-		
+
 		do
 			local defaultSize = UDim2_new(1, 0, 0, Style.CommandLineHeight)
 			local first = true
-			
+
 			textBox.Changed:connect(function(property)
 				if property == 'TextBounds' or property == 'AbsoluteSize' then
 					if first then -- There's a glitch that only occurs on the first change
@@ -1954,9 +1954,9 @@ do
 				end
 			end)
 		end
-		
+
 		local disconnector = CreateDisconnectSignal()
-		
+
 		local backtrackPosition = 0
 		local inputtedText = {}
 		local isLastWeak = false
@@ -1991,9 +1991,9 @@ do
 				textBox.Text = inputtedText[backtrackPosition]
 			end
 		end
-		
+
 		local focusLostWithoutEnter = false
-		
+
 		textBox.Focused:connect(function()
 			if textBox.Text == DEFAULT_COMMAND_BAR_TEXT then
 				textBox.Text = ""
@@ -2014,12 +2014,12 @@ do
 				end
 			end))
 		end)
-		
+
 		textBox.FocusLost:connect(function(enterPressed)
 			disconnector:fire()
 			if enterPressed then
 				focusLostWithoutEnter = false
-				
+
 				local text = textBox.Text
 				addInputtedText(text, false)
 				this.CommandInputted:fire(text)
@@ -2045,10 +2045,10 @@ end
 do
 	local padding = 5
 	local LabelSize = UDim2_new(1, -padding, 0, 2048)
-	
+
 	local TextColors = Style.MessageColors
 	local TextColorUnknown = Color3_new(0.5, 0, 1)
-	
+
 	local function isHidden(message)
 		return false
 	end
@@ -2062,7 +2062,7 @@ do
 			Height = 0;
 			HeightChanged = heightChanged;
 		}
-		
+
 		local function setHeight(height)
 			height = height + 4
 			output.Height = height
@@ -2158,13 +2158,13 @@ do
 					label.Size = LabelSize
 					label.TextColor3 = TextColors[message.Type] or TextColorUnknown
 					label.Text = message.Time .. " -- " .. message.Message
-					
+
 					local height = label.TextBounds.Y
 					label.Size = LabelSize -- UDim2_new(1, -padding, 0, height)
 					label.Position = UDim2_new(0, padding, 0, y)
 
 					y = y + height
-					
+
 					if height > 16 then
 						y = y + 4
 					end
@@ -2178,10 +2178,10 @@ do
 				labels[i]:Destroy()
 				labels[i] = nil
 			end
-			
+
 			setHeight(y)
 		end
-		
+
 		local refreshHandle;
 		function output.RefreshMessages(output, messageStartPosition)
 			if not output.Visible then
@@ -2196,7 +2196,7 @@ do
 				end)()
 			end
 		end
-		
+
 		function output.SetTextWrappedEnabled(output, textWrappedEnabledNew)
 			if textWrappedEnabledNew == textWrappedEnabled then
 				return
@@ -2204,7 +2204,7 @@ do
 			textWrappedEnabled = textWrappedEnabledNew
 			RefreshTextWrapped()
 		end
-		
+
 		function output.SetVisible(output, visible)
 			if visible == output.Visible then
 				return
@@ -2244,7 +2244,7 @@ end
 function Methods.AddTab(devConsole, text, width, body, openCallback, visibleCallback)
 	-- Body is a frame that contains the tab contents
 	body.Visible = false
-	
+
 	local tab = {
 		Open = false; -- If the tab is open
 		Visible = false; -- If the tab is shown
@@ -2252,16 +2252,16 @@ function Methods.AddTab(devConsole, text, width, body, openCallback, visibleCall
 		VisibleCallback = visibleCallback;
 		Body = body;
 	}
-	
+
 	local buttonFrame = Primitives.InvisibleButton(devConsole.Frame.Interior.Tabs, 'Tab_' .. text)
 	tab.ButtonFrame = buttonFrame
 	buttonFrame.Size = UDim2_new(0, width, 0, Style.TabHeight)
 	buttonFrame.Visible = false
-	
+
 	local textLabel = Primitives.TextLabel(buttonFrame, 'Label', text)
 	textLabel.FontSize = Enum.FontSize.Size14
 	--textLabel.TextYAlignment = Enum.TextYAlignment.Top
-	
+
 	devConsole:ConnectButtonHover(buttonFrame, devConsole:CreateButtonEffectFunction(textLabel))
 
 	-- These are the dimensions when the tab is closed
@@ -2273,7 +2273,7 @@ function Methods.AddTab(devConsole, text, width, body, openCallback, visibleCall
 	-- It starts closed
 	textLabel.Size = size0
 	textLabel.Position = position0
-	
+
 	function tab.SetVisible(tab, visible)
 		if visible == tab.Visible then
 			return
@@ -2320,41 +2320,41 @@ function Methods.AddTab(devConsole, text, width, body, openCallback, visibleCall
 			if body then
 				body.Visible = false
 				-- todo: (not essential) these 2 lines should instead exist during open (above block) after going through tabs
-				devConsole.Frame.Interior.WindowContainer.Window.Body.Size = UDim2_new(1, 0, 1, 0) 
+				devConsole.Frame.Interior.WindowContainer.Window.Body.Size = UDim2_new(1, 0, 1, 0)
 				devConsole.Frame.Interior.WindowContainer.Window.Body.Position = UDim2_new(0, 0, 0, 0)
 			end
-			
+
 			-- Set dimensions for folder effect
 			textLabel.Size = size0
 			textLabel.Position = position0
 		end
-		
+
 		if tab.OpenCallback then
 			tab.OpenCallback(open)
 		end
-		
+
 	end
-	
+
 	buttonFrame.MouseButton1Click:connect(function()
 		if tab.Visible then
 			tab:SetOpen(true)
 		end
 	end)
-	
+
 	table.insert(devConsole.Tabs, tab)
-	
+
 	return tab
-	
+
 end
 
 ----------------
 -- Scroll bar --
 ----------------
-function Methods.ApplyScrollbarToFrame(devConsole, 
-    scrollbar, 
-    window, 
-    body, 
-    frame)  
+function Methods.ApplyScrollbarToFrame(devConsole,
+    scrollbar,
+    window,
+    body,
+    frame)
 	local windowHeight, bodyHeight
 	local height = scrollbar:GetHeight()
 	local value = scrollbar:GetValue()
@@ -2368,24 +2368,24 @@ function Methods.ApplyScrollbarToFrame(devConsole,
 			bodyHeight, windowHeight = bodyHeightNew, windowHeightNew
 			height = windowHeight / bodyHeight
 			scrollbar:SetHeight(height)
-			
+
 			local yOffset = (bodyHeight - windowHeight) * value
       -- Never let yOffset go negative.
-      -- Without this line, things that are smaller than the containing scroll 
+      -- Without this line, things that are smaller than the containing scroll
       -- window start at the bottom and grow up.
       -- It's a better UX to have things start at top and grow down.
-      if (yOffset < 0) then 
+      if (yOffset < 0) then
         yOffset = 0
       end
-      
+
 			local x = body.Position.X
 			local y = body.Position.Y
-      
+
 			body.Position = UDim2_new(x.Scale, x.Offset, y.Scale, -math.floor(yOffset))
 		end
 
 	end
-	
+
 	local function setValue(valueNew)
 		value = valueNew
 		refreshDimension()
@@ -2398,7 +2398,7 @@ function Methods.ApplyScrollbarToFrame(devConsole,
 	setValue(scrollbar:GetValue())
 
 	local scrollDistance = 120
-	
+
 	window.Active = true
 
 	scrollbar.ButtonUp.MouseButton1Click:connect(function()
@@ -2441,25 +2441,25 @@ function Methods.CreateScrollbar(devConsole, rotation)
 	frame.Size = UDim2_new(1, 0, 1, -(Style.HandleHeight) * 2 - 2)
 	frame.Position = UDim2_new(0, 0, 0, Style.HandleHeight + 1)
 	-- frame.BackgroundTransparency = 0.75
-	
+
 	-- This replaces the scrollbar when it's not being used
 	local frame2 = Primitives.Frame(main, 'Frame')
 	frame2.Size = UDim2_new(1, 0, 1, 0)
 	frame2.Position = UDim2_new(0, 0, 0, 0)
-	
+
 	function scrollbar.SetVisible(scrollbar, visible)
 		frame.Visible = visible
 		frame2.Visible = not visible
 	end
-	
-	local buttonUp = Primitives.ImageButton(frame, 'Up', 'https://www.projex.zip/asset/?id=261880783')
+
+	local buttonUp = Primitives.ImageButton(frame, 'Up', 'https://www.pekora.zip/asset/?id=261880783')
 	scrollbar.ButtonUp = buttonUp
 	buttonUp.Size = UDim2_new(1, 0, 0, Style.HandleHeight)
 	buttonUp.Position = UDim2_new(0, 0, 0, -Style.HandleHeight - 1)
 	buttonUp.AutoButtonColor = false
 	devConsole:ConnectButtonHover(buttonUp, devConsole:CreateButtonEffectFunction(buttonUp))
 
-	local buttonDown = Primitives.ImageButton(frame, 'Down', 'https://www.projex.zip/asset/?id=261880783')
+	local buttonDown = Primitives.ImageButton(frame, 'Down', 'https://www.pekora.zip/asset/?id=261880783')
 	scrollbar.ButtonDown = buttonDown
 	buttonDown.Size = UDim2_new(1, 0, 0, Style.HandleHeight)
 	buttonDown.Position = UDim2_new(0, 0, 1, 1)
@@ -2470,33 +2470,33 @@ function Methods.CreateScrollbar(devConsole, rotation)
 	local bar = Primitives.Button(frame, 'Bar')
 	bar.Size = UDim2_new(1, 0, 0.5, 0)
 	bar.Position = UDim2_new(0, 0, 0.25, 0)
-	
+
 	bar.AutoButtonColor = false
-	
-	local grip = Primitives.InvisibleImageLabel(bar, 'Image', 'https://www.projex.zip/asset/?id=261904959')
+
+	local grip = Primitives.InvisibleImageLabel(bar, 'Image', 'https://www.pekora.zip/asset/?id=261904959')
 	grip.Size = UDim2_new(0, 16, 0, 16)
 	grip.Position = UDim2_new(0.5, -8, 0.5, -8)
 
 	local buttonEffectFunction = devConsole:CreateButtonEffectFunction(bar, nil, bar.BackgroundColor3, bar.BackgroundColor3)
-	
+
 	-- Inertial scrolling would be added around here
-	
+
 	local value = 1
 	local valueChanged = CreateSignal()
 	scrollbar.ValueChanged = valueChanged
 	-- value = 0: at very top
 	-- value = 1: at very bottom
-	
+
 	local height = 0.25
 	local heightChanged = CreateSignal()
 	scrollbar.HeightChanged = heightChanged
 	-- height = 0: infinite page size
 	-- height = 1: bar fills frame completely, no need to scroll
-	
+
 	local function getValueAtPosition(pos)
 		return ((pos - main.AbsolutePosition.Y) / main.AbsoluteSize.Y) / (1 - height)
 	end
-	
+
 	-- Refreshes the position and size of the scrollbar
 	local function refresh()
 		local y = height
@@ -2504,7 +2504,7 @@ function Methods.CreateScrollbar(devConsole, rotation)
 		bar.Position = UDim2_new(0, 0, value * (1 - y), 0)
 	end
 	refresh()
-	
+
 	function scrollbar.SetValue(scrollbar, valueNew)
 		if valueNew < 0 then
 			valueNew = 0
@@ -2520,11 +2520,11 @@ function Methods.CreateScrollbar(devConsole, rotation)
 	function scrollbar.GetValue(scrollbar)
 		return value
 	end
-	
+
 	function scrollbar.Scroll(scrollbar, direction, windowHeight, bodyHeight)
 		scrollbar:SetValue(value + direction / bodyHeight) -- needs to be adjusted
 	end
-	
+
 	function scrollbar.SetHeight(scrollbar, heightNew)
 		if heightNew < 0 then
 			heightNew = 0 -- this is still an awkward case of divide-by-zero that shouldn't happen
@@ -2551,7 +2551,7 @@ function Methods.CreateScrollbar(devConsole, rotation)
 			scrollbar:SetValue(value0 + dvalue)
 		end
 	end, buttonEffectFunction)
-	
+
 	return scrollbar
 end
 
@@ -2610,19 +2610,19 @@ else
 end
 
 function Methods.GenerateOptionButtonAnimationToggle(devConsole, interior, button, gear, tabContainer, optionsClippingFrame, optionsFrame)
-	
+
 	local tabContainerSize0 = tabContainer.Size
 	local tabContainerSize1 = UDim2_new(
 		tabContainerSize0.X.Scale, tabContainerSize0.X.Offset + (Style.GearSize + 2) + Style.BorderSize,
 		tabContainerSize0.Y.Scale, tabContainerSize0.Y.Offset)
-		
+
 	local gearRotation0 = gear.Rotation
 	local gearRotation1 = gear.Rotation - 90
 	local interiorSize0 = interior.Size
 	local interiorSize1 = UDim2_new(interiorSize0.X.Scale, interiorSize0.X.Offset, interiorSize0.Y.Scale, interiorSize0.Y.Offset - Style.OptionAreaHeight)
 	local interiorPosition0 = interior.Position
 	local interiorPosition1 = UDim2_new(interiorPosition0.X.Scale, interiorPosition0.X.Offset, interiorPosition0.Y.Scale, interiorPosition0.Y.Offset + Style.OptionAreaHeight)
-	
+
 	local length = 0.5
 	local disconnector = CreateDisconnectSignal()
 	return function(open)
@@ -2658,7 +2658,7 @@ function Methods.GenerateOptionButtonAnimationToggle(devConsole, interior, butto
 			RenderLerpAnimation(disconnector, length, function(t)
 				gear.Rotation = gearRotation0 * t + gearRotation * (1 - t)
 			end)
-		end	
+		end
 	end
 end
 
@@ -2669,9 +2669,9 @@ do
 	local globalInteractEvent = CreateSignal()
 	function Methods.ConnectButtonHover(devConsole, button, mouseInteractCallback)
 		-- void mouseInteractCallback(bool clicking, bool hovering)
-		
+
 		local this = {}
-		
+
 		local clicking = false
 		local hovering = false
 		local function set(clickingNew, hoveringNew)
@@ -2683,7 +2683,7 @@ do
 				mouseInteractCallback(clicking, hovering)
 			end
 		end
-		
+
 		button.MouseButton1Down:connect(function()
 			set(true, true)
 		end)
@@ -2701,7 +2701,7 @@ do
 		devConsole.VisibleChanged:connect(function()
 			set(false, false)
 		end)
-		
+
 		globalInteractEvent:connect(function()
 			set(false, false)
 		end)
@@ -2713,17 +2713,17 @@ end
 -- Events for draggers -- (for the window's top handle, the resize button, and scrollbars)
 -------------------------
 function Methods.ConnectButtonDragging(devConsole, button, dragCallback, mouseInteractCallback)
-	
+
 	-- How dragCallback is called: local deltaCallback = dragCallback(xPositionAtMouseDown, yPositionAtMouseDown)
 	-- How deltaCallback is called: deltaCallback(netChangeInAbsoluteXPositionSinceMouseDown, netChangeInAbsoluteYPositionSinceMouseDown)
-	
+
 	local dragging = false -- AKA 'clicking'
 	local hovering = false
-	
+
 	local listeners = {}
-	
+
 	local disconnectCallback;
-	
+
 	local function stopDragging()
 		if not dragging then
 			return
@@ -2735,12 +2735,12 @@ function Methods.ConnectButtonDragging(devConsole, button, dragCallback, mouseIn
 			listeners[i] = nil
 		end
 	end
-	
+
 	local ButtonUserInputTypes = {
 		[Enum.UserInputType.MouseButton1] = true;
 		[Enum.UserInputType.Touch] = true; -- I'm not sure if touch actually works here
 	}
-	
+
 	local mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
 	local function startDragging(startP)
@@ -2748,10 +2748,10 @@ function Methods.ConnectButtonDragging(devConsole, button, dragCallback, mouseIn
 			return
 		end
 		dragging = true
-		
+
 		mouseInteractCallback(dragging, hovering)
 		local deltaCallback;
-		
+
 		local x0, y0 = startP.X, startP.Y
 		--[[
 		listeners[#listeners + 1] = UserInputService.InputBegan:connect(function(input)
@@ -2769,11 +2769,11 @@ function Methods.ConnectButtonDragging(devConsole, button, dragCallback, mouseIn
 			end
 		end)
 		listeners[#listeners + 1] = UserInputService.InputChanged:connect(function(input)
-		
+
 			if not (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch)then -- added in a touch check
 				return
 			end
-			
+
 			local p1 = input.Position
 
 			if not p1 then
@@ -2788,22 +2788,22 @@ function Methods.ConnectButtonDragging(devConsole, button, dragCallback, mouseIn
 			end
 		end)
 	end
-	
+
 	--button.MouseButton1Down:connect(startDragging)
 	--button.MouseButton1Up:connect(stopDragging)
-	
+
 	button.InputBegan:connect(function(iobj)
 		if iobj.UserInputType == Enum.UserInputType.Touch or iobj.UserInputType == Enum.UserInputType.MouseButton1 then
 			startDragging(iobj.Position)
 		end
 	end)
-	
+
 	button.InputEnded:connect(function(iobj)
 		if iobj.UserInputType == Enum.UserInputType.Touch or iobj.UserInputType == Enum.UserInputType.MouseButton1 then
 			stopDragging()
 		end
-	end)	
-	
+	end)
+
 	button.MouseEnter:connect(function()
 		if not hovering then
 			hovering = true
@@ -2816,7 +2816,7 @@ function Methods.ConnectButtonDragging(devConsole, button, dragCallback, mouseIn
 			mouseInteractCallback(dragging, hovering)
 		end
 	end)
-	
+
 	devConsole.VisibleChanged:connect(stopDragging)
 end
 
@@ -2827,23 +2827,23 @@ do
 	local permissionsLoading, permissions = false;
 	function DeveloperConsole.GetPermissions()
 		while permissionsLoading do wait() end
-		
+
 		if permissions then
 			return permissions
 		end
-		
+
 		permissions = {}
 		permissionsLoading = true
-		
+
 		pcall(function()
 			permissions.CreatorFlagValue = settings():GetFFlag("UseCanManageApiToDetermineConsoleAccess")
 		end)
-	
+
 		pcall(function()
 			-- This might not support group games, I'll leave it up to "UseCanManageApiToDetermineConsoleAccess"
 			permissions.IsCreator = permissions.CreatorFlagValue or game:GetService("Players").LocalPlayer.UserId == game.CreatorId
 		end)
-		
+
 		if permissions.CreatorFlagValue then -- Use the new API
 			permissions.IsCreator = false
 			local success, result = pcall(function()
@@ -2862,26 +2862,26 @@ do
 				end
 			end
 		end
-		
+
 		permissions.ClientCodeExecutionEnabled = false
 		pcall(function()
 			permissions.ServerCodeExecutionEnabled = permissions.IsCreator and settings():GetFFlag("ConsoleCodeExecutionEnabled")
 		end)
-		
+
 		if DEBUG then
 			permissions.IsCreator = true
 			permissions.ServerCodeExecutionEnabled = true
 		end
-		
+
 		permissions.MayViewServerLog = permissions.IsCreator
 		permissions.MayViewClientLog = true
-		
+
 		permissions.MayViewServerStats = permissions.IsCreator
 		permissions.MayViewServerScripts = permissions.IsCreator
 		permissions.MayViewServerJobs = permissions.IsCreator
-		
+
 		permissionsLoading = false
-		
+
 		return permissions
 	end
 end
@@ -2892,11 +2892,11 @@ end
 do
 	local messagesAndStats;
 	function DeveloperConsole.GetMessagesAndStats(permissions)
-		
+
 		if messagesAndStats then
 			return messagesAndStats
 		end
-	
+
 		local function NewOutputMessageSync(getMessages)
 			local this;
 			this = {
@@ -2913,14 +2913,14 @@ do
 							messages = getMessages(this)
 							this.Messages = messages
 						end
-		
+
 					end
 					return messages
 				end;
 			}
 			return this
 		end
-		
+
 		local ConvertTimeStamp; do
 			-- Easy, fast, and working nicely
 			local function numberWithZero(num)
@@ -2930,25 +2930,25 @@ do
 			function ConvertTimeStamp(timeStamp)
 				local localTime = timeStamp - os_time() + math.floor(tick())
 				local dayTime = localTime % 86400
-						
+
 				local hour = math.floor(dayTime/3600)
-				
+
 				dayTime = dayTime - (hour * 3600)
 				local minute = math.floor(dayTime/60)
-				
+
 				dayTime = dayTime - (minute * 60)
 				local second = dayTime
-	
+
 				local h = numberWithZero(hour)
 				local m = numberWithZero(minute)
 				local s = numberWithZero(dayTime)
-		
+
 				return string_format("%s:%s:%s", h, m, s)
 			end
 		end
-		
+
 		local warningsToFilter = {"ClassDescriptor failed to learn", "EventDescriptor failed to learn", "Type failed to learn"}
-		
+
 		-- Filter "ClassDescriptor failed to learn" errors
 		local function filterMessageOnAdd(message)
 			if message.Type ~= Enum.MessageType.MessageWarning.Value then
@@ -2963,12 +2963,12 @@ do
 			end
 			return found
 		end
-	
+
 		local outputMessageSyncLocal;
 		if permissions.MayViewClientLog then
 			outputMessageSyncLocal = NewOutputMessageSync(function(this)
 				local messages = {}
-				
+
 				local LogService = game:GetService("LogService")
 				do -- This do block keeps history from sticking around in memory
 					local history = LogService:GetLogHistory()
@@ -2984,7 +2984,7 @@ do
 						end
 					end
 				end
-				
+
 				LogService.MessageOut:connect(function(text, messageType)
 					local message = {
 						Message = text or "[DevConsole Error 2]";
@@ -2996,18 +2996,18 @@ do
 						this.MessageAdded:fire(message)
 					end
 				end)
-			
+
 				return messages
 			end)
 		end
-		
+
 		local outputMessageSyncServer;
 		if permissions.MayViewServerLog then
 			outputMessageSyncServer = NewOutputMessageSync(function(this)
 				local messages = {}
-				
+
 				local LogService = game:GetService("LogService")
-				
+
 				LogService.ServerMessageOut:connect(function(text, messageType, timestamp)
 					local message = {
 						Message = text or "[DevConsole Error 3]";
@@ -3020,11 +3020,11 @@ do
 					end
 				end)
 				LogService:RequestServerOutput()
-				
+
 				return messages
 			end)
 		end
-	
+
 		local statsSyncServer;
 		if permissions.MayViewServerStats or permissions.MayViewServerScripts then
 			statsSyncServer = {
@@ -3049,16 +3049,16 @@ do
 				end
 				return stats
 			end
-			
+
 		end
 		--]]
-		
+
 		messagesAndStats = {
 			OutputMessageSyncLocal = outputMessageSyncLocal;
 			OutputMessageSyncServer = outputMessageSyncServer;
 			StatsSyncServer = statsSyncServer;
 		}
-		
+
 		return messagesAndStats
 	end
 end
@@ -3142,7 +3142,7 @@ local function SetCoreConsoleCreation()
 	creatingLock = true
 
 	spawn(function()
-		--// Keep GetVisibility call before SetVisibility because the first call will yield for some time and 
+		--// Keep GetVisibility call before SetVisibility because the first call will yield for some time and
 		--// there is the possibility that during the yield time the value of 'creatingVisibleValueToSet' may
 		--// change.
 		DevConsoleModuleTable:GetVisibility()

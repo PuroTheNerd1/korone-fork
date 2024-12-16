@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="ModuleScript" referent="RBX03506543CD1E432CA7C789C156BA6488">
@@ -29,7 +29,7 @@ local VALID_SUBJECTS = {
 	'VehicleSeat',
 	'SkateboardPlatform',
 }
- 
+
 local NEAR_CLIP_PLANE_OFFSET = 0.5 --NOTE: Not configurable here
 
 -----------------
@@ -83,7 +83,7 @@ end
 local function OnCameraChanged(property)
 	if property == 'CameraSubject' then
 		VehicleParts = {}
-		
+
 		local newSubject = Camera.CameraSubject
 		if newSubject then
 			-- Determine if we should be popping at all
@@ -94,7 +94,7 @@ local function OnCameraChanged(property)
 					break
 				end
 			end
-			
+
 			-- Get all parts of the vehicle the player is controlling
 			if newSubject:IsA('VehicleSeat') then
 				VehicleParts = newSubject:GetConnectedParts(true)
@@ -129,7 +129,7 @@ local function OnWorkspaceChanged(property)
 		local newCamera = workspace.CurrentCamera
 		if newCamera then
 			Camera = newCamera
-			
+
 			if CameraChangeConn then
 				CameraChangeConn:disconnect()
 			end
@@ -157,7 +157,7 @@ function PopperCam:Update()
 		for _, basePart in pairs(VehicleParts) do
 			table.insert(ignoreList, basePart)
 		end
-		
+
 		-- Cast rays at the near clip plane, from corresponding points near the focus point,
 		-- and find the direct line that is the most cut off
 		local largest = 0
@@ -170,21 +170,21 @@ function PopperCam:Update()
 				largest = cutoffAmount
 			end
 		end
-		
+
 		-- Then check if the player zoomed since the last frame,
 		-- and if so, reset our pop history so we stop tweening
 		local zoomLevel = (cameraCFrame.p - focusPoint).Magnitude
 		if math.abs(zoomLevel - LastZoomLevel) > 0.001 then
 			LastPopAmount = 0
 		end
-		
+
 		-- Finally, zoom the camera in (pop) by that most-cut-off amount, or the last pop amount if that's more
 		local popAmount = math.max(largest, LastPopAmount)
 		if popAmount > 0 then
 			Camera.CoordinateFrame = cameraCFrame + (cameraCFrame.lookVector * popAmount)
 			LastPopAmount = math.max(0, popAmount - POP_RESTORE_RATE) -- Shrink it for the next frame
 		end
-		
+
 		LastZoomLevel = zoomLevel
 	end
 end

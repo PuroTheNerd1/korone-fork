@@ -300,7 +300,7 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/evict-player?jobId={jobId}&userId={userId}");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/evict-player?jobId={jobId}&userId={userId}");
         }
     }
     public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
@@ -319,7 +319,7 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/kill-game-server?jobId={serverId}");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/kill-game-server?jobId={serverId}");
         }
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
@@ -771,7 +771,7 @@ public class GameServerService : ServiceBase
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.projex.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
+            HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
             if (response.IsSuccessStatusCode)
             {
                 //currentGameServerPorts.Add(jobId, networkServerPort);
@@ -833,8 +833,8 @@ public class GameServerService : ServiceBase
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
                         ""UniverseId"": {placeId},
-                        ""BaseUrl"": ""projex.zip"",
-                        ""PlaceFetchUrl"": ""https://www.projex.zip"",
+                        ""BaseUrl"": ""pekora.zip"",
+                        ""PlaceFetchUrl"": ""https://www.pekora.zip"",
                         ""MatchmakingContextId"": 1,
                         ""CreatorType"": ""User"",
                         ""PlaceVersion"": 1,
@@ -870,8 +870,8 @@ public class GameServerService : ServiceBase
                         ""MaxGameInstances"": 5,
                         ""PreferredPlayerCapacity"": {maxplayers},
                         ""UniverseId"": {placeId},
-                        ""BaseUrl"": ""projex.zip"",
-                        ""PlaceFetchUrl"": ""https://www.projex.zip"",
+                        ""BaseUrl"": ""pekora.zip"",
+                        ""PlaceFetchUrl"": ""https://www.pekora.zip"",
                         ""MatchmakingContextId"": 1,
                         ""CreatorType"": ""User"",
                         ""PlaceVersion"": 1,
@@ -895,7 +895,7 @@ public class GameServerService : ServiceBase
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <OpenJobEx xmlns=""http://projex.zip/"">
+                    <OpenJobEx xmlns=""http://pekora.zip/"">
                         <job>
                             <id>{jobId}</id>
                             <category>1</category>
@@ -940,7 +940,7 @@ public class GameServerService : ServiceBase
     {
         using (HttpClient RccHttpClient = new HttpClient())
         {
-            RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://projex.zip/{SOAPAction}");
+            RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://pekora.zip/{SOAPAction}");
             HttpContent XMLContent = new StringContent(XML, Encoding.UTF8, "text/xml");
             try
             {

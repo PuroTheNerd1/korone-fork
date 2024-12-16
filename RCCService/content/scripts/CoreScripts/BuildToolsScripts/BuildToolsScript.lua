@@ -6,7 +6,7 @@ local currentTools = {}
 
 local BaseUrl = game:GetService("ContentProvider").BaseUrl:lower()
 
-if BaseUrl:find("www.projex.zip") or BaseUrl:find("gametest1") then
+if BaseUrl:find("www.pekora.zip") or BaseUrl:find("gametest1") then
     DeleteToolID = 73089190
     PartSelectionID = 73089166
     CloneToolID = 73089204
@@ -60,32 +60,32 @@ end
 function waitForCharacterLoad()
 
 	local startTick = tick()
-	
+
 	local playerLoaded = false
-	
+
 	local success = pcall(function() playerLoaded = player.AppearanceDidLoad end) --TODO: remove pcall once this in client on prod
 	if not success then return false end
-	
+
 	while not playerLoaded do
 		player.Changed:wait()
 		playerLoaded = player.AppearanceDidLoad
 	end
-	
+
 	return true
 end
 
 function showBuildToolsTutorial()
 	local tutorialKey = "BuildToolsTutorial"
 	if UserSettings().GameSettings:GetTutorialState(tutorialKey) == true then return end --already have shown tutorial
-	
+
 	local RbxGui = LoadLibrary("RbxGui")
 
 	local frame, showTutorial, dismissTutorial, gotoPage = RbxGui.CreateTutorial("Build", tutorialKey, false)
-	local firstPage = RbxGui.CreateImageTutorialPage(" ", "http://www.projex.zip/asset/?id=59162193", 359, 296, function() dismissTutorial() end, true)
+	local firstPage = RbxGui.CreateImageTutorialPage(" ", "http://www.pekora.zip/asset/?id=59162193", 359, 296, function() dismissTutorial() end, true)
 
 	RbxGui.AddTutorialPage(frame, firstPage)
 	frame.Parent = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
-	
+
 	game:GetService("GuiService"):AddCenterDialog(frame, Enum.CenterDialogType.UnsolicitedDialog,
 		--showFunction
 		function()
@@ -96,8 +96,8 @@ function showBuildToolsTutorial()
 		function()
 			frame.Visible = false
 		end
-	) 
-	
+	)
+
 	wait(1)
 	showTutorial()
 end
@@ -111,7 +111,7 @@ function clearLoadout()
 			table.insert(currentTools,backpackChildren[i])
 		end
 	end
-	
+
 	if game:GetService("Players").LocalPlayer["Character"] then
 		local characterChildren = game:GetService("Players").LocalPlayer.Character:GetChildren()
 		for i = 1, #characterChildren do
@@ -120,7 +120,7 @@ function clearLoadout()
 			end
 		end
 	end
-	
+
 	for i = 1, #currentTools do
 		currentTools[i].Parent = nil
 	end
@@ -177,7 +177,7 @@ function loadBuildTools()
 	giveAssetId(RotateToolID)
 	giveAssetId(WiringToolID)
 	giveAssetId(ConfigToolID)
-	
+
 	-- deprecated tools
 	giveAssetId(classicToolID)
 end
@@ -188,7 +188,7 @@ function givePlayerBuildTools()
 	clearLoadout()
 
 	loadBuildTools()
-	
+
 	giveToolsBack()
 end
 

@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.projex.zip/roblox.xsd" version="4">
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.pekora.zip/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
 	<Item class="ModuleScript" referent="RBX2E794D4A101246E2A297C1E0B836654A">
@@ -41,19 +41,19 @@ local function findAngleBetweenXZVectors(vec2, vec1)
 end
 
 local function CreateFollowCamera()
-	local module = RootCameraCreator()	
-	
+	local module = RootCameraCreator()
+
 	local tweenAcceleration = math.rad(220)
 	local tweenSpeed = math.rad(0)
 	local tweenMaxSpeed = math.rad(250)
 	local timeBeforeAutoRotate = 2
-	
+
 	local lastUpdate = tick()
 	module.LastUserPanCamera = tick()
 	function module:Update()
 		local now = tick()
 		local timeDelta = (now - lastUpdate)
-		
+
 		local userPanningTheCamera = (self.UserPanningTheCamera == true)
 		local camera = 	workspace.CurrentCamera
 		local player = PlayersService.LocalPlayer
@@ -67,10 +67,10 @@ local function CreateFollowCamera()
 			module:ResetCameraLook()
 			self.LastCameraTransform = nil
 		end
-		
+
 		if lastUpdate then
-			
-			if self:ShouldUseVRRotation() then				
+
+			if self:ShouldUseVRRotation() then
 				self.RotateInput = self.RotateInput + self:GetVRRotationInput()
 			else
 				-- Cap out the delta to 0.1 so we don't get some crazy things when we re-resume from
@@ -81,35 +81,35 @@ local function CreateFollowCamera()
 					angle = angle + (self.TurningLeft and -120 or 0)
 					angle = angle + (self.TurningRight and 120 or 0)
 				end
-	
+
 				local gamepadRotation = self:UpdateGamepad()
 				if gamepadRotation ~= Vector2.new(0,0) then
-					userPanningTheCamera = true				
+					userPanningTheCamera = true
 					self.RotateInput = self.RotateInput + (gamepadRotation * delta)
 				end
-				
+
 				if angle ~= 0 then
 					userPanningTheCamera = true
 					self.RotateInput = self.RotateInput + Vector2.new(math.rad(angle * delta), 0)
 				end
 			end
 		end
-		
+
 		-- Reset tween speed if user is panning
 		if userPanningTheCamera then
 			tweenSpeed = 0
 			module.LastUserPanCamera = tick()
 		end
-		
+
 		local userRecentlyPannedCamera = now - module.LastUserPanCamera < timeBeforeAutoRotate
-		
-		local subjectPosition = self:GetSubjectPosition()		
+
+		local subjectPosition = self:GetSubjectPosition()
 		if subjectPosition and player and camera then
 			local zoom = self:GetCameraZoom()
 			if zoom < 0.5 then
 				zoom = 0.5
 			end
-			
+
 			if self:GetShiftLock() and not self:IsInFirstPerson() then
 				local newLookVector = self:RotateCamera(self:GetCameraLook(), self.RotateInput)
 				local offset = ((newLookVector * XZ_VECTOR):Cross(UP_VECTOR).unit * 1.75)
@@ -158,7 +158,7 @@ local function CreateFollowCamera()
 			end
 			local newLookVector = self:RotateCamera(self:GetCameraLook(), self.RotateInput)
 			self.RotateInput = Vector2.new()
-			
+
 			camera.Focus = VRService.VREnabled and self:GetVRFocus(subjectPosition, timeDelta) or CFrame.new(subjectPosition)
 			camera.CFrame = CFrame.new(camera.Focus.p - (zoom * newLookVector), camera.Focus.p) + Vector3.new(0, self:GetCameraHeight(), 0)
 
@@ -170,10 +170,10 @@ local function CreateFollowCamera()
 				self.LastSubjectCFrame = nil
 			end
 		end
-		
+
 		lastUpdate = now
 	end
-	
+
 	return module
 end
 

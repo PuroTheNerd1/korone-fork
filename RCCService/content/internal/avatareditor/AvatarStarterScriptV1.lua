@@ -74,7 +74,7 @@ local maxNumberOfRecentAssets = 30
 local tapDistanceThreshold = 10	--Defines the maximum allowable distance between input began and ended for input to be considered a tap
 local doubleTapThreshold = .25
 
-local domainUrl = "projex.zip"	--"sitetest3.robloxlabs.com"
+local domainUrl = "pekora.zip"	--"sitetest3.robloxlabs.com"
 local urlPrefix = "https://inventory."..domainUrl
 local avatarUrlPrefix = "https://avatar."..domainUrl
 local assetImageUrl = "https://www."..domainUrl.."/Thumbs/Asset.ashx?width=110&height=110&assetId="
@@ -84,7 +84,7 @@ local pages = require(modulesParent.PagesInfo)
 local assetTypeNames = require(modulesParent.AssetTypeNames)
 
 --[[
-{	"bodyColorsUrl":"http://assetgame.projex.zip/Asset/BodyColors.ashx?avatarHash=ce7c94f78b547c26f171bdc7f69f4e7a",
+{	"bodyColorsUrl":"http://assetgame.pekora.zip/Asset/BodyColors.ashx?avatarHash=ce7c94f78b547c26f171bdc7f69f4e7a",
 	"accessoryVersionIds":["76925267"],
 	"equippedGearVersionIds":["27531684"],
 	"backpackGearVersionIds":["27531684","468377669","116509933"],
@@ -136,7 +136,7 @@ skinColorListNames = nil
 
 
 tabList.CanvasSize = UDim2.new(0, #pages * (tabWidth+1), 0, 0)
-local userId = game.Players.LocalPlayer.userId 
+local userId = game.Players.LocalPlayer.userId
 ---temporary code---	--todo:remove this code
 if userId <= 10 then
 	userId = 80254
@@ -260,7 +260,7 @@ function httpPost(...)
 				return response.success
 			end
 		end
-				
+
 		return false
 	end
 end
@@ -447,7 +447,7 @@ function sortAndEquipItemToCharacter(thing, assetInsertedContentList)
 				thing.Parent = head
 				table.insert(assetInsertedContentList, thing)
 			end
-	
+
 		elseif thing:IsA("Decal") then					-- Face
 			local head = character:FindFirstChild('Head')
 			if head then
@@ -458,15 +458,15 @@ function sortAndEquipItemToCharacter(thing, assetInsertedContentList)
 				thing.Parent = head
 				table.insert(assetInsertedContentList, thing)
 			end
-	
+
 		elseif thing:IsA("CharacterAppearance") then	-- Thing, just parent it.
 			thing.Parent = character
 			table.insert(assetInsertedContentList, thing)
-	
+
 		elseif thing:IsA("Accoutrement") then			-- Hat
 			equipItemToCharacter(thing)
 			table.insert(assetInsertedContentList, thing)
-	
+
 		elseif thing:IsA("Tool") then					-- Gear
 			equipItemToCharacter(thing)
 			holdToolPos('Up')
@@ -634,7 +634,7 @@ function createR15Rig()
 			end
 		end
 		populateAttachments(newCharacter)
-	
+
 		local function recursiveRig(thing)
 			for _,rigAttachment in pairs(thing:GetChildren()) do
 				local nameLength = string.len(rigAttachment.Name)
@@ -717,7 +717,7 @@ function createR6Rig()
 		--put on assets
 		for _,assetId in pairs(currentlyWearing) do
 			local assetModel = insertService:LoadAsset(assetId) --Get all waiting overwith early
-	
+
 			local insertedStuff = {}
 			if not assetsLinkedContent[assetId] then
 				assetsLinkedContent[assetId] = insertedStuff
@@ -834,7 +834,7 @@ function unequipAsset(assetId)
 				end
 				assetsLinkedContent[assetId] = nil
 			end
-		
+
 			--Special cases where we need to replace removed asset with a default
 			if assetTypeName == 'Head' then
 				if character and character.Parent then
@@ -917,7 +917,7 @@ function equipAsset(assetId)
 		local assetModel = insertService:LoadAsset(assetId)
 		--after loading model, check to make sure it is still equipped before dressing character
 		if findIfEquipped(assetId) then
-	
+
 			--render changes
 			if avatarType == 'R6' then
 				local insertedStuff = {}
@@ -1008,7 +1008,7 @@ function setViewMode(desiredViewMode)
 			mainFrame:TweenPosition(UDim2.new(0,0,1,0),'InOut','Quad',tweenTime,true)
 			local fullViewCameraCF = fullViewCameraCF	--CFrame.new(12.7946997, 4.23308134, -24.8994789, -0.957343042, 3.03125148e-006, -0.288954049, -0, 1.00000012, 1.04904275e-005, 0.288954049, 1.00429379e-005, -0.957343042)
 			cameraController.tweenCamera(nil, fullViewCameraCF, tweenTime, easeFilters.quad, easeFilters.easeInOut)
-			
+
 		else
 
 			fastSpawn(function()
@@ -1061,14 +1061,14 @@ local detailsMenuCount = 0
 function openDetails(assetId)
 	--[[if isCoreSetup then
 		closeMenu()
-		guiService:OpenBrowserWindow("https://www.projex.zip/catalog/"..tostring(assetId).."/name")
+		guiService:OpenBrowserWindow("https://www.pekora.zip/catalog/"..tostring(assetId).."/name")
 	else]]
 		detailsMenuCount = detailsMenuCount + 1
 		local myDetailsMenuCount = detailsMenuCount
-	
+
 		local tweenTime = .35
 		detailsCloseImageLabel.ImageTransparency = .7
-	
+
 		if assetId then
 			fastSpawn(function()
 				local assetInfo = getAssetInfo(assetId)
@@ -1088,9 +1088,9 @@ function openDetails(assetId)
 				end
 			end)
 		end
-	
+
 		closeMenu()
-	
+
 		detailsMenuFrame:TweenPosition(UDim2.new(0,15,.15,0),'InOut','Quad',tweenTime,true)
 		shadeLayer.Visible = true
 		fastSpawn(function()
@@ -1186,7 +1186,7 @@ end)
 do
 	local avatarToggleDebounce = false
 	local toggleTime = .1
-	
+
 	local function renderAvatarSwitch()
 		r6Label.TextColor3 = avatarType == 'R6' and Color3.new(1,1,1) or Color3.new(.44,.44,.44)
 		r15Label.TextColor3 = avatarType == 'R15' and Color3.new(1,1,1) or Color3.new(.44,.44,.44)
@@ -1302,7 +1302,7 @@ if currentlyWearingRequest and currentlyWearingRequest['assetIds'] then
 			waitingAssets[assetId] = true
 		end)
 	end
-	
+
 	--after all fetched assets are equipped, we can update the savedWearingAssets table.
 	waitingForInitialLoad = true
 	fastSpawn(function()
@@ -1370,13 +1370,13 @@ local function wearOutfit(outfitId)
 end
 
 local function outfitImageFetch(outfitId, attemptNumber)
-	return "https://www.projex.zip/outfit-thumbnail/image?userOutfitId="..outfitId.."&width=100&height=100&format=png"
+	return "https://www.pekora.zip/outfit-thumbnail/image?userOutfitId="..outfitId.."&width=100&height=100&format=png"
 	--the below code works and is the retry functionality for a working image that we want, but the url handed back does not work for asset images
 	--[[local attemptNumber = (attemptNumber or 0) + 1
 	if attemptNumber > 10 then
 		return 'OutfitFailedToLoad'
 	end
-	local returnString = httpGet("http://www.projex.zip/Outfit-Thumbnail/Json?userOutfitId="..outfitId.."&width=352&height=352&format=png")
+	local returnString = httpGet("http://www.pekora.zip/Outfit-Thumbnail/Json?userOutfitId="..outfitId.."&width=352&height=352&format=png")
 	if returnString then
 		local returnData = httpService:JSONDecode(returnString)
 		if returnData and returnData.Final then
@@ -1494,7 +1494,7 @@ function loadMoreListContent()
 					local assetButton = renderCard(i, tostring(assetId), assetImageUrl..tostring(assetId), buttonSize, extraVerticalShift * 2 + outfitsVerticalShift)
 					local wearFunction = function()
 						closeMenu()
-						local containingAssetsRaw = httpGet("http://assetgame.projex.zip/Game/GetAssetIdsForPackageId?packageId="..assetId)
+						local containingAssetsRaw = httpGet("http://assetgame.pekora.zip/Game/GetAssetIdsForPackageId?packageId="..assetId)
 						if containingAssetsRaw then
 							local containingAssets = httpService:JSONDecode(containingAssetsRaw)
 							if containingAssets then
@@ -1614,7 +1614,7 @@ function loadMoreListContent()
 
 					if page.name == 'Outfits' then
 						assetButton = renderCard(i, "Outfit"..tostring(assetId),"", buttonSize, extraVerticalShift)
-	
+
 						local wearFunction = function()
 							closeMenu()
 							runParticleEmitter()
@@ -1622,7 +1622,7 @@ function loadMoreListContent()
 						end
 						assetButton.MouseButton1Click:connect(wearFunction)
 						assetButton.TouchLongPress:connect(wearFunction)
-	
+
 						assetButton.Parent = scrollingFrame
 						fastSpawn(function()
 							local imgUrl = outfitImageFetch(assetId)
@@ -2042,7 +2042,7 @@ while true do
 			rotationalMomentum = 0
 		end
 		rotation = rotation + rotationalMomentum
-	end	
+	end
 	lastRotation = rotation
 
 	hrp.CFrame = baseCharacterCFrame * CFrame.Angles(0,rotation,0) * CFrame.new(0,avatarType=='R15' and -.65 or 0,0)

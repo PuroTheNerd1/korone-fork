@@ -9,7 +9,7 @@ Reporter's Name: [redacted]
 Reporter's Email Address: [redacted]
 Reporter's Address: [redacted]
 Reported URLs:
-https://projex.zip
+https://pekora.zip
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -23,9 +23,9 @@ Reporter's Email Address: [redacted]
 Reporter's Company Name: Roblox Corporation
 Reporter's Address: [redacted]
 Reported URLs:
-https://www.projex.zip/catalog/5540/Black-Pointy-Fluffy-Ears
-https://www.projex.zip
-https://www.projex.zip/games
+https://www.pekora.zip/catalog/5540/Black-Pointy-Fluffy-Ears
+https://www.pekora.zip
+https://www.pekora.zip/games
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ Reporter's Email Address: [redacted]
 Reporter's Title: Project X
 Reporter's Address: [redacted]
 Reported URLs:
-https://projex.zip
+https://pekora.zip
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ Type: Phishing
 Date: 02/06/2024
 Reporter: Anonymous
 Reported URLs:
-https://projex.zip
+https://pekora.zip
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -69,12 +69,12 @@ Copyright Holder's Name: Roblox Corporation
 Reporter's Email Address: [redacted]
 Reporter's Address: [redacted]
 Reported URLs:
-https://projex.zip/home
-https://projex.zip/catalog
+https://pekora.zip/home
+https://pekora.zip/catalog
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
-The domain "projex.zip" copied pages from "roblox.com"
+The domain "pekora.zip" copied pages from "roblox.com"
 
 ---------------------------------------------------------------------
 Type: DMCA
@@ -84,9 +84,9 @@ Copyright Holder's Name: Roblox Corp.
 Reporter's Email Address: [redacted]
 Reporter's Address: [redacted]
 Reported URLs:
-https://projex.zip/games
-https://projex.zip/catalog
-https://projex.zip/
+https://pekora.zip/games
+https://pekora.zip/catalog
+https://pekora.zip/
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -104,11 +104,11 @@ Reporter's Email Address: [redacted]
 Reporter's Company Name: ROBLOX
 Reporter's Address: [redacted]
 Reported URLs:
-https://projex.zip/home
-https://projex.zip/games
-https://projex.zip/catalog
-https://projex.zip/develop
-https://projex.zip/My/Account
+https://pekora.zip/home
+https://pekora.zip/games
+https://pekora.zip/catalog
+https://pekora.zip/develop
+https://pekora.zip/My/Account
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
