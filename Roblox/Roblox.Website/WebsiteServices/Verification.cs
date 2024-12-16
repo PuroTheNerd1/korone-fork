@@ -45,10 +45,10 @@ public class UnableToFindVerificationPhraseException : Exception
 
 public class ApplicationWebsiteService : WebsiteService
 {
-    
+
     private const string VerificationPhraseCookieName = "es-verification-phrase";
     private static EasyJwt jwt { get; } = new EasyJwt();
-    private const string VerificationSecret = "NZziBqbvb709fIKBsOfzC37ZfxiUPJhmoMmO4rPVE1G8zaOU3ByhcYpiI3C0vXmUWR4dl30Cc4FhaiMc29hNDs1nXcweYIt4PVdQrNT0gP9NM9V3BF3oh0l9QBUOVpY5OvPdsEU3We8aqnIdfT4rj1YO8eSl25bms48h3mgXOupwjlMfONxs7FtQSiwb1CRJ9jEltwbf68qKsPxg2OKrjt3N7QzKrVpF4wS122cW2w3Nmyg9AMIfdDWicIr0zz0YvSEdDhemja4dK3fvpA6Cy3fbIRjcCP8k0NjzpFxgtNhjWbtakGlJgcCguS2LC8afkVFGCKNWjmta2mqxT7tsCdICaflyWFgyYH0b8fbSTD1bTsOQs5XsAqkSPVC4l1a1dcD10ttzSPof9bs3BjSo7jdUXvN9IaflhEp2FGrNjoVB68mP4GVaz9B0fM7o33fCcCT7AZVTrJ3Yd035wuDNvB3Qhmi2VZpvRukbxfyP7LGnjMAQxyxIl6O5PaoE9qGE";
+    private string VerificationSecret = Configuration.VerificationSecret;
 
     /// <summary>
     /// Verify that the provided verificationPhrase exists on the socialUrls profile
@@ -65,7 +65,7 @@ public class ApplicationWebsiteService : WebsiteService
         // WEB-25 - people apparently can't read...
         string? verifiedUrl = null;
         string? verifiedId = null;
-        
+
         // Users will submit apps with weird text like:
         // "roblox: https://www.roblox.com/users/1561515/profile reddit: https://www.reddit.com/users/spez"
         // so we can't use a basic URI parser, we have to make our own
@@ -76,10 +76,10 @@ public class ApplicationWebsiteService : WebsiteService
             socialData = await socialData.GetFullProfileAsync();
             Writer.Info(LogGroup.ApplicationSocial, "redirect from {0} to {1}", socialUrl, socialData?.url);
         }
-        
+
         if (socialData == null)
             throw new InvalidSocialMediaUrlException();
-        
+
         // Note that we skip "web.roblox.com" verification - it's a waste of everyone's time and our server resources.
         // These apps get auto declined anyway.
         var isUnderageUser = socialUrl.Contains("web.roblox.com");
@@ -143,7 +143,7 @@ public class ApplicationWebsiteService : WebsiteService
     public async Task<string> ApplyVerificationPhrase(string userIp, ApplicationService.GenerationContext ctx, bool forceGenerateNew = false)
     {
         var verificationPhrase = (string?)null;
-        
+
         if (httpContext.Request.Cookies.TryGetValue(VerificationPhraseCookieName, out var verificationPhraseCookie) && verificationPhraseCookie != null)
         {
             try
@@ -186,13 +186,13 @@ public class ApplicationWebsiteService : WebsiteService
                 {
                     verificationPhrase = app.GenerateVerificationPhrase(ctx);
                 }
-                
+
                 var cookie = jwt.CreateJwt(new VerificationPhraseCookie()
                 {
                     phrase = verificationPhrase,
                     createdAt = DateTime.UtcNow,
                 }, VerificationSecret);
-            
+
                 httpContext.Response.Cookies.Append(VerificationPhraseCookieName, cookie, new CookieOptions
                 {
                     IsEssential = true,
