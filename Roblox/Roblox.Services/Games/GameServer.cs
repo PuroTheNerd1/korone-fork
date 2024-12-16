@@ -316,11 +316,8 @@ public class GameServerService : ServiceBase
         //long placeId = GetPlaceIdByJobId(serverId);
         //Process rccProcess = jobRccs[placeJobId];
         //rccProcess.Kill(); // soft kill soon instead of force kill
-        using (HttpClient client = new HttpClient())
-        {
-            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/kill-game-server?jobId={serverId}");
-        }
+        client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+        await client.GetAsync($"https://arbiter.pekora.zip/kill-game-server?jobId={serverId}");
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
         //currentGameServerPorts.Remove(placeJobId);
@@ -768,15 +765,12 @@ public class GameServerService : ServiceBase
         //string finalScript;
         long maxplayers = await games.GetMaxPlayerCount(placeId);
         Console.WriteLine("Starting Gameserver");
-        using (HttpClient client = new HttpClient())
+        client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+        HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
+        if (response.IsSuccessStatusCode)
         {
-            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
-            if (response.IsSuccessStatusCode)
-            {
-                //currentGameServerPorts.Add(jobId, networkServerPort);
-                return "OK";
-            }
+            //currentGameServerPorts.Add(jobId, networkServerPort);
+            return "OK";
         }
         return "BAD";
         //Console.WriteLine($"MaxPlayers = {maxplayers}");
