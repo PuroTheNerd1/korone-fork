@@ -297,11 +297,8 @@ public class GameServerService : ServiceBase
     public async Task KickPlayer(long userId)
     {
         string jobId = await GetJobIdByUserId(userId);
-        using (HttpClient client = new HttpClient())
-        {
-            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-            HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/evict-player?jobId={jobId}&userId={userId}");
-        }
+        client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+        await client.GetAsync($"https://arbiter.pekora.zip/evict-player?jobId={jobId}&userId={userId}");
     }
     public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
     {
