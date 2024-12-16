@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text.Json;
 using System.Net.Http.Json;
+using System.Dynamic;
 
 namespace Roblox.Rendering
 {
@@ -42,9 +43,7 @@ namespace Roblox.Rendering
         {
             string url = "";
             // Hacky asf
-            dynamic renderRequest = new
-            {
-            };
+            dynamic renderRequest = new ExpandoObject();
 
             switch (type)
             {
