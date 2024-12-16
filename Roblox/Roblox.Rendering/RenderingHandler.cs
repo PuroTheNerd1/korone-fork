@@ -38,7 +38,7 @@ namespace Roblox.Rendering
             LuaScriptPath = luaScriptPath;
         }
 
-        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0)
+        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false)
         {
             string url = "";
             // Hacky asf
@@ -47,6 +47,7 @@ namespace Roblox.Rendering
                 assetId = id,
                 placeId = id,
                 userId = id,
+                isFace = isFace,
                 x = x,
                 y = y,
             };
@@ -70,10 +71,6 @@ namespace Roblox.Rendering
                     break;
                 case RenderType.Clothing:
                     url = "image/clothing";
-                    break;
-                case RenderType.Face:
-                    url = "image/image";
-                    renderRequest.isFace = true;
                     break;
                 case RenderType.Mesh:
                     url = "catalog/mesh";
@@ -134,7 +131,7 @@ namespace Roblox.Rendering
 
         public static async Task<string> RequestImageThumbnail(long assetId, int JobExpiration, bool isFace = false)
         {
-            return await SendRenderRequest(assetId, RenderType.Image);
+            return await SendRenderRequest(assetId, RenderType.Image, isFace: isFace);
         }
 
         public static async Task<string> RequestPlaceRender(long assetId, int JobExpiration, int x, int y)
