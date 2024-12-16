@@ -85,6 +85,7 @@ namespace Roblox.Rendering
             // i will add error handling to this later
             var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await client.PostAsync("http://localhost:3043/" + url, content);
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
             var request = await response.Content.ReadFromJsonAsync<dynamic>();
             return request?.data ?? "FAILURE";
         }
