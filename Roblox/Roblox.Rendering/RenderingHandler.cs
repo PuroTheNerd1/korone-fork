@@ -3,6 +3,8 @@ using System.Text;
 using System.Xml.Linq;
 using System.Net.Sockets;
 using System.Net;
+using System.Text.Json;
+using System.Net.Http.Json;
 
 namespace Roblox.Rendering
 {
@@ -13,13 +15,19 @@ namespace Roblox.Rendering
         public static string RccServicePath = "C:\\ProjectX\\services\\RCCService\\";
         public static string RccServicePathGames = "C:\\ProjectX\\services\\RCCService\\";
         private static Random RandomComponent = new Random();
-        private static HttpClient httpClient = new HttpClient();
+        private static HttpClient client = new HttpClient();
         // TODO: REWRITE RENDERING HANDLER
         private enum RenderType
         {
             Avatar = 0,
             Headshot,
+            Head,
             Package,
+            Image,
+            Clothing,
+            Face,
+            Mesh,
+            Hat,
             Place,
 
         }
@@ -30,12 +38,62 @@ namespace Roblox.Rendering
             LuaScriptPath = luaScriptPath;
         }
 
-        private async Task<dynamic> SendRenderRequest()
+        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0)
         {
-            return null;
+            string url = "";
+            // Hacky asf
+            dynamic renderRequest = new
+            {
+                assetId = id,
+                placeId = id,
+                userId = id,
+                x = x,
+                y = y,
+            };
+
+            switch (type)
+            {
+                case RenderType.Avatar:
+                    url = "player/thumbnail";
+                    break;
+                case RenderType.Headshot:
+                    url = "player/headshot";
+                    break;
+                case RenderType.Package:
+                    url = "catalog/package";
+                    break;
+                case RenderType.Head:
+                    url = "catalog/head";
+                    break;
+                case RenderType.Image:
+                    url = "image/image";
+                    break;
+                case RenderType.Clothing:
+                    url = "image/clothing";
+                    break;
+                case RenderType.Face:
+                    url = "image/image";
+                    renderRequest.isFace = true;
+                    break;
+                case RenderType.Mesh:
+                    url = "catalog/mesh";
+                    break;
+                case RenderType.Hat:
+                    url = "catalog/hat";
+                    break;
+                case RenderType.Place:
+                    url = "game/thumbnail";
+                    break;
+            }
+            // i will add error handling to this later
+            var content = new StringContent(JsonSerializer.Serialize(renderRequest));
+            HttpResponseMessage response = await client.PostAsync("http://localhost:3040/" + url, content);
+            var request = await response.Content.ReadFromJsonAsync<dynamic>();
+            return request?.data ?? "FAILURE";
         }
 
-        public static async Task<string> SendRequestToRcc(string URL, string XML, string SOAPAction)
+
+        private static async Task<string> SendRequestToRcc(string URL, string XML, string SOAPAction)
         {
             using (HttpClient RccHttpClient = new HttpClient())
             {
@@ -66,319 +124,32 @@ namespace Roblox.Rendering
 
         public static async Task<string> RequestHatThumbnail(long assetId, int JobExpiration)
         {
-            string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $@"{RccServicePath}\RCCService2020\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Hat.txt");
-            string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"""{assetUrl}""");
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <BatchJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </BatchJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            await WaitForPort(RCCPort);
-
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(assetId, RenderType.Hat);
         }
 
         public static async Task<string> RequestMeshThumbnail(long assetId, int JobExpiration)
         {
-            string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}Mesh.lua");
-            string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"""{assetUrl}""").Replace
-                ("%fileExtension%", $@"""png""").Replace
-                ("%x%", @"""1260""").Replace
-                ("%y%", @"""1260""").Replace
-                ("%baseUrl%", $@"""{BaseUrl}/""");
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <BatchJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </BatchJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            await WaitForPort(RCCPort);
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(assetId, RenderType.Mesh);
         }
 
         public static async Task<string> RequestImageThumbnail(long assetId, int JobExpiration, bool isFace = false)
         {
-            string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            int x = isFace ? 1680 : 600;
-            int y = isFace ? 1680 : 600;
-
-            string originalScript = File.ReadAllText($"{LuaScriptPath}{(isFace ? "Decal" : "Image")}.lua");
-            string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"""{assetUrl}""").Replace
-                ("%fileExtension%", $@"""png""").Replace
-                ("%x%", @$"""{x}""").Replace
-                ("%y%", @$"""{y}""").Replace
-                ("%baseUrl%", $@"""{BaseUrl}/""").Replace(
-                "%isFace%", isFace.ToString().ToLower());
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <BatchJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </BatchJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            await WaitForPort(RCCPort);
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(assetId, RenderType.Image);
         }
 
         public static async Task<string> RequestPlaceRender(long assetId, int JobExpiration, int x, int y)
         {
-            string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Place.txt");
-            string finalScript = originalScript.Replace
-                ("%fileExtension%", $@"""PNG""").Replace
-                ("%x%", $@"{x}").Replace
-                ("%y%", $@"{y}").Replace
-                ("%baseUrl%", $@"{BaseUrl}/").Replace
-                ("%universeId%", $@"{assetId}");
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <OpenJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </OpenJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            Console.WriteLine(XML);
-            await WaitForPort(RCCPort);
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(assetId, RenderType.Place, x, y);
         }
 
         public static async Task<string> RequestClothingRender(long assetId, int JobExpiration)
         {
-            string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = true;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = true;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}Clothing.lua");
-            string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"""{assetUrl}""").Replace
-                ("%fileExtension%", $@"""png""").Replace
-                ("%x%", $@"""{1680}""").Replace
-                ("%y%", $@"""{1680}""").Replace
-                ("%baseUrl%", $@"""{BaseUrl}/""").Replace
-                ("%mannequinId%", $@"""{1785197}""");
-
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <BatchJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </BatchJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            await WaitForPort(RCCPort);
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(assetId, RenderType.Clothing);
         }
 
         public static async Task<string> RequestHeadRender(long assetId, int JobExpiration)
         {
-            string assetUrl = $"{BaseUrl}/asset/?id={assetId}";
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = true;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            //renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = true;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Head.txt");
-            string finalScript = originalScript.Replace
-                ("%assetUrl%", $@"""{assetUrl}""").Replace
-                ("%fileExtension%", $@"""png""").Replace
-                ("%x%", $@"""{1680}""").Replace
-                ("%y%", $@"""{1680}""").Replace
-                ("%baseUrl%", $@"""{BaseUrl}/""").Replace
-                ("%mannequinId%", $@"""{1785197}""");
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <BatchJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </BatchJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            await WaitForPort(RCCPort);
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(assetId, RenderType.Head);
         }
 
         public static async Task<string> RequestPackageRender(string assetUrls, int JobExpiration)
@@ -435,105 +206,11 @@ namespace Roblox.Rendering
         }
         public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
         {
-            string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Avatar.txt");
-            string finalScript = originalScript.Replace
-                ("%characterAppearanceUrl%", $@"""{characterAppearanceUrl}""").Replace
-                ("%baseUrl%", $@"""{BaseUrl}""").Replace
-                ("%fileExtension%", @"""png""").Replace
-                ("%x%", "840").Replace
-                ("%y%", "840");
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <BatchJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </BatchJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            await WaitForPort(RCCPort);
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(userId, RenderType.Avatar);
         }
         public static async Task<string> RequestHeadshotThumbnail(long userId, int JobExpiration)
         {
-            string characterAppearanceUrl = $"{BaseUrl}/v1.1/avatar-fetch?placeId=0&userId={userId}";
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Closeup.txt");
-            string finalScript = originalScript.Replace
-                ("%baseUrl%", $@"""{BaseUrl}""").Replace
-                ("%characterAppearanceUrl%", $@"""{characterAppearanceUrl}""").Replace
-                ("%fileExtension%", @"""png""").Replace
-                ("%x%", "720").Replace
-                ("%y%", "720");
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <BatchJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </BatchJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            await WaitForPort(RCCPort);
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(userId, RenderType.Headshot);
         }
         static Task WaitForPort(int RCCPort)
         {
