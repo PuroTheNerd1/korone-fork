@@ -1566,6 +1566,7 @@ namespace Roblox.Website.Controllers
             {
                 "a9912debcb6347c402e4139f452d4fd2", //2015M Prod
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E Prod
+                "abc9d2132ef2c21101804d8e25e0413f", //Repatched 2017Client
                 "fc5f43ec839bbbffcb26c48846b3c865", //2017L RAGELoader Debug
                 "7b31e0e3358b167864f1506de8502076", //2017L Prod
                 "8c5aecb7811acbb582f06f2a81b958f4", //2018L Prod
