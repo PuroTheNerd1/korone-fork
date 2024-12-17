@@ -186,7 +186,6 @@ app.UseTimerMiddleware(); // Must always be last
 Roblox.Services.Signer.SignService.Setup();
 _ = Task.Run(async () =>
 {
-    await Task.Delay(TimeSpan.FromSeconds(5));
     using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
     await assets.FixAssetImagesWithoutMetadata();
 });
