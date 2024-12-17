@@ -21,14 +21,14 @@ public class SignService : ServiceBase
     {
         try
         {
-            byte[] privateKeyBlob = Convert.FromBase64String(System.IO.File.ReadAllText("PrivateKeyBlob.txt"));
+            byte[] privateKeyBlob = Convert.FromBase64String(System.IO.File.ReadAllText(@"Keys\PrivateKeyBlob.txt"));
 
             _shaCsp = SHA1.Create();
             _rsaCsp = new RSACryptoServiceProvider();
 
             _rsaCsp.ImportCspBlob(privateKeyBlob);
-            rsa2048.ImportFromPem(System.IO.File.ReadAllText(@"PEM\PrivateKey2048.pem"));
-            rsa2048New.ImportFromPem(System.IO.File.ReadAllText(@"PEM\2020\privatekey.pem"));
+            rsa2048.ImportFromPem(System.IO.File.ReadAllText(@"Keys\PrivateKey2048.pem"));
+            rsa2048New.ImportFromPem(System.IO.File.ReadAllText(@"Keys\PrivateKey2048.pem"));
         }
         catch (Exception ex)
         {
