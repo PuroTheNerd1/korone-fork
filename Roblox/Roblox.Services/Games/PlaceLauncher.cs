@@ -19,8 +19,8 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<PlaceLaunchResponse> PlaceLauncherAsync(PlaceLaunchRequest plRequest)
     {
-        if (plRequest.username == null || plRequest.userId == null)
-            throw new ArgumentNullException(nameof(plRequest.username), "Username is missing");
+        if (plRequest.username == null || plRequest.userId == null || plRequest.cookie == null)
+            throw new ArgumentNullException("One of the arguments are missing");
         switch (plRequest.request)
         {
             case "RequestGameJob":
