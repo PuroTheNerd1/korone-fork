@@ -14,7 +14,7 @@ public enum ImagerFormat
 
 public class UnsupportedImageFormatException : Exception
 {
-    
+
 }
 
 /// <summary>
@@ -22,7 +22,7 @@ public class UnsupportedImageFormatException : Exception
 /// </summary>
 public class InvalidImageException : Exception
 {
-    
+
 }
 
 public class Imager
@@ -32,10 +32,10 @@ public class Imager
     public int height { get; private set; } = 0;
     public int width { get; private set; } = 0;
     public ImagerFormat imageFormat { get; private set; } = ImagerFormat.Undefined;
-    
-    private Image image { get; set; }
-    private IImageFormat format { get; set; }
-    
+
+    private Image? image { get; set; }
+    private IImageFormat? format { get; set; }
+
     private Imager(Stream content)
     {
         this.content = content;
