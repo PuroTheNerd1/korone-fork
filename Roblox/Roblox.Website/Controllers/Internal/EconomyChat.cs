@@ -43,11 +43,9 @@ public class EconomyChat : ControllerBase
     [HttpPost("channels/{channelId:long}/typing")]
     public async Task MarkAsTyping(long channelId)
     {
-        if (userSession is null)
-            throw new RobloxException(403, 0, "Forbidden");
-        await chatService.ToggleTyping(userSession.userId, channelId, true);
+        await chatService.ToggleTyping(safeUserSession.userId, channelId, true);
     }
-    
+
     [HttpDelete("channels/{channelId:long}/typing")]
     public async Task MarkAsNotTyping(long channelId)
     {
