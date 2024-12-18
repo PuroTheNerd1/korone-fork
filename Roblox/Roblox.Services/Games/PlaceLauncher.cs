@@ -19,6 +19,8 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<PlaceLaunchResponse> PlaceLauncherAsync(PlaceLaunchRequest plRequest)
     {
+        if (plRequest.username == null || plRequest.userId == null)
+            throw new ArgumentNullException(nameof(plRequest.username), "Username is missing");
         switch (plRequest.request)
         {
             case "RequestGameJob":
@@ -26,9 +28,9 @@ public class PlaceLauncherService : ServiceBase
                     throw new BadRequestException("Game Id is missing");
                 return await RequestGameJob(plRequest.gameId, plRequest.placeId);
             case "RequestGame":
-                return await RequestGame(plRequest.placeId, plRequest.userId, plRequest.cookie, plRequest.special, plRequest.username);
+                return await RequestGame(plRequest.placeId, (long)plRequest.userId, plRequest.cookie, plRequest.special, plRequest.username);
             case "CloudEdit":
-                return await RequestCloudEdit(plRequest.placeId, plRequest.userId, plRequest.username);
+                return await RequestCloudEdit(plRequest.placeId, (long)plRequest.userId, plRequest.username);
             case "RequestPrivateGame":
                 break;
         }
