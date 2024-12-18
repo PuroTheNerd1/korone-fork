@@ -1780,28 +1780,25 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2.0/Refresh")]
         [HttpGetBypass("v1.0/Refresh")]
         [HttpGetBypass("v2.0/Refresh")]
-        public async Task<dynamic> RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
+        public async Task RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
             if (!IsRcc())
-                return ":3";
+                return;
 
             if (clientCount == 0 && gameTime > 50)
             {
                 try
                 {
                     await services.gameServer.ShutDownServerAsync(gameId);
-                    return "OK!";
                 }
                 catch (Exception)
                 {
                     await services.gameServer.DeleteGameServer(gameId);
-                    return "OK!";
                 }
+                return;
             }
-            else{
-                await services.gameServer.SetServerPing(gameId);
-                return "OK!";
-            }
+            await services.gameServer.SetServerPing(gameId);
+
         }
         // just a test move to webcontroller later on
         [HttpPostBypass("apisite/develop/v1/assets/upload-gameicon")]
