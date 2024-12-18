@@ -277,17 +277,11 @@ namespace Roblox.Website.Controllers
             List<BatchAssetRequest> requestData;
             bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
 
-            if (isGzip)
+            using (var requestStream = isGzip ? new GZipStream(Request.Body, CompressionMode.Decompress) : Request.Body)
             {
                 using (var decompressedStream = new MemoryStream())
                 {
-                    using (var requestStream = Request.Body)
-                    {
-                        using (var gzipStream = new GZipStream(requestStream, CompressionMode.Decompress))
-                        {
-                            await gzipStream.CopyToAsync(decompressedStream);
-                        }
-                    }
+                    await requestStream.CopyToAsync(decompressedStream);
                     decompressedStream.Seek(0, SeekOrigin.Begin);
 
                     using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
@@ -297,14 +291,7 @@ namespace Roblox.Website.Controllers
                     }
                 }
             }
-            else
-            {
-                using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
-                {
-                    var json = await reader.ReadToEndAsync();
-                    requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
-                }
-            }
+
             if (requestData == null)
             {
                 throw new BadRequestException();
