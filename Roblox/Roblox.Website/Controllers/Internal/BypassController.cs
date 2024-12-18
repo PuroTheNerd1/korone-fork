@@ -1705,9 +1705,7 @@ namespace Roblox.Website.Controllers
         {
             var owned = await services.users.GetUserAssets(userId, assetId);
             if (owned.Any())
-            {
                 return true;
-            }
             return false;
         }
 
@@ -1726,7 +1724,6 @@ namespace Roblox.Website.Controllers
         {
             var userInfo = await services.users.GetUserByName(username);
             var onlineStatus = (await services.users.MultiGetPresence(new[] {userInfo.userId})).First();
-            bool isOnline = onlineStatus.userPresenceType == PresenceType.Online;
             var result = (await services.thumbnails.GetUserHeadshots(new[] { userInfo.userId })).ToList();
             return new
             {
@@ -1734,7 +1731,7 @@ namespace Roblox.Website.Controllers
                 Username = username,
                 AvatarUri = Configuration.BaseUrl + result?.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png",
                 AvatarFinal = true,
-                IsOnline = isOnline,
+                IsOnline = onlineStatus.userPresenceType == PresenceType.Online,
             };
         }
         [HttpGetBypass("users/account-info")]
