@@ -113,7 +113,7 @@ namespace Roblox.Website.Controllers
             var isLoggedIn = userSession != null;
             var userAgent = Request.Headers["User-Agent"].FirstOrDefault()?.ToLower();
             var requester = Request.Headers["Requester"].FirstOrDefault()?.ToLower();
-            Console.WriteLine("Requester: {requester}");
+            Console.WriteLine($"Requester: {requester}");
             if (!isBotRequest && !isLoggedIn && (userAgent == null || requester == null || (requester != "client" && requester != "server") || !BypassControllerMetadata.allowedUserAgents.Contains(userAgent)))
             {
                 throw new BadRequestException();
