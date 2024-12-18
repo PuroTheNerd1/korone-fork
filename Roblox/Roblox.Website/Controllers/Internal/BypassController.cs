@@ -507,7 +507,7 @@ namespace Roblox.Website.Controllers
                     message = "An error occured while starting the game."
                 };
             }
-            if(userSession == null)
+            if (userSession == null)
             {
                 return new PlaceLaunchResponse()
                 {
@@ -1218,8 +1218,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GenereateOtpQrCode")]
         public IActionResult GenerateOtpQrCode(string secret)
         {
-            var otpQrCode = services.users.GetOtpQrCode(safeUserSession.userId, secret);
-            return File(otpQrCode, "image/png");
+            return File(services.users.GetOtpQrCode(safeUserSession.userId, secret), "image/png");
         }
 
         [HttpGetBypass("Users/GetBanStatus.ashx")]
