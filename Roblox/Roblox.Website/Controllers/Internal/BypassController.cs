@@ -661,11 +661,9 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/GetCurrentUser.ashx")]
         public IActionResult GetUserId()
         {
-            if (userSession == null){
-               return Ok("Bad Request");
-            }
-            string userIdAsString = userSession.userId.ToString();
-            return Content(userIdAsString, "text/plain");
+            if (userSession == null)
+                return Ok("Bad Request");
+            return Content(userSession.userId.ToString(), "text/plain");
         }
         [HttpGetBypass("/mobileapi/check-app-version")]
         [HttpPostBypass("/mobileapi/check-app-version")]
