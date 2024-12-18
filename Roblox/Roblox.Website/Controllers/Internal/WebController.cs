@@ -777,9 +777,9 @@ public class WebController : ControllerBase
 
             memoryStream.Position = 0;
             var imageAsset = await services.assets.CreateAsset(request.name, "Image",
-                 userSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
-                 Genre.All,
-                 ModerationStatus.AwaitingApproval);
+                safeUserSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
+                Genre.All,
+                ModerationStatus.AwaitingApproval);
 
             memoryStream.Position = 0;
 
