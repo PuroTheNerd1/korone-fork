@@ -16,6 +16,8 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> GetUniverseInfo(long universeId)
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
+        if (uni == null)
+            throw new RecordNotFoundException();
         return new
         {
             Name = uni.name,
@@ -92,7 +94,7 @@ public class UniverseV1 : ControllerBase
             {
                 id = 1,
                 name = "Starter place",
-                description = null,
+                description = "a",
                 isArchived = false,
                 rootPlaceId = 4430,
                 isActive = true,
@@ -198,6 +200,8 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> GetUniverseAttachedPlaces(long universeId)
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        if (uni == null)
+            throw new RecordNotFoundException();
         return new
         {
             previousPageCursor = (string?)null,
@@ -382,6 +386,8 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> UniverseInfo(long universeId)
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        if (uni == null)
+            throw new RecordNotFoundException();
         var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {uni.rootPlaceId})).First();
         return new
         {
@@ -415,12 +421,6 @@ public class UniverseV1 : ControllerBase
     [HttpPostBypass("v2/universes/{universeId}/configuration")]
     public async Task<dynamic> SetUniverseConfiguration(long universeId, [FromBody] UniverseConfiguration configuration)
     {
-        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
-        {
-            throw new ForbiddenException(0, "You are not authorized to configure this universe.");
-        }
-        await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
-        var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         List<string> playableDevices = new List<string>
         {
             "Computer",
@@ -429,7 +429,14 @@ public class UniverseV1 : ControllerBase
             "Console",
             "VR"
         };
-
+        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
+        {
+            throw new ForbiddenException(0, "You are not authorized to configure this universe.");
+        }
+        await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
+        var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
+        if (uni == null)
+            throw new RecordNotFoundException();
         return new UniverseConfiguration
         {
             allowPrivateServers = false,
@@ -472,7 +479,8 @@ public class UniverseV1 : ControllerBase
             "Console",
             "VR"
         };
-
+        if (uni == null)
+            throw new RecordNotFoundException();
         return new UniverseConfiguration
         {
             allowPrivateServers = false,
