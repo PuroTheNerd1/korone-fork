@@ -137,7 +137,7 @@ namespace Roblox.Website.Controllers
                     return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
                 }
             }
-            Console.WriteLine($"UserAuth: {isLoggedIn} RCC:{isRcc} Bot: {isBotRequest}");
+            Console.WriteLine($"UserAuth: {isLoggedIn} RCC:{isRcc} Bot: {isBotRequest} Asset: {assetId}");
             if (!isLoggedIn && !isRcc && !isBotRequest)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             // TODO: Fix for this is using a diffrent access key for rendering
