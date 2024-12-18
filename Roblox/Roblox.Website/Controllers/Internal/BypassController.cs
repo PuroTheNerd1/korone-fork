@@ -262,10 +262,9 @@ namespace Roblox.Website.Controllers
                     //}
                     if (details.assetType == Models.Assets.Type.Audio)
                     {
+                        // hihihi shitty audio makers should kill themselves!!
                         if (placeId != 0)
-                        {
-                            _ = LogAudio($"[PID: {placeId}] Audio ID: {assetId}");
-                        }
+                            Console.WriteLine($"PID: {placeId} AID: {assetId}");
                     }
                     assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     break;
@@ -279,10 +278,8 @@ namespace Roblox.Website.Controllers
                         isAuthorized = placeId == assetId;
                         // If game server is trying to load a new place (current placeId is empty), then allow it
                         if (!isAuthorized && details.assetType == Type.Place && placeId == 0)
-                        {
                             // Game server is trying to load, so allow it
                             isAuthorized = true;
-                        }
                         // If rcc is making the request, but it's not for a place, validate the request:
                         if (!isAuthorized)
                         {
@@ -307,23 +304,16 @@ namespace Roblox.Website.Controllers
                     }
 
                     if (isAuthorized && assetVersion.contentUrl != null)
-                    {
                         assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
-                    }
+
                     break;
             }
 
             if (assetContent != null)
-            {
                 return File(assetContent, "application/binary");
-            }
 
             Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
             throw new BadRequestException();
-        }
-        private async Task LogAudio(string assetInfo)
-        {
-            await System.IO.File.WriteAllTextAsync("audios.txt", assetInfo + "\n");
         }
 
         [HttpPostBypass("asset/batch")]
