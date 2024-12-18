@@ -1593,7 +1593,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2/get-rollout-settings")]
         public dynamic ChatRollout(string featureNames)
         {
-            dynamic rollOut = new
+            return new
             {
                 rolloutFeatures = new[]
                 {
@@ -1604,9 +1604,6 @@ namespace Roblox.Website.Controllers
                     }
                 }
             };
-
-            string jsonString = JsonConvert.SerializeObject(rollOut);
-            return Content(jsonString, "application/json");
         }
 
 
