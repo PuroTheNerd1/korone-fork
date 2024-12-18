@@ -1703,7 +1703,7 @@ namespace Roblox.Website.Controllers
             var placeId = Request.Headers["roblox-place-id"];
             long.TryParse(placeId, out long assetId);
             var details = await services.assets.GetAssetCatalogInfo(assetId);
-            var jsonData = new
+            return new
             {
                 CreatorId =  details.creatorTargetId,
                 CreatorType = "User",
@@ -1711,8 +1711,6 @@ namespace Roblox.Website.Controllers
                 GameId = assetId,
                 IsRobloxPlace = details.creatorTargetId == 1
             };
-            string jsonString = JsonConvert.SerializeObject(jsonData);
-            return Content(jsonString, "application/json");
         }
 
 
