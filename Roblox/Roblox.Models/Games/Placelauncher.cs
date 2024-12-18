@@ -4,7 +4,7 @@ using Roblox.Models.GameServer;
 namespace Roblox.Models.Games;
 public class PlaceLaunchRequest
 {
-    public string request { get; set; }
+    public string? request { get; set; } = "RequestGame";
     public long placeId { get; set; }
     public string? gameId { get; set; } = null;
     public bool? isPartyLeader { get; set; } = false;
