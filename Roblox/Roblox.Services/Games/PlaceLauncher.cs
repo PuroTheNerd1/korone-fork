@@ -23,14 +23,12 @@ public class PlaceLauncherService : ServiceBase
         {
             case "RequestGameJob":
                 if (plRequest.gameId == null)
-                {
-                    throw new BadRequestException("Game id is missing");
-                };
+                    throw new BadRequestException("Game Id is missing");
                 return await RequestGameJob(plRequest.gameId, plRequest.placeId);
             case "RequestGame":
-                return await RequestGame(plRequest.placeId, (int)MatchmakingContextId.Default, plRequest.cookie, plRequest.special, plRequest.username, plRequest.userId);
+                return await RequestGame(plRequest.placeId, plRequest.userId, plRequest.cookie, plRequest.special, plRequest.username);
             case "CloudEdit":
-                return await RequestCloudEdit(plRequest.placeId, (long)plRequest.userId, plRequest.username);
+                return await RequestCloudEdit(plRequest.placeId, plRequest.userId, plRequest.username);
             case "RequestPrivateGame":
                 break;
         }
@@ -61,29 +59,29 @@ public class PlaceLauncherService : ServiceBase
             joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={gameId}&placeId={placeId}",
             authenticationUrl = $"{Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx",
             authenticationTicket = "hi",
-            message = (string)null,
+            message = $"Joining {gameId}",
         };
     }
 
-    public async Task<PlaceLaunchResponse> RequestGame(long placeId, int matchmaking, string cookie, bool? Special = false, string? username = null, long? userId = null)
+    public async Task<PlaceLaunchResponse> RequestGame(long placeId, long userId, string cookie, bool? Special = false, string? username = null)
     {
         GamesService games = new GamesService();
         GameServerService gameServer = new GameServerService();
         UsersService users = new UsersService();
         SignService sign = new SignService();
-        var result = await gameServer.GetServerForPlace(placeId, matchmaking);
-        dynamic joinScript = null;
+        var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.Default);
+        dynamic? joinScript = null;
         string finalTicket;
-        if ((bool)Special)
+        if (Special.HasValue && (bool)Special)
         {
             var jobPlayers = await gameServer.GetGameServerPlayers(result.job);
             PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-            long year = await games.GetYear(placeId);
             string membership;
-            var membership2 = await users.GetUserMembership((long)userId);
+
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             var userInfo = await users.GetUserById((long)userId);
+            var membership2 = await users.GetUserMembership((long)userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             if (membership2 == null)
             {
@@ -94,8 +92,8 @@ public class PlaceLauncherService : ServiceBase
                 membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
             }
             string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
-            finalTicket = sign.GenerateClientTicketV4((long)userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-            joinScript = await games.GetJoinScript(year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, cookie);
+            finalTicket = sign.GenerateClientTicketV4((long)userId, userInfo.username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
+            joinScript = await games.GetJoinScript(uni.year, userInfo.username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, cookie);
         }
 
         if (result.status == JoinStatus.Joining)
@@ -109,8 +107,8 @@ public class PlaceLauncherService : ServiceBase
                 joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = cookie,
-                message = (string?)null,
-                joinScript = (bool)Special ? joinScript : null
+                message = $"Server found ({result.job})",
+                joinScript = (Special ?? false) ? joinScript ?? "" : ""
             };
         }
         return new PlaceLaunchResponse()
@@ -136,7 +134,6 @@ public class PlaceLauncherService : ServiceBase
         var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {
-            var jobPlayers = await gameServer.GetGameServerPlayers(result.job);
             PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
             long year = await games.GetYear(placeId);
             string membership;
@@ -182,7 +179,7 @@ public class PlaceLauncherService : ServiceBase
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 settings = settings,
                 authenticationTicket = "hi",
-                message = (string?)null,
+                message = $"Joining cloudedit session ({result.job})",
             };
         }
         return new PlaceLaunchResponse()

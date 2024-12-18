@@ -8,7 +8,7 @@ public class GameServerGetOrCreateResponse
     public JoinStatus status { get; set; }
     public string ip { get; set; }
     public long port { get; set; }
-    public string? job { get; set; }
+    public string job { get; set; }
 }
 
 public class GameServerMultiRunEntry
