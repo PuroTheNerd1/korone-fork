@@ -570,7 +570,7 @@ namespace Roblox.Website.Controllers
             var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
             if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
             var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
-            return Redirect($"projex-player{bootstrapperArgs}");
+            return Redirect($"pekora-player{bootstrapperArgs}");
         }
 
         [HttpGetBypass("getrichpresence")]
