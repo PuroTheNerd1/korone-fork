@@ -257,7 +257,7 @@
 "DFFlagErrorForFailedRequestsInThumbnailLogic":false,
 "FIntPGSPenetrationVelocityForMinMargin":20,
 "FFlagEnableOnboardingMemoryAPI":true,
-"DFIntHttpBatchAssetV1HundredthsPercentage":10000,
+"DFIntHttpBatchAssetV1HundredthsPercentage":0,
 "DFIntHttpBatchDelayMs":3000,
 "DFFlagBgUpdateRedirects":true,
 "DFFlagFindClosestHandleHitTestFixEnabled":true,
