@@ -671,13 +671,13 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/mobileapi/check-app-version")]
         public ActionResult<dynamic> CheckAppVersion()
         {
-
-            dynamic data = new { UpgradeAction = "None" };
-            var json = new
-            { data = data };
-
-            string jsonString = JsonConvert.SerializeObject(json);
-            return Content(jsonString, "application/json");
+            return new
+            {
+                data = new
+                {
+                    UpgradeAction = "None"
+                }
+            };
         }
 
         [HttpGetBypass("download2")]
@@ -690,14 +690,15 @@ namespace Roblox.Website.Controllers
             }
             return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
         }
+
         [HttpGetBypass("set-year")]
-        public async Task<dynamic> TaskAsync (long universeId, int year)
+        public async Task TaskAsync (long universeId, int year)
         {
             var place = await services.games.GetRootPlaceId(universeId);
             await services.assets.ValidatePermissions(place, safeUserSession.userId);
             await services.games.SetYear(place, year);
-            return "ok";
         }
+
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, FromQuery] string suggest)
         {
