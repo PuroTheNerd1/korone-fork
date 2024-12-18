@@ -11,7 +11,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("Game/Tools/InsertAsset.ashx")]
         public async Task<dynamic> InsertAsset(long? sid, long? nsets, string type, long? userId)
         {
-            string setData = await services.sets.GrabSet(sid, nsets, type, userId);
+            string? setData = await services.sets.GrabSet(sid, nsets, type, userId);
             if (setData == null)
             {
                 return BadRequest();
