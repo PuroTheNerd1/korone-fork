@@ -1428,7 +1428,7 @@ namespace Roblox.Website.Controllers
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E Prod
                 "abc9d2132ef2c21101804d8e25e0413f", //Repatched 2017Client
                 "fc5f43ec839bbbffcb26c48846b3c865", //2017L RAGELoader Debug
-                "64b1ad5c835f59e19324d639b8cded03", //2017L Prod
+                "0a5d9189b9f7a764ccf8b5655f442971", //2017L Prod
                 "bba43f967698feff49038f51b391b48e", //2018L Prod
                 "4022369076d608d1a99b7b3d250e4de5", //2018L RAGELoader Debug
                 "9d7975454cee0e948e35cdc1fb55f92a", //2019E Prod
