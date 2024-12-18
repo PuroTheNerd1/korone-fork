@@ -566,9 +566,9 @@ public class GamesService : ServiceBase, IService
         var json = JObject.Parse(response);
         return new
         {
-            country = json["country"].ToString(),
-            countryCode = json["countryCode"].ToString(),
-            city = json["city"].ToString(),
+            country = json["country"]!.ToString(),
+            countryCode = json["countryCode"]!.ToString(),
+            city = json["city"]!.ToString(),
         };
     }
     public async Task<dynamic> GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
