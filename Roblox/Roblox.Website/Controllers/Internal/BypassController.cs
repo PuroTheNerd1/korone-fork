@@ -1774,8 +1774,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/asset/getyear")]
         public async Task<dynamic> GetPlaceYear(long placeId)
         {
-            long year = await services.games.GetYear(placeId);
-            return year;
+            return await services.games.GetYear(placeId);
         }
         [HttpPostBypass("game/load-place-info")]
         public async Task<dynamic> LoadPlaceInfo()
@@ -1864,10 +1863,8 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2.0/Refresh")]
         public async Task<dynamic> RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
-            bool IsRCC = IsRcc();
-            if (!IsRCC){
-                return "Not RCC";
-            }
+            if (!IsRcc())
+                return ":3";
 
             if (clientCount == 0 && gameTime > 50)
             {
