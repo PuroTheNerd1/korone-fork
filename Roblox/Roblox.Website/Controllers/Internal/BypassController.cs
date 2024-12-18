@@ -417,7 +417,6 @@ namespace Roblox.Website.Controllers
             {
                 var status = (await services.friends.MultiGetFriendshipStatus((long) playerid, new[] {(long) userid})).FirstOrDefault();
                 return $"<Value Type=\"boolean\">{status != null && status.status == "Friends"}</Value>";
-
             }
 
             return $"<Value Type\"boolean\">{method == "isbestfriendswith"}</value>";
