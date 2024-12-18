@@ -114,36 +114,36 @@ public class AuthenticationControllerV2 : ControllerBase
 
         await CreateSessionAndSetCookie(userId);
     }
-
+    // will never be neabled
     [HttpPost("signup")]
-    public async Task<SignupResponse> Signup([Required] SignUpRequest request)
+    public void Signup([Required] SignUpRequest request)
     {
         throw new RobloxException(503, 0, "Service temporarily unavailable");
-        FeatureFlags.FeatureCheck(FeatureFlag.SignupEnabled);
-        var usernameValid = await services.users.IsUsernameValid(request.username);
-        if (!usernameValid)
-            throw new BadRequestException(5, "Invalid Username");
+        // FeatureFlags.FeatureCheck(FeatureFlag.SignupEnabled);
+        // var usernameValid = await services.users.IsUsernameValid(request.username);
+        // if (!usernameValid)
+        //     throw new BadRequestException(5, "Invalid Username");
 
-        var nameAvailable = await services.users.IsNameAvailableForSignup(request.username);
-        if (!nameAvailable)
-            throw new ForbiddenException(6, "Username is already taken");
+        // var nameAvailable = await services.users.IsNameAvailableForSignup(request.username);
+        // if (!nameAvailable)
+        //     throw new ForbiddenException(6, "Username is already taken");
 
-        var passwordValid = services.users.IsPasswordValid(request.password);
-        if (!passwordValid)
-            throw new ForbiddenException(9, "Password is too simple");
+        // var passwordValid = services.users.IsPasswordValid(request.password);
+        // if (!passwordValid)
+        //     throw new ForbiddenException(9, "Password is too simple");
 
-        // Initial cooldown check - to prevent people spamming attempts
-        await services.cooldown.CooldownCheck($"signup:step1:" + GetIP(), TimeSpan.FromSeconds(5));
-        // Now make the account
-        var createdUser =
-            await services.users.CreateUser(request.username, request.password, Enum.Parse<Gender>(request.gender));
+        // // Initial cooldown check - to prevent people spamming attempts
+        // await services.cooldown.CooldownCheck($"signup:step1:" + GetIP(), TimeSpan.FromSeconds(5));
+        // // Now make the account
+        // var createdUser =
+        //     await services.users.CreateUser(request.username, request.password, Enum.Parse<Gender>(request.gender));
 
-        await CreateSessionAndSetCookie(createdUser.userId);
+        // await CreateSessionAndSetCookie(createdUser.userId);
 
-        return new SignupResponse()
-        {
-            userId = createdUser.userId,
-        };
+        // return new SignupResponse()
+        // {
+        //     userId = createdUser.userId,
+        // };
     }
 
     [HttpPost("logoutfromallsessionsandreauthenticate")]
