@@ -1739,7 +1739,7 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("users/account-info")]
         [HttpPostBypass("users/account-info")]
-        public async Task<dynamic> accountInfo()
+        public async Task<dynamic> AccountInfo()
         {
             var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
             return new
