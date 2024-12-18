@@ -1956,98 +1956,118 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
         }
 
-        if (cat is "bodyparts" or "bodypart")
+        switch (cat)
         {
-            if (sub is "all" or null)
-            {
-                builder.Where(
-                    $"(asset.asset_type = {(int)Models.Assets.Type.Face} OR asset.asset_type = {(int)Models.Assets.Type.LeftArm} OR asset.asset_type = {(int)Models.Assets.Type.RightArm} OR asset.asset_type = {(int)Models.Assets.Type.LeftLeg} OR asset.asset_type = {(int)Models.Assets.Type.RightLeg} OR asset.asset_type = {(int)Models.Assets.Type.Head} OR asset.asset_type = {(int)Models.Assets.Type.Torso})");
-            }
+            case "bodyparts":
+            case "bodypart":
+                if (sub == "all" || sub == null)
+                {
+                    builder.Where(
+                        $"(asset.asset_type = {(int)Models.Assets.Type.Face} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.LeftArm} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.RightArm} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.LeftLeg} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.RightLeg} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.Head} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.Torso})");
+                }
+                break;
+            case "gear":
+            case "gears":
+                builder.Where($"(asset.asset_type = {(int)Models.Assets.Type.Gear})");
+                break;
+            case "audio":
+            case "audios":
+                // we ignore subcategory for now.
+                builder.Where($"(asset.asset_type = {(int)Models.Assets.Type.Audio})");
+                break;
+            case "video":
+            case "videos":
+                // we ignore subcategory for now.
+                builder.Where($"(asset.asset_type = {(int)Models.Assets.Type.Video})");
+                break;
+            case "model":
+            case "models":
+                // we ignore subcategory for now.
+                builder.Where($"(asset.asset_type = {(int)Models.Assets.Type.Model})");
+                break;
+            case "decal":
+            case "decals":
+            case "image":
+            case "images":
+                // we ignore subcategory for now.
+                builder.Where($"(asset.asset_type = {(int)Models.Assets.Type.Image})");
+                break;
+            case "meshes":
+            case "mesh":
+                // we ignore subcategory for now.
+                builder.Where($"(asset.asset_type = {(int)Models.Assets.Type.Mesh})");
+                break;
+            case "plugin":
+            case "plugins":
+                // we ignore subcategory for now.
+                builder.Where($"(asset.asset_type = {(int)Models.Assets.Type.Plugin})");
+                break;
+            default:
+                break;
         }
-        else if (cat is "gear" or "gears")
-        {
-            // we ignore subcategory for now. in the future, that will be the gear type (e.g. "ranged" or "explosive")
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Gear})");
-        }
-        // library section:
-        else if (cat is "audio" or "audios")
-        {
-            // we ignore subcategory for now.
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Audio})");
-        }
-        else if (cat is "video" or "videos")
-        {
-            // we ignore subcategory for now.
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Video})");
-        }
-        else if (cat is "model" or "models")
-        {
-            // we ignore subcategory for now.
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Model})");
-        }
-        else if (cat is "decal" or "decals" or "image" or "images")
-        {
-            // we ignore subcategory for now.
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Image})");
-        }
-        else if (cat is "meshes" or "mesh")
-        {
-            // we ignore subcategory for now.
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Mesh})");
-        }
-        else if (cat is "plugin" or "plugins")
-        {
-            // we ignore subcategory for now.
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Plugin})");
-        }
+
         // end of library seciton
 
-        if (sub is "accessories" or "communitycreations")
+        switch (sub)
         {
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Hat} OR asset.asset_type = {(int)Models.Assets.Type.HairAccessory} OR asset.asset_type = {(int)Models.Assets.Type.FaceAccessory} OR asset.asset_type = {(int)Models.Assets.Type.FrontAccessory} OR asset.asset_type = {(int)Models.Assets.Type.BackAccessory} OR asset.asset_type = {(int)Models.Assets.Type.WaistAccessory} OR asset.asset_type = {(int)Models.Assets.Type.ShoulderAccessory} OR asset.asset_type = {(int)Models.Assets.Type.NeckAccessory})");
-        }
-        else if (sub is "faces")
-        {
-            builder.Where($"asset.asset_type = {(int)Models.Assets.Type.Face}");
-        }
-        else if (sub is "clothing")
-        {
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Shirt} OR asset.asset_type = {(int)Models.Assets.Type.Pants} OR asset.asset_type = {(int)Models.Assets.Type.TeeShirt})");
-        }
-        else if (sub is "bodyparts")
-        {
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Face} OR asset.asset_type = {(int)Models.Assets.Type.LeftArm} OR asset.asset_type = {(int)Models.Assets.Type.RightArm} OR asset.asset_type = {(int)Models.Assets.Type.LeftLeg} OR asset.asset_type = {(int)Models.Assets.Type.RightLeg} OR asset.asset_type = {(int)Models.Assets.Type.Head} OR asset.asset_type = {(int)Models.Assets.Type.Torso})");
-        }
-        else if (sub is "packages" or "package")
-        {
-            builder.Where(
-                $"(asset.asset_type = {(int)Models.Assets.Type.Package})");
-        }
-        else if (sub != "collectibles")
-        {
-            Models.Assets.Type type;
-            if (Enum.TryParse<Models.Assets.Type>(request.subcategory, out type))
-            {
-                builder.Where($"asset.asset_type = {(int)type}");
-            }
-            else
-            {
-                var otherType = GetTypeFromPluralString(request.subcategory);
-                if (otherType != null)
+            case "accessories":
+            case "communitycreations":
+                builder.Where(
+                    $"(asset.asset_type = {(int)Models.Assets.Type.Hat} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.HairAccessory} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.FaceAccessory} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.FrontAccessory} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.BackAccessory} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.WaistAccessory} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.ShoulderAccessory} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.NeckAccessory})");
+                break;
+            case "faces":
+                builder.Where($"asset.asset_type = {(int)Models.Assets.Type.Face}");
+                break;
+            case "clothing":
+                builder.Where(
+                    $"(asset.asset_type = {(int)Models.Assets.Type.Shirt} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.Pants} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.TeeShirt})");
+                break;
+            case "bodyparts":
+                builder.Where(
+                    $"(asset.asset_type = {(int)Models.Assets.Type.Face} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.LeftArm} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.RightArm} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.LeftLeg} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.RightLeg} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.Head} OR " +
+                    $"asset.asset_type = {(int)Models.Assets.Type.Torso})");
+                break;
+            case "packages":
+            case "package":
+                builder.Where($"(asset.asset_type = {(int)Models.Assets.Type.Package})");
+                break;
+            case "collectibles":
+                break;
+            default:
+                Models.Assets.Type type;
+                if (Enum.TryParse<Models.Assets.Type>(request.subcategory, out type))
                 {
-                    builder.Where($"asset.asset_type = {(int)otherType}");
+                    builder.Where($"asset.asset_type = {(int)type}");
                 }
-            }
+                else
+                {
+                    var otherType = GetTypeFromPluralString(request.subcategory);
+                    if (otherType != null)
+                    {
+                        builder.Where($"asset.asset_type = {(int)otherType}");
+                    }
+                }
+                break;
         }
 
         // Whether to sort the final results by ID in DESC order, after the function is over
