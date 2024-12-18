@@ -759,9 +759,8 @@ public class UsersService : ServiceBase, IService
 
         return isDuplicate > 0;
     }
-    public async Task<string> GenerateAuthCode(string discordId)
+    public async Task<string?> GenerateAuthCode(string discordId)
     {
-
         string existingAuthCode = await db.QuerySingleOrDefaultAsync<string>(
             "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
             new

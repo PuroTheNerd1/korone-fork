@@ -38,7 +38,8 @@ using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Asset;
 using Type = Roblox.Models.Assets.Type;
-
+// just to shut the compiler up
+#pragma warning disable CS8604
 // ReSharper disable InconsistentNaming
 
 namespace Roblox.Website.Controllers;
@@ -1943,7 +1944,7 @@ Thank you for your understanding,
             creatorTargetId = 1,
             keyword = details.name,
         });
-        if (alreadyExists._total > 0)
+        if (alreadyExists._total > 0 && alreadyExists != null)
         {
             var existing = await services.assets.MultiGetInfoById(alreadyExists.data.Select(c => c.id));
             foreach (var ent in existing)
@@ -1963,7 +1964,7 @@ Thank you for your understanding,
             var info = await services.robloxApi.GetProductInfo(item.id, false);
 
             var content = await services.robloxApi.GetAssetContent(item.id);
-            var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId.Value);
+            var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId!.Value);
             if (!isOk)
                 throw new StaffException("The asset file doesn't look correct. Please try again.");
             content.Position = 0;

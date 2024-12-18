@@ -612,18 +612,14 @@ public class GameServerService : ServiceBase
         }
         throw new Exception("Port not found or NULL.");
     }
-    public async Task<string?> GetJobIdByUserId(long userId)
+    public async Task<string> GetJobIdByUserId(long userId)
     {
         var result = await db.QueryFirstOrDefaultAsync<Guid?>(
             "SELECT server_id FROM asset_server_player WHERE user_id = :userId",
             new { userId }
         );
-        if(result == null)
-        {
-            return null;
-        }
 
-        return result.ToString();
+        return result.ToString() ?? throw new RecordNotFoundException();
     }
     public async Task<int> GetGameserverForJobId(string jobId)
     {

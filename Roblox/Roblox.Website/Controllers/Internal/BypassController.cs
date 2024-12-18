@@ -265,7 +265,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/assets/batch")]
         public async Task<IActionResult> AssetBatch()
         {
-            List<BatchAssetRequest> requestData;
+            List<BatchAssetRequest>? requestData;
             bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
 
             if (isGzip)
@@ -376,7 +376,7 @@ namespace Roblox.Website.Controllers
                 {
                     if (groupid == 1200769 && await StaffFilter.IsStaff(playerid ?? 0))
                         isInGroup = true;
-                    var group = await services.groups.GetUserRoleInGroup((long) groupid, (long)playerid);
+                    var group = await services.groups.GetUserRoleInGroup((long)groupid, (long?)playerid ?? (long)0);
                     if (group.rank != 0)
                         isInGroup = true;
                 }
@@ -520,27 +520,14 @@ namespace Roblox.Website.Controllers
                     message = "You are not authorized to join"
                 };
             }
-            Placelauncher.cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"].ToString();
+            Placelauncher.cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"]!.ToString();
             Placelauncher.userId = userSession.userId;
             Placelauncher.username = userSession.username;
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 
         public static long startUserId {get;set;} = 30;
-#if DEBUG
-        [HttpGetBypass("/game/get-join-script-debug")]
-        public async Task<dynamic> GetJoinScriptDebug(long placeId, long userId = 12)
-        {
-            //startUserId = 12;
-            var result = services.gameServer.CreateTicket(startUserId, placeId, GetIP());
-            startUserId++;
-            return new
-            {
-                placeLauncher = $"{Configuration.BaseUrl}/placelauncher.ashx?ticket={HttpUtility.UrlEncode(result)}",
-                authenticationTicket = result,
-            };
-        }
-#endif
+
         [HttpPostBypass("login/RequestAuth.ashx")]
         [HttpGetBypass("login/RequestAuth.ashx")]
         public ActionResult<dynamic?> StudioRequestAuth()
@@ -749,14 +736,14 @@ namespace Roblox.Website.Controllers
 
 
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            dynamic joinScript = null;
+            dynamic? joinScript = null;
             try
             {
                 //needed for matchmaking so we can select the best route
                 //string ip = GetRequesterIpRaw(HttpContext);
-                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"].ToString());
+                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"]!.ToString());
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw new BadRequestException(1, "Couldn't find gameserver");
             }
@@ -1139,22 +1126,22 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpGetBypass("/Game/ClientPresence.ashx")]
-        public async Task ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
+        public void ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
         {
             return;
-            if(!IsRcc())
-            {
-                return;
-            }
-            if(action == "disconnect")
-            {
-                string JobId = await services.gameServer.GetJobIdByUserId(userId);
-                if(JobId == null)
-                {
-                    return;
-                }
-                await services.gameServer.OnPlayerLeave(userId, placeId, JobId);
-            }
+            // if(!IsRcc())
+            // {
+            //     return;
+            // }
+            // if(action == "disconnect")
+            // {
+            //     string JobId = await services.gameServer.GetJobIdByUserId(userId);
+            //     if(JobId == null)
+            //     {
+            //         return;
+            //     }
+            //     await services.gameServer.OnPlayerLeave(userId, placeId, JobId);
+            // }
         }
         [HttpPostBypass("/gs/shutdown")]
         public async Task ShutDownServer([Required, MVC.FromBody] ReportActivity request)
@@ -1226,32 +1213,32 @@ namespace Roblox.Website.Controllers
             return File(services.users.GetOtpQrCode(safeUserSession.userId, secret), "image/png");
         }
 
-        [HttpGetBypass("Users/GetBanStatus.ashx")]
-        public async Task<IEnumerable<dynamic>> MultiGetBanStatus(string userIds)
-        {
+//         [HttpGetBypass("Users/GetBanStatus.ashx")]
+//         public async Task<IEnumerable<dynamic>> MultiGetBanStatus(string userIds)
+//         {
 
-            var ids = userIds.Split(",").Select(long.Parse).Distinct();
-            var result = new List<dynamic>();
-#if DEBUG
-            return ids.Select(c => new
-            {
-                userId = c,
-                isBanned = false,
-            });
-#else
-            var multiGetResult = await services.users.MultiGetAccountStatus(ids);
-            foreach (var user in multiGetResult)
-            {
-                result.Add(new
-                {
-                    userId = user.userId,
-                    isBanned = user.accountStatus != AccountStatus.Ok,
-                });
-            }
+//             var ids = userIds.Split(",").Select(long.Parse).Distinct();
+//             var result = new List<dynamic>();
+// #if DEBUG
+//             return ids.Select(c => new
+//             {
+//                 userId = c,
+//                 isBanned = false,
+//             });
+// #else
+//             var multiGetResult = await services.users.MultiGetAccountStatus(ids);
+//             foreach (var user in multiGetResult)
+//             {
+//                 result.Add(new
+//                 {
+//                     userId = user.userId,
+//                     isBanned = user.accountStatus != AccountStatus.Ok,
+//                 });
+//             }
 
-            return result;
-#endif
-        }
+//             return result;
+// #endif
+//         }
 
         [HttpGetBypass("Asset/BodyColors.ashx")]
         public async Task<string> GetBodyColors(long userId)
@@ -1836,42 +1823,6 @@ namespace Roblox.Website.Controllers
             return Ok();
         }
 
-#if DEBUG
-        [HttpGetBypass("integration-test/create-account-and-set-cookie")]
-        public async Task<string> CreateAccountAndSetCookie()
-        {
-            var result = await services.users.CreateUser("ROBLOX", "ROBLOX", Gender.Male);
-            await services.users.InsertOrUpdateMembership(result.userId, MembershipType.BuildersClub);
-            var id = await services.users.CreateApplication(new CreateUserApplicationRequest()
-            {
-                about = "ROBLOX",
-                socialPresence = "",
-                isVerified = true,
-                verifiedUrl = Configuration.BaseUrl,
-                verificationPhrase = "Integration test",
-                verifiedId = "1",
-            });
-            var joinId = await services.users.ProcessApplication(id, 1, UserApplicationStatus.Approved);
-            await services.users.SetApplicationUserIdByJoinId(joinId, result.userId);
-
-            var sess = await services.users.CreateSession(result.userId);
-            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-            {
-                sessionId = sess,
-                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            });
-            Response.Cookies.Append(SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Lax,
-                IsEssential = true,
-                Expires = DateTimeOffset.Now.AddDays(1),
-                Path = "/",
-            });
-            return "Created user " + "ROBLOX" + "...\nOK";
-        }
-#endif
     }
 }
 

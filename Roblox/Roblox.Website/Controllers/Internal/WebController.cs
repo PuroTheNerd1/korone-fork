@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -19,6 +18,10 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Catalog;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Png;
 using Type = System.Type;
 
 namespace Roblox.Website.Controllers;
@@ -403,7 +406,7 @@ public class WebController : ControllerBase
         FeatureFlags.FeatureCheck(FeatureFlag.AssetCommentsEnabled);
         try
         {
-            await services.assets.AddComment(request.assetId, userSession.userId, request.text);
+            await services.assets.AddComment(request.assetId, safeUserSession.userId, request.text);
             return new
             {
                 ErrorCode = (string?)null,
@@ -712,23 +715,20 @@ public class WebController : ControllerBase
         if (pictureData == null) throw new BadRequestException(0, "Invalid image file");
 
         stream.Position = 0;
-        using var originalImage = new Bitmap(stream);
-        using var memoryStream = new MemoryStream();
-        using (var newBitmap = new Bitmap(originalImage.Width, originalImage.Height))
-        {
-            using var graphics = Graphics.FromImage(newBitmap);
-            graphics.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
-            newBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
-        }
 
-        memoryStream.Position = 0;
-        var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", userSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
+        var originalImage = Image.Load<Rgba32>(stream);
+        var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
+        newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
+        var memoryStream = new MemoryStream();
+        newImage.Save(memoryStream, new PngEncoder());
+        memoryStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream.Position = 0;
+        var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", safeUserSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
+
         await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length, pictureData.width, pictureData.height, pictureData.imageFormat, await services.assets.GenerateImageHash(memoryStream));
 
-        var clothingAsset = await services.assets.CreateAsset(request.name, null, userSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default, default, default, default, imageAsset.assetId);
-        await services.users.CreateUserAsset(userSession.userId, clothingAsset.assetId);
+        var clothingAsset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default, default, default, default, imageAsset.assetId);
+        await services.users.CreateUserAsset(safeUserSession.userId, clothingAsset.assetId);
 
         return clothingAsset;
     }
@@ -751,8 +751,8 @@ public class WebController : ControllerBase
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
         stream.Position = 0;
         // create item
-        var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, CreatorType.User,
-            userSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
+        var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
+            safeUserSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
         return asset;
     }
     private async Task<CreateResponse> UploadImage(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
@@ -761,34 +761,23 @@ public class WebController : ControllerBase
         if (imageData == null)
             throw new BadRequestException(0, "Invalid image file");
         stream.Position = 0;
-        using (var originalImage = new Bitmap(stream))
-        {
-            var memoryStream = new MemoryStream();
+        // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
+        var originalImage = Image.Load<Rgba32>(stream);
+        var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
+        newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
+        var memoryStream = new MemoryStream();
+        newImage.Save(memoryStream, new PngEncoder());
+        memoryStream.Seek(0, SeekOrigin.Begin);
 
-            using (var newBitmap = new Bitmap(originalImage.Width, originalImage.Height))
-            {
-                using (var graphics = Graphics.FromImage(newBitmap))
-                {
-                    graphics.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
-                }
+        var imageAsset = await services.assets.CreateAsset(request.name, "Image",
+            safeUserSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
+            Genre.All,
+            ModerationStatus.AwaitingApproval);
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
+            imageData.width, imageData.height, imageData.imageFormat,
+            await services.assets.GenerateImageHash(memoryStream));
 
-                newBitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
-            }
-
-            memoryStream.Position = 0;
-            var imageAsset = await services.assets.CreateAsset(request.name, "Image",
-                safeUserSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
-                Genre.All,
-                ModerationStatus.AwaitingApproval);
-
-            memoryStream.Position = 0;
-
-            await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
-                imageData.width, imageData.height, imageData.imageFormat,
-                await services.assets.GenerateImageHash(memoryStream));
-
-            return imageAsset;
-        }
+        return imageAsset;
     }
     private async Task<CreateResponse> UploadVideo(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
@@ -810,8 +799,8 @@ public class WebController : ControllerBase
         await services.economy.ChargeForVideoUpload(creatorType, creatorId);
         stream.Position = 0;
         // create item
-        var asset = await services.assets.CreateAsset(request.name, null, userSession.userId, CreatorType.User,
-            userSession.userId, stream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
+        var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
+            safeUserSession.userId, stream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
         return asset;
     }
 }
