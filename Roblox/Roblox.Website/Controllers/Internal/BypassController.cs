@@ -1741,34 +1741,21 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("users/account-info")]
         public async Task<dynamic> accountInfo()
         {
-
-            var roles = new string[] { };
-            if (userSession == null)
+            var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
+            return new
             {
-                HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return new
-                {
-                    success = false,
-                    message = "Unauthorized"
-                };
-            }
-            var userBalance = await services.economy.GetUserBalance(userSession.userId);
-            var jsonData = new
-            {
-                UserId =  userSession.userId,
-                Username = userSession.username,
-                DisplayName = userSession.username,
+                UserId = safeUserSession.userId,
+                Username = safeUserSession.username,
+                DisplayName = safeUserSession.username,
                 HasPasswordSet = true,
                 Email = "ProjectX@pekora.zip",
                 MembershipType = 3,
                 RobuxBalance = userBalance.robux,
                 AgeBracket = 0,
-                Roles = roles,
+                Roles = new string[] { },
                 EmailNotificationEnabled = false,
                 PasswordNotifcationEnabled = false,
             };
-            string jsonString = JsonConvert.SerializeObject(jsonData);
-            return Content(jsonString, "application/json");
         }
 
         [HttpGetBypass("/asset/getyear")]
