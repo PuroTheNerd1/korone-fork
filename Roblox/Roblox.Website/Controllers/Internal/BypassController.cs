@@ -1161,16 +1161,11 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/device/initialize")]
         public ActionResult<dynamic> InitDevice()
         {
-            string? appDeviceIdentifier = null;
-
-            var json = new
+            return new
             {
                 browserTrackerId = 1234567890,
-                appDeviceIdentifier = appDeviceIdentifier,
+                appDeviceIdentifier = (string?)null,
             };
-
-            string? jsonString = JsonConvert.SerializeObject(json);
-            return Content(jsonString, "application/json");
         }
         [HttpGetBypass("/Game/ClientPresence.ashx")]
         public async Task ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
