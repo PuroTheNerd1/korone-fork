@@ -6,7 +6,8 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Roblox.Logging;
 // ReSharper disable InconsistentNaming
-
+#pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 namespace Roblox.Libraries.RobloxApi;
 
 public class ProductDataResponse
@@ -143,6 +144,7 @@ public class BundleResponseEntry
     public long id { get; set; }
     public string name { get; set; }
     public string description { get; set; }
+
     public string bundleType { get; set; }
     public List<BundleItemEntry> items { get; set; }
     public BundleProduct product { get; set; }
