@@ -1393,26 +1393,12 @@ namespace Roblox.Website.Controllers
                 success = true,
                 data = new
                 {
+                    AgeUnder13 = text,
+                    Age13OrOver = text,
                     white = text,
                     black = text
                 }
             };
-        }
-        [HttpPostBypass("moderation/v2/filtertext/")]
-        public dynamic GetModerationTextV2()
-        {
-            var text = services.filter.FilterText(HttpContext.Request.Form["text"].ToString());
-            var json = new
-            {
-                success = true,
-                data = new
-                {
-                    AgeUnder13 = text,
-                    Age13OrOver = text,
-                }
-            };
-            string jsonString = JsonConvert.SerializeObject(json);
-            return Content(jsonString, "application/json");
         }
 
         private void ValidateBotAuthorization()
