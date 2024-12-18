@@ -85,9 +85,6 @@ public class GameServerPort
     private static Regex idConversionRegex = new Regex("^gs([0-9]+)-[0-9]+", RegexOptions.Compiled|RegexOptions.IgnoreCase);
     public string ApplyIdToUrl(string originalBaseUrl)
     {
-#if DEBUG
-        return originalBaseUrl + ":" + port;
-#endif
         // URL format is like "gs1-1.pekora.zip"
         var matched = idConversionRegex.Match(originalBaseUrl);
         if (!matched.Success || matched.Groups.Count < 2)
