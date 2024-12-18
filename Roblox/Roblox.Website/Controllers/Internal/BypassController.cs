@@ -251,7 +251,6 @@ namespace Roblox.Website.Controllers
 
                     if (isAuthorized && assetVersion.contentUrl != null)
                         assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
-
                     break;
             }
 

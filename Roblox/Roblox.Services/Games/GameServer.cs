@@ -720,12 +720,12 @@ public class GameServerService : ServiceBase
             isUsable = true;
         }
         string jobId = Guid.NewGuid().ToString();
-        await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
-        if (!serverCreationLock.IsAcquired)
-            return new GameServerGetOrCreateResponse
-            {
-                status = JoinStatus.Loading,
-            };
+        // await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
+        // if (!serverCreationLock.IsAcquired)
+        //     return new GameServerGetOrCreateResponse
+        //     {
+        //         status = JoinStatus.Loading,
+        //     };
 
         await InTransaction(async _ =>
         {
