@@ -58,12 +58,12 @@ namespace Roblox.Services
             return setData;
         }
 
-        public async Task<string> GrabSet(long? sid, long? nsets, string type, long? userId)
+        public async Task<string?> GrabSet(long? sid, long? nsets, string type, long? userId)
         {
             if (sid == null)
             {
                 if (nsets == null || type == null || userId == null)
-                    return null;
+                    return (string?)null;
 
                 return await FetchUserSet(nsets, type, userId);
             }
