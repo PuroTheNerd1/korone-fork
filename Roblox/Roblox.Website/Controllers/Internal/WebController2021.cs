@@ -53,13 +53,13 @@ public class WebController2021 : ControllerBase
         var newArgs = new List<dynamic>();
         var v = new ViewUserInfo()
         {
-            userId = userSession.userId,
-            username = userSession.username,
-            created = userSession.created,
+            userId = safeUserSession.userId,
+            username = safeUserSession.username,
+            created = safeUserSession.created,
             isAdmin = false, // obsolete
             isModerator = false, // obsolete
-            sessionKey = userSession.sessionKey,
-            status = userSession.accountStatus,
+            sessionKey = safeUserSession.sessionKey,
+            status = safeUserSession.accountStatus,
             theme = ThemeTypes.Light.ToString(),
         };
         newArgs.Add(v);

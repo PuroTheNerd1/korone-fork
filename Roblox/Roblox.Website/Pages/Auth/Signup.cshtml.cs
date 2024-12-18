@@ -48,7 +48,7 @@ public class Signup : RobloxPageModel
             signupDisabled = true;
         }
     }
-    
+
     private async Task SetupInvite()
     {
         if (inviteId != null)
@@ -67,7 +67,7 @@ public class Signup : RobloxPageModel
     public async Task<IActionResult> OnGet()
     {
         FeatureCheck();
-        
+
         if (string.IsNullOrEmpty(applicationId) && string.IsNullOrEmpty(inviteId))
         {
             return new RedirectResult("/");
@@ -93,11 +93,11 @@ public class Signup : RobloxPageModel
 
     private const string InvalidIdMessage = "Invalid application or invite ID. Please confirm the URL was copy and pasted correctly, then try again.";
     private const string ExpiredApplicationMessage = "For security reasons, this application has been expired. Please create a new application and try again.";
-    
+
     public async Task<IActionResult> OnPost()
     {
         // Error messages are intentionally vague. Let's keep it that way.
-        
+
         if (string.IsNullOrEmpty(applicationId) && string.IsNullOrEmpty(inviteId))
         {
             Writer.Info(LogGroup.SignUp, "Sign up failed, empty applicationId and inviteId");
@@ -109,13 +109,8 @@ public class Signup : RobloxPageModel
 
         FeatureFlags.FeatureCheck(FeatureFlag.SignupEnabled);
         var ip = ControllerBase.GetIP(ControllerBase.GetRequesterIpRaw(HttpContext));
-
-        try
-        {
-            // Initial cooldown check - to prevent people spamming attempts
-            await services.cooldown.CooldownCheck($"signup:step1:" + ip, TimeSpan.FromSeconds(5));
-        }
-        catch (CooldownException)
+        // Initial cooldown check - to prevent people spamming attempts
+        if (await services.cooldown.TryCooldownCheck($"signup:step1:" + ip, TimeSpan.FromSeconds(5)))
         {
             Writer.Info(LogGroup.SignUp, "Sign up failed, cooldown step 1");
             errorMessage = "Too many attempts. Try again in about 5 seconds.";
@@ -217,19 +212,14 @@ public class Signup : RobloxPageModel
             errorMessage = "Registration is not available at this time. Try again in a few hours, or contact a staff member.";
             return new PageResult();
         }
-        
+
         // Created user, so add final cooldown
         var signupFinalKey = "signup:step2:" + ip;
-        try
-        {
-            await services.cooldown.CooldownCheck(signupFinalKey, TimeSpan.FromMinutes(5));
-        }
-        catch (CooldownException)
+        if (await services.cooldown.TryCooldownCheck(signupFinalKey, TimeSpan.FromMinutes(5)))
         {
             errorMessage = "Too many attempts. Try again in about 5 minutes.";
             return new PageResult();
         }
-
         // Now make the account
         UserId createdUser;
         try
