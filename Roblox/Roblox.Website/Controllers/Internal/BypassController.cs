@@ -1341,6 +1341,8 @@ namespace Roblox.Website.Controllers
         {
             return "True";
         }
+
+        [HttpPostBypass("moderation/v2/filtertext/")]
         [HttpPostBypass("moderation/filtertext/")]
         public dynamic GetModerationText()
         {
