@@ -12,7 +12,6 @@ public class SignService : ServiceBase
     private static SHA1? _shaCsp;
     private static RSACryptoServiceProvider rsa = new();
     private static RSACryptoServiceProvider rsa2048 = new();
-    private static RSACryptoServiceProvider rsa2048New = new();
     private static readonly string newLine = "\r\n";
     private static readonly string format = "--rbxsig%{0}%{1}";
     private static readonly string format2048 = "--rbxsig2%{0}%{1}";
@@ -28,7 +27,6 @@ public class SignService : ServiceBase
 
             _rsaCsp.ImportCspBlob(privateKeyBlob);
             rsa2048.ImportFromPem(System.IO.File.ReadAllText(@"Keys\PrivateKey2048.pem"));
-            rsa2048New.ImportFromPem(System.IO.File.ReadAllText(@"Keys\PrivateKey2048.pem"));
         }
         catch (Exception ex)
         {
@@ -85,28 +83,7 @@ public class SignService : ServiceBase
             return Convert.ToBase64String(signature);
         }
     }
-    public string SignJson2048New(dynamic JSONToSign)
-    {
-        string script = newLine + JsonConvert.SerializeObject(JSONToSign);
-        byte[] signature = rsa2048New.SignData(Encoding.Default.GetBytes(script), SHA1.Create());
 
-        return string.Format(format2048, Convert.ToBase64String(signature), script);
-    }
-    public string SignString2048New(string stringToSign, bool bUseRbxSig = false)
-    {
-        if (bUseRbxSig)
-        {
-            string script = newLine + stringToSign;
-            byte[] signature = rsa.SignData(Encoding.Default.GetBytes(script), SHA1.Create());
-
-            return string.Format(format, Convert.ToBase64String(signature), script);
-        }
-        else
-        {
-            byte[] signature = rsa2048New.SignData(Encoding.Default.GetBytes(stringToSign), SHA1.Create());
-            return Convert.ToBase64String(signature);
-        }
-    }
     public string GenerateClientTicketV1(long userId, string username, string jobId, string characterAppearanceUrl)
     {
         DateTime currentUtcDateTime = DateTime.UtcNow;
@@ -150,9 +127,9 @@ public class SignService : ServiceBase
         string customTimestamp = utcNow.ToString("MM/dd/yyyy hh:mm:ss tt");
         string countryCode = "US";
         string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";
-        string ticket2Signature = SignString2048New(ticket2);
+        string ticket2Signature = SignString2048(ticket2);
         string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership.Length}\n{membership}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
-        string ticketSignature = SignString2048New(ticket);
+        string ticketSignature = SignString2048(ticket);
         Console.WriteLine(ticket2 + ticket);
         string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
         return finalTicket;
