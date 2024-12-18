@@ -49,37 +49,31 @@ public class EconomyChat : ControllerBase
     [HttpDelete("channels/{channelId:long}/typing")]
     public async Task MarkAsNotTyping(long channelId)
     {
-        if (userSession is null)
-            throw new RobloxException(403, 0, "Forbidden");
-        await chatService.ToggleTyping(userSession.userId, channelId, false);
+        await chatService.ToggleTyping(safeUserSession.userId, channelId, false);
     }
 
     [HttpGet("channels/{channelId:long}/read")]
     public async Task<UnreadMessageCount> GetUnreadMessageCount(long channelId)
     {
-        if (userSession is null)
-            throw new RobloxException(403, 0, "Forbidden");
-        return await chatService.GetUnreadMessageCount(userSession.userId, channelId);
+        return await chatService.GetUnreadMessageCount(safeUserSession.userId, channelId);
     }
 
     [HttpPost("channels/{channelId:long}/read")]
     public async Task MarkChannelAsRead(long channelId)
     {
-        await chatService.SetReadMessage(userSession.userId, channelId);
+        await chatService.SetReadMessage(safeUserSession.userId, channelId);
     }
 
     [HttpPost("channels/{channelId:long}/send")]
     public async Task<ChatMessage> CreateMessage(long channelId, [Required, FromBody] CreateMessageRequest request)
     {
         request.channelId = channelId;
-        return await chatService.CreateChannelMessage(userSession.userId, request);
+        return await chatService.CreateChannelMessage(safeUserSession.userId, request);
     }
 
     [HttpDelete("channels/{channelId:long}/messages/{messageId:long}")]
     public async Task DeleteMessage(long channelId, long messageId)
     {
-        if (userSession is null)
-            throw new RobloxException(403, 0, "Forbidden");
-        await chatService.RemoveMessage(userSession.userId, messageId);
+        await chatService.RemoveMessage(safeUserSession.userId, messageId);
     }
 }
