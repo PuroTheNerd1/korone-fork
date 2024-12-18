@@ -1428,12 +1428,12 @@ namespace Roblox.Website.Controllers
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E Prod
                 "abc9d2132ef2c21101804d8e25e0413f", //Repatched 2017Client
                 "fc5f43ec839bbbffcb26c48846b3c865", //2017L RAGELoader Debug
-                "7b31e0e3358b167864f1506de8502076", //2017L Prod
-                "8c5aecb7811acbb582f06f2a81b958f4", //2018L Prod
+                "8fd32803b0a277cf8560e35300ce4dd7", //2017L Prod
+                "bba43f967698feff49038f51b391b48e", //2018L Prod
                 "4022369076d608d1a99b7b3d250e4de5", //2018L RAGELoader Debug
                 "9d7975454cee0e948e35cdc1fb55f92a", //2019E Prod
-                "9cdc73fd9b24c974f5a0dde411dcd38f", //2020L Prod
-                "a58f725954fe5b2ed30b0778f932d249", //2021M Prod
+                "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
+                "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
                 "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6
             };
 
