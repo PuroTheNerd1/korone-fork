@@ -12,7 +12,7 @@ public class PlaceLaunchRequest
     public string? accessCode { get; set; }
     public string? linkCode { get; set; }
     public string? privateGameMode { get; set; }
-    public string cookie { get; set; }
+    public string? cookie { get; set; }
     public string? username { get; set; }
     public long? userId { get; set; }
     public bool? special { get; set; } = false;
