@@ -54,53 +54,7 @@ namespace Roblox.Website.Controllers
         {
             throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
         }
-/*
-        [HttpGetBypass("asset/shader")]
-        public async Task<MVC.FileResult> GetShaderAsset(long id)
-        {
-            var isMaterialOrShader = BypassControllerMetadata.materialAndShaderAssetIds.Contains(id);
-            if (!isMaterialOrShader)
-            {
-                // Would redirect but that could lead to infinite loop.
-                // Just throw instead
-                throw new RobloxException(400, 0, "BadRequest");
-            }
 
-            var assetId = id;
-            try
-            {
-                var ourId = await services.assets.GetAssetIdFromRobloxAssetId(assetId);
-                assetId = ourId;
-            }
-            catch (RecordNotFoundException)
-            {
-                // Doesn't exist yet, so create it
-                var migrationResult = await MigrateItem.MigrateItemFromRoblox(assetId.ToString(), false, null, default, new ProductDataResponse()
-                {
-                    Name = "ShaderConversion" + id,
-                    AssetTypeId = Type.Special, // Image
-                    Created = DateTime.UtcNow,
-                    Updated = DateTime.UtcNow,
-                    Description = "ShaderConversion1.0",
-                });
-                assetId = migrationResult.assetId;
-            }
-
-            var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
-            if (latestVersion.contentUrl is null)
-            {
-                throw new RobloxException(403, 0, "Forbidden"); // ?
-            }
-            // These files are large, encourage clients to cache them
-            HttpContext.Response.Headers.CacheControl = new CacheControlHeaderValue()
-            {
-                Public = true,
-                MaxAge = TimeSpan.FromDays(360),
-            }.ToString();
-            var assetContent = await services.assets.GetAssetContent(latestVersion.contentUrl);
-            return File(assetContent, "application/binary");
-        }
-        */
         public bool IsRcc()
         {
             var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
