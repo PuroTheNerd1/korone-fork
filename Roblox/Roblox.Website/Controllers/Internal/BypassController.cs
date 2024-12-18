@@ -271,7 +271,7 @@ namespace Roblox.Website.Controllers
                     break;
                 default:
                     // anything else requires auth
-                    var isAuthorized = false;
+                    bool isAuthorized = false;
                     if (isRcc)
                     {
                         long.TryParse(placeIdHeader, out placeId);
