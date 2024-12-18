@@ -20,7 +20,7 @@ public class EconomyTransactionBase
 
     public EconomyTransactionBase()
     {
-        
+
     }
 
     public void SetSelf(CreatorType type, long id)
@@ -39,7 +39,7 @@ public class EconomyTransactionBase
             throw new ArgumentException(nameof(type) + " is invalid: " + type);
         }
     }
-    
+
     public void SetOther(CreatorType type, long id)
     {
         // filter creatorType
@@ -71,7 +71,7 @@ public class GroupFundRecipientTransaction : IEconomyTransaction
     {
         return transaction;
     }
-    
+
     public GroupFundRecipientTransaction(CreatorType creatorType, long creatorId, long groupId, CurrencyType currencyType, long amount)
     {
         transaction = new EconomyTransactionBase()
@@ -94,7 +94,7 @@ public class GroupFundPayoutTransaction : IEconomyTransaction
     {
         return transaction;
     }
-    
+
     public GroupFundPayoutTransaction(long groupId, CurrencyType currencyType, long amount, CreatorType recipientType, long recipientId)
     {
         transaction = new EconomyTransactionBase()
@@ -117,10 +117,10 @@ public class AudioUploadTransaction : IEconomyTransaction
     {
         return transaction;
     }
-    
+
     public AudioUploadTransaction(CreatorType creatorType, long creatorId)
     {
-        const long amount = 100;
+        const long amount = 20;
         transaction = new EconomyTransactionBase()
         {
             amount = amount,
@@ -141,7 +141,7 @@ public class AssetPurchaseTransaction : IEconomyTransaction
     {
         return transaction;
     }
-    
+
     public AssetPurchaseTransaction(long userIdPurchaser, CreatorType sellerType, long sellerId, CurrencyType currency, long amount, long assetId, long userAssetId)
     {
         transaction = new EconomyTransactionBase()
@@ -151,7 +151,7 @@ public class AssetPurchaseTransaction : IEconomyTransaction
             currencyType = currency,
             type = PurchaseType.Purchase,
             subType = TransactionSubType.ItemPurchase,
-            
+
             userAssetId = userAssetId,
             assetId = assetId,
         };
@@ -168,7 +168,7 @@ public class AssetResalePurchaseTransaction : IEconomyTransaction
     {
         return transaction;
     }
-    
+
     public AssetResalePurchaseTransaction(long userIdPurchaser, long sellerId, CurrencyType currency, long amount, long assetId, long userAssetId)
     {
         transaction = new EconomyTransactionBase()
@@ -179,7 +179,7 @@ public class AssetResalePurchaseTransaction : IEconomyTransaction
             type = PurchaseType.Purchase,
             subType = TransactionSubType.ItemResalePurchase,
             userIdTwo = sellerId,
-            
+
             userAssetId = userAssetId,
             assetId = assetId,
         };
@@ -194,7 +194,7 @@ public class AssetSaleTransaction : IEconomyTransaction
     {
         return transaction;
     }
-    
+
     public AssetSaleTransaction(long userIdPurchaser, CreatorType sellerType, long sellerId, CurrencyType currency, long amount, long assetId, long userAssetId)
     {
         transaction = new EconomyTransactionBase()
@@ -204,7 +204,7 @@ public class AssetSaleTransaction : IEconomyTransaction
             currencyType = currency,
             type = PurchaseType.Sale,
             subType = TransactionSubType.ItemSale,
-            
+
             userAssetId = userAssetId,
             assetId = assetId,
         };
@@ -220,7 +220,7 @@ public class AssetReSaleTransaction : IEconomyTransaction
     {
         return transaction;
     }
-    
+
     public AssetReSaleTransaction(long userIdPurchaser, long userIdSeller, CurrencyType currency, long amount, long assetId, long userAssetId)
     {
         transaction = new EconomyTransactionBase()
@@ -231,7 +231,7 @@ public class AssetReSaleTransaction : IEconomyTransaction
             currencyType = currency,
             type = PurchaseType.Sale,
             subType = TransactionSubType.ItemResale,
-            
+
             userAssetId = userAssetId,
             assetId = assetId,
         };
