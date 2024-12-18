@@ -624,40 +624,7 @@ namespace Roblox.Website.Controllers
         {
             return Ok();
         }
-        [HttpGetBypass("games/list-json")]
-        public IActionResult SillyGameJson()
-        {
-            dynamic gameDetail = new System.Dynamic.ExpandoObject();
 
-            gameDetail.CreatorID = 20;
-            gameDetail.CreatorName = "ass";
-            gameDetail.CreatorUrl = "https://www.pekora.zip/users/20/profile";
-            gameDetail.Plays = 1;
-            gameDetail.Price = 0;
-            gameDetail.ProductID = 0;
-            gameDetail.IsOwned = false;
-            gameDetail.IsVotingEnabled = true;
-            gameDetail.TotalUpVotes = 69;
-            gameDetail.TotalDownVotes = 69;
-            gameDetail.TotalBought = 69;
-            gameDetail.UniverseID = 189;
-            gameDetail.HasErrorOcurred = false;
-            gameDetail.GameDetailReferralUrl = "https://www.pekora.zip/games/189/Natural-Disaster-Survival";
-            gameDetail.Url = "https://www.pekora.zip/images/thumbnails/e70dd27c44ca8bebebb14f48fbba28c5b5a2ba79ebb1e3c820c3a1e84fc8aed5.png";
-            gameDetail.RetryUrl = null;
-            gameDetail.Final = true;
-            gameDetail.Name = "Natural Disaster Survival";
-            gameDetail.PlaceID = 189;
-            gameDetail.PlayerCount = 10347;
-            gameDetail.ImageId = 2311;
-
-            List<dynamic> gameDetailList = new List<dynamic>();
-            gameDetailList.Add(gameDetail);
-            gameDetailList.Add(gameDetail);
-            gameDetailList.Add(gameDetail);
-            string jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(gameDetailList);
-            return Content(jsonString, "application/json");
-        }
         [HttpGetBypass("game/GetCurrentUser.ashx")]
         public IActionResult GetUserId()
         {
