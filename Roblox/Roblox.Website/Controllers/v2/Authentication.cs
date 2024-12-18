@@ -101,7 +101,7 @@ public class AuthenticationControllerV2 : ControllerBase
         {
             userId = await services.users.GetUserIdFromUsername(request.cvalue);
         }
-        catch (RecordNotFoundException e)
+        catch (RecordNotFoundException)
         {
             throw new ForbiddenException(1, "Incorrect username or password. Please try again");
         }
