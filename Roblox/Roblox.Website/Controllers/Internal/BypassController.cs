@@ -137,9 +137,7 @@ namespace Roblox.Website.Controllers
                     return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
                 }
             }
-            Console.WriteLine($"UserAuth: {isLoggedIn} RCC:{isRcc} Bot: {isBotRequest} Asset: {assetId}");
-            if (!isLoggedIn && !isRcc && !isBotRequest)
-                throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
+
             // TODO: Fix for this is using a diffrent access key for rendering
             if (details.moderationStatus != ModerationStatus.ReviewApproved && details.moderationStatus != ModerationStatus.AwaitingModerationDecision && !IsRcc() && !isBotRequest)
                 throw new RobloxException(403, 0, "Asset not approved for requester");
@@ -218,6 +216,8 @@ namespace Roblox.Website.Controllers
                     assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                     break;
                 default:
+                    if (!isLoggedIn && !isRcc && !isBotRequest)
+                        throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
                     // anything else requires auth
                     var isAuthorized = false;
                     if (isRcc)
