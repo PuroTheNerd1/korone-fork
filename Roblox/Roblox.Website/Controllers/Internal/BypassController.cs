@@ -117,11 +117,6 @@ namespace Roblox.Website.Controllers
             {
                 throw new BadRequestException();
             }
-            // If the bypasscontroller metadtata contains the asset id redirect to the shader endpoint
-            if (BypassControllerMetadata.materialAndShaderAssetIds.Contains(assetId))
-            {
-                return new MVC.RedirectResult("/asset/shader?id=" + assetId);
-            }
 
             var isRcc = IsRcc();
 
@@ -142,7 +137,7 @@ namespace Roblox.Website.Controllers
                     return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
                 }
             }
-
+            Console.WriteLine($"UserAuth: {isLoggedIn} RCC:{isRcc} Bot: {isBotRequest}");
             if (!isLoggedIn && !isRcc && !isBotRequest)
                 throw new RobloxException(400, 0, "AssetTemporarilyUnavailable");
             // TODO: Fix for this is using a diffrent access key for rendering
