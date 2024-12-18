@@ -236,13 +236,13 @@ public class Signup : RobloxPageModel
         if (method == SignupMethod.Application)
         {
             // Application
-            await services.users.SetApplicationUserIdByJoinId(applicationId, createdUser.userId);
+            await services.users.SetApplicationUserIdByJoinId(applicationId!, createdUser.userId);
             Roblox.Metrics.UserMetrics.ReportUserSignUpFromApplication();
         }
         else if (method == SignupMethod.InviteUrl)
         {
             // Invite
-            await services.users.SetUserInviteId(createdUser.userId, inviteId);
+            await services.users.SetUserInviteId(createdUser.userId, inviteId!);
             Roblox.Metrics.UserMetrics.ReportUserSignUpFromInvite();
         }
 

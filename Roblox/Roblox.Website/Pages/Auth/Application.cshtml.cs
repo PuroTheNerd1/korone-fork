@@ -111,22 +111,22 @@ public class Application : RobloxPageModel
 
             if (string.IsNullOrEmpty(userInfoJson))
             {
-                return new DiscordInfo { success = false, username = null };
+                return new DiscordInfo { success = false, username = null! };
             }
 
             try
             {
                 var desUserInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<DiscordInfo>(userInfoJson);
-                return desUserInfo;
+                return desUserInfo!;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new DiscordInfo { success = false, username = null };
+                return new DiscordInfo { success = false, username = null! };
             }
         }
         else
         {
-            return new DiscordInfo { success = false, username = null };
+            return new DiscordInfo { success = false, username = null! };
         }
     }
 
@@ -366,7 +366,7 @@ public class Application : RobloxPageModel
                     try
                     {
                         using var app = ServiceProvider.GetOrCreate<ApplicationProcessorService>();
-                        await app.AttemptBackgroundApplicationProcess(application, result.socialData);
+                        await app.AttemptBackgroundApplicationProcess(application!, result.socialData);
                     }
                     catch (Exception e)
                     {
@@ -383,7 +383,7 @@ public class Application : RobloxPageModel
             return new PageResult();
         }
 
-        successMessage = "Your application has been sent, it should be reviewed soon. If you submitted this application in an incognito tab or computer/browser that you do not normally use, you should record the ID to check its status: " + application.id;
+        successMessage = "Your application has been sent, it should be reviewed soon. If you submitted this application in an incognito tab or computer/browser that you do not normally use, you should record the ID to check its status: " + application!.id;
 
         return new PageResult();
     }

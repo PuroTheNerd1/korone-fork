@@ -194,7 +194,7 @@ public class WebController2021 : ControllerBase
     [HttpGet("my/groups")]
     public async Task<IActionResult> GroupsRedirect()
     {
-        var hasGroups = (await services.groups.GetAllRolesForUser(userSession.userId)).ToList();
+        var hasGroups = (await services.groups.GetAllRolesForUser(safeUserSession.userId)).ToList();
         if (hasGroups.Count > 0)
         {
             return Redirect("/groups/" + hasGroups.First().id + "/" +
@@ -359,11 +359,11 @@ public class WebController2021 : ControllerBase
         }
 
         var marketData = await services.assets.GetProductForAsset(assetId);
-        var owned = await services.users.GetUserAssets(userSession.userId, assetId);
-        var pins = await services.inventory.GetCollections(userSession.userId);
+        var owned = await services.users.GetUserAssets(safeUserSession.userId, assetId);
+        var pins = await services.inventory.GetCollections(safeUserSession.userId);
         var comments = await services.assets.AreCommentsEnabled(assetId);
 
-        var balance = await services.economy.GetUserRobux(userSession.userId);
+        var balance = await services.economy.GetUserRobux(safeUserSession.userId);
         return await GetPage("catalogItem", new List<dynamic>()
         {
             balance,
