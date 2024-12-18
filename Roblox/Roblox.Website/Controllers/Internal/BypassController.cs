@@ -494,6 +494,7 @@ namespace Roblox.Website.Controllers
                 placeId = request.placeId,
                 userId = safeUserSession.userId,
                 username = safeUserSession.username,
+                cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"]!.ToString(),
                 special = true
             };
             return await services.placeLauncherFactory.PlaceLauncherAsync(placeLauncherRequest);
