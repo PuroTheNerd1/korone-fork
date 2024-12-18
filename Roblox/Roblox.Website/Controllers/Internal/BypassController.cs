@@ -1468,12 +1468,9 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/players/{userId}")]
         public MVC.ActionResult<dynamic> ChatWhiteList(long userId)
         {
-            string mode;
-            bool IsOwner = StaffFilter.IsOwner(userId);
-            mode = IsOwner ? "whitelist" : "blacklist";
             return new
             {
-                ChatFilter = mode,
+                ChatFilter = StaffFilter.IsOwner(userId) ? "whitelist" : "blacklist",
             };
         }
 
