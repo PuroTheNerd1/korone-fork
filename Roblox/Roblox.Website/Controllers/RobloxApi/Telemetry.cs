@@ -30,7 +30,7 @@ namespace Roblox.Website.Controllers
                         SubjectTargetId = 63713166375,
                         ExperimentName = "AllUsers.DevelopSplashScreen.GreenStartCreatingButton",
                         Status = "Inactive",
-                        Variation = (string)null
+                        Variation = (string?)null
                     }
                 }
             };
