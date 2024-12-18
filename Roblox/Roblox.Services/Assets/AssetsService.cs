@@ -1195,10 +1195,6 @@ public class AssetsService : ServiceBase, IService
 
         String s(float f)
         { // Convert float to string
-            if (f == null)
-            {
-                f = 0;
-            }
             String expf = f.ToString("e5");
             String str = expf;
             if (str.IndexOf("e+000") != -1)
@@ -2059,21 +2055,23 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         if (!string.IsNullOrEmpty(request.category))
         {
-            if (cat is "communitycreations")
+            switch (cat)
             {
                 // TODO: This blocks groupId 1. Is that an issue?
-                builder.Where("(asset.creator_id != 1)");
-            }
-            else if (cat is "collectibles")
-            {
-                builder.Where("asset.is_limited = true");
-            }
-            else if (cat is "featured")
-            {
-                doIdSort = true;
-                builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
-                // TODO: this used to have clothing filters but I got rid of them in the name of performance
-                // Exact filters are at /services/api/src/controllers/proxy/v1/Catalog.ts:862
+                case "communitycreations":
+                    builder.Where("(asset.creator_id != 1)");
+                    break;
+                case "collectibles":
+                    builder.Where("asset.is_limited = true");
+                    break;
+                case "featured":
+                    // TODO: this used to have clothing filters but I got rid of them in the name of performance
+                    // Exact filters are at /services/api/src/controllers/proxy/v1/Catalog.ts:862
+                    doIdSort = true;
+                    builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
+                    break;
+                default:
+                    break;
             }
         }
 
