@@ -277,11 +277,17 @@ namespace Roblox.Website.Controllers
             List<BatchAssetRequest> requestData;
             bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
 
-            using (var requestStream = isGzip ? new GZipStream(Request.Body, CompressionMode.Decompress) : Request.Body)
+            if (isGzip)
             {
                 using (var decompressedStream = new MemoryStream())
                 {
-                    await requestStream.CopyToAsync(decompressedStream);
+                    using (var requestStream = Request.Body)
+                    {
+                        using (var gzipStream = new GZipStream(requestStream, CompressionMode.Decompress))
+                        {
+                            await gzipStream.CopyToAsync(decompressedStream);
+                        }
+                    }
                     decompressedStream.Seek(0, SeekOrigin.Begin);
 
                     using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
@@ -291,7 +297,14 @@ namespace Roblox.Website.Controllers
                     }
                 }
             }
-
+            else
+            {
+                using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+                {
+                    var json = await reader.ReadToEndAsync();
+                    requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
+                }
+            }
             if (requestData == null)
             {
                 throw new BadRequestException();
@@ -312,6 +325,7 @@ namespace Roblox.Website.Controllers
 
             return Content(JsonSerializer.Serialize(assetReturnInfo), "application/json");
         }
+
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
         {
