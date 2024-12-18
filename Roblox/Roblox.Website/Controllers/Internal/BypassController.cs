@@ -1175,12 +1175,13 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/Game/ClientPresence.ashx")]
         public async Task ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
         {
-            bool IsRCC = IsRcc();
-            if(!IsRCC)
+            return;
+            if(!IsRcc())
             {
                 return;
             }
-            if(action == "disconnect"){
+            if(action == "disconnect")
+            {
                 string JobId = await services.gameServer.GetJobIdByUserId(userId);
                 if(JobId == null)
                 {
@@ -1365,18 +1366,14 @@ namespace Roblox.Website.Controllers
             bool isOwner = userSession != null && StaffFilter.IsOwner(safeUserSession.userId);
 
             if (safeUserSession.userId == userId)
-            {
                 return "You can't kick yourself!";
-            }
+
             if (isOwner)
             {
                 await services.gameServer.KickPlayer(userId);
                 return $"Kicked player {userId}";
             }
-            else
-            {
-                return "not the owner";
-            }
+            return "not the owner";
         }
 
         [HttpGetBypass("/Game/ChatFilter.ashx")]
