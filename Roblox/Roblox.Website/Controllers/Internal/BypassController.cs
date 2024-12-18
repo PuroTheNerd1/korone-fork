@@ -370,9 +370,7 @@ namespace Roblox.Website.Controllers
                 try
                 {
                     if (groupid == 1200769 && await StaffFilter.IsStaff(playerid ?? 0))
-                    {
                         isInGroup = true;
-                    }
                     var group = await services.groups.GetUserRoleInGroup((long) groupid, (long)playerid);
                     if (group.rank != 0)
                         isInGroup = true;
@@ -418,19 +416,11 @@ namespace Roblox.Website.Controllers
             if (method == "isfriendswith" && playerid != null && userid != null)
             {
                 var status = (await services.friends.MultiGetFriendshipStatus((long) playerid, new[] {(long) userid})).FirstOrDefault();
-                if (status != null && status.status == "Friends")
-                {
-                    return "<Value Type=\"boolean\">True</Value>";
-                }
-                return "<Value Type=\"boolean\">False</Value>";
+                return $"<Value Type=\"boolean\">{status != null && status.status == "Friends"}</Value>";
 
             }
 
-            if (method == "isbestfriendswith")
-            {
-                return "<Value Type\"boolean\">False</value>";
-            }
-
+            return $"<Value Type\"boolean\">{method == "isbestfriendswith"}</value>";
             throw new NotImplementedException();
         }
 
