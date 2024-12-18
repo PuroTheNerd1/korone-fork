@@ -13,13 +13,13 @@ namespace Roblox.Services
 
         private async Task<string> RequestSetData(HttpClient httpClient, string query)
         {
-            var builder = new UriBuilder(httpClient.BaseAddress)
+            var builder = new UriBuilder(httpClient.BaseAddress!)
             {
                 Query = query
             };
 
             using HttpResponseMessage response = await httpClient.GetAsync(builder.Uri);
-            response.EnsureSuccessStatusCode(); 
+            response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
 
@@ -27,7 +27,7 @@ namespace Roblox.Services
         {
             if (!bypassCache)
             {
-                string cachedSetData = await redis.StringGetAsync($"set:{setId}:data");
+                string? cachedSetData = await redis.StringGetAsync($"set:{setId}:data");
                 if (cachedSetData != null)
                 {
                     return cachedSetData;
@@ -45,7 +45,7 @@ namespace Roblox.Services
         {
             if (!bypassCache)
             {
-                string cachedSetData = await redis.StringGetAsync($"set:{userId}:data");
+                string? cachedSetData = await redis.StringGetAsync($"set:{userId}:data");
                 if (cachedSetData != null)
                 {
                     return cachedSetData;
