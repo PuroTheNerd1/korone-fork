@@ -45,7 +45,7 @@ public class WebController2021 : ControllerBase
     [HttpGet("/apisite/ecsv2/www/e.png")]
     public void ReportEcsAnalticsV2()
     {
-        
+
     }
 
     private async Task<IActionResult> GetPage(string viewName, IEnumerable<dynamic>? arguments = null)
@@ -73,7 +73,7 @@ public class WebController2021 : ControllerBase
         var result = await RemoteView.GetView(viewName, newArgs);
         return Content(result, "text/html");
     }
-    
+
     public static dynamic ToDynamic<T>(T obj)
     {
         IDictionary<string, object> expando = new ExpandoObject();
@@ -91,13 +91,13 @@ public class WebController2021 : ControllerBase
     {
         return await GetPage("dashboard");
     }
-    
+
     [HttpGet("/trades")]
     public async Task<IActionResult> GetTrades()
     {
         return await GetPage("trades");
     }
-        
+
     [HttpGet("/users/{userId:long}/trade")]
     public async Task<IActionResult> GetTradeWithUser(long userId)
     {
@@ -110,7 +110,7 @@ public class WebController2021 : ControllerBase
         });
     }
 
- 
+
     [HttpGet("/users/{userId:long}/profile")]
     public async Task<IActionResult> GetUserProfile(long userId)
     {
@@ -139,7 +139,7 @@ public class WebController2021 : ControllerBase
         foreach (var place in createdPlaces)
         {
             var id = (long) place.rootPlace.id;
-            place.playerCount = await Services.GamesService.GetPlayerCount(id);
+            place.playerCount = Services.GamesService.GetPlayerCount(id);
             place.visitCount = await services.games.GetVisitCount(id);
         }
         return await GetPage("userProfile", new List<dynamic>()
@@ -167,8 +167,8 @@ public class WebController2021 : ControllerBase
             },
         });
     }
-    
-        
+
+
     [HttpGet("/search/groups")]
     [HttpGet("/groups/search")]
     public async Task<IActionResult> SearchGroups()
@@ -179,11 +179,11 @@ public class WebController2021 : ControllerBase
     [HttpGet("search/users")]
     public async Task<IActionResult> SearchUsers(string keyword)
     {
-        if (string.IsNullOrEmpty(keyword) || keyword.Length >= 32 || keyword.IndexOf(">") != -1 || keyword.IndexOf("<") != -1) 
+        if (string.IsNullOrEmpty(keyword) || keyword.Length >= 32 || keyword.IndexOf(">") != -1 || keyword.IndexOf("<") != -1)
             return Content("Invalid search keyword");
         return await GetPage("userSearch", new List<dynamic>() {keyword});
     }
-    
+
     [HttpGet("/groups/create")]
     public async Task<IActionResult> CreateGroup()
     {
@@ -255,7 +255,7 @@ public class WebController2021 : ControllerBase
             },
         });
     }
-    
+
     [HttpGet("users/{userId:long}/friends")]
     public async Task<IActionResult> FriendsPage(long userId)
     {
@@ -269,7 +269,7 @@ public class WebController2021 : ControllerBase
             },
         });
     }
-    
+
     [HttpGet("users/friends")]
     public async Task<IActionResult> MyFriendsPage()
     {
@@ -277,19 +277,19 @@ public class WebController2021 : ControllerBase
         {
             new
             {
-                username = userSession.username,
-                userId = userSession.userId,
+                username = safeUserSession.username,
+                userId = safeUserSession.userId,
             },
         });
     }
 
-    [HttpGet("my/messages")]
-    public async Task<IActionResult> MyMessages()
-    {
-        // return await GetPage("myMessages");
-        return Content("Messages are disabled on 2021 due to possible xss issues. I'll hopefully fix this soon.");
-    }
-    
+    // [HttpGet("my/messages")]
+    // public async Task<IActionResult> MyMessages()
+    // {
+    //     // return await GetPage("myMessages");
+    //     return Content("Messages are disabled on 2021 due to possible xss issues. I'll hopefully fix this soon.");
+    // }
+
     [HttpGet("games")]
     public async Task<IActionResult> GamesPage()
     {
@@ -297,7 +297,7 @@ public class WebController2021 : ControllerBase
     }
 
     [HttpGet("games/refer")]
-    public async Task<IActionResult> RedirectToGameDetailsPage(long PlaceId)
+    public IActionResult RedirectToGameDetailsPage(long PlaceId)
     {
         return Redirect("/games/" + PlaceId + "/--");
     }
@@ -311,7 +311,7 @@ public class WebController2021 : ControllerBase
         {
             return Redirect("/games/" + placeId + "/" + expectedName);
         }
-        details.playerCount = await Services.GamesService.GetPlayerCount(placeId);
+        details.playerCount = Services.GamesService.GetPlayerCount(placeId);
         details.favoriteCount = 0;
         details.visitCount = await services.games.GetVisitCount(placeId);
         return await GetPage("gameDetails", new []{details});
@@ -322,19 +322,19 @@ public class WebController2021 : ControllerBase
     {
         return Content("<!-- TODO -->", "text/html");
     }
-    
+
     [HttpGet("transactions")]
     public async Task<IActionResult> TransactionsPage()
     {
         return await GetPage("transactions");
     }
-    
+
     [HttpGet("my/account")]
     public async Task<IActionResult> MySettingsPage()
     {
         return await GetPage("settings");
     }
-    
+
     [HttpGet("catalog")]
     public async Task<IActionResult> Catalog()
     {
@@ -347,7 +347,7 @@ public class WebController2021 : ControllerBase
         var details = await services.assets.GetAssetCatalogInfo(assetId);
         return Redirect("/catalog/" + assetId + "/" + UrlUtilities.ConvertToSeoName(details.name));
     }
-    
+
     [HttpGet("catalog/{assetId:long}/{assetName}")]
     public async Task<IActionResult> GetCatalogPage(long assetId, string assetName)
     {
@@ -396,7 +396,7 @@ public class WebController2021 : ControllerBase
             },
         });
     }
-    
+
     [HttpGet("my/avatar")]
     public async Task<IActionResult> MyAvatar()
     {

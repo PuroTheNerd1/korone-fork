@@ -248,7 +248,7 @@ public class Economy : ControllerBase
     [HttpPostBypass("v1/purchases/products/{assetId:long}")]
     public async Task<dynamic> PurchaseAsset(long assetId)
     {
-        dynamic request;
+        dynamic? request;
         using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
         {
             var json = await reader.ReadToEndAsync();
@@ -260,6 +260,8 @@ public class Economy : ControllerBase
             }
             request = JsonConvert.DeserializeObject<PurchaseRequest>(fixedJson);
         }
+        if (request == null)
+            throw new RobloxException(503, 0, "Invalid purchase reqeust");
         var details = await services.assets.GetAssetCatalogInfo(assetId);
         FeatureCheck();
         var stopwatch = new Stopwatch();
@@ -370,7 +372,7 @@ public class Economy : ControllerBase
     }
 
     [HttpGetBypass("v1/groups/{groupId}/users-payout-eligibility")]
-    public async Task<dynamic> GetUserPayoutEligibility(long groupId, string userIds)
+    public dynamic GetUserPayoutEligibility(long groupId, string userIds)
     {
         var ids = userIds.Split(",").Select(long.Parse).Distinct();
         var result = new Dictionary<string, string>();
