@@ -49,6 +49,27 @@ namespace Roblox.Website.Controllers
             return onlineFriends;
         }
 
+        [HttpGetBypass("friends/filter")]
+        public async Task<dynamic> GetFilteredFriends(string otherUserIds)
+        {
+            var ids = otherUserIds.Split(",").Select(long.Parse).Distinct().ToList();
+            var result = await services.friends.GetFriends(safeUserSession.userId);
+            List<dynamic> filteredFriends = new List<dynamic>();
+            foreach (FriendEntry friend in result)
+            {
+                if (!ids.Contains(friend.id))
+                    continue;
+                filteredFriends.Add(new
+                {
+                    Id = friend.id,
+                    Username = friend.name,
+                    AvatarUri = "http://",
+                    AvatarFinal = true,
+                    IsOnline = friend.isOnline,
+                });
+            }
+            return filteredFriends;
+        }
         [HttpPostBypass("user/follow")]
         public async Task<dynamic> FollowUserLegacy(long followedUserId)
         {
