@@ -720,10 +720,9 @@ public class GameServerService : ServiceBase
         //     {
         //         status = JoinStatus.Loading,
         //     };
-
+        await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);
         await InTransaction(async _ =>
         {
-            await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
                 new
@@ -749,8 +748,6 @@ public class GameServerService : ServiceBase
     {
         // Before we waste our time, check if the place exists.
         GamesService games = new GamesService();
-        AssetsService assetsService = new AssetsService();
-        var AssetCatalogInfo = await assetsService.GetAssetCatalogInfo(placeId);
         var uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         //string originalScript;
         //string finalScript;
