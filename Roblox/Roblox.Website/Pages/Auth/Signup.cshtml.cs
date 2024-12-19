@@ -110,7 +110,7 @@ public class Signup : RobloxPageModel
         FeatureFlags.FeatureCheck(FeatureFlag.SignupEnabled);
         var ip = ControllerBase.GetIP(ControllerBase.GetRequesterIpRaw(HttpContext));
         // Initial cooldown check - to prevent people spamming attempts
-        if (await services.cooldown.TryCooldownCheck($"signup:step1:" + ip, TimeSpan.FromSeconds(5)))
+        if (!await services.cooldown.TryCooldownCheck($"signup:step1:" + ip, TimeSpan.FromSeconds(5)))
         {
             Writer.Info(LogGroup.SignUp, "Sign up failed, cooldown step 1");
             errorMessage = "Too many attempts. Try again in about 5 seconds.";
@@ -215,7 +215,7 @@ public class Signup : RobloxPageModel
 
         // Created user, so add final cooldown
         var signupFinalKey = "signup:step2:" + ip;
-        if (await services.cooldown.TryCooldownCheck(signupFinalKey, TimeSpan.FromMinutes(5)))
+        if (!await services.cooldown.TryCooldownCheck(signupFinalKey, TimeSpan.FromMinutes(5)))
         {
             errorMessage = "Too many attempts. Try again in about 5 minutes.";
             return new PageResult();

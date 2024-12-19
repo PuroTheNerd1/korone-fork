@@ -319,7 +319,7 @@ public class Application : RobloxPageModel
         var joinRlKey =
             "SubmitJoinApplicationV1:" + hashedIp;
 #if !DEBUG
-        if (await services.cooldown.TryCooldownCheck(joinRlKey, TimeSpan.FromMinutes(5)))
+        if (!await services.cooldown.TryCooldownCheck(joinRlKey, TimeSpan.FromMinutes(5)))
         {
             errorMessage = "Too many attempts. Try again in a few minutes.";
             return new PageResult();
