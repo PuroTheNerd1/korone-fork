@@ -70,6 +70,43 @@ namespace Roblox.Website.Controllers
             }
             return filteredFriends;
         }
+
+        [HttpPostBypass("friends/filter-requests")]
+        [HttpGetBypass("friends/filter-requests")]
+        public async Task<dynamic> GetFilteredFriendRequests(string otherUserIds)
+        {
+            var ids = otherUserIds.Split(",").Select(long.Parse).Distinct().ToList();
+            var result = await services.friends.GetFriendRequests(safeUserSession.userId, null, 100);
+
+            List<dynamic> friendRequestsFromUser = new List<dynamic>();
+            List<dynamic> friendRequestsToUser = new List<dynamic>();
+
+            foreach (FriendEntry request in result.data)
+            {
+                friendRequestsFromUser.Add(new
+                {
+                    SenderId = request.id,
+                    RecipientId = safeUserSession.userId,
+                });
+            }
+
+            foreach (long id in ids)
+            {
+                if (friendRequestsFromUser.Any(c => c.SenderId == id))
+                    continue;
+                friendRequestsToUser.Add(new
+                {
+                    SenderId = safeUserSession.userId,
+                    RecipientId = id,
+                });
+            }
+
+            return new
+            {
+                FriendRequestsFromUser = friendRequestsFromUser,
+                FriendRequestsToUser = friendRequestsToUser
+            };
+        }
         [HttpPostBypass("user/follow")]
         public async Task<dynamic> FollowUserLegacy(long followedUserId)
         {
