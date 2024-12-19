@@ -1584,5 +1584,9 @@
   "DFFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
   "DFLogFriendServiceWebRequests": "True",
   "FLogFriendServiceWebRequests": "True",
+  "FriendServiceWebRequests": "True",
+  "DFLogFriendServiceCache": "True",
+  "FLogFriendServiceCache": "True",
+  "FriendServiceCache": "True",
   "FStringGetFriendsUrl": "%sv1/users/%i/friends"
 }
