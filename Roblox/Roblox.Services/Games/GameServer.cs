@@ -763,6 +763,7 @@ public class GameServerService : ServiceBase
             //currentGameServerPorts.Add(jobId, networkServerPort);
             return "OK";
         }
+        Console.WriteLine($"Failed to request a server for {placeId} with status code {response.StatusCode}\n Response: {response.Content.ReadAsStringAsync().Result}");
         return "BAD";
         //Console.WriteLine($"MaxPlayers = {maxplayers}");
         /*

@@ -592,9 +592,7 @@ namespace Roblox.Website.Controllers
             // check if the user owns fluffy ha
             var owned = await services.users.GetUserAssets(userId, fluffyHat);
             if (owned.Any())
-            {
                 IsFurry = true;
-            }
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
             long year = await services.games.GetYear(placeId);
