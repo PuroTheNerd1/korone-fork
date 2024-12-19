@@ -1582,11 +1582,11 @@
   "FFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
   "VerifyIncomingFriendRequestsBeforeNotifying": "False",
   "DFFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
-  "DFLogFriendServiceWebRequests": "True",
-  "FLogFriendServiceWebRequests": "True",
-  "FriendServiceWebRequests": "True",
-  "DFLogFriendServiceCache": "True",
-  "FLogFriendServiceCache": "True",
-  "FriendServiceCache": "True",
+  "DFLogFriendServiceWebRequests": "6",
+  "FLogFriendServiceWebRequests": "6",
+  "FriendServiceWebRequests": "6",
+  "DFLogFriendServiceCache": "6",
+  "FLogFriendServiceCache": "6",
+  "FriendServiceCache": "6",
   "FStringGetFriendsUrl": "%sv1/users/%i/friends"
 }
