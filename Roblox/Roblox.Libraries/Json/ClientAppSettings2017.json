@@ -1582,5 +1582,7 @@
   "FFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
   "VerifyIncomingFriendRequestsBeforeNotifying": "False",
   "DFFlagVerifyIncomingFriendRequestsBeforeNotifying": "False",
+  "DLogFriendServiceWebRequests": "True",
+  "FLogFriendServiceWebRequests": "True",
   "FStringGetFriendsUrl": "%sv1/users/%i/friends"
 }
