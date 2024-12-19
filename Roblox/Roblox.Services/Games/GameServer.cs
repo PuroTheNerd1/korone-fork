@@ -720,7 +720,7 @@ public class GameServerService : ServiceBase
         //     {
         //         status = JoinStatus.Loading,
         //     };
-        await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);
+        _ = await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);
         await InTransaction(async _ =>
         {
             await db.ExecuteAsync(
