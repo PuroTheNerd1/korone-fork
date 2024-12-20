@@ -1588,5 +1588,5 @@
   "DFLogFriendServiceCache": "6",
   "FLogFriendServiceCache": "6",
   "FriendServiceCache": "6",
-  "FStringGetFriendsUrl": "%sv1/users/%i/friends"
+  "FStringGetFriendsUrl": "%sv2/users/%i/friends"
 }
