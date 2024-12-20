@@ -1496,8 +1496,6 @@ namespace Roblox.Website.Controllers
             if (!canUpload)
                 throw new RobloxException(403, 0, "Unauthorized");
 
-
-
             lock (pendingAssetUploadsMux)
             {
                 if (pendingAssetUploads >= 2)
