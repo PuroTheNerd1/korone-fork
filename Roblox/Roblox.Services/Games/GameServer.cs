@@ -297,7 +297,10 @@ public class GameServerService : ServiceBase
     public async Task KickPlayer(long userId)
     {
         string jobId = await GetJobIdByUserId(userId);
-        client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+        if (!client.DefaultRequestHeaders.Contains("PJX-ArbiterAUTH"))
+        {
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+        }
         await client.GetAsync($"https://arbiter.pekora.zip/evict-player?jobId={jobId}&userId={userId}");
     }
     public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
@@ -313,7 +316,10 @@ public class GameServerService : ServiceBase
         //long placeId = GetPlaceIdByJobId(serverId);
         //Process rccProcess = jobRccs[placeJobId];
         //rccProcess.Kill(); // soft kill soon instead of force kill
-        client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+        if (!client.DefaultRequestHeaders.Contains("PJX-ArbiterAUTH"))
+        {
+            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+        }
         await client.GetAsync($"https://arbiter.pekora.zip/kill-game-server?jobId={serverId}");
         // Remove from our dictionaries now.
         //currentPlaceIdsInUse.Remove(placeId);
