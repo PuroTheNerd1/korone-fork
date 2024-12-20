@@ -147,18 +147,24 @@ namespace Roblox.Website.Controllers
             await services.friends.DeclineFriendRequest(safeUserSession.userId, requesterUserId);
         }
 
+        [HttpGetBypass("v2/users/{userId}/friends")]
         [HttpGetBypass("v1/users/{userId}/friends")]
         public async Task<IEnumerable<dynamic>> GetUserFriendsLegacy(long userId)
         {
             var result = await services.friends.GetFriends(userId);
-            var friendsList = result.Select(c => new
+
+            var friendsList = new List<dynamic>();
+            foreach (FriendEntry c in result)
             {
-                Id = c.id,
-                Username = c.name,
-                AvatarUri = "http://",
-                AvatarFinal = true,
-                IsOnline = c.isOnline,
-            }).ToList();
+                friendsList.Add(new
+                {
+                    Id = c.id,
+                    Username = c.name,
+                    AvatarUri = "http://",
+                    AvatarFinal = true,
+                    IsOnline = c.isOnline,
+                });
+            }
 
             return friendsList;
         }
