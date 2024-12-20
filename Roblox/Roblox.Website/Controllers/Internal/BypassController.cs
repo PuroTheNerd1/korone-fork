@@ -1468,7 +1468,6 @@ namespace Roblox.Website.Controllers
             // if assetId is 0 try getting it from the headers
             long placeId = assetId ?? 0;
             long userId = 0;
-            bool isRcc = IsRcc();
             if (placeId == 0)
             {
                 long.TryParse(Request.Headers["roblox-place-id"].ToString(), out placeId);
@@ -1486,10 +1485,9 @@ namespace Roblox.Website.Controllers
             if (!canUpload)
             {
                 userId = info.creatorTargetId;
-                canUpload = isRcc;
+                canUpload = IsRcc();
             }
 
-            Console.WriteLine($"placeid: {placeId} isRcc: {isRcc} canUpload: {canUpload}");
             if (info.assetType != Models.Assets.Type.Place)
                 canUpload = false;
 
