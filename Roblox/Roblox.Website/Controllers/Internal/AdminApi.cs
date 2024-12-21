@@ -1900,12 +1900,12 @@ Thank you for your understanding,
             await InsertProductLog(request.assetId, 1, details.isLimited, details.isLimitedUnique, details.offsaleAt, details.serialCount, details.priceRobux, details.priceTickets, details.isForSale);
         }
 
-        await InsertProductLog(request.assetId, safeUserSession.userId, request.isLimited, request.isLimitedUnique, request.offsaleDeadline, request.maxCopies, request.priceRobux, request.priceTickets, request.isForSale);
+        await InsertProductLog(request.assetId, safeUserSession.userId, request.isLimited, request.isLimitedUnique, request.offsaleDeadline?.ToUniversalTime(), request.maxCopies, request.priceRobux, request.priceTickets, request.isForSale);
 
         await services.assets.UpdateAssetMarketInfoName(request.assetId, request.assetName);
         await services.assets.UpdateAssetMarketDescriptionInfo(request.assetId, request.description);
 
-        await services.assets.UpdateAssetMarketInfo(request.assetId, request.isForSale, request.isLimited, request.isLimitedUnique, request.maxCopies, request.offsaleDeadline);
+        await services.assets.UpdateAssetMarketInfo(request.assetId, request.isForSale, request.isLimited, request.isLimitedUnique, request.maxCopies, request.offsaleDeadline?.ToUniversalTime());
         await services.assets.SetItemPrice(request.assetId, request.priceRobux, request.priceTickets);
     }
 
