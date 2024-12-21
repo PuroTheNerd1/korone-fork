@@ -836,7 +836,10 @@ public class AdminApiController : ControllerBase
     [HttpPost("ban"), StaffFilter(Access.BanUser)]
     public async Task BanUser([Required, FromBody] BanUserRequest request)
     {
-        DateTime? expirationDate = string.IsNullOrWhiteSpace(request.expires) ? null : DateTime.Parse(request.expires);
+        DateTime? expirationDate = string.IsNullOrWhiteSpace(request.expires)
+            ? null
+            : DateTime.SpecifyKind(DateTime.Parse(request.expires), DateTimeKind.Utc);
+
         var doesExpire = expirationDate != null;
 
         var info = await services.users.GetUserById(request.userId);
