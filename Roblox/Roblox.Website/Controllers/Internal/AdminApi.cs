@@ -2264,7 +2264,8 @@ Thank you for your understanding,
         // add market data
         await services.assets.SetItemPrice(assetDetails.assetId, request.price, null);
         await services.assets.UpdateAssetMarketInfo(assetDetails.assetId, request.isForSale, request.isLimited,
-            request.isLimitedUnique, request.maxCopies, request.offsaleDeadline);
+            request.isLimitedUnique, request.maxCopies, request.offsaleDeadline?.ToUniversalTime());
+
         // return
         return assetDetails;
     }
