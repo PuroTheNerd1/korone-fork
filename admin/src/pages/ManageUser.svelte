@@ -403,7 +403,7 @@
 						modalCb = (t) => {
 							if (t) {
 								request
-									.get("https://www.pekora.zip/rcc/kickplayer?userId=" + userId+ "&reason=Kicked by administrat343or", {})
+									.get("/rcc/kickplayer?userId=" + userId + "&reason=Kicked by Administrator", {})
 									.then(() => {
 										window.location.reload();
 									})

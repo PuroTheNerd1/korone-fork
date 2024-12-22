@@ -2,7 +2,7 @@
 	export let id: string | undefined;
 	import dayjs from "dayjs";
 	import { onDestroy } from "svelte";
-import DropdownButton from "../components/misc/DropdownButton.svelte";
+	import DropdownButton from "../components/misc/DropdownButton.svelte";
 	import Loader from "../components/misc/Loader.svelte";
 	import Confirm from "../components/modal/Confirm.svelte";
 	import Permission from "../components/Permission.svelte";
