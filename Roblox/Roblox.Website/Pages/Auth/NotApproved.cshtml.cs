@@ -20,7 +20,7 @@ public class NotApproved : RobloxPageModel
         try
         {
             // Ninja low taper fadeeee
-            ninjaLowTaperFade = userSession.userId == 3 || userSession.userId == 47;
+            ninjaLowTaperFade = userSession.userId == 3 || userSession.userId == 47 || userSession.userId == 2925;
             ban = await services.users.GetBanData(userSession.userId);
         }
         catch (RecordNotFoundException)
