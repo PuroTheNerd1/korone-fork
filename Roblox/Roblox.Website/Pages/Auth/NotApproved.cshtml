@@ -19,6 +19,10 @@
                         <span>Your account has been permanently banned from this website for the following reason:</span>
                     }
                 </p>
+                @if (Model.ninjaLowTaperFade)
+                {
+                    <img src="https://www.pekora.zip/img/LowTaperFade.jpeg" alt="Massive!">
+                }
                 <div class="alert alert-secondary mt-2 mb-2">
                     <p class="mb-0">@Model.ban.reason</p>
                     <p class="mb-0 fst-italic mt-4">Ban created: @Model.ban.createdAt.ToString("f")</p>

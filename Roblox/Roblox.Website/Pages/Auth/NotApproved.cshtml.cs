@@ -11,6 +11,7 @@ namespace Roblox.Website.Pages;
 public class NotApproved : RobloxPageModel
 {
     public UserBanEntry? ban { get; set; }
+    public bool ninjaLowTaperFade { get; set; }
     public bool unlockAccount { get; set; }
 
     private async Task LoadBan()
@@ -18,6 +19,8 @@ public class NotApproved : RobloxPageModel
         if (userSession == null) return;
         try
         {
+            // Ninja low taper fadeeee
+            ninjaLowTaperFade = userSession.userId == 3 || userSession.userId == 47;
             ban = await services.users.GetBanData(userSession.userId);
         }
         catch (RecordNotFoundException)
