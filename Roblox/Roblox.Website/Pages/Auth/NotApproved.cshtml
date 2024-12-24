@@ -8,7 +8,14 @@
     <div class="row">
         <div class="col-12 col-lg-6 offset-lg-3">
             <div class="card card-body bg-dark text-light">
-                <h3>Account Banned</h3>
+                @if (Model.ban.expiredAt != null)
+                {
+                    <h3>Account Banned</h3>
+                }
+                else
+                {
+                    <h3>Account Deleted</h3>
+                }
                 <p class="mb-0">
                     @if (Model.ban.expiredAt != null)
                     {
