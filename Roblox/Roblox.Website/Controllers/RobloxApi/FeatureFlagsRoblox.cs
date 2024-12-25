@@ -2,6 +2,8 @@ using MVC = Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Dynamic;
+using Roblox.Services.Exceptions;
+using InfluxDB.Client.Core.Exceptions;
 namespace Roblox.Website.Controllers
 {
 
@@ -9,12 +11,6 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class FeatureFlagsRoblox: ControllerBase
     {
-        private static readonly HashSet<string> AllowedTypes = new HashSet<string>
-        {
-            "iOSAppSettings",
-            "AndroidAppSettings",
-            "StudioAppSettings"
-        };
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/Get/{type}")]
@@ -22,10 +18,10 @@ namespace Roblox.Website.Controllers
         public ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
             bool isValid = true;
-            
+
             switch (apiKey)
             {
-                case "C1273ADA-5726-46D7-BA0C-D339228C697D"://2015 RCC 
+                case "C1273ADA-5726-46D7-BA0C-D339228C697D"://2015 RCC
                     type = "RCCService2015";
                     break;
                 case "4C3DEC7F-7725-498F-BCA7-6389ED71E248": //2015 Client
@@ -47,19 +43,14 @@ namespace Roblox.Website.Controllers
                     type = "ClientAppSettings2018";
                     break;
                 default:
-                //this is for 2016 temmporary lmao
-                    isValid = AllowedTypes.Contains(type);
-                    if (!isValid) {
-                        type = "ClientAppSettings";
-                    }
-                    break;
+                    throw new RobloxException(400, 0, "Invalid API key");
             }
-            
+
             try
             {
                 string FFlag = Path.Combine(Configuration.JsonDataDirectory, $"{type}.json");
                 if (!System.IO.File.Exists(FFlag)) return NotFound();
-                
+
                 string jsonContent = System.IO.File.ReadAllText(FFlag);
                 dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
                 return clientAppSettingsData ?? new ExpandoObject();
