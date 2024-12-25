@@ -17,7 +17,7 @@ namespace Roblox.Website.Controllers
     public class RobloxLogin: ControllerBase
     {
         [HttpPostBypass("v1/login")]
-        public async Task<dynamic> LoginV1([FromBody]LoginRequest request)
+        public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
             long userId;
@@ -25,9 +25,7 @@ namespace Roblox.Website.Controllers
             string password = request.password;
             string totpCode = "";
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
-            }
+                throw new RobloxException(400, 1, "Username or password is missing.");
 
             // Format: {username}|{2facode}
             string[] splittedUsername = username.Split('|');
@@ -41,30 +39,26 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
             }
 
             if (!await services.users.VerifyPassword(userId, password))
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
-            }
+                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
+
             //get totp info
             TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
             if (totpInfo.status == TotpStatus.Enabled)
             {
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
-                }
+                    throw new RobloxException(403, 1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
                 //verify totp code
-                if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
-                }
+                if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
+                    throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
             }
+
             var sess = await services.users.CreateSession(userId);
-            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+            var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
                 sessionId = sess,
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
@@ -78,6 +72,7 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.Unspecified,
             });
+
             var info = await services.users.GetUserById(userId);
 
             return new
@@ -110,7 +105,7 @@ namespace Roblox.Website.Controllers
             }
             if (string.IsNullOrEmpty(requestBody))
             {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Request body is empty.");
+                throw new RobloxException(400, 1, "Request body is empty.");
             }
 
             if (userAgent == "RobloxStudio/WinInet")
@@ -136,9 +131,8 @@ namespace Roblox.Website.Controllers
             }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
-            }
+                throw new RobloxException(400, 1, "Username or password is missing.");
+
 
             // Format: {username}|{2facode}
             string[] splittedUsername = username.Split('|');
@@ -152,12 +146,13 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
+                throw new RobloxException(403, 1, "Incorrect username or password. Please try again.");
             }
+
             //verify password first
             if (!await services.users.VerifyPassword(userId, password))
             {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
+                throw new RobloxException(403, 1, "Incorrect username or password. Please try again.");
             }
 
             //get totp info
@@ -166,15 +161,14 @@ namespace Roblox.Website.Controllers
             {
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
-                }
+                    throw new RobloxException(400, 1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+
                 //verify totp code
                 if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
-                }
+                    throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
+
             }
+
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
@@ -213,51 +207,46 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("mobileapi/login")]
-        public async Task<dynamic> LegacyLogin()
+        public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-            string username = Request.Form["username"]!;
-            string password = Request.Form["password"]!;
             string totpCode = "";
             long userId;
             // Format: {username}|{2facode}
-            string[] splittedUsername = username.Split('|');
+            string[] splittedUsername = request.username.Split('|');
 
-            username = splittedUsername[0];
+            request.username = splittedUsername[0];
             totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Username or password is missing.");
-            }
+            if (string.IsNullOrEmpty(request.username) || string.IsNullOrEmpty(request.password))
+                throw new RobloxException(400, 1, "Username or password is missing.");
+
 
             try
             {
-                userId = await services.users.GetUserIdFromUsername(username);
+                userId = await services.users.GetUserIdFromUsername(request.username);
             }
             catch (RecordNotFoundException)
             {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
+                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
             }
             //get totp info
             TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
             if (totpInfo.status == TotpStatus.Enabled)
             {
+
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
-                }
+                    throw new RobloxException(403, 1, $"You have 2FA enabled. Please login with this username format {request.username}|2FA Code");
+
                 //verify totp code
                 if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                {
-                    throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect 2FA code. Please try again.");
-                }
+                    throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
+
             }
 
-            if (!await services.users.VerifyPassword(userId, password))
-            {
-                throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again");
-            }
+            if (!await services.users.VerifyPassword(userId, request.password))
+                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
+
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
@@ -279,7 +268,7 @@ namespace Roblox.Website.Controllers
                 Status = "OK",
                 UserInfo = new
                 {
-                    UserName = username,
+                    UserName = request.username,
                     RobuxBalance = userBalance.robux,
                     TicketsBalance = userBalance.tickets,
                     IsAnyBuildersClubMember = true,
