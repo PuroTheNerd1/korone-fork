@@ -79,10 +79,7 @@ namespace Roblox.Website.Controllers
                 SameSite = SameSiteMode.Unspecified,
             });
             var info = await services.users.GetUserById(userId);
-            var isBanned =
-                info.accountStatus != AccountStatus.Ok &&
-                info.accountStatus != AccountStatus.MustValidateEmail &&
-                info.accountStatus != AccountStatus.Suppressed;
+
             return new
             {
                 user = new
@@ -91,17 +88,17 @@ namespace Roblox.Website.Controllers
                     name = username,
                     displayName = username
                 },
-                isBanned
+                isBanned = info.IsDeleted()
             };
 
         }
+
         [HttpPostBypass("v2/login")]
         public async Task<dynamic> LoginV2()
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
             string requestBody;
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            bool isMobile = userAgent.Contains("ROBLOX Android App") || userAgent.ToLower().Contains("App");
             string username = "";
             string password = "";
             string totpCode = "";
@@ -162,6 +159,7 @@ namespace Roblox.Website.Controllers
             {
                 throw new Roblox.Exceptions.ForbiddenException(1, "Incorrect username or password. Please try again.");
             }
+
             //get totp info
             TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
             if (totpInfo.status == TotpStatus.Enabled)
@@ -194,11 +192,8 @@ namespace Roblox.Website.Controllers
                 SameSite = SameSiteMode.Unspecified,
             });
 
-            var userBalance = await services.economy.GetUserBalance(userId);
             var info = await services.users.GetUserById(userId);
-            var isBanned = info.accountStatus != AccountStatus.Ok &&
-                        info.accountStatus != AccountStatus.MustValidateEmail &&
-                        info.accountStatus != AccountStatus.Suppressed;
+
             return new
             {
                 membershipType = 4,
@@ -213,7 +208,7 @@ namespace Roblox.Website.Controllers
                     name = username,
                     displayName = username
                 },
-                isBanned
+                isBanned = info.IsDeleted()
             };
         }
 
