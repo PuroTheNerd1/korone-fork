@@ -8,14 +8,49 @@
     <div class="row">
         <div class="col-12 col-lg-6 offset-lg-3">
             <div class="card card-body bg-dark text-light">
-                @if (Model.ban.expiredAt != null)
-                {
-                    <h3>Account Banned</h3>
+                @{
+                    if (Model.ban!.expiredAt != null)
+                    {
+                        var banDuration = Model.ban.expiredAt.Value - DateTime.Now;
+                        string durationText;
+
+                        if (banDuration.TotalDays <= 1)
+                        {
+                            durationText = "1 day";
+                        }
+                        else if (banDuration.TotalDays <= 3)
+                        {
+                            durationText = "3 days";
+                        }
+                        else if (banDuration.TotalDays <= 7)
+                        {
+                            durationText = "1 week";
+                        }
+                        else if (banDuration.TotalDays <= 14)
+                        {
+                            durationText = "2 weeks";
+                        }
+                        else if (banDuration.TotalDays <= 30)
+                        {
+                            durationText = "1 month";
+                        }
+                        else if (banDuration.TotalDays <= 365)
+                        {
+                            durationText = "1 year";
+                        }
+                        else
+                        {
+                            durationText = $"{(int)banDuration.TotalDays} days";
+                        }
+
+                        <h3>Banned for @durationText</h3>
+                    }
+                    else
+                    {
+                        <h3>Account Deleted</h3>
+                    }
                 }
-                else
-                {
-                    <h3>Account Deleted</h3>
-                }
+
                 <p class="mb-0">
                     @if (Model.ban.expiredAt != null)
                     {
