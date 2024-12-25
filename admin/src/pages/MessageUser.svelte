@@ -6,7 +6,7 @@
 	const itemRbFooter = `We realize you may not have been aware of how these items were originally made available and in such cases, no further moderation action will be placed on your account. However, please be aware that any willful participation in account theft, phishing, or other serious Terms of Service violations, will result in the termination of the associated accounts.
 Thank you,
 
--The Roblox Team`;
+-The Pekora Team`;
 	export let userId: string;
 	const autofill: { name: string; subject: string; placeholders: string[]; message: string }[] = [
 		{
@@ -14,8 +14,8 @@ Thank you,
 			subject: "Inventory Adjustment",
 			placeholders: ["[Item Name Here]", "[Item Granted]"],
 			message: `Hello,
-			
-The following item has been removed from your inventory: 
+
+The following item has been removed from your inventory:
 
 [Item Name Here]
 
@@ -40,7 +40,7 @@ ${itemRbFooter}`,
 			subject: "Giveaway Award",
 			placeholders: ["[Item Name or Robux Amount Here]"],
 			message: `Hello,
-            
+
 Congratulations on winning our giveaway! You have been awarded with the following prize:
 
 [Item Name or Robux Amount Here]
@@ -49,7 +49,7 @@ The prize has already been awarded to your account, so you do not have to do any
 
 Thank you,
 
-- The Roblox Team`,
+- The Pekora Team`,
 		},
 	];
 
