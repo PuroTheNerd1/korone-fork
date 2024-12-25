@@ -233,7 +233,6 @@ namespace Roblox.Website.Controllers
             TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
             if (totpInfo.status == TotpStatus.Enabled)
             {
-
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
                     throw new RobloxException(403, 1, $"You have 2FA enabled. Please login with this username format {request.username}|2FA Code");
@@ -241,7 +240,6 @@ namespace Roblox.Website.Controllers
                 //verify totp code
                 if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
                     throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
-
             }
 
             if (!await services.users.VerifyPassword(userId, request.password))
