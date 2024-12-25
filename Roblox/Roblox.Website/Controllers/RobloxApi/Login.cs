@@ -42,20 +42,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
             }
 
-            if (!await services.users.VerifyPassword(userId, password))
-                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
-
-            //get totp info
-            TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
-            if (totpInfo.status == TotpStatus.Enabled)
-            {
-                //null check
-                if (string.IsNullOrEmpty(totpCode))
-                    throw new RobloxException(403, 1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
-                //verify totp code
-                if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
-            }
+            await Login(request.username, request.password, userId, totpCode);
 
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
@@ -149,25 +136,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(403, 1, "Incorrect username or password. Please try again.");
             }
 
-            //verify password first
-            if (!await services.users.VerifyPassword(userId, password))
-            {
-                throw new RobloxException(403, 1, "Incorrect username or password. Please try again.");
-            }
-
-            //get totp info
-            TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
-            if (totpInfo.status == TotpStatus.Enabled)
-            {
-                //null check
-                if (string.IsNullOrEmpty(totpCode))
-                    throw new RobloxException(400, 1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
-
-                //verify totp code
-                if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
-
-            }
+            await Login(username, password, userId, totpCode);
 
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
@@ -217,9 +186,9 @@ namespace Roblox.Website.Controllers
 
             request.username = splittedUsername[0];
             totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
+
             if (string.IsNullOrEmpty(request.username) || string.IsNullOrEmpty(request.password))
                 throw new RobloxException(400, 1, "Username or password is missing.");
-
 
             try
             {
@@ -229,21 +198,8 @@ namespace Roblox.Website.Controllers
             {
                 throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
             }
-            //get totp info
-            TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
-            if (totpInfo.status == TotpStatus.Enabled)
-            {
-                //null check
-                if (string.IsNullOrEmpty(totpCode))
-                    throw new RobloxException(403, 1, $"You have 2FA enabled. Please login with this username format {request.username}|2FA Code");
 
-                //verify totp code
-                if(!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
-            }
-
-            if (!await services.users.VerifyPassword(userId, request.password))
-                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
+            await Login(request.username, request.password, userId, totpCode);
 
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
@@ -274,6 +230,26 @@ namespace Roblox.Website.Controllers
                     UserID = userId
                 }
             };
+        }
+        private async Task<bool> Login(string username, string password, long userId, string? totpCode)
+        {
+            //get totp info
+            TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+            if (totpInfo.status == TotpStatus.Enabled)
+            {
+                //null check
+                if (string.IsNullOrEmpty(totpCode))
+                    throw new RobloxException(403, 1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+
+                //verify totp code
+                if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
+                    throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
+            }
+
+            if (!await services.users.VerifyPassword(userId, password))
+                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
+
+            return true;
         }
     }
 }
