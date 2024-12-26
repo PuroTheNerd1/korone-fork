@@ -457,6 +457,7 @@ public class AdminApiController : ControllerBase
     {
         var details = await db.QuerySingleOrDefaultAsync<AssetModerationStatus>(
             "SELECT moderation_status as moderationStatus, roblox_asset_id as robloxAssetId FROM asset WHERE asset.id = :id", new { id = request.assetId });
+
         var currentStatus = details.moderationStatus;
         if (currentStatus == ModerationStatus.ReviewApproved && !request.isApproved)
         {
@@ -466,6 +467,7 @@ public class AdminApiController : ControllerBase
             if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 100, TimeSpan.FromDays(1)))
                 throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
         }
+
         var latest = await services.assets.GetLatestAssetVersion(request.assetId);
 
         if (latest.creatorId == userSession.userId && !StaffFilter.IsOwner(userSession.userId))
