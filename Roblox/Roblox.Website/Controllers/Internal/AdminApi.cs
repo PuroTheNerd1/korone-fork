@@ -466,6 +466,10 @@ public class AdminApiController : ControllerBase
             if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 100, TimeSpan.FromDays(1)))
                 throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
         }
+        var latest = await services.assets.GetLatestAssetVersion(request.assetId);
+
+        if (latest.creatorId == userSession.userId && !StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("You cannot moderate your own assets");
 
         if (details.canEarnRobuxFromApproval)
             await AwardCommissionForModeration();
