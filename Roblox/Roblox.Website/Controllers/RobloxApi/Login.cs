@@ -44,22 +44,6 @@ namespace Roblox.Website.Controllers
 
             await Login(request.username, request.password, userId, totpCode);
 
-            var sess = await services.users.CreateSession(userId);
-            var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-            {
-                sessionId = sess,
-                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            });
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
-            {
-                Domain = ".pekora.zip",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Unspecified,
-            });
-
             var info = await services.users.GetUserById(userId);
 
             return new
@@ -138,23 +122,6 @@ namespace Roblox.Website.Controllers
 
             await Login(username, password, userId, totpCode);
 
-            var sess = await services.users.CreateSession(userId);
-            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-            {
-                sessionId = sess,
-                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            });
-
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
-            {
-                Domain = ".pekora.zip",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Unspecified,
-            });
-
             var info = await services.users.GetUserById(userId);
 
             return new
@@ -201,21 +168,6 @@ namespace Roblox.Website.Controllers
 
             await Login(request.username, request.password, userId, totpCode);
 
-            var sess = await services.users.CreateSession(userId);
-            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-            {
-                sessionId = sess,
-                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            });
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
-            {
-                Domain = ".pekora.zip",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Unspecified,
-            });
             var userBalance = await services.economy.GetUserBalance(userId);
             return new
             {
@@ -248,6 +200,9 @@ namespace Roblox.Website.Controllers
 
             if (!await services.users.VerifyPassword(userId, password))
                 throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
+
+            var authenticationController = new AuthenticationControllerV2();
+            await authenticationController.CreateSessionAndSetCookie(userId);
 
             return true;
         }
