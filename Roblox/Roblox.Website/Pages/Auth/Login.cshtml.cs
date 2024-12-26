@@ -27,7 +27,7 @@ public class Login : RobloxPageModel
     private const string RateLimitSecondMessage = "Too many attempts. Try again in a few seconds.";
     private const string RateLimit15MinutesMessage = "Too many attempts. Try again in 15 minutes.";
     private const string LockedAccountMessage = "This account is locked. Please contact customer support.";
-    
+
     public bool loginDisabled { get; set; }
     public bool resetPasswordEnabled => FeatureFlags.IsEnabled(FeatureFlag.PasswordReset);
     [BindProperty]
@@ -54,7 +54,7 @@ public class Login : RobloxPageModel
             errorMessage = LoginDisabledMessage;
         }
     }
-    
+
     private async Task CreateSessionAndSetCookie(long userId)
     {
         var sess = await services.users.CreateSession(userId);
@@ -86,7 +86,7 @@ public class Login : RobloxPageModel
         if (sleepTime != 0)
             await Task.Delay(TimeSpan.FromMilliseconds(sleepTime));
     }
-    
+
     public async Task<IActionResult> OnPost()
     {
         try
@@ -99,7 +99,7 @@ public class Login : RobloxPageModel
             errorMessage = LoginDisabledMessage;
             return new PageResult();
         }
-        
+
         if (string.IsNullOrWhiteSpace(username))
         {
             errorMessage = EmptyUsernameMessage;
@@ -117,7 +117,7 @@ public class Login : RobloxPageModel
             errorMessage = BadCaptchaMessage;
             return new PageResult();
         }
-        
+
         long userId = 0;
         try
         {
@@ -134,7 +134,7 @@ public class Login : RobloxPageModel
             // blank check
             if (string.IsNullOrWhiteSpace(totpcode))
             {
-                errorMessage = "You must emter a 2FA Code";
+                errorMessage = "You must enter a 2FA Code";
                 return new PageResult();
             }
             //try to parse as an long so know its only numbers and not some other garbage
@@ -224,6 +224,6 @@ public class Login : RobloxPageModel
         await CreateSessionAndSetCookie(userId);
         return new RedirectResult("/home");
     }
-    
-    
+
+
 }
