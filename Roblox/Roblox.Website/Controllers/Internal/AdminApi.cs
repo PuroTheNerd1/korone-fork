@@ -432,8 +432,11 @@ public class AdminApiController : ControllerBase
             {
                 var latest = await services.assets.GetLatestAssetVersion(item.id);
                 item.creatorId = latest.creatorId;
+                if (item.creatorId == userSession.userId && !StaffFilter.IsOwner(userSession.userId))
+                    continue;
                 var userInfo = await services.users.GetUserById(latest.creatorId);
                 item.creatorName = userInfo.username;
+
                 if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
                 {
                     services.assets.RenderAsset(item.id, item.assetType);
@@ -463,6 +466,7 @@ public class AdminApiController : ControllerBase
             if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 100, TimeSpan.FromDays(1)))
                 throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
         }
+
         if (details.canEarnRobuxFromApproval)
             await AwardCommissionForModeration();
 
