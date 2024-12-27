@@ -780,10 +780,22 @@ public class AdminApiController : ControllerBase
     [HttpGet("user"), StaffFilter(Access.GetUserDetailed)]
     public async Task<dynamic> GetUserInfoDetailed(long userId)
     {
-        var result = await db.QuerySingleOrDefaultAsync("SELECT u.id, u.username, u.description, u.created_at, u.online_at, u.status, us.*, ue.*, avatar.thumbnail_url, ub.author_user_id as ban_author_user_id, ban_author.username as ban_author_username, ub.reason as ban_reason, ub.internal_reason as ban_reason_internal, ub.created_at as ban_created_at, ub.updated_at as ban_updated_at FROM \"user\" u LEFT JOIN user_settings us on u.id = us.user_id LEFT JOIN user_economy ue on u.id = ue.user_id LEFT JOIN user_avatar avatar ON avatar.user_id = u.id LEFT JOIN user_ban ub ON ub.user_id = u.id LEFT JOIN \"user\" as ban_author ON ban_author.id = ub.author_user_id WHERE u.id = :user_id LIMIT 1", new
-        {
-            user_id = userId,
-        });
+        var result = await db.QuerySingleOrDefaultAsync(
+            @"SELECT u.id, u.username, u.description, u.created_at, u.online_at, u.status, us.*, ue.*, avatar.thumbnail_url,
+            ub.author_user_id as ban_author_user_id, ban_author.username as ban_author_username, ub.reason as ban_reason,
+            ub.internal_reason as ban_reason_internal, ub.created_at as ban_created_at, ub.expired_at as ban_expired_at, ub.updated_at as ban_updated_at
+            FROM ""user"" u
+            LEFT JOIN user_settings us on u.id = us.user_id
+            LEFT JOIN user_economy ue on u.id = ue.user_id
+            LEFT JOIN user_avatar avatar ON avatar.user_id = u.id
+            LEFT JOIN user_ban ub ON ub.user_id = u.id
+            LEFT JOIN ""user"" as ban_author ON ban_author.id = ub.author_user_id
+            WHERE u.id = :user_id
+            LIMIT 1",
+            new
+            {
+                user_id = userId,
+            });
         if (result == null) throw new StaffException("Invalid user ID");
         var joinInvite = await services.users.GetUserInvite(userId);
         var joinApp = await services.users.GetApplicationByUserId(userId);
