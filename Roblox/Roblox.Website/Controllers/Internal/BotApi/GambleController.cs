@@ -72,12 +72,13 @@ namespace Roblox.Website.Controllers
                 };
             }
 
-            // calculate if win
+            // 50% chance to win
             int chance = RandomNumberGenerator.GetInt32(1, 100);
 
-            // 50% chance to win
+            // calculate if win
             bool isWinner = chance <= 50;
             int finalRobux = amount * 2;
+
             await services.economy.ChargeForCoinflip(userInfo.userId, amount, finalRobux, isWinner);
 
             if (isWinner)
@@ -89,6 +90,7 @@ namespace Roblox.Website.Controllers
                     status = (int)GamblingStatus.Won,
                 };
             }
+
             return new GamblingResponse
             {
                 message = "You have flipped tails and lost",

@@ -622,7 +622,7 @@ public class AssetsService : ServiceBase, IService
             // If the video takes too long (15 secs) to analyse we'll just return unsupported format
             var analysisTask = FFProbe.AnalyseAsync(tempFile);
 
-            if (await Task.WhenAny(analysisTask, Task.Delay(TimeSpan.FromSeconds(15))) != analysisTask)
+            if (await Task.WhenAny(analysisTask, Task.Delay(TimeSpan.FromMinutes(10))) != analysisTask)
             {
                 Console.WriteLine("[error] video processing timed out");
                 return VideoValidation.UnsupportedFormat;
