@@ -4,7 +4,7 @@ using Roblox.Dto.Gambling;
 using System.Globalization;
 using System.Security.Cryptography;
 using Roblox.Services.Exceptions;
-
+using Roblox.Dto.Users;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -15,7 +15,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("bot/coinflip")]
         public async Task<GamblingResponse> CoinFlip(string discordid, int amount)
         {
-            Dto.Users.UserInfo userInfo;
+            UserInfo userInfo;
             // paranoia check!
             if (amount > 250 || amount < 1)
             {
