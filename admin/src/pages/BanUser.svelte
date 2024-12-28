@@ -104,7 +104,7 @@
 					{#each quickFillReasons as reason}
 						<button
 							{disabled}
-							class="btn-outline-dark btn"
+							class="btn-outline-primary btn"
 							on:click={(e) => {
 								e.preventDefault();
 								document.getElementById('deletion-reason').innerText = reason.text;
