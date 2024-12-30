@@ -767,8 +767,8 @@ public class AdminApiController : ControllerBase
                 c.gender = ((Gender)c.gender).ToString();
                 if (c.join_application_status != null)
                     c.join_application_status = ((UserApplicationStatus) c.join_application_status).ToString();
-                c.is_admin = StaffFilter.IsOwner(c.id); // todo
-                c.is_moderator = StaffFilter.IsStaff(c.id); // todo
+                c.is_admin = (object?)false; // todo
+                c.is_moderator = (object?)false; // todo
                 // just in case
                 c.password = "";
 
