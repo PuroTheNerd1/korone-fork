@@ -120,7 +120,7 @@ public class AudioUploadTransaction : IEconomyTransaction
 
     public AudioUploadTransaction(CreatorType creatorType, long creatorId)
     {
-        const long amount = 20;
+        const long amount = 100;
         transaction = new EconomyTransactionBase()
         {
             amount = amount,
