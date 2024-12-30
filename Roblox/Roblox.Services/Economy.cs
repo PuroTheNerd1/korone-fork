@@ -425,11 +425,9 @@ public class EconomyService : ServiceBase, IService
             var balance = await GetBalance(creatorType, creatorId);
             if (balance.robux < 100)
                 throw new LogicException(FailType.Unknown, 0, "Cannot charge user more than they own");
-            if (creatorId != 7)
-            {
-                await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 20);
-                await InsertTransaction(new AudioUploadTransaction(creatorType, creatorId));
-            }
+            await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 20);
+            await InsertTransaction(new AudioUploadTransaction(creatorType, creatorId));
+
             return 0;
         });
     }
@@ -438,11 +436,10 @@ public class EconomyService : ServiceBase, IService
         await InTransaction(async _ =>
         {
             var balance = await GetBalance(creatorType, creatorId);
-            if (creatorId != 7)
-            {
-                await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 100);
-                await InsertTransaction(new AudioUploadTransaction(creatorType, creatorId));
-            }
+            if (balance.robux < 100)
+                throw new LogicException(FailType.Unknown, 0, "Cannot charge user more than they own");
+            await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 100);
+            await InsertTransaction(new AudioUploadTransaction(creatorType, creatorId));
             return 0;
         });
     }
@@ -451,7 +448,8 @@ public class EconomyService : ServiceBase, IService
         await InTransaction(async _ =>
         {
             await DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, amount);
-            if (won) {
+            if (won)
+            {
                 Console.WriteLine($"won: {won} final rbx: {finalRobux}");
                 await IncrementCurrency(CreatorType.User, userId, CurrencyType.Robux, finalRobux);
             }
