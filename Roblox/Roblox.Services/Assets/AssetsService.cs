@@ -619,15 +619,16 @@ public class AssetsService : ServiceBase, IService
                 await content.CopyToAsync(fs);
             }
 
-            // If the video takes too long (15 secs) to analyse we'll just return unsupported format
-            // var analysisTask = FFProbe.AnalyseAsync(tempFile);
+            // If the video takes too long (5 mins) to analyse we'll just return unsupported format
+            var analysisTask = FFProbe.AnalyseAsync(tempFile);
 
-            // if (await Task.WhenAny(analysisTask, Task.Delay(TimeSpan.FromMinutes(10))) != analysisTask)
-            // {
-            //     Console.WriteLine("[error] video processing timed out");
-            //     return VideoValidation.UnsupportedFormat;
-            // }
-            mediaInfo = await FFProbe.AnalyseAsync(tempFile);
+            if (await Task.WhenAny(analysisTask, Task.Delay(TimeSpan.FromMinutes(5))) != analysisTask)
+            {
+                Console.WriteLine("[error] video processing timed out");
+                return VideoValidation.UnsupportedFormat;
+            }
+
+            mediaInfo = await analysisTask;
         }
         catch (Exception e)
         {
@@ -638,17 +639,16 @@ public class AssetsService : ServiceBase, IService
         {
             File.Delete(tempFile);
         }
+
         // Null check
         if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.VideoStreams == null || mediaInfo.Duration.TotalSeconds == 0)
             return VideoValidation.UnsupportedFormat;
-        // Max 5 mins
-        if (mediaInfo.Duration.TotalSeconds > 300)
+        // Max 800 secs
+        if (mediaInfo.Duration.TotalSeconds > 800)
             return VideoValidation.UnsupportedFormat;
-        var formatDetails = mediaInfo.Format;
-        if (formatDetails.FormatName.Contains("webm", StringComparison.OrdinalIgnoreCase))
-        {
+        // We only support webm
+        if (mediaInfo.Format.FormatName.Contains("webm", StringComparison.OrdinalIgnoreCase))
             return VideoValidation.Ok;
-        }
 
         return VideoValidation.UnsupportedFormat;
     }
