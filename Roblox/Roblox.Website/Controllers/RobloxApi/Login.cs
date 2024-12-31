@@ -20,7 +20,6 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-            var authenticationController = new AuthenticationControllerV2();
             long userId;
             string username = request.cvalue;
             string password = request.password;
@@ -44,7 +43,7 @@ namespace Roblox.Website.Controllers
             }
 
             if (await Login(request.username, request.password, userId, totpCode))
-                await authenticationController.CreateSessionAndSetCookie(userId);
+                await CreateSessionAndSetCookie(userId);
 
             var info = await services.users.GetUserById(userId);
 
@@ -65,7 +64,6 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV2()
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-            var authenticationController = new AuthenticationControllerV2();
             string requestBody;
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             string username = "";
@@ -124,7 +122,7 @@ namespace Roblox.Website.Controllers
             }
 
             if (await Login(username, password, userId, totpCode))
-                await authenticationController.CreateSessionAndSetCookie(userId);
+                await CreateSessionAndSetCookie(userId);
 
             var info = await services.users.GetUserById(userId);
 
@@ -172,7 +170,7 @@ namespace Roblox.Website.Controllers
             }
 
             if(await Login(request.username, request.password, userId, totpCode))
-                await authenticationController.CreateSessionAndSetCookie(userId);
+                await CreateSessionAndSetCookie(userId);
 
             var userBalance = await services.economy.GetUserBalance(userId);
             return new
@@ -189,6 +187,25 @@ namespace Roblox.Website.Controllers
                 }
             };
         }
+        private async Task CreateSessionAndSetCookie(long userId)
+        {
+            var sess = await services.users.CreateSession(userId);
+            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+            {
+                sessionId = sess,
+                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            });
+            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+            {
+                Secure = true,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                HttpOnly = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
+            });
+        }
+
         private async Task<bool> Login(string username, string password, long userId, string? totpCode)
         {
             //get totp info
