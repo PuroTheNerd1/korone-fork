@@ -20,6 +20,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
+            var authenticationController = new AuthenticationControllerV2();
             long userId;
             string username = request.cvalue;
             string password = request.password;
@@ -42,7 +43,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
             }
 
-            await Login(request.username, request.password, userId, totpCode);
+            if (await Login(request.username, request.password, userId, totpCode))
+                await authenticationController.CreateSessionAndSetCookie(userId);
 
             var info = await services.users.GetUserById(userId);
 
@@ -63,6 +65,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV2()
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
+            var authenticationController = new AuthenticationControllerV2();
             string requestBody;
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             string username = "";
@@ -120,7 +123,8 @@ namespace Roblox.Website.Controllers
                 return new RobloxException(403, 1, "Incorrect username or password. Please try again.");
             }
 
-            await Login(username, password, userId, totpCode);
+            if (await Login(username, password, userId, totpCode))
+                await authenticationController.CreateSessionAndSetCookie(userId);
 
             var info = await services.users.GetUserById(userId);
 
@@ -145,6 +149,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("mobileapi/login")]
         public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
         {
+            var authenticationController = new AuthenticationControllerV2();
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
             string totpCode = "";
             long userId;
@@ -166,7 +171,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
             }
 
-            await Login(request.username, request.password, userId, totpCode);
+            if(await Login(request.username, request.password, userId, totpCode))
+                await authenticationController.CreateSessionAndSetCookie(userId);
 
             var userBalance = await services.economy.GetUserBalance(userId);
             return new
@@ -200,9 +206,6 @@ namespace Roblox.Website.Controllers
 
             if (!await services.users.VerifyPassword(userId, password))
                 throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
-
-            var authenticationController = new AuthenticationControllerV2();
-            await authenticationController.CreateSessionAndSetCookie(userId);
 
             return true;
         }
