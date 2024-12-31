@@ -147,7 +147,6 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("mobileapi/login")]
         public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
         {
-            var authenticationController = new AuthenticationControllerV2();
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
             string totpCode = "";
             long userId;
