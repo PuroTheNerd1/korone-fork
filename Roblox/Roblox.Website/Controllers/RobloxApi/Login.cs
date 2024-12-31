@@ -117,7 +117,7 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                throw new RobloxException(403, 1, "Incorrect username or password. Please try again.");
+                return new RobloxException(403, 1, "Incorrect username or password. Please try again.");
             }
 
             await Login(username, password, userId, totpCode);
