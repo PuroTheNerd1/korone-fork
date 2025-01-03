@@ -49,7 +49,31 @@ public class FilterService : ServiceBase, IService
             "rape",
             "cum",
             "porn",
-            "pornography"
+            "pornography",
+            "whore",
+            "prostitute",
+            "erotic",
+            "submissive",
+            "dominant",
+            "suck",
+            "pussy",
+            "ass",
+            "fleshlight",
+            "fucking",
+            "kink",
+            "molest",
+            "footjob",
+            "boobjob",
+            "assjob",
+            "facefuck",
+            "cunnilingus",
+            "creampie",
+            "orgy",
+            "milf",
+            "slut",
+            "peg",
+            "nipple",
+            "pornstar"
         };
         //remove all spaces
         string nonWhitespaceInput;
