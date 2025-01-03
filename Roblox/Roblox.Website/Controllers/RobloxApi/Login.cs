@@ -71,14 +71,11 @@ namespace Roblox.Website.Controllers
             string totpCode = "";
             long userId;
 
-            using (StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8))
-            {
-                requestBody = await reader.ReadToEndAsync();
-            }
+            StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8)
+            requestBody = await reader.ReadToEndAsync();
+
             if (string.IsNullOrEmpty(requestBody))
-            {
-                throw new RobloxException(400, 1, "Request body is empty.");
-            }
+                throw new RobloxException(400, 1, "Empty request body.");
 
             if (userAgent == "RobloxStudio/WinInet")
             {
