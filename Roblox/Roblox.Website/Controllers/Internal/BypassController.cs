@@ -756,8 +756,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GenerateAuthString")]
         public string GenerateAuthString()
         {
-            string twoGuid = Guid.NewGuid().ToString().Replace("-", "") + Guid.NewGuid().ToString().Replace("-", "");
-            return "PJX-" + twoGuid;
+            return "PJX-" + Guid.NewGuid().ToString().Replace("-", "") + Guid.NewGuid().ToString().Replace("-", "");
         }
         [HttpGetBypass("Asset/CharacterFetch.ashx")]
         public async Task<string> CharacterFetchASHX(long userId)
