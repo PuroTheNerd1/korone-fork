@@ -185,10 +185,9 @@ namespace Roblox.Website.Controllers
         }
         private async Task CreateSessionAndSetCookie(long userId)
         {
-            var sess = await services.users.CreateSession(userId);
-            var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+            var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
-                sessionId = sess,
+                sessionId = await services.users.CreateSession(userId),
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
