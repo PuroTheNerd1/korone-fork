@@ -71,7 +71,7 @@ namespace Roblox.Website.Controllers
             string totpCode = "";
             long userId;
 
-            StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8)
+            StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8);
             requestBody = await reader.ReadToEndAsync();
 
             if (string.IsNullOrEmpty(requestBody))
