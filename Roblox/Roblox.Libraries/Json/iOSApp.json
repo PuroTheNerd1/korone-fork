@@ -3636,7 +3636,7 @@
 		"FIntLuaAppAutocompletePercentageRollout": 0,
 		"FIntLuaAppBacktraceErrorReportPercentage": 20,
 		"FIntLuaAppGameDetailsMoreShareButtonRolloutV2": 100,
-		"FIntLuaAppLogoutUserOnUnauthorizedPercentRollout": 100,
+		"FIntLuaAppLogoutUserOnUnauthorizedPercentRollout": 0,
 		"FIntLuaAppMorePagePremiumIcon": 2,
 		"FIntLuaAppNonFinalThumbnailMaxRetries": 1,
 		"FIntLuaAppPercentRolloutFeaturedGameTileInSearch": 100,
