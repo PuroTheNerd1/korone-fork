@@ -33,7 +33,4 @@ public class InGameAbuseReportEntry
 
     [XmlAttribute(AttributeName = "gameJobID")]
     public string gameJobId { get; set; }
-
-    [XmlText]
-    public string Text { get; set; }
 }
