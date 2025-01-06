@@ -52,7 +52,7 @@ public class AbuseReportService : ServiceBase, IService
     public async Task InsertGameMessages(string reportId, string jobId, string messages)
     {
         await db.ExecuteAsync(
-            "INSERT INTO abuse_report_messages (report_id, messages, job_id) VALUES (:reportId, :messages, :jobId)",
+            "INSERT INTO abuse_report_messages (abuse_id, messages, job_id) VALUES (:reportId, :messages, :jobId)",
             new
             {
                 reportId,
