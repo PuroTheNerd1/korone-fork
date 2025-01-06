@@ -765,6 +765,15 @@ namespace Roblox.Website.Controllers
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId};{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
 
+        [HttpPostBypass("AbuseReport/InGameChatHandler.ashx")]
+        public async Task AbuseReport()
+        {
+            var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true);
+            var requestBody = await reader.ReadToEndAsync();
+            HttpContext.Request.Body.Position = 0;
+            reader.Dispose();
+            Console.WriteLine(requestBody);
+        }
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()
         {
