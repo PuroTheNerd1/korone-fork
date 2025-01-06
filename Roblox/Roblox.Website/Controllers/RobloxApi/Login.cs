@@ -138,6 +138,11 @@ namespace Roblox.Website.Controllers
                 SameSite = SameSiteMode.Lax,
             });
 
+            foreach (var cookie in HttpContext.Request.Cookies.Where(c => c.Key == ".ROBLOSECURITY"))
+            {
+                HttpContext.Response.Cookies.Delete(cookie.Key);
+            }
+
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
             {
                 Domain = ".pekora.zip",
