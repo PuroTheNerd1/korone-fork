@@ -274,7 +274,7 @@ public class AvatarRBX : ControllerBase
     [HttpGetBypass("v1/avatar")]
     public async Task<dynamic> GetMyAvatar()
     {
-        return await GetAvatar(userSession?.userId ?? 1);
+        return await GetAvatar(userSession?.userId ?? (long.TryParse(HttpContext.Request.Cookies["USERID"], out var userId) ? userId : 1));
     }
 
     [HttpGetBypass("v1/avatar/metadata")]
