@@ -41,6 +41,7 @@ using Roblox.Website.Pages;
 using System.IO.Compression;
 using Roblox.Models;
 using Roblox.Dto.Assets;
+using Roblox.Dto.AbuseReport;
 using Roblox.Models.Games;
 using System.Diagnostics.CodeAnalysis;
 namespace Roblox.Website.Controllers
@@ -766,22 +767,12 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("AbuseReport/InGameChatHandler.ashx")]
-        public async Task AbuseReport()
+        public async Task AbuseReport([FromBody] InGameAbuseReportEntry entry)
         {
-            HttpContext.Request.EnableBuffering();
-            MemoryStream memoryStream = new MemoryStream();
-            await HttpContext.Request.Body.CopyToAsync(memoryStream);
-
-            memoryStream.Position = 0;
-            HttpContext.Request.Body.Position = 0;
-
-            var reader = new StreamReader(memoryStream, Encoding.UTF8);
-            var requestBody = await reader.ReadToEndAsync();
-
-            reader.Dispose();
-            memoryStream.Dispose();
-
-            Console.WriteLine(requestBody);
+            Console.WriteLine(entry.userId);
+            Console.WriteLine(entry.placeId);
+            Console.WriteLine(entry.gameJobId);
+            Console.WriteLine(entry.comment);
         }
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()

@@ -216,35 +216,25 @@ public class RbxThumbnails : ControllerBase
     {
         bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
         IEnumerable<BatchRequestEntry> requestEntries;
-        var tasks = new List<Task<IEnumerable<dynamic>>>();
+
         if (isGzip)
         {
-            using (var decompressedStream = new MemoryStream())
-            {
-                using (var requestStream = Request.Body)
-                {
-                    using (var gzipStream = new GZipStream(requestStream, CompressionMode.Decompress))
-                    {
-                        await gzipStream.CopyToAsync(decompressedStream);
-                    }
-                }
-                decompressedStream.Seek(0, SeekOrigin.Begin);
+            var decompressedStream = new MemoryStream();
+            var gzipStream = new GZipStream(Request.Body, CompressionMode.Decompress);
+            await gzipStream.CopyToAsync(decompressedStream);
 
-                using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
-                {
-                    var json = await reader.ReadToEndAsync();
-                    requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
-                }
-            }
+            decompressedStream.Seek(0, SeekOrigin.Begin);
+            using var reader = new StreamReader(decompressedStream, Encoding.UTF8);
+            var json = await reader.ReadToEndAsync();
+            requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
         }
         else
         {
-            using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
-            {
-                var json = await reader.ReadToEndAsync();
-                requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
-            }
+            var reader = new StreamReader(Request.Body, Encoding.UTF8);
+            var json = await reader.ReadToEndAsync();
+            requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
         }
+
 
         var thumbs = requestEntries.ToList();
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()

@@ -1,3 +1,4 @@
+using System.Xml.Serialization;
 using Roblox.Models.AbuseReport;
 
 namespace Roblox.Dto.AbuseReport;
@@ -12,4 +13,26 @@ public class AbuseReportEntry
     public string reportMessage { get; set; }
     public DateTime createdAt { get; set; }
     public DateTime updatedAt { get; set; }
+}
+
+public class InGameAbuseReportEntry
+{
+
+    [XmlElement(ElementName = "comment")]
+    public string comment { get; set; }
+
+    [XmlElement(ElementName = "messages")]
+    public object messages { get; set; }
+
+    [XmlAttribute(AttributeName = "userID")]
+    public int userId { get; set; }
+
+    [XmlAttribute(AttributeName = "placeID")]
+    public int placeId { get; set; }
+
+    [XmlAttribute(AttributeName = "gameJobID")]
+    public string gameJobId { get; set; }
+
+    [XmlText]
+    public string Text { get; set; }
 }
