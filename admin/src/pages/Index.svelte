@@ -83,7 +83,7 @@ import { now } from 'svelte/internal';
 		{#if numPendingAbuseReports != undefined}
 			<DashStatCard onClick={() => {
 				navigate('/admin/reports');
-			}} value='Pending Abuse Reports' key={numPendingApplications.toString()} cardClasses="bg-warning bg-gradient pointer" />
+			}} value='Pending Abuse Reports' key={numPendingAbuseReports.toString()} cardClasses="bg-warning bg-gradient pointer" />
 		{/if}
 		{#if numPendingAssets != undefined}
 			<DashStatCard onClick={() => {
