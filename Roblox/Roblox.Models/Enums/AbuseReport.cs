@@ -12,7 +12,6 @@ public enum AbuseReportStatus
 {
     Pending = 1,
     Valid,
-
     InvalidGood,
     InvalidBad,
 }

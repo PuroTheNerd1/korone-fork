@@ -18,7 +18,7 @@ public class AbuseReportService : ServiceBase, IService
                 offset = 0,
             });
     }
-    
+
     public async Task<AbuseReportEntry> GetReportById(string reportId)
     {
         return await db.QuerySingleOrDefaultAsync<AbuseReportEntry>(
@@ -28,7 +28,7 @@ public class AbuseReportService : ServiceBase, IService
                 id = reportId,
             });
     }
-    
+
     public async Task SetReportStatus(string reportId, AbuseReportStatus newStatus, long contextUserId)
     {
         await db.ExecuteAsync(
@@ -40,22 +40,24 @@ public class AbuseReportService : ServiceBase, IService
                 new_status = newStatus,
             });
     }
-    
-    public async Task InsertReport(long contextUserId, AbuseReportReason reason, string message)
+
+    public async Task<string> InsertReport(long contextUserId, AbuseReportReason reason, string message)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.AbuseReportsEnabled);
+        string abuseReportId = Guid.NewGuid().ToString();
         await db.ExecuteAsync(
             "INSERT INTO abuse_report (id, user_id, report_reason, report_status, report_message) VALUES (:id, :user_id, :reason, :status, :message)",
             new
             {
-                id = Guid.NewGuid().ToString(),
+                id = abuseReportId,
                 user_id = contextUserId,
                 reason,
                 status = AbuseReportStatus.Pending,
                 message = message,
             });
+        return abuseReportId;
     }
-    
+
     public bool IsThreadSafe()
     {
         return true;
