@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using Roblox.Cache;
 using Roblox.Dto;
+using Roblox.Dto.AbuseReport;
 using Roblox.Dto.Admin;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Avatar;
@@ -2900,7 +2901,9 @@ Thank you for your understanding,
     [HttpGet("chat-messages/{reportId}"), StaffFilter(Access.ManageReports)]
     public async Task<dynamic> GetChatMessages(string reportId)
     {
-        return await services.abuseReport.GetGamesMessagesById(reportId);
+        GameMessagesEntry gameMessages = await services.abuseReport.GetGamesMessagesById(reportId);
+        string messages = $"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages;
+        return messages;
     }
 
     [HttpGet("reports/list"), StaffFilter(Access.ManageReports)]

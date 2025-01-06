@@ -15,6 +15,14 @@ public class AbuseReportEntry
     public DateTime updatedAt { get; set; }
 }
 
+public class GameMessagesEntry
+{
+    public string reportId { get; set; }
+    public string jobId { get; set; }
+    public string messages { get; set; }
+    public DateTime createdAt { get; set; }
+}
+
 [XmlRoot(ElementName = "message")]
 public class InGameMessage
 {

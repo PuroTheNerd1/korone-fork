@@ -18,10 +18,10 @@ public class AbuseReportService : ServiceBase, IService
                 offset = 0,
             });
     }
-    public async Task<string> GetGamesMessagesById(string reportId)
+    public async Task<GameMessagesEntry> GetGamesMessagesById(string reportId)
     {
-        return await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT id, user_id as userId, report_reason as reportReason, report_status as reportStatus, created_at as createdAt, updated_at as updatedAt, report_message as reportMessage FROM abuse_report WHERE id = :id LIMIT 1",
+        return await db.QuerySingleOrDefaultAsync<GameMessagesEntry>(
+            "SELECT abuse_id as reportId, messages, job_id as jobId, created_at as createdAt FROM abuse_report_messages WHERE id = :id LIMIT 1",
             new
             {
                 id = reportId,
