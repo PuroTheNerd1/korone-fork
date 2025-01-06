@@ -2897,6 +2897,12 @@ Thank you for your understanding,
         };
     }
 
+    [HttpGet("chat-messages"), StaffFilter(Access.ManageReports)]
+    public async Task<dynamic> GetChatMessages(string reportId)
+    {
+        return await services.abuseReport.GetReports(status);
+    }
+
     [HttpGet("reports/list"), StaffFilter(Access.ManageReports)]
     public async Task<dynamic> GetReports(AbuseReportStatus status)
     {

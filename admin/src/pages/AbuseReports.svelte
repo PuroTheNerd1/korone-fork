@@ -123,6 +123,15 @@
 										>
 									{/if}
 
+									{#if app.reportReason === "BadChatMessagesInGame"}
+										<a
+											class="btn btn-sm btn-outline-primary w-100"
+											href="/admin-api/api/chat-messages?reportId={app.id}"
+										>
+										View chat messages
+									</a>
+									{/if}
+
 									<DropdownButton title='Reject'>
 										<button class="dropdown-item" on:click={() => {
 											rejectApp(app, 'decline');

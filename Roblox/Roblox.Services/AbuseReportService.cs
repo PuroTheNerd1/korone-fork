@@ -41,6 +41,17 @@ public class AbuseReportService : ServiceBase, IService
             });
     }
 
+    public async Task InsertGameMessages(string reportId, string messages)
+    {
+        await db.ExecuteAsync(
+            "INSERT INTO abuse_report_messages (report_id, messages) VALUES (:report_id, :messages)",
+            new
+            {
+                report_id = reportId,
+                messages,
+            });
+    }
+
     public async Task<string> InsertReport(long contextUserId, AbuseReportReason reason, string message)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.AbuseReportsEnabled);
