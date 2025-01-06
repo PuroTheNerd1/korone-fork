@@ -2909,7 +2909,7 @@ Thank you for your understanding,
     [HttpGet("reports/pending-count"), StaffFilter(Access.ManageReports)]
     public async Task<dynamic> GetPendingReports()
     {
-        var count = await services.abuseReport.GetReports(AbuseReportStatus.Pending);
+        var count = await services.abuseReport.CountPendingReports();
         return new
         {
             count
