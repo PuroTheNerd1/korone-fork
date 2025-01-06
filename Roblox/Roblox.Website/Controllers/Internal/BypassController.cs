@@ -778,7 +778,6 @@ namespace Roblox.Website.Controllers
             This report was sent by the in-game report system.
             Place ID: {report.placeId}
             Job ID: {report.gameJobId}
-            {{0}}
             ";
 
             // Example: AbuserID:0;Inappropriate Content;User Report:
@@ -788,8 +787,7 @@ namespace Roblox.Website.Controllers
             // If the abuserId is 0 it is a place report
             if (abuserId == 0)
             {
-                reportMessage = string.Format(reportMessage, splittedComment[2]);
-                await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadGame, reportMessage);
+                await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadGame, reportMessage + "\n" + splittedComment[2]);
                 return Ok();
             }
 
@@ -801,8 +799,7 @@ namespace Roblox.Website.Controllers
                 gameMessages += $"[{user}]: {message.text}\n";
             }
             // EW!
-            reportMessage = string.Format(reportMessage, $"Abuser ID: {abuserId}\nReason: {splittedComment[2]}\nMessages: {gameMessages}");
-            await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadChatMessagesInGame, reportMessage);
+            await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadChatMessagesInGame, reportMessage + $"\nAbuser ID: {abuserId}\nReason: {splittedComment[2]}\nMessages: {gameMessages}");
 
             return Ok();
         }
