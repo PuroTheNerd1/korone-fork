@@ -119,9 +119,10 @@ namespace Roblox.Website.Controllers
             }
 
             var info = await services.users.GetUserById(userId);
+            var sess = await services.users.CreateSession(userId);
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
-                sessionId = await services.users.CreateSession(userId),
+                sessionId = sess,
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
