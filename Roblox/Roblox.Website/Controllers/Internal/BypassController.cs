@@ -1676,6 +1676,7 @@ namespace Roblox.Website.Controllers
             return false;
         }
 
+        [HttpPostBypass("v1/logout")]
         [HttpGetBypass("sign-out/v1")]
         [HttpGetBypass("game/logout.aspx")]
         public dynamic Logout()
