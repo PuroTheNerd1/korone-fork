@@ -120,6 +120,7 @@ namespace Roblox.Website.Controllers
             }
             await Login(username, password, userId, totpCode);
             var info = await services.users.GetUserById(userId);
+
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {

@@ -904,6 +904,7 @@ public class AdminApiController : ControllerBase
         {
             user_id = request.userId,
         });
+        await services.gameServer.KickPlayer(request.userId);
     }
 
     [HttpPost("user/create-message"), StaffFilter(Access.CreateMessage)]
