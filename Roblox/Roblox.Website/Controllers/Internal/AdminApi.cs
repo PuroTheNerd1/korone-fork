@@ -2899,10 +2899,10 @@ Thank you for your understanding,
     }
 
     [HttpGet("chat-messages/{reportId}"), StaffFilter(Access.ManageReports)]
-    public async Task<string> GetChatMessages(string reportId)
+    public async Task<dynamic> GetChatMessages(string reportId)
     {
         GameMessagesEntry gameMessages = await services.abuseReport.GetGamesMessagesById(reportId);
-        return $"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages;
+        return Ok($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages);
     }
 
     [HttpGet("reports/list"), StaffFilter(Access.ManageReports)]
