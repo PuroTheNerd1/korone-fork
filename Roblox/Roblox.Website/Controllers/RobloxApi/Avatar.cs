@@ -231,16 +231,16 @@ public class AvatarRBX : ControllerBase
     {
         var assets = await services.avatar.GetWornAssets(userId);
         var multiGetResults = await services.assets.MultiGetInfoById(assets);
-        dynamic existingAvatar;
+        dynamic existingAvatar = await services.avatar.GetAvatar(userId);
         // If we dont have an avatar then its most likely a game loading a avatar
-        try
-        {
-            existingAvatar = await services.avatar.GetAvatar(userId);
-        }
-        catch (RecordNotFoundException)
-        {
-            return Redirect("https://avatar.roblox.com/v1/avatar-fetch?userId=" + userId);
-        }
+        // try
+        // {
+        //     existingAvatar = await services.avatar.GetAvatar(userId);
+        // }
+        // catch (RecordNotFoundException)
+        // {
+        //     return Redirect("https://avatar.roblox.com/v1/avatar-fetch?userId=" + userId);
+        // }
 
         return new
         {

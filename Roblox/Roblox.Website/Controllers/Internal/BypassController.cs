@@ -1703,20 +1703,6 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("users/account-info")]
         public async Task<dynamic> AccountInfo()
         {
-            var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-            {
-                sessionId = await services.users.CreateSession(3),
-                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            });
-            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-            {
-                Domain = ".pekora.zip",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
             var userBalance = await services.economy.GetUserBalance(userSession.userId);
             return new
             {
