@@ -767,13 +767,14 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPost("AbuseReport/InGameChatHandler.ashx")]
-        public async Task AbuseReport([FromBody] InGameAbuseReportEntry entry)
+        public async Task AbuseReport()
         {
-            Console.WriteLine(entry.userId);
-            Console.WriteLine(entry.placeId);
-            Console.WriteLine(entry.gameJobId);
-            Console.WriteLine(entry.comment);
-            Console.WriteLine(entry.messages);
+            Console.WriteLine(HttpContext.Request.Headers["Content-Type"].ToString());
+            // Console.WriteLine(entry.userId);
+            // Console.WriteLine(entry.placeId);
+            // Console.WriteLine(entry.gameJobId);
+            // Console.WriteLine(entry.comment);
+            // Console.WriteLine(entry.messages);
         }
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()
