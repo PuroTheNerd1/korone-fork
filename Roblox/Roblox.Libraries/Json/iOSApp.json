@@ -3597,7 +3597,7 @@
 		"FIntDebugVersionHistoryTCMessageOnInternalError": 1,
 		"FIntDebugVersionHistoryWiremockApi": 0,
 		"FIntDelayBeforeFirstPostStatsSeconds": 180,
-		"FIntEnableAuth2SVLogin": 100,
+		"FIntEnableAuth2SVLogin": 0,
 		"FIntEnableAuthSignUp": 100,
 		"FIntEnableDeepLinkNotifications": 100,
 		"FIntEnableFriendFooterOnHomePageV369": 100,
