@@ -798,10 +798,10 @@ namespace Roblox.Website.Controllers
                 string user = message.userId == abuserId
                     ? $"(Abuser) UID: {message.userId}"
                     : $"UID: {message.userId}";
-                gameMessages += $"[{user}]: {message.text}\n";
+                gameMessages += $"{user}: {message.text}\n";
             }
             // EW!
-            reportMessage = string.Format(reportMessage, $"Abuser ID: {abuserId}\nReason: {splittedComment[2]}\nMessages: {gameMessages}");
+            reportMessage = string.Format(reportMessage, $"Abuser ID: {abuserId}\nReason: {splittedComment[2]}\nMessages:\n{gameMessages}");
             await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadChatMessagesInGame, reportMessage);
 
             return Ok();
