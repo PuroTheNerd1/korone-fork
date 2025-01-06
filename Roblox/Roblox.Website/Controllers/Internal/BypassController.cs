@@ -774,8 +774,7 @@ namespace Roblox.Website.Controllers
             if (!IsRcc())
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
             string gameMessages = "";
-            string reportMessage = @$"
-            This report was sent by the in-game report system.
+            string reportMessage = @$"This report was sent by the in-game report system.
             Place ID: {report.placeId}
             Job ID: {report.gameJobId}
             {{0}}
