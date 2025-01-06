@@ -2897,10 +2897,10 @@ Thank you for your understanding,
         };
     }
 
-    [HttpGet("chat-messages"), StaffFilter(Access.ManageReports)]
+    [HttpGet("chat-messages/{reportId}"), StaffFilter(Access.ManageReports)]
     public async Task<dynamic> GetChatMessages(string reportId)
     {
-        return await services.abuseReport.GetReports(status);
+        return await services.abuseReport.GetGamesMessagesById(reportId);
     }
 
     [HttpGet("reports/list"), StaffFilter(Access.ManageReports)]

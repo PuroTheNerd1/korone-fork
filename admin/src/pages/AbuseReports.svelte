@@ -126,7 +126,7 @@
 									{#if app.reportReason === "BadChatMessagesInGame"}
 										<a
 											class="btn btn-sm btn-outline-primary w-100"
-											href="/admin-api/api/chat-messages?reportId={app.id}"
+											href="/admin-api/api/chat-messages/{app.id}"
 										>
 										View chat messages
 									</a>

@@ -18,7 +18,15 @@ public class AbuseReportService : ServiceBase, IService
                 offset = 0,
             });
     }
-
+    public async Task<string> GetGamesMessagesById(string reportId)
+    {
+        return await db.QuerySingleOrDefaultAsync<string>(
+            "SELECT id, user_id as userId, report_reason as reportReason, report_status as reportStatus, created_at as createdAt, updated_at as updatedAt, report_message as reportMessage FROM abuse_report WHERE id = :id LIMIT 1",
+            new
+            {
+                id = reportId,
+            });
+    }
     public async Task<AbuseReportEntry> GetReportById(string reportId)
     {
         return await db.QuerySingleOrDefaultAsync<AbuseReportEntry>(
@@ -41,14 +49,15 @@ public class AbuseReportService : ServiceBase, IService
             });
     }
 
-    public async Task InsertGameMessages(string reportId, string messages)
+    public async Task InsertGameMessages(string reportId, string jobId, string messages)
     {
         await db.ExecuteAsync(
-            "INSERT INTO abuse_report_messages (report_id, messages) VALUES (:report_id, :messages)",
+            "INSERT INTO abuse_report_messages (report_id, messages, job_id) VALUES (:reportId, :messages, :jobId)",
             new
             {
-                report_id = reportId,
+                reportId,
                 messages,
+                jobId,
             });
     }
 

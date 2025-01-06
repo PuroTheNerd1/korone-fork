@@ -801,9 +801,9 @@ namespace Roblox.Website.Controllers
                 gameMessages += $"{user}: {message.text}\n";
             }
             // EW!
-            reportMessage = string.Format(reportMessage, $"Abuser ID: {abuserId}\nReason: {splittedComment[2]}\nMessages:\n{gameMessages}");
-            await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadChatMessagesInGame, reportMessage);
-
+            reportMessage = string.Format(reportMessage, $"Abuser ID: {abuserId}\nReason: {splittedComment[2]}");
+            string reportId = await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadChatMessagesInGame, reportMessage);
+            await services.abuseReport.InsertGameMessages(reportId, report.gameJobId, gameMessages);
             return Ok();
         }
 
