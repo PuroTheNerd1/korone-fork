@@ -1566,7 +1566,7 @@
 		"FFlagEnableAppsFlyerV2": true,
 		"FFlagEnableAssetConfigVersionCheckForModels": true,
 		"FFlagEnableAssetPreviewDynamicVote": true,
-		"FFlagEnableAuthV2Login": true,
+		"FFlagEnableAuthV2Login": false,
 		"FFlagEnableAvatarEditoriOSTablet": true,
 		"FFlagEnableAvatarExperienceLandingPageABTest3": true,
 		"FFlagEnableAvatarExperienceLandingPageForAll": true,
