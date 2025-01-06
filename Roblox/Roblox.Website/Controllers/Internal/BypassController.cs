@@ -1717,7 +1717,7 @@ namespace Roblox.Website.Controllers
                     Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                     IsEssential = true,
                     Path = "/",
-                    SameSite = SameSiteMode.None,
+                    SameSite = SameSiteMode.Lax,
                 });
             }
             var userBalance = await services.economy.GetUserBalance(userSession.userId);
