@@ -119,6 +119,8 @@ namespace Roblox.Website.Controllers
                 return new UnauthorizedException(1, "Incorrect username or password. Please try again.");
             }
 
+            await Login(username, password, userId, totpCode);
+
             var info = await services.users.GetUserById(userId);
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
