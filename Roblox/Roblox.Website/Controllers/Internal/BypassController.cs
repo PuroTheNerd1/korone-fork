@@ -810,10 +810,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()
         {
-            var userInfo = await services.users.GetUserById(safeUserSession.userId);
+            var userInfo = await services.users.GetUserById(userSession.userId);
             string membership;
-            bool isAdmin = await StaffFilter.IsStaff(safeUserSession.userId);
-            var membership2 = await services.users.GetUserMembership(safeUserSession.userId);
+            bool isAdmin = await StaffFilter.IsStaff(userSession.userId);
+            var membership2 = await services.users.GetUserMembership(userSession.userId);
             if (membership2 == null)
             {
                 membership = "None";
@@ -826,9 +826,9 @@ namespace Roblox.Website.Controllers
             {
                 ChangeUsernameEnabled = true,
                 IsAdmin = isAdmin,
-                UserId = safeUserSession.userId,
-                Name = safeUserSession.username,
-                DisplayName = safeUserSession.username,
+                UserId = userSession.userId,
+                Name = userSession.username,
+                DisplayName = userSession.username,
                 IsEmailOnFile = true,
                 IsEmailVerified = true,
                 IsPhoneFeatureEnabled = true,
@@ -857,9 +857,9 @@ namespace Roblox.Website.Controllers
                 UserAbove13 = true,
                 ClientIpAddress = GetRequesterIpRaw(HttpContext),
                 AccountAgeInDays = DateTime.UtcNow.Subtract(userInfo.created).Days,
-                IsOBC = membership == "OutrageousBuildersClub",
-                IsTBC = membership == "TurboBuildersClub",
-                IsAnyBC = membership != "None",
+                IsOBC = false,
+                IsTBC = false,
+                IsAnyBC = false,
                 IsPremium = false,
                 IsBcRenewalMembership = false,
                 BcExpireDate = "/Date(-0)/",
@@ -1230,7 +1230,7 @@ namespace Roblox.Website.Controllers
         {
             return new
             {
-                robux = await services.economy.GetUserRobux(safeUserSession.userId),
+                robux = await services.economy.GetUserRobux(userSession.userId),
             };
         }
         [HttpGetBypass("Users/ListStaff.ashx")]
@@ -1682,7 +1682,7 @@ namespace Roblox.Website.Controllers
         public dynamic Logout()
         {
             using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
-            sessCache.Remove(safeUserSession.sessionId);
+            sessCache.Remove(userSession.sessionId);
             HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
             return Ok();
         }
@@ -1706,12 +1706,12 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("users/account-info")]
         public async Task<dynamic> AccountInfo()
         {
-            var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
+            var userBalance = await services.economy.GetUserBalance(userSession.userId);
             return new
             {
-                UserId = safeUserSession.userId,
-                Username = safeUserSession.username,
-                DisplayName = safeUserSession.username,
+                UserId = userSession.userId,
+                Username = userSession.username,
+                DisplayName = userSession.username,
                 HasPasswordSet = true,
                 Email = "pekora@pekora.zip",
                 MembershipType = 3,
