@@ -185,16 +185,19 @@ namespace Roblox.Website.Controllers
         }
         private async Task CreateSessionAndSetCookie(long userId)
         {
-            var sess = await services.users.CreateSession(userId);
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
-                sessionId = sess,
+                sessionId = await services.users.CreateSession(userId),
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
             {
-                Expires = DateTime.UtcNow.AddDays(365),
-                Domain = $".pekora.zip"
+                Domain = ".pekora.zip",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
             });
         }
 
