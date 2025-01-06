@@ -774,6 +774,7 @@ namespace Roblox.Website.Controllers
             Console.WriteLine(entry.placeId);
             Console.WriteLine(entry.gameJobId);
             Console.WriteLine(entry.comment);
+            Console.WriteLine(entry.messages);
         }
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()
