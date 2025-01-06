@@ -344,7 +344,7 @@
 		"DFFlagHttpDynamicSuccessStatusCode": true,
 		"DFFlagHttpErrMessageFix": true,
 		"DFFlagHttpErrorNestingFix": true,
-		"DFFlagHttpFixCookieParsing": true,
+		"DFFlagHttpFixCookieParsing": false,
 		"DFFlagHttpManualRedirect": true,
 		"DFFlagHttpMarkExternalRequests": true,
 		"DFFlagHttpNetworkType": false,
