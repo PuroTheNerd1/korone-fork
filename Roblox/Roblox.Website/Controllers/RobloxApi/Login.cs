@@ -118,11 +118,21 @@ namespace Roblox.Website.Controllers
                 return new RobloxException(403, 1, "Incorrect username or password. Please try again.");
             }
 
-            if (await Login(username, password, userId, totpCode))
-                await CreateSessionAndSetCookie(userId);
-
             var info = await services.users.GetUserById(userId);
-
+            var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+            {
+                sessionId = await services.users.CreateSession(userId),
+                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            });
+            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+            {
+                Domain = ".pekora.zip",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.None,
+            });
             return new
             {
                 membershipType = 4,
