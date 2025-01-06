@@ -766,7 +766,7 @@ namespace Roblox.Website.Controllers
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId};{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
 
-        [HttpPostBypass("AbuseReport/InGameChatHandler.ashx")]
+        [HttpPost("AbuseReport/InGameChatHandler.ashx")]
         [Consumes("application/xml")]
         public async Task AbuseReport([FromBody] InGameAbuseReportEntry entry)
         {

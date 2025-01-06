@@ -135,6 +135,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/moderation/filtertext",
         "/moderation/v2/filtertext",
         "/develop/upload-version",
+        "/AbuseReport/InGameChatHandler.ashx"
         // universes
         "/universes/",
         // uses built-in RequestVerificationToken
