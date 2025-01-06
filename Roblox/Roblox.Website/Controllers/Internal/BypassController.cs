@@ -768,10 +768,17 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("AbuseReport/InGameChatHandler.ashx")]
         public async Task AbuseReport()
         {
-            var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true);
-            var requestBody = await reader.ReadToEndAsync();
+            MemoryStream memoryStream = new MemoryStream();
+            await HttpContext.Request.Body.CopyToAsync(memoryStream);
+
+            memoryStream.Position = 0;
             HttpContext.Request.Body.Position = 0;
+
+            var reader = new StreamReader(memoryStream, Encoding.UTF8);
+            var requestBody = await reader.ReadToEndAsync();
             reader.Dispose();
+            memoryStream.Dispose();
+
             Console.WriteLine(requestBody);
         }
         [HttpGetBypass("my/settings/json")]
