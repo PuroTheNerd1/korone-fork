@@ -15,6 +15,7 @@ public class AbuseReportEntry
     public DateTime updatedAt { get; set; }
 }
 
+[XmlRoot(ElementName = "report")]
 public class InGameAbuseReportEntry
 {
 
