@@ -2902,8 +2902,7 @@ Thank you for your understanding,
     public async Task<dynamic> GetChatMessages(string reportId)
     {
         GameMessagesEntry gameMessages = await services.abuseReport.GetGamesMessagesById(reportId);
-        string messages = $"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages;
-        return messages;
+        return $"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages;
     }
 
     [HttpGet("reports/list"), StaffFilter(Access.ManageReports)]
