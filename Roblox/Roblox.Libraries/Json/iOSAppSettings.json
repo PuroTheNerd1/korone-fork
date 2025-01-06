@@ -40,7 +40,7 @@
     "iOSGoogleAnalyticsAccount2": "UA-42322750-1",
     "BugSenseLogLines": 200,
     "FFlagStopProcessingPacketsIfDataModelIsShuttingDown": "True",
-    "FFlagDisableCookiesServiceForiOS": "True",
+    "FFlagDisableCookiesServiceForiOS": "False",
     "FreeMemoryCheckerActive": "False",
     "FreeMemoryCheckerRateMilliSeconds": 100,
     "FreeMemoryCheckerThresholdKiloBytes": 4096,
