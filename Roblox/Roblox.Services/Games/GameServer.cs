@@ -709,7 +709,7 @@ public class GameServerService : ServiceBase
         int networkServerPort =  RandomComponent.Next(50000, 60000);;
         int proxyPort = 0;
         bool isUsable = false;
-        while (!isUsable)
+        do
         {
             proxyPort = RandomComponent.Next(7000, 8000);
             if (await IsPortTaken(proxyPort))
@@ -718,7 +718,7 @@ public class GameServerService : ServiceBase
                 continue;
             }
             isUsable = true;
-        }
+        } while (!isUsable);
         string jobId = Guid.NewGuid().ToString();
         // await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
         // if (!serverCreationLock.IsAcquired)
