@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Roblox.Services.Signer;
+using Microsoft.AspNetCore.Mvc.Formatters;
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
@@ -78,6 +79,9 @@ Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds);
 builder.Services.AddRazorPages();
 builder.Services.AddControllers(options =>
 {
+    options.OutputFormatters.RemoveType<SystemTextJsonOutputFormatter>();
+    options.OutputFormatters.RemoveType<XmlDataContractSerializerOutputFormatter>();
+    options.OutputFormatters.Add(new StringOutputFormatter());
     options.RespectBrowserAcceptHeader = true;
 })
 .AddJsonOptions(o =>
