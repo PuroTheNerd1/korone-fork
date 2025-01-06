@@ -767,6 +767,7 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("AbuseReport/InGameChatHandler.ashx")]
+        [Consumes("application/xml")]
         public async Task AbuseReport([FromBody] InGameAbuseReportEntry entry)
         {
             Console.WriteLine(entry.userId);
