@@ -15,6 +15,29 @@ public class AbuseReportEntry
     public DateTime updatedAt { get; set; }
 }
 
+[XmlRoot(ElementName = "message")]
+public class InGameMessage
+{
+
+    [XmlAttribute(AttributeName = "userID")]
+    public int userId { get; set; }
+
+    [XmlAttribute(AttributeName = "guid")]
+    public string guid { get; set; }
+
+    [XmlText]
+    public string text { get; set; }
+}
+
+[XmlRoot(ElementName = "messages")]
+public class InGameMessages
+{
+
+    [XmlElement(ElementName = "message")]
+    public List<InGameMessage> message { get; set; }
+}
+
+
 [XmlRoot(ElementName = "report")]
 public class InGameAbuseReportEntry
 {
@@ -23,7 +46,7 @@ public class InGameAbuseReportEntry
     public string comment { get; set; }
 
     [XmlElement(ElementName = "messages")]
-    public List<dynamic> messages { get; set; }
+    public InGameMessages messages { get; set; }
 
     [XmlAttribute(AttributeName = "userID")]
     public int userId { get; set; }

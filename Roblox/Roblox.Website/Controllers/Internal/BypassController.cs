@@ -768,27 +768,19 @@ namespace Roblox.Website.Controllers
 
         [HttpPost("AbuseReport/InGameChatHandler.ashx")]
         [Consumes("application/xml")]
-        public async Task AbuseReport()
+        public async Task AbuseReport([FromBody] InGameAbuseReportEntry entry)
         {
-            // Console.WriteLine(entry.userId);
-            // Console.WriteLine(entry.placeId);
-            // Console.WriteLine(entry.gameJobId);
-            // Console.WriteLine(entry.comment);
-            // foreach (var message in entry.messages)
-            // {
-            //     Console.WriteLine(message);
-            // }
-            // Copy the body to a MemoryStream
-            HttpContext.Request.EnableBuffering();
-            MemoryStream memoryStream = new MemoryStream();
-            await HttpContext.Request.Body.CopyToAsync(memoryStream);
-            memoryStream.Position = 0;
-            HttpContext.Request.Body.Position = 0;
-            var reader = new StreamReader(memoryStream, Encoding.UTF8);
-            var requestBody = await reader.ReadToEndAsync();
-            reader.Dispose();
-            memoryStream.Dispose();
-            Console.WriteLine(requestBody);
+            Console.WriteLine(entry.userId);
+            Console.WriteLine(entry.placeId);
+            Console.WriteLine(entry.gameJobId);
+            Console.WriteLine(entry.comment);
+
+            foreach (InGameMessage message in entry.messages.message)
+            {
+                Console.WriteLine(message.text);
+                Console.WriteLine(message.userId);
+                Console.WriteLine(message.guid);
+            }
         }
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()
