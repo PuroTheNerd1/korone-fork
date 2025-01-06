@@ -10,6 +10,7 @@
 	let numPendingAssets: number|undefined;
 //	let numPendingText: number|undefined; -- not in use, no clue what it's even for - shady
 	let numPendingApplications: number|undefined;
+	let numPendingAbuseReports: number|undefined;
 
 	Promise.all([
 		request.get(`/groups/pending-icons`),
@@ -26,6 +27,9 @@
 	let showInGame = false;
 	request.get("/applications/pending-num").then((data) => {
 		numPendingApplications = data.data.count;
+	});
+	request.get("/reports/pending-count").then((data) => {
+		numPendingAbuseReports = data.data.count;
 	});
 	if (rank.hasPermission("GetUserJoinCount")) {
         request.get<{ total: number }>("/user-joins?period=past-hour").then((data) => {
@@ -45,7 +49,7 @@
 			usersOnline = t.data.total;
 		})
 	}
-	
+
 	import * as rank from "../stores/rank";
 	import Permission from "../components/Permission.svelte";
 import { get } from 'svelte/store';
@@ -75,6 +79,11 @@ import { now } from 'svelte/internal';
 			<DashStatCard onClick={() => {
 				navigate('/admin/applications');
 			}} value='Pending Applications Count' key={numPendingApplications.toString()} cardClasses="bg-primary bg-gradient pointer" />
+		{/if}
+		{#if numPendingAbuseReports != undefined}
+			<DashStatCard onClick={() => {
+				navigate('/admin/reports');
+			}} value='Pending Abuse Reports' key={numPendingApplications.toString()} cardClasses="bg-warning bg-gradient pointer" />
 		{/if}
 		{#if numPendingAssets != undefined}
 			<DashStatCard onClick={() => {

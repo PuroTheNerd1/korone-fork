@@ -2906,6 +2906,16 @@ Thank you for your understanding,
         return Content($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages, "text/plan");
     }
 
+    [HttpGet("reports/pending-count"), StaffFilter(Access.ManageReports)]
+    public async Task<dynamic> GetPendingReports()
+    {
+        var count = await services.abuseReport.GetReports(AbuseReportStatus.Pending);
+        return new
+        {
+            count
+        };
+    }
+
     [HttpGet("reports/list"), StaffFilter(Access.ManageReports)]
     public async Task<dynamic> GetReports(AbuseReportStatus status)
     {

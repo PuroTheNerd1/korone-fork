@@ -18,6 +18,15 @@ public class AbuseReportService : ServiceBase, IService
                 offset = 0,
             });
     }
+    public async Task<long> CountPendingReports()
+    {
+        return await db.QuerySingleOrDefaultAsync<long>(
+            "SELECT COUNT(*) FROM abuse_report WHERE report_status = :status",
+            new
+            {
+                status = AbuseReportStatus.Pending,
+            });
+    }
     public async Task<GameMessagesEntry> GetGamesMessagesById(string reportId)
     {
         return await db.QuerySingleOrDefaultAsync<GameMessagesEntry>(
