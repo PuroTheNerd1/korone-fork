@@ -783,10 +783,8 @@ namespace Roblox.Website.Controllers
 
             // Example: AbuserID:0;Inappropriate Content;User Report:
             // very hacky
-            Console.WriteLine(report.comment.Split(":")[0]);
-            Console.WriteLine(report.comment.Split(":")[1]);
 
-            long abuserId = long.Parse(report.comment.Split(":")[0]);
+            long abuserId = long.Parse(report.comment.Split(":")[1].Trim().Split(";")[0]);
             string[] splittedComment = report.comment.Split(";");
             // If the abuserId is 0 it is a place report
             if (abuserId == 0)
