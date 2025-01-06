@@ -101,7 +101,7 @@ namespace Roblox.Website.Controllers
             }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                throw new BadRequestException(1, "Username or password is missing.");
+                throw new RobloxException(400, 1, "Username or password is missing.");
 
 
             // Format: {username}|{2facode}
@@ -118,9 +118,7 @@ namespace Roblox.Website.Controllers
             {
                 return new UnauthorizedException(1, "Incorrect username or password. Please try again.");
             }
-
             await Login(username, password, userId, totpCode);
-
             var info = await services.users.GetUserById(userId);
             var sess = await services.users.CreateSession(userId);
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
@@ -128,17 +126,15 @@ namespace Roblox.Website.Controllers
                 sessionId = sess,
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
-
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
             {
                 Domain = ".pekora.zip",
-                Secure = true,
+                Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
                 Path = "/",
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Lax,
             });
-
             return new
             {
                 membershipType = 4,
@@ -147,6 +143,12 @@ namespace Roblox.Website.Controllers
                 countryCode = "US",
                 userId,
                 displayName = info.username,
+                user = new
+                {
+                    id = userId,
+                    name = info.username,
+                    displayName = info.username
+                },
                 isBanned = false
             };
         }
