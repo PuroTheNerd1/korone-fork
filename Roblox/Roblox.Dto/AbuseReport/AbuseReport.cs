@@ -23,7 +23,7 @@ public class InGameAbuseReportEntry
     public string comment { get; set; }
 
     [XmlElement(ElementName = "messages")]
-    public object messages { get; set; }
+    public List<dynamic> messages { get; set; }
 
     [XmlAttribute(AttributeName = "userID")]
     public int userId { get; set; }
