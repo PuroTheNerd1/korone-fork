@@ -2946,6 +2946,14 @@ Thank you for your understanding,
         if (data == null || data.reportStatus != AbuseReportStatus.Pending)
             return;
         await services.abuseReport.SetReportStatus(id, AbuseReportStatus.Valid, safeUserSession.userId);
+        await db.ExecuteAsync(
+            "INSERT INTO user_message (user_id_to, user_id_from, subject, body) VALUES (:user_id_to, 1, :subject, :body)",
+            new
+            {
+                user_id_to = data.userId,
+                subject = "Thank you for your report",
+                body = "Your report has been reviewed and accepted. Thank you for helping keep Pekora safe.",
+            });
         await RewardForReportReview();
     }
 
