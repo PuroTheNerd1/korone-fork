@@ -41,6 +41,7 @@ using Roblox.Website.Pages;
 using System.IO.Compression;
 using Roblox.Models;
 using Roblox.Dto.Assets;
+using Roblox.Models.AbuseReport;
 using Roblox.Dto.AbuseReport;
 using Roblox.Models.Games;
 using System.Diagnostics.CodeAnalysis;
@@ -768,19 +769,34 @@ namespace Roblox.Website.Controllers
 
         [HttpPost("AbuseReport/InGameChatHandler.ashx")]
         [Consumes("application/xml")]
-        public async Task AbuseReport([FromBody] InGameAbuseReportEntry entry)
+        public async Task AbuseReport([FromBody] InGameAbuseReportEntry report)
         {
-            Console.WriteLine(entry.userId);
-            Console.WriteLine(entry.placeId);
-            Console.WriteLine(entry.gameJobId);
-            Console.WriteLine(entry.comment);
+            if (!IsRcc())
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
-            foreach (InGameMessage message in entry.messages.message)
+            string reportMessage = @"
+            This report was sent by the in-game report system.
+            Place ID: {0}
+            Job ID: {1}
+            {2}
+            {3}
+            ";
+
+            // Example: AbuserID:0;Inappropriate Content;User Report:
+            // very hacky
+            long abuserId = long.Parse(report.comment.Split(":")[1]);
+            string[] splittedComment = report.comment.Split(";");
+            // If the abuserId is 0 it is a place report
+            if (abuserId == 0)
             {
-                Console.WriteLine(message.text);
-                Console.WriteLine(message.userId);
-                Console.WriteLine(message.guid);
+                reportMessage = string.Format(reportMessage, report.placeId, report.gameJobId, splittedComment[2]);
+                await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadGame, reportMessage);
             }
+
+
+
+            //await services.abuseReport.InsertReport(report.userId)
+
         }
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()
