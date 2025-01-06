@@ -197,7 +197,7 @@ namespace Roblox.Website.Controllers
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
                 Path = "/",
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
             });
         }
 
