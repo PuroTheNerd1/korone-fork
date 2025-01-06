@@ -768,6 +768,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("AbuseReport/InGameChatHandler.ashx")]
         public async Task AbuseReport()
         {
+            HttpContext.Request.EnableBuffering();
             MemoryStream memoryStream = new MemoryStream();
             await HttpContext.Request.Body.CopyToAsync(memoryStream);
 
