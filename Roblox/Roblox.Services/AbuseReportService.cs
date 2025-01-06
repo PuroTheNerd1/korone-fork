@@ -21,7 +21,7 @@ public class AbuseReportService : ServiceBase, IService
     public async Task<GameMessagesEntry> GetGamesMessagesById(string reportId)
     {
         return await db.QuerySingleOrDefaultAsync<GameMessagesEntry>(
-            "SELECT abuse_id as reportId, messages, job_id as jobId, created_at as createdAt FROM abuse_report_messages WHERE id = :id LIMIT 1",
+            "SELECT abuse_id as reportId, messages, job_id as jobId, created_at as createdAt FROM abuse_report_messages WHERE abuse_id = :id LIMIT 1",
             new
             {
                 id = reportId,
