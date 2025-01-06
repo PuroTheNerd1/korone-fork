@@ -778,7 +778,7 @@ namespace Roblox.Website.Controllers
             This report was sent by the in-game report system.
             Place ID: {report.placeId}
             Job ID: {report.gameJobId}
-            {0}
+            {{0}}
             ";
 
             // Example: AbuserID:0;Inappropriate Content;User Report:
