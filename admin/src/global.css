@@ -200,25 +200,26 @@ div.modalthing {
   border-radius: 0;
 }
 
-.table td { 
-  background: #121212; 
+.table td {
+  white-space: pre-line;
+  background: #121212;
   color: white;
-} 
+}
 
-.table thead { 
-  background: #121212; 
+.table thead {
+  background: #121212;
   color: white;
-} 
+}
 
-.table tr { 
-  background: #121212; 
+.table tr {
+  background: #121212;
   color: white;
-} 
+}
 
-.table th { 
-  background: #121212; 
+.table th {
+  background: #121212;
   color: white;
-} 
+}
 
 table.settings-table > tbody > tr {
   border-bottom: 1px solid #dedede;
