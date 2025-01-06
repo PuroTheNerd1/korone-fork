@@ -9,6 +9,7 @@ using System.Web;
 using Roblox.Models.Users;
 using Roblox.Dto.Users;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Exceptions;
 namespace Roblox.Website.Controllers
 {
 
@@ -75,7 +76,7 @@ namespace Roblox.Website.Controllers
             requestBody = await reader.ReadToEndAsync();
 
             if (string.IsNullOrEmpty(requestBody))
-                throw new RobloxException(400, 1, "Empty request body.");
+                throw new BadRequestException(1, "Empty request body.");
 
             if (userAgent == "RobloxStudio/WinInet")
             {
@@ -100,7 +101,7 @@ namespace Roblox.Website.Controllers
             }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                throw new RobloxException(400, 1, "Username or password is missing.");
+                throw new BadRequestException(1, "Username or password is missing.");
 
 
             // Format: {username}|{2facode}
@@ -115,7 +116,7 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                return new RobloxException(403, 1, "Incorrect username or password. Please try again.");
+                return new UnauthorizedException(1, "Incorrect username or password. Please try again.");
             }
 
             var info = await services.users.GetUserById(userId);
@@ -134,6 +135,7 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.None,
             });
+
             return new
             {
                 membershipType = 4,
@@ -142,13 +144,7 @@ namespace Roblox.Website.Controllers
                 countryCode = "US",
                 userId,
                 displayName = info.username,
-                user = new
-                {
-                    id = userId,
-                    name = info.username,
-                    displayName = info.username
-                },
-                isBanned = info.IsDeleted()
+                isBanned = false
             };
         }
 
@@ -165,7 +161,7 @@ namespace Roblox.Website.Controllers
             totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
 
             if (string.IsNullOrEmpty(request.username) || string.IsNullOrEmpty(request.password))
-                throw new RobloxException(400, 1, "Username or password is missing.");
+                throw new BadRequestException(1, "Username or password is missing.");
 
             try
             {
@@ -173,7 +169,7 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
+                throw new UnauthorizedException(1, "Incorrect username or password. Please try again");
             }
 
             if(await Login(request.username, request.password, userId, totpCode))
@@ -220,15 +216,15 @@ namespace Roblox.Website.Controllers
             {
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
-                    throw new RobloxException(403, 1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+                    throw new UnauthorizedException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
 
                 //verify totp code
                 if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new RobloxException(403, 1, "Incorrect 2FA code. Please try again.");
+                    throw new UnauthorizedException(1, "Incorrect 2FA code. Please try again.");
             }
 
             if (!await services.users.VerifyPassword(userId, password))
-                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
+                throw new UnauthorizedException(1, "Incorrect username or password. Please try again");
 
             return true;
         }
