@@ -3619,7 +3619,7 @@
 		"FIntEnableStartGameAfterSignUp": 100,
 		"FIntEnableTencentSignupCleanup": 100,
 		"FIntEnableUserInfoRefactor": 100,
-		"FIntEnableWKWebViewCookieStoreSync": 100,
+		"FIntEnableWKWebViewCookieStoreSync": 0,
 		"FIntESGamePerfMonitorReportDetails": 1,
 		"FIntEventReporterBatchSize": 10,
 		"FIntFixForBulkPresenceNotifications": 100,
