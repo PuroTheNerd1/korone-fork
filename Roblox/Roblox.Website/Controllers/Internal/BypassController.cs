@@ -766,20 +766,19 @@ namespace Roblox.Website.Controllers
             var assets = await services.avatar.GetWornAssets(userId);
             return $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId};{string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c))}";
         }
-
+        // prob the most worse code ive ever written
         [HttpPost("AbuseReport/InGameChatHandler.ashx")]
         [Consumes("application/xml")]
-        public async Task AbuseReport([FromBody] InGameAbuseReportEntry report)
+        public async Task<MVC.OkResult> AbuseReport([FromBody] InGameAbuseReportEntry report)
         {
             if (!IsRcc())
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-
-            string reportMessage = @"
+            string gameMessages = "";
+            string reportMessage = @$"
             This report was sent by the in-game report system.
-            Place ID: {0}
-            Job ID: {1}
-            {2}
-            {3}
+            Place ID: {report.placeId}
+            Job ID: {report.gameJobId}
+            {0}
             ";
 
             // Example: AbuserID:0;Inappropriate Content;User Report:
@@ -789,15 +788,25 @@ namespace Roblox.Website.Controllers
             // If the abuserId is 0 it is a place report
             if (abuserId == 0)
             {
-                reportMessage = string.Format(reportMessage, report.placeId, report.gameJobId, splittedComment[2]);
+                reportMessage = string.Format(reportMessage, splittedComment[2]);
                 await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadGame, reportMessage);
+                return Ok();
             }
 
+            foreach (InGameMessage message in report.messages.message)
+            {
+                string user = message.userId == abuserId
+                    ? $"(Abuser) UID: {message.userId}"
+                    : $"UID: {message.userId}";
+                gameMessages += $"[{user}]: {message.text}\n";
+            }
+            // EW!
+            reportMessage = string.Format(reportMessage, $"Abuser ID: {abuserId}\nReason: {splittedComment[2]}\nMessages: {gameMessages}");
+            await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadChatMessagesInGame, reportMessage);
 
-
-            //await services.abuseReport.InsertReport(report.userId)
-
+            return Ok();
         }
+
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()
         {
