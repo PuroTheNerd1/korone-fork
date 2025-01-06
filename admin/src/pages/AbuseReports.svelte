@@ -124,12 +124,12 @@
 									{/if}
 
 									{#if app.reportReason === "BadChatMessagesInGame"}
-										<a
+										<button
 											class="btn btn-sm btn-outline-primary w-100"
-											href="/admin-api/api/chat-messages/{app.id}"
+											on:click={() => window.location.href = `/admin-api/api/chat-messages/${app.id}`}
 										>
-										View chat messages
-									</a>
+											View chat messages
+										</button>
 									{/if}
 
 									<DropdownButton title='Reject'>
