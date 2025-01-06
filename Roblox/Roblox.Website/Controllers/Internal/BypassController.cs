@@ -778,16 +778,21 @@ namespace Roblox.Website.Controllers
             This report was sent by the in-game report system.
             Place ID: {report.placeId}
             Job ID: {report.gameJobId}
+            {{0}}
             ";
 
             // Example: AbuserID:0;Inappropriate Content;User Report:
             // very hacky
-            long abuserId = long.Parse(report.comment.Split(":")[1]);
+            Console.WriteLine(report.comment.Split(":")[0]);
+            Console.WriteLine(report.comment.Split(":")[1]);
+
+            long abuserId = long.Parse(report.comment.Split(":")[0]);
             string[] splittedComment = report.comment.Split(";");
             // If the abuserId is 0 it is a place report
             if (abuserId == 0)
             {
-                await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadGame, reportMessage + "\n" + splittedComment[2]);
+                reportMessage = string.Format(reportMessage, splittedComment[2]);
+                await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadGame, reportMessage);
                 return Ok();
             }
 
@@ -799,7 +804,8 @@ namespace Roblox.Website.Controllers
                 gameMessages += $"[{user}]: {message.text}\n";
             }
             // EW!
-            await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadChatMessagesInGame, reportMessage + $"\nAbuser ID: {abuserId}\nReason: {splittedComment[2]}\nMessages: {gameMessages}");
+            reportMessage = string.Format(reportMessage, $"Abuser ID: {abuserId}\nReason: {splittedComment[2]}\nMessages: {gameMessages}");
+            await services.abuseReport.InsertReport(report.userId, AbuseReportReason.BadChatMessagesInGame, reportMessage);
 
             return Ok();
         }
