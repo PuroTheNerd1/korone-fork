@@ -127,6 +127,7 @@ namespace Roblox.Website.Controllers
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
 
+            // will be removed later this is just a hack to get the website to work :sob:
             HttpContext.Response.Cookies.Append("USERID", info.userId.ToString(), new CookieOptions()
             {
                 Domain = ".pekora.zip",

@@ -1227,7 +1227,7 @@ namespace Roblox.Website.Controllers
         {
             return new
             {
-                robux = await services.economy.GetUserRobux(userSession.userId),
+                robux = await services.economy.GetUserRobux(userSession?.userId ?? (long.TryParse(HttpContext.Request.Cookies["USERID"], out var userId) ? userId : 1)),
             };
         }
         [HttpGetBypass("Users/ListStaff.ashx")]
