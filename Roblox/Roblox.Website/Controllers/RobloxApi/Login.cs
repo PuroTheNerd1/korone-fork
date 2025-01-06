@@ -126,16 +126,16 @@ namespace Roblox.Website.Controllers
             return new
             {
                 membershipType = 4,
-                username,
+                info.username,
                 isUnder13 = false,
                 countryCode = "US",
                 userId,
-                displayName = username,
+                displayName = info.username,
                 user = new
                 {
                     id = userId,
-                    name = username,
-                    displayName = username
+                    name = info.username,
+                    displayName = info.username
                 },
                 isBanned = info.IsDeleted()
             };
@@ -192,12 +192,12 @@ namespace Roblox.Website.Controllers
             });
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
             {
-                Domain = ".pekora.zip",
-                Secure = false,
+                Domain = "pekora.zip",
+                Secure = true,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
                 Path = "/",
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
             });
         }
 
