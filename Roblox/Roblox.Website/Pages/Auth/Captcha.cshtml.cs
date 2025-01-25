@@ -9,11 +9,11 @@ namespace Roblox.Website.Pages.Auth;
 public class Captcha : RobloxPageModel
 {
     public string siteKey => Roblox.Configuration.HCaptchaPublicKey;
-    
+
     [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
 
-    
+
     public void OnGet()
     {
         HttpContext.Response.StatusCode = 401;
@@ -37,7 +37,7 @@ public class Captcha : RobloxPageModel
                 createdAt = DateTime.UtcNow,
             };
             jwt.ipAddress = GetIpHashWithSalt(jwt.GetSalt());
-            
+
             var jwtService = new EasyJwt();
             var jwtToken = jwtService.CreateJwt(jwt, Roblox.Configuration.UserAgentBypassSecret);
             HttpContext.Response.Cookies.Append("uabypass1", jwtToken, new()
@@ -49,9 +49,9 @@ public class Captcha : RobloxPageModel
                 Secure = true,
             });
             Roblox.Metrics.ApplicationGuardMetrics.ReportCaptchaSuccessForUserAgent(ua);
-            return new RedirectResult("/auth/home");
+            return new RedirectResult("/auth/homepage");
         }
-        
+
         return Page();
     }
 }

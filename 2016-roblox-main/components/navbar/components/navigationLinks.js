@@ -93,7 +93,7 @@ const NavigationLinks = props => {
     const checkAuth = () => {
       const robloSecurity = document.cookie.split(';').find(cookie => cookie.trim().startsWith('.ROBLOSECURITY='));
       if (!robloSecurity) {
-        router.push('/auth/login');
+        router.push('/auth/accountlogin');
       }
     };
 
