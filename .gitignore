@@ -14,7 +14,6 @@ Roblox/Roblox.Website/ffprobe.exe
 Roblox/Roblox.Website/ffmpeg.exe
 Roblox/Roblox.Website/ffplay.exe
 api/api.zip
-<<<<<<< HEAD
 Roblox/.vs/Roblox/v17/DocumentLayout.json
 Roblox/.vs/Roblox/FileContentIndex/823af571-e643-4ced-85f3-d8bfd49c2a38.vsidx
 Roblox/.vs/Roblox/v17/.suo
@@ -22,11 +21,7 @@ Roblox/.vs/Roblox/v17/.futdcache.v2
 Roblox/.vs/ProjectEvaluation/roblox.projects.v7.bin
 Roblox/.vs/ProjectEvaluation/roblox.metadata.v7.bin
 Roblox/.vs/Roblox/DesignTimeBuild/.dtbcache.v2
-<<<<<<< HEAD
 /Roblox/.vs
-=======
-=======
->>>>>>> parent of 737af10 (update packages)
 Roblox/.vs/Roblox/config/applicationhost.config
 Roblox/.vs/Roblox/FileContentIndex/5a30b269-bd6e-4330-817a-5c2a989f26e0.vsidx
 Roblox/.vs/Roblox/FileContentIndex/8db56259-e33c-44fa-85b4-e7edf638ffa6.vsidx
@@ -40,7 +35,6 @@ Roblox/.vs/Roblox/FileContentIndex/5a30b269-bd6e-4330-817a-5c2a989f26e0.vsidx
 Roblox/.vs/Roblox/FileContentIndex/8db56259-e33c-44fa-85b4-e7edf638ffa6.vsidx
 /Roblox/.vs
 Roblox/.vs/Roblox/FileContentIndex/5a30b269-bd6e-4330-817a-5c2a989f26e0.vsidx
->>>>>>> parent of 61a37c2 (Revert "Merge branch 'main' of https://github.com/ProjectXORC/Project-X-V2")
 services.7z
 RCCService/RCCService2020.rar
 RCCService/RCCService2020.zip
