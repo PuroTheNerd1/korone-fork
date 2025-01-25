@@ -238,6 +238,7 @@ namespace Roblox.Website.Controllers
                             }
                         }
                     }
+
                     // It's not RCC making the request. are we authorized?
                     else if (isLoggedIn)
                     {

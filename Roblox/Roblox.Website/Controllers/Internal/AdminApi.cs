@@ -1451,8 +1451,8 @@ public class AdminApiController : ControllerBase
     public async Task GiveUserTickets([Required, FromBody] GiveUserTicketsRequest request)
     {
         // temporary
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Cannot give Tickets to this user");
+        // if (!StaffFilter.IsOwner(userSession.userId))
+        //     throw new StaffException("Cannot give Tickets to this user");
         if (request.tickets is <= -10000000 or > 10000000)
             throw new StaffException("Invalid ticket amount. Must be between 1 and 10M (inclusive)");
 
@@ -1476,8 +1476,8 @@ public class AdminApiController : ControllerBase
     public async Task GiveUserRobux([Required, FromBody] GiveUserRobuxRequest request)
     {
         // temporary
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Cannot give Robux to this user");
+        // if (!StaffFilter.IsOwner(userSession.userId))
+        //     throw new StaffException("Cannot give Robux to this user");
         if (request.robux is <= -10000000 or > 10000000)
             throw new StaffException("Invalid robux amount. Must be between 1 and 10M (inclusive)");
 
@@ -1552,9 +1552,8 @@ public class AdminApiController : ControllerBase
     [HttpPost("giveitem"), StaffFilter(Access.GiveUserItem)]
     public async Task GiveItem([Required, FromBody] GiveItemRequest request)
     {
-        // give paw job whitelist for now
-        if (!StaffFilter.IsOwner(userSession.userId) && userSession.userId != 866)
-            throw new StaffException("Cannot give items to this user");
+        // if (!StaffFilter.IsOwner(userSession.userId))
+        //     throw new StaffException("Cannot give items to this user");
         Console.WriteLine(request.assetId);
         var details = await services.assets.GetAssetCatalogInfo(request.assetId);
         if (!details.itemRestrictions.Contains("LimitedUnique") && request.giveSerial)
