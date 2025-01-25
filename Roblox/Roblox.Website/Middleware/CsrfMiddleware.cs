@@ -156,7 +156,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/internal/robuxexchange",
         "/auth/account-deletion",
         "/auth/2fa",
-        "/auth/login",
+        "/auth/accountlogin",
         "/auth/password-reset",
         "/auth/ticket",
         "/auth/captcha",

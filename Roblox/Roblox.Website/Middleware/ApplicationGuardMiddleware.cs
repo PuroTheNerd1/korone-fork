@@ -30,7 +30,7 @@ public class ApplicationGuardMiddleware
         "/auth/2fa",
         "/auth/privacy",
         "/auth/tos",
-        "/auth/login",
+        "/auth/accountlogin",
         "/auth/password-reset",
         "/auth/contact",
         "/auth/account-deletion",

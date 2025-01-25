@@ -44,19 +44,19 @@ public class PasswordReset : RobloxPageModel
     {
         return FeatureFlags.IsEnabled(FeatureFlag.PasswordReset);
     }
-    
+
     public async Task<IActionResult> OnGet()
     {
         if (!IsEnabled())
-            return new RedirectResult("/auth/login");
-        
+            return new RedirectResult("/auth/accountlogin");
+
         return new PageResult();
     }
 
     private async Task<bool> TryGenerateCode()
     {
         var apps = new ApplicationWebsiteService(HttpContext);
-       
+
             Writer.Info(LogGroup.AbuseDetection, "Generate code for PasswordReset");
             try
             {
@@ -69,14 +69,14 @@ public class PasswordReset : RobloxPageModel
             }
 
             return true;
-        
+
     }
 
     public async Task<IActionResult> OnPost()
     {
         if (!IsEnabled())
-            return new RedirectResult("/auth/login");
-        
+            return new RedirectResult("/auth/accountlogin");
+
         if (string.IsNullOrWhiteSpace(username))
         {
             errorMessage = InvalidUsernameMessage;
@@ -107,10 +107,10 @@ public class PasswordReset : RobloxPageModel
             errorMessage = MissingVerificationUrl;
             return new PageResult();
         }
-        
+
         if (!await TryGenerateCode())
             return new PageResult();
-        
+
         if (verificationPhrase == null)
         {
             errorMessage = CannotGenerateVerificationPhrase;
@@ -139,7 +139,7 @@ public class PasswordReset : RobloxPageModel
                 return new PageResult();
             }
             var apps = new ApplicationWebsiteService(HttpContext);
-            
+
             VerificationResult result;
             try
             {
@@ -169,7 +169,7 @@ public class PasswordReset : RobloxPageModel
                 errorMessage = VerificationIdChanged;
                 return new PageResult();
             }
-            
+
             // We are verified
             passwordResetId = await services.users.CreatePasswordResetEntry(userId, url, verificationPhrase);
         }
@@ -180,18 +180,18 @@ public class PasswordReset : RobloxPageModel
                 errorMessage = InvalidNewPassword;
                 return new PageResult();
             }
-            
+
             if (string.IsNullOrWhiteSpace(passwordResetId) || !Guid.TryParse(passwordResetId, out _))
             {
                 errorMessage = InvalidPasswordResetId;
                 return new PageResult();
             }
-            
+
             await using var redemptionLock = await services.users.GetPasswordResetLock(passwordResetId);
             var data = await services.users.GetPasswordResetEntry(passwordResetId);
-            if (data == null || 
-                data.userId != userId || 
-                data.createdAt < DateTime.UtcNow.AddHours(-1) || 
+            if (data == null ||
+                data.userId != userId ||
+                data.createdAt < DateTime.UtcNow.AddHours(-1) ||
                 data.status != PasswordResetState.Created
             ) {
                 errorMessage = InvalidPasswordResetId;
@@ -201,7 +201,7 @@ public class PasswordReset : RobloxPageModel
             await services.users.RedeemPasswordReset(passwordResetId, newPassword);
             successMessage = "Your password has been successfully updated.";
         }
-        
+
         return new PageResult();
     }
 }
