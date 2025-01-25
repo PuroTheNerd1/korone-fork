@@ -89,7 +89,7 @@ public class AuthenticationControllerV2 : ControllerBase
     [HttpPost("login")]
     public async Task Login([Required, FromBody] LoginRequest request)
     {
-        //throw new RobloxException(503, 0, "Please use https://pekora.zip/auth/login");
+        throw new RobloxException(503, 0, "Please use https://pekora.zip/auth/login");
         FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
         if (request.ctype != "username")
         {
