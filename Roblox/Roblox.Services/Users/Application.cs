@@ -155,7 +155,7 @@ public class ApplicationService : ServiceBase, IService
                 throw new NotImplementedException();
         }
     }
-    
+
     public string GenerateVerificationPhrase(GenerationContext context)
     {
         var wordCount = GetWordCount(context);
@@ -166,9 +166,9 @@ public class ApplicationService : ServiceBase, IService
             var word = verificationWords[random.Next(verificationWords.Count)];
             phrases.Add(word);
         }
-        return "ecosim " + string.Join(" ", phrases);
+        return "pekora " + string.Join(" ", phrases);
     }
-    
+
     public bool IsThreadSafe()
     {
         return true;
