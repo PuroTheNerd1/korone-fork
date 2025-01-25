@@ -144,13 +144,10 @@
                     <span class="fw-bolder">You don't have to provide any personal information. </span>The only thing we ask for during the application process is a link to your profile on a social media website such as Twitter or YouTube - this is only done to verify that you are not trying to abuse the site.
                 </li>
                 <li>
-                    <span class="fw-bolder">VPN use encouraged. </span>We highly recommend players use VPNs if they are able to - it helps you out a lot in the event that an exploit is discovered or our database is breached.
+                    <span class="fw-bolder">Secure game servers. </span>Our game server software has been modified to not directly see the IPs of players connecting to them. This is done with the help of Quilkin. Quilkin acts as a proxy between the players and our game servers. When a player connects, Quilkin forwards the request to our VPS, which is then processed by Quilkin. The game server program only receives a local IP address from Quilkin, not the player's direct IP address. This means that even if a severe vulnerability is discovered in our game server software, attackers will not be able to collect the IP addresses of users.
                 </li>
                 <li>
-                    <span class="fw-bolder">Secure game servers. </span>Our game server software has been modified to not directly see the IPs of players connecting to them. This is done with the help of nginx. Cloudflare sends your request to our VPS, which is then processed by nginx. Nginx then passes your request to the game server. Our game server program receives a local IP address from nginx, and not your IP address directly. This means that if someone discovers (and abuses) a severe vulnerability in our game server software, they would not be able to collect IP addresses of users.
-                </li>
-                <li>
-                    <span class="fw-bolder">IP Addresses are hashed and only stored temporarily. </span>Your IP is only stored in a hashed format when you perform certain actions, and it is not directly linked with your website account. Your IP is only ever saved for a maximum of 24 hours, after which it is deleted automatically from where it is stored (usually Redis - IPs are deleted once they expire, which can be between 5 minutes and 24 hours depending on the task you perform).
+                    <span class="fw-bolder">IP Addresses are hashed and only stored temporarily. </span>Your IP is only stored in a hashed format when you perform certain actions, and it is not directly linked with your website account. Your IP is only ever saved for a maximum of 24 hours, after which it is deleted automatically from where it is stored (Redis - IPs are deleted once they expire, which can be between 5 minutes and 24 hours depending on the task you perform).
                 </li>
             </ul>
         </div>
