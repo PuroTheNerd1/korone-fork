@@ -114,10 +114,6 @@ public class ApplicationService : ServiceBase, IService
         "tin",
         "bronze",
         "silver",
-        "crewmate",
-        "imposter",
-        "impostor",
-        "among",
         "suspicious",
         "suspect",
         "suspiciously",
@@ -141,6 +137,10 @@ public class ApplicationService : ServiceBase, IService
         "guitar",
         "bass",
         "bee",
+        "hololive",
+        "usada",
+        "reg",
+        "coolsupra",
     }.Distinct().ToList();
 
     private int GetWordCount(GenerationContext ctx)
