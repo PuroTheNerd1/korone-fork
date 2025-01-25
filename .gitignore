@@ -42,3 +42,9 @@ RCCService/RCCService2020.rar
 RCCService/RCCService2020.zip
 game-renderer/src/controllers/gameServerRCC.js
 game-renderer/src/routers/gameServerRouter.js
+
+.DS_Store
+node_modules
+admin/public/bundle.*
+package-lock.json
+yarn.lock
