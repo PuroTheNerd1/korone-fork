@@ -265,10 +265,10 @@ const useStyles = createUseStyles({
   },
 })
 
-// should return same thing as /games/getgameinstancesjson but only servers with friends and an 
+// should return same thing as /games/getgameinstancesjson but only servers with friends and an
 function serversWithFriends(servers, friends) {
   const friendsServers = []
-  if (servers === null || servers === undefined || friends === null || friends === undefined || servers?.Collection === undefined || servers?.Collection === null) {
+  if (servers === null || servers === undefined || friends === null || friends === undefined || servers?.Collection === undefined || servers?.Collection === null || !Array.isArray(servers?.CurrentPlayers || !Array.isArray(friends))) {
     return [];
   }
   servers.Collection.forEach(server => {
