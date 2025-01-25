@@ -52,13 +52,13 @@ export const getPostsByUser = ({userId, offset, limit}) => {
 const ForumsCategories = [
   {
     id: 1,
-    name: 'Project X',
+    name: 'Pekora',
     subCategories: [
       {
         id: 46,
-        name: 'All Things Project X',
+        name: 'All Things Pekora',
         description:
-          'The area for discussions purely about Project X – the features, the games, and company news.',
+          'The area for discussions purely about Pekora – the features, the games, and company news.',
       },
       {
         id: 14,
@@ -70,13 +70,13 @@ const ForumsCategories = [
         id: 21,
         name: 'Suggestions & Ideas',
         description:
-          'Do you have a suggestion and ideas for Project X? Share your feedback here.',
+          'Do you have a suggestion and ideas for Pekora? Share your feedback here.',
       },
       {
         id: 54,
-        name: 'BLOXFaires & Project X events',
+        name: 'BLOXFaires & Pekora events',
         description:
-          'Check here to see the crazy things Project X is doing. Contest information can be found here. Project X is going to be at various Maker Faires and conferences around the globe. Discuss those events here!',
+          'Check here to see the crazy things Pekora is doing. Contest information can be found here.Pekora is going to be at various Maker Faires and conferences around the globe. Discuss those events here!',
       },
     ],
   },
@@ -86,7 +86,7 @@ const ForumsCategories = [
     subCategories: [
       {
         id: 13,
-        name: 'Project X Talk',
+        name: 'Pekora Talk',
         description:
           'A popular hangout where people talk about various topics.',
       },
@@ -106,7 +106,7 @@ const ForumsCategories = [
         id: 35,
         name: `Let's Make a Deal`,
         description:
-          'A fast paced community dedicated to mastering the Limited Trades and Sales market, and divining the subtleties of the Project X Currency Exchange.',
+          'A fast paced community dedicated to mastering the Limited Trades and Sales market, and divining the subtleties of the Pekora Currency Exchange.',
       },
     ],
   },

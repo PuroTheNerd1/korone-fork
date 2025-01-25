@@ -67,25 +67,25 @@ const useBadgeStyles = createUseStyles({
 const MembershipBadges = [
     {
         name: 'Welcome To The Club Badge',
-        desc: 'This badge is awarded to players who have ever belonged to the illustrious Builders Club. These players are part of a long tradition of Project X greatness.',
+        desc: 'This badge is awarded to players who have ever belonged to the illustrious Builders Club. These players are part of a long tradition of Pekora greatness.',
         iconOne: 2,
         iconTwo: 0,
     },
     {
         name: 'Builders Club Badge',
-        desc: 'Members of the illustrious Builders Club display this badge proudly. The Builders Club is a paid premium service. Members receive several benefits: they earn a daily income of 15 Robux, they can sell their creations to others in the Project X Catalog, they get the ability to browse the web site without external ads, and they receive the exclusive Builders Club construction hat.',
+        desc: 'Members of the illustrious Builders Club display this badge proudly. The Builders Club is a paid premium service. Members receive several benefits: they earn a daily income of 15 Robux, they can sell their creations to others in the Pekora Catalog, they get the ability to browse the web site without external ads, and they receive the exclusive Builders Club construction hat.',
         iconOne: 6,
         iconTwo: 0,
     },
     {
         name: 'Turbo Builders Club Badge',
-        desc: 'Members of the exclusive Turbo Builders Club are some of the most dedicated Projexians. The Turbo Builders Club is a paid premium service. Members receive many of the benefits received in the regular Builders Club, in addition to a few more exclusive upgrades: they earn a daily income of 35 Robux, they can sell their creations to others in the Project X Catalog, they get the ability to browse the web site without external ads, they receive the exclusive Turbo Builders Club red site managers hat, and they receive an exclusive gear item.',
+        desc: 'Members of the exclusive Turbo Builders Club are some of the most dedicated Pekorians. The Turbo Builders Club is a paid premium service. Members receive many of the benefits received in the regular Builders Club, in addition to a few more exclusive upgrades: they earn a daily income of 35 Robux, they can sell their creations to others in the Pekora Catalog, they get the ability to browse the web site without external ads, they receive the exclusive Turbo Builders Club red site managers hat, and they receive an exclusive gear item.',
         iconOne: 6, // had to remove 1
         iconTwo: 1, // had to add 1
     },
     {
         name: ' Outrageous Builders Club Badge',
-        desc: 'Members of Outrageous Builders Club are VIP Projexians. They are the cream of the crop. The Outrageous Builders Club is a paid premium service. Members receive 100 groups, 85 Robux per day, and many other benefits.',
+        desc: 'Members of Outrageous Builders Club are VIP Pekorians. They are the cream of the crop. The Outrageous Builders Club is a paid premium service. Members receive 100 groups, 85 Robux per day, and many other benefits.',
         iconOne: 7, // had to remove 1
         iconTwo: 0,
     },
@@ -94,19 +94,19 @@ const MembershipBadges = [
 const CommunityBadges = [
     {
         name: 'Administrator Badge',
-        desc: `This badge identifies an account as belonging to a Project X administrator. Only official Project X administrators will possess this badge. If someone claims to be an admin, but does not have this badge, they are potentially trying to mislead you. If this happens, please report abuse and we will delete the imposter's account.`,
+        desc: `This badge identifies an account as belonging to a Pekora administrator. Only official Pekora administrators will possess this badge. If someone claims to be an admin, but does not have this badge, they are potentially trying to mislead you. If this happens, please report abuse and we will delete the imposter's account.`,
         iconOne: 7,
         iconTwo: 1,
     },
     {
         name: 'Veteran Badge',
-        desc: 'This badge recognizes members who have played Project X for one year or more. They are stalwart community members who have stuck with us over countless releases, and have helped shape Project X into the game that it is today. These medalists are the true steel, the core of the Projexian history ... and its future.',
+        desc: 'This badge recognizes members who have played Pekora for one year or more. They are stalwart community members who have stuck with us over countless releases, and have helped shape Pekora into the game that it is today. These medalists are the true steel, the core of the Pekorian history ... and its future.',
         iconOne: 8,
         iconTwo: 0,
     },
     {
         name: 'Friendship Badge',
-        desc: 'This badge is given to players who have embraced the Project X community and have made at least 20 friends. People who have this badge are good people to know and can probably help you out if you are having trouble.',
+        desc: 'This badge is given to players who have embraced the Pekora community and have made at least 20 friends. People who have this badge are good people to know and can probably help you out if you are having trouble.',
         iconOne: 0,
         iconTwo: 1,
     },
@@ -127,19 +127,19 @@ const CommunityBadges = [
 const DeveloperBadges = [
     {
         name: 'Homestead Badge',
-        desc: 'The homestead badge is earned by having your personal place visited 100 times. Players who achieve this have demonstrated their ability to build cool things that other Projexians were interested enough in to check out. Get a jump-start on earning this reward by inviting people to come visit your place.',
+        desc: 'The homestead badge is earned by having your personal place visited 100 times. Players who achieve this have demonstrated their ability to build cool things that other Pekorians were interested enough in to check out. Get a jump-start on earning this reward by inviting people to come visit your place.',
         iconOne: 4,
         iconTwo: 1,
     },
     {
         name: 'Bricksmith Badge',
-        desc: 'The Bricksmith badge is earned by having a popular personal place. Once your place has been visited 1000 times, you will receive this award. Projexians with Bricksmith badges are accomplished builders who were able to create a place that people wanted to explore a thousand times. They no doubt know a thing or two about putting bricks together.',
+        desc: 'The Bricksmith badge is earned by having a popular personal place. Once your place has been visited 1000 times, you will receive this award. Pekoraians with Bricksmith badges are accomplished builders who were able to create a place that people wanted to explore a thousand times. They no doubt know a thing or two about putting bricks together.',
         iconOne: 5,
         iconTwo: 0,
     },
     {
         name: 'Official Model Maker Badge',
-        desc: 'This badge is awarded to players whose creations are so awesome, Project X endorsed them. Owners of this badge probably have great scripting and building skills.',
+        desc: 'This badge is awarded to players whose creations are so awesome, Pekora endorsed them. Owners of this badge probably have great scripting and building skills.',
         iconOne: 5,
         iconTwo: 1,
     },

@@ -84,7 +84,7 @@ const Footer = props => {
           })
         }
       </ul>
-      <p className={s.footerNote}>©2024 Project X. Project X is not affliated with Roblox Corporation.</p>
+      <p className={s.footerNote}>©2024 Pekora. Pekora is not affliated with Roblox Corporation.</p>
     </div>
   </footer>
 
