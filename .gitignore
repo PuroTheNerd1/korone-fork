@@ -45,6 +45,6 @@ game-renderer/src/routers/gameServerRouter.js
 
 .DS_Store
 node_modules
-admin/public/bundle.*
+/admin/public/build/*
 package-lock.json
 yarn.lock
