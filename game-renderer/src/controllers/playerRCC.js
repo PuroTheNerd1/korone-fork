@@ -34,9 +34,6 @@ const handleRequest = async (req, res, template, width, height) => {
             jobExpiration,
         })
         xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                throw new Error(err.message);
-            }
             const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
             console.log(`[info] Rendered on port ${port} successfully`);
             return responseUtil(res, 'success', 200, true, { data: xmlData });
