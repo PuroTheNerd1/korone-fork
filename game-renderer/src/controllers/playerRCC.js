@@ -41,7 +41,7 @@ const handleRequest = async (req, res, template, width, height) => {
     } catch (err) {
         // We change the render port so we can retry it on the second rcc
         if (port == ports[0]) {
-            console.log(`[error] Render on port ${port[0]} failed, retrying on port ${port[1]}`);
+            console.log(`[error] Render on port ${ports[0]} failed, retrying on port ${ports[1]}`);
             port = ports[1];
             let result = await handleRequest(req, res, template, width, height);
             port = ports[0];
