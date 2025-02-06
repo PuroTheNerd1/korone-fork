@@ -388,8 +388,7 @@ public class UsersService : ServiceBase, IService
         if (!IsAsciiUsername(nameToCheck))
             return false;
         // mod blocked
-        var blocked = await IsBadUsername(nameToCheck);
-        if (blocked)
+        if (await IsBadUsername(nameToCheck))
             return false;
 
 
@@ -397,9 +396,8 @@ public class UsersService : ServiceBase, IService
     }
     private bool IsAsciiUsername(string username)
     {
-        return username.All(c => c < 128 && char.IsLetterOrDigit(c));
+        return username.All(c => c < 128 && (char.IsLetterOrDigit(c) || c == '_'));
     }
-
 
     public bool IsPasswordValid(string passwordToValidate)
     {
