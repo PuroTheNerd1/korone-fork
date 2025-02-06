@@ -6,8 +6,8 @@ import xml2js from 'xml2js'
 import responseUtil from "../util/response.js";
 import AvatarTemplate from '../../scripts/Avatar.json' with { type: 'json' };
 import HeadshotTemplate from '../../scripts/Closeup.json' with { type: 'json' };
-const port = enums.PlayerRCC;
-const locks = new Map();
+const ports = enums.PlayerRCC;
+let port = ports[0];
 
 const schema = joi.object({
     userId: joi.number().required().integer(),
@@ -17,7 +17,9 @@ const schema = joi.object({
 const handleRequest = async (req, res, template, width, height) => {
     try {
         const { error } = schema.validate(req.body)
-        if (error) return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
+        if (error) {
+            throw new Error("Invalid form");
+        }
         var { userId, jobExpiration } = req.body
         if (jobExpiration == undefined) { jobExpiration = 20 }
         const characterAppearanceUrl = `${conf.baseUrl}/v1.1/avatar-fetch?placeId=0&userId=${userId}`
@@ -36,12 +38,21 @@ const handleRequest = async (req, res, template, width, height) => {
                 throw new Error(err.message);
             }
             const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            console.log(`[info] Rendered on port ${port} successfully`);
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
-        console.log('[error] ', err.message)
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
+        // We change the render port so we can retry it on the second rcc
+        if (port == ports[0]) {
+            console.log(`[error] Render on port ${port[0]} failed, retrying on port ${port[1]}`);
+            port = ports[1];
+            return await handleRequest(req, res, template, width, height)
+        }
+        console.log('[error] ', err)
+    } finally {
+        port = ports[0];
     }
+    return responseUtil(res, 'An internal server error occurred.', 500, false)
 }
 
 export const RequestAvatarThumbnail = async (req, res) => {
