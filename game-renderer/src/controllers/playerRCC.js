@@ -48,8 +48,8 @@ const handleRequest = async (req, res, template, width, height) => {
             return result;
         }
         console.log('[error] ', err)
+        return responseUtil(res, 'An internal server error occurred.', 500, false)
     }
-    return responseUtil(res, 'An internal server error occurred.', 500, false)
 }
 
 export const RequestAvatarThumbnail = async (req, res) => {
