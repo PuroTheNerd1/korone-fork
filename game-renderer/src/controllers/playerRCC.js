@@ -7,13 +7,16 @@ import responseUtil from "../util/response.js";
 import AvatarTemplate from '../../scripts/Avatar.json' with { type: 'json' };
 import HeadshotTemplate from '../../scripts/Closeup.json' with { type: 'json' };
 const port = enums.PlayerRCC;
+const locks = new Map();
+
+const schema = joi.object({
+    userId: joi.number().required().integer(),
+    jobExpiration: joi.number().max(60).default(20).integer(),
+})
 
 export const RequestAvatarThumbnail = async (req, res) => {
     try {
-        const schema = joi.object({
-            userId: joi.number().required().integer(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
+
         const { error } = schema.validate(req.body)
         if (error) {
             return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
@@ -48,10 +51,6 @@ export const RequestAvatarThumbnail = async (req, res) => {
 
 export const RequestAvatarHeadshot = async (req, res) => {
     try {
-        const schema = joi.object({
-            userId: joi.number().required().integer(),
-            jobExpiration: joi.number().default(20).max(60).integer(),
-        })
         const { error } = schema.validate(req.body)
         if (error) {
             return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
