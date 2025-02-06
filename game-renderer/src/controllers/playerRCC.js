@@ -46,9 +46,13 @@ const handleRequest = async (req, res, template, width, height) => {
             let result = await handleRequest(req, res, template, width, height);
             port = ports[0];
             return result;
+        } else {
+            console.log(`[error] Render on port ${ports[1]} failed, retrying on port ${ports[0]}`);
+            port = ports[0];
+            let result = await handleRequest(req, res, template, width, height);
+            port = ports[1];
+            return result;
         }
-        console.log('[error] ', err)
-        return responseUtil(res, 'An internal server error occurred.', 500, false)
     }
 }
 
