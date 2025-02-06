@@ -313,6 +313,7 @@ public class AdminApiController : ControllerBase
     public async Task<dynamic> GetPendingIcons()
     {
         var result = await db.QueryAsync("SELECT group_icon.*, u.username as creatorName FROM group_icon INNER JOIN \"user\" u ON u.id = group_icon.user_id WHERE is_approved = 0 ORDER BY group_id");
+        
         foreach (var item in result)
         {
             item.name = Configuration.CdnBaseUrl + "/images/groups/" + item.name;
@@ -838,9 +839,6 @@ public class AdminApiController : ControllerBase
         var status = await services.users.GetUserById(request.userId);
         if (status.accountStatus == AccountStatus.Forgotten)
             throw new StaffException("Forgotten accounts cannot be un-banned");
-        if (status.accountStatus == AccountStatus.MustValidateEmail)
-            if (!IsAdmin())
-                throw new StaffException("You do not have proper permission to unlock an account.");
 
         await db.ExecuteAsync("UPDATE \"user\" SET status = :st WHERE id = :id", new
         {
