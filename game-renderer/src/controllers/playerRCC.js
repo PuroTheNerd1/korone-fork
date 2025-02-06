@@ -14,33 +14,25 @@ const schema = joi.object({
     jobExpiration: joi.number().max(60).default(20).integer(),
 })
 
-export const RequestAvatarThumbnail = async (req, res) => {
+const handleRequest = async (req, res, template, width, height) => {
     try {
-
         const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
-
+        if (error) return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
         var { userId, jobExpiration } = req.body
         if (jobExpiration == undefined) { jobExpiration = 20 }
         const characterAppearanceUrl = `${conf.baseUrl}/v1.1/avatar-fetch?placeId=0&userId=${userId}`
-
-        const xml = JSON.parse(JSON.stringify(AvatarTemplate));
+        const xml = JSON.parse(JSON.stringify(template));
         xml.Settings.Arguments[0] = conf.baseUrl;
         xml.Settings.Arguments[1] = characterAppearanceUrl;
-        xml.Settings.Arguments[3] = 840;
-        xml.Settings.Arguments[4] = 840;
-
+        xml.Settings.Arguments[3] = width;
+        xml.Settings.Arguments[4] = height;
         const response = await request({
             RCC: port,
             XML: xml,
             jobExpiration,
         })
         xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-            }
+            if (err) return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
             const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
@@ -49,36 +41,10 @@ export const RequestAvatarThumbnail = async (req, res) => {
     }
 }
 
+export const RequestAvatarThumbnail = async (req, res) => {
+    return await handleRequest(req, res, AvatarTemplate, 840, 840)
+}
+
 export const RequestAvatarHeadshot = async (req, res) => {
-    try {
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
-
-        var { userId, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-        const characterAppearanceUrl = `${conf.baseUrl}/v1.1/avatar-fetch?placeId=0&userId=${userId}`
-
-        const xml = JSON.parse(JSON.stringify(HeadshotTemplate));
-        xml.Settings.Arguments[0] = conf.baseUrl;
-        xml.Settings.Arguments[1] = characterAppearanceUrl;
-        xml.Settings.Arguments[3] = 720;
-        xml.Settings.Arguments[4] = 720;
-
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
+    return await handleRequest(req, res, HeadshotTemplate, 720, 720)
 }
