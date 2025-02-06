@@ -904,7 +904,7 @@ public class UsersService : ServiceBase, IService
     public async Task<long> CountPendingApplications()
     {
         return (await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COUNT(*) AS total FROM join_application WHERE status = :status",
+            "SELECT COUNT(*) AS total FROM join_application WHERE status = :status AND locked_at IS NULL",
             new
             {
                 status = UserApplicationStatus.Pending,
