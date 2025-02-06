@@ -384,11 +384,10 @@ public class UsersService : ServiceBase, IService
             return false;
         if (lowerName.Contains("tranny") || lowerName.Contains("fag") || lowerName.Contains("goblina") || lowerName.Contains("dyke") || lowerName.Contains("dick") || lowerName.Contains("cock") || lowerName.Contains("c0ck") || lowerName.Contains("d1ck") || lowerName.Contains("hitler") || lowerName.Contains("hitier"))
             return false;
-        // special char block
-        if (!IsAsciiUsername(nameToCheck))
-            return false;
-        // mod blocked
-        if (await IsBadUsername(nameToCheck))
+
+
+        // mod blocked && special char block
+        if (await IsBadUsername(nameToCheck) || !IsAsciiUsername(nameToCheck))
             return false;
 
 
