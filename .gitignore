@@ -48,3 +48,4 @@ node_modules
 /admin/public/build/*
 package-lock.json
 yarn.lock
+Roblox/.editorconfig

@@ -271,8 +271,9 @@ public class AdminApiController : ControllerBase
             throw new StaffException("Bad username");
         if (req.password == null)
             throw new StaffException("Bad password");
-
-        return await services.users.CreateUser(req.username, req.password, Gender.Unknown, req.userId);
+        // HACK! Needs to be fixed later via admin panel
+        int userId = int.Parse(req.userId);
+        return await services.users.CreateUser(req.username, req.password, Gender.Unknown, userId);
     }
 
     [HttpPost("force-application"), StaffFilter(Access.ForceApplication)]
