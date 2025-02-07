@@ -65,11 +65,12 @@ public class UsersControllerV1 : ControllerBase
             info.description,
             info.created,
             isBanned,
+            isInventoryPublic = await services.inventory.CanViewInventory(userId, 0),
             isStaff = await StaffFilter.IsStaff(userId),
+            totalPlaceVisits = await services.games.GetTotalVisitsFromUser(userId),
             friendshipCount = await services.friends.CountFriends(userId),
             followingCount = await services.friends.CountFollowings(userId),
             followerCount = await services.friends.CountFollowers(userId),
-            isInventoryPublic = await services.inventory.CanViewInventory(userId, 0),
             inventoryRap = totalRap
         };
     }
