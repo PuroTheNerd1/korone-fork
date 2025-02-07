@@ -198,7 +198,21 @@ public class GamesService : ServiceBase, IService
         return result;
     }
 
-
+    public async Task<long> GetTotalVisitsFromUser(long userId)
+    {
+        AssetsService assets = new AssetsService();
+        long totalPlaceVisits = 0;
+        var createdPlaces = (await assets.GetCreations(CreatorType.User, userId, Type.Place, 0, 100)).ToArray();
+        var placeDetails = (await MultiGetPlaceDetails(createdPlaces
+                    .Select(c => c.assetId)))
+                .ToArray();
+        var universeDetails = await MultiGetUniverseInfo(placeDetails.Select(c => c.universeId));
+        foreach (var item in universeDetails)
+        {
+            totalPlaceVisits += item.visits;
+        }
+        return totalPlaceVisits;
+    }
 
     public async Task<PlayEntry?> GetOldestPlay(long userId)
     {
