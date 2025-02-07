@@ -30,8 +30,8 @@ public class UsersControllerV1 : ControllerBase
         };
     }
 
-    [HttpPost("users/{username:string}/details")]
-    [HttpGet("users/{username:string}/details")]
+    [HttpPost("users/{username}/details")]
+    [HttpGet("users/{username}/details")]
     public async Task<dynamic> GetUserByUsername(string username)
     {
         inventory = new ();
