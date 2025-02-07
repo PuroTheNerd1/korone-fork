@@ -29,6 +29,48 @@ public class UsersControllerV1 : ControllerBase
             isStaff = await StaffFilter.IsStaff(userSession.userId)
         };
     }
+
+    [HttpPost("users/{username:string}/details")]
+    [HttpGet("users/{username:string}/details")]
+    public async Task<dynamic> GetUserByUsername(string username)
+    {
+        inventory = new ();
+        var offset = 0;
+        var details = await services.users.GetUserByName(username);
+        long userId = details.userId;
+        while (true)
+        {
+            var results = (await services.inventory.GetCollectibleInventory(userId, null, "asc", 100, offset)).ToArray();
+            if (results.Length == 0) break;
+            offset += 100;
+            inventory.AddRange(results);
+        }
+
+        foreach (var item in inventory)
+        {
+            totalRap += item.recentAveragePrice;
+        }
+
+        var info = await services.users.GetUserById(userId);
+        var isBanned =
+            info.accountStatus != AccountStatus.Ok &&
+            info.accountStatus != AccountStatus.MustValidateEmail &&
+            info.accountStatus != AccountStatus.Suppressed;
+
+        return new
+        {
+            id = info.userId,
+            name = info.username,
+            displayName = info.username,
+            info.description,
+            info.created,
+            isBanned,
+            isStaff = await StaffFilter.IsStaff(userId),
+            inventoryRap = totalRap
+        };
+    }
+
+
     [HttpPost("users/{userId:long}")]
     [HttpGet("users/{userId:long}")]
     public async Task<dynamic> GetUserById(long userId)
