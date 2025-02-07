@@ -140,7 +140,9 @@ public enum ApplicationSearchColumn
 {
     Name = 1,
     About,
-    SocialUrl
+    SocialUrl,
+    Actioner,
+    DiscordId
 }
 
 public class CreateUserApplicationRequest
