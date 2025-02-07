@@ -272,7 +272,8 @@ public class AdminApiController : ControllerBase
         if (req.password == null)
             throw new StaffException("Bad password");
         // HACK! Needs to be fixed later via admin panel
-        int userId = int.Parse(req.userId);
+        int userId;
+        int.TryParse(req.userId, out userId);
         return await services.users.CreateUser(req.username, req.password, Gender.Unknown, userId);
     }
 
