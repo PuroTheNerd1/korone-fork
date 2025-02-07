@@ -638,7 +638,6 @@ public class WebController : ControllerBase
         }
 
 
-
         // Limit of 50 assets globally pending approval before failure
         var pendingAssets = await services.assets.CountAssetsPendingApproval();
         if (pendingAssets >= 50)
