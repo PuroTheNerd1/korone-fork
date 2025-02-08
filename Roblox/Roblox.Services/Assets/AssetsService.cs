@@ -1892,29 +1892,36 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         {
             var column = "updated_at";
             var mode = "desc";
-            if (request.sortType == "0")
+            switch (request.sortType)
             {
-                // same as above
-            }
-            else if (request.sortType == "3")
-            {
-                // updated
-                column = "updated_at";
-            }
-            else if (request.sortType == "4")
-            {
-                // price: low to high
-                column = "price_robux";
-                mode = "asc";
-            }
-            else if (request.sortType == "5")
-            {
-                // price: high to low
-                column = "price_robux";
-            }
-            else if (request.sortType == "100")
-            {
-                // favorite count: high to low
+                case "0":
+                    // same as above
+                    break;
+                case "3":
+                    // updated
+                    column = "updated_at";
+                    break;
+                case "4":
+                    // price: low to high
+                    column = "price_robux";
+                    mode = "asc";
+                    break;
+                case "5":
+                    // price: high to low 
+                    column = "price_robux";
+                    break;
+                case "6":
+                    // RAP: low to high
+                    column = "recent_average_price";
+                    mode = "asc";
+                    break;
+                case "7":
+                    // RAP: high to low
+                    column = "recent_average_price";
+                    break;
+                case "100":
+                    // favorite count: high to low
+                    break;
             }
 
             builder.OrderBy(column + " " + mode);
