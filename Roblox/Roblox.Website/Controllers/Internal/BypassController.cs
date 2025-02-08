@@ -672,12 +672,12 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/join.ashx")]
         public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
         {
+            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             string username = safeUserSession.username;
             long userId = safeUserSession.userId;
-            string membership;
-            var membership2 = await services.users.GetUserMembership(userId);
+            string membership = await services.users.GetUserMemberShipAsString(userId);
             DateTime currentUtcDateTime = DateTime.UtcNow;
             string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             string finalTicket;
@@ -690,17 +690,10 @@ namespace Roblox.Website.Controllers
                     status = 5
                 };
             }
-            var userInfo = await services.users.GetUserById(userSession!.userId);
+            var userInfo = await services.users.GetUserById(userId);
             Console.WriteLine(username);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            if (membership2 == null)
-            {
-                membership = "None";
-            }
-            else
-            {
-                membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
-            }
+
             Console.WriteLine(membership);
             if(uni.year != 2020 && uni.year != 2021 && membership == "Premium")
             {
@@ -708,11 +701,6 @@ namespace Roblox.Website.Controllers
             }
             switch (uni.year)
             {
-                case 2015:
-                case 2016:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
-                    finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
-                    break;
                 case 2017:
                     finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
                     break;
@@ -721,9 +709,6 @@ namespace Roblox.Website.Controllers
                     finalTicket = services.sign.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
                     break;
                 case 2020:
-                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-                    finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
-                    break;
                 case 2021:
                     characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
                     finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
@@ -733,7 +718,7 @@ namespace Roblox.Website.Controllers
             }
 
 
-            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
+
             dynamic? joinScript = null;
             try
             {

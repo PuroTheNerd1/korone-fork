@@ -3045,12 +3045,12 @@ Thank you for your understanding,
         return response;
     }
 
-    [HttpGet("game-servers/list")]
-    [StaffFilter(Access.GetGameServers)]
-    public async Task<dynamic> GetGameServers()
-    {
-        var result = await services.gameServer.GetAllGameServers();
-        var l = new List<dynamic>();
-        return result;
-    }
+    // [HttpGet("game-servers/list")]
+    // [StaffFilter(Access.GetGameServers)]
+    // public async Task<dynamic> GetGameServers()
+    // {
+    //     var result = await services.gameServer.GetAllGameServers();
+    //     var l = new List<dynamic>();
+    //     return result;
+    // }
 }

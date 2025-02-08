@@ -27,29 +27,59 @@ public class GameServerService : ServiceBase
             this.BaseAddress = new Uri("https://arbiter.pekora.zip/");
             this.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
         }
-        public bool RequestGameServer()
+        public async Task<bool> StartGameServer(StartGameServerRequest request)
         {
-            this.PostAsync("https://arbiter.pekora.zip/start-game-server");
-            return true;
+            var result = await this.PostAsync("start-game-server", new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+            return result.IsSuccessStatusCode;
         }
-        public StartGameserverRequest CreateGameServerRequest(long placeId, int RCCPort, int networkServerPort, int proxyPort, string jobId, long year, int matchmaking)
+        public async Task<bool> EvictPlayer(EvictPlayerRequest request)
         {
-            return new StartGameserverRequest
+            var result = await this.PostAsync("evict-player", new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+            return result.IsSuccessStatusCode;
+        }
+        public async Task<bool> KillGameServer(KillGameServerRequest request)
+        {
+            var result = await this.PostAsync("kill-game-server", new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+            return result.IsSuccessStatusCode;
+        }
+        public static EvictPlayerRequest CreateEvictPlayerRequest(string jobId, long userId)
+        {
+            return new EvictPlayerRequest
             {
                 jobId = jobId,
-                placeId = placeId,
-                universeId = universe,
-                maxPlayerCount = 10,
-                gameServerPort = 53640,
-                rccPort = RCCPort,
-                proxyPort = proxyPort,
-                creatorId = ,
-                placeVersion = 1,
-                matchmakingContextId = matchmaking,
-                year = year,
+                userId = userId,
             };
         }
-        public class StartGameserverRequest
+        public static StartGameServerRequest CreateGameServerRequest(PlaceEntry placeInfo, int rccPort, int networkServerPort, int proxyPort, string jobId, int matchmaking)
+        {
+            return new StartGameServerRequest
+            {
+                jobId = jobId,
+                placeId = placeInfo.placeId,
+                universeId = placeInfo.universeId,
+                maxPlayerCount = 10,
+                gameServerPort = networkServerPort,
+                rccPort = rccPort,
+                proxyPort = proxyPort,
+                creatorId = placeInfo.builderId,
+                placeVersion = 1,
+                matchmakingContextId = matchmaking,
+                year = placeInfo.year,
+            };
+        }
+        public static KillGameServerRequest CreateKillGameServerRequest(string jobId)
+        {
+            return new KillGameServerRequest
+            {
+                jobId = jobId,
+            };
+        }
+        public class EvictPlayerRequest
+        {
+            public string jobId { get; set; }
+            public long userId { get; set; }
+        }
+        public class StartGameServerRequest
         {
             public string jobId { get; set; }
             public long placeId { get; set; }
@@ -63,11 +93,16 @@ public class GameServerService : ServiceBase
             public int matchmakingContextId { get; set; }
             public long year { get; set; }
         }
+
+        public class KillGameServerRequest
+        {
+            public string jobId { get; set; }
+        }
     }
 
     private const string ClientJoinTicketType = "GameJoinTicketV1.1";
     private const string ServerJoinTicketType = "GameServerTicketV2";
-    private static HttpClient client { get; } = new ArbiterHttpClient();
+    private static ArbiterHttpClient arbiterClient = new ArbiterHttpClient();
     private static GamesService games = new GamesService();
     private static string jwtKey { get; set; } = string.Empty;
     private static EasyJwt jwt { get; } = new();
@@ -292,80 +327,64 @@ public class GameServerService : ServiceBase
         }
     }
 
-    private async Task<T> PostToGameServer<T>(string ipAddress, string port, string methodName, List<dynamic>? args = null, CancellationToken? cancelToken = null)
-    {
-        var jsonRequest = new
-        {
-            method = methodName,
-            arguments = args ?? new List<dynamic>(),
-        };
-        var content = new StringContent(JsonSerializer.Serialize(jsonRequest));
-        content.Headers.Add("roblox-server-authorization", Configuration.GameServerAuthorization);
-        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+    // private async Task<T> PostToGameServer<T>(string ipAddress, string port, string methodName, List<dynamic>? args = null, CancellationToken? cancelToken = null)
+    // {
+    //     var jsonRequest = new
+    //     {
+    //         method = methodName,
+    //         arguments = args ?? new List<dynamic>(),
+    //     };
+    //     var content = new StringContent(JsonSerializer.Serialize(jsonRequest));
+    //     content.Headers.Add("roblox-server-authorization", Configuration.GameServerAuthorization);
+    //     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-        if (cancelToken == null)
-        {
-            var source = new CancellationTokenSource();
-            source.CancelAfter(TimeSpan.FromSeconds(30));
-            cancelToken = source.Token;
-        }
+    //     if (cancelToken == null)
+    //     {
+    //         var source = new CancellationTokenSource();
+    //         source.CancelAfter(TimeSpan.FromSeconds(30));
+    //         cancelToken = source.Token;
+    //     }
 
-        var result = await client.PostAsync("http://" + ipAddress + ":" + port + "/api/public-method/", content,
-            cancelToken.Value);
-        if (!result.IsSuccessStatusCode) throw new Exception("Unexpected statusCode: " + result.StatusCode + "\nIP = " + ipAddress + "\nPort = " + port);
-        var response = JsonSerializer.Deserialize<T>(await result.Content.ReadAsStringAsync(cancelToken.Value));
-        if (response == null)
-        {
-            throw new Exception("Null response from PostToGameServer");
-        }
-        return response;
-    }
+    //     var result = await client.PostAsync("http://" + ipAddress + ":" + port + "/api/public-method/", content,
+    //         cancelToken.Value);
+    //     if (!result.IsSuccessStatusCode) throw new Exception("Unexpected statusCode: " + result.StatusCode + "\nIP = " + ipAddress + "\nPort = " + port);
+    //     var response = JsonSerializer.Deserialize<T>(await result.Content.ReadAsStringAsync(cancelToken.Value));
+    //     if (response == null)
+    //     {
+    //         throw new Exception("Null response from PostToGameServer");
+    //     }
+    //     return response;
+    // }
 
-    public async Task<GameServerInfoResponse?> GetGameServerInfo(string ipAddress, string port)
-    {
-        try
-        {
-            using var cancelToken = new CancellationTokenSource();
-            cancelToken.CancelAfter(TimeSpan.FromSeconds(5));
-            return await PostToGameServer<GameServerInfoResponse>(ipAddress, port, "getStatus", default, cancelToken.Token);
-        }
-        catch (Exception e) when (e is TaskCanceledException or TimeoutException or HttpRequestException)
-        {
-            return null;
-        }
-    }
+    // public async Task<GameServerInfoResponse?> GetGameServerInfo(string ipAddress, string port)
+    // {
+    //     try
+    //     {
+    //         using var cancelToken = new CancellationTokenSource();
+    //         cancelToken.CancelAfter(TimeSpan.FromSeconds(5));
+    //         return await PostToGameServer<GameServerInfoResponse>(ipAddress, port, "getStatus", default, cancelToken.Token);
+    //     }
+    //     catch (Exception e) when (e is TaskCanceledException or TimeoutException or HttpRequestException)
+    //     {
+    //         return null;
+    //     }
+    // }
     public async Task KickPlayer(long userId)
     {
         string jobId = await GetJobIdByUserId(userId);
-        if (!client.DefaultRequestHeaders.Contains("PJX-ArbiterAUTH"))
-        {
-            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-        }
-        await client.GetAsync($"https://arbiter.pekora.zip/evict-player?jobId={jobId}&userId={userId}");
+        if (jobId == null) return;
+        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
     }
-    public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
-    {
-        await PostToGameServer<GameServerEmptyResponse>(ipAddress, port, "startGame",
-            new List<dynamic> {placeId, gameServerId, gameServerPort});
-    }
+    // public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
+    // {
+    //     await PostToGameServer<GameServerEmptyResponse>(ipAddress, port, "startGame",
+    //         new List<dynamic> {placeId, gameServerId, gameServerPort});
+    // }
 
     public async Task ShutDownServerAsync(string serverId)
     {
-        // TODO: When we add multiple servers for the same game (most likely not for a while), get the jobId or kill the server a better way.
-        string placeJobId = serverId; // hopefully not null, shouldn't be??
-        //long placeId = GetPlaceIdByJobId(serverId);
-        //Process rccProcess = jobRccs[placeJobId];
-        //rccProcess.Kill(); // soft kill soon instead of force kill
-        if (!client.DefaultRequestHeaders.Contains("PJX-ArbiterAUTH"))
-        {
-            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-        }
-        await client.GetAsync($"https://arbiter.pekora.zip/kill-game-server?jobId={serverId}");
-        // Remove from our dictionaries now.
-        //currentPlaceIdsInUse.Remove(placeId);
-        //currentGameServerPorts.Remove(placeJobId);
-        //jobRccs.Remove(placeJobId);
-        //mainRCCPortsInUse.Remove(rccProcess);
+        if(await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId)))
+            Console.WriteLine($"GameServer {serverId} was successfully closed!");
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
         //Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
@@ -520,25 +539,25 @@ public class GameServerService : ServiceBase
         throw new ArgumentOutOfRangeException();
     }
 
-    public async Task<List<Tuple<GameServerInfoResponse,GameServerConfigEntry>>> GetAllGameServers()
-    {
-        var getServerDataTasks = new List<Task<GameServerInfoResponse?>>();
-        foreach (var entry in Configuration.GameServerIpAddresses)
-        {
-            var data = entry.ip.Split(":");
-            var ip = data[0];
-            var port = data[1];
-            getServerDataTasks.Add(GetGameServerInfo(ip, port));
-        }
+    // public async Task<List<Tuple<GameServerInfoResponse,GameServerConfigEntry>>> GetAllGameServers()
+    // {
+    //     var getServerDataTasks = new List<Task<GameServerInfoResponse?>>();
+    //     foreach (var entry in Configuration.GameServerIpAddresses)
+    //     {
+    //         var data = entry.ip.Split(":");
+    //         var ip = data[0];
+    //         var port = data[1];
+    //         getServerDataTasks.Add(GetGameServerInfo(ip, port));
+    //     }
 
-        var getServerDataResults = await Task.WhenAll(getServerDataTasks);
+    //     var getServerDataResults = await Task.WhenAll(getServerDataTasks);
 
-        var serverData =getServerDataResults.Select((c, idx) =>
-                new Tuple<GameServerInfoResponse?, GameServerConfigEntry>(c, Configuration.GameServerIpAddresses.ToArray()[idx]))
-            .Where(v => v.Item1 != null)
-            .ToList();
-        return serverData!;
-    }
+    //     var serverData =getServerDataResults.Select((c, idx) =>
+    //             new Tuple<GameServerInfoResponse?, GameServerConfigEntry>(c, Configuration.GameServerIpAddresses.ToArray()[idx]))
+    //         .Where(v => v.Item1 != null)
+    //         .ToList();
+    //     return serverData!;
+    // }
 /*
     public async Task<GameServerGetOrCreateResponse> GetServerForPlaceV2(long placeId, long year)
     {
@@ -751,7 +770,7 @@ public class GameServerService : ServiceBase
                 break;
             
         } while (true);
-        
+
         string jobId = Guid.NewGuid().ToString();
         // await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
         // if (!serverCreationLock.IsAcquired)
@@ -761,7 +780,7 @@ public class GameServerService : ServiceBase
         //     };
         await InTransaction(async _ =>
         {
-            await StartGameServer(placeInfo.placeId, mainRCCPort, networkServerPort, proxyPort, jobId, placeInfo.year, matchmaking, 43200);
+            await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking);
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
                 new
@@ -785,17 +804,11 @@ public class GameServerService : ServiceBase
 
     public async Task<string> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, string jobId, int matchmaking)
     {
-        // Before we waste our time, check if the place exists.
-        //string originalScript;
-        //string finalScript;
         Console.WriteLine("Starting Gameserver");
-        HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
-        if (response.IsSuccessStatusCode)
-        {
-            //currentGameServerPorts.Add(jobId, networkServerPort);
+        var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
+        if (await arbiterClient.StartGameServer(request))
             return "OK";
-        }
-        Console.WriteLine($"Failed to request a server for {placeInfo.placeId} with status code {response.StatusCode}\n Response: {response.Content.ReadAsStringAsync().Result}");
+        
         return "BAD";
         //Console.WriteLine($"MaxPlayers = {maxplayers}");
         /*

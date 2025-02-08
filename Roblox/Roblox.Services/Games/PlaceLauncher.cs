@@ -74,7 +74,7 @@ public class PlaceLauncherService : ServiceBase
         dynamic? joinScript = null;
         string finalTicket;
         PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-        var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.Default);
+        var result = await gameServer.GetServerForPlace(uni, (int)MatchmakingContextId.Default);
         if (Special.HasValue && (bool)Special)
         {
             string membership = await users.GetUserMemberShipAsString(userId);
@@ -118,7 +118,7 @@ public class PlaceLauncherService : ServiceBase
         string finalTicket;
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-        var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
+        var result = await gameServer.GetServerForPlace(uni, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {
             string membership = await users.GetUserMemberShipAsString(userId);
