@@ -9,6 +9,11 @@ using Roblox.Services.Signer;
 namespace Roblox.Services.PlaceLauncher;
 public class PlaceLauncherService : ServiceBase
 {
+
+    private static GamesService games = new GamesService();
+    private static GameServerService gameServer = new GameServerService();
+    private static UsersService users = new UsersService();
+    private static SignService sign = new SignService();
     public enum MatchmakingContextId
     {
         Default = 1,
@@ -67,10 +72,6 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<PlaceLaunchResponse> RequestGame(long placeId, long userId, string cookie, bool? Special = false, string? username = null)
     {
-        GamesService games = new GamesService();
-        GameServerService gameServer = new GameServerService();
-        UsersService users = new UsersService();
-        SignService sign = new SignService();
         var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.Default);
         dynamic? joinScript = null;
         string finalTicket;
@@ -133,11 +134,10 @@ public class PlaceLauncherService : ServiceBase
         string finalTicket;
         dynamic settings;
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
+            PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {
-            PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-            long year = await games.GetYear(placeId);
             string membership;
             var membership2 = await users.GetUserMembership((long)userId);
             DateTime currentUtcDateTime = DateTime.UtcNow;
@@ -162,17 +162,13 @@ public class PlaceLauncherService : ServiceBase
                     finalTicket = sign.GenerateClientTicketV2(userId, username, result.job, characterAppearanceUrl);
                     break;
                 case 2020:
-                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-                    finalTicket = sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-                    break;
                 case 2021:
-                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
                     finalTicket = sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
                     break;
                 default:
                     throw new InvalidOperationException($"This year does not exist: {uni.year}");
             }
-            settings = await games.GetJoinScript(year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, null);
+            settings = await games.GetJoinScript(uni.year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, null);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,

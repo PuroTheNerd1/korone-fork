@@ -1,5 +1,6 @@
 namespace Roblox.Models.GameServer;
 
+
 public enum JoinStatus
 {
     Waiting = 0,

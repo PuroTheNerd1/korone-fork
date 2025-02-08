@@ -15,11 +15,60 @@ using Roblox.Services.Exceptions;
 
 namespace Roblox.Services;
 
+
+
 public class GameServerService : ServiceBase
 {
+    public class ArbiterHttpClient : HttpClient
+    {
+        
+        public ArbiterHttpClient()
+        {
+            this.BaseAddress = new Uri("https://arbiter.pekora.zip/");
+            this.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+        }
+        public bool RequestGameServer()
+        {
+            this.PostAsync("https://arbiter.pekora.zip/start-game-server");
+            return true;
+        }
+        public StartGameserverRequest CreateGameServerRequest(long placeId, int RCCPort, int networkServerPort, int proxyPort, string jobId, long year, int matchmaking)
+        {
+            return new StartGameserverRequest
+            {
+                jobId = jobId,
+                placeId = placeId,
+                universeId = universe,
+                maxPlayerCount = 10,
+                gameServerPort = 53640,
+                rccPort = RCCPort,
+                proxyPort = proxyPort,
+                creatorId = ,
+                placeVersion = 1,
+                matchmakingContextId = matchmaking,
+                year = year,
+            };
+        }
+        public class StartGameserverRequest
+        {
+            public string jobId { get; set; }
+            public long placeId { get; set; }
+            public long universeId { get; set; }
+            public int maxPlayerCount { get; set; }
+            public long gameServerPort { get; set; }
+            public long rccPort { get; set; }
+            public long proxyPort { get; set; }
+            public long creatorId { get; set; }
+            public long placeVersion { get; set; }
+            public int matchmakingContextId { get; set; }
+            public long year { get; set; }
+        }
+    }
+
     private const string ClientJoinTicketType = "GameJoinTicketV1.1";
     private const string ServerJoinTicketType = "GameServerTicketV2";
-    private static HttpClient client { get; } = new();
+    private static HttpClient client { get; } = new ArbiterHttpClient();
+    private static GamesService games = new GamesService();
     private static string jwtKey { get; set; } = string.Empty;
     private static EasyJwt jwt { get; } = new();
     private static Random RandomComponent = new Random();
@@ -655,7 +704,6 @@ public class GameServerService : ServiceBase
 
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, int matchmaking)
     {
-        GamesService games = new GamesService();
         long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
 
         var GameServers = await GetGameServersForPlace(placeId, matchmaking);
@@ -743,16 +791,11 @@ public class GameServerService : ServiceBase
     public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, int proxyPort, string jobId, long year, int matchmaking, int JobExpiration)
     {
         // Before we waste our time, check if the place exists.
-        GamesService games = new GamesService();
         var uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         //string originalScript;
         //string finalScript;
         long maxplayers = await games.GetMaxPlayerCount(placeId);
         Console.WriteLine("Starting Gameserver");
-        if (!client.DefaultRequestHeaders.Contains("PJX-ArbiterAUTH"))
-        {
-            client.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
-        }
         HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
         if (response.IsSuccessStatusCode)
         {
