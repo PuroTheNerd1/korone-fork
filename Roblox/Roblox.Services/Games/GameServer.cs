@@ -48,6 +48,7 @@ public class GameServerService : ServiceBase
             {
                 jobId = jobId,
                 userId = userId,
+                messageVersionId = 0
             };
         }
         public static StartGameServerRequest CreateGameServerRequest(PlaceEntry placeInfo, int rccPort, int networkServerPort, int proxyPort, string jobId, int matchmaking)
@@ -57,7 +58,7 @@ public class GameServerService : ServiceBase
                 jobId = jobId,
                 placeId = placeInfo.placeId,
                 universeId = placeInfo.universeId,
-                maxPlayerCount = 10,
+                maxPlayerCount = placeInfo.maxPlayerCount,
                 gameServerPort = networkServerPort,
                 rccPort = rccPort,
                 proxyPort = proxyPort,
@@ -78,6 +79,7 @@ public class GameServerService : ServiceBase
         {
             public string jobId { get; set; }
             public long userId { get; set; }
+            public int messageVersionId { get; set; }
         }
         public class StartGameServerRequest
         {
