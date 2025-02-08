@@ -265,9 +265,15 @@ public class GameServerService : ServiceBase
                     Homestead = 6
                     Bricksmith = 7
                 */
+                using var accountService = ServiceProvider.GetOrCreate<AccountInformationService>(this);
+                var badges = await accountService.GetUserBadges(placeDetails.creatorTargetId);
                 switch (await games.GetTotalVisitsFromUser(placeDetails.creatorTargetId))
                 {
                     case 100:
+                        if (badges.Any(b => b.id == 6))
+                        {
+                            return 0;
+                        }
                         await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
                         {
                             user_id = placeDetails.creatorTargetId,
@@ -275,6 +281,10 @@ public class GameServerService : ServiceBase
                         });
                         break;
                     case 1000:
+                        if (badges.Any(b => b.id == 7))
+                        {
+                            return 0;
+                        }
                         await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
                         {
                             user_id = placeDetails.creatorTargetId,
