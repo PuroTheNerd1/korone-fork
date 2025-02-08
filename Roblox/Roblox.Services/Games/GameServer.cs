@@ -780,7 +780,7 @@ public class GameServerService : ServiceBase
         //     {
         //         status = JoinStatus.Loading,
         //     };
-        _ = await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking);
+       _ = Task.Run(async () => await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking));
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
             new
@@ -804,9 +804,7 @@ public class GameServerService : ServiceBase
     {
         Console.WriteLine("Starting Gameserver");
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
-        if (await arbiterClient.StartGameServer(request))
-            return "OK";
-        
+        _ = Task.Run(async () => await arbiterClient.StartGameServer(request));
         return "BAD";
         //Console.WriteLine($"MaxPlayers = {maxplayers}");
         /*
