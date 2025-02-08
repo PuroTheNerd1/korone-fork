@@ -198,6 +198,8 @@
 							<option value="SocialUrl">Social URL</option>
 							<option value="Name">Name</option>
 							<option value="About">About</option>
+							<option value="Actioner">Actioner</option>
+							<option value="DiscordId">Discord Id</option>
 						</select>
 					</div>
 					<div class="col-6 col-lg-3">
@@ -246,6 +248,7 @@
 			<table class="table min-width-1000">
 				<thead>
 					<tr>
+						<th>Actioner</th>
 						<th>Submitted</th>
 						<th>About</th>
 						<th>Social</th>
@@ -261,6 +264,7 @@
 				<tbody>
 					{#each applications as app}
 						<tr>
+							<td>{app.authorId}</td>
 							<td>{dayjs(app.createdAt).fromNow()}</td>
 							<td>{app.about}</td>
 							<td>
@@ -289,6 +293,9 @@
 									<br />
 									<hr />
 									<span>Verification Phrase: {app.verificationPhrase}</span>
+									<br />
+									<hr />
+									<span>Doer: {app.verificationPhrase}</span>
 								{/if}
 							</td>
 							{#if mode !== 'Pending'}

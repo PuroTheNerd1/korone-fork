@@ -994,6 +994,20 @@ public class UsersService : ServiceBase, IService
                     q = searchQuery,
                 });
             }
+            else if (searchColumn == ApplicationSearchColumn.Actioner)
+            {
+                q.Where("author_id ILIKE :q", new
+                {
+                    q = searchQuery,
+                });
+            }
+            else if (searchColumn == ApplicationSearchColumn.DiscordId)
+            {
+                q.Where("discord_id ILIKE :q", new
+                {
+                    q = searchQuery,
+                });
+            }
         }
         var result = (await db.QueryAsync<UserApplicationEntry>(t.RawSql, t.Parameters)).ToList();
         if (contextUserId != null)
