@@ -470,7 +470,7 @@ public class AssetsService : ServiceBase, IService
 
         if (img == null) return null;
 
-        if (img.imageFormat != ImagerFormat.JPEG && ImageFormat.&& img.imageFormat != ImagerFormat.PNG)
+        if (img.imageFormat != ImagerFormat.JPEG && img.imageFormat != ImagerFormat.PNG)
         {
             AssetMetrics.ReportInvalidClothingImageFormatUploadAttempt(img.imageFormat.ToString());
             return null;
