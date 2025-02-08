@@ -780,22 +780,18 @@ public class GameServerService : ServiceBase
         //     {
         //         status = JoinStatus.Loading,
         //     };
-        await InTransaction(async _ =>
-        {
-            await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking);
+        _ = await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking);
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
-                new
-                {
-                    id = jobId,
-                    asset_id = placeInfo.placeId,
-                    ip = Configuration.GameServerIp,
-                    port = proxyPort,
-                    server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
-                    type = matchmaking
-                });
-            return 0;
-        });
+            new
+            {
+                id = jobId,
+                asset_id = placeInfo.placeId,
+                ip = Configuration.GameServerIp,
+                port = proxyPort,
+                server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
+                type = matchmaking
+            });
         return new GameServerGetOrCreateResponse()
         {
             job = jobId,
