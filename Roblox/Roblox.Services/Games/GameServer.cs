@@ -261,12 +261,28 @@ public class GameServerService : ServiceBase
                     // store id of the game as well
                     asset_id = placeId,
                 });
+                /* 
+                    Homestead = 6
+                    Bricksmith = 7
+                */
                 switch (await games.GetTotalVisitsFromUser(placeDetails.creatorTargetId))
                 {
-                    case 1000:
-
+                    case 100:
+                        await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
+                        {
+                            user_id = placeDetails.creatorTargetId,
+                            badge_id = 6,
+                        });
                         break;
-                        
+                    case 1000:
+                        await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
+                        {
+                            user_id = placeDetails.creatorTargetId,
+                            badge_id = 7,
+                        });
+                        break;
+                    default:
+                        break;
                 }
             }
 
