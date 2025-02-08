@@ -792,10 +792,20 @@ public class GameServerService : ServiceBase
                 server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
                 type = matchmaking
             });
+        while (true)
+        {
+            if (await GetServerStat(jobId) == (int)ServerStatus.Ready)
+            {
+                break;
+            }
+            Thread.Sleep(100);
+        }
         return new GameServerGetOrCreateResponse()
         {
             job = jobId,
-            status = JoinStatus.Loading
+            ip = Configuration.GameServerIp,
+            port = proxyPort,
+            status = JoinStatus.Joining
         };
     }
 
