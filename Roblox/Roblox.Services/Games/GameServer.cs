@@ -441,7 +441,7 @@ public class GameServerService : ServiceBase
         });
 
         if (result == 0)
-            throw new Exception($"No server found with ID: {serverId}");
+            return -1;
 
         return result;
     }
@@ -793,17 +793,10 @@ public class GameServerService : ServiceBase
             });
         while (true)
         {
-            try
-            {
-                if (await GetServerStat(jobId) == (int)ServerStatus.Ready)
-                {
-                    break;
-                }
-            }
-            catch (Exception)
-            {
-                await Task.Delay(50);
-            }
+
+            if (await GetServerStat(jobId) == (int)ServerStatus.Ready)
+                break;
+
             Thread.Sleep(50);
         }
         return new GameServerGetOrCreateResponse()
