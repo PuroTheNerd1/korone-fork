@@ -116,6 +116,7 @@ public class GameServerService : ServiceBase
     private static Dictionary<long, string> currentPlaceIdsInUse = new Dictionary<long, string>(); // placeid, jobid
     public static Dictionary<long, long> CurrentPlayersInGame = new Dictionary<long, long>() { }; // userid, placeid
     public static Dictionary<Process, int> mainRCCPortsInUse = new Dictionary<Process, int>(); // Process, main RCC soap port
+    public static Dictionary<string, int> unreadyGameServers = new Dictionary<string, int>(); // Process, network server port
     public static void Configure(string newJwtKey)
     {
         jwtKey = "hello world 12345";
@@ -791,7 +792,11 @@ public class GameServerService : ServiceBase
                 server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
                 type = matchmaking
             });
-        while (await GetServerStat(jobId) != (int)ServerStatus.Ready) {Thread.Sleep(500); };
+        unreadyGameServers.Add(jobId, 0);
+        while (unreadyGameServers.ContainsKey(jobId))
+        {
+            await Task.Delay(500);
+        }
         return new GameServerGetOrCreateResponse()
         {
             job = jobId,

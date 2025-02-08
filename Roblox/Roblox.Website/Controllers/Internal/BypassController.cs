@@ -1784,6 +1784,10 @@ namespace Roblox.Website.Controllers
                 return "Not RCC";
             }
 
+            if (GameServerService.unreadyGameServers.ContainsKey(gameId)) {
+                GameServerService.unreadyGameServers.Remove(gameId);
+            }
+            
             await services.gameServer.SetServerGSPing(gameId, roundPing);
             return "OK!";
 
