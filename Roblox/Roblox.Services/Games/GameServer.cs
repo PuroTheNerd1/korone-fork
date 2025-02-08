@@ -685,11 +685,7 @@ public class GameServerService : ServiceBase
             {
                 gsport = port,
             });
-        if (port == 0)
-        {
-            return false;
-        }
-        return true;
+        return port == 0;
     }
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId, int? matchmaking = 1)
     {
@@ -702,61 +698,60 @@ public class GameServerService : ServiceBase
             });
     }
 
-    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(long placeId, int matchmaking)
+    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking)
     {
-        long maxPlayerCount = await games.GetMaxPlayerCount(placeId);
-
-        var GameServers = await GetGameServersForPlace(placeId, matchmaking);
-
-        foreach (GameServerDb server in GameServers)
+        var GameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
+        
+        if (GameServers != null)
         {
-            if (GameServers == null)
-                break;
-            string jobid = server.id.ToString();
-            var currentPlayerCount = await GetGameServerPlayers(jobid);
-
-            // if the server is full continue the search for a good one
-            if (currentPlayerCount.Count() >= maxPlayerCount)
+            foreach (GameServerDb server in GameServers)
             {
-                continue;
+                if (GameServers == null)
+                    break;
+                string jobid = server.id.ToString();
+                var currentPlayerCount = await GetGameServerPlayers(jobid);
+
+                // if the server is full continue the search for a good one
+                if (currentPlayerCount.Count() >= placeInfo.maxPlayerCount)
+                {
+                    continue;
+                }
+                // if the server is older than 5 minutes then shutdown the server
+                if (server.updated_at.AddMinutes(5) < DateTime.UtcNow)
+                {
+                    await ShutDownServerAsync(jobid);
+                    continue;
+                }
+
+                //dict check!!! if it doesnt contain it lets kill it!
+                //if (!currentGameServerPorts.ContainsKey(jobid))
+                //{
+                    //_ = ShutDownServerAsync(jobid);
+                    //continue;
+                //}
+
+                // we found a server to join or.... its loading depending
+                return new GameServerGetOrCreateResponse()
+                {
+                    job = jobid,
+                    ip = Configuration.GameServerIp,
+                    port = server.port,
+                    status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
+                };
             }
-            // if the server is older than 5 minutes then shutdown the server
-            if (server.updated_at.AddMinutes(5) < DateTime.UtcNow)
-            {
-                await ShutDownServerAsync(jobid);
-                continue;
-            }
-
-            //dict check!!! if it doesnt contain it lets kill it!
-            //if (!currentGameServerPorts.ContainsKey(jobid))
-            //{
-                //_ = ShutDownServerAsync(jobid);
-                //continue;
-            //}
-
-            // we found a server to join or.... its loading depending
-            return new GameServerGetOrCreateResponse()
-            {
-                job = jobid,
-                ip = Configuration.GameServerIp,
-                port = server.port,
-                status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
-            };
         }
-        long year = await games.GetYear(placeId);
+
         int mainRCCPort = RandomComponent.Next(30000, 40000);
         int networkServerPort =  RandomComponent.Next(50000, 60000);;
         int proxyPort = 0;
-        bool isUsable = false;
         do
         {
             proxyPort = RandomComponent.Next(7000, 8000);
-            if (await IsPortTaken(proxyPort))
-            {
-                continue;
-            }
-            isUsable = true;
-        } while (!isUsable);
+            if (!await IsPortTaken(proxyPort))
+                break;
+            
+        } while (true);
+        
         string jobId = Guid.NewGuid().ToString();
         // await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
         // if (!serverCreationLock.IsAcquired)
@@ -766,13 +761,13 @@ public class GameServerService : ServiceBase
         //     };
         await InTransaction(async _ =>
         {
-            await StartGameServer(placeId, mainRCCPort, networkServerPort, proxyPort, jobId, year, matchmaking, 43200);
+            await StartGameServer(placeInfo.placeId, mainRCCPort, networkServerPort, proxyPort, jobId, placeInfo.year, matchmaking, 43200);
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
                 new
                 {
                     id = jobId,
-                    asset_id = placeId,
+                    asset_id = placeInfo.placeId,
                     ip = Configuration.GameServerIp,
                     port = proxyPort,
                     server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
@@ -788,13 +783,11 @@ public class GameServerService : ServiceBase
     }
 
 
-    public async Task<string> StartGameServer(long placeId, int RCCPort, int networkServerPort, int proxyPort, string jobId, long year, int matchmaking, int JobExpiration)
+    public async Task<string> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, string jobId, int matchmaking)
     {
         // Before we waste our time, check if the place exists.
-        var uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         //string originalScript;
         //string finalScript;
-        long maxplayers = await games.GetMaxPlayerCount(placeId);
         Console.WriteLine("Starting Gameserver");
         HttpResponseMessage response = await client.GetAsync($"https://arbiter.pekora.zip/start-game-server?placeId={placeId}&universeId={uni.universeId}&RCCPort={RCCPort}&networkServerPort={networkServerPort}&proxyPort={proxyPort}&jobId={jobId}&creatorId={uni.builderId}&maxplayers={maxplayers}&year={year}&matchmaking={matchmaking}");
         if (response.IsSuccessStatusCode)
@@ -802,7 +795,7 @@ public class GameServerService : ServiceBase
             //currentGameServerPorts.Add(jobId, networkServerPort);
             return "OK";
         }
-        Console.WriteLine($"Failed to request a server for {placeId} with status code {response.StatusCode}\n Response: {response.Content.ReadAsStringAsync().Result}");
+        Console.WriteLine($"Failed to request a server for {placeInfo.placeId} with status code {response.StatusCode}\n Response: {response.Content.ReadAsStringAsync().Result}");
         return "BAD";
         //Console.WriteLine($"MaxPlayers = {maxplayers}");
         /*

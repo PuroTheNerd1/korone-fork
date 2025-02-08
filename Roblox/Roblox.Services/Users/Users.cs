@@ -2309,7 +2309,13 @@ public class UsersService : ServiceBase, IService
             });
         return result;
     }
-
+    public async Task<string> GetUserMemberShipAsString(long userId)
+    {
+        UserMembershipEntry? result = await GetUserMembership(userId);
+        if (result == null)
+            return "None";
+        return result.membershipType.ToString();
+    }
     private async Task UpdateMembership(long userId, MembershipType newMembershipType)
     {
         await db.ExecuteAsync(
