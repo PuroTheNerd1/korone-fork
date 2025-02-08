@@ -700,13 +700,13 @@ public class GameServerService : ServiceBase
 
     public async Task<bool> IsPortTaken(int port)
     {
-        port = await db.QueryFirstOrDefaultAsync<int>(
+        int result = await db.QueryFirstOrDefaultAsync<int>(
             "SELECT port FROM asset_server WHERE port = :gsport",
             new
             {
                 gsport = port,
             });
-        return port == 0;
+        return result != 0;
     }
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId, int? matchmaking = 1)
     {
