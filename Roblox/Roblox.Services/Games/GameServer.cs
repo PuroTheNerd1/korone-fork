@@ -46,7 +46,7 @@ public class GameServerService : ServiceBase
         {
             return new EvictPlayerRequest
             {
-                jobId = jobId,
+                gameId = jobId,
                 userId = userId,
                 messageVersionId = 0
             };
@@ -77,7 +77,7 @@ public class GameServerService : ServiceBase
         }
         public class EvictPlayerRequest
         {
-            public string jobId { get; set; }
+            public string gameId { get; set; }
             public long userId { get; set; }
             public int messageVersionId { get; set; }
         }
@@ -261,6 +261,13 @@ public class GameServerService : ServiceBase
                     // store id of the game as well
                     asset_id = placeId,
                 });
+                switch (await games.GetTotalVisitsFromUser(placeDetails.creatorTargetId))
+                {
+                    case 1000:
+
+                        break;
+                        
+                }
             }
 
             return 0;
