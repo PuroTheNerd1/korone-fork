@@ -791,14 +791,7 @@ public class GameServerService : ServiceBase
                 server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
                 type = matchmaking
             });
-        while (true)
-        {
-
-            if (await GetServerStat(jobId) == (int)ServerStatus.Ready)
-                break;
-
-            Thread.Sleep(50);
-        }
+        while (await GetServerStat(jobId) != (int)ServerStatus.Ready) {Thread.Sleep(500); };
         return new GameServerGetOrCreateResponse()
         {
             job = jobId,
