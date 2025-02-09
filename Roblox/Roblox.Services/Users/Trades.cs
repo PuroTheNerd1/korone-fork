@@ -471,7 +471,7 @@ public class TradesService : ServiceBase, IService
         //throw new ArgumentException("Request user must have builders club to trade");
         // Check if both parties can trade with eachother
         //var canTrade = await CanTrade(offer.userId, request.userId);
-        logic.Requires(SendTradeErrorCodes.CannotTrade, canTrade);
+        //logic.Requires(SendTradeErrorCodes.CannotTrade, canTrade);
         // if applicable, confirm requester has enough robux
         if (offer.robux != null)
         {
