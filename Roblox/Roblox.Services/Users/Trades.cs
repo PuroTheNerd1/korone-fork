@@ -486,8 +486,8 @@ public class TradesService : ServiceBase, IService
         }
 
         // make sure user isn't in the cooldown
-        var isInCooldown = await IsUserInFloodCheck(userIdSender, request.userId);
-        logic.Requires(SendTradeErrorCodes.FloodCheck, FailType.FloodCheck, !isInCooldown);
+        //var isInCooldown = await IsUserInFloodCheck(userIdSender, request.userId);
+        //logic.Requires(SendTradeErrorCodes.FloodCheck, FailType.FloodCheck, !isInCooldown);
         // high = offer must be 75% or more of rap of request
         // med = offer must be 50% or more of rap of request
         // low = offer must be 25% or more of rap of request
