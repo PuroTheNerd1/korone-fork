@@ -270,36 +270,32 @@ namespace Roblox.Website.Controllers
 
             if (isGzip)
             {
-                using (var decompressedStream = new MemoryStream())
-                {
-                    using (var requestStream = Request.Body)
-                    {
-                        using (var gzipStream = new GZipStream(requestStream, CompressionMode.Decompress))
-                        {
-                            await gzipStream.CopyToAsync(decompressedStream);
-                        }
-                    }
-                    decompressedStream.Seek(0, SeekOrigin.Begin);
-
-                    using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
-                    {
-                        var json = await reader.ReadToEndAsync();
-                        requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
-                    }
-                }
+                var decompressedStream = new MemoryStream();
+                var gzipStream = new GZipStream(Request.Body, CompressionMode.Decompress);
+                await gzipStream.CopyToAsync(decompressedStream);
+                gzipStream.Dispose();
+                    
+                decompressedStream.Seek(0, SeekOrigin.Begin);
+                var reader = new StreamReader(decompressedStream, Encoding.UTF8);
+                var json = await reader.ReadToEndAsync();
+                requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
+                    
+                reader.Dispose();
+                decompressedStream.Dispose();
             }
             else
             {
-                using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
-                {
-                    var json = await reader.ReadToEndAsync();
-                    requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
-                }
+                var reader = new StreamReader(Request.Body, Encoding.UTF8);
+                var json = await reader.ReadToEndAsync();
+                requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
+                reader.Dispose();
             }
+
             if (requestData == null)
             {
                 throw new BadRequestException();
             }
+
             var assetReturnInfo = new List<object>();
             foreach (var request in requestData)
             {
@@ -308,8 +304,8 @@ namespace Roblox.Website.Controllers
                 {
                     Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
                     RequestId = request.requestId,
-                    IsHashDynamic = true,
-                    IsCopyrightProtected = true,
+                    IsHashDynamic = false,
+                    IsCopyrightProtected = false,
                     IsArchived = false,
                 });
             }

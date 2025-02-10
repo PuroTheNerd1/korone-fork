@@ -34,6 +34,9 @@ public class GameServerService : ServiceBase
         }
         public async Task<bool> EvictPlayer(EvictPlayerRequest request)
         {
+            /*
+                This is temporary because the JSON doesnt format well
+            */
             var jsonRequest = $"{{ \"gameId\": \"{request.gameId}\", \"userId\": {request.userId}, \"messageVersionId\": {request.messageVersionId} }}";
             var result = await this.PostAsync("evict-player", new StringContent(jsonRequest, Encoding.UTF8, "application/json"));
             return result.IsSuccessStatusCode;
