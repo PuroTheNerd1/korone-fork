@@ -262,7 +262,7 @@ public class Asset : ControllerBase
         {
             if (robloxAsset.location == null)
                 continue;
-
+            Console.WriteLine($"[info] Got location for asset {robloxAsset.assetId}: {robloxAsset.location}");
             assets.Add(new
             {
                 location = robloxAsset.location,
@@ -270,7 +270,7 @@ public class Asset : ControllerBase
                 IsHashDynamic = false,
                 IsCopyrightProtected = false,
                 IsArchived = false,
-                assetTypeId = (int)Enum.Parse(typeof(Type), robloxAsset.assetTypeId),
+                assetTypeId = robloxAsset.assetTypeId
             });
 
             await services.robloxassets.SetRobloxAssetLocationInCache(robloxAsset.assetId, robloxAsset.location);
