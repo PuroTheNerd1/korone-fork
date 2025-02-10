@@ -33,7 +33,7 @@ public class RobloxAssetService : ServiceBase, IService
     }
     public async Task SetRobloxAssetLocationInCache(long id, string location)
     {
-        await redis.StringSetAsync($"robloxasset:{id}:data", location, TimeSpan.FromDays(10));
+        await redis.StringSetAsync($"robloxasset:{id}:data", location, TimeSpan.FromHours(3));
     }
     public bool IsReusable()
     {
