@@ -11,6 +11,7 @@ using Type = Roblox.Models.Assets.Type;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
 using Roblox.Website.Middleware;
+using Roblox.Libraries.RobloxApi;
 namespace Roblox.Website.Controllers;
 [ApiController]
 [Route("/")]
@@ -269,7 +270,7 @@ public class Asset : ControllerBase
                 IsHashDynamic = false,
                 IsCopyrightProtected = false,
                 IsArchived = false,
-                assetTypeId = (int)Enum.Parse(typeof(Type), robloxAsset.assetType),
+                assetTypeId = (int)Enum.Parse(typeof(Type), robloxAsset.assetTypeId),
             });
 
             await services.robloxassets.SetRobloxAssetLocationInCache(robloxAsset.assetId, robloxAsset.location);
