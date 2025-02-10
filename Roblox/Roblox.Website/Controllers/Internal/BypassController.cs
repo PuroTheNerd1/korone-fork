@@ -51,19 +51,17 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class BypassController : ControllerBase
     {
-        [HttpGetBypass("internal/release-metadata")]
-        public dynamic GetReleaseMetaData([Required] string requester)
-        {
-            throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
-        }
-
         public bool IsRcc()
         {
             var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
             return rccAccessKey == Configuration.RccAuthorization;
         }
 
-
+        [HttpGetBypass("internal/release-metadata")]
+        public dynamic GetReleaseMetaData([Required] string requester)
+        {
+            throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
+        }
 
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)

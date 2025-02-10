@@ -15,12 +15,6 @@ namespace Roblox.Website.Controllers;
 [Route("/")]
 public class Asset : ControllerBase
 {
-    public bool IsRcc()
-    {
-        var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
-        return rccAccessKey == Configuration.RccAuthorization;
-    }
-
     [HttpGetBypass("v2/asset")]
     [HttpGetBypass("v1/asset")]
     [HttpGetBypass("asset")]
