@@ -262,7 +262,11 @@ public class Asset : ControllerBase
         {
             if (robloxAsset.location == null)
                 continue;
-            Console.WriteLine($"[info] Got location for asset {robloxAsset.assetId}: {robloxAsset.location}");
+
+            // Get assetId from assets list
+            var asset = assets.FirstOrDefault(a => ((dynamic)a).requestId == robloxAsset.requestId);
+            long assetId = ((dynamic)asset).assetId;
+            Console.WriteLine($"[info] Got location for asset {assetId}: {robloxAsset.location}");
             assets.Add(new
             {
                 location = robloxAsset.location,
@@ -273,7 +277,7 @@ public class Asset : ControllerBase
                 assetTypeId = robloxAsset.assetTypeId
             });
 
-            await services.robloxassets.SetRobloxAssetLocationInCache(robloxAsset.assetId, robloxAsset.location);
+            await services.robloxassets.SetRobloxAssetLocationInCache(assetId, robloxAsset.location);
         }
     }
     private object CreateAssetResponse(BatchAssetRequest asset, string location)
