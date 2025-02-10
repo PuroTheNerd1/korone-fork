@@ -240,7 +240,7 @@ public class Asset : ControllerBase
         if (robloxAssets.Count > 0)
         {
             var robloxResults = await services.robloxApi.GetAssetsFromBatch(robloxAssets);
-            await ProcessRobloxAssetsAsync(robloxResults, assets);
+            await ProcessRobloxAssetsAsync(robloxResults, robloxAssets, assets);
         }
 
         return Content(JsonSerializer.Serialize(assets), "application/json");
@@ -256,7 +256,7 @@ public class Asset : ControllerBase
         return JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
     }
 
-    private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> assets)
+    private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> robloxAssets, List<object> assets)
     {
         foreach (var robloxAsset in robloxResults)
         {
@@ -264,7 +264,7 @@ public class Asset : ControllerBase
                 continue;
 
             // Get assetId from assets list
-            var asset = assets.FirstOrDefault(a => ((dynamic)a).requestId == robloxAsset.requestId);
+            var asset = robloxAssets.FirstOrDefault(a => ((dynamic)a).requestId == robloxAsset.requestId);
             long assetId = ((dynamic)asset).assetId;
             Console.WriteLine($"[info] Got location for asset {assetId}: {robloxAsset.location}");
             assets.Add(new
