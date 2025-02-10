@@ -305,7 +305,7 @@ namespace Roblox.Website.Controllers
                 
                 assetReturnInfo.Add(new
                 {
-                    Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
+                    location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
                     request.requestId,
                     IsHashDynamic = false,
                     IsCopyrightProtected = false,
