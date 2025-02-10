@@ -8,6 +8,7 @@ namespace Roblox.Website.Controllers
     public class ControllerServices
     {
         public AssetsService assets { get; } = new();
+        public RobloxAssetService robloxassets { get; } = new();
         public UsersService users { get; } = new();
         public AccountInformationService accountInformation { get; } = new();
         public AvatarService avatar { get; } = new();

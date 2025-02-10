@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -37,6 +38,18 @@ public class AssetDeliveryV2Response
     public Models.Assets.Type assetTypeId { get; set; }
     public IEnumerable<AssetDeliveryEntry>? locations { get; set; }
 }
+
+public class AssetDeliveryV1BatchResponse
+{
+    public string? location { get; set; }
+    public string requestId { get; set; }
+    public bool IsHashDynamic { get; set; }
+    public bool IsCopyrightProtected { get; set; }
+    public bool isArchived { get; set; }
+    public int assetTypeId { get; set; }
+}
+
+
 
 
 public class ProductInfoWithAssetDelivery : ProductDataResponse
@@ -320,6 +333,21 @@ public class RobloxApi
             throw new Exception("Bad response in GetStreamAsync: " + strResult.StatusCode);
         return await strResult.Content.ReadAsStreamAsync();
     }
+
+    public async Task<dynamic> GetAssetsFromBatch(dynamic request)
+    {
+        var result = await _client.PostAsync("https://assetdelivery.roblox.com/v1/assets/batch", new StringContent(JsonSerializer.Serialize(request)));
+        if (!result.IsSuccessStatusCode)
+            throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
+        if (result == null)
+            throw new Exception("Null response from Roblox");
+        var response = await result.Content.ReadFromJsonAsync<IEnumerable<AssetDeliveryV1BatchResponse>>();
+        if (response == null)
+            throw new Exception("Null response from batch request");
+        
+        return response;
+    }
+
     public async Task<Stream> GetAssetContentFromProxy(long assetId)
     {
         var result = await _client.GetAsync($"https://assetdelivery.roproxy.com/v1/asset?id={assetId}");

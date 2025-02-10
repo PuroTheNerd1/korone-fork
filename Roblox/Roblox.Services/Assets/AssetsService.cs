@@ -178,6 +178,7 @@ public struct ByteReader
 
 public class AssetsService : ServiceBase, IService
 {
+    private readonly Roblox.Services.RobloxAssetService robloxAssetService = new();
     private static void assert(bool Bool, String Message)
     {
         if (Bool != true)
@@ -337,7 +338,19 @@ public class AssetsService : ServiceBase, IService
 
         return Task.CompletedTask;
     }
-
+    public async Task<string?> GetAssetLocationAsync(BatchAssetRequest asset)
+    {
+        string? location = $"{Configuration.BaseUrl}/v1/asset?id={asset.assetId}";
+        try
+        {
+            await GetAssetCatalogInfo(asset.assetId);
+        }
+        catch (RecordNotFoundException)
+        {
+            location = await robloxAssetService.GetRobloxAssetLocationFromCache(asset.assetId);
+        }
+        return location;
+    }
     public async Task InsertOrReplaceThumbnail(long assetId, long assetVersionId, string newThumbnailKey,
         Models.Assets.ModerationStatus moderationStatus)
     {
