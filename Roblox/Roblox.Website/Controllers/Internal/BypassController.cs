@@ -100,6 +100,7 @@ namespace Roblox.Website.Controllers
             }
             else if(id == 507766666)
             {
+                Console.WriteLine("Attempt to load 507766666");
                 return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");
             }
             // If assetversionid isnt null, set id to assetveresionid
