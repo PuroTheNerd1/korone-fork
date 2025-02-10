@@ -344,7 +344,7 @@ public class RobloxApi
         var response = await result.Content.ReadFromJsonAsync<IEnumerable<AssetDeliveryV1BatchResponse>>();
         if (response == null)
             throw new Exception("Null response from batch request");
-        
+
         return response;
     }
 
