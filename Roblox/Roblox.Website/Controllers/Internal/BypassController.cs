@@ -305,7 +305,6 @@ namespace Roblox.Website.Controllers
                 {
                     Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
                     RequestId = request.requestId,
-                    requestId = request.requestId,
                     assetTypeId = 0,
                     IsHashDynamic = false,
                     IsCopyrightProtected = false,
