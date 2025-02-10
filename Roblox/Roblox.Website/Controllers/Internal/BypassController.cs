@@ -300,14 +300,17 @@ namespace Roblox.Website.Controllers
             var assetReturnInfo = new List<object>();
             foreach (var request in requestData)
             {
-                Console.WriteLine(request.assetId);
+                int assetTypeId = (int)Enum.Parse(typeof(Models.Assets.Type), request.assetType);
+                Console.WriteLine($"{request.assetId} {request.requestId} {assetTypeId}");
+                
                 assetReturnInfo.Add(new
                 {
                     Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
-                    RequestId = request.requestId,
+                    request.requestId,
                     IsHashDynamic = false,
                     IsCopyrightProtected = false,
                     IsArchived = false,
+                    assetTypeId = assetTypeId,
                 });
             }
 
