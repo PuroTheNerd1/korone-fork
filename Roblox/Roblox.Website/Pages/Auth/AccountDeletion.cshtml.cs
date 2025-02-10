@@ -84,7 +84,7 @@ public class AccountDeletion : RobloxPageModel
 
         try
         {
-            await services.users.DeleteUser(user[0].id, false);
+            await services.users.DeleteUser(user[0].id, true);
         }
         catch (AccountLastOnlineTooRecentlyException)
         {
