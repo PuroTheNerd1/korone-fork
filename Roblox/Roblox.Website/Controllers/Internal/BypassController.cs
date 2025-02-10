@@ -493,7 +493,7 @@ namespace Roblox.Website.Controllers
         [Consumes("application/xml")]
         public async Task<MVC.OkResult> AbuseReport([FromBody] InGameAbuseReportEntry report)
         {
-            if (!IsRcc())
+            if (!ApplicationGuardMiddleware.IsRcc(Request))
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
             string gameMessages = "";
             string reportMessage = @$"This report was sent by the in-game report system.
@@ -858,7 +858,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-game-presence")]
         public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType)
         {
-            if(!IsRcc())
+            if (!ApplicationGuardMiddleware.IsRcc(Request))
                 throw new UnauthorizedAccessException();
 
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
@@ -868,7 +868,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
-            if(!IsRcc())
+            if (!ApplicationGuardMiddleware.IsRcc(Request))
                 throw new UnauthorizedAccessException();
             string JobId = await services.gameServer.GetJobIdByUserId(visitorId);
             if(JobId == null)
@@ -891,7 +891,7 @@ namespace Roblox.Website.Controllers
         public void ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
         {
             return;
-            // if(!IsRcc())
+            // if (!ApplicationGuardMiddleware.IsRcc(Request))
             // {
             //     return;
             // }
@@ -958,7 +958,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("Users/ListStaff.ashx")]
         public async Task<dynamic> GetStaffList()
         {
-            if(!IsRcc()) return Redirect("/404");
+            if (!ApplicationGuardMiddleware.IsRcc(Request)) return Redirect("/404");
             return (await StaffFilter.GetStaff()).Where(c => c != 12);
         }
 
@@ -1176,7 +1176,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedMD5Hashes")]
         public MVC.ActionResult<dynamic> AllowedMD5Hashes()
         {
-            if (!IsRcc())
+            if (!ApplicationGuardMiddleware.IsRcc(Request))
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
@@ -1204,7 +1204,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedSecurityVersions")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
-            if (!IsRcc())
+            if (!ApplicationGuardMiddleware.IsRcc(Request))
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
@@ -1248,7 +1248,7 @@ namespace Roblox.Website.Controllers
             if (!canUpload)
             {
                 userId = info.creatorTargetId;
-                canUpload = IsRcc();
+                canUpload = ApplicationGuardMiddleware.IsRcc(Request);
             }
 
             if (info.assetType != Models.Assets.Type.Place)
@@ -1517,9 +1517,8 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/CreateOrUpdate")]
         public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
         {
-            bool IsRCC = IsRcc();
             int roundPing = (int)Math.Round(ping, 0);
-            if(!IsRCC)
+            if(!ApplicationGuardMiddleware.IsRcc(Request))
             {
                 return "Not RCC";
             }
@@ -1539,7 +1538,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2.0/Refresh")]
         public async Task RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
-            if (!IsRcc())
+            if (!ApplicationGuardMiddleware.IsRcc(Request))
                 return;
 
             if (clientCount == 0 && gameTime > 50)

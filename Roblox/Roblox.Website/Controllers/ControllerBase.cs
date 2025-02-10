@@ -144,11 +144,6 @@ namespace Roblox.Website.Controllers
             return BitConverter.ToUInt64(bytes, 0);
         }
         
-        public bool IsRcc()
-        {
-            var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
-            return rccAccessKey == Configuration.RccAuthorization;
-        }
 
         /// <summary>
         /// GetIP returns a hashed version of the current user's IP address.

@@ -10,6 +10,7 @@ using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
+using Roblox.Website.Middleware;
 namespace Roblox.Website.Controllers;
 [ApiController]
 [Route("/")]
@@ -69,7 +70,7 @@ public class Asset : ControllerBase
         var requester = Request.Headers["Requester"].FirstOrDefault()?.ToLower();
 
 
-        var isRcc = IsRcc();
+        var isRcc = ApplicationGuardMiddleware.IsRcc(Request);
 
         MultiGetEntry details;
         try
@@ -89,7 +90,7 @@ public class Asset : ControllerBase
             }
         }
         // TODO: Fix for this is using a diffrent access key for rendering
-        if (details.moderationStatus != ModerationStatus.ReviewApproved && details.moderationStatus != ModerationStatus.AwaitingModerationDecision && !IsRcc() && !isBotRequest)
+        if (details.moderationStatus != ModerationStatus.ReviewApproved && details.moderationStatus != ModerationStatus.AwaitingModerationDecision && isRcc && !isBotRequest)
             throw new RobloxException(403, 0, "Asset not approved for requester");
         dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
 
