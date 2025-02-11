@@ -731,7 +731,7 @@ public class GameServerService : ServiceBase
             "SELECT * FROM asset_server WHERE id = :id::uuid",
             new
             {
-                jobid = Guid.Parse(jobId),
+                id = Guid.Parse(jobId),
             });
     }
 
