@@ -147,6 +147,30 @@ body {
   color: black;
 }
 
+.dark-input {
+  color: white;
+  background-color: #181a1b;
+  background: #181a1b;
+  border-color: #383D3F;
+}
+
+.dark-input::placeholder {
+  color: white;
+}
+
+.dark-input::-webkit-input-placeholder {
+  color: white;
+}
+.dark-input:-moz-placeholder {
+  color: white;
+}
+.dark-input::-moz-placeholder {
+  color: white;
+}
+.dark-input:-ms-input-placeholder {
+  color: white;
+}
+
 .mod-blury-image {
   opacity: 0.5;
   filter: blur(10px);

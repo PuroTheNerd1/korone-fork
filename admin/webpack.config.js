@@ -78,6 +78,7 @@ const conf = {
 				'mod-card-dark',
 				'mod-card-white',
 				'mod-card-default',
+				'dark-input'
 			],
 		}),
 	],
