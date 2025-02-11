@@ -62,7 +62,7 @@ public class PlaceLauncherService : ServiceBase
         {
             jobId = gameId,
             status = (int)JoinStatus.Joining,
-            joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={gameId}&placeId={placeId}",
+            joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={gameId}",
             authenticationUrl = $"{Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx",
             authenticationTicket = "hi",
             message = $"Joining {gameId}",
@@ -93,7 +93,7 @@ public class PlaceLauncherService : ServiceBase
             {
                 jobId = result.job,
                 status = (int)result.status,
-                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
+                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = cookie,
                 message = $"Server found ({result.job})",
@@ -129,7 +129,7 @@ public class PlaceLauncherService : ServiceBase
             {
                 jobId = result.job,
                 status = (int)result.status,
-                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
+                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 settings = settings,
                 authenticationTicket = "hi",
