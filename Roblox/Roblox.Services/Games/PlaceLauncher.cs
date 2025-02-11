@@ -72,21 +72,19 @@ public class PlaceLauncherService : ServiceBase
     public async Task<PlaceLaunchResponse> RequestGame(long placeId, long userId, string cookie, bool? Special = false, string? username = null)
     {
         dynamic? joinScript = null;
-        string finalTicket;
-        PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-        var result = await gameServer.GetServerForPlace(uni, (int)MatchmakingContextId.Default);
+        PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
+        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default);
         if (Special.HasValue && (bool)Special)
         {
             string membership = await users.GetUserMemberShipAsString(userId);
-
-            DateTime currentUtcDateTime = DateTime.UtcNow;
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             var userInfo = await users.GetUserById((long)userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
 
             string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
-            finalTicket = sign.GenerateClientTicketV4((long)userId, userInfo.username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-            joinScript = await games.GetJoinScript(uni.year, userInfo.username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, cookie);
+            GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
+            string clientTicket =  sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
+            joinScript = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
+
         }
 
         if (result.status == JoinStatus.Joining)
@@ -115,35 +113,18 @@ public class PlaceLauncherService : ServiceBase
         {
             throw new BadRequestException("You are not allowed to join this game.");
         }
-        string finalTicket;
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
-            PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-        var result = await gameServer.GetServerForPlace(uni, (int)MatchmakingContextId.CloudEdit);
+        PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
+        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {
             string membership = await users.GetUserMemberShipAsString(userId);
-            DateTime currentUtcDateTime = DateTime.UtcNow;
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
             var userInfo = await users.GetUserById((long)userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
+            GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
+            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
 
-            switch (uni.year)
-            {
-                case 2017:
-                    finalTicket = sign.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
-                    break;
-                case 2018:
-                case 2019:
-                    finalTicket = sign.GenerateClientTicketV2(userId, username, result.job, characterAppearanceUrl);
-                    break;
-                case 2020:
-                case 2021:
-                    finalTicket = sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-                    break;
-                default:
-                    throw new InvalidOperationException($"This year does not exist: {uni.year}");
-            }
-            dynamic settings = await games.GetJoinScript(uni.year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, null);
+            dynamic settings = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, false, null);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,

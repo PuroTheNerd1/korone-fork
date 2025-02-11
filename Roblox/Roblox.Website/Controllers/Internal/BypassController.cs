@@ -410,19 +410,24 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("game/join.ashx")]
         [HttpGetBypass("game/join.ashx")]
-        public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
+        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
-            PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
+
             string username = safeUserSession.username;
             long userId = safeUserSession.userId;
-            string membership = await services.users.GetUserMemberShipAsString(userId);
-            DateTime currentUtcDateTime = DateTime.UtcNow;
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
-            string finalTicket;
+
+            GameServerDb jobInfo = await services.gameServer.GetGameServer(jobId);
+            if (jobInfo == null)
+                throw new BadRequestException(1, "Gameserver does not exist");
+            
+            long placeId = jobInfo.asset_id;
+            PlaceEntry placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
+            
             string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
-            if (jobPlayers.Count() >= uni.maxPlayerCount)
+            
+            var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
+            if (jobPlayers.Count() >= placeInfo.maxPlayerCount)
             {
                 return new
                 {
@@ -430,47 +435,28 @@ namespace Roblox.Website.Controllers
                     status = 5
                 };
             }
+
             var userInfo = await services.users.GetUserById(userId);
-            Console.WriteLine(username);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
 
-            Console.WriteLine(membership);
-            if(uni.year != 2020 && uni.year != 2021 && membership == "Premium")
+            string membership = await services.users.GetUserMemberShipAsString(userId);
+            if (placeInfo.year != 2020 && placeInfo.year != 2021 && membership == "Premium")
             {
                 membership = "OutrageousBuildersClub";
             }
-            switch (uni.year)
-            {
-                case 2017:
-                    finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
-                    break;
-                case 2018:
-                case 2019:
-                    finalTicket = services.sign.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
-                    break;
-                case 2020:
-                case 2021:
-                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-                    finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
-                    break;
-                default:
-                    throw new InvalidOperationException($"This year does not exist: {uni.year}");
-            }
+            string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
 
-
-
-            dynamic? joinScript = null;
+            dynamic? joinScript;
             try
             {
-                //needed for matchmaking so we can select the best route
-                //string ip = GetRequesterIpRaw(HttpContext);
-                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"]!.ToString());
+                joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"]!.ToString());
             }
             catch (Exception)
             {
                 throw new BadRequestException(1, "Couldn't find gameserver");
             }
-            return services.games.SignJoinScript((long)uni.year, joinScript);
+
+            return services.games.SignJoinScript(placeInfo.year, joinScript);
         }
         [HttpGetBypass("GenerateVersion")]
         public string GenerateVersion()

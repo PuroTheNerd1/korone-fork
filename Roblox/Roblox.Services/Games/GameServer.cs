@@ -725,10 +725,10 @@ public class GameServerService : ServiceBase
 
         return result.ToString() ?? throw new RecordNotFoundException();
     }
-    public async Task<int> GetGameserverForJobId(string jobId)
+    public async Task<GameServerDb> GetGameServer(string jobId)
     {
-        return await db.QueryFirstOrDefaultAsync<int>(
-            "SELECT port FROM asset_server WHERE id = :jobid",
+        return await db.QueryFirstOrDefaultAsync<GameServerDb>(
+            "SELECT * FROM asset_server WHERE id = :id::uuid",
             new
             {
                 jobid = Guid.Parse(jobId),

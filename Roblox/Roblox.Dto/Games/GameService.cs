@@ -30,6 +30,7 @@ public enum ServerStatus
 public class GameServerDb
 {
     public Guid id { get; set; }
+    public long asset_id { get; set; }
     public long port { get; set; }
     public DateTime updated_at { get; set; }
     public ServerStatus status;

@@ -83,6 +83,23 @@ public class SignService : ServiceBase
             return Convert.ToBase64String(signature);
         }
     }
+    // TODO: Fully rewrite the ticket system
+    public string GenerateClientTicket(long year, long userId, string username, string characterAppearanceUrl, string membership, string jobId, long accountAgeDays, long placeId)
+    {
+        switch (year)
+        {
+            case 2017:
+                return GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
+            case 2018:
+            case 2019:
+                return GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
+            case 2020:
+            case 2021:
+                return GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
+            default:
+                throw new InvalidOperationException($"This year does not exist");
+        }
+    }
 
     public string GenerateClientTicketV1(long userId, string username, string jobId, string characterAppearanceUrl)
     {
@@ -120,18 +137,17 @@ public class SignService : ServiceBase
         string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};3";
         return finalTicket;
     }
-    public string GenerateClientTicketV4(long userId, string username, string characterAppearanceUrl, string membership, string jobId, string dateTime, long accountAgeDays, long placeId)
+    public string GenerateClientTicketV4(long userId, string username, string characterAppearanceUrl, string membership, string jobId, long accountAgeDays, long placeId)
     {
-        DateTime utcNow = DateTime.UtcNow;
-
-        string customTimestamp = utcNow.ToString("MM/dd/yyyy hh:mm:ss tt");
+        DateTime currentUtcDateTime = DateTime.UtcNow;
+        string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
         string countryCode = "US";
-        string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{dateTime}";
+        string ticket2 = $"{userId}\n{username}\n{characterAppearanceUrl}\n{jobId}\n{formattedDateTime}";
         string ticket2Signature = SignString2048(ticket2);
-        string ticket = $"{dateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership.Length}\n{membership}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
+        string ticket = $"{formattedDateTime}\n{jobId}\n{userId}\n{userId}\n0\n{accountAgeDays}\nf\n{username.Length}\n{username}\n{membership.Length}\n{membership}\n{countryCode.Length}\n{countryCode}\n0\n\n{username.Length}\n{username}";
         string ticketSignature = SignString2048(ticket);
         Console.WriteLine(ticket2 + ticket);
-        string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};4";
+        string finalTicket = $"{formattedDateTime};{ticket2Signature};{ticketSignature};4";
         return finalTicket;
     }
 }
