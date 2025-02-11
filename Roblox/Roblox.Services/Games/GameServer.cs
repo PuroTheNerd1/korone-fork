@@ -849,7 +849,7 @@ public class GameServerService : ServiceBase
         Console.WriteLine("Starting Gameserver");
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
         _ = Task.Run(async () => await arbiterClient.StartGameServer(request));
-        return "BAD";
+        return "OK";
         //Console.WriteLine($"MaxPlayers = {maxplayers}");
         /*
         Process rccServer = null;
