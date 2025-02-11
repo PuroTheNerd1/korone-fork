@@ -119,8 +119,9 @@ body {
 .mod-card-white {
   background: #fff;
 }
-.mod-card-black {
-  background: #000;
+.mod-card-dark {
+  background: #181A1B;
+  color: white;
 }
 .mod-card-default {
   background: repeating-linear-gradient(45deg, #ebebeb, #ebebeb 20px, #fff 20px, #fff 40px);
