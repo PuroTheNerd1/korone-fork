@@ -1078,17 +1078,15 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("rcc/kickplayer")]
         public async Task<dynamic> KickPlayerAsync(long userId)
         {
-            bool isOwner = StaffFilter.IsOwner(safeUserSession.userId);
+            if (!StaffFilter.IsOwner(safeUserSession.userId))
+                return "Unauthorized";
 
             if (safeUserSession.userId == userId)
                 return "You can't kick yourself!";
 
-            if (isOwner)
-            {
-                await services.gameServer.KickPlayer(userId);
-                return $"Kicked player {userId}";
-            }
-            return "not the owner";
+            await services.gameServer.KickPlayer(userId);
+            
+            return $"Kicked player {userId}";
         }
 
         [HttpGetBypass("/Game/ChatFilter.ashx")]
