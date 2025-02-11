@@ -95,7 +95,7 @@ public class Application : RobloxPageModel
             }
         }
     }
-    private async void messageUser(string discord_id, string applicationId)
+    private async void MessageUser(string discord_id, string applicationId)
     {
         var httpClient = new HttpClient();
         await httpClient.GetAsync($"http://localhost:3550/sendmsg?discordId={discord_id}&applicationId={applicationId}");
@@ -239,23 +239,25 @@ public class Application : RobloxPageModel
             errorMessage = "Social URL must be between 3 and 128 characters.";
             return new PageResult();
         }
+
+        if (string.IsNullOrEmpty(discordId))
+        {
+            errorMessage = "Your Discord ID is empty, please try again.";
+            return new PageResult();
+        }
+
+        if (!Regex.IsMatch(discordId, @"^\d+$"))
+        {
+            errorMessage = "Your Discord ID must contain only numeric characters, please try again";
+            return new PageResult();
+        }
+
         if (!userInfo.success)
         {
             errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord";
             return new PageResult();
         }
 
-        if (string.IsNullOrEmpty(discordId))
-        {
-            errorMessage = "Discord ID is empty.";
-            return new PageResult();
-        }
-
-        if (!Regex.IsMatch(discordId, @"^\d+$"))
-        {
-            errorMessage = "Your Discord ID must contain only numeric characters.";
-            return new PageResult();
-        }
         if(await services.users.CheckDuplicateDiscord(discordId))
         {
             errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord #1";
@@ -347,33 +349,32 @@ public class Application : RobloxPageModel
                 MaxAge = TimeSpan.FromDays(30),
                 Secure = true,
             });
-            messageUser(discordId, applicationId);
+            MessageUser(discordId, applicationId);
             application = await services.users.GetApplicationById(applicationId);
             apps.DeleteVerificationCookie();
 
             // Auto silent decline these apps now. There is no excuse to have a "web.roblox.com" link.
             // We also remove app data since people who are dumb enough to put a "web" link are likely also dumb
             // enough to put personal info (e.g. email or age).
-            if (result.isUnderageUser)
+
+            // This is a useless check now 
+            // if (result.isUnderageUser)
+            // {
+            //     await services.users.ClearApplication(applicationId);
+            //     await services.users.ProcessApplication(applicationId, 1, UserApplicationStatus.SilentlyRejected);
+            // }
+            await Task.Run(async () =>
             {
-                await services.users.ClearApplication(applicationId);
-                await services.users.ProcessApplication(applicationId, 1, UserApplicationStatus.SilentlyRejected);
-            }
-            else
-            {
-                await Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        using var app = ServiceProvider.GetOrCreate<ApplicationProcessorService>();
-                        await app.AttemptBackgroundApplicationProcess(application!, result.socialData);
-                    }
-                    catch (Exception e)
-                    {
-                        Writer.Info(LogGroup.AbuseDetection, "app approve bg fail {0}", e.Message);
-                    }
-                });
-            }
+                    using var app = ServiceProvider.GetOrCreate<ApplicationProcessorService>();
+                    await app.AttemptBackgroundApplicationProcess(application!, result.socialData);
+                }
+                catch (Exception e)
+                {
+                    Writer.Info(LogGroup.AbuseDetection, "app approve bg fail {0}", e.Message);
+                }
+            });
         }
         catch (Exception e)
         {
