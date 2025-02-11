@@ -21,11 +21,6 @@ public class FilterService : ServiceBase, IService
     {
         throw new NotImplementedException();
     }
-    public bool ContainsCyrillic(string input)
-    {
-        Regex regex = new Regex(@"[\u0400-\u04FF]");
-        return regex.IsMatch(input);
-    }
     public string FilterText(string input)
     {
         string[] filteredWords =
