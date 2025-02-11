@@ -13,7 +13,7 @@
 <div class="bg">
 	<div class="row modalthing">
 		<div class="col-12">
-			<div class="card">
+			<div class="card mod-card-dark">
 				<div class="card-body">
 					<h1>{title}</h1>
 					<p>{message}</p>

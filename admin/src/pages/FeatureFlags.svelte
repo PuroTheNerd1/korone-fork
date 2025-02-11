@@ -23,7 +23,7 @@ import Main from "../components/templates/Main.svelte";
         {#await request.get('/feature-flags/all') then result}
             {#each Object.getOwnPropertyNames(result.data) as flag}
                 <div class="col-12 col-lg-4 mb-2">
-                    <div class="card card-body">
+                    <div class="card mod-card-dark card-body">
                         <p class="mb-0 font-weight-bold">{flag}</p>
                         <p>{result.data[flag] ? 'Enabled' : 'Disabled'}</p>
                         <div class="btn-group">
