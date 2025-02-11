@@ -54,23 +54,16 @@ public class AuthenticationController : ControllerBase
     [HttpGet("usernames/validate")]
     public async Task<NameChangeAvailableResponse> ValidateUsername([Required, FromQuery] string username, [Required, FromQuery] string context)
     {
-        if (context == "UsernameChange" && userSession != null)
+        if (!await services.users.IsNameAvailableForNameChange(safeUserSession.userId, username))
         {
-            var available = await services.users.IsNameAvailableForNameChange(userSession.userId, username);
-            if (!available)
-            {
-                return new NameChangeAvailableResponse(1, "Username is already in use");
-            }
-        }
-        else
-        {
-            var available = await services.users.IsNameAvailableForSignup(username);
-            if (!available)
-            {
-                return new NameChangeAvailableResponse(1, "Username is already in use");
-            }
+            return new NameChangeAvailableResponse(1, "Username is already in use");
         }
 
+        if (!await services.users.IsUsernameValid(username))
+        {
+            return new NameChangeAvailableResponse(2, "Username is not valid");
+        }
+    
         return new NameChangeAvailableResponse(0, "Username is valid");
     }
 
