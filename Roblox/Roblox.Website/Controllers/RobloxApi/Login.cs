@@ -139,7 +139,7 @@ namespace Roblox.Website.Controllers
                 SameSite = SameSiteMode.Lax,
             });
 
-            foreach (var cookie in HttpContext.Request.Cookies.Where(c => c.Key == ".ROBLOSECURITY"))
+            foreach (var cookie in HttpContext.Request.Cookies.Where(c => c.Key == ROBLOSECURITY))
             {
                 Console.WriteLine($"Deleting cookie {cookie.Key}");
                 HttpContext.Response.Cookies.Delete(cookie.Key);

@@ -17,6 +17,13 @@ namespace Roblox.Website.Controllers
         public UserSession? userSessionForTests { get; set; }
 #endif
 
+        protected string? ROBLOSECURITY
+        {
+            get
+            {
+                return Request.Cookies.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.CookieName) ? Request.Cookies[Roblox.Website.Middleware.SessionMiddleware.CookieName].ToString() : null;
+            }
+        }
 
         protected bool isRCC
         {

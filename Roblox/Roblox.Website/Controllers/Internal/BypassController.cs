@@ -234,7 +234,7 @@ namespace Roblox.Website.Controllers
                 placeId = request.placeId,
                 userId = safeUserSession.userId,
                 username = safeUserSession.username,
-                cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"]!.ToString(),
+                cookie = ROBLOSECURITY,
                 special = true
             };
             return await services.placeLauncherFactory.PlaceLauncherAsync(placeLauncherRequest);
@@ -261,7 +261,7 @@ namespace Roblox.Website.Controllers
                     message = "You are not authorized to join"
                 };
             }
-            Placelauncher.cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"]!.ToString();
+            Placelauncher.cookie = ROBLOSECURITY;
             Placelauncher.userId = userSession.userId;
             Placelauncher.username = userSession.username;
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
@@ -278,7 +278,7 @@ namespace Roblox.Website.Controllers
                 return Unauthorized("User is not authorized.");
             }
 
-            string? cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
+            string? cookie = ROBLOSECURITY;
             return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={cookie}");
         }
 
@@ -302,7 +302,7 @@ namespace Roblox.Website.Controllers
             if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
             var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
             if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-            var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+            var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{ROBLOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
             return Redirect($"pekora-player{bootstrapperArgs}");
         }
 
@@ -397,7 +397,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, FromQuery] string suggest)
         {
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
+            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, suggest, new CookieOptions
             {
                 Domain = ".pekora.zip",
                 Secure = false,
@@ -449,7 +449,7 @@ namespace Roblox.Website.Controllers
             dynamic? joinScript;
             try
             {
-                joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"]!.ToString());
+                joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
             }
             catch (Exception)
             {
