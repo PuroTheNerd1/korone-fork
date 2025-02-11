@@ -128,9 +128,9 @@ import { now } from 'svelte/internal';
 						<h3>Manage Site-Wide Alert</h3>
 						<p>To clear the alert, empty the text box and press submit.</p>
 						{#await request.get("/alert") then alertInfo}
-							<input placeholder="Alert Text" class="form-control" type="text" id="sitewide-alert-text" value={alertInfo.data.Text} />
+							<input placeholder="Alert Text" class="form-control dark-input" type="text" id="sitewide-alert-text" value={alertInfo.data.Text} />
 							<br>
-							<input placeholder="Alert URL" class="form-control" type="text" id="sitewide-alert-url" value={alertInfo.data.LinkUrl} />
+							<input placeholder="Alert URL" class="form-control dark-input" type="text" id="sitewide-alert-url" value={alertInfo.data.LinkUrl} />
 							<button
 								class="btn btn-success mt-2"
 								on:click={(e) => {

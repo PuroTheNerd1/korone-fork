@@ -101,19 +101,19 @@
 					</div>
 					<div class="col-2">
 						<label for="name">Name</label>
-						<input type="text" class="form-control" id="assetName" {disabled} value={assetDetails.name || ""} />
+						<input type="text" class="form-control dark-input" id="assetName" {disabled} value={assetDetails.name || ""} />
 					</div>
 					<div class="col-12">
 						<label for="description">Description</label>
-						<input type="text" class="form-control" id="description" {disabled} value={assetDetails.description || ""} />
+						<input type="text" class="form-control dark-input" id="description" {disabled} value={assetDetails.description || ""} />
 					</div>
 					<div class="col-2">
 						<label for="name">R$ Price (Optional)</label>
-						<input type="text" class="form-control" id="priceRobux" {disabled} value={assetDetails.priceRobux || ""} />
+						<input type="text" class="form-control dark-input" id="priceRobux" {disabled} value={assetDetails.priceRobux || ""} />
 					</div>
 					<div class="col-2">
 						<label for="name">TX$ Price (Optional)</label>
-						<input type="text" class="form-control" id="priceTickets" {disabled} value={assetDetails.priceTickets || ""} />
+						<input type="text" class="form-control dark-input" id="priceTickets" {disabled} value={assetDetails.priceTickets || ""} />
 					</div>
 					<div class="col-2 mt-4">
 						<label for="is_for_sale">For Sale: </label>
@@ -133,11 +133,11 @@
 					</Permission>
 					<div class="col-6">
 						<label for="description">Max Copy Count (optional)</label>
-						<input type="text" class="form-control" id="max-copies" value={assetDetails.serialCount || ""} />
+						<input type="text" class="form-control dark-input" id="max-copies" value={assetDetails.serialCount || ""} />
 					</div>
 					<div class="col-6">
 						<label for="description">Offsale Time (EST) (optional)</label>
-						<input type="text" class="form-control" id="offsale-time" placeholder="Format: YYYY-MM-DD HH:MM:SS" value={(assetDetails.offsaleAt && dayjs(assetDetails.offsaleAt).format("YYYY-MM-DD HH:MM:ss")) || ""} />
+						<input type="text" class="form-control dark-input" id="offsale-time" placeholder="Format: YYYY-MM-DD HH:MM:SS" value={(assetDetails.offsaleAt && dayjs(assetDetails.offsaleAt).format("YYYY-MM-DD HH:MM:ss")) || ""} />
 					</div>
 				</div>
 			{/if}

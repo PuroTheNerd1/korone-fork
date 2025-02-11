@@ -129,10 +129,10 @@
     </div>
     <div class="row">
         <div class="col-3">
-            <input class="form-control" type="text" bind:value={start} placeholder="Start Date" />
+            <input class="form-control dark-input" type="text" bind:value={start} placeholder="Start Date" />
         </div>
         <div class="col-3">
-            <input class="form-control" type="text" bind:value={end} placeholder="End Date" />
+            <input class="form-control dark-input" type="text" bind:value={end} placeholder="End Date" />
         </div>
     </div>
     {#if multiLoadingProgress.errors.length !== 0}

@@ -33,7 +33,7 @@
 		</div>
 		<div class="col-12">
 			<label for="message-subject">Robux Amount</label>
-			<input type="text" class="form-control" id="robux-amount" {disabled} />
+			<input type="text" class="form-control dark-input" id="robux-amount" {disabled} />
 		</div>
 		<div class="col-12 mt-4">
 			<button
@@ -69,7 +69,7 @@
 		</div>
 		<div class="col-12">
 			<label for="message-subject">Tickets Amount</label>
-			<input type="text" class="form-control" id="tickets-amount" {disabled} />
+			<input type="text" class="form-control dark-input" id="tickets-amount" {disabled} />
 		</div>
 		<div class="col-12 mt-4">
 			<button

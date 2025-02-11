@@ -28,11 +28,11 @@
 		</div>
 		<div class="col-6">
 			<label for="name">Name</label>
-			<input type="text" class="form-control" id="name" {disabled} />
+			<input type="text" class="form-control dark-input" id="name" {disabled} />
 		</div>
 		<div class="col-6">
 			<label for="description">Description (Optional)</label>
-			<input type="text" class="form-control" id="description" />
+			<input type="text" class="form-control dark-input" id="description" />
 		</div>
 		<div class="col-6">
 			<label for="assettype">Type</label>
@@ -63,7 +63,7 @@
 			<div class="row">
 				<div class="col-4">
 					<label for="name">Price (Optional)</label>
-					<input type="text" class="form-control" id="price" {disabled} />
+					<input type="text" class="form-control dark-input" id="price" {disabled} />
 				</div>
 				<div class="col-2 mt-4">
 					<label for="is_for_sale">For Sale: </label>

@@ -48,7 +48,7 @@ import Main from '../components/templates/Main.svelte';
         <div class="col-12">
             <div class="row">
                 <div class="col-8">
-                    <input disabled={disabled} bind:value={groupId} type="number" class="form-control" placeholder="Group ID" />
+                    <input disabled={disabled} bind:value={groupId} type="number" class="form-control dark-input" placeholder="Group ID" />
                 </div>
                 <div class="col-4">
                     <button disabled={disabled} class="btn btn-success" on:click={() => {
@@ -66,7 +66,7 @@ import Main from '../components/templates/Main.svelte';
             </div>
             <div class="row mt-4">
                 <div class="col-8">
-                    <input disabled={disabled} bind:value={groupName} type="text" class="form-control" placeholder="Name" />
+                    <input disabled={disabled} bind:value={groupName} type="text" class="form-control dark-input" placeholder="Name" />
                 </div>
                 <div class="col-4">
                     <button disabled={disabled} class="btn btn-success" on:click={(e) => {

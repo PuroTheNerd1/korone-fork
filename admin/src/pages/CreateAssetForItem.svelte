@@ -29,7 +29,7 @@
 		</div>
 		<div class="col-12">
 			<label for="user-id">Roblox URL</label>
-			<input type="text" class="form-control" id="url" {disabled} />
+			<input type="text" class="form-control dark-input" id="url" {disabled} />
 		</div>
 		<div class="col-6">
 			<label for="user-id">New URL (Click to Copy)</label>

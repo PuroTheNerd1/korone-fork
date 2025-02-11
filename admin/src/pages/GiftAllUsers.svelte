@@ -21,11 +21,11 @@
 		</div>
 		<div class="col-12">
 			<label for="gift-id">Gift ID (The id of the gift)</label>
-			<input type="text" class="form-control" id="gift-id" {disabled} />
+			<input type="text" class="form-control dark-input" id="gift-id" {disabled} />
 		</div>
 		<div class="col-12">
 			<label for="asset-id">Asset ID (The gift to give)</label>
-			<input type="text" class="form-control" id="asset-id" {disabled} />
+			<input type="text" class="form-control dark-input" id="asset-id" {disabled} />
 		</div>
 		<div class="col-12 mt-4">
 			<button
