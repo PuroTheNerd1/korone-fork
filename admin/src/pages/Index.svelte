@@ -105,7 +105,7 @@ import { now } from 'svelte/internal';
 			{/if}
 			{#each usersInGame as data}
 				<div class="col-12 col-md-6 col-lg-4">
-					<div class="card mod-card-dark card-body">
+					<div class="card card-body">
 						<div class="row">
 							<div class="col-6 col-md-3">
 								<img class="avatar-thumb" src={`/Thumbs/Avatar.ashx?height=420&width=420&userid=${data.user_id}&v=0`} alt='User avatar' />
@@ -123,7 +123,7 @@ import { now } from 'svelte/internal';
 	<div class="row">
 		<Permission p="SetAlert">
 			<div class="col-12 mt-4">
-				<div class="card mod-card-dark">
+				<div class="card">
 					<div class="card-body">
 						<h3>Manage Site-Wide Alert</h3>
 						<p>To clear the alert, empty the text box and press submit.</p>
