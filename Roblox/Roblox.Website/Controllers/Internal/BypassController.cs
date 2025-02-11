@@ -791,6 +791,7 @@ namespace Roblox.Website.Controllers
                     accessoryVersionIds.Add(assetId);
                 }
             }
+            
             if (userAgent != "Roblox/Win2020"){
                 equippedGearVersionIds = new List<long>();
             }
@@ -1048,31 +1049,25 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("rcc/killserver")]
         public async Task<dynamic> ShutdownSpecificServerForPlace(long placeId, string jobId)
         {
-            bool canManagePlace = await services.assets.CanUserModifyItem(placeId, safeUserSession.userId);
-            if (canManagePlace)
-            {
-                await services.gameServer.ShutDownServerAsync(jobId);
-                return "OK!";
-            }
-            return "Unauthorized";
+            if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
+            
+            await services.gameServer.ShutDownServerAsync(jobId);
+            return "OK!";
         }
 
         [HttpGetBypass("rcc/killallservers")]
         public async Task<dynamic> ShutdownServersForPlace(long placeId)
         {
-            string jobId;
-            bool canManagePlace = await services.assets.CanUserModifyItem(placeId, safeUserSession.userId);
-            if (canManagePlace)
+            if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
+
+            var serverjobs = await services.gameServer.GetGameServersForPlace(placeId);
+            foreach (var jobs in serverjobs)
             {
-                var serverjobs = await services.gameServer.GetGameServersForPlace(placeId);
-                foreach (var jobs in serverjobs)
-                {
-                    jobId = jobs.id.ToString();
-                    await services.gameServer.ShutDownServerAsync(jobId);
-                }
-                return "OK!";
+                await services.gameServer.ShutDownServerAsync(jobs.id.ToString());
             }
-            return "Unauthorized";
+            return "OK!";
         }
 
         [HttpGetBypass("rcc/kickplayer")]
@@ -1085,7 +1080,7 @@ namespace Roblox.Website.Controllers
                 return "You can't kick yourself!";
 
             await services.gameServer.KickPlayer(userId);
-            
+
             return $"Kicked player {userId}";
         }
 
@@ -1493,7 +1488,6 @@ namespace Roblox.Website.Controllers
 
             if(!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            
 
             try
             {
@@ -1514,16 +1508,15 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/CreateOrUpdate")]
         public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
         {
-            int roundPing = (int)Math.Round(ping, 0);
+
             if(!isRCC)
-            {
-                return "Not RCC";
-            }
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
             if (GameServerService.unreadyGameServers.ContainsKey(gameId)) {
                 GameServerService.unreadyGameServers.Remove(gameId);
             }
-            
+
+            int roundPing = (int)Math.Round(ping, 0);
             await services.gameServer.SetServerGSPing(gameId, roundPing);
             return "OK!";
 
@@ -1536,7 +1529,7 @@ namespace Roblox.Website.Controllers
         public async Task RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
             if (!isRCC)
-                return;
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
             if (clientCount == 0 && gameTime > 50)
             {
