@@ -41,7 +41,7 @@ public class Asset : ControllerBase
 
         */
         var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
-        long placeId = 0;
+        long.TryParse(placeIdHeader,  out long placeId);
         HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
         HttpContext.Response.Headers.Add("Pragma", "no-cache");
         HttpContext.Response.Headers.Add("Expires", "-1");
@@ -66,10 +66,6 @@ public class Asset : ControllerBase
             throw new RobloxException(400, 0, "Asset is invalid or does not exist");
 
         var isBotRequest = Request.Headers["bot-auth"].ToString() == Roblox.Configuration.BotAuthorization;
-        var isLoggedIn = userSession != null;
-        var userAgent = Request.Headers["User-Agent"].FirstOrDefault()?.ToLower();
-        var requester = Request.Headers["Requester"].FirstOrDefault()?.ToLower();
-
 
         var isRcc = ApplicationGuardMiddleware.IsRcc(Request);
 
@@ -91,7 +87,7 @@ public class Asset : ControllerBase
             }
         }
         // TODO: Fix for this is using a diffrent access key for rendering
-        if (details.moderationStatus != ModerationStatus.ReviewApproved && details.moderationStatus != ModerationStatus.AwaitingModerationDecision && !isRcc && !isBotRequest)
+        if (!IsAssetApproved(details) && !isBotRequest && !isRcc)
             throw new RobloxException(403, 0, "Asset not approved for requester");
         dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
 
@@ -108,10 +104,6 @@ public class Asset : ControllerBase
             // Types that require no authentication and aren't encrypted
             case Models.Assets.Type.Image:
             case Models.Assets.Type.Special:
-                if (assetVersion.contentUrl != null)
-                    assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
-                // encryptionEnabled = false;
-                break;
             // Types that require no authentication
             case Models.Assets.Type.Audio:
             case Models.Assets.Type.Mesh:
@@ -150,70 +142,30 @@ public class Asset : ControllerBase
             case Models.Assets.Type.PoseAnimation:
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Video:
-                // todo: should we log this?
-                if (assetVersion.contentUrl is null)
-                    break;
-                //if (details.assetType == Models.Assets.Type.Audio)
-                //we dont have a web client so we dont need this anymore
-                //{
-                    // Convert to WAV file since that's what web client requires
-                    //assetContent = await services.assets.GetAudioContentAsWav(assetId, assetVersion.contentUrl);
-                //}
-                if (details.assetType == Models.Assets.Type.Audio)
-                {
-                    // hihihi shitty audio makers should kill themselves!!
-                    if (placeId != 0)
-                        Console.WriteLine($"PID: {placeId} AID: {assetId}");
-                }
-                assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
+                if (assetVersion.contentUrl != null)
+                    assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                 break;
-            default:
                 // anything else requires auth
+            default:
                 var isAuthorized = false;
                 if (isRcc)
-                {
-                    long.TryParse(placeIdHeader, out placeId);
-                    // if rcc is trying to access current place, allow through
-                    isAuthorized = placeId == assetId;
-                    // If game server is trying to load a new place (current placeId is empty), then allow it
-                    if (!isAuthorized && details.assetType == Type.Place && placeId == 0)
-                        // Game server is trying to load, so allow it
-                        isAuthorized = true;
-                    // If rcc is making the request, but it's not for a place, validate the request:
-                    if (!isAuthorized)
-                    {
-                        // Check permissions
-                        var placeDetails = await services.assets.GetAssetCatalogInfo(placeId);
-
-                        if (placeDetails.creatorType == details.creatorType &&
-                            placeDetails.creatorTargetId == details.creatorTargetId)
-                        {
-                            // We are authorized
-                            isAuthorized = true;
-                        }
-                    }
-                }
-
+                    isAuthorized = await ValidateRCCRequest(details, placeId, assetId);
                 // It's not RCC making the request. are we authorized?
-                else if (isLoggedIn)
-                {
+                else
                     // Use current user as access check
-                    isAuthorized = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
-                    // Note that all users have access to "Roblox"'s content for legacy reasons
-                    if (!isAuthorized)
-                        isAuthorized = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
-                }
-
+                    isAuthorized = IsUserAuthorizedForAsset(details, assetId, safeUserSession.userId); 
                 if (isAuthorized && assetVersion.contentUrl != null)
                     assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                 break;
         }
 
-        if (assetContent != null)
-            return File(assetContent, "application/binary");
+        if (assetContent == null)
+        {
+            Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
+            throw new BadRequestException();
+        }
 
-        Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
-        throw new BadRequestException();
+        return File(assetContent, "application/binary");
     }
     [HttpPostBypass("asset/batch")]
     [HttpPostBypass("v1/assets/batch")]
@@ -290,5 +242,37 @@ public class Asset : ControllerBase
             IsArchived = false,
             assetTypeId = (int)Enum.Parse(typeof(Type), asset.assetType),
         };
+    }
+    private async Task<bool> ValidateRCCRequest(MultiGetEntry details, long placeId, long assetId)
+    {
+        var isAuthorized = false;   
+        // if rcc is trying to access current place, allow through
+        isAuthorized = placeId == assetId;
+        // If game server is trying to load a new place (current placeId is empty), then allow it
+        if (!isAuthorized && details.assetType == Type.Place && placeId == 0)
+            // Game server is trying to load, so allow it
+            isAuthorized = true;
+        // If rcc is making the request, but it's not for a place, validate the request:
+        if (!isAuthorized)
+        {
+            // Check permissions
+            var placeDetails = await services.assets.GetAssetCatalogInfo(placeId);
+
+            if (placeDetails.creatorType == details.creatorType &&
+                placeDetails.creatorTargetId == details.creatorTargetId)
+            {
+                // We are authorized
+                isAuthorized = true;
+            }
+        }
+        return isAuthorized;
+    }
+    private bool IsAssetApproved(MultiGetEntry details)
+    {
+        return details.moderationStatus == ModerationStatus.ReviewApproved || details.moderationStatus == ModerationStatus.AwaitingModerationDecision;
+    }
+    private bool IsUserAuthorizedForAsset(MultiGetEntry details, long assetId, long userId)
+    {
+        return services.assets.CanUserModifyItem(assetId, userId).Result || details.creatorType == CreatorType.User && details.creatorTargetId == 1;;
     }
 }
