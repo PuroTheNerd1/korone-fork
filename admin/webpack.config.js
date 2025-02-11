@@ -75,6 +75,7 @@ const conf = {
 			paths: glob.sync(`${distPath}/**/*`, { nodir: true }),
 			safelist: [
 				'mod-card-black',
+				'mod-card-dark',
 				'mod-card-white',
 				'mod-card-default',
 			],

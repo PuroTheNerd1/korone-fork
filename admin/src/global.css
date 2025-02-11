@@ -119,16 +119,20 @@ body {
 .mod-card-white {
   background: #fff;
 }
-
-.mod-card-dark {
-  background: #181A1B;
-  color: white;
+.mod-card-black {
+  background: #000;
 }
 
 .mod-card-default {
   background: repeating-linear-gradient(45deg, #ebebeb, #ebebeb 20px, #fff 20px, #fff 40px);
   background-color: #ebebeb;
   border-radius: 10px;
+}
+
+.mod-card-dark {
+  background: #181A1B;
+  background-color: #181A1B;
+  color: white;
 }
 
 .min-width-1000 {
@@ -192,20 +196,6 @@ div.modalthing {
   display: block;
   margin-top: 40px;
   background-color: #2c2c2c;
-}
-
-::placeholder {
-  color: white;
-  opacity: 1; 
-}
-
-::-ms-input-placeholder {
-  color: white;
-}
-
-input {
-  background-color: #181A1B;
-  border-color: #383D3F;
 }
 
 .card-header {
