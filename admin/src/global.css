@@ -124,9 +124,9 @@ body {
   color: white;
 }
 
-card {
-  background: #181A1B;
-  color: white;
+.card {
+  background: #181A1B !important;
+  color: white !important;
 }
 
 .mod-card-default {
