@@ -493,7 +493,7 @@ namespace Roblox.Website.Controllers
         [Consumes("application/xml")]
         public async Task<MVC.OkResult> AbuseReport([FromBody] InGameAbuseReportEntry report)
         {
-            if (!ApplicationGuardMiddleware.IsRcc(Request))
+            if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
             string gameMessages = "";
             string reportMessage = @$"This report was sent by the in-game report system.
@@ -858,7 +858,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-game-presence")]
         public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType)
         {
-            if (!ApplicationGuardMiddleware.IsRcc(Request))
+            if (!isRCC)
                 throw new UnauthorizedAccessException();
 
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
@@ -868,14 +868,14 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
-            if (!ApplicationGuardMiddleware.IsRcc(Request))
+            if (!isRCC)
                 throw new UnauthorizedAccessException();
-            string JobId = await services.gameServer.GetJobIdByUserId(visitorId);
-            if(JobId == null)
+            string jobId = await services.gameServer.GetJobIdByUserId(visitorId);
+            if(jobId == null)
                 return;
             long placeId = GameServerService.GetUserPlaceId(visitorId);
 
-            await services.gameServer.OnPlayerLeave(visitorId, placeId, JobId);
+            await services.gameServer.OnPlayerLeave(visitorId, placeId, jobId);
         }
         [HttpGetBypass("/device/initialize")]
         [HttpPostBypass("/device/initialize")]
@@ -958,7 +958,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("Users/ListStaff.ashx")]
         public async Task<dynamic> GetStaffList()
         {
-            if (!ApplicationGuardMiddleware.IsRcc(Request)) return Redirect("/404");
+            if (!isRCC) return Redirect("/404");
             return (await StaffFilter.GetStaff()).Where(c => c != 12);
         }
 
@@ -1176,7 +1176,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedMD5Hashes")]
         public MVC.ActionResult<dynamic> AllowedMD5Hashes()
         {
-            if (!ApplicationGuardMiddleware.IsRcc(Request))
+            if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
@@ -1204,7 +1204,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedSecurityVersions")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
-            if (!ApplicationGuardMiddleware.IsRcc(Request))
+            if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
@@ -1248,7 +1248,7 @@ namespace Roblox.Website.Controllers
             if (!canUpload)
             {
                 userId = info.creatorTargetId;
-                canUpload = ApplicationGuardMiddleware.IsRcc(Request);
+                canUpload = isRCC;
             }
 
             if (info.assetType != Models.Assets.Type.Place)
@@ -1486,17 +1486,15 @@ namespace Roblox.Website.Controllers
                     return @"""version-d23df1d1a8d546ee""";
             }
         }
-        /*
+        
         [HttpGetBypass("v1/Close")]
         [HttpPostBypass("V1/Close")]
         public async Task<dynamic> CloseGSNew(string gameId)
         {
 
-            bool IsRCC = IsRcc();
-            if(!IsRCC)
-            {
-                return "Not RCC";
-            }
+            if(!isRCC)
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
+            
 
             try
             {
@@ -1510,7 +1508,7 @@ namespace Roblox.Website.Controllers
                 return "Catch an error";
             }
         }
-        */
+        
         [HttpPostBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v1/CreateOrUpdate")]
@@ -1518,7 +1516,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
         {
             int roundPing = (int)Math.Round(ping, 0);
-            if(!ApplicationGuardMiddleware.IsRcc(Request))
+            if(!isRCC)
             {
                 return "Not RCC";
             }
@@ -1538,7 +1536,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2.0/Refresh")]
         public async Task RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
-            if (!ApplicationGuardMiddleware.IsRcc(Request))
+            if (!isRCC)
                 return;
 
             if (clientCount == 0 && gameTime > 50)

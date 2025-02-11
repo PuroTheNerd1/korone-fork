@@ -17,6 +17,16 @@ namespace Roblox.Website.Controllers
         public UserSession? userSessionForTests { get; set; }
 #endif
 
+
+        protected bool isRCC
+        {
+            get
+            {
+                var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
+                return rccAccessKey == Configuration.RccAuthorization;
+            }
+        }
+
         protected Roblox.Models.Sessions.UserSession? userSession
         {
             get
@@ -52,10 +62,10 @@ namespace Roblox.Website.Controllers
                     }
                     return userSession;
                 }
-            catch(Exception e)
-            {
-                throw new RobloxException(401, 0, "Unauthorized");
-            }
+                catch(Exception)
+                {
+                    throw new RobloxException(401, 0, "Unauthorized");
+                }
             }
         }
         public ControllerBase()

@@ -67,8 +67,6 @@ public class Asset : ControllerBase
 
         var isBotRequest = Request.Headers["bot-auth"].ToString() == Roblox.Configuration.BotAuthorization;
 
-        var isRcc = ApplicationGuardMiddleware.IsRcc(Request);
-
         MultiGetEntry details;
         try
         {
@@ -87,7 +85,7 @@ public class Asset : ControllerBase
             }
         }
         // TODO: Fix for this is using a diffrent access key for rendering
-        if (!IsAssetApproved(details) && !isBotRequest && !isRcc)
+        if (!IsAssetApproved(details) && !isBotRequest && !isRCC)
             throw new RobloxException(403, 0, "Asset not approved for requester");
         dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
 
@@ -148,7 +146,7 @@ public class Asset : ControllerBase
                 // anything else requires auth
             default:
                 var isAuthorized = false;
-                if (isRcc)
+                if (isRCC)
                     isAuthorized = await ValidateRCCRequest(details, placeId, assetId);
                 // It's not RCC making the request. are we authorized?
                 else

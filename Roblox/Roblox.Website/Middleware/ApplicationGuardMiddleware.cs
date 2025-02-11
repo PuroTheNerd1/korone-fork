@@ -257,11 +257,6 @@ public class ApplicationGuardMiddleware
         ctx.Response.Headers.Location = "/auth/homepage";
         await ctx.Response.WriteAsync("Object moved to <a href=\""+dest+"\">here</a>.");
     }
-    public static bool IsRcc(HttpRequest Request)
-    {
-        var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
-        return rccAccessKey == Configuration.RccAuthorization;
-    }
     public static bool IsRoblox(HttpRequest Request)
     {
         IHeaderDictionary Headers = Request.Headers;
