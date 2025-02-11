@@ -794,7 +794,8 @@ namespace Roblox.Website.Controllers
             if (userAgent != "Roblox/Win2020"){
                 equippedGearVersionIds = new List<long>();
             }
-            var result = new {
+            var result = new 
+            {
                 resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
                 equippedGearVersionIds,
@@ -1077,7 +1078,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("rcc/kickplayer")]
         public async Task<dynamic> KickPlayerAsync(long userId)
         {
-            bool isOwner = userSession != null && StaffFilter.IsOwner(safeUserSession.userId);
+            bool isOwner = StaffFilter.IsOwner(safeUserSession.userId);
 
             if (safeUserSession.userId == userId)
                 return "You can't kick yourself!";

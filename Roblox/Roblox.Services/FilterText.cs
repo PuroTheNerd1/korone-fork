@@ -12,15 +12,6 @@ namespace Roblox.Services;
 
 public class FilterService : ServiceBase, IService
 {
-    public bool IsReusable()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsThreadSafe()
-    {
-        throw new NotImplementedException();
-    }
     public string FilterText(string input)
     {
         string[] filteredWords =
@@ -81,5 +72,14 @@ public class FilterService : ServiceBase, IService
             }
         }
         return input;
+    }
+    public bool IsReusable()
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool IsThreadSafe()
+    {
+        throw new NotImplementedException();
     }
 }
