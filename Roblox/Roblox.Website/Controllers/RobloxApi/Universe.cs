@@ -1,3 +1,4 @@
+using System.Collections;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Games;
@@ -95,7 +96,7 @@ public class UniverseV1 : ControllerBase {
 
     [HttpGet("v1/gametemplates")]
     public dynamic StudioTemplates() {
-        List<object> templates = new List<object>();
+        ArrayList templates = new ArrayList();
         int i = 1;
         foreach (var place in getStarterPlaces) {
             templates.Add(new {
