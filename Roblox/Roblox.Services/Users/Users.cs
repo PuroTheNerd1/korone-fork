@@ -239,7 +239,7 @@ public class UsersService : ServiceBase, IService
                 });
             }
             await db.ExecuteAsync(
-                "UPDATE \"user\" SET username = :name, password = '', status = :status, description = '[ Content Deleted ]', online_at = created_at WHERE id = :id",
+                "UPDATE \"user\" SET username = :name, password = '', status = :status, discord_id = NULL, description = '[ Content Deleted ]', online_at = created_at WHERE id = :id",
                 new
                 {
                     id = userId,
