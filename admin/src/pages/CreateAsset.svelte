@@ -29,11 +29,11 @@
 		</div>
 		<div class="col-6">
 			<label for="name">Name</label>
-			<input type="text" class="form-control" id="name" {disabled} />
+			<input type="text" class="form-control dark-input" id="name" {disabled} />
 		</div>
 		<div class="col-6">
 			<label for="description">Description (Optional)</label>
-			<input type="text" class="form-control" id="description" />
+			<input type="text" class="form-control dark-input" id="description" />
 		</div>
 		<div class="col-6">
 			<label for="assettype">Type</label>
@@ -62,7 +62,7 @@
 		{#if assetTypeId === "32"}
 			<div class="col-12 mt-4 mb-4">
 				<label for="rbxm">CSV of Package Asset IDs (e.g. "1,2,3")</label>
-				<input type="text" class="form-control" id="assetIdsForPackage" />
+				<input type="text" class="form-control dark-input" id="assetIdsForPackage" />
 			</div>
 		{:else}
 			<div class="col-12 mt-4 mb-4">
@@ -75,7 +75,7 @@
 			<div class="row">
 				<div class="col-4">
 					<label for="name">Price (Optional)</label>
-					<input type="text" class="form-control" id="price" {disabled} />
+					<input type="text" class="form-control dark-input" id="price" {disabled} />
 				</div>
 				<div class="col-2 mt-4">
 					<label for="is_for_sale">For Sale: </label>
@@ -91,11 +91,11 @@
 				</div>
 				<div class="col-6">
 					<label for="description">Max Copy Count (optional)</label>
-					<input type="text" class="form-control" id="max-copies" />
+					<input type="text" class="form-control dark-input" id="max-copies" />
 				</div>
 				<div class="col-6">
 					<label for="description">Offsale Time (EST) (optional)</label>
-					<input type="text" class="form-control" id="offsale-time" placeholder="Format: YYYY-MM-DD HH:MM:SS" />
+					<input type="text" class="form-control dark-input" id="offsale-time" placeholder="Format: YYYY-MM-DD HH:MM:SS" />
 				</div>
 			</div>
 		</div>

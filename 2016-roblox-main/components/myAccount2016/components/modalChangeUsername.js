@@ -28,7 +28,7 @@ const ModalChangeUsername = props => {
       <input disabled={locked} type='text' className={s.input} placeholder='Desired Username (3-20 characters)' value={username} onChange={(e) => setUsername(e.currentTarget.value)}></input>
       <input disabled={locked} type='password' className={s.input} placeholder='Current Password' value={pass} onChange={(e) => setPass(e.currentTarget.value)}></input>
       <div className={s.confirmWrapper + ' mt-4 ' + s.confirmWrapperWide}>
-        <ActionButton disabled={locked || !username || !pass} label='Buy for R$1,000' onClick={() => {
+        <ActionButton disabled={locked || !username || !pass} label='Buy for R$250' onClick={() => {
           if (username === auth.username) {
             setFeedback('Username is already in use')
             return

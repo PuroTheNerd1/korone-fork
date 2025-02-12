@@ -470,8 +470,8 @@ public class TradesService : ServiceBase, IService
         //if (!await CanTradeMembershipCheck(requestUserId))
         //throw new ArgumentException("Request user must have builders club to trade");
         // Check if both parties can trade with eachother
-        var canTrade = await CanTrade(offer.userId, request.userId);
-        logic.Requires(SendTradeErrorCodes.CannotTrade, canTrade);
+        //var canTrade = await CanTrade(offer.userId, request.userId);
+        //logic.Requires(SendTradeErrorCodes.CannotTrade, canTrade);
         // if applicable, confirm requester has enough robux
         if (offer.robux != null)
         {
@@ -486,8 +486,8 @@ public class TradesService : ServiceBase, IService
         }
 
         // make sure user isn't in the cooldown
-        var isInCooldown = await IsUserInFloodCheck(userIdSender, request.userId);
-        logic.Requires(SendTradeErrorCodes.FloodCheck, FailType.FloodCheck, !isInCooldown);
+        //var isInCooldown = await IsUserInFloodCheck(userIdSender, request.userId);
+        //logic.Requires(SendTradeErrorCodes.FloodCheck, FailType.FloodCheck, !isInCooldown);
         // high = offer must be 75% or more of rap of request
         // med = offer must be 50% or more of rap of request
         // low = offer must be 25% or more of rap of request

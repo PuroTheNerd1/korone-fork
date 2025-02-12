@@ -1542,7 +1542,7 @@
 	   "FFlagAXTransitionsMenu2":true,
 	   "FFlagAXXboxIncludeCameraControlsProvider":true,
 	   "FFlagBackButtonWhileLoadingGoesBackToApp":true,
-	   "FFlagBatchAssetApi":false,
+	   "FFlagBatchAssetApi":true,
 	   "FFlagBatchThumbnailAddNewThumbnailTypes":true,
 	   "FFlagBetaFeatureImpressionAnalytics":true,
 	   "FFlagBetaFeatureOptOut":true,

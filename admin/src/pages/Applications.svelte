@@ -204,7 +204,7 @@
 					</div>
 					<div class="col-6 col-lg-3">
 						<p class="mb-0">Search Query</p>
-						<input class="form-control" bind:value={searchQuery} type="text" placeholder="Search Query" />
+						<input class="form-control dark-input" bind:value={searchQuery} type="text" placeholder="Search Query" />
 					</div>
 					<div class="col-6 col-lg-3">
 						<button class="btn btn-primary" on:click={() => {

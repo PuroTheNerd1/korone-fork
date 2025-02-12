@@ -27,6 +27,12 @@ public class CollectibleInventory : RobloxPageModel
             return;
         }
 
+        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0))
+        {
+            errorMessage = "You don't have permissions to view the specified user's inventory";
+            return;
+        }
+
         inventory = new ();
         var offset = 0;
         while (true)

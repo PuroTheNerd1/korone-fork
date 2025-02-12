@@ -28,7 +28,7 @@
 		</div>
 		<div class="col-12">
 			<label for="url">Roblox URL</label>
-			<input type="text" class="form-control" id="url" {disabled} />
+			<input type="text" class="form-control dark-input" id="url" {disabled} />
 		</div>
 
 		<div class="col-6 mt-4">

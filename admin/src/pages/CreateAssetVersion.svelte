@@ -26,7 +26,7 @@
 		</div>
 		<div class="col-6">
 			<label for="name">Asset ID</label>
-			<input type="text" class="form-control" id="assetid" {disabled} />
+			<input type="text" class="form-control dark-input" id="assetid" {disabled} />
 		</div>
 		<div class="col-12 mt-4 mb-4">
 			<label for="rbxm">.RBXM File</label>

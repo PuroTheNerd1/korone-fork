@@ -5,7 +5,7 @@ using Roblox.Exceptions.Services.Users;
 using Roblox.Models.Avatar;
 using Roblox.Website.Controllers;
 using ControllerBase = Roblox.Website.Controllers.ControllerBase;
-
+using Roblox.Dto.Users;
 namespace Roblox.Website.Pages.Auth;
 
 public class AccountDeletion : RobloxPageModel
@@ -42,6 +42,9 @@ public class AccountDeletion : RobloxPageModel
     public string? username { get; set; }
     [BindProperty]
     public string? password { get; set; }
+    [BindProperty]
+    public string? totpcode { get; set; }
+
 
     public async Task<IActionResult> OnPost()
     {
@@ -81,10 +84,31 @@ public class AccountDeletion : RobloxPageModel
             failureMessage = "The username and password combination provided is invalid. Please try again.";
             return new PageResult();
         }
-
+        TotpInfo totpInfo = await services.users.GetOrSetTotp(user[0].id);
+        if (totpInfo != null && totpInfo.status == TotpStatus.Enabled)
+        {
+            // blank check
+            if (string.IsNullOrWhiteSpace(totpcode))
+            {
+                failureMessage = "You must enter a 2FA Code";
+                return new PageResult();
+            }
+            //try to parse as an long so know its only numbers and not some other garbage
+            if (!long.TryParse(totpcode, out var code))
+            {
+                failureMessage = "The 2FA code you entered is not valid";
+                return new PageResult();
+            }
+            //and as final verify the totp code
+            if (!services.users.VerifyTotp(totpInfo.secret, totpcode))
+            {
+                failureMessage = "The 2FA code you entered is not valid";
+                return new PageResult();
+            }
+        }
         try
         {
-            await services.users.DeleteUser(user[0].id, false);
+            await services.users.DeleteUser(user[0].id, true);
         }
         catch (AccountLastOnlineTooRecentlyException)
         {

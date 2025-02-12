@@ -26,11 +26,11 @@
 		</div>
 		<div class="col-12">
 			<label for="user-id">User ID (Must not already be taken; leave blank for any id)</label>
-			<input type="text" class="form-control" id="user-id" {disabled} />
+			<input type="text" class="form-control dark-input" id="user-id" {disabled} />
 		</div>
 		<div class="col-12">
 			<label for="user-id">Username (Must not already be taken)</label>
-			<input type="text" class="form-control" id="username" {disabled} />
+			<input type="text" class="form-control dark-input" id="username" {disabled} />
 		</div>
 		<div class="col-12">
 			<label for="user-id">Password</label>

@@ -45,7 +45,7 @@ const detailsMap = {
     name: 'Video',
     namePlural: 'videos',
     title: 'Video',
-    fileLabel: '.mp4',
+    fileLabel: '.webm',
   },
 }
 

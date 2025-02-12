@@ -169,6 +169,14 @@ const CatalogPageResults = props => {
               key: '5',
               value: 'Price (High to Low)',
             },
+            {
+              key: '6',
+              value: 'RAP (Low to High)',
+            },
+            {
+              key: '7',
+              value: 'RAP (High to Low)',
+            },
           ]} disabled={store.locked}></OldSelect>
         </div>
       </div>

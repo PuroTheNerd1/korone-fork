@@ -3,6 +3,7 @@ using Dapper;
 using Newtonsoft.Json.Linq;
 using Roblox.Dto;
 using Roblox.Dto.Games;
+using Roblox.Dto.Users;
 using Roblox.Libraries;
 using Roblox.Models.Assets;
 using Roblox.Services.Exceptions;
@@ -13,7 +14,8 @@ namespace Roblox.Services;
 
 public class GamesService : ServiceBase, IService
 {
-    GameServerService gameServer = new GameServerService();
+    private GameServerService gameServer = new();
+    private SignService sign = new();
     //ugh
     public readonly Dictionary<long, string> clientVersionMap = new Dictionary<long, string>
     {
@@ -585,30 +587,27 @@ public class GamesService : ServiceBase, IService
             city = json["city"]!.ToString(),
         };
     }
-    public async Task<dynamic> GetJoinScript(long year, string username, long userId, string jobId, long placeId, long universeId, long builderId, string characterAppearanceUrl, string finalTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
+    public async Task<dynamic> GetJoinScript(PlaceEntry placeInfo, UserInfo userInfo, GameServerDb jobInfo,  string characterAppearanceUrl, string clientTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
     {
-        GameServerService gameServer = new GameServerService();
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-        int gamseserverPort = await gameServer.GetGameserverForJobId(jobId);
-
 
         var joinScript = new
         {
             ClientPort = 0,
             MachineAddress = Configuration.GameServerIp,
-            ServerPort = gamseserverPort,
+            ServerPort = jobInfo.port,
             PingUrl = "",
             PingInterval = 0,
-            UserName = username,
+            UserName = userInfo.username,
             SeleniumTestMode = false,
-            UserId = userId,
+            UserId = userInfo.userId,
             SuperSafeChat = false,
             CharacterAppearance = characterAppearanceUrl,
-            ClientTicket = finalTicket,
-            NewClientTicket = finalTicket,
+            ClientTicket = clientTicket,
+            NewClientTicket = clientTicket,
             GameChatType = "AllUsers",
-            GameId = jobId,
-            PlaceId = placeId,
+            GameId = jobInfo.id.ToString(),
+            PlaceId = placeInfo.placeId,
             MeasurementUrl = "",
             WaitingForCharacterGuid = Guid.NewGuid().ToString(),
             BaseUrl = Configuration.BaseUrl,
@@ -616,23 +615,23 @@ public class GamesService : ServiceBase, IService
             VendorId = 0,
             ScreenShotInfo = "",
             VideoInfo = "",
-            CreatorId = builderId,
+            CreatorId = placeInfo.builderId,
             CreatorTypeEnum = "User",
             MembershipType = membership,
             AccountAge = accountAgeDays,
             CookieStoreFirstTimePlayKey = "rbx_evt_ftp",
             CookieStoreFiveMinutePlayKey = "rbx_evt_fmp",
             CookieStoreEnabled = true,
-            IsRobloxPlace = builderId == 1,
+            IsRobloxPlace = placeInfo.builderId == 1,
             GenerateTeleportJoin = generateTeleportJoin,
             IsUnknownOrUnder13 = false,
-            SessionId = $"{Guid.NewGuid().ToString()}|{jobId}|0|{Configuration.GameServerIp}|8|{formattedDateTime}|0|null|{cookie}|null|null|null",
+            SessionId = $"{Guid.NewGuid().ToString()}|{jobInfo.id.ToString()}|0|{Configuration.GameServerIp}|8|{formattedDateTime}|0|null|{cookie}|null|null|null",
             DataCenterId = 0,
-            UniverseId = universeId,
+            UniverseId = placeInfo.universeId,
             BrowserTrackerId = 0,
             UsePortraitMode = false,
             FollowUserId = 0,
-            characterAppearanceId = userId,
+            characterAppearanceId = userInfo.userId,
             /*
             ServerConnections = new List<dynamic>
             {
@@ -643,7 +642,7 @@ public class GamesService : ServiceBase, IService
                 }
             },
             */
-            DisplayName = username,
+            DisplayName = userInfo.username,
             RobloxLocale = "RobloxLocale",
             GameLocale = "en_us",
             CountryCode = "US"
@@ -654,7 +653,7 @@ public class GamesService : ServiceBase, IService
 
     public dynamic SignJoinScript(long year, dynamic joinScript)
     {
-        SignService sign = new SignService();
+
         return year switch
         {
             2015 or 2016 or 2017 => sign.SignJsonResponseForClientFromPrivateKey(joinScript),

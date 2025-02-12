@@ -428,13 +428,14 @@ public class WebController : ControllerBase
         string clientVer;
         long year = await services.games.GetYear(placeId);
         clientVer = services.games.clientVersionMap.TryGetValue(year, out var ver) ? ver : throw new BadRequestException();
-        var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
-        if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
-        var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
-        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+        var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
+        if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved && assetInfo.typeId != (int)Models.Assets.Type.Place) 
+            throw new BadRequestException();
+        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{ROBLOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
-            $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {Request.Cookies[".ROBLOSECURITY"]} --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true";
+            @$"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx 
+            --authenticationTicket {ROBLOSECURITY} 
+            --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true";
         return new
         {
             joinScriptUrl = bootstrapperArgs,
@@ -454,9 +455,9 @@ public class WebController : ControllerBase
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{ROBLOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
-            $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {Request.Cookies[".ROBLOSECURITY"]} --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true";
+            $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {ROBLOSECURITY} --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true";
         return new
         {
             joinScriptUrl = bootstrapperArgs,
@@ -636,7 +637,6 @@ public class WebController : ControllerBase
         {
             throw new RobloxException(429, 0, "Too many requests");
         }
-
 
 
         // Limit of 50 assets globally pending approval before failure

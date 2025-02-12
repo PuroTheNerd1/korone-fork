@@ -28,7 +28,7 @@
 		</div>
 		<div class="col-6">
 			<label for="url">Roblox URL</label>
-			<input type="text" class="form-control" id="url" {disabled} placeholder="Example: https://www.roblox.com/catalog/17238615/Burro-Pinata" />
+			<input type="text" class="form-control dark-input" id="url" {disabled} placeholder="Example: https://www.roblox.com/catalog/17238615/Burro-Pinata" />
 		</div>
 		<div class="col-6">
 			{#if didError}

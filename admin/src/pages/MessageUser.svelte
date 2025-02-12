@@ -83,7 +83,7 @@ Thank you,
 		</div>
 		<div class="col-12">
 			<label for="message-subject">Subject</label>
-			<input type="text" class="form-control" id="message-subject" {disabled} />
+			<input type="text" class="form-control dark-input" id="message-subject" {disabled} />
 			<label for="message-body">Body</label>
 			<textarea id="message-body" class="form-control" rows={12} {disabled} />
 		</div>

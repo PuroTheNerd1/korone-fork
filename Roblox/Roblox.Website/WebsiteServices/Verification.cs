@@ -79,51 +79,47 @@ public class ApplicationWebsiteService : WebsiteService
 
         if (socialData == null)
             throw new InvalidSocialMediaUrlException();
-
-        // Note that we skip "web.roblox.com" verification - it's a waste of everyone's time and our server resources.
-        // These apps get auto declined anyway.
-        var isUnderageUser = socialUrl.Contains("web.roblox.com");
-
-        if (!isUnderageUser)
+            
+        // UPDATE! We no longer check for underage users. Since this is no longer possible since the deprecated web.roblox.com
+        // var isUnderageUser = socialUrl.Contains("web.roblox.com");
+        switch (socialData.site)
         {
-            switch (socialData.site)
-            {
-                case SocialMediaSite.RobloxUserId:
-                    var roblox = new RobloxApi();
-                    var userId = long.Parse(socialData.identifier);
-                    var userDesc = await roblox.GetUserInfo(userId);
-                    if (userDesc.created == null || userDesc.description == null)
-                    {
-                        throw new InvalidSocialMediaUrlException();
-                    }
+            case SocialMediaSite.RobloxUserId:
+                var roblox = new RobloxApi();
+                var userId = long.Parse(socialData.identifier);
+                var userDesc = await roblox.GetUserInfo(userId);
+                if (userDesc.created == null || userDesc.description == null)
+                {
+                    throw new InvalidSocialMediaUrlException();
+                }
 #if !DEBUG
-                    var created = DateTime.Parse(userDesc.created);
-                    if (created >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(30)))
-                    {
-                        throw new AccountTooNewException();
-                    }
+                var created = DateTime.Parse(userDesc.created);
+                if (created >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(30)))
+                {
+                    throw new AccountTooNewException();
+                }
 
-                    if (!AppSocialMedia.IsVerificationPhraseInString(verificationPhrase, userDesc.description))
-                    {
-                        throw new UnableToFindVerificationPhraseException("Could not find verification phrase in your Roblox about me section. If you recently updated your \"about\" section, you may have to wait a few minutes and try again.");
-                    }
+                if (!AppSocialMedia.IsVerificationPhraseInString(verificationPhrase, userDesc.description))
+                {
+                    throw new UnableToFindVerificationPhraseException("Could not find verification phrase in your Roblox about me section. If you recently updated your \"about\" section, you may have to wait a few minutes and try again.");
+                }
 #endif
-                    verifiedUrl = socialData.url;
-                    verifiedId = socialData.site + ":" + socialData.identifier;
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
-
+                verifiedUrl = socialData.url;
+                verifiedId = socialData.site + ":" + socialData.identifier;
+                break;
+            default:
+                throw new NotImplementedException();
         }
 
+        
+        // web.roblox.com isn't used anymore, so we can just return false here.
         return new VerificationResult()
         {
             verifiedId = verifiedId,
             verifiedUrl = verifiedUrl,
             normalizedUrl = socialUrl,
             socialData = socialData,
-            isUnderageUser = isUnderageUser,
+            isUnderageUser = false,
         };
     }
 

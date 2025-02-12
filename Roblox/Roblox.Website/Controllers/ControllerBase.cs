@@ -17,6 +17,23 @@ namespace Roblox.Website.Controllers
         public UserSession? userSessionForTests { get; set; }
 #endif
 
+        protected string? ROBLOSECURITY
+        {
+            get
+            {
+                return Request.Cookies.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.CookieName) ? Request.Cookies[Roblox.Website.Middleware.SessionMiddleware.CookieName].ToString() : null;
+            }
+        }
+
+        protected bool isRCC
+        {
+            get
+            {
+                var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
+                return rccAccessKey == Configuration.RccAuthorization;
+            }
+        }
+
         protected Roblox.Models.Sessions.UserSession? userSession
         {
             get
@@ -52,10 +69,10 @@ namespace Roblox.Website.Controllers
                     }
                     return userSession;
                 }
-            catch(Exception e)
-            {
-                throw new RobloxException(401, 0, "Unauthorized");
-            }
+                catch(Exception)
+                {
+                    throw new RobloxException(401, 0, "Unauthorized");
+                }
             }
         }
         public ControllerBase()
@@ -144,6 +161,7 @@ namespace Roblox.Website.Controllers
             return BitConverter.ToUInt64(bytes, 0);
         }
         
+
         /// <summary>
         /// GetIP returns a hashed version of the current user's IP address.
         /// </summary>

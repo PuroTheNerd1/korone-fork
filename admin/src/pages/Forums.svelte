@@ -20,7 +20,7 @@ import Main from "../components/templates/Main.svelte";
                 <p>Lock a thread by its ID</p>
                 <div class="row">
                     <div class="col-6">
-                        <input class="form-control" placeholder="ThreadID" bind:value={threadId} />
+                        <input class="form-control dark-input" placeholder="ThreadID" bind:value={threadId} />
                     </div>
                     <div class="col-6">
                         <button class="btn btn-outline-warning" on:click={() => {

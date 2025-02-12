@@ -57,266 +57,6 @@ namespace Roblox.Website.Controllers
             throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
         }
 
-        public bool IsRcc()
-        {
-            var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
-            return rccAccessKey == Configuration.RccAuthorization;
-        }
-
-        [HttpGetBypass("v2/asset")]
-        [HttpGetBypass("v1/asset")]
-        [HttpGetBypass("asset")]
-        [HttpPostBypass("v1/asset")]
-        [HttpPostBypass("asset")]
-        public async Task<MVC.ActionResult> GetAssetById(long? playerId, long id, long? assetversion = null, long? assetversionid = null)
-        {
-            /*
-            This is from corescripts from 2017 for more context
-
-            local CUSTOM_ICONS = {	-- Admins with special icons
-            ['7210880'] = 'rbxassetid://134032333', -- Jeditkacheff
-            ['13268404'] = 'rbxassetid://113059239', -- Sorcus
-            ['261'] = 'rbxassetid://105897927', -- shedlestky
-            ['20396599'] = 'rbxassetid://161078086', -- Robloxsai
-            }
-            if (playerId == 20396599)
-               id = 10812;
-            if(id == 161078086){
-                id = 10812;
-            }
-
-            */
-            var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
-            long placeId = 0;
-            HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
-            HttpContext.Response.Headers.Add("Pragma", "no-cache");
-            HttpContext.Response.Headers.Add("Expires", "-1");
-            HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
-            // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
-            // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
-            if(id == 507766388)
-            {
-                return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766388.rbxm", "application/octet-stream");
-            }
-            else if(id == 507766666)
-            {
-                return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");
-            }
-            // If assetversionid isnt null, set id to assetveresionid
-            id = assetversionid ?? id;
-
-            var assetId = id;
-            var invalidIdKey = "InvalidAssetIdForConversionV1:" + assetId;
-            // Opt
-            if (Services.Cache.distributed.StringGetMemory(invalidIdKey) != null)
-                throw new RobloxException(400, 0, "Asset is invalid or does not exist");
-
-            var isBotRequest = Request.Headers["bot-auth"].ToString() == Roblox.Configuration.BotAuthorization;
-            var isLoggedIn = userSession != null;
-            var userAgent = Request.Headers["User-Agent"].FirstOrDefault()?.ToLower();
-            var requester = Request.Headers["Requester"].FirstOrDefault()?.ToLower();
-
-
-            var isRcc = IsRcc();
-
-            MultiGetEntry details;
-            try
-            {
-                details = await services.assets.GetAssetCatalogInfo(assetId);
-            }
-            catch (RecordNotFoundException)
-            {
-                try
-                {
-                    assetId = await services.assets.GetAssetIdFromRobloxAssetId(assetId);
-                    details = await services.assets.GetAssetCatalogInfo(assetId);
-                }
-                catch (RecordNotFoundException)
-                {
-                    return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
-                }
-            }
-            // TODO: Fix for this is using a diffrent access key for rendering
-            if (details.moderationStatus != ModerationStatus.ReviewApproved && details.moderationStatus != ModerationStatus.AwaitingModerationDecision && !IsRcc() && !isBotRequest)
-                throw new RobloxException(403, 0, "Asset not approved for requester");
-            dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
-
-            Stream? assetContent = null;
-            switch (details.assetType)
-            {
-                // Special types
-                case Roblox.Models.Assets.Type.TeeShirt:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetTeeShirt(assetVersion.contentId)), "application/binary");
-                case Models.Assets.Type.Shirt:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(assetVersion.contentId)), "application/binary");
-                case Models.Assets.Type.Pants:
-                    return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetPants(assetVersion.contentId)), "application/binary");
-                // Types that require no authentication and aren't encrypted
-                case Models.Assets.Type.Image:
-                case Models.Assets.Type.Special:
-                    if (assetVersion.contentUrl != null)
-                        assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
-                    // encryptionEnabled = false;
-                    break;
-                // Types that require no authentication
-                case Models.Assets.Type.Audio:
-                case Models.Assets.Type.Mesh:
-                case Models.Assets.Type.Hat:
-                case Models.Assets.Type.Model:
-                case Models.Assets.Type.Decal:
-                case Models.Assets.Type.Head:
-                case Models.Assets.Type.Face:
-                case Models.Assets.Type.Gear:
-                case Models.Assets.Type.Badge:
-                case Models.Assets.Type.Animation:
-                case Models.Assets.Type.Torso:
-                case Models.Assets.Type.RightArm:
-                case Models.Assets.Type.LeftArm:
-                case Models.Assets.Type.RightLeg:
-                case Models.Assets.Type.LeftLeg:
-                case Models.Assets.Type.Package:
-                case Models.Assets.Type.GamePass:
-                case Models.Assets.Type.Plugin: // TODO: do plugins need auth?
-                case Models.Assets.Type.MeshPart:
-                case Models.Assets.Type.HairAccessory:
-                case Models.Assets.Type.FaceAccessory:
-                case Models.Assets.Type.NeckAccessory:
-                case Models.Assets.Type.ShoulderAccessory:
-                case Models.Assets.Type.FrontAccessory:
-                case Models.Assets.Type.BackAccessory:
-                case Models.Assets.Type.WaistAccessory:
-                case Models.Assets.Type.ClimbAnimation:
-                case Models.Assets.Type.DeathAnimation:
-                case Models.Assets.Type.FallAnimation:
-                case Models.Assets.Type.IdleAnimation:
-                case Models.Assets.Type.JumpAnimation:
-                case Models.Assets.Type.RunAnimation:
-                case Models.Assets.Type.SwimAnimation:
-                case Models.Assets.Type.WalkAnimation:
-                case Models.Assets.Type.PoseAnimation:
-                case Models.Assets.Type.SolidModel:
-                case Models.Assets.Type.Video:
-                    // todo: should we log this?
-                    if (assetVersion.contentUrl is null)
-                        break;
-                    //if (details.assetType == Models.Assets.Type.Audio)
-                    //we dont have a web client so we dont need this anymore
-                    //{
-                        // Convert to WAV file since that's what web client requires
-                        //assetContent = await services.assets.GetAudioContentAsWav(assetId, assetVersion.contentUrl);
-                    //}
-                    if (details.assetType == Models.Assets.Type.Audio)
-                    {
-                        // hihihi shitty audio makers should kill themselves!!
-                        if (placeId != 0)
-                            Console.WriteLine($"PID: {placeId} AID: {assetId}");
-                    }
-                    assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
-                    break;
-                default:
-                    // anything else requires auth
-                    var isAuthorized = false;
-                    if (isRcc)
-                    {
-                        long.TryParse(placeIdHeader, out placeId);
-                        // if rcc is trying to access current place, allow through
-                        isAuthorized = placeId == assetId;
-                        // If game server is trying to load a new place (current placeId is empty), then allow it
-                        if (!isAuthorized && details.assetType == Type.Place && placeId == 0)
-                            // Game server is trying to load, so allow it
-                            isAuthorized = true;
-                        // If rcc is making the request, but it's not for a place, validate the request:
-                        if (!isAuthorized)
-                        {
-                            // Check permissions
-                            var placeDetails = await services.assets.GetAssetCatalogInfo(placeId);
-                            if (placeDetails.creatorType == details.creatorType &&
-                                placeDetails.creatorTargetId == details.creatorTargetId)
-                            {
-                                // We are authorized
-                                isAuthorized = true;
-                            }
-                        }
-                    }
-
-                    // It's not RCC making the request. are we authorized?
-                    else if (isLoggedIn)
-                    {
-                        // Use current user as access check
-                        isAuthorized = await services.assets.CanUserModifyItem(assetId, safeUserSession.userId);
-                        // Note that all users have access to "Roblox"'s content for legacy reasons
-                        if (!isAuthorized)
-                            isAuthorized = details.creatorType == CreatorType.User && details.creatorTargetId == 1;
-                    }
-
-                    if (isAuthorized && assetVersion.contentUrl != null)
-                        assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
-                    break;
-            }
-
-            if (assetContent != null)
-                return File(assetContent, "application/binary");
-
-            Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
-            throw new BadRequestException();
-        }
-
-        [HttpPostBypass("asset/batch")]
-        [HttpPostBypass("v1/assets/batch")]
-        public async Task<IActionResult> AssetBatch()
-        {
-            List<BatchAssetRequest>? requestData;
-            bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
-
-            if (isGzip)
-            {
-                using (var decompressedStream = new MemoryStream())
-                {
-                    using (var requestStream = Request.Body)
-                    {
-                        using (var gzipStream = new GZipStream(requestStream, CompressionMode.Decompress))
-                        {
-                            await gzipStream.CopyToAsync(decompressedStream);
-                        }
-                    }
-                    decompressedStream.Seek(0, SeekOrigin.Begin);
-
-                    using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
-                    {
-                        var json = await reader.ReadToEndAsync();
-                        requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
-                    }
-                }
-            }
-            else
-            {
-                using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
-                {
-                    var json = await reader.ReadToEndAsync();
-                    requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
-                }
-            }
-            if (requestData == null)
-            {
-                throw new BadRequestException();
-            }
-            var assetReturnInfo = new List<object>();
-            foreach (var request in requestData)
-            {
-                Console.WriteLine(request.assetId);
-                assetReturnInfo.Add(new
-                {
-                    Location = $"{Configuration.BaseUrl}/v1/asset?id={request.assetId}",
-                    RequestId = request.requestId,
-                    IsHashDynamic = true,
-                    IsCopyrightProtected = true,
-                    IsArchived = false,
-                });
-            }
-
-            return Content(JsonSerializer.Serialize(assetReturnInfo), "application/json");
-        }
-
         [HttpGetBypass("universes/get-universe-containing-place")]
         public async Task<dynamic> GetUniverse(long placeid)
         {
@@ -494,7 +234,7 @@ namespace Roblox.Website.Controllers
                 placeId = request.placeId,
                 userId = safeUserSession.userId,
                 username = safeUserSession.username,
-                cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"]!.ToString(),
+                cookie = ROBLOSECURITY,
                 special = true
             };
             return await services.placeLauncherFactory.PlaceLauncherAsync(placeLauncherRequest);
@@ -521,7 +261,7 @@ namespace Roblox.Website.Controllers
                     message = "You are not authorized to join"
                 };
             }
-            Placelauncher.cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"]!.ToString();
+            Placelauncher.cookie = ROBLOSECURITY;
             Placelauncher.userId = userSession.userId;
             Placelauncher.username = userSession.username;
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
@@ -538,7 +278,7 @@ namespace Roblox.Website.Controllers
                 return Unauthorized("User is not authorized.");
             }
 
-            string? cookie = HttpContext.Request.Cookies[".ROBLOSECURITY"];
+            string? cookie = ROBLOSECURITY;
             return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={cookie}");
         }
 
@@ -562,7 +302,7 @@ namespace Roblox.Website.Controllers
             if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
             var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
             if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-            var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{Request.Cookies[".ROBLOSECURITY"]}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+            var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{ROBLOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
             return Redirect($"pekora-player{bootstrapperArgs}");
         }
 
@@ -657,7 +397,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, FromQuery] string suggest)
         {
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", suggest, new CookieOptions
+            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, suggest, new CookieOptions
             {
                 Domain = ".pekora.zip",
                 Secure = false,
@@ -670,19 +410,24 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("game/join.ashx")]
         [HttpGetBypass("game/join.ashx")]
-        public async Task<dynamic> JoinGame(string jobId, long placeId, bool GenerateTeleportJoin = false)
+        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false)
         {
-            var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
-            PlaceEntry uni = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
+            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
+
             string username = safeUserSession.username;
             long userId = safeUserSession.userId;
-            string membership;
-            var membership2 = await services.users.GetUserMembership(userId);
-            DateTime currentUtcDateTime = DateTime.UtcNow;
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
-            string finalTicket;
+
+            GameServerDb jobInfo = await services.gameServer.GetGameServer(jobId);
+            if (jobInfo == null)
+                throw new BadRequestException(1, "Gameserver does not exist");
+            
+            long placeId = jobInfo.asset_id;
+            PlaceEntry placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
+            
             string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
-            if (jobPlayers.Count() >= uni.maxPlayerCount)
+            
+            var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
+            if (jobPlayers.Count() >= placeInfo.maxPlayerCount)
             {
                 return new
                 {
@@ -690,62 +435,28 @@ namespace Roblox.Website.Controllers
                     status = 5
                 };
             }
-            var userInfo = await services.users.GetUserById(userSession!.userId);
-            Console.WriteLine(username);
+
+            var userInfo = await services.users.GetUserById(userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            if (membership2 == null)
-            {
-                membership = "None";
-            }
-            else
-            {
-                membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
-            }
-            Console.WriteLine(membership);
-            if(uni.year != 2020 && uni.year != 2021 && membership == "Premium")
+
+            string membership = await services.users.GetUserMemberShipAsString(userId);
+            if (placeInfo.year != 2020 && placeInfo.year != 2021 && membership == "Premium")
             {
                 membership = "OutrageousBuildersClub";
             }
-            switch (uni.year)
-            {
-                case 2015:
-                case 2016:
-                    characterAppearanceUrl = $"{Configuration.BaseUrl}/Asset/CharacterFetch.ashx?userId={userId}";
-                    finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
-                    break;
-                case 2017:
-                    finalTicket = services.sign.GenerateClientTicketV1(userId, username, jobId, characterAppearanceUrl);
-                    break;
-                case 2018:
-                case 2019:
-                    finalTicket = services.sign.GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
-                    break;
-                case 2020:
-                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-                    finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
-                    break;
-                case 2021:
-                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-                    finalTicket = services.sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, formattedDateTime, accountAgeDays, placeId);
-                    break;
-                default:
-                    throw new InvalidOperationException($"This year does not exist: {uni.year}");
-            }
+            string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
 
-
-            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            dynamic? joinScript = null;
+            dynamic? joinScript;
             try
             {
-                //needed for matchmaking so we can select the best route
-                //string ip = GetRequesterIpRaw(HttpContext);
-                joinScript = await services.games.GetJoinScript((long)uni.year, username, userId, jobId, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, GenerateTeleportJoin, Request.Cookies[".ROBLOSECURITY"]!.ToString());
+                joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
             }
             catch (Exception)
             {
                 throw new BadRequestException(1, "Couldn't find gameserver");
             }
-            return services.games.SignJoinScript((long)uni.year, joinScript);
+
+            return services.games.SignJoinScript(placeInfo.year, joinScript);
         }
         [HttpGetBypass("GenerateVersion")]
         public string GenerateVersion()
@@ -768,7 +479,7 @@ namespace Roblox.Website.Controllers
         [Consumes("application/xml")]
         public async Task<MVC.OkResult> AbuseReport([FromBody] InGameAbuseReportEntry report)
         {
-            if (!IsRcc())
+            if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
             string gameMessages = "";
             string reportMessage = @$"This report was sent by the in-game report system.
@@ -1066,10 +777,12 @@ namespace Roblox.Website.Controllers
                     accessoryVersionIds.Add(assetId);
                 }
             }
+            
             if (userAgent != "Roblox/Win2020"){
                 equippedGearVersionIds = new List<long>();
             }
-            var result = new {
+            var result = new 
+            {
                 resolvedAvatarType = AvatarType,
                 accessoryVersionIds,
                 equippedGearVersionIds,
@@ -1133,7 +846,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-game-presence")]
         public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType)
         {
-            if(!IsRcc())
+            if (!isRCC)
                 throw new UnauthorizedAccessException();
 
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
@@ -1143,14 +856,14 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("presence/register-absence")]
         public async Task RegisterGamePresenceAbsence(long visitorId)
         {
-            if(!IsRcc())
+            if (!isRCC)
                 throw new UnauthorizedAccessException();
-            string JobId = await services.gameServer.GetJobIdByUserId(visitorId);
-            if(JobId == null)
+            string jobId = await services.gameServer.GetJobIdByUserId(visitorId);
+            if(jobId == null)
                 return;
             long placeId = GameServerService.GetUserPlaceId(visitorId);
 
-            await services.gameServer.OnPlayerLeave(visitorId, placeId, JobId);
+            await services.gameServer.OnPlayerLeave(visitorId, placeId, jobId);
         }
         [HttpGetBypass("/device/initialize")]
         [HttpPostBypass("/device/initialize")]
@@ -1166,7 +879,7 @@ namespace Roblox.Website.Controllers
         public void ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
         {
             return;
-            // if(!IsRcc())
+            // if (!ApplicationGuardMiddleware.IsRcc(Request))
             // {
             //     return;
             // }
@@ -1233,7 +946,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("Users/ListStaff.ashx")]
         public async Task<dynamic> GetStaffList()
         {
-            if(!IsRcc()) return Redirect("/404");
+            if (!isRCC) return Redirect("/404");
             return (await StaffFilter.GetStaff()).Where(c => c != 12);
         }
 
@@ -1322,47 +1035,39 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("rcc/killserver")]
         public async Task<dynamic> ShutdownSpecificServerForPlace(long placeId, string jobId)
         {
-            bool canManagePlace = await services.assets.CanUserModifyItem(placeId, safeUserSession.userId);
-            if (canManagePlace)
-            {
-                await services.gameServer.ShutDownServerAsync(jobId);
-                return "OK!";
-            }
-            return "Unauthorized";
+            if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
+            
+            await services.gameServer.ShutDownServerAsync(jobId);
+            return "OK!";
         }
 
         [HttpGetBypass("rcc/killallservers")]
         public async Task<dynamic> ShutdownServersForPlace(long placeId)
         {
-            string jobId;
-            bool canManagePlace = await services.assets.CanUserModifyItem(placeId, safeUserSession.userId);
-            if (canManagePlace)
+            if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
+
+            var serverjobs = await services.gameServer.GetGameServersForPlace(placeId);
+            foreach (var jobs in serverjobs)
             {
-                var serverjobs = await services.gameServer.GetGameServersForPlace(placeId);
-                foreach (var jobs in serverjobs)
-                {
-                    jobId = jobs.id.ToString();
-                    await services.gameServer.ShutDownServerAsync(jobId);
-                }
-                return "OK!";
+                await services.gameServer.ShutDownServerAsync(jobs.id.ToString());
             }
-            return "Unauthorized";
+            return "OK!";
         }
 
         [HttpGetBypass("rcc/kickplayer")]
         public async Task<dynamic> KickPlayerAsync(long userId)
         {
-            bool isOwner = userSession != null && StaffFilter.IsOwner(safeUserSession.userId);
+            if (!StaffFilter.IsOwner(safeUserSession.userId))
+                return "Unauthorized";
 
             if (safeUserSession.userId == userId)
                 return "You can't kick yourself!";
 
-            if (isOwner)
-            {
-                await services.gameServer.KickPlayer(userId);
-                return $"Kicked player {userId}";
-            }
-            return "not the owner";
+            await services.gameServer.KickPlayer(userId);
+
+            return $"Kicked player {userId}";
         }
 
         [HttpGetBypass("/Game/ChatFilter.ashx")]
@@ -1451,7 +1156,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedMD5Hashes")]
         public MVC.ActionResult<dynamic> AllowedMD5Hashes()
         {
-            if (!IsRcc())
+            if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
@@ -1479,7 +1184,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("GetAllowedSecurityVersions")]
         public MVC.ActionResult<dynamic> AllowedSecurityVersions()
         {
-            if (!IsRcc())
+            if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>()
             {
@@ -1523,7 +1228,7 @@ namespace Roblox.Website.Controllers
             if (!canUpload)
             {
                 userId = info.creatorTargetId;
-                canUpload = IsRcc();
+                canUpload = isRCC;
             }
 
             if (info.assetType != Models.Assets.Type.Place)
@@ -1761,17 +1466,14 @@ namespace Roblox.Website.Controllers
                     return @"""version-d23df1d1a8d546ee""";
             }
         }
-        /*
+        
         [HttpGetBypass("v1/Close")]
         [HttpPostBypass("V1/Close")]
         public async Task<dynamic> CloseGSNew(string gameId)
         {
 
-            bool IsRCC = IsRcc();
-            if(!IsRCC)
-            {
-                return "Not RCC";
-            }
+            if(!isRCC)
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
             try
             {
@@ -1785,20 +1487,22 @@ namespace Roblox.Website.Controllers
                 return "Catch an error";
             }
         }
-        */
+        
         [HttpPostBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v1/CreateOrUpdate")]
         [HttpPostBypass("v1/CreateOrUpdate")]
         public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
         {
-            bool IsRCC = IsRcc();
-            int roundPing = (int)Math.Round(ping, 0);
-            if(!IsRCC)
-            {
-                return "Not RCC";
+
+            if(!isRCC)
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
+
+            if (GameServerService.unreadyGameServers.ContainsKey(gameId)) {
+                GameServerService.unreadyGameServers.Remove(gameId);
             }
 
+            int roundPing = (int)Math.Round(ping, 0);
             await services.gameServer.SetServerGSPing(gameId, roundPing);
             return "OK!";
 
@@ -1810,8 +1514,8 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2.0/Refresh")]
         public async Task RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
         {
-            if (!IsRcc())
-                return;
+            if (!isRCC)
+                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
             if (clientCount == 0 && gameTime > 50)
             {

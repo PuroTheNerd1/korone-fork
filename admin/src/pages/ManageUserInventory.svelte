@@ -118,9 +118,9 @@
 			{#if listOpen}
 				<div class="form-control mt-2">
 					<label for="asset-id">Asset ID</label>
-					<input type="text" class="form-control" id="asset-id" {disabled} />
+					<input type="text" class="form-control dark-input" id="asset-id" {disabled} />
 					<label for="copy-count">Copy Count</label>
-					<input type="text" class="form-control" id="copy-count" value={1} {disabled} />
+					<input type="text" class="form-control dark-input" id="copy-count" value={1} {disabled} />
 					<label for="give-serial">Give Serial</label>
 					<select class="form-control" id="give-serial" {disabled}>
 						<option value="false">No</option>

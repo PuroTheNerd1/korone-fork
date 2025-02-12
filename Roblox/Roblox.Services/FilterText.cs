@@ -12,20 +12,6 @@ namespace Roblox.Services;
 
 public class FilterService : ServiceBase, IService
 {
-    public bool IsReusable()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsThreadSafe()
-    {
-        throw new NotImplementedException();
-    }
-    public bool ContainsCyrillic(string input)
-    {
-        Regex regex = new Regex(@"[\u0400-\u04FF]");
-        return regex.IsMatch(input);
-    }
     public string FilterText(string input)
     {
         string[] filteredWords =
@@ -86,5 +72,14 @@ public class FilterService : ServiceBase, IService
             }
         }
         return input;
+    }
+    public bool IsReusable()
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool IsThreadSafe()
+    {
+        throw new NotImplementedException();
     }
 }

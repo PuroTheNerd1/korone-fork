@@ -9,6 +9,11 @@ using Roblox.Services.Signer;
 namespace Roblox.Services.PlaceLauncher;
 public class PlaceLauncherService : ServiceBase
 {
+
+    private static GamesService games = new GamesService();
+    private static GameServerService gameServer = new GameServerService();
+    private static UsersService users = new UsersService();
+    private static SignService sign = new SignService();
     public enum MatchmakingContextId
     {
         Default = 1,
@@ -44,7 +49,6 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<PlaceLaunchResponse> RequestGameJob(string gameId, long placeId)
     {
-        GamesService games = new GamesService();
         if (await games.IsFull(gameId, placeId))
         {
             return new PlaceLaunchResponse()
@@ -58,7 +62,7 @@ public class PlaceLauncherService : ServiceBase
         {
             jobId = gameId,
             status = (int)JoinStatus.Joining,
-            joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={gameId}&placeId={placeId}",
+            joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={gameId}",
             authenticationUrl = $"{Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx",
             authenticationTicket = "hi",
             message = $"Joining {gameId}",
@@ -67,46 +71,29 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<PlaceLaunchResponse> RequestGame(long placeId, long userId, string cookie, bool? Special = false, string? username = null)
     {
-        GamesService games = new GamesService();
-        GameServerService gameServer = new GameServerService();
-        UsersService users = new UsersService();
-        SignService sign = new SignService();
-        var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.Default);
         dynamic? joinScript = null;
-        string finalTicket;
+        PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
+        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default);
         if (Special.HasValue && (bool)Special)
         {
-            var jobPlayers = await gameServer.GetGameServerPlayers(result.job);
-            PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-            string membership;
-
-            DateTime currentUtcDateTime = DateTime.UtcNow;
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            string membership = await users.GetUserMemberShipAsString(userId);
             var userInfo = await users.GetUserById((long)userId);
-            var membership2 = await users.GetUserMembership((long)userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            if (membership2 == null)
-            {
-                membership = "None";
-            }
-            else
-            {
-                membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
-            }
+
             string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
-            finalTicket = sign.GenerateClientTicketV4((long)userId, userInfo.username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-            joinScript = await games.GetJoinScript(uni.year, userInfo.username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, cookie);
+            GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
+            string clientTicket =  sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
+            joinScript = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
+
         }
 
         if (result.status == JoinStatus.Joining)
         {
-            await Roblox.Metrics.GameMetrics.ReportGameJoinPlaceLauncherReturned(placeId);
-
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,
                 status = (int)result.status,
-                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
+                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 authenticationTicket = cookie,
                 message = $"Server found ({result.job})",
@@ -122,62 +109,27 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
     {
-        if (userId != 3 && userId != 16 && userId != 3434 && userId != 52)
+        if (userId != 3 && userId != 16 && userId != 3434 && userId != 52 && userId != 1188)
         {
             throw new BadRequestException("You are not allowed to join this game.");
         }
-        GamesService games = new GamesService();
-        GameServerService gameServer = new GameServerService();
-        UsersService users = new UsersService();
-        SignService sign = new SignService();
-        string finalTicket;
-        dynamic settings;
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
-        var result = await gameServer.GetServerForPlace(placeId, (int)MatchmakingContextId.CloudEdit);
+        PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
+        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {
-            PlaceEntry uni = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-            long year = await games.GetYear(placeId);
-            string membership;
-            var membership2 = await users.GetUserMembership((long)userId);
-            DateTime currentUtcDateTime = DateTime.UtcNow;
-            string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
+            string membership = await users.GetUserMemberShipAsString(userId);
             var userInfo = await users.GetUserById((long)userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            if (membership2 == null)
-            {
-                membership = "None";
-            }
-            else
-            {
-                membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
-            }
-            switch (uni.year)
-            {
-                case 2017:
-                    finalTicket = sign.GenerateClientTicketV1(userId, username, result.job, characterAppearanceUrl);
-                    break;
-                case 2018:
-                case 2019:
-                    finalTicket = sign.GenerateClientTicketV2(userId, username, result.job, characterAppearanceUrl);
-                    break;
-                case 2020:
-                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-                    finalTicket = sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-                    break;
-                case 2021:
-                    characterAppearanceUrl = $"http://www.pekora.zip/v1/avatar-fetch?userId={placeId}&placeId={placeId}";
-                    finalTicket = sign.GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, result.job, formattedDateTime, accountAgeDays, placeId);
-                    break;
-                default:
-                    throw new InvalidOperationException($"This year does not exist: {uni.year}");
-            }
-            settings = await games.GetJoinScript(year, username, (long)userId, result.job, placeId, uni.universeId, uni.builderId, characterAppearanceUrl, finalTicket, membership, accountAgeDays, true, null);
+            GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
+            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
+
+            dynamic settings = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, false, null);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,
                 status = (int)result.status,
-                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}&placeId={placeId}",
+                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}",
                 authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
                 settings = settings,
                 authenticationTicket = "hi",

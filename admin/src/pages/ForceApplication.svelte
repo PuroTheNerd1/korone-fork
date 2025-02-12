@@ -21,11 +21,11 @@
 		</div>
 		<div class="col-12">
 			<label for="user-id">User ID (To force the application on)</label>
-			<input type="text" class="form-control" id="user-id" {disabled} />
+			<input type="text" class="form-control dark-input" id="user-id" {disabled} />
 		</div>
 		<div class="col-12">
 			<label for="user-id">Social URL (The Signup URL)</label>
-			<input type="text" class="form-control" id="social-url" {disabled} />
+			<input type="text" class="form-control dark-input" id="social-url" {disabled} />
 		</div>
 		<div class="col-12 mt-4">
 			<button

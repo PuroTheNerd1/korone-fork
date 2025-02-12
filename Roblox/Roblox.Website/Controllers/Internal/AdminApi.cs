@@ -274,7 +274,7 @@ public class AdminApiController : ControllerBase
         // HACK! Needs to be fixed later via admin panel
         int userId;
         int.TryParse(req.userId, out userId);
-        return await services.users.CreateUser(req.username, req.password, Gender.Unknown, userId);
+        return await services.users.CreateUser(req.username, req.password, Gender.Unknown, (long?)userId);
     }
 
     [HttpPost("force-application"), StaffFilter(Access.ForceApplication)]
@@ -3045,12 +3045,12 @@ Thank you for your understanding,
         return response;
     }
 
-    [HttpGet("game-servers/list")]
-    [StaffFilter(Access.GetGameServers)]
-    public async Task<dynamic> GetGameServers()
-    {
-        var result = await services.gameServer.GetAllGameServers();
-        var l = new List<dynamic>();
-        return result;
-    }
+    // [HttpGet("game-servers/list")]
+    // [StaffFilter(Access.GetGameServers)]
+    // public async Task<dynamic> GetGameServers()
+    // {
+    //     var result = await services.gameServer.GetAllGameServers();
+    //     var l = new List<dynamic>();
+    //     return result;
+    // }
 }

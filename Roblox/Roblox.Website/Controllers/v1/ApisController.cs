@@ -60,7 +60,7 @@ public class ApisController : ControllerBase
     }
     
     [HttpGet("universal-app-configuration/v1/behaviors/group-details-ui/content")]
-    public async Task<dynamic> GetGroupConfig()
+    public dynamic GetGroupConfig()
     {
         return new
         {

@@ -10,19 +10,12 @@ namespace Roblox.Website.Controllers
     [Route("/")]
     public class Datastores : ControllerBase
     {
-        private bool IsRcc()
-        {
-            var rccAccessKey = Request.Headers.ContainsKey("accesskey") ? Request.Headers["accesskey"].ToString() : null;
-            var isRcc = rccAccessKey == Configuration.RccAuthorization;
-            return isRcc;
-        }
-
         [HttpPostBypass("persistence/increment")]
         public async Task<dynamic> IncrementPersistenceAsync(long placeId, string key, string type, string scope, string target, int? value = null)
         {
             // increment?placeId=%i&key=%s&type=%s&scope=%s&target=&value=%i
             var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-            if (!IsRcc())
+            if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
 
             if (value == null)
@@ -55,7 +48,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("persistence/set")]
         public async Task<dynamic> Set(long placeId, string key, string type, string scope, string target, int valueLength)
         {
-            if (!IsRcc())
+            if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
             var value = Request.Form["value"][0];
             await ServiceProvider.GetOrCreate<DataStoreService>()
@@ -79,7 +72,7 @@ namespace Roblox.Website.Controllers
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
             bool isEmpty = false;
             dynamic result;
-            if (!IsRcc())
+            if (!isRCC)
                 throw new RobloxException(403, 0, "BadRequest");
             if (pageSize > 100)
                 throw new RobloxException(400, 0, "PageSizeTooLarge");
@@ -159,7 +152,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("persistence/getv2")]
         public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope)
         {
-            if (!IsRcc())
+            if (!isRCC)
                 throw new RobloxException(403, 0, "Unauthorized");
             int countRequest = 0;
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();

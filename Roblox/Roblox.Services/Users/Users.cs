@@ -227,6 +227,17 @@ public class UsersService : ServiceBase, IService
         {
             // Delete user
             // todo: is creation date technically private info? should we be deleting that too?
+            
+
+            // Delete discord account link
+            string discordId = await db.QuerySingleOrDefaultAsync<string>("SELECT discord_id FROM \"user\" WHERE id = :id", new { id = userId });
+            if (discordId != null)
+            {
+                await db.ExecuteAsync("DELETE FROM discord_link WHERE discord_id = :discord_id", new
+                {
+                    discord_id = discordId,
+                });
+            }
             await db.ExecuteAsync(
                 "UPDATE \"user\" SET username = :name, password = '', status = :status, description = '[ Content Deleted ]', online_at = created_at WHERE id = :id",
                 new
@@ -428,18 +439,18 @@ public class UsersService : ServiceBase, IService
         {
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
             var balance = await ec.GetUserBalance(userId);
-            if (balance.robux < 1000)
+            if (balance.robux < 250)
                 throw new NotEnoughRobuxForPurchaseException();
 
             // subtract from balance
-            await ec.DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, 1000);
+            await ec.DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, 250);
 
             // trans
             await InsertAsync("user_transaction", new
             {
                 type = PurchaseType.Purchase,
                 currency_type = 1,
-                amount = 1000,
+                amount = 250,
                 // details
                 old_username = oldUsername,
                 new_username = newUsername,
@@ -2309,7 +2320,13 @@ public class UsersService : ServiceBase, IService
             });
         return result;
     }
-
+    public async Task<string> GetUserMemberShipAsString(long userId)
+    {
+        UserMembershipEntry? result = await GetUserMembership(userId);
+        if (result == null)
+            return "None";
+        return result.membershipType.ToString();
+    }
     private async Task UpdateMembership(long userId, MembershipType newMembershipType)
     {
         await db.ExecuteAsync(
