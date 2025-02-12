@@ -17,8 +17,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("Setting/QuietGet/{type}")]
         public ActionResult<dynamic> GetAppSettings(string type, string apiKey)
         {
-            bool isValid = true;
-
             switch (apiKey)
             {
                 case "C1273ADA-5726-46D7-BA0C-D339228C697D"://2015 RCC
