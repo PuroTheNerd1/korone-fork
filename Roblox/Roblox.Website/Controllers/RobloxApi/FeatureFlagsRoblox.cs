@@ -41,23 +41,10 @@ namespace Roblox.Website.Controllers
                     type = "ClientAppSettings2018";
                     break;
                 default:
-                    throw new RobloxException(400, 0, "Invalid API key");
+                    throw new RobloxException(400, 0, $"Invalid API key: {apiKey} for {type}");
             }
 
-            try
-            {
-                string FFlag = Path.Combine(Configuration.JsonDataDirectory, $"{type}.json");
-                if (!System.IO.File.Exists(FFlag)) return NotFound();
-
-                string jsonContent = System.IO.File.ReadAllText(FFlag);
-                dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-                return clientAppSettingsData ?? new ExpandoObject();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[RetrieveClientFFlags] Error while retrieving FFlags: {ex.Message}");
-                return BadRequest("Error fetching FFlags");
-            }
+            return GetFFlags(type);
         }
         [HttpPostBypass("v2/settings/application")]
         [HttpGetBypass("v2/settings/application")]
@@ -101,15 +88,18 @@ namespace Roblox.Website.Controllers
                 default:
                     return NotFound();
             }
-            string sanatized = Path.GetFileName(realApp);
-            if(sanatized == null)
-                return NotFound();
+            return GetFFlags(realApp);
+        }
+        private string GetFFlags(string type)
+        {
+            string sanatizedType = Path.GetFileName(type);
+            if (sanatizedType == null)
+                return "{}";
+            string FFlag = Path.Combine(Configuration.JsonDataDirectory, $"{sanatizedType}.json");
+            if (!System.IO.File.Exists(FFlag)) 
+                return "{}";
 
-            string jsonFilePath = Path.Combine(Configuration.JsonDataDirectory, sanatized + ".json");
-            string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
-            dynamic? clientAppSettingsData = JsonConvert.DeserializeObject<ExpandoObject>(jsonContent);
-
-            return clientAppSettingsData ?? "";
+            return System.IO.File.ReadAllText(FFlag);
         }
     }
 }
