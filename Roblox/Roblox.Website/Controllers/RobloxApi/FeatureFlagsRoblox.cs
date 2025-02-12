@@ -43,7 +43,6 @@ namespace Roblox.Website.Controllers
                 default:
                     throw new RobloxException(400, 0, $"Invalid API key: {apiKey} for {type}");
             }
-
             return GetFFlags(type);
         }
         [HttpPostBypass("v2/settings/application")]
