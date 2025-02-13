@@ -6,7 +6,6 @@ using System.Text.Json;
 using Roblox.Models.Sessions;
 using Roblox.Services;
 using Roblox.Services.Exceptions;
-
 namespace Roblox.Website.Controllers
 {
     public class ControllerBase : Microsoft.AspNetCore.Mvc.ControllerBase
@@ -220,11 +219,38 @@ namespace Roblox.Website.Controllers
         }
         protected string GetRequestBody()
         {
+            if (isGzip)
+            {
+                using var decompressionStream = new System.IO.Compression.GZipStream(Request.Body, System.IO.Compression.CompressionMode.Decompress);
+                using var reader = new StreamReader(decompressionStream);
+                return reader.ReadToEnd();
+            }
+            else
+            {
+                using var reader = new StreamReader(Request.Body);
+                return reader.ReadToEnd();
+            }
+        }
 
-            using var reader = new StreamReader(Request.Body);
-             return reader.ReadToEnd();
-            
-
+        protected MemoryStream GetRequestBodyAsMemoryStream()
+        {
+            if (isGzip)
+            {
+                using var decompressionStream = new System.IO.Compression.GZipStream(Request.Body, System.IO.Compression.CompressionMode.Decompress);
+                var ms = new MemoryStream();
+                decompressionStream.CopyTo(ms);
+                return ms;
+            }
+            else
+            {
+                var ms = new MemoryStream();
+                Request.Body.CopyTo(ms);
+                return ms;
+            }
+        }
+        protected T GetRequestBodyAsJson<T>()
+        {
+            return JsonSerializer.Deserialize<T>(GetRequestBody());
         }
         /// <summary>
         /// Get the request's IP hash

@@ -1245,28 +1245,13 @@ namespace Roblox.Website.Controllers
             }
             try
             {
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    await HttpContext.Request.Body.CopyToAsync(memoryStream);
-                    memoryStream.Position = 0;
-
-                    using (Stream gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-                    using (MemoryStream decompressedStream = new MemoryStream())
-                    {
-                        await gzipStream.CopyToAsync(decompressedStream);
-                        decompressedStream.Position = 0;
-
-                        if (!await services.assets.PlaceValidation(decompressedStream))
-                        {
-                            throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-                        }
-
-                        decompressedStream.Position = 0;
-                        // Create asset version in background
-                        _ = await services.assets.CreateAssetVersion(placeId, userId, decompressedStream);
-                        services.assets.RenderAsset(placeId, info.assetType);
-                    }
-                }
+                MemoryStream placeStream = GetRequestBodyAsMemoryStream();
+                if (!await services.assets.PlaceValidation(placeStream))
+                    throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
+                placeStream.Position = 0;
+                // Create asset version in background
+                _ = await services.assets.CreateAssetVersion(placeId, userId, placeStream);
+                services.assets.RenderAsset(placeId, info.assetType);
             }
             finally
             {

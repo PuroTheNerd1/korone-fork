@@ -214,29 +214,26 @@ public class RbxThumbnails : ControllerBase
     [HttpPostBypass("v1/batch")]
     public async Task<dynamic> BatchThumbnailsRequest()
     {
-        bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
-        IEnumerable<BatchRequestEntry> requestEntries;
+        // if (isGzip)
+        // {
+        //     var decompressedStream = new MemoryStream();
+        //     var gzipStream = new GZipStream(Request.Body, CompressionMode.Decompress);
+        //     await gzipStream.CopyToAsync(decompressedStream);
 
-        if (isGzip)
-        {
-            var decompressedStream = new MemoryStream();
-            var gzipStream = new GZipStream(Request.Body, CompressionMode.Decompress);
-            await gzipStream.CopyToAsync(decompressedStream);
+        //     decompressedStream.Seek(0, SeekOrigin.Begin);
+        //     using var reader = new StreamReader(decompressedStream, Encoding.UTF8);
+        //     var json = await reader.ReadToEndAsync();
+        //     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
+        // }
+        // else
+        // {
+        //     var reader = new StreamReader(Request.Body, Encoding.UTF8);
+        //     var json = await reader.ReadToEndAsync();
+        //     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
+        // }
 
-            decompressedStream.Seek(0, SeekOrigin.Begin);
-            using var reader = new StreamReader(decompressedStream, Encoding.UTF8);
-            var json = await reader.ReadToEndAsync();
-            requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
-        }
-        else
-        {
-            var reader = new StreamReader(Request.Body, Encoding.UTF8);
-            var json = await reader.ReadToEndAsync();
-            requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
-        }
+        var thumbs = GetRequestBodyAsJson<IEnumerable<BatchRequestEntry>>().ToList();//JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(GetRequestBody()).ToList();
 
-
-        var thumbs = requestEntries.ToList();
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "Avatar", services.thumbnails.GetUserThumbnails),
@@ -252,65 +249,6 @@ public class RbxThumbnails : ControllerBase
         {
             data = allResults.SelectMany(x => x),
         };
-
-        /*
-        foreach (var entry in requestEntries)
-        {
-            switch (entry.type)
-            {
-                case "Avatar":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs,
-                        "Avatar",
-                        ids => services.thumbnails.GetUserThumbnails(new[] { entry.targetId })
-                    ));
-                    break;
-                case "AvatarThumbnail":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs,
-                        "AvatarThumbnail",
-                        ids => services.thumbnails.GetUserThumbnails(new[] { entry.targetId })
-                    ));
-                    break;
-                case "AvatarHeadShot":
-                    await ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots);
-                    break;
-                case "GameIcon":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs,
-                        "GameIcon",
-                        ids => services.thumbnails.GetGameIcons(new[] { entry.targetId })
-                    ));
-                    break;
-                case "AssetThumbnail":
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(
-                        thumbs,
-                        "AssetThumbnail",
-                        ids => services.thumbnails.GetUserHeadshots(new[] { entry.targetId })
-                    ));
-                    break;
-                default:
-                    tasks.Add(ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots));
-                    break;
-            }
-
-        }
-
-
-        var allResults = await Task.WhenAll(tasks);
-
-
-        var resultObject = new
-        {
-            data = allResults
-        };
-        var resultJson = JsonConvert.SerializeObject(resultObject, Formatting.Indented);
-        Console.WriteLine($"Full Response: {resultJson}");
-        return new
-        {
-            data = allResults.SelectMany(x => x),
-        };
-        */
     }
 }
 

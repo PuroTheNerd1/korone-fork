@@ -72,8 +72,7 @@ namespace Roblox.Website.Controllers
             string totpCode = "";
             long userId;
 
-            StreamReader reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8);
-            requestBody = await reader.ReadToEndAsync();
+            requestBody = GetRequestBody();
 
             if (string.IsNullOrEmpty(requestBody))
                 throw new BadRequestException(1, "Empty request body.");

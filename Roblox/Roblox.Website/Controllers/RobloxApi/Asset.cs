@@ -169,7 +169,7 @@ public class Asset : ControllerBase
     [HttpPostBypass("v1/assets/batch")]
     public async Task<IActionResult> AssetBatch()
     {
-        List<BatchAssetRequest>? requestData = await GetRequestDataAsync();
+        List<BatchAssetRequest>? requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(GetRequestBody());
         if (requestData == null)
             throw new BadRequestException();
 
@@ -195,17 +195,6 @@ public class Asset : ControllerBase
 
         return Content(JsonSerializer.Serialize(assets), "application/json");
     }
-    private async Task<List<BatchAssetRequest>?> GetRequestDataAsync()
-    {
-        bool isGzip = Request.Headers["Content-Encoding"].ToString() == "gzip";
-        using var reader = isGzip ? 
-            new StreamReader(new GZipStream(Request.Body, CompressionMode.Decompress), Encoding.UTF8) : 
-            new StreamReader(Request.Body, Encoding.UTF8);
-
-        var json = await reader.ReadToEndAsync();
-        return JsonSerializer.Deserialize<List<BatchAssetRequest>>(json);
-    }
-
     private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> robloxAssets, List<object> assets)
     {
         foreach (var robloxAsset in robloxResults)
