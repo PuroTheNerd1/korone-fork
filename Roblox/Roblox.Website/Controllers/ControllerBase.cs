@@ -25,6 +25,14 @@ namespace Roblox.Website.Controllers
             }
         }
 
+        protected bool isGzip
+        {
+            get
+            {
+                return Request.Headers["Content-Encoding"].ToString() == "gzip";
+            }
+        }
+
         protected bool isRCC
         {
             get
@@ -210,7 +218,14 @@ namespace Roblox.Website.Controllers
             var hash = alg.ComputeHash(Encoding.UTF8.GetBytes(key + redisIpHashSetup.endKey));
             return Convert.ToBase64String(hash);
         }
+        protected string GetRequestBody()
+        {
 
+            using var reader = new StreamReader(Request.Body);
+             return reader.ReadToEnd();
+            
+
+        }
         /// <summary>
         /// Get the request's IP hash
         /// </summary>

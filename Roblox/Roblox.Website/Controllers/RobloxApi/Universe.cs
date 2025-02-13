@@ -72,7 +72,8 @@ public class UniverseV1 : ControllerBase {
         };
     }
     
-    Dictionary<string, int> getStarterPlaces = new Dictionary<string, int> {
+    Dictionary<string, long> getStarterPlaces = new Dictionary<string, long> 
+    {
         { "Baseplate", 36573 },
         { "Flat Terrain", 36574 },
         { "Starting Place", 36568 },
@@ -95,40 +96,72 @@ public class UniverseV1 : ControllerBase {
     };
 
     [HttpGet("v1/gametemplates")]
-    public dynamic StudioTemplates() {
-        ArrayList templates = new ArrayList();
-        int i = 1;
-        foreach (var place in getStarterPlaces) {
-            templates.Add(new {
-                gameTemplateType = "Generic",
-                hasTutorials = false,
-                universe = new Universe {
-                    id = i,
-                    name = place.Key,
-                    description = "skibidi",
-                    isArchived = false,
-                    rootPlaceId = place.Value,
-                    isActive = true,
-                    privacyType = "Public",
-                    creatorType = "User",
-                    creatorTargetId = 1,
-                    creatorName = "ROBLOX",
-                    created = DateTime.Parse("2013-11-01T08:47:14.07Z"),
-                    updated = DateTime.Parse("2023-05-02T22:03:01.107Z")
-                }
-            });
-            i++;
-        }
+    public async Task<dynamic> StudioTemplates() 
+    {
+        // ArrayList templates = new ArrayList();
+        // int i = 1;
+        // foreach (var place in getStarterPlaces) {
+        //     templates.Add(new {
+        //         gameTemplateType = "Generic",
+        //         hasTutorials = false,
+        //         universe = new Universe {
+        //             id = i,
+        //             name = place.Key,
+        //             description = "skibidi",
+        //             isArchived = false,
+        //             rootPlaceId = place.Value,
+        //             isActive = true,
+        //             privacyType = "Public",
+        //             creatorType = "User",
+        //             creatorTargetId = 1,
+        //             creatorName = "ROBLOX",
+        //             created = DateTime.Parse("2013-11-01T08:47:14.07Z"),
+        //             updated = DateTime.Parse("2023-05-02T22:03:01.107Z")
+        //         }
+        //     });
+        //     i++;
+        // }
+        
+        var templates = await services.games.MultiGetUniverseInfo(getStarterPlaces.Values.ToList());
         string json = JsonConvert.SerializeObject(new { data = templates.ToArray() });
-        return Content(json, "application/json");
+        return new 
+        {
+            data = templates.Select(c => 
+            {
+                return new
+                {
+                    gameTemplateType = "Generic",
+                    hasTutorials = false,
+                    universe = new Universe 
+                    {
+                        id = c.id,
+                        name = c.name,
+                        description = c.description ?? "",
+                        isArchived = false,
+                        rootPlaceId = c.rootPlaceId,
+                        isActive = true,
+                        privacyType = "Public",
+                        creatorType = "User",
+                        creatorTargetId = c.creatorId,
+                        creatorName = c.creatorName,
+                        created = c.created,
+                        updated = c.updated
+                    }
+                };
+            })
+        };
     }
 
     [HttpGetBypass("v1/universes/multiget")]
-    public async Task<dynamic> MultiGetUniverseInfo([FromQuery] List<long> ids) {
+    public async Task<dynamic> MultiGetUniverseInfo([FromQuery] List<long> ids) 
+    {
         var universes = await services.games.MultiGetUniverseInfo(ids);
-        return new {
-            data = universes.Select(c => {
-                return new {
+        return new 
+        {
+            data = universes.Select(c => 
+            {
+                return new 
+                {
                     id = c.id,
                     name = c.name,
                     description = c.description,
@@ -147,15 +180,20 @@ public class UniverseV1 : ControllerBase {
     }
 
     [HttpGet("v1/search/universes")]
-    public async Task<dynamic> SearchUniverse(string q) {
+    public async Task<dynamic> SearchUniverse(string q) 
+    {
         int offset = int.Parse("0");
-        if (q.Contains("Team")) {
+        if (q.Contains("Team")) 
+        {
             var result = await services.games.GetTeamcreateMembershipsForUser(safeUserSession.userId);
-            return new {
+            return new 
+            {
                 previousPageCursor = (string?)null,
                 nextPageCursor = (string?)null,
-                data = result.Select(c => {
-                    return new {
+                data = result.Select(c => 
+                {
+                    return new 
+                    {
                         id = c.id,
                         name = c.name,
                         description = c.description,
@@ -172,19 +210,21 @@ public class UniverseV1 : ControllerBase {
                 })
             };
         }
-        else {
+        else 
+        {
             var result =
                 (await services.games.GetGamesForTypeDevelop(CreatorType.User, safeUserSession.userId,
                     safeUserSession.username, 50, offset, null, null)).ToList();
-            return new RobloxCollectionPaginated<GamesForCreatorDevelop>() {
+            return new RobloxCollectionPaginated<GamesForCreatorDevelop>() 
+            {
                 data = result
             };
         }
     }
 
     [HttpGet("v1/user/universes")]
-    public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames(string? sortOrder,
-        string? accessFilter, int limit, string? cursor = null) {
+    public async Task<RobloxCollectionPaginated<GamesForCreatorDevelop>> GetUserCreatedGames(string? sortOrder, string? accessFilter, int limit, string? cursor = null) 
+    {
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
         var result =
@@ -199,15 +239,19 @@ public class UniverseV1 : ControllerBase {
 
     [HttpGet("v2/universes/{universeId}/places")]
     [HttpGet("v1/universes/{universeId}/places")]
-    public async Task<dynamic> GetUniverseAttachedPlaces(long universeId) {
+    public async Task<dynamic> GetUniverseAttachedPlaces(long universeId) 
+    {
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         if (uni == null)
             throw new RecordNotFoundException();
-        return new {
+        return new 
+        {
             previousPageCursor = (string?)null,
             nextPageCursor = (string?)null,
-            data = new List<object> {
-                new {
+            data = new List<object> 
+            {
+                new 
+                {
                     maxPlayerCount = uni.maxPlayers,
                     socialSlotType = "Automatic",
                     allowCopying = false,
@@ -225,13 +269,17 @@ public class UniverseV1 : ControllerBase {
     }
 
     [HttpGetBypass("v1/user/teamcreate/memberships")]
-    public async Task<dynamic> GetMembershipsForCurrentUser() {
+    public async Task<dynamic> GetMembershipsForCurrentUser() 
+    {
         var memberships = await services.games.GetTeamcreateMembershipsForUser(safeUserSession.userId);
-        return new {
+        return new 
+        {
             previousPageCursor = (string?)null,
             nextPageCursor = (string?)null,
-            data = memberships.Select(c => {
-                return new {
+            data = memberships.Select(c => 
+            {
+                return new 
+                {
                     id = c.id,
                     name = c.name,
                     description = c.description,
@@ -250,13 +298,17 @@ public class UniverseV1 : ControllerBase {
     }
 
     [HttpGetBypass("v1/universes/{universeId}/teamcreate/memberships")]
-    public async Task<dynamic> GetMembershipsForUniverse(long universeId) {
+    public async Task<dynamic> GetMembershipsForUniverse(long universeId) 
+    {
         var memberships = await services.games.GetTeamcreateMembershipsForUniverse(universeId);
-        return new {
+        return new 
+        {
             previousPageCursor = (string?)null,
             nextPageCursor = (string?)null,
-            data = memberships.Select(c => {
-                return new {
+            data = memberships.Select(c => 
+            {
+                return new 
+                {
                     buildersClubMembershipType = "None",
                     userId = c.id,
                     username = c.name,
@@ -280,12 +332,16 @@ public class UniverseV1 : ControllerBase {
     }
     */
     [HttpGetBypass("universes/{universeId}/listcloudeditors")]
-    public async Task<dynamic> GetCloudEditors(long universeId) {
+    public async Task<dynamic> GetCloudEditors(long universeId) 
+    {
         var editors = await services.games.GetTeamcreateMembershipsForUniverse(universeId);
-        return new {
+        return new 
+        {
             finalPage = true,
-            users = editors.Select(c => {
-                return new {
+            users = editors.Select(c => 
+            {
+                return new 
+                {
                     userId = c.id,
                     isAdmin = false,
                 };
@@ -301,8 +357,10 @@ public class UniverseV1 : ControllerBase {
         var offset = startIndex;
         var servers = (await services.gameServer.GetGameServers(placeId, offset, limit, 3)).ToList();
 
-        foreach (var server in servers) {
-            var gameServerPlayers = server.players.Select(player => new {
+        foreach (var server in servers) 
+        {
+            var gameServerPlayers = server.players.Select(player => new 
+            {
                 id = player.userId,
                 name = player.username,
                 displayName = player.username
@@ -311,63 +369,75 @@ public class UniverseV1 : ControllerBase {
             players.AddRange(gameServerPlayers);
         }
 
-        return new {
+        return new 
+        {
             data = players
         };
     }
 
     [HttpGet("v1/user/groups/canmanage")]
-    public dynamic CanManageGroup() {
-        return new {
+    public dynamic CanManageGroup() 
+    {
+        return new 
+        {
             data = new List<object>()
         };
     }
 
     [HttpGet("v2/universes/{universeId}/permissions")]
-    public async Task<dynamic> CanManageV2(long universeId) {
+    public async Task<dynamic> CanManageV2(long universeId) 
+    {
         bool canManage = await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         if (!canManage)
             throw new RobloxException(403, 0, "The user is not authorized to perform this action.");
-        return new {
+        return new 
+        {
             data = new List<object>()
         };
     }
 
     [HttpGetBypass("v1/universes/{universeId}/context-permission")]
     [HttpGetBypass("v1/universes/{universeId}/permissions")]
-    public async Task<dynamic> CanManage(long universeId) {
+    public async Task<dynamic> CanManage(long universeId) 
+    {
         bool canManage = await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         bool canCloudEdit = await services.games.CanCloudEdit(safeUserSession.userId, universeId) ? canManage : false;
-        return new {
+        return new 
+        {
             canManage,
             canCloudEdit
         };
     }
 
     [HttpPatch("v1/universes/{universeId}/teamcreate")]
-    public async Task<dynamic> SetTeamCreateSettings([FromBody] TeamCreateSettings request, long universeId) {
-        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId)) {
+    public async Task<dynamic> SetTeamCreateSettings([FromBody] TeamCreateSettings request, long universeId) 
+    {
+        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId)) 
             throw new ForbiddenException(0, "You are not authorized to configure this universe.");
-        }
+        
 
         await services.games.SetCloudedit(request.isEnabled, universeId);
         return Content("{}", "application/json");
     }
 
     [HttpGet("v1/universes/{universeId}/teamcreate")]
-    public async Task<dynamic> TeamCreateSettings(long universeId) {
-        return new {
+    public async Task<dynamic> TeamCreateSettings(long universeId) 
+    {
+        return new 
+        {
             isEnabled = await services.games.IsCloudeditEnabled(universeId),
         };
     }
 
     [HttpGet("v1/universes/{universeId}")]
-    public async Task<dynamic> UniverseInfo(long universeId) {
+    public async Task<dynamic> UniverseInfo(long universeId) 
+    {
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         if (uni == null)
             throw new RecordNotFoundException();
         var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] { uni.rootPlaceId })).First();
-        return new {
+        return new 
+        {
             id = universeId,
             name = uni.name,
             description = uni.description,
@@ -384,8 +454,10 @@ public class UniverseV1 : ControllerBase {
     }
 
     [HttpGet("v1/universes/{universeId}/icon")]
-    public dynamic GetUniverseIcon(long universeId) {
-        return new {
+    public dynamic GetUniverseIcon(long universeId) 
+    {
+        return new 
+        {
             imageId = (int?)null,
             isApproved = true
         };
@@ -394,8 +466,8 @@ public class UniverseV1 : ControllerBase {
     [HttpPatch("v1/universes/{universeId}/configuration")]
     [HttpPost("v2/universes/{universeId}/configuration")]
     [HttpPostBypass("v2/universes/{universeId}/configuration")]
-    public async Task<dynamic>
-        SetUniverseConfiguration(long universeId, [FromBody] UniverseConfiguration configuration) {
+    public async Task<dynamic> SetUniverseConfiguration(long universeId, [FromBody] UniverseConfiguration configuration) 
+    {
         List<string> playableDevices = new List<string> {
             "Computer",
             "Phone",
@@ -411,7 +483,8 @@ public class UniverseV1 : ControllerBase {
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         if (uni == null)
             throw new RecordNotFoundException();
-        return new UniverseConfiguration {
+        return new UniverseConfiguration 
+        {
             allowPrivateServers = false,
             privateServerPrice = 0,
             id = universeId,
@@ -426,7 +499,8 @@ public class UniverseV1 : ControllerBase {
             isFriendsOnly = false,
             genre = uni.genre,
             playableDevices = playableDevices,
-            permissions = new {
+            permissions = new 
+            {
                 IsThirdPartyTeleportAllowed = true,
                 IsThirdPartyAssetAllowed = true,
                 IsThirdPartyPurchaseAllowed = true,
@@ -440,9 +514,11 @@ public class UniverseV1 : ControllerBase {
 
     [HttpGet("v2/universes/{universeId}/configuration")]
     [HttpGet("v1/universes/{universeId}/configuration")]
-    public async Task<dynamic> GetUniverseConfiguration(long universeId) {
+    public async Task<dynamic> GetUniverseConfiguration(long universeId) 
+    {
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
-        List<string> playableDevices = new List<string> {
+        List<string> playableDevices = new List<string> 
+        {
             "Computer",
             "Phone",
             "Tablet",
@@ -451,7 +527,8 @@ public class UniverseV1 : ControllerBase {
         };
         if (uni == null)
             throw new RecordNotFoundException();
-        return new UniverseConfiguration {
+        return new UniverseConfiguration 
+        {
             allowPrivateServers = false,
             privateServerPrice = 0,
             id = universeId,
@@ -466,7 +543,8 @@ public class UniverseV1 : ControllerBase {
             isFriendsOnly = false,
             genre = uni.genre,
             playableDevices = playableDevices,
-            permissions = new {
+            permissions = new 
+            {
                 IsThirdPartyTeleportAllowed = true,
                 IsThirdPartyAssetAllowed = true,
                 IsThirdPartyPurchaseAllowed = true,

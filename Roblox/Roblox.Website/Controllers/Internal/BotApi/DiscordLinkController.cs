@@ -2,17 +2,18 @@ using MVC = Microsoft.AspNetCore.Mvc;
 
 namespace Roblox.Website.Controllers
 {
-
+    /* 
+        This needs to be improved because this is buggy and unstable
+    */
     [MVC.ApiController]
     [MVC.Route("/")]
     public class DiscordLink: ControllerBase
     {
         [BotAuthorization]
         [HttpGetBypass("bot/generatecode")]
-        public async Task<dynamic> GenerateLinkCode(string discordId)
+        public async Task<string> GenerateLinkCode(string discordId)
         {
-            string authCode = await services.users.GenerateAuthCode(discordId);
-            return authCode;
+            return await services.users.GenerateAuthCode(discordId) ?? "";
         }
         
         [HttpGetBypass("bot/verify")]
