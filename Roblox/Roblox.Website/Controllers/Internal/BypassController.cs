@@ -746,6 +746,36 @@ namespace Roblox.Website.Controllers
                     assetName = "TWICE Like Ooh-Ahh",
                     position = 2
                 },
+                new {
+                    assetId = 15122972413,
+                    assetName = "Bone Chillin' Bop",
+                    position = 3
+                },
+                new {
+                    assetId = 14899979575,
+                    assetName = "TWICE LIKEY",
+                    position = 4
+                },
+                new {
+                    assetId = 10713981723,
+                    assetName = "Around Town",
+                    position = 5
+                },
+                new {
+                    assetId = 10714076981,
+                    assetName = "Fancy Feet",
+                    position = 6
+                },
+                new {
+                    assetId = 10714369624,
+                    assetName = "Hype Dance",
+                    position = 7
+                },
+                new {
+                    assetId = 17746180844,
+                    assetName = "Sturdy Dance - Ice Spice",
+                    position = 8
+                },
             };
 
             var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
