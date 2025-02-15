@@ -31,10 +31,20 @@ const useTradeItemStyles = createUseStyles({
     fontSize: '9px',
   },
   imageWrapper: {
-    width: '80px',
-    height: '80px',
+    width: '60px',
+    height: '60px',
     margin: '0 auto',
-    display: 'block',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  robuxText: {
+    marginBottom: '10px'
+  },
+  robuxImage: {
+    width: '60px',
+    height: '60px',
+    display: 'inline-block'
   },
 })
 
@@ -87,9 +97,9 @@ const TradeItem = props => {
         {props.name}
       </a>
     </p>}
-    {props.robux && <p className={`text-center`}>{props.robux} Robux</p>}
+    {props.robux && <p className={`text-center ${s.robuxText}`}>{props.robux} Robux</p>}
     <div className={s.imageWrapper}>
-      {props.robux && <img src='/img/test.png' alt='Robux Image'/>}
+      {props.robux && <img className={s.robuxImage} src='/img/test.png' alt='Robux Image'/>}
       {props.assetId && <ItemImage className='pt-1' id={props.assetId}/>}
     </div>
     {expanded && props.serialNumber && <p className={labelStyles.rapText + ' ' + labelStyles.serialText}>#{props.serialNumber}/{props.assetStock || '-'}</p>}
