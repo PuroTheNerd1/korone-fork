@@ -7,6 +7,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Dapper;
@@ -2902,7 +2903,7 @@ Thank you for your understanding,
     public async Task<dynamic> GetChatMessages(string reportId)
     {
         GameMessagesEntry gameMessages = await services.abuseReport.GetGamesMessagesById(reportId);
-        return Content($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages, "text/plan");
+        return Content($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages, "text/plan", Encoding.Unicode);
     }
 
     [HttpGet("reports/pending-count"), StaffFilter(Access.ManageReports)]
