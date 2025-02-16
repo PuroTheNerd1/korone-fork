@@ -108,10 +108,16 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpPostBypass("user/follow")]
-        public async Task<dynamic> FollowUserLegacy(long followedUserId)
+        public async Task<dynamic> FollowUserLegacy()
         {
+            string followedUserIdString = HttpContext.Request.Form["followedUserId"].ToString();
+            if (long.TryParse(followedUserIdString, out long followedUserId))
+            {
+                Console.WriteLine("Failed to parse followedUserId: " + followedUserIdString);
+            }
+
             FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            Console.WriteLine("GetSexBody: ", await GetRequestBody());
+            Console.WriteLine("GetSexBody: ", await GetRequestBody())
             if (followedUserId == safeUserSession.userId)
                 throw new BadRequestException();
             Console.WriteLine("Following user " + followedUserId);
@@ -123,6 +129,7 @@ namespace Roblox.Website.Controllers
                 isCaptchaRequired = false,
             };
         }
+
 
         [HttpPostBypass("user/following-exists")]
         [HttpGetBypass("user/following-exists")]
