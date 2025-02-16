@@ -141,13 +141,13 @@ namespace Roblox.Website.Controllers
                 isFollowing = await services.friends.IsOneFollowingTwo(followerUserId, userId),
             };
         }
-        [HttpPost("user/unfollow")]
+        [HttpPostBypass("user/unfollow")]
         public async Task DeleteFollowingLegacy([FromForm] FollowerRequest request)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
             await services.friends.DeleteFollowing(safeUserSession.userId, request.followedUserId);
         }
-        [HttpPost("user/decline-friend-request")]
+        [HttpPostBypass("user/decline-friend-request")]
         public async Task DeclineFriendRequestLegacy(long requesterUserId)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
