@@ -117,7 +117,7 @@ namespace Roblox.Website.Controllers
             }
 
             FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            Console.WriteLine("GetSexBody: ", await GetRequestBody())
+            Console.WriteLine("GetSexBody: ", await GetRequestBody());
             if (followedUserId == safeUserSession.userId)
                 throw new BadRequestException();
             Console.WriteLine("Following user " + followedUserId);
