@@ -138,7 +138,7 @@ namespace Roblox.Website.Controllers
             {
                 success = true,
                 data = "Success",
-                isFollowing = await services.friends.IsOneFollowingTwo(userId, followerUserId),
+                isFollowing = await services.friends.IsOneFollowingTwo(followerUserId, userId),
             };
         }
         [HttpPost("user/unfollow")]
