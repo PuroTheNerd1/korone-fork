@@ -232,7 +232,7 @@ public class RbxThumbnails : ControllerBase
         //     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
         // }
 
-        var thumbs = GetRequestBodyAsJson<IEnumerable<BatchRequestEntry>>().ToList();//JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(GetRequestBody()).ToList();
+        var thumbs = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(await GetRequestBody()).ToList();
 
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {

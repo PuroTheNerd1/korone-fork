@@ -1275,7 +1275,7 @@ namespace Roblox.Website.Controllers
             }
             try
             {
-                MemoryStream placeStream = GetRequestBodyAsMemoryStream();
+                MemoryStream placeStream = await GetRequestBodyAsMemoryStream();
                 if (!await services.assets.PlaceValidation(placeStream))
                     throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
                 placeStream.Position = 0;

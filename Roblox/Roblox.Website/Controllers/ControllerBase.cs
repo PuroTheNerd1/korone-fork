@@ -217,40 +217,40 @@ namespace Roblox.Website.Controllers
             var hash = alg.ComputeHash(Encoding.UTF8.GetBytes(key + redisIpHashSetup.endKey));
             return Convert.ToBase64String(hash);
         }
-        protected string GetRequestBody()
+        protected async Task<string> GetRequestBody()
         {
             if (isGzip)
             {
                 using var decompressionStream = new System.IO.Compression.GZipStream(Request.Body, System.IO.Compression.CompressionMode.Decompress);
                 using var reader = new StreamReader(decompressionStream);
-                return reader.ReadToEnd();
+                return await reader.ReadToEndAsync();
             }
             else
             {
                 using var reader = new StreamReader(Request.Body);
-                return reader.ReadToEnd();
+                return await reader.ReadToEndAsync();
             }
         }
 
-        protected MemoryStream GetRequestBodyAsMemoryStream()
+        protected async Task<MemoryStream> GetRequestBodyAsMemoryStream()
         {
+            var ms = new MemoryStream();
             if (isGzip)
             {
                 using var decompressionStream = new System.IO.Compression.GZipStream(Request.Body, System.IO.Compression.CompressionMode.Decompress);
-                var ms = new MemoryStream();
-                decompressionStream.CopyTo(ms);
-                return ms;
+                await decompressionStream.CopyToAsync(ms);
             }
             else
             {
-                var ms = new MemoryStream();
-                Request.Body.CopyTo(ms);
-                return ms;
+                await Request.Body.CopyToAsync(ms);
             }
+            ms.Position = 0;
+            return ms;
         }
-        protected T GetRequestBodyAsJson<T>()
+        protected async Task<T> GetRequestBodyAsJson<T>()
         {
-            return JsonSerializer.Deserialize<T>(GetRequestBody());
+            var body = await GetRequestBody();
+            return JsonSerializer.Deserialize<T>(body);
         }
         /// <summary>
         /// Get the request's IP hash
