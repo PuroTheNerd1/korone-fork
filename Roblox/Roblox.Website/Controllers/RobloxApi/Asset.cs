@@ -171,7 +171,7 @@ public class Asset : ControllerBase
     [HttpPostBypass("v1/assets/batch")]
     public async Task<IActionResult> AssetBatch()
     {
-        List<BatchAssetRequest>? requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(GetRequestBody());
+        List<BatchAssetRequest>? requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(await GetRequestBody());
         if (requestData == null)
             throw new BadRequestException();
 
