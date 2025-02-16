@@ -20,6 +20,11 @@ using Roblox.Models;
 using Roblox.Dto.Friends;
 namespace Roblox.Website.Controllers
 {
+    public class FollowerRequest
+    {
+        public long followedUserId { get; set; }
+    }
+    
     [MVC.ApiController]
     [MVC.Route("/")]
     public class Friends: ControllerBase
@@ -107,21 +112,15 @@ namespace Roblox.Website.Controllers
                 FriendRequestsToUser = friendRequestsToUser
             };
         }
-        [HttpPostBypass("user/follow")]
-        public async Task<dynamic> FollowUserLegacy()
-        {
-            string followedUserIdString = HttpContext.Request.Form["followedUserId"].ToString();
-            if (long.TryParse(followedUserIdString, out long followedUserId))
-            {
-                Console.WriteLine("Failed to parse followedUserId: " + followedUserIdString);
-            }
 
+        [HttpPostBypass("user/follow")]
+        public async Task<dynamic> FollowUserLegacy([FromForm] FollowerRequest request)
+        {
             FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            Console.WriteLine("GetSexBody: ", await GetRequestBody());
-            if (followedUserId == safeUserSession.userId)
+            if (request.followedUserId == safeUserSession.userId)
                 throw new BadRequestException();
-            Console.WriteLine("Following user " + followedUserId);
-            await services.friends.FollowerUser(safeUserSession.userId, followedUserId);
+            Console.WriteLine("Following user " + request.followedUserId);
+            await services.friends.FollowerUser(safeUserSession.userId, request.followedUserId);
 
             return new
             {
@@ -143,10 +142,10 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpPost("user/unfollow")]
-        public async Task DeleteFollowingLegacy(long followedUserId)
+        public async Task DeleteFollowingLegacy([FromForm] FollowerRequest request)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            await services.friends.DeleteFollowing(safeUserSession.userId, followedUserId);
+            await services.friends.DeleteFollowing(safeUserSession.userId, request.followedUserId);
         }
         [HttpPost("user/decline-friend-request")]
         public async Task DeclineFriendRequestLegacy(long requesterUserId)
