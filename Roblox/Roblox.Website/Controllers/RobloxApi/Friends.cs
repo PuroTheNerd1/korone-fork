@@ -111,6 +111,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> FollowUserLegacy(long followedUserId)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
+            Console.WriteLine("GetSexBody: ", await GetRequestBody());
             if (followedUserId == safeUserSession.userId)
                 throw new BadRequestException();
             Console.WriteLine("Following user " + followedUserId);
