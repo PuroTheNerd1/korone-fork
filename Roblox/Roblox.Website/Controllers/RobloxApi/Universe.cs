@@ -122,8 +122,9 @@ public class UniverseV1 : ControllerBase {
         //     i++;
         // }
         
-        var templates = await services.games.MultiGetUniverseInfo(getStarterPlaces.Values.ToList());
-        string json = JsonConvert.SerializeObject(new { data = templates.ToArray() });
+        
+
+        var templates = await services.games.MultiGetPlaceDetails(getStarterPlaces.Values.ToList()); //await services.games.MultiGetUniverseInfo(getStarterPlaces.Values.ToList());
         return new 
         {
             data = templates.Select(c => 
@@ -134,16 +135,16 @@ public class UniverseV1 : ControllerBase {
                     hasTutorials = false,
                     universe = new Universe 
                     {
-                        id = c.id,
+                        id = c.universeId,
                         name = c.name,
                         description = c.description ?? "",
                         isArchived = false,
-                        rootPlaceId = c.rootPlaceId,
+                        rootPlaceId = c.universeRootPlaceId,
                         isActive = true,
                         privacyType = "Public",
                         creatorType = "User",
-                        creatorTargetId = c.creatorId,
-                        creatorName = c.creatorName,
+                        creatorTargetId = c.builderId,
+                        creatorName = c.builder,
                         created = c.created,
                         updated = c.updated
                     }
