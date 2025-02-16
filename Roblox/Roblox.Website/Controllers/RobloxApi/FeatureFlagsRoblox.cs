@@ -28,6 +28,7 @@ namespace Roblox.Website.Controllers
                 case "9CE2063F-BB45-449B-89D4-65CD2ED806CD":  //2017L RCC
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
+                case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79":
                 case "08BF6621-8100-4484-B14C-87497E372160": //2017L Studio + Client
                     if(type == "StudioAppSettings")
                         break;
