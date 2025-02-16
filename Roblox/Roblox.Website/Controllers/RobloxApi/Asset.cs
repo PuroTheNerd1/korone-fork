@@ -140,6 +140,8 @@ public class Asset : ControllerBase
             case Models.Assets.Type.PoseAnimation:
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Video:
+                if (details.assetType == Type.Audio)
+                    Console.WriteLine($"[info] got audio asset request AUD: {assetId}");
                 if (assetVersion.contentUrl != null)
                     assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                 break;
