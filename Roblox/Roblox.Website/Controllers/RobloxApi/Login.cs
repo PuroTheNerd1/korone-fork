@@ -72,7 +72,7 @@ namespace Roblox.Website.Controllers
             string totpCode = "";
             long userId;
 
-            requestBody = GetRequestBody();
+            requestBody = await GetRequestBody();
 
             if (string.IsNullOrEmpty(requestBody))
                 throw new BadRequestException(1, "Empty request body.");
