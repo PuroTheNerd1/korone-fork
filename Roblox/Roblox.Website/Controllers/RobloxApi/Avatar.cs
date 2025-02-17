@@ -136,6 +136,8 @@ public class AvatarRBX : ControllerBase
     public async Task<dynamic> GetUserOutfits(long userId, int itemsPerPage, int page)
     {
         FeatureCheck();
+        if (userId != safeUserSession.userId)
+            throw new ForbiddenException(0, "Forbidden");
         var offset = itemsPerPage * page - itemsPerPage;
         var result = (await services.avatar.GetUserOutfits(userId, itemsPerPage, offset)).ToList();
         return new
