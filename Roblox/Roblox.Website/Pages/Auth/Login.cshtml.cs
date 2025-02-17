@@ -17,6 +17,7 @@ namespace Roblox.Website.Pages.Auth;
 public class Login : RobloxPageModel
 {
     private const string ExpiredApplicationMessage = "For security reasons, this application has been expired. Please create a new application and try again.";
+    private const string ExpiredPasswordMessage = "For security reasons your password has been expired. Please make a ticket in the Pekora Discord server to rset your password.";
     private const string BadApplicationMessage =
         "This application is either not approved or has already been used. Please confirm the URL is correct, and try again.";
     private const string BadUsernameOrPasswordMessage = "Incorrect username or password. Please try again";
@@ -127,36 +128,15 @@ public class Login : RobloxPageModel
         {
             // Do nothing here.
         }
-        //get totp info
-        TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
-        if (totpInfo != null && totpInfo.status == TotpStatus.Enabled)
-        {
-            // blank check
-            if (string.IsNullOrWhiteSpace(totpcode))
-            {
-                errorMessage = "You must enter a 2FA Code";
-                return new PageResult();
-            }
-            //try to parse as an long so know its only numbers and not some other garbage
-            if (!long.TryParse(totpcode, out var code))
-            {
-                errorMessage = "The 2FA code you entered is not valid";
-                return new PageResult();
-            }
-            //and as final verify the totp code
-            if (!services.users.VerifyTotp(totpInfo.secret, totpcode))
-            {
-                errorMessage = "The 2FA code you entered is not valid";
-                return new PageResult();
-            }
-        }
+
         if (!await services.cooldown.TryCooldownCheck("LoginAttemptV1:" + hashedIp, TimeSpan.FromSeconds(5)))
         {
             errorMessage = RateLimitSecondMessage;
             UserMetrics.ReportLoginConcurrentLockHit();
             return new PageResult();
         }
-
+        //get totp info
+ 
         // Each IP has 15 login attempts per 10 minute period
         var loginKey = "LoginAttemptCountV1:" + hashedIp;
         var attemptCount = (await services.cooldown.GetBucketDataForKey(loginKey, TimeSpan.FromMinutes(10))).ToArray();
@@ -186,7 +166,17 @@ public class Login : RobloxPageModel
             return new PageResult();
         }
 
-        var passwordOk = await services.users.VerifyPassword(userId, password);
+        bool passwordOk = false;
+        try 
+        {
+            passwordOk = await services.users.VerifyPassword(userId, password);
+        }
+        catch (RecordNotFoundException)
+        {
+            errorMessage = ExpiredPasswordMessage;
+            return new PageResult();
+        }
+
         await PreventTimingExploits(timer);
         if (!passwordOk)
         {
@@ -195,6 +185,29 @@ public class Login : RobloxPageModel
             return new PageResult();
         }
 
+        TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+        if (totpInfo != null && totpInfo.status == TotpStatus.Enabled)
+        {
+            // blank check
+            if (string.IsNullOrWhiteSpace(totpcode))
+            {
+                errorMessage = "You must enter a 2FA Code";
+                return new PageResult();
+            }
+            //try to parse as an long so know its only numbers and not some other garbage
+            if (!long.TryParse(totpcode, out var code))
+            {
+                errorMessage = "The 2FA code you entered is not valid";
+                return new PageResult();
+            }
+            //and as final verify the totp code
+            if (!services.users.VerifyTotp(totpInfo.secret, totpcode))
+            {
+                errorMessage = "The 2FA code you entered is not valid";
+                return new PageResult();
+            }
+        }
+        
         var userInfo = await services.users.GetUserById(userId);
         if (userInfo.accountStatus == AccountStatus.MustValidateEmail)
         {
