@@ -4,12 +4,7 @@ using System.Xml;
 using Roblox.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using Roblox.Dto.Users;
-using Roblox.Exceptions;
-using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
-using Roblox.Services.Exceptions;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
@@ -240,66 +235,6 @@ namespace Roblox.Website.Controllers
             {
                 success = true,
                 message = "Success"
-            };
-        }
-
-        [HttpPostBypass("user/follow")]
-        public async Task<dynamic> FollowUserLegacy([FromForm] FollowerRequest request)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            if (request.followedUserId == safeUserSession.userId)
-                throw new BadRequestException();
-            Console.WriteLine("Following user " + request.followedUserId);
-            await services.friends.FollowerUser(safeUserSession.userId, request.followedUserId);
-
-            return new
-            {
-                success = true,
-                isCaptchaRequired = false,
-            };
-        }
-
-
-        [HttpPostBypass("user/following-exists")]
-        [HttpGetBypass("user/following-exists")]
-        public async Task<dynamic> FollowingExists(long userId, long followerUserId)
-        {
-            return new
-            {
-                success = true,
-                isFollowing = await services.friends.IsOneFollowingTwo(followerUserId, userId),
-            };
-        }
-
-        [HttpPostBypass("user/multi-following-exists")]
-        public async Task<dynamic> MultiGetFollowingExists([FromBody] FilterSocialRequest request)
-        {
-            var result = await services.friends.GetFollowingIds(request.userId, 200);
-            List<dynamic> filteredFollowings = new List<dynamic>();
-            foreach (long userId in result)
-            {
-                if (!request.otherUserIds.Contains(userId))
-                    continue;
-                filteredFollowings.Add(new
-                {
-                    success = true,
-                    userId,
-                    Id = userId,
-                    isFollowed = await services.friends.IsOneFollowingTwo(userId, request.userId),
-                    isFollowing = await services.friends.IsOneFollowingTwo(request.userId, userId),
-                });
-            }
-            return filteredFollowings;
-        }
-        [HttpPostBypass("user/unfollow")]
-        public async Task<dynamic> DeleteFollowingLegacy([FromForm] FollowerRequest request)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            await services.friends.DeleteFollowing(safeUserSession.userId, request.followedUserId);
-            return new
-            {
-                success = true,
-                isCaptchaRequired = false,
             };
         }
 
