@@ -29,6 +29,7 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class Friends: ControllerBase
     {
+        [HttpPostBypass("my/friendsonline")]
         [HttpGetBypass("my/friendsonline")]
         public async Task<dynamic> GetFriendsOnline()
         {
@@ -54,6 +55,7 @@ namespace Roblox.Website.Controllers
             return onlineFriends;
         }
 
+        [HttpPostBypass("friends/filter")]
         [HttpGetBypass("friends/filter")]
         public async Task<dynamic> GetFilteredFriends(string otherUserIds)
         {
