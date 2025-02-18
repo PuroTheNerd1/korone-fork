@@ -7,7 +7,7 @@ using Roblox.Dto.Assets;
 using Roblox.Dto.Forums;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
-
+using  Roblox.Services.ServiceProvider;
 namespace Roblox.Services;
 
 public class PromocodesService : ServiceBase, IService
@@ -51,7 +51,7 @@ public class PromocodesService : ServiceBase, IService
             assetId = await GetAssetIdFromPromocode(promocode);
             if (assetId == 0)
                 throw new RecordNotFoundException("Invalid promocode");
-            UsersService users = new UsersService();
+            UsersService users = ServiceProvider.GetOrCreate<UsersService>();
             // Double check if the user already owns the asset
             var ownedCopies = (await users.GetUserAssets(userId, assetId)).ToList();
             if (ownedCopies.Count != 0)
