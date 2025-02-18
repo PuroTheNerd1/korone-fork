@@ -24,7 +24,7 @@ public class Promocodes : RobloxPageModel
         }
         try
         {
-            await services.promocodes.ClaimPromocode(promocode, userSession.userId);
+            assetId = await services.promocodes.ClaimPromocode(promocode, userSession.userId);
         }
         catch (Exception e)
         {
