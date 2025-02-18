@@ -41,6 +41,7 @@ public class FrontendProxyMiddleware
         // Razor - Internal
         "/internal/year",
         "/internal/updates",
+        "/internal/promocodes",
         "/internal/clothingstealer",
         "/internal/age",
         "/internal/report-abuse",
