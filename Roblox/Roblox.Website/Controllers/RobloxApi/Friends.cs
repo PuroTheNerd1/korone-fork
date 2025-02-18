@@ -72,7 +72,7 @@ namespace Roblox.Website.Controllers
             List<dynamic> filteredFriends = new List<dynamic>();
             foreach (FriendEntry friend in result)
             {
-                if (request.otherUserIds.Contains(friend.id))
+                if (!request.otherUserIds.Contains(friend.id))
                     continue;
                 filteredFriends.Add(new
                 {
