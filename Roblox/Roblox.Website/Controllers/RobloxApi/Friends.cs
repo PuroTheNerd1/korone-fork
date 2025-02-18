@@ -181,17 +181,17 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("user/request-friendship")]
-        public async Task<dynamic> RequestFriendshipLegacy(long recipientUserId)
+        public async Task<dynamic> RequestFriendshipLegacy()
         {
             FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
-            if (safeUserSession.userId == recipientUserId)
-                throw new BadRequestException(7, "The user cannot be friends with itself");
+            Console.WriteLine("RequestFriendship:" + await GetRequestBody());
+            // if (safeUserSession.userId == recipientUserId)
+            //     throw new BadRequestException(7, "The user cannot be friends with itself");
             await services.friends.RequestFriendship(safeUserSession.userId, recipientUserId);
 
             return new
             {
                 success = true,
-                message = "Success",
                 isCaptchaRequired = false,
             };
         }
