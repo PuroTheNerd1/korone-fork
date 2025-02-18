@@ -54,16 +54,13 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("user/multi-following-exists")]
         public async Task<dynamic> MultiGetFollowingExists([FromBody] FilterSocialRequest request)
         {
-            var result = await services.friends.GetFollowingIds(request.userId, 200);
             var followingDetails = new List<dynamic>();
 
-            foreach (long userId in result)
+            foreach (long userId in request.otherUserIds)
             {
-                if (!request.otherUserIds.Contains(userId))
-                    continue;
-
                 followingDetails.Add(new
                 {
+                    UserId1 = request.userId,
                     UserId2 = userId,
                     User1FollowsUser2 = await services.friends.IsOneFollowingTwo(request.userId, userId),
                     User2FollowsUser1 = await services.friends.IsOneFollowingTwo(userId, request.userId)
