@@ -187,7 +187,7 @@ namespace Roblox.Website.Controllers
             Console.WriteLine("RequestFriendship:" + await GetRequestBody());
             // if (safeUserSession.userId == recipientUserId)
             //     throw new BadRequestException(7, "The user cannot be friends with itself");
-            await services.friends.RequestFriendship(safeUserSession.userId, recipientUserId);
+            // await services.friends.RequestFriendship(safeUserSession.userId, recipientUserId);
 
             return new
             {
