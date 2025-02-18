@@ -120,18 +120,18 @@ namespace Roblox.Website.Controllers
             {
                 if (friend.status == "RequestReceived")
                 {
-                    friendRequestsToUser.Add(new
-                    {
-                        SenderId = safeUserSession.userId,
-                        RecipientId = friend.id
-                    });
-                }
-                else if (friend.status == "RequestSent")
-                {
                     friendRequestsFromUser.Add(new
                     {
                         SenderId = friend.id,
                         RecipientId = safeUserSession.userId
+                    });
+                }
+                else if (friend.status == "RequestSent")
+                {
+                    friendRequestsToUser.Add(new
+                    {
+                        SenderId = safeUserSession.userId,
+                        RecipientId = friend.id
                     });
                 }
             }
@@ -151,18 +151,10 @@ namespace Roblox.Website.Controllers
             var data = await services.friends.MultiGetFriendshipStatus(safeUserSession.userId, ids);
             List<dynamic> friendRequestsFromUser = new List<dynamic>();
             List<dynamic> friendRequestsToUser = new List<dynamic>();
-
+            
             foreach (var friend in data)
             {
                 if (friend.status == "RequestReceived")
-                {
-                    friendRequestsToUser.Add(new
-                    {
-                        SenderId = safeUserSession.userId,
-                        RecipientId = friend.id
-                    });
-                }
-                else if (friend.status == "RequestSent")
                 {
                     friendRequestsFromUser.Add(new
                     {
@@ -170,8 +162,15 @@ namespace Roblox.Website.Controllers
                         RecipientId = safeUserSession.userId
                     });
                 }
+                else if (friend.status == "RequestSent")
+                {
+                    friendRequestsToUser.Add(new
+                    {
+                        SenderId = safeUserSession.userId,
+                        RecipientId = friend.id
+                    });
+                }
             }
-
             return new
             {
                 FriendRequestsFromUser = friendRequestsFromUser,
