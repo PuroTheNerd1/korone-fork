@@ -2326,7 +2326,7 @@ Thank you for your understanding,
     [HttpGet("create-promocode"), StaffFilter(Access.GiveUserItem)]
     public async Task<dynamic> CreatePromocode(string promocode, long assetId)
     {
-        if (StaffFilter.IsOwner(userSession.userId))
+        if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Not authorized to create promocodes");
         try
         {
