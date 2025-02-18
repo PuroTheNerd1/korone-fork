@@ -156,18 +156,18 @@ namespace Roblox.Website.Controllers
             {
                 if (friend.status == "RequestReceived")
                 {
-                    friendRequestsFromUser.Add(new
-                    {
-                        SenderId = friend.id,
-                        RecipientId = safeUserSession.userId
-                    });
-                }
-                else if (friend.status == "RequestSent")
-                {
                     friendRequestsToUser.Add(new
                     {
                         SenderId = safeUserSession.userId,
                         RecipientId = friend.id
+                    });
+                }
+                else if (friend.status == "RequestSent")
+                {
+                    friendRequestsFromUser.Add(new
+                    {
+                        SenderId = friend.id,
+                        RecipientId = safeUserSession.userId
                     });
                 }
             }
