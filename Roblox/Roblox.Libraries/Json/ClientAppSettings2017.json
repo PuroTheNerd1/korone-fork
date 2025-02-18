@@ -295,7 +295,7 @@
   "DFFlagLuaSourceContinerScriptGuidEnabled": "True",
   "DFFlagLuaYieldErrorNoResumeEnabled": "True",
   "DFFlagMacInferredCrashReporting": "True",
-  "DFFlagMakeWebPendingFriendRequests": "False",
+  "DFFlagMakeWebPendingFriendRequests": "True",
   "DFFlagMaskWeightCleared": "True",
   "DFFlagMaterialPropertiesDivideByZeroWeights": "True",
   "DFFlagMaterialPropertiesEnabled": "True",
@@ -1587,6 +1587,9 @@
   "FriendServiceWebRequests": "6",
   "DFLogFriendServiceCache": "6",
   "FLogFriendServiceCache": "6",
+  "FLogFriendService": "6",
+  "FriendService": "6",
+  "DFLogFriendService": "6",
   "FriendServiceCache": "6",
   "FStringGetFriendsUrl": "%sv2/users/friends"
 }
