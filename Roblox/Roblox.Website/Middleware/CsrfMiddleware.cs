@@ -192,7 +192,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         }
         try
         {
-            if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !pathLower.Contains("abusereport") && !bypassUrls.Contains(pathLower)  && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products"))
+            if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !pathLower.Contains("filter-friends") && !pathLower.Contains("abusereport") && !bypassUrls.Contains(pathLower)  && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products"))
             {
                 var token = await TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();

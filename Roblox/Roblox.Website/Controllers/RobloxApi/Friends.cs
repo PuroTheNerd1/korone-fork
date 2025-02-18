@@ -59,14 +59,15 @@ namespace Roblox.Website.Controllers
             }
             return onlineFriends;
         }
-        [HttpGetBypass("users/filter-friends")]
-        [HttpPostBypass("users/filter-friends")]
+        [HttpPost("users/filter-friends")]
+        [Consumes("application/x-www-form-urlencoded")]
         public async Task<dynamic> FilterFriends([FromForm] FilterFriendRequest request)
         {
             var requestBody = await GetRequestBody();
             Console.WriteLine("FilterFriends UA: " + UserAgent);
             Console.WriteLine("FilterFriends: " + requestBody);
             Console.WriteLine("FilterFriends ID: " + request.userId);
+
             var result = await services.friends.GetFriends(request.userId);
             List<dynamic> filteredFriends = new List<dynamic>();
             foreach (FriendEntry friend in result)
