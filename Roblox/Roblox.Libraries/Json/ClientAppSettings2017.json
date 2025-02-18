@@ -1587,7 +1587,7 @@
   "FriendServiceWebRequests": "6",
   "DFLogFriendServiceCache": "6",
   "FLogFriendServiceCache": "6",
-  "FLogFriendService": "6",
+  "FLogFriendService": "100",
   "FriendService": "6",
   "DFLogFriendService": "6",
   "FriendServiceCache": "6",
