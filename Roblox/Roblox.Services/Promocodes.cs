@@ -48,7 +48,7 @@ public class PromocodesService : ServiceBase, IService
                 user_id = userId,
                 code = promocode,
             });
-            var assetId = await GetAssetIdFromPromocode(promocode);
+            assetId = await GetAssetIdFromPromocode(promocode);
             if (assetId == 0)
                 throw new RecordNotFoundException("Invalid promocode");
             UsersService users = new UsersService();
@@ -63,7 +63,6 @@ public class PromocodesService : ServiceBase, IService
                     user_id = userId,
                     serial = 0,
                 });
-            assetId = id.id;
             return 0;
         });
         return assetId;
