@@ -30,7 +30,7 @@ namespace Roblox.Website.Controllers
         public long? recipientUserId { get; set; }
         public long? friendUserId { get; set; }
     }
-    public class FilterFriendRequest
+    public class FilterSocialRequest
     {
         public long userId { get; set; }
         public List<long> otherUserIds { get; set; }
@@ -68,7 +68,7 @@ namespace Roblox.Website.Controllers
 
         [HttpPost("users/filter-friends")]
         [Consumes("application/x-www-form-urlencoded")]
-        public async Task<dynamic> FilterFriends([FromForm] FilterFriendRequest request)
+        public async Task<dynamic> FilterFriends([FromForm] FilterSocialRequest request)
         {
             var result = await services.friends.GetFriends(request.userId);
             List<dynamic> filteredFriends = new List<dynamic>();
@@ -103,7 +103,7 @@ namespace Roblox.Website.Controllers
                 {
                     Id = friend.id,
                     Username = friend.name,
-                    AvatarUri = "http://",
+                    AvatarUri = "",
                     AvatarFinal = true,
                     IsOnline = friend.isOnline,
                 });
@@ -119,10 +119,23 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("user/multi-following-exists")]
-        public async Task<dynamic> MultiGetFollowingExists()
+        public async Task<dynamic> MultiGetFollowingExists([FromBody] FilterSocialRequest request)
         {
-            Console.WriteLine("MultiGetFollowingExists: " + await GetRequestBody());
-            return Content("{}", "application/json");
+            var result = await services.friends.GetFollowingIds(request.userId, 200);
+            List<dynamic> filteredFollowings = new List<dynamic>();
+            foreach (long userId in result)
+            {
+                if (!request.otherUserIds.Contains(userId))
+                    continue;
+                filteredFollowings.Add(new
+                {
+                    success = true,
+                    userId = userId,
+                    isFollowed = await services.friends.IsOneFollowingTwo(request.userId, userId),
+                    isFollowing = await services.friends.IsOneFollowingTwo(userId, request.userId),
+                });
+            }
+            return filteredFollowings;
         }
 
         [HttpPostBypass("friends/filter-requests")]
@@ -466,20 +479,10 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> FollowingExists([Required,FromBody] FollowingExistsRequest request)
         {
             var result = new List<dynamic>();
-
             foreach (var userId in request.targetUserIds)
             {
-                if (userSession is null)
-                {
-                    result.Add(new
-                    {
-                        isFollowing = false,
-                        userId,
-                    });
-                    continue;
-                }
 
-                var isFollowing = await services.friends.IsOneFollowingTwo(userSession.userId, userId);
+                var isFollowing = await services.friends.IsOneFollowingTwo(safeUserSession.userId, userId);
                 result.Add(new
                 {
                     isFollowing,
