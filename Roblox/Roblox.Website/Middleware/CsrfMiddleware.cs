@@ -162,6 +162,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/auth/captcha",
         "/internal/invite",
         "/internal/create-place",
+        "/internal/promocodes",
         "/auth/notapproved",
         // hubs
         "/chat",
