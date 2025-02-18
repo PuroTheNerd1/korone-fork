@@ -14,14 +14,14 @@ public class RobloxLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext ctx)
     {
-        string userAgent = ctx.Request.Headers["User-Agent"].ToString();
+        string encodedUrl = ctx.Request.GetEncodedUrl();
         var watch = new Stopwatch();
         watch.Start();
         await _next(ctx);
         watch.Stop();
 
         var str = $"[{ctx.Request.Method.ToUpper()}] {ctx.Request.GetEncodedUrl()} - {watch.ElapsedMilliseconds}ms";
-        if(ctx.Request.GetEncodedUrl().Contains(".png"))
+        if(encodedUrl.Contains(".png") || encodedUrl.Contains("CreateOrUpdate") || encodedUrl.Contains("v2.0/Refresh"))
         {
             return;
         }
