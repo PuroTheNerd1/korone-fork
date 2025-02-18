@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace Roblox.Website.Pages.Internal;
 
 public class Promocodes : RobloxPageModel
-{
-    public string? promocode { get; set; }
+{    
+
     public string? errorMessage { get; set; }
     public string? successMessage { get; set; }
+    [BindProperty]
+    public string? promocode { get; set; }
     public void OnGet()
     {
 
