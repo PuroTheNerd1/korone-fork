@@ -12,31 +12,47 @@ namespace Roblox.Website.Controllers;
 
 [ApiController]
 [Route("")]
-public class UniverseV1 : ControllerBase {
-    [HttpGet("universes/get-info")]
-    public async Task<dynamic> GetUniverseInfo(long universeId) {
+public class UniverseV1 : ControllerBase 
+{
+    [HttpGetBypass("universes/get-universe-containing-place")]
+    public async Task<dynamic> GetUniverse(long placeid)
+    {
+        return new
+        {
+            UniverseId = await services.games.GetUniverseId(placeid)
+        };
+    }
+
+    [HttpGetBypass("universes/get-info")]
+    public async Task<dynamic> GetUniverseInfo(long universeId) 
+    {
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         if (uni == null)
             throw new RecordNotFoundException();
-        return new {
+        return new 
+        {
             Name = uni.name,
             Description = uni.description,
             RootPlace = uni.rootPlaceId,
-            StudioAccessToApisAllowed = false,
+            StudioAccessToApisAllowed = true,
             CurrentUserHasEditPermissions = uni.creatorId == safeUserSession.userId,
             UniverseAvatarType = uni.universeAvatarType,
         };
     }
 
     [HttpGetBypass("universes/get-universe-places")]
-    public async Task<dynamic> GetPlaces(long universeId) {
+    public async Task<dynamic> GetPlaces(long universeId) 
+    {
         var place = await services.games.GetRootPlaceId(universeId);
         var placeInfo = await services.assets.GetAssetCatalogInfo(place);
-        return new {
+        return new 
+        {
             FinalPage = true,
             RootPlace = place,
-            Places = new List<dynamic> {
-                new {
+            Places = new List<dynamic> 
+            {
+                new 
+                {
                     PlaceId = place,
                     Name = placeInfo.name,
                 }
@@ -46,8 +62,10 @@ public class UniverseV1 : ControllerBase {
     }
 
     [HttpGetBypass("badges/list-badges-for-place/json")]
-    public dynamic GetGameBadges() {
-        return new {
+    public dynamic GetGameBadges() 
+    {
+        return new 
+        {
             FinalPage = true,
             GameBadges = new List<dynamic>(),
             PageSize = 50
@@ -55,8 +73,10 @@ public class UniverseV1 : ControllerBase {
     }
 
     [HttpGetBypass("developerproducts/list")]
-    public dynamic GetDeveloperProducts() {
-        return new {
+    public dynamic GetDeveloperProducts() 
+    {
+        return new 
+        {
             FinalPage = true,
             DeveloperProducts = new List<dynamic>(),
             PageSize = 50
@@ -64,8 +84,10 @@ public class UniverseV1 : ControllerBase {
     }
 
     [HttpGetBypass("universes/get-aliases")]
-    public dynamic GetAliases() {
-        return new {
+    public dynamic GetAliases() 
+    {
+        return new 
+        {
             FinalPage = true,
             Aliases = new List<string>(),
             PageSize = 50

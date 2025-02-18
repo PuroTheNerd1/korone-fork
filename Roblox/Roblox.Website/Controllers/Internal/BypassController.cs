@@ -57,15 +57,8 @@ namespace Roblox.Website.Controllers
             throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
         }
 
-        [HttpGetBypass("universes/get-universe-containing-place")]
-        public async Task<dynamic> GetUniverse(long placeid)
-        {
-            return new
-            {
-                UniverseId = await services.games.GetUniverseId(placeid)
-            };
-        }
-        
+
+
         [HttpGetBypass("Game/GamePass/GamePassHandler.ashx")]
         public async Task<string> GamePassHandler(string Action, long UserID, long PassID)
         {
