@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Dapper;
 using Dapper.Contrib.Extensions;
+using InfluxDB.Client.Api.Domain;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Forums;
 using Roblox.Services.App.FeatureFlags;
@@ -50,6 +51,11 @@ public class PromocodesService : ServiceBase, IService
             var assetId = await GetAssetIdFromPromocode(promocode);
             if (assetId == 0)
                 throw new RecordNotFoundException("Invalid promocode");
+            UsersService users = new UsersService();
+            // Double check if the user already owns the asset
+            var ownedCopies = (await users.GetUserAssets(userId, assetId)).ToList();
+            if (ownedCopies.Count != 0)
+                throw new RecordNotFoundException("Asset is already owned");
             var id = await db.QuerySingleOrDefaultAsync(
                 "INSERT INTO user_asset (asset_id, user_id, serial) VALUES (:asset_id, :user_id, :serial) RETURNING user_asset.id", new
                 {
