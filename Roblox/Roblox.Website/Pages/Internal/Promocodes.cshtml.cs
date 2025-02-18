@@ -32,7 +32,7 @@ public class Promocodes : RobloxPageModel
             return;
         }
         var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
-        successMessage = $"You have successfully claimed the item ({assetInfo.name}! Check your inventory to see it.";
+        successMessage = $"You have successfully claimed the item {assetInfo.name}! Check your inventory to see it.";
         
     }
 }
