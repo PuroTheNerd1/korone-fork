@@ -65,33 +65,7 @@ namespace Roblox.Website.Controllers
                 UniverseId = await services.games.GetUniverseId(placeid)
             };
         }
-        [HttpGetBypass("Game/LoadPlaceInfo.ashx")]
-        public async Task<string> LoadPlaceInfo(long PlaceId)
-        {
-            var details = await services.assets.GetAssetCatalogInfo(PlaceId);
-            // this is just easier for me then using replace all the time on every pcall
-            string httpsToHttp = Configuration.BaseUrl.Replace("https", "http");
-            string luaCode = $@"
-                            pcall(function() game:SetCreatorID({details.creatorTargetId}, Enum.CreatorType.User) end);
-                            pcall(function() game:GetService(""SocialService""):SetFriendUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetBestFriendUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupRankUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""SocialService""):SetGroupRoleUrl(""{httpsToHttp}/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d"") end);
-                            pcall(function() game:GetService(""GamePassService""):SetPlayerHasPassUrl(""{httpsToHttp}/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d"") end);
-            ";
-
-            string[] lines = luaCode.Split('\n');
-            for (int i = 0; i < lines.Length; i++)
-            {
-                lines[i] = lines[i].TrimStart();
-            }
-
-            luaCode = string.Join("\n", lines);
-            string SignedScript = services.sign.SignStringResponseForClientFromPrivateKey(luaCode, true);
-            return SignedScript;
-
-        }
+        
         [HttpGetBypass("Game/GamePass/GamePassHandler.ashx")]
         public async Task<string> GamePassHandler(string Action, long UserID, long PassID)
         {
