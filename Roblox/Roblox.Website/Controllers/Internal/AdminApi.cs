@@ -2323,7 +2323,22 @@ Thank you for your understanding,
     {
         return await MigrateItem.MigrateItemFromRoblox(request.url);
     }
+    [HttpGet("create-promocode"), StaffFilter(Access.GiveUserItem)]
+    public async Task<dynamic> CreatePromocode(string promocode, long assetId)
+    {
+        if (StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("Not authorized to create promocodes");
+        try
+        {
+            await services.promocodes.AddPromocode(promocode, assetId);
+        }
+        catch (Exception e)
+        {
+            return Ok("Failed to create promocode: " + e.Message);
+        }
 
+        return Ok("Created promocode");
+    }
     [HttpPost("create-game"), StaffFilter(Access.CreateGameForUser)]
     public async Task<dynamic> CreateGame([Required, FromBody] UserIdRequest request)
     {
