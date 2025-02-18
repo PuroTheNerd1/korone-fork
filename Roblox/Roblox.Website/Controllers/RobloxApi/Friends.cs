@@ -28,6 +28,7 @@ namespace Roblox.Website.Controllers
     {
         public long? requesterUserId { get; set; }
         public long? recipientUserId { get; set; }
+        public long? friendUserId { get; set; }
     }
     public class FilterFriendRequest
     {
@@ -64,6 +65,7 @@ namespace Roblox.Website.Controllers
             }
             return onlineFriends;
         }
+
         [HttpPost("users/filter-friends")]
         [Consumes("application/x-www-form-urlencoded")]
         public async Task<dynamic> FilterFriends([FromForm] FilterFriendRequest request)
@@ -146,6 +148,48 @@ namespace Roblox.Website.Controllers
             };
         }
 
+        [HttpPostBypass("user/unfriend")]
+        public async Task<dynamic> UnfriendUserLegacy([FromForm] FriendRequest request)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
+            if (request.friendUserId == null)
+                throw new BadRequestException(7, "FriendUserId is required");
+            await services.friends.DeleteFriend(safeUserSession.userId, (long)request.friendUserId );
+            return new
+            {
+                success = true,
+                message = "Success"
+            };
+        }
+
+
+        [HttpPostBypass("user/decline-friend-request")]
+        public async Task<dynamic> DeclineFriendRequestLegacy([FromForm] FriendRequest request)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
+            if (request.requesterUserId == null)
+                throw new BadRequestException(7, "RequesterUserId is required");
+            await services.friends.DeclineFriendRequest(safeUserSession.userId, (long)request.requesterUserId);
+            return new
+            {
+                success = true,
+                message = "Success"
+            };
+        }
+        [HttpPostBypass("user/accept-friend-request")]
+        public async Task<dynamic> AcceptFriendRequestLegacy([FromForm] FriendRequest request)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
+            if (request.requesterUserId == null)
+                throw new BadRequestException(7, "RequesterUserId is required");
+            await services.friends.AcceptFriendRequest(safeUserSession.userId, (long)request.requesterUserId);
+            return new
+            {
+                success = true,
+                message = "Success"
+            };
+        }
+
         [HttpPostBypass("user/follow")]
         public async Task<dynamic> FollowUserLegacy([FromForm] FollowerRequest request)
         {
@@ -185,50 +229,7 @@ namespace Roblox.Website.Controllers
             };
         }
 
-        [HttpPostBypass("user/decline-friend-request")]
-        public async Task<dynamic> DeclineFriendRequestLegacy([FromForm] FriendRequest request)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
-            if (request.requesterUserId == null)
-                throw new BadRequestException(7, "RequesterUserId is required");
-            await services.friends.DeclineFriendRequest(safeUserSession.userId, (long)request.requesterUserId);
-            return new
-            {
-                success = true,
-                message = "Success"
-            };
-        }
-        [HttpPostBypass("user/accept-friend-request")]
-        public async Task<dynamic> AcceptFriendRequestLegacy([FromForm] FriendRequest request)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
-            if (request.requesterUserId == null)
-                throw new BadRequestException(7, "RequesterUserId is required");
-            await services.friends.AcceptFriendRequest(safeUserSession.userId, (long)request.requesterUserId);
-            return new
-            {
-                success = true,
-                message = "Success"
-            };
-        }
 
-        [HttpPostBypass("user/request-friendship")]
-        public async Task<dynamic> RequestFriendshipLegacy([FromForm] FriendRequest request)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
-            if (safeUserSession.userId == request.recipientUserId)
-                throw new BadRequestException(7, "The user cannot be friends with itself");
-            if (request.recipientUserId == null)
-                throw new BadRequestException(7, "RecipientUserId is required");
-                
-            await services.friends.RequestFriendship(safeUserSession.userId, (long)request.recipientUserId);
-
-            return new
-            {
-                success = true,
-                isCaptchaRequired = false,
-            };
-        }
         [HttpGetBypass("v2/users/friends")]
         public async Task<IEnumerable<dynamic>> GetUserFriendsLegacy()
         {
