@@ -24,7 +24,12 @@ namespace Roblox.Website.Controllers
     {
         public long followedUserId { get; set; }
     }
-    
+    public class FilterFriendRequest
+    {
+        public long userId { get; set; }
+        public List<long> otherUserIds { get; set; }
+    }
+
     [MVC.ApiController]
     [MVC.Route("/")]
     public class Friends: ControllerBase
@@ -56,12 +61,30 @@ namespace Roblox.Website.Controllers
         }
         [HttpGetBypass("users/filter-friends")]
         [HttpPostBypass("users/filter-friends")]
-        public async Task<dynamic> FilterFriends()
+        public async Task<dynamic> FilterFriends([FromForm] FilterFriendRequest request)
         {
+            var requestBody = await GetRequestBody();
             Console.WriteLine("FilterFriends UA: " + UserAgent);
-            Console.WriteLine("FilterFriends: " + await GetRequestBody());
-            return Content("{}", "application/json");
+            Console.WriteLine("FilterFriends: " + requestBody);
+            Console.WriteLine("FilterFriends ID: " + request.userId);
+            var result = await services.friends.GetFriends(request.userId);
+            List<dynamic> filteredFriends = new List<dynamic>();
+            foreach (FriendEntry friend in result)
+            {
+                if (request.otherUserIds.Contains(friend.id))
+                    continue;
+                filteredFriends.Add(new
+                {
+                    Id = friend.id,
+                    Username = friend.name,
+                    AvatarUri = "http://",
+                    AvatarFinal = true,
+                    IsOnline = friend.isOnline,
+                });
+            }
+            return filteredFriends;
         }
+
         [HttpPostBypass("friends/filter")]
         [HttpGetBypass("friends/filter")]
         public async Task<dynamic> GetFilteredFriends(string otherUserIds)
