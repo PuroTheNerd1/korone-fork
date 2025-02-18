@@ -111,6 +111,20 @@ namespace Roblox.Website.Controllers
             return filteredFriends;
         }
 
+        [HttpPostBypass("user/multiget-friend-requests")]
+        public async Task<dynamic> MultiGetFriendRequests()
+        {
+            Console.WriteLine("MultiGetFriendRequests: " + await GetRequestBody());
+            return Content("{}", "application/json");
+        }
+
+        [HttpPostBypass("user/multi-following-exists")]
+        public async Task<dynamic> MultiGetFollowingExists()
+        {
+            Console.WriteLine("MultiGetFollowingExists: " + await GetRequestBody());
+            return Content("{}", "application/json");
+        }
+
         [HttpPostBypass("friends/filter-requests")]
         [HttpGetBypass("friends/filter-requests")]
         public async Task<dynamic> GetFilteredFriendRequests(string otherUserIds)
@@ -179,6 +193,7 @@ namespace Roblox.Website.Controllers
                 isCaptchaRequired = false,
             };
         }
+
         [HttpPostBypass("user/decline-friend-request")]
         public async Task<dynamic> DeclineFriendRequestLegacy([FromForm] FriendRequest request)
         {
