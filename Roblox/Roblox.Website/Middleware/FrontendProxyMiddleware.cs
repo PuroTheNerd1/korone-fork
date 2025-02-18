@@ -190,7 +190,7 @@ public class FrontendProxyMiddleware
     {
         var requestUrl = ctx.Request.GetEncodedPathAndQuery();
         var requestFullUrl = ctx.Request.GetEncodedUrl();
-        if (requestUrl.Contains("/canmanage/") || requestUrl.Contains("filter-friends")|| requestUrl.Contains("AbuseReport") || Regex.IsMatch(requestUrl, @"^/places/\d+/settings$") || Regex.IsMatch(requestUrl, @"^/users/\d+$") || Regex.IsMatch(requestUrl, @"^/Users/\d+$") || requestUrl.Contains("/universes/"))
+        if (requestUrl.Contains("/canmanage/") || requestUrl.Contains("filter-friends") || requestUrl.Contains("multiget-friend-requests") || requestUrl.Contains("AbuseReport") || Regex.IsMatch(requestUrl, @"^/places/\d+/settings$") || Regex.IsMatch(requestUrl, @"^/users/\d+$") || Regex.IsMatch(requestUrl, @"^/Users/\d+$") || requestUrl.Contains("/universes/"))
         {
             await _next(ctx);
             return;
