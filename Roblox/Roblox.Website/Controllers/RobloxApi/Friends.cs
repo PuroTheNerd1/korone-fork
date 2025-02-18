@@ -130,9 +130,9 @@ namespace Roblox.Website.Controllers
                 filteredFollowings.Add(new
                 {
                     success = true,
-                    userId = userId,
-                    isFollowed = await services.friends.IsOneFollowingTwo(request.userId, userId),
-                    isFollowing = await services.friends.IsOneFollowingTwo(userId, request.userId),
+                    userId,
+                    isFollowed = await services.friends.IsOneFollowingTwo(userId, request.userId),
+                    isFollowing = await services.friends.IsOneFollowingTwo(request.userId, userId),
                 });
             }
             return filteredFollowings;
