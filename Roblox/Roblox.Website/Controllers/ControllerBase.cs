@@ -31,7 +31,13 @@ namespace Roblox.Website.Controllers
                 return Request.Headers["Content-Encoding"].ToString() == "gzip";
             }
         }
-
+        protected string UserAgent
+        {
+            get
+            {
+                return Request.Headers["User-Agent"].ToString();
+            }
+        }
         protected bool isRCC
         {
             get
@@ -40,6 +46,7 @@ namespace Roblox.Website.Controllers
                 return rccAccessKey == Configuration.RccAuthorization;
             }
         }
+
 
         protected Roblox.Models.Sessions.UserSession? userSession
         {

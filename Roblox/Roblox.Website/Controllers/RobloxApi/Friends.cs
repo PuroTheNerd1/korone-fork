@@ -54,7 +54,11 @@ namespace Roblox.Website.Controllers
             }
             return onlineFriends;
         }
-
+        [HttpPostBypass("users/filter-friends")]
+        public async Task<dynamic> FilterFriends()
+        {
+            Console.WriteLine("FilterFriends UA:" + UserAgent);
+        }
         [HttpPostBypass("friends/filter")]
         [HttpGetBypass("friends/filter")]
         public async Task<dynamic> GetFilteredFriends(string otherUserIds)
