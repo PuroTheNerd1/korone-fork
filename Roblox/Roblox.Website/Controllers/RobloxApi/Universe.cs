@@ -11,7 +11,7 @@ using Roblox.Services.Exceptions;
 namespace Roblox.Website.Controllers;
 
 [ApiController]
-[Route("")]
+[Route("/")]
 public class UniverseV1 : ControllerBase 
 {
     [HttpGetBypass("universes/get-universe-containing-place")]
