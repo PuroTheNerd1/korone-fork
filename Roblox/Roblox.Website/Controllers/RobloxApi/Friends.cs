@@ -162,7 +162,23 @@ namespace Roblox.Website.Controllers
             };
         }
 
+        [HttpPostBypass("user/request-friendship")]
+        public async Task<dynamic> RequestFriendshipLegacy([FromForm] FriendRequest request)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FriendingEnabled);
+            if (safeUserSession.userId == request.recipientUserId)
+                throw new BadRequestException(7, "The user cannot be friends with itself");
+            if (request.recipientUserId == null)
+                throw new BadRequestException(7, "RecipientUserId is required");
+                
+            await services.friends.RequestFriendship(safeUserSession.userId, (long)request.recipientUserId);
 
+            return new
+            {
+                success = true,
+                isCaptchaRequired = false,
+            };
+        }
         [HttpPostBypass("user/decline-friend-request")]
         public async Task<dynamic> DeclineFriendRequestLegacy([FromForm] FriendRequest request)
         {
