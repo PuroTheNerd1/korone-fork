@@ -21,7 +21,7 @@ public class RobloxLoggingMiddleware
         watch.Stop();
 
         var str = $"[{ctx.Request.Method.ToUpper()}] {ctx.Request.GetEncodedUrl()} - {watch.ElapsedMilliseconds}ms";
-        if(encodedUrl.Contains(".png") || encodedUrl.Contains("apisite") || encodedUrl.Contains("asset") || encodedUrl.Contains("CreateOrUpdate") || encodedUrl.Contains("v2.0/Refresh"))
+        if(encodedUrl.Contains(".png") || encodedUrl.Contains("apisite") || encodedUrl.Contains("Avatar.ashx") || encodedUrl.Contains("asset") || encodedUrl.Contains("CreateOrUpdate") || encodedUrl.Contains("v2.0/Refresh"))
         {
             return;
         }
