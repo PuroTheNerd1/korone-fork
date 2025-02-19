@@ -293,16 +293,21 @@ public class RobloxApi
             excludeBannedUsers = false,
         };
         request.usernames.Add(userName);
-        var result = await _client.PostAsync($"https://users.roblox.com/v1/usernames/users", new StringContent(JsonSerializer.Serialize(request)));
+        Console.WriteLine($"[GetUserIdByUsername]: Inside routine, serialized request: {JsonSerializer.Serialize(request)}");
+        var result = await _client.PostAsync("https://users.roblox.com/v1/usernames/users", new StringContent(JsonSerializer.Serialize(request)));
+        Console.WriteLine("[GetUserIdByUsername]: Past result");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
         if (result == null)
             throw new Exception("Null response from Roblox");
+        Console.WriteLine("[GetUserIdByUsername]: Result checks ok");
         var response = await result.Content.ReadFromJsonAsync<MultiGetByUsernameResponse>(); 
+        Console.WriteLine("[GetUserIdByUsername]: Past response");
         if (response == null)
             throw new Exception("Null response from users api");
         if(response.data.Count == 0)
             throw new Exception("User not found");
+        Console.WriteLine("[GetUserIdByUsername]: Response checks ok");
 
         return response.data.FirstOrDefault()!.id;
     }
