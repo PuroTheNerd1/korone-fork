@@ -23,6 +23,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Png;
 using Type = System.Type;
+using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 
 namespace Roblox.Website.Controllers;
 
@@ -576,6 +577,8 @@ public class WebController : ControllerBase
         Models.Assets.Type.Pants,
         Models.Assets.Type.Image,
         Models.Assets.Type.Video,
+        Models.Assets.Type.Mesh,
+        Models.Assets.Type.Model
     };
 
     private static int pendingAssetUploads { get; set; } = 0;
@@ -606,7 +609,7 @@ public class WebController : ControllerBase
         try
         {
             var fs = request.file.OpenReadStream();
-            if (!await services.assets.PlaceValidation(fs))
+            if (!await services.assets.RobloxFileValidation(fs))
                 throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
             fs.Position = 0;
 
@@ -622,7 +625,6 @@ public class WebController : ControllerBase
             }
         }
     }
-
 
 
     [HttpPost("develop/upload")]
@@ -696,6 +698,10 @@ public class WebController : ControllerBase
                     return await UploadImage(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.Video:
                     return await UploadVideo(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.Mesh:
+                    return await UploadMesh(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.Model:
+                    return await UploadModel(request, stream, creatorId, creatorType);
                 default:
                     throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
             }
@@ -741,15 +747,13 @@ public class WebController : ControllerBase
         // validate auto
         stream.Position = 0;
         var isOk = await services.assets.IsAudioValid(stream);
-        stream.Position = 0;
-        if (isOk != AudioValidation.Ok)
+
+        if (isOk != MediaValidation.Ok)
         {
             throw new BadRequestException(0, "Bad audio file. Error = " + isOk.ToString());
         }
         // charge
-        stream.Position = 0;
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
-        stream.Position = 0;
         // create item
         var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
             safeUserSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
@@ -786,21 +790,43 @@ public class WebController : ControllerBase
         if (balance.robux < 100)
             throw new BadRequestException(0, "Not enough Robux for purchase");
         // validate auto
-
         stream.Position = 0;
         var isOk = await services.assets.IsVideoValid(stream);
-        stream.Position = 0;
-        if (isOk != VideoValidation.Ok)
+        if (isOk != MediaValidation.Ok)
         {
             throw new BadRequestException(0, "Bad video file. Error = " + isOk.ToString());
         }
         // charge
-        stream.Position = 0;
         await services.economy.ChargeForVideoUpload(creatorType, creatorId);
-        stream.Position = 0;
         // create item
         var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
             safeUserSession.userId, stream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
+        return asset;
+    }
+    private async Task<CreateResponse> UploadMesh(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        stream.Position = 0;
+        if (!await services.assets.IsMeshValid(stream))
+        {
+            throw new BadRequestException(0, "Bad mesh file");
+        }
+        stream.Position = 0;
+        // create item
+        var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
+            safeUserSession.userId, stream, Models.Assets.Type.Mesh, Genre.All, ModerationStatus.AwaitingApproval);
+        return asset;
+    }
+    private async Task<CreateResponse> UploadModel(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        stream.Position = 0;
+        if (!await services.assets.RobloxFileValidation(stream))
+        {
+            throw new BadRequestException(0, "Bad model file");
+        }
+        stream.Position = 0;
+        // create item
+        var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
+            safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.ReviewApproved);
         return asset;
     }
 }

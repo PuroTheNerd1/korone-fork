@@ -82,16 +82,7 @@ namespace Roblox.Models.Assets
         Declined,
         AwaitingModerationDecision,
     }
-    public enum VideoValidation
-    {
-        Ok = 0,
-        TooLong = 1,
-        TooShort,
-        FileTooLarge,
-        EmptyStream,
-        UnsupportedFormat,
-    }
-    public enum AudioValidation
+    public enum MediaValidation
     {
         Ok = 0,
         TooLong = 1,

@@ -1243,7 +1243,7 @@ namespace Roblox.Website.Controllers
             try
             {
                 MemoryStream placeStream = await GetRequestBodyAsMemoryStream();
-                if (!await services.assets.PlaceValidation(placeStream))
+                if (!await services.assets.RobloxFileValidation(placeStream))
                     throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
                 placeStream.Position = 0;
                 // Create asset version in background

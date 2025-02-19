@@ -396,11 +396,12 @@ public class AssetsService : ServiceBase, IService
     }
 
     private static HttpClient assetValidationClient { get; } = new();
-    public async Task<bool> PlaceValidation(Stream stream)
+    public async Task<bool> RobloxFileValidation(Stream stream)
     {
         byte[] buffer = new byte[7];
         await stream.ReadAsync(buffer, 0, buffer.Length);
         string startOfFile = Encoding.UTF8.GetString(buffer);
+        stream.Position = 0;
         return startOfFile == "<roblox";
     }
     public async Task<bool> ValidateAssetFile(Stream file, Models.Assets.Type assetType)
@@ -569,10 +570,10 @@ public class AssetsService : ServiceBase, IService
 
     private static long maxAudioFileSizeBytes = 20447232;
     private static long maxVideoFileSizeBytes = 41943040;
-    public async Task<AudioValidation> IsAudioValid(Stream content)
+    public async Task<MediaValidation> IsAudioValid(Stream content)
     {
-        if (content.Length > maxAudioFileSizeBytes) return AudioValidation.FileTooLarge;
-        if (content.Length == 0) return AudioValidation.EmptyStream;
+        if (content.Length > maxAudioFileSizeBytes) return MediaValidation.FileTooLarge;
+        if (content.Length == 0) return MediaValidation.EmptyStream;
         content.Position = 0;
         IMediaAnalysis mediaInfo;
         // streams return an empty duration, so we have to write to disk and then read that...
@@ -591,34 +592,33 @@ public class AssetsService : ServiceBase, IService
         catch (Exception e)
         {
             Console.WriteLine("[error] error validating audio: {0}\n{1}", e.Message, e.StackTrace);
-            return AudioValidation.UnsupportedFormat;
+            return MediaValidation.UnsupportedFormat;
         }
         finally
         {
             File.Delete(tempFile);
         }
 
-        if (mediaInfo.Duration > TimeSpan.FromMinutes(7)) return AudioValidation.TooLong;
+        if (mediaInfo.Duration > TimeSpan.FromMinutes(7)) return MediaValidation.TooLong;
         if (mediaInfo.Duration < TimeSpan.FromMilliseconds(10))
             return
-                AudioValidation
+                MediaValidation
                     .TooShort; // If duration is 0, FFProbe probably messed up, and we don't want to risk having users upload infinite duration files
         var formatDetails = mediaInfo.Format;
         // our game engine currently supports mp3 and ogg.
         if (formatDetails.FormatName is "mp3" or "ogg")
         {
             // OK
-            return AudioValidation.Ok;
+            return MediaValidation.Ok;
         }
 
-        return AudioValidation.UnsupportedFormat;
+        return MediaValidation.UnsupportedFormat;
     }
 
-
-    public async Task<VideoValidation> IsVideoValid(Stream content)
+    public async Task<MediaValidation> IsVideoValid(Stream content)
     {
-        if (content.Length > maxVideoFileSizeBytes) return VideoValidation.FileTooLarge;
-        if (content.Length == 0) return VideoValidation.EmptyStream;
+        if (content.Length > maxVideoFileSizeBytes) return MediaValidation.FileTooLarge;
+        if (content.Length == 0) return MediaValidation.EmptyStream;
         content.Position = 0;
         IMediaAnalysis mediaInfo;
         // streams return an empty duration, so we have to write to disk and then read that...
@@ -639,7 +639,7 @@ public class AssetsService : ServiceBase, IService
             if (await Task.WhenAny(analysisTask, Task.Delay(TimeSpan.FromMinutes(5))) != analysisTask)
             {
                 Console.WriteLine("[error] video processing timed out");
-                return VideoValidation.UnsupportedFormat;
+                return MediaValidation.UnsupportedFormat;
             }
 
             mediaInfo = await analysisTask;
@@ -647,7 +647,7 @@ public class AssetsService : ServiceBase, IService
         catch (Exception e)
         {
             Console.WriteLine("[error] error validating video: {0}\n{1}", e.Message, e.StackTrace);
-            return VideoValidation.UnsupportedFormat;
+            return MediaValidation.UnsupportedFormat;
         }
         finally
         {
@@ -656,15 +656,40 @@ public class AssetsService : ServiceBase, IService
 
         // Null check
         if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.VideoStreams == null || mediaInfo.Duration.TotalSeconds == 0)
-            return VideoValidation.UnsupportedFormat;
+            return MediaValidation.UnsupportedFormat;
         // Max 800 secs
         if (mediaInfo.Duration.TotalSeconds > 800)
-            return VideoValidation.UnsupportedFormat;
+            return MediaValidation.UnsupportedFormat;
         // We only support webm
         if (mediaInfo.Format.FormatName.Contains("webm", StringComparison.OrdinalIgnoreCase))
-            return VideoValidation.Ok;
+            return MediaValidation.Ok;
 
-        return VideoValidation.UnsupportedFormat;
+        return MediaValidation.UnsupportedFormat;
+    }
+
+    public async Task<bool> IsMeshValid(Stream content)
+    {
+        byte[] buffer = new byte[8];
+        await content.ReadAsync(buffer, 0, buffer.Length);
+        string header = Encoding.UTF8.GetString(buffer);
+        if (header != "version ")
+            return false;
+
+        buffer = new byte[4];
+        await content.ReadAsync(buffer, 0, buffer.Length);
+        string version = Encoding.UTF8.GetString(buffer);
+        content.Position = 0;
+        switch (version)
+        {
+            case "1.00":
+            case "1.01":
+            case "2.00":
+            case "3.01":
+            case "4.00":
+                return true;
+            default:
+                return false;
+        }
     }
     #region RenderMethods
 
