@@ -9,7 +9,7 @@ const Access = (props) => {
   const store = updatePlaceStore.useContainer();
   const [maxPlayers, setMaxPlayers] = useState(10);
   const [feedback, setFeedback] = useState(null);
-  const [year, setSelectedYear] = useState(2016);
+  const [year, setSelectedYear] = useState(2017);
   
   const resetForm = () => {
     setFeedback(null);
@@ -65,14 +65,12 @@ const Access = (props) => {
           </select>
           <p className="fw-bold">Select Year:</p>
           <select
-            value={store.details.year}
+            value={year}
             className="br-none border-1 border-secondary pe-2"
             onChange={(v) => {
               setSelectedYear(parseInt(v.currentTarget.value));
             }}
           >
-            <option value={2015}>2015</option>
-            <option value={2016}>2016</option>
             <option value={2017}>2017</option>
             <option value={2018}>2018</option>
             <option value={2020}>2020</option>
