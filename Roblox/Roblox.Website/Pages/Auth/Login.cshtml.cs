@@ -119,7 +119,7 @@ public class Login : RobloxPageModel
             errorMessage = BadCaptchaMessage;
             return new PageResult();
         }
-
+        Console.WriteLine("Leak check: " + HttpContext.Response.Headers["Exposed-Credential-Check"].ToString());
         long userId = 0;
         try
         {
