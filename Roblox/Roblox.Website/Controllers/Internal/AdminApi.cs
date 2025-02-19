@@ -2342,7 +2342,7 @@ Thank you for your understanding,
     }
 
     [HttpGet("delete-promocode"), StaffFilter(Access.GiveUserItem)]
-    public async Task<dynamic> DeletePromocode(string promocode, long assetId)
+    public async Task<dynamic> DeletePromocode(string promocode)
     {
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Not authorized to create promocodes");
