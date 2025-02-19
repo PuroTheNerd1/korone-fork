@@ -154,19 +154,18 @@ body {
   border-color: #383D3F;
 }
 
-.dark-input::placeholder {
+.dark-input:focus {
+  outline: none;
   color: white;
+  background-color: #181a1b;
+  background: #181a1b;
+  border-color: #383D3F;
 }
 
-.dark-input::-webkit-input-placeholder {
-  color: white;
-}
-.dark-input:-moz-placeholder {
-  color: white;
-}
-.dark-input::-moz-placeholder {
-  color: white;
-}
+.dark-input::placeholder,
+.dark-input::-webkit-input-placeholder,
+.dark-input:-moz-placeholder,
+.dark-input::-moz-placeholder,
 .dark-input:-ms-input-placeholder {
   color: white;
 }
