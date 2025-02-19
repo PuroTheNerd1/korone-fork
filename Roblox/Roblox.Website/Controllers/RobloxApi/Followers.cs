@@ -1,23 +1,7 @@
 using MVC = Microsoft.AspNetCore.Mvc;
-using CsvHelper;
-using System.Xml;
-using Roblox.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using Roblox.Dto.Users;
-using Roblox.Exceptions;
-using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
-using Roblox.Services.Exceptions;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
-using ServiceProvider = Roblox.Services.ServiceProvider;
-
-using Roblox.Dto.Marketplace;
-using Newtonsoft.Json;
-using System.Dynamic;
-using Roblox.Models;
-using Roblox.Dto.Friends;
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -39,7 +23,7 @@ namespace Roblox.Website.Controllers
                 isCaptchaRequired = false,
             };
         }
-        
+
         [HttpPostBypass("user/unfollow")]
         public async Task<dynamic> DeleteFollowingLegacy([FromForm] FollowerRequest request)
         {

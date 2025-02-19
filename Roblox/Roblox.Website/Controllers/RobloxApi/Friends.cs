@@ -143,40 +143,40 @@ namespace Roblox.Website.Controllers
             };
         }
 
-        [HttpPostBypass("friends/filter-requests")]
-        [HttpGetBypass("friends/filter-requests")]
-        public async Task<dynamic> GetFilteredFriendRequests(string otherUserIds)
-        {
-            var ids = otherUserIds.Split(",").Select(long.Parse).Distinct().ToList();
-            var data = await services.friends.MultiGetFriendshipStatus(safeUserSession.userId, ids);
-            List<dynamic> friendRequestsFromUser = new List<dynamic>();
-            List<dynamic> friendRequestsToUser = new List<dynamic>();
+        // [HttpPostBypass("friends/filter-requests")]
+        // [HttpGetBypass("friends/filter-requests")]
+        // public async Task<dynamic> GetFilteredFriendRequests(string otherUserIds)
+        // {
+        //     var ids = otherUserIds.Split(",").Select(long.Parse).Distinct().ToList();
+        //     var data = await services.friends.MultiGetFriendshipStatus(safeUserSession.userId, ids);
+        //     List<dynamic> friendRequestsFromUser = new List<dynamic>();
+        //     List<dynamic> friendRequestsToUser = new List<dynamic>();
             
-            foreach (var friend in data)
-            {
-                if (friend.status == "RequestReceived")
-                {
-                    friendRequestsFromUser.Add(new
-                    {
-                        SenderId = friend.id,
-                        RecipientId = safeUserSession.userId
-                    });
-                }
-                else if (friend.status == "RequestSent")
-                {
-                    friendRequestsToUser.Add(new
-                    {
-                        SenderId = safeUserSession.userId,
-                        RecipientId = friend.id
-                    });
-                }
-            }
-            return new
-            {
-                FriendRequestsFromUser = friendRequestsFromUser,
-                FriendRequestsToUser = friendRequestsToUser
-            };
-        }
+        //     foreach (var friend in data)
+        //     {
+        //         if (friend.status == "RequestReceived")
+        //         {
+        //             friendRequestsFromUser.Add(new
+        //             {
+        //                 SenderId = friend.id,
+        //                 RecipientId = safeUserSession.userId
+        //             });
+        //         }
+        //         else if (friend.status == "RequestSent")
+        //         {
+        //             friendRequestsToUser.Add(new
+        //             {
+        //                 SenderId = safeUserSession.userId,
+        //                 RecipientId = friend.id
+        //             });
+        //         }
+        //     }
+        //     return new
+        //     {
+        //         FriendRequestsFromUser = friendRequestsFromUser,
+        //         FriendRequestsToUser = friendRequestsToUser
+        //     };
+        // }
 
         [HttpPostBypass("user/unfriend")]
         public async Task<dynamic> UnfriendUserLegacy([FromForm] FriendRequest request)
@@ -247,20 +247,20 @@ namespace Roblox.Website.Controllers
                 count = await services.friends.CountFriends((long)userId),
             };
         }
-        [HttpGetBypass("v1/users/{userId}/friends/statuses")]
-        public async Task<dynamic> MultiGetFriendshipStatus(string userIds)
-        {
-            var ids = userIds.Split(",").Select(long.Parse).Distinct().ToList();
+        // [HttpGetBypass("v1/users/{userId}/friends/statuses")]
+        // public async Task<dynamic> MultiGetFriendshipStatus(string userIds)
+        // {
+        //     var ids = userIds.Split(",").Select(long.Parse).Distinct().ToList();
 
-            if (ids.Count == 0 || ids.Count > 100)
-                throw new BadRequestException();
+        //     if (ids.Count == 0 || ids.Count > 100)
+        //         throw new BadRequestException();
 
-            var data = await services.friends.MultiGetFriendshipStatus(safeUserSession.userId, ids);
-            return new
-            {
-                data,
-            };
-        }
+        //     var data = await services.friends.MultiGetFriendshipStatus(safeUserSession.userId, ids);
+        //     return new
+        //     {
+        //         data,
+        //     };
+        // }
 
         [HttpGetBypass("v1/users/{userId:long}/friends")]
         public async Task<RobloxCollection<FriendEntry>> GetUserFriends(long userId)
@@ -305,41 +305,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> GetMyFriendRequests(string? cursor, int limit)
         {
             if (limit is <= 0 or > 100) limit = 10;
-            var result = await services.friends.GetFriendRequests(safeUserSession.userId, cursor, limit);
-            List<dynamic> friendRequests = new List<dynamic>();
-
-            if (result.data != null)
-            {
-                foreach (var entry in result.data)
-                {
-                    friendRequests.Add(new
-                    {
-                        friendRequest = new
-                        {
-                            sentAt = entry.created,
-                            senderId = entry.id,
-                            sourceUniverseId = 0,
-                            originSourceType = 0,
-                            contactName = entry.name,
-                            senderNickname = entry.name
-                        },
-                        hasVerifiedBadge = false,
-                        description = entry.description,
-                        created = entry.created,
-                        externalAppDisplayName = "",
-                        id = entry.id,
-                        name = entry.name,
-                        displayName = entry.name,
-                    });
-                }
-            }
-
-            return new
-            {
-                result.previousPageCursor,
-                result.nextPageCursor,
-                data = friendRequests
-            };
+            return await services.friends.GetFriendRequests(safeUserSession.userId, cursor, limit);
         }
 
         [HttpPostBypass("v1/users/{userIdToRequest}/request-friendship")]
