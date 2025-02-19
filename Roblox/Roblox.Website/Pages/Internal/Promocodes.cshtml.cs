@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-
+using Roblox.Services;
 namespace Roblox.Website.Pages.Internal;
-
+// Need to improve this later
 public class Promocodes : RobloxPageModel
 {    
-
     public string? errorMessage { get; set; }
     public string? successMessage { get; set; }
     [BindProperty]
@@ -16,23 +15,36 @@ public class Promocodes : RobloxPageModel
     }
     public async Task OnPost()
     {
-        long assetId = 0;
         if (string.IsNullOrWhiteSpace(promocode))
         {
             errorMessage = "Promocode is empty";
             return;
         }
+
+        PromocodesService.Rewards reward;
         try
         {
-            assetId = await services.promocodes.ClaimPromocode(promocode, userSession.userId);
+            reward = await services.promocodes.ClaimPromocode(promocode, userSession.userId);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            errorMessage = e.Message;
+            errorMessage = ex.Message;
             return;
         }
-        var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
-        successMessage = $"You have successfully claimed the item {assetInfo.name}! Check your inventory to see it.";
-        
+
+        if (reward.assetId != null && reward.robux != null)
+        {
+            var assetInfo = await services.assets.GetAssetCatalogInfo((long)reward.assetId);
+            successMessage = $"You have successfully claimed the item {assetInfo.name} and {reward.robux} Robux! Check your inventory to see it.";
+        }
+        else if (reward.assetId != null)
+        {
+            var assetInfo = await services.assets.GetAssetCatalogInfo((long)reward.assetId);
+            successMessage = $"You have successfully claimed the item {assetInfo.name}! Check your inventory to see it.";
+        }
+        else if (reward.robux != null)
+        {
+            successMessage = $"You have successfully claimed {reward.robux} Robux!";
+        }
     }
 }

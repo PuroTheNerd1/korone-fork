@@ -202,7 +202,6 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException(7, "RecipientUserId is required");
             await services.friends.RequestFriendship(safeUserSession.userId, (long)request.recipientUserId);
            
-
             return new
             {
                 success = true,

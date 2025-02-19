@@ -2323,14 +2323,15 @@ Thank you for your understanding,
     {
         return await MigrateItem.MigrateItemFromRoblox(request.url);
     }
+
     [HttpGet("create-promocode"), StaffFilter(Access.GiveUserItem)]
-    public async Task<dynamic> CreatePromocode(string promocode, long assetId)
+    public async Task<dynamic> CreatePromocode(string promocode, int? robux, long? assetId)
     {
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Not authorized to create promocodes");
         try
         {
-            await services.promocodes.AddPromocode(promocode, assetId);
+            await services.promocodes.AddPromocode(promocode, robux, assetId);
         }
         catch (Exception e)
         {
@@ -2339,6 +2340,24 @@ Thank you for your understanding,
 
         return Ok("Created promocode");
     }
+
+    [HttpGet("delete-promocode"), StaffFilter(Access.GiveUserItem)]
+    public async Task<dynamic> DeletePromocode(string promocode, long assetId)
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("Not authorized to create promocodes");
+        try
+        {
+            await services.promocodes.DeletePromocode(promocode);
+        }
+        catch (Exception e)
+        {
+            return Ok("Failed to delete promocode: " + e.Message);
+        }
+
+        return Ok("Deleted promocode");
+    }
+
     [HttpPost("create-game"), StaffFilter(Access.CreateGameForUser)]
     public async Task<dynamic> CreateGame([Required, FromBody] UserIdRequest request)
     {
