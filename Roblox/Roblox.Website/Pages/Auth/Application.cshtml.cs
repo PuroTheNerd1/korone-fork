@@ -241,15 +241,8 @@ public class Application : RobloxPageModel
             return new PageResult();
         }
 
-        long userId = 0;
-        try {
-            userId = await services.robloxApi.GetUserIdByUsername(robloxUsername);
-        }
-        catch(Exception e) {
-            errorMessage = "We couldn't find your account on Roblox.";
-            Console.WriteLine(e.Message);
-            return new PageResult();
-        }
+        long userId = await services.robloxApi.GetUserIdByUsername(robloxUsername);
+
         socialUrl = $"https://www.roblox.com/users/{userId}/profile";
 
         if (string.IsNullOrEmpty(discordId))
