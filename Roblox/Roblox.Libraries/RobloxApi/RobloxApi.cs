@@ -296,10 +296,11 @@ public class RobloxApi
         Console.WriteLine($"[GetUserIdByUsername]: Inside routine, serialized request: {JsonSerializer.Serialize(request)}");
         var result = await _client.PostAsync("https://users.roblox.com/v1/usernames/users", new StringContent(JsonSerializer.Serialize(request)));
         Console.WriteLine("[GetUserIdByUsername]: Past result");
-        if (!result.IsSuccessStatusCode)
-            throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
         if (result == null)
             throw new Exception("Null response from Roblox");
+        Console.WriteLine($"[GetUserIdByUsername]: Roblox status code: {result.StatusCode} | response: {await result.Content.ReadAsStringAsync()}");
+        if (!result.IsSuccessStatusCode)
+            throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
         Console.WriteLine("[GetUserIdByUsername]: Result checks ok");
         var response = await result.Content.ReadFromJsonAsync<MultiGetByUsernameResponse>(); 
         Console.WriteLine("[GetUserIdByUsername]: Past response");
