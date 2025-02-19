@@ -245,8 +245,9 @@ public class Application : RobloxPageModel
         try {
             userId = await services.robloxApi.GetUserIdByUsername(robloxUsername);
         }
-        catch(Exception) {
+        catch(Exception e) {
             errorMessage = "We couldn't find your account on Roblox.";
+            Console.WriteLine(e.Message);
             return new PageResult();
         }
         socialUrl = $"https://www.roblox.com/users/{userId}/profile";
