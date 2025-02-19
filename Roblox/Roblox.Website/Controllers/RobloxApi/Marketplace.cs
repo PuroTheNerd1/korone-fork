@@ -119,7 +119,8 @@ namespace Roblox.Website.Controllers
             var productInfo = await services.assets.GetProductForAsset(purchaseRequest.productId);
             if (purchaseRequest.productId is 0 or < 0)
                 purchaseRequest.productId = 0;
-            if(productInfo.isLimited || productInfo.isLimitedUnique){
+            if(productInfo.isLimited || productInfo.isLimitedUnique)
+            {
                 return new
                 {
                     status = "error",
@@ -145,8 +146,6 @@ namespace Roblox.Website.Controllers
                 status = "Bought",
                 receipt = "test"
             };
-            // Report time
-
         }
 
     }

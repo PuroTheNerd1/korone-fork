@@ -248,6 +248,7 @@ public class Economy : ControllerBase
     [HttpPostBypass("v1/purchases/products/{assetId:long}")]
     public async Task<dynamic> PurchaseAsset(long assetId)
     {
+        FeatureCheck();
         dynamic? request;
         using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
         {
@@ -263,7 +264,7 @@ public class Economy : ControllerBase
         if (request == null)
             throw new RobloxException(503, 0, "Invalid purchase reqeust");
         var details = await services.assets.GetAssetCatalogInfo(assetId);
-        FeatureCheck();
+
         var stopwatch = new Stopwatch();
         stopwatch.Start();
         // some sanity checks
@@ -273,33 +274,15 @@ public class Economy : ControllerBase
         if (request.userAssetId is 0 or < 0)
             request.userAssetId = null;
         // Confirm asset is buyable
-        var user18Plus = await services.users.Is18Plus(safeUserSession.userId);
-        if (!user18Plus)
-        {
-            if (await services.assets.Is18Plus(assetId))
-                throw new RobloxException(400, 0,
-                    "You cannot purchase 18+ items until you confirm you are 18 or over.");
-        }
-        /*
-        if (request.userAssetId != null)
-        {
-            // User is making UAID purchase
-            await PurchaseResellableItem(assetId, request);
-            // Update sellers avatar in background (in case they were wearing the item they sold)
-            await Task.Run(async () =>
-            {
-                using var avatarService = ServiceProvider.GetOrCreate<AvatarService>();
-                await avatarService.RedrawAvatar(request.expectedSellerId);
-            });
-        }
-        */
-        else
-        {
-            // User is making normal purchase
-            request.expectedSellerId = details.creatorTargetId;
-            await PurchaseNormalItem(assetId, request);
-        }
-
+        // var user18Plus = await services.users.Is18Plus(safeUserSession.userId);
+        // if (!user18Plus)
+        // {
+        //     if (await services.assets.Is18Plus(assetId))
+        //         throw new RobloxException(400, 0,
+        //             "You cannot purchase 18+ items until you confirm you are 18 or over.");
+        // }
+        request.expectedSellerId = details.creatorTargetId;
+        await PurchaseNormalItem(assetId, request);
         stopwatch.Stop();
         // Report time
         Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
