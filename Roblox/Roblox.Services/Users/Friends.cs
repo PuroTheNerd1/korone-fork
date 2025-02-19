@@ -368,11 +368,13 @@ public class FriendsService : ServiceBase, IService
                     one = userIdTop,
                     two = userIdBottom,
                 });
+            // Delete already existing friend request because the client doesn't see the already existing friend request
             if (exists.Any())
-                throw new Exception("A friend request already exists");
+                await DeleteFriendRequests(userIdTop, userIdBottom);
+            
             // confirm not at limit
-            // if (await IsAnyUserAtLimit(userIdTop, userIdBottom))
-            //     throw new Exception("One of the users is at limit");
+            if (await IsAnyUserAtLimit(userIdTop, userIdBottom))
+                throw new Exception("One of the users is at limit");
             // confirm not already friends
             if (await AreAlreadyFriends(userIdTop, userIdBottom))
                 throw new Exception("Users are already friends");
