@@ -2064,7 +2064,7 @@ Thank you for your understanding,
 
         if (details.IsLimited == true || details.IsLimitedUnique == true)
         {
-            if (!permissions.Contains(Access.MakeItemLimited))
+            if (!permissions.Contains(Access.MakeItemLimited) && !StaffFilter.IsOwner(safeUserSession.userId))
                 throw new StaffException("You do not have permission to copy a limited item");
         }
 
@@ -2154,7 +2154,7 @@ Thank you for your understanding,
 
         if (details.IsLimited == true || details.IsLimitedUnique == true)
         {
-            if (!permissions.Contains(Access.MakeItemLimited))
+            if (!permissions.Contains(Access.MakeItemLimited) && !StaffFilter.IsOwner(safeUserSession.userId))
                 throw new StaffException("You do not have permission to copy a limited item");
         }
 
