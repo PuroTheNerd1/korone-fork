@@ -39,6 +39,18 @@ namespace Roblox.Website.Controllers
                 isCaptchaRequired = false,
             };
         }
+        
+        [HttpPostBypass("user/unfollow")]
+        public async Task<dynamic> DeleteFollowingLegacy([FromForm] FollowerRequest request)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
+            await services.friends.DeleteFollowing(safeUserSession.userId, request.followedUserId);
+            return new
+            {
+                success = true,
+                isCaptchaRequired = false,
+            };
+        }
 
         [HttpPostBypass("user/following-exists")]
         [HttpGetBypass("user/following-exists")]
@@ -70,17 +82,6 @@ namespace Roblox.Website.Controllers
             return new 
             { 
                 FollowingDetails = followingDetails 
-            };
-        }
-        [HttpPostBypass("user/unfollow")]
-        public async Task<dynamic> DeleteFollowingLegacy([FromForm] FollowerRequest request)
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.FollowingEnabled);
-            await services.friends.DeleteFollowing(safeUserSession.userId, request.followedUserId);
-            return new
-            {
-                success = true,
-                isCaptchaRequired = false,
             };
         }
     }
