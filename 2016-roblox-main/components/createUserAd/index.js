@@ -20,7 +20,7 @@ const useStyles = createUseStyles({
     fontWeight: 600,
   },
   createUserAdContainer: {
-    background: '#fff',
+    background: 'var(--white-color)',
   },
 });
 

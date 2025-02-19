@@ -4,7 +4,7 @@ import {useEffect, useState} from "react";
 
 const useStyles = createUseStyles({
   tabPane: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     padding: '12px',
     display: 'flex',
     flexDirection: 'column',
@@ -29,7 +29,7 @@ const useStyles = createUseStyles({
     paddingBottom: '5px'
   },
   noPasses:{
-    color: '#757575',
+    color: 'var(--text-color-tertiary)',
     background: 'transparent !important',
     padding: '15px',
     textAlign: 'center',
@@ -52,8 +52,8 @@ const useStyles = createUseStyles({
     display: 'list-item',
   },
   passCard:{
-    border: '1px solid #E3E3E3',
-    backgroundColor: '#fff',
+    border: '1px solid var(--background-color)',
+    backgroundColor: 'var(--white-color)',
     position: 'relative',
     borderRadius: '3px',
     margin: '0 5% 0 0',
@@ -72,7 +72,7 @@ const useStyles = createUseStyles({
     }
   },
   passCaption:{
-    borderTop: '1px solid #b8b8b8',
+    borderTop: '1px solid var(--text-color-secondary)',
     padding: '0 6px 6px',
   },
   passName:{

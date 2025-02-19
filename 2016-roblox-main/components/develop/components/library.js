@@ -7,7 +7,7 @@ import LibraryFilters from "./library/libraryFilters";
 
 const useStyles = createUseStyles({
     LibraryContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         padding: '2px 4px',
     },
 })

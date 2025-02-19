@@ -31,7 +31,7 @@ const FriendButton = props => {
   const disabledClass = store.friendStatus == 'RequestSent' ? s.newDisabledCancelButton : null
   const hoverClass = isAlreadyFriend ? s2.buttonHover : null
 
-  return <Button className={`text-dark ${disabledClass} ${hoverClass}`} disabled={!canFriend} 
+  return <Button className={` ${disabledClass} ${hoverClass}`} disabled={!canFriend} 
   //style={isAlreadyFriend && { '&:hover': { border: '1px solid red', color: 'red' } } || undefined} 
   onClick={(e) => {
     e.preventDefault();

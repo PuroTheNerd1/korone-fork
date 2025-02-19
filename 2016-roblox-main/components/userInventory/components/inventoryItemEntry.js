@@ -5,13 +5,13 @@ import Link from "../../link";
 
 const useStyles = createUseStyles({
   itemCard: {
-    background: '#fff',
+    background: 'var(--white-color)',
     padding: '4px',
     borderRadius: '4px',
     boxShadow: '0 1px 3px rgba(150,150,150,0.75)',
     marginBottom: '1rem',
     '&:hover': {
-      boxShadow: '0 1px 6px 0 #757575',
+      boxShadow: '0 1px 6px 0 var(--text-color-tertiary)',
     },
     cursor: 'pointer',
   },
@@ -48,7 +48,7 @@ const useStyles = createUseStyles({
   creatorLabel: {
     fontWeight: '400',
     fontSize: '12px',
-    color: '#757575',
+    color: 'var(--text-color-tertiary)',
     marginTop: '2px',
   },
   creatorUrl: {

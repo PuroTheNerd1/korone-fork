@@ -3,7 +3,7 @@ import { createUseStyles } from "react-jss";
 const useModalStyles = createUseStyles({
   input: {
     width: '100%',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     padding: '8px 14px',
     marginTop: '10px',
   },

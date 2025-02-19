@@ -65,12 +65,14 @@ const Access = (props) => {
           </select>
           <p className="fw-bold">Select Year:</p>
           <select
-            value={year}
+            value={year} // TODO: make sure this doesnt cause issues
             className="br-none border-1 border-secondary pe-2"
             onChange={(v) => {
               setSelectedYear(parseInt(v.currentTarget.value));
             }}
           >
+            {/*<option value={2015}>2015</option>*/}
+            {/*<option value={2016}>2016</option>*/}
             <option value={2017}>2017</option>
             <option value={2018}>2018</option>
             <option value={2020}>2020</option>

@@ -42,7 +42,7 @@ const useStyles = createUseStyles({
   title: {
     fontWeight: 650,
     fontSize: '32px',
-    color: '#343434',
+    color: 'var(--text-color-primary)',
   },
   subtitle: {
     fontWeight: 600,
@@ -53,7 +53,7 @@ const useStyles = createUseStyles({
     fontSize: '14px',
   },
   catalogItemContainer: {
-    background: '#fff',
+    background: 'var(--white-color)',
     padding: '2px 8px',
     overflow: 'hidden',
   },

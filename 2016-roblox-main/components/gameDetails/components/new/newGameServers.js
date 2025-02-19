@@ -19,7 +19,7 @@ const useEntryStyles = createUseStyles({
     display: 'flex',
     flexDirection: 'row',
     padding: '12px',
-    background: '#fff',
+    background: 'var(--white-color)',
     marginBottom: '6px',
     '@media (max-width: 576px)': {
       flexDirection: 'column',
@@ -27,7 +27,7 @@ const useEntryStyles = createUseStyles({
     },
   },
   callsToAction: {
-    borderRight: '1px solid #b8b8b8',
+    borderRight: '1px solid var(--text-color-secondary)',
     paddingRight: '12px',
     float: 'left',
     width: '20%',
@@ -35,14 +35,14 @@ const useEntryStyles = createUseStyles({
       width: '100%',
       padding: '0 0 12px',
       borderRight: '0',
-      borderBottom: '1px solid #B8B8B8',
+      borderBottom: '1px solid var(--text-color-secondary)',
     },
   },
   gameStatus: {
     fontSize: '16px',
     fontWeight: '400',
     lineHeight: '1.4em',
-    color: '#757575',
+    color: 'var(--text-color-tertiary)',
   },
   joinButton: {
     width: '100%',
@@ -265,10 +265,19 @@ const useStyles = createUseStyles({
   },
 })
 
-// should return same thing as /games/getgameinstancesjson but only servers with friends and an
+// should return same thing as /games/getgameinstancesjson but only servers with friends and an 
 function serversWithFriends(servers, friends) {
   const friendsServers = []
-  if (servers === null || servers === undefined || friends === null || friends === undefined || servers?.Collection === undefined || servers?.Collection === null || !Array.isArray(servers?.CurrentPlayers || !Array.isArray(friends))) {
+  if (
+      servers === null ||
+      servers === undefined ||
+      friends === null ||
+      friends === undefined ||
+      servers?.Collection === undefined ||
+      servers?.Collection === null ||
+      !Array.isArray(servers?.CurrentPlayers) ||
+      !Array.isArray(friends)
+    ){
     return [];
   }
   servers.Collection.forEach(server => {

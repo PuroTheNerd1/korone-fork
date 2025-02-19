@@ -12,7 +12,7 @@ const useStyles = createUseStyles({
     color: 'rgb(25,25,25)',
   },
   container: {
-    background: '#e3e3e3',
+    background: 'var(--background-color)',
   }
 })
 

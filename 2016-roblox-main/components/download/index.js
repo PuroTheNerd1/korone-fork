@@ -5,7 +5,7 @@ import DownloadButton from "./components/downloadButton";
 
 const useDownloadStyles = createUseStyles({
     title: {
-        color: '#343434',
+        color: 'var(--text-color-primary)',
         fontSize: '32px',
         fontWeight: '700',
     },
@@ -21,6 +21,7 @@ const Download = props => {
         <div className='row'>
             <div className='col-12 mb-4'>
                 <h1 className={s.title}>Download</h1>
+                <p className={s.subTitle}>Download the Pekora Player to get into the game.</p>
             </div>
         </div>
         <div className='row'>

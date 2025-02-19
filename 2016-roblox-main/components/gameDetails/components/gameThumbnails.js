@@ -30,7 +30,7 @@ const useStyles = createUseStyles({
     bottom: '20px',
     right: '10px',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: '#fff',
+    color: 'var(--text-color-primary)',
     padding: '5px',
     fontSize: '14px',
     borderRadius: '5px',

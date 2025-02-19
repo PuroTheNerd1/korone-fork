@@ -7,7 +7,7 @@ import ItemImage from "../../itemImage";
 const useTradeItemStyles = createUseStyles({
   col: {
     width: `calc(20% - 5px)`,
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     marginRight: '5px',
     padding: 0,
     height: '100px',
@@ -31,20 +31,10 @@ const useTradeItemStyles = createUseStyles({
     fontSize: '9px',
   },
   imageWrapper: {
-    width: '60px',
-    height: '60px',
+    width: '80px',
+    height: '80px',
     margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  robuxText: {
-    marginBottom: '10px'
-  },
-  robuxImage: {
-    width: '60px',
-    height: '60px',
-    display: 'inline-block'
+    display: 'block',
   },
 })
 
@@ -97,9 +87,9 @@ const TradeItem = props => {
         {props.name}
       </a>
     </p>}
-    {props.robux && <p className={`text-center ${s.robuxText}`}>{props.robux} Robux</p>}
+    {props.robux && <p className={`text-center`}>{props.robux} Robux</p>}
     <div className={s.imageWrapper}>
-      {props.robux && <img className={s.robuxImage} src='/img/test.png' alt='Robux Image'/>}
+      {props.robux && <img src='/img/img-robux-2048.png' alt='Robux Image'/>}
       {props.assetId && <ItemImage className='pt-1' id={props.assetId}/>}
     </div>
     {expanded && props.serialNumber && <p className={labelStyles.rapText + ' ' + labelStyles.serialText}>#{props.serialNumber}/{props.assetStock || '-'}</p>}

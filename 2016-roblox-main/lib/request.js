@@ -41,6 +41,7 @@ const request = async (method, url, data) => {
   } catch (e) {
     if (e.response) {
       let resp = e.response;
+      console.log(resp.headers)
       if (resp.status === 403 && resp.headers['x-csrf-token']) {
         _csrf = resp.headers['x-csrf-token'];
         return await request(method, url, data);

@@ -25,7 +25,7 @@ const useStyles = createUseStyles({
     float: 'right',
   },
   messagesContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
   },
 });
 

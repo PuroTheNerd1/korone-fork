@@ -28,7 +28,7 @@ const useStyles = createUseStyles({
   iconContainer: {
     display: 'flex',
     flexDirection: 'column',
-    borderRight: '1px solid #ccc',
+    borderRight: '1px solid var(--text-color-secondary)',
     paddingRight: '20px'
   },
   gameIcon: {
@@ -97,7 +97,7 @@ const Icon = props => {
         store.placeId
       )
         .then((result) => {
-          /*getImage(`pekora.zip${result.data.data[0].imageUrl}`).then((img) => {
+          /*getImage(`projex.zip${result.data.data[0].imageUrl}`).then((img) => {
             blobToBase64(img.data).then(base64 => {
               setGameIcon(base64)
             })

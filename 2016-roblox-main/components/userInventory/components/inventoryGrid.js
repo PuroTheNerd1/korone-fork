@@ -11,7 +11,7 @@ const useStyles = createUseStyles({
   },
   showingLabel: {
     fontWeight: 400,
-    color: '#757575',
+    color: 'var(--text-color-tertiary)',
   },
 })
 

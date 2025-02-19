@@ -45,9 +45,9 @@ const useCatalogPageStyles = createUseStyles({
   detailsWrapper: {
     position: 'absolute',
     display: 'none',
-    background: '#fff',
+    background: 'var(--white-color)',
     paddingBottom: '5px',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     transform: 'scale(110%)',
     zIndex: 2,
     paddingLeft: '4px',
@@ -98,7 +98,7 @@ const PriceText = (props) => {
   let priceElements = [];
   if (props.isForSale) {
     if (props.price === 0) {
-      priceElements.push(<p className='mb-0 text-dark'>Free</p>)
+      priceElements.push(<p className='mb-0'>Free</p>)
     } else if (props.price !== null) {
       priceElements.push(<p className='mb-0'><Robux>{props.price}</Robux></p>)
     }
@@ -113,7 +113,7 @@ const PriceText = (props) => {
       return <div>
         <>{priceElements.map((v, i) => <React.Fragment key={i}>{v}</React.Fragment>)}</>
         <span>
-          <span className={s.remainingLabel}>Remaining: </span> <span className={s.remainingText + ' text-dark'}>{copiesRemaining.toLocaleString()}</span>
+          <span className={s.remainingLabel}>Remaining: </span> <span className={s.remainingText + ' '}>{copiesRemaining.toLocaleString()}</span>
         </span>
       </div>
     }
@@ -129,7 +129,7 @@ const PriceText = (props) => {
       <p className='mb-0'><Robux prefix="now ">{props.lowestPrice || 'N/A'}</Robux></p>
     </div>
   }
-  return <p className='mb-0 text-dark'>Offsale</p>;
+  return <p className='mb-0 '>Offsale</p>;
 }
 
 const CatalogPageCard = props => {

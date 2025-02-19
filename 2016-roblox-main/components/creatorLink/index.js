@@ -5,9 +5,9 @@ import { createUseStyles } from "react-jss";
 const useStyles = createUseStyles({
   aLink: {
     textDecoration: 'none!important',
-    color: '#00A2FF',
+    color: 'var(--primary-color)',
     '&:hover': {
-      color: '#00A2FF',
+      color: 'var(--primary-color)',
       textDecoration: 'underline!important'
     }
   }

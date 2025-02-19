@@ -9,7 +9,7 @@ import MessagePagination from "./messagePagination";
 
 const useStyles = createUseStyles({
   row: {
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
   },
   buttonWrapper: {
     marginTop: '3px',

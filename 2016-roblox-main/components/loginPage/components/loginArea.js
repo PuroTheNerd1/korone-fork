@@ -19,7 +19,7 @@ const useStyles = createUseStyles({
     inputLabel: {
         width: '90px',
         display: 'inline-block',
-        color: '#343434',
+        color: 'var(--text-color-primary)',
     },
     signInButtonWrapper: {
         float: 'right',

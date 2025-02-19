@@ -10,20 +10,20 @@
 }
 
 .messageBoxOther {
-    background: #d0d0d0;
+    background: var(--background-color);
     border-radius: 3px;
     padding: 4px;
-    color: #111111;
+    color: var(--text-color-primary);
     margin: 4px 4px 4px 4px;
     width: 100%;
 }
 
 .messageBoxSelf {
     width: 75%;
-    background: rgb(24, 155, 243);
+    background: var(--primary-color);
     border-radius: 3px;
     padding: 4px;
-    color: #fff;
+    color: var(--text-color-primary);
     margin: 4px 4px 4px 25%;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .dateLabel {
-    color: #fff;
+    color: var(--text-color-primary);
     text-align: center;
     font-weight: 600;
 
@@ -63,7 +63,7 @@
 }
 
 .dateSpan {
-    background: #ccc;
+    background: var(--text-color-secondary);
     padding: 4px 4px;
     border-radius: 4px;
 }

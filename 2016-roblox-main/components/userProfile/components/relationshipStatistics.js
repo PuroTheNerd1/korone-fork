@@ -9,7 +9,7 @@ const useStyles = createUseStyles({
     fontSize: '18px',
     fontWeight: 500,
     lineHeight: '1.4em',
-    color: '#b8b8b8',
+    color: 'var(--text-color-secondary)',
     '@media(max-width: 767px)': {
       fontSize: '16px',
     },
@@ -20,7 +20,7 @@ const useStyles = createUseStyles({
     textAlign: 'center',
     fontSize: '20px',
     '&> a': {
-      color: '#00A2FF',
+      color: 'var(--primary-color)',
       '&:hover': {
         textDecoration: 'underline!important',
       }
@@ -28,10 +28,10 @@ const useStyles = createUseStyles({
   },
 
   statTextContainer: {
-    color: "#00a2ff!important",
+    color: "var(--primary-color)!important",
     textDecoration: 'none!important',
     '&:hover': {
-      color: "#00a2ff!important",
+      color: "var(--primary-color)!important",
       cursor: 'ponter',
       textDecoration: 'underline!important',
     }
@@ -42,13 +42,13 @@ const useStyles = createUseStyles({
     lineHeight: '1em',
     margin: 0,
     padding: '5px 0',
-    color: '#00a2ff!important',
+    color: 'var(--primary-color)!important',
     textDecoration: 'none!important',
     '@media(max-width: 767px)': {
       padding: 0,
     },
     '&:hover': {
-      color: '#00a2ff!important',
+      color: 'var(--primary-color)!important',
       textDecoration: 'underline!important',
     }
   },

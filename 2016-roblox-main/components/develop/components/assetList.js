@@ -96,7 +96,6 @@ const AssetEntry = props => {
       name: 'Run',
       onClick: e => {
         e.preventDefault();
-        console.log('run ad');
         setRunMenuOpen(!runMenuOpen);
       },
     },
@@ -113,7 +112,7 @@ const AssetEntry = props => {
             console.error('There was a problem shutting down all servers for a place:', error);
             window.confirm(`There was a problem shutting down all servers: ${error}`)
           })
-          /*fetch(`https://pekora.zip/rcc/killallservers?placeId=${props.assetId}`, {
+          /*fetch(`https://projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
             method: "GET",
           })
             .then(response => {
@@ -159,7 +158,7 @@ const AssetEntry = props => {
       </Link>
     </div>
     <div className={
-      //isPlace ? 'col-7 ps-0' :
+      //isPlace ? 'col-7 ps-0' : 
       'col-9 ps-0'}>
       <p className='mb-0'>
         <Link href={url}>
@@ -176,7 +175,7 @@ const AssetEntry = props => {
       }
     </div>
     <div className={
-      //isPlace ? `col-4 ${s.gearDropdownWrapper}` :
+      //isPlace ? `col-4 ${s.gearDropdownWrapper}` : 
       'col-1'}>
       {/*isPlace && <div className={s.editWrapper}>
         <ActionButton onClick={() => {}} disabled={true} label='Edit' buttonStyle={buttonStyles.cancelButton}></ActionButton>

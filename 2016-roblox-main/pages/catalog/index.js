@@ -13,10 +13,10 @@ const useStyles = createUseStyles({
     fontWeight: 700,
     fontSize: '32px',
     marginBottom: '12px',
-    color: '#343434',
+    color: 'var(--text-color-primary)',
   },
   catalogContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     padding: '2px 4px',
   },
 })

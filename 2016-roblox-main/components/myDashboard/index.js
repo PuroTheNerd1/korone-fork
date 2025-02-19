@@ -30,7 +30,8 @@ const useStyles = createUseStyles({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingBottom: '5px',
-        color: p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
+        // color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : '',
+        color: 'var(--text-color-primary)',
         '& h3': {
             fontSize: '24px',
             fontWeight: 300,
@@ -103,7 +104,7 @@ const useStyles = createUseStyles({
     headshotWrapper: {
         marginRight: '24px',
         float: 'left',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         boxShadow: '0 1px 4px 0 rgba(25,25,25,0.3)',
         border: '0 none',
         width: '150px',
@@ -142,7 +143,8 @@ const useStyles = createUseStyles({
         lineHeight: '1em',
         cursor: 'pointer',
         textDecoration: 'none!important',
-        color: p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
+        //color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
+        color: 'var(--text-color-primary)',
     },
     friendSection: {
         minHeight: '1px',
@@ -183,7 +185,7 @@ const useStyles = createUseStyles({
     blogNewsContainer: {},
 
     seeAllButton: {
-        borderColor: '#00A2FF',
+        borderColor: 'var(--primary-color)',
         width: '90px',
         padding: '4px',
         fontSize: '14px',

@@ -218,7 +218,6 @@ const Wardrobe = props => {
           data: result.Data.Items,
         })
       }
-      console.log(result);
     }).catch(e => {
       console.error('[error] getInventory() error', e);
     }).finally(() => {

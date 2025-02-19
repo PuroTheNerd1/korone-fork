@@ -12,7 +12,7 @@ const useStyles = createUseStyles({
     fontSize: '24px',
   },
   categoryBgDesktop: {
-    background: '#fff',
+    background: 'var(--white-color)',
     borderRadius: '4px',
     boxShadow: '0 1px 3px rgba(150,150,150,0.75)',
   },

@@ -28,7 +28,7 @@ const useStyles = createUseStyles({
     },
   },
   gamesContainer: {
-    backgroundColor: '#e3e3e3',
+    //backgroundColor: 'var(--background-color)',
     paddingTop: '8px',
     marginLeft: '15px',
     marginRight: '15px',

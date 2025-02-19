@@ -11,11 +11,11 @@ const useTabEntryStyles = createUseStyles({
     paddingTop: '8px',
     cursor: 'pointer',
     '&:hover': {
-      boxShadow: '0 -4px 0 0 #00a2ff inset',
+      boxShadow: '0 -4px 0 0 var(--primary-color) inset',
     },
   },
   entryActive: {
-    boxShadow: '0 -4px 0 0 #00a2ff inset',
+    boxShadow: '0 -4px 0 0 var(--primary-color) inset',
   },
 });
 

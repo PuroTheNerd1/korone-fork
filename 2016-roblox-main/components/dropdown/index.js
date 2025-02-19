@@ -11,7 +11,7 @@ const useDropdownStyles = createUseStyles({
     padding: '2px',
   },
   mainBody: {
-    backgroundColor: '#efefef',
+    backgroundColor: 'var(--background-color)',
   },
   itemDiv: {
     paddingLeft: '8px',
@@ -20,7 +20,7 @@ const useDropdownStyles = createUseStyles({
     paddingBottom: '4px',
     cursor: 'pointer',
     '&:hover': {
-      background: '#d8d8d8',
+      background: 'var(--text-color-secondary)',
     },
   },
   caret: {
@@ -31,7 +31,7 @@ const useDropdownStyles = createUseStyles({
   },
   leftMenu: {
     position: 'absolute',
-    backgroundColor: '#efefef',
+    background: 'linear-gradient(0deg, rgba(86,86,85,1) 0%, rgba(128,127,127,1) 100%)',
     border: '1px solid #565655',
     minWidth: '150px',
     '@media(max-width: 800px)': {
@@ -47,11 +47,11 @@ const useDropdownStyles = createUseStyles({
     paddingLeft: '4px',
   },
   separator: {
-    borderBottom: '1px solid #c3c3c3',
+    borderBottom: '1px solid var(--text-color-quinary)',
     width: '100%',
   },
   selected: {
-    backgroundColor: '#cccccc!important'
+    backgroundColor: 'var(--text-color-secondary)ccc!important'
   },
 });
 /**

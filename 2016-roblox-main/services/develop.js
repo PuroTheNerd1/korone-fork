@@ -1,7 +1,7 @@
 import getFlag from "../lib/getFlag";
 import request, { getBaseUrl, getFullUrl } from "../lib/request"
 
-export const uploadAsset = ({ name, assetTypeId, file, groupId, description=null }) => {
+export const uploadAsset = ({ name, assetTypeId, file, groupId, description = null }) => {
   let formData = new FormData();
   formData.append('name', name);
   formData.append('assetType', assetTypeId);
@@ -16,7 +16,11 @@ export const uploadAsset = ({ name, assetTypeId, file, groupId, description=null
 }
 
 export const uploadAssetVersion = async ({ assetId, file }) => {
-  return new Promise((resolve, reject) => {
+  let formData = new FormData();
+  formData.append('assetId', assetId);
+  formData.append('file', file);
+  return request('POST', getBaseUrl() + '/develop/upload-version', formData);
+  /*return new Promise((resolve, reject) => { // this breaks csrf im pretty sure -- zyth
     let form = new FormData();
     form.append('assetId', assetId);
     form.append('file', file);
@@ -47,7 +51,7 @@ export const uploadAssetVersion = async ({ assetId, file }) => {
     };
 
     xhr.send(form);
-  });
+  });*/
 };
 
 export const getCreatedAssetDetails = (assetIds) => {
@@ -59,7 +63,7 @@ export const getCreatedAssetDetails = (assetIds) => {
 export const getCreatedItems = ({ assetType, limit, cursor, groupId }) => {
   let url = '/v1/creations/get-assets?assetType=' + assetType + '&limit=' + limit + '&cursor=' + encodeURIComponent(cursor);
   if (groupId) {
-    url = url +'&groupId=' + encodeURIComponent(groupId);
+    url = url + '&groupId=' + encodeURIComponent(groupId);
   }
   return request('GET', getFullUrl('itemconfiguration', url)).then(assets => {
     if (assets.data.data.length !== 0) {
@@ -72,7 +76,7 @@ export const getCreatedItems = ({ assetType, limit, cursor, groupId }) => {
   })
 }
 
-export const updateAsset = async ({assetId, name, description, genres, isCopyingAllowed, enableComments}) => {
+export const updateAsset = async ({ assetId, name, description, genres, isCopyingAllowed, enableComments }) => {
   return await request('PATCH', getFullUrl('develop', `/v1/assets/${assetId}`), {
     name,
     description,
@@ -82,9 +86,9 @@ export const updateAsset = async ({assetId, name, description, genres, isCopying
   });
 }
 
-export const setAssetPrice = async ({assetId, priceInRobux, priceInTickets}) => {
+export const setAssetPrice = async ({ assetId, priceInRobux, priceInTickets }) => {
   let obj = {
-    priceInRobux, 
+    priceInRobux,
   };
   if (getFlag('sellItemForTickets', false)) {
     obj.priceInTickets = priceInTickets;
@@ -95,14 +99,14 @@ export const setAssetPrice = async ({assetId, priceInRobux, priceInTickets}) => 
 export const getAllGenres = async () => {
   return (await request('GET', getFullUrl('develop', '/v1/assets/genres'))).data.data;
 }
-export const setUniverseYear = async ({universeId, year}) => {
-  return await request('PATCH',getFullUrl('develop', `/v1/universes/${universeId}/set-year`), {
+export const setUniverseYear = async ({ universeId, year }) => {
+  return await request('PATCH', getFullUrl('develop', `/v1/universes/${universeId}/set-year`), {
     year,
   });
 }
 
-export const setUniverseMaxPlayers = async ({universeId, maxPlayers}) => {
-  return await request('PATCH',getFullUrl('develop', `/v1/universes/${universeId}/max-player-count`), {
+export const setUniverseMaxPlayers = async ({ universeId, maxPlayers }) => {
+  return await request('PATCH', getFullUrl('develop', `/v1/universes/${universeId}/max-player-count`), {
     maxPlayers,
   });
 }
@@ -114,10 +118,10 @@ export const uploadGameIcon = async ({ placeId, file }) => {
 
     let xhr = new XMLHttpRequest();
 
-    xhr.open('POST', 
+    xhr.open('POST',
       getFullUrl('develop', `/v1/assets/upload-gameicon?placeId=${placeId}`))
 
-    xhr.upload.onprogress = function(event) {
+    xhr.upload.onprogress = function (event) {
       if (event.lengthComputable) {
         let percentComplete = (event.loaded / event.total) * 100;
         console.log('Upload progress: ' + percentComplete.toFixed(2) + '%');
@@ -126,7 +130,7 @@ export const uploadGameIcon = async ({ placeId, file }) => {
 
     xhr.responseType = 'json';
 
-    xhr.onload = function() {
+    xhr.onload = function () {
       if (xhr.status === 200) {
         resolve(xhr.response);
       } else {
@@ -134,7 +138,7 @@ export const uploadGameIcon = async ({ placeId, file }) => {
       }
     };
 
-    xhr.onerror = function() {
+    xhr.onerror = function () {
       reject('Network error while uploading file.');
     };
 

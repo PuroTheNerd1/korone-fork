@@ -12,7 +12,7 @@ import Security from "./components/security";
 
 const useStyles = createUseStyles({
   settingsRow: {
-    background: '#e3e3e3',
+    background: 'var(--background-color)',
   },
 })
 

@@ -11,7 +11,7 @@ import useButtonWrapperStyle from '../styles/buttonWrapper'
 
 const useCollectionStyles = createUseStyles({
   imageWrapper: {
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     //borderRadius: '4px',
     borderRadius: 0,
   },

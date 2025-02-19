@@ -18,7 +18,7 @@ import JoinButton from "./joinButton";
 
 const useHeaderStyles = createUseStyles({
   iconWrapper: {
-    border: '1px solid #B8B8B8',
+    border: '1px solid var(--text-color-secondary)',
     margin: '0 auto',
     maxWidth: '110px',
   },
@@ -67,7 +67,7 @@ const useHeaderStyles = createUseStyles({
   },
   updateStatusInput: {
     width: 'calc(100% - 140px)',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     borderRadius: '4px',
     '@media(max-width: 992px)': {
       width: '100%',
@@ -126,7 +126,7 @@ const useHeaderStyles = createUseStyles({
     marginRight: '12px',
     width: '128px',
     height: '128px',
-    border: '1px solid #b8b8b8',
+    border: '1px solid var(--text-color-secondary)',
     backgroundColor: '#d1d1d1',
     borderRadius: '50%',
     verticalAlign: 'bottom',

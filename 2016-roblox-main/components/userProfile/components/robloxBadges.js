@@ -16,7 +16,7 @@ const useBadgeStyles = createUseStyles({
     fontWeight: 500,
   },
   imageWrapper: {
-    border: '1px solid #b8b8b8',
+    border: '1px solid var(--text-color-secondary)',
     //borderRadius: '4px',
     borderRadius: 0,
     width: '142px',
@@ -71,7 +71,7 @@ const RobloxBadges = props => {
                     <div className={s.imageWrapper}>
                       <span className={`icon-${v.name.toLowerCase().replace(/ /g, '-')}`} />
                     </div>
-                    <p className={`${s.label} link2019 mb-0 text-dark`}>{v.name}</p>
+                    <p className={`${s.label} link2019 mb-0 `}>{v.name}</p>
                   </a>
                 </Link>
               </div>

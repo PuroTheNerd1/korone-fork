@@ -12,7 +12,7 @@ export const useStyles = createUseStyles({
     fontWeight: 300,
     marginBottom: '10px',
     marginTop: '10px',
-    color: 'rgb(33, 37, 41)',
+    color: 'var(--text-color-primary)',
     marginLeft: '10px',
   },
   gameRow: {
@@ -41,21 +41,22 @@ export const useStyles = createUseStyles({
     margin: 0,
   },
   pagerButton: {
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     width: '40px',
     height: 'calc(100% - 30px)',
-    background: 'rgba(255,255,255,1)',
+    background: 'var(--background-color)',
     position: 'relative',
     cursor: 'pointer',
-    color: '#666',
-    boxShadow: '0 0 3px 0 #ccc',
+    color: 'var(--text-color-primary)',
+    boxShadow: '0 0 3px 0 var(--text-color-secondary)',
+    marginTop: '15px',
     display: 'flex',
     '@media(max-width: 994px)': {
       display: 'none',
     },
-    '&:hover': {
-      color: 'black',
-    },
+    // '&:hover': {
+    //   color: 'black',
+    // },
   },
   goBack: {
     //float: 'left',
@@ -88,10 +89,13 @@ export const useStyles = createUseStyles({
     lineHeight: '1.4em',
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'end',
     marginLeft: '10px',
-    paddingBottom: '5px',
-    width: 'calc(75% - 10px)',
+    position: "absolute",
+    zIndex: 1,
+    marginTop: '15px',
+    //width: 'calc(75% - 10px)',
+    width: '65.75%',
     '@media(max-width: 994px)': {
       width: '100%',
       marginLeft: '6px',
@@ -108,7 +112,7 @@ export const useStyles = createUseStyles({
     }
   },
   seeAllButton: {
-    borderColor: '#00A2FF',
+    borderColor: 'var(--primary-color)',
     width: '90px',
     padding: '4px',
     fontSize: '14px',
@@ -125,6 +129,7 @@ export const useStyles = createUseStyles({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: '43px',
     '@media(max-width: 994px)': {
       paddingRight: 0,
     },

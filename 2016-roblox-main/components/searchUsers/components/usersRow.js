@@ -29,7 +29,7 @@ const useStyles = createUseStyles({
   },
   userRow: {
     color: 'inherit',
-    borderTop: '1px solid #c3c3c3',
+    borderTop: '1px solid var(--text-color-quinary)',
     paddingTop: '20px',
     paddingBottom: '20px',
     '&:hover': {

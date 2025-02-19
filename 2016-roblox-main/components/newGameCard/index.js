@@ -22,7 +22,7 @@ const useStyles = createUseStyles({
         width: '100%',
         position: 'relative',
         boxShadow: '0 1px 4px 0 rgba(25,25,25,0.3)',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         borderRadius: '3px',
         float: 'left',
         margin: '0 auto',
@@ -93,7 +93,7 @@ const useStyles = createUseStyles({
     gameCardPlaying: {
         fontSize: '12px',
         fontWeight: '400',
-        color: '#757575',
+        color: 'var(--text-color-tertiary)',
         width: '100%',
         padding: '0 6px',
         margin: '3px 0',
@@ -128,26 +128,26 @@ const useStyles = createUseStyles({
         position: 'relative',
     },
     voteBackground: {
-        backgroundColor: '#b8b8b8',
+        backgroundColor: 'var(--text-color-secondary)',
         position: 'absolute',
         top: 0,
         left: 0,
         height: '100%',
         width: '100%',
     },
-    hasVotes: { backgroundColor: '#E27676', opacity: '.6' },
+    hasVotes: { backgroundColor: 'var(--bad-color)', opacity: '.6' },
     hasVotesPercentage: {
         backgroundColor: '#02b757!important'
     },
     votePercentage: {
-        backgroundColor: '#757575',
+        backgroundColor: 'var(--text-color-tertiary)',
         position: 'absolute',
         top: 0,
         left: 0,
         height: '100%',
     },
     segment: {
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         height: '6px',
         width: '2px',
         position: 'absolute',
@@ -198,14 +198,14 @@ const useStyles = createUseStyles({
     },
     downvoteCount: {
         opacity: '.6',
-        color: '#E27676',
+        color: 'var(--bad-color)',
         float: 'right',
     },
     visibleCounts: { display: 'block' },
 
     gameCardFooterContainer: {
         display: 'none',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         boxShadow: '0px 1px 6px 0px rgba(25,25,25,0.75)',
         clipPath: 'inset(2px -10px -10px -10px)',
         borderBottomLeftRadius: '3px',
@@ -217,7 +217,7 @@ const useStyles = createUseStyles({
         alignItems: 'center'
     },
     gameCardFooter: {
-        borderTop: '1px solid #E3E3E3',
+        borderTop: '1px solid var(--background-color)',
         width: '100%',
         lineHeight: '1.3em',
         whiteSpace: 'normal',
@@ -231,7 +231,7 @@ const useStyles = createUseStyles({
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        color: '#B8B8B8',
+        color: 'var(--text-color-secondary)',
         fontWeight: '400',
         fontSize: '12px',
         lineHeight: '1.3em!important',
@@ -240,10 +240,10 @@ const useStyles = createUseStyles({
             display: 'inline',
             //marginLeft: '3px',
             marginLeft: 0,
-            color: '#00A2FF',
+            color: 'var(--primary-color)',
             textDecoration: 'none!important',
             '&:hover': {
-                color: '#00A2FF',
+                color: 'var(--primary-color)',
                 textDecoration: 'underline!important'
             }
         }
@@ -254,14 +254,14 @@ const useStyles = createUseStyles({
         bottom: '20px',
         right: '10px',
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        color: '#fff',
+        color: 'var(--text-color-primary)',
         padding: '5px',
         fontSize: '14px',
         borderRadius: '5px',
     },
 
     triangleRight: {
-        borderRight: '35px solid #fff',
+        borderRight: '35px solid var(--white-color)',
         borderTop: '30px solid transparent',
         display: 'inline-block',
         position: 'absolute',
@@ -275,7 +275,7 @@ const useStyles = createUseStyles({
         bottom: '-4px',
         height: '30px',
         width: '40px',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         display: 'flex!important',
         alignItems: 'center',
         zIndex: '2'
@@ -284,7 +284,7 @@ const useStyles = createUseStyles({
         position: 'absolute',
         left: '-12px',
         fontSize: '21px',
-        color: '#191919',
+        color: 'var(--text-color-primary)',
         zIndex: '2',
         userSelect: 'none',
         fontWeight: '300',
@@ -295,7 +295,7 @@ const useStyles = createUseStyles({
         float: 'left',
         width: '65%',
         userSelect: 'none',
-        color: '#191919',
+        color: 'var(--text-color-primary)',
         marginBottom: 0,
     },
     yearText3: {
@@ -304,7 +304,7 @@ const useStyles = createUseStyles({
         //width: '35%',
         fontWeight: '400',
         userSelect: 'none',
-        color: '#191919',
+        color: 'var(--text-color-primary)',
         marginBottom: 0,
     },
 });

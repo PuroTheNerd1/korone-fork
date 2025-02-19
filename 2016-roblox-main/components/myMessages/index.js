@@ -8,7 +8,7 @@ import MessageRow from "./components/messageRow";
 
 const useStyles = createUseStyles({
   messagesContainer: {
-    background: '#fff',
+    background: 'var(--white-color)',
     padding: '4px 8px',
     overflow: 'hidden',
     minHeight: '100vh',

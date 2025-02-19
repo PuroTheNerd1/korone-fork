@@ -37,12 +37,12 @@ const SettingsDropdown = (props) => {
     <div className={s.wrapper}>
       <p className={`${s.text}`}>
         <Link href="/My/Account">
-          <a className="text-dark">Settings</a>
+          <a className="">Settings</a>
         </Link>
       </p>
       <p className={`${s.text}`}>
         <Link href="/help">
-          <a className="text-dark">Help</a>
+          <a className="">Help</a>
         </Link>
       </p>
       <p className={`${s.text}`}>
@@ -53,7 +53,7 @@ const SettingsDropdown = (props) => {
               window.location.reload();
             });
           }}
-          className="text-dark"
+          className=""
         >
           Logout
         </a>
@@ -303,7 +303,7 @@ const LoggedInArea = (props) => {
               url: '/help',
             },
             {
-              name: 'Logout (unlike Solario, we give you the choice!)',
+              name: 'Logout',
               onClick: (e) => {
                 if (e)
                   e?.preventDefault();

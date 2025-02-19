@@ -56,7 +56,7 @@ const useSellerStyles = createUseStyles({
   playerHeadshot: {
     width: '30px',
     height: '30px',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     borderRadius: '100%',
     overflow: 'hidden',
     float: 'left',

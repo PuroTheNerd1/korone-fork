@@ -61,7 +61,6 @@ const isResellable = details => {
   return isLimited(details) && !details.isForSale;
 }
 
-
 const CatalogDetailsPage = createContainer(() => {
   /**
    * @type {[AssetDetailsEntry, import('react').Dispatch<AssetDetailsEntry>]}

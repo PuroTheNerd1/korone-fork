@@ -23,7 +23,7 @@ const useStyles = createUseStyles({
   dropdownEntry: {
     width: '100%',
     '&:hover': {
-      background: '#e3e3e3',
+      background: 'var(--white-color)',
     },
   },
   dropdownText: {
@@ -41,7 +41,7 @@ const useStyles = createUseStyles({
     background: 'transparent',
     border: '0 transparent',
     padding: 0,
-    color: '#191919',
+    color: 'var(--text-color-primary)',
     userSelect: 'none',
     cursor: 'pointer',
     fontWeight: '500',
@@ -71,11 +71,11 @@ const useStyles = createUseStyles({
   },
 
   dropdownNew: {
-    color: '#191919',
+    color: 'var(--text-color-primary)',
     width: 'auto',
     right: '5px',
     left: 'auto',
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     boxShadow: '0 -5px 20px rgba(25, 25, 25, 0.15)!important',
     maxHeight: '266px',
     borderRadius: '4px',
@@ -94,7 +94,7 @@ const useStyles = createUseStyles({
   },
 
   dropdownItem: {
-    color: '#191919',
+    color: 'var(--text-color-primary)',
     padding: 0,
     margin: 0,
     whiteSpace: 'nowrap',
@@ -102,9 +102,9 @@ const useStyles = createUseStyles({
     listStyle: 'none',
     display: 'list-item',
     '&:hover': {
-      backgroundColor: '#f2f2f2 !important',
-      boxShadow: 'inset 4px 0 0 0 #00a2ff',
-      color: '#191919'
+      backgroundColor: 'var(--background-color) !important',
+      boxShadow: 'inset 4px 0 0 0 var(--primary-color)',
+      color: 'var(--text-color-primary)'
     }
   },
   dropdownItemLink: {
@@ -121,9 +121,9 @@ const useStyles = createUseStyles({
     cursor: 'pointer',
     fontSize: '16px',
     userSelect: 'none',
-    color: '#191919',
+    color: 'var(--text-color-primary)',
     '&:hover': {
-      color: '#191919'
+      color: 'var(--text-color-primary)'
     }
   },
   centered: {

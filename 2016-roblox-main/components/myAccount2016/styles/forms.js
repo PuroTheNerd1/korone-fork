@@ -3,7 +3,7 @@ import { createUseStyles } from "react-jss";
 const useFormStyles = createUseStyles({
   accountInfoLabel: {
     marginBottom: '6px',
-    color: '#c3c3c3',
+    color: 'var(--text-color-quinary)',
     fontSize: '15px',
   },
   accountInfoValue: {
@@ -13,7 +13,7 @@ const useFormStyles = createUseStyles({
     width: '100%',
     borderRadius: '4px',
     padding: '6px 8px',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
   },
   select: {
     borderRadius: '2px',
@@ -21,9 +21,9 @@ const useFormStyles = createUseStyles({
   },
   disabled: {
     background: 'white!important',
-    color: '#c3c3c3',
+    color: 'var(--text-color-quinary)',
     '&:focus': {
-      color: '#c3c3c3',
+      color: 'var(--text-color-quinary)',
       boxShadow: 'none',
     },
   },
@@ -37,14 +37,14 @@ const useFormStyles = createUseStyles({
   },
   saveButton: {
     background: 'white',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     borderRadius: '4px',
     fontSize: '16px',
     padding: '4px 8px',
     cursor: 'pointer',
   },
   genderUnselected: {
-    color: '#c3c3c3',
+    color: 'var(--text-color-quinary)',
     cursor: 'pointer',
   },
 });

@@ -1,4 +1,5 @@
 import { createUseStyles } from "react-jss";
+import {getTheme} from "../../../services/theme";
 
 const useStyles = createUseStyles({
     image: {
@@ -22,6 +23,7 @@ const useStyles = createUseStyles({
 
 const DownloadButton = ({ url, title, imageUrl }) => {
     const s = useStyles();
+    const theme = getTheme();
 
     return <div className='col-6 col-lg-4 mx-auto'>
         <div className={'card ' + s.card}>

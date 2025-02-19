@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
         aspectRatio: '612 / 385'
     },
     modalTopBody: {
-        //color: '#191919',
+        //color: 'var(--text-color-primary)',
     },
     modalMessage: {
         fontSize: '16px',

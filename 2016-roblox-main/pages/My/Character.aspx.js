@@ -14,7 +14,7 @@ const useCharacterPageStyles = createUseStyles({
   },
   characterContainer: {
     position: 'relative',
-    background: '#fff',
+    background: 'var(--white-color)',
     padding: '4px 8px',
     overflow: 'hidden',
   },
@@ -30,7 +30,7 @@ const MyCharacterPage = props => {
   const [rigType, setRigType] = useState(null);
 
   useEffect(() => {
-    fetch('https://www.pekora.zip/apisite/avatar/v1/avatar') // r15 - r6 checker
+    fetch('/apisite/avatar/v1/avatar') // r15 - r6 checker
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch avatar data');
@@ -39,6 +39,7 @@ const MyCharacterPage = props => {
       })
       .then(data => {
         const avatarType = data.playerAvatarType;
+        console.log(data)
         if (avatarType === 'R6' || avatarType === 'R15') {
           setRigType(avatarType);
         } else {
@@ -80,7 +81,9 @@ const MyCharacterPage = props => {
           </div>
         </div>
         {rigType && (
-          <CharacterCustomizationStore.Provider value={{ rigType }}>
+          <CharacterCustomizationStore.Provider 
+// @ts-ignore
+          value={{ rigType }}>
             <CharacterPage />
           </CharacterCustomizationStore.Provider>
         )}

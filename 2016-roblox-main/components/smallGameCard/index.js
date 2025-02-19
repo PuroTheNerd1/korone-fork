@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
   labelPlaying: {
     fontSize: '12px',
     marginBottom: 0,
-    color: '#757575',
+    color: 'var(--text-color-tertiary)',
   },
   imageWrapper: {
     padding: '8px',
@@ -36,10 +36,10 @@ const useStyles = createUseStyles({
     boxShadow: '0 3px 4px 0 rgb(25 25 25 / 30%)',
   },
   creatorText: {
-    color: '#c3c3c3',
+    color: 'var(--text-color-quinary)',
     fontSize: '13px',
     '&>a': {
-      color: '#00a2ff',
+      color: 'var(--primary-color)',
       '&:hover': {
         textDecoration: 'underline!important',
       },
@@ -52,7 +52,7 @@ const useStyles = createUseStyles({
   ratioBox: {
     width: '20px',
     height: '5px',
-    background: '#c3c3c3',
+    background: 'var(--text-color-quinary)',
     display: 'inline-block',
     marginLeft: '3px',
   },
@@ -68,16 +68,16 @@ const useStyles = createUseStyles({
     display: 'inline-block',
   },
   solidGreen: {
-    background: '#757575',
+    background: 'var(--text-color-tertiary)',
   },
   solidRed: {
-    background: '#c3c3c3',
+    background: 'var(--text-color-quinary)',
   },
   solidGreenColor: {
     background: '#02b757',
   },
   solidRedColor: {
-    background: '#E27676',
+    background: 'var(--bad-color)',
   },
 
   yearText: {
@@ -85,7 +85,7 @@ const useStyles = createUseStyles({
     bottom: '20px',
     right: '10px',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: '#fff',
+    color: 'var(--text-color-primary)',
     padding: '5px',
     fontSize: '14px',
     borderRadius: '5px',

@@ -11,14 +11,14 @@ const useStyles = createUseStyles({
     paddingTop: '10px',
     paddingBottom: '6px',
     paddingLeft: '5px',
-    borderBottom: '1px solid #e3e3e3',
+    borderBottom: '1px solid var(--background-color)',
   },
   block: {
     display: 'inline-block',
   },
   image: {
     borderRadius: '50%',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     maxWidth: '30px',
   },
   senderName: {

@@ -20,7 +20,7 @@ import HorizontalTabs from "../horizontalTabs";
 
 const useStyles = createUseStyles({
   profileContainer: {
-    background: '#e3e3e3',
+    background: 'var(--background-color)',
     marginTop: '8px',
   },
   container: {

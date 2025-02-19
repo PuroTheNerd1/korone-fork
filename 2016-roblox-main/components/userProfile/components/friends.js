@@ -18,7 +18,7 @@ const useFriendStyles = createUseStyles({
     minWidth: '100px',
   },
   imageWrapper: {
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
   },
   username: {
     fontSize: '16px',
@@ -92,7 +92,7 @@ const useFriendStyles = createUseStyles({
     display: 'block',
     lineHeight: '1.867em',
     '&:hover': {
-      color: '#00A2FF'
+      color: 'var(--primary-color)'
     }
   },
   image: {

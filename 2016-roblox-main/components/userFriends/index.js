@@ -27,7 +27,7 @@ const useStyles = createUseStyles({
     fontSize: '40px',
   },
   imageWrapper: {
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     minHeight: '82px',
   },
   userCard: {},
@@ -35,7 +35,7 @@ const useStyles = createUseStyles({
     color: '#000',
   },
   friendsContainer: {
-    background: '#e3e3e3',
+    background: 'var(--background-color)',
     padding: '4px 8px',
   },
   manageRequestCard: {
@@ -229,14 +229,14 @@ const UserFriends = props => {
                         <div className='d-inline-block'>
                           <p className={'mb-0 font-size-18 ' + s.username}>
                             <Link href={`/users/${v.id}/profile`}>
-                              <a className='text-dark'>
+                              <a className=''>
                                 {v.name}
                               </a>
                             </Link>
                           </p>
                         </div>
                         {
-                          canRemoveUser ? <div className='d-inline-block float-end font-size-30 text-dark'>
+                          canRemoveUser ? <div className='d-inline-block float-end font-size-30 '>
                             <Dropdown2016 options={[
                               {
                                 name: tab === 'Friends' ? 'Remove' : 'Unfollow',

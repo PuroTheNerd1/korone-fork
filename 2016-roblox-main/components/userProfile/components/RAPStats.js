@@ -4,7 +4,7 @@ import Link from "../../link";
 
 const useStyles = createUseStyles({
   statHeader: {
-    color: '#c3c3c3',
+    color: 'var(--text-color-quinary)',
     fontWeight: 400,
     marginBottom: 0,
     textAlign: 'center',
@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
     textAlign: 'center',
     fontSize: '20px',
     '&> a': {
-      color: '#00A2FF',
+      color: 'var(--primary-color)',
       '&:hover': {
         textDecoration: 'underline!important',
       }

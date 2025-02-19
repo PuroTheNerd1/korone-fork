@@ -13,10 +13,10 @@ const MessageButton = props => {
   const auth = AuthenticationStore.useContainer();
   const s = useStyles()
   // TODO: check if we can message user, disable if user is not messageable
-  return <Button style={{ width: 'auto' }} className={`text-dark`} onClick={() => {
+  return <Button style={{ width: 'auto' }} className={``} onClick={() => {
     window.location.href='/messages/compose?recipientId=' + store.userId
   }}>
-    {/*<a className={`text-dark`} >Message</a>*/}
+    {/*<a className={``} >Message</a>*/}
     Message
   </Button>
 }

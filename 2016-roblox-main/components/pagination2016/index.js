@@ -9,7 +9,7 @@ const useStyles = createUseStyles({
   },
   buttonPaginate: {
     color: '#1a1a1a',
-    background: '#fff',
+    background: 'var(--white-color)',
     border: '1px solid #dbdbdb',
     padding: '0px 12px',
     fontSize: '24px',
@@ -24,7 +24,7 @@ const useStyles = createUseStyles({
     fontWeight: '300',
   },
   buttonPaginateDisabled: {
-    color: '#c3c3c3',
+    color: 'var(--text-color-quinary)',
     cursor: 'default',
   },
 });

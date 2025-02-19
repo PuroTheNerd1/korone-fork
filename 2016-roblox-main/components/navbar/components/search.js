@@ -35,7 +35,7 @@ const useSuggestionEntryStyles = createUseStyles({
     fontWeight: 400,
     color: 'rgb(52, 52, 52)',
     '&:hover': {
-      boxShadow: '4px 0 0 0 #00a2ff inset',
+      boxShadow: '4px 0 0 0 var(--primary-color) inset',
     },
   },
   link: {
@@ -102,7 +102,7 @@ const useSearchStyles = createUseStyles({
     marginTop: '2px',
     float: 'left',
     background: 'none',
-    color: '#191919',
+    color: '#191919', // search box is always white so this is necessary
     fontWeight: '200',
     display: 'block',
     lineHeight: '1.5',
@@ -115,7 +115,7 @@ const useSearchStyles = createUseStyles({
       outline: 0,
     },
     '&::placeholder': {
-      color: '#B8B8B8'
+      color: 'var(--text-color-secondary)'
     }
   },
   seniorClass: {

@@ -47,8 +47,8 @@ const useCreateCommentStyles = createUseStyles({
         margin: '0 0 0 12px',
     },
     input: {
-        border: '1px solid #B8B8B8',
-        color: '#191919',
+        border: '1px solid var(--text-color-secondary)',
+        color: 'var(--text-color-primary)',
         fontSize: '16px',
         fontWeight: 300,
         lineHeight: '100%',
@@ -56,11 +56,11 @@ const useCreateCommentStyles = createUseStyles({
         padding: '5px 12px',
         width: '100%',
         borderRadius: '3px',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         display: 'block',
         '&:focus': {
             boxShadow: 'none',
-            borderColor: '#00A2FF',
+            borderColor: 'var(--primary-color)',
             outline: 0,
         }
     },
@@ -92,7 +92,7 @@ const useCreateCommentStyles = createUseStyles({
         right: 0,
         fontSize: '14px',
         fontWeight: 400,
-        color: '#191919',
+        color: 'var(--text-color-primary)',
         lineHeight: '1.3em',
     },
 });
@@ -244,7 +244,7 @@ const useNewCommentEntryStyles = createUseStyles({
         marginLeft: 'auto',
     },
     commentCreatedAt: {
-        color: '#b8b8b8',
+        color: 'var(--text-color-secondary)',
         fontSize: '14px',
         marginTop: 'calc(1em - 5px)'
     },
@@ -363,7 +363,7 @@ const useCommentStyles = createUseStyles({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
     },
     noCommentFound: {
         margin: 0,
@@ -424,7 +424,6 @@ const Comments = (props) => {
         </div>*/
     }
 
-    console.log(comments)
     return <div className={`row ${s.recommendedGamesContainer}`}>
         {''//col-lg-9
         }

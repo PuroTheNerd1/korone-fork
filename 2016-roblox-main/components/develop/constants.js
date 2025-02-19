@@ -21,7 +21,7 @@ const developerPages = [
     id: 10,
     name: 'Models',
     url: '/develop?View=10',
-    element: props => <Clothing id={10} {...props} />,
+    disabled: true,
   },
   {
     id: 13,
@@ -67,10 +67,10 @@ const developerPages = [
     disabled: true,
   },
   {
-    id: 4,
+    id: 40,
     name: 'Meshes',
-    url: '/develop?View=4',
-    element: props => <Clothing id={4} {...props} />,
+    url: '/develop?View=40',
+    disabled: true,
   },
   {
     id: 101,

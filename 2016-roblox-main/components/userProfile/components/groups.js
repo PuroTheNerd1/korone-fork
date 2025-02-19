@@ -18,7 +18,7 @@ const useGroupGridEntryStyles = createUseStyles({
     fontWeight: 300,
     marginBottom: 0,
     fontSize: '16px',
-    color: '#757575',
+    color: 'var(--text-color-tertiary)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -28,7 +28,7 @@ const useGroupGridEntryStyles = createUseStyles({
     fontSize: '12px',
     marginTop: '2px',
     marginBottom: 0,
-    color: '#757575',
+    color: 'var(--text-color-tertiary)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -67,7 +67,7 @@ const GroupGrid = (props) => {
 
 const useGroupSquareStatStyles = createUseStyles({
   header: {
-    color: '#b8b8b8',
+    color: 'var(--text-color-secondary)',
     fontSize: '16px',
     lineHeight: '1.4em',
     fontWeight: 500,
@@ -101,13 +101,13 @@ const useGroupSquareStyles = createUseStyles({
     fontWeight: 800,
     margin: 0,
     fontSize: '32px',
-    borderBottom: '1px solid #fff',
+    borderBottom: '1px solid var(--white-color)',
     padding: '5px 0',
   },
   description: {
     fontWeight: 400,
     margin: 0,
-    borderTop: '1px solid #B8B8B8',
+    borderTop: '1px solid var(--text-color-secondary)',
     height: '100px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -244,7 +244,7 @@ const useGroupStyles = createUseStyles({
   },
   buttonNotInUse: {
     background: 'white !important',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     paddingTop: 0,
     paddingBottom: 0,
   },
@@ -268,7 +268,6 @@ const Groups = props => {
       for (const item of newIcons) {
         obj[item.targetId] = item.imageUrl;
       }
-      console.log(obj);
       setIcons(obj);
     })
   }, [store.groups]);

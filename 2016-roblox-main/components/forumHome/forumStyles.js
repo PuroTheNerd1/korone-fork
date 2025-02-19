@@ -8,7 +8,7 @@ const useForumStyles = createUseStyles({
     background: '#29508d',
     '& th': {
       fontSize: '1.25rem',
-      color: '#fff',
+      color: 'var(--text-color-primary)',
       fontWeight: 500,
       paddingLeft: '0.25rem',
       paddingTop: '0.5rem',

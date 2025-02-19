@@ -17,7 +17,7 @@ import GameDetailsStore from "./stores/gameDetailsStore"
 
 const useStyles = createUseStyles({
   gameContainer: {
-    //backgroundColor: '#fff',
+    //backgroundColor: 'var(--white-color)',
     background: 'none',
     //padding: '4px 8px',
     //overflow: 'hidden',

@@ -76,7 +76,7 @@ const ForumsCategories = [
         id: 54,
         name: 'BLOXFaires & Pekora events',
         description:
-          'Check here to see the crazy things Pekora is doing. Contest information can be found here.Pekora is going to be at various Maker Faires and conferences around the globe. Discuss those events here!',
+          'Check here to see the crazy things Pekora is doing. Contest information can be found here. Pekora is going to be at various Maker Faires and conferences around the globe. Discuss those events here!',
       },
     ],
   },
