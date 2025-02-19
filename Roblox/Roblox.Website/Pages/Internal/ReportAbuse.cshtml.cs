@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Roblox.Dto.Users;
 using Roblox.Models.AbuseReport;
 using Roblox.Services;
 using ServiceProvider = Roblox.Services.ServiceProvider;
@@ -54,6 +55,12 @@ public class ReportAbuse : RobloxPageModel
         }
 
         using var ar = ServiceProvider.GetOrCreate<AbuseReportService>();
+        if (!await services.cooldown.TryCooldownCheck($"AbuseReportV1_Cooldown:{userSession.userId}", TimeSpan.FromMinutes(20)))
+        {
+            failureMessage = "Please wait 20 minutes before sending another report.";
+            return;
+        }
+
         await ar.InsertReport(userSession.userId, reportReason, reportMessage);
         successMessage = "Your report has been sent successfully.";
         
