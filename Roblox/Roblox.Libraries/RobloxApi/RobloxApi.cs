@@ -290,6 +290,7 @@ public class RobloxApi
     {
         MultiGetByUsernameRequest request = new()
         {
+            usernames = new(),
             excludeBannedUsers = false,
         };
         request.usernames.Add(userName);
