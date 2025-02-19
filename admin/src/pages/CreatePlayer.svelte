@@ -34,7 +34,7 @@
 		</div>
 		<div class="col-12">
 			<label for="user-id">Password</label>
-			<input type="password" class="form-control" id="password" {disabled} />
+			<input type="password" class="form-control dark-input" id="password" {disabled} />
 		</div>
 		<div class="col-12 mt-4">
 			<button

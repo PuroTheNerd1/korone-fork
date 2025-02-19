@@ -135,7 +135,7 @@
 						<label for="manual-insert">Manually Insert Asset Into Queue</label>
 						<input
 							type="text"
-							class="form-control"
+							class="form-control dark-input"
 							id="manual-insert"
 							placeholder="Item URL or Asset ID"
 							bind:value={manuallyInsertUrl}
