@@ -59,14 +59,14 @@ namespace Roblox.Website.Controllers
                 };
             }
             // This is a extra security check, let's check if the user who we are trying to reset is a staff member if they are then throw a exception
-            if (await StaffFilter.IsStaff(userId))
-            {
-                return new 
-                {
-                    success = false,
-                    message = "You are not allowed to reset a password of a staff member",
-                };
-            }
+            // if (await StaffFilter.IsStaff(userId))
+            // {
+            //     return new 
+            //     {
+            //         success = false,
+            //         message = "You are not allowed to reset a password of a staff member",
+            //     };
+            // }
 
             // Example: 19bcbfac216d46cbaeb826125d1bae42
             string randomlyGeneratedPassword = (Guid.NewGuid().ToString().Replace("-", "") + Guid.NewGuid().ToString().Replace("-", "")).Substring(0, 32);
