@@ -5,6 +5,7 @@ namespace Roblox.Website.Pages.Internal;
 // Need to improve this later
 public class Promocodes : RobloxPageModel
 {    
+    public PromocodesService.Rewards reward;
     public string? errorMessage { get; set; }
     public string? successMessage { get; set; }
     [BindProperty]
@@ -21,7 +22,11 @@ public class Promocodes : RobloxPageModel
             return;
         }
 
-        PromocodesService.Rewards reward;
+        if (userSession == null)
+        {
+            errorMessage = "You must be logged in to claim a promocode";
+            return;
+        }
         try
         {
             reward = await services.promocodes.ClaimPromocode(promocode, userSession.userId);
@@ -46,5 +51,6 @@ public class Promocodes : RobloxPageModel
         {
             successMessage = $"You have successfully claimed {reward.robux} Robux!";
         }
+        promocode = null;
     }
 }
