@@ -69,6 +69,7 @@ public class Login : RobloxPageModel
             Secure = true,
             Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
             IsEssential = true,
+            HttpOnly = true,
             Path = "/",
             SameSite = SameSiteMode.Lax,
         });
