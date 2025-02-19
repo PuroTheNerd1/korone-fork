@@ -48,8 +48,9 @@ public class Application : RobloxPageModel
     public bool deleteCurrentApplicationCookie { get; set; }
     [BindProperty]
     public string about { get; set; }
-    [BindProperty]
     public string socialUrl { get; set; }
+    [BindProperty]
+    public string robloxUsername { get; set; }
     [BindProperty]
     public string discordId { get; set; }
     [FromForm(Name = "cf-turnstile-response")]
@@ -234,11 +235,21 @@ public class Application : RobloxPageModel
             return new PageResult();
         }
 
-        if (string.IsNullOrWhiteSpace(socialUrl) || socialUrl.Length is < 3 or > 128)
+        if (string.IsNullOrWhiteSpace(robloxUsername) || robloxUsername.Length is < 3 or > 60)
         {
-            errorMessage = "Social URL must be between 3 and 128 characters.";
+            errorMessage = "Roblox username must be between 3 and 60 characters.";
             return new PageResult();
         }
+
+        long userId = 0;
+        try {
+            userId = await services.robloxApi.GetUserIdByUsername(robloxUsername);
+        }
+        catch(Exception) {
+            errorMessage = "We couldn't find your account on Roblox.";
+            return new PageResult();
+        }
+        socialUrl = $"https://www.roblox.com/users/{userId}/profile";
 
         if (string.IsNullOrEmpty(discordId))
         {

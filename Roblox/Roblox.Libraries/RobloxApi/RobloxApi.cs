@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
@@ -61,6 +62,27 @@ public class UsersResponseV1
 {
     public string? description { get; set; }
     public string? created { get; set; }
+}
+
+public class MultiGetByUsernameRequest 
+{
+    public List<string> usernames { get; set; }
+    public bool excludeBannedUsers { get; set; }
+}
+
+
+public class MultiGetByUsernameResponseEntry 
+{
+    public string requestedUsername { get; set; }
+    public bool hasVerifiedBadge { get; set; }
+    public long id { get; set; }
+    public string name { get; set; }
+    public string displayName { get; set; }
+}
+
+public class MultiGetByUsernameResponse
+{
+    public List<MultiGetByUsernameResponseEntry> data { get; set; }
 }
 
 public class AssetTypeEntry
@@ -262,6 +284,27 @@ public class RobloxApi
         if (json == null)
             throw new Exception("Null json returned from users api");
         return json;
+    }
+
+    public async Task<long> GetUserIdByUsername(string userName) 
+    {
+        MultiGetByUsernameRequest request = new()
+        {
+            excludeBannedUsers = false,
+        };
+        request.usernames.Add(userName);
+        var result = await _client.PostAsync($"https://users.roblox.com/v1/usernames/users", new StringContent(JsonSerializer.Serialize(request)));
+        if (!result.IsSuccessStatusCode)
+            throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
+        if (result == null)
+            throw new Exception("Null response from Roblox");
+        var response = await result.Content.ReadFromJsonAsync<MultiGetByUsernameResponse>(); 
+        if (response == null)
+            throw new Exception("Null response from users api");
+        if(response.data.Count == 0)
+            throw new Exception("User not found");
+
+        return response.data.FirstOrDefault()!.id;
     }
 
     public async Task<bool> DoesUserOwnAsset(long userId, long assetId)

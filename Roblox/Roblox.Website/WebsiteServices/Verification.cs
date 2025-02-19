@@ -35,6 +35,7 @@ public class VerificationResult
     public bool isUnderageUser { get; set; }
 }
 
+// TODO: remove or recycle this class as it's no longer used since we now parse the username into a userid 
 public class InvalidSocialMediaUrlException : Exception {}
 public class AccountTooNewException : Exception {}
 
