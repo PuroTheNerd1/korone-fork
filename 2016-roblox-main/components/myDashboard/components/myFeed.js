@@ -24,7 +24,7 @@ div.list-body {
   max-width: calc(100% - 100px);
 }
 html,body {
-  font-family: "Source Sans Pro", serif;
+  font-family: HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;
 }
 p {
   padding: 0;

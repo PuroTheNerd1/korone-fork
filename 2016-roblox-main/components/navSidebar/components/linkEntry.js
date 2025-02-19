@@ -16,6 +16,7 @@ const useStyles = createUseStyles({
   },
   name: {
     fontSize: '16px',
+    fontWeight: 500,
     verticalAlign: 'middle',
     color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
   },

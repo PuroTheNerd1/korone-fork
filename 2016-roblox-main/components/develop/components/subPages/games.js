@@ -36,7 +36,7 @@ const GamesSubPage = props => {
     <div className='col-12'>
       <ActionButton className={buttonStyles.buyButton + ' w-auto ms-0'} label='Create New Game' onClick={() => {
         //window.location.href = "/internal/create-place"
-        window.location.href = '/place/create';
+        window.location.href = '/places/create';
       }}/>
       <h2 className='mt-2'>Games</h2>
       {

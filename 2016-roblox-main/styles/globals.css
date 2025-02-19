@@ -40,7 +40,7 @@ html,
 body {
     padding: 0;
     margin: 0;
-    font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif;
+    font-family: HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;
     font-size: 14px;
     min-height: 100vh;
 }
@@ -48,7 +48,7 @@ div#__next > div > div.container {
     min-height: 100vh;
 }
 html > body {
-    font-family: 'Source Sans Pro', serif;
+    font-family: HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;
 }
 
 a {
