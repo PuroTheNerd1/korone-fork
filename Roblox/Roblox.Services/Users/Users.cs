@@ -912,7 +912,7 @@ public class UsersService : ServiceBase, IService
     public async Task<long> CountPendingApplications()
     {
         return (await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COUNT(*) AS total FROM join_application WHERE status = :status AND locked_at IS NULL",
+            "SELECT COUNT(*) AS total FROM join_application WHERE status = :status",
             new
             {
                 status = UserApplicationStatus.Pending,
@@ -965,14 +965,14 @@ public class UsersService : ServiceBase, IService
             limit = 10,
         });
         // admin js will constantly ping when apps are locked
-        if (contextUserId != null)
-        {
-            var expired = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(30));
-            q.Where("(locked_at < :e OR locked_at IS NULL)", new
-            {
-                e = expired,
-            });
-        }
+        // if (contextUserId != null)
+        // {
+        //     var expired = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(30));
+        //     q.Where("(locked_at < :e OR locked_at IS NULL)", new
+        //     {
+        //         e = expired,
+        //     });
+        // }
 
         if (status != null)
         {
