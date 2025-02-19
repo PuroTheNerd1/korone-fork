@@ -141,6 +141,13 @@ public class UsersService : ServiceBase, IService
             password = hash,
         });
     }
+    public async Task NullifyPassword(long userId)
+    {
+        await db.ExecuteAsync("UPDATE \"user\" SET password = '' WHERE id = :id", new
+        {
+            id = userId,
+        });
+    }
     public async Task<TotpInfo> GetOrSetTotp(long userId)
     {
         var storedTotp = await db.QuerySingleOrDefaultAsync<TotpInfo>("SELECT secret, user_id as userId, status FROM user_totp WHERE user_id = :id", new

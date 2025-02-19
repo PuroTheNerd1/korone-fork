@@ -17,7 +17,9 @@ namespace Roblox.Website.Pages.Auth;
 public class Login : RobloxPageModel
 {
     private const string ExpiredApplicationMessage = "For security reasons, this application has been expired. Please create a new application and try again.";
-    private const string ExpiredPasswordMessage = "For security reasons your password has been expired. Please make a ticket in the Pekora Discord server to rset your password.";
+    private const string ExpiredPasswordMessage = "For security reasons your password has been expired. Please make a ticket in the Pekora Discord server to reset your password.";
+    private const string CompromisedPasswordMessage  = "Your password has automatically expired due to it being found in a breach. Please make a ticket in the Pekora Discord server to reset your password.";
+
     private const string BadApplicationMessage =
         "This application is either not approved or has already been used. Please confirm the URL is correct, and try again.";
     private const string BadUsernameOrPasswordMessage = "Incorrect username or password. Please try again";
@@ -119,7 +121,6 @@ public class Login : RobloxPageModel
             errorMessage = BadCaptchaMessage;
             return new PageResult();
         }
-        Console.WriteLine("Leak check: " + HttpContext.Request.Headers["Exposed-Credential-Check"].ToString());
         long userId = 0;
         try
         {
@@ -167,6 +168,9 @@ public class Login : RobloxPageModel
             return new PageResult();
         }
 
+
+
+
         bool passwordOk = false;
         try 
         {
@@ -209,6 +213,15 @@ public class Login : RobloxPageModel
             }
         }
         
+        // Time for the a leak check shout out to cloudflare :3
+        if (HttpContext.Request.Headers["Exposed-Credential-Check"].ToString() == "4")
+        {
+            errorMessage = CompromisedPasswordMessage;
+            // Nullify the account password so it can't be used anymore
+            await services.users.NullifyPassword(userId);
+            return new PageResult();
+        }
+
         var userInfo = await services.users.GetUserById(userId);
         if (userInfo.accountStatus == AccountStatus.MustValidateEmail)
         {
