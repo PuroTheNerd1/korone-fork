@@ -17,7 +17,7 @@ const useStyles = createUseStyles({
   name: {
     fontSize: '16px',
     verticalAlign: 'middle',
-    color: 'inherit',
+    color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
   },
   wrapper: {
     color: 'inherit!important',

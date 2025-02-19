@@ -1,10 +1,10 @@
 import { createUseStyles } from "react-jss";
 import ReactMarkdown from "react-markdown";
-//import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm'
 import { useEffect, useState } from "react";
 import { getMarkdownContent } from "../../../services/util";
 import Link from "../../link";
+import rehypeRaw from "rehype-raw";
 
 const useStyles = createUseStyles({
     div: {
@@ -71,9 +71,9 @@ const MarkdownContent = props => {
         <ReactMarkdown
             // @ts-ignore
             components={components}
-            //rehypePlugins={[rehypeRaw]}
+            // rehypePlugins={[rehypeRaw]}
             remarkPlugins={[remarkGfm]}
-            //remarkRehypeOptions={{ passThrough: ['link'] }}
+            // remarkRehypeOptions={{ passThrough: ['link'] }}
         >{markdown}</ReactMarkdown>
     </div>
 }

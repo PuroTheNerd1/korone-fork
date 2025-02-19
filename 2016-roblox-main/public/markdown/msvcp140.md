@@ -8,9 +8,9 @@ This happens when **Visual C++ Redistributable 2015-2019 or above** (2015-2022 w
 
 Download the version of Visual C++ Redistributable that works for you:
 
-| Windows Versions        | Version   | Download Link                                                                                    |
-|-------------------------|--------|--------------------------------------------------------------------------------------------------|
-| Windows 7 and above     | Latest | https://aka.ms/vs/17/release/vc_redist.x86.exe                                                   |
-| Windows Vista and below | 14.27  | https://www.filehorse.com/download-microsoft-visual-c-redistributable-package-32/56166/download/ |
+| Windows Versions        | Version | Download Link                                                                                    |
+|-------------------------|---------|--------------------------------------------------------------------------------------------------|
+| Windows 7 and above     | Latest  | https://aka.ms/vs/17/release/vc_redist.x86.exe                                                   |
+| Windows Vista and below | 14.27   | https://www.filehorse.com/download-microsoft-visual-c-redistributable-package-32/56166/download/ |
 
 Then, run the installer. After it is installed, you should be able to run the Pekora Player without getting that bug anymore.

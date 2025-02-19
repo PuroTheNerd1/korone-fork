@@ -44,7 +44,7 @@ export const useStyles = createUseStyles({
     border: '1px solid var(--text-color-quinary)',
     width: '40px',
     height: 'calc(100% - 30px)',
-    background: 'var(--background-color)',
+    background: 'var(--white-color)',
     position: 'relative',
     cursor: 'pointer',
     color: 'var(--text-color-primary)',

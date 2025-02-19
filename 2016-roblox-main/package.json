@@ -45,7 +45,7 @@
     "react-markdown": "^8.0.7",
     "react-router-dom": "^6.23.0",
     "rehype-raw": "^7.0.0",
-    "remark-gfm": "^4.0.1",
+    "remark-gfm": "^3.0.1",
     "unstated-next": "^1.1.0"
   },
   "devDependencies": {

@@ -32,7 +32,7 @@ const useNavSideBarStyles = createUseStyles({
     paddingTop: '8px',
     paddingBottom: '5px',
     marginBottom: 0,
-    color:  p => p.theme === themeType.obc2016 ? 'var(--text-color-primary)' : '#1e1e1f',
+    color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
     textDecoration: 'none'
   },
   divider: {
