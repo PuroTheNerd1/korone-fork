@@ -14,6 +14,18 @@ const detailsMap = {
     templateUrl: '',
     fileLabel: 'image',
   },
+  4: {
+    name: 'Mesh',
+    namePlural: 'meshes',
+    title: 'Mesh',
+    fileLabel: '.mesh',
+  },
+  10: {
+    name: 'Model',
+    namePlural: 'models',
+    title: 'Model',
+    fileLabel: '.rbxm',
+  },
   11: {
     name: 'Shirt',
     namePlural: 'Shirts',
@@ -46,6 +58,7 @@ const detailsMap = {
     namePlural: 'videos',
     title: 'Video',
     fileLabel: '.webm',
+    subtext: `Video uploads cost 100 Robux regardless of size.`,
   },
 }
 
