@@ -275,3 +275,11 @@ html div.container {
 #__next {
     min-height: 100vh;
 }
+
+.ssp, .ssp * {
+    font-family: 'Source Sans Pro', Arial, serif;
+}
+
+.vTabContent:has(.noPadding) {
+    padding-left: 0;
+}

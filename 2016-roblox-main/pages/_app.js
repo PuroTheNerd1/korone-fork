@@ -18,6 +18,7 @@ import GlobalAlert from '../components/globalAlert';
 import ThumbnailStore from "../stores/thumbnailStore";
 import getFlag from "../lib/getFlag";
 import Chat from "../components/chat";
+import FeedbackStore from "../stores/feedback";
 
 if (typeof window !== 'undefined') {
     console.log(String.raw`
@@ -86,14 +87,16 @@ function RobloxApp({Component, pageProps}) {
                 </LoginModalStore.Provider>
                 <GlobalAlert/>
             </>}
-            <MainWrapper mainFlex={pageProps.disableWebsiteTheming}>
-                {getFlag('clientSideRenderingEnabled', false) ?
-                    <NextNProgress options={{showSpinner: true}} color='var(--primary-color)' height={4}/> : null}
-                <ThumbnailStore.Provider>
-                    <Component {...pageProps} />
-                    <Chat/>
-                </ThumbnailStore.Provider>
-            </MainWrapper>
+            <FeedbackStore.Provider>
+                <MainWrapper mainFlex={pageProps.disableWebsiteTheming}>
+                    {getFlag('clientSideRenderingEnabled', false) ?
+                        <NextNProgress options={{showSpinner: true}} color='var(--primary-color)' height={4}/> : null}
+                    <ThumbnailStore.Provider>
+                        <Component {...pageProps} />
+                        <Chat/>
+                    </ThumbnailStore.Provider>
+                </MainWrapper>
+            </FeedbackStore.Provider>
             {pageProps.disableWebsiteTheming ? null : <Footer/>}
         </AuthenticationStore.Provider>
     </div>

@@ -3,6 +3,7 @@ import { createUseStyles } from "react-jss";
 const useButtonStyles = createUseStyles({
   buyButton: {
     //width: '100%',
+    fontFamily: 'Source Sans Pro, Arial',
     paddingTop: '5px',
     paddingBottom: '5px',
     borderColor: '#007001!important',
@@ -15,6 +16,7 @@ const useButtonStyles = createUseStyles({
     width: 'auto!important',
   },
   continueButton: {
+    fontFamily: 'Source Sans Pro, Arial',
     //width: '100%',
     paddingTop: '5px',
     paddingBottom: '5px',
@@ -26,6 +28,7 @@ const useButtonStyles = createUseStyles({
     },
   },
   cancelButton: {
+    fontFamily: 'Source Sans Pro, Arial',
     //width: '100%',
     paddingTop: '5px',
     paddingBottom: '5px',

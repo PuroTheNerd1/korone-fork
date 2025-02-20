@@ -64,6 +64,7 @@ const useStyles = createUseStyles({
         hyphens: 'none',
         margin: 0,
         color: 'var(--text-color-primary)',
+        textAlign: 'center',
     },
     iconLogo: {
         width: '95px',
