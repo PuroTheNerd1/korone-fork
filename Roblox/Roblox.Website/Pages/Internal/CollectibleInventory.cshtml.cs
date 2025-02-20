@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Roblox.Dto.Users;
 using Roblox.Services.Exceptions;
+using Roblox.Website.Filters;
 
 namespace Roblox.Website.Pages.Internal;
 
@@ -26,8 +27,7 @@ public class CollectibleInventory : RobloxPageModel
             errorMessage = "User ID is invalid or does not exist.";
             return;
         }
-
-        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0))
+        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0) && !await StaffFilter.IsStaff(userSession?.userId ?? 0))
         {
             errorMessage = "You don't have permissions to view the specified user's inventory";
             return;
