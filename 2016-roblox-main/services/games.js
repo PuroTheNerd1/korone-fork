@@ -115,3 +115,50 @@ export const shutdownPlaceServers = ({ placeId }) => {
 export const shutdownSpecificServer = ({ placeId, jobId }) => {
   return request('GET', getBaseUrl() + `/rcc/killserver?placeId=${placeId}&jobId=${jobId}`).then(d => d.data);
 }
+
+export const getGameTemplates = () => {
+  //return request('GET', getBaseUrl('/v1/gametemplates')).then(d => d.data.data);
+  return {
+    data: {
+      data: [
+        {
+          gameTemplateType: "Generic",
+          hasTutorials: false,
+          universe: {
+            id: 852,
+            name: "Starting Place",
+            description: "",
+            isArchived: false,
+            rootPlaceId: 36568,
+            isActive: true,
+            privacyType: "Public",
+            creatorType: "User",
+            creatorTargetId: 1,
+            creatorName: "ROBLOX",
+            created: "2025-02-11T09:21:56.256878Z",
+            updated: "2025-02-11T10:02:01.168426Z"
+          }
+        },
+        {
+          gameTemplateType: "Generic",
+          hasTutorials: false,
+          universe: {
+            id: 852,
+            name: "Western",
+            description: "",
+            isArchived: false,
+            rootPlaceId: 36569,
+            tempThumbnailId: ,
+            isActive: true,
+            privacyType: "Public",
+            creatorType: "User",
+            creatorTargetId: 1,
+            creatorName: "ROBLOX",
+            created: "2025-02-11T09:21:56.256878Z",
+            updated: "2025-02-11T10:02:01.168426Z"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -99,7 +99,7 @@ const NavSideBar = props => {
       <LinkEntry theme={getTheme()} name='Groups' url='/My/Groups.aspx' icon='icon-nav-group' />
       <LinkEntry theme={getTheme()} name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum' />
       {isStaff ? (
-        <LinkEntry theme={getTheme()} name='Staff Panel' url='/admin' icon='icon-edit' count={69} />
+        <LinkEntry theme={getTheme()} name='Panel' url='/admin' icon='icon-edit' count={69} />
       ) : null}
       <a href='/BuildersClub/Upgrade.ashx'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
     </div>

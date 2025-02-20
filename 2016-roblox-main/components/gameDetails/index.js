@@ -24,6 +24,7 @@ const useStyles = createUseStyles({
     maxWidth: '970px',
     display: 'inline-block',
     position: 'relative',
+    width: 'calc(100% - 165px)',
     //top: '-182px',
     //'@media (max-width: 1511px)': {
       top: 0,

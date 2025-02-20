@@ -144,8 +144,6 @@ public class UniverseV1 : ControllerBase
         //     i++;
         // }
         
-        
-
         var templates = await services.games.MultiGetPlaceDetails(getStarterPlaces.Values.ToList()); //await services.games.MultiGetUniverseInfo(getStarterPlaces.Values.ToList());
         return new 
         {
@@ -159,7 +157,7 @@ public class UniverseV1 : ControllerBase
                     {
                         id = c.universeId,
                         name = c.name,
-                        description = c.description ?? "",
+                        description = c.description ?? "skbidii",
                         isArchived = false,
                         rootPlaceId = c.universeRootPlaceId,
                         isActive = true,

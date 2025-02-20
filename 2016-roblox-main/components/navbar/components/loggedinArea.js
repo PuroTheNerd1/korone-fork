@@ -127,7 +127,7 @@ const useLoginAreaStyles = createUseStyles({
     marginRight: 0,
     color: "inherit",
     display: "inline",
-    fontWeight: '400',
+    fontWeight: 500,
     textDecoration: 'none',
     '&:hover': {
       textDecoration: 'underline',
@@ -139,7 +139,7 @@ const useLoginAreaStyles = createUseStyles({
   ageSpan: {
     color: "inherit",
     display: "inline",
-    fontWeight: '400',
+    fontWeight: 500,
   },
   messagesContainer: {
     float: "left",
@@ -203,7 +203,7 @@ const useLoginAreaStyles = createUseStyles({
   },
   text: {
     color: "white",
-    fontWeight: 400,
+    fontWeight: 500,
     fontSize: "16px",
     borderBottom: 0,
     textAlign: "right",

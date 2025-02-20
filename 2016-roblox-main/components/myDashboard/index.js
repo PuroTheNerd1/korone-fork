@@ -24,7 +24,7 @@ import { getTheme, themeType } from "../../services/theme";
 const useStyles = createUseStyles({
     containerHeader: {
         fontSize: '16px',
-        fontWeight: '400',
+        fontWeight: '500',
         lineHeight: '1.4em',
         display: 'flex',
         justifyContent: 'space-between',
@@ -189,7 +189,7 @@ const useStyles = createUseStyles({
         width: '90px',
         padding: '4px',
         fontSize: '14px',
-        fontWeight: 400,
+        fontWeight: 500,
         lineHeight: '100%',
         transition: 'box-shadow 200ms ease-in-out',
         boxShadow: 'none',
@@ -356,7 +356,7 @@ const MyDashboard = props => {
                         <h3 style={{ padding: '5px 0', margin: '0 0 6px' }}>Blog News</h3>
                     </div>
                     <div className={`section-content`}>
-                        <p style={{ fontSize: '18px', fontWeight: 400, margin: 0, padding: 0 }}>No news found.</p>
+                        <p style={{ fontSize: '18px', fontWeight: 500, margin: 0, padding: 0 }}>No news found.</p>
                     </div>
                 </div>
             </div>

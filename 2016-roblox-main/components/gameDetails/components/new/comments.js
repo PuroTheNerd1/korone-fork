@@ -32,13 +32,13 @@ const useCreateCommentStyles = createUseStyles({
     continueButton: {
         //fontSize: '14px',
         padding: '8px!important',
-        width: '145px',
+        width: '172px',
     },
     createCommentContainer: {
         paddingBottom: '0',
     },
     commentBox: {
-        width: 'calc(100% - 145px - 12px)',
+        width: 'calc(100% - 172px - 12px)',
         fontSize: '16px',
         fontWeight: 300,
         lineHeight: '1.3em',
@@ -72,7 +72,7 @@ const useCreateCommentStyles = createUseStyles({
         position: 'relative',
         lineHeight: '1.3em',
         marginTop: '40px',
-        width: 'calc(100% - 145px - 12px)',
+        width: 'calc(100% - 172px - 12px)',
         '@media (max-width: 991px)': {
             marginTop: '45px',
             width: '100%',

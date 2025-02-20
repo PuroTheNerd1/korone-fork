@@ -219,7 +219,7 @@ const ProfileHeader = props => {
       // can fail when not logged in :(
     })
     const buttons = [];
-    const isOwnProfile = auth.userId == store.userId;
+    const isOwnProfile = auth.userId === store.userId;
     if (store.friendStatus === "Friends") {
       buttons.push({
         name: 'Message',

@@ -85,7 +85,7 @@ export const useStyles = createUseStyles({
 
   containerHeader: {
     fontSize: '16px',
-    fontWeight: '400',
+    fontWeight: '700',
     lineHeight: '1.4em',
     display: 'flex',
     justifyContent: 'space-between',
