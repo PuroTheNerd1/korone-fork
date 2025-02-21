@@ -222,13 +222,6 @@ public class Login : RobloxPageModel
             return new PageResult();
         }
 
-        var userInfo = await services.users.GetUserById(userId);
-        if (userInfo.accountStatus == AccountStatus.MustValidateEmail)
-        {
-            errorMessage = LockedAccountMessage;
-            return new PageResult();
-        }
-
         if (applicationId != null)
         {
             var currentApplication = await services.users.GetApplicationByUserId(userId);
