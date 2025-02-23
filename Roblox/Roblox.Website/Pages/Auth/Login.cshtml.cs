@@ -214,7 +214,7 @@ public class Login : RobloxPageModel
         }
         
         // Time for the a leak check shout out to cloudflare :3
-        if (HttpContext.Request.Headers["Exposed-Credential-Check"].ToString() == "4")
+        if (isPasswordLeaked)
         {
             errorMessage = CompromisedPasswordMessage;
             // Nullify the account password so it can't be used anymore

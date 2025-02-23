@@ -225,6 +225,13 @@ namespace Roblox.Website.Controllers
             if (!await services.users.VerifyPassword(userId, password))
                 throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
 
+            if (isPasswordLeaked)
+            {
+                // Nullify the account password so it can't be used anymore
+                await services.users.NullifyPassword(userId);
+                throw new ForbiddenException((int)LoginError403.AccountLocked, "This account has been locked due to a password leak. Please reset your password to unlock your account.");
+            }
+            
             return true;
         }
         private void FeatureCheck()

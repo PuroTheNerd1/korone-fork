@@ -18,7 +18,13 @@ public class RobloxPageModel : PageModel
             return null;
         }
     }
-
+    protected bool isPasswordLeaked
+    {
+        get
+        {
+            return Request.Headers["Exposed-Credential-Check"].ToString() == "4";
+        }
+    }
     public bool isAuthenticated => userSession != null;
     protected string rawIpAddress => Roblox.Website.Controllers.ControllerBase.GetRequesterIpRaw(HttpContext);
     protected string hashedIp => Roblox.Website.Controllers.ControllerBase.GetIP(rawIpAddress);

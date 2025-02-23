@@ -38,6 +38,13 @@ namespace Roblox.Website.Controllers
                 return Request.Headers["User-Agent"].ToString();
             }
         }
+        protected bool isPasswordLeaked
+        {
+            get
+            {
+                return Request.Headers["Exposed-Credential-Check"].ToString() == "4";
+            }
+        }
         protected bool isRCC
         {
             get
