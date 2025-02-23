@@ -92,7 +92,7 @@ public class AvatarService : ServiceBase, IService
             leftArmColorId = existingAvatar.left_arm_color_id,
             rightLegColorId = existingAvatar.right_leg_color_id,
             leftLegColorId = existingAvatar.left_leg_color_id,
-            avatar_type = existingAvatar.avatar_type,
+            avatarType = existingAvatar.avatar_type,
             thumbnailUrl = existingAvatar.thumbnail_url,
             headshotUrl = existingAvatar.headshot_thumbnail_url,
         };

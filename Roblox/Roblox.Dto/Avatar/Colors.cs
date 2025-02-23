@@ -1,3 +1,5 @@
+using Roblox.Models.Avatar;
+
 namespace Roblox.Dto.Avatar;
 
 public class ColorEntry
@@ -13,7 +15,7 @@ public class ColorEntry
 
 public class AvatarWithColors : ColorEntry
 {
-    public int avatar_type { get; set; }
+    public AvatarType avatarType { get; set; }
     public string? thumbnailUrl { get; set; }
     public string? headshotUrl { get; set; }
 }

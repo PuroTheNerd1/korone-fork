@@ -686,18 +686,9 @@ namespace Roblox.Website.Controllers
         {
             List<long> accessoryVersionIds = new List<long>();
             List<long> equippedGearVersionIds = new List<long>();
-            string userAgent = Request.Headers["User-Agent"].ToString();
             var wornAssets = await services.avatar.GetWornAssets(userId);
-            dynamic avatar;
+            var avatar = await services.avatar.GetAvatar(userId);
             // If we dont have an avatar then its most likely a game loading a avatar
-            try
-            {
-                avatar = await services.avatar.GetAvatar(userId);
-            }
-            catch (RecordNotFoundException)
-            {
-                return Redirect("https://avatar.roblox.com/v1/avatar-fetch?userId=" + userId);
-            }
 
             List<dynamic> emotes = new List<dynamic>
             {
@@ -713,39 +704,46 @@ namespace Roblox.Website.Controllers
                     assetName = "TWICE Like Ooh-Ahh",
                     position = 2
                 },
-                new {
-                    assetId = 15122972413,
+                new 
+                {
+                    assetId = 15123050663,
                     assetName = "Bone Chillin' Bop",
                     position = 3
                 },
-                new {
-                    assetId = 14899979575,
+                new 
+                {
+                    assetId = 14900151704,
                     assetName = "TWICE LIKEY",
                     position = 4
                 },
-                new {
-                    assetId = 10713981723,
+                new 
+                {
+                    assetId = 3576747102,
                     assetName = "Around Town",
                     position = 5
                 },
-                new {
-                    assetId = 10714076981,
+                new 
+                {
+                    assetId = 3934988903,
                     assetName = "Fancy Feet",
                     position = 6
                 },
-                new {
-                    assetId = 10714369624,
+                new 
+                {
+                    assetId = 3696757129,
                     assetName = "Hype Dance",
                     position = 7
                 },
-                new {
-                    assetId = 17746180844,
+                new 
+                {
+                    assetId = 17746270218,
                     assetName = "Sturdy Dance - Ice Spice",
                     position = 8
                 },
             };
 
             var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
+
             dynamic bodyColors = new
             {
                 headColorId = avatar.headColorId,
@@ -763,24 +761,18 @@ namespace Roblox.Website.Controllers
                 TorsoColor = avatar.torsoColorId
             };
             dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
-            string AvatarType = (avatar.avatar_type == 2) ? "R15" : "R6";
-            foreach (long assetId in wornAssets)
-            {
-                var catinfo = await services.assets.GetAssetCatalogInfo(assetId);
-                if (catinfo.assetType == Type.Gear){
-                    equippedGearVersionIds.Add(assetId);
-                }
-                else{
-                    accessoryVersionIds.Add(assetId);
-                }
-            }
             
-            if (userAgent != "Roblox/Win2020"){
+            equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == Type.Gear).Select(d => d.id));
+            accessoryVersionIds.AddRange(assetInfo.Where(d => d.assetType != Type.Gear).Select(d => d.id));
+            
+            if (UserAgent != "Roblox/Win2020")
+            {
                 equippedGearVersionIds = new List<long>();
             }
+
             var result = new 
             {
-                resolvedAvatarType = AvatarType,
+                resolvedAvatarType = avatar.avatarType,
                 accessoryVersionIds,
                 equippedGearVersionIds,
                 assetAndAssetTypeIds = assetInfo.Select(c =>
@@ -793,7 +785,7 @@ namespace Roblox.Website.Controllers
                 }),
                 backpackGearVersionIds = equippedGearVersionIds,
                 animationAssetIds = new {},
-                playerAvatarType = AvatarType,
+                playerAvatarType = avatar.avatarType,
                 scales,
                 bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors,

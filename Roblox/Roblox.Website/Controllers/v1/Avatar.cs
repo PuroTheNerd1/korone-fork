@@ -248,7 +248,7 @@ public class AvatarControllerV1 : ControllerBase, IService
                 proportion = 1,
                 bodyType = 1,
             },
-            playerAvatarType = (existingAvatar.avatar_type == 2) ? "R15" : "R6",
+            playerAvatarType = existingAvatar.avatarType,
             bodyColors = (ColorEntry)existingAvatar,
             assets = multiGetResults.Select(c =>
             {
