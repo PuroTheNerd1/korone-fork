@@ -21,40 +21,39 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-            long userId;
             string username = request.cvalue;
             string password = request.password;
-            string totpCode = "";
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                throw new RobloxException(400, 1, "Username or password is missing.");
+                throw new BadRequestException(3, "Username or password is missing.");
 
             // Format: {username}|{2facode}
             string[] splittedUsername = username.Split('|');
 
             username = splittedUsername[0];
-            totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
+            string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
 
+            UserInfo userInfo;
             try
             {
-                userId = await services.users.GetUserIdFromUsername(username);
+                userInfo = await services.users.GetUserByName(username);
             }
             catch (RecordNotFoundException)
             {
-                throw new RobloxException(403, 1, "Incorrect username or password. Please try again");
+                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
             }
 
-            if (await Login(request.username, request.password, userId, totpCode))
-                await CreateSessionAndSetCookie(userId);
+            if (await Login(userInfo.username, request.password, userInfo.userId, totpCode))
+                await CreateSessionAndSetCookie(userInfo.userId);
 
-            var info = await services.users.GetUserById(userId);
+            var info = await services.users.GetUserById(userInfo.userId);
 
             return new
             {
                 user = new
                 {
-                    id = userId,
-                    name = username,
-                    displayName = username
+                    id = userInfo.userId,
+                    name = userInfo.username,
+                    displayName = userInfo.username,
                 },
                 isBanned = info.IsDeleted()
             };
@@ -65,19 +64,14 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV2()
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-            string requestBody;
-            string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            string requestBody = await GetRequestBody();
             string username = "";
             string password = "";
-            string totpCode = "";
-            long userId;
-
-            requestBody = await GetRequestBody();
 
             if (string.IsNullOrEmpty(requestBody))
-                throw new BadRequestException(1, "Empty request body.");
+                throw new BadRequestException(8, "Empty request body.");
 
-            if (userAgent == "RobloxStudio/WinInet")
+            if (UserAgent == "RobloxStudio/WinInet")
             {
                 var keyValuePairs = requestBody.Split('&');
                 foreach (var pair in keyValuePairs)
@@ -100,28 +94,30 @@ namespace Roblox.Website.Controllers
             }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
+                throw new BadRequestException(3, "Username and Password are required. Please try again.");
 
 
             // Format: {username}|{2facode}
             string[] splittedUsername = username.Split('|');
 
             username = splittedUsername[0];
-            totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
+            string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
 
+            UserInfo userInfo;
             try
             {
-                userId = await services.users.GetUserIdFromUsername(username);
+                userInfo = await services.users.GetUserByName(username);
             }
             catch (RecordNotFoundException)
             {
                 throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
             }
-            await Login(username, password, userId, totpCode);
-            var info = await services.users.GetUserById(userId);
+
+            if (await Login(username, password, userInfo.userId, totpCode))
+                await CreateSessionAndSetCookie(userInfo.userId);
 
             // will be removed later this is just a hack to get the website to work :sob:
-            HttpContext.Response.Cookies.Append("USERID", info.userId.ToString(), new CookieOptions()
+            HttpContext.Response.Cookies.Append("USERID", userInfo.userId.ToString(), new CookieOptions()
             {
                 Domain = ".pekora.zip",
                 Secure = false,
@@ -134,16 +130,18 @@ namespace Roblox.Website.Controllers
             return new
             {
                 membershipType = 4,
-                info.username,
+                userInfo.username,
+                name = userInfo.username,
                 isUnder13 = false,
                 countryCode = "US",
-                userId,
-                displayName = info.username,
+                userId = userInfo.userId,
+                id = userInfo.userId,
+                displayName = userInfo.username,
                 user = new
                 {
-                    id = userId,
-                    name = info.username,
-                    displayName = info.username
+                    id = userInfo.userId,
+                    name = userInfo.username,
+                    displayName = userInfo.username
                 },
                 isBanned = false
             };
@@ -153,30 +151,30 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-            string totpCode = "";
-            long userId;
             // Format: {username}|{2facode}
             string[] splittedUsername = request.username.Split('|');
 
             request.username = splittedUsername[0];
-            totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
+            
+            string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
 
             if (string.IsNullOrEmpty(request.username) || string.IsNullOrEmpty(request.password))
                 throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
 
+            UserInfo userInfo;
             try
             {
-                userId = await services.users.GetUserIdFromUsername(request.username);
+                userInfo = await services.users.GetUserByName(request.username);
             }
             catch (RecordNotFoundException)
             {
                 throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
             }
 
-            if(await Login(request.username, request.password, userId, totpCode))
-                await CreateSessionAndSetCookie(userId);
+            if(await Login(request.username, request.password, userInfo.userId, totpCode))
+                await CreateSessionAndSetCookie(userInfo.userId);
 
-            var userBalance = await services.economy.GetUserBalance(userId);
+            var userBalance = await services.economy.GetUserBalance(userInfo.userId);
             return new
             {
                 Status = "OK",
@@ -186,8 +184,8 @@ namespace Roblox.Website.Controllers
                     RobuxBalance = userBalance.robux,
                     TicketsBalance = userBalance.tickets,
                     IsAnyBuildersClubMember = true,
-                    ThumbnailUrl = $"{Configuration.BaseUrl}/Thumbs/Avatar.ashx?userId={userId}",
-                    UserID = userId
+                    ThumbnailUrl = $"{Configuration.BaseUrl}/Thumbs/Avatar.ashx?userId={userInfo.userId}",
+                    UserID = userInfo.userId
                 }
             };
         }
@@ -217,11 +215,11 @@ namespace Roblox.Website.Controllers
             {
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
-                    throw new UnauthorizedException(1, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+                    throw new UnauthorizedException(6, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
 
                 //verify totp code
                 if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new UnauthorizedException(1, "Incorrect 2FA code. Please try again.");
+                    throw new UnauthorizedException(6, "Incorrect 2FA code. Please try again.");
             }
 
             if (!await services.users.VerifyPassword(userId, password))
