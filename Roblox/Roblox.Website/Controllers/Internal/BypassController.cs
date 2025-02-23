@@ -1390,12 +1390,12 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("users/account-info")]
         public async Task<dynamic> AccountInfo()
         {
-            var userBalance = await services.economy.GetUserBalance(userSession.userId);
+            var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
             return new
             {
-                UserId = userSession.userId,
-                Username = userSession.username,
-                DisplayName = userSession.username,
+                UserId = safeUserSession.userId,
+                Username = safeUserSession.username,
+                DisplayName = safeUserSession.username,
                 HasPasswordSet = true,
                 Email = "pekora@pekora.zip",
                 MembershipType = 3,
