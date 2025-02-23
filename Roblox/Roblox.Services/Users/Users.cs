@@ -991,40 +991,23 @@ public class UsersService : ServiceBase, IService
         // intentionally allow wildcards like "%"
         if (searchColumn != null)
         {
-            if (searchColumn == ApplicationSearchColumn.About)
+            switch (searchColumn)
             {
-                q.Where("about ILIKE :q", new
-                {
-                    q = searchQuery,
-                });
-            }
-            else if (searchColumn == ApplicationSearchColumn.Name)
-            {
-                q.Where("preferred_name ILIKE :q", new
-                {
-                    q = searchQuery,
-                });
-            }
-            else if (searchColumn == ApplicationSearchColumn.SocialUrl)
-            {
-                q.Where("social_presence ILIKE :q", new
-                {
-                    q = searchQuery,
-                });
-            }
-            else if (searchColumn == ApplicationSearchColumn.Actioner)
-            {
-                q.Where("author_id ILIKE :q", new
-                {
-                    q = searchQuery,
-                });
-            }
-            else if (searchColumn == ApplicationSearchColumn.DiscordId)
-            {
-                q.Where("discord_id = :q", new
-                {
-                    q = searchQuery,
-                });
+            case ApplicationSearchColumn.About:
+                q.Where("about ILIKE :q", new { q = searchQuery });
+                break;
+            case ApplicationSearchColumn.Name:
+                q.Where("preferred_name ILIKE :q", new { q = searchQuery });
+                break;
+            case ApplicationSearchColumn.SocialUrl:
+                q.Where("social_presence ILIKE :q", new { q = searchQuery });
+                break;
+            case ApplicationSearchColumn.Actioner:
+                q.Where("author_id = :q", new { q = searchQuery });
+                break;
+            case ApplicationSearchColumn.DiscordId:
+                q.Where("discord_id = :q", new { q = searchQuery });
+                break;
             }
         }
         var result = (await db.QueryAsync<UserApplicationEntry>(t.RawSql, t.Parameters)).ToList();
