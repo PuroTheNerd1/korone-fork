@@ -17,10 +17,9 @@ namespace Roblox.Website.Controllers;
 [Route("/")]
 public class Asset : ControllerBase
 {
-    [HttpGetBypass("v2/asset")]
     [HttpGetBypass("v1/asset")]
-    [HttpGetBypass("asset")]
     [HttpPostBypass("v1/asset")]
+    [HttpGetBypass("asset")]
     [HttpPostBypass("asset")]
     public async Task<MVC.ActionResult> GetAssetById(long? playerId, long id, long? assetversion = null, long? assetversionid = null)
     {
@@ -167,6 +166,26 @@ public class Asset : ControllerBase
 
         return File(assetContent, "application/binary");
     }
+    // TODO : Unhardcode
+    [HttpPostBypass("v2/asset")]
+    [HttpGetBypass("v2/asset")]
+    public dynamic GetAssetByIdV2(long id)
+    {
+        return new 
+        {
+            locations = new 
+            {
+                assetFormat = "source",
+                loation = $"https://assetdelivery.{Configuration.ShortBaseUrl}/v1/asset/?id={id}"
+            },
+            requestId = Guid.NewGuid().ToString(),
+            IsHashDynamic = false,
+            IsCopyRightProtected = false,
+            isArchived = false,
+            assetTypeId = 1,
+        };
+    }
+    
     [HttpPostBypass("asset/batch")]
     [HttpPostBypass("v1/assets/batch")]
     public async Task<IActionResult> AssetBatch()

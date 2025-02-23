@@ -1021,7 +1021,7 @@ public class UsersService : ServiceBase, IService
             }
             else if (searchColumn == ApplicationSearchColumn.DiscordId)
             {
-                q.Where("discord_id ILIKE :q", new
+                q.Where("discord_id = :q", new
                 {
                     q = searchQuery,
                 });
