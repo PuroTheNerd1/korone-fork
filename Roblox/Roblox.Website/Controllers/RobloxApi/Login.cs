@@ -234,7 +234,6 @@ namespace Roblox.Website.Controllers
 
             if (isPasswordLeaked)
             {
-                // Nullify the account password so it can't be used anymore
                 throw new ForbiddenException((int)LoginError403.AccountLocked, "This account has been locked due to a password leak. Please reset your password to unlock your account.");
             }
             
