@@ -66,9 +66,20 @@ public class AccountDeletion : RobloxPageModel
             failureMessage = "Invalid username provided.";
             return new PageResult();
         }
-        
-        var user = (await services.users.MultiGetUsersByUsername(new[] {username})).ToArray();
-        if (user.Length == 0)
+
+        if (password == null)
+        {
+            password = null;
+            failureMessage = "Invalid password provided.";
+            return new PageResult();
+        }
+
+        UserInfo user;
+        try
+        {
+            user = await services.users.GetUserByName(username);
+        }
+        catch (UserNotFoundException)
         {
             username = null;
             password = null;
@@ -76,7 +87,7 @@ public class AccountDeletion : RobloxPageModel
             return new PageResult();
         }
 
-        var loginOk = await services.users.VerifyPassword(user[0].id, password);
+        var loginOk = await services.users.VerifyPassword(user.userId, password);
         if (!loginOk)
         {
             username = null;
@@ -84,7 +95,15 @@ public class AccountDeletion : RobloxPageModel
             failureMessage = "The username and password combination provided is invalid. Please try again.";
             return new PageResult();
         }
-        TotpInfo totpInfo = await services.users.GetOrSetTotp(user[0].id);
+        if (isPasswordLeaked)
+        {
+            username = null;
+            password = null;
+            failureMessage = "The password you entered has been found in a data breach. Please change your password.";
+            await services.users.NullifyPassword(user.userId);
+            return new PageResult();
+        }
+        TotpInfo totpInfo = await services.users.GetOrSetTotp(user.userId);
         if (totpInfo != null && totpInfo.status == TotpStatus.Enabled)
         {
             // blank check
@@ -106,18 +125,10 @@ public class AccountDeletion : RobloxPageModel
                 return new PageResult();
             }
         }
-        try
-        {
-            await services.users.DeleteUser(user[0].id, true);
-        }
-        catch (AccountLastOnlineTooRecentlyException)
-        {
-            failureMessage = "Your account was last online too recently. Please try again later.";
-            return new PageResult();
-        }
+        await services.users.DeleteUser(user.userId, true);
 
         // reset av
-        services.avatar.RedrawAvatar(user[0].id, new List<long>(), new ColorEntry()
+        services.avatar.RedrawAvatar(user.userId, new List<long>(), new ColorEntry()
         {
             headColorId = 194,
             torsoColorId = 23,
