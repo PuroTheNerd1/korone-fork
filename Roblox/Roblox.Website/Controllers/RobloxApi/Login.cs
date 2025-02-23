@@ -100,7 +100,7 @@ namespace Roblox.Website.Controllers
             }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                throw new RobloxException(400, 1, "Username or password is missing.");
+                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
 
 
             // Format: {username}|{2facode}
@@ -115,17 +115,10 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                return new UnauthorizedException(1, "Incorrect username or password. Please try again.");
+                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
             }
             await Login(username, password, userId, totpCode);
             var info = await services.users.GetUserById(userId);
-
-            var sess = await services.users.CreateSession(userId);
-            var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-            {
-                sessionId = sess,
-                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            });
 
             // will be removed later this is just a hack to get the website to work :sob:
             HttpContext.Response.Cookies.Append("USERID", info.userId.ToString(), new CookieOptions()
@@ -138,21 +131,6 @@ namespace Roblox.Website.Controllers
                 SameSite = SameSiteMode.Lax,
             });
 
-            foreach (var cookie in HttpContext.Request.Cookies.Where(c => c.Key == ROBLOSECURITY))
-            {
-                Console.WriteLine($"Deleting cookie {cookie.Key}");
-                HttpContext.Response.Cookies.Delete(cookie.Key);
-            }
-
-            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-            {
-                Domain = ".pekora.zip",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
             return new
             {
                 membershipType = 4,
@@ -184,7 +162,7 @@ namespace Roblox.Website.Controllers
             totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
 
             if (string.IsNullOrEmpty(request.username) || string.IsNullOrEmpty(request.password))
-                throw new BadRequestException(1, "Username or password is missing.");
+                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
 
             try
             {
@@ -192,7 +170,7 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                throw new UnauthorizedException(1, "Incorrect username or password. Please try again");
+                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
             }
 
             if(await Login(request.username, request.password, userId, totpCode))
