@@ -193,7 +193,8 @@ public class EconomyService : ServiceBase, IService
             {
                 await UnsafeIncrementUserRobux(creatorId, amount);
                 newBalance = (await GetUserBalance(creatorId)).robux;
-            }else if (creatorType == CreatorType.Group)
+            }
+            else if (creatorType == CreatorType.Group)
             {
                 await UnsafeIncrementGroupRobux(creatorId, amount);
                 newBalance = (await GetGroupBalance(creatorId)).robux;
@@ -202,13 +203,15 @@ public class EconomyService : ServiceBase, IService
             {
                 throw new Exception("Bad creatorType");
             }
-        }else if (currency == CurrencyType.Tickets)
+        }
+        else if (currency == CurrencyType.Tickets)
         {
             if (creatorType == CreatorType.User)
             {
                 await UnsafeIncrementUserTickets(creatorId, amount);
                 newBalance = (await GetUserBalance(creatorId)).tickets;
-            }else if (creatorType == CreatorType.Group)
+            }
+            else if (creatorType == CreatorType.Group)
             {
                 await UnsafeIncrementGroupTickets(creatorId, amount);
                 newBalance = (await GetGroupBalance(creatorId)).tickets;

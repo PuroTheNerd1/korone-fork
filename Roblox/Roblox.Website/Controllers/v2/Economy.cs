@@ -68,90 +68,77 @@ public class EconomyControllerV2 : ControllerBase
             {
                 dynamic details;
                 string? typeOverride = null;
-                if (c.subType is TransactionSubType.ItemPurchase or TransactionSubType.ItemResale
-                    or TransactionSubType.ItemResalePurchase or TransactionSubType.ItemSale)
+                switch (c.subType)
                 {
-                    details = new
-                    {
-                        id = c.assetId,
-                        userAssetId = c.userAssetId,
-                        name = c.assetName,
-                        type = "Asset",
-                    };
-                }
-                else if (c.subType is TransactionSubType.UsernameChange)
-                {
-                    details = new
-                    {
-                        name = "Username Change",
-                        type = "RobloxProduct",
-                    };
-                }
-                else if (c.subType is TransactionSubType.PositionOpen)
-                {
-                    details = new
-                    {
-                        name = "Position Open",
-                        type = "RobloxProduct",
-                    };
-                }
-                else if (c.subType is TransactionSubType.PositionClose)
-                {
-                    details = new
-                    {
-                        name = "Position Close",
-                        type = "RobloxProduct",
-                    };
-                }
-                else if (c.subType is TransactionSubType.PositionSale)
-                {
-                    details = new
-                    {
-                        name = "Position",
-                        type = "RobloxProduct",
-                    };
-                }
-                else if (c.subType is TransactionSubType.PositionPurchase)
-                {
-                    details = new
-                    {
-                        name = "Position",
-                        type = "RobloxProduct",
-                    };
-                }
-                else if (c.subType is TransactionSubType.GroupRoleSet)
-                {
-                    details = new
-                    {
-                        name = "GroupRoleSet",
-                        type = "RobloxProduct",
-                    };
-                }
-                else if (c.subType is TransactionSubType.GroupCreation)
-                {
-                    details = new
-                    {
-                        name = "Group",
-                        type = "RobloxProduct",
-                    };
-                }
-                else if (c.subType is TransactionSubType.AudioUploadLong)
-                {
-                    details = new
-                    {
-                        name = "Audio: Long Music",
-                        type = "RobloxProduct",
-                    };
-                }
-                else if (c.subType is TransactionSubType.GroupPayoutReceived)
-                {
-                    details = null;
-                    typeOverride = "Group Revenue Payout";
-                }
-                else
-                {
-                    // TODO: Don't error, but log this somewhere so we know to add the missing subType
-                    throw new Exception("Unexpected subType: " + c.subType);
+                    case TransactionSubType.ItemPurchase:
+                    case TransactionSubType.ItemResale:
+                    case TransactionSubType.ItemResalePurchase:
+                    case TransactionSubType.ItemSale:
+                        details = new
+                        {
+                            id = c.assetId,
+                            userAssetId = c.userAssetId,
+                            name = c.assetName,
+                            type = "Asset",
+                        };
+                        break;
+                    case TransactionSubType.UsernameChange:
+                        details = new
+                        {
+                            name = "Username Change",
+                            type = "RobloxProduct",
+                        };
+                        break;
+                    case TransactionSubType.PositionOpen:
+                        details = new
+                        {
+                            name = "Position Open",
+                            type = "RobloxProduct",
+                        };
+                        break;
+                    case TransactionSubType.PositionClose:
+                        details = new
+                        {
+                            name = "Position Close",
+                            type = "RobloxProduct",
+                        };
+                        break;
+                    case TransactionSubType.PositionSale:
+                    case TransactionSubType.PositionPurchase:
+                        details = new
+                        {
+                            name = "Position",
+                            type = "RobloxProduct",
+                        };
+                        break;
+                    case TransactionSubType.GroupRoleSet:
+                        details = new
+                        {
+                            name = "GroupRoleSet",
+                            type = "RobloxProduct",
+                        };
+                        break;
+                    case TransactionSubType.GroupCreation:
+                        details = new
+                        {
+                            name = "Group",
+                            type = "RobloxProduct",
+                        };
+                        break;
+                    case TransactionSubType.GroupPayoutReceived:
+                        details = null;
+                        typeOverride = "Group Revenue Payout";
+                        break;
+                    case TransactionSubType.AudioUploadLong:
+                        details = new
+                        {
+                            name = "Audio: Long Music",
+                            type = "RobloxProduct",
+                        };
+                        break;
+                    default:
+                        // TODO: Log somewhere isntead of errroring
+                        throw new Exception("Unexpected subType: " + c.subType);
                 }
 
                 return new
