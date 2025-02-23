@@ -45,7 +45,6 @@ namespace Roblox.Website.Controllers
             if (await Login(userInfo.username, request.password, userInfo.userId, totpCode))
                 await CreateSessionAndSetCookie(userInfo.userId);
 
-            var info = await services.users.GetUserById(userInfo.userId);
 
             return new
             {
@@ -55,7 +54,7 @@ namespace Roblox.Website.Controllers
                     name = userInfo.username,
                     displayName = userInfo.username,
                 },
-                isBanned = info.IsDeleted()
+                isBanned = userInfo.IsDeleted()
             };
 
         }
@@ -65,8 +64,8 @@ namespace Roblox.Website.Controllers
         {
             FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
             string requestBody = await GetRequestBody();
-            string username = "";
-            string password = "";
+            string? username = "";
+            string? password = "";
 
             if (string.IsNullOrEmpty(requestBody))
                 throw new BadRequestException(8, "Empty request body.");
@@ -173,7 +172,6 @@ namespace Roblox.Website.Controllers
 
             if(await Login(request.username, request.password, userInfo.userId, totpCode))
                 await CreateSessionAndSetCookie(userInfo.userId);
-
             var userBalance = await services.economy.GetUserBalance(userInfo.userId);
             return new
             {
