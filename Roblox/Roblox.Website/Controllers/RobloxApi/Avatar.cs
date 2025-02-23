@@ -231,7 +231,7 @@ public class AvatarRBX : ControllerBase
     {
         var assets = await services.avatar.GetWornAssets(userId);
         var multiGetResults = await services.assets.MultiGetInfoById(assets);
-        dynamic existingAvatar = await services.avatar.GetAvatar(userId);
+        var existingAvatar = await services.avatar.GetAvatar(userId);
         // If we dont have an avatar then its most likely a game loading a avatar
         // try
         // {
@@ -253,7 +253,7 @@ public class AvatarRBX : ControllerBase
                 proportion = 1,
                 bodyType = 1,
             },
-            playerAvatarType = (existingAvatar.avatar_type == 2) ? "R15" : "R6",
+            playerAvatarType = existingAvatar.avatarType.ToString(),
             bodyColors = (ColorEntry)existingAvatar,
             assets = multiGetResults.Select(c =>
             {
@@ -271,6 +271,7 @@ public class AvatarRBX : ControllerBase
             }),
         };
     }
+
     [HttpGetBypass("v1/avatar")]
     public async Task<dynamic> GetMyAvatar()
     {

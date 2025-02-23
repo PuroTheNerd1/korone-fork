@@ -772,7 +772,7 @@ namespace Roblox.Website.Controllers
 
             var result = new 
             {
-                resolvedAvatarType = avatar.avatarType,
+                resolvedAvatarType = avatar.avatarType.ToString(),
                 accessoryVersionIds,
                 equippedGearVersionIds,
                 assetAndAssetTypeIds = assetInfo.Select(c =>
@@ -785,7 +785,7 @@ namespace Roblox.Website.Controllers
                 }),
                 backpackGearVersionIds = equippedGearVersionIds,
                 animationAssetIds = new {},
-                playerAvatarType = avatar.avatarType,
+                playerAvatarType = avatar.avatarType.ToString(),
                 scales,
                 bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors,
