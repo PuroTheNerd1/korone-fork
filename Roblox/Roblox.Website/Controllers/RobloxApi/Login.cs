@@ -39,7 +39,7 @@ namespace Roblox.Website.Controllers
                 throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again.");
             }
 
-            if (await Login(userInfo.username, request.password, userInfo.userId, totpCode))
+            if (await Login(userInfo.username, request.password, userInfo.userId, totpCode, isPasswordLeaked))
                 await CreateSessionAndSetCookie(userInfo.userId);
 
             return new
@@ -107,7 +107,7 @@ namespace Roblox.Website.Controllers
                 throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again.");
             }
 
-            if (await Login(username, password, userInfo.userId, totpCode))
+            if (await Login(username, password, userInfo.userId, totpCode, isPasswordLeaked))
                 await CreateSessionAndSetCookie(userInfo.userId);
 
             // will be removed later this is just a hack to get the website to work :sob:
@@ -164,7 +164,7 @@ namespace Roblox.Website.Controllers
                 throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again.");
             }
 
-            if(await Login(request.username, request.password, userInfo.userId, totpCode))
+            if(await Login(request.username, request.password, userInfo.userId, totpCode, isPasswordLeaked))
                 await CreateSessionAndSetCookie(userInfo.userId);
 
             var userBalance = await services.economy.GetUserBalance(userInfo.userId);
@@ -200,7 +200,7 @@ namespace Roblox.Website.Controllers
                 SameSite = SameSiteMode.None,
             });
         }
-        private async Task<bool> Login(string username, string password, long userId, string? totpCode)
+        private async Task<bool> Login(string username, string password, long userId, string? totpCode, bool isPasswordLeaked)
         {
             FeatureCheck();
             var loginKey = "LoginAttemptCountV1:" + GetIP();
@@ -222,13 +222,19 @@ namespace Roblox.Website.Controllers
                     throw new ForbiddenException((int)LoginError403.CredentialsUnverified, "Incorrect 2FA code. Please try again.");
             }
 
-            if (!await services.users.VerifyPassword(userId, password))
-                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
+            try
+            {
+                if (!await services.users.VerifyPassword(userId, password))
+                    throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
+            }
+            catch (RecordNotFoundException)
+            {
+                throw new ForbiddenException((int)LoginError403.AccountLocked, "Your account has been locked. Please reset your password to unlock your account.");
+            }
 
             if (isPasswordLeaked)
             {
                 // Nullify the account password so it can't be used anymore
-                await services.users.NullifyPassword(userId);
                 throw new ForbiddenException((int)LoginError403.AccountLocked, "This account has been locked due to a password leak. Please reset your password to unlock your account.");
             }
             
