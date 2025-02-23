@@ -796,25 +796,6 @@ public class AssetsService : ServiceBase, IService
         }
     }
 
-    private async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
-    {
-        var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
-        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
-        {
-            return;
-        }
-        string key;
-        var latestVersion = await GetLatestAssetVersion(assetId);
-        string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
-        string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 352, 352);
-        byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
-        using (var imageStream = new MemoryStream(imageBytes))
-        {
-            key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
-        }
-        await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
-            ModerationStatus.AwaitingApproval);
-    }
 
     /// <summary>
     /// Convert a Roblox place to an enconomy simulator place. Returns the stream of the converted place.
@@ -858,40 +839,65 @@ public class AssetsService : ServiceBase, IService
     {
         var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
-        {
             return;
-        }
-        string key = "";
-        if (thumbnailToUse == null)
+
+        byte[] imageBytes;
+        if (thumbnailToUse is null)
         {
-            Writer.Info(LogGroup.GameIconRender, "start game icon render. placeId={0}", assetId);
+            Writer.Info(LogGroup.GameIconRender, "starting game icon render for placeId={0}", assetId);
             string rawRender = await RenderingHandler.RequestPlaceRender(assetId, 60, 1680, 1680);
-            string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(rawRender, 352, 352);
-            byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
-            using (var imageStream = new MemoryStream(imageBytes))
-            {
-                key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
-            }
-            Writer.Info(LogGroup.GameIconRender, "game icon render over. placeId={0}", assetId);
+            string resizedBase64 = await AvatarService.GetResizedImageFromBase64(rawRender, 352, 352);
+            imageBytes = Convert.FromBase64String(resizedBase64);
+            Writer.Info(LogGroup.GameIconRender, "completed game icon render for placeId={0}", assetId);
         }
-        else if (thumbnailToUse != null)
+        else
         {
-            var pictureData = await ValidateImage(thumbnailToUse);
-            if (pictureData == null)
+            var validImage = await ValidateImage(thumbnailToUse);
+            if (validImage == null)
             {
-                Writer.Info(LogGroup.GameIconRender, "custom icon failed", assetId);
+                Writer.Info(LogGroup.GameIconRender, "custom icon failed for assetId={0}", assetId);
+                return;
             }
-
-            byte[] imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
-
-            using (var imageStream = new MemoryStream(imageBytes))
-            {
-                key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
-            }
+            if (thumbnailToUse.CanSeek)
+                thumbnailToUse.Position = 0;
+            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
         }
+
+        using var imageStream = new MemoryStream(imageBytes);
+        string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
         await InsertOrReplaceIcon(assetId, key, ModerationStatus.AwaitingApproval);
     }
+    private async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
+    {
+        var modInfo = await GetAssetCatalogInfo(assetId);//(await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
+        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
+            return;
 
+        byte[] imageBytes;
+        if (thumbnailToUse is null)
+        {
+            string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
+            string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 352, 352);
+            imageBytes = Convert.FromBase64String(resizedBase64);
+        }
+        else
+        {
+            var validImage = await ValidateImage(thumbnailToUse);
+            if (validImage == null)
+            {
+                Writer.Info(LogGroup.GameIconRender, "custom icon failed for assetId={0}", assetId);
+                return;
+            }
+            if (thumbnailToUse.CanSeek)
+                thumbnailToUse.Position = 0;
+            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
+        }
+        var imageStream = new MemoryStream(imageBytes);
+        string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+        var latestVersion = await GetLatestAssetVersion(assetId);
+        await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
+            ModerationStatus.AwaitingApproval);
+    }
     private async Task CreateTeeShirtThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
