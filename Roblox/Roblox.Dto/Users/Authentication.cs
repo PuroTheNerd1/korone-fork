@@ -3,7 +3,7 @@ namespace Roblox.Dto.Authentication
     /// <summary>
     /// Error codes for HTTP 400 responses.
     /// </summary>
-    public enum AuthenticationError400
+    public enum LoginError400
     {
         /// <summary>
         /// 0: An unexpected error occurred.
@@ -24,7 +24,7 @@ namespace Roblox.Dto.Authentication
     /// <summary>
     /// Error codes for HTTP 403 responses.
     /// </summary>
-    public enum AuthenticationError403
+    public enum LoginError403
     {
         /// <summary>
         /// 0: Token Validation Failed.
@@ -90,7 +90,7 @@ namespace Roblox.Dto.Authentication
     /// <summary>
     /// Error codes for HTTP 429 responses.
     /// </summary>
-    public enum AuthenticationError429
+    public enum LoginError429
     {
         /// <summary>
         /// 7: Too many attempts. Please wait a bit.
@@ -101,7 +101,7 @@ namespace Roblox.Dto.Authentication
     /// <summary>
     /// Error codes for HTTP 503 responses.
     /// </summary>
-    public enum AuthenticationError503
+    public enum LoginError503
     {
         /// <summary>
         /// 11: Service unavailable. Please try again.
