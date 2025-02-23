@@ -39,7 +39,7 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
+                throw new ForbiddenException(1, "Incorrect username or password. Please try again.");
             }
 
             if (await Login(userInfo.username, request.password, userInfo.userId, totpCode))
@@ -109,7 +109,7 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
+                throw new ForbiddenException(1, "Incorrect username or password. Please try again.");
             }
 
             if (await Login(username, password, userInfo.userId, totpCode))
@@ -158,7 +158,7 @@ namespace Roblox.Website.Controllers
             string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
 
             if (string.IsNullOrEmpty(request.username) || string.IsNullOrEmpty(request.password))
-                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
+                throw new ForbiddenException(1, "Incorrect username or password. Please try again.");
 
             UserInfo userInfo;
             try
@@ -167,7 +167,7 @@ namespace Roblox.Website.Controllers
             }
             catch (RecordNotFoundException)
             {
-                throw new UnauthorizedException(1, "Incorrect username or password. Please try again.");
+                throw new ForbiddenException(1, "Incorrect username or password. Please try again.");
             }
 
             if(await Login(request.username, request.password, userInfo.userId, totpCode))
@@ -213,15 +213,15 @@ namespace Roblox.Website.Controllers
             {
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
-                    throw new UnauthorizedException(6, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+                    throw new ForbiddenException(6, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
 
                 //verify totp code
                 if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new UnauthorizedException(6, "Incorrect 2FA code. Please try again.");
+                    throw new ForbiddenException(6, "Incorrect 2FA code. Please try again.");
             }
 
             if (!await services.users.VerifyPassword(userId, password))
-                throw new UnauthorizedException(1, "Incorrect username or password. Please try again");
+                throw new ForbiddenException(1, "Incorrect username or password. Please try again");
 
             return true;
         }
