@@ -210,8 +210,29 @@ public class Asset : ControllerBase
 
         if (robloxAssets.Count > 0)
         {
-            var robloxResults = await services.robloxApi.GetAssetsFromBatch(robloxAssets);
-            await ProcessRobloxAssetsAsync(robloxResults, robloxAssets, assets);
+            try
+            {
+                // Get the assets from roblox
+                var robloxResults = await services.robloxApi.GetAssetsFromBatch(robloxAssets);
+                await ProcessRobloxAssetsAsync(robloxResults, robloxAssets, assets);
+            }
+            catch (Exception)
+            {
+                // If we fail to get the asset from roblox, we should put the roblox assets in the normal asset list because the client will request them then
+                foreach (dynamic robloxAsset in robloxAssets)
+                {
+                    assets.Add(new
+                    {
+                        location = $"{Configuration.BaseUrl}/v1/asset/?id={robloxAsset.assetId}",
+                        requestId = robloxAsset.requestId,
+                        IsHashDynamic = false,
+                        IsCopyrightProtected = false,
+                        IsArchived = false,
+                        assetTypeId = 0,
+                    });
+                }
+            }
+
         }
 
         return Content(JsonSerializer.Serialize(assets), "application/json");
