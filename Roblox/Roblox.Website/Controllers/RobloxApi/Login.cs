@@ -118,7 +118,7 @@ namespace Roblox.Website.Controllers
             // will be removed later this is just a hack to get the website to work :sob:
             HttpContext.Response.Cookies.Append("USERID", userInfo.userId.ToString(), new CookieOptions()
             {
-                Domain = ".pekora.zip",
+                Domain = $".{Configuration.ShortBaseUrl}",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,

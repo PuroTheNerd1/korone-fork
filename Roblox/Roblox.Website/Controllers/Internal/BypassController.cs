@@ -366,7 +366,7 @@ namespace Roblox.Website.Controllers
         {
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, suggest, new CookieOptions
             {
-                Domain = ".pekora.zip",
+                Domain = $".{Configuration.ShortBaseUrl}",
                 Secure = false,
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
