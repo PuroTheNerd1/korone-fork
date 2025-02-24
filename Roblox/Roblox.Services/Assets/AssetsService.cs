@@ -1912,6 +1912,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 return Type.TeeShirt;
             case "Heads":
                 return Type.Head;
+            case "Emote":
+            case "Emotes":
+                return Type.EmoteAnimation;
+            
         }
 
         return null;

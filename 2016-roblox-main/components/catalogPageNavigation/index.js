@@ -63,6 +63,10 @@ const navigationItems = [
     },
   },
   {
+    name: 'Emotes',
+    clickData: 'null,Emotes',
+  },
+  {
     name: 'separator',
     clickData: '',
   },

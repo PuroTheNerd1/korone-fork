@@ -769,19 +769,16 @@ namespace Roblox.Website.Controllers
             {
                 equippedGearVersionIds = new List<long>();
             }
-
+            int positionCounter = 1;
             var result = new 
             {
                 resolvedAvatarType = avatar.avatarType.ToString(),
                 accessoryVersionIds,
                 equippedGearVersionIds,
-                assetAndAssetTypeIds = assetInfo.Select(c =>
+                assetAndAssetTypeIds = assetInfo.Where(c => c.assetType != Type.EmoteAnimation).Select(c => new
                 {
-                    return new
-                    {
-                        assetId = c.id,
-                        assetTypeId = (int)c.assetType,
-                    };
+                    assetId = c.id,
+                    assetTypeId = (int)c.assetType,
                 }),
                 backpackGearVersionIds = equippedGearVersionIds,
                 animationAssetIds = new {},
@@ -789,7 +786,12 @@ namespace Roblox.Website.Controllers
                 scales,
                 bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors,
-                emotes
+                emotes = assetInfo.Where(c => c.assetType == Type.EmoteAnimation).Select(c => new
+                {
+                    assetId = c.id,
+                    assetName = c.name,
+                    position = positionCounter++, 
+                }),
             };
 
             string jsonString = JsonConvert.SerializeObject(result);
