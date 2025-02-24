@@ -43,6 +43,10 @@ public class AvatarControllerV1 : ControllerBase, IService
             {
                 using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
                 var assetIds = await cache.GetPendingAssets(userId);
+                if (await services.assets.MultiGetInfoById(assetIds).Any(c => c.assetType == Models.Assets.AssetType.Animation))
+                {
+                    return;
+                }
                 var newColors = await cache.GetColors(userId);
                 await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw);
             }
