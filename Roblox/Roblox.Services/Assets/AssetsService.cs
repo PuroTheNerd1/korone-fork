@@ -867,7 +867,7 @@ public class AssetsService : ServiceBase, IService
         string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
         await InsertOrReplaceIcon(assetId, key, ModerationStatus.AwaitingApproval);
     }
-    private async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
+    public async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
         var modInfo = await GetAssetCatalogInfo(assetId);//(await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
