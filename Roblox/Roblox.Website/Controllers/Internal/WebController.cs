@@ -331,7 +331,7 @@ public class WebController : ControllerBase
             CollectionsItems = result.Select(id =>
             {
                 var c = items.First(i => i.id == id);
-                var t = thumbnails.First(i => i.targetId == id);
+                var t = thumbnails.First(d => d.targetId == id);
                 return new
                 {
                     Id = c.id,
