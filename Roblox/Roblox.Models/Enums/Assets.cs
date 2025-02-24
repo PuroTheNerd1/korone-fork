@@ -51,6 +51,7 @@ namespace Roblox.Models.Assets
         SwimAnimation = 54,
         WalkAnimation = 55,
         PoseAnimation = 56,
+        EmoteAnimation = 61,
         Video = 62,
         Special = 500,
     }
