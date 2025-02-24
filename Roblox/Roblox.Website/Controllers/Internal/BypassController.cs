@@ -711,7 +711,7 @@ namespace Roblox.Website.Controllers
             dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
             
             equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == Type.Gear).Select(d => d.id));
-            accessoryVersionIds.AddRange(assetInfo.Where(d => d.assetType != Type.Gear).Select(d => d.id));
+            accessoryVersionIds.AddRange(assetInfo.Where(d => d.assetType != Type.Gear || d.assetType != Type.EmoteAnimation).Select(d => d.id));
             
             if (UserAgent != "Roblox/Win2020")
             {
