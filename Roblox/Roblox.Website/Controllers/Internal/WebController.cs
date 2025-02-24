@@ -341,7 +341,7 @@ public class WebController : ControllerBase
                     Thumbnail = new
                     {
                         Final = true,
-                        Url = t.imageUrl,
+                        Url = t.imageUrl ?? "/img/blocked.png",
                         Id = t.targetId,
                     },
                     AssetRestrictionIcon = new
@@ -399,7 +399,7 @@ public class WebController : ControllerBase
                         AssetId = 0,
                         AssetHash = (string?) null,
                         AssetTypeId = 0,
-                        Url = t.imageUrl,
+                        Url = t.imageUrl ?? "/img/blocked.png",
                         IsFinal = true,
                     },
                 };
