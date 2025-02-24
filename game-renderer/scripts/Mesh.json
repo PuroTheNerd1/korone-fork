@@ -1,12 +1,12 @@
 {
   "Mode": "Thumbnail",
   "Settings": {
-    "Type": "Mesh",
+    "Type": "Model",
     "Arguments": [
        "assetUrl",
        "PNG",
-       "x",
-       "y",
+       1680,
+       1680,
        "https://www.pekora.zip",
        true,
        0,
