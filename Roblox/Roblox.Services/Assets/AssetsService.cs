@@ -781,7 +781,18 @@ public class AssetsService : ServiceBase, IService
             await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.ReviewApproved);
         }
     }
-
+    private async Task CreateModelThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    {
+        var latestVersion = await GetLatestAssetVersion(assetId);
+        string response = await Rendering.RenderingHandler.RequestModelThumbnail(assetId, 20);
+        string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
+        byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
+        using (var imageStream = new MemoryStream(imageBytes))
+        {
+            var key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+            await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.ReviewApproved);
+        }
+    }
 
     private async Task CreateMeshThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
@@ -999,9 +1010,12 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.PoseAnimation:
             case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.Plugin:
-            case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Badge:
             case Models.Assets.Type.GamePass:
+                break;
+            case Models.Assets.Type.SolidModel:
+            case Models.Assets.Type.Model:
+                thumbRequests.Add(CreateModelThumbnail(assetId, cancellationToken));
                 break;
             case Models.Assets.Type.Place:
                 thumbRequests.Add(CreateGameThumbnail(assetId, default, cancellationToken));

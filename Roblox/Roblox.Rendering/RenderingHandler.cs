@@ -30,6 +30,7 @@ namespace Roblox.Rendering
             Mesh,
             Hat,
             Place,
+            Model
 
         }
         private class RenderResponse
@@ -93,6 +94,10 @@ namespace Roblox.Rendering
                     renderRequest.y = y;
                     url = "game/thumbnail";
                     break;
+                case RenderType.Model:
+                    renderRequest.assetId = id;
+                    url = "catalog/model";
+                    break;
             }
             // i will add error handling to this later
             var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
@@ -141,6 +146,11 @@ namespace Roblox.Rendering
         public static async Task<string> RequestMeshThumbnail(long assetId, int JobExpiration)
         {
             return await SendRenderRequest(assetId, RenderType.Mesh);
+        }
+
+        public static async Task<string> RequestModelThumbnail(long assetId, int JobExpiration)
+        {
+            return await SendRenderRequest(assetId, RenderType.Model);
         }
 
         public static async Task<string> RequestImageThumbnail(long assetId, int JobExpiration, bool isFace = false)
