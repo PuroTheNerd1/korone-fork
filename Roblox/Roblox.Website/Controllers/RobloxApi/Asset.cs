@@ -199,13 +199,16 @@ public class Asset : ControllerBase
 
         foreach (var asset in requestData)
         {
-            if (await services.assets.DoesAssetExist(asset.assetId))
+            // I promise that i will rework this fully soon
+            try
             {
                 var info = await services.assets.GetAssetCatalogInfo(asset.assetId);
                 assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
-                continue;
             }
-            assets.Add(CreateAssetResponse((Type)Enum.Parse(typeof(Type), asset.assetType), asset.requestId, asset.assetId, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
+            catch (RecordNotFoundException)
+            {
+                assets.Add(CreateAssetResponse((Type)Enum.Parse(typeof(Type), asset.assetType), asset.requestId, asset.assetId, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
+            }
         }
         return Content(JsonSerializer.Serialize(assets), "application/json");
     }
