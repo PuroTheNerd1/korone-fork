@@ -26,6 +26,12 @@ public class UserFeed : RobloxPageModel
         if (cacheResult != null)
         {
             feedList = JsonSerializer.Deserialize<List<FeedEntry>>(cacheResult);
+            var thumbnails = await services.thumbnails.GetUserHeadshots(feedList.Select(c => c.user.id).Distinct());
+            foreach(var c in feedList)
+            {
+                var entry = thumbnails.First(d => d.targetId == c.user.id);
+                c.user.image = entry.imageUrl ?? "/img/blocked.png";
+            }
             return;
         }
 #endif
@@ -89,12 +95,6 @@ public class UserFeed : RobloxPageModel
             return ok;
         }).ToList();
         feedList = feeds.Take(feedLimit);
-        var thumbnails = await services.thumbnails.GetUserHeadshots(feedList.Select(c => c.user.id).Distinct());
-        foreach(var c in feedList)
-        {
-            var entry = thumbnails.First(d => d.targetId == c.user.id);
-            c.user.image = entry.imageUrl ?? "/img/blocked.png";
-        }
         await Services.Cache.distributed.StringSetAsync(feedCacheKey, JsonSerializer.Serialize(feedList),
             TimeSpan.FromHours(2));
     }
