@@ -112,7 +112,7 @@ public class AvatarRBX : ControllerBase
             emotes = assetInfo.Where(c => c.assetType == Models.Assets.Type.EmoteAnimation).Select(c => new
             {
                 assetId = c.id,
-                assetTypeId = (int)c.assetType,
+                assetName = c.name,
                 position = positionCounter++,
             }),
         };
