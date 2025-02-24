@@ -48,7 +48,7 @@ public class UserFeed : RobloxPageModel
                 feeds.Add(entry);
             }
         }
-        
+
         feeds.Sort((a, b) => a.created > b.created ? -1 : a.created < b.created ? 1 : 0);
         feeds = feeds.Where(a => !string.IsNullOrWhiteSpace(a.content)).Where((a, idx) =>
         {

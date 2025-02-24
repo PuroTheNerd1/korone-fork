@@ -377,28 +377,32 @@ public class WebController : ControllerBase
         var com = await services.assets.GetComments(assetId, startIndex, 10);
         var isModerator = userSession != null && (await services.users.GetStaffPermissions(userSession.userId))
             .Any(a => a.permission == Access.DeleteComment);
-
+        var thumbnails = await services.thumbnails.GetUserThumbnails(com.Select(c => c.userId).Distinct().ToList());
         return new
         {
             IsUserModerator = isModerator,
             MaxRows = 10,
             AreCommentsDisabled = false,
-            Comments = com.Select(c => new
+            Comments = com.Select(c =>
             {
-                Id = c.id,
-                PostedDate = c.createdAt.ToString("MMM").Replace(".", "") + c.createdAt.ToString(" dd, yyyy | h:mm ") + c.createdAt.ToString("tt").ToUpper().Replace(".", ""),
-                AuthorName = c.username,
-                AuthorId = c.userId,
-                Text = c.comment,
-                ShowAuthorOwnsAsset = false,
-                AuthorThumbnail = new
+                var t = thumbnails.First(d => d.targetId == c.userId);
+                return new
                 {
-                    AssetId = 0,
-                    AssetHash = (string?) null,
-                    AssetTypeId = 0,
-                    Url = "/Thumbs/avatar.ashx?userId=" + c.userId,
-                    IsFinal = true,
-                },
+                    Id = c.id,
+                    PostedDate = c.createdAt.ToString("MMM").Replace(".", "") + c.createdAt.ToString(" dd, yyyy | h:mm ") + c.createdAt.ToString("tt").ToUpper().Replace(".", ""),
+                    AuthorName = c.username,
+                    AuthorId = c.userId,
+                    Text = c.comment,
+                    ShowAuthorOwnsAsset = false,
+                    AuthorThumbnail = new
+                    {
+                        AssetId = 0,
+                        AssetHash = (string?) null,
+                        AssetTypeId = 0,
+                        Url = t.imageUrl,
+                        IsFinal = true,
+                    },
+                };
             })
         };
     }
