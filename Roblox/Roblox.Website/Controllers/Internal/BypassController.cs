@@ -686,21 +686,6 @@ namespace Roblox.Website.Controllers
         {
             List<long> accessoryVersionIds = new List<long>();
             List<long> equippedGearVersionIds = new List<long>();
-            List<dynamic> emotes = new List<dynamic>
-            {
-                new
-                {
-                    assetId = 41164,
-                    assetName = "Yungblud Happier Jump",
-                    position = 1
-                },
-                new
-                {
-                    assetId = 15610015346,
-                    assetName = "Yungblud Happier Jump#2",
-                    position = 2
-                },
-            };
             var wornAssets = await services.avatar.GetWornAssets(userId);
             var avatar = await services.avatar.GetAvatar(userId);
             // If we dont have an avatar then its most likely a game loading a avatar
@@ -749,7 +734,11 @@ namespace Roblox.Website.Controllers
                 scales,
                 bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
                 bodyColors,
-                emotes,
+                emotes = assetInfo.Where(c => c.assetType == Type.EmoteAnimation).Select(c => new
+                {
+                    assetId = c.id,
+                    assetTypeId = (int)c.assetType,
+                }),
             };
 
             string jsonString = JsonConvert.SerializeObject(result);
