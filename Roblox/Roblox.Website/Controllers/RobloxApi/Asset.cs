@@ -196,7 +196,6 @@ public class Asset : ControllerBase
             throw new BadRequestException();
 
         var assets = new List<object>();
-        var robloxAssets = new List<object>();
 
         foreach (var asset in requestData)
         {
@@ -207,36 +206,7 @@ public class Asset : ControllerBase
                 continue;
             }
             assets.Add(CreateAssetResponse((Type)Enum.Parse(typeof(Type), asset.assetType), asset.requestId, asset.assetId, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
-            //robloxAssets.Add(new { asset.assetType, asset.requestId, asset.assetId });
         }
-
-        // if (robloxAssets.Count > 0)
-        // {
-        //     try
-        //     {
-        //         // Get the assets from roblox
-        //         var robloxResults = await services.robloxApi.GetAssetsFromBatch(robloxAssets);
-        //         await ProcessRobloxAssetsAsync(robloxResults, robloxAssets, assets);
-        //     }
-        //     catch (Exception)
-        //     {
-        //         // If we fail to get the asset from roblox, we should put the roblox assets in the normal asset list because the client will request them then
-        //         foreach (dynamic robloxAsset in robloxAssets)
-        //         {
-        //             assets.Add(new
-        //             {
-        //                 location = $"{Configuration.BaseUrl}/v1/asset/?id={robloxAsset.assetId}",
-        //                 requestId = robloxAsset.requestId,
-        //                 IsHashDynamic = false,
-        //                 IsCopyrightProtected = false,
-        //                 IsArchived = false,
-        //                 assetTypeId = (int)Enum.Parse(typeof(Type), robloxAsset.assetType),
-        //             });
-        //         }
-        //     }
-
-        // }
-
         return Content(JsonSerializer.Serialize(assets), "application/json");
     }
     private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> robloxAssets, List<object> assets)
