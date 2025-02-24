@@ -877,7 +877,7 @@ public class AssetsService : ServiceBase, IService
         if (thumbnailToUse is null)
         {
             string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
-            string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 352, 352);
+            string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 640, 360);
             imageBytes = Convert.FromBase64String(resizedBase64);
         }
         else
@@ -890,7 +890,7 @@ public class AssetsService : ServiceBase, IService
             }
             if (thumbnailToUse.CanSeek)
                 thumbnailToUse.Position = 0;
-            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
+            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 640, 360);
         }
         var imageStream = new MemoryStream(imageBytes);
         string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
