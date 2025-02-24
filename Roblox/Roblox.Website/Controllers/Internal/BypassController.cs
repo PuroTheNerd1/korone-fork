@@ -690,58 +690,6 @@ namespace Roblox.Website.Controllers
             var avatar = await services.avatar.GetAvatar(userId);
             // If we dont have an avatar then its most likely a game loading a avatar
 
-            List<dynamic> emotes = new List<dynamic>
-            {
-                new
-                {
-                    assetId = 15610015346,
-                    assetName = "Yungblud Happier Jump",
-                    position = 1
-                },
-                new
-                {
-                    assetId = 14124050904,
-                    assetName = "TWICE Like Ooh-Ahh",
-                    position = 2
-                },
-                new 
-                {
-                    assetId = 15123050663,
-                    assetName = "Bone Chillin' Bop",
-                    position = 3
-                },
-                new 
-                {
-                    assetId = 14900151704,
-                    assetName = "TWICE LIKEY",
-                    position = 4
-                },
-                new 
-                {
-                    assetId = 3576747102,
-                    assetName = "Around Town",
-                    position = 5
-                },
-                new 
-                {
-                    assetId = 3934988903,
-                    assetName = "Fancy Feet",
-                    position = 6
-                },
-                new 
-                {
-                    assetId = 3696757129,
-                    assetName = "Hype Dance",
-                    position = 7
-                },
-                new 
-                {
-                    assetId = 17746270218,
-                    assetName = "Sturdy Dance - Ice Spice",
-                    position = 8
-                },
-            };
-
             var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
 
             dynamic bodyColors = new
