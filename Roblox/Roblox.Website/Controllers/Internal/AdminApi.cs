@@ -1659,7 +1659,7 @@ public class AdminApiController : ControllerBase
         if (totalChanges.Count == 0)
             throw new StaffException("The username provided has not been used by this user.");
 
-        var amountToRefund = totalChanges.Count * 1000;
+        var amountToRefund = totalChanges.Count * 250;
         await services.users.InTransaction(async _ =>
         {
             var usersDb = services.users.db;
