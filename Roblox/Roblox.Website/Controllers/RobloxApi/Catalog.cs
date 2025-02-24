@@ -89,7 +89,12 @@ public class Catalog : ControllerBase
             Recommended = 51,
         };
     }
-
+    // TODO: Unhardcode later
+    [HttpGetBypass("v1/bundles/{bundleId:long}/details")]
+    public dynamic GetBundleDetails(long bundleId)
+    {
+        return Redirect($"https://catalog.roblox.com/v1/bundles/{bundleId}details");
+    }
     [HttpGetBypass("v1/search/navigation-menu-items")]
     public dynamic GetSearchNavigationMenuItems()
     {
