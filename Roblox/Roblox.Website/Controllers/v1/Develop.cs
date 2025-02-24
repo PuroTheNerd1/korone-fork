@@ -42,6 +42,32 @@ public class DevelopControllerV1 : ControllerBase
         };
     }
 
+    [HttpPost("assets/upload-gameicon")]
+    public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
+    {
+        await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
+        var details = await services.assets.GetAssetCatalogInfo(placeId);
+        if (details.assetType != Models.Assets.Type.Place) {
+            throw new BadRequestException(1, "Cannot upload a game icon for a non place");
+        }
+
+        await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
+        return Ok();
+    }
+    
+    [HttpPost("assets/upload-thumbnail")]
+    public async Task<dynamic> UploadGameThumbnail(long placeId, [Required, FromForm] IFormFile file)
+    {
+        await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
+        var details = await services.assets.GetAssetCatalogInfo(placeId);
+        if (details.assetType != Models.Assets.Type.Place) {
+            throw new BadRequestException(1, "Cannot upload a game thumbnail for a non place");
+        }
+
+        await services.assets.CreateGameThumbnail(placeId, file.OpenReadStream());
+        return Ok();
+    }
+    
     [HttpPatch("assets/{assetId:long}")]
     public async Task UpdateAsset(long assetId, [Required, FromBody] UpdateAssetRequest request)
     {
