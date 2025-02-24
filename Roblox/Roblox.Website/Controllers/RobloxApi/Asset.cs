@@ -111,6 +111,7 @@ public class Asset : ControllerBase
             case Models.Assets.Type.Face:
             case Models.Assets.Type.Gear:
             case Models.Assets.Type.Badge:
+            case Models.Assets.Type.EmoteAnimation:
             case Models.Assets.Type.Animation:
             case Models.Assets.Type.Torso:
             case Models.Assets.Type.RightArm:
@@ -195,46 +196,20 @@ public class Asset : ControllerBase
             throw new BadRequestException();
 
         var assets = new List<object>();
-        var robloxAssets = new List<object>();
 
         foreach (var asset in requestData)
         {
-            string? location = await services.assets.GetAssetLocationAsync(asset);
-            if (location != null)
-            {
-                assets.Add(CreateAssetResponse(asset, location));
-                continue;
-            }
-            robloxAssets.Add(new { asset.requestId, asset.assetId });
-        }
-
-        if (robloxAssets.Count > 0)
-        {
+            // I promise that i will rework this fully soon
             try
             {
-                // Get the assets from roblox
-                var robloxResults = await services.robloxApi.GetAssetsFromBatch(robloxAssets);
-                await ProcessRobloxAssetsAsync(robloxResults, robloxAssets, assets);
+                var info = await services.assets.GetAssetCatalogInfo(asset.assetId);
+                assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
             }
-            catch (Exception)
+            catch (RecordNotFoundException)
             {
-                // If we fail to get the asset from roblox, we should put the roblox assets in the normal asset list because the client will request them then
-                foreach (dynamic robloxAsset in robloxAssets)
-                {
-                    assets.Add(new
-                    {
-                        location = $"{Configuration.BaseUrl}/v1/asset/?id={robloxAsset.assetId}",
-                        requestId = robloxAsset.requestId,
-                        IsHashDynamic = false,
-                        IsCopyrightProtected = false,
-                        IsArchived = false,
-                        assetTypeId = 0,
-                    });
-                }
+                assets.Add(CreateAssetResponse((Type)Enum.Parse(typeof(Type), asset.assetType), asset.requestId, asset.assetId, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
             }
-
         }
-
         return Content(JsonSerializer.Serialize(assets), "application/json");
     }
     private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> robloxAssets, List<object> assets)
@@ -260,16 +235,16 @@ public class Asset : ControllerBase
             await services.robloxassets.SetRobloxAssetLocationInCache(assetId, robloxAsset.location);
         }
     }
-    private object CreateAssetResponse(BatchAssetRequest asset, string location)
+    private static object CreateAssetResponse(Type assetType, string requestId, long assetId, string location)
     {
         return new
         {
             location,
-            asset.requestId,
+            requestId = requestId,
             IsHashDynamic = false,
             IsCopyrightProtected = false,
             IsArchived = false,
-            assetTypeId = (int)Enum.Parse(typeof(Type), asset.assetType),
+            assetTypeId = (int)assetType
         };
     }
     private async Task<bool> ValidateRCCRequest(MultiGetEntry details, long placeId, long assetId)

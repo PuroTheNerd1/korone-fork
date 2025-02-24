@@ -315,7 +315,7 @@ public class AssetsService : ServiceBase, IService
 
         directory ??= Configuration.AssetDirectory;
 
-        var fullPath = directory + key;
+        var fullPath = directory + Path.GetFileName(key);
         while (true)
         {
             try
@@ -338,19 +338,7 @@ public class AssetsService : ServiceBase, IService
 
         return Task.CompletedTask;
     }
-    public async Task<string?> GetAssetLocationAsync(BatchAssetRequest asset)
-    {
-        string? location = $"{Configuration.BaseUrl}/v1/asset?id={asset.assetId}";
-        try
-        {
-            await GetAssetCatalogInfo(asset.assetId);
-        }
-        catch (RecordNotFoundException)
-        {
-            location = await robloxAssetService.GetRobloxAssetLocationFromCache(asset.assetId);
-        }
-        return location;
-    }
+
     public async Task InsertOrReplaceThumbnail(long assetId, long assetVersionId, string newThumbnailKey,
         Models.Assets.ModerationStatus moderationStatus)
     {

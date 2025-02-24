@@ -9,7 +9,7 @@ const subCatIdToName = id => {
     2: 'T-Shirt',
     3: 'Sound',
     4: 'Mesh',
-    5: '',
+    5: 'Lua',
     8: 'Hat',
     9: 'Place',
     10: 'Model',
@@ -30,13 +30,13 @@ const subCatIdToName = id => {
     34: 'Game Pass',
     38: 'Plugin',
     40: 'Mesh Part',
-    41: 'Hat', // Hair Accessory
-    42: 'Hat', // Face Accessory
-    43: 'Hat', // Neck Accessory
-    44: 'Hat', // Shoulder Accessory
-    45: 'Hat', // Front Accessory
-    46: 'Hat', // Back Accessory
-    47: 'Hat', // Waist Accessory
+    41: 'Hair Accessory', // Hair Accessory
+    42: 'Face Accessory', // Face Accessory
+    43: 'Neck Accessory', // Neck Accessory
+    44: 'Shoulder Accessory', // Shoulder Accessory
+    45: 'Front Accessory', // Front Accessory
+    46: 'Back Accessory', // Back Accessory
+    47: 'Waist Accessory', // Waist Accessory
     48: 'Climb Animation',
     49: 'Death Animation',
     50: 'Fall Animation',
@@ -46,6 +46,7 @@ const subCatIdToName = id => {
     54: 'Swim Animation',
     55: 'Walk Animation',
     56: 'Pose Animation',
+    61: 'Emote',
     62: 'Video',
   }[id];
 }
