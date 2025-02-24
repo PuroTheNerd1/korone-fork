@@ -11,7 +11,11 @@ const useStyles = createUseStyles({
     innerCarousel: {
         overflow: 'hidden',
         width: '100%',
-        maxHeight: '100%'
+        height: '100%',
+        position: 'relative',
+        '&:hover $carouselControl': {
+            display: 'block'
+        }
     },
     carouselItem: {
         transition: 'opacity .5s ease-in-out',
@@ -19,12 +23,14 @@ const useStyles = createUseStyles({
         top: 0,
         left: 0,
         width: '100%',
+        height: '100%',
         display: 'block',
         position: 'absolute',
         zIndex: 0,
         transform: 'translateZ(0)',
         '& img':{
             width: '100%',
+            height: '100%',
             verticalAlign: 'middle',
             border: 0,
         },
@@ -32,64 +38,140 @@ const useStyles = createUseStyles({
     activeCarouselItem: {
         opacity: 1,
         //zIndex: 3
-      },
+    },
+    carouselControl: {
+        position: 'absolute',
+        top: 'calc(50% - 24px)',
+        backgroundColor: 'rgba(25, 25, 25, 0.3)',
+        border: '2px solid var(--white)',
+        borderRadius: '50%',
+        height: '48px',
+        width: '48px',
+        userSelect: 'none',
+        cursor: 'pointer',
+        //textAlign: 'center',
+        zIndex: 1000,
+        '&:hover': {
+            backgroundColor: 'rgba(25, 25, 25, 0.75)',
+        }
+    },
 });
 
-function addCarouselImage(imageLink, css, isFirst){
-    var first;
-    isFirst ? first = useStyles().activeCarouselItem : first = ' ';
-    return <div className={useStyles().carouselItem + ' ' + first+ ' ' + css}>
+/**
+ * @param {{styles: string; imageLink: string; status: string; active: boolean;}} props
+ * @returns {JSX.Element}
+ * @constructor
+ */
+const CarouselThumbnail = props => {
+    // let first;
+    // isFirst ? first = useStyles().activeCarouselItem : first = ' ';
+    // return <div className={useStyles().carouselItem + ' ' + first+ ' ' + css}>
+    //     <span>
+    //         <img src={imageLink} alt={"Game Thumbnail"}></img>
+    //     </span>
+    // </div>
+    return <div className={`${props.styles.carouselItem} ${props.active && props.styles.activeCarouselItem}`}>
         <span>
-            <img src={imageLink}></img>
+            <img src={props.status === 'Pending' ? "/img/placeholder.png" : props.status === 'Blocked' ? "/img/blocked.png" : props.imageLink} alt={"Game Thumbnail"} />
         </span>
     </div>
 }
 
 const gameThumbnails = props => {
     const store = GameDetailsStore.useContainer();
-    const [imageUrl, setImageUrl] = useState(null);
-    const [images, setImages] = useState(null);
+    // 0 === loading, 1 === use placeholder, 2 === failed to load, 3 === moderated array is succedss
+    /** @type {useState<AssetThumbnail[]>} */
+    const [images, setImages] = useState([]);
+    // 0 === loading, 1 === completed
+    const [imageStatus, setImageStatus] = useState(0);
+    const [currentImage, setCurrentImage] = useState(0);
     const s = useStyles();
-
-    useEffect(() => {
-        if (!store.universeDetails || !store.universeDetails.id)
-          return;
     
-        getGameMedia({universeId: store.universeDetails.id}).then(media => {
-          const images = media.filter(v => v.assetType === 'Image');
-          if (images.length) {
-            multiGetAssetThumbnails({assetIds: images.map(v => v.imageId)}).then(thumb => {
-              // Default to first thumbnail
-              setImageUrl(thumb[0].imageUrl);
-              setImages(thumb.map(v => v.imageUrl));
-            })
-          } else {
-            //setImageUrl('/img/placeholder/icon_two.png');
-            //setImages('/img/placeholder/icon_two.png');
-            multiGetAssetThumbnails({assetIds: [store.universeDetails.rootPlaceId]}).then(thumb => {
-                if (thumb.length) {
-                  setImageUrl(thumb[0].imageUrl);
-                  setImages([thumb[0].imageUrl]);
-                } else {
-                  setImageUrl('/img/placeholder/icon_two.png');
-                  setImages('/img/placeholder/icon_two.png');
-                }
-              })
-          }
+    useEffect(() => {
+        if (!store.universeDetails || !store.universeDetails.id || !store.placeDetails || !store.placeDetails.placeId)
+            return;
+        
+        multiGetAssetThumbnails({ assetIds: [store.placeDetails.placeId] }).then(thumbs => {
+            if (thumbs && thumbs.length && thumbs.length > 0) {
+                setImages(thumbs);
+                setImageStatus(1);
+            }
+            // /**
+            //  * @type AssetThumbnail[]
+            //  */
+            // const thumbs = thumbs1;
+            // if (!thumbs || !thumbs.length) {
+            //     setImages(2);
+            //     return;
+            // } else if (thumbs.length === 1 && thumbs[0].state === "Pending") {
+            //     setImages(1);
+            //     return;
+            // } else if (thumbs.length > 0) {
+            //     setImages(thumbs);
+            //     console.log(thumbs);
+            //     console.log(images);
+            //     return;
+            // }
+            // setImages(2);
         })
-      }, [store.universeDetails, store.details]);
-
-    var isFirstOne = true;
-
+    }, [store.universeDetails, store.details, store.placeDetails]);
+    
+    const changeCurrentImage = (e, forward) => {
+        e.preventDefault();
+        if (forward) {
+            // check if current image is at the end of the images. if it is,
+            // loop back to beginning and return
+            if (currentImage === images.length - 1) {
+                setCurrentImage(0);
+                return;
+            }
+            setCurrentImage(currentImage + 1);
+        } else {
+            // check if current image is at the start of the images. if it is,
+            // loop to end and return
+            if (currentImage === 0) {
+                setCurrentImage(images.length - 1);
+                return;
+            }
+            setCurrentImage(currentImage - 1);
+        }
+    }
+    
     return <div className={s.innerCarousel}>
         {
             /*images.forEach(image => {
                 addCarouselImage(image, ' ', isFirstOne);
                 isFirstOne ? isFirstOne = false  : null;
             })*/
-           
         }
-        {imageUrl ? addCarouselImage(imageUrl, ' ', true) : addCarouselImage('/img/placeholder/icon_two.png', ' ', true)}
+        {/*
+            imageUrl ? addCarouselImage(imageUrl, ' ', true) : addCarouselImage('/img/placeholder/icon_two.png', ' ', true)
+        */}
+        {
+            images.length > 0 && imageStatus === 1 ?
+                images.map((thumb, index) =>
+                    <CarouselThumbnail
+                        key={thumb.imageUrl}
+                        status={thumb.state}
+                        imageLink={thumb.imageUrl}
+                        styles={s}
+                        active={currentImage === index}
+                    />
+                )
+                : <CarouselThumbnail styles={s} active={true} status={'Completed'}
+                                     imageLink={"/img/" + (imageStatus === 0 ? "loading.png" : Math.random() === 1 ? "placeholder/icon_two.png" : "placeholder/icon_one.png") }
+                />
+        }
+        {
+            images.length > 1 && <>
+                <div onClick={e => changeCurrentImage(e, false)} className={s.carouselControl} style={{left: 18}}>
+                    <span className='icon-carousel-left'/>
+                </div>
+                <div onClick={e => changeCurrentImage(e, true)} className={s.carouselControl} style={{right: 18}}>
+                    <span className='icon-carousel-right'/>
+                </div>
+            </>
+        }
     </div>
 }
 

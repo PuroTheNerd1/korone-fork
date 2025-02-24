@@ -972,6 +972,7 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.Image:
             case Models.Assets.Type.Decal:
             case Models.Assets.Type.Face:
+            case Models.Assets.Type.GamePass:
                 thumbRequests.Add(CreateAssetTextureThumbnail(assetId, assetType, cancellationToken));
                 break;
             // clothing
@@ -1015,7 +1016,6 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.Plugin:
             case Models.Assets.Type.Badge:
-            case Models.Assets.Type.GamePass:
                 break;
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Model:
@@ -1462,6 +1462,7 @@ public class AssetsService : ServiceBase, IService
         Type.Face,
         Type.ShoulderAccessory,
         Type.FaceAccessory,
+        Type.GamePass
     };
 
     public async Task<Dto.Assets.CreateResponse> CreateAsset(string name, string? description, long creatorUserId,
@@ -1577,7 +1578,6 @@ public class AssetsService : ServiceBase, IService
                 });
             }
 
-
             return 0;
         });
 
@@ -1622,6 +1622,15 @@ public class AssetsService : ServiceBase, IService
         {
             placeId = place.assetId,
         };
+    }
+    
+    public async Task CreateGamePassAsset(long assetId, long? universeId) {
+        if (universeId is null)
+            return;
+        await InsertAsync("asset_gamepass", new {
+            asset_id = assetId,
+            universe_id = universeId
+        });
     }
 
     public async Task<ProductEntry> GetProductForAsset(long assetId)
@@ -2237,10 +2246,31 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     }
 
     public async Task UpdateAsset(long assetId, string? description, string name, Genre genre,
-        bool isCopyingAllowed, bool areCommentsAllowed)
+        bool isCopyingAllowed, bool areCommentsAllowed, Stream? file = null)
     {
         ValidateNameAndDescription(name, description);
 
+        if (file != null) {
+            var modInfo = await GetAssetCatalogInfo(assetId);
+            if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
+                return;
+
+            var validImage = await ValidateImage(file);
+            if (validImage == null)
+            {
+                Writer.Info(LogGroup.GameIconRender, "custom icon failed for assetId={0}", assetId);
+                return;
+            }
+            if (file.CanSeek)
+                file.Position = 0;
+            byte[] imageBytes = await AvatarService.GetResizedImageFromStream(file, 420, 420);
+            var imageStream = new MemoryStream(imageBytes);
+            string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+            var latestVersion = await GetLatestAssetVersion(assetId);
+            await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
+                ModerationStatus.AwaitingApproval);
+        }
+        
         await UpdateAsync("asset", assetId, new
         {
             name,

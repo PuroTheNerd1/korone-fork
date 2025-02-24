@@ -51,6 +51,7 @@ const useStyles = createUseStyles({
   description: {
     marginBottom: 0,
     fontSize: '14px',
+    whiteSpace: 'break-spaces'
   },
   catalogItemContainer: {
     background: 'var(--white-color)',

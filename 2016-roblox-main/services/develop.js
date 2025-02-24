@@ -112,36 +112,45 @@ export const setUniverseMaxPlayers = async ({ universeId, maxPlayers }) => {
 }
 
 export const uploadGameIcon = async ({ placeId, file }) => {
-  return new Promise((resolve, reject) => {
-    let form = new FormData();
-    form.append('file', file);
+  const form = new FormData();
+  form.append('file', file);
+  return request('POST', getFullUrl('develop', `/v1/assets/upload-gameicon?placeId=${placeId}`), form)
+  // return new Promise((resolve, reject) => {
+  //   let form = new FormData();
+  //   form.append('file', file);
+  //
+  //   let xhr = new XMLHttpRequest();
+  //
+  //   xhr.open('POST',
+  //     getFullUrl('develop', `/v1/assets/upload-gameicon?placeId=${placeId}`))
+  //
+  //   xhr.upload.onprogress = function (event) {
+  //     if (event.lengthComputable) {
+  //       let percentComplete = (event.loaded / event.total) * 100;
+  //       console.log('Upload progress: ' + percentComplete.toFixed(2) + '%');
+  //     }
+  //   };
+  //
+  //   xhr.responseType = 'json';
+  //
+  //   xhr.onload = function () {
+  //     if (xhr.status === 200) {
+  //       resolve(xhr.response);
+  //     } else {
+  //       reject('Error uploading file: ' + xhr.statusText);
+  //     }
+  //   };
+  //
+  //   xhr.onerror = function () {
+  //     reject('Network error while uploading file.');
+  //   };
+  //
+  //   xhr.send(form);
+  // });
+};
 
-    let xhr = new XMLHttpRequest();
-
-    xhr.open('POST',
-      getFullUrl('develop', `/v1/assets/upload-gameicon?placeId=${placeId}`))
-
-    xhr.upload.onprogress = function (event) {
-      if (event.lengthComputable) {
-        let percentComplete = (event.loaded / event.total) * 100;
-        console.log('Upload progress: ' + percentComplete.toFixed(2) + '%');
-      }
-    };
-
-    xhr.responseType = 'json';
-
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        resolve(xhr.response);
-      } else {
-        reject('Error uploading file: ' + xhr.statusText);
-      }
-    };
-
-    xhr.onerror = function () {
-      reject('Network error while uploading file.');
-    };
-
-    xhr.send(form);
-  });
+export const uploadGameThumbnail = async ({ placeId, file }) => {
+  const form = new FormData();
+  form.append('file', file);
+  return request('POST', getFullUrl('develop', `/v1/assets/upload-thumbnail?placeId=${placeId}`), form)
 };

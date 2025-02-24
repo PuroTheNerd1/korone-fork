@@ -36,14 +36,23 @@ const GameDetailsStore = createContainer(() => {
   }, [placeDetails]);
 
   return {
+    /**
+     * @type AssetDetailsEntry
+     */
     details,
     setDetails,
 
     servers,
     setServers,
-
+    
+    /**
+     * @type PlaceDetails
+     */
     placeDetails,
-
+    
+    /**
+     * @type UniverseDetails
+     */
     universeDetails,
 
     media,

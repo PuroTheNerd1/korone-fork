@@ -29,6 +29,15 @@ public class UpdateAssetRequest
     public bool enableComments { get; set; }
 }
 
+public class UpdateGamePassAssetRequest
+{
+    public string? description { get; set; } = null;
+    public IEnumerable<Genre> genres { get; set; }
+    public string name { get; set; }
+    public bool enableComments { get; set; }
+    public IFormFile? file { get; set; }
+}
+
 public class MultiGetAssetDetailsRequest
 {
     public IEnumerable<long> assetIds { get; set; }
@@ -57,6 +66,11 @@ public class UploadAssetRequest
     public string name { get; set; }
     public Type assetType { get; set; }
     public long? groupId { get; set; } = null;
+    public long? universeId { get; set; } = null;
+    public string? description { get; set; } = null;
+    public int? priceInRobux { get; set; } = null;
+    public int? priceInTickets { get; set; } = null;
+    public bool? isForSale { get; set; } = null;
     public IFormFile file { get; set; }
 }
 

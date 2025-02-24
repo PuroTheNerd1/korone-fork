@@ -72,10 +72,25 @@ public class DevelopControllerV1 : ControllerBase
     public async Task UpdateAsset(long assetId, [Required, FromBody] UpdateAssetRequest request)
     {
         await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
-
+        
         await services.assets.UpdateAsset(assetId, request.description, request.name, request.genres.First(),
             request.isCopyingAllowed, request.enableComments);
     }
+
+    [HttpPatch("assets/update-gamepass/{assetId:long}")]
+    public async Task UpdateGamePassAsset(long assetId, [Required, FromForm] UpdateGamePassAssetRequest request) 
+    {
+        await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
+        
+        var details = await services.assets.GetAssetCatalogInfo(assetId);
+        if (details.assetType != Models.Assets.Type.GamePass) {
+            throw new BadRequestException(1, "This endpoint is meant for updating gamepass assets only. Use assets/{assetId} for other assets.");
+        }
+        
+        await services.assets.UpdateAsset(assetId, request.description, request.name, request.genres.First(),
+            false, request.enableComments, request.file != null ? request.file.OpenReadStream() : null);
+    }
+    
     [HttpPatch("universes/{universeId:long}/set-year")]
     public async Task SetYear(long universeId, [Required, FromBody] SetYearRequest request)
     {
