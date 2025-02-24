@@ -569,7 +569,7 @@ public class AvatarService : ServiceBase, IService
     }
 
     public async Task RedrawAvatar(long userId, IEnumerable<long>? newAssetIds = null, ColorEntry? colors = null,
-        AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false)
+        AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false, bool? skipRender = false)
     {
         // required services
         using var assets = ServiceProvider.GetOrCreate<AssetsService>();
@@ -583,25 +583,6 @@ public class AvatarService : ServiceBase, IService
         if (!redLock.IsAcquired && !ignoreLock) throw new LockNotAcquiredException();
 
         var assetIds = newAssetIds?.ToList();
-        if (assetIds != null)
-        {
-            bool isOk = false;
-            var multiInfo = await assets.MultiGetInfoById(assetIds);
-            // Check through each item and if its only a emote, then we can skip rendering
-            foreach (var item in multiInfo)
-            {
-                Console.WriteLine(item.id);
-                if (item.assetType != Type.EmoteAnimation)
-                {
-                    isOk = true;
-                    break;
-                }
-            }
-            if (!isOk)
-            {
-                return;
-            }
-        }
         // If list provided is null, then the caller wants us to grab the items ourselves
         assetIds ??= (await GetWornAssets(userId)).ToList();
         colors ??= await GetAvatarColors(userId);
@@ -620,6 +601,7 @@ public class AvatarService : ServiceBase, IService
             throw new RobloxException(400, 0, "One or more assets are invalid");
         // Now, update the avatar. This returns a hash
         var avatarHash = await UpdateUserAvatar(userId, colors, assetIds);
+        if ((bool)skipRender) return;
         // We don't wanna waste time rendering if we don't have to
 
         // Get our image urls

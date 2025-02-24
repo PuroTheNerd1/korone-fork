@@ -39,12 +39,31 @@ public class AvatarControllerV1 : ControllerBase, IService
             await Task.Delay(TimeSpan.FromSeconds(2));
             Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarTypeAsync(userId);
             using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
+            using var assets = ServiceProvider.GetOrCreate<AssetsService>();
             try
             {
                 using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
                 var assetIds = await cache.GetPendingAssets(userId);
                 var newColors = await cache.GetColors(userId);
-                await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw);
+                bool skipRender = false;
+                if (assetIds != null && newColors == null)
+                {
+                    if (assetIds != null)
+                    {
+                        var multiInfo = await assets.MultiGetInfoById(assetIds);
+                        // Check through each item and if its only a emote, then we can skip rendering
+                        foreach (var item in multiInfo)
+                        {
+                            if (item.assetType != Models.Assets.Type.EmoteAnimation)
+                            {
+                                break;
+                            }
+                            skipRender = true;
+                        }
+                        Console.WriteLine($"[RewrittenRCC]: skipRender: {skipRender}");
+                    }
+                }
+                await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw, skipRender: skipRender);
             }
             catch (Exception e)
             {
