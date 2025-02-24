@@ -89,6 +89,15 @@ public class UserFeed : RobloxPageModel
             return ok;
         }).ToList();
         feedList = feeds.Take(feedLimit);
+        var thumbnails = await services.thumbnails.GetUserThumbnails(feedList.Select(c => c.user.id).Distinct());
+        foreach(var c in thumbnails)
+        {
+            var entry = feedList.FirstOrDefault(d => d.user.id == c.targetId);
+            if (entry != null)
+            {
+                entry.user.image = c.imageUrl ?? "/img/blocked.png";
+            }
+        }
         await Services.Cache.distributed.StringSetAsync(feedCacheKey, JsonSerializer.Serialize(feedList),
             TimeSpan.FromHours(2));
     }
