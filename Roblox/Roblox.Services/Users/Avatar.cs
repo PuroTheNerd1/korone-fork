@@ -611,12 +611,12 @@ public class AvatarService : ServiceBase, IService
             {
                 if (item.assetType != Type.EmoteAnimation)
                 {
+                    Console.WriteLine($"[RewrittenRCC]: Found non-emote item: {item.assetType}");
                     isOk = true;
                     break;
                 }
-                continue;
             }
-            
+            Console.WriteLine($"[RewrittenRCC]: IsOk: {isOk}");
             if (!isOk)
             {
                 return;
