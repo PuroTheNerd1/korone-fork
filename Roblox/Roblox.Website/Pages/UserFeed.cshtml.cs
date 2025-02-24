@@ -89,7 +89,7 @@ public class UserFeed : RobloxPageModel
             return ok;
         }).ToList();
         feedList = feeds.Take(feedLimit);
-        var thumbnails = await services.thumbnails.GetUserThumbnails(feedList.Select(c => c.user.id).Distinct());
+        var thumbnails = await services.thumbnails.GetUserHeadshots(feedList.Select(c => c.user.id).Distinct());
         foreach(var c in thumbnails)
         {
             var entry = feedList.First(d => d.user.id == c.targetId);
