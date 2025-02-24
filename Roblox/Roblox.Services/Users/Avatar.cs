@@ -590,6 +590,7 @@ public class AvatarService : ServiceBase, IService
             // Check through each item and if its only a emote, then we can skip rendering
             foreach (var item in multiInfo)
             {
+                Console.WriteLine(item.id);
                 if (item.assetType != Type.EmoteAnimation)
                 {
                     isOk = true;
