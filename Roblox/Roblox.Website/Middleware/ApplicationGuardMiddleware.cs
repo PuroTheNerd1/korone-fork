@@ -87,6 +87,10 @@ public class ApplicationGuardMiddleware
             // return ctx.Request.Cookies[AuthorizationCookieName]?.Contains(authorization) ?? false;
         }
 
+        if (ctx.Request.Headers["User-Agent"].ToString().Contains("Roblox"))
+        {
+            return true;
+        }
         if (ctx.Items.ContainsKey(".ROBLOSECURITY"))
             return true;
 
@@ -390,7 +394,7 @@ public class ApplicationGuardMiddleware
             }
 
             // If not blocked
-            if (FeatureFlags.IsDisabled(FeatureFlag.AllowAccessToAllRequests) && !ua.ToLower().Contains("roblox") && !ua.ToLower().Contains("Discordbot"))
+            if (FeatureFlags.IsDisabled(FeatureFlag.AllowAccessToAllRequests) && !ua.ToLower().Contains("roblox") && ua != Configuration.UserAgentBypassSecret && !ua.ToLower().Contains("discordbot"))
             {
                 await Redirect(ctx, "/auth/homepage");
                 return;
