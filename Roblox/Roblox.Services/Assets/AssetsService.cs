@@ -338,18 +338,18 @@ public class AssetsService : ServiceBase, IService
 
         return Task.CompletedTask;
     }
-    public async Task<string?> GetAssetLocationAsync(BatchAssetRequest asset)
+    public async Task<bool> DoesAssetExist(long assetId)
     {
-        string? location = $"{Configuration.BaseUrl}/v1/asset?id={asset.assetId}";
+        string? location = null;
         try
         {
-            await GetAssetCatalogInfo(asset.assetId);
+            await GetAssetCatalogInfo(assetId);
         }
         catch (RecordNotFoundException)
         {
-            location = await robloxAssetService.GetRobloxAssetLocationFromCache(asset.assetId);
+            return false;
         }
-        return location;
+        return true;
     }
     public async Task InsertOrReplaceThumbnail(long assetId, long assetVersionId, string newThumbnailKey,
         Models.Assets.ModerationStatus moderationStatus)
