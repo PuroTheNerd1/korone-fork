@@ -130,7 +130,7 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 c.imageUrl = "/img/Model.png";
             }
-            else if (!string.IsNullOrEmpty(c.imageUrl))
+            else if (!string.IsNullOrEmpty(c.imageUrl) && !c.imageUrl.Contains("images/thumbnails"))
             {
                 c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
             }

@@ -341,8 +341,8 @@ public class WebController : ControllerBase
                     Thumbnail = new
                     {
                         Final = true,
-                        Url =  "http://" + Configuration.ShortBaseUrl + t.imageUrl,
-                        Id = c.id,
+                        Url = t.imageUrl,
+                        Id = t.targetId,
                     },
                     AssetRestrictionIcon = new
                     {
