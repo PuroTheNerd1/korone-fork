@@ -8,6 +8,7 @@ import HatTemplate from '../../scripts/Hat.json' with { type: 'json' };
 import PackageTemplate from '../../scripts/Package.json' with { type: 'json' };
 import MeshTemplate from '../../scripts/Mesh.json' with { type: 'json' };
 import HeadTemplate from '../../scripts/Head.json' with { type: 'json' };
+import ModelTemplate from '../../scripts/Model.json' with { type: 'json' };
 const port = enums.CatalogRCC;
 
 export const RequestHatThumbnail = async (req, res) => {
@@ -61,7 +62,7 @@ export const RequestModelThumbnail = async (req, res) => {
         if (jobExpiration == undefined) { jobExpiration = 20 }
         const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
 
-        const xml = JSON.parse(JSON.stringify(HatTemplate));
+        const xml = JSON.parse(JSON.stringify(ModelTemplate));
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[4] = conf.baseUrl;
 
