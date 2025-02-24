@@ -340,8 +340,8 @@ public class WebController : ControllerBase
                     FormatName = (string?) null,
                     Thumbnail = new
                     {
-                        Final = t.state == ThumbnailState.Completed,
-                        Url = t.imageUrl,
+                        Final = true,
+                        Url = Configuration.BaseUrl + t.imageUrl,
                         Id = c.id,
                     },
                     AssetRestrictionIcon = new
