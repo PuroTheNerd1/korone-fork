@@ -127,6 +127,10 @@ const CategorySelection = props => {
       value: 24,
     },
     {
+      name: 'Emotes',
+      value: 61,
+    },
+    {
       name: 'Places',
       value: 9,
     },

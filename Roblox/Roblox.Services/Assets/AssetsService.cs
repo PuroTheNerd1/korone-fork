@@ -781,6 +781,18 @@ public class AssetsService : ServiceBase, IService
             await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.ReviewApproved);
         }
     }
+    private async Task CreateAnimationRender(long assetId, CancellationToken? cancellationToken = null)
+    {
+        var latestVersion = await GetLatestAssetVersion(assetId);
+        string response = await Rendering.RenderingHandler.RequestAnimationRender(assetId, 20);
+        string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
+        byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
+        using (var imageStream = new MemoryStream(imageBytes))
+        {
+            var key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+            await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.ReviewApproved);
+        }
+    }
     private async Task CreateModelThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
@@ -996,8 +1008,12 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.TeeShirt:
                 thumbRequests.Add(CreateTeeShirtThumbnail(assetId, cancellationToken));
                 break;
-            // items without custom icons
+
             case Models.Assets.Type.Animation:
+            case Models.Assets.Type.EmoteAnimation:
+                thumbRequests.Add(CreateAnimationRender(assetId, cancellationToken));
+                break;
+            // items without custom icons
             case Models.Assets.Type.Audio:
             case Models.Assets.Type.ClimbAnimation:
             case Models.Assets.Type.DeathAnimation:

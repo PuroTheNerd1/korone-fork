@@ -2057,6 +2057,7 @@ Thank you for your understanding,
             Type.ShoulderAccessory,
             Type.FaceAccessory,
             Type.Head,
+            Type.EmoteAnimation
         };
         if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
             throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);
@@ -2147,6 +2148,7 @@ Thank you for your understanding,
             Type.ShoulderAccessory,
             Type.FaceAccessory,
             Type.Head,
+            Type.EmoteAnimation
         };
         if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
             throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);
@@ -2264,7 +2266,7 @@ Thank you for your understanding,
         {
             var fileData = request.rbxm.OpenReadStream();
             // TODO: we should probably be validating audio and image uploads...
-            if (request.assetTypeId != Type.Audio && request.assetTypeId != Type.Image && request.assetTypeId != Type.Mesh && request.assetTypeId != Type.GamePass && request.assetTypeId != Type.Badge)
+            if (request.assetTypeId != Type.Audio && request.assetTypeId != Type.EmoteAnimation && request.assetTypeId != Type.Image && request.assetTypeId != Type.Mesh && request.assetTypeId != Type.GamePass && request.assetTypeId != Type.Badge)
             {
                 var isOk = await services.assets.ValidateAssetFile(fileData, request.assetTypeId);
                 if (!isOk)
