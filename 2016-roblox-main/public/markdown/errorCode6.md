@@ -6,7 +6,7 @@ This problem occurs when your Internet Service Provider, DNS, VPN, or your Route
 ### Solutions
 
 1. Change the DNS your operating system uses
-   * We recommend Cloudflare's 1.1.1.1 DNS. You can find instructions on how to (change your DNS to Cloudflare's DNS here.)[https://one.one.one.one/dns/]
+   * We recommend Cloudflare's 1.1.1.1 DNS. You can find instructions on how to [change your DNS to Cloudflare's DNS here.](https://one.one.one.one/dns/)
 2. Turn off your VPN
    * Pekora does not store your IP in our database.(besides the ways outlined in our [privacy policy.](/auth/privacy))
 3. Turn on a VPN

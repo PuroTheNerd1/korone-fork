@@ -34,7 +34,7 @@ const useStyles = createUseStyles({
         color: 'var(--text-color-primary)',
         '& h3': {
             fontSize: '24px',
-            fontWeight: 300,
+            fontWeight: 700,
             float: 'left',
             margin: 0,
             lineHeight: '1.4em',
