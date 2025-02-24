@@ -315,7 +315,7 @@ public class AssetsService : ServiceBase, IService
 
         directory ??= Configuration.AssetDirectory;
 
-        var fullPath = directory + key;
+        var fullPath = directory + Path.GetFileName(key);
         while (true)
         {
             try
@@ -338,19 +338,7 @@ public class AssetsService : ServiceBase, IService
 
         return Task.CompletedTask;
     }
-    public async Task<bool> DoesAssetExist(long assetId)
-    {
-        string? location = null;
-        try
-        {
-            await GetAssetCatalogInfo(assetId);
-        }
-        catch (RecordNotFoundException)
-        {
-            return false;
-        }
-        return true;
-    }
+
     public async Task InsertOrReplaceThumbnail(long assetId, long assetVersionId, string newThumbnailKey,
         Models.Assets.ModerationStatus moderationStatus)
     {
