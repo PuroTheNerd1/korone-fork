@@ -832,7 +832,7 @@ public class WebController : ControllerBase
         stream.Position = 0;
         // create item
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.ReviewApproved);
+            safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.AwaitingApproval);
         return asset;
     }
 }
