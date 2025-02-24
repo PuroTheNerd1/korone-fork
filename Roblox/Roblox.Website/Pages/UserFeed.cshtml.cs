@@ -92,7 +92,7 @@ public class UserFeed : RobloxPageModel
         var thumbnails = await services.thumbnails.GetUserThumbnails(feedList.Select(c => c.user.id).Distinct());
         foreach(var c in thumbnails)
         {
-            var entry = feedList.FirstOrDefault(d => d.user.id == c.targetId);
+            var entry = feedList.First(d => d.user.id == c.targetId);
             if (entry != null)
             {
                 entry.user.image = c.imageUrl ?? "/img/blocked.png";
