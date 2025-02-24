@@ -30,7 +30,8 @@ namespace Roblox.Rendering
             Mesh,
             Hat,
             Place,
-            Model
+            Model,
+            Emote,
 
         }
         private class RenderResponse
@@ -97,6 +98,10 @@ namespace Roblox.Rendering
                 case RenderType.Model:
                     renderRequest.assetId = id;
                     url = "catalog/model";
+                    break;
+                case RenderType.Emote:
+                    renderRequest.assetId = id;
+                    url = "catalog/animationsilhouette";
                     break;
             }
             // i will add error handling to this later
@@ -173,6 +178,10 @@ namespace Roblox.Rendering
             return await SendRenderRequest(assetId, RenderType.Head);
         }
 
+        public static async Task<string> RequestAnimationRender(long assetId, int JobExpiration)
+        {
+            return await SendRenderRequest(assetId, RenderType.Emote);
+        }
         public static async Task<string> RequestPackageRender(string assetUrls, int JobExpiration)
         {
             int RCCPort = RandomComponent.Next(10003, 25000);

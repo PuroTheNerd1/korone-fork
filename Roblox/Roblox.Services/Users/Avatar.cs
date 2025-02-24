@@ -152,6 +152,7 @@ public class AvatarService : ServiceBase, IService
         Type.SwimAnimation,
         Type.WalkAnimation,
         Type.PoseAnimation,
+        Type.EmoteAnimation,
         //gears
         Type.Gear,
     };
@@ -460,7 +461,7 @@ public class AvatarService : ServiceBase, IService
         var torso = 0;
         var head = 0;
         var animations = 0;
-
+        var emotes = 0;
         foreach (var item in details)
         {
             switch (item.assetType)
@@ -519,6 +520,9 @@ public class AvatarService : ServiceBase, IService
                 case Models.Assets.Type.SwimAnimation:
                     animations++;
                     break;
+                case Models.Assets.Type.EmoteAnimation:
+                    emotes++;
+                    break;
                 default:
                     throw new Exception("Unexpected asset type: " + item.assetType);
             }
@@ -530,6 +534,7 @@ public class AvatarService : ServiceBase, IService
         // Orginal is 7
         if (accessories > 15) return false;
         if (leftArm > 1 || rightArm > 1 || leftLeg > 1 || rightLeg > 1 || torso > 1 || head > 1) return false;
+        if (emotes > 8) return false;
         return true;
     }
 
