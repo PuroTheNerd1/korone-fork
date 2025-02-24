@@ -680,70 +680,7 @@ namespace Roblox.Website.Controllers
         {
             return Content(await System.IO.File.ReadAllTextAsync("hor.txt"), "text/plan");
         }
-        [HttpGetBypass("/v1/avatar-fetch")]
-        [HttpGetBypass("/v1.1/avatar-fetch")]
-        public async Task<MVC.IActionResult> CharacterFetch(long userId)
-        {
-            List<long> accessoryVersionIds = new List<long>();
-            List<long> equippedGearVersionIds = new List<long>();
-            var wornAssets = await services.avatar.GetWornAssets(userId);
-            var avatar = await services.avatar.GetAvatar(userId);
-            // If we dont have an avatar then its most likely a game loading a avatar
 
-            var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
-
-            dynamic bodyColors = new
-            {
-                headColorId = avatar.headColorId,
-                leftArmColorId = avatar.leftArmColorId,
-                leftLegColorId = avatar.leftLegColorId,
-                rightArmColorId = avatar.rightArmColorId,
-                rightLegColorId = avatar.rightLegColorId,
-                torsoColorId = avatar.torsoColorId,
-
-                HeadColor = avatar.headColorId,
-                LeftArmColor = avatar.leftArmColorId,
-                LeftLegColor = avatar.leftLegColorId,
-                RightArmColor = avatar.rightArmColorId,
-                RightLegColor = avatar.rightLegColorId,
-                TorsoColor = avatar.torsoColorId
-            };
-            dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
-            
-            equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == Type.Gear).Select(d => d.id));
-            accessoryVersionIds.AddRange(assetInfo.Where(d => d.assetType != Type.Gear && d.assetType != Type.EmoteAnimation).Select(d => d.id));
-            
-            if (UserAgent != "Roblox/Win2020")
-            {
-                equippedGearVersionIds = new List<long>();
-            }
-            int positionCounter = 1;
-            var result = new 
-            {
-                resolvedAvatarType = avatar.avatarType.ToString(),
-                accessoryVersionIds,
-                equippedGearVersionIds,
-                assetAndAssetTypeIds = assetInfo.Where(c => c.assetType != Type.EmoteAnimation).Select(c => new
-                {
-                    assetId = c.id,
-                    assetTypeId = (int)c.assetType,
-                }),
-                backpackGearVersionIds = equippedGearVersionIds,
-                animationAssetIds = new {},
-                playerAvatarType = avatar.avatarType.ToString(),
-                scales,
-                bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
-                bodyColors,
-                emotes = assetInfo.Where(c => c.assetType == Type.EmoteAnimation).Select(c => new
-                {
-                    assetId = c.id,
-                    assetTypeId = (int)c.assetType,
-                }),
-            };
-
-            string jsonString = JsonConvert.SerializeObject(result);
-            return Content(jsonString, "application/json");
-        }
 
         private void CheckServerAuth(string auth)
         {
