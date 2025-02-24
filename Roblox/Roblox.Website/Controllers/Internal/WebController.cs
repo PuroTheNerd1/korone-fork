@@ -325,11 +325,13 @@ public class WebController : ControllerBase
             result = inventory.Take(6).Select(c => c.assetId).ToList();
         }
         var items = (await services.assets.MultiGetInfoById(result)).ToArray();
+        var thumbnails = await services.thumbnails.GetAssetThumbnails(result);
         return new
         {
             CollectionsItems = result.Select(id =>
             {
                 var c = items.First(i => i.id == id);
+                var t = thumbnails.First(i => i.targetId == id);
                 return new
                 {
                     Id = c.id,
@@ -338,8 +340,8 @@ public class WebController : ControllerBase
                     FormatName = (string?) null,
                     Thumbnail = new
                     {
-                        Final = true,
-                        Url = $"/thumbs/asset.ashx?assetId={c.id}&width=420&height=420&format=png",
+                        Final = t.state == ThumbnailState.Completed,
+                        Url = t.imageUrl,
                         Id = c.id,
                     },
                     AssetRestrictionIcon = new
