@@ -34,13 +34,14 @@ public class UsersControllerV1 : ControllerBase
     [HttpGet("users/{username}/details")]
     public async Task<dynamic> GetUserByUsername(string username)
     {
+        var result = (await services.users.MultiGetUsersByUsername(new[] { username })).ToList();
         inventory = new ();
         var offset = 0;
-        var details = await services.users.GetUserByName(username);
-        long userId = details.userId;
+        var info = await services.users.GetUserById(result[0].id);
+
         while (true)
         {
-            var results = (await services.inventory.GetCollectibleInventory(userId, null, "asc", 100, offset)).ToArray();
+            var results = (await services.inventory.GetCollectibleInventory(info.userId, null, "asc", 100, offset)).ToArray();
             if (results.Length == 0) break;
             offset += 100;
             inventory.AddRange(results);
@@ -51,7 +52,6 @@ public class UsersControllerV1 : ControllerBase
             totalRap += item.recentAveragePrice;
         }
 
-        var info = await services.users.GetUserById(userId);
         var isBanned =
             info.accountStatus != AccountStatus.Ok &&
             info.accountStatus != AccountStatus.MustValidateEmail &&
@@ -65,12 +65,12 @@ public class UsersControllerV1 : ControllerBase
             info.description,
             info.created,
             isBanned,
-            isInventoryPublic = await services.inventory.CanViewInventory(userId, 0),
-            isStaff = await StaffFilter.IsStaff(userId),
-            totalPlaceVisits = await services.games.GetTotalVisitsFromUser(userId),
-            friendshipCount = await services.friends.CountFriends(userId),
-            followingCount = await services.friends.CountFollowings(userId),
-            followerCount = await services.friends.CountFollowers(userId),
+            isInventoryPublic = await services.inventory.CanViewInventory(info.userId, 0),
+            isStaff = await StaffFilter.IsStaff(info.userId),
+            totalPlaceVisits = await services.games.GetTotalVisitsFromUser(info.userId),
+            friendshipCount = await services.friends.CountFriends(info.userId),
+            followingCount = await services.friends.CountFollowings(info.userId),
+            followerCount = await services.friends.CountFollowers(info.userId),
             inventoryRap = totalRap
         };
     }
