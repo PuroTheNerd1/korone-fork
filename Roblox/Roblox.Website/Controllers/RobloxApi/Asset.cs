@@ -111,6 +111,7 @@ public class Asset : ControllerBase
             case Models.Assets.Type.Face:
             case Models.Assets.Type.Gear:
             case Models.Assets.Type.Badge:
+            case Models.Assets.Type.EmoteAnimation:
             case Models.Assets.Type.Animation:
             case Models.Assets.Type.Torso:
             case Models.Assets.Type.RightArm:
