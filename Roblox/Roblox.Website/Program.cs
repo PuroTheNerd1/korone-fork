@@ -113,7 +113,7 @@ app.UseSwaggerUI(c =>
 {
     c.ShowCommonExtensions();
 
-    c.SwaggerEndpoint("User/swagger.json", "User");
+    c.SwaggerEndpoint("/swagger/User/swagger.json", "User");
 });
 
 var prepareResponseForCache = (StaticFileResponseContext ctx) =>
