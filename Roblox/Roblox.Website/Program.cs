@@ -100,7 +100,7 @@ builder.Services.AddSwaggerGen(c =>
     c.IgnoreObsoleteProperties();
     c.CustomSchemaIds(type => type.FullName);
     c.EnableAnnotations();
-    c.SwaggerDoc("Users Api v1", new OpenApiInfo
+    c.SwaggerDoc("UserV1", new OpenApiInfo
     {
         Version = "v1",
         Title = "Users Api v1",
@@ -120,7 +120,7 @@ app.UseSwaggerUI(c =>
 {
     c.ShowCommonExtensions();
 
-    c.SwaggerEndpoint("/swagger/UserV1/swagger.json", "Users Api v1");
+    c.SwaggerEndpoint("/swagger/UserV1/swagger.json", "UserV1");
 });
 
 var prepareResponseForCache = (StaticFileResponseContext ctx) =>

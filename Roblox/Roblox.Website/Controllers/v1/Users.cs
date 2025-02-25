@@ -13,7 +13,7 @@ namespace Roblox.Website.Controllers;
 
 [ApiController]
 [Route("/apisite/users/v1")]
-[ApiExplorerSettings(GroupName = "Users Api v1")]
+[ApiExplorerSettings(GroupName = "UserV1")]
 public class UsersControllerV1 : ControllerBase
 {
     public List<CollectibleItemEntry> inventory { get; set; }
