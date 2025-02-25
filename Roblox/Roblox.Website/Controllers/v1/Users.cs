@@ -24,7 +24,7 @@ public class UsersControllerV1 : ControllerBase
     [SwaggerOperation(
         Tags = new[] { "Authentication", "Users" },
         Summary = "Gets the current authenticated user's session details.",
-        Description = "retrieves details of the currently authenticated user's session, such as their user ID, username, display name, and staff status."
+        Description = "Retrieves details of the currently authenticated user's session, such as their user ID, username, display name, and staff status."
     )]
     public async Task<dynamic> GetMySession()
     {
@@ -43,7 +43,7 @@ public class UsersControllerV1 : ControllerBase
     [SwaggerOperation(
         Tags = new[] { "Users", "Details" },
         Summary = "Retrieves detailed user information by username, including inventory RAP, friend counts, and game visits.",
-        Description = "retrieves detailed information about a user based on their username, including inventory RAP, friend counts, follower counts, and other user stats."
+        Description = "Retrieves detailed information about a user based on their username, including inventory RAP, friend counts, follower counts, and other user stats."
     )]
     [SwaggerResponse(200, "Returns the user details object")]
     [SwaggerResponse(404, "If the user is not found")]
@@ -145,7 +145,7 @@ public class UsersControllerV1 : ControllerBase
     )]
 
     [ProducesResponseType(typeof(RobloxCollection<MultiGetEntry>), 200)]
-    [ProducesResponseType(typeof(BadRequestException), 400)]
+    [SwaggerResponse(400, "Invalid IDs")]
     public async Task<RobloxCollection<MultiGetEntry>> MultiGetUsersById([Required, FromBody] MultiGetRequest request)
     {
         var ids = request.userIds.ToList();
@@ -168,7 +168,7 @@ public class UsersControllerV1 : ControllerBase
         Description = "Retrieve user details for multiple usernames in a single request."
     )]
     [ProducesResponseType(typeof(RobloxCollection<MultiGetEntry>), 200)]
-    [ProducesResponseType(typeof(BadRequestException), 400)]
+    [SwaggerResponse(400, "Invalid Usernames")]
     public async Task<RobloxCollection<MultiGetEntry>> MultiGetUsersByUsername([Required, FromBody] MultiGetByNameRequest request)
     {
         var names = request.usernames.ToList();
@@ -212,8 +212,8 @@ public class UsersControllerV1 : ControllerBase
         Summary = "Sets the status of a user by user ID.",
         Description = "Allows the status of a user based on their user ID."
     )]
-    [SwaggerResponse(200, "Successfully updated user status")]
-    [SwaggerResponse(400, "If the status provided is too long or too short")]
+    [SwaggerResponse(200)]
+    [SwaggerResponse(400, "Invalid request")]
     public async Task SetUserStatus([Required, FromBody] SetStatusRequest request)
     {
         try
@@ -232,6 +232,7 @@ public class UsersControllerV1 : ControllerBase
         Summary = "Retrieves the previous usernames of a user.",
         Description = "Retrieves the history of usernames associated with a user, including pagination options."
     )]
+    [SwaggerResponse(400, "User is invalid or does not exist")]
     [ProducesResponseType(typeof(RobloxCollectionPaginated<Roblox.Website.WebsiteModels.Users.PreviousUsernameEntry>), 200)]
     public async Task<RobloxCollectionPaginated<Roblox.Website.WebsiteModels.Users.PreviousUsernameEntry>> GetPreviousUsernames([Required] long userId, int limit = 100, string? cursor = null)
     {
