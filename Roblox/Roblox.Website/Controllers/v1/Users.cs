@@ -10,9 +10,11 @@ using Roblox.Website.Filters;
 using Newtonsoft.Json;
 namespace Roblox.Website.Controllers;
 
+
+
 [ApiController]
-[ApiExplorerSettings(GroupName = "User")]
 [Route("/apisite/users/v1")]
+[ApiExplorerSettings(GroupName = "User")]
 public class UsersControllerV1 : ControllerBase
 {
     public List<CollectibleItemEntry> inventory { get; set; }
