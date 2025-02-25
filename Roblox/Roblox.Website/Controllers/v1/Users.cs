@@ -9,6 +9,7 @@ using Roblox.Models;
 using Roblox.Website.Filters;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
+
 namespace Roblox.Website.Controllers;
 
 [ApiController]
@@ -20,10 +21,11 @@ public class UsersControllerV1 : ControllerBase
     public long totalRap { get; set; }
 
     [HttpGet("users/authenticated")]
-    [SwaggerOperation(Tags = new[] { "Authentication", "Users" })]
-    /// <summary>
-    /// Gets the current authenticated user's session details.
-    /// </summary>
+    [SwaggerOperation(
+        Tags = new[] { "Authentication", "Users" },
+        Summary = "Gets the current authenticated user's session details.",
+        Description = "retrieves details of the currently authenticated user's session, such as their user ID, username, display name, and staff status."
+    )]
     public async Task<dynamic> GetMySession()
     {
         if (userSession is null) throw new UnauthorizedException();
@@ -38,34 +40,14 @@ public class UsersControllerV1 : ControllerBase
 
     [HttpPost("users/{username}/details")]
     [HttpGet("users/{username}/details")]
-    [SwaggerOperation(Tags = new[] { "Users", "Details" })]
-    /// <summary>
-    /// Retrieves detailed user information by username, including inventory RAP, friend counts, and game visits.
-    /// </summary>
-    /// <param name="username">The username of the user to retrieve details for</param>
-    /// <returns>A dynamic object containing user details including:
-    /// - User ID
-    /// - Username
-    /// - Display Name
-    /// - Description
-    /// - Creation Date
-    /// - Ban Status
-    /// - Inventory Privacy Status
-    /// - Staff Status
-    /// - Total Place Visits
-    /// - Friend Count
-    /// - Following Count
-    /// - Follower Count
-    /// - Total Inventory RAP Value
-    /// </returns>
-    /// <response code="200">Returns the user details object</response>
-    /// <response code="404">If the user is not found</response>
-    /// <remarks>
-    /// Supports both GET and POST methods.
-    /// Sample request:
-    ///     GET /api/v1/users/username/details
-    ///     POST /api/v1/users/username/details
-    /// </remarks>
+    [SwaggerOperation(
+        Tags = new[] { "Users", "Details" },
+        Summary = "Retrieves detailed user information by username, including inventory RAP, friend counts, and game visits.",
+        Description = "retrieves detailed information about a user based on their username, including inventory RAP, friend counts, follower counts, and other user stats."
+    )]
+    [SwaggerResponse(200, "Returns the user details object")]
+    [SwaggerResponse(404, "If the user is not found")]
+    [SwaggerResponse(400, "If the request is malformed or invalid")]
     public async Task<dynamic> GetUserByUsername(string username)
     {
         var result = (await services.users.MultiGetUsersByUsername(new[] { username })).ToList();
@@ -111,22 +93,14 @@ public class UsersControllerV1 : ControllerBase
 
     [HttpPost("users/{userId:long}")]
     [HttpGet("users/{userId:long}")]
-    [SwaggerOperation(Tags = new[] { "Users", "Details" })]
-    /// <summary>
-    /// Retrieves detailed user information by user ID.
-    /// </summary>
-    /// <param name="userId">The user ID to retrieve details for</param>
-    /// <returns>A dynamic object containing user details including:
-    /// - User ID
-    /// - Username
-    /// - Display Name
-    /// - Description
-    /// - Creation Date
-    /// - Ban Status
-    /// - Inventory Privacy Status
-    /// - Staff Status
-    /// - Total Inventory RAP Value
-    /// </returns>
+    [SwaggerOperation(
+        Tags = new[] { "Users", "Details" },
+        Summary = "Retrieves detailed user information by user ID.",
+        Description = "retrieves detailed information about a user based on their user ID, including inventory RAP, ban status, and other relevant stats."
+    )]
+    
+    [SwaggerResponse(200, "Returns the user details object")]
+    [SwaggerResponse(404, "If the user is not found")]
     public async Task<dynamic> GetUserById(long userId)
     {
         inventory = new ();
@@ -164,14 +138,15 @@ public class UsersControllerV1 : ControllerBase
     }
 
     [HttpPost("users")]
-    [SwaggerOperation(Tags = new[] { "Users", "Bulk" })]
-    /// <summary>
-    /// Bulk retrieves user details by user IDs.
-    /// </summary>
-    /// <param name="request">Request containing a list of user IDs</param>
-    /// <returns>A list of user details based on the provided user IDs</returns>
-    /// <response code="200">Returns the user details for the provided user IDs</response>
-    public async Task<dynamic> MultiGetUsersById([Required, FromBody] MultiGetRequest request)
+    [SwaggerOperation(
+        Tags = new[] { "Users", "Bulk" },
+        Summary = "Bulk retrieves user details by user IDs.",
+        Description = "Allows retrieving user details for multiple user IDs in a single request."
+    )]
+
+    [ProducesResponseType(typeof(RobloxCollection<MultiGetEntry>), 200)]
+    [ProducesResponseType(typeof(BadRequestException), 400)]
+    public async Task<RobloxCollection<MultiGetEntry>> MultiGetUsersById([Required, FromBody] MultiGetRequest request)
     {
         var ids = request.userIds.ToList();
         if (ids.Count > 200 || ids.Count < 1)
@@ -180,21 +155,21 @@ public class UsersControllerV1 : ControllerBase
         }
 
         var result = await services.users.MultiGetUsersById(ids);
-        return new
+        return new RobloxCollection<MultiGetEntry>()
         {
             data = result,
         };
     }
 
     [HttpPost("usernames/users")]
-    [SwaggerOperation(Tags = new[] { "Users", "Bulk" })]
-    /// <summary>
-    /// Bulk retrieves user details by usernames.
-    /// </summary>
-    /// <param name="request">Request containing a list of usernames</param>
-    /// <returns>A list of user details based on the provided usernames</returns>
-    /// <response code="200">Returns the user details for the provided usernames</response>
-    public async Task<dynamic> MultiGetUsersByUsername([Required, FromBody] MultiGetByNameRequest request)
+    [SwaggerOperation(
+        Tags = new[] { "Users", "Bulk" },
+        Summary = "Bulk retrieves user details by usernames.",
+        Description = "Retrieve user details for multiple usernames in a single request."
+    )]
+    [ProducesResponseType(typeof(RobloxCollection<MultiGetEntry>), 200)]
+    [ProducesResponseType(typeof(BadRequestException), 400)]
+    public async Task<RobloxCollection<MultiGetEntry>> MultiGetUsersByUsername([Required, FromBody] MultiGetByNameRequest request)
     {
         var names = request.usernames.ToList();
         if (names.Count > 200 || names.Count < 1)
@@ -203,19 +178,20 @@ public class UsersControllerV1 : ControllerBase
         }
 
         var result = await services.users.MultiGetUsersByUsername(request.usernames);
-        return new
+        return new RobloxCollection<MultiGetEntry>()
         {
             data = result,
         };
     }
 
     [HttpGet("users/{userId:long}/status")]
-    [SwaggerOperation(Tags = new[] { "Users", "Status" })]
-    /// <summary>
-    /// Gets the status of a user by user ID.
-    /// </summary>
-    /// <param name="userId">The user ID to get the status for</param>
-    /// <returns>A dynamic object containing the user status</returns>
+    [SwaggerOperation(
+        Tags = new[] { "Users", "Status" },
+        Summary = "Gets the status of a user by user ID.",
+        Description = "Retrieve the status of a user based on their user id."
+    )]
+    [SwaggerResponse(200, "Returns the user status")]
+    [SwaggerResponse(404, "If the user is not found")]
     public async Task<dynamic> GetUserStatus([Required] long userId)
     {
         var result = await services.users.GetUserStatus(userId);
@@ -231,13 +207,13 @@ public class UsersControllerV1 : ControllerBase
     }
 
     [HttpPatch("users/{userId:long}/status")]
-    [SwaggerOperation(Tags = new[] { "Users", "Status" })]
-    /// <summary>
-    /// Sets the status of a user by user ID.
-    /// </summary>
-    /// <param name="request">Request containing the new status for the user</param>
-    /// <response code="200">Successfully updated user status</response>
-    /// <response code="400">If the status provided is too long or too short</response>
+    [SwaggerOperation(
+        Tags = new[] { "Users", "Status" },
+        Summary = "Sets the status of a user by user ID.",
+        Description = "Allows the status of a user based on their user ID."
+    )]
+    [SwaggerResponse(200, "Successfully updated user status")]
+    [SwaggerResponse(400, "If the status provided is too long or too short")]
     public async Task SetUserStatus([Required, FromBody] SetStatusRequest request)
     {
         try
@@ -251,14 +227,12 @@ public class UsersControllerV1 : ControllerBase
     }
 
     [HttpGet("users/{userId:long}/username-history")]
-    [SwaggerOperation(Tags = new[] { "Users", "Username History" })]
-    /// <summary>
-    /// Retrieves the previous usernames of a user.
-    /// </summary>
-    /// <param name="userId">The user ID to retrieve the previous usernames for</param>
-    /// <param name="limit">The number of username history entries to return</param>
-    /// <param name="cursor">The cursor for pagination</param>
-    /// <returns>A collection of previous usernames for the given user ID</returns>
+    [SwaggerOperation(
+        Tags = new[] { "Users", "Username History" },
+        Summary = "Retrieves the previous usernames of a user.",
+        Description = "Retrieves the history of usernames associated with a user, including pagination options."
+    )]
+    [ProducesResponseType(typeof(RobloxCollectionPaginated<Roblox.Website.WebsiteModels.Users.PreviousUsernameEntry>), 200)]
     public async Task<RobloxCollectionPaginated<Roblox.Website.WebsiteModels.Users.PreviousUsernameEntry>> GetPreviousUsernames([Required] long userId, int limit = 100, string? cursor = null)
     {
         var userInfo = await services.users.GetUserById(userId);
