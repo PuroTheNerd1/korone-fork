@@ -113,8 +113,7 @@ app.UseSwaggerUI(c =>
 {
     c.ShowCommonExtensions();
 
-    c.SwaggerEndpoint("AreaOne/swagger.json", "AreaOne");
-    c.SwaggerEndpoint("AreaTwo/swagger.json","AreaTwo Api");
+    c.SwaggerEndpoint("User/swagger.json", "User");
 });
 
 var prepareResponseForCache = (StaticFileResponseContext ctx) =>
