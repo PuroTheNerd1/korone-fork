@@ -315,7 +315,7 @@ public class AssetsService : ServiceBase, IService
 
         directory ??= Configuration.AssetDirectory;
 
-        var fullPath = directory + Path.GetFileName(key);
+        var fullPath = directory + key;//Path.GetFileName(key);
         while (true)
         {
             try
