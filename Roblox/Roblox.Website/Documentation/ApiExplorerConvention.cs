@@ -5,7 +5,6 @@ public class ApiExplorerConvention : IActionModelConvention
 {
     public void Apply(ActionModel action)
     {
-        action.ApiExplorer.IsVisible = typeof(ControllerBase)
-            .IsAssignableFrom(action.Controller.ControllerType);
+        action.ApiExplorer.IsVisible = action.Controller.ControllerType.BaseType == typeof(ControllerBase);
     }
 }

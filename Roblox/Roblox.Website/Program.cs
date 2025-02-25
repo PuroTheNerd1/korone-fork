@@ -95,6 +95,10 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+    c.IgnoreObsoleteActions();
+    c.IgnoreObsoleteProperties();
+    c.CustomSchemaIds(type => type.FullName);
     c.SwaggerDoc("User", new OpenApiInfo
     {
         Version = "v1",
