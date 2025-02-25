@@ -11,7 +11,6 @@ public class ApiExplorerGetsOnlyConvention : IActionModelConvention
         {
             bool isVisible = (!apiExplorerSettings.IgnoreApi || apiExplorerSettings.GroupName != null) && (action.Attributes.OfType<HttpGetAttribute>().Any() || action.Attributes.OfType<HttpPostAttribute>().Any());
             action.ApiExplorer.IsVisible = isVisible;
-            action.ApiExplorer.GroupName = apiExplorerSettings.GroupName ?? null;
             return;
         }
         action.ApiExplorer.IsVisible = false;
