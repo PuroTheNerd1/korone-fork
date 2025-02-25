@@ -9,6 +9,8 @@ using Roblox;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Hubs;
+using System.Reflection;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
@@ -93,14 +95,27 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("User", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "User API",
+    });
     c.SchemaGeneratorOptions.SchemaIdSelector = type => type.ToString();
     c.OperationFilter<SwaggerFileOperationFilter>();
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
-
-
 
 var app = builder.Build();
 app.UseRouting();
+
+app.UseSwaggerUI(c =>
+{
+    c.ShowCommonExtensions();
+
+    c.SwaggerEndpoint("AreaOne/swagger.json", "AreaOne");
+    c.SwaggerEndpoint("AreaTwo/swagger.json","AreaTwo Api");
+});
 
 var prepareResponseForCache = (StaticFileResponseContext ctx) =>
 {

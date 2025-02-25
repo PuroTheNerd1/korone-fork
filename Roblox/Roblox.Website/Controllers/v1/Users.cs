@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 namespace Roblox.Website.Controllers;
 
 [ApiController]
+[ApiExplorerSettings(GroupName = "User")]
 [Route("/apisite/users/v1")]
 public class UsersControllerV1 : ControllerBase
 {
@@ -30,6 +31,34 @@ public class UsersControllerV1 : ControllerBase
         };
     }
 
+    /// <summary>
+    /// Retrieves detailed user information by username, including inventory RAP, friend counts, and game visits.
+    /// </summary>
+    /// <param name="username">The username of the user to retrieve details for</param>
+    /// <returns>A dynamic object containing user details including:
+    /// - User ID
+    /// - Username
+    /// - Display Name
+    /// - Description
+    /// - Creation Date
+    /// - Ban Status
+    /// - Inventory Privacy Status
+    /// - Staff Status
+    /// - Total Place Visits
+    /// - Friend Count
+    /// - Following Count
+    /// - Follower Count
+    /// - Total Inventory RAP Value
+    /// </returns>
+    /// <response code="200">Returns the user details object</response>
+    /// <response code="404">If the user is not found</response>
+    /// <remarks>
+    /// Supports both GET and POST methods.
+    /// Sample request:
+    ///     GET /api/v1/users/username/details
+    ///     POST /api/v1/users/username/details
+    /// </remarks>
+    
     [HttpPost("users/{username}/details")]
     [HttpGet("users/{username}/details")]
     public async Task<dynamic> GetUserByUsername(string username)
