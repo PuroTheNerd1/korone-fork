@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
-public class ApiExplorerConvention : IActionModelConvention
+public class ApiExplorerGetsOnlyConvention : IActionModelConvention
 {
     public void Apply(ActionModel action)
     {
-        action.ApiExplorer.IsVisible = action.Controller.ControllerType.BaseType == typeof(ControllerBase);
+        action.ApiExplorer.IsVisible = action.Attributes.OfType<HttpGetAttribute>().Any();
     }
 }

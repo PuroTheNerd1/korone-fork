@@ -109,6 +109,9 @@ builder.Services.AddSwaggerGen(c =>
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
+builder.Services.AddMvc(c =>
+    c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
+);
 var app = builder.Build();
 app.UseRouting();
 
