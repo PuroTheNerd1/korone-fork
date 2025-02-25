@@ -6,8 +6,8 @@ public class ApiExplorerGetsOnlyConvention : IActionModelConvention
 {
     public void Apply(ActionModel action)
     {
-        var apiExplorerSettings = action.Attributes.OfType<ApiExplorerSettingsAttribute>().FirstOrDefault();
-        if (apiExplorerSettings != null && apiExplorerSettings.IgnoreApi)
+        var apiExplorerSettings = action.Controller.Attributes.OfType<ApiExplorerSettingsAttribute>().First();
+        if (apiExplorerSettings != null && (apiExplorerSettings.IgnoreApi || apiExplorerSettings.GroupName == null))
         {
             action.ApiExplorer.IsVisible = false;
         }
