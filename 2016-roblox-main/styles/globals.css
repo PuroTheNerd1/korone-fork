@@ -88,6 +88,11 @@ a {
     margin: 0 0 18px;
 }
 
+.section-content.hoverShadow:hover {
+    transition: box-shadow 200ms ease;
+    box-shadow: 0 1px 6px 0 rgba(25,25,25,0.75);
+}
+
 .section-content-off {
     background-color: var(--text-color-secondary);
     color: var(--text-color-tertiary);

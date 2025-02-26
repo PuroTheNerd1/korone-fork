@@ -49,3 +49,5 @@ node_modules
 package-lock.json
 yarn.lock
 Roblox/.editorconfig
+/Roblox/.idea/.idea.Roblox/.idea/dataSources
+/Roblox/.idea/.idea.Roblox

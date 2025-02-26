@@ -120,13 +120,37 @@ public class AudioUploadTransaction : IEconomyTransaction
 
     public AudioUploadTransaction(CreatorType creatorType, long creatorId)
     {
-        const long amount = 20;
+        const long amount = 100;
         transaction = new EconomyTransactionBase()
         {
             amount = amount,
             currencyType = CurrencyType.Robux,
             type = PurchaseType.Purchase,
             subType = TransactionSubType.AudioUploadLong,
+        };
+        transaction.SetSelf(creatorType, creatorId);
+        transaction.SetOther(CreatorType.User, 1);
+    }
+}
+
+public class GameThumbnailUploadTransaction : IEconomyTransaction
+{
+    private EconomyTransactionBase transaction { get; set; }
+
+    public EconomyTransactionBase GetDto()
+    {
+        return transaction;
+    }
+
+    public GameThumbnailUploadTransaction(CreatorType creatorType, long creatorId)
+    {
+        const long amount = 10;
+        transaction = new EconomyTransactionBase()
+        {
+            amount = amount,
+            currencyType = CurrencyType.Robux,
+            type = PurchaseType.Purchase,
+            subType = TransactionSubType.ItemPurchase,
         };
         transaction.SetSelf(creatorType, creatorId);
         transaction.SetOther(CreatorType.User, 1);

@@ -117,6 +117,10 @@ export const shutdownSpecificServer = ({placeId, jobId}) => {
     return request('GET', getBaseUrl() + `/rcc/killserver?placeId=${placeId}&jobId=${jobId}`).then(d => d.data);
 }
 
+export const getUniverseGamePasses = ({ universeId }) => {
+    return request('GET', getFullUrl('games', `/v1/games/${universeId}/game-passes`)).then(d => d.data.data);
+}
+
 export const getGameTemplates = () => {
     //return request('GET', getBaseUrl('/v1/gametemplates')).then(d => d.data.data);
     return new Promise((res, rej) => {

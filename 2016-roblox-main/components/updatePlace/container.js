@@ -6,6 +6,7 @@ import {multiGetPlaceDetails} from "../../services/games";
 import Icon from "./components/icon";
 import UploadPlace from "./components/uploadPlace";
 import Access from "./components/access";
+import Thumbnail from "./components/thumbnail";
 
 const Container = props => {
   const store = updatePlaceStore.useContainer();
@@ -42,8 +43,8 @@ const Container = props => {
     {
       name: 'Thumbnails',
       url: '#',
-      disabled: true,
-      el: () => null,
+      disabled: false,
+      el: () => <Thumbnail />,
     },
     {
       name: 'Access',
@@ -81,10 +82,10 @@ const Container = props => {
   });
   const selected = options.find(v => v.name === store.tab);
 
-  return <div className='container card pb-4 br-none'>
+  return <div className='container ssp card pb-4 br-none'>
     <div className='row'>
       <div className='col-12'>
-        <h2 className='fw-bolder ms-2'>Configure Place</h2>
+        <h2 className='fw-bolder ms-2' style={{ fontWeight: '600!important' }}>Configure Place</h2>
       </div>
     </div>
     <div className='row'>

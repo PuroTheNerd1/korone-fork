@@ -149,8 +149,16 @@ export const uploadGameIcon = async ({ placeId, file }) => {
   // });
 };
 
+export const uploadAutoGenGameIcon = async ({ placeId }) => {
+  return request('POST', getFullUrl('develop', `/v1/places/${placeId}/game-icons/auto-generated`))
+};
+
 export const uploadGameThumbnail = async ({ placeId, file }) => {
   const form = new FormData();
   form.append('file', file);
   return request('POST', getFullUrl('develop', `/v1/assets/upload-thumbnail?placeId=${placeId}`), form)
+};
+
+export const uploadAutoGenGameThumbnail = async ({ placeId }) => {
+  return request('POST', getFullUrl('develop', `/v1/places/${placeId}/thumbnails/auto-generated`))
 };

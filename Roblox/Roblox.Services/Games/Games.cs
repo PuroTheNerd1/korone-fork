@@ -6,6 +6,7 @@ using Roblox.Dto.Games;
 using Roblox.Dto.Users;
 using Roblox.Libraries;
 using Roblox.Models.Assets;
+using Roblox.Models.Db;
 using Roblox.Services.Exceptions;
 using Roblox.Services.Signer;
 using Type = Roblox.Models.Assets.Type;
@@ -570,6 +571,32 @@ public class GamesService : ServiceBase, IService
                 id = c.rootAssetId,
             },
             updated = c.updated,
+        });
+    }
+    public async Task<IEnumerable<UniverseGamePassEntry>> GetGamePassesForUniverse(long universeId, int limit,
+        int offset, SortOrder? sort)
+    {
+        var qu = await db.QueryAsync<UniverseGamePassEntryDb>(
+            @"SELECT a.id, a.name,
+            a.price_robux as priceRobux
+            FROM asset AS a
+            INNER JOIN asset_gamepass ag ON ag.asset_id = a.id
+            WHERE ag.universe_id = :universeId AND a.moderation_status = :acceptedStatus
+            LIMIT :limit OFFSET :offset",
+            new
+            {
+                universeId,
+                acceptedStatus = ModerationStatus.ReviewApproved,
+                limit,
+                offset,
+            });
+        return qu.Select(c => new UniverseGamePassEntry()
+        {
+            id = c.id,
+            name = c.name,
+            displayName = c.name,
+            productId = c.id,
+            price = c.priceRobux,
         });
     }
     // if this src ever gets leaked this is NOT for storing ips, its for matchmaking and for getting the server info

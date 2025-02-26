@@ -622,7 +622,10 @@ public class WebController : ControllerBase
 
             await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
             // Render in the background
-            services.assets.RenderAsset(request.assetId, info.assetType);
+            // TODO: make sure commenting this doesn't fuck anything up
+            if (info.assetType != Models.Assets.Type.Place) {
+                services.assets.RenderAsset(request.assetId, info.assetType);
+            }
         }
         finally
         {

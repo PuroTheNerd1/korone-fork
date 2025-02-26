@@ -203,3 +203,21 @@ public class SetMaxPlayerCountRequest
 {
     public int maxPlayers { get; set; }
 }
+
+public class UniverseGamePassEntryDb
+{
+    public long id { get; set; }
+    public string name { get; set; }
+    //public string displayName { get; set; }
+    //public long productId { get; set;}
+    public int priceRobux { get; set;}
+}
+
+public class UniverseGamePassEntry
+{
+    public long id { get; set; }
+    public string name { get; set; }
+    public string displayName { get; set; }
+    public long productId { get; set;}
+    public int price { get; set;}
+}

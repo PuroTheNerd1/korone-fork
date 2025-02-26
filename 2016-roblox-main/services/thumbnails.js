@@ -121,6 +121,5 @@ export const getAssetThumbnail = assetId => {
 }
 
 export const getUniverseIcon = ({ universeId, size = '150x150' }) => {
-  const data = request('get', getFullUrl('thumbnails', `/v1/games/icons?size=${size}&format=png&universeIds=${universeId}`))
-  return data
+  return request('get', getFullUrl('thumbnails', `/v1/games/icons?size=${size}&format=png&universeIds=${universeId}`))
 }

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
-import ActionButton from "../../actionButton";
-import useButtonStyles from "../../../styles/buttonStyles";
-import OldModal from "../../oldModal";
+import OldModal from "../../../oldModal";
+import useButtonStyles from "../../../../styles/buttonStyles";
+import ActionButton from "../../../actionButton";
 
 const useStyles = createUseStyles({
     buttonRow: {
@@ -39,6 +39,7 @@ const useStyles = createUseStyles({
     button: {
         lineHeight: '2em',
         fontSize: '20px',
+        padding: '4px 8px'
     },
     row: {
         margin: 0,
@@ -56,7 +57,7 @@ const shutdownServerModal = props => {
             <div className={s.modalMessage}>{props.message}</div>
         </div>
         <div className={s.modalBtns}>
-            <ActionButton label='Upload Now' className={`${s.button} ${buttonStyles.buyButton}`} onClick={(e) => {
+            <ActionButton label='Submit' className={`${s.button} ${buttonStyles.continueButton}`} onClick={(e) => {
                 e.preventDefault();
                 props.onConfirm();
             }}></ActionButton>
