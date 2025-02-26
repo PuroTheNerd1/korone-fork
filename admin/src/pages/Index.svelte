@@ -3,6 +3,7 @@
 	import Main from "../components/templates/Main.svelte";
 	import request from "../lib/request";
 	import DashStatCard from "../components/DashStatCard.svelte";
+
 	let usersJoinedPastHour: number;
 	let usersJoinedPastDay: number;
 	let usersOnline: number;
