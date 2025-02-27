@@ -161,6 +161,10 @@ public class UsersService : ServiceBase, IService
         if (userId == null) throw new RecordNotFoundException();
         return long.Parse(userId);
     }
+    public async Task Delete2SVTicket(string ticket)
+    {
+        await redis.KeyDeleteAsync(ticket);
+    }
     public async Task<TotpInfo> GetOrSetTotp(long userId)
     {
         var storedTotp = await db.QuerySingleOrDefaultAsync<TotpInfo>("SELECT secret, user_id as userId, status FROM user_totp WHERE user_id = :id", new

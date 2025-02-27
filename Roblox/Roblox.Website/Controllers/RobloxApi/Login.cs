@@ -180,14 +180,14 @@ namespace Roblox.Website.Controllers
                     throw new RecordNotFoundException();
                 TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
                 if (!services.users.VerifyTotp(totpInfo.secret, request.code))
-                    throw new BadRequestException(6, "Incorrect code. Please try again.");
+                    throw new BadRequestException(6, "Failure2SVInvalidCode");
 
             }
             catch (RecordNotFoundException)
             {
-                throw new BadRequestException(6, "Invalid two step verification ticket.");
+                throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
-
+            await services.users.Delete2SVTicket(request.ticket);
             await CreateSessionAndSetCookie(userId);
         }
         [HttpPostBypass("v2/twostepverification/login/verify")]
@@ -202,16 +202,16 @@ namespace Roblox.Website.Controllers
                     throw new RecordNotFoundException();
                 TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
                 if (!services.users.VerifyTotp(totpInfo.secret, request.identificationCode))
-                    throw new BadRequestException(6, "Incorrect code. Please try again.");
+                    throw new BadRequestException(6, "Failure2SVInvalidCode");
 
             }
             catch (RecordNotFoundException)
             {
-                throw new BadRequestException(6, "Invalid two step verification ticket.");
+                throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
 
             await CreateSessionAndSetCookie(userId);
-
+            await services.users.Delete2SVTicket(request.tl);
             return new
             {
                 userId,
