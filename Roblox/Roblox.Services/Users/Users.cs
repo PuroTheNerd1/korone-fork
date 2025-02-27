@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using CsvHelper;
 using Dapper;
 using Roblox.Dto;
 using Roblox.Dto.Assets;
@@ -147,6 +148,18 @@ public class UsersService : ServiceBase, IService
         {
             id = userId,
         });
+    }
+    public async Task<string> Generate2SVTicket(long userId)
+    {
+        string ticket = "PEKORA-2FA:" + Guid.NewGuid().ToString();
+        await redis.StringSetAsync(ticket, userId.ToString(), TimeSpan.FromMinutes(5));
+        return ticket;
+    }
+    public async Task<long> GetUserIdFrom2SVTicket(string ticket)
+    {
+        var userId = await redis.StringGetAsync(ticket);
+        if (userId == null) throw new RecordNotFoundException();
+        return long.Parse(userId);
     }
     public async Task<TotpInfo> GetOrSetTotp(long userId)
     {
