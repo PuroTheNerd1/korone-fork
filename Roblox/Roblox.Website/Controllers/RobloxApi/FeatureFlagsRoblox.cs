@@ -1,7 +1,8 @@
 using MVC = Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
-using BadRequestException = Roblox.Exceptions.BadRequestException;
-using Roblox.Services.Exceptions;
+using Roblox.Exceptions;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.Formatters;
 namespace Roblox.Website.Controllers
 {
 
@@ -17,14 +18,13 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2/settings/application")]
         [HttpPostBypass("v1/settings/application")]
         [HttpGetBypass("v1/settings/application")]
-        public MVC.ActionResult<dynamic> GetAppSettingsNew(string? type, string? applicationName, string? apiKey)
+        public MVC.ActionResult<dynamic> GetApplicationSettings(string? type, string? applicationName, string? apiKey)
         {
             applicationName = applicationName ?? type;
             if (applicationName == null)
                 throw new BadRequestException(1, $"Bad Request");
             return GetFeatureFlags(applicationName, apiKey);
         }
-
 
         // For legacy clients
         private static readonly Dictionary<string, string> apiKeys = new Dictionary<string, string>()
@@ -53,9 +53,7 @@ namespace Roblox.Website.Controllers
         };
         private string GetTypeForApiKey(string type, string apiKey)
         {
-            apiKeys.TryGetValue(apiKey, out string? newType);
-
-            if (newType == null || newType != type)
+            if (!apiKeys.TryGetValue(apiKey, out type))
                 throw new BadRequestException(0, $"Invalid API key: {apiKey}");
 
             return type;
@@ -73,15 +71,15 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException(1, $"Invalid application name: {type}");
             else 
                 // Should never happen, but just in case
-                throw new BadRequestException(1, $"Bad Request");
+                throw new BadRequestException();
 
             string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
             
             // Also should never happen, but just in case
             if (!System.IO.File.Exists(featureFlags))
-                return "{}";
+                throw new BadRequestException(0, $"Feature flags not found for {type}");
 
-            return System.IO.File.ReadAllText(featureFlags);
+            return JsonSerializer.Serialize(System.IO.File.ReadAllText(featureFlags));
         }
     }
 }
