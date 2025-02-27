@@ -52,9 +52,9 @@ namespace Roblox.Dto.Authentication
         SocialNetworkSignOnRequired = 5,
 
         /// <summary>
-        /// 6: Two-factor authentication is required.
+        /// 6: Account issue. Please contact Support.
         /// </summary>
-        TwoFactorAuthenticationRequired = 6,
+        AccountIssue = 6,
 
         /// <summary>
         /// 9: Unable to login with provided credentials. Default login is required.

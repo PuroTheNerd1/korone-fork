@@ -106,7 +106,13 @@ namespace Roblox.Website.Controllers
             {
                 throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again.");
             }
-
+            
+            return new 
+            {
+                mediaType = "Email",
+                tl = "a",
+                message = "TwoStepVerificationRequired",
+            };
             if (await Login(username, password, userInfo.userId, totpCode, isPasswordLeaked))
                 await CreateSessionAndSetCookie(userInfo.userId);
 
@@ -130,10 +136,10 @@ namespace Roblox.Website.Controllers
                 countryCode = "US",
                 userId = userInfo.userId,
                 id = userInfo.userId,
+                displayName = userInfo.username,
                 mediaType = "Email",
                 tl = "a",
                 message = "TwoStepVerificationRequired",
-                displayName = userInfo.username,
                 user = new
                 {
                     id = userInfo.userId,
@@ -218,11 +224,11 @@ namespace Roblox.Website.Controllers
             {
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
-                    throw new ForbiddenException((int)LoginError403.TwoFactorAuthenticationRequired, $"TwoStepVerificationRequired");
+                    throw new ForbiddenException((int)LoginError403.IncorrectCredentials, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
 
                 //verify totp code
                 if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new ForbiddenException((int)LoginError403.TwoFactorAuthenticationRequired, "TwoStepVerificationRequired");
+                    throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect 2FA code. Please try again.");
             }
 
             try
