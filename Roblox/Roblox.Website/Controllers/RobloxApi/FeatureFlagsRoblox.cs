@@ -10,37 +10,22 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class FeatureFlagsRoblox: ControllerBase
     {
-        // [HttpPostBypass("Setting/Get/{type}")]
-        // [HttpPostBypass("Setting/QuietGet/{type}")]
-        // [HttpGetBypass("Setting/Get/{type}")]
-        // [HttpGetBypass("Setting/QuietGet/{type}")]
-        // public MVC.ActionResult<dynamic> GetApplicationSettingsLegacy(string type, string apiKey)
-        // {
-        //     return Content(GetFeatureFlags(type, apiKey), "application/json");
-        // }
-
-        // [HttpPostBypass("v2/settings/application")]
-        // [HttpGetBypass("v2/settings/application")]
-        // [HttpPostBypass("v1/settings/application")]
-        // [HttpGetBypass("v1/settings/application")]
-        // public MVC.ActionResult<dynamic> GetApplicationSettingsModern(string applicationName)
-        // {
-        //     return Content(GetFeatureFlags(applicationName), "application/json");
-        // }
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
+        public MVC.ActionResult<dynamic> GetApplicationSettingsLegacy(string type, string apiKey)
+        {
+            return Content(GetFeatureFlags(type, apiKey), "application/json");
+        }
+
         [HttpPostBypass("v2/settings/application")]
         [HttpGetBypass("v2/settings/application")]
         [HttpPostBypass("v1/settings/application")]
         [HttpGetBypass("v1/settings/application")]
-        public MVC.ActionResult<dynamic> GetApplicationSettings(string? type, string? applicationName, string? apiKey)
+        public MVC.ActionResult<dynamic> GetApplicationSettingsModern(string applicationName)
         {
-            applicationName = applicationName ?? type;
-            if (applicationName == null)
-                throw new BadRequestException(1, $"Bad Request");
-            return Content(GetFeatureFlags(applicationName, apiKey), "application/json");
+            return Content(GetFeatureFlags(applicationName), "application/json");
         }
 
         // For legacy clients
