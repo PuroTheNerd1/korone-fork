@@ -72,8 +72,12 @@ namespace Roblox.Website.Controllers
             else if (!applicationNames.TryGetValue(type, out type))
                 throw new BadRequestException(1, $"Invalid application name: {type}");
             else 
+                // Should never happen, but just in case
                 throw new BadRequestException(1, $"Bad Request");
+
             string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
+            
+            // Also should never happen, but just in case
             if (!System.IO.File.Exists(featureFlags))
                 return "{}";
 
