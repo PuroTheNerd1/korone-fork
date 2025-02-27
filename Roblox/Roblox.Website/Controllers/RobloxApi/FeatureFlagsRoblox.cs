@@ -42,6 +42,7 @@ namespace Roblox.Website.Controllers
             "AndroidApp",
             "iOSApp"
         };
+        // For legacy clients
         private string GetTypeForApiKey(string type, string apiKey)
         {
             switch (apiKey)
