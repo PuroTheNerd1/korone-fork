@@ -79,9 +79,6 @@ namespace Roblox.Website.Controllers
                 type = GetTypeForApiKey(type, apiKey);
             else if (!applicationNames.Contains(type))
                 throw new BadRequestException(1, $"Invalid application name: {type}");
-            else 
-                // Should never happen, but just in case
-                throw new BadRequestException();
 
             string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
             
