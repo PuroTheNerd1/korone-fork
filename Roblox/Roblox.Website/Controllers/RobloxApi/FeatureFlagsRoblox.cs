@@ -69,7 +69,7 @@ namespace Roblox.Website.Controllers
             */
             if (apiKey != null)
                 type = GetTypeForApiKey(type, apiKey);
-            else if (!applicationNames.TryGetValue(type, out type))
+            else if (!applicationNames.Contains(type))
                 throw new BadRequestException(1, $"Invalid application name: {type}");
             else 
                 // Should never happen, but just in case
