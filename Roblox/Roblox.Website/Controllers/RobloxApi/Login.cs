@@ -130,6 +130,9 @@ namespace Roblox.Website.Controllers
                 countryCode = "US",
                 userId = userInfo.userId,
                 id = userInfo.userId,
+                mediaType = "Email",
+                tl = "a",
+                message = "TwoStepVerificationRequired",
                 displayName = userInfo.username,
                 user = new
                 {
@@ -215,11 +218,11 @@ namespace Roblox.Website.Controllers
             {
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
-                    throw new ForbiddenException((int)LoginError403.TwoFactorAuthenticationRequired, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
+                    throw new ForbiddenException((int)LoginError403.TwoFactorAuthenticationRequired, $"TwoStepVerificationRequired");
 
                 //verify totp code
                 if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new ForbiddenException((int)LoginError403.TwoFactorAuthenticationRequired, "Incorrect 2FA code. Please try again.");
+                    throw new ForbiddenException((int)LoginError403.TwoFactorAuthenticationRequired, "TwoStepVerificationRequired");
             }
 
             try
