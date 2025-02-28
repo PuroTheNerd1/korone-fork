@@ -380,7 +380,7 @@ public class RobloxApi
 
     public async Task<Stream> GetStreamAsync(string url)
     {
-        var strResult = await _client.GetAsync(url);
+        var strResult = await robloxApiClient.GetAsync(url);
         if (!strResult.IsSuccessStatusCode)
             throw new Exception("Bad response in GetStreamAsync: " + strResult.StatusCode);
         return await strResult.Content.ReadAsStreamAsync();
