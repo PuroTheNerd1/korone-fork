@@ -107,7 +107,7 @@ public class Asset : ControllerBase
                     Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
                 }
 
-                return Redirect(location);
+                return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
 
             }
         }
