@@ -81,33 +81,32 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
-                string cacheKey = "chloeassetcachev1:" + id;
-                string? location = await Services.Cache.distributed.StringGetAsync(cacheKey);
+                string key = "chloeassetcachev1:" + id;
+                string? location = await Services.Cache.distributed.StringGetAsync(key);
                 if (location == null)
                 {
                     if (!isRoblox)
                         return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={id}");
-
                     Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
                     location = await services.robloxApi.GetAssetLocation(id);
 
+                    // Asset is OK!
                     if (location != "BAD")
                     {
-                        Writer.Info(LogGroup.AssetDelivery, "Caching asset for 10 days {0}", id);
-                        await Services.Cache.distributed.StringSetAsync(cacheKey, location, TimeSpan.FromDays(10));
+                        Writer.Info(LogGroup.AssetDelivery, "Caching asset {0}", id);
+                        await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
                     }
+                    // We probaly hit a rate limit of a 403 just redirect to Roblox
                     else
                     {
                         Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
-                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";
+                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";  
                     }
-                }
-                else
-                {
-                    Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
-                    return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
-                }
 
+                    return Redirect(location);
+
+                }
+                Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
                 return Redirect(location);
 
             }
