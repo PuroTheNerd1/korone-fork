@@ -600,8 +600,8 @@ public class TradesService : ServiceBase, IService
             throw new ArgumentException($"Trade with status {info.status} cannot be countered");
         }
 
-        if ((info.status == TradeStatus.Open && info.userIdOne != contextUserId) ||
-            (info.status == TradeStatus.Countered && info.userIdTwo != contextUserId))
+        if ((info.status == TradeStatus.Open && info.userIdTwo != contextUserId) ||
+            (info.status == TradeStatus.Countered && info.userIdOne != contextUserId))
         {
             throw new ArgumentException($"Trade with status {info.status} cannot be countered by user {contextUserId}");
         }
