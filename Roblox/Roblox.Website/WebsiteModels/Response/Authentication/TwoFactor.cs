@@ -10,8 +10,8 @@ public class TwoFactor
 public class TwoFactorEmail
 {
     public string challengeId { get; set; }
-    public string verificationToken { get; set; }
-    public string code { get; set; }
+    public string? verificationToken { get; set; }
+    public string? code { get; set; }
 }
 
 public class TwoFactorLegacy
