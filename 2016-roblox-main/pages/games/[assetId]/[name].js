@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import SharedAssetPage from "../../../components/sharedAssetPage";
+import SharedAssetPage from "../../../components/sharedAssetPage2019";
 import { getProductInfoLegacy } from '../../../services/catalog';
 import Head from 'next/head';
 import Theme2016 from '../../../components/theme2016';

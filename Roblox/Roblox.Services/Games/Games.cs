@@ -691,7 +691,7 @@ public class GamesService : ServiceBase, IService
     public async Task<IEnumerable<GameMediaEntry>> GetGameMedia(long placeId)
     {
         return await db.QueryAsync<GameMediaEntry>(
-            "SELECT asset_type as assetTypeId, media_asset_id as imageId, media_video_hash as videoHash, media_video_title as videoTitle, is_approved as isApproved FROM asset_media WHERE asset_id = :id",
+            "SELECT asset_type as assetType, media_asset_id as imageId, media_video_hash as videoHash, media_video_title as videoTitle, is_approved as approved FROM asset_media WHERE asset_id = :id",
             new {id = placeId});
     }
 

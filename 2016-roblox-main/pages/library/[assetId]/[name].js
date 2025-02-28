@@ -1,4 +1,4 @@
-import SharedAssetPage from "../../../components/sharedAssetPage";
+import SharedAssetPage from "../../../components/sharedAssetPage2019";
 import { getProductInfoLegacy } from "../../../services/catalog";
 import Head from "next/head";
 const ItemPage = ({ name, description, assetId, ...props }) => {

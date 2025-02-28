@@ -31,7 +31,7 @@ const GameDetailsStore = createContainer(() => {
       setUniverseDetails(d[0]);
       getGameMedia({
         universeId: d[0].id,
-      }).then(setMedia);
+      }).then(d1 => setMedia(d1));
     })
   }, [placeDetails]);
 

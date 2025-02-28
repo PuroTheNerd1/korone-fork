@@ -14,11 +14,13 @@ const useStyles = createUseStyles({
         height: '100%',
         position: 'relative',
         '&:hover $carouselControl': {
-            display: 'block'
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
         }
     },
     carouselItem: {
-        transition: 'opacity .5s ease-in-out',
+        transition: 'opacity 1s ease-in-out',
         opacity: 0,
         top: 0,
         left: 0,
@@ -27,7 +29,7 @@ const useStyles = createUseStyles({
         display: 'block',
         position: 'absolute',
         zIndex: 0,
-        transform: 'translateZ(0)',
+        transform: 'translate3d(0,0,0)',
         '& img':{
             width: '100%',
             height: '100%',
@@ -37,13 +39,17 @@ const useStyles = createUseStyles({
     },
     activeCarouselItem: {
         opacity: 1,
-        //zIndex: 3
+        zIndex: 3,
+        transition: 'opacity .5s ease-in-out',
+    },
+    nextCarouselItem: {
+        transition: 'opacity 1s ease-in-out',
     },
     carouselControl: {
         position: 'absolute',
         top: 'calc(50% - 24px)',
         backgroundColor: 'rgba(25, 25, 25, 0.3)',
-        border: '2px solid var(--white)',
+        border: '2px solid rgba(255, 255, 255, 1.0)',
         borderRadius: '50%',
         height: '48px',
         width: '48px',
@@ -51,6 +57,7 @@ const useStyles = createUseStyles({
         cursor: 'pointer',
         //textAlign: 'center',
         zIndex: 1000,
+        display: 'none',
         '&:hover': {
             backgroundColor: 'rgba(25, 25, 25, 0.75)',
         }
@@ -79,7 +86,7 @@ const CarouselThumbnail = props => {
 
 const gameThumbnails = props => {
     const store = GameDetailsStore.useContainer();
-    // 0 === loading, 1 === use placeholder, 2 === failed to load, 3 === moderated array is succedss
+    // 0 === loading, 1 === use placeholder, 2 === failed to load, 3 === moderated, array is succedss
     /** @type {useState<AssetThumbnail[]>} */
     const [images, setImages] = useState([]);
     // 0 === loading, 1 === completed
@@ -88,14 +95,23 @@ const gameThumbnails = props => {
     const s = useStyles();
     
     useEffect(() => {
-        if (!store.universeDetails || !store.universeDetails.id || !store.placeDetails || !store.placeDetails.placeId)
+        if (!store.universeDetails || !store.universeDetails.id || !store.placeDetails || !store.placeDetails.placeId || !store.media || !store.media.length) {
+            setImageStatus(2);
             return;
+        } else if (store.media.length === 0) {
+            setImageStatus(1);
+            return;
+        }
         
-        multiGetAssetThumbnails({ assetIds: [store.placeDetails.placeId] }).then(thumbs => {
-            if (thumbs && thumbs.length && thumbs.length > 0) {
-                setImages(thumbs);
-                setImageStatus(1);
-            }
+        multiGetAssetThumbnails({ assetIds: store.media.filter(v => v.approved).map(media => media.imageId) }).then(res => {
+            setImageStatus(1);
+            setImages(res);
+        });
+        // multiGetAssetThumbnails({ assetIds: [store.placeDetails.placeId] }).then(thumbs => {
+        //     if (thumbs && thumbs.length && thumbs.length > 0) {
+        //         setImages(thumbs);
+        //         setImageStatus(1);
+        //     }
             // /**
             //  * @type AssetThumbnail[]
             //  */
@@ -113,8 +129,8 @@ const gameThumbnails = props => {
             //     return;
             // }
             // setImages(2);
-        })
-    }, [store.universeDetails, store.details, store.placeDetails]);
+        //})
+    }, [store.universeDetails, store.details, store.placeDetails, store.media]);
     
     const changeCurrentImage = (e, forward) => {
         e.preventDefault();
@@ -159,7 +175,7 @@ const gameThumbnails = props => {
                     />
                 )
                 : <CarouselThumbnail styles={s} active={true} status={'Completed'}
-                                     imageLink={"/img/" + (imageStatus === 0 ? "loading.png" : Math.random() === 1 ? "placeholder/icon_two.png" : "placeholder/icon_one.png") }
+                                     imageLink={"/img/" + (imageStatus === 0 ? "loading.png" : "placeholder/icon_two.png") }
                 />
         }
         {

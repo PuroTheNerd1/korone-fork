@@ -1,4 +1,4 @@
-import SharedAssetPage from "../../../components/sharedAssetPage";
+import SharedAssetPage from "../../../components/sharedAssetPage2019";
 import { useRouter } from 'next/router';
 import { getItemDetails, getProductInfoLegacy } from "../../../services/catalog";
 import { useState } from "react";
