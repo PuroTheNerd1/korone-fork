@@ -88,7 +88,7 @@ public class Asset : ControllerBase
                 string? location = await Services.Cache.distributed.StringGetAsync(key);
                 if (location == null)
                 {
-                    Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", assetId);
+                    Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
                     location = await services.robloxApi.GetAssetLocation(id);
 
                     // If the asset isn't bad we can cache the asset location
@@ -99,14 +99,14 @@ public class Asset : ControllerBase
                     // We probaly hit a rate limit of a 403 just redirect to Roblox
                     else
                     {
-                        Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", assetId);
-                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={assetId}";  
+                        Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
+                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";  
                     }
 
                     return Redirect(location);
 
                 }
-                Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", assetId);
+                Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
                 return Redirect(location);
 
             }
