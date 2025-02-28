@@ -17,8 +17,8 @@ namespace Roblox.Website.Pages.Auth;
 public class Login : RobloxPageModel
 {
     private const string ExpiredApplicationMessage = "For security reasons, this application has been expired. Please create a new application and try again.";
-    private const string ExpiredPasswordMessage = "For security reasons your password has been expired. Please make a ticket in the Pekora Discord server to reset your password.";
-    private const string CompromisedPasswordMessage  = "Your password has automatically expired due to it being found in a breach. Please make a ticket in the Pekora Discord server to reset your password.";
+    private const string ExpiredPasswordMessage = "For security reasons your password has been expired. Please reset your password.";
+    private const string CompromisedPasswordMessage  = "Your password has automatically expired due to it being found in a breach. Please reset your password.";
 
     private const string BadApplicationMessage =
         "This application is either not approved or has already been used. Please confirm the URL is correct, and try again.";
