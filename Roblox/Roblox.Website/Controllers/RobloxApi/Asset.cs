@@ -244,6 +244,7 @@ public class Asset : ControllerBase
         var robloxAssetRequest = requestData.Where(r => !existingAssetIds.Contains(r.assetId)).ToList();
         if (robloxAssetRequest.Count > 0)
         {
+            Writer.Info(LogGroup.AssetDelivery, "Fetching {0} batch assets from Roblox", robloxAssetRequest.Count);
             var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
             assets.AddRange(robloxAssets);
         }
