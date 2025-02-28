@@ -1242,7 +1242,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("sign-out/v1")]
         [HttpPostBypass("sign-out/v1")]
         [HttpGetBypass("game/logout.aspx")]
-        public dynamic Logout()
+        public async Task<dynamic> Logout()
         {
             using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
             sessCache.Remove(userSession.sessionId);
