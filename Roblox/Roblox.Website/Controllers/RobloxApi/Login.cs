@@ -162,18 +162,18 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
-        public async Task<dynamic> TwoStepVerificationEmailLogin([FromBody] TwoFactorEmailLogin request)
+        public async Task<dynamic> TwoStepVerificationEmailLogin(long userId)
         {
             Console.WriteLine("Ok");
-            Console.WriteLine(request.accountBlob);
-            Console.WriteLine(request.verificationToken);
-            Console.WriteLine(request.challengeId);
+            // Console.WriteLine(request.accountBlob);
+            // Console.WriteLine(request.verificationToken);
+            // Console.WriteLine(request.challengeId);
             if (userSession == null)
                 throw new BadRequestException(1, "User is not logged in.");
             return new
             {
-                identityVerificationLoginTicket = request.challengeId,
-                accountBlob = request.accountBlob,
+                identityVerificationLoginTicket = "",
+                accountBlob = "",
             };
         }
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
