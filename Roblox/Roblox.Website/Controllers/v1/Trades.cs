@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Roblox.Dto.Trades;
 using Roblox.Exceptions;
 using Roblox.Logging;
@@ -177,9 +178,15 @@ public class TradesControllerV1 : ControllerBase
     }
 
     [HttpPost("trades/{tradeId:long}/counter")]
-    public async Task CounterTrade([Required, FromBody] CreateTradeRequest request, long tradeId)
+    public async Task CounterTrade(long tradeId)
     {
         FeatureCheck();
+        string requestBody = await GetRequestBody();
+        if (requestBody == null)
+            throw new BadRequestException(0, "Invalid request body");
+        var request = JsonConvert.DeserializeObject<CreateTradeRequest>(requestBody);
+        if (request == null)
+            throw new BadRequestException(0, "Invalid trade offers");
         await services.trades.CounterTrade(tradeId, safeUserSession.userId, request.offers, true);
     }
 }
