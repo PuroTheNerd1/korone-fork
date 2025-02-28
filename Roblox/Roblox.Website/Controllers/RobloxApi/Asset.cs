@@ -110,7 +110,6 @@ public class Asset : ControllerBase
                     return Redirect(location);
                 }
 
-
             }
         }
 
