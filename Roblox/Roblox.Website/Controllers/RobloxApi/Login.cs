@@ -173,7 +173,7 @@ namespace Roblox.Website.Controllers
             long userId;
             try
             {
-                userId = await services.users.GetUserIdFrom2SVTicket(request.code);
+                userId = await services.users.GetUserIdFrom2SVTicket(request.challengeId);
                 TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
                 if (!services.users.VerifyTotp(totpInfo.secret, request.code))
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
