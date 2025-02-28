@@ -84,19 +84,25 @@ public class Asset : ControllerBase
                 // Don't even bother caching assets that aren't send from the Roblox client
                 if (!isRoblox)
                     throw new RecordNotFoundException();
-                string key = "assetdeliverycachev3:" + id;
+                string key = "assetdeliverycachev4:" + id;
                 string? location = await Services.Cache.distributed.StringGetAsync(key);
                 if (location == null)
                 {
+                    Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", assetId);
                     location = await services.robloxApi.GetAssetLocation(id);
 
                     // If the asset isn't bad we can cache the asset location
                     if (location != "BAD")
+                    {
                         await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
+                    }
                     // We probaly hit a rate limit of a 403 just redirect to Roblox
                     else
+                    {
+                        Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", assetId);
                         location = $"https://assetdelivery.roblox.com/v1/asset/?id={assetId}";  
-                    
+                    }
+
                     return Redirect(location);
 
                 }
