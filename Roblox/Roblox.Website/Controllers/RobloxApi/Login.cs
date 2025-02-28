@@ -167,6 +167,17 @@ namespace Roblox.Website.Controllers
                 isBanned = false
             };
         }
+        [HttpPostBypass("/v3/users/{userId}/two-step-verification/login")]
+        public dynamic TwoStepVerificationEmailLogin([FromBody] TwoFactorEmail request)
+        {
+            if (userSession == null)
+                throw new BadRequestException(1, "User is not logged in.");
+            return new
+            {
+                identityVerificationLoginTicket = request.challengeId,
+                accountBlob = ROBLOSECURITY,
+            };
+        }
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
         public async Task<dynamic> TwoStepVerificationEmail([FromBody] TwoFactorEmail request)
         {
@@ -184,10 +195,10 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
             await services.users.Delete2SVTicket(request.challengeId);
-            await CreateSessionAndSetCookie(userId);
+
             return new
             {
-                verificationToken = request.challengeId,
+                verificationToken = await CreateSessionAndSetCookie(userId)
             };
         }
         
