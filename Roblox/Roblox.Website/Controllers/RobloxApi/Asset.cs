@@ -225,7 +225,7 @@ public class Asset : ControllerBase
         if (requestData == null)
             throw new BadRequestException();
 
-        var assets = new List<object>();
+        List<AssetDeliveryV1BatchResponse> assets = new List<AssetDeliveryV1BatchResponse>();
 
         //assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
         var details = await services.assets.MultiGetInfoById(requestData.Select(a => a.assetId));
@@ -237,7 +237,7 @@ public class Asset : ControllerBase
             return matchingRequests.Select(req =>
             {
                 var requestId = req?.requestId ?? Guid.NewGuid().ToString();
-                return CreateAssetResponse(d.assetType, requestId, d.id, $"{Configuration.BaseUrl}/v1/asset/?id={d.id}");
+                return CreateAssetResponse(d.assetType, requestId, $"{Configuration.BaseUrl}/v1/asset/?id={d.id}");
             });
         }));
 
@@ -249,7 +249,7 @@ public class Asset : ControllerBase
         }
 
 
-        return Content(JsonSerializer.Serialize(assets), "application/json");
+        return Content(JsonSerializer.Serialize<List<AssetDeliveryV1BatchResponse>>(assets), "application/json");
     }
     private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> robloxAssets, List<object> assets)
     {
@@ -274,15 +274,15 @@ public class Asset : ControllerBase
             await services.robloxassets.SetRobloxAssetLocationInCache(assetId, robloxAsset.location);
         }
     }
-    private static object CreateAssetResponse(Type assetType, string requestId, long assetId, string location)
+    private static AssetDeliveryV1BatchResponse CreateAssetResponse(Type assetType, string requestId, string? location)
     {
-        return new
+        return new AssetDeliveryV1BatchResponse
         {
-            location,
+            location = location,
             requestId = requestId,
             IsHashDynamic = false,
             IsCopyrightProtected = false,
-            IsArchived = false,
+            isArchived = false,
             assetTypeId = (int)assetType
         };
     }

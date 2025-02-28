@@ -41,12 +41,14 @@ public class AssetDeliveryV2Response
 
 public class AssetDeliveryV1BatchResponse
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? location { get; set; }
     public string requestId { get; set; }
     public bool IsHashDynamic { get; set; }
     public bool IsCopyrightProtected { get; set; }
     public bool isArchived { get; set; }
     public int assetTypeId { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<AssetDeliveryV1Error>? errors { get; set; }
 }
 
