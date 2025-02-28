@@ -413,9 +413,11 @@ public class RobloxApi
     {
         var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
         var statusCode = (int)result.StatusCode;
+        Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV1 status code: {0}", statusCode);
         string location;
         if (statusCode >= 300 && statusCode <= 399)
         {
+            Writer.Info(LogGroup.RealRobloxApi, "Response: {0}", await result.Content.ReadAsStringAsync());
             var redirectUri = result.Headers.Location;
             if (!redirectUri!.IsAbsoluteUri)
             {
@@ -426,17 +428,21 @@ public class RobloxApi
         else
         {
             // AssetDeliveryV1 failed lets try to use V2
-            result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v2/asset?id={assetId}");
+            Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV1 failed for asset {0}, trying V2", assetId);
+            var resultv2 = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v2/asset?id={assetId}");
             if (!result.IsSuccessStatusCode)
+            {
+                Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV2 failed status: {0}", result.StatusCode);
                 return "BAD";
+            }
+
             AssetDeliveryV2Response assetDelivery = await result.Content.ReadFromJsonAsync<AssetDeliveryV2Response>();
             if (assetDelivery == null)
                 return "BAD";
             location = assetDelivery.locations?.FirstOrDefault()?.location ?? "BAD";
         }
         
-        if (location != "BAD")
-            Writer.Info(LogGroup.RealRobloxApi, "got asset location for asset {0}: {1}", assetId, location);
+        Writer.Info(LogGroup.RealRobloxApi, "got asset location for asset {0}: {1}", assetId, location);
         return location;    
     }
     public async Task<Stream> GetAssetContent(long assetId)

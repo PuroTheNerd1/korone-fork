@@ -84,11 +84,11 @@ public class Asset : ControllerBase
                 // Don't even bother caching assets that aren't send from the Roblox client
                 if (!isRoblox)
                     throw new RecordNotFoundException();
-                string key = "assetdeliverycachev3:" + assetId;
+                string key = "assetdeliverycachev3:" + id;
                 string? location = await Services.Cache.distributed.StringGetAsync(key);
                 if (location == null)
                 {
-                    location = await services.robloxApi.GetAssetLocation(assetId);
+                    location = await services.robloxApi.GetAssetLocation(id);
 
                     // If the asset isn't bad we can cache the asset location
                     if (location != "BAD")
