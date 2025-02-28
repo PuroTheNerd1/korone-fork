@@ -414,15 +414,9 @@ public class RobloxApi
         var v1Url = $"https://assetdelivery.roblox.com/v1/asset?id={assetId}";
         var result = await robloxApiClient.GetAsync(v1Url);
 
-        if (result.Headers.Location is Uri redirectUri)
+        if (result != null)
         {
-            if (!redirectUri.IsAbsoluteUri)
-            {
-                var authority = result.RequestMessage.RequestUri.GetLeftPart(UriPartial.Authority);
-                redirectUri = new Uri(authority + redirectUri);
-            }
-
-            var assetLocation = redirectUri.ToString();
+            string assetLocation = result.RequestMessage!.RequestUri!.ToString();
             Writer.Info(LogGroup.RealRobloxApi, "got asset location for asset {0}: {1}", assetId, assetLocation);
             return assetLocation;
         }
