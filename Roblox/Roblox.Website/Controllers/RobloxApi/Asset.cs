@@ -245,20 +245,7 @@ public class Asset : ControllerBase
         if (robloxAssetRequest.Count > 0)
         {
             var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
-            assets.AddRange(robloxAssets.Select(d =>
-            {
-                long assetId = robloxAssetRequest.FirstOrDefault(r => r.requestId == d.requestId)?.assetId ?? 0;
-                return CreateAssetResponse((Type)d.assetTypeId, d.requestId, assetId, d.location ?? $"{Configuration.BaseUrl}/v1/asset/?id={assetId}");
-            }));
-            assets.AddRange(robloxAssets.SelectMany(d =>
-            {
-                var matchingRequests = requestData.Where(r => r.requestId == d.requestId);
-                return matchingRequests.Select(req =>
-                {
-                    long assetId = robloxAssetRequest.FirstOrDefault(r => r.requestId == d.requestId)?.assetId ?? 0;
-                    return CreateAssetResponse((Type)d.assetTypeId, d.requestId, assetId, d.location ?? $"{Configuration.BaseUrl}/v1/asset/?id={assetId}");
-                });
-            }));
+            assets.Add(robloxAssets);
         }
 
 

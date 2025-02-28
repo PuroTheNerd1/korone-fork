@@ -47,8 +47,14 @@ public class AssetDeliveryV1BatchResponse
     public bool IsCopyrightProtected { get; set; }
     public bool isArchived { get; set; }
     public int assetTypeId { get; set; }
+    public List<AssetDeliveryV1Error>? errors { get; set; }
 }
 
+public class AssetDeliveryV1Error
+{
+    public int code { get; set; }
+    public string message { get; set; }
+}
 
 
 
