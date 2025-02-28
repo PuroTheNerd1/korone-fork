@@ -121,22 +121,23 @@ namespace Roblox.Website.Controllers
                 string ticket = await services.users.Generate2SVTicket(userInfo.userId);
                 return new
                 {
-                    mediaType = "Email",
-                    tl = ticket,
                     message = "TwoStepVerificationRequired",
                     code = 6,
-                    twoStepVerificationData = new
-                    {
-                        mediaType = "Email",
-                        ticket = ticket,
-                    },
-                    identityVerificationLoginTicket = ticket,
-                    user = new
-                    {
-                        id = userInfo.userId,
-                        name = userInfo.username,
-                        displayName = userInfo.username
-                    },
+                    mediaType = "Email",
+                    tl = ticket,
+
+                    // twoStepVerificationData = new
+                    // {
+                    //     mediaType = "Email",
+                    //     ticket = ticket,
+                    // },
+                    // identityVerificationLoginTicket = ticket,
+                    // user = new
+                    // {
+                    //     id = userInfo.userId,
+                    //     name = userInfo.username,
+                    //     displayName = userInfo.username
+                    // },
                 };
             }
 
