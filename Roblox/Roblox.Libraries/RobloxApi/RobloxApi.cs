@@ -411,37 +411,43 @@ public class RobloxApi
     }
     public async Task<string> GetAssetLocation(long assetId)
     {
-        var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
-        string location;
-        if (result.StatusCode == HttpStatusCode.OK)
-        {
-            var redirectUri = result.Headers.Location;
-            if (!redirectUri!.IsAbsoluteUri)
-            {
-                redirectUri = new Uri(result.RequestMessage.RequestUri.GetLeftPart(UriPartial.Authority) + redirectUri);
-            }
-            location = redirectUri.ToString();
-        }
-        else
-        {
-            // AssetDeliveryV1 failed lets try to use V2
-            Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV1 failed for asset {0}, trying V2", assetId);
-            result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v2/asset?id={assetId}");
-            if (!result.IsSuccessStatusCode)
-            {
-                Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV2 failed status: {0}", result.StatusCode);
-                return "BAD";
-            }
-            string assetDeliveryResponse = await result.Content.ReadAsStringAsync();
+        var v1Url = $"https://assetdelivery.roblox.com/v1/asset?id={assetId}";
+        var result = await robloxApiClient.GetAsync(v1Url);
 
-            AssetDeliveryV2Response assetDelivery = JsonSerializer.Deserialize<AssetDeliveryV2Response>(assetDeliveryResponse);
-            if (assetDelivery == null || assetDelivery.locations == null)
-                return "BAD";
-            location = assetDelivery.locations?.FirstOrDefault()?.location ?? "BAD";
+        if (result.IsSuccessStatusCode && result.Headers.Location is Uri redirectUri)
+        {
+            if (!redirectUri.IsAbsoluteUri)
+            {
+                var authority = result.RequestMessage.RequestUri.GetLeftPart(UriPartial.Authority);
+                redirectUri = new Uri(authority + redirectUri);
+            }
+
+            var assetLocation = redirectUri.ToString();
+            Writer.Info(LogGroup.RealRobloxApi, "got asset location for asset {0}: {1}", assetId, assetLocation);
+            return assetLocation;
         }
-        
-        Writer.Info(LogGroup.RealRobloxApi, "got asset location for asset {0}: {1}", assetId, location);
-        return location;    
+
+        // Fall back to AssetDeliveryV2
+        Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV1 failed for asset {0}, trying V2", assetId);
+
+        var v2Url = $"https://assetdelivery.roblox.com/v2/asset?id={assetId}";
+        result = await robloxApiClient.GetAsync(v2Url);
+
+        if (!result.IsSuccessStatusCode)
+        {
+            Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV2 failed status: {0}", result.StatusCode);
+            return "BAD";
+        }
+
+        var assetDeliveryResponse = await result.Content.ReadAsStringAsync();
+        var assetDelivery = JsonSerializer.Deserialize<AssetDeliveryV2Response>(assetDeliveryResponse);
+
+        if (assetDelivery?.locations == null || !assetDelivery.locations.Any())
+            return "BAD";
+
+        var location = assetDelivery.locations.First().location ?? "BAD";
+        Writer.Info(LogGroup.RealRobloxApi, "Got asset location for asset {0}: {1}", assetId, location);
+        return location;
     }
     public async Task<Stream> GetAssetContent(long assetId)
     {
