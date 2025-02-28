@@ -63,8 +63,6 @@ public class AvatarRBX : ControllerBase
         List<long> equippedGearVersionIds = new List<long>();
         var wornAssets = await services.avatar.GetWornAssets(userId);
         var avatar = await services.avatar.GetAvatar(userId);
-        // If we dont have an avatar then its most likely a game loading a avatar
-
         var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
 
         dynamic bodyColors = new

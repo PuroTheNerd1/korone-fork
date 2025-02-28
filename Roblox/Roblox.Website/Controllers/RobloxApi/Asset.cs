@@ -80,7 +80,19 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
-                return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
+                string key = "assetdeliverycachev2:" + assetId;
+                string? cachedLocation = await Services.Cache.distributed.StringGetAsync(key);
+                if (cachedLocation == null)
+                {
+                    var robloxAsset = await services.robloxApi.GetProductInfoAssetDelivery(assetId);
+                    if (robloxAsset.location == null)
+                        return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
+                    
+                    cachedLocation = robloxAsset.location;
+                    await Services.Cache.distributed.StringSetAsync(key, cachedLocation, TimeSpan.FromHours(6));
+                }
+
+                return Redirect(cachedLocation);
             }
         }
         // TODO: Fix for this is using a diffrent access key for rendering

@@ -213,7 +213,8 @@ namespace Roblox.Website.Controllers
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
             long year = await services.games.GetYear(Placelauncher.placeId);
 
-            if (!ApplicationGuardMiddleware.IsRoblox(Request) || year == 2016){
+            if (isRoblox || year == 2016)
+            {
                 return new PlaceLaunchResponse()
                 {
                     status = (int)JoinStatus.Error,
