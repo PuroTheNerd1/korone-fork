@@ -224,7 +224,7 @@ namespace Roblox.Website.Controllers
                     throw new RecordNotFoundException();
                 TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
                 if (!services.users.VerifyTotp(totpInfo.secret, request.identificationCode))
-                    throw new BadRequestException(6, "Failure2SVInvalidCode");
+                    throw new BadRequestException(6, "Incorrect 2FA code. Please try again.");
 
             }
             catch (RecordNotFoundException)
