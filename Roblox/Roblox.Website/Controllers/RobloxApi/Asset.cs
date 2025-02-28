@@ -245,7 +245,7 @@ public class Asset : ControllerBase
         if (robloxAssetRequest.Count > 0)
         {
             var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
-            assets.Add(robloxAssets);
+            assets.AddRange(robloxAssets);
         }
 
 
