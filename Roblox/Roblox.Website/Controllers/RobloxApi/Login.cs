@@ -184,9 +184,10 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
             await services.users.Delete2SVTicket(request.challengeId);
+            await CreateSessionAndSetCookie(userId);
             return new
             {
-                verificationToken = await CreateSessionAndSetCookie(userId),
+                verificationToken = request.challengeId,
             };
         }
         
