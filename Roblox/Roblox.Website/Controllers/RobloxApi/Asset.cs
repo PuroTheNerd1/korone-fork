@@ -80,6 +80,9 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
+                // Don't even bother caching assets that aren't send from the Roblox client
+                if (!isRoblox)
+                    throw new RecordNotFoundException();
                 string key = "assetdeliverycachev2:" + assetId;
                 string? cachedLocation = await Services.Cache.distributed.StringGetAsync(key);
                 if (cachedLocation == null)
