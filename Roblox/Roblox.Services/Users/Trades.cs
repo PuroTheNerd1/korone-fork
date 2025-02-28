@@ -191,13 +191,13 @@ public class TradesService : ServiceBase, IService
         {
             case TradeType.Inbound:
                 sql.Select("user_id_one as partnerId");
-                sql.Where("user_id_two = :my_id", new {my_id = userId});
-                sql.Where("user_trade.status = 2 OR user_trade.status = 8");
+                sql.Where("user_id_two = :my_id AND user_trade.status = 2 AND user_trade.status = 8",
+                new {my_id = userId});
                 sql.LeftJoin("\"user\" u ON u.id = user_trade.user_id_one");
                 break;
             case TradeType.Outbound:
                 sql.Select("user_id_two as partnerId");
-                sql.Where("user_id_one = :my_id AND user_trade.status = 2 OR user_trade.status = 8", 
+                sql.Where("user_id_one = :my_id AND user_trade.status = 2 AND user_trade.status = 8", 
                 new {my_id = userId});
                 sql.LeftJoin("\"user\" u ON u.id = user_trade.user_id_two");
                 break;
