@@ -1120,7 +1120,7 @@
       "FFlagAXRemoveAlertViewComponents3":"True",
       "FFlagAXTopBarSearchSignalProvider":"True",
       "FFlagBackButtonWhileLoadingGoesBackToApp":"True",
-      "FFlagBatchAssetApi":"False",
+      "FFlagBatchAssetApi":"True",
       "FFlagBatchThumbnailAddNewThumbnailTypes":"True",
       "FFlagBetaFeatureImpressionAnalytics":"True",
       "FFlagBetaFeatureOptOut":"True",
