@@ -227,19 +227,24 @@ public class Asset : ControllerBase
 
         var assets = new List<object>();
 
-        foreach (var asset in requestData)
+        //assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
+        var details = await services.assets.MultiGetInfoById(requestData.Select(a => a.assetId));
+        var existingAssetIds = details.Select(d => d.id).ToList();
+        assets.AddRange(details.Select(d =>
         {
-            // I promise that i will rework this fully soon
-            try
-            {
-                var info = await services.assets.GetAssetCatalogInfo(asset.assetId);
-                assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
-            }
-            catch (RecordNotFoundException)
-            {
-                assets.Add(CreateAssetResponse((Type)Enum.Parse(typeof(Type), asset.assetType), asset.requestId, asset.assetId, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
-            }
-        }
+            var req = requestData.FirstOrDefault(r => r.assetId == d.id);
+            var requestId = req?.requestId ?? Guid.NewGuid().ToString();
+            return CreateAssetResponse(d.assetType, requestId, d.id, $"{Configuration.BaseUrl}/v1/asset/?id={d.id}");
+        }));
+
+        var robloxAssetRequest = requestData.Where(r => !existingAssetIds.Contains(r.assetId)).ToList();
+        var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
+        assets.AddRange(robloxAssets.Select(d =>
+        {
+            long assetId = robloxAssetRequest.FirstOrDefault(r => r.requestId == d.requestId)?.assetId ?? 0;
+            return CreateAssetResponse((Type)d.assetTypeId, d.requestId, assetId, d.location ?? $"{Configuration.BaseUrl}/v1/asset/?id={assetId}");
+        }));
+
         return Content(JsonSerializer.Serialize(assets), "application/json");
     }
     private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> robloxAssets, List<object> assets)
