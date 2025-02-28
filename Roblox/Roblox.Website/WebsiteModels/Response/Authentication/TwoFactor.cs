@@ -14,6 +14,12 @@ public class TwoFactorEmail
     public string? code { get; set; }
 }
 
+public class TwoFactorEmailLogin
+{
+    public string challengeId { get; set; }
+    public string verificationToken { get; set; }
+}
+
 public class TwoFactorLegacy
 {
     public string username { get; set; }

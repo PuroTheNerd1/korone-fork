@@ -168,14 +168,14 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpPostBypass("/v3/users/{userId}/two-step-verification/login")]
-        public dynamic TwoStepVerificationEmailLogin([FromBody] TwoFactorEmail request)
+        public dynamic TwoStepVerificationEmailLogin([FromBody] TwoFactorEmailLogin request)
         {
             if (userSession == null)
                 throw new BadRequestException(1, "User is not logged in.");
             return new
             {
                 identityVerificationLoginTicket = request.challengeId,
-                accountBlob = ROBLOSECURITY,
+                accountBlob = "a",
             };
         }
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
