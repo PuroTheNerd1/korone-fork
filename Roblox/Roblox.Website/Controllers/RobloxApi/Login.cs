@@ -167,9 +167,10 @@ namespace Roblox.Website.Controllers
                 isBanned = false
             };
         }
-        [HttpPostBypass("v3/users/{userId}/two-step-verification/login")]
-        public dynamic TwoStepVerificationEmailLogin([FromBody] TwoFactorEmailLogin request)
+        [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
+        public async Task<dynamic> TwoStepVerificationEmailLogin([FromBody] TwoFactorEmailLogin request)
         {
+            Console.WriteLine("Ok");
             Console.WriteLine(request.accountBlob);
             Console.WriteLine(request.verificationToken);
             Console.WriteLine(request.challengeId);
