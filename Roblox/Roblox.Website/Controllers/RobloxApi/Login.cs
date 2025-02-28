@@ -164,17 +164,9 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
         public async Task<dynamic> TwoStepVerificationEmailLogin(long userId)
         {
-            Console.WriteLine("Ok");
-            // Console.WriteLine(request.accountBlob);
-            // Console.WriteLine(request.verificationToken);
-            // Console.WriteLine(request.challengeId);
             if (userSession == null)
                 throw new BadRequestException(1, "User is not logged in.");
-            return new
-            {
-                identityVerificationLoginTicket = "aaaaa",
-                accountBlob = "aaaaa",
-            };
+            return "{}";
         }
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
         public async Task<dynamic> TwoStepVerificationEmail([FromBody] TwoFactorEmail request)
