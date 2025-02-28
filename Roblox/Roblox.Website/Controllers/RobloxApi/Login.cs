@@ -122,22 +122,22 @@ namespace Roblox.Website.Controllers
                 return new
                 {
                     message = "TwoStepVerificationRequired",
-                    code = 6,
+                    errorMessage = "TwoStepVerificationRequired",
                     mediaType = "Email",
                     tl = ticket,
-                    userInfo.userId
-                    // twoStepVerificationData = new
-                    // {
-                    //     mediaType = "Email",
-                    //     ticket = ticket,
-                    // },
-                    // identityVerificationLoginTicket = ticket,
-                    // user = new
-                    // {
-                    //     id = userInfo.userId,
-                    //     name = userInfo.username,
-                    //     displayName = userInfo.username
-                    // },
+
+                    twoStepVerificationData = new
+                    {
+                        mediaType = "Email",
+                        ticket = ticket,
+                    },
+                    identityVerificationLoginTicket = ticket,
+                    user = new
+                    {
+                        id = userInfo.userId,
+                        name = userInfo.username,
+                        displayName = userInfo.username
+                    },
                 };
             }
 
