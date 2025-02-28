@@ -67,52 +67,33 @@ public class AuthenticationControllerV2 : ControllerBase
         HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
     }
 
-    public async Task CreateSessionAndSetCookie(long userId)
-    {
-        var sess = await services.users.CreateSession(userId);
-        var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-        {
-            sessionId = sess,
-            createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        });
-        HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-        {
-            Secure = true,
-            Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-            IsEssential = true,
-            HttpOnly = true,
-            Path = "/",
-            SameSite = SameSiteMode.Lax,
-        });
-    }
-
     [HttpPost("login")]
     public async Task Login([Required, FromBody] LoginRequest request)
     {
         throw new RobloxException(503, 0, "Please use https://pekora.zip/auth/accountlogin");
-        FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-        if (request.ctype != "username")
-        {
-            throw new BadRequestException(0, "Login type is not supported.");
-        }
+        // FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
+        // if (request.ctype != "username")
+        // {
+        //     throw new BadRequestException(0, "Login type is not supported.");
+        // }
 
-        long userId;
-        try
-        {
-            userId = await services.users.GetUserIdFromUsername(request.cvalue);
-        }
-        catch (RecordNotFoundException)
-        {
-            throw new ForbiddenException(1, "Incorrect username or password. Please try again");
-        }
+        // long userId;
+        // try
+        // {
+        //     userId = await services.users.GetUserIdFromUsername(request.cvalue);
+        // }
+        // catch (RecordNotFoundException)
+        // {
+        //     throw new ForbiddenException(1, "Incorrect username or password. Please try again");
+        // }
 
-        var passwordOk = await services.users.VerifyPassword(userId, request.password);
-        if (!passwordOk)
-        {
-            throw new ForbiddenException(1, "Incorrect username or password. Please try again");
-        }
+        // var passwordOk = await services.users.VerifyPassword(userId, request.password);
+        // if (!passwordOk)
+        // {
+        //     throw new ForbiddenException(1, "Incorrect username or password. Please try again");
+        // }
 
-        await CreateSessionAndSetCookie(userId);
+        // await CreateSessionAndSetCookie(userId);
     }
     // will never be neabled
     [HttpPost("signup")]

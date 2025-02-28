@@ -178,11 +178,6 @@
 						<a use:link class="nav-link" href="/admin/product/update"><EditIcon /> Update Item Product</a>
 					</li>
 				{/if}
-				{#if rank.hasPermission("SetAssetProduct")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/product/update"><EditIcon /> Update Item Product</a>
-					</li>
-				{/if}
 
 				{#if rank.hasPermission("MigrateAssetFromRoblox")}
 					<li class="nav-item ml-4">

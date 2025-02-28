@@ -1,9 +1,8 @@
 using MVC = Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Dynamic;
-using Roblox.Services.Exceptions;
-using InfluxDB.Client.Core.Exceptions;
+using Roblox.Exceptions;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.Formatters;
 namespace Roblox.Website.Controllers
 {
 
@@ -15,16 +14,39 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        public ActionResult<dynamic> GetAppSettings(string type, string apiKey)
+        public MVC.ActionResult<dynamic> GetApplicationSettingsLegacy(string type, string apiKey)
+        {
+            return Content(GetFeatureFlags(type, apiKey), "application/json");
+        }
+
+        [HttpPostBypass("v2/settings/application")]
+        [HttpGetBypass("v2/settings/application")]
+        [HttpPostBypass("v1/settings/application")]
+        [HttpGetBypass("v1/settings/application")]
+        public MVC.ActionResult<dynamic> GetApplicationSettingsModern(string applicationName)
+        {
+            return Content(GetFeatureFlags(applicationName), "application/json");
+        }
+
+        // For modern clients
+        private static readonly HashSet<string> applicationNames = new HashSet<string>
+        {
+            "RCCService2019",
+            "PCDesktopClient2019",
+            "RCCService2020",
+            "PCStudioApp",
+            "PCStudio221",
+            "RCCService2021",
+            "PCDesktopClient",
+            "PCDesktopClient2021",
+            "AndroidApp",
+            "iOSApp"
+        };
+        // For legacy clients
+        private string GetTypeForApiKey(string type, string apiKey)
         {
             switch (apiKey)
             {
-                case "C1273ADA-5726-46D7-BA0C-D339228C697D"://2015 RCC
-                    type = "RCCService2015";
-                    break;
-                case "4C3DEC7F-7725-498F-BCA7-6389ED71E248": //2015 Client
-                    type = "AppSettingsMulti2015";
-                    break;
                 case "9CE2063F-BB45-449B-89D4-65CD2ED806CD":  //2017L RCC
                     type = "RCCServiceUJ38BA31M8F47VA76XZ1RYONSSTILA3F";
                     break;
@@ -42,64 +64,29 @@ namespace Roblox.Website.Controllers
                     type = "ClientAppSettings2018";
                     break;
                 default:
-                    throw new RobloxException(400, 0, $"Invalid API key: {apiKey} for {type}");
+                    throw new BadRequestException(0, $"Invalid API key: {apiKey}");
             }
-            return GetFFlags(type);
+            return type;
         }
-        [HttpPostBypass("v2/settings/application")]
-        [HttpGetBypass("v2/settings/application")]
-        [HttpPostBypass("v1/settings/application")]
-        [HttpGetBypass("v1/settings/application")]
-        public MVC.ActionResult<dynamic> GetAppSettingsNew(string applicationName)
+        private string GetFeatureFlags(string type, string? apiKey = null)
         {
-            string realApp;
-            switch(applicationName)
-            {
-                case "RCCService2019":
-                    realApp = "RCCService2019";
-                    break;
-                case "PCDesktopClient2019":
-                    realApp = "PCDesktopClient2019";
-                    break;
-                case "RCCService2020":
-                    realApp = "RCCService2020";
-                    break;
-                case "PCStudioApp":
-                    realApp = "StudioApp";
-                    break;
-                case "PCStudio221":
-                    realApp = "Studio221";
-                    break;
-                case "RCCService2021":
-                    realApp = "RCCService2021";
-                    break;
-                case "PCDesktopClient":
-                    realApp = "PCDesktopClient";
-                    break;
-                case "PCDesktopClient2021":
-                    realApp = "PCDesktopClient2021";
-                    break;
-                case "AndroidApp":
-                    realApp = "AndroidApp";
-                    break;
-                case "iOSApp":
-                    realApp = "iOSApp";
-                    break;
-                default:
-                    return NotFound();
-            }
-            return GetFFlags(realApp);
-        }
-        private string GetFFlags(string type)
-        {
-            string sanatizedType = Path.GetFileName(type);
-            if (sanatizedType == null)
-                return "{}";
-            string FFlag = Path.Combine(Configuration.JsonDataDirectory, $"{sanatizedType}.json");
-            if (!System.IO.File.Exists(FFlag)) 
-                return "{}";
+            /*
+                The legacy clients use an API key and a type to get the feature flags
+                Modern clients only use the type.
+                Here we do a few sanity checks to make sure the request is valid.
+            */
+            if (apiKey != null)
+                type = GetTypeForApiKey(type, apiKey);
+            else if (!applicationNames.Contains(type))
+                throw new BadRequestException(1, $"Invalid application name: {type}");
 
-            return System.IO.File.ReadAllText(FFlag);
+            string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
+            
+            // Also should never happen, but just in case
+            if (!System.IO.File.Exists(featureFlags))
+                throw new BadRequestException(0, $"Feature flags not found for {type}");
+
+            return System.IO.File.ReadAllText(featureFlags);
         }
     }
 }

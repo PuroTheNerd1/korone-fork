@@ -569,7 +569,7 @@ public class AvatarService : ServiceBase, IService
     }
 
     public async Task RedrawAvatar(long userId, IEnumerable<long>? newAssetIds = null, ColorEntry? colors = null,
-        AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false)
+        AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false, bool? skipRender = false)
     {
         // required services
         using var assets = ServiceProvider.GetOrCreate<AssetsService>();
@@ -577,12 +577,12 @@ public class AvatarService : ServiceBase, IService
         // params
         avatarType ??= AvatarType.R6;
 
+
         await using var redLock =
             await Cache.redLock.CreateLockAsync(GetAvatarRedLockKey(userId), TimeSpan.FromSeconds(5));
         if (!redLock.IsAcquired && !ignoreLock) throw new LockNotAcquiredException();
 
         var assetIds = newAssetIds?.ToList();
-
         // If list provided is null, then the caller wants us to grab the items ourselves
         assetIds ??= (await GetWornAssets(userId)).ToList();
         colors ??= await GetAvatarColors(userId);
@@ -601,6 +601,9 @@ public class AvatarService : ServiceBase, IService
             throw new RobloxException(400, 0, "One or more assets are invalid");
         // Now, update the avatar. This returns a hash
         var avatarHash = await UpdateUserAvatar(userId, colors, assetIds);
+        if ((bool)skipRender) return;
+        // We don't wanna waste time rendering if we don't have to
+
         // Get our image urls
         var thumbnailUrl = $"/images/thumbnails/{avatarHash}_thumbnail.png";
         var headshotUrl = $"/images/thumbnails/{avatarHash}_headshot.png";

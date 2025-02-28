@@ -9,6 +9,8 @@ using Roblox;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Hubs;
+using System.Reflection;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
@@ -93,14 +95,33 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+    c.IgnoreObsoleteActions();
+    c.IgnoreObsoleteProperties();
+    c.CustomSchemaIds(type => type.FullName);
+    c.EnableAnnotations();
+    c.SwaggerDoc("UserV1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "Users Api v1",
+    });
     c.SchemaGeneratorOptions.SchemaIdSelector = type => type.ToString();
     c.OperationFilter<SwaggerFileOperationFilter>();
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
-
-
-
+builder.Services.AddMvc(c =>
+    c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
+);
 var app = builder.Build();
 app.UseRouting();
+
+app.UseSwaggerUI(c =>
+{
+    c.ShowCommonExtensions();
+
+    c.SwaggerEndpoint("/swagger/UserV1/swagger.json", "UserV1");
+});
 
 var prepareResponseForCache = (StaticFileResponseContext ctx) =>
 {
