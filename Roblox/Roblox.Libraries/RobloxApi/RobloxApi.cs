@@ -414,7 +414,7 @@ public class RobloxApi
         var v1Url = $"https://assetdelivery.roblox.com/v1/asset?id={assetId}";
         var result = await robloxApiClient.GetAsync(v1Url);
 
-        if (result.IsSuccessStatusCode && result.Headers.Location is Uri redirectUri)
+        if (result.Headers.Location is Uri redirectUri)
         {
             if (!redirectUri.IsAbsoluteUri)
             {
