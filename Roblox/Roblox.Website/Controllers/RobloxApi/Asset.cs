@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
 using Roblox.Website.Middleware;
 using Roblox.Libraries.RobloxApi;
+using Roblox.Logging;
 namespace Roblox.Website.Controllers;
 [ApiController]
 [Route("/")]
@@ -83,21 +84,28 @@ public class Asset : ControllerBase
                 // Don't even bother caching assets that aren't send from the Roblox client
                 if (!isRoblox)
                     throw new RecordNotFoundException();
-                string key = "assetdeliverycachev2:" + assetId;
-                string? cachedLocation = await Services.Cache.distributed.StringGetAsync(key);
-                if (cachedLocation == null)
+                string key = "assetdeliverycachev3" + assetId;
+                string? location = await Services.Cache.distributed.StringGetAsync(key);
+                if (location == null)
                 {
-                    var robloxAsset = await services.robloxApi.GetProductInfoAssetDelivery(assetId);
-                    if (robloxAsset.location == null)
-                        return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
-                    
-                    cachedLocation = robloxAsset.location;
-                    await Services.Cache.distributed.StringSetAsync(key, cachedLocation, TimeSpan.FromHours(6));
-                }
+                    location = await services.robloxApi.GetAssetLocation(assetId);
 
-                return Redirect(cachedLocation);
+                    // If the asset isn't bad we can cache the asset location
+                    if (location != "BAD")
+                        await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
+                    // We probaly hit a rate limit of a 403 just redirect to Roblox
+                    else
+                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={assetId}";  
+                    
+                    return Redirect(location);
+
+                }
+                Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", assetId);
+                return Redirect(location);
+
             }
         }
+
         // TODO: Fix for this is using a diffrent access key for rendering
         if (!IsAssetApproved(details) && !isBotRequest && !isRCC)
             throw new RobloxException(403, 0, "Asset not approved for requester");

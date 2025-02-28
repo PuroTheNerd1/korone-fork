@@ -210,7 +210,7 @@ public class RobloxApi
         // Literally all it gets is the "assetTypeId". Everything else is blank.
         using var cancel = new CancellationTokenSource();
         cancel.CancelAfter(TimeSpan.FromSeconds(30));
-        var response = await robloxApiClient.GetAsync("https://assetdelivery.roproxy.com/v2/asset?id=" + assetId, cancel.Token);
+        var response = await robloxApiClient.GetAsync("https://assetdelivery.roblox.com/v2/asset?id=" + assetId, cancel.Token);
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception("Unexpected status code from AssetDeliveryV2: " + response.StatusCode);
@@ -402,12 +402,42 @@ public class RobloxApi
 
     public async Task<Stream> GetAssetContentFromProxy(long assetId)
     {
-        var result = await _client.GetAsync($"https://assetdelivery.roproxy.com/v1/asset?id={assetId}");
+        var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
         if (result == null)
             throw new Exception("Null response from Roblox");
         return result.Content.ReadAsStream();
+    }
+    public async Task<string> GetAssetLocation(long assetId)
+    {
+        var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
+        var statusCode = (int)result.StatusCode;
+        string location;
+        if (statusCode >= 300 && statusCode <= 399)
+        {
+            var redirectUri = result.Headers.Location;
+            if (!redirectUri!.IsAbsoluteUri)
+            {
+                redirectUri = new Uri(result.RequestMessage.RequestUri.GetLeftPart(UriPartial.Authority) + redirectUri);
+            }
+            location = redirectUri.ToString();
+        }
+        else
+        {
+            // AssetDeliveryV1 failed lets try to use V2
+            result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v2/asset?id={assetId}");
+            if (!result.IsSuccessStatusCode)
+                return "BAD";
+            AssetDeliveryV2Response assetDelivery = await result.Content.ReadFromJsonAsync<AssetDeliveryV2Response>();
+            if (assetDelivery == null)
+                return "BAD";
+            location = assetDelivery.locations?.FirstOrDefault()?.location ?? "BAD";
+        }
+        
+        if (location != "BAD")
+            Writer.Info(LogGroup.RealRobloxApi, "got asset location for asset {0}: {1}", assetId, location);
+        return location;    
     }
     public async Task<Stream> GetAssetContent(long assetId)
     {
