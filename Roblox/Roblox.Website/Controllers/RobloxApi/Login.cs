@@ -172,8 +172,8 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException(1, "User is not logged in.");
             return new
             {
-                identityVerificationLoginTicket = "",
-                accountBlob = "",
+                identityVerificationLoginTicket = "aaaaa",
+                accountBlob = "aaaaa",
             };
         }
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
