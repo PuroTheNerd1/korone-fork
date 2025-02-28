@@ -81,32 +81,32 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
-                // Don't even bother caching assets that aren't send from the Roblox client
-                if (!isRoblox)
-                    throw new RecordNotFoundException();
-                string key = "chloeassetcachev1:" + id;
-                string? location = await Services.Cache.distributed.StringGetAsync(key);
+                string cacheKey = "chloeassetcachev1:" + id;
+                string? location = await Services.Cache.distributed.StringGetAsync(cacheKey);
                 if (location == null)
                 {
+                    if (!isRoblox)
+                        return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={id}");
+
                     Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
                     location = await services.robloxApi.GetAssetLocation(id);
 
-                    // If the asset isn't bad we can cache the asset location
                     if (location != "BAD")
                     {
-                        await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
+                        Writer.Info(LogGroup.AssetDelivery, "Caching asset for 10 days {0}", id);
+                        await Services.Cache.distributed.StringSetAsync(cacheKey, location, TimeSpan.FromDays(10));
                     }
-                    // We probaly hit a rate limit of a 403 just redirect to Roblox
                     else
                     {
                         Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
-                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";  
+                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";
                     }
-
-                    return Redirect(location);
-
                 }
-                Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
+                else
+                {
+                    Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
+                }
+
                 return Redirect(location);
 
             }
