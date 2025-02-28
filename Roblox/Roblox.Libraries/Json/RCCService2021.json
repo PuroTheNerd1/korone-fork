@@ -54,7 +54,7 @@
       "DFFlagBackupStreamingFocusLastPlayerPosition":"True",
       "DFFlagBandwidthBasedClusterSenderByteBudget":"True",
       "DFFlagBandwidthBasedTouchSenderByteBudget":"True",
-      "DFFlagBatchAssetApiNoFallbackOnFail":"True",
+      "DFFlagBatchAssetApiNoFallbackOnFail":"False",
       "DFFlagBetterAddInstance":"True",
       "DFFlagBoxMappedMeshLODFix_v2":"True",
       "DFFlagBroadphaseReportOnlyUnthrottled":"True",
