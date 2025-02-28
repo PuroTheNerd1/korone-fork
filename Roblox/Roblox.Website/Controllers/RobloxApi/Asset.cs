@@ -230,11 +230,15 @@ public class Asset : ControllerBase
         //assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
         var details = await services.assets.MultiGetInfoById(requestData.Select(a => a.assetId));
         var existingAssetIds = details.Select(d => d.id).ToList();
-        assets.AddRange(details.Select(d =>
+
+        assets.AddRange(details.SelectMany(d =>
         {
-            var req = requestData.FirstOrDefault(r => r.assetId == d.id);
-            var requestId = req?.requestId ?? Guid.NewGuid().ToString();
-            return CreateAssetResponse(d.assetType, requestId, d.id, $"{Configuration.BaseUrl}/v1/asset/?id={d.id}");
+            var matchingRequests = requestData.Where(r => r.assetId == d.id);
+            return matchingRequests.Select(req =>
+            {
+                var requestId = req?.requestId ?? Guid.NewGuid().ToString();
+                return CreateAssetResponse(d.assetType, requestId, d.id, $"{Configuration.BaseUrl}/v1/asset/?id={d.id}");
+            });
         }));
 
         var robloxAssetRequest = requestData.Where(r => !existingAssetIds.Contains(r.assetId)).ToList();
@@ -245,6 +249,15 @@ public class Asset : ControllerBase
             {
                 long assetId = robloxAssetRequest.FirstOrDefault(r => r.requestId == d.requestId)?.assetId ?? 0;
                 return CreateAssetResponse((Type)d.assetTypeId, d.requestId, assetId, d.location ?? $"{Configuration.BaseUrl}/v1/asset/?id={assetId}");
+            }));
+            assets.AddRange(robloxAssets.SelectMany(d =>
+            {
+                var matchingRequests = requestData.Where(r => r.requestId == d.requestId);
+                return matchingRequests.Select(req =>
+                {
+                    long assetId = robloxAssetRequest.FirstOrDefault(r => r.requestId == d.requestId)?.assetId ?? 0;
+                    return CreateAssetResponse((Type)d.assetTypeId, d.requestId, assetId, d.location ?? $"{Configuration.BaseUrl}/v1/asset/?id={assetId}");
+                });
             }));
         }
 
