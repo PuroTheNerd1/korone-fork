@@ -7,6 +7,13 @@ public class TwoFactor
     public string code { get; set; }
 }
 
+public class TwoFactorEmail
+{
+    public string challengeId { get; set; }
+    public int actionType { get; set; }
+    public string code { get; set; }
+}
+
 public class TwoFactorLegacy
 {
     public string username { get; set; }

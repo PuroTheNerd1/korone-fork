@@ -167,7 +167,29 @@ namespace Roblox.Website.Controllers
                 isBanned = false
             };
         }
+        [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
+        public async Task<dynamic> TwoStepVerificationEmail([FromBody] TwoFactorEmail request)
+        {
+            long userId;
+            try
+            {
+                userId = await services.users.GetUserIdFrom2SVTicket(request.code);
+                TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+                if (!services.users.VerifyTotp(totpInfo.secret, request.code))
+                    throw new BadRequestException(6, "Failure2SVInvalidCode");
 
+            }
+            catch (RecordNotFoundException)
+            {
+                throw new BadRequestException(5, "Invalid two step verification ticket.");
+            }
+            await services.users.Delete2SVTicket(request.challengeId);
+            return new
+            {
+                verificationToken = await CreateSessionAndSetCookie(userId),
+            };
+        }
+        
         [HttpPostBypass("v2/twostepverification/verify")]
         public async Task TwoStepVerification([FromBody] TwoFactor request)
         {
@@ -259,7 +281,7 @@ namespace Roblox.Website.Controllers
                 }
             };
         }
-        private async Task CreateSessionAndSetCookie(long userId)
+        private async Task<string> CreateSessionAndSetCookie(long userId)
         {
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
@@ -285,6 +307,7 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.None,
             });
+            return sessionCookie;
         }
         private async Task<bool> Login(string username, string password, long userId, string? totpCode, bool isPasswordLeaked, bool? skip2FA = false)
         {
