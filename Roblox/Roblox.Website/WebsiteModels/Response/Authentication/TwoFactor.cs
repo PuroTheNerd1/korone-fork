@@ -18,6 +18,7 @@ public class TwoFactorEmailLogin
 {
     public string challengeId { get; set; }
     public string verificationToken { get; set; }
+    public string accountBlob { get; set; }
 }
 
 public class TwoFactorLegacy
