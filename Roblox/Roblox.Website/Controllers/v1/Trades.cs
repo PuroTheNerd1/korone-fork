@@ -176,11 +176,11 @@ public class TradesControllerV1 : ControllerBase
         FeatureCheck();
         await services.trades.SendTrade(safeUserSession.userId, request.offers, true);
     }
-
     [HttpPost("trades/{tradeId:long}/counter")]
     public async Task CounterTrade(long tradeId)
     {
         FeatureCheck();
+        // Forced to do this FromBody doesnt work 
         string requestBody = await GetRequestBody();
         if (requestBody == null)
             throw new BadRequestException(0, "Invalid request body");

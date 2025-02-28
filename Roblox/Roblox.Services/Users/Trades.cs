@@ -134,10 +134,9 @@ public class TradesService : ServiceBase, IService
     public async Task<int> CountInboundTrades(long userId)
     {
         var t = await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COUNT(*) AS total FROM user_trade WHERE user_id_two = :id AND status = :status", new
+            "SELECT COUNT(*) AS total FROM user_trade WHERE user_id_two = :id AND status = 2 OR status = 8", new
             {
                 id = userId,
-                status = TradeStatus.Open,
             });
         return t.total;
     }
@@ -193,13 +192,13 @@ public class TradesService : ServiceBase, IService
             case TradeType.Inbound:
                 sql.Select("user_id_one as partnerId");
                 sql.Where("user_id_two = :my_id", new {my_id = userId});
-                sql.Where("user_trade.status = :s", new {s = TradeStatus.Open});
+                sql.Where("user_trade.status = user_trade.status = 2 OR user_trade.status = 8");
                 sql.LeftJoin("\"user\" u ON u.id = user_trade.user_id_one");
                 break;
             case TradeType.Outbound:
                 sql.Select("user_id_two as partnerId");
-                sql.Where("user_id_one = :my_id AND user_trade.status = :s",
-                    new {my_id = userId, s = TradeStatus.Open});
+                sql.Where("user_id_one = :my_id AND user_trade.status = 2 OR user_trade.status = 8", 
+                new {my_id = userId});
                 sql.LeftJoin("\"user\" u ON u.id = user_trade.user_id_two");
                 break;
             case TradeType.Completed:
@@ -594,18 +593,6 @@ public class TradesService : ServiceBase, IService
         
         log.Info("CounterTrade starting. senderId = {0} sendMessage = {1}", contextUserId, sendMessage);
 
-        var info = await GetTradeById(tradeId);
-        if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
-        {
-            throw new ArgumentException($"Trade with status {info.status} cannot be countered");
-        }
-
-        if ((info.status == TradeStatus.Open && info.userIdTwo != contextUserId) ||
-            (info.status == TradeStatus.Countered && info.userIdOne != contextUserId))
-        {
-            throw new ArgumentException($"Trade with status {info.status} cannot be countered by user {contextUserId}");
-        }
-
 
         var logic = new Logic<SendTradeErrorCodes>(errorMessages);
         var offerList = offers.ToList();
@@ -655,6 +642,20 @@ public class TradesService : ServiceBase, IService
         log.Info("recipient filter = {0}", filter);
         await InTransaction(async _ =>
         {
+            var info = await GetTradeById(tradeId);
+            if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
+                throw new ArgumentException("User is not authorized to modify this trade");
+
+            if (info.status != TradeStatus.Open || info.status != TradeStatus.Countered)
+            {
+                throw new ArgumentException($"Trade with status {info.status} cannot be countered");
+            }
+
+            if ((info.status == TradeStatus.Open && info.userIdTwo != contextUserId) ||
+                (info.status == TradeStatus.Countered && info.userIdOne != contextUserId))
+            {
+                throw new ArgumentException($"Trade with status {info.status} cannot be countered by user {contextUserId}");
+            }
             var offeredItems = (await MultiConfirmOwnership(offer.userId, offerUserAssets)).ToList();
             var requestedItems = (await MultiConfirmOwnership(request.userId, requestUserAssets)).ToList();
             // Confirm that users own the items offered/requested, all are limited, and that all are not for sale
@@ -764,8 +765,10 @@ public class TradesService : ServiceBase, IService
         await InTransaction(async _ =>
         {
             var info = await GetTradeById(tradeId);
-            if (info.userIdTwo != contextUserId || info.status != TradeStatus.Open)
+            if (info.userIdTwo != contextUserId)
                 throw new ArgumentException("User is not authorized to modify this trade");
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
+                throw new ArgumentException("Trade is not open or countered");
             // mark as pending
             log.Info("update {0} to pending", tradeId);
             await db.ExecuteAsync("UPDATE user_trade SET status = :status WHERE id = :id", new
@@ -918,15 +921,16 @@ public class TradesService : ServiceBase, IService
         await using var tradeLock = await GetLockForTrade(tradeId);
         if (!tradeLock.IsAcquired) throw new LockNotAcquiredException();
 
-        var info = await GetTradeById(tradeId);
-        if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
-            throw new ArgumentException("User is not authorized to modify this trade");
-
-        if (info.status != TradeStatus.Open)
-            throw new ArgumentException("Trade with status " + info.status + " cannot be declined");
 
         await InTransaction(async _ =>
         {
+            var info = await GetTradeById(tradeId);
+            if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
+                throw new ArgumentException("User is not authorized to modify this trade");
+
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
+                throw new ArgumentException("Trade with status " + info.status + " cannot be declined");
+
             // userIdOne is the sender. If sender is not the one cancelling, inform sender the trade was declined.
             if (info.userIdOne != contextUserId)
             {
