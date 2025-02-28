@@ -238,12 +238,16 @@ public class Asset : ControllerBase
         }));
 
         var robloxAssetRequest = requestData.Where(r => !existingAssetIds.Contains(r.assetId)).ToList();
-        var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
-        assets.AddRange(robloxAssets.Select(d =>
+        if (robloxAssetRequest.Count > 0)
         {
-            long assetId = robloxAssetRequest.FirstOrDefault(r => r.requestId == d.requestId)?.assetId ?? 0;
-            return CreateAssetResponse((Type)d.assetTypeId, d.requestId, assetId, d.location ?? $"{Configuration.BaseUrl}/v1/asset/?id={assetId}");
-        }));
+            var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
+            assets.AddRange(robloxAssets.Select(d =>
+            {
+                long assetId = robloxAssetRequest.FirstOrDefault(r => r.requestId == d.requestId)?.assetId ?? 0;
+                return CreateAssetResponse((Type)d.assetTypeId, d.requestId, assetId, d.location ?? $"{Configuration.BaseUrl}/v1/asset/?id={assetId}");
+            }));
+        }
+
 
         return Content(JsonSerializer.Serialize(assets), "application/json");
     }
