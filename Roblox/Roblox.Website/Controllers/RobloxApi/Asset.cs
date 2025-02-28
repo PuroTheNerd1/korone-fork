@@ -85,28 +85,29 @@ public class Asset : ControllerBase
                 string? location = await Services.Cache.distributed.StringGetAsync(key);
                 if (location == null)
                 {
+                    // Don't bother caching assets for non roblox clients
                     if (!isRoblox)
                         throw new RecordNotFoundException();
-                    Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
+                    //Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
                     location = await services.robloxApi.GetAssetLocation(id);
 
                     // Asset is OK!
                     if (location != "BAD")
                     {
-                        Writer.Info(LogGroup.AssetDelivery, "Caching asset {0}", id);
+                        //Writer.Info(LogGroup.AssetDelivery, "Caching asset {0}", id);
                         await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
                     }
                     // We probaly hit a rate limit of a 403 just redirect to Roblox
                     else
                     {
-                        Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
+                        //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
                         location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";  
                     }
                     return Redirect(location);
                 }
                 else
                 {
-                    Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
+                    //Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
                     return Redirect(location);
                 }
 
@@ -244,7 +245,7 @@ public class Asset : ControllerBase
         var robloxAssetRequest = requestData.Where(r => !existingAssetIds.Contains(r.assetId)).ToList();
         if (robloxAssetRequest.Count > 0)
         {
-            Writer.Info(LogGroup.AssetDelivery, "Fetching {0} batch assets from Roblox", robloxAssetRequest.Count);
+            //Writer.Info(LogGroup.AssetDelivery, "Fetching {0} batch assets from Roblox", robloxAssetRequest.Count);
             var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
             assets.AddRange(robloxAssets);
         }
