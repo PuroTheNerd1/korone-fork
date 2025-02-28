@@ -86,7 +86,7 @@ public class Asset : ControllerBase
                 if (location == null)
                 {
                     if (!isRoblox)
-                        return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={id}");
+                        throw new RecordNotFoundException();
                     Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
                     location = await services.robloxApi.GetAssetLocation(id);
 
@@ -102,12 +102,14 @@ public class Asset : ControllerBase
                         Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
                         location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";  
                     }
-
                     return Redirect(location);
-
                 }
-                Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
-                return Redirect(location);
+                else
+                {
+                    Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
+                    return Redirect(location);
+                }
+
 
             }
         }
