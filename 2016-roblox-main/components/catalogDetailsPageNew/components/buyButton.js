@@ -39,10 +39,9 @@ const BuyButton = props => {
     const buttonStyles = useButtonStyles();
 
     const bgColor = props.isRobux === true ? '#CC9E71' : '#02b757'
-
     return (
         <div className={`${s.buttonWrapper} `}>
-            <ActionButton style={{backgroundColor: bgColor}} disabled={props.disabled} className={s.innerButton} divClassName={s.button} buttonStyle={buttonStyles.newBuyButton} onClick={props.onClick} />
+            <ActionButton label='Buy' style={{backgroundColor: bgColor}} disabled={props.disabled} className={s.innerButton} divClassName={s.button} buttonStyle={buttonStyles.newBuyButton} onClick={props.onClick} />
         </div>
     );
 }

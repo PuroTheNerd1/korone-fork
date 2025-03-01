@@ -8,10 +8,13 @@ const useStyles = createUseStyles({
         width: '100%',
         float: 'right',
     },
+    detailContainer: {
+        marginBottom: '12px',
+    },
     priceAndBuyContainer: {
         marginBottom: '12px',
     },
-    priceContainer: {
+    fieldContainer: {
         marginBottom: '12px',
         width: 'calc(100% - 190px)',
         float: 'left',
@@ -52,8 +55,10 @@ const Thumbnail = (props) => {
         }
         return true;
     })();
-    const buyButtonClick = () => {
-
+    
+    const buyButtonClick = e => {
+        e.preventDefault();
+        console.log("PRINTING!!")
     }
 
     const showBuyTicketsButton = store.details.priceTickets !== null && !isResellAsset;
@@ -62,16 +67,21 @@ const Thumbnail = (props) => {
 
 
     return <div className={s.itemDetails}>
-        <div className={s.priceAndBuyContainer}>
+        <div className={`${s.detailContainer}`}>
             {
                 !hasOffsaleLabel ?
-                    <div className={s.priceContainer}>
-                        <span className={s.fieldLabel}>Best Price</span>
+                    <div className={s.fieldContainer}>
+                        <span className={s.fieldLabel}>Price</span>
                         <Currency isRobux={!showBuyTicketsButton} />
                     </div> :
                     <div className={s.offSaleText}>This item is not currently for sale.</div>
             }
             <BuyButton isRobux={!showBuyTicketsButton} onClick={buyButtonClick} disabled={showBuyButton} />
+        </div>
+        <div className={`${s.detailContainer}`}>
+            <div className={s.fieldContainer}>
+                <span className={s.fieldLabel}>Price</span>
+            </div>
         </div>
     </div>
 }

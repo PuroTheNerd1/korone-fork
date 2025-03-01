@@ -6,6 +6,10 @@ const useStyles = createUseStyles({
     height: '420px',
     width: '420px',
     position: 'relative',
+    '& img': {
+      maxWidth: '420px',
+      padding: 0,
+    }
   },
   img: {
     width: 'inherit',

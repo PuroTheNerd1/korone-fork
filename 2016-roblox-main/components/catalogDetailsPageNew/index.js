@@ -45,6 +45,16 @@ const useStyles = createUseStyles({
     paddingBottom: '12px',
     float: 'right',
     borderBottom: '1px solid #e3e3e3',
+    width: '100%',
+    '& h2': {
+      fontSize: '32px',
+      fontWeight: 800,
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      padding: '5px 0',
+      lineHeight: '1em',
+      margin: 0
+    }
   },
   textSpan: {
     fontSize: '16px',
@@ -119,7 +129,9 @@ const CatalogDetails = (props) => {
   const url = (details.creatorType === 'User' ? '/User.aspx?ID=' + details.creatorTargetId : '/My/Groups.aspx?gid=' + details.creatorTargetId);
 
   return <div className='container' style={{ maxWidth: '1154px' }}>
-    <AdBanner />
+    <div style={{ marginBottom: 10 }}>
+      <AdBanner />
+    </div>
     <div className={s.catalogItemContainer}>
       <div className={s.itemDetailsWrapper}>
         <div className={s.thumbAndLikesContainer}>

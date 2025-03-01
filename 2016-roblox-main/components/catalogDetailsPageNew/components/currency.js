@@ -5,7 +5,7 @@ const useStyles = createUseStyles({
         marginTop: '-3px',
         float: 'left',
         marginRight: '3px',
-        backgroundImage: '/img/branded.svg',
+        backgroundImage: 'url(/img/branded.svg)',
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'auto auto',
         width: '28px',
