@@ -11,7 +11,6 @@ using Roblox.Logging;
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 namespace Roblox.Libraries.RobloxApi;
-
 public class ProductDataResponse
 {
     public string? Name { get; set; }
@@ -42,14 +41,22 @@ public class AssetDeliveryV2Response
 
 public class AssetDeliveryV1BatchResponse
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? location { get; set; }
     public string requestId { get; set; }
     public bool IsHashDynamic { get; set; }
     public bool IsCopyrightProtected { get; set; }
     public bool isArchived { get; set; }
     public int assetTypeId { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<AssetDeliveryV1Error>? errors { get; set; }
 }
 
+public class AssetDeliveryV1Error
+{
+    public int code { get; set; }
+    public string message { get; set; }
+}
 
 
 
@@ -189,6 +196,12 @@ public class MultiGetBundlesResponse
 {
     public List<BundleResponseEntry> data { get; set; }
 }
+public class BatchAssetRequest
+{
+    public long assetId { get; set; }
+    public string assetType { get; set; }
+    public string requestId { get; set; }
+}
 
 public class RobloxApi
 {
@@ -196,13 +209,25 @@ public class RobloxApi
     {
         AutomaticDecompression = DecompressionMethods.All,
     });
+    private class RobloxApiHttpClient : HttpClient
+    {
+        public RobloxApiHttpClient()
+        {
+            this.DefaultRequestHeaders.Add("Cookie", ".ROBLOSECURITY=" + "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_B98A878CD86A739316DFF0002B47047D8E4E4CD85F5A1B66F638AABC0E61062254A32AD844760474A71608043B11214797473137A6A1211B9DE70226929C97AA9C810BB57238BFF9EA81BD4BDBA5FDF6F53B785F361228DAEB060025C250CE80FB595C2E6E41C92F9C60B540CE23499B405C5A1DDF64562A6AA47F778CFD75CD10AE4A4FB542881ED5936006D00A918D2963F0D1C08708E7CC49EEB842BAF70CAC420F05C33AE0ED7503B637FAA2E6EBAB7110E14C16CEAB5BFF40AC3E21B59E7C297E6190CFC595680F40E7AE25BAAFAFFDDB6098B44F686681A6C933712824432703133A79440AF00CEF08C9338530C347D9A1CBCAF301A1609D2F63A71FE8A634C2CD66879A97F1A53BF4A8E731DE81E1887CC5ED2405DCE88B2658D64D02BA573A5C763F4AFEB60FEC48A822C691C23FF9345E7B7CE51503F591D3E102CB37031F2C826345A59C14517B1B2C011E30279B9457CCFCFCE1D2571E3B6AFD8DC457B0D5767E409CE9A3A43E2C912A2D672AFC6E73B1215B2EF3AFDE32F874BC2FE6B7141A64346F4674748014056AAC0F014D03673A3574DB3CAA75C35DCF6C798F1A0E951E43DEF153B6DFB07F56A719372FECEF63F0E1726DC15355664995978372BF32E64675BBA32A15738BBD5FBA857A4FEB7EAFB423E255CCAE9B7ABDFF869F79C3FA288B40CAB12EF9162D92BC128F9D997125EB61ECDD0A192F5A752D260147C3590FF5F0F5E506F736BF6A209A879166243D92F1F7BEF01427F01C3E83CA91A1C9AD03D04127EF56A9CC1D91C37D0EE1DA1B0785EA20DADA29860708EC741378198EE7AA171762AC9969A0B6371D22B925487660181ACFDE13E5725BD4ACBB8C47F54AA1D90F61268CF12F0D44E86CE02454C2344EC73FD8D1AFCEE09FA4CCC97FF2039B3313563DF502C700D814BF4B62A668FF94155CBECE249ED6076E3D934CF473C30ABDAF9FE72DAEDA8BD439A055CAE8003A80F64F9EB3099C0CBEF18FCB93675A404D0E6B835275EBBFC4638FBC7EF559AA5DD68CDDAEBFDED3F11B056E72CC90ECD28733D80CB0D12633A14065AC3114D5EA98F6B4B03B033F3936AD2F349D38ABCFA74A02C8705098349940C77CF570FFD6BA98817DF18B79531B");
+            this.DefaultRequestHeaders.Add("Accept", "*/*");
+            this.DefaultRequestHeaders.Add("User-Agent", "Roblox/WinInet");
+            this.DefaultRequestHeaders.Add("Roblox-Browser-Asset-Request", "false");
+            this.DefaultRequestHeaders.Add("Roblox-Place-Id", "1818");
+        }
+    }
 
+    private static HttpClient robloxApiClient { get; } = new RobloxApiHttpClient();
     public async Task<ProductInfoWithAssetDelivery> GetProductInfoAssetDelivery(long assetId)
     {
         // Literally all it gets is the "assetTypeId". Everything else is blank.
         using var cancel = new CancellationTokenSource();
         cancel.CancelAfter(TimeSpan.FromSeconds(30));
-        var response = await _client.GetAsync("https://assetdelivery.roproxy.com/v2/asset?id=" + assetId, cancel.Token);
+        var response = await robloxApiClient.GetAsync("https://assetdelivery.roblox.com/v2/asset?id=" + assetId, cancel.Token);
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception("Unexpected status code from AssetDeliveryV2: " + response.StatusCode);
@@ -372,15 +397,15 @@ public class RobloxApi
 
     public async Task<Stream> GetStreamAsync(string url)
     {
-        var strResult = await _client.GetAsync(url);
+        var strResult = await robloxApiClient.GetAsync(url);
         if (!strResult.IsSuccessStatusCode)
             throw new Exception("Bad response in GetStreamAsync: " + strResult.StatusCode);
         return await strResult.Content.ReadAsStreamAsync();
     }
 
-    public async Task<dynamic> GetAssetsFromBatch(dynamic request)
+    public async Task<IEnumerable<AssetDeliveryV1BatchResponse>> GetAssetsFromBatch(List<BatchAssetRequest> request)
     {
-        var result = await _client.PostAsync("https://assetdelivery.roblox.com/v1/assets/batch", new StringContent(JsonSerializer.Serialize(request)));
+        var result = await robloxApiClient.PostAsync("https://assetdelivery.roblox.com/v1/assets/batch", new StringContent(JsonSerializer.Serialize(request)));
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
         if (result == null)
@@ -394,12 +419,46 @@ public class RobloxApi
 
     public async Task<Stream> GetAssetContentFromProxy(long assetId)
     {
-        var result = await _client.GetAsync($"https://assetdelivery.roproxy.com/v1/asset?id={assetId}");
+        var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
         if (result == null)
             throw new Exception("Null response from Roblox");
         return result.Content.ReadAsStream();
+    }
+    public async Task<string> GetAssetLocation(long assetId)
+    {
+        var v1Url = $"https://assetdelivery.roblox.com/v1/asset?id={assetId}";
+        var result = await robloxApiClient.GetAsync(v1Url);
+
+        if (result != null)
+        {
+            string assetLocation = result.RequestMessage!.RequestUri!.ToString();
+            //Writer.Info(LogGroup.RealRobloxApi, "got asset location for asset {0}: {1}", assetId, assetLocation);
+            return assetLocation;
+        }
+
+        // Fall back to AssetDeliveryV2
+        //Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV1 failed for asset {0}, trying V2", assetId);
+
+        var v2Url = $"https://assetdelivery.roblox.com/v2/asset?id={assetId}";
+        result = await robloxApiClient.GetAsync(v2Url);
+
+        if (!result.IsSuccessStatusCode)
+        {
+            //Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV2 failed status: {0}", result.StatusCode);
+            return "BAD";
+        }
+
+        var assetDeliveryResponse = await result.Content.ReadAsStringAsync();
+        var assetDelivery = JsonSerializer.Deserialize<AssetDeliveryV2Response>(assetDeliveryResponse);
+
+        if (assetDelivery?.locations == null || !assetDelivery.locations.Any())
+            return "BAD";
+
+        var location = assetDelivery.locations.First().location ?? "BAD";
+        //Writer.Info(LogGroup.RealRobloxApi, "Got asset location for asset {0}: {1}", assetId, location);
+        return location;
     }
     public async Task<Stream> GetAssetContent(long assetId)
     {

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Roblox.Dto.Trades;
 using Roblox.Exceptions;
 using Roblox.Logging;
@@ -54,7 +55,7 @@ public class TradesControllerV1 : ControllerBase
                 },
                 created = c.createdAt,
                 expiration = c.expiresAt,
-                isActive = c.status is TradeStatus.Open or TradeStatus.Pending,
+                isActive = c.status is TradeStatus.Open or TradeStatus.Pending or TradeStatus.Countered,
                 status = c.status,
             }),
         };
@@ -128,7 +129,7 @@ public class TradesControllerV1 : ControllerBase
             },
             created = data.createdAt,
             expiration = data.expiresAt,
-            isActive = data.status == TradeStatus.Open,
+            isActive = data.status == TradeStatus.Open || data.status == TradeStatus.Countered ,
             status = data.status,
         };
     }
@@ -174,5 +175,18 @@ public class TradesControllerV1 : ControllerBase
     {
         FeatureCheck();
         await services.trades.SendTrade(safeUserSession.userId, request.offers, true);
+    }
+    [HttpPost("trades/{tradeId:long}/counter")]
+    public async Task CounterTrade(long tradeId)
+    {
+        FeatureCheck();
+        // Forced to do this FromBody doesnt work 
+        string requestBody = await GetRequestBody();
+        if (requestBody == null)
+            throw new BadRequestException(0, "Invalid request body");
+        var request = JsonConvert.DeserializeObject<CreateTradeRequest>(requestBody);
+        if (request == null)
+            throw new BadRequestException(0, "Invalid trade offers");
+        await services.trades.CounterTrade(tradeId, safeUserSession.userId, request.offers, true);
     }
 }

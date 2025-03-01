@@ -54,6 +54,13 @@ namespace Roblox.Website.Controllers
             }
         }
 
+        protected bool isRoblox
+        {
+            get
+            {
+                return Request.Headers["User-Agent"].ToString().Contains("Roblox");
+            }
+        }
 
         protected Roblox.Models.Sessions.UserSession? userSession
         {

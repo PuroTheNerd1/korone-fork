@@ -134,21 +134,21 @@ public class TradesService : ServiceBase, IService
     public async Task<int> CountInboundTrades(long userId)
     {
         var t = await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COUNT(*) AS total FROM user_trade WHERE user_id_two = :id AND status = :status", new
+            "SELECT COUNT(*) AS total FROM user_trade WHERE user_id_two = :id AND status IN (2, 8)", new
             {
                 id = userId,
-                status = TradeStatus.Open,
             });
         return t.total;
     }
 
     public async Task ExpireTrade(long tradeId)
     {
-        await db.ExecuteAsync("UPDATE user_trade SET status = :status WHERE status = :open_status AND id = :id", new
+        await db.ExecuteAsync("UPDATE user_trade SET status = :status WHERE (status = :open_status OR status = :counter_status) AND id = :id", new
         {
             id = tradeId,
             status = TradeStatus.Expired,
             open_status = TradeStatus.Open,
+            counter_status = TradeStatus.Countered,
         });
     }
 
@@ -192,14 +192,14 @@ public class TradesService : ServiceBase, IService
         {
             case TradeType.Inbound:
                 sql.Select("user_id_one as partnerId");
-                sql.Where("user_id_two = :my_id", new {my_id = userId});
-                sql.Where("user_trade.status = :s", new {s = TradeStatus.Open});
+                sql.Where("user_id_two = :my_id AND (user_trade.status = 2 OR user_trade.status = 8)",
+                new {my_id = userId});
                 sql.LeftJoin("\"user\" u ON u.id = user_trade.user_id_one");
                 break;
             case TradeType.Outbound:
                 sql.Select("user_id_two as partnerId");
-                sql.Where("user_id_one = :my_id AND user_trade.status = :s",
-                    new {my_id = userId, s = TradeStatus.Open});
+                sql.Where("user_id_one = :my_id AND (user_trade.status = 2 OR user_trade.status = 8)", 
+                new {my_id = userId});
                 sql.LeftJoin("\"user\" u ON u.id = user_trade.user_id_two");
                 break;
             case TradeType.Completed:
@@ -588,7 +588,172 @@ public class TradesService : ServiceBase, IService
             return 0;
         });
     }
+    public async Task CounterTrade(long tradeId, long contextUserId, IEnumerable<CreateTradeOffer> offers, bool sendMessage)
+    {
+        var log = Writer.CreateWithId(LogGroup.TradeSend);
+        
+        log.Info("CounterTrade starting. senderId = {0} sendMessage = {1}", contextUserId, sendMessage);
 
+
+        var logic = new Logic<SendTradeErrorCodes>(errorMessages);
+        var offerList = offers.ToList();
+        var offer = offerList.Find(c => c.userId == contextUserId);
+        var request = offerList.Find(c => c.userId != contextUserId);
+        log.Info("Request userId = {0}", request?.userId);
+        // checks
+        logic.Requires(SendTradeErrorCodes.NoOffers, offer != null && request != null);
+        Debug.Assert(offer != null && request != null);
+        var offerUserAssets = offer.userAssetIds.Distinct().ToList();
+        var requestUserAssets = request.userAssetIds.Distinct().ToList();
+        log.Info("Offer len = {0} request len = {1}", offerUserAssets.Count, requestUserAssets.Count);
+
+        // Make sure there are offers
+        logic.Requires(SendTradeErrorCodes.NoOffers, offerUserAssets.Count >= 1 && requestUserAssets.Count >= 1);
+
+        // Only allowed up to 4 items
+        logic.Requires(SendTradeErrorCodes.Generic, offerUserAssets.Count <= 4 && requestUserAssets.Count <= 4);
+
+        var globalMaxRobux = 10000000; // 10 m
+        logic.Requires(SendTradeErrorCodes.TooMuchRobux, (offer.robux == null || offer.robux < globalMaxRobux) &&
+                                                         (request.robux == null || request.robux < globalMaxRobux));
+        // Confirm offering over 0 robux, if not null
+        logic.Requires(SendTradeErrorCodes.TooLittleRobux, offer.robux is null or > 0);
+        logic.Requires(SendTradeErrorCodes.TooLittleRobux, request.robux is null or > 0);
+
+        if (offer.robux != null)
+        {
+            log.Info("offering {0} robux",offer.robux);
+            var userRobux = await db.QuerySingleOrDefaultAsync<UserEconomy>(
+                "SELECT balance_robux as robux FROM user_economy WHERE user_id = :id", new
+                {
+                    id = offer.userId,
+                });
+            logic.Requires(SendTradeErrorCodes.InsufficientRobux, userRobux.robux >= offer.robux);
+            log.Info("has enough robux to make this offer");
+        }
+
+        // make sure user isn't in the cooldown
+        var isInCooldown = await IsUserInFloodCheck(contextUserId, request.userId);
+        logic.Requires(SendTradeErrorCodes.FloodCheck, FailType.FloodCheck, !isInCooldown);
+        // high = offer must be 75% or more of rap of request
+        // med = offer must be 50% or more of rap of request
+        // low = offer must be 25% or more of rap of request
+        // none = offer and request can be anything
+        var filter = await GetFilter(request.userId);
+        log.Info("recipient filter = {0}", filter);
+        await InTransaction(async _ =>
+        {
+            var info = await GetTradeById(tradeId);
+            if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
+                throw new ArgumentException("User is not authorized to modify this trade");
+
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
+            {
+                throw new ArgumentException($"Trade with status {info.status} cannot be countered");
+            }
+
+            if ((info.status == TradeStatus.Open && info.userIdTwo != contextUserId) || (info.status == TradeStatus.Countered && info.userIdTwo != contextUserId))
+            {
+                throw new ArgumentException($"Trade with status {info.status} cannot be countered by user {contextUserId}");
+            }
+            var offeredItems = (await MultiConfirmOwnership(offer.userId, offerUserAssets)).ToList();
+            var requestedItems = (await MultiConfirmOwnership(request.userId, requestUserAssets)).ToList();
+            // Confirm that users own the items offered/requested, all are limited, and that all are not for sale
+            logic.Requires(SendTradeErrorCodes.BadUserAssets,
+                offeredItems.Find(v => !v.isOwner || (!v.isLimited && !v.isLimitedUnique) /*|| v.isForSale*/) == null);
+            logic.Requires(SendTradeErrorCodes.BadUserAssets,
+                requestedItems.Find(v => !v.isOwner || (!v.isLimited && !v.isLimitedUnique) /*|| v.isForSale*/) == null);
+
+            var totalRequestedRap = requestedItems.Select(c => c.recentAveragePrice ?? 0).Sum();
+            var totalOfferedRap = offeredItems.Select(c => c.recentAveragePrice ?? 0).Sum();
+            if (filter != TradeQualityFilter.None)
+            {
+                var minimumOfferRapPercent = filter == TradeQualityFilter.Low ? 25 :
+                    filter == TradeQualityFilter.Medium ? 50 :
+                    filter == TradeQualityFilter.High ? 75 : 1;
+                var percentAsDecimal = (decimal) minimumOfferRapPercent / 100;
+                var percentOfRequest = totalRequestedRap * percentAsDecimal;
+                log.Info("recipient filter requires offer to be at least {0} - it is {1}", percentOfRequest, totalOfferedRap);
+
+                logic.Requires(SendTradeErrorCodes.BadTradeRatio, totalOfferedRap >= percentOfRequest);
+            }
+
+            if (request.robux != null)
+            {
+                log.Info("requesting {0} robux", request.robux);
+                var maxRobux = totalRequestedRap * 0.5;
+                logic.Requires(SendTradeErrorCodes.TooMuchRobux, request.robux <= maxRobux);
+            }
+
+            if (offer.robux != null)
+            {
+                log.Info("offering {0} robux",offer.robux);
+                var maxRobux = totalOfferedRap * 0.5;
+                logic.Requires(SendTradeErrorCodes.TooMuchRobux, offer.robux <= maxRobux);
+            }
+
+            var expirationDate = DateTime.UtcNow.Add(TimeSpan.FromDays(5));
+            await UpdateAsync("user_trade", "id", tradeId, new
+            {
+                user_id_one = offer.userId,
+                user_id_two =  request.userId,
+                user_id_one_robux = offer.robux,
+                user_id_two_robux = request.robux,
+                status = TradeStatus.Countered,
+                expires_at = expirationDate,
+            });
+            log.Info("update trade. id = {0} expiration = {1}", tradeId, expirationDate);
+            
+            await db.ExecuteAsync("DELETE FROM user_trade_asset WHERE trade_id = :id", new
+            {
+                id = tradeId,
+            });
+            log.Info("deleted trade items. id = {0}", tradeId);
+            // add offer items
+            foreach (var id in offerUserAssets)
+            {
+                log.Info("offering userAssetId {0}", id);
+                await InsertAsync("user_trade_asset", "trade_id", new
+                {
+                    trade_id = tradeId,
+                    user_id = offer.userId,
+                    user_asset_id = id,
+                });
+            }
+
+            // add request items
+            foreach (var id in requestUserAssets)
+            {
+                log.Info("requesting userAssetId = {0}", id);
+                await InsertAsync("user_trade_asset", "trade_id", new
+                {
+                    trade_id = tradeId,
+                    user_id = request.userId,
+                    user_asset_id = id,
+                });
+            }
+
+            if (sendMessage)
+            {
+                log.Info("sending message to recipient");
+                var userDetails = await db.QuerySingleOrDefaultAsync("SELECT username FROM \"user\" WHERE id = :id",
+                    new {id = offer.userId});
+                await InsertAsync("user_message", new
+                {
+                    user_id_to = request.userId,
+                    user_id_from = 1,
+                    subject = $"Trade countered",
+                    body = $"The trade you sent to {(string) userDetails.username} has been countered",
+                    is_read = false,
+                    is_archived = false,
+                });
+            }
+            
+            log.Info("trade sent successfully");
+
+            return 0;
+        });
+    }
     public async Task AcceptTrade(long tradeId, long contextUserId)
     {
         var log = Writer.CreateWithId(LogGroup.TradeAccept);
@@ -600,8 +765,10 @@ public class TradesService : ServiceBase, IService
         await InTransaction(async _ =>
         {
             var info = await GetTradeById(tradeId);
-            if (info.userIdTwo != contextUserId || info.status != TradeStatus.Open)
+            if (info.userIdTwo != contextUserId)
                 throw new ArgumentException("User is not authorized to modify this trade");
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
+                throw new ArgumentException("Trade is not open or countered");
             // mark as pending
             log.Info("update {0} to pending", tradeId);
             await db.ExecuteAsync("UPDATE user_trade SET status = :status WHERE id = :id", new
@@ -754,15 +921,16 @@ public class TradesService : ServiceBase, IService
         await using var tradeLock = await GetLockForTrade(tradeId);
         if (!tradeLock.IsAcquired) throw new LockNotAcquiredException();
 
-        var info = await GetTradeById(tradeId);
-        if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
-            throw new ArgumentException("User is not authorized to modify this trade");
-
-        if (info.status != TradeStatus.Open)
-            throw new ArgumentException("Trade with status " + info.status + " cannot be declined");
 
         await InTransaction(async _ =>
         {
+            var info = await GetTradeById(tradeId);
+            if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
+                throw new ArgumentException("User is not authorized to modify this trade");
+
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
+                throw new ArgumentException("Trade with status " + info.status + " cannot be declined");
+
             // userIdOne is the sender. If sender is not the one cancelling, inform sender the trade was declined.
             if (info.userIdOne != contextUserId)
             {

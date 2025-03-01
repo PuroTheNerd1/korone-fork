@@ -2,6 +2,7 @@
 using InfluxDB.Client.Core.Exceptions;
 using Roblox;
 using Roblox.Dto.Games;
+using Roblox.Models.Assets;
 using Roblox.Models.Games;
 using Roblox.Models.GameServer;
 using Roblox.Services;
@@ -73,6 +74,15 @@ public class PlaceLauncherService : ServiceBase
     {
         dynamic? joinScript = null;
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
+        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        {
+            return new PlaceLaunchResponse()
+            {
+                jobId = (string?)null,
+                status = (int)JoinStatus.Error,
+                message = "The game is not active."
+            };
+        }
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default);
         if (Special.HasValue && (bool)Special)
         {
@@ -115,6 +125,15 @@ public class PlaceLauncherService : ServiceBase
         }
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
+        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        {
+            return new PlaceLaunchResponse()
+            {
+                jobId = (string?)null,
+                status = (int)JoinStatus.Error,
+                message = "The game is not active."
+            };
+        }
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {

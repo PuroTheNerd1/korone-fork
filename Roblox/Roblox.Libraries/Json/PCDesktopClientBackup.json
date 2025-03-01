@@ -46,7 +46,7 @@
     "DFFlagBallSocketMaxFrictionTorqueEnabled_PlaceFilter": "True;4588303397",
     "DFFlagBallSocketMaxFrictionTorqueEnabled2": "True",
     "DFFlagBatchApiAssetArchiving": "False",
-    "DFFlagBatchAssetApiNoFallbackOnFail": "True",
+    "DFFlagBatchAssetApiNoFallbackOnFail": "False",
     "DFFlagBatchAssetApiTrackFailedUrls2": "True",
     "DFFlagBetterAddInstance": "True",
     "DFFlagBetterStreamingHumanoidSimulationFiltering": "True",

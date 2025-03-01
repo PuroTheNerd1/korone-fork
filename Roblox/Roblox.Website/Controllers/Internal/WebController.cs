@@ -436,7 +436,7 @@ public class WebController : ControllerBase
         long year = await services.games.GetYear(placeId);
         clientVer = services.games.clientVersionMap.TryGetValue(year, out var ver) ? ver : throw new BadRequestException();
         var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
-        if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved && assetInfo.typeId != (int)Models.Assets.Type.Place) 
+        if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved || assetInfo.typeId != (int)Models.Assets.Type.Place) 
             throw new BadRequestException();
         var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{ROBLOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =

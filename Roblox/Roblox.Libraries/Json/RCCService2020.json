@@ -1413,7 +1413,7 @@
     "FFlagBackpackScriptUseFormatByKey": "False",
     "FFlagBadgeApiV1UserHasBadge": "True",
     "FFlagBadgeReadDisabledFromInfo": "True",
-    "FFlagBatchAssetApi": "False",
+    "FFlagBatchAssetApi": "True",
     "FFlagBatchBoundsChanged": "True",
     "FFlagBatchThumbnailAddNewThumbnailTypes": "False",
     "FFlagBeamTextureDesyncFix": "True",

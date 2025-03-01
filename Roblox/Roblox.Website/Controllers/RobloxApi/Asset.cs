@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
 using Roblox.Website.Middleware;
 using Roblox.Libraries.RobloxApi;
+using Roblox.Logging;
 namespace Roblox.Website.Controllers;
 [ApiController]
 [Route("/")]
@@ -80,9 +81,39 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
-                return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={assetId}");
+                string key = "chloeassetcachev1:" + id;
+                string? location = await Services.Cache.distributed.StringGetAsync(key);
+                if (location == null)
+                {
+                    // Don't bother caching assets for non roblox clients
+                    if (!isRoblox)
+                        throw new RecordNotFoundException();
+                    //Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
+                    location = await services.robloxApi.GetAssetLocation(id);
+
+                    // Asset is OK!
+                    if (location != "BAD")
+                    {
+                        //Writer.Info(LogGroup.AssetDelivery, "Caching asset {0}", id);
+                        await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
+                    }
+                    // We probaly hit a rate limit of a 403 just redirect to Roblox
+                    else
+                    {
+                        //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
+                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";  
+                    }
+                    return Redirect(location);
+                }
+                else
+                {
+                    //Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
+                    return Redirect(location);
+                }
+
             }
         }
+
         // TODO: Fix for this is using a diffrent access key for rendering
         if (!IsAssetApproved(details) && !isBotRequest && !isRCC)
             throw new RobloxException(403, 0, "Asset not approved for requester");
@@ -195,22 +226,32 @@ public class Asset : ControllerBase
         if (requestData == null)
             throw new BadRequestException();
 
-        var assets = new List<object>();
+        List<AssetDeliveryV1BatchResponse> assets = new List<AssetDeliveryV1BatchResponse>();
 
-        foreach (var asset in requestData)
+        //assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
+        var details = await services.assets.MultiGetInfoById(requestData.Select(a => a.assetId));
+        var existingAssetIds = details.Select(d => d.id).ToList();
+
+        assets.AddRange(details.SelectMany(d =>
         {
-            // I promise that i will rework this fully soon
-            try
+            var matchingRequests = requestData.Where(r => r.assetId == d.id);
+            return matchingRequests.Select(req =>
             {
-                var info = await services.assets.GetAssetCatalogInfo(asset.assetId);
-                assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
-            }
-            catch (RecordNotFoundException)
-            {
-                assets.Add(CreateAssetResponse((Type)Enum.Parse(typeof(Type), asset.assetType), asset.requestId, asset.assetId, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
-            }
+                var requestId = req?.requestId ?? Guid.NewGuid().ToString();
+                return CreateAssetResponse(d.assetType, requestId, $"{Configuration.BaseUrl}/v1/asset/?id={d.id}");
+            });
+        }));
+
+        var robloxAssetRequest = requestData.Where(r => !existingAssetIds.Contains(r.assetId)).ToList();
+        if (robloxAssetRequest.Count > 0)
+        {
+            //Writer.Info(LogGroup.AssetDelivery, "Fetching {0} batch assets from Roblox", robloxAssetRequest.Count);
+            var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
+            assets.AddRange(robloxAssets);
         }
-        return Content(JsonSerializer.Serialize(assets), "application/json");
+
+
+        return Content(JsonSerializer.Serialize<List<AssetDeliveryV1BatchResponse>>(assets), "application/json");
     }
     private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> robloxAssets, List<object> assets)
     {
@@ -235,15 +276,15 @@ public class Asset : ControllerBase
             await services.robloxassets.SetRobloxAssetLocationInCache(assetId, robloxAsset.location);
         }
     }
-    private static object CreateAssetResponse(Type assetType, string requestId, long assetId, string location)
+    private static AssetDeliveryV1BatchResponse CreateAssetResponse(Type assetType, string requestId, string? location)
     {
-        return new
+        return new AssetDeliveryV1BatchResponse
         {
-            location,
+            location = location,
             requestId = requestId,
             IsHashDynamic = false,
             IsCopyrightProtected = false,
-            IsArchived = false,
+            isArchived = false,
             assetTypeId = (int)assetType
         };
     }

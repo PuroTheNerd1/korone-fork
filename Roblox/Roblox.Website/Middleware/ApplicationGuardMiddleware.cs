@@ -261,16 +261,7 @@ public class ApplicationGuardMiddleware
         ctx.Response.Headers.Location = "/auth/homepage";
         await ctx.Response.WriteAsync("Object moved to <a href=\""+dest+"\">here</a>.");
     }
-    public static bool IsRoblox(HttpRequest Request)
-    {
-        IHeaderDictionary Headers = Request.Headers;
-        string userAgent = Headers["User-Agent"].ToString();
-        if (userAgent.ToLower().Contains("roblox"))
-        {
-            return true;
-        }
-        return false;
-    }
+
     public async Task InvokeAsync(HttpContext ctx)
     {
         var appGuardTimer = new MiddlewareTimer(ctx, "AppGuard");

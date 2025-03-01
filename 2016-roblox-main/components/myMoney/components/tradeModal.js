@@ -13,6 +13,13 @@ import BcOverlay from "../../bcOverlay";
 const TradeBelowNameText = props => {
   const state = props.status;
   switch (state) {
+    case 'Countered':
+      return <div>
+        <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/> was countered.</span>
+        <br/>
+        <br/>
+        <span className='font-size-12 fw-700 lighten-3 mb-0'>Expires {dayjs(props.expiration).fromNow()}</span>
+      </div>
     case 'Open':
       return <div>
         <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/> has been opened.</span>

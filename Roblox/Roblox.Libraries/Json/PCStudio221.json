@@ -68,7 +68,7 @@
 	"DFFlagBackupStreamingFocusLastPlayerPosition": true,
 	"DFFlagBandwidthBasedClusterSenderByteBudget": true,
 	"DFFlagBandwidthBasedTouchSenderByteBudget": true,
-	"DFFlagBatchAssetApiNoFallbackOnFail": true,
+	"DFFlagBatchAssetApiNoFallbackOnFail": false,
 	"DFFlagBetterAddInstance": true,
 	"DFFlagBlockLoadingHiddenDataVorbis": true,
 	"DFFlagBlockLoadingHiddenDataVorbis2": true,
