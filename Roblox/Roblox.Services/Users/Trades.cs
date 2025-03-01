@@ -767,7 +767,7 @@ public class TradesService : ServiceBase, IService
             var info = await GetTradeById(tradeId);
             if (info.userIdTwo != contextUserId)
                 throw new ArgumentException("User is not authorized to modify this trade");
-            if (info.status != TradeStatus.Open || info.status != TradeStatus.Countered)
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
                 throw new ArgumentException("Trade is not open or countered");
             // mark as pending
             log.Info("update {0} to pending", tradeId);
