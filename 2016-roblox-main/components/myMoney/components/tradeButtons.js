@@ -27,7 +27,7 @@ const TradeButtons = props => {
   const s = useTradeButtonStyles();
   const buttonStyles = useButtonStyles();
 
-  const canAccept = (trade.status === 'Open' || trade.status == 'Countered') && trade.user.id !== auth.userId;
+  const canAccept = (trade.status === 'Open' || trade.status === 'Countered') && trade.user.id !== auth.userId;
   const canDecline = canAccept || trade.user.id === auth.userId;
   const canCounter = canAccept;
   const canOk = !canAccept;
