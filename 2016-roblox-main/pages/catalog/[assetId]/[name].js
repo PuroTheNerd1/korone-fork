@@ -1,7 +1,5 @@
 import SharedAssetPage from "../../../components/sharedAssetPage2019";
-import { useRouter } from 'next/router';
-import { getItemDetails, getProductInfoLegacy } from "../../../services/catalog";
-import { useState } from "react";
+import { getProductInfoLegacy } from "../../../services/catalog";
 import Head from "next/head";
 const ItemPage = ({ name, description, assetId, ...props }) => {
   return(
@@ -10,10 +8,10 @@ const ItemPage = ({ name, description, assetId, ...props }) => {
         <Head>
           <title>{name} - Pekora</title>
           <meta property="og:title" content={name} />
-          <meta property="og:url" content={`https://projex.zip/catalog/${assetId}/--`} />
+          <meta property="og:url" content={`https://pekora.zip/catalog/${assetId}/--`} />
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={description} />
-          <meta property="og:image" content={`https://projex.zip/thumbs/asset.ashx?assetId=${assetId}`} />
+          <meta property="og:image" content={`https://pekora.zip/thumbs/asset.ashx?assetId=${assetId}`} />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="og:site_name" content="Pekora" />
           <meta name="theme-color" content="#E2231A" />

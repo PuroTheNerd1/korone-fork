@@ -112,7 +112,7 @@ const AssetEntry = props => {
             console.error('There was a problem shutting down all servers for a place:', error);
             window.confirm(`There was a problem shutting down all servers: ${error}`)
           })
-          /*fetch(`https://projex.zip/rcc/killallservers?placeId=${props.assetId}`, {
+          /*fetch(`https://pekora.zip/rcc/killallservers?placeId=${props.assetId}`, {
             method: "GET",
           })
             .then(response => {
