@@ -134,7 +134,7 @@ public class TradesService : ServiceBase, IService
     public async Task<int> CountInboundTrades(long userId)
     {
         var t = await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COUNT(*) AS total FROM user_trade WHERE user_id_two = :id AND status = 2 OR status = 8", new
+            "SELECT COUNT(*) AS total FROM user_trade WHERE user_id_two = :id AND status IN (2, 8)", new
             {
                 id = userId,
             });
@@ -143,11 +143,12 @@ public class TradesService : ServiceBase, IService
 
     public async Task ExpireTrade(long tradeId)
     {
-        await db.ExecuteAsync("UPDATE user_trade SET status = :status WHERE status = :open_status AND id = :id", new
+        await db.ExecuteAsync("UPDATE user_trade SET status = :status WHERE (status = :open_status OR status = :counter_status) AND id = :id", new
         {
             id = tradeId,
             status = TradeStatus.Expired,
             open_status = TradeStatus.Open,
+            counter_status = TradeStatus.Countered,
         });
     }
 
@@ -191,13 +192,13 @@ public class TradesService : ServiceBase, IService
         {
             case TradeType.Inbound:
                 sql.Select("user_id_one as partnerId");
-                sql.Where("user_id_two = :my_id AND user_trade.status = 2 OR user_trade.status = 8",
+                sql.Where("user_id_two = :my_id AND (user_trade.status = 2 OR user_trade.status = 8)",
                 new {my_id = userId});
                 sql.LeftJoin("\"user\" u ON u.id = user_trade.user_id_one");
                 break;
             case TradeType.Outbound:
                 sql.Select("user_id_two as partnerId");
-                sql.Where("user_id_one = :my_id AND user_trade.status = 2 OR user_trade.status = 8", 
+                sql.Where("user_id_one = :my_id AND (user_trade.status = 2 OR user_trade.status = 8)", 
                 new {my_id = userId});
                 sql.LeftJoin("\"user\" u ON u.id = user_trade.user_id_two");
                 break;
@@ -646,7 +647,7 @@ public class TradesService : ServiceBase, IService
             if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
                 throw new ArgumentException("User is not authorized to modify this trade");
 
-            if (info.status != TradeStatus.Open || info.status != TradeStatus.Countered)
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
             {
                 throw new ArgumentException($"Trade with status {info.status} cannot be countered");
             }
