@@ -55,7 +55,7 @@ public class TradesControllerV1 : ControllerBase
                 },
                 created = c.createdAt,
                 expiration = c.expiresAt,
-                isActive = c.status is TradeStatus.Open or TradeStatus.Pending,
+                isActive = c.status is TradeStatus.Open or TradeStatus.Pending or TradeStatus.Countered,
                 status = c.status,
             }),
         };
@@ -129,7 +129,7 @@ public class TradesControllerV1 : ControllerBase
             },
             created = data.createdAt,
             expiration = data.expiresAt,
-            isActive = data.status == TradeStatus.Open,
+            isActive = data.status == TradeStatus.Open || data.status == TradeStatus.Countered ,
             status = data.status,
         };
     }

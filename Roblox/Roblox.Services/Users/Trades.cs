@@ -647,7 +647,7 @@ public class TradesService : ServiceBase, IService
             if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
                 throw new ArgumentException("User is not authorized to modify this trade");
 
-            if (info.status != TradeStatus.Open || info.status != TradeStatus.Countered)
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
             {
                 throw new ArgumentException($"Trade with status {info.status} cannot be countered");
             }
@@ -928,7 +928,7 @@ public class TradesService : ServiceBase, IService
             if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
                 throw new ArgumentException("User is not authorized to modify this trade");
 
-            if (info.status != TradeStatus.Open || info.status != TradeStatus.Countered)
+            if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
                 throw new ArgumentException("Trade with status " + info.status + " cannot be declined");
 
             // userIdOne is the sender. If sender is not the one cancelling, inform sender the trade was declined.
