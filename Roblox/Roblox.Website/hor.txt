@@ -1,6 +1,28 @@
-This is a list of false DMCA's/Phishing reports we got.
-We have redacted the personal info due to privacy.
+This is a list of DMCA's/Phishing reports we got.
+If your e-mail is in here, ur a retarded faggot stop trying to take down pekora it's cute >w<
+We have redacted the personal info due to privacy. -- Ignore this we will soon uncover all the redacted fields
+
 Enjoy ^w^
+
+---------------------------------------------------------------------
+Type: DMCA
+Date: 03/02/2025
+Reporter's Name: P. Zhimoni
+Reporter's Email Address: copyright_agent@roblox.com
+Reporter's Title: pekora.zip
+Reporter's Company Name: Roblox Coporation
+Reporter's Address: 3594 Timber Oak Drive, San Francisco, Canada, US
+Reported URLs:
+hxxps://www[.]pekora[.]zip/auth/homepage
+hxxps://www[.]pekora[.]zip/home
+Verdict: Host called them retarded and ignored due to false claim
+---------------------------------------------------------------------
+
+This website has stolen the following:
+2016 homepage (Stolen)
+Leaked RCCService builds (Used for the gameservers)
+IP of ROBLOX Corp
+Etc
 
 ---------------------------------------------------------------------
 Type: Phishing
