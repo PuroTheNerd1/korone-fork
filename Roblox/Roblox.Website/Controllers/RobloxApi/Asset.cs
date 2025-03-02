@@ -81,8 +81,7 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
-                string key = "chloeassetcachev1:" + id;
-                string? location = await Services.Cache.distributed.StringGetAsync(key);
+                string? location = await services.robloxassets.GetRobloxAssetLocationFromCache(id);
                 if (location == null)
                 {
                     // Don't bother caching assets for non roblox clients
@@ -95,7 +94,8 @@ public class Asset : ControllerBase
                     if (location != "BAD")
                     {
                         //Writer.Info(LogGroup.AssetDelivery, "Caching asset {0}", id);
-                        await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
+                        await services.robloxassets.SetRobloxAssetLocationInCache(id, location);
+                        //await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
                     }
                     // We probaly hit a rate limit of a 403 just redirect to Roblox
                     else
