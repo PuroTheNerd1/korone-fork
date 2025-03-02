@@ -1361,7 +1361,7 @@ public class AssetsService : ServiceBase, IService
                 throw new Exception("The mesh request has failed");
             if (MeshAssetRequest.AssetTypeId.HasValue && (int)MeshAssetRequest.AssetTypeId == 4)
             {
-                Stream MeshStream = await robloxApi.GetAssetContentFromProxy(long.Parse(MeshId));
+                Stream MeshStream = await robloxApi.GetAssetContent(long.Parse(MeshId));
                 byte[] MeshByte = EasyConverters.StreamToByte(MeshStream);
 
                 byte[] NewMeshByte = ConvertMesh(MeshByte); // this is the new mesh, as byte[], do whatever you want with this
