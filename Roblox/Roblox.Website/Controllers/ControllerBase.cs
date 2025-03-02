@@ -58,7 +58,7 @@ namespace Roblox.Website.Controllers
         {
             get
             {
-                return Request.Headers["User-Agent"].ToString().Contains("Roblox");
+                return Request.Headers["User-Agent"].ToString().ToLower().Contains("roblox");
             }
         }
 
