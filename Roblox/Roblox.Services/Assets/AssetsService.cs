@@ -1315,9 +1315,10 @@ public class AssetsService : ServiceBase, IService
                 {
                     newMeshByte = ConvertMesh(meshByte);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    throw e;
+                    Console.WriteLine("Failed converting mesh");
+                    throw;
                 }
                 // convert to stream
                 Stream newMeshStream = new MemoryStream(newMeshByte);
