@@ -1310,7 +1310,15 @@ public class AssetsService : ServiceBase, IService
                 Stream meshStream = await robloxApi.GetAssetContentFromProxy(long.Parse(meshId));
                 byte[] meshByte = EasyConverters.StreamToByte(meshStream);
 
-                byte[] newMeshByte = ConvertMesh(meshByte); // this is the new mesh, as byte[], do whatever you want with this
+                byte[] newMeshByte; // this is the new mesh, as byte[], do whatever you want with this
+                try
+                {
+                    newMeshByte = ConvertMesh(meshByte);
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
                 // convert to stream
                 Stream newMeshStream = new MemoryStream(newMeshByte);
 
