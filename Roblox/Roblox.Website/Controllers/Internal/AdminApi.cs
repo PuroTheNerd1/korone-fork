@@ -1993,7 +1993,7 @@ Thank you for your understanding,
             Console.WriteLine("Getting {0}", item.id);
             var info = await services.robloxApi.GetProductInfo(item.id, false);
 
-            var content = await services.robloxApi.GetAssetContent(item.id);
+            var content = await services.robloxApi.GetAssetContentFromProxy(item.id);
             var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId!.Value);
             if (!isOk)
                 throw new StaffException("The asset file doesn't look correct. Please try again.");
@@ -2184,7 +2184,7 @@ Thank you for your understanding,
                                                  "\nIf this is incorrect, click the 'force' button to upload this item anyway.");
                 }
         }
-        var content = await services.robloxApi.GetAssetContent(request.assetId);
+        var content = await services.robloxApi.GetAssetContentFromProxy(request.assetId);
         var isOk = await services.assets.ValidateAssetFile(content, details.AssetTypeId.Value);
         if (!isOk)
             throw new StaffException("The asset file doesn't look correct. Please try again.");
