@@ -1,6 +1,5 @@
 using System.Diagnostics;
-using System.Drawing.Imaging;
-using System.Dynamic;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -20,10 +19,7 @@ using Roblox.Models.Economy;
 using Roblox.Models.Groups;
 using Roblox.Rendering;
 using Roblox.Services.App.FeatureFlags;
-using Roblox.Services.DbModels;
 using Roblox.Services.Exceptions;
-using SixLabors.ImageSharp;
-using AssetId = Roblox.Dto.Assets.AssetId;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
 
@@ -1387,11 +1383,23 @@ public class AssetsService : ServiceBase, IService
         return Encoding.UTF8.GetBytes(data);
     }
 
-    private static byte[] ConvertMesh(byte[] buffer)
+    private static byte[] ConvertMesh(Stream meshStream, byte[] buffer)
     {
         ByteReader reader = new ByteReader(buffer);
-        assert(reader.String(8) == "version ", "Invalid mesh file");
-        String version = reader.String(4);
+        String versionString = reader.String(12);
+        String versionOnly = versionString.Substring(0, 8);
+        // Make sure meshStream isn't compressed, if it is, decompress and try agai
+        if (versionOnly != "version ")
+        {
+            Console.WriteLine($"MeshStream is compressed! Decompressing...");
+            meshStream = DecompressGzip(meshStream);
+            buffer = EasyConverters.StreamToByte(meshStream);
+            reader = new ByteReader(buffer);
+            versionString = reader.String(12);
+            versionOnly = versionString.Substring(0, 8);
+        }
+        assert(versionOnly == "version ", "Invalid mesh file");
+        String version = versionString.Substring(8);
         switch (version)
         {
             case "1.00":
@@ -1408,7 +1416,22 @@ public class AssetsService : ServiceBase, IService
                 throw new Exception($"Unsupported mesh version {version}");
         }
     }
+    
+    static Stream DecompressGzip(Stream inputStream)
+    {
+        var outputStream = new MemoryStream();
+        using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+        {
+            gzipStream.CopyTo(outputStream);
+        }
+        outputStream.Position = 0;
+        return outputStream;
+    }
 
+    private void log(String str) {
+        Console.WriteLine(str);
+    }
+    
     public async Task<long> BackportAccessory(long assetId)
     {
         var robloxApi = new RobloxApi();
@@ -1434,10 +1457,19 @@ public class AssetsService : ServiceBase, IService
             Stream RBXMStream = await robloxApi.GetAssetContentFromProxy(assetId);
             byte[] RBXMByte = EasyConverters.StreamToByte(RBXMStream);
             String RBXMHexString = Convert.ToHexString(RBXMByte);
-
-            String MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
+            
+            // Sometimes the RBX CDN likes to compress the file that is
+            // returned, so it must be decompressed in such cases.
+            String MeshIdHexString;
+            try {
+               MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
+            } catch (Exception e) {
+                RBXMStream = DecompressGzip(RBXMStream);
+                RBXMHexString = Convert.ToHexString(EasyConverters.StreamToByte(RBXMStream));
+                MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
+            }
             String MeshId = EasyConverters.HexStringToString(MeshIdHexString);
-
+            
             var MeshAssetRequest = await robloxApi.GetProductInfo(long.Parse(MeshId));
             if (MeshAssetRequest == null)
                 throw new Exception("The mesh request has failed");
@@ -1445,8 +1477,8 @@ public class AssetsService : ServiceBase, IService
             {
                 Stream MeshStream = await robloxApi.GetAssetContentFromProxy(long.Parse(MeshId));
                 byte[] MeshByte = EasyConverters.StreamToByte(MeshStream);
-
-                byte[] NewMeshByte = ConvertMesh(MeshByte); // this is the new mesh, as byte[], do whatever you want with this
+                
+                byte[] NewMeshByte = ConvertMesh(MeshStream, MeshByte); // this is the new mesh, as byte[], do whatever you want with this
                 // convert to stream
                 Stream meshStream = new MemoryStream(NewMeshByte);
 

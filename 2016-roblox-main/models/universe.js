@@ -56,4 +56,30 @@
  * @property {string} version
  */
 
+/**
+ * @typedef GamepassEntry
+ * @property {number} id
+ * @property {string} name
+ * @property {number} productId
+ * @property {number} price
+ */
+
+/**
+ * @typedef UserGameEntry
+ * @property {number} id
+ * @property {string} name
+ * @property {string} description
+ * @property {number} rootPlaceId
+ * @property {PlaceEntry} rootPlace
+ * @property {string} created
+ * @property {string} updated
+ * @property {number} placeVisits
+ */
+
+/**
+ * @typedef PlaceEntry
+ * @property {number} id
+ * @property {string} type
+ */
+
 

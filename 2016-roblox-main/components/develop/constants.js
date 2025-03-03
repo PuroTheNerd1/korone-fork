@@ -45,8 +45,8 @@ const developerPages = [
     id: 34,
     name: 'Game Passes',
     url: '/develop?View=34',
-    disabled: true,
-    //element: props => <GamePasses id={34} {...props} />,
+    //disabled: true,
+    element: props => <GamePasses id={34} {...props} />,
   },
   {
     id: 62,

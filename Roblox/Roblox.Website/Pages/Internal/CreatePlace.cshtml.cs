@@ -157,7 +157,7 @@ public class CreatePlace : RobloxPageModel
         var createdPlaces = (await services.assets.GetCreations(CreatorType.User, userId, Type.Place, 0, 100)).ToArray();
         if (createdPlaces.Length != 0)
         {
-            if (createdPlaces.Length > 5)
+            if (createdPlaces.Length > 12)
             {
                 log.Info("account has too many places {0}", createdPlaces.Length);
                 return PlaceCreationFailureReason.TooManyPlaces;

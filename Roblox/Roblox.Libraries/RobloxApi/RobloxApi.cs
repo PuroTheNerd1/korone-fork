@@ -265,7 +265,7 @@ public class RobloxApi
             if (!response.IsSuccessStatusCode)
             {
                 Writer.Info(LogGroup.RealRobloxApi, "GetProductInfoHtml failed - " + response.StatusCode);
-                await Task.Delay(TimeSpan.FromSeconds(2));
+                await Task.Delay(TimeSpan.FromSeconds(response.StatusCode == HttpStatusCode.TooManyRequests ? 10 : 2));
                 continue;
             }
 
@@ -426,6 +426,35 @@ public class RobloxApi
             throw new Exception("Null response from Roblox");
         return result.Content.ReadAsStream();
     }
+    
+    public async Task<Stream> GetAssetContentFromGoober(long assetId)
+    {
+        var result = await robloxApiClient.GetAsync($"https://goober.top/img/guh");
+        if (!result.IsSuccessStatusCode)
+            throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
+        if (result == null)
+            throw new Exception("Null response from Roblox");
+        return result.Content.ReadAsStream();
+    }
+    
+    public async Task<Stream> GetAssetContentV2FromProxy(long assetId)
+    {
+        while (true)
+        {
+            var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v2/assetId/{assetId}");
+            if (!result.IsSuccessStatusCode)
+                throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
+            var str = await result.Content.ReadAsStringAsync();
+            var bod = JsonSerializer.Deserialize<AssetDeliveryV2Response>(str);
+            if (bod?.locations is null)
+                throw new Exception("Null " + nameof(AssetDeliveryV2Response) + " from Roblox");
+            if (string.IsNullOrEmpty(bod.locations.First().location))
+                throw new Exception("Roblox did not give a URL for this asset content. Is the URL valid?");
+
+            var strResult = await robloxApiClient.GetAsync(bod.locations.First().location);
+            return await strResult.Content.ReadAsStreamAsync();
+        }
+    }
     public async Task<string> GetAssetLocation(long assetId)
     {
         var v1Url = $"https://assetdelivery.roblox.com/v1/asset?id={assetId}";
@@ -464,7 +493,7 @@ public class RobloxApi
     {
         while (true)
         {
-            var result = await _client.GetAsync($"https://assetdelivery.roblox.com/v1/assetId/{assetId}/version/2");
+            var result = await _client.GetAsync($"https://assetdelivery.roblox.com/v2/assetId/{assetId}/version/2");
             if (result.StatusCode is HttpStatusCode.TooManyRequests)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2));

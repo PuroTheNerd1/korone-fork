@@ -189,7 +189,7 @@ public class Signup : RobloxPageModel
         var usernameValid = await services.users.IsUsernameValid(username);
         if (!usernameValid)
         {
-            errorMessage = "Invalid Username. It must start and end with an alpha-numeric character, be between 3 and 21 characters, and contain at most one special character (space, period, or underscore). There are also some words that cannot be used in usernames.";
+            errorMessage = "Invalid Username. It must start and end with an alpha-numeric character, be between 3 and 20 characters, and contain at most one special character (space, period, or underscore). There are also some words that cannot be used in usernames.";
             return Page();
         }
 

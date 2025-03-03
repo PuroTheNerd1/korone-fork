@@ -31,6 +31,12 @@ export const getLibraryItemUrl = ({assetId, name}) => {
     return `/library/${assetId}/${itemNameToEncodedName(name)}`;
 }
 
+/**
+ *
+ * @param userId
+ * @param cursor
+ * @returns {Promise<UserGameEntry[]>}
+ */
 export const getUserGames = ({userId, cursor}) => {
     return request('GET', getFullUrl('games', `/v2/users/${userId}/games?cursor=${encodeURIComponent(cursor || '')}`)).then(d => d.data);
 }
@@ -117,6 +123,11 @@ export const shutdownSpecificServer = ({placeId, jobId}) => {
     return request('GET', getBaseUrl() + `/rcc/killserver?placeId=${placeId}&jobId=${jobId}`).then(d => d.data);
 }
 
+/**
+ *
+ * @param universeId
+ * @returns {Promise<GamepassEntry[]>}
+ */
 export const getUniverseGamePasses = ({ universeId }) => {
     return request('GET', getFullUrl('games', `/v1/games/${universeId}/game-passes`)).then(d => d.data.data);
 }
