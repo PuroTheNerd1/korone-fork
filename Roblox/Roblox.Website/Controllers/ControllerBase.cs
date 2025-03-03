@@ -240,31 +240,34 @@ namespace Roblox.Website.Controllers
         }
         protected async Task<string> GetRequestBody()
         {
-            if (isGzip)
-            {
-                using var decompressionStream = new System.IO.Compression.GZipStream(Request.Body, System.IO.Compression.CompressionMode.Decompress);
-                using var reader = new StreamReader(decompressionStream);
-                return await reader.ReadToEndAsync();
-            }
-            else
-            {
-                using var reader = new StreamReader(Request.Body);
-                return await reader.ReadToEndAsync();
-            }
+            // if (isGzip)
+            // {
+            //     using var decompressionStream = new System.IO.Compression.GZipStream(Request.Body, System.IO.Compression.CompressionMode.Decompress);
+            //     using var reader = new StreamReader(decompressionStream);
+            //     return await reader.ReadToEndAsync();
+            // }
+            // else
+            // {
+            //     using var reader = new StreamReader(Request.Body);
+            //     return await reader.ReadToEndAsync();
+            // }
+            using var reader = new StreamReader(Request.Body);
+            return await reader.ReadToEndAsync();
         }
 
         protected async Task<MemoryStream> GetRequestBodyAsMemoryStream()
         {
             var ms = new MemoryStream();
-            if (isGzip)
-            {
-                using var decompressionStream = new System.IO.Compression.GZipStream(Request.Body, System.IO.Compression.CompressionMode.Decompress);
-                await decompressionStream.CopyToAsync(ms);
-            }
-            else
-            {
-                await Request.Body.CopyToAsync(ms);
-            }
+            // if (isGzip)
+            // {
+            //     using var decompressionStream = new System.IO.Compression.GZipStream(Request.Body, System.IO.Compression.CompressionMode.Decompress);
+            //     await decompressionStream.CopyToAsync(ms);
+            // }
+            // else
+            // {
+            //     await Request.Body.CopyToAsync(ms);
+            // }
+            await Request.Body.CopyToAsync(ms);
             ms.Position = 0;
             return ms;
         }
