@@ -222,24 +222,6 @@ public class RbxThumbnails : ControllerBase
     [HttpPostBypass("v1/batch")]
     public async Task<dynamic> BatchThumbnailsRequest([FromBody] IEnumerable<BatchRequestEntry> request)
     {
-        // if (isGzip)
-        // {
-        //     var decompressedStream = new MemoryStream();
-        //     var gzipStream = new GZipStream(Request.Body, CompressionMode.Decompress);
-        //     await gzipStream.CopyToAsync(decompressedStream);
-
-        //     decompressedStream.Seek(0, SeekOrigin.Begin);
-        //     using var reader = new StreamReader(decompressedStream, Encoding.UTF8);
-        //     var json = await reader.ReadToEndAsync();
-        //     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
-        // }
-        // else
-        // {
-        //     var reader = new StreamReader(Request.Body, Encoding.UTF8);
-        //     var json = await reader.ReadToEndAsync();
-        //     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
-        // }
-
         //var thumbs = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(await GetRequestBody()).ToList();
         var thumbs = request.ToList();
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
