@@ -7,8 +7,7 @@ import Navbar from '../components/navbar';
 import React, {useEffect, useState} from 'react';
 import Head from 'next/head';
 import Footer from '../components/footer';
-import dayjs from '../lib/dayjs';
-import NextNProgress from "nextjs-progressbar";
+//import NextNProgress from "nextjs-progressbar";
 import LoginModalStore from '../stores/loginModal';
 import AuthenticationStore from '../stores/authentication';
 import NavigationStore from '../stores/navigation';
@@ -89,8 +88,9 @@ function RobloxApp({Component, pageProps}) {
             </>}
             <FeedbackStore.Provider>
                 <MainWrapper mainFlex={pageProps.disableWebsiteTheming}>
-                    {getFlag('clientSideRenderingEnabled', false) ?
-                        <NextNProgress options={{showSpinner: true}} color='var(--primary-color)' height={4}/> : null}
+                    {getFlag('clientSideRenderingEnabled', false) ? null
+                          // <NextNProgress options={{showSpinner: true}} color='var(--primary-color)' height={4}/>
+                        : null}
                     <ThumbnailStore.Provider>
                         <Component {...pageProps} />
                         <Chat/>
