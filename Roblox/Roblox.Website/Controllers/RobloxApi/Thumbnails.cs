@@ -220,7 +220,7 @@ public class RbxThumbnails : ControllerBase
         };
     }
     [HttpPostBypass("v1/batch")]
-    public async Task<dynamic> BatchThumbnailsRequest()
+    public async Task<dynamic> BatchThumbnailsRequest([FromBody] IEnumerable<BatchRequestEntry> request)
     {
         // if (isGzip)
         // {
@@ -240,8 +240,8 @@ public class RbxThumbnails : ControllerBase
         //     requestEntries = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(json);
         // }
 
-        var thumbs = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(await GetRequestBody()).ToList();
-
+        //var thumbs = JsonConvert.DeserializeObject<IEnumerable<BatchRequestEntry>>(await GetRequestBody()).ToList();
+        var thumbs = request.ToList();
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {
             ThumbnailsControllerV1.MultiGetThumbnailsGeneric(thumbs, "Avatar", services.thumbnails.GetUserThumbnails),
