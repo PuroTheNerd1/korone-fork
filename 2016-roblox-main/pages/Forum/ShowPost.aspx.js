@@ -1,4 +1,4 @@
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 import ForumThread from "../../components/forumThread";
 import {getRepliesToThread, markAsRead} from "../../services/forums";
 const limit = 15;

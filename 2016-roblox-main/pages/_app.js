@@ -18,6 +18,7 @@ import ThumbnailStore from "../stores/thumbnailStore";
 import getFlag from "../lib/getFlag";
 import Chat from "../components/chat";
 import FeedbackStore from "../stores/feedback";
+import {useRouter} from "next/router";
 
 if (typeof window !== 'undefined') {
     console.log(String.raw`
@@ -39,7 +40,8 @@ function RobloxApp({Component, pageProps}) {
     // set theme:
     // jss globals apparently don't support parameters/props, so the only way to do a dynamic global style is to either append a <style> element, use setAttribute(), or append a css file.
     // @ts-ignore
-    const isChristmas = false
+    const isChristmas = false;
+    const router = useRouter();
     useEffect(() => {
         // const el = typeof window !== 'undefined' && document.getElementsByTagName('body');
         // if (el && el.length) {

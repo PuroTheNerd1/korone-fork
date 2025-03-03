@@ -1,4 +1,4 @@
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 import ForumSubcategory from "../../components/forumSubcategory";
 import ForumPostReply from "../../components/forumPostReply";
 import ForumThreadCreate from "../../components/forumThreadCreate";

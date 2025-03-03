@@ -1,4 +1,4 @@
-import { useRouter } from "next/dist/client/router";
+import { useRouter } from "next/router";
 import Develop from "../components/develop";
 import t from "../lib/t";
 import LibraryStore from "../stores/libraryPage";

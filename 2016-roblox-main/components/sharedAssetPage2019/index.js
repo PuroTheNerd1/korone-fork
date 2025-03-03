@@ -6,7 +6,7 @@ import GameDetails from "../gameDetails";
 import GameDetailsStore from "../gameDetails/stores/gameDetailsStore";
 import {getItemDetails, getItemUrl} from "../../services/catalog";
 import { getGameUrl, getLibraryItemUrl, isLibraryItem, multiGetPlaceDetails, multiGetUniverseDetails } from "../../services/games";
-import { useRouter } from "next/dist/client/router";
+import { useRouter } from "next/router";
 
 const getUrlForAssetType = ({ assetTypeId, assetId, name }) => {
     if (assetTypeId === 9) {

@@ -1,4 +1,4 @@
-import { useRouter } from "next/dist/client/router";
+import { useRouter } from "next/router";
 import React from "react";
 import Theme2016 from "../../../components/theme2016";
 import UserFriends from "../../../components/userFriends";

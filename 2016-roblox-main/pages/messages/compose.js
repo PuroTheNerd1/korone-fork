@@ -1,4 +1,4 @@
-import { useRouter } from "next/dist/client/router";
+import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import ActionButton from "../../components/actionButton";

@@ -1,5 +1,5 @@
 import SearchUsers from "../../components/searchUsers";
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 
 const SearchUsersPage = props => {
   const router = useRouter();

@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { getBaseUrl, getFullUrl } from "../../../../lib/request";
-import { getCreatedItems, uploadAsset } from "../../../../services/develop";
+import { uploadAsset } from "../../../../services/develop";
 import AuthenticationStore from "../../../../stores/authentication";
 import ActionButton from "../../../actionButton";
 import AssetList from "../assetList";
 import FeedbackStore from "../../../../stores/feedback";
-import {useSearchParams} from "react-router-dom";
 import {getUniverseGamePasses, getUserGames} from "../../../../services/games";
+import {useRouter} from "next/router";
 
 const useStyles = createUseStyles({
     subtext: {
@@ -49,7 +48,8 @@ const GamePasses = props => {
     const [selectedGame, setSelectedGame] = useState(null); // should be a ref to an entry in the games list
     // 0 == loading, 1 == failed, array = success
     const [passesList, setPassesList] = useState(0);
-    const [searchParams, setSearchParams] = useSearchParams();
+    const router = useRouter();
+    const query = router.query;
     const nameRef = useRef(null);
     const descRef = useRef(null);
     //const [gameLocked, setGameLocked] = useState(false);
@@ -83,13 +83,22 @@ const GamePasses = props => {
         })
     }
     
+    const clearQueryParam = (param) => {
+        const currentQuery = { ...router.query };
+        delete currentQuery[param];
+        router.push({
+            pathname: router.pathname,
+            query: currentQuery
+        });
+    };
+    
     useEffect(() => {
-        if (Array.isArray(gamesList) && gamesList[searchParams.get("universeId")] !== null) {
-            setSelectedGame(gamesList[searchParams.get("universeId")]);
+        if (Array.isArray(gamesList) && gamesList[query.universeId] !== null) {
+            setSelectedGame(gamesList[query.universeId]);
         } else {
-            searchParams.delete("universeId");
+            clearQueryParam('universeId');
         }
-    }, [searchParams]);
+    }, [query]);
     
     useEffect(() => {
         setGamesList(null); // might cause issues with rerendering

@@ -4,7 +4,7 @@ import {getCategoryBySubCategoryId, getPostById, getSubcategoryById, replyToPost
 import {ForumHeaderSubCategory} from "../forumHeader";
 import Link from "../link";
 import dayjs from "../../lib/dayjs";
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 import ForumContainer from "../forumContainer";
 
 const useStyles = createUseStyles({
