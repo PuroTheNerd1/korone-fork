@@ -64,111 +64,57 @@ public struct ByteReader
     }
 
     private byte[] buffer { get; set; }
-    private long index { get; set; }
+    private long index { get; set;}
 
-    public void SetIndex(long n)
-    {
+    public void SetIndex(long n) {
         this.index = n;
         return;
     }
 
-    public long GetIndex()
-    {
+    public long GetIndex() {
         return this.index;
     }
 
-    public long GetRemaining()
-    {
+    public long GetRemaining() {
         return buffer.Length - this.index;
     }
 
-    public long GetLength()
-    {
+    public long GetLength() {
         return buffer.Length;
     }
 
-    public void Jump(Int32 n)
-    {
+    public void Jump(Int32 n) {
         this.index += n;
         return;
     }
 
-    public long Byte()
-    {
+    public long Byte() {
         this.index++;
-        return buffer[index - 1];
+        return buffer[index-1];
     }
 
-    public long UInt8()
-    {
-        this.index++;
-        return buffer[index - 1];
-    }
-
-    public long UInt16LE()
-    {
+    public long UInt16LE() {
         byte[] byteArray = new byte[2];
         Array.Copy(buffer, index, byteArray, 0, 2);
         this.Jump(2);
         return BitConverter.ToUInt16(byteArray, 0);
     }
 
-    public long UInt32LE()
-    {
+    public long UInt32LE() {
         byte[] byteArray = new byte[4];
         Array.Copy(buffer, index, byteArray, 0, 4);
         this.Jump(4);
         return BitConverter.ToUInt32(byteArray, 0);
     }
 
-    public long UInt64LE()
-    {
-        byte[] byteArray = new byte[8];
-        Array.Copy(buffer, index, byteArray, 0, 8);
-        this.Jump(8);
-        return (long)BitConverter.ToUInt64(byteArray, 0);
-    }
-
-    public long Int8()
-    {
-        this.index++;
-        return Convert.ToSByte(buffer[index - 1]);
-    }
-
-    public long Int16LE()
-    {
-        byte[] byteArray = new byte[2];
-        Array.Copy(buffer, index, byteArray, 0, 2);
-        this.Jump(2);
-        return BitConverter.ToInt16(byteArray, 0);
-    }
-
-    public long Int32LE()
-    {
-        byte[] byteArray = new byte[4];
-        Array.Copy(buffer, index, byteArray, 0, 4);
-        this.Jump(4);
-        return BitConverter.ToInt32(byteArray, 0);
-    }
-
-    public long Int64LE()
-    {
-        byte[] byteArray = new byte[8];
-        Array.Copy(buffer, index, byteArray, 0, 8);
-        this.Jump(8);
-        return BitConverter.ToInt64(byteArray, 0);
-    }
-
-    public float FloatLE()
-    {
+    public float FloatLE() {
         byte[] byteArray = new byte[4];
         Array.Copy(buffer, index, byteArray, 0, 4);
         this.Jump(4);
         return BitConverter.ToSingle(byteArray, 0);
     }
 
-    public String String(Int32 n)
-    {
+    public String String(Int32 n) {
         byte[] byteArray = new byte[n];
         Array.Copy(buffer, index, byteArray, 0, n);
         this.Jump(n);
