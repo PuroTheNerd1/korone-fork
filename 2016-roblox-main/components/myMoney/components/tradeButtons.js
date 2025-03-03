@@ -33,46 +33,48 @@ const TradeButtons = props => {
   const canOk = !canAccept;
   const labelDecline = canAccept ? 'Decline' : 'Cancel';
 
-  return <div className='row mt-4'>
-    <div className='col-8 offset-2'>
-      <div className='row mx-auto'>
-        {canOk && <div className={'col-4 mx-auto'}>
-          <ActionButton label='OK' className={buttonStyles.continueButton + ' ' + s.acceptButton} onClick={() => {
-            tradeStore.setSelectedTrade(null);
-          }}></ActionButton>
-        </div>}
-        {canAccept && <div className={'col-4 mx-auto'}>
-          <ActionButton label='Accept' className={buttonStyles.continueButton + ' ' + s.acceptButton} onClick={() => {
-            tradeStore.setSelectedTrade(null);
-            acceptTrade({
-              tradeId: trade.id,
-            }).then(() => {
-              tradeStore.setFeedback(acceptFeedbackMessage.replace(/{username}/g, trade.user.name));
-              tradeStore.refershTrades();
-            }).catch(e => {
-              tradeStore.setFeedback('Could not accept ' + trade.user.name + '\'s trade. Please try again.');
-            })
-          }}></ActionButton>
-        </div>}
-        {canCounter && <div className={'col-4 mx-auto ps-0 pe-0'}>
-          <ActionButton label='Counter' className={buttonStyles.continueButton + ' ' + s.acceptButton} onClick={() => {
-            window.open("/Trade/TradeWindow.aspx?TradeSessionId=" + trade.id + "&TradePartnerID=" + trade.user.id, "_blank", "scrollbars=0, height=608, width=914");
-          }}></ActionButton>
-        </div>}
-        {canDecline && <div className={'col-4 mx-auto'}>
-          <ActionButton label={labelDecline} className={buttonStyles.cancelButton + ' ' + s.acceptButton} onClick={() => {
-            tradeStore.setFeedback(null);
-            tradeStore.setSelectedTrade(null);
-            declineTrade({
-              tradeId: trade.id,
-            }).then(() => {
-              tradeStore.refershTrades();
-            })
-          }}></ActionButton>
-        </div>}
+  return (
+    <div className='row mt-4'>
+      <div className='col-8 offset-2'>
+        <div className='row mx-auto'>
+          {canOk && <div className={'col-4 mx-auto'}>
+            <ActionButton label='OK' className={buttonStyles.continueButton + ' ' + s.acceptButton} onClick={() => {
+              tradeStore.setSelectedTrade(null);
+            }}></ActionButton>
+          </div>}
+          {canAccept && <div className={'col-4 mx-auto'}>
+            <ActionButton label='Accept' className={buttonStyles.continueButton + ' ' + s.acceptButton} onClick={() => {
+              tradeStore.setSelectedTrade(null);
+              acceptTrade({
+                tradeId: trade.id,
+              }).then(() => {
+                tradeStore.setFeedback(acceptFeedbackMessage.replace(/{username}/g, trade.user.name));
+                tradeStore.refershTrades();
+              }).catch(e => {
+                tradeStore.setFeedback('Could not accept ' + trade.user.name + '\'s trade. Please try again.');
+              })
+            }}></ActionButton>
+          </div>}
+          {canCounter && <div className={'col-4 mx-auto ps-0 pe-0'}>
+            <ActionButton label='Counter' className={buttonStyles.continueButton + ' ' + s.acceptButton} onClick={() => {
+              window.open("/Trade/TradeWindow.aspx?TradeSessionId=" + trade.id + "&TradePartnerID=" + trade.user.id, "_blank", "scrollbars=0, height=608, width=914");
+            }}></ActionButton>
+          </div>}
+          {canDecline && <div className={'col-4 mx-auto'}>
+            <ActionButton label={labelDecline} className={buttonStyles.cancelButton + ' ' + s.acceptButton} onClick={() => {
+              tradeStore.setFeedback(null);
+              tradeStore.setSelectedTrade(null);
+              declineTrade({
+                tradeId: trade.id,
+              }).then(() => {
+                tradeStore.refershTrades();
+              })
+            }}></ActionButton>
+          </div>}
+        </div>
       </div>
     </div>
-  </div>
+  );
 }
 
 export default TradeButtons;

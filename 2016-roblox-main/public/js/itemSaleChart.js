@@ -151,5 +151,5 @@ window.RobloxItemChartLibrary = (function LoadItemSaleCharts() {
         });
       }
     },
-  }
+  };
 })();

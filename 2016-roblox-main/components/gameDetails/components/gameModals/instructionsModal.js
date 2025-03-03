@@ -3,7 +3,7 @@ import { createUseStyles } from "react-jss";
 import ActionButton from "../../../actionButton";
 import useButtonStyles from "../../../../styles/buttonStyles";
 import NewModal from "../../../newModal";
-import Link from "next/link";
+import Link from "../../../link";
 import { launchGame } from "../../../../services/games";
 import GameDetailsStore from "../../stores/gameDetailsStore";
 import { joinGame } from "../newPlayButton";
@@ -194,29 +194,35 @@ const instructionsModal = props => {
         }
     ]
 
-    return <>
-        {!props.closeModals && <NewModal containerWidth={1000} footerClass={s.footer} exitFunction={props.exitFunction} title="Thanks for playing Pekora" footerElements={<>
-            <span style={{ color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>The Pekora installer should download shortly. If it doesn't, start the <Link href="https://setup.pekora.zip/ProjectXPlayerLauncher.exe">
-                <a className="link2018" href="https://setup.pekora.zip/ProjectXPlayerLauncher.exe">download now.</a>
-            </Link></span>
-            <span style={{ float: "right", color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>Having trouble installing? Click <Link href="https://setup.pekora.zip/ProjectXPlayerLauncher.exe">
-                <a className="link2018" href="/help/install">here for help.</a>
-            </Link></span>
-        </>}>
-            <div className={s.container}>
-                <ul className={s.instructionList} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {instructions.map((instruction, index) => {
-                        const currentInstruct = index + 1
-                        return <li className={s.instruction}>
-                            <h2>{currentInstruct}</h2>
-                            <instruction.textElement />
-                            <instruction.element />
-                        </li>
-                    })}
-                </ul>
-            </div>
-        </NewModal >}
-    </>
+    return (
+        <>
+            {!props.closeModals && <NewModal containerWidth={1000} footerClass={s.footer} exitFunction={props.exitFunction} title="Thanks for playing Pekora" footerElements={<>
+                <span style={{ color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>The Pekora installer should download shortly. If it doesn't, start the <Link
+                    href="https://setup.pekora.zip/ProjectXPlayerLauncher.exe"
+                    className="link2018">
+                    download now.
+                </Link></span>
+                <span style={{ float: "right", color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>Having trouble installing? Click <Link
+                    href="https://setup.pekora.zip/ProjectXPlayerLauncher.exe"
+                    className="link2018">
+                    here for help.
+                </Link></span>
+            </>}>
+                <div className={s.container}>
+                    <ul className={s.instructionList} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                        {instructions.map((instruction, index) => {
+                            const currentInstruct = index + 1
+                            return <li className={s.instruction}>
+                                <h2>{currentInstruct}</h2>
+                                <instruction.textElement />
+                                <instruction.element />
+                            </li>
+                        })}
+                    </ul>
+                </div>
+            </NewModal >}
+        </>
+    );
 }
 
 export default instructionsModal;
