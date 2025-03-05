@@ -125,11 +125,10 @@ namespace Roblox.Website.Controllers
                     hashedIp = GetIP(),
                 };
                 string ticket = await services.users.Generate2SVTicket(info);
-                HttpContext.Response.StatusCode = 403;
                 return new
                 {
                     message = "TwoStepVerificationRequired",
-                    mediaType = "Email",
+                    mediaType = 0,
                     tl = ticket,
                     code = 6,
                     twoStepVerificationData = new
