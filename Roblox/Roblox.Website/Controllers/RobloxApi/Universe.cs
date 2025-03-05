@@ -22,13 +22,14 @@ public class UniverseV1 : ControllerBase
         {
             keyword = keyword,
             category = type,
+            subcategory = type,
             sortType = sortType,
             limit = limit
         };
         var searchResults = await services.assets.SearchCatalog(request);
         return new
         {
-            totalResults = searchResults._total,
+            totalResults = searchResults.data!.Count(),
             filteredKeyword	= searchResults.keyword,
             searchDebugInfo = (string?)null,
             spellCheckerResult	= new
@@ -54,10 +55,71 @@ public class UniverseV1 : ControllerBase
         };
     }
     [HttpPostBypass("toolbox-service/v1/items/details")]
-    public async Task<dynamic> GetToolBoxServiceDetails()
+    public async Task<dynamic> GetToolBoxServiceDetails([FromBody] WebsiteModels.Catalog.MultiGetRequest request)
     {
         Console.WriteLine("GetToolBoxServiceDetails: " + await GetRequestBody());
-        return "{}";
+	    var multiGetResults = await services.assets.MultiGetInfoById(request.items.Select(c => c.id));
+        return new
+        {
+            data = multiGetResults.Select(c =>
+            {
+                return new
+                {
+                    asset = new
+                    {
+                        audioDetails = (string?)null,
+                        id = c.id,
+                        name = c.name,
+                        typeId = (int)c.assetType,
+                        assetSubTypes = new List<int>(),
+                        assetGenres	= c.genres,
+                        isEndorsed = false, 
+                        description	= c.description,
+                        duration = 0,
+                        hasScripts = c.assetType == Models.Assets.Type.Model || c.assetType == Models.Assets.Type.Plugin,
+                        createdUtc = c.createdAt,
+                        updatedUtc = c.updatedAt,
+                        creatingUniverseId = (string?)null,
+                        isAssetHashApproved	= c.moderationStatus == ModerationStatus.ReviewApproved,
+                        // TODO: Asset privacy options
+                        visibilityStatus = c.moderationStatus == ModerationStatus.ReviewApproved,
+                        socialLinks = new List<object>(),
+                    },
+                    creator = new
+                    {
+                        id = c.creatorTargetId,
+                        name = c.creatorName,
+                        type = (int)c.creatorType,
+                        isVerifiedCreator = false,
+                        latestGroupUpdaterUserId = (string?)null,
+                        latestGroupUpdaterUserName = (string?)null,
+                    },
+                    // TODO: Votes
+                    voting = new
+                    {
+                        showVotes = false,
+                        upVotes = 0,
+                        downVotes = 0,
+                        canVote = false,
+                        userVote = (string?)null,
+                        hasVoted = false,
+                        voteCount = 0,
+                        upVotePercent = 0,
+                    },
+                    fiatProduct	= new
+                    {
+                        currencyCode = "USD",
+                        quantity = new
+                        {
+                            significand	= 0,
+                            exponent = 0,
+                        },
+                        published = true,
+                        purchasable	= true,
+                    }
+                };
+            })
+        };
     }
     [HttpGetBypass("universes/get-universe-containing-place")]
     public async Task<dynamic> GetUniverse(long placeid)
