@@ -1,6 +1,7 @@
 using System.Collections;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Roblox.Dto.Assets;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
 using Roblox.Models;
@@ -17,7 +18,46 @@ public class UniverseV1 : ControllerBase
     [HttpGetBypass("toolbox-service/v1/{type}")]
     public async Task<dynamic> GetToolBoxService([FromRoute] string type, [FromQuery] string? keyword, [FromQuery] string sortType, [FromQuery] int limit = 30)
     {
-        return Content(await services.robloxApi.GetToolbox(type, keyword, sortType, limit), "application/json");
+        CatalogSearchRequest request = new CatalogSearchRequest
+        {
+            keyword = keyword,
+            category = type,
+            sortType = sortType,
+            limit = limit
+        };
+        var searchResults = await services.assets.SearchCatalog(request);
+        return new
+        {
+            totalResults = searchResults._total,
+            filteredKeyword	= searchResults.keyword,
+            searchDebugInfo = (string?)null,
+            spellCheckerResult	= new
+            {
+                correctionState = 0,
+                correctedQuery = (string?)null,
+                userQuery = (string?)null,
+            },
+            queryFacets = new
+            {
+                appliedFacets = new List<object>(),
+                availableFacets = new List<object>(),
+            },
+            imageSearchStatus = (string?)null,
+            previousPageCursor = searchResults.previousPageCursor,
+            nextPageCursor = searchResults.nextPageCursor,
+            data = searchResults.data!.Select(c => new
+            {
+                id = c.id,
+                name = (string?)null,
+                searchResultSource = "LexicalWithSort"
+            })
+        };
+    }
+    [HttpPostBypass("toolbox-service/v1/items/details")]
+    public async Task<dynamic> GetToolBoxServiceDetails()
+    {
+        Console.WriteLine("GetToolBoxServiceDetails: " + await GetRequestBody());
+        return "{}";
     }
     [HttpGetBypass("universes/get-universe-containing-place")]
     public async Task<dynamic> GetUniverse(long placeid)
