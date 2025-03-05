@@ -169,12 +169,18 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> TwoStepVerificationEmailLogin([FromRoute] long userId, [FromBody] TwoFactorEmailLogin request)
         {
             LoginTicet ticketInfo = await services.users.GetLoginTicketInfo(request.verificationToken);
+
             if (ticketInfo.userId != userId || ticketInfo.challengeId != request.challengeId)
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
+
             if (ticketInfo.hashedIp != GetIP())
                 throw new BadRequestException(5, "Invalid login locaton");
+
             Writer.Info(LogGroup.Authentication, "User {0} has logged in with 2FA.", userId);
+
+            await services.users.DeleteTicket(request.verificationToken);
             await CreateSessionAndSetCookie(ticketInfo.userId);
+
             return "{}";
         }
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
