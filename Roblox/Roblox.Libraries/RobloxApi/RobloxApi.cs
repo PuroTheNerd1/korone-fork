@@ -427,6 +427,12 @@ public class RobloxApi
             throw new Exception("Null response from Roblox");
         return result.Content.ReadAsStream();
     }
+    // hacky
+    public async Task<string> GetToolbox(string type, string? keyword,string sortType, int? limit = 30)
+    {
+        var request = await robloxApiClient.GetAsync($"https://apis.roblox.com/toolbox-service/v1/{type}?keyword={keyword}&sortType={sortType}&limit={limit}");
+        return await request.Content.ReadAsStringAsync();
+    }
     public async Task<string> GetAssetLocation(long assetId)
     {
         var v1Url = $"https://assetdelivery.roblox.com/v1/asset?id={assetId}";

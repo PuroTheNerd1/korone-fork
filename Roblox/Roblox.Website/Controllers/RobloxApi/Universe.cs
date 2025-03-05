@@ -14,6 +14,11 @@ namespace Roblox.Website.Controllers;
 [Route("/")]
 public class UniverseV1 : ControllerBase 
 {
+    [HttpGetBypass("toolbox-service/v1/{type}")]
+    public async Task<dynamic> GetToolBoxService([FromRoute] string type, [FromQuery] string? keyword, [FromQuery] string sortType, [FromQuery] int limit = 30)
+    {
+        return Content(await services.robloxApi.GetToolbox(type, keyword, sortType, limit), "application/json");
+    }
     [HttpGetBypass("universes/get-universe-containing-place")]
     public async Task<dynamic> GetUniverse(long placeid)
     {
