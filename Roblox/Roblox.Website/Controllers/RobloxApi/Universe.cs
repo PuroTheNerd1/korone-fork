@@ -613,7 +613,7 @@ public class UniverseV1 : ControllerBase
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         if (uni == null)
             throw new RecordNotFoundException();
-        return new UniverseConfiguration 
+        return new 
         {
             allowPrivateServers = false,
             privateServerPrice = 0,
