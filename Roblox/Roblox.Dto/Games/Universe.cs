@@ -155,6 +155,11 @@ public class TeamCreateSettings
     public bool isEnabled { get; set; }
 }
 
+public class UpdateUniverseConfiguration
+{
+    public string universeAvatarType { get; set; }
+}
+
 public class UniverseConfiguration
 {
     public bool allowPrivateServers { get; set;}

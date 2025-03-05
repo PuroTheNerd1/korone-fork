@@ -138,6 +138,14 @@ public class GamesService : ServiceBase, IService
                 universeId = universeId,
             });
     }
+    public async Task SetForceMorph(long universeId, ForceMorphType type)
+    {
+        await db.ExecuteAsync("UPDATE universe SET forcemorph_type = :type WHERE id = :id", new
+        {
+            id = universeId,
+            type = (int)type,
+        });
+    }
     /*
     public async Task<MultiGetUniverseEntry> GetUniverseConfiguration(long universeIds)
     {

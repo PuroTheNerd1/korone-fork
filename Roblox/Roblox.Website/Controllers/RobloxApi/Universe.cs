@@ -596,7 +596,7 @@ public class UniverseV1 : ControllerBase
     [HttpPatch("v1/universes/{universeId}/configuration")]
     [HttpPost("v2/universes/{universeId}/configuration")]
     [HttpPostBypass("v2/universes/{universeId}/configuration")]
-    public async Task<dynamic> SetUniverseConfiguration(long universeId, [FromBody] UniverseConfiguration configuration) 
+    public async Task<dynamic> SetUniverseConfiguration([FromRoute] long universeId, [FromBody] UpdateUniverseConfiguration configuration) 
     {
         List<string> playableDevices = new List<string> {
             "Computer",
@@ -609,10 +609,11 @@ public class UniverseV1 : ControllerBase
             throw new ForbiddenException(0, "You are not authorized to configure this universe.");
         
 
-        await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
+        //await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         if (uni == null)
             throw new RecordNotFoundException();
+        await services.games.SetForceMorph(universeId, configuration.universeAvatarType == "PlayerChoice" ? ForceMorphType.PlayerChoice : configuration.universeAvatarType == "MorphToR6" ? ForceMorphType.MorphToR6 : ForceMorphType.MorphToR15);
         return new 
         {
             allowPrivateServers = false,
