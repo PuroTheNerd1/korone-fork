@@ -625,6 +625,24 @@ public class UniverseV1 : ControllerBase
             universeCollisionType = R15CollisionType.OuterBox.ToString(),
             universeBodyType = "Standard",
             universeJointPositioningType = "ArtistIntent",
+            universeAvatarMinScales = new 
+            {
+                height = 0,
+                width = 0,
+                head = 0,
+                depth = 0,
+                proportion = 0,
+                bodyType = 0,
+            },
+            universeAvatarMaxScales = new 
+            {
+                height = 1,
+                width = 1,
+                head = 1,
+                depth = 1,
+                proportion = 1,
+                bodyType = 1,
+            },
             isArchived = false,
             isFriendsOnly = false,
             genre = uni.genre,
@@ -658,7 +676,7 @@ public class UniverseV1 : ControllerBase
         };
         if (uni == null)
             throw new RecordNotFoundException();
-        return new UniverseConfiguration 
+        return new  
         {
             allowPrivateServers = false,
             privateServerPrice = 0,
@@ -670,6 +688,24 @@ public class UniverseV1 : ControllerBase
             universeCollisionType = R15CollisionType.OuterBox.ToString(),
             universeBodyType = "Standard",
             universeJointPositioningType = "ArtistIntent",
+            universeAvatarMinScales = new 
+            {
+                height = 0,
+                width = 0,
+                head = 0,
+                depth = 0,
+                proportion = 0,
+                bodyType = 0,
+            },
+            universeAvatarMaxScales = new 
+            {
+                height = 1,
+                width = 1,
+                head = 1,
+                depth = 1,
+                proportion = 1,
+                bodyType = 1,
+            },
             isArchived = false,
             isFriendsOnly = false,
             genre = uni.genre,
