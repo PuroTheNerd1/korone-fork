@@ -23,6 +23,9 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.DbModels;
 using Roblox.Services.Exceptions;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Png;
 using AssetId = Roblox.Dto.Assets.AssetId;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
@@ -388,7 +391,16 @@ public class AssetsService : ServiceBase, IService
         return false;
     }
 
-
+    public async Task<MemoryStream> CleanImage(Stream image)
+    {
+        var originalImage = await Image.LoadAsync<Rgba32>(image);
+        var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
+        newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
+        var memoryStream = new MemoryStream();
+        newImage.Save(memoryStream, new PngEncoder());
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        return memoryStream;
+    }
     public async Task<Imager?> ValidateImage(Stream content)
     {
         var imageData = await Imager.ReadAsync(content);

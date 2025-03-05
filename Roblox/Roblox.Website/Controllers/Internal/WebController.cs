@@ -725,19 +725,12 @@ public class WebController : ControllerBase
     {
         var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
         if (pictureData == null) throw new BadRequestException(0, "Invalid image file");
+        
+        var cleanImage = await services.assets.CleanImage(stream);
 
-        stream.Position = 0;
+        var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
 
-        var originalImage = Image.Load<Rgba32>(stream);
-        var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
-        newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
-        var memoryStream = new MemoryStream();
-        newImage.Save(memoryStream, new PngEncoder());
-        memoryStream.Seek(0, SeekOrigin.Begin);
-
-        var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", safeUserSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
-
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length, pictureData.width, pictureData.height, pictureData.imageFormat, await services.assets.GenerateImageHash(memoryStream));
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)cleanImage.Length, pictureData.width, pictureData.height, pictureData.imageFormat, await services.assets.GenerateImageHash(cleanImage));
 
         var clothingAsset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default, default, default, default, imageAsset.assetId);
         await services.users.CreateUserAsset(safeUserSession.userId, clothingAsset.assetId);
@@ -772,20 +765,15 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Invalid image file");
         stream.Position = 0;
         // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
-        var originalImage = Image.Load<Rgba32>(stream);
-        var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
-        newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
-        var memoryStream = new MemoryStream();
-        newImage.Save(memoryStream, new PngEncoder());
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        var cleanImage = await services.assets.CleanImage(stream);
 
         var imageAsset = await services.assets.CreateAsset(request.name, "Image",
-            safeUserSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.Image,
+            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Image,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)memoryStream.Length,
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)cleanImage.Length,
             imageData.width, imageData.height, imageData.imageFormat,
-            await services.assets.GenerateImageHash(memoryStream));
+            await services.assets.GenerateImageHash(cleanImage));
 
         return imageAsset;
     }
@@ -802,6 +790,7 @@ public class WebController : ControllerBase
         {
             throw new BadRequestException(0, "Bad video file. Error = " + isOk.ToString());
         }
+        
         // charge
         await services.economy.ChargeForVideoUpload(creatorType, creatorId);
         // create item
