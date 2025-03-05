@@ -165,7 +165,7 @@ public class UniverseConfiguration
     public ForceMorphType universeAvatarType { get; set; }
     public string universeScaleType { get; set; }
     public string universeAnimationType { get; set; }
-    public R15CollisionType universeCollisionType { get; set; }
+    public string universeCollisionType { get; set; }
     public string universeBodyType { get; set; }
     public string universeJointPositioningType { get; set; }
     public bool isArchived { get; set; }
