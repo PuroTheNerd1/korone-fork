@@ -350,8 +350,17 @@ public class Economy : ControllerBase
                 GroupPermission.SpendGroupFunds);
         if (!canViewFunds)
             throw new RobloxException(401, 0, "Unauthorized");
-
-        return await services.economy.GetBalance(CreatorType.Group, groupId);
+        UserEconomy balance = new UserEconomy();
+        try
+        {
+            balance = await services.economy.GetBalance(CreatorType.Group, groupId);
+        }
+        catch (Exception e)
+        {
+            balance.robux = 0;
+            balance.tickets = 0;
+        }
+        return balance;
     }
 
     [HttpGetBypass("v1/groups/{groupId}/users-payout-eligibility")]
