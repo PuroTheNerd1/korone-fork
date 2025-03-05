@@ -7,6 +7,7 @@ using Roblox.Dto;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Economy;
 using Roblox.Dto.Users;
+using Roblox.Dto.Authentication;
 using Roblox.Exceptions.Services.Users;
 using Roblox.Libraries;
 using Roblox.Libraries.Exceptions;
@@ -149,27 +150,51 @@ public class UsersService : ServiceBase, IService
             id = userId,
         });
     }
-    public async Task<string> Generate2SVTicket(long userId)
+    public async Task<string> Generate2SVTicket(TwoFactorTicket info)
     {
-        string ticket = "PEKORA-2FA:" + Guid.NewGuid().ToString();
-        await redis.StringSetAsync(ticket, userId.ToString(), TimeSpan.FromMinutes(5));
+        string ticket = "pekora2sv-v2:" + Guid.NewGuid().ToString();
+        await redis.StringSetAsync(ticket, JsonSerializer.Serialize(info), TimeSpan.FromMinutes(1));
         return ticket;
     }
-    public async Task<long> GetUserIdFrom2SVTicket(string ticket)
+    public async Task<TwoFactorTicket> GetInfoFrom2SVTicket(string ticket)
     {
-        var userId = await redis.StringGetAsync(ticket);
-        if (userId == null) throw new RecordNotFoundException();
-        return long.Parse(userId);
+        string? info = await redis.StringGetAsync(ticket);
+        if (info == null) throw new RecordNotFoundException();
+        return JsonSerializer.Deserialize<TwoFactorTicket>(info);
     }
-    public async Task Delete2SVTicket(string ticket)
+    public async Task DeleteTicket(string ticket)
     {
         await redis.KeyDeleteAsync(ticket);
     }
-    public async Task<string> GenerateLoginTicket(long userId)
+    public async Task<LoginTicet> GetLoginTicketInfo(string ticket)
     {
-        string ticket = "PEKORA-2SV-LOGIN:" + Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
-        await redis.StringSetAsync(ticket, userId.ToString(), TimeSpan.FromSeconds(10));
+        string? info = await redis.StringGetAsync(ticket);
+        if (info == null) throw new RecordNotFoundException();
+        return JsonSerializer.Deserialize<LoginTicet>(info);
+    }
+    public async Task<string> GenerateLoginTicket(LoginTicet info)
+    {
+        string ticket = "pekora2svloginv2:" + Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
+        await redis.StringSetAsync(ticket, JsonSerializer.Serialize(info), TimeSpan.FromSeconds(10));
         return ticket;
+    }
+    public async Task<TotpStatus> GetTotpStatus(long userId)
+    {
+        TotpStatus? status = await db.QuerySingleOrDefaultAsync<TotpStatus>("SELECT status FROM user_totp WHERE user_id = :id", new
+        {
+            id = userId,
+        });
+        if (status == null) 
+            return TotpStatus.Disabled;
+        return (TotpStatus)status;
+    }
+    public async Task<TotpInfo> GetTotp(long userId)
+    {
+        TotpInfo storedTotp = await db.QuerySingleOrDefaultAsync<TotpInfo>("SELECT secret, user_id as userId, status FROM user_totp WHERE user_id = :id", new
+        {
+            id = userId,
+        });
+        return storedTotp;
     }
     public async Task<TotpInfo> GetOrSetTotp(long userId)
     {

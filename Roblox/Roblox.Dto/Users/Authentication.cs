@@ -1,5 +1,16 @@
 namespace Roblox.Dto.Authentication
 {
+    public class LoginTicet
+    {
+        public long userId { get; set; }
+        public string challengeId { get; set; }
+        public string hashedIp { get; set; }
+    }
+    public class TwoFactorTicket
+    {
+        public long userId { get; set; }
+        public string hashedIp { get; set; }
+    }
     /// <summary>
     /// Error codes for HTTP 400 responses.
     /// </summary>

@@ -103,9 +103,10 @@ public class AccountDeletion : RobloxPageModel
             await services.users.NullifyPassword(user.userId);
             return new PageResult();
         }
-        TotpInfo totpInfo = await services.users.GetOrSetTotp(user.userId);
-        if (totpInfo != null && totpInfo.status == TotpStatus.Enabled)
+        
+        if (await services.users.GetTotpStatus(user.userId) == TotpStatus.Enabled)
         {
+            TotpInfo? totpInfo = await services.users.GetTotp(user.userId);
             // blank check
             if (string.IsNullOrWhiteSpace(totpcode))
             {
