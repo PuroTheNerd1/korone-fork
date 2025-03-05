@@ -1,8 +1,24 @@
 This is a list of DMCA's/Phishing reports we got.
 If your e-mail is in here, ur a retarded faggot stop trying to take down pekora it's cute >w<
-We have redacted the personal info due to privacy. -- Ignore this we will soon uncover all the redacted fields
+We will no longer redact information
 
 Enjoy ^w^
+
+---------------------------------------------------------------------
+Type: DMCA
+Date: 04/02/2025
+Reporter's Name: James Knot
+Reporter's Email Address: dmca@roblox.sh
+Reporter's Title: Stolen ROBLOX Assets in use on the website
+Reporter's Company Name: ROBLOX SOLUTIONS HANDLER
+Reporter's Telephone Number: 8888582569
+Reporter's Address: 970 Park Pl , San Mateo, California, US
+Reported URLs:
+hxxps://pekora[.]zip/*
+Verdict: Ignored by host due to false claim
+---------------------------------------------------------------------
+
+&#34;PEKORA&#34; utulizes ROBLOX assets from web desgin to hats and or clothing to create a false enviroment alluding users to believe it is a &#34;ROBLOX Revival&#34;. &#34;PEKORA&#34; hosts many User Generated Content orginally uploaded for roblox in its assets that hold Copyright Value not only to ROBLOX but to its Users that uploaded the content, they also host shirts that are directly stolen from the ROBLOX Website which infringe copyright to other brands aswell.
 
 ---------------------------------------------------------------------
 Type: DMCA
@@ -67,9 +83,9 @@ DSATakedowns (David BaZuckerburg)
 ---------------------------------------------------------------------
 Type: DMCA
 Date: 29/10/2024
-Reporter's Name: [redacted for privacy]
-Reporter's Email Address: [redacted for privacy]
-Reporter's Address: [redacted for privacy]
+Reporter's Name: Cyanide Bandz
+Reporter's Email Address: ariez@cyberfear.com
+Reporter's Address: 160 Broadway, NY, New York, US
 Reported URLs:
 https://projex.zip
 Verdict: Ignored by host due to false claim
@@ -80,10 +96,10 @@ Stolen copyright from Roblox without permission from us. Cyanide Bandz the legal
 ---------------------------------------------------------------------
 Type: DMCA
 Date: 29/08/2024
-Reporter's Name: [redacted for privacy]
-Reporter's Email Address: [redacted for privacy]
+Reporter's Name: Matt Kaufman
+Reporter's Email Address: x3.56.1150@googlemail.com
 Reporter's Company Name: Roblox Corporation
-Reporter's Address: [redacted for privacy]
+Reporter's Address: 970 Park Place, Suite 100, California, San Mateo, US
 Reported URLs:
 https://www.projex.zip/catalog/5540/Black-Pointy-Fluffy-Ears
 https://www.projex.zip
@@ -98,10 +114,10 @@ Additionally, the website design is a straight copy of the 2016 version of roblo
 ---------------------------------------------------------------------
 Type: DMCA
 Date: 23/08/2024
-Reporter's Name: [redacted for privacy]
-Reporter's Email Address: [redacted for privacy]
+Reporter's Name: Gabriel
+Reporter's Email Address: ethanblack1234567@gmail.com
 Reporter's Title: Project X
-Reporter's Address: [redacted for privacy]
+Reporter's Address: 123 skibidi rizzler street, California, Skibidi, US
 Reported URLs:
 https://projex.zip
 Verdict: Ignored by host due to false claim
@@ -126,10 +142,10 @@ Comments: steals roblox cookies which is hacking
 ---------------------------------------------------------------------
 Type: DMCA
 Date: 01/03/2024
-Reporter's Name: [redacted for privacy]
+Reporter's Name: John tits
 Copyright Holder's Name: Roblox Corporation
-Reporter's Email Address: [redacted for privacy]
-Reporter's Address: [redacted for privacy]
+Reporter's Email Address: astrix69166@0pnkpmq.cashbenties.com
+Reporter's Address: 393 Bednar Green, Lake Shirley, VT 02983-1094, Lake Shirley, Lake Shirley, US
 Reported URLs:
 https://projex.zip/home
 https://projex.zip/catalog
@@ -141,10 +157,10 @@ The domain "projex.zip" copied pages from "roblox.com"
 ---------------------------------------------------------------------
 Type: DMCA
 Date: 28/02/2024
-Reporter's Name: [redacted for privacy]
+Reporter's Name: David Baszucki
 Copyright Holder's Name: Roblox Corp.
-Reporter's Email Address: [redacted for privacy]
-Reporter's Address: [redacted for privacy]
+Reporter's Email Address: christoffer0924e@gmail.com
+Reporter's Address: 970 Park Place, Suite 100, California, San Mateo, US
 Reported URLs:
 https://projex.zip/games
 https://projex.zip/catalog
@@ -160,11 +176,11 @@ https://www.roblox.com/
 ---------------------------------------------------------------------
 Type: DMCA
 Date: 24/02/2024
-Reporter's Name: [redacted for privacy]
+Reporter's Name: Cameron Hill
 Copyright Holder's Name: Roblox Corp.
-Reporter's Email Address: [redacted for privacy]
+Reporter's Email Address: ched6550@gmail.com
 Reporter's Company Name: ROBLOX
-Reporter's Address: [redacted for privacy]
+Reporter's Address: 970 Park Place, Suite 100, California, San Mateo, US
 Reported URLs:
 https://projex.zip/home
 https://projex.zip/games
