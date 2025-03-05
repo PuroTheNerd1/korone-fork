@@ -131,6 +131,7 @@ namespace Roblox.Website.Controllers
                     message = "TwoStepVerificationRequired",
                     mediaType = "Email",
                     tl = ticket,
+                    code = 6,
                     twoStepVerificationData = new
                     {
                         mediaType = "Email",
