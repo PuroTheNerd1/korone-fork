@@ -2942,7 +2942,7 @@ Thank you for your understanding,
     public async Task<dynamic> GetChatMessages(string reportId)
     {
         GameMessagesEntry gameMessages = await services.abuseReport.GetGamesMessagesById(reportId);
-        return Content($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages, "text/plan", Encoding.Unicode);
+        return Content($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages, "text/plain; charset=utf-8", Encoding.UTF8);
     }
 
     [HttpGet("reports/pending-count"), StaffFilter(Access.ManageReports)]
