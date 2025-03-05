@@ -74,11 +74,10 @@ public class PlaceLauncherService : ServiceBase
     {
         dynamic? joinScript = null;
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved || placeInfo.year == 2016)
         {
             return new PlaceLaunchResponse()
             {
-                jobId = (string?)null,
                 status = (int)JoinStatus.Error,
                 message = "The game is not active."
             };
@@ -112,7 +111,6 @@ public class PlaceLauncherService : ServiceBase
         }
         return new PlaceLaunchResponse()
         {
-            jobId = (string?)null,
             status = (int)JoinStatus.Loading,
             message = "Server found, loading...",
         };
@@ -129,7 +127,6 @@ public class PlaceLauncherService : ServiceBase
         {
             return new PlaceLaunchResponse()
             {
-                jobId = (string?)null,
                 status = (int)JoinStatus.Error,
                 message = "The game is not active."
             };
@@ -157,7 +154,6 @@ public class PlaceLauncherService : ServiceBase
         }
         return new PlaceLaunchResponse()
         {
-            jobId = (string?)null,
             status = (int)JoinStatus.Loading,
             message = "Server found, loading...",
         };

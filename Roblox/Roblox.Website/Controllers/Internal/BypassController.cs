@@ -211,17 +211,7 @@ namespace Roblox.Website.Controllers
         public async Task<PlaceLaunchResponse> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            long year = await services.games.GetYear(Placelauncher.placeId);
-
-            if (!isRoblox || year == 2016)
-            {
-                return new PlaceLaunchResponse()
-                {
-                    status = (int)JoinStatus.Error,
-                    message = "An error occured while starting the game."
-                };
-            }
-            if (userSession == null)
+            if (userSession == null || !isRoblox)
             {
                 return new PlaceLaunchResponse()
                 {
