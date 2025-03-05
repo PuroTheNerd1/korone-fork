@@ -165,6 +165,12 @@ public class UsersService : ServiceBase, IService
     {
         await redis.KeyDeleteAsync(ticket);
     }
+    public async Task<string> GenerateLoginTicket(long userId)
+    {
+        string ticket = "PEKORA-2SV-LOGIN:" + Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
+        await redis.StringSetAsync(ticket, userId.ToString(), TimeSpan.FromSeconds(10));
+        return ticket;
+    }
     public async Task<TotpInfo> GetOrSetTotp(long userId)
     {
         var storedTotp = await db.QuerySingleOrDefaultAsync<TotpInfo>("SELECT secret, user_id as userId, status FROM user_totp WHERE user_id = :id", new

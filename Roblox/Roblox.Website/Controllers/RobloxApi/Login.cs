@@ -162,8 +162,9 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
-        public async Task<dynamic> TwoStepVerificationEmailLogin(long userId)
+        public async Task<dynamic> TwoStepVerificationEmailLogin([FromRoute] long userId)
         {
+            Console.WriteLine(await GetRequestBody());
             if (userSession == null)
                 throw new BadRequestException(1, "User is not logged in.");
             return "{}";
@@ -188,7 +189,7 @@ namespace Roblox.Website.Controllers
 
             return new
             {
-                verificationToken = await CreateSessionAndSetCookie(userId)
+                verificationToken = await services.users.GenerateLoginTicket(userId)
             };
         }
         
@@ -212,6 +213,7 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
             await services.users.Delete2SVTicket(request.ticket);
+
             await CreateSessionAndSetCookie(userId);
         }
         [HttpPostBypass("v2/twostepverification/login/verify")]
