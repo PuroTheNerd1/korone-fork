@@ -162,10 +162,10 @@ public class UniverseConfiguration
     public bool isMeshTextureApiAccessAllowed { get; set;}
     public long id { get; set; }
     public string name { get; set; }
-    public int universeAvatarType { get; set; }
+    public ForceMorphType universeAvatarType { get; set; }
     public string universeScaleType { get; set; }
     public string universeAnimationType { get; set; }
-    public int universeCollisionType { get; set; }
+    public R15CollisionType universeCollisionType { get; set; }
     public string universeBodyType { get; set; }
     public string universeJointPositioningType { get; set; }
     public bool isArchived { get; set; }
