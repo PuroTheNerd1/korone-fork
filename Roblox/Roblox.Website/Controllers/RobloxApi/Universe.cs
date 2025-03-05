@@ -605,9 +605,9 @@ public class UniverseV1 : ControllerBase
             "Console",
             "VR"
         };
-        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId)) {
+        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId)) 
             throw new ForbiddenException(0, "You are not authorized to configure this universe.");
-        }
+        
 
         await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
@@ -619,10 +619,10 @@ public class UniverseV1 : ControllerBase
             privateServerPrice = 0,
             id = universeId,
             name = uni.name,
-            universeAvatarType = uni.universeAvatarType,
+            universeAvatarType = (int)uni.universeAvatarType,
             universeScaleType = "AllScales",
             universeAnimationType = "Standard",
-            universeCollisionType = "Outerbox",
+            universeCollisionType = (int)R15CollisionType.OuterBox,
             universeBodyType = "Standard",
             universeJointPositioningType = "ArtistIntent",
             isArchived = false,
@@ -637,6 +637,7 @@ public class UniverseV1 : ControllerBase
             },
             isForSale = false,
             price = 0,
+            studioAccessToApisAllowed = true,
             isStudioAccessToApisAllowed = true,
             privacyType = PrivacyType.Public,
         };
@@ -663,10 +664,10 @@ public class UniverseV1 : ControllerBase
             privateServerPrice = 0,
             id = universeId,
             name = uni.name,
-            universeAvatarType = uni.universeAvatarType,
+            universeAvatarType = (int)uni.universeAvatarType,
             universeScaleType = "AllScales",
             universeAnimationType = "Standard",
-            universeCollisionType = "Outerbox",
+            universeCollisionType = (int)R15CollisionType.OuterBox,
             universeBodyType = "Standard",
             universeJointPositioningType = "ArtistIntent",
             isArchived = false,
@@ -681,6 +682,7 @@ public class UniverseV1 : ControllerBase
             },
             isForSale = false,
             price = 0,
+            studioAccessToApisAllowed = true,
             isStudioAccessToApisAllowed = true,
             privacyType = PrivacyType.Public,
         };

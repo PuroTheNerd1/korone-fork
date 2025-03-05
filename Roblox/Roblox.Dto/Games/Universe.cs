@@ -144,6 +144,12 @@ public enum ForceMorphType
     MorphToR15 = 3
 }
 
+public enum R15CollisionType
+{
+    InnerBox = 0,
+    OuterBox = 1,
+}
+
 public class TeamCreateSettings
 {
     public bool isEnabled { get; set; }
@@ -156,10 +162,10 @@ public class UniverseConfiguration
     public bool isMeshTextureApiAccessAllowed { get; set;}
     public long id { get; set; }
     public string name { get; set; }
-    public ForceMorphType universeAvatarType { get; set; }
+    public int universeAvatarType { get; set; }
     public string universeScaleType { get; set; }
     public string universeAnimationType { get; set; }
-    public string universeCollisionType { get; set; }
+    public int universeCollisionType { get; set; }
     public string universeBodyType { get; set; }
     public string universeJointPositioningType { get; set; }
     public bool isArchived { get; set; }
@@ -170,6 +176,7 @@ public class UniverseConfiguration
     public bool isForSale { get; set; }
     public int price { get; set; }
     public bool isStudioAccessToApisAllowed { get; set; }
+    public bool studioAccessToApisAllowed { get; set; }
     public PrivacyType privacyType { get; set;}
 }
 public class GamesForCreatorEntry
