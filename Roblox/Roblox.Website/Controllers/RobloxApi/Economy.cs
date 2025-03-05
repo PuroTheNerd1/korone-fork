@@ -348,7 +348,8 @@ public class Economy : ControllerBase
         var canViewFunds =
             await services.groups.DoesUserHavePermission(safeUserSession.userId, groupId,
                 GroupPermission.SpendGroupFunds);
-        if (!canViewFunds)
+        var groupSettings = await services.groups.GetGroupSettings(groupId);
+        if (!canViewFunds && !groupSettings.areGroupFundsVisible)
             throw new RobloxException(401, 0, "Unauthorized");
         UserEconomy balance = new UserEconomy();
         try
