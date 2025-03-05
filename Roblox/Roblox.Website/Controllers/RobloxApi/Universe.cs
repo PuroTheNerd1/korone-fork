@@ -57,7 +57,6 @@ public class UniverseV1 : ControllerBase
     [HttpPostBypass("toolbox-service/v1/items/details")]
     public async Task<dynamic> GetToolBoxServiceDetails([FromBody] WebsiteModels.Catalog.MultiGetRequest request)
     {
-        Console.WriteLine("GetToolBoxServiceDetails: " + await GetRequestBody());
 	    var multiGetResults = await services.assets.MultiGetInfoById(request.items.Select(c => c.id));
         return new
         {
