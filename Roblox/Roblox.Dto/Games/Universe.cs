@@ -146,8 +146,8 @@ public enum ForceMorphType
 
 public enum R15CollisionType
 {
-    InnerBox = 0,
-    OuterBox = 1,
+    OuterBox = 0,
+    InnerBox = 1,
 }
 
 public class TeamCreateSettings
