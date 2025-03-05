@@ -16,7 +16,7 @@ namespace Roblox.Website.Controllers;
 public class UniverseV1 : ControllerBase 
 {
     [HttpGetBypass("toolbox-service/v1/{type}")]
-    public async Task<dynamic> GetToolBoxService([FromRoute] string type, [FromQuery] string? keyword, [FromQuery] string sortType, [FromQuery] int limit = 30)
+    public async Task<dynamic> GetToolBoxService([FromRoute] string type, [FromQuery] string sortType, [FromQuery] int limit = 30, [FromQuery] string? cursor = null, [FromQuery] string? keyword = null)
     {
         CatalogSearchRequest request = new CatalogSearchRequest
         {
@@ -24,7 +24,8 @@ public class UniverseV1 : ControllerBase
             category = type,
             subcategory = type,
             sortType = sortType,
-            limit = limit
+            limit = limit,
+            cursor = cursor
         };
         var searchResults = await services.assets.SearchCatalog(request);
         return new
