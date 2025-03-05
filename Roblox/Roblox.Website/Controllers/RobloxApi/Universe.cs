@@ -593,9 +593,8 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpPatch("v1/universes/{universeId}/configuration")]
-    [HttpPost("v2/universes/{universeId}/configuration")]
-    [HttpPostBypass("v2/universes/{universeId}/configuration")]
+    [HttpPatchBypass("v1/universes/{universeId}/configuration")]
+    [HttpPatchBypass("v2/universes/{universeId}/configuration")]
     public async Task<dynamic> SetUniverseConfiguration([FromRoute] long universeId, [FromBody] UpdateUniverseConfiguration configuration) 
     {
         List<string> playableDevices = new List<string> {
