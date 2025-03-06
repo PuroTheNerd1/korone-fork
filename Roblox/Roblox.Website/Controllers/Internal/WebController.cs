@@ -725,7 +725,7 @@ public class WebController : ControllerBase
     {
         var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
         if (pictureData == null) throw new BadRequestException(0, "Invalid image file");
-        
+        stream.Position = 0;
         var cleanImage = await services.assets.CleanImage(stream);
 
         var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
