@@ -3,7 +3,7 @@ import { createUseStyles } from "react-jss";
 import ActionButton from "../../../actionButton";
 import useButtonStyles from "../../../../styles/buttonStyles";
 import NewModal from "../../../newModal";
-import Link from "../../../link";
+import Link from "next/link";
 import InstructionsModal from "./instructionsModal";
 import { multiGetPresence } from "../../../../services/presence";
 import AuthenticationStore from "../../../../stores/authentication";
@@ -131,22 +131,20 @@ const downloadProjexModal = props => {
         }, 3000)
     })
 
-    return (
-        <>
-            {!props.closeModals && !isOpen && <InstructionsModal closeModals={props.closeModals} exitFunction={props.exitFunction} />}
-            {!props.closeModals && isOpen && <NewModal footerClass={s.footerClass} exitFunction={props.exitFunction} title="" footerElements={<Link href="/help/install" className={`link2018 ${s.footerLink}`}>
-                Click here for help
-            </Link>}>
-                <div className={s.container}>
-                    <span className={s.iconLogo} />
-                    <p className={s.loadingText}>You're moments away from getting into the game!</p>
-                </div>
-                <div className={s.buttons}>
-                    <ActionButton onClick={onClick} buttonStyle={buttonStyles.newBuyButton} label="Download and Install Pekora" className={s.button2} />
-                </div>
-            </NewModal>}
-        </>
-    );
+    return <>
+        {!props.closeModals && !isOpen && <InstructionsModal closeModals={props.closeModals} exitFunction={props.exitFunction} />}
+        {!props.closeModals && isOpen && <NewModal footerClass={s.footerClass} exitFunction={props.exitFunction} title="" footerElements={<Link href="/help/install">
+            <a className={`link2018 ${s.footerLink}`} href="/help/install">Click here for help</a>
+        </Link>}>
+            <div className={s.container}>
+                <span className={s.iconLogo} />
+                <p className={s.loadingText}>You're moments away from getting into the game!</p>
+            </div>
+            <div className={s.buttons}>
+                <ActionButton onClick={onClick} buttonStyle={buttonStyles.newBuyButton} label="Download and Install Pekora" className={s.button2} />
+            </div>
+        </NewModal>}
+    </>
 }
 
 export default downloadProjexModal;

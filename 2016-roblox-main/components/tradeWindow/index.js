@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/dist/client/router";
 import React, { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { counterTrade, createTrade, getTradeDetails } from "../../services/trades";

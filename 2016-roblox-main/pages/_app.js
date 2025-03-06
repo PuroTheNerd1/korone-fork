@@ -7,7 +7,8 @@ import Navbar from '../components/navbar';
 import React, {useEffect, useState} from 'react';
 import Head from 'next/head';
 import Footer from '../components/footer';
-//import NextNProgress from "nextjs-progressbar";
+import dayjs from '../lib/dayjs';
+import NextNProgress from "nextjs-progressbar";
 import LoginModalStore from '../stores/loginModal';
 import AuthenticationStore from '../stores/authentication';
 import NavigationStore from '../stores/navigation';
@@ -18,7 +19,6 @@ import ThumbnailStore from "../stores/thumbnailStore";
 import getFlag from "../lib/getFlag";
 import Chat from "../components/chat";
 import FeedbackStore from "../stores/feedback";
-import {useRouter} from "next/router";
 
 if (typeof window !== 'undefined') {
     console.log(String.raw`
@@ -40,8 +40,7 @@ function RobloxApp({Component, pageProps}) {
     // set theme:
     // jss globals apparently don't support parameters/props, so the only way to do a dynamic global style is to either append a <style> element, use setAttribute(), or append a css file.
     // @ts-ignore
-    const isChristmas = false;
-    const router = useRouter();
+    const isChristmas = false
     useEffect(() => {
         // const el = typeof window !== 'undefined' && document.getElementsByTagName('body');
         // if (el && el.length) {
@@ -90,9 +89,8 @@ function RobloxApp({Component, pageProps}) {
             </>}
             <FeedbackStore.Provider>
                 <MainWrapper mainFlex={pageProps.disableWebsiteTheming}>
-                    {getFlag('clientSideRenderingEnabled', false) ? null
-                          // <NextNProgress options={{showSpinner: true}} color='var(--primary-color)' height={4}/>
-                        : null}
+                    {getFlag('clientSideRenderingEnabled', false) ?
+                        <NextNProgress options={{showSpinner: true}} color='var(--primary-color)' height={4}/> : null}
                     <ThumbnailStore.Provider>
                         <Component {...pageProps} />
                         <Chat/>

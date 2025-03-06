@@ -4,7 +4,7 @@ import Table from "../myMoney/components/table";
 import dayjs from "dayjs";
 import PlayerHeadshot from "../playerHeadshot";
 import Link from "../link";
-import {useRouter} from "next/router";
+import {useRouter} from "next/dist/client/router";
 
 const Description = ({actor, description, actionType}) => {
   if (actionType === 'Spend Group Funds') {

@@ -43,48 +43,44 @@ const RobloxBadges = props => {
 
   if (!badges || !badges.length) return null;
 
-  return (
-    <div className='flex d-none d-lg-flex'>
-      <div className='col-10'>
-        <Subtitle>Pekora Badges ({badges?.length || 0})</Subtitle>
-      </div>
-      <div className='col-6 col-lg-2'>
-        {badges && badges.length > 6 &&
-          <div className={s.buttonWrapper + ' mt-2'}>
-            <SmallTextLink onClick={(e) => {
-              e.preventDefault();
-              setShowAll(!showAll);
-            }}>{showAll ? 'See Less' : 'See More'}</SmallTextLink>
-          </div>
-        }
-      </div>
-      <div className='col-12'>
-        <div className='card pt-4 pb-4 pe-4 ps-4' style={{
-          border: 0,
-          borderRadius: 0
-        }}>
-          <div className='flex'>
-            {
-              badges && badges.slice(0, showAll ? badges.length : 6).map((v, i) => {
-                return (
-                  <div className='col-4 col-lg-2' key={i}>
-                    <Link href='/Badges.aspx' className={s.badgeLink}>
-                      <a>
-                        <div className={s.imageWrapper}>
-                          <span className={`icon-${v.name.toLowerCase().replace(/ /g, '-')}`} />
-                        </div>
-                        <p className={`${s.label} link2019 mb-0 `}>{v.name}</p>
-                      </a>
-                    </Link>
-                  </div>
-                );
-              })
-            }
-          </div>
+  return <div className='flex d-none d-lg-flex'>
+    <div className='col-10'>
+      <Subtitle>Pekora Badges ({badges?.length || 0})</Subtitle>
+    </div>
+    <div className='col-6 col-lg-2'>
+      {badges && badges.length > 6 &&
+        <div className={s.buttonWrapper + ' mt-2'}>
+          <SmallTextLink onClick={(e) => {
+            e.preventDefault();
+            setShowAll(!showAll);
+          }}>{showAll ? 'See Less' : 'See More'}</SmallTextLink>
+        </div>
+      }
+    </div>
+    <div className='col-12'>
+      <div className='card pt-4 pb-4 pe-4 ps-4' style={{
+        border: 0,
+        borderRadius: 0
+      }}>
+        <div className='flex'>
+          {
+            badges && badges.slice(0, showAll ? badges.length : 6).map((v, i) => {
+              return <div className='col-4 col-lg-2' key={i}>
+                <Link href='/Badges.aspx' className={s.badgeLink}>
+                  <a>
+                    <div className={s.imageWrapper}>
+                      <span className={`icon-${v.name.toLowerCase().replace(/ /g, '-')}`} />
+                    </div>
+                    <p className={`${s.label} link2019 mb-0 `}>{v.name}</p>
+                  </a>
+                </Link>
+              </div>
+            })
+          }
         </div>
       </div>
     </div>
-  );
+  </div>
 }
 
 export default RobloxBadges;

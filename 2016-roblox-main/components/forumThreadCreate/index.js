@@ -10,7 +10,7 @@ import {
 import {ForumHeaderSubCategory} from "../forumHeader";
 import Link from "../link";
 import dayjs from "../../lib/dayjs";
-import {useRouter} from "next/router";
+import {useRouter} from "next/dist/client/router";
 import ForumContainer from "../forumContainer";
 
 const useStyles = createUseStyles({

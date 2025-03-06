@@ -9,7 +9,7 @@ import { logger } from "../../lib/logger";
 import redirectIfNotEqual from "../../lib/redirectIfNotEqual";
 import { getItemDetails, getItemUrl, getProductInfoLegacy, itemNameToEncodedName } from "../../services/catalog";
 import { getGameUrl, getLibraryItemUrl, isLibraryItem, multiGetPlaceDetails, multiGetUniverseDetails } from "../../services/games";
-import { useRouter } from "next/router";
+import { useRouter } from "next/dist/client/router";
 
 const getUrlForAssetType = ({ assetTypeId, assetId, name }) => {
   if (assetTypeId === 9) {

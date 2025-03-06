@@ -3,7 +3,7 @@ import { createUseStyles } from "react-jss";
 import LoginModalStore from "../../../stores/loginModal";
 import LoginModal from "../../loginModal";
 import getFlag from "../../../lib/getFlag";
-import { useRouter } from "next/router";
+import { useRouter } from "next/dist/client/router";
 
 const useLoginAreaStyles = createUseStyles({
   text: {

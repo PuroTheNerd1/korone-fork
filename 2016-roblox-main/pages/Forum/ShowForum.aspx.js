@@ -1,4 +1,4 @@
-import {useRouter} from "next/router";
+import {useRouter} from "next/dist/client/router";
 import ForumSubcategory from "../../components/forumSubcategory";
 
 const ShowForumPage = props => {

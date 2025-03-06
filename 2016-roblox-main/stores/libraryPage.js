@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import getFlag from "../lib/getFlag";
 import { getItemDetails, searchCatalog } from "../services/catalog";
-import {useRouter} from "next/router";
+import {useRouter} from "next/dist/client/router";
 
 const stringToCategory = str => {
   // these are from catalog.roblox.com/v1/search/navigation-menu-items
