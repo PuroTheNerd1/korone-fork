@@ -81,8 +81,7 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
-                string key = "chloeassetcachev1:" + id;
-                string? location = await Services.Cache.distributed.StringGetAsync(key);
+                string? location = await services.robloxassets.GetRobloxAssetLocationFromCache(id);
                 if (location == null)
                 {
                     // Don't bother caching assets for non roblox clients
@@ -95,7 +94,8 @@ public class Asset : ControllerBase
                     if (location != "BAD")
                     {
                         //Writer.Info(LogGroup.AssetDelivery, "Caching asset {0}", id);
-                        await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
+                        await services.robloxassets.SetRobloxAssetLocationInCache(id, location);
+                        //await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
                     }
                     // We probaly hit a rate limit of a 403 just redirect to Roblox
                     else
@@ -220,21 +220,21 @@ public class Asset : ControllerBase
     
     [HttpPostBypass("asset/batch")]
     [HttpPostBypass("v1/assets/batch")]
-    public async Task<IActionResult> AssetBatch()
+    public async Task<IActionResult> AssetBatch([FromBody] List<BatchAssetRequest> request)
     {
-        List<BatchAssetRequest>? requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(await GetRequestBody());
-        if (requestData == null)
-            throw new BadRequestException();
+        // List<BatchAssetRequest>? requestData = JsonSerializer.Deserialize<List<BatchAssetRequest>>(await GetRequestBody());
+        // if (requestData == null)
+        //     throw new BadRequestException();
 
         List<AssetDeliveryV1BatchResponse> assets = new List<AssetDeliveryV1BatchResponse>();
 
         //assets.Add(CreateAssetResponse(info.assetType, asset.requestId, info.id, $"{Configuration.BaseUrl}/v1/asset/?id={asset.assetId}"));
-        var details = await services.assets.MultiGetInfoById(requestData.Select(a => a.assetId));
+        var details = await services.assets.MultiGetInfoById(request.Select(a => a.assetId));
         var existingAssetIds = details.Select(d => d.id).ToList();
 
         assets.AddRange(details.SelectMany(d =>
         {
-            var matchingRequests = requestData.Where(r => r.assetId == d.id);
+            var matchingRequests = request.Where(r => r.assetId == d.id);
             return matchingRequests.Select(req =>
             {
                 var requestId = req?.requestId ?? Guid.NewGuid().ToString();
@@ -242,7 +242,7 @@ public class Asset : ControllerBase
             });
         }));
 
-        var robloxAssetRequest = requestData.Where(r => !existingAssetIds.Contains(r.assetId)).ToList();
+        var robloxAssetRequest = request.Where(r => !existingAssetIds.Contains(r.assetId)).ToList();
         if (robloxAssetRequest.Count > 0)
         {
             //Writer.Info(LogGroup.AssetDelivery, "Fetching {0} batch assets from Roblox", robloxAssetRequest.Count);

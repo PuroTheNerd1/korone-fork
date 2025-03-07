@@ -8,6 +8,8 @@ using Roblox.Dto.Users;
 using Roblox.Dto.Authentication;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Exceptions;
+using System.Security;
+using Roblox.Logging;
 namespace Roblox.Website.Controllers
 {
 
@@ -115,17 +117,20 @@ namespace Roblox.Website.Controllers
             // };
             await Login(username, password, userInfo.userId, totpCode, isPasswordLeaked, true);
 
-            TotpInfo totpInfo = await services.users.GetOrSetTotp(userInfo.userId);
-            if (totpInfo.status == TotpStatus.Enabled)
+            if (await services.users.GetTotpStatus(userInfo.userId) == TotpStatus.Enabled)
             {
-                string ticket = await services.users.Generate2SVTicket(userInfo.userId);
+                TwoFactorTicket info = new TwoFactorTicket
+                {
+                    userId = userInfo.userId,
+                    hashedIp = GetIP(),
+                };
+                string ticket = await services.users.Generate2SVTicket(info);
                 return new
                 {
                     message = "TwoStepVerificationRequired",
-                    errorMessage = "TwoStepVerificationRequired",
                     mediaType = "Email",
                     tl = ticket,
-
+                    code = 6,
                     twoStepVerificationData = new
                     {
                         mediaType = "Email",
@@ -162,20 +167,38 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
-        public async Task<dynamic> TwoStepVerificationEmailLogin(long userId)
+        public async Task<dynamic> TwoStepVerificationEmailLogin([FromRoute] long userId, [FromBody] TwoFactorEmailLogin request)
         {
-            if (userSession == null)
-                throw new BadRequestException(1, "User is not logged in.");
+            LoginTicet ticketInfo = await services.users.GetLoginTicketInfo(request.verificationToken);
+
+            if (ticketInfo.userId != userId || ticketInfo.challengeId != request.challengeId)
+                throw new BadRequestException(5, "Invalid two step verification ticket.");
+
+            if (ticketInfo.hashedIp != GetIP())
+                throw new BadRequestException(5, "Invalid login locaton");
+
+            Writer.Info(LogGroup.Authentication, "User {0} has logged in with 2FA.", userId);
+
+            await services.users.DeleteTicket(request.verificationToken);
+            await CreateSessionAndSetCookie(ticketInfo.userId);
+
             return "{}";
         }
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
-        public async Task<dynamic> TwoStepVerificationEmail([FromBody] TwoFactorEmail request)
+        public async Task<dynamic> TwoStepVerificationEmail([FromRoute] long userId, [FromBody] TwoFactorEmail request)
         {
-            long userId;
+            TwoFactorTicket info;
             try
             {
-                userId = await services.users.GetUserIdFrom2SVTicket(request.challengeId);
-                TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+                info = await services.users.GetInfoFrom2SVTicket(request.challengeId);
+                // Security check PARANOIA!
+                if (info.userId != userId || info.hashedIp != GetIP())
+                    throw new BadRequestException(5, "Invalid two step verification ticket.");
+
+                if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
+                    throw new BadRequestException(6, "Failure2SVNotEnabled");
+
+                TotpInfo totpInfo = await services.users.GetTotp(info.userId);
                 if (!services.users.VerifyTotp(totpInfo.secret, request.code))
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
 
@@ -184,25 +207,36 @@ namespace Roblox.Website.Controllers
             {
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
-            await services.users.Delete2SVTicket(request.challengeId);
+
+            await services.users.DeleteTicket(request.challengeId);
+            LoginTicet loginTicketInfo = new LoginTicet
+            {
+                userId = userId,
+                challengeId = request.challengeId,
+                hashedIp = GetIP(),
+            };
 
             return new
             {
-                verificationToken = await CreateSessionAndSetCookie(userId)
+                verificationToken = await services.users.GenerateLoginTicket(loginTicketInfo)
             };
         }
         
         [HttpPostBypass("v2/twostepverification/verify")]
         public async Task TwoStepVerification([FromBody] TwoFactor request)
         {
-            long userId;
+            TwoFactorTicket info;
             try
             {
-                userId = await services.users.GetUserIdFrom2SVTicket(request.ticket);
-                UserInfo userInfo = await services.users.GetUserById(userId);
-                if (userInfo.username != request.username)
+                info = await services.users.GetInfoFrom2SVTicket(request.ticket);
+                UserInfo userInfo = await services.users.GetUserById(info.userId);
+                if (userInfo.username != request.username || info.hashedIp != GetIP())
                     throw new RecordNotFoundException();
-                TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+
+                if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
+                    throw new BadRequestException(6, "Failure2SVNotEnabled");
+
+                TotpInfo totpInfo = await services.users.GetTotp(info.userId);
                 if (!services.users.VerifyTotp(totpInfo.secret, request.code))
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
 
@@ -211,20 +245,24 @@ namespace Roblox.Website.Controllers
             {
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
-            await services.users.Delete2SVTicket(request.ticket);
-            await CreateSessionAndSetCookie(userId);
+            await services.users.DeleteTicket(request.ticket);
+
+            await CreateSessionAndSetCookie(info.userId);
         }
         [HttpPostBypass("v2/twostepverification/login/verify")]
         public async Task<dynamic> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
         {
-            long userId;
+            TwoFactorTicket info;
             try
             {
-                userId = await services.users.GetUserIdFrom2SVTicket(request.tl);
-                UserInfo userInfo = await services.users.GetUserById(userId);
+                info = await services.users.GetInfoFrom2SVTicket(request.tl);
+                UserInfo userInfo = await services.users.GetUserById(info.userId);
                 if (userInfo.username != request.username)
                     throw new RecordNotFoundException();
-                TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
+
+                if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
+                    throw new BadRequestException(6, "2FA is not enabled on this account.");
+                TotpInfo totpInfo = await services.users.GetTotp(info.userId);
                 if (!services.users.VerifyTotp(totpInfo.secret, request.identificationCode))
                     throw new BadRequestException(6, "Incorrect 2FA code. Please try again.");
 
@@ -233,12 +271,11 @@ namespace Roblox.Website.Controllers
             {
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
-
-            await CreateSessionAndSetCookie(userId);
-            await services.users.Delete2SVTicket(request.tl);
+            await services.users.DeleteTicket(request.tl);
+            await CreateSessionAndSetCookie(info.userId);
             return new
             {
-                userId,
+                info.userId,
             };
         }
         [HttpPostBypass("mobileapi/login")]
@@ -334,9 +371,9 @@ namespace Roblox.Website.Controllers
             if (skip2FA == true)
                 return true;
 
-            TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
-            if (totpInfo.status == TotpStatus.Enabled)
+            if (await services.users.GetTotpStatus(userId) == TotpStatus.Enabled)
             {
+                TotpInfo? totpInfo = await services.users.GetTotp(userId);
                 //null check
                 if (string.IsNullOrEmpty(totpCode))
                     throw new ForbiddenException((int)LoginError403.IncorrectCredentials, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");

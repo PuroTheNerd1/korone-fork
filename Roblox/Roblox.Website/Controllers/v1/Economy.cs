@@ -85,12 +85,12 @@ public class EconomyControllerV1 : ControllerBase
         {
             // Anti lpp
             if (rsData.recentAveragePrice != 0 && request.price < (rsData.recentAveragePrice * 0.60)) {
-                throw new BadRequestException();
+                throw new BadRequestException(0, "You cannot sell this item for less than 60% of the recent average price");
             }
 
             // Check if the request price is less than OG price
             if (request.price < details.price) {
-                throw new BadRequestException();
+                throw new BadRequestException(0, "You cannot sell this item for less than the original price");
             }
         }
 
@@ -326,10 +326,20 @@ public class EconomyControllerV1 : ControllerBase
         var canViewFunds =
             await services.groups.DoesUserHavePermission(safeUserSession.userId, groupId,
                 GroupPermission.SpendGroupFunds);
-        if (!canViewFunds)
+        var groupSettings = await services.groups.GetGroupSettings(groupId);
+        if (!canViewFunds && !groupSettings.areGroupFundsVisible)
             throw new RobloxException(401, 0, "Unauthorized");
-        
-        return await services.economy.GetBalance(CreatorType.Group, groupId);
+        UserEconomy balance = new UserEconomy();
+        try
+        {
+            balance = await services.economy.GetBalance(CreatorType.Group, groupId);
+        }
+        catch (Exception e)
+        {
+            balance.robux = 0;
+            balance.tickets = 0;
+        }
+        return balance;
     }
     
     [HttpGet("groups/{groupId}/users-payout-eligibility")]

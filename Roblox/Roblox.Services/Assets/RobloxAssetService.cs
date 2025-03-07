@@ -8,9 +8,14 @@ public class RobloxAssetService : ServiceBase, IService
 
     public async Task<string?> GetRobloxAssetLocationFromCache(long id)
     {
-        return await redis.StringGetAsync($"robloxasset:{id}:data");
+        string key = "chloeassetcachev1:" + id;
+        return await redis.StringGetAsync(key);
     }
-    
+    public async Task SetRobloxAssetLocationInCache(long id, string location)
+    {
+        string key = "chloeassetcachev1:" + id;
+        await redis.StringSetAsync(key, location, TimeSpan.FromDays(9));
+    }
     public async Task ProcessRobloxAssets(IEnumerable<dynamic> robloxResults, List<object> assets)
     {
         foreach (var robloxAsset in robloxResults)
@@ -31,10 +36,7 @@ public class RobloxAssetService : ServiceBase, IService
             await SetRobloxAssetLocationInCache(robloxAsset.assetId, robloxAsset.location);
         }
     }
-    public async Task SetRobloxAssetLocationInCache(long id, string location)
-    {
-        await redis.StringSetAsync($"robloxasset:{id}:data", location, TimeSpan.FromHours(3));
-    }
+
     public bool IsReusable()
     {
         return true;

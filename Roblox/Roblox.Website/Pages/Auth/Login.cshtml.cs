@@ -190,9 +190,9 @@ public class Login : RobloxPageModel
             return new PageResult();
         }
 
-        TotpInfo totpInfo = await services.users.GetOrSetTotp(userId);
-        if (totpInfo != null && totpInfo.status == TotpStatus.Enabled)
+        if (await services.users.GetTotpStatus(userId) == TotpStatus.Enabled)
         {
+            TotpInfo? totpInfo = await services.users.GetTotp(userId);
             // blank check
             if (string.IsNullOrWhiteSpace(totpcode))
             {

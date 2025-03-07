@@ -144,9 +144,20 @@ public enum ForceMorphType
     MorphToR15 = 3
 }
 
+public enum R15CollisionType
+{
+    OuterBox = 0,
+    InnerBox = 1,
+}
+
 public class TeamCreateSettings
 {
     public bool isEnabled { get; set; }
+}
+
+public class UpdateUniverseConfiguration
+{
+    public string universeAvatarType { get; set; }
 }
 
 public class UniverseConfiguration
@@ -170,6 +181,7 @@ public class UniverseConfiguration
     public bool isForSale { get; set; }
     public int price { get; set; }
     public bool isStudioAccessToApisAllowed { get; set; }
+    public bool studioAccessToApisAllowed { get; set; }
     public PrivacyType privacyType { get; set;}
 }
 public class GamesForCreatorEntry

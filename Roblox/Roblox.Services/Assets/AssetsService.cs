@@ -1,5 +1,6 @@
 using System.Diagnostics;
-using System.IO.Compression;
+using System.Drawing.Imaging;
+using System.Dynamic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -19,7 +20,13 @@ using Roblox.Models.Economy;
 using Roblox.Models.Groups;
 using Roblox.Rendering;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Services.DbModels;
 using Roblox.Services.Exceptions;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Png;
+using AssetId = Roblox.Dto.Assets.AssetId;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
 
@@ -60,111 +67,57 @@ public struct ByteReader
     }
 
     private byte[] buffer { get; set; }
-    private long index { get; set; }
+    private long index { get; set;}
 
-    public void SetIndex(long n)
-    {
+    public void SetIndex(long n) {
         this.index = n;
         return;
     }
 
-    public long GetIndex()
-    {
+    public long GetIndex() {
         return this.index;
     }
 
-    public long GetRemaining()
-    {
+    public long GetRemaining() {
         return buffer.Length - this.index;
     }
 
-    public long GetLength()
-    {
+    public long GetLength() {
         return buffer.Length;
     }
 
-    public void Jump(Int32 n)
-    {
+    public void Jump(Int32 n) {
         this.index += n;
         return;
     }
 
-    public long Byte()
-    {
+    public long Byte() {
         this.index++;
-        return buffer[index - 1];
+        return buffer[index-1];
     }
 
-    public long UInt8()
-    {
-        this.index++;
-        return buffer[index - 1];
-    }
-
-    public long UInt16LE()
-    {
+    public long UInt16LE() {
         byte[] byteArray = new byte[2];
         Array.Copy(buffer, index, byteArray, 0, 2);
         this.Jump(2);
         return BitConverter.ToUInt16(byteArray, 0);
     }
 
-    public long UInt32LE()
-    {
+    public long UInt32LE() {
         byte[] byteArray = new byte[4];
         Array.Copy(buffer, index, byteArray, 0, 4);
         this.Jump(4);
         return BitConverter.ToUInt32(byteArray, 0);
     }
 
-    public long UInt64LE()
-    {
-        byte[] byteArray = new byte[8];
-        Array.Copy(buffer, index, byteArray, 0, 8);
-        this.Jump(8);
-        return (long)BitConverter.ToUInt64(byteArray, 0);
-    }
-
-    public long Int8()
-    {
-        this.index++;
-        return Convert.ToSByte(buffer[index - 1]);
-    }
-
-    public long Int16LE()
-    {
-        byte[] byteArray = new byte[2];
-        Array.Copy(buffer, index, byteArray, 0, 2);
-        this.Jump(2);
-        return BitConverter.ToInt16(byteArray, 0);
-    }
-
-    public long Int32LE()
-    {
-        byte[] byteArray = new byte[4];
-        Array.Copy(buffer, index, byteArray, 0, 4);
-        this.Jump(4);
-        return BitConverter.ToInt32(byteArray, 0);
-    }
-
-    public long Int64LE()
-    {
-        byte[] byteArray = new byte[8];
-        Array.Copy(buffer, index, byteArray, 0, 8);
-        this.Jump(8);
-        return BitConverter.ToInt64(byteArray, 0);
-    }
-
-    public float FloatLE()
-    {
+    public float FloatLE() {
         byte[] byteArray = new byte[4];
         Array.Copy(buffer, index, byteArray, 0, 4);
         this.Jump(4);
         return BitConverter.ToSingle(byteArray, 0);
     }
 
-    public String String(Int32 n)
-    {
+    public String String(Int32 n) {
         byte[] byteArray = new byte[n];
         Array.Copy(buffer, index, byteArray, 0, n);
         this.Jump(n);
@@ -373,43 +326,6 @@ public class AssetsService : ServiceBase, IService
             return 0;
         });
     }
-    
-    public async Task InsertOrReplaceGameMedia(long assetId, long mediaAssetId, Models.Assets.Type assetType)
-    {
-        await InsertAsync("asset_media", new
-        {
-            asset_id = assetId,
-            media_asset_id = mediaAssetId,
-            asset_type = assetType,
-        });
-        // await InTransaction(async (tr) =>
-        // {
-        //     // await db.ExecuteAsync("DELETE FROM asset_media WHERE asset_id = :asset_id", new
-        //     // {
-        //     //     asset_id = assetId,
-        //     // });
-        //     
-        //     // await db.ExecuteAsync("INSERT INTO asset_media (asset_type, asset_id, media_asset_id) VALUES (:assetType, :assetId, :mediaAssetId)", new {
-        //     //     assetType,
-        //     //     assetId,
-        //     //     mediaAssetId
-        //     // });
-        //     return 0;
-        // });
-    }
-    
-    public async Task DeleteGameMedia(long assetId, long mediaAssetId)
-    {
-        await InTransaction(async (tr) =>
-        {
-            await db.ExecuteAsync("DELETE FROM asset_media WHERE asset_id = :assetId AND media_asset_id = :mediaAssetId", new
-            {
-                assetId,
-                mediaAssetId
-            });
-            return 0;
-        });
-    }
 
     internal class AssetValidationResponse
     {
@@ -475,7 +391,16 @@ public class AssetsService : ServiceBase, IService
         return false;
     }
 
-
+    public async Task<MemoryStream> CleanImage(Stream image)
+    {
+        var originalImage = await Image.LoadAsync<Rgba32>(image);
+        var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
+        newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
+        var memoryStream = new MemoryStream();
+        newImage.Save(memoryStream, new PngEncoder());
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        return memoryStream;
+    }
     public async Task<Imager?> ValidateImage(Stream content)
     {
         var imageData = await Imager.ReadAsync(content);
@@ -890,7 +815,7 @@ public class AssetsService : ServiceBase, IService
         {
             Writer.Info(LogGroup.GameIconRender, "starting game icon render for placeId={0}", assetId);
             string rawRender = await RenderingHandler.RequestPlaceRender(assetId, 60, 1680, 1680);
-            string resizedBase64 = await AvatarService.GetResizedImageFromBase64(rawRender, 420, 420);
+            string resizedBase64 = await AvatarService.GetResizedImageFromBase64(rawRender, 352, 352);
             imageBytes = Convert.FromBase64String(resizedBase64);
             Writer.Info(LogGroup.GameIconRender, "completed game icon render for placeId={0}", assetId);
         }
@@ -904,14 +829,14 @@ public class AssetsService : ServiceBase, IService
             }
             if (thumbnailToUse.CanSeek)
                 thumbnailToUse.Position = 0;
-            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 420, 420);
+            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
         }
 
         using var imageStream = new MemoryStream(imageBytes);
         string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
         await InsertOrReplaceIcon(assetId, key, ModerationStatus.AwaitingApproval);
     }
-    public async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
+    private async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
         var modInfo = await GetAssetCatalogInfo(assetId);//(await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
@@ -920,10 +845,9 @@ public class AssetsService : ServiceBase, IService
         byte[] imageBytes;
         if (thumbnailToUse is null)
         {
-            // string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
-            // string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 640, 360);
-            // imageBytes = Convert.FromBase64String(resizedBase64);
-            return;
+            string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
+            string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 352, 352);
+            imageBytes = Convert.FromBase64String(resizedBase64);
         }
         else
         {
@@ -935,56 +859,12 @@ public class AssetsService : ServiceBase, IService
             }
             if (thumbnailToUse.CanSeek)
                 thumbnailToUse.Position = 0;
-            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 640, 360);
+            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
         }
         var imageStream = new MemoryStream(imageBytes);
-        var thumbnailAsset = await CreateAsset(modInfo.name + "_Image", "Custom :3c -- zyth", modInfo.creatorTargetId, modInfo.creatorType, modInfo.creatorTargetId, imageStream, Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
-        await InsertOrReplaceGameMedia(assetId, thumbnailAsset.assetId, Type.Image);
-    }
-    public async Task CreateAutoGeneratedGameThumbnail(long assetId, CancellationToken? cancellationToken = null)
-    {
-        var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
-        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
-        {
-            return;
-        }
-        string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
-        string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 640, 360);
-        CreateResponse thumbnailAsset;
-        using (var imageStream = new MemoryStream(Convert.FromBase64String(resizedBase64))) {
-            thumbnailAsset = await CreateAsset(
-                modInfo.name + "_Image",
-                null,
-                modInfo.creator.targetId,
-                modInfo.creator.type,
-                modInfo.creator.targetId,
-                imageStream,
-                Type.Image,
-                Genre.All,
-                ModerationStatus.AwaitingApproval
-            );
-        }
-        await InsertOrReplaceGameMedia(assetId, thumbnailAsset.assetId, Type.Image);
-    }
-    // All this does is unlink the game media thumbnail from the asset itself
-    public async Task DeleteGameThumbnail(long rootPlaceId, long thumbnailAssetId, CancellationToken? cancellationToken = null)
-    {
-        await DeleteGameMedia(rootPlaceId, thumbnailAssetId);
-    }
-    public async Task CreateAutoGeneratedGameIcon(long assetId, CancellationToken? cancellationToken = null)
-    {
-        var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
-        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
-        {
-            return;
-        }
-        string key;
-        string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 1680);
-        string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
-        using (var imageStream = new MemoryStream(Convert.FromBase64String(resizedBase64))) {
-            key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
-        }
-        await InsertOrReplaceIcon(assetId, key,
+        string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+        var latestVersion = await GetLatestAssetVersion(assetId);
+        await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
             ModerationStatus.AwaitingApproval);
     }
     private async Task CreateTeeShirtThumbnail(long assetId, CancellationToken? cancellationToken = null)
@@ -1050,7 +930,6 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.Image:
             case Models.Assets.Type.Decal:
             case Models.Assets.Type.Face:
-            case Models.Assets.Type.GamePass:
                 thumbRequests.Add(CreateAssetTextureThumbnail(assetId, assetType, cancellationToken));
                 break;
             // clothing
@@ -1094,6 +973,7 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.Plugin:
             case Models.Assets.Type.Badge:
+            case Models.Assets.Type.GamePass:
                 break;
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Model:
@@ -1383,23 +1263,11 @@ public class AssetsService : ServiceBase, IService
         return Encoding.UTF8.GetBytes(data);
     }
 
-    private static byte[] ConvertMesh(Stream meshStream, byte[] buffer)
+    private static byte[] ConvertMesh(byte[] buffer)
     {
         ByteReader reader = new ByteReader(buffer);
-        String versionString = reader.String(12);
-        String versionOnly = versionString.Substring(0, 8);
-        // Make sure meshStream isn't compressed, if it is, decompress and try agai
-        if (versionOnly != "version ")
-        {
-            Console.WriteLine($"MeshStream is compressed! Decompressing...");
-            meshStream = DecompressGzip(meshStream);
-            buffer = EasyConverters.StreamToByte(meshStream);
-            reader = new ByteReader(buffer);
-            versionString = reader.String(12);
-            versionOnly = versionString.Substring(0, 8);
-        }
-        assert(versionOnly == "version ", "Invalid mesh file");
-        String version = versionString.Substring(8);
+        assert(reader.String(8) == "version ", "Invalid mesh file");
+        String version = reader.String(4);
         switch (version)
         {
             case "1.00":
@@ -1416,27 +1284,12 @@ public class AssetsService : ServiceBase, IService
                 throw new Exception($"Unsupported mesh version {version}");
         }
     }
-    
-    static Stream DecompressGzip(Stream inputStream)
-    {
-        var outputStream = new MemoryStream();
-        using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
-        {
-            gzipStream.CopyTo(outputStream);
-        }
-        outputStream.Position = 0;
-        return outputStream;
-    }
 
-    private void log(String str) {
-        Console.WriteLine(str);
-    }
-    
     public async Task<long> BackportAccessory(long assetId)
     {
         var robloxApi = new RobloxApi();
         var assetsService = new AssetsService();
-        var AccessoryAsset = await robloxApi.GetProductInfo(assetId);
+        var accessoryAsset = await robloxApi.GetProductInfo(assetId);
         var allowedTypes = new List<Models.Assets.Type>()
         {
             Type.Hat,
@@ -1451,56 +1304,57 @@ public class AssetsService : ServiceBase, IService
             Type.FaceAccessory,
             Type.Head,
         };
-        Console.WriteLine($"Backport asset type is: {AccessoryAsset.AssetTypeId}");
-        if (AccessoryAsset.AssetTypeId.HasValue && allowedTypes.Contains(AccessoryAsset.AssetTypeId.Value))
+        Console.WriteLine($"Backport asset type is: {accessoryAsset.AssetTypeId}");
+        if (accessoryAsset.AssetTypeId.HasValue && allowedTypes.Contains(accessoryAsset.AssetTypeId.Value))
         {
-            Stream RBXMStream = await robloxApi.GetAssetContentFromProxy(assetId);
-            byte[] RBXMByte = EasyConverters.StreamToByte(RBXMStream);
-            String RBXMHexString = Convert.ToHexString(RBXMByte);
-            
-            // Sometimes the RBX CDN likes to compress the file that is
-            // returned, so it must be decompressed in such cases.
-            String MeshIdHexString;
-            try {
-               MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
-            } catch (Exception e) {
-                RBXMStream = DecompressGzip(RBXMStream);
-                RBXMHexString = Convert.ToHexString(EasyConverters.StreamToByte(RBXMStream));
-                MeshIdHexString = RBXMHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
-            }
-            String MeshId = EasyConverters.HexStringToString(MeshIdHexString);
-            
-            var MeshAssetRequest = await robloxApi.GetProductInfo(long.Parse(MeshId));
-            if (MeshAssetRequest == null)
-                throw new Exception("The mesh request has failed");
-            if (MeshAssetRequest.AssetTypeId.HasValue && (int)MeshAssetRequest.AssetTypeId == 4)
-            {
-                Stream MeshStream = await robloxApi.GetAssetContentFromProxy(long.Parse(MeshId));
-                byte[] MeshByte = EasyConverters.StreamToByte(MeshStream);
-                
-                byte[] NewMeshByte = ConvertMesh(MeshStream, MeshByte); // this is the new mesh, as byte[], do whatever you want with this
-                // convert to stream
-                Stream meshStream = new MemoryStream(NewMeshByte);
+            Stream rbxmStream = await robloxApi.GetAssetContentFromProxy(assetId);
+            byte[] rbxmByte = EasyConverters.StreamToByte(rbxmStream);
+            String rbxmHexString = Convert.ToHexString(rbxmByte);
 
-                var meshDetails = await assetsService.CreateAsset(AccessoryAsset.Name ?? "", AccessoryAsset.Description, 1,
-                    CreatorType.User, 1, meshStream, Type.Mesh, Genre.All, ModerationStatus.ReviewApproved,
-                    DateTime.UtcNow, DateTime.UtcNow, long.Parse(MeshId));
-                long NewMeshIdLong = meshDetails.assetId; // example, is a long just incase
-                string NewMeshId = NewMeshIdLong.ToString(); // convert to string
-                string NewMeshIdHex = EasyConverters.StringToHexString(NewMeshId);
-                if (NewMeshId.Length > MeshId.Length)
+            String meshIdHexString = rbxmHexString.Split(EasyConverters.StringToHexString("MeshId"))[1].Split(EasyConverters.StringToHexString("rbxassetid://"))[1].Split(EasyConverters.StringToHexString("PROP"))[0];
+            String meshId = EasyConverters.HexStringToString(meshIdHexString);
+
+            var meshAssetRequest = await robloxApi.GetProductInfo(long.Parse(meshId));
+            if (meshAssetRequest == null)
+                throw new Exception("The mesh request has failed");
+            if (meshAssetRequest.AssetTypeId.HasValue && (int)meshAssetRequest.AssetTypeId == 4)
+            {
+                Stream meshStream = await robloxApi.GetAssetContentFromProxy(long.Parse(meshId));
+                byte[] meshByte = EasyConverters.StreamToByte(meshStream);
+
+                byte[] newMeshByte; // this is the new mesh, as byte[], do whatever you want with this
+                try
+                {
+                    newMeshByte = ConvertMesh(meshByte);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Failed converting mesh");
+                    throw;
+                }
+                // convert to stream
+                Stream newMeshStream = new MemoryStream(newMeshByte);
+
+                var meshDetails = await assetsService.CreateAsset(accessoryAsset.Name ?? "", accessoryAsset.Description, 1,
+                    CreatorType.User, 1, newMeshStream, Type.Mesh, Genre.All, ModerationStatus.ReviewApproved,
+                    DateTime.UtcNow, DateTime.UtcNow, long.Parse(meshId));
+                Writer.Info(LogGroup.AdminApi, "UGC Backporter new mesh id : {0}  OLD mesh id: {1}", meshDetails.assetId, meshId.Length);
+                long newMeshIdLong = meshDetails.assetId; // example, is a long just incase
+                string newMeshId = newMeshIdLong.ToString(); // convert to string
+                string newMeshIdHex = EasyConverters.StringToHexString(newMeshId);
+                if (newMeshId.Length > meshId.Length)
                 {
                     throw new Exception("New MeshId too long");
                 }
-                for (int i = 0; i < (MeshId.Length - NewMeshId.Length); i++)
+                for (int i = 0; i < (meshId.Length - newMeshId.Length); i++)
                 {
-                    NewMeshIdHex = $"{NewMeshIdHex}00";
+                    newMeshIdHex = $"{newMeshIdHex}00";
                 }
-                RBXMHexString = RBXMHexString.Replace(MeshIdHexString, NewMeshIdHex);
-                byte[] NewRBXMByte = Convert.FromHexString(RBXMHexString); // this is the new RBXM, as byte[], do whatever you want with this
-                Stream rbxmStream = new MemoryStream(NewRBXMByte);
-                var assetDetails = await assetsService.CreateAsset(AccessoryAsset.Name ?? "", AccessoryAsset.Description, 1,
-                                    CreatorType.User, 1, rbxmStream, (Type)AccessoryAsset.AssetTypeId, Genre.All, ModerationStatus.ReviewApproved,
+                rbxmHexString = rbxmHexString.Replace(meshIdHexString, newMeshIdHex);
+                byte[] newRbxmByte = Convert.FromHexString(rbxmHexString); // this is the new RBXM, as byte[], do whatever you want with this
+                Stream newRbxmStream = new MemoryStream(newRbxmByte);
+                var assetDetails = await assetsService.CreateAsset(accessoryAsset.Name ?? "", accessoryAsset.Description, 1,
+                                    CreatorType.User, 1, newRbxmStream, (Type)accessoryAsset.AssetTypeId, Genre.All, ModerationStatus.ReviewApproved,
                                     DateTime.UtcNow, DateTime.UtcNow, assetId);
                 return assetDetails.assetId;
             }
@@ -1576,7 +1430,6 @@ public class AssetsService : ServiceBase, IService
         Type.Face,
         Type.ShoulderAccessory,
         Type.FaceAccessory,
-        Type.GamePass
     };
 
     public async Task<Dto.Assets.CreateResponse> CreateAsset(string name, string? description, long creatorUserId,
@@ -1692,6 +1545,7 @@ public class AssetsService : ServiceBase, IService
                 });
             }
 
+
             return 0;
         });
 
@@ -1736,15 +1590,6 @@ public class AssetsService : ServiceBase, IService
         {
             placeId = place.assetId,
         };
-    }
-    
-    public async Task CreateGamePassAsset(long assetId, long? universeId) {
-        if (universeId is null)
-            return;
-        await InsertAsync("asset_gamepass", new {
-            asset_id = assetId,
-            universe_id = universeId
-        });
     }
 
     public async Task<ProductEntry> GetProductForAsset(long assetId)
@@ -2360,31 +2205,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     }
 
     public async Task UpdateAsset(long assetId, string? description, string name, Genre genre,
-        bool isCopyingAllowed, bool areCommentsAllowed, Stream? file = null)
+        bool isCopyingAllowed, bool areCommentsAllowed)
     {
         ValidateNameAndDescription(name, description);
 
-        if (file != null) {
-            var modInfo = await GetAssetCatalogInfo(assetId);
-            if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
-                return;
-
-            var validImage = await ValidateImage(file);
-            if (validImage == null)
-            {
-                Writer.Info(LogGroup.GameIconRender, "custom icon failed for assetId={0}", assetId);
-                return;
-            }
-            if (file.CanSeek)
-                file.Position = 0;
-            byte[] imageBytes = await AvatarService.GetResizedImageFromStream(file, 420, 420);
-            var imageStream = new MemoryStream(imageBytes);
-            string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
-            var latestVersion = await GetLatestAssetVersion(assetId);
-            await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
-                ModerationStatus.AwaitingApproval);
-        }
-        
         await UpdateAsync("asset", assetId, new
         {
             name,

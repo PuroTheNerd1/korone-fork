@@ -1997,7 +1997,7 @@ Thank you for your understanding,
             Console.WriteLine("Getting {0}", item.id);
             var info = await services.robloxApi.GetProductInfo(item.id, false);
 
-            var content = await services.robloxApi.GetAssetContent(item.id);
+            var content = await services.robloxApi.GetAssetContentFromProxy(item.id);
             var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId!.Value);
             if (!isOk)
                 throw new StaffException("The asset file doesn't look correct. Please try again.");
@@ -2188,7 +2188,7 @@ Thank you for your understanding,
                                                  "\nIf this is incorrect, click the 'force' button to upload this item anyway.");
                 }
         }
-        var content = await services.robloxApi.GetAssetContent(request.assetId);
+        var content = await services.robloxApi.GetAssetContentFromProxy(request.assetId);
         var isOk = await services.assets.ValidateAssetFile(content, details.AssetTypeId.Value);
         if (!isOk)
             throw new StaffException("The asset file doesn't look correct. Please try again.");
@@ -2946,7 +2946,7 @@ Thank you for your understanding,
     public async Task<dynamic> GetChatMessages(string reportId)
     {
         GameMessagesEntry gameMessages = await services.abuseReport.GetGamesMessagesById(reportId);
-        return Content($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages, "text/plan", Encoding.Unicode);
+        return Content($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages, "text/plain; charset=utf-8", Encoding.UTF8);
     }
 
     [HttpGet("reports/pending-count"), StaffFilter(Access.ManageReports)]

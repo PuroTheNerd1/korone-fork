@@ -2,6 +2,8 @@ using Roblox.Rendering;
 using Roblox.Website.Middleware;
 using System.Text.Json.Serialization;
 using InfluxDB.Client.Api.Client;
+using ZNetCS.AspNetCore.Compression;
+using ZNetCS.AspNetCore.Compression.Compressors;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
@@ -113,9 +115,27 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMvc(c =>
     c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
 );
+builder.Services.AddCompression(options =>
+{
+    options.AllowedMediaTypes = new List<MediaTypeHeaderValue>
+    {
+        MediaTypeHeaderValue.Parse("text/*"),
+        MediaTypeHeaderValue.Parse("message/*"),
+        MediaTypeHeaderValue.Parse("application/x-javascript"),
+        MediaTypeHeaderValue.Parse("application/javascript"),
+        MediaTypeHeaderValue.Parse("application/json"),
+        MediaTypeHeaderValue.Parse("application/xml"),
+        MediaTypeHeaderValue.Parse("application/atom+xml"),
+        MediaTypeHeaderValue.Parse("application/xaml+xml")
+    };
+    options.IgnoredPaths = null;
+    options.MinimumCompressionThreshold = 0;
+    options.Compressors = null;
+    options.Decompressors = new List<IDecompressor> { new BrotliDecompressor(), new GZipDecompressor(), new DeflateDecompressor() };
+});
 var app = builder.Build();
 app.UseRouting();
-
+app.UseCompression();
 app.UseSwaggerUI(c =>
 {
     c.ShowCommonExtensions();

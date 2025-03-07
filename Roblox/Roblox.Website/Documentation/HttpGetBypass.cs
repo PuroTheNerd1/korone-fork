@@ -82,6 +82,38 @@ namespace Roblox.Website.Controllers
         }
     }
     
+
+
+    /// <summary>
+    /// Identifies an action that supports the HTTP PATCH method.
+    /// </summary>
+    public class HttpPatchBypassAttribute : HttpMethodAttribute
+    {
+        private static readonly IEnumerable<string> _supportedMethods = new [] { "PATCH" };
+
+        /// <summary>
+        /// Creates a new <see cref="HttpPatchBypassAttribute"/>.
+        /// </summary>
+        public HttpPatchBypassAttribute()
+            : base(_supportedMethods)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="HttpPatchBypassAttribute"/> with the given route template.
+        /// </summary>
+        /// <param name="template">The route template. May not be null.</param>
+        public HttpPatchBypassAttribute(string template)
+            : base(_supportedMethods, template)
+        {
+            if (template == null)
+            {
+                throw new ArgumentNullException(nameof(template));
+            }
+            BypassConfiguration.AddToBypass(template);
+        }
+    }
+
     /// <summary>
     /// Identifies an action that supports the HTTP POST method.
     /// </summary>

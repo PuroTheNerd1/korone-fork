@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json.Serialization;
 using Roblox.Models.GameServer;
 
 namespace Roblox.Models.Games;
@@ -20,12 +21,19 @@ public class PlaceLaunchRequest
 
 public class PlaceLaunchResponse
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? jobId { get; set; }
     public int status { get; set; }
-    public string joinScriptUrl { get; set; }
-    public string authenticationUrl { get; set; }
-    public string authenticationTicket { get; set; }
-    public dynamic settings { get; set; }
-    public string message { get; set; }
-    public dynamic joinScript { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? joinScriptUrl { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? authenticationUrl { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? authenticationTicket { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public dynamic? settings { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? message { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public dynamic? joinScript { get; set; }
 }

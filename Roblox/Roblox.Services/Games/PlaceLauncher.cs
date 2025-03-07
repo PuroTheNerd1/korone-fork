@@ -74,11 +74,10 @@ public class PlaceLauncherService : ServiceBase
     {
         dynamic? joinScript = null;
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved || placeInfo.year == 2016)
         {
             return new PlaceLaunchResponse()
             {
-                jobId = (string?)null,
                 status = (int)JoinStatus.Error,
                 message = "The game is not active."
             };
@@ -112,7 +111,6 @@ public class PlaceLauncherService : ServiceBase
         }
         return new PlaceLaunchResponse()
         {
-            jobId = (string?)null,
             status = (int)JoinStatus.Loading,
             message = "Server found, loading...",
         };
@@ -121,7 +119,11 @@ public class PlaceLauncherService : ServiceBase
     {
         if (userId != 3 && userId != 16 && userId != 3434 && userId != 52 && userId != 1188)
         {
-            throw new BadRequestException("You are not allowed to join this game.");
+            return new PlaceLaunchResponse()
+            {
+                status = (int)JoinStatus.Error,
+                message = "The game is not active."
+            };
         }
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
@@ -129,7 +131,6 @@ public class PlaceLauncherService : ServiceBase
         {
             return new PlaceLaunchResponse()
             {
-                jobId = (string?)null,
                 status = (int)JoinStatus.Error,
                 message = "The game is not active."
             };
@@ -157,7 +158,6 @@ public class PlaceLauncherService : ServiceBase
         }
         return new PlaceLaunchResponse()
         {
-            jobId = (string?)null,
             status = (int)JoinStatus.Loading,
             message = "Server found, loading...",
         };

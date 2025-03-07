@@ -10,7 +10,7 @@ namespace Roblox.Website.WebsiteModels.Catalog;
 public class MultiGetEntry
 {
     [DefaultValue("Asset")]
-    public string itemType { get; set; }
+    public string? itemType { get; set; }
     public long id { get; set; }
 }
 
