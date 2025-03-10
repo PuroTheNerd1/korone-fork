@@ -424,6 +424,7 @@ public class AdminApiController : ControllerBase
                 Type.Mesh,
                 Type.SolidModel,
                 Type.Video,
+                Type.GamePass
             });
             query.AddParameters(new
             {
@@ -2152,7 +2153,7 @@ Thank you for your understanding,
             Type.ShoulderAccessory,
             Type.FaceAccessory,
             Type.Head,
-            Type.EmoteAnimation
+            Type.EmoteAnimation,
         };
         if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
             throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);

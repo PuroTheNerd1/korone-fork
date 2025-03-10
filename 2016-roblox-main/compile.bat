@@ -1,5 +1,4 @@
 @echo off
-set NODE_ENV=development
 echo Running npm run build...
 call npm run build
 

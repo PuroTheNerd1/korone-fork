@@ -1,7 +1,7 @@
 import getFlag from "../lib/getFlag";
 import request, { getBaseUrl, getFullUrl } from "../lib/request"
 
-export const uploadAsset = ({ name, assetTypeId, file, groupId, description = null }) => {
+export const uploadAsset = ({ name, assetTypeId, file, groupId, description = null, universeId = null }) => {
   let formData = new FormData();
   formData.append('name', name);
   formData.append('assetType', assetTypeId);
@@ -11,6 +11,9 @@ export const uploadAsset = ({ name, assetTypeId, file, groupId, description = nu
   }
   if (description != null) {
     formData.append('description', description);
+  }
+  if (universeId != null) {
+    formData.append('universeId', universeId);
   }
   return request('POST', getBaseUrl() + '/develop/upload', formData);
 }
