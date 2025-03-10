@@ -1513,6 +1513,7 @@ public class AssetsService : ServiceBase, IService
         Type.Face,
         Type.ShoulderAccessory,
         Type.FaceAccessory,
+        Type.GamePass
     };
 
     public async Task<Dto.Assets.CreateResponse> CreateAsset(string name, string? description, long creatorUserId,
