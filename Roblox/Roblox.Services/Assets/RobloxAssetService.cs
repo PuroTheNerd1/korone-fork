@@ -8,13 +8,13 @@ public class RobloxAssetService : ServiceBase, IService
 
     public async Task<string?> GetRobloxAssetLocationFromCache(long id)
     {
-        string key = "chloeassetcachev1:" + id;
+        string key = "chloeassetcachev2:" + id;
         return await redis.StringGetAsync(key);
     }
     public async Task SetRobloxAssetLocationInCache(long id, string location)
     {
-        string key = "chloeassetcachev1:" + id;
-        await redis.StringSetAsync(key, location, TimeSpan.FromDays(9));
+        string key = "chloeassetcachev2:" + id;
+        await redis.StringSetAsync(key, location, TimeSpan.FromDays(3));
     }
     public async Task ProcessRobloxAssets(IEnumerable<dynamic> robloxResults, List<object> assets)
     {
