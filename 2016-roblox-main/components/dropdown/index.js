@@ -31,7 +31,7 @@ const useDropdownStyles = createUseStyles({
   },
   leftMenu: {
     position: 'absolute',
-    background: 'linear-gradient(0deg, rgba(86,86,85,1) 0%, rgba(128,127,127,1) 100%)',
+    background: '#d8d8d8',
     border: '1px solid #565655',
     minWidth: '150px',
     '@media(max-width: 800px)': {

@@ -121,10 +121,7 @@ const CatalogDetails = props => {
 
   const subTitle = `${store.subCategoryDisplayName}${(isLimited || isLimitedUnique) ? ' / Collectible Item' : ''}${isLimitedUnique ? ' / Limited Edition' : ''}`;
   
-  console.log("REFRESH ETST")
-  console.log(gamePassPlace);
-  
-  return <div className='container'>
+  return <div className='container ssp'>
     <AdBanner />
     <div className={s.catalogItemContainer}>
       <BuyItemModal/>

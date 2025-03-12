@@ -104,7 +104,7 @@ export const PlayButton = props => {
         {!isModalClosed ? <RobloxLoadingModal closeModals={isModalClosed} exitFunction={() => setModalClosed(true)} /> : null}
         <ActionButton className={s.actionBtn} label={playSpan} divClassName={s.button} buttonStyle={buttonStyles.newBuyButton} onClick={(e) => {
           joinGame(e, props.placeId, auth, setError);
-          if (isModalClosed == false) { return } // if modal already exists
+          if (isModalClosed === false) { return } // if modal already exists
           setModalClosed(false);
         }}></ActionButton>
       </div>

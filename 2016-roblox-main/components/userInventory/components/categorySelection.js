@@ -8,8 +8,8 @@ import { useEffect } from "react";
 
 const useStyles = createUseStyles({
   categoryTitle: {
-    fontWeight: 300,
-    fontSize: '24px',
+    fontWeight: 500,
+    fontSize: '18px',
   },
   categoryBgDesktop: {
     background: 'var(--white-color)',

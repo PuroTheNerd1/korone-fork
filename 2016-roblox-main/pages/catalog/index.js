@@ -24,7 +24,7 @@ const useStyles = createUseStyles({
 const CatalogPage = props => {
   const s = useStyles();
   return <CatalogPageStore.Provider>
-      <div className='container mt-4'>
+      <div className='container mt-4 ssp'>
         <AdBanner/>
         <div className={s.catalogContainer}>
           <div className='row mt-2'>

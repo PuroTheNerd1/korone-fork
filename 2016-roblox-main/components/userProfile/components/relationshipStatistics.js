@@ -15,7 +15,7 @@ const useStyles = createUseStyles({
     },
   },
   statValue: {
-    fontWeight: 300,
+    fontWeight: 400,
     marginBottom: 0,
     textAlign: 'center',
     fontSize: '20px',
@@ -38,7 +38,7 @@ const useStyles = createUseStyles({
   },
   statText: {
     fontSize: '20px',
-    fontWeight: '300',
+    fontWeight: 400,
     lineHeight: '1em',
     margin: 0,
     padding: '5px 0',

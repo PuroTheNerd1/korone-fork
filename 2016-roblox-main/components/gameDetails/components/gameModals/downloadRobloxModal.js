@@ -119,17 +119,21 @@ const downloadProjexModal = props => {
         window.location.href = "https://setup.pekora.zip/ProjectXPlayerLauncher.exe";
     }
 
-    useEffect(() => {
-        setTimeout(() => {
-            multiGetPresence({ userIds: [auth.userId] }).then(res => {
+    useEffect(async () => {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        let tries = 0;
+        let success;
+        while ((success === null || success !== true) && tries < 10 && !props.closeModals) {
+            tries += 1;
+            multiGetPresence({userIds: [auth.userId]}).then(res => {
                 if (res[0] && res[0]?.userPresenceType === "InGame") {
-                    console.log('wouldve exited, but debug..')
-                    //props.exitFunction();
-                    return;
+                    success = true;
+                    props.exitFunction();
                 }
-            })
-        }, 3000)
-    })
+            });
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+    }, []);
 
     return <>
         {!props.closeModals && !isOpen && <InstructionsModal closeModals={props.closeModals} exitFunction={props.exitFunction} />}

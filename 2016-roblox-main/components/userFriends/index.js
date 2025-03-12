@@ -176,7 +176,7 @@ const UserFriends = props => {
     options.unshift('Friend Requests');
   }
 
-  return <div className={'container ' + s.friendsContainer}>
+  return <div className={'container ssp ' + s.friendsContainer}>
     <div className='row'>
       <div className='col-12'>
         <h3 className={'mb-0 fw-300 ' + s.title}>

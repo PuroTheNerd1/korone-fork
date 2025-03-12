@@ -90,7 +90,6 @@ const projexLoadingModal = props => {
     useEffect(() => {
         setTimeout(() => {
             setOpen(false);
-            return
         }, 5000);
     }, [props])
 
@@ -103,7 +102,8 @@ const projexLoadingModal = props => {
                 <span className="spinner" />
             </div>
             <div className={s.modalBtns}></div>
-        </NewModal>}
+        </NewModal>
+        }
     </>
 }
 
