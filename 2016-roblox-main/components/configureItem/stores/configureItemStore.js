@@ -80,6 +80,7 @@ const ConfigureItemStore = createContainer(() => {
           description,
           enableComments: commentsEnabled,
           genres,
+          isForSale,
           // TODO: everything below this comment
           isCopyingAllowed: false,
         }),

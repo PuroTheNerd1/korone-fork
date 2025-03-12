@@ -4,10 +4,13 @@ import ActionCalls from './actionCalls';
 import updatePlaceStore from "../../stores/updatePlaceStore";
 import FeedbackStore from "../../../../stores/feedback";
 import {multiGetAssetThumbnails} from "../../../../services/thumbnails";
-import {getGameUrl} from "../../../../services/games";
+import {getGameMedia, getGameUrl} from "../../../../services/games";
 import ActionButton from "../../../actionButton";
 import buyButton from "../../../catalogDetailsPage/components/buyButton";
 import useButtonStyles from "../../../../styles/buttonStyles";
+import {deleteGameThumbnail} from "../../../../services/develop";
+import {Random} from "../../../../lib/utils";
+import {FeedbackType} from "../../../../models/feedback";
 
 const useStyles = createUseStyles({
     contentContainer: {
@@ -76,60 +79,100 @@ const useStyles = createUseStyles({
     normal: {
         padding: '3px 18px'
     },
+    mediaContainer: {
+        width: '100%',
+        display: 'flex',
+        flexWrap: 'wrap',
+        flexDirection: 'row',
+        marginTop: 20,
+        marginBottom: 50,
+        gap: 10,
+    },
+    mediaWrapper: {
+        width: 'calc(33% - 10px)',
+        aspectRatio: '16 / 9',
+        margin: 0,
+        position: 'relative',
+        '& img': {
+            width: '100%',
+            height: '100%',
+            display: 'inline-block',
+            cursor: 'pointer',
+        },
+        '& span': {
+            position: 'absolute',
+            top: -14,
+            right: -14,
+            zIndex: 3,
+            cursor: 'pointer',
+            backgroundColor: '#959595',
+            borderRadius: '50%',
+            filter: 'invert(1)',
+        }
+    },
 })
 
-function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-}
-
-function getSrcFromNum(num) {
-    switch (num) {
+const getSrcFromMedia = (selected, medias) => {
+    switch (medias) {
         case 0:
             return "/img/loading.png";
         case 1:
+            return "/img/error.png";
+        case 2:
+            return "/img/placeholder/icon_two.png";
         case 3:
             return "/img/placeholder.png";
-        case 2:
-            return "/img/error.png";
         default:
-            return num;
+            return medias[selected]?.imageUrl;
     }
 }
 
-const Thumbnail = props => {
+const Thumbnail = () => {
+    // based off these videos
+    // https://www.youtube.com/watch?v=qFRaI7_OhOc
+    // https://www.youtube.com/watch?v=m54ngsDywcQ
     const s = useStyles();
-    // 0 == loading, 1 == placeholder (for some reason), 2 == failed to load, 3 == pending, string = success
-    const [thumbnail, setThumbnail] = useState(0);
+    const [deleteLock, setDeleteLock] = useState(false);
+    // 0 == loading, 1 == failed to load, 2 == empty, array = success
+    const [media, setMedia] = useState(0);
+    // selected means which one is shown on the big picture
+    const [selectedMedia, setSelectedMedia] = useState(0);
     const store = updatePlaceStore.useContainer();
     const feedback = FeedbackStore.useContainer();
     const buttonStyles = useButtonStyles();
     
-    const refreshIcon = () => {
-        setThumbnail(0);
-        multiGetAssetThumbnails({ assetIds: [store.placeId] }).then(thumbs => {
-            try {
-                if (thumbs.length === 0) {
-                    setThumbnail(1);
-                    return;
-                }
-                if (!Array.isArray(thumbs) || typeof thumbs[0].imageUrl !== 'string') {
-                    throw new Error('Thumbnail did not load properly! Setting Thumbnail to 2...');
-                }
-                setThumbnail(thumbs[0].state === 'Pending' ? "/img/placeholder.png" : thumbs[0].state === 'Blocked' ? "/img/blocked.png" : thumbs[0].imageUrl);
-            } catch (e) {
-                setThumbnail(2);
-                feedback.addFeedback(e);
+    const refreshGameMedia = (reloadStoreMedia) => {
+        if (reloadStoreMedia) {
+            store.refreshPlaceMedia(store.details.universeId);
+            // returning cuz whenn it changes it'll go back anyway
+            return;
+        }
+        if (store?.media?.length === null) {
+            setMedia(1);
+            return;
+        } else if (store.media.length === 0) {
+            setMedia(2);
+            return;
+        }
+        
+        setMedia(0);
+        setSelectedMedia(0);
+        multiGetAssetThumbnails({ assetIds: store.media.map(media => media.imageId) }).then(res => {
+            if (!res?.length) {
+                setMedia(1);
+                return;
+            } else if (res.length === 0) {
+                setMedia(2);
+                return;
             }
+            setMedia(res);
         });
     }
     
     // TODO: will later have to be rewritten to support multiple thumbnails
-    useEffect(refreshIcon, [store.placeId, store.details.universeId]);
+    useEffect(refreshGameMedia, [store.media]);
+    
+    useEffect(() => console.log(media?.length), [media])
     
     return <div className={s.contentContainer}>
         <div className={`${s.header} col-12`}>
@@ -137,30 +180,61 @@ const Thumbnail = props => {
         </div>
         <div className={`${s.mainContainer} col-12`}>
             <div className={`${s.iconContainer} col-8`}>
-                <img className={s.gameIcon} src={getSrcFromNum(thumbnail)}  alt='Game Thumbnail'/>
-                <p className={s.noteText}>Note: You can only have 1 thumbnail per game (for now).</p>
+                <img className={s.gameIcon} src={getSrcFromMedia(selectedMedia, media) || '/img/placeholder.png'} alt='Game Thumbnail'/>
+                <div className={s.mediaContainer}>
+                    {Array.isArray(media) ?
+                        media.map((thumb, index) =>
+                            <div className={s.mediaWrapper} style={{ height: (100 / (Math.floor((media.length - 1) / 3) + 1)) + '%' }} key={thumb.targetId}>
+                                <img src={thumb.imageUrl || '/img/placeholder.png'} alt={`Game Media ID ${thumb.targetId}`} onClick={e => {
+                                    e.preventDefault();
+                                    setSelectedMedia(index);
+                                }}/>
+                                <span className='icon-close' onClick={e => {
+                                    e.preventDefault();
+                                    if (deleteLock) return;
+                                    setDeleteLock(true);
+                                    deleteGameThumbnail({
+                                        universeId: store.details.universeId,
+                                        thumbnailId: thumb.targetId
+                                    }).then(() => {
+                                        // timeout cuz it take ssome time to delete for some reason
+                                        setTimeout(() => {
+                                            feedback.addFeedback("Thumbnail successfully removed.", FeedbackType.SUCCESS);
+                                            refreshGameMedia(true);
+                                            setDeleteLock(false);
+                                        }, Random(28, 19) * 100)
+                                    });
+                                }}/>
+                            </div>
+                        )
+                        : null
+                    }
+                </div>
+                {/*<p className={s.noteText}>Note: You can only have 1 thumbnail per game (for now).</p>*/}
             </div>
             <div className={`${s.callsToAction} col-4`}>
                 <p style={{
                     fontSize: '18px',
-                }}>Change the Thumbnail</p>
+                }}>Add a New Thumbnail</p>
                 <p style={{
                     fontSize: '16px'
                 }}>Media type:</p>
-                <ActionCalls placeId={
-                    store.placeId
-                } feedback={feedback} refreshIcon={refreshIcon} />
+                <ActionCalls universeId={
+                    store.details.universeId
+                } feedback={feedback} refreshIcon={refreshGameMedia}/>
             </div>
         </div>
         <div className={`${s.footerContainer} col-12`}>
             <div className='d-inline-block'>
-                <ActionButton disabled={store.locked} buttonStyle={buttonStyles.continueButton} className={s.normal} label='Save'
+                <ActionButton disabled={store.locked} buttonStyle={buttonStyles.continueButton} className={s.normal}
+                              label='Save'
                               onClick={() => {
                                   window.location.href = getGameUrl({placeId: store.placeId, name: 'placeholder'})
                               }}/>
             </div>
             <div className='d-inline-block ms-4'>
-                <ActionButton disabled={store.locked} buttonStyle={buttonStyles.cancelButton} className={s.normal} label='Cancel'
+                <ActionButton disabled={store.locked} buttonStyle={buttonStyles.cancelButton} className={s.normal}
+                              label='Cancel'
                               onClick={() => {
                                   window.location.href = getGameUrl({placeId: store.placeId, name: 'placeholder'})
                               }}/>

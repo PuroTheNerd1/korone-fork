@@ -79,13 +79,14 @@ export const getCreatedItems = ({ assetType, limit, cursor, groupId }) => {
   })
 }
 
-export const updateAsset = async ({ assetId, name, description, genres, isCopyingAllowed, enableComments }) => {
+export const updateAsset = async ({ assetId, name, description, genres, isCopyingAllowed, enableComments, isForSale = false }) => {
   return await request('PATCH', getFullUrl('develop', `/v1/assets/${assetId}`), {
     name,
     description,
     genres,
     isCopyingAllowed,
     enableComments,
+    isForSale
   });
 }
 
@@ -156,12 +157,16 @@ export const uploadAutoGenGameIcon = async ({ placeId }) => {
   return request('POST', getFullUrl('develop', `/v1/places/${placeId}/game-icons/auto-generated`))
 };
 
-export const uploadGameThumbnail = async ({ placeId, file }) => {
+export const uploadGameThumbnail = async ({ universeId, file }) => {
   const form = new FormData();
   form.append('file', file);
-  return request('POST', getFullUrl('develop', `/v1/assets/upload-thumbnail?placeId=${placeId}`), form)
+  return request('POST', getFullUrl('develop', `/v1/assets/upload-thumbnail?universeId=${universeId}`), form)
 };
 
-export const uploadAutoGenGameThumbnail = async ({ placeId }) => {
-  return request('POST', getFullUrl('develop', `/v1/places/${placeId}/thumbnails/auto-generated`))
+export const uploadAutoGenGameThumbnail = async ({ universeId }) => {
+  return request('POST', getFullUrl('develop', `/v1/universes/${universeId}/thumbnails/auto-generated`))
+};
+
+export const deleteGameThumbnail = async ({ universeId, thumbnailId }) => {
+  return request('POST', getFullUrl('develop', `/v1/universes/${universeId}/thumbnails/${thumbnailId}`))
 };

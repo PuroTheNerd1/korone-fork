@@ -95,6 +95,7 @@ const gameThumbnails = props => {
     const s = useStyles();
     
     useEffect(() => {
+        // erm wtf is this code
         if (!store.universeDetails || !store.universeDetails.id || !store.placeDetails || !store.placeDetails.placeId || !store.media || !store.media.length) {
             setImageStatus(2);
             return;

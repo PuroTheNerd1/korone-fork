@@ -122,7 +122,7 @@ const BasicSettings = props => {
       description,
       genres: [genre],
       isCopyingAllowed: false,
-      enableComments: commentsEnabled === 'true',
+      enableComments: commentsEnabled === 'true' || commentsEnabled === true,
     }).then(() => {
       window.location.reload();
     }).catch(e => {

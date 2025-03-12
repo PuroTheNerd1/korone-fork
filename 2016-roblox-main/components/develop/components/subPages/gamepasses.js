@@ -24,7 +24,7 @@ const useStyles = createUseStyles({
     },
     inputItemDesc: {
         width: 'calc(100% - 75px)',
-        marginLeft: '28px',
+        marginLeft: 0,
         flexGrow: 1,
     },
     gameSelectContainer: {
@@ -58,6 +58,7 @@ const useStyles = createUseStyles({
             width: '100%',
             height: '100%',
             display: 'inline-block',
+            borderRadius: 8
         }
     },
     gamepassContentContainer: {
@@ -121,6 +122,7 @@ const GamePasses = props => {
      */
     const fileRef = useRef(null);
     const [file, setFile] = useState(null);
+    const [fileBlob, setFileBlob] = useState(null);
     
     const deleteQuery = (str) => {
         const updatedQuery = router.query;
@@ -186,6 +188,9 @@ const GamePasses = props => {
         if (image.size === 0) return feedback.addFeedback('The file is empty');
         setName(nameRef.current.value);
         setFile(image);
+        const reader = new FileReader();
+        reader.onload = (e) => setFileBlob(e.target.result);
+        reader.readAsDataURL(image);
         setPreviewing(true);
     }
     
@@ -203,12 +208,26 @@ const GamePasses = props => {
         if (!auth.userId || !id) return;
         
         try {
+            setGamesList(0);
+            setSelectedGame(null);
             getUserGames({userId: auth.userId}).then(gamesL => {
-                if (!selectedGame && Array.isArray(gamesL?.data) && gamesL.data.length > 0 && gamesL.data[0]?.id) {
-                    updateQuery("universeId", gamesL.data[0].id);
+                const gameArray = gamesL?.data;
+                if (!gameArray || !gameArray.length) {
+                    setGamesList(1);
+                    return;
                 }
-                setSelectedGame(gamesL.data[0]);
-                setGamesList(gamesL.data);
+                
+                const universeId = parseInt(router.query.universeId);
+                const queriedGame = gameArray.find(g => g.id === universeId);
+                if (gameArray.length === 0) {
+                    setSelectedGame(null);
+                } else if (!universeId || !queriedGame) {
+                    updateQuery("universeId", gameArray[0].id);
+                    setSelectedGame(gameArray[0]);
+                } else {
+                    setSelectedGame(queriedGame);
+                }
+                setGamesList(gameArray);
             });
         } catch (e) {
             feedback.addFeedback(e);
@@ -226,7 +245,7 @@ const GamePasses = props => {
                 universeId: selectedGame.id,
                 //groupId,
             }).then(passes => {
-                setPassesList(passes.map(d => ({ ...d, assetId: d.id })));
+                setPassesList(passes.map(d => ({ ...d, assetId: d.id, assetType: 34 })));
             });
         } catch (e) {
             feedback.addFeedback(e);
@@ -248,7 +267,7 @@ const GamePasses = props => {
                 <div className='ms-4 me-4 mt-4 flex flex-column'>
                     <div className='flex w-100'>
                         <div className={s.gamepassImageContainer}>
-                            <img src='/img/placeholder.png'/>
+                            <img src={fileBlob ? fileBlob : '/img/placeholder.png'}/>
                         </div>
                         <div className={s.gamepassContentContainer}>
                             <div className={s.fieldContainer}>
@@ -282,7 +301,7 @@ const GamePasses = props => {
                     <p>Target Game: {selectedGame && selectedGame?.id &&
                         <Link href={getGameUrl({placeId: selectedGame.rootPlaceId, name: selectedGame.name})}><a
                             className='link2018'>{selectedGame.name}</a></Link>}</p>
-                    <p>Find your image: <input ref={fileRef} type='file'/> {
+                    <p>Find your image: <input ref={fileRef} type='file' accept='image/*'/> {
                         //{feedback && <span className='text-danger'>{feedback}</span>}
                     }</p>
                     <p>Game Pass Name: <input ref={nameRef} type='text' className={s.inputItemName}/></p>

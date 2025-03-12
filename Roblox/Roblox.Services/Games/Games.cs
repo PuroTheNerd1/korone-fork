@@ -586,7 +586,11 @@ public class GamesService : ServiceBase, IService
     {
         var qu = await db.QueryAsync<UniverseGamePassEntryDb>(
             @"SELECT a.id, a.name,
-            a.price_robux as priceRobux
+            a.price_robux as priceRobux,
+            a.is_for_sale as isForSale,
+            a.sale_count as sales,
+            a.created_at as created,
+            a.updated_at as updated
             FROM asset AS a
             INNER JOIN asset_gamepass ag ON ag.asset_id = a.id
             WHERE ag.universe_id = :universeId AND a.moderation_status = :acceptedStatus
@@ -605,7 +609,22 @@ public class GamesService : ServiceBase, IService
             displayName = c.name,
             productId = c.id,
             price = c.priceRobux,
+            isForSale = c.isForSale,
+            sales = c.sales,
+            updated = c.updated,
+            created = c.created
         });
+    }
+    public async Task<IEnumerable<GamePassDetails>> GetGamePassInfo(long assetId)
+    {
+        return await db.QueryAsync<GamePassDetails>(
+            @"SELECT 
+            ag.asset_id as assetId, 
+            ag.universe_id as universeId
+            FROM asset_gamepass AS ag
+            WHERE asset_id = :assetId
+            LIMIT 1",
+            new { assetId });
     }
     // if this src ever gets leaked this is NOT for storing ips, its for matchmaking and for getting the server info
     public async Task<dynamic> GetInfoFromIp(string ip)

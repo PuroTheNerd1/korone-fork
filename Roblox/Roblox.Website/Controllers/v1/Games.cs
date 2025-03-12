@@ -7,6 +7,7 @@ using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
 using Roblox.Services.Exceptions;
+using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Website.Controllers;
 
@@ -222,5 +223,24 @@ public class GamesControllerV1 : ControllerBase
             previousPageCursor = offset >= limit ? (offset-limit).ToString() : null,
             data = result,
         };
+    }
+    
+    [HttpGet("games/game-passes/{assetId:long}")]
+    public async Task<GamePassDetails> GetGamePassInfo(long assetId) {
+        var asset = await services.assets.GetAssetCatalogInfo(assetId);
+        if (asset is null) {
+            throw new BadRequestException(0, "Asset does not exist");
+        }
+        if (asset.assetType != Type.GamePass) {
+            throw new BadRequestException(0, "Asset is not a Game Pass");
+        }
+
+        var passInfo = (await services.games.GetGamePassInfo(assetId)).FirstOrDefault();
+        if (passInfo is null) {
+            // not sure how this would ever happen but just in case
+            throw new RecordNotFoundException();
+        }
+        
+        return passInfo;
     }
 }

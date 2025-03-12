@@ -13,6 +13,7 @@ import { getAssetThumbnail, getUniverseIcon, multiGetUniverseIcons } from "../..
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
 import AudioPlayButton from "../../catalogDetailsPage/components/audioPlayButton";
+import AssetListGamePassEntry from "./assetListGamePassEntry";
 
 const useStyles = createUseStyles({
   image: {
@@ -171,7 +172,8 @@ const AssetEntry = props => {
         isAd ? <AssetListAdEntry ad={props.ad} target={props.target} runMenuOpen={runMenuOpen} setRunMenuOpen={setRunMenuOpen} />
           : props.assetType === 9 ?
             <AssetListGameEntry url={assetUrl} startPlaceName={props.name} />
-            : <AssetListCatalogEntry created={props.created} />
+            : props.assetType === 34 ? <AssetListGamePassEntry updated={props.updated} sales={props.sales} isForSale={props.isForSale} />
+                : <AssetListCatalogEntry created={props.created} />
       }
     </div>
     <div className={

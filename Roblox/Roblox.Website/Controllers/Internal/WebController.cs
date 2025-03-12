@@ -24,6 +24,8 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Png;
 using Type = System.Type;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
+using Roblox.Exceptions.Services.Users;
+using Roblox.Models.Db;
 
 namespace Roblox.Website.Controllers;
 
@@ -784,7 +786,7 @@ public class WebController : ControllerBase
     }
     private async Task<CreateResponse> UploadGamePass(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        if (request.universeId is null) {
+        if (request.universeId is null || request.universeId.ToString() is null) {
             throw new BadRequestException(0, "Universe ID is required");
         }
         if (request.priceInRobux is null && request.priceInTickets is null && request.isForSale == true) {
@@ -793,23 +795,31 @@ public class WebController : ControllerBase
         var imageData = await services.assets.ValidateImage(stream);
         if (imageData == null)
             throw new BadRequestException(0, "Invalid image file");
+
+        long universeId = long.Parse(request.universeId.ToString());
+        
+        var universe = await services.games.MultiGetUniverseInfo(new[] {universeId});
+        if (universe.First() == null) {
+            throw new BadRequestException(0, "The Universe does not exist");
+        }
+        await services.assets.ValidatePermissions(universe.First().rootPlaceId, safeUserSession.userId);
+        
+        var gamePasses = (await services.games.GetGamePassesForUniverse(universeId, 15, 0, SortOrder.Asc)).ToList();
+        if (gamePasses.Count == 15) {
+            throw new BadRequestException(0, "This universe has too many gamepasses");
+        }
         
         stream.Position = 0;
         // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
-        var originalImage = Image.Load<Rgba32>(stream);
-        var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
-        newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
-        var memoryStream = new MemoryStream();
-        newImage.Save(memoryStream, new PngEncoder());
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        var cleanImage = await services.assets.CleanImage(stream);
         
         var gamepassAsset = await services.assets.CreateAsset(request.name, request.description,
-            safeUserSession.userId, creatorType, creatorId, memoryStream, Models.Assets.Type.GamePass,
+            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.GamePass,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(gamepassAsset.assetVersionId, (int)memoryStream.Length,
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(gamepassAsset.assetVersionId, (int)cleanImage.Length,
             imageData.width, imageData.height, imageData.imageFormat,
-            await services.assets.GenerateImageHash(memoryStream));
+            await services.assets.GenerateImageHash(cleanImage));
         // gamepass specific stuff
         await services.assets.CreateGamePassAsset(gamepassAsset.assetId, request.universeId);
         await services.assets.UpdateAssetMarketInfo(gamepassAsset.assetId, request.isForSale == true, false, false, null, null);

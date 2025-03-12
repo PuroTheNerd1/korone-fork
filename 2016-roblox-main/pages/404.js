@@ -1,8 +1,18 @@
-// pages/404.js
-export default function NotFoundPage() {
-  return <div className='row'>
-    <div className='col-6 mx-auto'>
-      <h1 className='text-center'>404 - Not Found</h1>
-    </div>
-  </div>
+import NotFound from "../components/notFound";
+import Theme2016 from "../components/theme2016";
+
+const NotFoundPage = () => {
+  return <Theme2016>
+    <NotFound />
+  </Theme2016>
 }
+
+export default NotFoundPage;
+
+export const getStaticProps = () => {
+  return {
+    props: {
+      title: '404 - Pekora',
+    },
+  };
+};

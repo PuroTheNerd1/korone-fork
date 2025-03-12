@@ -5,3 +5,7 @@ export const isTouchDevice = () => {
     // @ts-ignore
     (navigator.msMaxTouchPoints > 0));
 }
+
+export const Random = (min, max) => {
+  return Math.floor(Math.random() * (max - min) ) + min;
+}

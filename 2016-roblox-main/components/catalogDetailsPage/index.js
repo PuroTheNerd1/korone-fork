@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import { createUseStyles } from "react-jss";
 import AuthenticationStore from "../../stores/authentication";
 import GearDropdown from "../gearDropdown";
@@ -9,7 +9,6 @@ import BuyItemModal from "./components/buyItemModal";
 import Comments from "./components/comments";
 import CreatorDetails from "./components/creatorDetails";
 import DelistItemModal from "./components/delistItemModal";
-import Genres from "./components/genres";
 import ItemImage from "../itemImage";
 import { LimitedOverlay, LimitedUniqueOverlay } from "./components/limitedOverlay";
 import Recommendations from "./components/recommendations";
@@ -23,8 +22,9 @@ import { addOrRemoveFromCollections } from "../../services/catalog";
 import { getCollections } from "../../services/inventory";
 import getFlag from "../../lib/getFlag";
 import Owners from "./components/owners";
-import Favorite from "./components/favorite";
 import AudioPlayButton from './components/audioPlayButton';
+import Link from "../link";
+import {getGamePassRootPlace, getGameUrl} from "../../services/games";
 
 const emptyDescriptionMessage = 'No description available.';
 const filterTextForEmpty = str => {
@@ -63,7 +63,7 @@ const useStyles = createUseStyles({
 /**
  * CatalogDetails page
  * @param {{details: AssetDetailsEntry}} props
- * @returns 
+ * @returns
  */
 const CatalogDetails = props => {
   const { details } = props;
@@ -72,6 +72,7 @@ const CatalogDetails = props => {
   const isLimited = details.itemRestrictions.includes('Limited');
   const isLimitedUnique = details.itemRestrictions.includes('LimitedUnique');
   const store = CatalogDetailsPage.useContainer();
+  const [gamePassPlace, setGamePassPlace] = useState(null);
 
   useEffect(() => {
     store.setDetails(props.details);
@@ -88,9 +89,8 @@ const CatalogDetails = props => {
   }, [props]);
 
   useEffect(() => {
-    if (!authStore.userId || !store.details) {
-      return;
-    }
+    if (!authStore.userId || !store.details) return;
+    
     store.loadOwnedCopies(authStore.userId);
     if (store.isResellable) {
       store.loadResellers();
@@ -103,11 +103,15 @@ const CatalogDetails = props => {
       });
       store.setInCollection(inCollection !== undefined);
     })
+    
+    if (details.assetType === 34) {
+      getGamePassRootPlace({ assetId: details.id }).then(d => setGamePassPlace(d));
+    }
   }, [store.details, authStore.userId]);
 
   const hasItemToDeList = store.isResellable && store.allResellers && store.allResellers.find(v => v.seller.id === authStore.userId) !== undefined;
   const hasItemToSell = store.isResellable && store.ownedCopies && store.ownedCopies.filter(v => v.price === null || v.price === 0).length > 0;
-  const isCreator = store.details && store.details.creatorType === 'User' && store.details.creatorTargetId == authStore.userId; // todo: group support
+  const isCreator = store.details && store.details.creatorType === 'User' && store.details.creatorTargetId === authStore.userId; // todo: group support
   const showGear = hasItemToDeList ||
     hasItemToSell ||
     isCreator ||
@@ -116,7 +120,10 @@ const CatalogDetails = props => {
   if (!store.details) return null;
 
   const subTitle = `${store.subCategoryDisplayName}${(isLimited || isLimitedUnique) ? ' / Collectible Item' : ''}${isLimitedUnique ? ' / Limited Edition' : ''}`;
-
+  
+  console.log("REFRESH ETST")
+  console.log(gamePassPlace);
+  
   return <div className='container'>
     <AdBanner />
     <div className={s.catalogItemContainer}>
@@ -182,9 +189,27 @@ const CatalogDetails = props => {
                 <ItemImage id={details.id} name={details.name}/>
                 {store.details.assetType === 3 ? <AudioPlayButton audioId={details.id} /> : null}
                 {isLimitedUnique && <LimitedUniqueOverlay/> || isLimited && <LimitedOverlay/> || null}
+                {
+                  gamePassPlace ?
+                    <span style={{ textAlign: 'center', width: '100%', display: 'inline-block', marginTop: 5 }} >Use this Game Pass in
+                      <Link href={getGameUrl({ placeId: gamePassPlace.rootPlaceId, name: gamePassPlace.name })}>
+                        <a style={{ marginLeft: 5 }} className='link2018' href={getGameUrl({ placeId: gamePassPlace.rootPlaceId, name: gamePassPlace.name })}>
+                          {gamePassPlace.name}
+                        </a>
+                      </Link>
+                    </span>
+                    : null
+                }
               </div>
               <div className='col-12 col-md-6 col-lg-4'>
-                <CreatorDetails id={details.creatorTargetId} name={details.creatorName} type={details.creatorType} createdAt={details.createdAt} updatedAt={details.updatedAt}/>
+                <CreatorDetails
+                    //gamePassPlace={gamePassPlace}
+                    id={details.creatorTargetId}
+                    name={details.creatorName}
+                    type={details.creatorType}
+                    createdAt={details.createdAt}
+                    updatedAt={details.updatedAt}
+                />
                 <p className={s.description}>{filterTextForEmpty(details.description)}</p>
                 <ReportAbuse assetId={details.id}/>
               </div>

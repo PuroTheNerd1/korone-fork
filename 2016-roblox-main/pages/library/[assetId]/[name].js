@@ -4,7 +4,7 @@ import Head from "next/head";
 import Theme2016 from "../../../components/theme2016";
 const ItemPage = ({ name, description, assetId, ...props }) => {
   return(
-    <Theme2016>
+    <>
       {name && (
         <Head>
           <title>{name} - Pekora</title>
@@ -19,7 +19,7 @@ const ItemPage = ({ name, description, assetId, ...props }) => {
         </Head>
       )}
       <SharedAssetPage idParamName='assetId' nameParamName='name' />
-    </Theme2016>
+    </>
   );
 }
 

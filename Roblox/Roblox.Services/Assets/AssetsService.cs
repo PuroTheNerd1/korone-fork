@@ -1010,6 +1010,7 @@ public class AssetsService : ServiceBase, IService
         List<Task> thumbRequests = new();
         switch (assetType)
         {
+            case Models.Assets.Type.GamePass:
             case Models.Assets.Type.Image:
             case Models.Assets.Type.Decal:
             case Models.Assets.Type.Face:
@@ -1056,7 +1057,6 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.Plugin:
             case Models.Assets.Type.Badge:
-            case Models.Assets.Type.GamePass:
                 break;
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Model:
@@ -1648,7 +1648,7 @@ public class AssetsService : ServiceBase, IService
 
     public async Task UpdateAsset(long assetId, string name, string description,
         IEnumerable<Models.Assets.Genre> genres,
-        bool enableComments, bool isCopyingAllowed)
+        bool enableComments, bool isCopyingAllowed, bool isForSale)
     {
         ValidateNameAndDescription(name, description);
 
@@ -1658,6 +1658,7 @@ public class AssetsService : ServiceBase, IService
             description,
             asset_genre = (int)genres.ToArray()[0], // todo: multi genre support
             comments_enabled = enableComments,
+            is_for_sale = isForSale,
         });
     }
 
@@ -1861,7 +1862,7 @@ public class AssetsService : ServiceBase, IService
         watch.Start();
         var query = new SqlBuilder();
         var t = query.AddTemplate(
-            "SELECT asset.id as id, asset_type as assetType, asset.name, asset.description, asset_genre as genre, creator_type as creatorType, creator_id as creatorTargetId, offsale_at as offsaleDeadline, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTickets, is_limited as isLimited, is_limited_unique as isLimitedUnique, serial_count as serialCount, \"group\".name as groupName, \"user\".username as username, asset.created_at as createdAt, asset.updated_at as updatedAt, asset.is_18_plus, asset.moderation_status FROM asset LEFT JOIN \"user\" ON \"user\".id = asset.creator_id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id /**where**/ LIMIT 200", new
+            "SELECT asset.id as id, asset_type as assetType, asset.name, asset.description, asset_genre as genre, creator_type as creatorType, creator_id as creatorTargetId, offsale_at as offsaleDeadline, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTickets, is_limited as isLimited, is_limited_unique as isLimitedUnique, comments_enabled as commentsEnabled, serial_count as serialCount, \"group\".name as groupName, \"user\".username as username, asset.created_at as createdAt, asset.updated_at as updatedAt, asset.is_18_plus, asset.moderation_status FROM asset LEFT JOIN \"user\" ON \"user\".id = asset.creator_id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id /**where**/ LIMIT 200", new
             {
                 sale_type = PurchaseType.Purchase,
                 sub_sale_type = TransactionSubType.ItemPurchase,
@@ -2298,7 +2299,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     }
 
     public async Task UpdateAsset(long assetId, string? description, string name, Genre genre,
-        bool isCopyingAllowed, bool areCommentsAllowed)
+        bool isCopyingAllowed, bool areCommentsAllowed, bool isForSale)
     {
         ValidateNameAndDescription(name, description);
 
@@ -2308,12 +2309,13 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             description,
             asset_genre = (int)genre,
             comments_enabled = areCommentsAllowed,
+            is_for_sale = isForSale,
             // is_copying_allowed = isCopyingAllowed,
         });
     }
     
     public async Task UpdateAsset(long assetId, string? description, string name, Genre genre,
-        bool isCopyingAllowed, bool areCommentsAllowed, Stream? file = null)
+        bool isCopyingAllowed, bool areCommentsAllowed, bool isForSale, Stream? file = null)
     {
         ValidateNameAndDescription(name, description);
 
@@ -2322,15 +2324,15 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
                 return;
 
-            var validImage = await ValidateImage(file);
-            if (validImage == null)
-            {
+            var checkImage = await ValidateImage(file);
+            if (checkImage == null) {
                 Writer.Info(LogGroup.GameIconRender, "custom icon failed for assetId={0}", assetId);
                 return;
             }
-            if (file.CanSeek)
+            if (file.CanSeek) 
                 file.Position = 0;
-            byte[] imageBytes = await AvatarService.GetResizedImageFromStream(file, 420, 420);
+            var validImage = await CleanImage(file);
+            byte[] imageBytes = await AvatarService.GetResizedImageFromStream(validImage, 420, 420);
             var imageStream = new MemoryStream(imageBytes);
             string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
             var latestVersion = await GetLatestAssetVersion(assetId);
@@ -2344,6 +2346,8 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             description,
             asset_genre = (int)genre,
             comments_enabled = areCommentsAllowed,
+            is_for_sale = isForSale,
+            moderation_status = ModerationStatus.AwaitingApproval
             // is_copying_allowed = isCopyingAllowed,
         });
     }

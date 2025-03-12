@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import CatalogDetails from "../catalogDetailsPageNew";
-import CatalogDetailsPage from "../catalogDetailsPageNew/stores/catalogDetailsPage";
-import CatalogDetailsPageModal from "../catalogDetailsPageNew/stores/catalogDetailsPageModal";
+import CatalogDetails from "../catalogDetailsPage";
+import CatalogDetailsPage from "../catalogDetailsPage/stores/catalogDetailsPage";
+import CatalogDetailsPageModal from "../catalogDetailsPage/stores/catalogDetailsPageModal";
 import GameDetails from "../gameDetails";
 import GameDetailsStore from "../gameDetails/stores/gameDetailsStore";
 import {getItemDetails, getItemUrl} from "../../services/catalog";

@@ -223,6 +223,10 @@ public class UniverseGamePassEntryDb
     //public string displayName { get; set; }
     //public long productId { get; set;}
     public int priceRobux { get; set;}
+    public bool isForSale { get; set; }
+    public int sales { get; set; }
+    public DateTime updated { get; set; }
+    public DateTime created { get; set; }
 }
 
 public class UniverseGamePassEntry
@@ -232,4 +236,13 @@ public class UniverseGamePassEntry
     public string displayName { get; set; }
     public long productId { get; set;}
     public int price { get; set;}
+    public bool isForSale { get; set; }
+    public int sales { get; set; }
+    public DateTime updated { get; set; }
+    public DateTime created { get; set; }
+}
+
+public class GamePassDetails {
+    public long assetId { get; set; }
+    public long universeId { get; set; }
 }

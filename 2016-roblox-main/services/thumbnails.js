@@ -111,11 +111,6 @@ export const multiGetUniverseIcons = ({ universeIds, size }) => {
   })
 }
 
-export const getPlaceThumbnail = ({ assetId }) => {
-  return request('get', getBaseUrl(`/thumbs/asset.ashx?assetId=${assetId}&format=png`))
-      //.then(d => d.data.data).then(addBaseUrl);
-}
-
 export const getAssetThumbnail = assetId => {
   return request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${assetId}&format=png&size=420x420`))
 }

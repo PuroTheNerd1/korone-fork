@@ -2,7 +2,7 @@ import updatePlaceStore from "./stores/updatePlaceStore";
 import {useEffect} from "react";
 import VerticalSelector from "../verticalSelector";
 import BasicSettings from "./components/basicSettings";
-import {multiGetPlaceDetails} from "../../services/games";
+import {getGameMedia, multiGetPlaceDetails} from "../../services/games";
 import Icon from "./components/icon";
 import UploadPlace from "./components/uploadPlace";
 import Access from "./components/access";
@@ -13,9 +13,7 @@ const Container = props => {
   useEffect(() => {
     store.setTab('Basic Settings');
     store.setPlaceId(props.placeId);
-    multiGetPlaceDetails({placeIds: [props.placeId]}).then(data => {
-      store.setDetails(data[0]);
-    })
+    store.refreshPlaceDetails(props.placeId);
   }, [props]);
 
   const handler = (opt) => {
@@ -43,13 +41,11 @@ const Container = props => {
     {
       name: 'Thumbnails',
       url: '#',
-      disabled: false,
       el: () => <Thumbnail />,
     },
     {
       name: 'Access',
       url: '#',
-      disabled: false,
       el: () => <Access />,
     },
     {

@@ -62,6 +62,8 @@
  * @property {string} name
  * @property {number} productId
  * @property {number} price
+ * @property {boolean} isForSale
+ * @property {number} sales
  */
 
 /**

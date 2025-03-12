@@ -31,6 +31,10 @@ export const getLibraryItemUrl = ({assetId, name}) => {
     return `/library/${assetId}/${itemNameToEncodedName(name)}`;
 }
 
+export const getGamePassCreationUrl = ({ universeId }) => {
+    return `/develop?View=34&universeId=${universeId}`;
+}
+
 /**
  *
  * @param userId
@@ -121,6 +125,24 @@ export const shutdownPlaceServers = ({placeId}) => {
 
 export const shutdownSpecificServer = ({placeId, jobId}) => {
     return request('GET', getBaseUrl() + `/rcc/killserver?placeId=${placeId}&jobId=${jobId}`).then(d => d.data);
+}
+
+export const getGamePassUniverse = ({ assetId }) => {
+    return request('GET', getFullUrl('games', `/v1/games/game-passes/${assetId}`)).then(d => d?.data?.universeId);
+}
+
+export const getGamePassRootPlace = async ({ assetId }) => {
+    let rootPlace;
+    await getGamePassUniverse({ assetId }).then(async universeId => {
+        if (!universeId) {
+            return;
+        }
+        await multiGetUniverseDetails({universeIds: [universeId]}).then(d => {
+            if (!Array.isArray(d) || d?.length === 0) return;
+            rootPlace = d[0];
+        });
+    });
+    return rootPlace;
 }
 
 /**

@@ -27,6 +27,7 @@ public class UpdateAssetRequest
     public string name { get; set; }
     public bool isCopyingAllowed { get; set; }
     public bool enableComments { get; set; }
+    public bool isForSale { get; set; }
 }
 
 public class UpdateGamePassAssetRequest
@@ -35,6 +36,7 @@ public class UpdateGamePassAssetRequest
     public IEnumerable<Genre> genres { get; set; }
     public string name { get; set; }
     public bool enableComments { get; set; }
+    public bool isForSale { get; set; }
     public IFormFile? file { get; set; }
 }
 

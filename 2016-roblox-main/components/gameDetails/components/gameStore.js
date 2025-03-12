@@ -1,7 +1,7 @@
 import { createUseStyles } from "react-jss";
 import GameDetailsStore from "../stores/gameDetailsStore";
 import {useEffect, useState} from "react";
-import {getUniverseGamePasses} from "../../../services/games";
+import {getGamePassCreationUrl, getGameUrl, getUniverseGamePasses} from "../../../services/games";
 import ItemImage from "../../itemImage";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
@@ -9,6 +9,7 @@ import Link from "../../link";
 import {getItemUrl} from "../../../services/catalog";
 import ActionLink from "../../actionLink";
 import Robux2 from "../../robux2";
+import AuthenticationStore from "../../../stores/authentication";
 
 const useStyles = createUseStyles({
   tabPane: {
@@ -117,7 +118,8 @@ const useStyles = createUseStyles({
     width: 150,
     height: 150,
     margin: 0,
-    padding: 0
+    padding: 0,
+    cursor: 'pointer',
   },
   gPassDetails: {
     display: 'flex',
@@ -132,6 +134,7 @@ const useStyles = createUseStyles({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     width: '100%',
+    textAlign: 'start'
   },
   gPassPriceContainer: {},
   gPassBuyContainer: {
@@ -150,6 +153,21 @@ const useStyles = createUseStyles({
       cursor: 'pointer',
     }
   },
+  
+  addPassContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+  },
+  addPassIcon: {
+    backgroundImage: 'url(/img/plus.png)',
+    height: '44px',
+    width: '44px',
+  },
+  addPassText: {
+    color: '#494d5a',
+    marginTop: 20
+  },
 })
 
 /**
@@ -160,11 +178,14 @@ const useStyles = createUseStyles({
 const GamePassEntry = ({ id, name, price }) => {
   const s = useStyles();
   const buttonStyles = useButtonStyles();
+  const url = getItemUrl({assetId: id, name});
   
   return <div className={s.gPassWrapper}>
     <div className={`section-content hoverShadow ${s.gPassContainer}`}>
-      <Link href={getItemUrl({assetId: id, name})}>
-        <ItemImage className={s.gPassImg} id={id} name={name}/>
+      <Link href={url}>
+        <a href={url}>
+          <ItemImage className={s.gPassImg} id={id} name={name}/>
+        </a>
       </Link>
       <div className={s.gPassDetails}>
         <span className={s.gPassName}>{name}</span>
@@ -173,15 +194,30 @@ const GamePassEntry = ({ id, name, price }) => {
       </span>
         <div className={s.gPassBuyContainer}>
             <ActionLink className={s.gPassBuyButton} label='Buy' buttonStyle={buttonStyles.newCancelButton}
-                        href={getItemUrl({assetId: id, name})}/>
+                        href={url}/>
         </div>
       </div>
     </div>
   </div>
 }
 
+const AddPassEntry = ({ universeId, forceHeight }) => {
+  const s = useStyles();
+  const url = getGamePassCreationUrl({ universeId });
+  
+  return <div className={s.gPassWrapper} style={forceHeight ? { height: 245 } : null}>
+    <Link href={url}>
+      <a href={url} className={`section-content hoverShadow ${s.gPassContainer} ${s.addPassContainer}`}>
+        <span className={s.addPassIcon}/>
+        <span className={s.addPassText}>Add Pass</span>
+      </a>
+    </Link>
+  </div>
+}
+
 const GameStore = props => {
   const s = useStyles();
+  const auth = AuthenticationStore.useContainer();
   const store = GameDetailsStore.useContainer();
   if (!store.placeDetails || !store.universeDetails) return null;
   // 0 == loading, 1 == no passes, 2 == failed to load, array is success
@@ -191,26 +227,48 @@ const GameStore = props => {
     setPasses(0);
     getUniverseGamePasses({universeId: store.universeDetails.id}).then(d => {
       try { // accounts for d being null if for whatever rerason it is
+        d = d.filter(pass => pass.price >= 5).filter(pass => pass.isForSale === true);
         if (d.length === 0) {
           setPasses(1);
           return;
         }
         setPasses(d);
       } catch (e) {
+        console.error(e);
         setPasses(2);
       }
     })
   }, [store.universeDetails])
   
-  return <div className={' ' + s.tabPane}>
+  return <div className={s.tabPane}>
     <div className={s.gamePassContainer}>
       <div className={s.containerHeader}>
         <h3 className={s.containerHeaderText}>Passes for this game</h3>
       </div>
-      {Array.isArray(passes) ? <ul className={s.passesContainer}>
-        {passes.map(pass => <GamePassEntry key={pass.id} id={pass.id} name={pass.name} price={pass.price} />)}
-      </ul> : passes === 0 ? <p className={s.noPasses}>Loading gamepasses...</p> : passes === 1 ?
-          <p className={s.noPasses}>No passes available.</p> : <p className={s.noPasses}>An error occurred while loading gamepasses.</p>}
+      {Array.isArray(passes) ?
+          <ul className={s.passesContainer}>
+            {passes.map(pass => <GamePassEntry key={pass.id} id={pass.id} name={pass.name} price={pass.price} />)}
+            {/* TODO: will need to be changed if we ever add group games */}
+            {
+              store.universeDetails.creator.id === auth.userId && passes.length !== 15 ?
+                  <AddPassEntry universeId={store.universeDetails.id} />
+                  : null
+            }
+          </ul>
+          : <div>
+            {
+              store.universeDetails.creator.id === auth.userId ?
+                  <AddPassEntry universeId={store.universeDetails.id} forceHeight />
+                  : null
+            }
+            {passes === 0 ?
+                <p className={s.noPasses}>Loading gamepasses...</p>
+                : passes === 1 ?
+                    <p className='section-content-off'>This game does not sell any virtual items or power-ups.</p>
+                    :
+                    <p className='section-content-off'>An error occurred while loading gamepasses.</p>}
+          </div>
+      }
     </div>
   </div>
 }

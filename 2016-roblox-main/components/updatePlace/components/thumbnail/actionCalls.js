@@ -5,6 +5,8 @@ import useButtonStyles from "../../../../styles/buttonStyles";
 import ConfirmUploadModal from "./confirmUploadModal";
 import Robux2011 from "../../../robux2011";
 import ActionButton from "../../../actionButton";
+import {Random} from "../../../../lib/utils";
+import {FeedbackType} from "../../../../models/feedback";
 
 const useStyles = createUseStyles({
     formContainer: {
@@ -76,7 +78,7 @@ const Icon = props => {
     }
     
     const feed = string => {
-        props.feedback.addFeedback(string);
+        props.feedback.addFeedback(string, FeedbackType.ERROR);
         setModalOpen(false);
         setLoading(false);
     }
@@ -84,22 +86,26 @@ const Icon = props => {
     const onSubmit = () => {
         if (loading) return;
         if (mediaType === 'custom') {
-            if (!fileRef.current.files.length) return feed('You must select a file.');
-            let image = fileRef.current.files[0];
+            if (!fileRef?.current?.files?.length) return feed('You must select a file.');
+            let image = fileRef?.current?.files[0];
             if (image.size >= 8e+7) return feed('The image is too large.');
             if (image.size === 0) return feed('The image is empty.');
             setLoading(true);
             setModalOpen(false);
             
             uploadGameThumbnail({
-                placeId: props.placeId,
+                universeId: props.universeId,
                 file: image,
             }).then(() => {
-                setLoading(false);
-                props.refreshIcon();
+                // timeout cuz it take ssome time to delete for some reason
+                setTimeout(() => {
+                    props.feedback.addFeedback("Thumbnail successfully added.", FeedbackType.SUCCESS);
+                    setLoading(false);
+                    props.refreshIcon(true);
+                }, Random(28, 19) * 100)
                 //window.location.reload();
             }).catch(e => {
-                props.feedback.addFeedback(e.message);
+                props.feedback.addFeedback(e.message, FeedbackType.ERROR);
                 setLoading(false);
             })
         } else {
@@ -107,13 +113,16 @@ const Icon = props => {
             setModalOpen(false);
             
             uploadAutoGenGameThumbnail({
-                placeId: props.placeId
+                universeId: props.universeId
             }).then(() => {
-                setLoading(false);
-                props.refreshIcon();
+                setTimeout(() => {
+                    props.feedback.addFeedback("Thumbnail successfully added.", FeedbackType.SUCCESS);
+                    setLoading(false);
+                    props.refreshIcon(true);
+                }, Random(28, 19) * 100)
                 //window.location.reload();
             }).catch(e => {
-                props.feedback.addFeedback(e.message);
+                props.feedback.addFeedback(e.message, FeedbackType.ERROR);
                 setLoading(false);
             })
         }
@@ -133,7 +142,7 @@ const Icon = props => {
             onClose={onClose}
             onConfirm={onSubmit}
             title="Add Thumbnail"
-            message="This thumbnail will be moderated. Are you sure you want to submit this thumbnail? This will delete your existing thumbnail."
+            message="This thumbnail will be moderated. Are you sure you want to submit this thumbnail?"
         ></ConfirmUploadModal>
         }
         <input // Custom Image
@@ -160,7 +169,7 @@ const Icon = props => {
         {
             mediaType === 'auto' ?
                 <>
-                    <ActionButton className={s.actionButton} buttonStyle={butStyles.continueButton} label='Set Thumbnail' onClick={modalPopup} />
+                    <ActionButton className={s.actionButton} buttonStyle={butStyles.continueButton} label='Add Thumbnail' onClick={modalPopup} />
                 </> :
                 <>
                     <p style={{marginBottom: '5px'}}>Select image:</p>
