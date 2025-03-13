@@ -13,6 +13,9 @@ namespace Roblox.Website.Controllers;
 [Route("/apisite/develop/v1")]
 public class DevelopControllerV1 : ControllerBase
 {
+    private static int pendingThumbnailsUploads { get; set; } = 0;
+    private static readonly Mutex pendingThumbnailUploadsMux = new();
+
     [HttpGet("user/is-verified-creator")]
     public dynamic IsVerifiedCreator()
     {
@@ -46,6 +49,10 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("assets/upload-gameicon")]
     public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
     {
+        if (!await services.cooldown.TryCooldownCheck("Place:GameIcon:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Place:GameIcon:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
+        {
+            throw new TooManyRequestsException(0, "Too many requests");
+        }
         await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
         var details = await services.assets.GetAssetCatalogInfo(placeId);
         if (details.assetType != Models.Assets.Type.Place) {
@@ -59,67 +66,72 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("assets/upload-thumbnail")]
     public async Task<dynamic> UploadGameThumbnail(long universeId, [Required, FromForm] IFormFile file)
     {
-        var universe = await services.games.MultiGetUniverseInfo(new[] {universeId});
-        if (universe.First() is null) {
-            throw new BadRequestException(0, "Universe doesn't exist");
+        if (!await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
+        {
+            throw new TooManyRequestsException(0, "Too many requests");
         }
-        await services.assets.ValidatePermissions(universe.First().rootPlaceId, safeUserSession.userId);
-        // var details = await services.assets.GetAssetCatalogInfo(universeId);
-        // if (details.assetType != Models.Assets.Type.Place) {
-        //     throw new BadRequestException(1, "Cannot upload a game thumbnail for a non place");
-        // }
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         
-        var result = await services.games.GetGameMedia(universe.First().rootPlaceId);
-        if (result.Count() == 10) {
+        if (await services.games.GetGameMediaCount(universe.rootPlaceId) == 10) {
             throw new BadRequestException(0, "Too many thumbnails on this Universe");
         }
 
-        var balance = await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
-        // check if has enough
-        if (balance.robux < 10)
-            throw new BadRequestException(0, "Not enough Robux for purchase");
-        var readStream = file.OpenReadStream();
-        if (readStream is null)
-            throw new BadRequestException(0, "File provided is invalid");
-        // TODO: actually make it deduct 10 roux robux
-        // whenever CreateGameThumbnail returns, how do i make sure it actually succceeded, so that i can deduct after
-        await services.economy.ChargeForGameThumbnailUpload(CreatorType.User, safeUserSession.userId);
-        await services.assets.CreateGameThumbnail(universe.First().rootPlaceId, readStream);
+        lock (pendingThumbnailUploadsMux)
+        {
+            if (pendingThumbnailsUploads >= 5)
+            {
+                throw new TooManyRequestsException(0, "Too many pending uploads");
+            }
+            pendingThumbnailsUploads++;
+        }
+        try
+        {
+            var balance = await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
+            // check if has enough
+            if (balance.robux < 10)
+                throw new BadRequestException(0, "Not enough Robux for purchase");
+            var readStream = file.OpenReadStream();
+            if (readStream is null)
+                throw new BadRequestException(0, "File provided is invalid");
+            // TODO: actually make it deduct 10 roux robux
+            // whenever CreateGameThumbnail returns, how do i make sure it actually succceeded, so that i can deduct after
+            await services.economy.ChargeForGameThumbnailUpload(CreatorType.User, safeUserSession.userId);
+            await services.assets.CreateGameThumbnail(universe.rootPlaceId, readStream);
+        }
+        finally
+        {
+            lock (pendingThumbnailUploadsMux)
+            {
+                pendingThumbnailsUploads--;
+            }
+        }
+        
         return Ok();
     }
     
     [HttpPost("universes/{universeId}/thumbnails/auto-generated")]
     public async Task<dynamic> UploadAutoGenThumbnail(long universeId)
     {
-        var universe = await services.games.MultiGetUniverseInfo(new[] {universeId});
-        if (universe.First() is null) {
-            throw new BadRequestException(0, "Universe doesn't exist");
+        if (!await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
+        {
+            throw new TooManyRequestsException(0, "Too many requests");
         }
-        await services.assets.ValidatePermissions(universe.First().rootPlaceId, safeUserSession.userId);
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         
-        var result = await services.games.GetGameMedia(universe.First().rootPlaceId);
-        if (result.Count() == 10) {
+        if (await services.games.GetGameMediaCount(universe.rootPlaceId) == 10) {
             throw new BadRequestException(0, "Too many thumbnails on this Universe");
         }
-        
-        // var details = await services.assets.GetAssetCatalogInfo(place.First().rootPlaceId);
-        // if (details.assetType != Models.Assets.Type.Place) {
-        //     throw new BadRequestException(1, "Cannot upload a game thumbnail for a non place");
-        // }
 
-        await services.assets.CreateAutoGeneratedGameThumbnail(universe.First().rootPlaceId);
+        await services.assets.CreateAutoGeneratedGameThumbnail(universe.rootPlaceId);
         return Ok();
     }
     
     [HttpPost("universes/{universeId}/thumbnails/{thumbnailAssetId}")]
     public async Task<dynamic> DeleteGameThumbnail(long universeId, long thumbnailAssetId)
     {
-        var place = await services.games.MultiGetUniverseInfo(new[] {universeId});
-        if (place.First() is null) {
-            throw new BadRequestException(0, "Universe doesn't exist");
-        }
-        await services.assets.ValidatePermissions(place.First().rootPlaceId, safeUserSession.userId);
-        await services.assets.DeleteGameThumbnail(place.First().rootPlaceId, thumbnailAssetId);
+        var place = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        await services.assets.ValidatePermissions(place.rootPlaceId, safeUserSession.userId);
+        await services.assets.DeleteGameThumbnail(place.rootPlaceId, thumbnailAssetId);
         return Ok();
     }
     
@@ -127,6 +139,10 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("places/{placeId}/game-icons/auto-generated")]
     public async Task<dynamic> UploadAutoGenGameIcon(long placeId, [FromForm] IFormFile? file = null)
     {
+        if (!await services.cooldown.TryCooldownCheck("Place:GameIcon:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Place:GameIcon:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
+        {
+            throw new TooManyRequestsException(0, "Too many requests");
+        }
         await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
         var details = await services.assets.GetAssetCatalogInfo(placeId);
         if (details.assetType != Models.Assets.Type.Place) {

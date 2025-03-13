@@ -84,6 +84,25 @@ public class GamesService : ServiceBase, IService
             });
         return result;
     }
+    public async Task<MultiGetUniverseEntry> SafeGetUniverseInfo(long userId, long universeId)
+    {
+        var universe = (await MultiGetUniverseInfo(new[] {universeId})).First();
+        if (universe is null) 
+            throw new RecordNotFoundException("Universe doesn't exist");
+        
+
+        if (universe.creatorId != userId) 
+            throw new PermissionException(universe.rootPlaceId, userId);
+        
+
+        using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
+        var details = await assets.GetAssetCatalogInfo(universe.rootPlaceId);
+        // Second condition should almost never happen but just in case
+        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.creatorTargetId != userId) {
+            throw new PermissionException(universe.rootPlaceId, userId);
+        }
+        return universe;
+    }
     public async Task<long> GetRootPlaceId(long universeId)
     {
         //var details = await MultiGetUniverseInfo(new []{universeId});
@@ -721,7 +740,15 @@ public class GamesService : ServiceBase, IService
             "SELECT asset_type as assetType, media_asset_id as imageId, media_video_hash as videoHash, media_video_title as videoTitle, is_approved as approved FROM asset_media WHERE asset_id = :id",
             new {id = placeId});
     }
-
+    public async Task<long> GetGameMediaCount(long placeId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
+            "SELECT COUNT(*) AS total FROM asset_media WHERE asset_id = :id AND is_approved = true", new
+            {
+                id = placeId,
+            });
+        return result?.total ?? 0;
+    }
     public async Task<CreateUniverseResponse> CreateUniverse(long rootPlaceId)
     {
         return await InTransaction(async _ =>

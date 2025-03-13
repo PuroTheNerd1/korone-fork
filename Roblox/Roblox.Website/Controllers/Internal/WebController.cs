@@ -596,6 +596,7 @@ public class WebController : ControllerBase
     [HttpPost("develop/upload-version")]
     public async Task UploadVersion([Required, FromForm] UploadAssetVersionRequest request)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
         var info = await services.assets.GetAssetCatalogInfo(request.assetId);
         var canUpload = await services.assets.CanUserModifyItem(info.id, safeUserSession.userId);
 

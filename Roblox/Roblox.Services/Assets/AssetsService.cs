@@ -310,12 +310,17 @@ public class AssetsService : ServiceBase, IService
     
     public async Task InsertOrReplaceGameMedia(long assetId, long mediaAssetId, Models.Assets.Type assetType)
     {
-        await InsertAsync("asset_media", new
+        await InTransaction(async (tr) =>
         {
-            asset_id = assetId,
-            media_asset_id = mediaAssetId,
-            asset_type = assetType,
+            await InsertAsync("asset_media", new
+            {
+                asset_id = assetId,
+                media_asset_id = mediaAssetId,
+                asset_type = assetType,
+            });
+            return 0;
         });
+
         // await InTransaction(async (tr) =>
         // {
         //     // await db.ExecuteAsync("DELETE FROM asset_media WHERE asset_id = :asset_id", new
