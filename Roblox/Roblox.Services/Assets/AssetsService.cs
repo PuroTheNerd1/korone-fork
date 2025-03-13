@@ -1016,6 +1016,7 @@ public class AssetsService : ServiceBase, IService
         switch (assetType)
         {
             case Models.Assets.Type.GamePass:
+            case Models.Assets.Type.Badge:
             case Models.Assets.Type.Image:
             case Models.Assets.Type.Decal:
             case Models.Assets.Type.Face:
@@ -1061,7 +1062,6 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.PoseAnimation:
             case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.Plugin:
-            case Models.Assets.Type.Badge:
                 break;
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Model:
@@ -1518,7 +1518,8 @@ public class AssetsService : ServiceBase, IService
         Type.Face,
         Type.ShoulderAccessory,
         Type.FaceAccessory,
-        Type.GamePass
+        Type.GamePass,
+        Type.Badge
     };
 
     public async Task<Dto.Assets.CreateResponse> CreateAsset(string name, string? description, long creatorUserId,
@@ -1682,6 +1683,15 @@ public class AssetsService : ServiceBase, IService
         };
     }
 
+    public async Task CreateBadgeAsset(long assetId, long? universeId) {
+        if (universeId is null)
+            return;
+        await InsertAsync("asset_badge", new {
+            asset_id = assetId,
+            universe_id = universeId
+        });
+    }
+    
     public async Task CreateGamePassAsset(long assetId, long? universeId) {
         if (universeId is null)
             return;

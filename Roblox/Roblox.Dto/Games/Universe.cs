@@ -246,3 +246,53 @@ public class GamePassDetails {
     public long assetId { get; set; }
     public long universeId { get; set; }
 }
+
+public class BadgeAssetDetailsDb {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    public bool enabled { get; set; }
+    public long awardedCount { get; set; }
+    public long pastDayAwardedCount { get; set; }
+    public long pastDayUniverseVisitors { get; set; }
+    public DateTime created { get; set; }
+    public DateTime updated { get; set; }
+    public ModerationStatus moderationStatus { get; set; }
+    public BadgeStatistics statistics { get; set; }
+    public BadgeAwardingUniverse awardingUniverse { get; set; }
+}
+
+public class BadgeAssetDetails {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    public string displayName { get; set; }
+    public string displayDescription { get; set; }
+    public bool enabled { get; set; }
+    public long iconImageId { get; set; }
+    public long displayIconImageId { get; set; }
+    // not in official api but why not
+    public ModerationStatus moderationStatus { get; set; }
+    public DateTime created { get; set; }
+    public DateTime updated { get; set; }
+    public BadgeStatistics statistics { get; set; }
+    public BadgeAwardingUniverse awardingUniverse { get; set; }
+}
+
+public class BadgeStatistics {
+    public long pastDayAwardedCount { get; set; }
+    public long awardedCount { get; set; }
+    public decimal winRatePercentage { get; set; }
+}
+
+public class BadgeAwardingUniverse {
+    public long id { get; set; }
+    public string name { get; set; }
+    public long rootPlaceId { get; set; }
+}
+
+public class BadgeDetails {
+    public long assetId { get; set; }
+    public long universeId { get; set; }
+    public bool enabled { get; set; }
+}

@@ -645,6 +645,84 @@ public class GamesService : ServiceBase, IService
             LIMIT 1",
             new { assetId });
     }
+    // TODO: gamepass should probably use this too
+    public async Task<int> GetUniverseBadgeCount(long universeId)
+    {
+        var qu = await db.ExecuteScalarAsync<int>(
+            @"SELECT COUNT(*)
+            FROM asset_badge AS ab
+            WHERE ab.universe_id = :universeId",
+            new
+            { universeId });
+        return qu;
+    }
+    public async Task<IEnumerable<BadgeAssetDetails>> GetBadgesForUniverse(MultiGetUniverseEntry universe, int limit,
+        int offset, SortOrder? sort)
+    {
+        var qu = await db.QueryAsync<BadgeAssetDetailsDb>(
+            @"SELECT a.id, a.name, a.description, ab.enabled,
+            a.sale_count as awardedCount,
+            a.created_at as created,
+            a.moderation_status as moderationStatus,
+            a.updated_at as updated,
+            (
+                SELECT COUNT(*) FROM user_transaction AS ut
+                                WHERE ut.asset_id = a.id
+                                AND ut.created_at >= NOW() - INTERVAL '1 day'
+            ) as pastDayAwardedCount,
+            (
+                SELECT COUNT(*) FROM asset_play_history as aph
+                                WHERE aph.asset_id = :rootPlaceId   
+                                AND aph.created_at >= NOW() - INTERVAL '1 day'
+            ) as pastDayUniverseVisitors
+            FROM asset AS a
+            INNER JOIN asset_badge ab ON ab.asset_id = a.id
+            WHERE ab.universe_id = :universeId
+            LIMIT :limit OFFSET :offset",
+            new
+            {
+                universeId = universe.id,
+                rootPlaceId = universe.rootPlaceId,
+                limit,
+                offset,
+            });
+        return qu.Select(c => new BadgeAssetDetails()
+        {
+            id = c.id,
+            name = c.name,
+            description = c.description,
+            displayName = c.name,
+            displayDescription = c.description,
+            enabled = c.enabled && c.moderationStatus == ModerationStatus.ReviewApproved,
+            iconImageId = c.id,
+            displayIconImageId = c.id,
+            moderationStatus = c.moderationStatus,
+            created = c.created,
+            updated = c.updated,
+            statistics = {
+                awardedCount = c.awardedCount,
+                pastDayAwardedCount = c.pastDayAwardedCount,
+                winRatePercentage = Math.Round((decimal)c.pastDayAwardedCount / c.pastDayUniverseVisitors, 1)
+            },
+            awardingUniverse = {
+                id = universe.id,
+                name = universe.name,
+                rootPlaceId = universe.rootPlaceId
+            }
+        });
+    }
+    public async Task<IEnumerable<BadgeDetails>> GetBadgeInfo(long assetId)
+    {
+        return await db.QueryAsync<BadgeDetails>(
+            @"SELECT 
+            ab.asset_id as assetId, 
+            ab.universe_id as universeId,
+            ab.enabled as enabled
+            FROM asset_badge AS ab
+            WHERE asset_id = :assetId
+            LIMIT 1",
+            new { assetId });
+    }
     // if this src ever gets leaked this is NOT for storing ips, its for matchmaking and for getting the server info
     public async Task<dynamic> GetInfoFromIp(string ip)
     {

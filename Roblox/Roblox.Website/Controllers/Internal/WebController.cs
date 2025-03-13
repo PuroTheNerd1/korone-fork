@@ -716,6 +716,8 @@ public class WebController : ControllerBase
                     return await UploadModel(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.GamePass:
                     return await UploadGamePass(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.Badge:
+                    return await UploadAssetBadge(request, stream, creatorId, creatorType);
                 default:
                     throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
             }
@@ -785,6 +787,42 @@ public class WebController : ControllerBase
 
         return imageAsset;
     }
+    private async Task<CreateResponse> UploadAssetBadge(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        if (request.universeId is null || request.universeId.ToString() is null) {
+            throw new BadRequestException(0, "Universe ID is required");
+        }
+        var imageData = await services.assets.ValidateImage(stream);
+        if (imageData == null)
+            throw new BadRequestException(0, "Invalid image file");
+
+        long universeId = long.Parse(request.universeId.ToString());
+        
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
+
+        var badgeCount = await services.games.GetUniverseBadgeCount(universeId);
+        if (badgeCount >= 15) {
+            throw new BadRequestException(0, "This universe has too many badges");
+        }
+        
+        stream.Position = 0;
+        // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
+        var cleanImage = await services.assets.CleanImage(stream);
+        
+        var badgeAsset = await services.assets.CreateAsset(request.name, request.description,
+            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Badge,
+            Genre.All,
+            ModerationStatus.AwaitingApproval);
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, (int)cleanImage.Length,
+            imageData.width, imageData.height, imageData.imageFormat,
+            await services.assets.GenerateImageHash(cleanImage));
+        // gamepass specific stuff
+        await services.assets.CreateBadgeAsset(badgeAsset.assetId, request.universeId);
+        await services.assets.UpdateAssetMarketInfo(badgeAsset.assetId, false, false, false, null, null);
+
+        return badgeAsset;
+    }
     private async Task<CreateResponse> UploadGamePass(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         if (request.universeId is null || request.universeId.ToString() is null) {
@@ -799,11 +837,8 @@ public class WebController : ControllerBase
 
         long universeId = long.Parse(request.universeId.ToString());
         
-        var universe = await services.games.MultiGetUniverseInfo(new[] {universeId});
-        if (universe.First() == null) {
-            throw new BadRequestException(0, "The Universe does not exist");
-        }
-        await services.assets.ValidatePermissions(universe.First().rootPlaceId, safeUserSession.userId);
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
         
         var gamePasses = (await services.games.GetGamePassesForUniverse(universeId, 15, 0, SortOrder.Asc)).ToList();
         if (gamePasses.Count == 15) {
