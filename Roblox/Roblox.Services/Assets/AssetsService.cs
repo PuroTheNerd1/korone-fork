@@ -1838,48 +1838,43 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
     public Models.Assets.Type? GetTypeFromPluralString(string pluralString)
     {
-        switch (pluralString.ToLower())
+        switch (pluralString)
         {
-            case "hairaccessories":
+            case "HairAccessories":
                 return Type.HairAccessory;
-            case "hat":
-            case "hats":
-            case "hataccessories":
+            case "Hat":
+            case "Hats":
+            case "HatAccessories":
                 return Type.Hat;
-            case "faces":
+            case "Faces":
                 return Type.Face;
-            case "faceaccessories":
+            case "FaceAccessories":
                 return Type.FaceAccessory;
-            case "neckaccessories":
+            case "NeckAccessories":
                 return Type.NeckAccessory;
-            case "shoulderaccessories":
+            case "ShoulderAccessories":
                 return Type.ShoulderAccessory;
-            case "frontaccessories":
+            case "FrontAccessories":
                 return Type.FrontAccessory;
-            case "backaccessories":
+            case "BackAccessories":
                 return Type.BackAccessory;
-            case "waistaccessories":
+            case "WaistAccessories":
                 return Type.WaistAccessory;
-            case "shirts":
+            case "Shirts":
                 return Type.Shirt;
-            case "pants":
+            case "Pants":
                 return Type.Pants;
-            case "tshirts":
+            case "Tshirts":
                 return Type.TeeShirt;
-            case "heads":
+            case "Heads":
                 return Type.Head;
-            case "badge":
-            case "badges":
-                return Type.Badge;
-            case "gamepass":
-            case "gamepasses":
-                return Type.GamePass;
-            case "emote":
-            case "emotes":
+            case "Emote":
+            case "Emotes":
                 return Type.EmoteAnimation;
-            default:
-                return null;
+            
         }
+
+        return null;
     }
     public async Task<SearchResponse> SearchCatalog(CatalogSearchRequest request)
     {
