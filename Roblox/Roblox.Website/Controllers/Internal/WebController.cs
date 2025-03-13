@@ -588,6 +588,7 @@ public class WebController : ControllerBase
         Models.Assets.Type.Mesh,
         Models.Assets.Type.Model,
         Models.Assets.Type.GamePass,
+        Models.Assets.Type.Badge
     };
 
     private static int pendingAssetUploads { get; set; } = 0;
@@ -644,7 +645,7 @@ public class WebController : ControllerBase
     public async Task<CreateResponse> UploadItem([Required, FromForm] UploadAssetRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
-        if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null) throw new BadRequestException();
+        if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null) throw new BadRequestException(0, "Asset type not supported");
         // flood check Start
         // 1 attempt every 5 seconds per user
         // IP flood check too! same limit as userId for now
@@ -802,7 +803,7 @@ public class WebController : ControllerBase
         await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
 
         var badgeCount = await services.games.GetUniverseBadgeCount(universeId);
-        if (badgeCount >= 15) {
+        if (badgeCount >= 500) {
             throw new BadRequestException(0, "This universe has too many badges");
         }
         
@@ -814,10 +815,10 @@ public class WebController : ControllerBase
             safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Badge,
             Genre.All,
             ModerationStatus.AwaitingApproval);
+        // TODO: this might cause issues with image resolution? (having it set to 420x420)
         await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, (int)cleanImage.Length,
-            imageData.width, imageData.height, imageData.imageFormat,
+            420, 420, imageData.imageFormat,
             await services.assets.GenerateImageHash(cleanImage));
-        // gamepass specific stuff
         await services.assets.CreateBadgeAsset(badgeAsset.assetId, request.universeId);
         await services.assets.UpdateAssetMarketInfo(badgeAsset.assetId, false, false, false, null, null);
 

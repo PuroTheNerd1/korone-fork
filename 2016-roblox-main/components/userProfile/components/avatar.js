@@ -55,7 +55,7 @@ const Avatar = props => {
     })
   }, [userId]);
 
-  return <div className='flex' style={{margin: '0 0 18px'}}>
+  return <div className='flex marginStuff'>
     <div className='col-12'>
       <Subtitle>Currently Wearing</Subtitle>
     </div>

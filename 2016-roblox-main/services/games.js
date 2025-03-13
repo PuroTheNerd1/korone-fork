@@ -6,20 +6,22 @@ import {itemNameToEncodedName} from "./catalog";
 const gamePage2015Enabled = getFlag('2015GameDetailsPageEnabled', false);
 const csrEnabled = getFlag('clientSideRenderingEnabled', false);
 
-export const isLibraryItem = ({assetTypeId}) => {
-    if (assetTypeId === 62 ||
-        assetTypeId === 40 ||
-        assetTypeId === 38 ||
-        assetTypeId === 24 ||
-        assetTypeId === 13 ||
-        assetTypeId === 10 ||
-        assetTypeId === 5 ||
-        assetTypeId === 4 ||
-        assetTypeId === 3 ||
-        assetTypeId === 1) {
-        return true;
-    } else {
-        return false;
+export const isLibraryItem = ({ assetTypeId }) => {
+    switch (assetTypeId) {
+        case 62:
+        case 40:
+        case 38:
+        case 24:
+        case 21:
+        case 13:
+        case 10:
+        case 5:
+        case 4:
+        case 3:
+        case 1:
+            return true;
+        default:
+            return false;
     }
 }
 

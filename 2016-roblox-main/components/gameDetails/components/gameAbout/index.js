@@ -1,11 +1,8 @@
 import GameDetailsStore from "../../stores/gameDetailsStore";
 import { createUseStyles } from "react-jss";
 import { abbreviateNumber } from "../../../../lib/numberUtils";
-import dayjs, { Dayjs } from "dayjs";
-
-import Description from "./components/description";
-import VIPServers from "./components/description";
-import Badges from "./components/description";
+import Badges from './components/badges'
+import dayjs from "dayjs";
 
 const useStyles = createUseStyles({
   descriptionText: {
@@ -188,7 +185,6 @@ const useStyles = createUseStyles({
   },
   vipServerDiv: {
     padding: '12px!important',
-    margin: 0,
   },
 });
 
@@ -272,6 +268,16 @@ const About = props => {
         See all your VIP servers in the <a className={s.textLink} href={'#servers'}>Servers</a> tab.
       </span>
     </div>
+    
+    {
+      store.badges && store.badges.data.length > 0 &&
+        <>
+          <div className={s.descriptionHeaderContainer}>
+              <h3>Game Badges</h3>
+          </div>
+          <Badges />
+        </>
+    }
   </div>
 }
 

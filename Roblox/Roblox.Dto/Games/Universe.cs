@@ -247,12 +247,20 @@ public class GamePassDetails {
     public long universeId { get; set; }
 }
 
+public class BadgeAwardDate {
+    public long badgeId { get; set; }
+    public DateTime awardedDate { get; set; }
+}
+
 public class BadgeAssetDetailsDb {
     public long id { get; set; }
     public string name { get; set; }
     public string description { get; set; }
     public bool enabled { get; set; }
     public long awardedCount { get; set; }
+    public string? universeName { get; set; }
+    public long? universeId { get; set; }
+    public long? rootPlaceId { get; set; }
     public long pastDayAwardedCount { get; set; }
     public long pastDayUniverseVisitors { get; set; }
     public DateTime created { get; set; }
@@ -294,5 +302,11 @@ public class BadgeAwardingUniverse {
 public class BadgeDetails {
     public long assetId { get; set; }
     public long universeId { get; set; }
+    public bool enabled { get; set; }
+}
+
+public class BadgeUpdateRequest {
+    public string? name { get; set; }
+    public string? description { get; set; }
     public bool enabled { get; set; }
 }

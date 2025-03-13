@@ -424,7 +424,8 @@ public class AdminApiController : ControllerBase
                 Type.Mesh,
                 Type.SolidModel,
                 Type.Video,
-                Type.GamePass
+                Type.GamePass,
+                Type.Badge
             });
             query.AddParameters(new
             {

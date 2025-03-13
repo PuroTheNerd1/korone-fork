@@ -29,7 +29,7 @@ const Description = props => {
   return <div className='flex'>
     <div className='col-12'>
       <Subtitle>About</Subtitle>
-      <div className={cardStyles.card}>
+      <div className={`marginStuff ${cardStyles.card}`}>
         <p className={s.body}>
           {store.userInfo && store.userInfo.description}
         </p>

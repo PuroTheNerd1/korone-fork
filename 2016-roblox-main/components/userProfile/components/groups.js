@@ -275,7 +275,7 @@ const Groups = props => {
   if (!store.groups || !store.groups.length) {
     return null;
   }
-  return <div className='flex' style={{ margin: '0 0 18px', flexDirection: 'column' }}>
+  return <div className='flex marginStuff' style={{ flexDirection: 'column' }}>
     <div className={s.groupHeaders}>
     <Subtitle>Groups</Subtitle>
       <div className={'col-lg-1 ' + s.buttonsGroup} style={{marginLeft: 'auto'}}>

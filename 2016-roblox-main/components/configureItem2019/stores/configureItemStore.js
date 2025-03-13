@@ -2,12 +2,13 @@ import {createContainer} from "unstated-next";
 import {useState} from "react";
 import {setAssetPrice, updateAsset} from "../../../services/develop";
 import getFlag from "../../../lib/getFlag";
+import {getBadgeInfoBasicByID, updateBadge} from "../../../services/badges";
 import FeedbackStore from "../../../stores/feedback";
 
 const ConfigureItemStore = createContainer(() => {
-    const feedback = FeedbackStore.useContainer();
     const [assetId, setAssetId] = useState(null);
-    const [details, setDetails] = useState(null);
+    const [details,setDetails] = useState(null);
+    const [error, setError] = useState(null);
     const [locked, setLocked] = useState(false);
     
     const [name, setName] = useState(null);
@@ -18,6 +19,10 @@ const ConfigureItemStore = createContainer(() => {
     const [isForSale, setIsForSale] = useState(false);
     const [commentsEnabled, setCommentsEnabled] = useState(false);
     const [genres, setGenres] = useState(null);
+    
+    const [badgeInfo, setBadgeInfo] = useState(null);
+    const [enabled, setEnabled] = useState(false);
+    const feedback = FeedbackStore.useContainer();
     
     const priceChanged = () => {
         return details.price !== price;
@@ -45,7 +50,6 @@ const ConfigureItemStore = createContainer(() => {
             })]
         }
         if (assetChanged()) {
-            console.log(details);
             values = [...values, updateAsset({
                 assetId,
                 name,
@@ -56,6 +60,9 @@ const ConfigureItemStore = createContainer(() => {
                 // TODO: everything below this comment
                 isCopyingAllowed: false,
             })]
+        }
+        if (badgeInfo && badgeInfo.enabled !== enabled) {
+            values = [...values, updateBadge({ badgeId: assetId, enabled })]
         }
         
         if (values.length > 0) {
@@ -71,9 +78,6 @@ const ConfigureItemStore = createContainer(() => {
         assetId,
         setAssetId,
         
-        /**
-         * @type AssetDetailsEntry
-         */
         details,
         setDetails: (newDetails) => {
             setDetails(newDetails);
@@ -85,10 +89,19 @@ const ConfigureItemStore = createContainer(() => {
             setPrice(newDetails.price);
             setCommentsEnabled(newDetails.commentsEnabled);
             setGenres(newDetails.genres);
+            if (newDetails.assetType === 21) {
+                getBadgeInfoBasicByID({ badgeId: details.id }).then(res => {
+                    setBadgeInfo(res);
+                    setEnabled(res.enabled);
+                })
+            }
             if (getFlag('sellItemForTickets', false)) {
                 setPriceTickets(newDetails.priceTickets);
             }
         },
+        
+        error,
+        setError,
         
         name,
         setName,
@@ -113,6 +126,11 @@ const ConfigureItemStore = createContainer(() => {
         
         genres,
         setGenres,
+        
+        enabled,
+        setEnabled,
+        
+        badgeInfo,
         
         save
     }

@@ -3,6 +3,7 @@ import Ads from "./components/subPages/ads";
 import Clothing from "./components/subPages/clothing";
 import GamesSubPage from "./components/subPages/games";
 import GamePasses from "./components/subPages/gamepasses";
+import Badges from "./components/subPages/badges";
 
 const developerPages = [
   {
@@ -39,7 +40,7 @@ const developerPages = [
     id: 21,
     name: 'Badges',
     url: '/develop?View=21',
-    disabled: true,
+    element: props => <Badges id={21} {...props} />,
   },
   {
     id: 34,

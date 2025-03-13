@@ -1,106 +1,188 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Services.Exceptions;
+using Roblox.Models;
+using Roblox.Dto.Games;
+using Roblox.Exceptions;
+using Roblox.Models.Db;
 
 namespace Roblox.Website.Controllers;
 
 [ApiController]
-[Route("/apisite/badges/v1")]
-public class BadgesControllerV1
+[Route("/apisite/badges/v1/")]
+public class BadgesControllerV1 : ControllerBase
 {
     // base: https://apidocs.sixteensrc.zip/badges/docs.html#/
     
     // Gets badge information by the badge id.
     [HttpGet("badges/{badgeId:long}")]
-    public dynamic GetBadgeDetails(long badgeId)
-    {
-        return new
-        {
-            nextPageCursor = (string?) null,
-            previousPageCursor = (string?) null,
-            data = new List<int>(),
-        };
+    public async Task<BadgeAssetDetails> GetBadgeDetails(long badgeId) {
+        // TODO: is this even needed?
+        var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
+        if (basicBadgeInfo is null) {
+            throw new BadRequestException(0, "Badge is invalid or does not exist");
+        }
+
+        var uni = (await services.games.MultiGetUniverseInfo(new []{basicBadgeInfo.universeId})).ToList();
+        if (uni.First() is null) {
+            throw new BadRequestException(0, "Badge is invalid or does not exist");
+        }
+        // no need to check if it's null right?
+        var badgeInfo = await services.badges.GetBadgeInfoExtended(badgeId, uni.First(), 1, 0, null);
+        
+        return badgeInfo.First();
     }
     
     // Updates badge configuration.
     [HttpPatch("badges/{badgeId:long}")]
-    public dynamic UpdateBadgeConfig(long badgeId)
-    {
-        return new
+    public async Task<dynamic> UpdateBadgeConfig(long badgeId, [Required, FromBody] BadgeUpdateRequest request) {
+        await services.assets.ValidatePermissions(badgeId, safeUserSession.userId);
+        
+        var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
+        if (basicBadgeInfo is null) {
+            throw new BadRequestException(0, "Badge is invalid or does not exist");
+        }
+
+        try
         {
-            nextPageCursor = (string?) null,
-            previousPageCursor = (string?) null,
-            data = new List<int>(),
-        };
+            await services.assets.EnsureAssetIsModerated(badgeId);
+        }
+        catch (Exception e) {
+            throw new BadRequestException(0, "Asset is not moderated.");
+        }
+        await services.badges.UpdateBadge(badgeId, request.enabled);
+        await services.assets.UpdateAsset(badgeId);
+        return new { };
     }
     
     // Gets badge by their awarding game.
     [HttpGet("universes/{universeId:long}/badges")]
-    public dynamic GetUniverseBadges(long universeId)
+    public async Task<RobloxCollectionPaginated<BadgeAssetDetails>> GetUniverseBadges(long universeId, int limit, string? cursor, SortOrder? sortOrder)
     {
-        return new
+        if (limit is > 100 or < 1) limit = 10;
+        var offset = cursor != null ? int.Parse(cursor) : 0;
+        var uni = (await services.games.MultiGetUniverseInfo(new []{universeId})).ToList();
+        if (uni.First() is null) {
+            throw new BadRequestException(0, "Badge is invalid or does not exist");
+        }
+        var badgeInfo = (await services.badges.GetBadgesForUniverse(uni.First(), limit, offset, sortOrder)).ToList();
+        
+        return new RobloxCollectionPaginated<BadgeAssetDetails>()
         {
-            nextPageCursor = (string?) null,
-            previousPageCursor = (string?) null,
-            data = new List<int>(),
+            previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
+            nextPageCursor = badgeInfo.Count() >= limit ? (offset + limit).ToString() : null,
+            data = badgeInfo,
         };
     }
     
     // Gets a list of badges a user has been awarded.
     [HttpGet("users/{userId:long}/badges")]
-    public dynamic GetBadges(long userId)
+    public async Task<RobloxCollectionPaginated<BadgeAssetDetails>> GetBadges(long userId, int limit, string? cursor, SortOrder? sortOrder)
     {
-        return new
+        if (limit is > 100 or < 1) limit = 10;
+        var offset = cursor != null ? int.Parse(cursor) : 0;
+        var badgeInfo = (await services.badges.GetBadgesForUser(userId, limit, offset, sortOrder)).ToList();
+        
+        return new RobloxCollectionPaginated<BadgeAssetDetails>()
         {
-            nextPageCursor = (string?) null,
-            previousPageCursor = (string?) null,
-            data = new List<int>(),
+            previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
+            nextPageCursor = badgeInfo.Count() >= limit ? (offset + limit).ToString() : null,
+            data = badgeInfo,
         };
     }
     
     // Gets timestamps for when badges were awarded to a user.
     [HttpGet("users/{userId:long}/badges/awarded-dates")]
-    public dynamic GetBadgeTimestamps(long userId)
+    public async Task<dynamic> GetBadgeTimestamps(long userId, string badgeIds)
     {
+        var ids = badgeIds.Split(",").Select(long.Parse).ToArray();
+        if (!ids.Any())
+            return Array.Empty<BadgeAwardDate>();
         return new
         {
-            nextPageCursor = (string?) null,
-            previousPageCursor = (string?) null,
-            data = new List<int>(),
+            data = await services.badges.GetUserBadgeAwardedDates(userId, ids),
         };
     }
     
     // Award a badge to a user.
     [HttpPost("users/{userId:long}/badges/{badgeId:long}/award-badge")]
-    public dynamic AwardBadge(long userId, long badgeId)
+    public async Task<dynamic> AwardBadge(long userId, long badgeId)
     {
-        return new
-        {
-            nextPageCursor = (string?) null,
-            previousPageCursor = (string?) null,
-            data = new List<int>(),
+        if (!isRCC) {
+            throw new PermissionException(badgeId, safeUserSession.userId);
+        }
+        var robloxPlaceId = Request.Headers["Roblox-Place-Id"].ToString();
+        if (!long.TryParse(robloxPlaceId, out var placeId)) {
+            throw new BadRequestException(0, "Missing Roblox-Place-Id Header");
+        }
+
+        // checks if userId is an actual user
+        await services.users.GetUserById(userId);
+        var universeId = await services.games.GetUniverseId(placeId);
+        // shouldnt have to check null cuz of above right?
+        var uni = (await services.games.MultiGetUniverseInfo(new[]{universeId})).ToList();
+        var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
+        if (badgeInfo is null) {
+            throw new BadRequestException(0, "Badge is invalid or does not exist");
+        }
+        await services.assets.EnsureAssetIsModerated(badgeId);
+        if (badgeInfo.enabled == false) {
+            throw new BadRequestException(8, "The badge is disabled.");
+        }
+        if (badgeInfo.universeId != universeId) {
+            throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
+        }
+        if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) {
+            await services.users.CreateUserAsset(userId, badgeId);
+        }
+
+        return new {
+            creatorType = uni.First().creator.type,
+            creatorId = uni.First().creator.id,
+            awardAssetIds = new {}
+            // wat
+            // awardAssetIds = new[] {
+            //     badgeId
+            // }
         };
     }
     
     // Removes a badge from a user.
     [HttpDelete("users/{userId:long}/badges/{badgeId:long}")]
-    public dynamic RemoveBadgeFromUser(long userId, long badgeId)
+    public async Task<dynamic> RemoveBadgeFromUser(long userId, long badgeId)
     {
-        return new
-        {
-            nextPageCursor = (string?) null,
-            previousPageCursor = (string?) null,
-            data = new List<int>(),
-        };
+        if (!isRCC) {
+            throw new PermissionException(badgeId, safeUserSession.userId);
+        }
+        
+        // checks if userId is an actual user
+        await services.users.GetUserById(userId);
+        var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
+        if (badgeInfo is null) {
+            throw new BadRequestException(0, "Badge is invalid or does not exist");
+        }
+        
+        // might be necessary?
+        // if ((await services.users.GetUserAssets(userId, badgeId)).Any()) {
+        //     await services.users.DeleteUserAsset(userId, badgeId);
+        // }
+        await services.users.DeleteUserAsset(userId, badgeId);
+        
+        return new {};
     }
     
     // Removes a badge from the authenticated user.
     [HttpDelete("users/badges/{badgeId:long}")]
-    public dynamic RemoveBadgeFromSelf(long badgeId)
-    {
-        return new
-        {
-            nextPageCursor = (string?) null,
-            previousPageCursor = (string?) null,
-            data = new List<int>(),
-        };
+    public async Task<dynamic> RemoveBadgeFromSelf(long badgeId) {
+        var userId = safeUserSession.userId;
+        
+        var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
+        if (badgeInfo is null) {
+            throw new BadRequestException(0, "Badge is invalid or does not exist");
+        }
+        
+        await services.users.DeleteUserAsset(userId, badgeId);
+        
+        return new {};
     }
 }

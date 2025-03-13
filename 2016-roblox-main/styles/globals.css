@@ -288,3 +288,7 @@ html div.container {
 .vTabContent:has(.noPadding) {
     padding-left: 0;
 }
+
+.marginStuff {
+    margin: 0 0 8px!important;
+}

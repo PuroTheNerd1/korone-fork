@@ -1288,6 +1288,16 @@ public class UsersService : ServiceBase, IService
                 });
         return (long) result.id;
     }
+    
+    public async Task DeleteUserAsset(long userId, long assetId)
+    {
+        await db.QuerySingleOrDefaultAsync(
+            "DELETE FROM user_asset WHERE user_id = :userId AND asset_id = :assetId", new
+            {
+                userId,
+                assetId,
+            });
+    }
 
     public async Task<IEnumerable<CollectibleUserAssetEntry>> GetUserAssets(long userId, long assetId)
     {

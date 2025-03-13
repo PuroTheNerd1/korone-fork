@@ -14,6 +14,7 @@ import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
 import AudioPlayButton from "../../catalogDetailsPage/components/audioPlayButton";
 import AssetListGamePassEntry from "./assetListGamePassEntry";
+import AssetListBadgeEntry from "./assetListBadgeEntry";
 
 const useStyles = createUseStyles({
   image: {
@@ -72,11 +73,11 @@ const AssetEntry = props => {
     },
     isPlace && {
       name: 'Create Badge',
-      url: `/develop?selectedPlaceId=${props.assetId}&View=21`,
+      url: `/develop?universeId=${props.universeId}&View=21`,
     },
     isPlace && {
       name: 'Create Pass',
-      url: `/develop?selectedplaceId=${props.assetId}&View=34`,
+      url: `/develop?universeId=${props.universeId}&View=34`,
     },
     isPlace && {
       name: 'Developer Stats',
@@ -173,7 +174,8 @@ const AssetEntry = props => {
           : props.assetType === 9 ?
             <AssetListGameEntry url={assetUrl} startPlaceName={props.name} />
             : props.assetType === 34 ? <AssetListGamePassEntry updated={props.updated} sales={props.sales} isForSale={props.isForSale} />
-                : <AssetListCatalogEntry created={props.created} />
+                : props.assetType === 21 ? <AssetListBadgeEntry badge={props} />
+                   : <AssetListCatalogEntry created={props.created} />
       }
     </div>
     <div className={

@@ -46,8 +46,7 @@ public class GamesControllerV2 : ControllerBase
     /// Endpoint is only valid for custom media (such as videos or custom thumbnails. Auto generated and/or default thumbnails are not returned.
     /// </summary>
     [HttpGet("games/{universeId}/media")]
-    public async Task<RobloxCollection<GameMediaEntry>> GetGameMedia(long universeId)
-    {
+    public async Task<RobloxCollection<GameMediaEntry>> GetGameMedia(long universeId) {
         var universe = await services.games.MultiGetUniverseInfo(new[] {universeId});
         if (!universe.Any() || universe.First() is null) {
             throw new BadRequestException(0, "Universe doesn't exist");

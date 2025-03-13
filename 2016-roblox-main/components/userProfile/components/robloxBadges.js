@@ -43,7 +43,7 @@ const RobloxBadges = props => {
 
   if (!badges || !badges.length) return null;
 
-  return <div className='flex d-none d-lg-flex'>
+  return <div className='flex d-none d-lg-flex marginStuff'>
     <div className='col-10'>
       <Subtitle>Pekora Badges ({badges?.length || 0})</Subtitle>
     </div>

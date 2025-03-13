@@ -1473,7 +1473,7 @@ public class AssetsService : ServiceBase, IService
         };
     }
 
-    private async Task UpdateAsset(long assetId)
+    public async Task UpdateAsset(long assetId)
     {
         await db.ExecuteAsync("UPDATE asset SET updated_at = now() WHERE id = :id", new
         {
@@ -2462,11 +2462,24 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     /// <param name="userId"></param>
     public async Task ValidatePermissions(long assetId, long userId)
     {
-        if (await CanUserModifyItem(assetId, userId) || userId == 3) return;
+        if (await CanUserModifyItem(assetId, userId) 
+            //|| userId == 3 TODO: enable for prod
+            ) return;
 
         throw new PermissionException(assetId, userId);
     }
-
+    public async Task EnsureAssetIsModerated(long assetId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT moderation_status FROM asset WHERE id = :id AND moderation_status = :acceptedStatus", 
+            new { id = assetId, acceptedStatus = ModerationStatus.ReviewApproved });
+        if (res == null) throw new NotApprovedException(assetId);
+    }
+    public async Task<dynamic> GetAssetModerationStatus(long assetId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync("SELECT moderation_status FROM asset WHERE id = :id", 
+            new { id = assetId });
+        return res;
+    }
     public async Task<bool> CanUserModifyItem(long assetId, long userId)
     {
         // todo: move IsOwner() to service

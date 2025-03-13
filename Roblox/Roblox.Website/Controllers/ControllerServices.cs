@@ -1,5 +1,6 @@
 using Roblox.Libraries.RobloxApi;
 using Roblox.Services;
+using Roblox.Services.Games;
 using Roblox.Services.PlaceLauncher;
 using Roblox.Services.Signer;
 
@@ -15,6 +16,7 @@ namespace Roblox.Website.Controllers
         public AvatarService avatar { get; } = new();
         public FriendsService friends { get; } = new();
         public GamesService games { get; } = new();
+        public BadgesService badges { get; } = new();
         public GroupsService groups { get; } = new();
         public InventoryService inventory { get; } = new();
         public PrivateMessagesService privateMessages { get; } = new();

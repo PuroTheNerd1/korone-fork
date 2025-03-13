@@ -43,7 +43,7 @@ const Favorites = props => {
   }, [userId]);
 
   //if (favorites === null || favorites.length === 0) return null;
-  return <div className='flex'>
+  return <div className='flex marginStuff'>
     <div className='col-10'>
       <Subtitle>Favorite Games</Subtitle>
     </div>

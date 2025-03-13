@@ -5,11 +5,12 @@ import AuthenticationStore from "../../../../stores/authentication";
 import ActionButton from "../../../actionButton";
 import AssetList from "../assetList";
 import FeedbackStore from "../../../../stores/feedback";
-import {getGameUrl, getUniverseGamePasses, getUserGames} from "../../../../services/games";
+import {getGameUrl, getUniversebadgees, getUserGames} from "../../../../services/games";
 import {useRouter} from "next/router";
 import Link from "../../../link";
 import buttonStyles from "../../../../styles/buttonStyles";
 import useButtonStyles from "../../../../styles/buttonStyles";
+import {getUniverseBadges} from "../../../../services/badges";
 
 const useStyles = createUseStyles({
     subtext: {
@@ -51,7 +52,7 @@ const useStyles = createUseStyles({
             gap: 5,
         }
     },
-    gamepassImageContainer: {
+    badgeImageContainer: {
         height: '100px',
         width: '100px',
         '& img': {
@@ -61,7 +62,7 @@ const useStyles = createUseStyles({
             borderRadius: 8
         }
     },
-    gamepassContentContainer: {
+    badgeContentContainer: {
         marginLeft: 10,
         display: 'flex',
         gap: 10,
@@ -100,7 +101,7 @@ const useStyles = createUseStyles({
     },
 })
 
-const GamePasses = props => {
+const Badges = props => {
     const {id, groupId} = props;
     
     const auth = AuthenticationStore.useContainer();
@@ -113,7 +114,7 @@ const GamePasses = props => {
     const [gamesList, setGamesList] = useState(0);
     const [selectedGame, setSelectedGame] = useState(null); // should be a ref to an entry in the games list
     // 0 == loading, 1 == failed, array = success
-    const [passesList, setPassesList] = useState(0);
+    const [badgesList, setBadgesList] = useState(0);
     const nameRef = useRef(null);
     const [name, setName] = useState(null);
     const [desc, setDesc] = useState('');
@@ -239,17 +240,22 @@ const GamePasses = props => {
     useEffect(() => {
         if (!selectedGame?.id) return;
         try {
-            getUniverseGamePasses({
-                // limit: 100,
+            // TODO: make this support 500 badges, rn it's only 25
+            getUniverseBadges({
+                limit: 25,
                 // cursor: '',
                 universeId: selectedGame.id,
                 //groupId,
-            }).then(passes => {
-                setPassesList(passes.map(d => ({ ...d, assetId: d.id, assetType: 34 })));
+            }).then(badgeCollection => {
+                setBadgesList({
+                    nextPageCursor: badgeCollection.nextPageCursor,
+                    previousPageCursor: badgeCollection.previousPageCursor,
+                    data: badgeCollection.data.map(d => ({ ...d, assetId: d.id, assetType: 21 }))
+                });
             });
         } catch (e) {
             feedback.addFeedback(e);
-            setPassesList(1);
+            setBadgesList(1);
         }
     }, [selectedGame])
     
@@ -259,17 +265,17 @@ const GamePasses = props => {
     return <div className='row'>
         <div className='col-12'>
             <h2>
-                Create a Game Pass
+                Create a Badge
             </h2>
         </div>
         <div className='col-12'>
             {previewing ?
                 <div className='ms-4 me-4 mt-4 flex flex-column'>
                     <div className='flex w-100'>
-                        <div className={s.gamepassImageContainer}>
+                        <div className={s.badgeImageContainer}>
                             <img src={fileBlob ? fileBlob : '/img/placeholder.png'}/>
                         </div>
-                        <div className={s.gamepassContentContainer}>
+                        <div className={s.badgeContentContainer}>
                             <div className={s.fieldContainer}>
                                 <span>Name:</span>
                                 <span>Target Game:</span>
@@ -304,7 +310,7 @@ const GamePasses = props => {
                     <p>Find your image: <input ref={fileRef} type='file' accept='image/*'/> {
                         //{feedback && <span className='text-danger'>{feedback}</span>}
                     }</p>
-                    <p>Game Pass Name: <input ref={nameRef} type='text' className={s.inputItemName}/></p>
+                    <p>Badge Name: <input ref={nameRef} type='text' className={s.inputItemName}/></p>
                     {/*<p>Description: <input ref={descRef} type='text' className={s.inputItemDesc}/></p>*/}
                 <div style={{display: "flex", alignItems: "top", width: '100%', marginBottom: '1em', flexDirection: "column"}}>
                     <label style={{marginRight: "8px"}}>Description:</label>
@@ -323,7 +329,7 @@ const GamePasses = props => {
         <div className={`${s.gameSelectContainer} col-12`}>
             <div>
                 <h2>
-                    Game Passes
+                    Badges
                 </h2>
             </div>
             {
@@ -345,12 +351,12 @@ const GamePasses = props => {
             }
         </div>
         <div className='col-12 mt-4'>
-            {Array.isArray(passesList) ?
-                (passesList.length === 0 ? <p>No Game Passes found.</p> : <AssetList assets={passesList}/>)
+            {Array.isArray(badgesList.data) ?
+                (badgesList.data.length === 0 ? <p>No Badges found.</p> : <AssetList assets={badgesList.data}/>)
                 : null
             }
         </div>
     </div>
 }
 
-export default GamePasses;
+export default Badges;

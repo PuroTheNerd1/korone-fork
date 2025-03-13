@@ -16,17 +16,31 @@ const useStatEntryStyles = createUseStyles({
     },
     statName: {
         color: '#999',
-    },
+    }
 });
 
 const StatEntry = props => {
     const s = useStatEntryStyles();
     return <p className={s.text}>
-        <span className={s.statName}>{props.name}: </span><span>{props.value}</span>
+        <span className={s.statName}>{props.name}: </span><span className={props.className}>{props.value}</span>
     </p>
 }
 
-const useStyles = createUseStyles({});
+const useStyles = createUseStyles({
+    ownedStat: {
+        verticalAlign: 'text-bottom',
+        display: 'inline-block',
+        fontSize: '10px',
+        backgroundColor: '#02b757',
+        color: '#fff',
+        padding: '3px',
+        borderRadius: '50%',
+        lineHeight: 1
+    },
+    ownedParent: {
+        display: 'inline-flex',
+    },
+});
 
 
 const CreatorDetails = props => {
@@ -46,6 +60,14 @@ const CreatorDetails = props => {
             }/>
             <StatEntry name="Created" value={dayjs(props.createdAt).format('M/D/YYYY')}/>
             <StatEntry name="Updated" value={dayjs(props.updatedAt).format('M/D/YYYY')}/>
+            {props.owned &&
+                <StatEntry className={s.ownedParent} name="Owned" value={props.owned ?
+                    <div className={s.ownedStat}>
+                        <span className='icon-checkmark-white-hold'/>
+                    </div>
+                    : null}
+                />
+            }
             {props.gamePassPlace &&
                 <StatEntry name="Game"
                            value={

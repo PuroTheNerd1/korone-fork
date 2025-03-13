@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createUseStyles } from "react-jss";
+import Link from "../link";
 
 const useStyles = createUseStyles({
   box: {
@@ -94,11 +95,13 @@ const GearDropdown = props => {
           if (v.name === 'separator') {
             return <div key={'separator ' + i} className='divider-top'></div>
           }
-          return <a key={v.name} href={v.url || '#'} onClick={v.onClick}>
-            <p className={`mb-0 ${s.boxDropdownEntry}`}>
-              {v.name}
-            </p>
-          </a>
+          return <Link href={v.url || '#'}>
+            <a key={v.name} href={v.url || '#'} onClick={v.onClick}>
+              <p className={`mb-0 ${s.boxDropdownEntry}`}>
+                {v.name}
+              </p>
+            </a>
+          </Link>
         })
       }
     </div>}

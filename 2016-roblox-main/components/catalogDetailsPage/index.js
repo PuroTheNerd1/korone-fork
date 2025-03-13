@@ -25,6 +25,7 @@ import Owners from "./components/owners";
 import AudioPlayButton from './components/audioPlayButton';
 import Link from "../link";
 import {getGamePassRootPlace, getGameUrl} from "../../services/games";
+import {getBadgeInfoByID} from "../../services/badges";
 
 const emptyDescriptionMessage = 'No description available.';
 const filterTextForEmpty = str => {
@@ -73,6 +74,7 @@ const CatalogDetails = props => {
   const isLimitedUnique = details.itemRestrictions.includes('LimitedUnique');
   const store = CatalogDetailsPage.useContainer();
   const [gamePassPlace, setGamePassPlace] = useState(null);
+  const [badgeInfo, setBadgeInfo] = useState(null);
 
   useEffect(() => {
     store.setDetails(props.details);
@@ -105,7 +107,10 @@ const CatalogDetails = props => {
     })
     
     if (details.assetType === 34) {
-      getGamePassRootPlace({ assetId: details.id }).then(d => setGamePassPlace(d));
+      getGamePassRootPlace({ assetId: details.id }).then(setGamePassPlace);
+    }
+    if (details.assetType === 21) {
+      getBadgeInfoByID({ badgeId: details.id }).then(setBadgeInfo);
     }
   }, [store.details, authStore.userId]);
 
@@ -150,6 +155,10 @@ const CatalogDetails = props => {
                       e.preventDefault();
                       store.setResaleModalOpen(true);
                     },
+                  },
+                  isCreator && {
+                    name: 'Configure',
+                    url: `/My/Item.aspx?id=${props.details.id}`,
                   },
                   isCreator && {
                     name: 'Advertise',
@@ -197,6 +206,20 @@ const CatalogDetails = props => {
                     </span>
                     : null
                 }
+                {
+                  badgeInfo ? (() => {
+                    /** @type BadgeEntry */
+                    const badge = badgeInfo;
+                    return <span style={{textAlign: 'center', width: '100%', display: 'inline-block', marginTop: 5}}>Earn this Badge in
+                      <Link href={getGameUrl({placeId: badge.awardingUniverse.rootPlaceId, name: badge.awardingUniverse.name})}>
+                        <a style={{marginLeft: 3}} className='link2018'
+                           href={getGameUrl({placeId: badge.awardingUniverse.rootPlaceId, name: badge.awardingUniverse.name})}>
+                          {badge.awardingUniverse.name}
+                        </a>
+                      </Link>
+                    </span>
+                  })() : null
+                }
               </div>
               <div className='col-12 col-md-6 col-lg-4'>
                 <CreatorDetails
@@ -206,6 +229,7 @@ const CatalogDetails = props => {
                     type={details.creatorType}
                     createdAt={details.createdAt}
                     updatedAt={details.updatedAt}
+                    owned={store.ownedCopies && store.ownedCopies.length > 0}
                 />
                 <p className={s.description}>{filterTextForEmpty(details.description)}</p>
                 <ReportAbuse assetId={details.id}/>

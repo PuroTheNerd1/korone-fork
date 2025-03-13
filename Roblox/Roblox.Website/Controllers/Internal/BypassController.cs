@@ -45,6 +45,8 @@ using Roblox.Models.AbuseReport;
 using Roblox.Dto.AbuseReport;
 using Roblox.Models.Games;
 using System.Diagnostics.CodeAnalysis;
+using ForbiddenException = Roblox.Exceptions.ForbiddenException;
+
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -998,6 +1000,34 @@ namespace Roblox.Website.Controllers
             }, default, false);
         }
 
+        [HttpGetBypass("assets/award-badge")]
+        public async Task AwardBadge(long userId, long badgeId, long placeId)
+        {
+            if (!isRCC) {
+                throw new PermissionException(badgeId, safeUserSession.userId);
+            }
+
+            // checks if userId is an actual user
+            await services.users.GetUserById(userId);
+            var universeId = await services.games.GetUniverseId(placeId);
+            // shouldnt have to check null cuz of above right?
+            var uni = (await services.games.MultiGetUniverseInfo(new[]{universeId})).ToList();
+            var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
+            if (badgeInfo is null) {
+                throw new BadRequestException(0, "Badge is invalid or does not exist");
+            }
+            await services.assets.EnsureAssetIsModerated(badgeId);
+            if (badgeInfo.enabled == false) {
+                throw new BadRequestException(8, "The badge is disabled.");
+            }
+            if (badgeInfo.universeId != universeId) {
+                throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
+            }
+            if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) {
+                await services.users.CreateUserAsset(userId, badgeId);
+            }
+        }
+        
         [HttpGetBypass("botapi/migrate-clothing")]
         public async Task<dynamic> MigrateClothingBot([Required] string assetId)
         {

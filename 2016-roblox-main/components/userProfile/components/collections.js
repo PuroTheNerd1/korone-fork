@@ -8,6 +8,8 @@ import SmallButtonLink from "./smallButtonLink";
 import Subtitle from "./subtitle";
 import SmallTextLink from "./smallTextLink";
 import useButtonWrapperStyle from '../styles/buttonWrapper'
+import Link from "../../link";
+import ItemImage from "../../itemImage";
 
 const useCollectionStyles = createUseStyles({
   imageWrapper: {
@@ -19,6 +21,7 @@ const useCollectionStyles = createUseStyles({
     width: '100%',
     margin: '0 auto',
     display: 'block',
+    padding: 0
   },
   itemLabel: {
     fontWeight: 500,
@@ -65,7 +68,7 @@ const Collections = props => {
       </div>
     </div>
     <div className='col-12'>
-      <div className={cardStyles.card}>
+      <div className={`marginStuff ${cardStyles.card}`}>
         <div className='flex ps-4 pe-4 pt-4 pb-4'>
           {
             collections.map((v, i) => {
@@ -76,18 +79,23 @@ const Collections = props => {
               const hasOverlay = isLimited || isLimitedUnique;
 
               return <div className='col-4 col-lg-2 ml-1 mr-1' key={i}>
-                <a href={url}>
-                  <div className={s.imageWrapper}>
-                    <img src={v.Thumbnail.Url.startsWith('http') ? v.Thumbnail.Url : getBaseUrl() + v.Thumbnail.Url} className={s.image}/>
-                    {hasOverlay ? <div className={s.labelWrapper}>
-                      {
-                        isLimited ? <img className={s.overlayLimited} src='/img/limitedOverlay_itemPage.png' />
-                          : isLimitedUnique ? <img className={s.overlayLimitedUnique} src='/img/limitedUniqueOverlay_itemPage.png' /> : null
-                      }
-                    </div> : null}
-                  </div>
-                  <p className={`mb-0 link2019 ${s.itemLabel}`}>{v.Name}</p>
-                </a>
+                <Link href={url}>
+                  <a href={url}>
+                    <div className={s.imageWrapper}>
+                      {/*<img src={v.Thumbnail.Url.startsWith('http') ? v.Thumbnail.Url : getBaseUrl() + v.Thumbnail.Url}*/}
+                      {/*     className={s.image}/>*/}
+                      <ItemImage id={assetId} className={s.image} />
+                      {hasOverlay ? <div className={s.labelWrapper}>
+                        {
+                          isLimited ? <img className={s.overlayLimited} src='/img/limitedOverlay_itemPage.png'/>
+                              : isLimitedUnique ? <img className={s.overlayLimitedUnique}
+                                                       src='/img/limitedUniqueOverlay_itemPage.png'/> : null
+                        }
+                      </div> : null}
+                    </div>
+                    <p className={`mb-0 link2019 ${s.itemLabel}`}>{v.Name}</p>
+                  </a>
+                </Link>
               </div>
             })
           }

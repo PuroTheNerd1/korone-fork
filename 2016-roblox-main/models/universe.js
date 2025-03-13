@@ -84,4 +84,56 @@
  * @property {string} type
  */
 
+/**
+ * @typedef BadgeEntry
+ * @property {number} id
+ * @property {string} name
+ * @property {string} description
+ * @property {boolean} enabled
+ * @property {string} moderationStatus
+ * @property {Date} created
+ * @property {Date} updated
+ * @property {BadgeStatistics} statistics
+ * @property {BadgeAwardingUniverse} awardingUniverse
+ */
 
+/**
+ * @typedef BadgeEntryBasic
+ * @property {number} assetId
+ * @property {number} universeId
+ * @property {boolean} enabled
+ */
+
+/**
+ * @typedef BadgeStatistics
+ * @property {number} pastDayAwardedCount
+ * @property {number} awardedCount
+ * @property {number} winRatePercentage
+ */
+
+/**
+ * @typedef BadgeAwardingUniverse
+ * @property {number} id
+ * @property {string} name
+ * @property {number} rootPlaceId
+ */
+
+/**
+ * @typedef BadgeAwardedDate
+ * @property {number} badgeId
+ * @property {date} awardedDate
+ */
+
+/**
+ * @template T
+ * @typedef {Object} RobloxCollectionPaginated
+ * @property {string|null} nextPageCursor
+ * @property {string|null} previousPageCursor
+ * @property {T[]} data
+ */
+
+/**
+ * @template T
+ * @typedef {Object} RobloxCollection
+ * @property {T[]} data
+ */
