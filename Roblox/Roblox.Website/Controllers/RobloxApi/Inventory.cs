@@ -22,7 +22,9 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/v1/users/{userId}/items/{itemType}/{itemTargetId}")]
         public async Task <RobloxCollectionPaginated<dynamic>> GetOwnedItemsOfSpecificType(long userId, string itemType, long itemTargetId)
         {
-            bool canViewItems = userId == safeUserSession.userId;
+            bool canViewItems = false;
+            if (userSession != null)
+                canViewItems = userId == userSession.userId;
             var assetType = services.assets.GetTypeFromPluralString(itemType);
             if (!canViewItems && (isRCC && assetType == Models.Assets.Type.GamePass))
             {
