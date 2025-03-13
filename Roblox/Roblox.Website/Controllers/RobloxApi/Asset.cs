@@ -101,14 +101,14 @@ public class Asset : ControllerBase
                     else
                     {
                         //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
-                        location = $"https://assetdelivery.roblox.com/v1/asset/?id={id}";  
+                        return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={id}");  
                     }
-                    return Redirect(location);
+                    return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
                 }
                 else
                 {
                     //Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
-                    return Redirect(location);
+                    return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
                 }
 
             }

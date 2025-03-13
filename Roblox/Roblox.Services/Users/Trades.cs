@@ -470,8 +470,8 @@ public class TradesService : ServiceBase, IService
         //if (!await CanTradeMembershipCheck(requestUserId))
         //throw new ArgumentException("Request user must have builders club to trade");
         // Check if both parties can trade with eachother
-        //var canTrade = await CanTrade(offer.userId, request.userId);
-        //logic.Requires(SendTradeErrorCodes.CannotTrade, canTrade);
+        var canTrade = await CanTrade(offer.userId, request.userId);
+        logic.Requires(SendTradeErrorCodes.CannotTrade, canTrade);
         // if applicable, confirm requester has enough robux
         if (offer.robux != null)
         {
@@ -619,7 +619,6 @@ public class TradesService : ServiceBase, IService
         // Confirm offering over 0 robux, if not null
         logic.Requires(SendTradeErrorCodes.TooLittleRobux, offer.robux is null or > 0);
         logic.Requires(SendTradeErrorCodes.TooLittleRobux, request.robux is null or > 0);
-
         if (offer.robux != null)
         {
             log.Info("offering {0} robux",offer.robux);
@@ -646,7 +645,9 @@ public class TradesService : ServiceBase, IService
             var info = await GetTradeById(tradeId);
             if (info.userIdOne != contextUserId && info.userIdTwo != contextUserId)
                 throw new ArgumentException("User is not authorized to modify this trade");
-
+            var canTrade = await CanTrade(info.userIdOne, info.userIdTwo);
+            log.Info("can counter {0} trade with requester {1}: {2}", info.userIdOne, info.userIdTwo, canTrade);
+            logic.Requires(SendTradeErrorCodes.CannotTrade, canTrade);
             if (info.status != TradeStatus.Open && info.status != TradeStatus.Countered)
             {
                 throw new ArgumentException($"Trade with status {info.status} cannot be countered");
