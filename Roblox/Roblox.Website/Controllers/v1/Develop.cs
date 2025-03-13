@@ -130,7 +130,6 @@ public class DevelopControllerV1 : ControllerBase
     public async Task<dynamic> DeleteGameThumbnail(long universeId, long thumbnailAssetId)
     {
         var place = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
-        await services.assets.ValidatePermissions(place.rootPlaceId, safeUserSession.userId);
         await services.assets.DeleteGameThumbnail(place.rootPlaceId, thumbnailAssetId);
         return Ok();
     }
