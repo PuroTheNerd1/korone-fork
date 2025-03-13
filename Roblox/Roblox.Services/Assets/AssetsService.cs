@@ -1836,47 +1836,51 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             });
     }
 
-    private Models.Assets.Type? GetTypeFromPluralString(string pluralString)
+    public Models.Assets.Type? GetTypeFromPluralString(string pluralString)
     {
-        switch (pluralString)
+        switch (pluralString.ToLowerInvariant())
         {
-            case "HairAccessories":
+            case "hairaccessories":
                 return Type.HairAccessory;
-            case "Hat":
-            case "Hats":
-            case "HatAccessories":
+            case "hat":
+            case "hats":
+            case "hataccessories":
                 return Type.Hat;
-            case "Faces":
+            case "faces":
                 return Type.Face;
-            case "FaceAccessories":
+            case "faceaccessories":
                 return Type.FaceAccessory;
-            case "NeckAccessories":
+            case "neckaccessories":
                 return Type.NeckAccessory;
-            case "ShoulderAccessories":
+            case "shoulderaccessories":
                 return Type.ShoulderAccessory;
-            case "FrontAccessories":
+            case "frontaccessories":
                 return Type.FrontAccessory;
-            case "BackAccessories":
+            case "backaccessories":
                 return Type.BackAccessory;
-            case "WaistAccessories":
+            case "waistaccessories":
                 return Type.WaistAccessory;
-            case "Shirts":
+            case "shirts":
                 return Type.Shirt;
-            case "Pants":
+            case "pants":
                 return Type.Pants;
-            case "Tshirts":
+            case "tshirts":
                 return Type.TeeShirt;
-            case "Heads":
+            case "heads":
                 return Type.Head;
-            case "Emote":
-            case "Emotes":
+            case "badge":
+            case "badges":
+                return Type.Badge;
+            case "gamepass":
+            case "gamepasses":
+                return Type.GamePass;
+            case "emote":
+            case "emotes":
                 return Type.EmoteAnimation;
-            
+            default:
+                return null;
         }
-
-        return null;
     }
-
     public async Task<SearchResponse> SearchCatalog(CatalogSearchRequest request)
     {
         var resp = new SearchResponse();

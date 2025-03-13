@@ -53,7 +53,7 @@ public class DistributedCache
 
     private static void AddToCache(string key, string value, DateTime lifetime)
     {
-        if (cache.Count > 10000)
+        if (cache.Count > 10000 || key.Contains("chloeasset"))
         {
             Console.WriteLine("[info] Roblox.Cache.DistributedCache.cache is too large, key will not be added: {0}",key);
             return;
