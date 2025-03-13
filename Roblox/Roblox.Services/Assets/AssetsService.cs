@@ -1838,7 +1838,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
     public Models.Assets.Type? GetTypeFromPluralString(string pluralString)
     {
-        switch (pluralString.ToLowerInvariant())
+        switch (pluralString.ToLower())
         {
             case "hairaccessories":
                 return Type.HairAccessory;
