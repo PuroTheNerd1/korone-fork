@@ -89,7 +89,7 @@ public class FrontendProxyMiddleware
         "/game/validateticket.ashx",
         "/game/get-join-script-debug",
         "/games/getgameinstancesjson",
-        "/Fdevelop/upload",
+        "/develop/upload",
         // rbxapi
         "/v1",
         // gs
