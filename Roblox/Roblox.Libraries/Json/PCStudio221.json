@@ -1924,7 +1924,7 @@
 	"FFlagFixAlignToolMissingTargetObject": true,
 	"FFlagFixAnimationLoadErrors": true,
 	"FFlagFixAnimEditorManipulators": true,
-	"FFlagFixApplyDescriptionMeshPartHeads": true,
+	"FFlagFixApplyDescriptionMeshPartHeads": false,
 	"FFlagFixAppsFlyerLongLinksOnStartup": true,
 	"FFlagFixArcHandlesMouseEvents": true,
 	"FFlagFixAssetConfigIcon": true,
