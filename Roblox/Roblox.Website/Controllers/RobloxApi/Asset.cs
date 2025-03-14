@@ -103,12 +103,29 @@ public class Asset : ControllerBase
                         //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
                         return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={id}");  
                     }
-                    return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
+                    try
+                    {
+                        return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
+                    }
+                    catch (Exception)
+                    {
+                        //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
+                        return Redirect(location);
+                    }
                 }
                 else
                 {
                     //Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
-                    return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
+                    try
+                    {
+                        return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
+                    }
+                    catch (Exception)
+                    {
+                        //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
+                        return Redirect(location);
+                    }
+                   
                 }
 
             }
