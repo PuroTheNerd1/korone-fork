@@ -1945,7 +1945,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             });
     }
 
-    private Models.Assets.Type? GetTypeFromPluralString(string pluralString)
+    public Models.Assets.Type? GetTypeFromPluralString(string pluralString)
     {
         switch (pluralString)
         {
@@ -1985,7 +1985,6 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         return null;
     }
-
     public async Task<SearchResponse> SearchCatalog(CatalogSearchRequest request)
     {
         var resp = new SearchResponse();
