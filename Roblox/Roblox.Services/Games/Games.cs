@@ -5,6 +5,7 @@ using Roblox.Dto.Games;
 using Roblox.Dto.Users;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
+using Roblox.Models.Studio;
 using Roblox.Services.Exceptions;
 using Roblox.Services.Signer;
 using Type = Roblox.Models.Assets.Type;
@@ -787,6 +788,42 @@ public class GamesService : ServiceBase, IService
             {
                 universeId = uni,
             };
+        });
+    }
+
+    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProducts(long universeId, long limit, long offset) {
+        var qu = await db.QueryAsync<DeveloperProductDb>(
+            @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
+            dv.universe_id as universeId,
+            dv.is_for_sale as isForSale,
+            dv.image_asset_id as imageAssetId,
+            dv.creator_id as creatorId,
+            dv.creator_type as creatorType,
+            dv.created_at as created,
+            dv.updated_at as updated
+            FROM developer_product AS dv
+            WHERE dv.universe_id = :universeId
+            LIMIT :limit OFFSET :offset",
+            new
+            {
+                universeId,
+                limit,
+                offset,
+            });
+        return qu.Select(c => new DeveloperProduct
+        {
+            id = c.id,
+            name = c.name,
+            Description = c.description,
+            sales = c.sales,
+            price = c.price,
+            isForSale = c.isForSale,
+            iconImageAssetId = c.imageAssetId,
+            universeId = c.universeId,
+            creatorId = c.creatorId,
+            creatorType = c.creatorType == 2 ? CreatorType.Group : CreatorType.User,
+            updatedAt = c.updatedAt,
+            createdAt = c.createdAt
         });
     }
 

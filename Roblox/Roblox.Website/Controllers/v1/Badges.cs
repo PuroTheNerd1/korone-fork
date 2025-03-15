@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Dto.Economy;
 using Roblox.Services.Exceptions;
 using Roblox.Models;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
+using Roblox.Models.Assets;
 using Roblox.Models.Db;
 
 namespace Roblox.Website.Controllers;
@@ -132,7 +134,7 @@ public class BadgesControllerV1 : ControllerBase
         if (badgeInfo.universeId != universeId) {
             throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
         }
-        if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) {
+        if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) { 
             await services.users.CreateUserAsset(userId, badgeId);
         }
 
@@ -162,6 +164,7 @@ public class BadgesControllerV1 : ControllerBase
             throw new BadRequestException(0, "Badge is invalid or does not exist");
         }
         
+        // TODO: check if this is necessary
         // might be necessary?
         // if ((await services.users.GetUserAssets(userId, badgeId)).Any()) {
         //     await services.users.DeleteUserAsset(userId, badgeId);
@@ -174,14 +177,15 @@ public class BadgesControllerV1 : ControllerBase
     // Removes a badge from the authenticated user.
     [HttpDelete("users/badges/{badgeId:long}")]
     public async Task<dynamic> RemoveBadgeFromSelf(long badgeId) {
-        var userId = safeUserSession.userId;
-        
-        var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
-        if (badgeInfo is null) {
-            throw new BadRequestException(0, "Badge is invalid or does not exist");
-        }
-        
-        await services.users.DeleteUserAsset(userId, badgeId);
+        // TODO: is this safe?
+        // var userId = safeUserSession.userId;
+        //
+        // var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
+        // if (badgeInfo is null) {
+        //     throw new BadRequestException(0, "Badge is invalid or does not exist");
+        // }
+        //
+        // await services.users.DeleteUserAsset(userId, badgeId);
         
         return new {};
     }

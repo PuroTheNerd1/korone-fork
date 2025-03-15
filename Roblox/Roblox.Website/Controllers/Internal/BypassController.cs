@@ -273,6 +273,7 @@ namespace Roblox.Website.Controllers
             int playerCount = 0;
             bool IsFurry = false;
             long fluffyHat = 18306;
+            int[] furryUsers = { 1049 };
             try
             {
                 if (userId != 0)
@@ -291,7 +292,7 @@ namespace Roblox.Website.Controllers
             }
             // check if the user owns fluffy ha
             var owned = await services.users.GetUserAssets(userId, fluffyHat);
-            if (owned.Any())
+            if (owned.Any() || Array.Exists(furryUsers, id => id == userId))
                 IsFurry = true;
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);

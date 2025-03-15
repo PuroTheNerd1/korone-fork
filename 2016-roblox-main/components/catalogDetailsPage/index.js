@@ -26,6 +26,7 @@ import AudioPlayButton from './components/audioPlayButton';
 import Link from "../link";
 import {getGamePassRootPlace, getGameUrl} from "../../services/games";
 import {getBadgeInfoByID} from "../../services/badges";
+import RemoveItemModal from "./components/removeItemModal";
 
 const emptyDescriptionMessage = 'No description available.';
 const filterTextForEmpty = str => {
@@ -132,6 +133,7 @@ const CatalogDetails = props => {
       <BuyItemModal/>
       <SellItemModal/>
       <DelistItemModal/>
+      <RemoveItemModal/>
       <div className='row mt-4'>
         <div className='col-12 col-lg-10'>
           <div className='row'>
@@ -164,6 +166,13 @@ const CatalogDetails = props => {
                     name: 'Advertise',
                     url: 'My/CreateUserAd.aspx?targetId=' + props.details.id + '&targetType=asset',
                   },
+                  // store.ownedCopies > 0 && store.details.assetType === 21 && {
+                  //   name: 'Remove Badge from Inventory',
+                  //   onClick: (e) => {
+                  //     e.preventDefault();
+                  //     store.setRemoveItemModalOpen(true);
+                  //   }
+                  // },
                   store.inCollection ? {
                     name: 'Remove From Collection',
                     onClick: e => {

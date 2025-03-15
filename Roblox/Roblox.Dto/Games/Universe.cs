@@ -310,3 +310,33 @@ public class BadgeUpdateRequest {
     public string? description { get; set; }
     public bool enabled { get; set; }
 }
+
+public class DeveloperProductDb {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    public long imageAssetId { get; set; }
+    public long price { get; set; }
+    public long sales { get; set; }
+    public bool isForSale { get; set; }
+    public DateTime createdAt { get; set; }
+    public DateTime updatedAt { get; set; }
+    public long universeId { get; set; }
+    public int creatorType { get; set; }
+    public long creatorId { get; set; }
+}
+
+public class DeveloperProduct {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string Description { get; set; }
+    public long iconImageAssetId { get; set; }
+    public long price { get; set; }
+    public long sales { get; set; }
+    public bool isForSale { get; set; }
+    public DateTime createdAt { get; set; }
+    public DateTime updatedAt { get; set; }
+    public long universeId { get; set; }
+    public CreatorType creatorType { get; set; }
+    public long creatorId { get; set; }
+}

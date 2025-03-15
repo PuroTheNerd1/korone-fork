@@ -189,4 +189,17 @@ public class DevelopControllerV1 : ControllerBase
         await services.assets.ValidatePermissions(place, safeUserSession.userId);
         await services.games.SetMaxPlayerCount(place, request.maxPlayers);
     }
+    
+    // Developer Products (if ur skidding this kys)
+
+    // get universe's products
+    [HttpGet("universes/{universeId:long}/developerproducts")]
+    public async Task<dynamic> GetDeveloperProducts(long universeId, long pageNumber, long? pageSize = 10) {
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        var placeId = universe.rootPlaceId;
+
+        var products = await services.games.GetDeveloperProducts(universe.rootPlaceId, pageNumber, pageSize);
+        
+        return new { };
+    }
 }
