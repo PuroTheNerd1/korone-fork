@@ -1,5 +1,6 @@
 import getFlag from "../lib/getFlag";
 import request, { getBaseUrl, getFullUrl } from "../lib/request"
+import description from "../components/gameDetails/components/description";
 
 export const uploadAsset = ({ name, assetTypeId, file, groupId, description = null, universeId = null }) => {
   let formData = new FormData();
@@ -170,3 +171,24 @@ export const uploadAutoGenGameThumbnail = async ({ universeId }) => {
 export const deleteGameThumbnail = async ({ universeId, thumbnailId }) => {
   return request('POST', getFullUrl('develop', `/v1/universes/${universeId}/thumbnails/${thumbnailId}`))
 };
+
+// dev products
+
+export const getDeveloperProducts = async ({ universeId }) => {
+  return request('GET', getFullUrl('develop', `/v1/universes/${universeId}/developerproducts?pageSize=25`)).then(d => d?.data);
+}
+
+export const createDeveloperProduct = async ({ universeId, name, description, priceInRobux, imageId }) => {
+  return request('POST', getFullUrl('develop', `/v1/universes/${universeId}/developerproducts?name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}&priceInRobux=${encodeURIComponent(priceInRobux)}&iconImageAssetId=${imageId}`));
+}
+
+export const updateDeveloperProduct = async ({ universeId, productId, name, description, imageId, price }) => {
+  return request('POST', getFullUrl('develop', `/v1/universes/${universeId}/developerproducts/${productId}/update`),
+      {
+        Name: name,
+        Description: description,
+        IconImageAssetId: imageId,
+        PriceInRobux: price
+      }
+  );
+}

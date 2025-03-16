@@ -340,3 +340,19 @@ public class DeveloperProduct {
     public CreatorType creatorType { get; set; }
     public long creatorId { get; set; }
 }
+
+public class DeveloperProducts {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string Description { get; set; }
+    public long shopId { get; set; }
+    public long iconImageAssetId { get; set; }
+    public long? priceInRobux { get; set; }
+}
+
+public class UpdateDevProductRequest {
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public long IconImageAssetId { get; set; }
+    public long PriceInRobux { get; set; }
+}

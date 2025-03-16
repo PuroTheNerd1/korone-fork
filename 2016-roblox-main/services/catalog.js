@@ -126,3 +126,7 @@ export const getAudio = async ({audioId}) => {
 export const getAudioURL = async ({audioId}) => {
   return `${getBaseUrl()}/asset/?id=${audioId}`;
 }
+
+export const getModerationStatus = ({ assetID }) => {
+  return request('GET',`${getBaseUrl()}/asset/status?assetId=${assetID}`).then(d => d?.data?.moderationStatus);
+}

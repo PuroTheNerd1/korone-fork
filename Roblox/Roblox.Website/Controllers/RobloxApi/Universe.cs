@@ -8,6 +8,7 @@ using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Studio;
 using Roblox.Services.Exceptions;
+using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Website.Controllers;
 
@@ -168,6 +169,7 @@ public class UniverseV1 : ControllerBase
         };
     }
 
+    // TODO: what does this even do? implement badges
     [HttpGetBypass("badges/list-badges-for-place/json")]
     public dynamic GetGameBadges() 
     {
@@ -179,15 +181,29 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    // TODO: is this an actual api?
     [HttpGetBypass("developerproducts/list")]
-    public dynamic GetDeveloperProducts() 
-    {
-        return new 
-        {
-            FinalPage = true,
-            DeveloperProducts = new List<dynamic>(),
-            PageSize = 50
+    public async Task<dynamic> GetDeveloperProducts(long placeId, long page) {
+        if (page < 1 || page > 5) {
+            page = 1;
+        }
+        // checks if universe exists so that's cool
+        var universeId = await services.games.GetUniverseId(placeId);
+
+        var products = (await services.games.GetDeveloperProducts(universeId, 5, 5 * (page - 1))).ToList();
+        return new {
+            FinalPage = products.Count < 5 || page == 5,
+            DeveloperProducts = products.Select(c => new {
+                ProductId = c.id,
+                DeveloperProductId = c.iconImageAssetId,
+                Name = c.name,
+                c.Description,
+                IconImageAssetId = c.iconImageAssetId,
+                displayName = (string?)null,
+                displayDescription = (string?)null,
+                displayIcon = (int?)null,
+                PriceInRobux = c.priceInRobux,
+            }),
+            PageSize = 5
         };
     }
 

@@ -24,7 +24,8 @@ public class GameServerService : ServiceBase
         
         public ArbiterHttpClient()
         {
-            this.BaseAddress = new Uri($"https://arbiter.{Configuration.ShortBaseUrl}/");
+            //this.BaseAddress = new Uri($"https://arbiter.{Configuration.ShortBaseUrl}/");
+            this.BaseAddress = new Uri($"http://localhost:3070/");
             this.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
         }
         public async Task<bool> StartGameServer(StartGameServerRequest request)

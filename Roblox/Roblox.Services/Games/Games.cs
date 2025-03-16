@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using Roblox.Dto;
 using Roblox.Dto.Games;
 using Roblox.Dto.Users;
+using Roblox.Exceptions.Services.Assets;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
 using Roblox.Models.Studio;
@@ -791,7 +792,7 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProducts(long universeId, long limit, long offset) {
+    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductInfoFull(long productId, long limit, long offset) {
         var qu = await db.QueryAsync<DeveloperProductDb>(
             @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
             dv.universe_id as universeId,
@@ -799,8 +800,44 @@ public class GamesService : ServiceBase, IService
             dv.image_asset_id as imageAssetId,
             dv.creator_id as creatorId,
             dv.creator_type as creatorType,
-            dv.created_at as created,
-            dv.updated_at as updated
+            dv.created_at as createdAt,
+            dv.updated_at as updatedAt
+            FROM developer_product AS dv
+            WHERE dv.id = :productId
+            LIMIT :limit OFFSET :offset",
+            new
+            {
+                productId,
+                limit,
+                offset,
+            });
+        return qu.Select(c => new DeveloperProduct
+        {
+            id = c.id,
+            name = c.name,
+            Description = c.description,
+            sales = c.sales,
+            price = c.price,
+            isForSale = c.isForSale,
+            iconImageAssetId = c.imageAssetId,
+            universeId = c.universeId,
+            creatorId = c.creatorId,
+            creatorType = c.creatorType == 2 ? CreatorType.Group : CreatorType.User,
+            updatedAt = c.updatedAt,
+            createdAt = c.createdAt
+        });
+    }
+    
+    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductsFull(long universeId, long limit, long offset) {
+        var qu = await db.QueryAsync<DeveloperProductDb>(
+            @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
+            dv.universe_id as universeId,
+            dv.is_for_sale as isForSale,
+            dv.image_asset_id as imageAssetId,
+            dv.creator_id as creatorId,
+            dv.creator_type as creatorType,
+            dv.created_at as createdAt,
+            dv.updated_at as updatedAt
             FROM developer_product AS dv
             WHERE dv.universe_id = :universeId
             LIMIT :limit OFFSET :offset",
@@ -824,6 +861,116 @@ public class GamesService : ServiceBase, IService
             creatorType = c.creatorType == 2 ? CreatorType.Group : CreatorType.User,
             updatedAt = c.updatedAt,
             createdAt = c.createdAt
+        });
+    }
+    
+    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset) {
+        return await db.QueryAsync<DeveloperProducts>(
+            @"SELECT dv.id, dv.name, 
+            dv.description as Description,
+            dv.universe_id as shopId,
+            dv.image_asset_id as iconImageAssetId,
+            dv.price as priceInRobux
+            FROM developer_product AS dv
+            WHERE dv.universe_id = :universeId
+            LIMIT :limit OFFSET :offset",
+            new
+            {
+                universeId,
+                limit,
+                offset,
+            });
+    }
+    
+    public async Task<DeveloperProducts?> GetDeveloperProduct(long productId) {
+        // universe id is the shop id because idfk what shop id even is
+        return await db.QuerySingleOrDefaultAsync<DeveloperProducts>(
+            @"SELECT dv.id, dv.name, 
+            dv.description as Description,
+            dv.universe_id as shopId,
+            dv.image_asset_id as iconImageAssetId,
+            dv.price as priceInRobux
+            FROM developer_product AS dv
+            WHERE dv.id = :productId",
+            new
+            {
+                productId
+            });
+    }
+    
+    public async Task<int?> GetDeveloperProductCount(long universeId) {
+        // universe id is the shop id because idfk what shop id even is
+        var qu = await db.QuerySingleOrDefaultAsync<int?>(
+            @"SELECT COUNT(*)
+            FROM developer_product AS dv
+            WHERE dv.universe_id = :universeId",
+            new
+            {
+                universeId
+            });
+        if (qu == null) {
+            return null;
+        }
+        return qu;
+    }
+    
+    public async Task<int?> GetDeveloperProductCountId(long productId) {
+        // universe id is the shop id because idfk what shop id even is
+        var qu = await db.QuerySingleOrDefaultAsync<int?>(
+            @"SELECT COUNT(*)
+            FROM developer_product AS dv
+            WHERE dv.id = :productId",
+            new
+            {
+                productId
+            });
+        if (qu == null) {
+            return null;
+        }
+        return qu;
+    }
+    
+    public async Task<long?> CreateDeveloperProduct(long userId, long universeId, string name, string description, long priceInRobux, long iconImageAssetId) {
+        if (string.IsNullOrEmpty(name)) throw new AssetNameTooShortException();
+        if (name.Length > Rules.NameMaxLength)
+            throw new AssetNameTooLongException();
+        if (description is { Length: > Rules.DescriptionMaxLength })
+            throw new AssetDescriptionTooLongException();
+        
+        return await InsertAsync("developer_product", new
+        {
+            name,
+            description,
+            image_asset_id = iconImageAssetId,
+            price = priceInRobux,
+            is_for_sale = priceInRobux > 0,
+            universe_id = universeId,
+            creator_type = (int) CreatorType.User,
+            creator_id = userId
+        });
+    }
+    
+    public async Task UpdateDeveloperProduct(long productId, string name, string description, long priceInRobux, long iconImageAssetId) {
+        if (string.IsNullOrEmpty(name)) throw new AssetNameTooShortException();
+        if (name.Length > Rules.NameMaxLength)
+            throw new AssetNameTooLongException();
+        if (description is { Length: > Rules.DescriptionMaxLength })
+            throw new AssetDescriptionTooLongException();
+        
+        await db.ExecuteAsync(@"UPDATE developer_product SET 
+                   name = :name, 
+                   description = :description, 
+                   price = :priceInRobux,
+                   image_asset_id = :iconImageAssetId, 
+                   is_for_sale = :isForSale 
+                         WHERE id = :productId", new
+        {
+            productId,
+            name,
+            description,
+            priceInRobux,
+            iconImageAssetId,
+            isForSale = priceInRobux > 0
         });
     }
 

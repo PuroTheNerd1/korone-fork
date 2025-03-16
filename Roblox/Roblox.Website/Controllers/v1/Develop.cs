@@ -1,11 +1,16 @@
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
+using Roblox.Exceptions.Services.Assets;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
+using Roblox.Services.Exceptions;
 using Roblox.Website.WebsiteModels.Catalog;
+using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
+using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Website.Controllers;
 
@@ -190,16 +195,153 @@ public class DevelopControllerV1 : ControllerBase
         await services.games.SetMaxPlayerCount(place, request.maxPlayers);
     }
     
-    // Developer Products (if ur skidding this kys)
+    // Developer Products
+    // TODO: this needs a rewrite bad and the ability for staff to review it and stuff
 
     // get universe's products
     [HttpGet("universes/{universeId:long}/developerproducts")]
-    public async Task<dynamic> GetDeveloperProducts(long universeId, long pageNumber, long? pageSize = 10) {
-        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
-        var placeId = universe.rootPlaceId;
+    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long pageNumber, long? pageSize = 10) {
+        long parsedSize = (pageSize > 50 || pageSize < 1) ? 10 : (pageSize ?? 10);
+        if (pageNumber > 100 || pageSize < 1) pageNumber = 1;
+        await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        var offset = parsedSize * (pageNumber == 0 ? 0 : pageNumber - 1);
+        return await services.games.GetDeveloperProducts(
+            universeId,
+            parsedSize * 1,
+            offset * 1);
+    }
+    
+    // create developer product
+    // https://apidocs.sixteensrc.zip/develop/docs.html#!/DeveloperProducts/post_v1_universes_universeId_developerproducts
+    [HttpPost("universes/{universeId:long}/developerproducts")]
+    public async Task<dynamic> CreateDeveloperProduct(long universeId, string name, string description, long priceInRobux, long iconImageAssetId) {
+        MultiGetEntry asset;
+        long userId;
 
-        var products = await services.games.GetDeveloperProducts(universe.rootPlaceId, pageNumber, pageSize);
+        // this god awful code is presented to you by the fact i barely know how
+        // developer products work so i gotta stick as close to the roblox api as possible
+        // You're Welcome!
+        if (priceInRobux < 0 || priceInRobux > 1000000) {
+            throw new BadRequestException(0, "Price in robux can not be negative or above 1 million.");
+        }
         
-        return new { };
+        try {
+            await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+            userId = safeUserSession.userId;
+        }
+        catch (RecordNotFoundException e) {
+            throw new NotFoundException(5, "Universe not found.");
+        }
+        catch (PermissionException e) {
+            throw new ForbiddenException(6, "User doesn't have access to universe.");
+        }
+        catch (RobloxException e) {
+            throw new UnauthorizedException();
+        }
+        if ((await services.games.GetDeveloperProductCount(universeId) ?? 0) >= 25) {
+            throw new BadRequestException(0, "Too many developer products for this universe.");
+        }
+        try {
+            asset = await services.assets.GetAssetCatalogInfo(iconImageAssetId);
+        }
+        catch (RecordNotFoundException e) {
+            throw new NotFoundException(3, "Icon Asset not found.");
+        }
+        if (asset.creatorTargetId != userId) { // ?? no idea why roblox does that
+            throw new ForbiddenException(2, "Icon Asset is created by another user.");
+        }
+
+
+        try {
+            long? prodId = await services.games.CreateDeveloperProduct(safeUserSession.userId, universeId, name, description, priceInRobux,
+                iconImageAssetId);
+            if (prodId != null) {
+                return new {
+                    productId = prodId
+                };
+            }
+        } catch (Exception e)
+        {
+            if (e is AssetNameTooShortException || e is AssetNameTooLongException ||
+                e is AssetDescriptionTooLongException) {
+                throw new BadRequestException(0, "Name or Description are too long, or too short. You figure it out, loser.");
+            }
+
+            throw;
+        }
+        return new {
+            productId = (long?)null
+        };
+    }
+    
+    // update developer product
+    // https://apidocs.sixteensrc.zip/develop/docs.html#!/DeveloperProducts/post_v1_universes_universeId_developerproducts_productId_update
+    [HttpPost("universes/{universeId:long}/developerproducts/{productId}/update")]
+    public async Task UpdateDeveloperProduct(long universeId, long productId, [FromBody] UpdateDevProductRequest request) {
+        MultiGetEntry asset;
+        long userId;
+
+        // this god awful code is presented to you by the fact i barely know how
+        // developer products work so i gotta stick as close to the roblox api as possible
+        // You're Welcome!
+        if (request.PriceInRobux < 0 || request.PriceInRobux > 1000000) {
+            throw new BadRequestException(0, "Price in robux can not be negative or above 1 million.");
+        }
+        
+        try {
+            await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+            userId = safeUserSession.userId;
+        }
+        catch (RecordNotFoundException e) {
+            throw new NotFoundException(5, "Universe not found.");
+        }
+        catch (PermissionException e) {
+            throw new ForbiddenException(6, "User doesn't have access to universe.");
+        }
+        catch (RobloxException e) {
+            throw new UnauthorizedException();
+        }
+        var product = await services.games.GetDeveloperProduct(productId);
+        if (product is null) {
+            throw new BadRequestException(0, "Developer product not found.");
+        }
+
+        if (product.name == request.Name &&
+            product.Description == request.Description &&
+            product.iconImageAssetId == request.IconImageAssetId &&
+            product.priceInRobux == request.PriceInRobux) {
+            // nothing changed lal
+            return;
+        }
+        try {
+            asset = await services.assets.GetAssetCatalogInfo(request.IconImageAssetId);
+        }
+        catch (RecordNotFoundException e) {
+            throw new NotFoundException(3, "Icon Asset not found.");
+        }
+        if (asset.creatorTargetId != userId) { // ?? no idea why roblox does that
+            throw new ForbiddenException(2, "Icon Asset is created by another user.");
+        }
+        if (asset.assetType != Type.Image) {
+            throw new BadRequestException(0, "Icon asset type is not an image.");
+        }
+
+        var oldImage = await services.assets.GetAssetModerationStatus(product.iconImageAssetId);
+        if (oldImage.moderationstatus != (short)ModerationStatus.ReviewApproved) {
+            throw new BadRequestException(0, "You must wait until your Developer Product's former icon is approved by moderators.");
+        }
+        
+        // dont want people to use this to test and exploit the chat filter
+        request.Name = services.filter.FilterText(request.Name);
+        request.Description = services.filter.FilterText(request.Description);
+        
+        if (string.IsNullOrEmpty(request.Name)) throw new AssetNameTooShortException();
+        if (request.Name.Length > Rules.NameMaxLength)
+            throw new AssetNameTooLongException();
+        if (request.Description is { Length: > Rules.DescriptionMaxLength })
+            throw new AssetDescriptionTooLongException();
+        
+        await services.games.UpdateDeveloperProduct(productId, request.Name, request.Description, request.PriceInRobux,
+            request.IconImageAssetId);
     }
 }

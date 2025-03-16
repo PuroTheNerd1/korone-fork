@@ -137,3 +137,13 @@
  * @typedef {Object} RobloxCollection
  * @property {T[]} data
  */
+
+/**
+ * @typedef DeveloperProductEntry
+ * @property {number} id
+ * @property {string} name
+ * @property {string} Description
+ * @property {number} shopId
+ * @property {number} iconImageAssetId
+ * @property {number} priceInRobux
+ */

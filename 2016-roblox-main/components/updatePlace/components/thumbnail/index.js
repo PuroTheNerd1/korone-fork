@@ -169,10 +169,7 @@ const Thumbnail = () => {
         });
     }
     
-    // TODO: will later have to be rewritten to support multiple thumbnails
     useEffect(refreshGameMedia, [store.media]);
-    
-    useEffect(() => console.log(media?.length), [media])
     
     return <div className={s.contentContainer}>
         <div className={`${s.header} col-12`}>

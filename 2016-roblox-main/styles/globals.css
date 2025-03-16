@@ -281,7 +281,7 @@ html div.container {
     min-height: 100vh;
 }
 
-.ssp, .ssp * {
+.ssp, .ssp *, .status {
     font-family: 'Source Sans Pro', Arial, serif;
 }
 
@@ -291,4 +291,28 @@ html div.container {
 
 .marginStuff {
     margin: 0 0 8px!important;
+}
+
+.icon-loading-legacy {
+    background: url(/img/loading_old.gif);
+    background-size: 48px 17px;
+    width: 48px;
+    height: 17px;
+}
+
+.status-confirm, .status-error {
+    padding: 5px 10px;
+    color: #343434;
+    font-size: 14px;
+    line-height: 1.428;
+}
+
+.status-confirm {
+    background-color: #e5effa;
+    border: 1px solid #06C;
+}
+
+.status-error {
+    background-color: #FAE5E5;
+    border: 1px solid #C00;
 }

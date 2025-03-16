@@ -227,7 +227,25 @@ namespace Roblox.Website.Controllers
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 
-        public static long startUserId {get;set;} = 30;
+        [HttpGetBypass("/asset/status")]
+        public async Task<dynamic> GetAssetModerationStatus(long assetId) {
+            // make sure user is logged in
+            var userId = safeUserSession.userId;
+            if (assetId < 1) {
+                throw new BadRequestException(0, $"Asset {assetId} does not exist.");
+            }
+            var qu = await services.assets.GetAssetModerationStatus(assetId);
+            return new {
+                moderationStatus = (ModerationStatus)qu.moderationstatus,
+            };
+        }
+
+        [HttpGetBypass("/version")]
+        public dynamic Version() {
+            return "version-d262983d5d887e114ba240e32e2d7465";
+        }
+
+        public static long startUserId {get;set;} = 30; // TODO: ?? what's the point of this
 
         [HttpPostBypass("login/RequestAuth.ashx")]
         [HttpGetBypass("login/RequestAuth.ashx")]
@@ -1067,7 +1085,8 @@ namespace Roblox.Website.Controllers
                 "9d7975454cee0e948e35cdc1fb55f92a", //2019E Prod
                 "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
                 "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
-                "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6
+                "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6,
+                "d262983d5d887e114ba240e32e2d7465", // 2020 goober client
             };
 
             return new { data = allowedList };

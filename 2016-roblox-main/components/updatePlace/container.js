@@ -7,6 +7,7 @@ import Icon from "./components/icon";
 import UploadPlace from "./components/uploadPlace";
 import Access from "./components/access";
 import Thumbnail from "./components/thumbnail";
+import DeveloperProductPage from "./components/developerProducts";
 
 const Container = props => {
   const store = updatePlaceStore.useContainer();
@@ -63,8 +64,7 @@ const Container = props => {
     {
       name: 'Developer Products',
       url: '#',
-      disabled: true,
-      el: () => null,
+      el: () => <DeveloperProductPage />,
     },
     {
       name: 'Games',
