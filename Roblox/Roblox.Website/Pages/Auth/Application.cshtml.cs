@@ -268,13 +268,13 @@ public class Application : RobloxPageModel
 
         if (!userInfo.success)
         {
-            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord";
+            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.goober.top/auth/discord";
             return new PageResult();
         }
 
         if(await services.users.CheckDuplicateDiscord(discordId))
         {
-            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord #1";
+            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.goober.top/auth/discord #1";
             return new PageResult();
         }
         await using var rateLimitLock =
