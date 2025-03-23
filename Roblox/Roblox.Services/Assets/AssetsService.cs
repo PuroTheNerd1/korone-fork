@@ -252,6 +252,7 @@ public class AssetsService : ServiceBase, IService
         content.Seek(0, SeekOrigin.Begin);
         await content.CopyToAsync(file);
         // Done
+        await content.DisposeAsync();
         return plainHash;
     }
     public Task DeleteAssetContent(string key, string? directory = null)
@@ -1675,19 +1676,44 @@ public class AssetsService : ServiceBase, IService
         });
     }
 
-    public async Task<CreatePlaceResponse> CreatePlace(long creatorId, CreatorType creatorType, long creatorUserId)
+    public async Task<CreatePlaceResponse> CreatePlace(long creatorId, CreatorType creatorType, long creatorUserId, long? templateId = 0)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
-        var basePlateLocation = Configuration.PublicDirectory + "/Baseplate.rbxl";
-        await using var basePlateFile = new FileStream(basePlateLocation, FileMode.Open, FileAccess.Read,
-            FileShare.ReadWrite,
-            default, FileOptions.Asynchronous);
-        var place = await CreateAsset("Place", null, creatorUserId, creatorType, creatorId, basePlateFile,
+
+        var username = await GetUserName(creatorId);
+        if (username == null)
+            throw new RecordNotFoundException();
+        if (templateId != null && !getStarterPlaces.ContainsValue(templateId.Value)) templateId = null;
+
+        Stream stream;
+        if (templateId != null) {
+            var assetVersion = await GetLatestAssetVersion(templateId.Value);
+            stream = await GetAssetContent(assetVersion.contentUrl);
+        }
+        // TODO: should we use baseplate template instead?
+        else {
+            var basePlateLocation = Configuration.PublicDirectory + "/Baseplate.rbxl";
+            stream = new FileStream(
+                basePlateLocation, FileMode.Open, FileAccess.Read,
+                FileShare.ReadWrite, bufferSize: default, FileOptions.Asynchronous);;
+        }
+
+        var place = await CreateAsset($"{username}'s Place", null, creatorUserId, creatorType, creatorId, stream,
             Type.Place, Genre.All, ModerationStatus.ReviewApproved, DateTime.UtcNow, DateTime.UtcNow);
         return new()
         {
             placeId = place.assetId,
         };
+    }
+    
+    private async Task<string?> GetUserName(long userId)
+    {
+        var qu = await db.QuerySingleOrDefaultAsync<dynamic>(
+            "SELECT username as name FROM \"user\" WHERE id = :userId", new
+            {
+                userId
+            });
+        return qu?.name;
     }
 
     public async Task CreateBadgeAsset(long assetId, long? universeId) {
@@ -2006,7 +2032,11 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             case "Emote":
             case "Emotes":
                 return Type.EmoteAnimation;
-            
+            case "badge":
+            case "badges":
+            case "Badge":
+            case "Badges":
+                return Type.Badge;
         }
 
         return null;
@@ -3330,6 +3360,29 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         });
     }
 
+    public Dictionary<string, long> getStarterPlaces = new Dictionary<string, long> 
+    {
+        { "Baseplate", 36573 },
+        { "Flat Terrain", 36574 },
+        { "Starting Place", 36568 },
+        { "Western", 36569 },
+        { "Suburban", 36570 },
+        { "Team/FFA Arena", 36571 },
+        { "Capture The Flag", 36572 },
+        //{ "Control Points", 36575 },
+        { "City", 36576 },
+        { "Castle", 36577 },
+        { "Village", 36585 },
+        { "Obby", 36578 },
+        { "Combat", 36579 },
+        { "Racing", 36580 },
+        { "Pirate Island", 36581 },
+        { "Line Runner", 36582 },
+        //{ "Infinite Runner", 36583 },
+        //{ "Free For All", 36584 },
+        //{ "Team Deathmatch", 36590 }
+    };
+    
     public bool IsThreadSafe()
     {
         return true;

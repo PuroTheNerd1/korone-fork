@@ -227,6 +227,12 @@ namespace Roblox.Website.Controllers
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 
+        // for goober.top
+        // [HttpGetBypass("/version")]
+        // public dynamic Version() {
+        //     return "version-d262983d5d887e114ba240e32e2d7465";
+        // }
+
         [HttpGetBypass("/asset/status")]
         public async Task<dynamic> GetAssetModerationStatus(long assetId) {
             // make sure user is logged in
@@ -238,11 +244,6 @@ namespace Roblox.Website.Controllers
             return new {
                 moderationStatus = (ModerationStatus)qu.moderationstatus,
             };
-        }
-
-        [HttpGetBypass("/version")]
-        public dynamic Version() {
-            return "version-d262983d5d887e114ba240e32e2d7465";
         }
 
         public static long startUserId {get;set;} = 30; // TODO: ?? what's the point of this
@@ -530,7 +531,7 @@ namespace Roblox.Website.Controllers
                 IsSetPasswordNotificationEnabled = false,
                 ChangePasswordRequiresTwoStepVerification = false,
                 ChangeEmailRequiresTwoStepVerification = false,
-                UserEmail = "pekora@goober.top",
+                UserEmail = "pekora@pekora.zip",
                 UserEmailMasked = true,
                 UserEmailVerified = true,
                 CanHideInventory = true,
@@ -1020,31 +1021,44 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("assets/award-badge")]
-        public async Task AwardBadge(long userId, long badgeId, long placeId)
-        {
-            if (!isRCC) {
-                throw new PermissionException(badgeId, safeUserSession.userId);
+        public async Task<dynamic> AwardBadge(long userId, long badgeId, long placeId) {
+            using (HttpClient client = new HttpClient()) {
+                foreach (var header in Request.Headers)
+                {
+                    if (!client.DefaultRequestHeaders.Contains(header.Key))
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value.ToString());
+                    }
+                }
+                client.DefaultRequestHeaders.Add("Roblox-Place-Id", placeId.ToString());
+                return await client.PostAsync($"https://{Request.Host}/v1/users/{userId}/badges/{badgeId}/award-badge", null);;
             }
-
-            // checks if userId is an actual user
-            await services.users.GetUserById(userId);
-            var universeId = await services.games.GetUniverseId(placeId);
-            // shouldnt have to check null cuz of above right?
-            var uni = (await services.games.MultiGetUniverseInfo(new[]{universeId})).ToList();
-            var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
-            if (badgeInfo is null) {
-                throw new BadRequestException(0, "Badge is invalid or does not exist");
-            }
-            await services.assets.EnsureAssetIsModerated(badgeId);
-            if (badgeInfo.enabled == false) {
-                throw new BadRequestException(8, "The badge is disabled.");
-            }
-            if (badgeInfo.universeId != universeId) {
-                throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
-            }
-            if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) {
-                await services.users.CreateUserAsset(userId, badgeId);
-            }
+            
+            // Request.Headers.Add("Roblox-Place-Id", placeId.ToString());
+            // return Redirect($"/v1/users/{userId}/badges/{badgeId}/award-badge");
+            // if (!isRCC) {
+            //     throw new PermissionException(badgeId, safeUserSession.userId);
+            // }
+            //
+            // // checks if userId is an actual user
+            // await services.users.GetUserById(userId);
+            // var universeId = await services.games.GetUniverseId(placeId);
+            // // shouldnt have to check null cuz of above right?
+            // var uni = (await services.games.MultiGetUniverseInfo(new[]{universeId})).ToList();
+            // var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
+            // if (badgeInfo is null) {
+            //     throw new BadRequestException(0, "Badge is invalid or does not exist");
+            // }
+            // await services.assets.EnsureAssetIsModerated(badgeId);
+            // if (badgeInfo.enabled == false) {
+            //     throw new BadRequestException(8, "The badge is disabled.");
+            // }
+            // if (badgeInfo.universeId != universeId) {
+            //     throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
+            // }
+            // if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) {
+            //     await services.users.CreateUserAsset(userId, badgeId);
+            // }
         }
         
         [HttpGetBypass("botapi/migrate-clothing")]
@@ -1080,13 +1094,15 @@ namespace Roblox.Website.Controllers
                 "abc9d2132ef2c21101804d8e25e0413f", //Repatched 2017Client
                 "fc5f43ec839bbbffcb26c48846b3c865", //2017L RAGELoader Debug
                 "0a5d9189b9f7a764ccf8b5655f442971", //2017L Prod
+                //"f1e3f34e623dc7ace10bda14cc0fb653", //2017L Prod goober client
                 "bba43f967698feff49038f51b391b48e", //2018L Prod
+                //"288b129d3491d24aaf78575214f800ec", //2018L Prod goober client
                 "4022369076d608d1a99b7b3d250e4de5", //2018L RAGELoader Debug
                 "9d7975454cee0e948e35cdc1fb55f92a", //2019E Prod
                 "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
                 "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
                 "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6,
-                "d262983d5d887e114ba240e32e2d7465", // 2020 goober client
+                //"d262983d5d887e114ba240e32e2d7465", // 2020 goober client
             };
 
             return new { data = allowedList };
@@ -1317,7 +1333,7 @@ namespace Roblox.Website.Controllers
                 Username = safeUserSession.username,
                 DisplayName = safeUserSession.username,
                 HasPasswordSet = true,
-                Email = "pekora@goober.top",
+                Email = "pekora@pekora.zip",
                 MembershipType = 3,
                 RobuxBalance = userBalance.robux,
                 AgeBracket = 0,

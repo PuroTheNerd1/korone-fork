@@ -95,6 +95,11 @@ const CreateGame = props => {
                 e.preventDefault();
                 if (locked) return;
                 setLocked(true);
+                
+                if (gameName.current.value < 3 || gameName.current.value > 100) {
+                }
+                if (gameDescription && gameDescription.length > 1000) {}
+                
                 const gameStuff = {
                     template: selectedTemplate,
                     name: gameName.current.value,

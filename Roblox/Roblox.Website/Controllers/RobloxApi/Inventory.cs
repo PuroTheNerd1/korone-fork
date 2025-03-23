@@ -26,7 +26,7 @@ namespace Roblox.Website.Controllers
             if (userSession != null)
                 canViewItems = userId == userSession.userId;
             var assetType = services.assets.GetTypeFromPluralString(itemType);
-            if (!canViewItems && (isRCC && assetType == Models.Assets.Type.GamePass))
+            if (!canViewItems && (isRCC && assetType == Models.Assets.Type.GamePass || isRCC && assetType == Models.Assets.Type.Badge))
             {
                 canViewItems = true;
             }

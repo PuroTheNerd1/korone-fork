@@ -3,7 +3,7 @@
   "Settings": {
     "Type": "Avatar_R15_Action",
     "Arguments": [
-       "https://www.goober.top",
+       "https://www.pekora.zip",
        %characterAppearanceUrl%,
        "PNG",
        %x%,

@@ -163,7 +163,7 @@ const useHeaderStyles = createUseStyles({
     margin: 0,
     padding: 0,
     float: 'right',
-    width: '60%',
+    width: '55%',
     '@media(max-width: 767px)': {
       width: '100%',
       display: 'flex',

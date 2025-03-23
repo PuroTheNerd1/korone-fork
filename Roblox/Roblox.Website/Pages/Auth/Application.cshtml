@@ -68,7 +68,7 @@
                     <p class="mt-3 mb-0">Application Status: <span class="fw-bolder">@(Model.displayStatus)</span></p>
                     @if (Model.application.status == UserApplicationStatus.Approved)
                     {
-                        <p>Join URL: <a href="/auth/signup?applicationId=@Model.application.joinId">https://www.goober.top/auth/signup?applicationId=@Model.application.joinId</a></p>
+                        <p>Join URL: <a href="/auth/signup?applicationId=@Model.application.joinId">https://www.pekora.zip/auth/signup?applicationId=@Model.application.joinId</a></p>
                     }
                     @if (Model.application.status == UserApplicationStatus.Rejected)
                     {
@@ -120,7 +120,7 @@
                                 <h4>Step 3 - Discord ID</h4>
                                 <div class="p-2">
                                     <p class="mb-0">Please put your Discord ID here. Don't know how to get it? Click <a href="https://www.electronicshub.org/how-to-find-discord-user-id/" target="_blank">here</a>.</p>
-                                    <p class="mb-2 mt-2"><span class="fw-bold">You must be in the Pekora Discord server</span>, to join click <a href="https://www.goober.top/auth/discord" target="_blank">here</a></p>
+                                    <p class="mb-2 mt-2"><span class="fw-bold">You must be in the Pekora Discord server</span>, to join click <a href="https://www.pekora.zip/auth/discord" target="_blank">here</a></p>
                                     <input placeholder="Example: 1124385331827966032" value="@Model.discordId || ''" disabled="@Model.submitDisabled" type="number" class="form-control" name="discordId" maxlength="22" style="appearance: textfield; -moz-appearance: textfield; -webkit-inner-spin-button: none; -webkit-outer-spin-button: none;" oninput="this.value = !!this.value ? this.value : '';">
                                 </div>
                             </div>

@@ -4,6 +4,7 @@ using Roblox.AbuseDetection.Report;
 using Roblox.Dto.Users;
 using Roblox.Exceptions;
 using Roblox.Logging;
+using Roblox.Models.Assets;
 using Roblox.Models.Sessions;
 using Roblox.Models.Users;
 using Roblox.Services;
@@ -260,6 +261,15 @@ public class Signup : RobloxPageModel
             Path = "/",
             SameSite = SameSiteMode.Lax,
         });
+        
+        // Create default place for user
+        if (FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService)) {
+            // create place!
+            var asset = await services.assets.CreatePlace(createdUser.userId, CreatorType.User, createdUser.userId);
+            // create universe too
+            await services.games.CreateUniverse(asset.placeId);
+        }
+        
         return Redirect("/home");
     }
 }

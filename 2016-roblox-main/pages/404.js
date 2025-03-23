@@ -1,18 +1,7 @@
-import NotFound from "../components/notFound";
-import Theme2016 from "../components/theme2016";
+import ErrorPage from "../components/errorPage";
 
-const NotFoundPage = () => {
-  return <Theme2016>
-    <NotFound />
-  </Theme2016>
-}
+const errorCode = 404;
+const errorTitle = "Page cannot be found or no longer exists";
+const errorDesc = "Page Not found";
 
-export default NotFoundPage;
-
-export const getStaticProps = () => {
-  return {
-    props: {
-      title: '404 - Pekora',
-    },
-  };
-};
+export default () => <ErrorPage title={errorTitle} desc={errorDesc} code={errorCode} />

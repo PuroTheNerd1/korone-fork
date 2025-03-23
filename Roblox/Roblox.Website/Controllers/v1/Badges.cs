@@ -18,6 +18,7 @@ public class BadgesControllerV1 : ControllerBase
     
     // Gets badge information by the badge id.
     [HttpGet("badges/{badgeId:long}")]
+    [HttpGetBypass("/v1/badges/{badgeId:long}")]
     public async Task<BadgeAssetDetails> GetBadgeDetails(long badgeId) {
         // TODO: is this even needed?
         var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
@@ -59,6 +60,7 @@ public class BadgesControllerV1 : ControllerBase
     
     // Gets badge by their awarding game.
     [HttpGet("universes/{universeId:long}/badges")]
+    [HttpGetBypass("/v1/universes/{universeId:long}/badges")]
     public async Task<RobloxCollectionPaginated<BadgeAssetDetails>> GetUniverseBadges(long universeId, int limit, string? cursor, SortOrder? sortOrder)
     {
         if (limit is > 100 or < 1) limit = 10;
@@ -79,6 +81,7 @@ public class BadgesControllerV1 : ControllerBase
     
     // Gets a list of badges a user has been awarded.
     [HttpGet("users/{userId:long}/badges")]
+    [HttpGetBypass("/v1/users/{userId:long}/badges")]
     public async Task<RobloxCollectionPaginated<BadgeAssetDetails>> GetBadges(long userId, int limit, string? cursor, SortOrder? sortOrder)
     {
         if (limit is > 100 or < 1) limit = 10;
@@ -95,6 +98,7 @@ public class BadgesControllerV1 : ControllerBase
     
     // Gets timestamps for when badges were awarded to a user.
     [HttpGet("users/{userId:long}/badges/awarded-dates")]
+    [HttpGetBypass("/v1/users/{userId:long}/badges/awarded-dates")]
     public async Task<dynamic> GetBadgeTimestamps(long userId, string badgeIds)
     {
         var ids = badgeIds.Split(",").Select(long.Parse).ToArray();
@@ -108,6 +112,7 @@ public class BadgesControllerV1 : ControllerBase
     
     // Award a badge to a user.
     [HttpPost("users/{userId:long}/badges/{badgeId:long}/award-badge")]
+    [HttpPostBypass("/v1/users/{userId:long}/badges/{badgeId:long}/award-badge")]
     public async Task<dynamic> AwardBadge(long userId, long badgeId)
     {
         if (!isRCC) {

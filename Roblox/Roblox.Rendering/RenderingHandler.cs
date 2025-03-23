@@ -118,7 +118,7 @@ namespace Roblox.Rendering
         {
             using (HttpClient RccHttpClient = new HttpClient())
             {
-                RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://goober.top/{SOAPAction}");
+                RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://pekora.zip/{SOAPAction}");
                 HttpContent XMLContent = new StringContent(XML, Encoding.UTF8, "text/xml");
                 try
                 {
@@ -130,7 +130,7 @@ namespace Roblox.Rendering
                     }
 
                     XDocument Doc = XDocument.Parse(RccHttpClientResponse);
-                    XNamespace ns1 = "http://goober.top/";
+                    XNamespace ns1 = "http://pekora.zip/";
                     XElement Element = Doc.Descendants(ns1 + "value").FirstOrDefault()!;
                     string LuaValue = Element.Value ?? "";
                     return LuaValue;
@@ -211,7 +211,7 @@ namespace Roblox.Rendering
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""http://goober.top/"">
+                    <BatchJobEx xmlns=""http://pekora.zip/"">
                         <job>
                             <id>{Guid.NewGuid().ToString()}</id>
                             <category>1</category>

@@ -12,7 +12,7 @@ public class RobloxPlayerCorsMiddleware
 
     private string GenerateCspHeader(bool isAuthenticated)
     {
-        var connectSrc = "'self' https://*.goober.top wss://*.goober.top https://hcaptcha.com https://*.hcaptcha.com https://*.cdn.com https://*.archive.org/* https://web.archive.org https://challenges.cloudflare.com/*";
+        var connectSrc = "'self' https://*.pekora.zip wss://*.pekora.zip https://hcaptcha.com https://*.hcaptcha.com https://*.cdn.com https://*.archive.org/* https://web.archive.org https://challenges.cloudflare.com/*";
 #if DEBUG
         connectSrc += " ws://localhost:*";
 #endif
@@ -21,14 +21,14 @@ public class RobloxPlayerCorsMiddleware
         var imgSrc = "'self' data:";
         if (isAuthenticated)
         {
-            imgSrc += " https://*.goober.top https://*.cdn.com https://*.archive.org http://*.archive.org https://challenges.cloudflare.com/*";
+            imgSrc += " https://*.pekora.zip https://*.cdn.com https://*.archive.org http://*.archive.org https://challenges.cloudflare.com/*";
         }
 
         // Scripts
 
         // unsafe-eval required by nextjs
         var scriptSrc =
-            "'unsafe-eval' 'self' https://challenges.cloudflare.com/turnstile/v0/api.js https://translate.google.com https://hcaptcha.com https://*.hcaptcha.com https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js https://goober.top   http://*.archive.org https://*.archive.org http://js.rbxcdn.com/46eace8231bf3c1ce64c55407d9ae60d.js";
+            "'unsafe-eval' 'self' https://challenges.cloudflare.com/turnstile/v0/api.js https://translate.google.com https://hcaptcha.com https://*.hcaptcha.com https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js https://pekora.zip   http://*.archive.org https://*.archive.org http://js.rbxcdn.com/46eace8231bf3c1ce64c55407d9ae60d.js";
 
         return "default-src 'self'; img-src "+imgSrc+"; child-src 'self'; script-src "+scriptSrc+"; frame-src 'self' https://hcaptcha.com https://challenges.cloudflare.com http://challenges.cloudflare.com  https://challenges.cloudflare.com/* http://web.archive.org https://*.archive.org https://web.archive.org/* https://*.hcaptcha.com; style-src 'unsafe-inline' 'self'  http://*.archive.org https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css ; font-src 'self' fonts.gstatic.com; connect-src "+connectSrc+"; worker-src 'self';";
     }

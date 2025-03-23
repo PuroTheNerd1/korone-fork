@@ -10,6 +10,7 @@ import SmallTextLink from "./smallTextLink";
 import useButtonWrapperStyle from '../styles/buttonWrapper'
 import Link from "../../link";
 import ItemImage from "../../itemImage";
+import {CringeRobloxHats} from "../../../stores/catalogPage";
 
 const useCollectionStyles = createUseStyles({
   imageWrapper: {
@@ -52,7 +53,9 @@ const Collections = props => {
   const cardStyles = useCardStyles();
   const [collections, setCollections] = useState(null);
   useEffect(() => {
-    getCollections({ userId }).then(setCollections)
+    getCollections({ userId }).then(d => {
+      setCollections(d.filter(r => !CringeRobloxHats.includes(r.Name)));
+    })
   }, [userId]);
 
   if (!collections || collections.length === 0) {

@@ -7,7 +7,7 @@
        "PNG",
        1680,
        1680,
-       "https://www.goober.top",
+       "https://www.pekora.zip",
        true,
        0,
        0,

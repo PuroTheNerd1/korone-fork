@@ -125,7 +125,7 @@ public class GamesService : ServiceBase, IService
                 id = placeId,
             });
         if (result == 0)
-            throw new RobloxException(400, 0, "Invalid place ID");
+            throw new RobloxException(400, 0, "Invalid place ID " + placeId);
         return result;
     }
     public async Task<IEnumerable<Dto.Users.MultiGetEntry>> GetTeamcreateMembershipsForUniverse(long universeId)

@@ -281,3 +281,20 @@ export const getGameTemplates = () => {
         });
     })
 }
+
+/**
+ *
+ * @param templatePlaceId {number|null}
+ * @returns {Promise<number|null>}
+ */
+export const createGameRequest = ({ templatePlaceId = null }) => {
+    request('POST', getFullUrl('api', `/universes/create`), {
+        templatePlaceIdToUse: templatePlaceId ?? 0,
+    }).then(response => {
+        if (!response.data?.placeId) {
+            console.error("Could not create place using Template Id " + templatePlaceId);
+            return null;
+        }
+        return response.data.placeId;
+    });
+}

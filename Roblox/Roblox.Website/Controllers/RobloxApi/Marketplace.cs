@@ -1,6 +1,7 @@
 using Roblox.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using Roblox.Models.Assets;
 using Roblox.Services.App.FeatureFlags;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
@@ -94,6 +95,43 @@ namespace Roblox.Website.Controllers {
                 IsLimitedUnique = details.itemRestrictions.Contains("LimitedUnique"),
                 Remaining,
                 MinimumMembershipLevel = 0
+            };
+        }
+
+        // client here
+        [HttpPostBypass("marketplace/submitpurchase")]
+        public async Task<dynamic> SubmitPurchase([FromForm] Dto.Marketplace.ProductPurchaseRequest purchaseRequest) {
+            var userId = safeUserSession.userId;
+            FeatureFlags.FeatureCheck(FeatureFlag.EconomyEnabled);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            // some sanity checks
+            
+            var productInfoList =
+                (await services.games.GetDeveloperProductInfoFull(purchaseRequest.productId, 1, 0)).ToList();
+            if (productInfoList.FirstOrDefault() == null)
+                throw new RecordNotFoundException("Developer Product is invalid or does not exist");
+            var productInfo = productInfoList.First();
+            if (!productInfo.isForSale)
+                throw new BadRequestException(0, "Developer Product is not for sale");
+            var iconModStatus = await services.assets.GetAssetModerationStatus(productInfo.iconImageAssetId);
+            if (iconModStatus.moderationstatus != (short?)ModerationStatus.ReviewApproved)
+                throw new BadRequestException(0, "Developer Product is not approved");
+            var uni = (await services.games.MultiGetUniverseInfo(new[] {productInfo.universeId})).ToList();
+            if (uni.FirstOrDefault() is null || uni.First().rootPlaceId != purchaseRequest.placeId)
+                throw new BadRequestException(0, "Place is invalid for this purchase or does not exist");
+            if (productInfo.price != purchaseRequest.expectedUnitPrice)
+                throw new BadRequestException(0, "Expected price is not the actual price");
+
+            await services.users.PurchaseNormalItem(safeUserSession.userId, purchaseRequest.productId,
+                purchaseRequest.currencyTypeId);
+            stopwatch.Stop();
+            Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
+                false);
+            return new {
+                success = true,
+                status = "Bought",
+                receipt = purchaseRequest.requestId
             };
         }
 

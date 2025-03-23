@@ -4,10 +4,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // Roblox CSS
 import '../styles/roblox/icons.css';
 import Navbar from '../components/navbar';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import Head from 'next/head';
 import Footer from '../components/footer';
-import dayjs from '../lib/dayjs';
 import NextNProgress from "nextjs-progressbar";
 import LoginModalStore from '../stores/loginModal';
 import AuthenticationStore from '../stores/authentication';

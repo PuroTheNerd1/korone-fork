@@ -73,5 +73,5 @@ public static class Configuration
         }
     }
 
-    public static string GameServerDomain => "goober.top"; // set to your game server's domain
+    public static string GameServerDomain => "pekora.zip"; // set to your game server's domain
 }
