@@ -69,6 +69,59 @@ const stringToSubCategory = str => {
   throw new Error('Invalid subcategory "' + str + '"');
 }
 
+export const CringeRobloxHats = [
+  "Swaggy Bacon Hair Crown",
+  "OMG So RARE Fedora",
+  "Noob Slayer 9000 Helmet",
+  "Rainbow Farting Unicorn Cap",
+  "Yeet Master Beanie",
+  "Drippy Dominus Wannabe",
+  "Edgy Emo Skull Hood",
+  "E-boy Cloud Goggles",
+  "Trollface Top Hat",
+  "Hot Cheeto Queen Tiara",
+  "Obby King’s Ultimate Cap",
+  "Rich Kid Flex Crown",
+  "TikTok Clout Visor",
+  "Slender's Signature Fedora",
+  "Tryhard Gamer Headband",
+  "Lava-Lamp-In-My-Brain Helmet",
+  "Sussy Baka Among Us Hat",
+  "Meme Lord Snapback",
+  "Gamer Dorito Crown",
+  "UwU Cat Ear Headphones",
+  "Boomer Dad Baseball Cap",
+  "LMAO LED Party Hat",
+  "Epic Fail Propeller Cap",
+  "Shrek’s Swamp Beanie",
+  "Golden Toilet Plunger Hat",
+  "Toxic Sludge Trucker Cap",
+  "Anime Protagonist Bandana",
+  "Giga Chad Fedora",
+  "Cringe-core Rizzler Beanie",
+  "Gamer Rage Quit Helmet",
+  "Robux Billionaire Crown",
+  "E-Girl Softboy Beret",
+  "Buff Noob's Gym Cap",
+  "Headless Horseman Discount Bucket",
+  "Walmart Dominus",
+  "AirPods Flex Snapback",
+  "Kawaii Desu Pastel Cap",
+  "Noob King’s Trash Can Lid",
+  "Thug Life Pixel Shades Hat",
+  "Cursed Bacon Hair Beret",
+  "Shiny Absurdly Expensive Fedora",
+  "Bling Bling Bubblegum Crown",
+  "Obby Sweater Sweatband",
+  "Sweaty Tryhard Bucket Hat",
+  "Ice Cream Cone of Doom",
+  "Emo Phase Starter Pack Cap",
+  "V.I.P. Obby Completionist Hat",
+  "My Mom Said I’m Cool Beanie",
+  "Literally Just a Traffic Cone",
+  "Inflatable Clown Hat of Regret"
+];
+
 const CatalogPageStore = createContainer(() => {
   const router = useRouter();
   const [query, setQuery] = useState(router.query.keyword || '');
@@ -111,7 +164,7 @@ const CatalogPageStore = createContainer(() => {
           let details = assetDetails.data.data.find(v => v.id === item.id);
           if (details) arr.push(details);
         }
-        response.data = arr;
+        response.data = arr.filter(r => !CringeRobloxHats.includes(r.name));
         setResults(response);
         setNextCursor(response.nextPageCursor);
         setPreviousCursor(response.previousPageCursor);
