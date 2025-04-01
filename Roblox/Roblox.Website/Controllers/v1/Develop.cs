@@ -98,9 +98,8 @@ public class DevelopControllerV1 : ControllerBase
             var readStream = file.OpenReadStream();
             if (readStream is null)
                 throw new BadRequestException(0, "File provided is invalid");
-            // TODO: actually make it deduct 10 roux robux
-            // whenever CreateGameThumbnail returns, how do i make sure it actually succceeded, so that i can deduct after
-            await services.economy.ChargeForGameThumbnailUpload(CreatorType.User, safeUserSession.userId);
+            // TODO: actually make it deduct 10 roux robux, not sure if its fully implemented
+            //await services.economy.ChargeForGameMediaUpload(CreatorType.User, safeUserSession.userId);
             await services.assets.CreateGameThumbnail(universe.rootPlaceId, readStream);
         }
         finally

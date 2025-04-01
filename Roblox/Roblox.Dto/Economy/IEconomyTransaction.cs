@@ -144,13 +144,12 @@ public class GameThumbnailUploadTransaction : IEconomyTransaction
 
     public GameThumbnailUploadTransaction(CreatorType creatorType, long creatorId)
     {
-        const long amount = 10;
         transaction = new EconomyTransactionBase()
         {
-            amount = amount,
+            amount = 10,
             currencyType = CurrencyType.Robux,
             type = PurchaseType.Purchase,
-            subType = TransactionSubType.ItemPurchase,
+            subType = TransactionSubType.GameMediaUpload,
         };
         transaction.SetSelf(creatorType, creatorId);
         transaction.SetOther(CreatorType.User, 1);

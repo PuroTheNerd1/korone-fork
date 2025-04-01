@@ -136,6 +136,13 @@ public class EconomyControllerV2 : ControllerBase
                             type = "RobloxProduct",
                         };
                         break;
+                    case TransactionSubType.GameMediaUpload:
+                        details = new
+                        {
+                            name = "Game Media: Image",
+                            type = "RobloxProduct",
+                        };
+                        break;
                     default:
                         // TODO: Log somewhere isntead of errroring
                         throw new Exception("Unexpected subType: " + c.subType);

@@ -420,7 +420,21 @@ public class EconomyService : ServiceBase, IService
 
         return model;
     }
+    
+    public async Task ChargeForGameMediaUpload(CreatorType creatorType, long creatorId)
+    {
+        await InTransaction(async _ =>
+        {
+            var balance = await GetBalance(creatorType, creatorId);
+            if (balance.robux < 10)
+                throw new LogicException(FailType.Unknown, 0, "Cannot charge user more than they own");
+            await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 10);
+            await InsertTransaction(new GameThumbnailUploadTransaction(creatorType, creatorId));
 
+            return 0;
+        });
+    }
+    
     public async Task ChargeForAudioUpload(CreatorType creatorType, long creatorId)
     {
         await InTransaction(async _ =>
@@ -446,18 +460,7 @@ public class EconomyService : ServiceBase, IService
             return 0;
         });
     }
-    public async Task ChargeForGameThumbnailUpload(CreatorType creatorType, long creatorId)
-    {
-        await InTransaction(async _ =>
-        {
-            var balance = await GetBalance(creatorType, creatorId);
-            if (balance.robux < 10)
-                throw new LogicException(FailType.Unknown, 0, "Cannot charge user more than they own");
-            await DecrementCurrency(creatorType, creatorId, CurrencyType.Robux, 10);
-            await InsertTransaction(new GameThumbnailUploadTransaction(creatorType, creatorId));
-            return 0;
-        });
-    }
+    
     public async Task ChargeForCoinflip(long userId, long amount, long finalRobux, bool won)
     {
         await InTransaction(async _ =>
