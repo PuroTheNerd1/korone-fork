@@ -863,6 +863,11 @@ public class AdminApiController : ControllerBase
     [HttpPost("ban"), StaffFilter(Access.BanUser)]
     public async Task BanUser([Required, FromBody] BanUserRequest request)
     {
+        // 30 bans per hour per staff
+        if (await services.cooldown.TryIncrementBucketCooldown("BanUserV1:" + safeUserSession.userId, 30, TimeSpan.FromHours(1)))
+        {
+            throw new StaffException("You are being rate limited, pleae try again later");
+        }
         DateTime? expirationDate = string.IsNullOrWhiteSpace(request.expires)
             ? null
             : DateTime.SpecifyKind(DateTime.Parse(request.expires), DateTimeKind.Utc);
