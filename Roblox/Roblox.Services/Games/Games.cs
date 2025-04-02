@@ -277,6 +277,24 @@ public class GamesService : ServiceBase, IService
         return result.Select(c => (long) c.asset_id).Distinct().Take(limit);
     }
 
+    public async Task<IEnumerable<long>> GetFavouritedGames(long userId, int limit) {
+        var result = await db.QueryAsync(
+            @"SELECT asset_favorite.id, asset_id 
+                FROM asset_favorite 
+                INNER JOIN asset ON asset.id = asset_favorite.asset_id 
+                WHERE user_id = :user_id 
+                  AND asset.moderation_status = :mod_status
+                  AND asset_type = :assetType
+                ORDER BY asset_favorite.id DESC", new
+            {
+                user_id = userId,
+                mod_status = ModerationStatus.ReviewApproved,
+                assetType = Type.Place
+            });
+
+        return result.Select(c => (long) c.asset_id).Distinct().Take(limit);
+    }
+
     public static int GetPlayerCount(long placeId)
     {
         /*var query = await db.QuerySingleOrDefaultAsync<Total>(
@@ -383,6 +401,17 @@ public class GamesService : ServiceBase, IService
                     throw new RobloxException(401, 0, "Unauthorized");
 
                 sortOrder = (await GetRecentGames(contextUserId.Value, maxRows)).ToList();
+                foreach (var item in sortOrder)
+                {
+                    query.OrWhere("asset.id = " + item);
+                }
+                break;
+            case "favorited":
+            case "favourited":
+                if (contextUserId is 0 or null)
+                    throw new RobloxException(401, 0, "Unauthorized");
+
+                sortOrder = (await GetFavouritedGames(contextUserId.Value, maxRows)).ToList();
                 foreach (var item in sortOrder)
                 {
                     query.OrWhere("asset.id = " + item);
@@ -601,7 +630,7 @@ public class GamesService : ServiceBase, IService
         });
     }
     public async Task<IEnumerable<UniverseGamePassEntry>> GetGamePassesForUniverse(long universeId, int limit,
-        int offset, SortOrder? sort)
+        int offset, long? userId, SortOrder? sort)
     {
         var qu = await db.QueryAsync<UniverseGamePassEntryDb>(
             @"SELECT a.id, a.name,
@@ -621,7 +650,8 @@ public class GamesService : ServiceBase, IService
                 limit,
                 offset,
             });
-        return qu.Select(c => new UniverseGamePassEntry()
+        using var users = ServiceProvider.GetOrCreate<UsersService>(this);
+        return await Task.WhenAll(qu.Select(async c => new UniverseGamePassEntry
         {
             id = c.id,
             name = c.name,
@@ -629,10 +659,15 @@ public class GamesService : ServiceBase, IService
             productId = c.id,
             price = c.priceRobux,
             isForSale = c.isForSale,
+            isOwned = userId != null && await DoesUserOwnAsset(userId.Value, c.id),
             sales = c.sales,
             updated = c.updated,
             created = c.created
-        });
+        }));
+    }
+    private async Task<bool> DoesUserOwnAsset(long userId, long assetId) {
+        using var users = ServiceProvider.GetOrCreate<UsersService>(this);
+        return await users.HasUserPurchasedAssetBefore(userId, assetId);
     }
     public async Task<IEnumerable<GamePassDetails>> GetGamePassInfo(long assetId)
     {
@@ -866,7 +901,7 @@ public class GamesService : ServiceBase, IService
     
     public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset) {
         return await db.QueryAsync<DeveloperProducts>(
-            @"SELECT dv.id, dv.name, 
+            @"SELECT dv.id, dv.sales, dv.name, 
             dv.description as Description,
             dv.universe_id as shopId,
             dv.image_asset_id as iconImageAssetId,
@@ -885,7 +920,7 @@ public class GamesService : ServiceBase, IService
     public async Task<DeveloperProducts?> GetDeveloperProduct(long productId) {
         // universe id is the shop id because idfk what shop id even is
         return await db.QuerySingleOrDefaultAsync<DeveloperProducts>(
-            @"SELECT dv.id, dv.name, 
+            @"SELECT dv.id, dv.sales, dv.name, 
             dv.description as Description,
             dv.universe_id as shopId,
             dv.image_asset_id as iconImageAssetId,
@@ -907,22 +942,6 @@ public class GamesService : ServiceBase, IService
             new
             {
                 universeId
-            });
-        if (qu == null) {
-            return null;
-        }
-        return qu;
-    }
-    
-    public async Task<int?> GetDeveloperProductCountId(long productId) {
-        // universe id is the shop id because idfk what shop id even is
-        var qu = await db.QuerySingleOrDefaultAsync<int?>(
-            @"SELECT COUNT(*)
-            FROM developer_product AS dv
-            WHERE dv.id = :productId",
-            new
-            {
-                productId
             });
         if (qu == null) {
             return null;
@@ -972,6 +991,99 @@ public class GamesService : ServiceBase, IService
             iconImageAssetId,
             isForSale = priceInRobux > 0
         });
+    }
+    
+    public async Task IncrementDevProdSales(long productId) {
+        await db.ExecuteAsync(@"UPDATE developer_product SET 
+                   sales = sales + 1
+                         WHERE id = :productId", new
+        {
+            productId
+        });
+    }
+
+    public async Task CreateProductReceipt(string guid, long userId, long productId, long price) {
+        if (!Guid.TryParse(guid, out _))
+            throw new Exception("CreateProductReceipt: Guid provided is not a valid Guid!");
+        await InsertAsync("product_receipt", new {
+            id = Guid.Parse(guid),
+            user_id = userId,
+            product_id = productId,
+            price,
+        });
+    }
+
+    public async Task ProcessProductReceipt(Guid id) {
+        await db.QueryAsync(
+            @"UPDATE product_receipt SET processed = TRUE, processed_at = CURRENT_TIMESTAMP WHERE id = :receiptId",
+            new {
+                receiptId = id
+            });
+    }
+    
+    public async Task<IEnumerable<ProductReceipt>> GetProcessingProductReceipts(long userId, long universeId) {
+        return await db.QueryAsync<ProductReceipt>(
+            @"SELECT pr.id, pr.price, pr.processed, 
+            pr.created_at as createdAt,
+            pr.processed_at as processedAt,
+            pr.user_id as userId,
+            pr.product_id as productId
+            FROM product_receipt AS pr
+            LEFT JOIN developer_product dp ON dp.id = pr.product_id
+            WHERE pr.processed = FALSE AND dp.universe_id = :universeId AND pr.user_id = :userId",
+            new
+            {
+                userId,
+                universeId
+            });
+    }
+    
+    public async Task<ProductReceipt?> GetSingleProcessingProductReceipt(long userId, long universeId) {
+        return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
+            @"SELECT pr.id, pr.price, pr.processed, 
+            pr.created_at as createdAt,
+            pr.processed_at as processedAt,
+            pr.user_id as userId,
+            pr.product_id as productId
+            FROM product_receipt AS pr
+            LEFT JOIN developer_product dp ON dp.id = pr.product_id
+            WHERE pr.processed = FALSE AND dp.universe_id = :universeId AND pr.user_id = :userId LIMIT 1",
+            new
+            {
+                userId,
+                universeId
+            });
+    }
+    
+    public async Task<ProductReceipt?> GetProductReceipt(Guid receiptId) {
+        return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
+            @"SELECT pr.id, pr.price, pr.processed, 
+            pr.created_at as createdAt,
+            pr.processed_at as processedAt,
+            pr.user_id as userId,
+            pr.product_id as productId
+            FROM product_receipt AS pr
+            WHERE pr.id = :receiptId",
+            new
+            {
+                receiptId
+            });
+    }
+    
+    public async Task<ProductReceipt?> GetProductReceiptSecure(long userId, Guid receiptId) {
+        return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
+            @"SELECT pr.id, pr.price, pr.processed, 
+            pr.created_at as createdAt,
+            pr.processed_at as processedAt,
+            pr.user_id as userId,
+            pr.product_id as productId
+            FROM product_receipt AS pr
+            WHERE pr.id = :receiptId AND pr.user_id = :userId",
+            new
+            {
+                receiptId,
+                userId
+            });
     }
 
     public bool IsThreadSafe()

@@ -46,10 +46,11 @@ const DevProdEntry = props => {
     const s = useEntryStyles();
     
     return <tr className={s.row}>
-        <td className={s.td} style={{ width: '15%' }}>{prod.id}</td>
-        <td className={s.td} style={{ width: '55%' }}>{prod.name}</td>
-        <td className={s.td} style={{ width: '20%' }}>{prod.priceInRobux}</td>
-        <td className={s.td} style={{ width: '10%' }}>
+        <td className={s.td} style={{width: '15%'}}>{prod.id}</td>
+        <td className={s.td} style={{width: '45%'}}>{prod.name}</td>
+        <td className={s.td} style={{width: '20%'}}>{prod.priceInRobux}</td>
+        <td className={s.td} style={{width: '10%'}}>{prod.sales}</td>
+        <td className={s.td} style={{width: '10%'}}>
             <a className='link2018' onClick={e => {
                 e.preventDefault();
                 store.setSelectedProduct(prod.id);
@@ -131,7 +132,7 @@ const DeveloperProductPage = () => {
                               productStore.setResult(null);
                           }}/>
         </div>
-        <div className="col-8">
+        <div className="col-9">
             {
                 typeof productStore.result === 'string' ?
                     <span className='status-confirm w-100 d-inline-block'
@@ -146,6 +147,7 @@ const DeveloperProductPage = () => {
                             <th className={s.tableHeadLabel + ' ' + s.tableHeadBorder}>ID</th>
                             <th className={s.tableHeadLabel + ' ' + s.tableHeadBorder}>Name</th>
                             <th className={s.tableHeadLabel + ' ' + s.tableHeadBorder}>Price In ROBUX</th>
+                            <th className={s.tableHeadLabel + ' ' + s.tableHeadBorder}>Sales</th>
                             <th className={s.tableHeadLabel + ' ' + s.tableHeadBorder}>Edit</th>
                             {/*<th className={s.tableHeadLabel + ' ' + s.tableAction}>Action</th>*/}
                         </tr>
@@ -159,7 +161,7 @@ const DeveloperProductPage = () => {
                     : productStore.products === 0 ? <p>Loading...</p> : <p>Developer Products failed to load.</p>
             }
         </div>
-        <div className='col-8 mt-4'>
+        <div className='col-9 mt-4'>
             <div className='d-inline-block'>
                 <ActionButton disabled={store.locked} buttonStyle={buttonStyles.continueButton} className={s.normal}
                               label='Save'

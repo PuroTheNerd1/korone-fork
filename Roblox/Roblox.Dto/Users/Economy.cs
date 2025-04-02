@@ -48,6 +48,7 @@ public class TransactionEntryDb
     public CurrencyType currency { get; set; }
     public PurchaseType type { get; set; }
     public TransactionSubType subType { get; set; }
+    public string? itemName { get; set; }
     public long? assetId { get; set; }
     public string? assetName { get; set; }
     public long? userAssetId { get; set; }

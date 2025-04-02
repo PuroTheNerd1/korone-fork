@@ -1,17 +1,5 @@
 using MVC = Microsoft.AspNetCore.Mvc;
-using CsvHelper;
-using System.Xml;
-using Roblox.Services.Exceptions;
-using Microsoft.AspNetCore.Mvc;
-using Roblox.Dto.Marketplace;
-using Newtonsoft.Json;
-using System.Dynamic;
 using Roblox.Models;
-using Roblox.Dto.Friends;
-using Roblox.Models.Assets;
-using System.Text.RegularExpressions;
-using Roblox.Dto.Games;
-using System.ComponentModel.DataAnnotations;
 using Roblox.Exceptions;
 namespace Roblox.Website.Controllers
 {
@@ -30,17 +18,19 @@ namespace Roblox.Website.Controllers
             {
                 canViewItems = true;
             }
-            else
-            {
+            // TODO: check if this is good.
+            if (!canViewItems)
                 throw new BadRequestException();
-            }
+            
             var inventory = await services.inventory.GetInventory(userId, assetType, "asc", 100, 0);
             
             return new RobloxCollectionPaginated<dynamic>
             {
                 previousPageCursor = (string?)null,
                 nextPageCursor = (string?)null,
-                data = inventory.Where(c => c.assetId == itemTargetId || c.assetTypeId == assetType).Select(c => new
+                data = inventory.Where(c => c.assetId == itemTargetId 
+                                            // || c.assetTypeId == assetType TODO: not sure if this is necessary but also makes no sense considering how roblox uses it
+                                            ).Select(c => new
                 {
                     Id = c.assetId,
                     Name = c.name,

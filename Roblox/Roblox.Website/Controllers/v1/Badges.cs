@@ -19,6 +19,8 @@ public class BadgesControllerV1 : ControllerBase
     // Gets badge information by the badge id.
     [HttpGet("badges/{badgeId:long}")]
     [HttpGetBypass("/v1/badges/{badgeId:long}")]
+    [HttpPost("badges/{badgeId:long}")]
+    [HttpPostBypass("/v1/badges/{badgeId:long}")]
     public async Task<BadgeAssetDetails> GetBadgeDetails(long badgeId) {
         // TODO: is this even needed?
         var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
@@ -113,19 +115,38 @@ public class BadgesControllerV1 : ControllerBase
     // Award a badge to a user.
     [HttpPost("users/{userId:long}/badges/{badgeId:long}/award-badge")]
     [HttpPostBypass("/v1/users/{userId:long}/badges/{badgeId:long}/award-badge")]
-    public async Task<dynamic> AwardBadge(long userId, long badgeId)
+    [HttpPostBypass("/assets/award-badge")]
+    public async Task<dynamic> AwardBadge(long userId, long badgeId, long? placeId)
     {
         if (!isRCC) {
             throw new PermissionException(badgeId, safeUserSession.userId);
         }
-        var robloxPlaceId = Request.Headers["Roblox-Place-Id"].ToString();
-        if (!long.TryParse(robloxPlaceId, out var placeId)) {
-            throw new BadRequestException(0, "Missing Roblox-Place-Id Header");
+
+        if (placeId is null) {
+            var robloxPlaceId = Request.Headers["Roblox-Place-Id"].ToString();
+            if (!long.TryParse(robloxPlaceId, out _)) {
+                throw new BadRequestException(0, "Missing Roblox-Place-Id Header");
+            }
+            placeId = long.Parse(robloxPlaceId);
+        }
+
+        if (userId is 0) {
+            // attempt to pull from query, in accordance to assets/award-badge
+            if (string.IsNullOrEmpty(Request.Query["userId"].ToString()) || !long.TryParse(Request.Query["userId"], out _))
+                throw new BadRequestException(0, "User does not exist.");
+            userId = long.Parse(Request.Query["userId"]);
+        }
+        
+        if (badgeId is 0) {
+            // attempt to pull from query, in accordance to assets/award-badge
+            if (string.IsNullOrEmpty(Request.Query["badgeId"].ToString()) || !long.TryParse(Request.Query["badgeId"], out _))
+                throw new BadRequestException(0, "Badge does not exist.");
+            badgeId = long.Parse(Request.Query["badgeId"]);
         }
 
         // checks if userId is an actual user
-        await services.users.GetUserById(userId);
-        var universeId = await services.games.GetUniverseId(placeId);
+        var user = await services.users.GetUserById(userId);
+        var universeId = await services.games.GetUniverseId(placeId.Value);
         // shouldnt have to check null cuz of above right?
         var uni = (await services.games.MultiGetUniverseInfo(new[]{universeId})).ToList();
         var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
@@ -133,24 +154,23 @@ public class BadgesControllerV1 : ControllerBase
             throw new BadRequestException(0, "Badge is invalid or does not exist");
         }
         await services.assets.EnsureAssetIsModerated(badgeId);
-        if (badgeInfo.enabled == false) {
+        if (!badgeInfo.enabled)
             throw new BadRequestException(8, "The badge is disabled.");
-        }
-        if (badgeInfo.universeId != universeId) {
+        if (badgeInfo.universeId != universeId)
             throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
-        }
         if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) { 
             await services.users.CreateUserAsset(userId, badgeId);
         }
-
+        
+        if (Request.Path == "/assets/award-badge") {
+            var badgeProd = await services.assets.GetAssetCatalogInfo(badgeId);
+            return $"{user.username} won {badgeProd.creatorName}'s {badgeProd.name} award! :3";
+        }
+        
         return new {
             creatorType = uni.First().creator.type,
             creatorId = uni.First().creator.id,
-            awardAssetIds = new {}
-            // wat
-            // awardAssetIds = new[] {
-            //     badgeId
-            // }
+            awardAssetIds = Array.Empty<dynamic>()
         };
     }
     

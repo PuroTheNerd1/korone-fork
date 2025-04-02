@@ -153,7 +153,14 @@ const useStyles = createUseStyles({
       cursor: 'pointer',
     }
   },
-  
+  gPassOwnedButton: {
+    padding: 11,
+    fontSize: "16px",
+    fontWeight: 500,
+    lineHeight: "100%",
+    margin: "0 auto",
+    color: "var(--text-color-secondary)"
+  },
   addPassContainer: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -172,10 +179,10 @@ const useStyles = createUseStyles({
 
 /**
  *
- * @param {{ id: number; name: string; price: number; }} props
+ * @param {{ id: number; name: string; price: number; isOwned: boolean; }} props
  * @constructor
  */
-const GamePassEntry = ({ id, name, price }) => {
+const GamePassEntry = ({ id, name, price, isOwned }) => {
   const s = useStyles();
   const buttonStyles = useButtonStyles();
   const url = getItemUrl({assetId: id, name});
@@ -192,9 +199,13 @@ const GamePassEntry = ({ id, name, price }) => {
         <span className={s.gPassPriceContainer}>
         <Robux2>{price}</Robux2>
       </span>
-        <div className={s.gPassBuyContainer}>
-            <ActionLink className={s.gPassBuyButton} label='Buy' buttonStyle={buttonStyles.newCancelButton}
-                        href={url}/>
+        <div className={`${s.gPassBuyContainer} ${isOwned ? "flex" : undefined}`}>
+          {
+            isOwned ?
+                <span className={s.gPassOwnedButton}>Owned</span> :
+                <ActionLink className={s.gPassBuyButton} label='Buy' buttonStyle={buttonStyles.newCancelButton}
+                                            href={url}/>
+          }
         </div>
       </div>
     </div>
@@ -247,7 +258,7 @@ const GameStore = props => {
       </div>
       {Array.isArray(passes) ?
           <ul className={s.passesContainer}>
-            {passes.map(pass => <GamePassEntry key={pass.id} id={pass.id} name={pass.name} price={pass.price} />)}
+            {passes.map(pass => <GamePassEntry key={pass.id} id={pass.id} name={pass.name} price={pass.price} isOwned={pass.isOwned} />)}
             {/* TODO: will need to be changed if we ever add group games */}
             {
               store.universeDetails.creator.id === auth.userId && passes.length !== 15 ?

@@ -43,8 +43,12 @@ const DescriptionEntry = props => {
     }
   }
   if (!noun) {
-    // item was deleted ?
-    noun = <DeletedEntryMessage message={deletedMessage}/>
+    // item was deleted ? added for dev product support
+    if (props?.details?.name && !noun) {
+      noun = props.details.name;
+    } else {
+      noun = <DeletedEntryMessage message={deletedMessage}/>
+    }
   }
   // console.log(props)
   return <span>
@@ -193,9 +197,9 @@ const MyTransactionsTable = props => {
             dayjs(v.created).format('M/D/YY'),
             <SellerEntry key={v.id} {...v.agent}></SellerEntry>,
             <DescriptionEntry {...v}></DescriptionEntry>,
-            v.currency.amount === 0 ? '0' : 
-            (v.currency.type === 'Tix' || v.currency.type === 'Tickets') ? 
-            <Tickets>{v.currency.amount}</Tickets> : 
+            v.currency.amount === 0 ? '0' :
+            (v.currency.type === 'Tix' || v.currency.type === 'Tickets') ?
+            <Tickets>{v.currency.amount}</Tickets> :
             <Robux>{v.currency.amount}</Robux>
           ];
         })}></Table>

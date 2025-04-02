@@ -889,11 +889,6 @@ public class AssetsService : ServiceBase, IService
     
     public async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
     {
-        var modInfo = await GetAssetCatalogInfo(assetId);//(await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
-        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
-            return;
-
-        byte[] imageBytes;
         if (thumbnailToUse is null)
         {
             // string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
@@ -901,18 +896,22 @@ public class AssetsService : ServiceBase, IService
             // imageBytes = Convert.FromBase64String(resizedBase64);
             return;
         }
-        else
+        var modInfo = await GetAssetCatalogInfo(assetId);//(await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
+        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
+            return;
+
+        byte[] imageBytes;
+        
+        var validImage = await ValidateImage(thumbnailToUse);
+        if (validImage == null)
         {
-            var validImage = await ValidateImage(thumbnailToUse);
-            if (validImage == null)
-            {
-                Writer.Info(LogGroup.GameIconRender, "custom icon failed for assetId={0}", assetId);
-                return;
-            }
-            if (thumbnailToUse.CanSeek)
-                thumbnailToUse.Position = 0;
-            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 640, 360);
+            Writer.Info(LogGroup.GameThumbnailRender, "custom thumbnail failed for placeId={0}", assetId);
+            return;
         }
+        if (thumbnailToUse.CanSeek)
+            thumbnailToUse.Position = 0;
+        imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 640, 360);
+        
         var imageStream = new MemoryStream(imageBytes);
         var thumbnailAsset = await CreateAsset(TrimTo255(modInfo.name + "_Image"), "Custom :3c -- zyth", modInfo.creatorTargetId, modInfo.creatorType, modInfo.creatorTargetId, imageStream, Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
         await InsertOrReplaceGameMedia(assetId, thumbnailAsset.assetId, Type.Image);
@@ -1898,14 +1897,6 @@ public class AssetsService : ServiceBase, IService
         }
         return result.total;
     }
-
-    public async Task<bool> DoesAssetExist(long assetId) {
-        var guh = await db.QuerySingleOrDefaultAsync("SELECT name FROM asset WHERE id = :assetId",
-            new {
-                assetId
-            });
-        return guh != null;
-    }
     
     public async Task<ExistsType> DoesAssetExistType(long assetId) {
         var guh = await db.QuerySingleOrDefaultAsync<ExistsType>("SELECT asset_type AS assetType FROM asset WHERE id = :assetId",
@@ -2037,6 +2028,13 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             case "Badge":
             case "Badges":
                 return Type.Badge;
+            case "gamepass":
+            case "Gamepass":
+            case "GamePass":
+            case "gamepasses":
+            case "Gamepasses":
+            case "GamePasses":
+                return Type.GamePass;
         }
 
         return null;
@@ -2517,9 +2515,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     /// <param name="userId"></param>
     public async Task ValidatePermissions(long assetId, long userId)
     {
-        if (await CanUserModifyItem(assetId, userId) 
-            //|| userId == 3 TODO: enable for prod
-            ) return;
+        if (await CanUserModifyItem(assetId, userId) || userId == 3) return;
 
         throw new PermissionException(assetId, userId);
     }

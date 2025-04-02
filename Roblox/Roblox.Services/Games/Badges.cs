@@ -2,6 +2,7 @@ using Dapper;
 using Roblox.Dto.Games;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
+using Roblox.Services.DbModels;
 
 namespace Roblox.Services.Games;
 
@@ -159,9 +160,9 @@ public class BadgesService : ServiceBase, IService {
         {
             id = c.id,
             name = c.name,
-            description = c.description,
+            description = c.description ?? "",
             displayName = c.name,
-            displayDescription = c.description,
+            displayDescription = c.description ?? "",
             enabled = c.enabled && c.moderationStatus == ModerationStatus.ReviewApproved,
             iconImageId = c.id,
             displayIconImageId = c.id,
@@ -211,7 +212,7 @@ public class BadgesService : ServiceBase, IService {
         return new BadgeDetails {
             assetId = qu.assetId,
             universeId = qu.universeId,
-            enabled = qu.enabled && modStatus?.moderationStatus == ModerationStatus.ReviewApproved
+            enabled = qu.enabled && modStatus == ModerationStatus.ReviewApproved
         };
     }
     
@@ -224,11 +225,11 @@ public class BadgesService : ServiceBase, IService {
         });
     }
     
-    public async Task<dynamic?> GetAssetModerationStatus(long assetId)
+    public async Task<ModerationStatus?> GetAssetModerationStatus(long assetId)
     {
-        var res = await db.QuerySingleOrDefaultAsync("SELECT moderation_status AS moderationStatus FROM asset WHERE id = :id", 
+        var res = await db.QuerySingleOrDefaultAsync<ModerationEntryDb>("SELECT moderation_status AS moderationStatus FROM asset WHERE id = :id", 
             new { id = assetId });
-        return res;
+        return res?.moderationStatus;
     }
     
     public bool IsThreadSafe()

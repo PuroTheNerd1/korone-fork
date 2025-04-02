@@ -63,6 +63,7 @@
  * @property {number} productId
  * @property {number} price
  * @property {boolean} isForSale
+ * @property {boolean} isOwned
  * @property {number} sales
  */
 
@@ -146,4 +147,5 @@
  * @property {number} shopId
  * @property {number} iconImageAssetId
  * @property {number} priceInRobux
+ * @property {number} sales
  */

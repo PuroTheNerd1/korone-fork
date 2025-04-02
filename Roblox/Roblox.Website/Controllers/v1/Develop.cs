@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
 using Roblox.Exceptions.Services.Assets;
+using Roblox.Libraries.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
@@ -77,9 +78,8 @@ public class DevelopControllerV1 : ControllerBase
         }
         var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         
-        if (await services.games.GetGameMediaCount(universe.rootPlaceId) == 10) {
+        if (await services.games.GetGameMediaCount(universe.rootPlaceId) >= 10)
             throw new BadRequestException(0, "Too many thumbnails on this Universe");
-        }
 
         lock (pendingThumbnailUploadsMux)
         {
@@ -91,15 +91,15 @@ public class DevelopControllerV1 : ControllerBase
         }
         try
         {
-            var balance = await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
-            // check if has enough
-            if (balance.robux < 10)
-                throw new BadRequestException(0, "Not enough Robux for purchase");
             var readStream = file.OpenReadStream();
             if (readStream is null)
                 throw new BadRequestException(0, "File provided is invalid");
-            // TODO: actually make it deduct 10 roux robux, not sure if its fully implemented
-            //await services.economy.ChargeForGameMediaUpload(CreatorType.User, safeUserSession.userId);
+            try {
+                await services.economy.ChargeForGameMediaUpload(CreatorType.User, safeUserSession.userId);
+            }
+            catch (LogicException) {
+                throw new BadRequestException(0, "Not enough Robux for purchase");
+            }
             await services.assets.CreateGameThumbnail(universe.rootPlaceId, readStream);
         }
         finally
@@ -138,7 +138,6 @@ public class DevelopControllerV1 : ControllerBase
         return Ok();
     }
     
-    // TODO: do game icons use universes?
     [HttpPost("places/{placeId}/game-icons/auto-generated")]
     public async Task<dynamic> UploadAutoGenGameIcon(long placeId, [FromForm] IFormFile? file = null)
     {
@@ -221,7 +220,7 @@ public class DevelopControllerV1 : ControllerBase
         // developer products work so i gotta stick as close to the roblox api as possible
         // You're Welcome!
         if (priceInRobux < 0 || priceInRobux > 1000000) {
-            throw new BadRequestException(0, "Price in robux can not be negative or above 1 million.");
+            throw new BadRequestException(0, "Price in Robux can not be negative or above 1 million.");
         }
         
         try {
@@ -261,11 +260,8 @@ public class DevelopControllerV1 : ControllerBase
             }
         } catch (Exception e)
         {
-            if (e is AssetNameTooShortException || e is AssetNameTooLongException ||
-                e is AssetDescriptionTooLongException) {
+            if (e is AssetNameTooShortException or AssetNameTooLongException or AssetDescriptionTooLongException)
                 throw new BadRequestException(0, "Name or Description are too long, or too short. You figure it out, loser.");
-            }
-
             throw;
         }
         return new {

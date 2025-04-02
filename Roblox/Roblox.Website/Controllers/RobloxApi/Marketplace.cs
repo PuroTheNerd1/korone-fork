@@ -1,6 +1,8 @@
 using Roblox.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using Roblox.Dto.Games;
+using Roblox.Exceptions;
 using Roblox.Models.Assets;
 using Roblox.Services.App.FeatureFlags;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
@@ -123,15 +125,14 @@ namespace Roblox.Website.Controllers {
             if (productInfo.price != purchaseRequest.expectedUnitPrice)
                 throw new BadRequestException(0, "Expected price is not the actual price");
 
-            await services.users.PurchaseNormalItem(safeUserSession.userId, purchaseRequest.productId,
-                purchaseRequest.currencyTypeId);
+            var receiptId = await services.users.PurchaseDeveloperProduct(userId, purchaseRequest.productId);
             stopwatch.Stop();
             Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
                 false);
             return new {
                 success = true,
                 status = "Bought",
-                receipt = purchaseRequest.requestId
+                receipt = receiptId
             };
         }
 
@@ -141,6 +142,8 @@ namespace Roblox.Website.Controllers {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             // some sanity checks
+            Console.WriteLine(purchaseRequest.productId);
+            Console.WriteLine(purchaseRequest.locationId);
             var productInfo = await services.assets.GetProductForAsset(purchaseRequest.productId);
             if (purchaseRequest.productId is 0 or < 0)
                 purchaseRequest.productId = 0;
@@ -281,6 +284,90 @@ namespace Roblox.Website.Controllers {
                 MinimumMembershipLevel = 0,
                 ContentRatingTypeId = 0
             };
+        }
+
+        [HttpPostBypass("marketplace/validatepurchase")]
+        public async Task<ReceiptResponse> ValidatePurchase(string receiptId) {
+            Console.WriteLine(Request.Method);
+            if (!isRoblox || 
+                !Request.Headers.ContainsKey("Requester") ||
+                !Request.Headers.ContainsKey("Roblox-Place-Id") ||
+                !long.TryParse(Request.Headers["Roblox-Place-Id"], out _)
+                )
+                throw new UnauthorizedException();
+            if (!Guid.TryParse(receiptId, out _))
+                throw new BadRequestException(0, "Receipt ID is invalid");
+            var userId = safeUserSession.userId;
+            // var rawRequestBody = await new StreamReader(Request.Body).ReadToEndAsync();
+            // if (!rawRequestBody.Equals("GameServerVerifyPurchase"))
+            //     throw new NotImplementedException("Not implemented. Request: " + rawRequestBody);
+
+            var receipt = await services.games.GetProductReceiptSecure(userId, Guid.Parse(receiptId));
+
+            if (receipt is null) {
+                return new ReceiptResponse
+                {
+                    playerId = userId,
+                    placeId = long.Parse(Request.Headers["Roblox-Place-Id"]),
+                    isValid = false,
+                    productId = null
+                };
+            }
+            
+            return new ReceiptResponse
+            {
+                playerId = userId,
+                placeId = long.Parse(Request.Headers["Roblox-Place-Id"]),
+                isValid = true,
+                productId = receipt.productId,
+            };
+        }
+        
+        [HttpGetBypass("gametransactions/getpendingtransactions")]
+        public async Task<dynamic> GetPendingTransactions(long PlaceId, long PlayerId) {
+            if (!isRCC || !Request.Headers.ContainsKey("Requester") || Request.Headers["Requester"] != "Server")
+                throw new UnauthorizedException();
+
+            var universeId = await services.games.GetUniverseId(PlaceId);
+            var pendingReceipt = await services.games.GetSingleProcessingProductReceipt(PlayerId, universeId);
+            if (pendingReceipt is null)
+                return Array.Empty<dynamic>();
+            
+            await services.games.ProcessProductReceipt(pendingReceipt.id);
+            return new[] {
+                new {
+                    playerId = PlayerId,
+                    placeId = PlaceId,
+                    receipt = pendingReceipt.id,
+                    actionArgs = new List<dynamic> {
+                        new {
+                            Key = "productId",
+                            Value = pendingReceipt.productId
+                        },
+                        new {
+                            Key = "currencyTypeId",
+                            Value = 1
+                        },
+                        new {
+                            Key = "unitPrice",
+                            Value = pendingReceipt.price
+                        }
+                    }
+                }
+            };
+        }
+
+        [HttpPostBypass("gametransactions/settransactionstatuscomplete")]
+        public async Task<dynamic> ProcessTransaction([FromForm] string receiptStr) {
+            if (!Guid.TryParse(receiptStr, out _))
+                throw new BadRequestException(0, "Receipt is invalid or does not exist.");
+            var receiptId = Guid.Parse(receiptStr);
+            var receipt = await services.games.GetProductReceipt(receiptId); // is this even necessary lol
+            if (receipt == null)
+                throw new BadRequestException(0, "Receipt is invalid or does not exist.");
+            await services.games.ProcessProductReceipt(receiptId);
+            
+            return new { success = true };
         }
     }
 }

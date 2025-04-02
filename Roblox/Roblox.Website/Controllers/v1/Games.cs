@@ -216,7 +216,7 @@ public class GamesControllerV1 : ControllerBase
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
         var result =
-            (await services.games.GetGamePassesForUniverse(universeId, limit ?? 10, offset, sortOrder ?? SortOrder.Asc)).ToList();
+            (await services.games.GetGamePassesForUniverse(universeId, limit ?? 10, offset, userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
         return new RobloxCollectionPaginated<UniverseGamePassEntry>()
         {
             nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,

@@ -242,6 +242,7 @@ public class UniverseGamePassEntry
     public long productId { get; set;}
     public int price { get; set;}
     public bool isForSale { get; set; }
+    public bool isOwned { get; set; }
     public int sales { get; set; }
     public DateTime updated { get; set; }
     public DateTime created { get; set; }
@@ -353,6 +354,7 @@ public class DeveloperProducts {
     public long shopId { get; set; }
     public long iconImageAssetId { get; set; }
     public long? priceInRobux { get; set; }
+    public long sales { get; set; }
 }
 
 public class UpdateDevProductRequest {
@@ -360,4 +362,21 @@ public class UpdateDevProductRequest {
     public string Description { get; set; }
     public long IconImageAssetId { get; set; }
     public long PriceInRobux { get; set; }
+}
+
+public class ProductReceipt {
+    public Guid id { get; set; }
+    public long userId { get; set; }
+    public long productId { get; set; }
+    public long price { get; set; }
+    public bool processed { get; set; }
+    public DateTime createdAt { get; set; }
+    public DateTime? processedAt { get; set; }
+}
+
+public class ReceiptResponse {
+    public long? playerId { get; set; }
+    public long? placeId { get; set; }
+    public bool isValid { get; set; }
+    public long? productId { get; set; }
 }

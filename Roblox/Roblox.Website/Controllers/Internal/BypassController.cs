@@ -227,12 +227,6 @@ namespace Roblox.Website.Controllers
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 
-        // for goober.top
-        // [HttpGetBypass("/version")]
-        // public dynamic Version() {
-        //     return "version-d262983d5d887e114ba240e32e2d7465";
-        // }
-
         [HttpGetBypass("/asset/status")]
         public async Task<dynamic> GetAssetModerationStatus(long assetId) {
             // make sure user is logged in
@@ -1019,47 +1013,6 @@ namespace Roblox.Website.Controllers
                 Type.PoseAnimation,
             }, default, false);
         }
-
-        [HttpGetBypass("assets/award-badge")]
-        public async Task<dynamic> AwardBadge(long userId, long badgeId, long placeId) {
-            using (HttpClient client = new HttpClient()) {
-                foreach (var header in Request.Headers)
-                {
-                    if (!client.DefaultRequestHeaders.Contains(header.Key))
-                    {
-                        client.DefaultRequestHeaders.Add(header.Key, header.Value.ToString());
-                    }
-                }
-                client.DefaultRequestHeaders.Add("Roblox-Place-Id", placeId.ToString());
-                return await client.PostAsync($"https://{Request.Host}/v1/users/{userId}/badges/{badgeId}/award-badge", null);;
-            }
-            
-            // Request.Headers.Add("Roblox-Place-Id", placeId.ToString());
-            // return Redirect($"/v1/users/{userId}/badges/{badgeId}/award-badge");
-            // if (!isRCC) {
-            //     throw new PermissionException(badgeId, safeUserSession.userId);
-            // }
-            //
-            // // checks if userId is an actual user
-            // await services.users.GetUserById(userId);
-            // var universeId = await services.games.GetUniverseId(placeId);
-            // // shouldnt have to check null cuz of above right?
-            // var uni = (await services.games.MultiGetUniverseInfo(new[]{universeId})).ToList();
-            // var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
-            // if (badgeInfo is null) {
-            //     throw new BadRequestException(0, "Badge is invalid or does not exist");
-            // }
-            // await services.assets.EnsureAssetIsModerated(badgeId);
-            // if (badgeInfo.enabled == false) {
-            //     throw new BadRequestException(8, "The badge is disabled.");
-            // }
-            // if (badgeInfo.universeId != universeId) {
-            //     throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
-            // }
-            // if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) {
-            //     await services.users.CreateUserAsset(userId, badgeId);
-            // }
-        }
         
         [HttpGetBypass("botapi/migrate-clothing")]
         public async Task<dynamic> MigrateClothingBot([Required] string assetId)
@@ -1083,11 +1036,11 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("GetAllowedMD5Hashes")]
-        public MVC.ActionResult<dynamic> AllowedMD5Hashes()
+        public MVC.ActionResult<dynamic> AllowedMd5Hashes()
         {
             if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
-            List<string> allowedList = new List<string>()
+            List<string> allowedList = new List<string>
             {
                 "a9912debcb6347c402e4139f452d4fd2", //2015M Prod
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E Prod
@@ -1107,6 +1060,12 @@ namespace Roblox.Website.Controllers
 
             return new { data = allowedList };
         }
+        
+        // For goober.top bootstrapper
+        // [HttpGetBypass("/version")]
+        // public dynamic Version() {
+        //     return "version-d262983d5d887e114ba240e32e2d7465";
+        // }
 
         [HttpGetBypass("GetAllowedSecurityKeys")]
         public MVC.ActionResult<dynamic> AllowedSecurity()

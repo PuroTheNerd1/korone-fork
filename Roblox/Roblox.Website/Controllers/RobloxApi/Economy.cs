@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Assets;
@@ -13,6 +14,7 @@ using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
 namespace Roblox.Website.Controllers;
@@ -250,10 +252,10 @@ public class Economy : ControllerBase
     {
         FeatureCheck();
         dynamic? request;
+        // wut
         using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
         {
             var json = await reader.ReadToEndAsync();
-            Console.WriteLine(json);
             string fixedJson = json.Trim();
             if (fixedJson.StartsWith("{") && !fixedJson.EndsWith("}"))
             {
@@ -268,19 +270,13 @@ public class Economy : ControllerBase
         var stopwatch = new Stopwatch();
         stopwatch.Start();
         // some sanity checks
-        Console.WriteLine(request.expectedPrice + request.expectedSellerId);
         if (request.expectedSellerId == safeUserSession.userId)
             throw new RobloxException(400, 0, "Bad userId");
         if (request.userAssetId is 0 or < 0)
             request.userAssetId = null;
         // Confirm asset is buyable
-        // var user18Plus = await services.users.Is18Plus(safeUserSession.userId);
-        // if (!user18Plus)
-        // {
-        //     if (await services.assets.Is18Plus(assetId))
-        //         throw new RobloxException(400, 0,
-        //             "You cannot purchase 18+ items until you confirm you are 18 or over.");
-        // }
+        // TODO: why not just move this into PurchaseNormalItem to
+        //   save on db performance and have PurchaseNormalItem return asset details?? 😭
         request.expectedSellerId = details.creatorTargetId;
         await PurchaseNormalItem(assetId, request);
         stopwatch.Stop();
