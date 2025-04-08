@@ -926,14 +926,7 @@ public class AdminApiController : ControllerBase
             throw new StaffException("Body is not valid");
         if (request.subject.Length is > 64 or < 1)
             throw new StaffException("Subject is not valid");
-        await db.ExecuteAsync(
-            "INSERT INTO user_message (user_id_to, user_id_from, subject, body) VALUES (:user_id_to, 1, :subject, :body)",
-            new
-            {
-                user_id_to = request.userId,
-                request.subject,
-                request.body,
-            });
+        await services.privateMessages.CreateMessage(request.userId, 1, request.subject, request.body);
         await db.ExecuteAsync("INSERT INTO moderation_admin_message(user_id, actor_id, body, subject) VALUES (:user_id, :actor_id, :body, :subject)", new
         {
             user_id = request.userId,
@@ -1674,21 +1667,16 @@ public class AdminApiController : ControllerBase
                 id = request.userId,
                 name = request.username,
             });
-            await usersDb.ExecuteAsync(
-                "INSERT INTO user_message (subject, body, user_id_from, user_id_to) VALUES (:subject, :body, 1, :user_id)",
-                new
-                {
-                    user_id = request.userId,
-                    subject = "Username Refund",
-                    body = @$"Hello,
+
+            await services.privateMessages.CreateMessage(request.userId, 1, 
+            "Username Refund", @$"Hello,
 
 We have deleted one of your previous usernames, ""{request.username}"". You will no longer have access to this username. You have been refunded {amountToRefund} Robux for a total of {totalChanges.Count} times this name was in use.
 
 Thank you for your understanding,
 
 
--The Roblox Team"
-                });
+-The Roblox Team");
             await usersDb.ExecuteAsync(
                 "UPDATE user_economy SET balance_robux = balance_robux + :amt WHERE user_id = :user_id", new
                 {
@@ -3014,14 +3002,7 @@ Thank you for your understanding,
         if (data == null || data.reportStatus != AbuseReportStatus.Pending)
             return;
         await services.abuseReport.SetReportStatus(id, AbuseReportStatus.Valid, safeUserSession.userId);
-        await db.ExecuteAsync(
-            "INSERT INTO user_message (user_id_to, user_id_from, subject, body) VALUES (:user_id_to, 1, :subject, :body)",
-            new
-            {
-                user_id_to = data.userId,
-                subject = "Thank you for your report",
-                body = "Your report has been reviewed and accepted. Thank you for helping keep Pekora safe.",
-            });
+        await services.privateMessages.CreateMessage(data.userId, 1, "Thank you for your report", "Your report has been reviewed and accepted. Thank you for helping keep Pekora safe.");
         await RewardForReportReview();
     }
 
