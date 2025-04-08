@@ -296,6 +296,11 @@ const ProfileHeader = props => {
     if (bcLevel === 0) {
       return null;
     }
+    // If the user is verified we should overwrite the bcIcon with the verified icon
+    if (verified) {
+      return <span className={`icon-verified ${s.bcIcon}`} />
+    } 
+
     // 1 = BC
     // 2 = TBC
     // 3 = OBC
@@ -311,14 +316,6 @@ const ProfileHeader = props => {
         return <span className={`icon-obc ${s.bcIcon}`} />
       default:
         return null;
-    }
-  }
-
-  const VerifiedIcon = () => {
-    if (verified) {
-      return <span className={`icon-verified ${s.bcIcon}`} />
-    } else {
-      return null;
     }
   }
 
@@ -340,7 +337,7 @@ const ProfileHeader = props => {
               </div>
             </div>
             <div className={`col-12 col-lg-10 ps-0 ${s.userInfoContainer}`}>
-              <h2 className={s.username}>{store.username} {<BcIcon />} {<VerifiedIcon />} <div className={s.dropdown}>
+              <h2 className={s.username}>{store.username} {<BcIcon />} <div className={s.dropdown}>
                 {dropdownOptions && <Dropdown2016 options={dropdownOptions} dropdownClass={s.dropdownClass} wrapperClass={s.dropdownWrapper} />}
               </div></h2>
               {editStatus ? <div>
