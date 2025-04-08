@@ -81,6 +81,10 @@ const useHeaderStyles = createUseStyles({
       marginLeft: '3px',
     },
   },
+  verifiedIcon: {
+    position: 'relative',
+    bottom: '2.5px',
+  },
   updateStatusButton: {
     cursor: 'pointer',
     marginTop: '2px',
@@ -298,7 +302,7 @@ const ProfileHeader = props => {
     }
     // If the user is verified we should overwrite the bcIcon with the verified icon
     if (verified) {
-      return <span className={`icon-verified ${s.bcIcon}`} />
+      return <span className={`icon-verified ${s.verifiedIcon}`} />
     } 
 
     // 1 = BC
