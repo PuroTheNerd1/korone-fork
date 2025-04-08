@@ -1682,11 +1682,19 @@ public class AssetsService : ServiceBase, IService
         var username = await GetUserName(creatorId);
         if (username == null)
             throw new RecordNotFoundException();
-        if (templateId != null && !getStarterPlaces.ContainsValue(templateId.Value)) templateId = null;
+        if (templateId.HasValue && !getStarterPlaces.ContainsValue(templateId.Value)) templateId = null;
 
+        // here because on goober.top some of the places dont fuckigng exist
+        AssetVersionEntry assetVersion = null;
+        try {
+            assetVersion = await GetLatestAssetVersion(templateId.Value);
+        }
+        catch {
+            templateId = null;
+        }
+        
         Stream stream;
-        if (templateId != null) {
-            var assetVersion = await GetLatestAssetVersion(templateId.Value);
+        if (templateId != null && assetVersion != null) {
             stream = await GetAssetContent(assetVersion.contentUrl);
         }
         // TODO: should we use baseplate template instead?

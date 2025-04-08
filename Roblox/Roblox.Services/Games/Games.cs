@@ -680,6 +680,29 @@ public class GamesService : ServiceBase, IService
             LIMIT 1",
             new { assetId });
     }
+    
+    public async Task<int> GetUserPlaceCount(long userId)
+    {
+        var qu = await db.ExecuteScalarAsync<int>(
+            @"SELECT COUNT(*)
+            FROM asset AS ass
+            WHERE ass.creator_id = :userId AND asset_type = :assetType",
+            new
+                { userId, assetType = Type.Place });
+        return qu;
+    }
+    
+    public async Task<int> GetUserUniverseCount(long userId)
+    {
+        var qu = await db.ExecuteScalarAsync<int>(
+            @"SELECT COUNT(*)
+            FROM universe AS uni
+            WHERE uni.creator_id = :userId",
+            new
+                { userId });
+        return qu;
+    }
+    
     // TODO: gamepass should probably use this too
     public async Task<int> GetUniverseBadgeCount(long universeId)
     {
@@ -688,7 +711,7 @@ public class GamesService : ServiceBase, IService
             FROM asset_badge AS ab
             WHERE ab.universe_id = :universeId",
             new
-            { universeId });
+                { universeId });
         return qu;
     }
     // if this src ever gets leaked this is NOT for storing ips, its for matchmaking and for getting the server info

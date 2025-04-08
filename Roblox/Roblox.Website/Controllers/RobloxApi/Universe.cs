@@ -271,28 +271,25 @@ public class UniverseV1 : ControllerBase
         var templates = await services.games.MultiGetPlaceDetails(services.assets.getStarterPlaces.Values.ToList()); //await services.games.MultiGetUniverseInfo(getStarterPlaces.Values.ToList());
         return new 
         {
-            data = templates.Select(c => 
+            data = templates.Select(c => new
             {
-                return new
+                gameTemplateType = "Generic",
+                hasTutorials = false,
+                universe = new Universe 
                 {
-                    gameTemplateType = "Generic",
-                    hasTutorials = false,
-                    universe = new Universe 
-                    {
-                        id = c.universeId,
-                        name = c.name,
-                        description = c.description ?? "skbidii",
-                        isArchived = false,
-                        rootPlaceId = c.universeRootPlaceId,
-                        isActive = true,
-                        privacyType = "Public",
-                        creatorType = "User",
-                        creatorTargetId = c.builderId,
-                        creatorName = c.builder,
-                        created = c.created,
-                        updated = c.updated
-                    }
-                };
+                    id = c.universeId,
+                    name = c.name,
+                    description = c.description ?? "skbidii",
+                    isArchived = false,
+                    rootPlaceId = c.universeRootPlaceId,
+                    isActive = true,
+                    privacyType = "Public",
+                    creatorType = "User",
+                    creatorTargetId = c.builderId,
+                    creatorName = c.builder,
+                    created = c.created,
+                    updated = c.updated
+                }
             })
         };
     }
@@ -822,10 +819,11 @@ public class UniverseV1 : ControllerBase
         // create one!
         var asset = await services.assets.CreatePlace(userSession.userId, CreatorType.User, userSession.userId, request.templatePlaceIdToUse);
         // create universe too
-        await services.games.CreateUniverse(asset.placeId);
+        var universe = await services.games.CreateUniverse(asset.placeId);
         // give url
         return new {
-            asset.placeId
+            asset.placeId,
+            universe.universeId,
         };
     }
     
@@ -865,7 +863,7 @@ public class UniverseV1 : ControllerBase
             var isAnyPlaceCreatedLessThanADayAgo =
                 placeDetails.FirstOrDefault(v => v.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1))) != null;
 
-            if (isAnyPlaceCreatedLessThanADayAgo && userId != 3 && userId != 1)
+            if (isAnyPlaceCreatedLessThanADayAgo && !(userId is 3 or 1 or 7))
             {
                 log.Info("account place was created less than a day ago");
                 return PlaceCreationFailureReason.LatestPlaceCreatedTooRecently;

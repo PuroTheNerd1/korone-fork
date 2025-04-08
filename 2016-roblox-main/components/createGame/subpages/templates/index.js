@@ -52,12 +52,12 @@ const Templates = props => {
         if (typeof templates === 'number' && templates === 0) {
             setTemplates(0);
             getGameTemplates().then(d => {
-                if (d && d.data && d.data.data && Array.isArray(d.data.data)) {
-                    if (d.data.data.length <= 0) {
+                if (Array.isArray(d)) {
+                    if (d.length <= 0) {
                         setTemplates(2)
                         return;
                     }
-                    setTemplates(d.data.data);
+                    setTemplates(d);
                 } else {
                     setTemplates(1);
                 }
@@ -67,24 +67,26 @@ const Templates = props => {
     
     return <div className='container'>
         <span className={s.subtitle}>GAME TEMPLATES</span>
-        {templates === 0 ? <span>Loading Templates...</span> :
-            templates === 2 ? <span>No Templates Found</span> : Array.isArray(templates) ?
-                <div className={s.templatesContainer}>
-                    {templates.map(template =>
-                        <div className={`${s.templateContainer} ${props.template === template.universe.rootPlaceId ? s.templateSelected : undefined}`} onClick={e => {
-                            e.preventDefault();
-                            props.setTemplate(template.universe.rootPlaceId);
-                        }}>
+        <div className={s.templatesContainer}>
+            {templates === 0 ? <span>Loading Templates...</span> :
+                templates === 2 ? <span>No Templates Found</span> : Array.isArray(templates) ?
+                    templates.map(template =>
+                        <div
+                            className={`${s.templateContainer} ${props.template === template.universe.rootPlaceId ? s.templateSelected : undefined}`}
+                            onClick={e => {
+                                e.preventDefault();
+                                props.setTemplate(template.universe.rootPlaceId);
+                            }}>
                             <div className={s.templateThumbContainer}>
-                                <img src={`/thumbs/asset.ashx?assetId=${template.universe.tempThumbnailId}`} />
+                                <img src={`/thumbs/asset.ashx?assetId=${template.universe.tempThumbnailId}`}/>
                             </div>
                             <span className={s.templateName}>{template.universe.name}</span>
                         </div>
-                    )}
-                </div>
-                :
-                <span>Couldn't load templates, try again later.</span>
-        }
+                    )
+                    :
+                    <span>Couldn't load templates, try again later.</span>
+            }
+        </div>
     </div>
 }
 

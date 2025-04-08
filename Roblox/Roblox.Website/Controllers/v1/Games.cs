@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
+using Roblox.Logging;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
@@ -209,6 +210,24 @@ public class GamesControllerV1 : ControllerBase
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
         await services.assets.VoteOnAsset(uni.rootPlaceId, safeUserSession.userId, request.vote);
+    }
+
+    [HttpGet("users/{userId:long}/count")]
+    public async Task<dynamic> GetUserGameCount(long userId) {
+        var localUserId = safeUserSession.userId;
+        await using var placeCuntLock =
+            await Services.Cache.redLock.CreateLockAsync("GetPlaceCountV1:UserId:" + localUserId,
+                TimeSpan.FromSeconds(3));
+        if (!placeCuntLock.IsAcquired)
+        {
+            Writer.Info(LogGroup.AbuseDetection, "GetPlaceCount API could not acquire placeCuntLock");
+            throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
+        }
+        
+        var uniCount = await services.games.GetUserPlaceCount(userId);
+        return new {
+            universeCount = uniCount,
+        };
     }
     
     [HttpGet("games/{universeId:long}/game-passes")]

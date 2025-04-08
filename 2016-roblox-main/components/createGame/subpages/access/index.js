@@ -54,22 +54,22 @@ const Access = props => {
             <div className={s.section}>
                 <span>Playable devices:</span>
                 <label className={s.deviceLabel}>
-                    <input type="checkbox" name="computer" checked={props.playableDevices.computer}
+                    <input type="checkbox" disabled={true} name="computer" checked={props.playableDevices.computer}
                            onChange={handleChange}/>
                     <span>Computer</span>
                 </label>
                 <label className={s.deviceLabel}>
-                    <input type="checkbox" name="phone" checked={props.playableDevices.phone}
+                    <input type="checkbox" disabled={true} name="phone" checked={props.playableDevices.phone}
                            onChange={handleChange}/>
                     <span>Phone</span>
                 </label>
                 <label className={s.deviceLabel}>
-                    <input type="checkbox" name="tablet" checked={props.playableDevices.tablet}
+                    <input type="checkbox" disabled={true} name="tablet" checked={props.playableDevices.tablet}
                            onChange={handleChange}/>
                     <span>Tablet</span>
                 </label>
                 <label className={s.deviceLabel}>
-                    <input type="checkbox" name="console" checked={props.playableDevices.console}
+                    <input type="checkbox" disabled={true} name="console" checked={props.playableDevices.console}
                            onChange={handleChange}/>
                     <span>Console</span>
                 </label>
@@ -85,13 +85,31 @@ const Access = props => {
                             props.setPlayerCount(parseInt(v.currentTarget.value, 10));
                         }}
                     >
-                        {[...new Array(96)].map((_, i) => {
+                        {[...new Array(99)].map((_, i) => {
                             return (
-                                <option value={i + 5} key={i}>
-                                    {i + 5}
+                                <option value={i + 1} key={i}>
+                                    {i + 1}
                                 </option>
                             );
                         })}
+                    </select>
+                </div>
+            </div>
+            
+            <div className={s.section}>
+                <span>Game Year:</span>
+                <div>
+                    <select
+                        value={props.gameYear}
+                        className="br-none border-1 border-secondary pe-2"
+                        onChange={(v) => {
+                            props.setGameYear(parseInt(v.currentTarget.value, 10));
+                        }}
+                    >
+                        <option value={2017}>2017</option>
+                        <option value={2018}>2018</option>
+                        <option value={2020}>2020</option>
+                        <option value={2021}>2021</option>
                     </select>
                 </div>
             </div>

@@ -55,17 +55,17 @@ const Access = (props) => {
               setMaxPlayers(parseInt(v.currentTarget.value, 10));
             }}
           >
-            {[...new Array(96)].map((_, i) => {
+            {[...new Array(99)].map((_, i) => {
               return (
-                <option value={i + 5} key={i}>
-                  {i + 5}
+                <option value={i + 1} key={i}>
+                  {i + 1}
                 </option>
               );
             })}
           </select>
           <p className="fw-bold">Select Year:</p>
           <select
-            value={year} // TODO: make sure this doesnt cause issues
+            value={year}
             className="br-none border-1 border-secondary pe-2"
             onChange={(v) => {
               setSelectedYear(parseInt(v.currentTarget.value));

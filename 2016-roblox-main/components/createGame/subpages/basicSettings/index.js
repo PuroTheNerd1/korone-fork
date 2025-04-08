@@ -1,5 +1,9 @@
 import { createUseStyles } from "react-jss";
 import {GameGenres} from "../../../updatePlace/components/basicSettings";
+import {useEffect, useState} from "react";
+import {getUserCreatedPlaceCount} from "../../../../services/games";
+import Authentication from "../../../../stores/authentication";
+import AuthenticationStore from "../../../../stores/authentication";
 
 const useStyles = createUseStyles({
     contain: {
@@ -29,7 +33,7 @@ const BasicSettings = props => {
         <h2 style={{ marginBottom: 15 }}>Basic Settings</h2>
         <div className={s.settingsContainer}>
             <span>Name:</span>
-            <input className={s.input} ref={props.gameName} type='text' defaultValue={props.default} />
+            <input className={s.input} value={props.gameName} onChange={e => props.setGameName(e.target.value)} type='text' />
             <span>Description:</span>
             <textarea className={s.input} value={props.gameDescription} onChange={e => props.setGameDescription(e.target.value)} />
             <span>Comments Enabled:</span>

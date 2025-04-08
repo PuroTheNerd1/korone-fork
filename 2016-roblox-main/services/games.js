@@ -1,6 +1,5 @@
-import axios from "axios";
 import getFlag from "../lib/getFlag";
-import request, {getBaseUrl, getFullUrl} from "../lib/request"
+import request, {getBaseUrl, getBaseUrl2, getFullUrl} from "../lib/request"
 import {itemNameToEncodedName} from "./catalog";
 
 const gamePage2015Enabled = getFlag('2015GameDetailsPageEnabled', false);
@@ -44,11 +43,11 @@ export const getGamePassCreationUrl = ({ universeId }) => {
  * @returns {Promise<UserGameEntry[]>}
  */
 export const getUserGames = ({userId, cursor}) => {
-    return request('GET', getFullUrl('games', `/v2/users/${userId}/games?cursor=${encodeURIComponent(cursor || '')}`)).then(d => d.data);
+    return request('GET', getFullUrl('games', `/v2/users/${userId}/games?limit=25&cursor=${encodeURIComponent(cursor || '')}`)).then(d => d.data);
 }
 
 export const getGroupGames = ({groupId, cursor}) => {
-    return request('GET', getFullUrl('games', `/v2/groups/${groupId}/games?cursor=${encodeURIComponent(cursor || '')}`)).then(d => d.data);
+    return request('GET', getFullUrl('games', `/v2/groups/${groupId}/games?limit=25&cursor=${encodeURIComponent(cursor || '')}`)).then(d => d.data);
 }
 
 export const getGameSorts = ({gameSortsContext}) => {
@@ -156,145 +155,183 @@ export const getUniverseGamePasses = ({ universeId }) => {
     return request('GET', getFullUrl('games', `/v1/games/${universeId}/game-passes`)).then(d => d.data.data);
 }
 
-export const getGameTemplates = () => {
-    //return request('GET', getBaseUrl('/v1/gametemplates')).then(d => d.data.data);
-    return new Promise((res, rej) => {
-        res({
-            data: {
-                data: [
-                    {
-                        gameTemplateType: "Generic",
-                        hasTutorials: false,
-                        universe: {
-                            id: 852,
-                            name: "Starting Place",
-                            description: "",
-                            isArchived: false,
-                            rootPlaceId: 36568,
-                            tempThumbnailId: 5,
-                            isActive: true,
-                            privacyType: "Public",
-                            creatorType: "User",
-                            creatorTargetId: 1,
-                            creatorName: "ROBLOX",
-                            created: "2025-02-11T09:21:56.256878Z",
-                            updated: "2025-02-11T10:02:01.168426Z"
-                        }
-                    },
-                    {
-                        gameTemplateType: "Generic",
-                        hasTutorials: false,
-                        universe: {
-                            id: 852,
-                            name: "Western",
-                            description: "",
-                            isArchived: false,
-                            rootPlaceId: 36569,
-                            tempThumbnailId: 6,
-                            isActive: true,
-                            privacyType: "Public",
-                            creatorType: "User",
-                            creatorTargetId: 1,
-                            creatorName: "ROBLOX",
-                            created: "2025-02-11T09:21:56.256878Z",
-                            updated: "2025-02-11T10:02:01.168426Z"
-                        }
-                    },
-                    {
-                        gameTemplateType: "Generic",
-                        hasTutorials: false,
-                        universe: {
-                            id: 852,
-                            name: "Line Runner",
-                            description: "",
-                            isArchived: false,
-                            rootPlaceId: 36570,
-                            tempThumbnailId: 6,
-                            isActive: true,
-                            privacyType: "Public",
-                            creatorType: "User",
-                            creatorTargetId: 1,
-                            creatorName: "ROBLOX",
-                            created: "2025-02-11T09:21:56.256878Z",
-                            updated: "2025-02-11T10:02:01.168426Z"
-                        }
-                    },
-                    {
-                        gameTemplateType: "Generic",
-                        hasTutorials: false,
-                        universe: {
-                            id: 852,
-                            name: "Village",
-                            description: "",
-                            isArchived: false,
-                            rootPlaceId: 36571,
-                            tempThumbnailId: 6,
-                            isActive: true,
-                            privacyType: "Public",
-                            creatorType: "User",
-                            creatorTargetId: 1,
-                            creatorName: "ROBLOX",
-                            created: "2025-02-11T09:21:56.256878Z",
-                            updated: "2025-02-11T10:02:01.168426Z"
-                        }
-                    },
-                    {
-                        gameTemplateType: "Generic",
-                        hasTutorials: false,
-                        universe: {
-                            id: 852,
-                            name: "Racing",
-                            description: "",
-                            isArchived: false,
-                            rootPlaceId: 36572,
-                            tempThumbnailId: 6,
-                            isActive: true,
-                            privacyType: "Public",
-                            creatorType: "User",
-                            creatorTargetId: 1,
-                            creatorName: "ROBLOX",
-                            created: "2025-02-11T09:21:56.256878Z",
-                            updated: "2025-02-11T10:02:01.168426Z"
-                        }
-                    },
-                    {
-                        gameTemplateType: "Generic",
-                        hasTutorials: false,
-                        universe: {
-                            id: 852,
-                            name: "City",
-                            description: "",
-                            isArchived: false,
-                            rootPlaceId: 36573,
-                            tempThumbnailId: 6,
-                            isActive: true,
-                            privacyType: "Public",
-                            creatorType: "User",
-                            creatorTargetId: 1,
-                            creatorName: "ROBLOX",
-                            created: "2025-02-11T09:21:56.256878Z",
-                            updated: "2025-02-11T10:02:01.168426Z"
-                        }
-                    },
-                ]
-            }
-        });
+/**
+ * @param {{userId: number;}} props
+ * @returns {Promise<number>}
+ */
+export const getUserCreatedPlaceCount = ({ userId }) => {
+    return request("GET", getFullUrl("games", `/v1/users/${userId}/count`)).then(res => {
+        if (!res.data?.universeCount) {
+            console.log(`Could not get user ${userId}'s place count.`);
+            return 0;
+        }
+        return res.data.universeCount;
     })
 }
+
+export const getGameTemplates = async () => {
+    const req = await request("GET", getBaseUrl2("/v1/gametemplates"));
+    return req.data.data;
+}
+
+// export const getGameTemplates = () => {
+//     return request('GET', getBaseUrl('/v1/gametemplates')).then(d => d.data);
+//     // for goob
+//     // return new Promise((res, rej) => {
+//     //     res({
+//     //         data: {
+//     //             data: [
+//     //                 {
+//     //                     gameTemplateType: "Generic",
+//     //                     hasTutorials: false,
+//     //                     universe: {
+//     //                         id: 852,
+//     //                         name: "Starting Place",
+//     //                         description: "",
+//     //                         isArchived: false,
+//     //                         rootPlaceId: 36568,
+//     //                         tempThumbnailId: 5,
+//     //                         isActive: true,
+//     //                         privacyType: "Public",
+//     //                         creatorType: "User",
+//     //                         creatorTargetId: 1,
+//     //                         creatorName: "ROBLOX",
+//     //                         created: "2025-02-11T09:21:56.256878Z",
+//     //                         updated: "2025-02-11T10:02:01.168426Z"
+//     //                     }
+//     //                 },
+//     //                 {
+//     //                     gameTemplateType: "Generic",
+//     //                     hasTutorials: false,
+//     //                     universe: {
+//     //                         id: 852,
+//     //                         name: "Western",
+//     //                         description: "",
+//     //                         isArchived: false,
+//     //                         rootPlaceId: 36569,
+//     //                         tempThumbnailId: 6,
+//     //                         isActive: true,
+//     //                         privacyType: "Public",
+//     //                         creatorType: "User",
+//     //                         creatorTargetId: 1,
+//     //                         creatorName: "ROBLOX",
+//     //                         created: "2025-02-11T09:21:56.256878Z",
+//     //                         updated: "2025-02-11T10:02:01.168426Z"
+//     //                     }
+//     //                 },
+//     //                 {
+//     //                     gameTemplateType: "Generic",
+//     //                     hasTutorials: false,
+//     //                     universe: {
+//     //                         id: 852,
+//     //                         name: "Line Runner",
+//     //                         description: "",
+//     //                         isArchived: false,
+//     //                         rootPlaceId: 36570,
+//     //                         tempThumbnailId: 6,
+//     //                         isActive: true,
+//     //                         privacyType: "Public",
+//     //                         creatorType: "User",
+//     //                         creatorTargetId: 1,
+//     //                         creatorName: "ROBLOX",
+//     //                         created: "2025-02-11T09:21:56.256878Z",
+//     //                         updated: "2025-02-11T10:02:01.168426Z"
+//     //                     }
+//     //                 },
+//     //                 {
+//     //                     gameTemplateType: "Generic",
+//     //                     hasTutorials: false,
+//     //                     universe: {
+//     //                         id: 852,
+//     //                         name: "Village",
+//     //                         description: "",
+//     //                         isArchived: false,
+//     //                         rootPlaceId: 10,
+//     //                         tempThumbnailId: 6,
+//     //                         isActive: true,
+//     //                         privacyType: "Public",
+//     //                         creatorType: "User",
+//     //                         creatorTargetId: 1,
+//     //                         creatorName: "ROBLOX",
+//     //                         created: "2025-02-11T09:21:56.256878Z",
+//     //                         updated: "2025-02-11T10:02:01.168426Z"
+//     //                     }
+//     //                 },
+//     //                 {
+//     //                     gameTemplateType: "Generic",
+//     //                     hasTutorials: false,
+//     //                     universe: {
+//     //                         id: 852,
+//     //                         name: "Racing",
+//     //                         description: "",
+//     //                         isArchived: false,
+//     //                         rootPlaceId: 36572,
+//     //                         tempThumbnailId: 6,
+//     //                         isActive: true,
+//     //                         privacyType: "Public",
+//     //                         creatorType: "User",
+//     //                         creatorTargetId: 1,
+//     //                         creatorName: "ROBLOX",
+//     //                         created: "2025-02-11T09:21:56.256878Z",
+//     //                         updated: "2025-02-11T10:02:01.168426Z"
+//     //                     }
+//     //                 },
+//     //                 {
+//     //                     gameTemplateType: "Generic",
+//     //                     hasTutorials: false,
+//     //                     universe: {
+//     //                         id: 852,
+//     //                         name: "City",
+//     //                         description: "",
+//     //                         isArchived: false,
+//     //                         rootPlaceId: 36573,
+//     //                         tempThumbnailId: 6,
+//     //                         isActive: true,
+//     //                         privacyType: "Public",
+//     //                         creatorType: "User",
+//     //                         creatorTargetId: 1,
+//     //                         creatorName: "ROBLOX",
+//     //                         created: "2025-02-11T09:21:56.256878Z",
+//     //                         updated: "2025-02-11T10:02:01.168426Z"
+//     //                     }
+//     //                 },
+//     //             ]
+//     //         }
+//     //     });
+//     // })
+// }
 
 /**
  *
  * @param templatePlaceId {number|null}
- * @returns {Promise<number|null>}
+ * @returns {Promise<CreateGameResponse|string|null>}
  */
 export const createGameRequest = ({ templatePlaceId = null }) => {
-    request('POST', getFullUrl('api', `/universes/create`), {
+    return request('POST', getBaseUrl2(`/universes/create`), {
         templatePlaceIdToUse: templatePlaceId ?? 0,
     }).then(response => {
-        if (!response.data?.placeId) {
+        console.log(response.data);
+        if (response.data?.errors?.length > 0) {
+            return response.data.errors[0].message;
+        }
+        if (!response.data?.placeId || !response.data?.universeId) {
             console.error("Could not create place using Template Id " + templatePlaceId);
             return null;
         }
-        return response.data.placeId;
+        return {
+            placeId: response.data.placeId,
+            universeId: response.data.universeId,
+        };
     });
 }
+
+/**
+ * @typedef CreateGameResponse
+ * @property {number} placeId
+ * @property {number} universeId
+ */
+
+/**
+ * @typedef UserPlaceCountResponse
+ * @property {number} universeCount
+ */

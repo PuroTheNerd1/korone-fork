@@ -6,7 +6,7 @@ const AdvancedSettings = props => {
     const s = useStyles();
 
     return <div className='container'>
-        ADVANCED
+        ADVANCED OPTIONS!! will be implemented later lol
     </div>
 }
 
