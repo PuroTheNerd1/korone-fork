@@ -2542,7 +2542,7 @@ Thank you for your understanding,
             throw new StaffException("You are not allowed to access this");
         await db.ExecuteAsync("UPDATE \"user\" SET verified = true WHERE id = :uid", new 
         {
-            id = userId,
+            uid = userId,
         });
     }
 
@@ -2553,7 +2553,7 @@ Thank you for your understanding,
             throw new StaffException("You are not allowed to access this");
         await db.ExecuteAsync("UPDATE \"user\" SET verified = false WHERE id = :uid", new 
         {
-            id = userId,
+            uid = userId,
         });
     }
 
