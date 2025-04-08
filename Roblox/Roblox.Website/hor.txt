@@ -24,6 +24,7 @@ Reporter's Email Address: jrvgrbghkvbtbotnxv@hthlm.com
 Reporter's Address: 42 P. Sherman Wallaby Way, Sydney, Sydney, AU
 Reported URLs:
 hxxps://pekora[.]zip
+Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
 The cursor
