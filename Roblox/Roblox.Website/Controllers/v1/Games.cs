@@ -231,11 +231,19 @@ public class GamesControllerV1 : ControllerBase
     }
     
     [HttpGet("games/{universeId:long}/game-passes")]
-    public async Task<RobloxCollectionPaginated<UniverseGamePassEntry>> GetUniverseGamePasses(long universeId, SortOrder? sortOrder = SortOrder.Asc, int? limit = 10, string? cursor = null) {
+    public async Task<RobloxCollectionPaginated<UniverseGamePassEntry>> GetUniverseGamePasses(long universeId, long? unfiltered = 0, SortOrder? sortOrder = SortOrder.Asc, int? limit = 10, string? cursor = null) {
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
-        var result =
-            (await services.games.GetGamePassesForUniverse(universeId, limit ?? 10, offset, userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
+        List<UniverseGamePassEntry> result;
+        if (unfiltered == 1) {
+            result = (await services.games.GetGamePassesForUniverseModStatus(universeId, limit ?? 10, offset,
+                userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
+        }
+        else {
+            result = (await services.games.GetGamePassesForUniverse(universeId, limit ?? 10, offset,
+                userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
+        }
+        
         return new RobloxCollectionPaginated<UniverseGamePassEntry>()
         {
             nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
