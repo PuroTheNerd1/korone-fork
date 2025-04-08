@@ -34,7 +34,7 @@ public class RobloxPlayerCorsMiddleware
         var isAuthenticated = ctx.Items.ContainsKey(".ROBLOSECURITY");
         ctx.Response.Headers["Cross-Origin-Opener-Policy"] = "same-origin";
         ctx.Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
-        ctx.Response.Headers['Access-Control-Allow-Origin'] = "*";
+        ctx.Response.Headers["Access-Control-Allow-Origin"] = "*";
         ctx.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
         ctx.Response.Headers["X-XSS-Protection"] = "1; mode=block";
         ctx.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload";
