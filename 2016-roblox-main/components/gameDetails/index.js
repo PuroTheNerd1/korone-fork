@@ -25,6 +25,9 @@ const useStyles = createUseStyles({
     display: 'inline-block',
     position: 'relative',
     width: 'calc(100% - 165px)',
+    '@media (max-width: 1500px)': {
+      width: '100%',
+    },
     //top: '-182px',
     //'@media (max-width: 1511px)': {
       top: 0,
@@ -81,7 +84,7 @@ const GameDetails = props => {
     <div className={s.containerAd}>
       <div className={s.gameContainer}>
         {/*<div className='row mt-2'>*/}
-        <div 
+        <div
         //className='mt-2'
         >
           <div className='col-12 col-lg-12'>
