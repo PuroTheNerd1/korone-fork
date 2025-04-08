@@ -243,6 +243,7 @@ const GamePasses = props => {
                 // limit: 100,
                 // cursor: '',
                 universeId: selectedGame.id,
+                unfiltered: false,
                 //groupId,
             }).then(passes => {
                 setPassesList(passes.map(d => ({ ...d, assetId: d.id, assetType: 34 })));

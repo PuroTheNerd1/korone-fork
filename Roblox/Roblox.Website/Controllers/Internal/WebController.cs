@@ -841,7 +841,7 @@ public class WebController : ControllerBase
         var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
         
-        var gamePasses = (await services.games.GetGamePassesForUniverse(universeId, 15, 0, null, SortOrder.Asc)).ToList();
+        var gamePasses = (await services.games.GetGamePassesForUniverseModStatus(universeId, 15, 0, null, SortOrder.Asc)).ToList();
         if (gamePasses.Count == 15) {
             throw new BadRequestException(0, "This universe has too many gamepasses");
         }

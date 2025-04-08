@@ -236,7 +236,7 @@ const GameStore = props => {
   
   useEffect(() => {
     setPasses(0);
-    getUniverseGamePasses({universeId: store.universeDetails.id}).then(d => {
+    getUniverseGamePasses({universeId: store.universeDetails.id, unfiltered: true}).then(d => {
       try { // accounts for d being null if for whatever rerason it is
         d = d.filter(pass => pass.price >= 5).filter(pass => pass.isForSale === true);
         if (d.length === 0) {
