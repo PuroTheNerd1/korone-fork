@@ -150,6 +150,8 @@ const useStyles = createUseStyles({
   },
   gameTitleContainer: {
     padding: '0 12px 0 0',
+    overflow: 'hidden',
+    maxHeight: '100%',
     '@media (max-width: 991px)': {
       padding: 0,
     },
@@ -160,7 +162,9 @@ const useStyles = createUseStyles({
     fontWeight: '800',
     lineHeight: '1em',
     margin: 0,
-    padding: '5px 0'
+    padding: '5px 0',
+    wordWrap: 'break-word',
+    whiteSpace: 'pre-wrap',
   },
   gameCreator: {
     fontSize: '16px',
