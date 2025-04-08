@@ -392,6 +392,33 @@
 						<FileTextIcon /> Reset Description
 					</button>
 				</Permission>
+				
+				{#if rank.is("owner")}
+				<button
+				  class="btn-outline-primary btn w-100"
+				  on:click={(e) => {
+					e.preventDefault();
+					const actionText = info.data.verified ? "Unverify" : "Verify";
+					modalBody = `Please confirm that you want to ${actionText.toLowerCase()} the player.`;
+					modalCb = (t) => {
+					  if (t) {
+						request
+						  .get(`/users/${userId}/${info.data.verified ? 'unverify' : 'verify'}-user`, {})
+						  .then(() => {
+							window.location.reload();
+						  })
+						  .catch((err) => {
+							errorMessage = err.message;
+						  });
+					  }
+					};
+					modalVisible = true;
+				  }}
+				>
+				  <UserIcon /> {info.data.verified ? "Unverify User" : "Verify User"}
+				</button>
+			  	{/if}
+			  
 				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Game Actions</h4></div>
 				</div>
@@ -437,6 +464,7 @@
 					<div class="card-body card-header"><h4 class="mb-0">Misc Actions</h4></div>
 				</div>
 				<a use:link class="btn-outline-primary btn w-100" href={`/admin/message-user/${userId}`}><MailIcon /> Send Message</a>
+				
 				{#if rank.hasPermission("GiveUserBadge") || rank.hasPermission("DeleteUserBadge")}
 					<a use:link class="btn-outline-primary btn w-100" href={`/admin/manage-badges-user/${userId}`}><AwardIcon /> Manage Badges</a>
 				{/if}

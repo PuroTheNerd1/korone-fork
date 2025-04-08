@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Dapper;
+using Dapper.Contrib.Extensions;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
@@ -789,7 +790,7 @@ public class AdminApiController : ControllerBase
     public async Task<dynamic> GetUserInfoDetailed(long userId)
     {
         var result = await db.QuerySingleOrDefaultAsync(
-            @"SELECT u.id, u.username, u.description, u.created_at, u.online_at, u.status, us.*, ue.*, avatar.thumbnail_url,
+            @"SELECT u.id, u.verified, u.username, u.description, u.created_at, u.online_at, u.status, us.*, ue.*, avatar.thumbnail_url,
             ub.author_user_id as ban_author_user_id, ban_author.username as ban_author_username, ub.reason as ban_reason,
             ub.internal_reason as ban_reason_internal, ub.created_at as ban_created_at, ub.expired_at as ban_expired_at, ub.updated_at as ban_updated_at
             FROM ""user"" u
@@ -2533,6 +2534,29 @@ Thank you for your understanding,
         await services.privateMessages.CreateMessage(userId, 1, "Username Reset",
             "Hello,\n\nYour username has been reset due to abuse concerns. You can request a new username by contacting a staff member.\n\n-The Roblox Team");
     }
+
+    [HttpPost("users/{userId:long}/verify-user")]
+    public async Task VerifyUser(long userId)
+    {
+        if (!IsAdmin())
+            throw new StaffException("You are not allowed to access this");
+        await db.ExecuteAsync("UPDATE \"user\" SET verified = true WHERE id = :uid", new 
+        {
+            id = userId,
+        });
+    }
+
+    [HttpPost("users/{userId:long}/unverify-user")]
+    public async Task UnverifyUser(long userId)
+    {
+        if (!IsAdmin())
+            throw new StaffException("You are not allowed to access this");
+        await db.ExecuteAsync("UPDATE \"user\" SET verified = false WHERE id = :uid", new 
+        {
+            id = userId,
+        });
+    }
+
 
     [HttpGet("applications/update-lock"), StaffFilter(Access.ManageApplications)]
     public async Task UpdateLocks(string ids)
