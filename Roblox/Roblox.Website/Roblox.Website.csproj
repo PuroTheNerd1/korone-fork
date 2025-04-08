@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="JWT" Version="8.7.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.9" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.10" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0" />
     <PackageReference Include="TwoFactorAuth.Net" Version="1.4.0" />

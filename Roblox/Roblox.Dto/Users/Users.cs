@@ -58,6 +58,7 @@ public class UserInfo
     public DateTime created { get; set; }
     public bool isAdmin { get; set; }
     public bool isModerator { get; set; }
+    public bool isVerified { get; set; }
     public string description { get; set; }
 
     public bool IsDeleted()

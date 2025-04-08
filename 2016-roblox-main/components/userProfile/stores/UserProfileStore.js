@@ -22,13 +22,13 @@ const UserProfileStore = createContainer(() => {
   const [tab, setTab] = useState('About');
   const [isFollowing, setIsFollowing] = useState(null);
   const [RAP, setRAP] = useState(null);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
     getUserInfo({ userId }).then(result => {
       setUserInfo(result);
       setUsername(result.name);
-      setRAP(result.inventory_rap);
     }).catch(e => {
       setLastError('InvalidUserId');
     });

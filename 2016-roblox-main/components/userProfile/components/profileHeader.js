@@ -81,6 +81,10 @@ const useHeaderStyles = createUseStyles({
       marginLeft: '3px',
     },
   },
+  verifiedIcon: {
+    position: 'relative',
+    bottom: '2.5px',
+  },
   updateStatusButton: {
     cursor: 'pointer',
     marginTop: '2px',
@@ -194,14 +198,15 @@ const ProfileHeader = props => {
   const [editStatus, setEditStatus] = useState(false);
   const [status, setStatus] = useState(null);
   const [bcLevel, setBcLevel] = useState(0);
-  
+  const [verified, setVerified] = useState(false);
+
   useEffect(() => {
     // reset
     setStatus(null);
     setBcLevel(0);
     setEditStatus(false);
     setDropdownOptions(null);
-    
+    setVerified(false);
   }, [store.userId]);
   
   useEffect(() => {
@@ -218,6 +223,7 @@ const ProfileHeader = props => {
     }).catch(e => {
       // can fail when not logged in :(
     })
+    setVerified(store.userInfo.hasVerifiedBadge);
     const buttons = [];
     const isOwnProfile = auth.userId === store.userId;
     if (store.friendStatus === "Friends") {
@@ -294,6 +300,11 @@ const ProfileHeader = props => {
     if (bcLevel === 0) {
       return null;
     }
+    // If the user is verified we should overwrite the bcIcon with the verified icon
+    if (verified) {
+      return <span className={`icon-verified ${s.verifiedIcon}`} />
+    } 
+
     // 1 = BC
     // 2 = TBC
     // 3 = OBC

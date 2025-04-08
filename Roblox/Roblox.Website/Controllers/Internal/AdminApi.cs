@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Dapper;
+using Dapper.Contrib.Extensions;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
@@ -795,7 +796,7 @@ public class AdminApiController : ControllerBase
     public async Task<dynamic> GetUserInfoDetailed(long userId)
     {
         var result = await db.QuerySingleOrDefaultAsync(
-            @"SELECT u.id, u.username, u.description, u.created_at, u.online_at, u.status, us.*, ue.*, avatar.thumbnail_url,
+            @"SELECT u.id, u.verified, u.username, u.description, u.created_at, u.online_at, u.status, us.*, ue.*, avatar.thumbnail_url,
             ub.author_user_id as ban_author_user_id, ban_author.username as ban_author_username, ub.reason as ban_reason,
             ub.internal_reason as ban_reason_internal, ub.created_at as ban_created_at, ub.expired_at as ban_expired_at, ub.updated_at as ban_updated_at
             FROM ""user"" u
@@ -869,6 +870,11 @@ public class AdminApiController : ControllerBase
     [HttpPost("ban"), StaffFilter(Access.BanUser)]
     public async Task BanUser([Required, FromBody] BanUserRequest request)
     {
+        // 30 bans per hour per staff
+        if (!await services.cooldown.TryIncrementBucketCooldown("BanUserV1:" + safeUserSession.userId, 30, TimeSpan.FromHours(1)))
+        {
+            throw new StaffException("You are being rate limited, pleae try again later");
+        }
         DateTime? expirationDate = string.IsNullOrWhiteSpace(request.expires)
             ? null
             : DateTime.SpecifyKind(DateTime.Parse(request.expires), DateTimeKind.Utc);
@@ -926,14 +932,7 @@ public class AdminApiController : ControllerBase
             throw new StaffException("Body is not valid");
         if (request.subject.Length is > 64 or < 1)
             throw new StaffException("Subject is not valid");
-        await db.ExecuteAsync(
-            "INSERT INTO user_message (user_id_to, user_id_from, subject, body) VALUES (:user_id_to, 1, :subject, :body)",
-            new
-            {
-                user_id_to = request.userId,
-                request.subject,
-                request.body,
-            });
+        await services.privateMessages.CreateMessage(request.userId, 1, request.subject, request.body);
         await db.ExecuteAsync("INSERT INTO moderation_admin_message(user_id, actor_id, body, subject) VALUES (:user_id, :actor_id, :body, :subject)", new
         {
             user_id = request.userId,
@@ -1674,21 +1673,16 @@ public class AdminApiController : ControllerBase
                 id = request.userId,
                 name = request.username,
             });
-            await usersDb.ExecuteAsync(
-                "INSERT INTO user_message (subject, body, user_id_from, user_id_to) VALUES (:subject, :body, 1, :user_id)",
-                new
-                {
-                    user_id = request.userId,
-                    subject = "Username Refund",
-                    body = @$"Hello,
+
+            await services.privateMessages.CreateMessage(request.userId, 1, 
+            "Username Refund", @$"Hello,
 
 We have deleted one of your previous usernames, ""{request.username}"". You will no longer have access to this username. You have been refunded {amountToRefund} Robux for a total of {totalChanges.Count} times this name was in use.
 
 Thank you for your understanding,
 
 
--The Roblox Team"
-                });
+-The Roblox Team");
             await usersDb.ExecuteAsync(
                 "UPDATE user_economy SET balance_robux = balance_robux + :amt WHERE user_id = :user_id", new
                 {
@@ -2535,6 +2529,29 @@ Thank you for your understanding,
             "Hello,\n\nYour username has been reset due to abuse concerns. You can request a new username by contacting a staff member.\n\n-The Roblox Team");
     }
 
+    [HttpPost("users/{userId:long}/verify-user")]
+    public async Task VerifyUser(long userId)
+    {
+        if (!IsAdmin())
+            throw new StaffException("You are not allowed to access this");
+        await db.ExecuteAsync("UPDATE \"user\" SET verified = true WHERE id = :uid", new 
+        {
+            uid = userId,
+        });
+    }
+
+    [HttpPost("users/{userId:long}/unverify-user")]
+    public async Task UnverifyUser(long userId)
+    {
+        if (!IsAdmin())
+            throw new StaffException("You are not allowed to access this");
+        await db.ExecuteAsync("UPDATE \"user\" SET verified = false WHERE id = :uid", new 
+        {
+            uid = userId,
+        });
+    }
+
+
     [HttpGet("applications/update-lock"), StaffFilter(Access.ManageApplications)]
     public async Task UpdateLocks(string ids)
     {
@@ -2714,10 +2731,7 @@ Thank you for your understanding,
     [HttpPost("groups/status/delete"), StaffFilter(Access.DeleteGroupStatus)]
     public async Task DeleteGroupStatus(long id)
     {
-        await db.ExecuteAsync("DELETE FROM group_status WHERE id = :id", new
-        {
-            id,
-        });
+        await services.groups.DeleteGroupStatus(id);
     }
 
     [HttpGet("users/status"), StaffFilter(Access.GetAllUserStatuses)]
@@ -2773,13 +2787,10 @@ Thank you for your understanding,
     [HttpGet("groups/get-by-name"), StaffFilter(Access.GetGroupManageInfo)]
     public async Task<dynamic> GetGroupByName(string name)
     {
-        var result = await db.QuerySingleOrDefaultAsync("SELECT id FROM \"group\" g WHERE g.name = :name", new
-        {
-            name,
-        });
-        if (result == null)
+        long? id = await services.groups.GetGroupIdByName(name);
+        if (id == null)
             throw new StaffException("Group name is invalid or does not exist");
-        return await GetGroupModerationInfo(result.id);
+        return await GetGroupModerationInfo((long)id);
     }
 
     [HttpGet("groups/audit-log"), StaffFilter(Access.GetGroupManageInfo)]
@@ -2991,14 +3002,7 @@ Thank you for your understanding,
         if (data == null || data.reportStatus != AbuseReportStatus.Pending)
             return;
         await services.abuseReport.SetReportStatus(id, AbuseReportStatus.Valid, safeUserSession.userId);
-        await db.ExecuteAsync(
-            "INSERT INTO user_message (user_id_to, user_id_from, subject, body) VALUES (:user_id_to, 1, :subject, :body)",
-            new
-            {
-                user_id_to = data.userId,
-                subject = "Thank you for your report",
-                body = "Your report has been reviewed and accepted. Thank you for helping keep Pekora safe.",
-            });
+        await services.privateMessages.CreateMessage(data.userId, 1, "Thank you for your report", "Your report has been reviewed and accepted. Thank you for helping keep Pekora safe.");
         await RewardForReportReview();
     }
 
@@ -3095,8 +3099,7 @@ Thank you for your understanding,
     // [StaffFilter(Access.GetGameServers)]
     // public async Task<dynamic> GetGameServers()
     // {
-    //     var result = await services.gameServer.GetAllGameServers();
-    //     var l = new List<dynamic>();
+    //     var result = await services.gameServer.GetAllGameServers()
     //     return result;
     // }
 }

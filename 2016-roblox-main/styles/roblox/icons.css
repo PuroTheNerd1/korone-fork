@@ -526,6 +526,15 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	vertical-align: middle;
 }
 
+.icon-verified {
+	background-image: url(/img/verified.svg);
+	background-repeat: no-repeat;
+	background-size: auto auto;
+	width: 52px;
+	height: 28px;
+	display: inline-block;
+	vertical-align: middle;
+}
 .icon-default-bc,
 .icon-bc,
 .icon-tbc,

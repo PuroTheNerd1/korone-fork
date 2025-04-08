@@ -119,20 +119,17 @@ public class UsersControllerV1 : ControllerBase
         }
 
         var info = await services.users.GetUserById(userId);
-        var isBanned =
-            info.accountStatus != AccountStatus.Ok &&
-            info.accountStatus != AccountStatus.MustValidateEmail &&
-            info.accountStatus != AccountStatus.Suppressed;
 
         return new
         {
+            info.description,
+            info.created,
+            isBanned = info.IsDeleted(),
+            hasVerifiedBadge = info.isVerified,
             id = info.userId,
             name = info.username,
             displayName = info.username,
-            info.description,
-            info.created,
-            isBanned,
-            isStaff = await StaffFilter.IsStaff(userId),
+            isStaff = info.isModerator || info.isAdmin,
             inventory_rap = totalRap
         };
     }

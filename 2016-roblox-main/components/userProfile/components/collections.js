@@ -4,7 +4,6 @@ import { getBaseUrl } from "../../../lib/request";
 import {getItemUrl} from "../../../services/catalog";
 import { getCollections } from "../../../services/inventory";
 import useCardStyles from "../styles/card";
-import SmallButtonLink from "./smallButtonLink";
 import Subtitle from "./subtitle";
 import SmallTextLink from "./smallTextLink";
 import useButtonWrapperStyle from '../styles/buttonWrapper'
