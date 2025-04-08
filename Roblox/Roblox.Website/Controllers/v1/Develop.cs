@@ -94,10 +94,12 @@ public class DevelopControllerV1 : ControllerBase
             var readStream = file.OpenReadStream();
             if (readStream is null)
                 throw new BadRequestException(0, "File provided is invalid");
-            try {
+            try 
+            {
                 await services.economy.ChargeForGameMediaUpload(CreatorType.User, safeUserSession.userId);
             }
-            catch (LogicException) {
+            catch (LogicException) 
+            {
                 throw new BadRequestException(0, "Not enough Robux for purchase");
             }
             await services.assets.CreateGameThumbnail(universe.rootPlaceId, readStream);
@@ -250,21 +252,26 @@ public class DevelopControllerV1 : ControllerBase
         }
 
 
-        try {
+        try 
+        {
             long? prodId = await services.games.CreateDeveloperProduct(safeUserSession.userId, universeId, name, description, priceInRobux,
                 iconImageAssetId);
-            if (prodId != null) {
-                return new {
+            if (prodId != null) 
+            {
+                return new 
+                {
                     productId = prodId
                 };
             }
-        } catch (Exception e)
+        } 
+        catch (Exception e)
         {
             if (e is AssetNameTooShortException or AssetNameTooLongException or AssetDescriptionTooLongException)
                 throw new BadRequestException(0, "Name or Description are too long, or too short. You figure it out, loser.");
             throw;
         }
-        return new {
+        return new 
+        {
             productId = (long?)null
         };
     }
@@ -272,7 +279,8 @@ public class DevelopControllerV1 : ControllerBase
     // update developer product
     // https://apidocs.sixteensrc.zip/develop/docs.html#!/DeveloperProducts/post_v1_universes_universeId_developerproducts_productId_update
     [HttpPost("universes/{universeId:long}/developerproducts/{productId}/update")]
-    public async Task UpdateDeveloperProduct(long universeId, long productId, [FromBody] UpdateDevProductRequest request) {
+    public async Task UpdateDeveloperProduct(long universeId, long productId, [FromBody] UpdateDevProductRequest request) 
+    {
         MultiGetEntry asset;
         long userId;
 

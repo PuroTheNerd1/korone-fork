@@ -198,7 +198,8 @@ public class BadgesService : ServiceBase, IService {
         builder.Where("ab.asset_id IN (" + string.Join(",", badgeIds) + ")");
         return await db.QueryAsync<BadgeAwardDate>(template.RawSql, template.Parameters);
     }
-    public async Task<BadgeDetails> GetBadgeInfo(long assetId) {
+    public async Task<BadgeDetails> GetBadgeInfo(long assetId) 
+    {
         var qu = await db.QuerySingleOrDefaultAsync<BadgeDetails>(
             @"SELECT 
             ab.asset_id as assetId, 
@@ -209,7 +210,8 @@ public class BadgesService : ServiceBase, IService {
             LIMIT 1",
             new { assetId });
         var modStatus = await GetAssetModerationStatus(assetId);
-        return new BadgeDetails {
+        return new BadgeDetails 
+        {
             assetId = qu.assetId,
             universeId = qu.universeId,
             enabled = qu.enabled && modStatus == ModerationStatus.ReviewApproved

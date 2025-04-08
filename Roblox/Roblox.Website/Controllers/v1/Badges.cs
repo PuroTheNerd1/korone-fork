@@ -21,7 +21,8 @@ public class BadgesControllerV1 : ControllerBase
     [HttpGetBypass("/v1/badges/{badgeId:long}")]
     [HttpPost("badges/{badgeId:long}")]
     [HttpPostBypass("/v1/badges/{badgeId:long}")]
-    public async Task<BadgeAssetDetails> GetBadgeDetails(long badgeId) {
+    public async Task<BadgeAssetDetails> GetBadgeDetails(long badgeId) 
+    {
         // TODO: is this even needed?
         var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
         if (basicBadgeInfo is null) {
@@ -40,7 +41,8 @@ public class BadgesControllerV1 : ControllerBase
     
     // Updates badge configuration.
     [HttpPatch("badges/{badgeId:long}")]
-    public async Task<dynamic> UpdateBadgeConfig(long badgeId, [Required, FromBody] BadgeUpdateRequest request) {
+    public async Task<dynamic> UpdateBadgeConfig(long badgeId, [Required, FromBody] BadgeUpdateRequest request) 
+    {
         await services.assets.ValidatePermissions(badgeId, safeUserSession.userId);
         
         var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
@@ -162,12 +164,14 @@ public class BadgesControllerV1 : ControllerBase
             await services.users.CreateUserAsset(userId, badgeId);
         }
         
-        if (Request.Path == "/assets/award-badge") {
+        if (Request.Path == "/assets/award-badge") 
+        {
             var badgeProd = await services.assets.GetAssetCatalogInfo(badgeId);
             return $"{user.username} won {badgeProd.creatorName}'s {badgeProd.name} award! :3";
         }
         
-        return new {
+        return new 
+        {
             creatorType = uni.First().creator.type,
             creatorId = uni.First().creator.id,
             awardAssetIds = Array.Empty<dynamic>()
