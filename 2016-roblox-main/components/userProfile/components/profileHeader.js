@@ -194,6 +194,7 @@ const ProfileHeader = props => {
   const [editStatus, setEditStatus] = useState(false);
   const [status, setStatus] = useState(null);
   const [bcLevel, setBcLevel] = useState(0);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     // reset
@@ -201,7 +202,7 @@ const ProfileHeader = props => {
     setBcLevel(0);
     setEditStatus(false);
     setDropdownOptions(null);
-
+    setVerified(false);
   }, [store.userId]);
 
   useEffect(() => {
@@ -218,6 +219,7 @@ const ProfileHeader = props => {
     }).catch(e => {
       // can fail when not logged in :(
     })
+    setVerified(store.userInfo.hasVerifiedBadge);
     const buttons = [];
     const isOwnProfile = auth.userId == store.userId;
     if (store.friendStatus === "Friends") {
@@ -312,6 +314,14 @@ const ProfileHeader = props => {
     }
   }
 
+  const VerifiedIcon = () => {
+    if (verified) {
+      return <span className={`icon-verified ${s.bcIcon}`} />
+    } else {
+      return null;
+    }
+  }
+
   return <div className={`flex ${s.profileHeaderContainer}`}>
     <div className='col-12'>
       <div className={`card ${cardStyles.card}`}>
@@ -330,7 +340,7 @@ const ProfileHeader = props => {
               </div>
             </div>
             <div className={`col-12 col-lg-10 ps-0 ${s.userInfoContainer}`}>
-              <h2 className={s.username}>{store.username} {<BcIcon />} <div className={s.dropdown}>
+              <h2 className={s.username}>{store.username} {<BcIcon />} {<VerifiedIcon />} <div className={s.dropdown}>
                 {dropdownOptions && <Dropdown2016 options={dropdownOptions} dropdownClass={s.dropdownClass} wrapperClass={s.dropdownWrapper} />}
               </div></h2>
               {editStatus ? <div>
