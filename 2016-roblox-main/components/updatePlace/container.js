@@ -2,19 +2,19 @@ import updatePlaceStore from "./stores/updatePlaceStore";
 import {useEffect} from "react";
 import VerticalSelector from "../verticalSelector";
 import BasicSettings from "./components/basicSettings";
-import {multiGetPlaceDetails} from "../../services/games";
+import {getGameMedia, multiGetPlaceDetails} from "../../services/games";
 import Icon from "./components/icon";
 import UploadPlace from "./components/uploadPlace";
 import Access from "./components/access";
+import Thumbnail from "./components/thumbnail";
+import DeveloperProductPage from "./components/developerProducts";
 
 const Container = props => {
   const store = updatePlaceStore.useContainer();
   useEffect(() => {
     store.setTab('Basic Settings');
     store.setPlaceId(props.placeId);
-    multiGetPlaceDetails({placeIds: [props.placeId]}).then(data => {
-      store.setDetails(data[0]);
-    })
+    store.refreshPlaceDetails(props.placeId);
   }, [props]);
 
   const handler = (opt) => {
@@ -42,13 +42,11 @@ const Container = props => {
     {
       name: 'Thumbnails',
       url: '#',
-      disabled: true,
-      el: () => null,
+      el: () => <Thumbnail />,
     },
     {
       name: 'Access',
       url: '#',
-      disabled: false,
       el: () => <Access />,
     },
     {
@@ -66,8 +64,7 @@ const Container = props => {
     {
       name: 'Developer Products',
       url: '#',
-      disabled: true,
-      el: () => null,
+      el: () => <DeveloperProductPage />,
     },
     {
       name: 'Games',
@@ -81,10 +78,10 @@ const Container = props => {
   });
   const selected = options.find(v => v.name === store.tab);
 
-  return <div className='container card pb-4 br-none'>
+  return <div className='container ssp card pb-4 br-none'>
     <div className='row'>
       <div className='col-12'>
-        <h2 className='fw-bolder ms-2'>Configure Place</h2>
+        <h2 className='fw-bolder ms-2' style={{ fontWeight: '600!important' }}>Configure Place</h2>
       </div>
     </div>
     <div className='row'>

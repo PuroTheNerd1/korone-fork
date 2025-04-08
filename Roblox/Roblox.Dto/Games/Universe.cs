@@ -160,6 +160,11 @@ public class UpdateUniverseConfiguration
     public string universeAvatarType { get; set; }
 }
 
+public class CreateUniverseRequest
+{
+    public long templatePlaceIdToUse { get; set; }
+}
+
 public class UniverseConfiguration
 {
     public bool allowPrivateServers { get; set;}
@@ -214,4 +219,164 @@ public class SetYearRequest
 public class SetMaxPlayerCountRequest
 {
     public int maxPlayers { get; set; }
+}
+
+public class UniverseGamePassEntryDb
+{
+    public long id { get; set; }
+    public string name { get; set; }
+    //public string displayName { get; set; }
+    //public long productId { get; set;}
+    public int priceRobux { get; set;}
+    public bool isForSale { get; set; }
+    public int sales { get; set; }
+    public DateTime updated { get; set; }
+    public DateTime created { get; set; }
+}
+
+public class UniverseGamePassEntry
+{
+    public long id { get; set; }
+    public string name { get; set; }
+    public string displayName { get; set; }
+    public long productId { get; set;}
+    public int price { get; set;}
+    public bool isForSale { get; set; }
+    public bool isOwned { get; set; }
+    public int sales { get; set; }
+    public DateTime updated { get; set; }
+    public DateTime created { get; set; }
+}
+
+public class GamePassDetails {
+    public long assetId { get; set; }
+    public long universeId { get; set; }
+}
+
+public class BadgeAwardDate {
+    public long badgeId { get; set; }
+    public DateTime awardedDate { get; set; }
+}
+
+public class BadgeAssetDetailsDb {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    public bool enabled { get; set; }
+    public long awardedCount { get; set; }
+    public string? universeName { get; set; }
+    public long? universeId { get; set; }
+    public long? rootPlaceId { get; set; }
+    public long pastDayAwardedCount { get; set; }
+    public long pastDayUniverseVisitors { get; set; }
+    public DateTime created { get; set; }
+    public DateTime updated { get; set; }
+    public ModerationStatus moderationStatus { get; set; }
+    public BadgeStatistics statistics { get; set; }
+    public BadgeAwardingUniverse awardingUniverse { get; set; }
+}
+
+public class BadgeAssetDetails {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    public string displayName { get; set; }
+    public string displayDescription { get; set; }
+    public bool enabled { get; set; }
+    public long iconImageId { get; set; }
+    public long displayIconImageId { get; set; }
+    // not in official api but why not
+    public ModerationStatus moderationStatus { get; set; }
+    public DateTime created { get; set; }
+    public DateTime updated { get; set; }
+    public BadgeStatistics statistics { get; set; }
+    public BadgeAwardingUniverse awardingUniverse { get; set; }
+}
+
+public class BadgeStatistics {
+    public long pastDayAwardedCount { get; set; }
+    public long awardedCount { get; set; }
+    public decimal winRatePercentage { get; set; }
+}
+
+public class BadgeAwardingUniverse {
+    public long id { get; set; }
+    public string name { get; set; }
+    public long rootPlaceId { get; set; }
+}
+
+public class BadgeDetails {
+    public long assetId { get; set; }
+    public long universeId { get; set; }
+    public bool enabled { get; set; }
+}
+
+public class BadgeUpdateRequest {
+    public string? name { get; set; }
+    public string? description { get; set; }
+    public bool enabled { get; set; }
+}
+
+public class DeveloperProductDb {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    public long imageAssetId { get; set; }
+    public long price { get; set; }
+    public long sales { get; set; }
+    public bool isForSale { get; set; }
+    public DateTime createdAt { get; set; }
+    public DateTime updatedAt { get; set; }
+    public long universeId { get; set; }
+    public int creatorType { get; set; }
+    public long creatorId { get; set; }
+}
+
+public class DeveloperProduct {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string Description { get; set; }
+    public long iconImageAssetId { get; set; }
+    public long price { get; set; }
+    public long sales { get; set; }
+    public bool isForSale { get; set; }
+    public DateTime createdAt { get; set; }
+    public DateTime updatedAt { get; set; }
+    public long universeId { get; set; }
+    public CreatorType creatorType { get; set; }
+    public long creatorId { get; set; }
+}
+
+public class DeveloperProducts {
+    public long id { get; set; }
+    public string name { get; set; }
+    public string Description { get; set; }
+    public long shopId { get; set; }
+    public long iconImageAssetId { get; set; }
+    public long? priceInRobux { get; set; }
+    public long sales { get; set; }
+}
+
+public class UpdateDevProductRequest {
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public long IconImageAssetId { get; set; }
+    public long PriceInRobux { get; set; }
+}
+
+public class ProductReceipt {
+    public Guid id { get; set; }
+    public long userId { get; set; }
+    public long productId { get; set; }
+    public long price { get; set; }
+    public bool processed { get; set; }
+    public DateTime createdAt { get; set; }
+    public DateTime? processedAt { get; set; }
+}
+
+public class ReceiptResponse {
+    public long? playerId { get; set; }
+    public long? placeId { get; set; }
+    public bool isValid { get; set; }
+    public long? productId { get; set; }
 }

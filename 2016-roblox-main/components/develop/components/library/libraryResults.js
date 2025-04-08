@@ -30,7 +30,7 @@ const useResultStyles = createUseStyles({
   sortByLabel: {
     paddingRight: '4px',
     fontWeight: 600,
-    color: '#343434',
+    color: 'var(--text-color-primary)',
   },
   sortByLabelWrapper: {
     display: 'inline-block',

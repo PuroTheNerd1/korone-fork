@@ -34,7 +34,10 @@ const GamesSubPage = props => {
 
   return <div className='row'>
     <div className='col-12'>
-      <ActionButton className={buttonStyles.buyButton + ' w-auto ms-0'} label='Create New Game' onClick={() => { window.location.href = "/internal/create-place" }}/>
+      <ActionButton className={buttonStyles.buyButton + ' w-auto ms-0'} label='Create New Game' onClick={() => {
+        //window.location.href = "/internal/create-place"
+        window.location.href = '/places/create';
+      }}/>
       <h2 className='mt-2'>Games</h2>
       {
         games ? (games.data.length === 0 ? <p className='mt-4'>You haven't created any games.</p> : <AssetList assets={games.data.map(v => {

@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Games;
+using Roblox.Dto.Users;
 using Roblox.Exceptions;
+using Roblox.Logging;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Studio;
+using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
+using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Website.Controllers;
 
@@ -168,6 +172,7 @@ public class UniverseV1 : ControllerBase
         };
     }
 
+    // TODO: what does this even do? implement badges
     [HttpGetBypass("badges/list-badges-for-place/json")]
     public dynamic GetGameBadges() 
     {
@@ -180,13 +185,48 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGetBypass("developerproducts/list")]
-    public dynamic GetDeveloperProducts() 
-    {
-        return new 
-        {
-            FinalPage = true,
-            DeveloperProducts = new List<dynamic>(),
-            PageSize = 50
+    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId, long? universeId) {
+        if (page < 1 || page > 5) {
+            page = 1;
+        }
+
+        long uniId;
+
+        if (universeId != null) {
+            var universes = await services.games.MultiGetUniverseInfo(new[] {universeId.Value});
+            if (universes.FirstOrDefault() == null)
+                throw new BadRequestException(0, "Universe ID is invalid or does not exist");
+            uniId = universeId.Value;
+        } else if (placeId != null) {
+            try {
+                uniId = await services.games.GetUniverseId(placeId.Value);
+            }
+            catch (RecordNotFoundException e) {
+                throw new BadRequestException(0, "Place ID is invalid or does not exist");
+            }
+        }
+        else {
+            throw new BadRequestException(0, "Universe Id and Place Id cannot both be null.");
+        }
+        
+        // checks if universe exists so that's cool
+        //var universeId = await services.games.GetUniverseId(placeId);
+
+        var products = (await services.games.GetDeveloperProducts(uniId, 5, 5 * (page - 1))).ToList();
+        return new {
+            FinalPage = products.Count < 5 || page == 5,
+            DeveloperProducts = products.Select(c => new {
+                ProductId = c.id,
+                DeveloperProductId = c.iconImageAssetId,
+                Name = c.name,
+                c.Description,
+                IconImageAssetId = c.iconImageAssetId,
+                displayName = (string?)null,
+                displayDescription = (string?)null,
+                displayIcon = (int?)null,
+                PriceInRobux = c.priceInRobux,
+            }),
+            PageSize = 5
         };
     }
 
@@ -200,36 +240,13 @@ public class UniverseV1 : ControllerBase
             PageSize = 50
         };
     }
-    
-    Dictionary<string, long> getStarterPlaces = new Dictionary<string, long> 
-    {
-        { "Baseplate", 36573 },
-        { "Flat Terrain", 36574 },
-        { "Starting Place", 36568 },
-        { "Western", 36569 },
-        { "Suburban", 36570 },
-        { "Team/FFA Arena", 36571 },
-        { "Capture The Flag", 36572 },
-        //{ "Control Points", 36575 },
-        { "City", 36576 },
-        { "Castle", 36577 },
-        { "Village", 36585 },
-        { "Obby", 36578 },
-        { "Combat", 36579 },
-        { "Racing", 36580 },
-        { "Pirate Island", 36581 },
-        { "Line Runner", 36582 },
-        //{ "Infinite Runner", 36583 },
-        //{ "Free For All", 36584 },
-        //{ "Team Deathmatch", 36590 }
-    };
 
     [HttpGet("v1/gametemplates")]
     public async Task<dynamic> StudioTemplates() 
     {
         // ArrayList templates = new ArrayList();
         // int i = 1;
-        // foreach (var place in getStarterPlaces) {
+        // foreach (var place in GetStarterPlaces) {
         //     templates.Add(new {
         //         gameTemplateType = "Generic",
         //         hasTutorials = false,
@@ -251,33 +268,28 @@ public class UniverseV1 : ControllerBase
         //     i++;
         // }
         
-        
-
-        var templates = await services.games.MultiGetPlaceDetails(getStarterPlaces.Values.ToList()); //await services.games.MultiGetUniverseInfo(getStarterPlaces.Values.ToList());
+        var templates = await services.games.MultiGetPlaceDetails(services.assets.getStarterPlaces.Values.ToList()); //await services.games.MultiGetUniverseInfo(getStarterPlaces.Values.ToList());
         return new 
         {
-            data = templates.Select(c => 
+            data = templates.Select(c => new
             {
-                return new
+                gameTemplateType = "Generic",
+                hasTutorials = false,
+                universe = new Universe 
                 {
-                    gameTemplateType = "Generic",
-                    hasTutorials = false,
-                    universe = new Universe 
-                    {
-                        id = c.universeId,
-                        name = c.name,
-                        description = c.description ?? "",
-                        isArchived = false,
-                        rootPlaceId = c.universeRootPlaceId,
-                        isActive = true,
-                        privacyType = "Public",
-                        creatorType = "User",
-                        creatorTargetId = c.builderId,
-                        creatorName = c.builder,
-                        created = c.created,
-                        updated = c.updated
-                    }
-                };
+                    id = c.universeId,
+                    name = c.name,
+                    description = c.description ?? "skbidii",
+                    isArchived = false,
+                    rootPlaceId = c.universeRootPlaceId,
+                    isActive = true,
+                    privacyType = "Public",
+                    creatorType = "User",
+                    creatorTargetId = c.builderId,
+                    creatorName = c.builder,
+                    created = c.created,
+                    updated = c.updated
+                }
             })
         };
     }
@@ -722,5 +734,228 @@ public class UniverseV1 : ControllerBase
             isStudioAccessToApisAllowed = true,
             privacyType = PrivacyType.Public,
         };
+    }
+    
+    [HttpGetBypass("/universal-app-configuration/v1/behaviors/studio/content")]
+    public dynamic GetStudioContent() {
+        return new {};
+    }
+
+    // public dynamic GetBoilerplateStudioContent() {
+    //     return new {
+    //         FinalPage = true,
+    //         DeveloperProducts = Array.Empty<string>(),
+    //         PageSize = 5
+    //     };
+    // }
+        
+    [HttpGetBypass("/v1/universes/{universeId:long}/symbolic-links")]
+    public dynamic GetBoilerplateContent() {
+        return new {
+            previousPageCursor = (string?)null,
+            nextPageCursor = (string?)null,
+            data =  Array.Empty<string>()
+        };
+    }
+
+    [HttpGetBypass("/v1/item-tags/metadata")]
+    public dynamic GetItemTags() {
+        return new {
+            isItemTagsFeatureEnabled = false,
+            enabledAssetTypes =  Array.Empty<string>(),
+            maximumItemTagsPerItem = 0
+        };
+    }
+
+    [HttpGetBypass("/v1/game-localization-roles/games/{universeId:long}/current-user/roles")]
+    public dynamic GetCurrentUserRoles() {
+        return new {
+            data =  Array.Empty<string>()
+        };
+    }
+
+    [HttpPostBypass("/v1/autolocalization/games/{universeId:long}/autolocalizationtable")]
+    public dynamic GetAutoLocalizationTable() {
+        return new {
+            supportedLocales = new List<dynamic> {
+                new {
+                    id = 1,
+                    locale = "en_us",
+                    name = "English(US)",
+                    nativeName = "English",
+                    language = new {
+                        id = 41,
+                        name = "English",
+                        nativeName = "English",
+                        languageCode = "en",
+                        isRightToLeft = false
+                    }
+                }
+            }
+        };
+    }
+    
+    [HttpGetBypass("/universes/create")]
+    [HttpPostBypass("/universes/create")]
+    public async Task<dynamic> CreateUniverseApi([FromBody] CreateUniverseRequest request) {
+        if (userSession is null)
+            throw new UnauthorizedException(0, "You are not logged in");
+        if (!FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService))
+            throw new BadRequestException(0, "Place creation is currently disabled");
+        await using var createGameLock =
+            await Roblox.Services.Cache.redLock.CreateLockAsync("CreatePlaceSelfServiceV1:UserId:" + userSession.userId,
+                TimeSpan.FromSeconds(10));
+        if (!createGameLock.IsAcquired)
+        {
+            Writer.Info(LogGroup.AbuseDetection, "CreatePlace API could not acquire createGameLock");
+            throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
+        }
+        
+        var createStatus = await CanCreatePlace(userSession.userId);
+        if (createStatus != PlaceCreationFailureReason.Ok) {
+            throw new BadRequestException(0, GetMessage(createStatus));
+        }
+        Writer.Info(LogGroup.AbuseDetection, "CreatePlace API userId={0} can create a place, creating it", userSession.userId);
+        // create one!
+        var asset = await services.assets.CreatePlace(userSession.userId, CreatorType.User, userSession.userId, request.templatePlaceIdToUse);
+        // create universe too
+        var universe = await services.games.CreateUniverse(asset.placeId);
+        // give url
+        return new {
+            asset.placeId,
+            universe.universeId,
+        };
+    }
+    
+    public async Task<PlaceCreationFailureReason> CanCreatePlace(long userId)
+    {
+        var log = Writer.CreateWithId(LogGroup.AbuseDetection);
+        log.Info("start CanCreatePlace with userId={0}",userId);
+        var userInfo = await services.users.GetUserById(userId);
+        if (userInfo.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1)))
+        {
+            log.Info("account is too new");
+            return PlaceCreationFailureReason.AccountTooNew;
+        }
+
+        var createdPlaces = (await services.assets.GetCreations(CreatorType.User, userId, Type.Place, 0, 100)).ToArray();
+        if (createdPlaces.Length != 0)
+        {
+            if (createdPlaces.Length > 15)
+            {
+                log.Info("account has too many places {0}", createdPlaces.Length);
+                return PlaceCreationFailureReason.TooManyPlaces;
+            }
+
+            var placeDetails = (await services.games.MultiGetPlaceDetails(createdPlaces
+                    .Select(c => c.assetId)))
+                .ToArray();
+
+            if (placeDetails.Length != createdPlaces.Length)
+            {
+                // uhhh
+                log.Info("placeDetails len and createdPlaces len do not match: {0} vs {1}", placeDetails.Length, createdPlaces.Length);
+                if (placeDetails.Length == 0)
+                    throw new Exception("Place details len is zero while createdPlaces len is not zero");
+            }
+
+
+            var isAnyPlaceCreatedLessThanADayAgo =
+                placeDetails.FirstOrDefault(v => v.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1))) != null;
+
+            if (isAnyPlaceCreatedLessThanADayAgo && !(userId is 3 or 1 or 7))
+            {
+                log.Info("account place was created less than a day ago");
+                return PlaceCreationFailureReason.LatestPlaceCreatedTooRecently;
+            }
+
+            // long totalPlaceVisits = 0;
+            // if (placeDetails.Length != 0)
+            // {
+            //     long placeVisitsRequiredForNewPlace = 100 * placeDetails.Length;
+            //     var universeDetails =
+            //         await services.games.MultiGetUniverseInfo(placeDetails.Select(c => c.universeId));
+            //     foreach (var item in universeDetails)
+            //     {
+            //         totalPlaceVisits += item.visits;
+            //     }
+            //
+            //     if (totalPlaceVisits < placeVisitsRequiredForNewPlace)
+            //     {
+            //         log.Info("user needs {0} visits for new place but only has {1}", placeVisitsRequiredForNewPlace,
+            //             totalPlaceVisits);
+            //         return PlaceCreationFailureReason.NotEnoughVisitsForNewPlace;
+            //     }
+            // }
+        }
+
+
+        var app = await services.users.GetApplicationByUserId(userId);
+        if (app is not {status: UserApplicationStatus.Approved})
+        {
+            log.Info("user has no app or it is not approved {0}", app?.status.ToString());
+            return PlaceCreationFailureReason.NoApplication;
+        }
+
+        // lol
+        // anti brandon/sleep/xlxi check
+        /*
+        if (userId < 200)
+        {
+            log.Info("account is too inactive (branch X)");
+            return PlaceCreationFailureReason.TooInactive;
+        }
+        */
+
+
+
+        // if (!await IsActiveEnoughForPlace(userId))
+        // {
+        //     await Roblox.Services.Cache.distributed.StringSetAsync(GetRedisKeyForRejection(userId), "{}", TimeSpan.FromHours(12));
+        //     log.Info("set recent rejection to true, user is too inactive");
+        //     return PlaceCreationFailureReason.TooInactive;
+        // }
+        
+        log.Info("user is active enough for a place. return OK");
+        return PlaceCreationFailureReason.Ok;
+    }
+    
+    private string GetMessage(PlaceCreationFailureReason reason)
+    {
+        return reason switch
+        {
+            PlaceCreationFailureReason.AccountTooNew =>
+                "Your account is too new. Try again when your account is at least 7 days old.",
+            PlaceCreationFailureReason.TooManyPlaces => "Your account already has the maximum amount of places on it.",
+            PlaceCreationFailureReason.NoApplication => "You cannot create a place if you did not join through the application system.",
+            PlaceCreationFailureReason.TooInactive => "Your account is too inactive to create a place. Staff cannot comment on the exact reason, so please do not ask. Try playing around some more, posting on places like the forums, joining groups, buying items, then try again in a few days.",
+            PlaceCreationFailureReason.LatestPlaceCreatedTooRecently => "Latest place was created too recently. Try again in a day.",
+            PlaceCreationFailureReason.NotEnoughVisitsForNewPlace => "You do not have enough visits to create a new place. Try again in a few days.",
+            _ => "Unknown reason. Code = " + reason.ToString(),
+        };
+    }
+    
+    private string GetRedisKeyForRejection(long userId)
+    {
+        return "app_rejected_recently_for_place:v1.2:" + userId;
+    }
+
+    private async Task<bool> WasRejectedRecently(long userId)
+    {
+        var result = await Roblox.Services.Cache.distributed.StringGetAsync(GetRedisKeyForRejection(userId));
+        if (result != null)
+            return true;
+        return false;
+    }
+    
+    public enum PlaceCreationFailureReason
+    {
+        Ok = 1,
+        AccountTooNew,
+        TooManyPlaces,
+        NoApplication,
+        TooInactive,
+        LatestPlaceCreatedTooRecently,
+        NotEnoughVisitsForNewPlace,
     }
 }

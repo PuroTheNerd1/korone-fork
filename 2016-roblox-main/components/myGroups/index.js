@@ -14,14 +14,13 @@ import MyGroupsStore from "./stores/myGroupsStore";
 
 const useStyles = createUseStyles({
   groupsContainer: {
-    background: '#fff',
+    background: 'var(--white-color)',
     padding: '10px 12px',
     minWidth: '970px',
   }
 })
 
 const MyGroups = props => {
-  console.log('props',props);
   const s = useStyles();
 
   const store = MyGroupsStore.useContainer();

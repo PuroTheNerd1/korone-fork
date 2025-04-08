@@ -13,7 +13,7 @@ const useStyles = createUseStyles({
     },
 
     modalTopBody: {
-        color: '#191919',
+        color: 'var(--text-color-primary)',
     },
     modalMessage: {
         fontSize: '16px',

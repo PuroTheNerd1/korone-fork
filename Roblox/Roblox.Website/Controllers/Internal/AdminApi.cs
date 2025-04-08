@@ -425,6 +425,8 @@ public class AdminApiController : ControllerBase
                 Type.Mesh,
                 Type.SolidModel,
                 Type.Video,
+                Type.GamePass,
+                Type.Badge
             });
             query.AddParameters(new
             {
@@ -493,6 +495,13 @@ public class AdminApiController : ControllerBase
             status = newStatus,
             id = request.assetId,
         });
+        // for game media, this is necessary for the media to be shown on games page
+        if (newStatus == ModerationStatus.ReviewApproved) {
+            await db.ExecuteAsync("UPDATE asset_media SET is_approved = TRUE WHERE media_asset_id = :id", new
+            {
+                id = request.assetId,
+            });
+        }
         await services.assets.InsertAssetModerationLog(request.assetId, userSession.userId, newStatus);
         var children = (await db.QueryAsync<AssetVersionWithIdEntry>("SELECT DISTINCT asset_id as assetId FROM asset_version WHERE content_id = :id", new
         {
@@ -510,21 +519,18 @@ public class AdminApiController : ControllerBase
             await services.assets.InsertAssetModerationLog(item.assetId, userSession.userId, newStatus);
         }
 
-        if (details.robloxAssetId != null && details.robloxAssetId != 0)
-        {
+        if (details.robloxAssetId != null && details.robloxAssetId != 0) {
             var duplicates = await db.QueryAsync<AssetVersionWithIdEntry>(
-                "SELECT id as assetId FROM asset WHERE roblox_asset_id = :id", new
-                {
+                "SELECT id as assetId FROM asset WHERE roblox_asset_id = :id", new {
                     id = details.robloxAssetId.Value,
                 });
-            foreach (var dupe in duplicates)
-            {
-                await db.ExecuteAsync("UPDATE asset SET moderation_status = :status, is_18_plus = :is_18_plus WHERE id = :id", new
-                {
-                    is_18_plus = request.is18Plus,
-                    status = newStatus,
-                    id = dupe.assetId,
-                });
+            foreach (var dupe in duplicates) {
+                await db.ExecuteAsync(
+                    "UPDATE asset SET moderation_status = :status, is_18_plus = :is_18_plus WHERE id = :id", new {
+                        is_18_plus = request.is18Plus,
+                        status = newStatus,
+                        id = dupe.assetId,
+                    });
                 await services.assets.InsertAssetModerationLog(dupe.assetId, userSession.userId, newStatus);
             }
         }
@@ -2142,7 +2148,7 @@ Thank you for your understanding,
             Type.ShoulderAccessory,
             Type.FaceAccessory,
             Type.Head,
-            Type.EmoteAnimation
+            Type.EmoteAnimation,
         };
         if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
             throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);

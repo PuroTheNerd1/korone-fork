@@ -24,7 +24,7 @@ div.list-body {
   max-width: calc(100% - 100px);
 }
 html,body {
-  font-family: "Source Sans Pro", serif;
+  font-family: HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;
 }
 p {
   padding: 0;
@@ -38,15 +38,15 @@ span.xsmall {
   font-size: 12px;
 }
 a {
-  color: #00a2ff;
+  color: var(--primary-color);
   text-decoration: none;
 }
 a:visited {
-  color: #00a2ff;
+  color: var(--primary-color);
 }
 li.list-item {
   padding-bottom: 20px;
-  border-bottom: 1px solid #c3c3c3;
+  border-bottom: 1px solid var(--text-color-quinary);
   padding-top: 10px;
 }
 `;

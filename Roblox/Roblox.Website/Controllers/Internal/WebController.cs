@@ -24,6 +24,8 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Png;
 using Type = System.Type;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
+using Roblox.Exceptions.Services.Users;
+using Roblox.Models.Db;
 
 namespace Roblox.Website.Controllers;
 
@@ -584,7 +586,9 @@ public class WebController : ControllerBase
         Models.Assets.Type.Image,
         Models.Assets.Type.Video,
         Models.Assets.Type.Mesh,
-        Models.Assets.Type.Model
+        Models.Assets.Type.Model,
+        Models.Assets.Type.GamePass,
+        Models.Assets.Type.Badge
     };
 
     private static int pendingAssetUploads { get; set; } = 0;
@@ -593,6 +597,7 @@ public class WebController : ControllerBase
     [HttpPost("develop/upload-version")]
     public async Task UploadVersion([Required, FromForm] UploadAssetVersionRequest request)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
         var info = await services.assets.GetAssetCatalogInfo(request.assetId);
         var canUpload = await services.assets.CanUserModifyItem(info.id, safeUserSession.userId);
 
@@ -621,7 +626,10 @@ public class WebController : ControllerBase
 
             await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
             // Render in the background
-            services.assets.RenderAsset(request.assetId, info.assetType);
+            // TODO: make sure commenting this doesn't fuck anything up
+            if (info.assetType != Models.Assets.Type.Place) {
+                services.assets.RenderAsset(request.assetId, info.assetType);
+            }
         }
         finally
         {
@@ -637,7 +645,7 @@ public class WebController : ControllerBase
     public async Task<CreateResponse> UploadItem([Required, FromForm] UploadAssetRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
-        if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null) throw new BadRequestException();
+        if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null) throw new BadRequestException(0, "Asset type not supported");
         // flood check Start
         // 1 attempt every 5 seconds per user
         // IP flood check too! same limit as userId for now
@@ -645,8 +653,7 @@ public class WebController : ControllerBase
         {
             throw new RobloxException(429, 0, "Too many requests");
         }
-
-
+        
         // Limit of 50 assets globally pending approval before failure
         var pendingAssets = await services.assets.CountAssetsPendingApproval();
         if (pendingAssets >= 50)
@@ -708,6 +715,10 @@ public class WebController : ControllerBase
                     return await UploadMesh(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.Model:
                     return await UploadModel(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.GamePass:
+                    return await UploadGamePass(request, stream, creatorId, creatorType);
+                 case Models.Assets.Type.Badge:
+                     return await UploadAssetBadge(request, stream, creatorId, creatorType);
                 default:
                     throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
             }
@@ -776,6 +787,82 @@ public class WebController : ControllerBase
             await services.assets.GenerateImageHash(cleanImage));
 
         return imageAsset;
+    }
+    private async Task<CreateResponse> UploadAssetBadge(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        if (request.universeId is null || request.universeId.ToString() is null) {
+            throw new BadRequestException(0, "Universe ID is required");
+        }
+        var imageData = await services.assets.ValidateImage(stream);
+        if (imageData == null)
+            throw new BadRequestException(0, "Invalid image file");
+
+        long universeId = long.Parse(request.universeId.ToString());
+        
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
+
+        var badgeCount = await services.games.GetUniverseBadgeCount(universeId);
+        if (badgeCount >= 500) {
+            throw new BadRequestException(0, "This universe has too many badges");
+        }
+        
+        stream.Position = 0;
+        // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
+        var cleanImage = await services.assets.CleanImage(stream);
+        
+        var badgeAsset = await services.assets.CreateAsset(request.name, request.description,
+            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Badge,
+            Genre.All,
+            ModerationStatus.AwaitingApproval);
+        // TODO: this might cause issues with image resolution? (having it set to 420x420)
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, (int)cleanImage.Length,
+            420, 420, imageData.imageFormat,
+            await services.assets.GenerateImageHash(cleanImage));
+        await services.assets.CreateBadgeAsset(badgeAsset.assetId, request.universeId);
+        await services.assets.UpdateAssetMarketInfo(badgeAsset.assetId, false, false, false, null, null);
+
+        return badgeAsset;
+    }
+    private async Task<CreateResponse> UploadGamePass(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        if (request.universeId is null || request.universeId.ToString() is null) {
+            throw new BadRequestException(0, "Universe ID is required");
+        }
+        if (request.priceInRobux is null && request.priceInTickets is null && request.isForSale == true) {
+            throw new BadRequestException(0, "A price is required");
+        }
+        var imageData = await services.assets.ValidateImage(stream);
+        if (imageData == null)
+            throw new BadRequestException(0, "Invalid image file");
+
+        long universeId = long.Parse(request.universeId.ToString());
+        
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
+        
+        var gamePasses = (await services.games.GetGamePassesForUniverse(universeId, 15, 0, null, SortOrder.Asc)).ToList();
+        if (gamePasses.Count == 15) {
+            throw new BadRequestException(0, "This universe has too many gamepasses");
+        }
+        
+        stream.Position = 0;
+        // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
+        var cleanImage = await services.assets.CleanImage(stream);
+        
+        var gamepassAsset = await services.assets.CreateAsset(request.name, request.description,
+            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.GamePass,
+            Genre.All,
+            ModerationStatus.AwaitingApproval);
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(gamepassAsset.assetVersionId, (int)cleanImage.Length,
+            imageData.width, imageData.height, imageData.imageFormat,
+            await services.assets.GenerateImageHash(cleanImage));
+        // gamepass specific stuff
+        await services.assets.CreateGamePassAsset(gamepassAsset.assetId, request.universeId);
+        await services.assets.UpdateAssetMarketInfo(gamepassAsset.assetId, request.isForSale == true, false, false, null, null);
+        await services.assets.SetItemPrice(gamepassAsset.assetId, request.priceInRobux, request.priceInTickets);
+
+        return gamepassAsset;
     }
     private async Task<CreateResponse> UploadVideo(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {

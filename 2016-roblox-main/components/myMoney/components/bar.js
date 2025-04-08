@@ -5,6 +5,7 @@ import MoneyPageStore from "../stores/moneyPageStore";
 import MySummaryTable from "./mySummaryTable";
 import MyTradesTable from "./myTradesTable";
 import MyTransactionsTable from "./myTransactionsTable";
+import CurrencyExchange from "./currencyExchange";
 
 const Bar = props => {
   const store = MoneyPageStore.useContainer();
@@ -16,6 +17,10 @@ const Bar = props => {
     {
       name: 'Summary',
       element: <MySummaryTable></MySummaryTable>,
+    },
+    {
+      name: 'Trade Currency',
+      element: <CurrencyExchange></CurrencyExchange>,
     },
     {
       name: 'Trade Items',

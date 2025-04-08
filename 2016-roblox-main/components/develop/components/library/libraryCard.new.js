@@ -35,9 +35,9 @@ const useCatalogPageStyles = createUseStyles({
   detailsWrapper: {
     position: 'absolute',
     display: 'none',
-    background: '#fff',
+    background: 'var(--white-color)',
     paddingBottom: '5px',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     transform: 'scale(110%)',
     zIndex: 2,
     paddingLeft: '4px',
@@ -99,7 +99,7 @@ const LibraryCard = props => {
             }} />
             <div className={s.overviewDetails}>
               <p ref={nameRef} className={`mb-0 ${s.itemName}`} style={{ maxHeight: nameHeight }}>{props.name}</p>
-              <p className='mb-0 text-dark'>{props.isForSale ? 'Free' : 'Offsale'}</p>
+              <p className='mb-0 '>{props.isForSale ? 'Free' : 'Offsale'}</p>
             </div>
           </div>
         </a>

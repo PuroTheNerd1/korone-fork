@@ -3,6 +3,7 @@ import Ads from "./components/subPages/ads";
 import Clothing from "./components/subPages/clothing";
 import GamesSubPage from "./components/subPages/games";
 import GamePasses from "./components/subPages/gamepasses";
+import Badges from "./components/subPages/badges";
 
 const developerPages = [
   {
@@ -21,7 +22,7 @@ const developerPages = [
     id: 10,
     name: 'Models',
     url: '/develop?View=10',
-    element: props => <Clothing id={10} {...props} />,
+    disabled: true,
   },
   {
     id: 13,
@@ -39,14 +40,14 @@ const developerPages = [
     id: 21,
     name: 'Badges',
     url: '/develop?View=21',
-    disabled: true,
+    element: props => <Badges id={21} {...props} />,
   },
   {
     id: 34,
     name: 'Game Passes',
     url: '/develop?View=34',
-    disabled: true,
-    //element: props => <GamePasses id={34} {...props} />,
+    //disabled: true,
+    element: props => <GamePasses id={34} {...props} />,
   },
   {
     id: 62,
@@ -67,10 +68,10 @@ const developerPages = [
     disabled: true,
   },
   {
-    id: 4,
+    id: 40,
     name: 'Meshes',
-    url: '/develop?View=4',
-    element: props => <Clothing id={4} {...props} />,
+    url: '/develop?View=40',
+    disabled: true,
   },
   {
     id: 101,

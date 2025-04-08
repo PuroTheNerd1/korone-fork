@@ -10,7 +10,7 @@ const useStatisticEntryStyles = createUseStyles({
     fontWeight: 400,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
-    color: '#B8B8B8',
+    color: 'var(--text-color-secondary)',
     marginBottom: 0,
     textAlign: 'center',
     fontSize: '16px',

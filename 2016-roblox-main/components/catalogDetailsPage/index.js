@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import { createUseStyles } from "react-jss";
 import AuthenticationStore from "../../stores/authentication";
 import GearDropdown from "../gearDropdown";
@@ -9,7 +9,6 @@ import BuyItemModal from "./components/buyItemModal";
 import Comments from "./components/comments";
 import CreatorDetails from "./components/creatorDetails";
 import DelistItemModal from "./components/delistItemModal";
-import Genres from "./components/genres";
 import ItemImage from "../itemImage";
 import { LimitedOverlay, LimitedUniqueOverlay } from "./components/limitedOverlay";
 import Recommendations from "./components/recommendations";
@@ -23,8 +22,11 @@ import { addOrRemoveFromCollections } from "../../services/catalog";
 import { getCollections } from "../../services/inventory";
 import getFlag from "../../lib/getFlag";
 import Owners from "./components/owners";
-import Favorite from "./components/favorite";
 import AudioPlayButton from './components/audioPlayButton';
+import Link from "../link";
+import {getGamePassRootPlace, getGameUrl} from "../../services/games";
+import {getBadgeInfoByID} from "../../services/badges";
+import RemoveItemModal from "./components/removeItemModal";
 
 const emptyDescriptionMessage = 'No description available.';
 const filterTextForEmpty = str => {
@@ -42,7 +44,7 @@ const useStyles = createUseStyles({
   title: {
     fontWeight: 650,
     fontSize: '32px',
-    color: '#343434',
+    color: 'var(--text-color-primary)',
   },
   subtitle: {
     fontWeight: 600,
@@ -51,9 +53,10 @@ const useStyles = createUseStyles({
   description: {
     marginBottom: 0,
     fontSize: '14px',
+    whiteSpace: 'break-spaces'
   },
   catalogItemContainer: {
-    background: '#fff',
+    background: 'var(--white-color)',
     padding: '2px 8px',
     overflow: 'hidden',
   },
@@ -62,7 +65,7 @@ const useStyles = createUseStyles({
 /**
  * CatalogDetails page
  * @param {{details: AssetDetailsEntry}} props
- * @returns 
+ * @returns
  */
 const CatalogDetails = props => {
   const { details } = props;
@@ -71,6 +74,8 @@ const CatalogDetails = props => {
   const isLimited = details.itemRestrictions.includes('Limited');
   const isLimitedUnique = details.itemRestrictions.includes('LimitedUnique');
   const store = CatalogDetailsPage.useContainer();
+  const [gamePassPlace, setGamePassPlace] = useState(null);
+  const [badgeInfo, setBadgeInfo] = useState(null);
 
   useEffect(() => {
     store.setDetails(props.details);
@@ -87,9 +92,8 @@ const CatalogDetails = props => {
   }, [props]);
 
   useEffect(() => {
-    if (!authStore.userId || !store.details) {
-      return;
-    }
+    if (!authStore.userId || !store.details) return;
+    
     store.loadOwnedCopies(authStore.userId);
     if (store.isResellable) {
       store.loadResellers();
@@ -102,11 +106,18 @@ const CatalogDetails = props => {
       });
       store.setInCollection(inCollection !== undefined);
     })
+    
+    if (details.assetType === 34) {
+      getGamePassRootPlace({ assetId: details.id }).then(setGamePassPlace);
+    }
+    if (details.assetType === 21) {
+      getBadgeInfoByID({ badgeId: details.id }).then(setBadgeInfo);
+    }
   }, [store.details, authStore.userId]);
 
   const hasItemToDeList = store.isResellable && store.allResellers && store.allResellers.find(v => v.seller.id === authStore.userId) !== undefined;
   const hasItemToSell = store.isResellable && store.ownedCopies && store.ownedCopies.filter(v => v.price === null || v.price === 0).length > 0;
-  const isCreator = store.details && store.details.creatorType === 'User' && store.details.creatorTargetId == authStore.userId; // todo: group support
+  const isCreator = store.details && store.details.creatorType === 'User' && store.details.creatorTargetId === authStore.userId; // todo: group support
   const showGear = hasItemToDeList ||
     hasItemToSell ||
     isCreator ||
@@ -115,13 +126,14 @@ const CatalogDetails = props => {
   if (!store.details) return null;
 
   const subTitle = `${store.subCategoryDisplayName}${(isLimited || isLimitedUnique) ? ' / Collectible Item' : ''}${isLimitedUnique ? ' / Limited Edition' : ''}`;
-
-  return <div className='container'>
+  
+  return <div className='container ssp'>
     <AdBanner />
     <div className={s.catalogItemContainer}>
       <BuyItemModal/>
       <SellItemModal/>
       <DelistItemModal/>
+      <RemoveItemModal/>
       <div className='row mt-4'>
         <div className='col-12 col-lg-10'>
           <div className='row'>
@@ -147,9 +159,20 @@ const CatalogDetails = props => {
                     },
                   },
                   isCreator && {
+                    name: 'Configure',
+                    url: `/My/Item.aspx?id=${props.details.id}`,
+                  },
+                  isCreator && {
                     name: 'Advertise',
                     url: 'My/CreateUserAd.aspx?targetId=' + props.details.id + '&targetType=asset',
                   },
+                  // store.ownedCopies > 0 && store.details.assetType === 21 && {
+                  //   name: 'Remove Badge from Inventory',
+                  //   onClick: (e) => {
+                  //     e.preventDefault();
+                  //     store.setRemoveItemModalOpen(true);
+                  //   }
+                  // },
                   store.inCollection ? {
                     name: 'Remove From Collection',
                     onClick: e => {
@@ -181,9 +204,42 @@ const CatalogDetails = props => {
                 <ItemImage id={details.id} name={details.name}/>
                 {store.details.assetType === 3 ? <AudioPlayButton audioId={details.id} /> : null}
                 {isLimitedUnique && <LimitedUniqueOverlay/> || isLimited && <LimitedOverlay/> || null}
+                {
+                  gamePassPlace ?
+                    <span style={{ textAlign: 'center', width: '100%', display: 'inline-block', marginTop: 5 }} >Use this Game Pass in
+                      <Link href={getGameUrl({ placeId: gamePassPlace.rootPlaceId, name: gamePassPlace.name })}>
+                        <a style={{ marginLeft: 5 }} className='link2018' href={getGameUrl({ placeId: gamePassPlace.rootPlaceId, name: gamePassPlace.name })}>
+                          {gamePassPlace.name}
+                        </a>
+                      </Link>
+                    </span>
+                    : null
+                }
+                {
+                  badgeInfo ? (() => {
+                    /** @type BadgeEntry */
+                    const badge = badgeInfo;
+                    return <span style={{textAlign: 'center', width: '100%', display: 'inline-block', marginTop: 5}}>Earn this Badge in
+                      <Link href={getGameUrl({placeId: badge.awardingUniverse.rootPlaceId, name: badge.awardingUniverse.name})}>
+                        <a style={{marginLeft: 3}} className='link2018'
+                           href={getGameUrl({placeId: badge.awardingUniverse.rootPlaceId, name: badge.awardingUniverse.name})}>
+                          {badge.awardingUniverse.name}
+                        </a>
+                      </Link>
+                    </span>
+                  })() : null
+                }
               </div>
               <div className='col-12 col-md-6 col-lg-4'>
-                <CreatorDetails id={details.creatorTargetId} name={details.creatorName} type={details.creatorType} createdAt={details.createdAt} updatedAt={details.updatedAt}/>
+                <CreatorDetails
+                    //gamePassPlace={gamePassPlace}
+                    id={details.creatorTargetId}
+                    name={details.creatorName}
+                    type={details.creatorType}
+                    createdAt={details.createdAt}
+                    updatedAt={details.updatedAt}
+                    owned={store.ownedCopies && store.ownedCopies.length > 0}
+                />
                 <p className={s.description}>{filterTextForEmpty(details.description)}</p>
                 <ReportAbuse assetId={details.id}/>
               </div>

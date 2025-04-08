@@ -3,8 +3,12 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
+using Roblox.Logging;
+using Roblox.Models;
 using Roblox.Models.Assets;
+using Roblox.Models.Db;
 using Roblox.Services.Exceptions;
+using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Website.Controllers;
 
@@ -206,5 +210,56 @@ public class GamesControllerV1 : ControllerBase
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
         await services.assets.VoteOnAsset(uni.rootPlaceId, safeUserSession.userId, request.vote);
+    }
+
+    [HttpGet("users/{userId:long}/count")]
+    public async Task<dynamic> GetUserGameCount(long userId) {
+        var localUserId = safeUserSession.userId;
+        await using var placeCuntLock =
+            await Services.Cache.redLock.CreateLockAsync("GetPlaceCountV1:UserId:" + localUserId,
+                TimeSpan.FromSeconds(3));
+        if (!placeCuntLock.IsAcquired)
+        {
+            Writer.Info(LogGroup.AbuseDetection, "GetPlaceCount API could not acquire placeCuntLock");
+            throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
+        }
+        
+        var uniCount = await services.games.GetUserPlaceCount(userId);
+        return new {
+            universeCount = uniCount,
+        };
+    }
+    
+    [HttpGet("games/{universeId:long}/game-passes")]
+    public async Task<RobloxCollectionPaginated<UniverseGamePassEntry>> GetUniverseGamePasses(long universeId, SortOrder? sortOrder = SortOrder.Asc, int? limit = 10, string? cursor = null) {
+        if (limit is > 100 or < 1) limit = 10;
+        int offset = int.Parse(cursor ?? "0");
+        var result =
+            (await services.games.GetGamePassesForUniverse(universeId, limit ?? 10, offset, userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
+        return new RobloxCollectionPaginated<UniverseGamePassEntry>()
+        {
+            nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
+            previousPageCursor = offset >= limit ? (offset-limit).ToString() : null,
+            data = result,
+        };
+    }
+    
+    [HttpGet("games/game-passes/{assetId:long}")]
+    public async Task<GamePassDetails> GetGamePassInfo(long assetId) {
+        var asset = await services.assets.GetAssetCatalogInfo(assetId);
+        if (asset is null) {
+            throw new BadRequestException(0, "Asset does not exist");
+        }
+        if (asset.assetType != Type.GamePass) {
+            throw new BadRequestException(0, "Asset is not a Game Pass");
+        }
+
+        var passInfo = (await services.games.GetGamePassInfo(assetId)).FirstOrDefault();
+        if (passInfo is null) {
+            // not sure how this would ever happen but just in case
+            throw new RecordNotFoundException();
+        }
+        
+        return passInfo;
     }
 }

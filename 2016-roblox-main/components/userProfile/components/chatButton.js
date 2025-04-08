@@ -15,7 +15,7 @@ const ChatButton = props => {
   const s = useStyles()
   const s2 = useButtonStyles()
   // TODO: check if we can message user, disable if user is not messageable
-  return <Button className={`text-dark ${s2.newDisabledCancelButton}`} style={{ width: 'auto' }}>
+  return <Button className={` ${s2.newDisabledCancelButton}`} style={{ width: 'auto' }}>
     Chat
   </Button>
 }

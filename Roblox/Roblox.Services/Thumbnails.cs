@@ -134,6 +134,9 @@ public class ThumbnailsService : ServiceBase, IService
             if (c.imageUrl != null)
                 c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
 
+            //Console.WriteLine(c.moderationStatus);
+            //Console.WriteLine(c.moderationStatus == ModerationStatus.ReviewApproved);
+            
             return new ThumbnailEntry()
             {
                 targetId = c.targetId,

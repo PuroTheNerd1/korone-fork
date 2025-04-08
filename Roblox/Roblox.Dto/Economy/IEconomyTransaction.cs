@@ -9,6 +9,7 @@ public class EconomyTransactionBase
     public long userIdTwo { get; set; }
     public PurchaseType type { get; set; }
     public TransactionSubType? subType { get; set; }
+    public string? itemName { get; set; }
     public long amount { get; set; }
     public CurrencyType currencyType { get; set; }
     public long? groupIdOne { get; set; }
@@ -120,13 +121,36 @@ public class AudioUploadTransaction : IEconomyTransaction
 
     public AudioUploadTransaction(CreatorType creatorType, long creatorId)
     {
-        const long amount = 20;
+        const long amount = 100;
         transaction = new EconomyTransactionBase()
         {
             amount = amount,
             currencyType = CurrencyType.Robux,
             type = PurchaseType.Purchase,
             subType = TransactionSubType.AudioUploadLong,
+        };
+        transaction.SetSelf(creatorType, creatorId);
+        transaction.SetOther(CreatorType.User, 1);
+    }
+}
+
+public class GameThumbnailUploadTransaction : IEconomyTransaction
+{
+    private EconomyTransactionBase transaction { get; set; }
+
+    public EconomyTransactionBase GetDto()
+    {
+        return transaction;
+    }
+
+    public GameThumbnailUploadTransaction(CreatorType creatorType, long creatorId)
+    {
+        transaction = new EconomyTransactionBase()
+        {
+            amount = 10,
+            currencyType = CurrencyType.Robux,
+            type = PurchaseType.Purchase,
+            subType = TransactionSubType.GameMediaUpload,
         };
         transaction.SetSelf(creatorType, creatorId);
         transaction.SetOther(CreatorType.User, 1);
@@ -156,6 +180,52 @@ public class AssetPurchaseTransaction : IEconomyTransaction
             assetId = assetId,
         };
         transaction.SetOther(sellerType, sellerId);
+    }
+}
+
+public class DevProdPurchaseTransaction : IEconomyTransaction
+{
+    private EconomyTransactionBase transaction { get; set; }
+
+    public EconomyTransactionBase GetDto()
+    {
+        return transaction;
+    }
+
+    public DevProdPurchaseTransaction(long userIdPurchaser, CreatorType sellerType, long sellerId, CurrencyType currency, long amount, string productName)
+    {
+        transaction = new EconomyTransactionBase
+        {
+            userIdOne = userIdPurchaser,
+            amount = amount,
+            currencyType = currency,
+            type = PurchaseType.Purchase,
+            itemName = productName,
+        };
+        transaction.SetOther(sellerType, sellerId);
+    }
+}
+
+public class DevProdSaleTransaction : IEconomyTransaction
+{
+    private EconomyTransactionBase transaction { get; set; }
+
+    public EconomyTransactionBase GetDto()
+    {
+        return transaction;
+    }
+
+    public DevProdSaleTransaction(long userIdPurchaser, CreatorType sellerType, long sellerId, CurrencyType currency, long amount, string productName)
+    {
+        transaction = new EconomyTransactionBase
+        {
+            userIdTwo = userIdPurchaser,
+            amount = amount,
+            currencyType = currency,
+            type = PurchaseType.Sale,
+            itemName = productName,
+        };
+        transaction.SetSelf(sellerType, sellerId);
     }
 }
 

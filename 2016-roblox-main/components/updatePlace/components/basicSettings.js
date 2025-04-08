@@ -25,7 +25,7 @@ import { getGameUrl } from "../../../services/games";
         Skatepark = 18,
     }
  */
-const genres = [
+const GameGenres = [
   {
     name: 'All',
     value: 'All',
@@ -122,7 +122,7 @@ const BasicSettings = props => {
       description,
       genres: [genre],
       isCopyingAllowed: false,
-      enableComments: commentsEnabled === 'true',
+      enableComments: commentsEnabled === 'true' || commentsEnabled === true,
     }).then(() => {
       window.location.reload();
     }).catch(e => {
@@ -161,7 +161,7 @@ const BasicSettings = props => {
         setGenre(e.currentTarget.value);
       }}>
         {
-          genres.map(v => {
+          GameGenres.map(v => {
             return <option key={v.value} value={v.value}>{v.name}</option>
           })
         }
@@ -183,3 +183,6 @@ const BasicSettings = props => {
 }
 
 export default BasicSettings;
+export {
+  GameGenres
+}

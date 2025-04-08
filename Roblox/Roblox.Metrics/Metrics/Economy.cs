@@ -29,6 +29,15 @@ public static class EconomyMetrics
             .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
         );
     }
+    
+    public static void ReportDevProdPurchaseTime(long timeInMilliseconds, bool isThirdPartySale)
+    {
+        RobloxInfluxDb.WritePointInBackground(PointData
+            .Measurement(isThirdPartySale ? "PurchaseResaleDevProd" : "PurchaseDevProd")
+            .Field("durationInMilliseconds", timeInMilliseconds)
+            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
+        );
+    }
 
     public static void ReportUserAlreadyOwnsItemDuringPurchase(string logHistory, long userId, long assetId)
     {
@@ -51,6 +60,17 @@ public static class EconomyMetrics
             .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
         );
     }
+    
+    public static void ReportDevProductNoLongerForSaleDuringPurchase(string logHistory, long userId, long productId)
+    {
+        RobloxInfluxDb.WritePointInBackground(PointData
+            .Measurement("DevProductNoLongerForSaleDuringPurchase")
+            .Field("userId", userId)
+            .Field("productId", productId)
+            .Field("logHistory", logHistory)
+            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
+        );
+    }
 
     public static void ReportUserDoesNotHaveEnoughRobuxDuringPurchase(string logHistory, long userId, long assetId, long balance,
         long itemPrice)
@@ -59,6 +79,20 @@ public static class EconomyMetrics
             .Measurement("UserDoesNotHaveEnoughRobuxDuringPurchase")
             .Field("userId", userId)
             .Field("assetId", assetId)
+            .Field("userBalance", balance)
+            .Field("itemPrice", itemPrice)
+            .Field("logHistory", logHistory)
+            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
+        );
+    }
+    
+    public static void ReportUserDoesNotHaveEnoughRobuxDuringDevProdPurchase(string logHistory, long userId, long productId, long balance,
+        long itemPrice)
+    {
+        RobloxInfluxDb.WritePointInBackground(PointData
+            .Measurement("UserDoesNotHaveEnoughRobuxDuringDevProdPurchase")
+            .Field("userId", userId)
+            .Field("productId", productId)
             .Field("userBalance", balance)
             .Field("itemPrice", itemPrice)
             .Field("logHistory", logHistory)

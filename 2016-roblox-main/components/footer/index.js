@@ -13,7 +13,7 @@ const footerLinks = {
 const useFooterStyles2 = createUseStyles({
   footerContainer:{
     padding: '12px',
-    background: p => p.theme === themeType.obc2016 ? '#393939' : '#fff',
+    background: p => p.theme === themeType.obc2016 ? '#393939' : 'var(--white-color)',
     width: '100%',
     marginTop: '40px',
     boxShadow: '0 0 3px rgba(25, 25, 25, 0.3)',
@@ -49,22 +49,22 @@ const useFooterStyles2 = createUseStyles({
     '& a':{
       fontSize: '16px',
       fontWeight: '500',
-      color: p => p.theme === themeType.obc2016 ? '#5a5a5a' : '#b8b8b8',
+      color: p => p.theme === themeType.obc2016 ? '#var(--text-color-secondary-dark)' : 'var(--text-color-secondary)',
       textDecoration: 'none',
       '&:hover':{
         textDecoration: 'none',
-        color: p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
+        color: 'var(--text-color-primary)',
       }
     }
   },
   footerNote:{
-    //borderTop: '1px solid #e3e3e3',
+    //borderTop: '1px solid var(--background-color)',
     fontSize: '10px',
     fontWeight: '500',
     margin: '12px auto',
     textAlign: 'center',
     width: '78%',
-    color: p => p.theme === themeType.obc2016 ? '#5a5a5a' : '#b8b8b8',
+    color: p => p.theme === themeType.obc2016 ? '#var(--text-color-secondary-dark)' : 'var(--text-color-secondary)',
     lineHeight: '1.5em',
     wordWrap: 'break-word',
     hyphens: 'none',
@@ -102,7 +102,7 @@ const Footer = props => {
         }
         <div className={'col-12 col-lg-10 ' + s.lowerFooterContainer}>
           <p className={`${s.text} ${s.text2}`}>
-            <a>©2024 Project X. Project X is not affliated with Roblox Corporation.</a>.
+            <a>©2024 Pekora. Pekora is not affliated with Roblox Corporation.</a>.
           </p>
         </div>
       </div>

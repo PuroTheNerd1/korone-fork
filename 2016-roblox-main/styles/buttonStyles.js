@@ -3,6 +3,7 @@ import { createUseStyles } from "react-jss";
 const useButtonStyles = createUseStyles({
   buyButton: {
     //width: '100%',
+    fontFamily: 'Source Sans Pro, Arial',
     paddingTop: '5px',
     paddingBottom: '5px',
     borderColor: '#007001!important',
@@ -15,6 +16,7 @@ const useButtonStyles = createUseStyles({
     width: 'auto!important',
   },
   continueButton: {
+    fontFamily: 'Source Sans Pro, Arial',
     //width: '100%',
     paddingTop: '5px',
     paddingBottom: '5px',
@@ -26,6 +28,7 @@ const useButtonStyles = createUseStyles({
     },
   },
   cancelButton: {
+    fontFamily: 'Source Sans Pro, Arial',
     //width: '100%',
     paddingTop: '5px',
     paddingBottom: '5px',
@@ -41,9 +44,9 @@ const useButtonStyles = createUseStyles({
   },
 
   newBuyButton: {
-    background: '#02b757',
-    border: '1px solid #02b757',
-    borderColor: '#02b757!important',
+    background: 'var(--success-color)',
+    border: '1px solid var(--success-color)',
+    borderColor: 'var(--success-color)!important',
     borderRadius: '3px',
     fontWeight: '500',
     color: '#fff!important',
@@ -57,16 +60,16 @@ const useButtonStyles = createUseStyles({
     padding: '9px',
     lineHeight: '100%',
     '&:hover': {
-      background: '#3fc679!important',
-      borderColor: '#3fc679!important',
+      background: 'var(--success-color-hover)!important',
+      borderColor: 'var(--success-color-hover)!important',
       color: '#fff',
       cursor: 'pointer',
     },
   },
   newContinueButton: {
-    background: '#00a2ff',
-    border: '1px solid #00a2ff',
-    borderColor: '#00a2ff!important',
+    background: 'var(--primary-color)',
+    border: '1px solid var(--primary-color)',
+    borderColor: 'var(--primary-color)!important',
     borderRadius: '3px',
     fontWeight: '500',
     color: '#fff!important',
@@ -81,19 +84,19 @@ const useButtonStyles = createUseStyles({
     padding: '9px',
     lineHeight: '100%',
     '&:hover': {
-      background: '#32b5ff!important',
-      borderColor: '#32b5ff!important',
+      background: 'var(--primary-color-hover)!important',
+      borderColor: 'var(--primary-color-hover)!important',
       color: '#fff',
       cursor: 'pointer',
     },
   },
   newCancelButton: {
     background: '#fff',
-    border: '1px solid #b8b8b8',
-    borderColor: '#b8b8b8!important',
+    border: '1px solid var(--text-color-secondary)',
+    borderColor: 'var(--text-color-secondary)!important',
     borderRadius: '3px',
     fontWeight: '500',
-    color: '#000!important',
+    color: 'var(--text-color-primary)!important',
     fontSize: '18px',
     userSelect: 'none',
     display: 'inline-block',
@@ -118,8 +121,8 @@ const useButtonStyles = createUseStyles({
     '&, &:hover, &:visited': {
       opacity: '.5',
       backgroundColor: '#fff',
-      borderColor: '#b8b8b8!important',
-      color: '#b8b8b8!important',
+      borderColor: 'var(--text-color-secondary)!important',
+      color: 'var(--text-color-secondary)!important',
       cursor: 'not-allowed',
       pointerEvents: 'none',
       boxShadow: 'none'

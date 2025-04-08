@@ -6,6 +6,7 @@ import AuthenticationStore from "../../../stores/authentication";
 import useButtonStyles from "../../../styles/buttonStyles";
 import ActionButton from "../../actionButton";
 import { decode } from "jsonwebtoken";
+import RobloxLoadingModal from "./gameModals/robloxLoadingModal";
 
 const useStyles = createUseStyles({
   buttonWrapper: {
@@ -67,11 +68,11 @@ export const joinGame = (e, placeId, auth, setError) => {
       return;
     }
     e && e.preventDefault && e.preventDefault();
-    //modalActivate();
+    //modalActivate(); should be done elsewhere
     launchGame({
       placeId: placeId,
     }).catch(e => {
-      // todo: modal
+      // todo: modal ????
       setError(e.message);
     });
   } else if (getFlag('launchUsingEsWeb', false)) {
@@ -93,24 +94,18 @@ export const PlayButton = props => {
   const auth = AuthenticationStore.useContainer();
   const s = useStyles();
   const buttonStyles = useButtonStyles();
-
-  const modal = props => {
-    return <div className={s.modalContainer}>
-    </div>
-  }
-
-  function modalActivate() {
-    // TODO: modal stuff lalalalal
-  }
-
+  const [isModalClosed, setModalClosed] = useState(true);
   const playSpan = <span className={useStyles().iconPlay}></span>;
 
   return (
     <div className='row'>
       <div className={'col-12 mx-auto ' + s.buttonWrapper}>
         {error && <p className='text-danger mb-1 mt-1'>{error}</p>}
+        {!isModalClosed ? <RobloxLoadingModal closeModals={isModalClosed} exitFunction={() => setModalClosed(true)} /> : null}
         <ActionButton className={s.actionBtn} label={playSpan} divClassName={s.button} buttonStyle={buttonStyles.newBuyButton} onClick={(e) => {
-          joinGame(e, props.placeId, auth, setError)
+          joinGame(e, props.placeId, auth, setError);
+          if (isModalClosed === false) { return } // if modal already exists
+          setModalClosed(false);
         }}></ActionButton>
       </div>
     </div>

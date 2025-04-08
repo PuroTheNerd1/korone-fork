@@ -2660,7 +2660,7 @@
 	"FFlagNewABTestFramework2": true,
 	"FFlagNewAppBridgeInitMoreVerbs": true,
 	"FFlagNewAppBridgeInitVerbs": true,
-	"FFlagNewAwardBadgeEndpoint_PlaceFilter": "True;2534981557",
+	"FFlagNewAwardBadgeEndpoint_PlaceFilter": "True;2534981557;10",
 	"FFlagNewAwardBadgeEndpoint2": true,
 	"FFlagNewCharacterSoundScript": true,
 	"FFlagNewDefaultScriptSource": true,

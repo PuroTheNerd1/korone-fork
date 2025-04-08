@@ -71,7 +71,7 @@ const useStyles = createUseStyles({
     textAlign: 'center',
     background: 'linear-gradient(0deg, rgba(187,187,187,1) 0%, rgba(255,255,255,1) 100%)',
     padding: 0,
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
   },
   itemRow: {
     display: 'flex',
@@ -84,7 +84,7 @@ const useStyles = createUseStyles({
     paddingRight: '2px',
   },
   itemCard: {
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     padding: '0 4px',
     width: '100%',
   },

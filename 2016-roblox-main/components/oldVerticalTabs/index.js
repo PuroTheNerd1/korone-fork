@@ -20,19 +20,19 @@ const useStyles = createUseStyles({
   vTagSelected: {
   },
   buttonCol: {
-    borderBottom: '2px solid #c3c3c3',
+    borderBottom: '2px solid var(--text-color-quinary)',
   },
   btnBottomSeperator: {
     width: '100%',
     height: '5px',
-    background: 'white',
+    background: 'var(--white-color)',
     marginBottom: '-5px',
   },
   vTabUnselected: {
-    background: '#d6d6d6',
+    background: 'var(--background-color)',
     paddingTop: '7px',
     '&:hover': {
-      background: '#e8e8e8'
+      background: 'var(--text-color-secondary)'
     },
     // 9e9e9e
   },

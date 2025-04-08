@@ -2,7 +2,11 @@ import { createUseStyles } from 'react-jss';
 import { useState, useEffect } from 'react';
 import ActionCalls from './actionCalls';
 import updatePlaceStore from "../stores/updatePlaceStore";
-import { getAssetThumbnail } from '../../../services/thumbnails';
+import {getAssetThumbnail, getUniverseIcon} from '../../../services/thumbnails';
+import FeedbackStore from "../../../stores/feedback";
+import ActionButton from "../../actionButton";
+import {getGameUrl} from "../../../services/games";
+import useButtonStyles from "../../../styles/buttonStyles";
 
 const useStyles = createUseStyles({
   contentContainer: {
@@ -14,7 +18,7 @@ const useStyles = createUseStyles({
   },
   header: {
     '& h3': {
-      fontWeight: 'bolder!important',
+      fontWeight: '400!important',
       marginBottom: '1.5rem!important',
       fontSize: '2rem',
       lineHeight: '1.2',
@@ -28,7 +32,7 @@ const useStyles = createUseStyles({
   iconContainer: {
     display: 'flex',
     flexDirection: 'column',
-    borderRight: '1px solid #ccc',
+    borderRight: '1px solid var(--text-color-secondary)',
     paddingRight: '20px'
   },
   gameIcon: {
@@ -83,19 +87,18 @@ function blobToBase64(blob) {
 
 const Icon = props => {
   const s = useStyles();
-  const [feedback, setFeedback] = useState(null);
+  const feedback = FeedbackStore.useContainer();
   const [gameIcon, setGameIcon] = useState('/img/placeholder/icon_one.png');
   const store = updatePlaceStore.useContainer();
+  const buttonStyles = useButtonStyles();
 
   const refreshGameIcon = () => {
     setGameIcon('/img/placeholder/icon_one.png')
   }
 
   useEffect(() => {
-    if (gameIcon == '/img/placeholder/icon_one.png') {
-      getAssetThumbnail(
-        store.placeId
-      )
+    if (gameIcon === '/img/placeholder/icon_one.png') {
+      getUniverseIcon({ universeId: store.details.universeId })
         .then((result) => {
           /*getImage(`pekora.zip${result.data.data[0].imageUrl}`).then((img) => {
             blobToBase64(img.data).then(base64 => {
@@ -119,7 +122,6 @@ const Icon = props => {
         <p className={s.noteText}>Note: You can only have 1 icon per game.</p>
       </div>
       <div className={`${s.callsToAction} col-4`}>
-        {feedback && <p className={s.feedback}>{feedback}</p>}
         <p style={{
           fontSize: '18px',
         }}>Change the Icon</p>
@@ -128,10 +130,25 @@ const Icon = props => {
         }}>Media type:</p>
         <ActionCalls placeId={
           store.placeId
-        } refreshIcon={refreshGameIcon} />
+        } refreshIcon={refreshGameIcon} feedback={feedback} />
       </div>
     </div>
-    <div className={`${s.footerContainer} col-12`}></div>
+    <div className={`${s.footerContainer} col-12`}>
+      <div className='d-inline-block'>
+        <ActionButton disabled={store.locked} buttonStyle={buttonStyles.continueButton} className={s.normal}
+                      label='Save'
+                      onClick={() => {
+                        window.location.href = getGameUrl({placeId: store.placeId, name: 'placeholder'})
+                      }}/>
+      </div>
+      <div className='d-inline-block ms-4'>
+        <ActionButton disabled={store.locked} buttonStyle={buttonStyles.cancelButton} className={s.normal}
+                      label='Cancel'
+                      onClick={() => {
+                        window.location.href = getGameUrl({placeId: store.placeId, name: 'placeholder'})
+                      }}/>
+      </div>
+    </div>
   </div>
 };
 

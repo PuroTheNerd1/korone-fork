@@ -37,7 +37,7 @@ export async function getServerSideProps(context) {
   // we will get the username, desc
   try {
     const info = await getUserInfo({ userId });
-    const username = info.name || "Pekora";
+    const username = info.name || "Pekora"; 
     const description = info.description || "No description available";
     return {
       props: {
@@ -50,7 +50,7 @@ export async function getServerSideProps(context) {
     console.error("Error fetching user info in profile.js" + error);
     return {
       props: {
-        username: "Pekora",
+        username: "Pekora", 
         description: "Join Pekora and explore together!",
         userId
       }

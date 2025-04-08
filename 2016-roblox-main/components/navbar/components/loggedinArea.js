@@ -37,12 +37,12 @@ const SettingsDropdown = (props) => {
     <div className={s.wrapper}>
       <p className={`${s.text}`}>
         <Link href="/My/Account">
-          <a className="text-dark">Settings</a>
+          <a className="">Settings</a>
         </Link>
       </p>
       <p className={`${s.text}`}>
         <Link href="/help">
-          <a className="text-dark">Help</a>
+          <a className="">Help</a>
         </Link>
       </p>
       <p className={`${s.text}`}>
@@ -53,7 +53,7 @@ const SettingsDropdown = (props) => {
               window.location.reload();
             });
           }}
-          className="text-dark"
+          className=""
         >
           Logout
         </a>
@@ -127,7 +127,7 @@ const useLoginAreaStyles = createUseStyles({
     marginRight: 0,
     color: "inherit",
     display: "inline",
-    fontWeight: '400',
+    fontWeight: 500,
     textDecoration: 'none',
     '&:hover': {
       textDecoration: 'underline',
@@ -139,7 +139,7 @@ const useLoginAreaStyles = createUseStyles({
   ageSpan: {
     color: "inherit",
     display: "inline",
-    fontWeight: '400',
+    fontWeight: 500,
   },
   messagesContainer: {
     float: "left",
@@ -203,7 +203,7 @@ const useLoginAreaStyles = createUseStyles({
   },
   text: {
     color: "white",
-    fontWeight: 400,
+    fontWeight: 500,
     fontSize: "16px",
     borderBottom: 0,
     textAlign: "right",
@@ -303,7 +303,7 @@ const LoggedInArea = (props) => {
               url: '/help',
             },
             {
-              name: 'Logout (unlike Solario, we give you the choice!)',
+              name: 'Logout',
               onClick: (e) => {
                 if (e)
                   e?.preventDefault();

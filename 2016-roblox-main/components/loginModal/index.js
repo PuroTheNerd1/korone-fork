@@ -37,20 +37,20 @@ const useLoginModalStyles = createUseStyles({
     },
   },
   btnPrimary: {
-    background: '#00A2FF',
+    background: 'var(--primary-color)',
     '&:hover': {
       background: '#32B5FF',
     },
   },
   btnSecondary: {
-    color: '#757575',
-    border: '1px solid #B8B8B8',
+    color: 'var(--text-color-tertiary)',
+    border: '1px solid var(--text-color-secondary)',
     '&:hover': {
-      color: '#757575',
+      color: 'var(--text-color-tertiary)',
     },
   },
   forgotPass: {
-    color: '#00A2FF',
+    color: 'var(--primary-color)',
   },
 });
 
@@ -74,7 +74,6 @@ const LoginModal = props => {
             const username = userRef.current.value;
             const password = passRef.current.value;
             login({ username, password }).then(userInfo => {
-              console.log(userInfo);
               window.location.reload();
             })
               .catch(e => {

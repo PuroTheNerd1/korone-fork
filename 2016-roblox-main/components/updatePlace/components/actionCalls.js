@@ -2,7 +2,12 @@ import { createUseStyles } from 'react-jss';
 import { useState, useEffect, useRef } from 'react';
 import ActionButton from '../../../components/actionButton';
 import ConfirmUploadModal from './confirmUploadModal';
-import { uploadGameIcon } from '../../../services/develop'
+import {
+    uploadAutoGenGameIcon,
+    uploadAutoGenGameThumbnail,
+    uploadGameIcon,
+    uploadGameThumbnail
+} from '../../../services/develop'
 import useButtonStyles from '../../../styles/buttonStyles';
 
 /*const useStyles = createUseStyles({
@@ -100,41 +105,61 @@ const Icon = props => {
 
     const [modalOpen, setModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [feedback, setFeedback] = useState(null);
 
     const [mediaType, setMediaType] = useState('custom')
 
     const handleMediaChange = e => {
         setMediaType(e.target.value)
     }
-
-    const onSubmit = e => {
+    
+    const feed = string => {
+        props.feedback.addFeedback(string);
+        setModalOpen(false);
+        setLoading(false);
+    }
+    
+    const onSubmit = () => {
         //e.preventDefault();
         if (loading) return;
-        if (!fileRef.current.files.length) return setFeedback('You must select a file.');
-        let image = fileRef.current.files[0];
-        if (image.size >= 8e+7) return setFeedback('The image is too large.');
-        if (image.size === 0) return setFeedback('The image is empty.');
-        setLoading(true);
-        setModalOpen(false);
-
-        uploadGameIcon({
-            placeId: props.placeId,
-            file: image,
-        }).then(() => {
-            setLoading(false);
-            props.refreshIcon();
-            //window.location.reload();
-        }).catch(e => {
-            setFeedback(e.message);
-            setLoading(false);
-        })
+        if (mediaType === 'custom') {
+            if (!fileRef.current.files.length) return feed('You must select a file.');
+            let image = fileRef.current.files[0];
+            if (image.size >= 8e+7) return feed('The image is too large.');
+            if (image.size === 0) return feed('The image is empty.');
+            setLoading(true);
+            setModalOpen(false);
+            
+            uploadGameIcon({
+                placeId: props.placeId,
+                file: image,
+            }).then(() => {
+                setLoading(false);
+                props.refreshIcon();
+                //window.location.reload();
+            }).catch(e => {
+                props.feedback.addFeedback(e.message);
+                setLoading(false);
+            })
+        } else {
+            setLoading(true);
+            setModalOpen(false);
+            
+            uploadAutoGenGameIcon({
+                placeId: props.placeId
+            }).then(() => {
+                setLoading(false);
+                props.refreshIcon();
+                //window.location.reload();
+            }).catch(e => {
+                props.feedback.addFeedback(e.message);
+                setLoading(false);
+            })
+        }
     }
 
     const modalPopup = e => {
         e.preventDefault();
         setModalOpen(true);
-        setFeedback(null);
     }
 
     const onClose = () => {
@@ -145,9 +170,10 @@ const Icon = props => {
         {modalOpen && <ConfirmUploadModal
             onClose={onClose}
             onConfirm={onSubmit}
+            title="Add Icon"
+            message="Are you sure you want to add this icon? This will delete your existing icon."
         ></ConfirmUploadModal>
         }
-        {feedback && <p className={s.feedback}>{feedback}</p>}
         <input // Custom Image
             className={s.input}
             id='customImage'
@@ -169,19 +195,21 @@ const Icon = props => {
             onChange={handleMediaChange}
         />
         <label htmlFor='autoImage'>Auto generated Image</label>
-        {mediaType == 'auto' ?
+        {mediaType === 'auto' ?
             <>
-            <p className={s.autoText}>If you want an auto generated image, you can either:<br/><ul className={s.autoUl}><li>Go into studio and re-publish your game</li><li>Re-upload your game through the website</li></ul>and it will overwrite the current thumbnail with your new auto generated thumbnail.</p>
-                <p className={s.noteText}>Being able to generate a thumbnail with a button will be added soon.</p>
+            {/*<p className={s.autoText}>If you want an auto generated image, you can either:<br/><ul className={s.autoUl}><li>Go into studio and re-publish your game</li><li>Re-upload your game through the website</li></ul>and it will overwrite the current thumbnail with your new auto generated thumbnail.</p>*/}
+            {/*    <p className={s.noteText}>Being able to generate a thumbnail with a button will be added soon.</p>*/}
                 {/*<ActionButton className={s.actionButton} buttonStyle={butStyles.continueButton} label='Save Changes' onClick={modalPopup} />
-            */}</>
+            */}
+                <ActionButton className={s.actionButton} buttonStyle={butStyles.continueButton} label='Set Icon' onClick={modalPopup} />
+            </>
             :
             <>
                 <p style={{ marginBottom: '5px' }}>Select image:</p>
                 <input style={{ marginBottom: '15px', maxWidth: '100%' }} accept='image/*' ref={fileRef} type="file" />
                 <ActionButton className={s.actionButton} buttonStyle={butStyles.continueButton} label='Upload Image' onClick={modalPopup} />
                 <p className={s.noteText}>Icon must be square.</p>
-                <p className={s.noteText}>Note that publishing your game after setting a custom thumbnail WILL OVERWRITE your previous thumbnail with an auto-generated image.</p>
+                {/*<p className={s.noteText}>Note that publishing your game after setting a custom thumbnail WILL OVERWRITE your previous thumbnail with an auto-generated image.</p>*/}
             </>
         }
     </form>

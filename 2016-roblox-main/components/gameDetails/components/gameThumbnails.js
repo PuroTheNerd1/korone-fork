@@ -30,7 +30,7 @@ const useStyles = createUseStyles({
     bottom: '20px',
     right: '10px',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: '#fff',
+    color: 'var(--text-color-primary)',
     padding: '5px',
     fontSize: '14px',
     borderRadius: '5px',
@@ -50,7 +50,7 @@ const GameThumbnails = props => {
     getGameMedia({universeId: store.universeDetails.id}).then(media => {
       const images = media.filter(v => v.assetType === 'Image');
       if (images.length) {
-        multiGetAssetThumbnails({assetIds: images.map(v => v.imageId)}).then(thumb => {
+        multiGetAssetThumbnails({assetIds: images.filter(v => v.approved === true).map(v => v.imageId)}).then(thumb => {
           // Default to first thumbnail
           setImageUrl(thumb[0].imageUrl);
           setImages(thumb.map(v => v.imageUrl));

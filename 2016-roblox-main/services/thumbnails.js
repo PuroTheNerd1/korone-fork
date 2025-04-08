@@ -1,5 +1,5 @@
-import { chunk, flatten } from "lodash";
-import request, { getBaseUrl, getFullUrl } from "../lib/request"
+import {chunk} from "lodash";
+import request, {getBaseUrl, getFullUrl} from "../lib/request"
 
 const toCsv = (str) => {
   if (typeof str === 'string') return str;
@@ -112,11 +112,9 @@ export const multiGetUniverseIcons = ({ universeIds, size }) => {
 }
 
 export const getAssetThumbnail = assetId => {
-  const data = request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${assetId}&format=png&size=420x420`))
-  return data
+  return request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${assetId}&format=png&size=420x420`))
 }
 
 export const getUniverseIcon = ({ universeId, size = '150x150' }) => {
-  const data = request('get', getFullUrl('thumbnails', `/v1/games/icons?size=${size}&format=png&universeIds=${universeId}`))
-  return data
+  return request('get', getFullUrl('thumbnails', `/v1/games/icons?size=${size}&format=png&universeIds=${universeId}`))
 }

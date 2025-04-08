@@ -15,7 +15,7 @@ const useStyles = createUseStyles({
     fontWeight: 500,
     cursor: 'pointer',
     userSelect: 'none',
-    color: '#b8b8b8',
+    color: 'var(--text-color-secondary)',
   },
   span: {
     color: 'inherit',
@@ -76,9 +76,6 @@ const PreviousUsernames = props => {
   }
 
   if (store.previousNames === null || store.previousNames.length === 0) return null;
-
-  console.log(clickTipOpen)
-  console.log(tooltipOpen)
 
   return <div>
     <p className={s.previousNamesLabel + ' ' + s.body}>

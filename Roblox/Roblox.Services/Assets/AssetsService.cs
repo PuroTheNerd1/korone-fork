@@ -252,6 +252,7 @@ public class AssetsService : ServiceBase, IService
         content.Seek(0, SeekOrigin.Begin);
         await content.CopyToAsync(file);
         // Done
+        await content.DisposeAsync();
         return plainHash;
     }
     public Task DeleteAssetContent(string key, string? directory = null)
@@ -303,6 +304,48 @@ public class AssetsService : ServiceBase, IService
                 content_url = newThumbnailKey,
                 moderation_status = moderationStatus,
                 asset_version_id = assetVersionId,
+            });
+            return 0;
+        });
+    }
+    
+    public async Task InsertOrReplaceGameMedia(long assetId, long mediaAssetId, Models.Assets.Type assetType)
+    {
+        await InTransaction(async (tr) =>
+        {
+            await InsertAsync("asset_media", new
+            {
+                asset_id = assetId,
+                media_asset_id = mediaAssetId,
+                asset_type = assetType,
+            });
+            return 0;
+        });
+
+        // await InTransaction(async (tr) =>
+        // {
+        //     // await db.ExecuteAsync("DELETE FROM asset_media WHERE asset_id = :asset_id", new
+        //     // {
+        //     //     asset_id = assetId,
+        //     // });
+        //     
+        //     // await db.ExecuteAsync("INSERT INTO asset_media (asset_type, asset_id, media_asset_id) VALUES (:assetType, :assetId, :mediaAssetId)", new {
+        //     //     assetType,
+        //     //     assetId,
+        //     //     mediaAssetId
+        //     // });
+        //     return 0;
+        // });
+    }
+    
+    public async Task DeleteGameMedia(long assetId, long mediaAssetId)
+    {
+        await InTransaction(async (tr) =>
+        {
+            await db.ExecuteAsync("DELETE FROM asset_media WHERE asset_id = :assetId AND media_asset_id = :mediaAssetId", new
+            {
+                assetId,
+                mediaAssetId
             });
             return 0;
         });
@@ -836,35 +879,87 @@ public class AssetsService : ServiceBase, IService
         string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
         await InsertOrReplaceIcon(assetId, key, ModerationStatus.AwaitingApproval);
     }
-    private async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
+    
+    public static string TrimTo255(string input)
     {
+        if (string.IsNullOrEmpty(input))
+            return input;
+        return input.Length > 255 ? input.Substring(0, 255) : input;
+    }
+    
+    public async Task CreateGameThumbnail(long assetId, Stream? thumbnailToUse = null, CancellationToken? cancellationToken = null)
+    {
+        if (thumbnailToUse is null)
+        {
+            // string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
+            // string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 640, 360);
+            // imageBytes = Convert.FromBase64String(resizedBase64);
+            return;
+        }
         var modInfo = await GetAssetCatalogInfo(assetId);//(await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
             return;
 
         byte[] imageBytes;
-        if (thumbnailToUse is null)
+        
+        var validImage = await ValidateImage(thumbnailToUse);
+        if (validImage == null)
         {
-            string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
-            string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 352, 352);
-            imageBytes = Convert.FromBase64String(resizedBase64);
+            Writer.Info(LogGroup.GameThumbnailRender, "custom thumbnail failed for placeId={0}", assetId);
+            return;
         }
-        else
-        {
-            var validImage = await ValidateImage(thumbnailToUse);
-            if (validImage == null)
-            {
-                Writer.Info(LogGroup.GameIconRender, "custom icon failed for assetId={0}", assetId);
-                return;
-            }
-            if (thumbnailToUse.CanSeek)
-                thumbnailToUse.Position = 0;
-            imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 352, 352);
-        }
+        if (thumbnailToUse.CanSeek)
+            thumbnailToUse.Position = 0;
+        imageBytes = await AvatarService.GetResizedImageFromStream(thumbnailToUse, 640, 360);
+        
         var imageStream = new MemoryStream(imageBytes);
-        string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
-        var latestVersion = await GetLatestAssetVersion(assetId);
-        await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
+        var thumbnailAsset = await CreateAsset(TrimTo255(modInfo.name + "_Image"), "Custom :3c -- zyth", modInfo.creatorTargetId, modInfo.creatorType, modInfo.creatorTargetId, imageStream, Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
+        await InsertOrReplaceGameMedia(assetId, thumbnailAsset.assetId, Type.Image);
+    }
+    public async Task CreateAutoGeneratedGameThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    {
+        var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
+        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        {
+            return;
+        }
+        string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 945);
+        string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 640, 360);
+        CreateResponse thumbnailAsset;
+        using (var imageStream = new MemoryStream(Convert.FromBase64String(resizedBase64))) {
+            thumbnailAsset = await CreateAsset(
+                TrimTo255(modInfo.name + "_Image"),
+                null,
+                modInfo.creator.targetId,
+                modInfo.creator.type,
+                modInfo.creator.targetId,
+                imageStream,
+                Type.Image,
+                Genre.All,
+                ModerationStatus.AwaitingApproval
+            );
+        }
+        await InsertOrReplaceGameMedia(assetId, thumbnailAsset.assetId, Type.Image);
+    }
+    // All this does is unlink the game media thumbnail from the asset itself
+    public async Task DeleteGameThumbnail(long rootPlaceId, long thumbnailAssetId, CancellationToken? cancellationToken = null)
+    {
+        await DeleteGameMedia(rootPlaceId, thumbnailAssetId);
+    }
+    public async Task CreateAutoGeneratedGameIcon(long assetId, CancellationToken? cancellationToken = null)
+    {
+        var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
+        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        {
+            return;
+        }
+        string key;
+        string response = await RenderingHandler.RequestPlaceRender(assetId, 20, 1680, 1680);
+        string resizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
+        using (var imageStream = new MemoryStream(Convert.FromBase64String(resizedBase64))) {
+            key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+        }
+        await InsertOrReplaceIcon(assetId, key,
             ModerationStatus.AwaitingApproval);
     }
     private async Task CreateTeeShirtThumbnail(long assetId, CancellationToken? cancellationToken = null)
@@ -927,6 +1022,8 @@ public class AssetsService : ServiceBase, IService
         List<Task> thumbRequests = new();
         switch (assetType)
         {
+            case Models.Assets.Type.GamePass:
+            case Models.Assets.Type.Badge:
             case Models.Assets.Type.Image:
             case Models.Assets.Type.Decal:
             case Models.Assets.Type.Face:
@@ -972,8 +1069,6 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.PoseAnimation:
             case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.Plugin:
-            case Models.Assets.Type.Badge:
-            case Models.Assets.Type.GamePass:
                 break;
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Model:
@@ -1385,7 +1480,7 @@ public class AssetsService : ServiceBase, IService
         };
     }
 
-    private async Task UpdateAsset(long assetId)
+    public async Task UpdateAsset(long assetId)
     {
         await db.ExecuteAsync("UPDATE asset SET updated_at = now() WHERE id = :id", new
         {
@@ -1430,6 +1525,8 @@ public class AssetsService : ServiceBase, IService
         Type.Face,
         Type.ShoulderAccessory,
         Type.FaceAccessory,
+        Type.GamePass,
+        Type.Badge
     };
 
     public async Task<Dto.Assets.CreateResponse> CreateAsset(string name, string? description, long creatorUserId,
@@ -1564,7 +1661,7 @@ public class AssetsService : ServiceBase, IService
 
     public async Task UpdateAsset(long assetId, string name, string description,
         IEnumerable<Models.Assets.Genre> genres,
-        bool enableComments, bool isCopyingAllowed)
+        bool enableComments, bool isCopyingAllowed, bool isForSale)
     {
         ValidateNameAndDescription(name, description);
 
@@ -1574,24 +1671,76 @@ public class AssetsService : ServiceBase, IService
             description,
             asset_genre = (int)genres.ToArray()[0], // todo: multi genre support
             comments_enabled = enableComments,
+            is_for_sale = isForSale,
         });
     }
 
-    public async Task<CreatePlaceResponse> CreatePlace(long creatorId, CreatorType creatorType, long creatorUserId)
+    public async Task<CreatePlaceResponse> CreatePlace(long creatorId, CreatorType creatorType, long creatorUserId, long? templateId = 0)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
-        var basePlateLocation = Configuration.PublicDirectory + "/Baseplate.rbxl";
-        await using var basePlateFile = new FileStream(basePlateLocation, FileMode.Open, FileAccess.Read,
-            FileShare.ReadWrite,
-            default, FileOptions.Asynchronous);
-        var place = await CreateAsset("Place", null, creatorUserId, creatorType, creatorId, basePlateFile,
+
+        var username = await GetUserName(creatorId);
+        if (username == null)
+            throw new RecordNotFoundException();
+        if (templateId.HasValue && !getStarterPlaces.ContainsValue(templateId.Value)) templateId = null;
+
+        // here because on goober.top some of the places dont fuckigng exist
+        AssetVersionEntry assetVersion = null;
+        try {
+            assetVersion = await GetLatestAssetVersion(templateId.Value);
+        }
+        catch {
+            templateId = null;
+        }
+        
+        Stream stream;
+        if (templateId != null && assetVersion != null) {
+            stream = await GetAssetContent(assetVersion.contentUrl);
+        }
+        // TODO: should we use baseplate template instead?
+        else {
+            var basePlateLocation = Configuration.PublicDirectory + "/Baseplate.rbxl";
+            stream = new FileStream(
+                basePlateLocation, FileMode.Open, FileAccess.Read,
+                FileShare.ReadWrite, bufferSize: default, FileOptions.Asynchronous);;
+        }
+
+        var place = await CreateAsset($"{username}'s Place", null, creatorUserId, creatorType, creatorId, stream,
             Type.Place, Genre.All, ModerationStatus.ReviewApproved, DateTime.UtcNow, DateTime.UtcNow);
         return new()
         {
             placeId = place.assetId,
         };
     }
+    
+    private async Task<string?> GetUserName(long userId)
+    {
+        var qu = await db.QuerySingleOrDefaultAsync<dynamic>(
+            "SELECT username as name FROM \"user\" WHERE id = :userId", new
+            {
+                userId
+            });
+        return qu?.name;
+    }
 
+    public async Task CreateBadgeAsset(long assetId, long? universeId) {
+        if (universeId is null)
+            return;
+        await InsertAsync("asset_badge", new {
+            asset_id = assetId,
+            universe_id = universeId
+        });
+    }
+    
+    public async Task CreateGamePassAsset(long assetId, long? universeId) {
+        if (universeId is null)
+            return;
+        await InsertAsync("asset_gamepass", new {
+            asset_id = assetId,
+            universe_id = universeId
+        });
+    }
+    
     public async Task<ProductEntry> GetProductForAsset(long assetId)
     {
         var result = await db.QuerySingleOrDefaultAsync<ProductEntry>(
@@ -1756,7 +1905,18 @@ public class AssetsService : ServiceBase, IService
         }
         return result.total;
     }
-
+    
+    public async Task<ExistsType> DoesAssetExistType(long assetId) {
+        var guh = await db.QuerySingleOrDefaultAsync<ExistsType>("SELECT asset_type AS assetType FROM asset WHERE id = :assetId",
+            new {
+                assetId
+            });
+        return new ExistsType {
+            exists = guh != null,
+            assetType = guh?.assetType
+        };
+    }
+    
     public async Task<IEnumerable<Dto.Assets.MultiGetEntry>> MultiGetInfoById(IEnumerable<long> assetIds)
     {
         // TODO: If we ever get to a scale where unnecessary joins become an issue, then replace left join code with a switch/case depending on creatorType
@@ -1768,7 +1928,7 @@ public class AssetsService : ServiceBase, IService
         watch.Start();
         var query = new SqlBuilder();
         var t = query.AddTemplate(
-            "SELECT asset.id as id, asset_type as assetType, asset.name, asset.description, asset_genre as genre, creator_type as creatorType, creator_id as creatorTargetId, offsale_at as offsaleDeadline, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTickets, is_limited as isLimited, is_limited_unique as isLimitedUnique, serial_count as serialCount, \"group\".name as groupName, \"user\".username as username, asset.created_at as createdAt, asset.updated_at as updatedAt, asset.is_18_plus, asset.moderation_status FROM asset LEFT JOIN \"user\" ON \"user\".id = asset.creator_id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id /**where**/ LIMIT 200", new
+            "SELECT asset.id as id, asset_type as assetType, asset.name, asset.description, asset_genre as genre, creator_type as creatorType, creator_id as creatorTargetId, offsale_at as offsaleDeadline, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTickets, is_limited as isLimited, is_limited_unique as isLimitedUnique, comments_enabled as commentsEnabled, serial_count as serialCount, \"group\".name as groupName, \"user\".username as username, asset.created_at as createdAt, asset.updated_at as updatedAt, asset.is_18_plus, asset.moderation_status FROM asset LEFT JOIN \"user\" ON \"user\".id = asset.creator_id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id /**where**/ LIMIT 200", new
             {
                 sale_type = PurchaseType.Purchase,
                 sub_sale_type = TransactionSubType.ItemPurchase,
@@ -1871,7 +2031,18 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             case "Emote":
             case "Emotes":
                 return Type.EmoteAnimation;
-            
+            case "badge":
+            case "badges":
+            case "Badge":
+            case "Badges":
+                return Type.Badge;
+            case "gamepass":
+            case "Gamepass":
+            case "GamePass":
+            case "gamepasses":
+            case "Gamepasses":
+            case "GamePasses":
+                return Type.GamePass;
         }
 
         return null;
@@ -2204,7 +2375,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
     }
 
     public async Task UpdateAsset(long assetId, string? description, string name, Genre genre,
-        bool isCopyingAllowed, bool areCommentsAllowed)
+        bool isCopyingAllowed, bool areCommentsAllowed, bool isForSale)
     {
         ValidateNameAndDescription(name, description);
 
@@ -2214,6 +2385,45 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             description,
             asset_genre = (int)genre,
             comments_enabled = areCommentsAllowed,
+            is_for_sale = isForSale,
+            // is_copying_allowed = isCopyingAllowed,
+        });
+    }
+    
+    public async Task UpdateAsset(long assetId, string? description, string name, Genre genre,
+        bool isCopyingAllowed, bool areCommentsAllowed, bool isForSale, Stream? file = null)
+    {
+        ValidateNameAndDescription(name, description);
+
+        if (file != null) {
+            var modInfo = await GetAssetCatalogInfo(assetId);
+            if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
+                return;
+
+            var checkImage = await ValidateImage(file);
+            if (checkImage == null) {
+                Writer.Info(LogGroup.GameIconRender, "custom icon failed for assetId={0}", assetId);
+                return;
+            }
+            if (file.CanSeek) 
+                file.Position = 0;
+            var validImage = await CleanImage(file);
+            byte[] imageBytes = await AvatarService.GetResizedImageFromStream(validImage, 420, 420);
+            var imageStream = new MemoryStream(imageBytes);
+            string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+            var latestVersion = await GetLatestAssetVersion(assetId);
+            await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
+                ModerationStatus.AwaitingApproval);
+        }
+        
+        await UpdateAsync("asset", assetId, new
+        {
+            name,
+            description,
+            asset_genre = (int)genre,
+            comments_enabled = areCommentsAllowed,
+            is_for_sale = isForSale,
+            moderation_status = ModerationStatus.AwaitingApproval
             // is_copying_allowed = isCopyingAllowed,
         });
     }
@@ -2317,7 +2527,18 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         throw new PermissionException(assetId, userId);
     }
-
+    public async Task EnsureAssetIsModerated(long assetId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT moderation_status FROM asset WHERE id = :id AND moderation_status = :acceptedStatus", 
+            new { id = assetId, acceptedStatus = ModerationStatus.ReviewApproved });
+        if (res == null) throw new NotApprovedException(assetId);
+    }
+    public async Task<dynamic> GetAssetModerationStatus(long assetId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync("SELECT moderation_status as moderationStatus FROM asset WHERE id = :id", 
+            new { id = assetId });
+        return res;
+    }
     public async Task<bool> CanUserModifyItem(long assetId, long userId)
     {
         // todo: move IsOwner() to service
@@ -3143,6 +3364,29 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         });
     }
 
+    public Dictionary<string, long> getStarterPlaces = new Dictionary<string, long> 
+    {
+        { "Baseplate", 36573 },
+        { "Flat Terrain", 36574 },
+        { "Starting Place", 36568 },
+        { "Western", 36569 },
+        { "Suburban", 36570 },
+        { "Team/FFA Arena", 36571 },
+        { "Capture The Flag", 36572 },
+        //{ "Control Points", 36575 },
+        { "City", 36576 },
+        { "Castle", 36577 },
+        { "Village", 36585 },
+        { "Obby", 36578 },
+        { "Combat", 36579 },
+        { "Racing", 36580 },
+        { "Pirate Island", 36581 },
+        { "Line Runner", 36582 },
+        //{ "Infinite Runner", 36583 },
+        //{ "Free For All", 36584 },
+        //{ "Team Deathmatch", 36590 }
+    };
+    
     public bool IsThreadSafe()
     {
         return true;

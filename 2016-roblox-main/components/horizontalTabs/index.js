@@ -11,14 +11,14 @@ const useStyles = createUseStyles({
   },
   vTabLabel: {
     border: '0',
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     margin: 0,
     padding: '12px 2%',
     fontSize: '16px',
     fontWeight: '400',
     cursor: 'default',
     lineHeight: '1em',
-    boxShadow: 'inset 0 -4px 0 0 #00a2ff',
+    boxShadow: 'inset 0 -4px 0 0 var(--primary-color)',
     '&:hover': {
       background: '#f2f2f2'
     },
@@ -32,9 +32,9 @@ const useStyles = createUseStyles({
   vTagSelected: {
   },
   buttonCol: {
-    //borderBottom: '2px solid #c3c3c3',
-    color: '#191919',
-    backgroundColor: '#fff',
+    //borderBottom: '2px solid var(--text-color-quinary)',
+    color: 'var(--text-color-primary)',
+    backgroundColor: 'var(--white-color)',
     textAlign: 'center',
     width: '100%',
     padding: 0,

@@ -24,16 +24,17 @@ import { getTheme, themeType } from "../../services/theme";
 const useStyles = createUseStyles({
     containerHeader: {
         fontSize: '16px',
-        fontWeight: '400',
+        fontWeight: '500',
         lineHeight: '1.4em',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingBottom: '5px',
-        color: p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
+        // color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : '',
+        color: 'var(--text-color-primary)',
         '& h3': {
             fontSize: '24px',
-            fontWeight: 300,
+            fontWeight: 700,
             float: 'left',
             margin: 0,
             lineHeight: '1.4em',
@@ -103,7 +104,7 @@ const useStyles = createUseStyles({
     headshotWrapper: {
         marginRight: '24px',
         float: 'left',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         boxShadow: '0 1px 4px 0 rgba(25,25,25,0.3)',
         border: '0 none',
         width: '150px',
@@ -142,7 +143,8 @@ const useStyles = createUseStyles({
         lineHeight: '1em',
         cursor: 'pointer',
         textDecoration: 'none!important',
-        color: p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
+        //color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
+        color: 'var(--text-color-primary)',
     },
     friendSection: {
         minHeight: '1px',
@@ -183,11 +185,11 @@ const useStyles = createUseStyles({
     blogNewsContainer: {},
 
     seeAllButton: {
-        borderColor: '#00A2FF',
+        borderColor: 'var(--primary-color)',
         width: '90px',
         padding: '4px',
         fontSize: '14px',
-        fontWeight: 400,
+        fontWeight: 500,
         lineHeight: '100%',
         transition: 'box-shadow 200ms ease-in-out',
         boxShadow: 'none',
@@ -354,7 +356,7 @@ const MyDashboard = props => {
                         <h3 style={{ padding: '5px 0', margin: '0 0 6px' }}>Blog News</h3>
                     </div>
                     <div className={`section-content`}>
-                        <p style={{ fontSize: '18px', fontWeight: 400, margin: 0, padding: 0 }}>No news found.</p>
+                        <p style={{ fontSize: '18px', fontWeight: 500, margin: 0, padding: 0 }}>No news found.</p>
                     </div>
                 </div>
             </div>

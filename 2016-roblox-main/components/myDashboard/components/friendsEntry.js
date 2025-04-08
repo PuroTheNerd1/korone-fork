@@ -30,7 +30,7 @@ const useStyles = createUseStyles({
     thumbnailWrapper: {
         maxWidth: '90px',
         borderRadius: '100%',
-        //border: '1px solid #c3c3c3',
+        //border: '1px solid var(--text-color-quinary)',
         border: 'none',
         //overflow: 'hidden',
         boxShadow: '0 1px 4px 0 rgba(25,25,25,0.3)',
@@ -53,10 +53,10 @@ const useStyles = createUseStyles({
         marginTop: '3px',
         fontSize: '15px',
         fontWeight: 300,
-        color: '#191919',
+        color: 'var(--text-color-primary)',
         '&:hover': {
             textDecoration: 'none!important',
-            color: '#00A2FF'
+            color: 'var(--primary-color)'
         },
     },
     activityWrapper: {

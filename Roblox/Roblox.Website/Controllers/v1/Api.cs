@@ -64,6 +64,9 @@ public class ApiController : ControllerBase
     [HttpGet("marketplace/productinfo")]
     public async Task<dynamic> GetProductInfo(long assetId)
     {
+        // if (await services.games.GetDeveloperProductCountId(assetId) > 0) {
+        //     return Redirect($"/marketplace/productdetails?productId={assetId}");
+        // }
         long Remaining = 0;
         var details = await services.assets.GetAssetCatalogInfo(assetId);
         if(details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"))
@@ -90,7 +93,7 @@ public class ApiController : ControllerBase
             PriceInRobux = details.price,
             PriceInTickets = details.priceTickets,
             Sales = details.saleCount,
-            IsNew = true,
+            IsNew = details.createdAt.Add(TimeSpan.FromDays(1)) < DateTime.Now,
             IsForSale = details.isForSale,
             IsPublicDomain = details.isForSale && details.price == 0,
             IsLimited = details.itemRestrictions.Contains("Limited"),

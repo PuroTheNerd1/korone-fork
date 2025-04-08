@@ -1,13 +1,8 @@
-using MVC = Microsoft.AspNetCore.Mvc;
-using CsvHelper;
-using System.Xml;
 using Roblox.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Roblox.Dto.Marketplace;
 using Newtonsoft.Json;
 using System.Dynamic;
 using Roblox.Models;
-using Roblox.Dto.Friends;
 using Roblox.Models.Assets;
 using System.Text.RegularExpressions;
 using Roblox.Dto.Games;
@@ -15,8 +10,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Roblox.Website.Controllers
 {
 
-    [MVC.ApiController]
-    [MVC.Route("/")]
+    [ApiController]
+    [Route("/")]
     public class GameListing: ControllerBase
     {
         private static Regex numberRegex { get; } = new("([0-9]+)");
@@ -82,17 +77,7 @@ namespace Roblox.Website.Controllers
                 isFavorited = await services.assets.GetFavoriteStatus(safeUserSession.userId, universeId)
             };
         }
-        [HttpGetBypass("v1/universes/{universeId:long}/badges")]
-        [HttpGetBypass("v1/games/{universeId:long}/game-passes")]
-        public async Task<dynamic> GetGameGamePasses(long universeId, int maxRows = 6)
-        {
-            return new
-            {
-                previousPageCursor = (string?) null,
-                nextPageCursor = (string?) null,
-                data = new List<object>()
-            };
-        }
+
         [HttpGetBypass("v1/games/recommendations/game/{universeId:long}")]
         public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
         {

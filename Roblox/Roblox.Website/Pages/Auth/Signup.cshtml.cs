@@ -4,6 +4,7 @@ using Roblox.AbuseDetection.Report;
 using Roblox.Dto.Users;
 using Roblox.Exceptions;
 using Roblox.Logging;
+using Roblox.Models.Assets;
 using Roblox.Models.Sessions;
 using Roblox.Models.Users;
 using Roblox.Services;
@@ -189,7 +190,7 @@ public class Signup : RobloxPageModel
         var usernameValid = await services.users.IsUsernameValid(username);
         if (!usernameValid)
         {
-            errorMessage = "Invalid Username. It must start and end with an alpha-numeric character, be between 3 and 21 characters, and contain at most one special character (space, period, or underscore). There are also some words that cannot be used in usernames.";
+            errorMessage = "Invalid Username. It must start and end with an alpha-numeric character, be between 3 and 20 characters, and contain at most one special character (space, period, or underscore). There are also some words that cannot be used in usernames.";
             return Page();
         }
 
@@ -260,6 +261,15 @@ public class Signup : RobloxPageModel
             Path = "/",
             SameSite = SameSiteMode.Lax,
         });
+        
+        // Create default place for user
+        if (FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService)) {
+            // create place!
+            var asset = await services.assets.CreatePlace(createdUser.userId, CreatorType.User, createdUser.userId);
+            // create universe too
+            await services.games.CreateUniverse(asset.placeId);
+        }
+        
         return Redirect("/home");
     }
 }

@@ -1,11 +1,8 @@
 import GameDetailsStore from "../../stores/gameDetailsStore";
 import { createUseStyles } from "react-jss";
 import { abbreviateNumber } from "../../../../lib/numberUtils";
-import dayjs, { Dayjs } from "dayjs";
-
-import Description from "./components/description";
-import VIPServers from "./components/description";
-import Badges from "./components/description";
+import Badges from './components/badges'
+import dayjs from "dayjs";
 
 const useStyles = createUseStyles({
   descriptionText: {
@@ -15,13 +12,13 @@ const useStyles = createUseStyles({
     paddingBottom: '12px',
     fontSize: '16px',
     margin: 0,
-    color: '#191919',
+    color: 'var(--text-color-primary)',
     display: 'block',
     lineHeight: '1.4em',
     textRendering: 'auto',
     fontWeight: '400',
     width: '100%',
-    fontFamily: 'Source Sans Pro,Arial,Helvetica,sans-serif',
+    fontFamily: 'HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif'
   },
   allContainer: {
   },
@@ -54,7 +51,7 @@ const useStyles = createUseStyles({
     }
   },
   contentContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     padding: '15px',
     position: 'relative',
     marginBottom: '15px',
@@ -63,8 +60,8 @@ const useStyles = createUseStyles({
   },
   gameStatsContainer: {
     padding: '12px 0',
-    borderBottom: '1px solid #e3e3e3',
-    borderTop: '1px solid #e3e3e3',
+    borderBottom: '1px solid var(--background-color)',
+    borderTop: '1px solid var(--background-color)',
     listStyle: 'none',
     margin: 0,
     display: 'flex',
@@ -99,7 +96,7 @@ const useStyles = createUseStyles({
     fontWeight: '500',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    color: '#b8b8b8',
+    color: 'var(--text-color-secondary)',
     lineHeight: '1.5em',
     margin: 0,
     wordWrap: 'break-word',
@@ -109,7 +106,7 @@ const useStyles = createUseStyles({
     whiteSpace: 'nowrap',
     fontSize: '12px',
     fontWeight: '400',
-    color: '#191919',
+    color: 'var(--text-color-primary)',
     lineHeight: '1.5em',
     margin: 0,
     wordWrap: 'break-word',
@@ -176,10 +173,10 @@ const useStyles = createUseStyles({
     userSelect: 'none',
     cursor: 'pointer',
     textDecoration: 'none!important',
-    color: '#00a2ff',
+    color: 'var(--primary-color)',
     '&:hover': {
       textDecoration: 'underline!important',
-      color: '#00a2ff',
+      color: 'var(--primary-color)',
     }
   },
   createServerPanel: {
@@ -188,7 +185,6 @@ const useStyles = createUseStyles({
   },
   vipServerDiv: {
     padding: '12px!important',
-    margin: 0,
   },
 });
 
@@ -272,6 +268,16 @@ const About = props => {
         See all your VIP servers in the <a className={s.textLink} href={'#servers'}>Servers</a> tab.
       </span>
     </div>
+    
+    {
+      store.badges && store.badges.data.length > 0 &&
+        <>
+          <div className={s.descriptionHeaderContainer}>
+              <h3>Game Badges</h3>
+          </div>
+          <Badges />
+        </>
+    }
   </div>
 }
 

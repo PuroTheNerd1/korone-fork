@@ -4,7 +4,7 @@ import SelectorOption from "./components/selectorOption";
 
 const useStyles = createUseStyles({
   row: {
-    borderRight: '1px solid #ccc',
+    borderRight: '1px solid var(--text-color-secondary)',
   },
 })
 

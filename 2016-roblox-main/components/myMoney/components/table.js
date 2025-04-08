@@ -11,7 +11,7 @@ const useStyles = createUseStyles({
   },
   tableHead: {
     borderTop: '1px solid #b9b9b9',
-    borderBottom: '2px solid #e3e3e3',
+    borderBottom: '2px solid var(--background-color)',
     background: '#f1f1f1',
   },
   tableHeadLabel: {
@@ -37,7 +37,7 @@ const useStyles = createUseStyles({
     paddingTop: '6px',
     paddingBottom: '4px',
     paddingLeft: '5px',
-    borderBottom: '1px solid #e3e3e3',
+    borderBottom: '1px solid var(--background-color)',
   },
 });
 

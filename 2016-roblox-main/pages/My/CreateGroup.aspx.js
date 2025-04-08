@@ -12,7 +12,7 @@ const useStyles = createUseStyles({
     float: 'left',
   },
   createGroupContainer: {
-    background: '#fff',
+    background: 'var(--white-color)',
     padding: '4px 8px',
   },
 });

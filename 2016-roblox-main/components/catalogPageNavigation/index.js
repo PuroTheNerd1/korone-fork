@@ -75,6 +75,31 @@ const navigationItems = [
     clickData: 'all,all',
   },
   {
+    name: 'Body Parts',
+    clickData: '',
+    children: {
+      title: 'Body Part Types',
+      children: [
+        {
+          name: 'All Body Parts',
+          clickData: 'bodyparts,All',
+        },
+        {
+          name: 'Heads',
+          clickData: 'bodyparts,Heads'
+        },
+        {
+          name: 'Faces',
+          clickData: 'bodyparts,Faces',
+        },
+        {
+          name: 'Packages',
+          clickData: 'bodyparts,Packages'
+        },
+      ],
+    },
+  },
+  {
     name: 'Clothing',
     clickData: '',
     children: {
@@ -99,38 +124,9 @@ const navigationItems = [
         {
           name: 'Pants',
           clickData: 'null,Pants',
-        },
-        {
-          name: 'Packages',
-          clickData: 'null,Packages',
-        },
+        }
       ]
     }
-  },
-  {
-    name: 'Body Parts',
-    clickData: '',
-    children: {
-      title: 'Body Part Types',
-      children: [
-        {
-          name: 'All Body Parts',
-          clickData: 'bodyparts,All',
-        },
-        {
-          name: 'Heads',
-          clickData: 'bodyparts,Heads'
-        },
-        {
-          name: 'Faces',
-          clickData: 'bodyparts,Faces',
-        },
-        {
-          name: 'Packages',
-          clickData: 'bodyparts,Packages'
-        },
-      ],
-    },
   },
   {
     name: 'Gear',

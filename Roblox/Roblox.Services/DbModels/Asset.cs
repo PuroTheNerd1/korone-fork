@@ -9,6 +9,11 @@ namespace Roblox.Services.DbModels
         public ModerationStatus moderationStatus { get; set; }
         public Models.Assets.Type assetType { get; set; }
     }
+    
+    public class ModerationEntryDb
+    {
+        public ModerationStatus moderationStatus { get; set; }
+    }
 
     public class UserAssetEntry
     {

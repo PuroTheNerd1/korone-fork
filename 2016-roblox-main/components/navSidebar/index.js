@@ -14,8 +14,8 @@ const useNavSideBarStyles = createUseStyles({
   },
   card: {
     width: '175px',
-    background: p => p.theme === themeType.obc2016 ? '#393939' : '#fff',
-    color:  p => p.theme === themeType.obc2016 ? '#fff' : '#191919',
+    background: p => p.theme === themeType.obc2016 ? '#393939' : 'var(--white-color)',
+    color: 'var(--text-color-primary)',
     height: '100vh',
     paddingLeft: '10px',
     paddingRight: '10px',
@@ -32,12 +32,12 @@ const useNavSideBarStyles = createUseStyles({
     paddingTop: '8px',
     paddingBottom: '5px',
     marginBottom: 0,
-    color:  p => p.theme === themeType.obc2016 ? '#fff' : '#1e1e1f',
+    color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
     textDecoration: 'none'
   },
   divider: {
-    borderBottom: '1px solid #b8b8b8',
-    borderColor: p => p.theme === themeType.obc2016 ? 'rgba(255, 255, 255, 0.2)' : '#b8b8b8',
+    borderBottom: '1px solid var(--text-color-secondary)',
+    borderColor: p => p.theme === themeType.obc2016 ? 'rgba(255, 255, 255, 0.2)' : 'var(--text-color-secondary)',
     height: '2px',
     width: '100%',
     marginTop: '5px',
@@ -45,7 +45,7 @@ const useNavSideBarStyles = createUseStyles({
   },
   upgradeNowButton: {
     marginTop: '10px',
-    background: '#01a2fd',
+    background: 'var(--primary-color)',
     fontSize: '15px',
     fontWeight: 500,
     width: '100%',
@@ -55,7 +55,7 @@ const useNavSideBarStyles = createUseStyles({
     color: 'white',
     borderRadius: '4px',
     '&:hover': {
-      background: '#3ab8ff',
+      background: 'var(--primary-color-hover)',
     },
   },
 });
@@ -99,7 +99,7 @@ const NavSideBar = props => {
       <LinkEntry theme={getTheme()} name='Groups' url='/My/Groups.aspx' icon='icon-nav-group' />
       <LinkEntry theme={getTheme()} name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum' />
       {isStaff ? (
-        <LinkEntry theme={getTheme()} name='Staff Panel' url='/admin' icon='icon-edit' count={69} />
+        <LinkEntry theme={getTheme()} name='Panel' url='/admin' icon='icon-edit' count={69} />
       ) : null}
       <a href='/BuildersClub/Upgrade.ashx'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
     </div>

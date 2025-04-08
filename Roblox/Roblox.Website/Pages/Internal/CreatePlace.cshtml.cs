@@ -157,7 +157,7 @@ public class CreatePlace : RobloxPageModel
         var createdPlaces = (await services.assets.GetCreations(CreatorType.User, userId, Type.Place, 0, 100)).ToArray();
         if (createdPlaces.Length != 0)
         {
-            if (createdPlaces.Length > 5)
+            if (createdPlaces.Length > 15)
             {
                 log.Info("account has too many places {0}", createdPlaces.Length);
                 return PlaceCreationFailureReason.TooManyPlaces;
@@ -178,7 +178,6 @@ public class CreatePlace : RobloxPageModel
 
             var isAnyPlaceCreatedLessThanADayAgo =
                 placeDetails.FirstOrDefault(v => v.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1))) != null;
-
 
             if (isAnyPlaceCreatedLessThanADayAgo)
             {
@@ -252,8 +251,8 @@ public class CreatePlace : RobloxPageModel
         };
     }
 
-    public async Task OnPost()
-    {
+    public async Task OnPost() {
+        return;
         if (userSession == null)
         {
             errorMessage = "Not logged in.";

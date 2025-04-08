@@ -8,7 +8,7 @@ import Subtitle from "./subtitle";
 
 const useStyles = createUseStyles({
   label: {
-    color: '#c3c3c3',
+    color: 'var(--text-color-quinary)',
     marginBottom: 0,
     fontSize: '15px',
   },

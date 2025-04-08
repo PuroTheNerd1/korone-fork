@@ -12,7 +12,7 @@ import Security from "./components/security";
 
 const useStyles = createUseStyles({
   settingsRow: {
-    background: '#e3e3e3',
+    background: 'var(--background-color)',
   },
 })
 
@@ -34,7 +34,7 @@ const MyAccount = props => {
     getTradeValue().then(store.setTradeFilter);
   }, [auth.userId, auth.isPending]);
   if (auth.isPending || !auth.userId) return null;
-  return <div className='container'>
+  return <div className='container ssp'>
     <ModalHandler></ModalHandler>
     <div className={'row pb-2 ' + s.settingsRow}>
       <div className='col-12'>

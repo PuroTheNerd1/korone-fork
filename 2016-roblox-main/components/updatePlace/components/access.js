@@ -55,10 +55,10 @@ const Access = (props) => {
               setMaxPlayers(parseInt(v.currentTarget.value, 10));
             }}
           >
-            {[...new Array(96)].map((_, i) => {
+            {[...new Array(99)].map((_, i) => {
               return (
-                <option value={i + 5} key={i}>
-                  {i + 5}
+                <option value={i + 1} key={i}>
+                  {i + 1}
                 </option>
               );
             })}
@@ -71,6 +71,8 @@ const Access = (props) => {
               setSelectedYear(parseInt(v.currentTarget.value));
             }}
           >
+            {/*<option value={2015}>2015</option>*/}
+            {/*<option value={2016}>2016</option>*/}
             <option value={2017}>2017</option>
             <option value={2018}>2018</option>
             <option value={2020}>2020</option>

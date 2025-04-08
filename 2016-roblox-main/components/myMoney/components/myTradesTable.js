@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
   },
   tableHead: {
     borderTop: '1px solid #b9b9b9',
-    borderBottom: '2px solid #e3e3e3',
+    borderBottom: '2px solid var(--background-color)',
     background: '#f1f1f1',
   },
   tableHeadLabel: {
@@ -66,7 +66,7 @@ const MyTradesTable = props => {
             <option value='inactive'>Inactive</option>
           </select>
           <p className={s.tradeTypeActions + ' ms-2'}>
-            <a href='https://help.pekora.zip'>
+            <a href='https://pekora.zip/help'>
               How do I send a trade?
             </a>
           </p>

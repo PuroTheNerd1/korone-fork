@@ -20,7 +20,7 @@ const useStyles = createUseStyles({
   vTagSelected: {
   },
   buttonCol: {
-    borderBottom: '2px solid #c3c3c3',
+    borderBottom: '2px solid var(--text-color-quinary)',
   },
   btnBottomSeperator: {
     width: '100%',
@@ -46,7 +46,7 @@ const useStyles = createUseStyles({
 
 /**
  * Vertical tabs in old style
- * @param {{options: {name: string; displayName: string; element: JSX.Element; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string}} props 
+ * @param {{options: {name: string; displayName: string; element: JSX.Element; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string; contentStyles: string; ssp?: boolean;}} props
  */
 const OldVerticalTabs = props => {
   const s = useStyles();
@@ -81,13 +81,13 @@ const OldVerticalTabs = props => {
               props.onChange(v);
             }
           }}>
-            <p className={`${!isSelected ? s.vTabUnselected : ''} ${s.vTabLabel}`}>{v.displayName} {typeof v.count === 'number' ? <span className={s.count}>{abbreviateNumber(v.count)}</span> : null}</p>
+            <p className={`${!isSelected ? s.vTabUnselected : ''} ${s.vTabLabel}`} style={props.ssp ? { fontWeight: 400 } : undefined}>{v.displayName} {typeof v.count === 'number' ? <span className={s.count}>{abbreviateNumber(v.count)}</span> : null}</p>
             {isSelected && <div className={s.btnBottomSeperator} />}
           </div>
         })
       }
     </div>
-    <div className='col-12'>
+    <div className={`col-12 ${props.contentStyles ? props.contentStyles : undefined}`}>
       {selected.element}
     </div>
   </div>

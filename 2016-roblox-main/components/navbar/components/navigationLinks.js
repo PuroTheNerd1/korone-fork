@@ -89,8 +89,16 @@ const NavigationLinks = props => {
   const s = useStyles();
   const router = useRouter();
 
-  useEffect(() => {
-  }, [router]);
+  // useEffect(() => {
+  //   const checkAuth = () => {
+  //     const robloSecurity = document.cookie.split(';').find(cookie => cookie.trim().startsWith('.ROBLOSECURITY='));
+  //     if (!robloSecurity) {
+  //       router.push('/auth/accountlogin');
+  //     }
+  //   };
+  //
+  //   checkAuth();
+  // }, [router]);
   return <div className={`${s.col} col-10 col-lg-3`}>
     <div className={s.container}>
       <div className={`${s.row} row`}>

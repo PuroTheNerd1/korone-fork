@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
         aspectRatio: '612 / 385'
     },
     modalTopBody: {
-        //color: '#191919',
+        //color: 'var(--text-color-primary)',
     },
     modalMessage: {
         fontSize: '16px',
@@ -51,9 +51,9 @@ const shutdownServerModal = props => {
     const s = useStyles();
     const buttonStyles = useButtonStyles();
 
-    return <OldModal title="Add Icon" rowClass={s.row} className={s.modal}>
+    return <OldModal title={props.title} rowClass={s.row} className={s.modal}>
         <div className={s.modalTopBody}>
-            <div className={s.modalMessage}>Are you sure you want to add this icon? This will delete your existing icon.</div>
+            <div className={s.modalMessage}>{props.message}</div>
         </div>
         <div className={s.modalBtns}>
             <ActionButton label='Upload Now' className={`${s.button} ${buttonStyles.buyButton}`} onClick={(e) => {

@@ -12,20 +12,20 @@ const useSelectorStyles = createUseStyles({
     textAlign: 'left',
     width: '100%',
     color: '#666',
-    background: 'white',
+    background: 'var(--white-color)',
     borderRadius: '4px',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     fontSize: '16px',
     userSelect: 'none',
     cursor: 'pointer',
     '&:hover': {
-      background: '#01a2fd',
-      color: '#ffffff',
+      background: 'var(--primary-color)',
+      color: 'var(--white-color)',
     },
   },
   selectorOpen: {
-    background: '#01a2fd',
-    color: '#ffffff',
+    background: 'var(--primary-color)',
+    color: 'var(--white-color)',
   },
   selectorCaret: {
     float: 'right',
@@ -33,7 +33,7 @@ const useSelectorStyles = createUseStyles({
   selectorMenuOpen: {
     position: 'absolute',
     width: '100%',
-    background: 'white',
+    background: 'var(--white-color)',
     zIndex: 3,
   },
   selectOption: {
@@ -43,7 +43,7 @@ const useSelectorStyles = createUseStyles({
     userSelect: 'none',
     fontSize: '16px',
     '&:hover': {
-      boxShadow: '4px 0 0 0 #00a2ff inset',
+      boxShadow: '4px 0 0 0 var(--primary-color) inset',
     },
   },
 });

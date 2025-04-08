@@ -51,7 +51,7 @@ const useStyles = createUseStyles({
     background: '#666',
     borderRadius: '100%',
     textAlign: 'center',
-    color: '#FFFFFF',
+    color: '#fff',
     paddingTop: '2px',
     paddingLeft: '1px',
     fontWeight: 700,

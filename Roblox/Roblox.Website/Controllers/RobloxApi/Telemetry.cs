@@ -42,5 +42,12 @@ namespace Roblox.Website.Controllers
         {
             return Array.Empty<object>();
         }
+        
+        // implemented cuz client likes to spam this so this might improve network performance?
+        [HttpGetBypass("pe")]
+        [HttpPostBypass("pe")]
+        public dynamic GetPe() {
+            return Array.Empty<object>();
+        }
     }
 }

@@ -61,6 +61,7 @@ namespace Roblox.Dto.Assets
         public long creatorTargetId { get; set; }
         public DateTime? offsaleDeadline { get; set; }
         public bool isForSale { get; set; }
+        public bool commentsEnabled { get; set; }
         public int? priceRobux { get; set; }
         public int? priceTickets { get; set; }
         public bool isLimited { get; set; }
@@ -114,6 +115,7 @@ namespace Roblox.Dto.Assets
             createdAt = internalEntry.createdAt;
             updatedAt = internalEntry.updatedAt;
             lowestSellerData = internalEntry.lowestSellerData;
+            commentsEnabled = internalEntry.commentsEnabled;
             
             // Special stuff
             serialCount = internalEntry.serialCount;
@@ -162,6 +164,7 @@ namespace Roblox.Dto.Assets
         public string itemType { get; set; } = "Asset";
         public long? favoriteCount { get; set; } = null;
         public bool isForSale { get; set; }
+        public bool commentsEnabled { get; set; }
         public long? price { get; set; }
         public long? priceTickets { get; set; }
         public long? lowestPrice { get; set; } = null;

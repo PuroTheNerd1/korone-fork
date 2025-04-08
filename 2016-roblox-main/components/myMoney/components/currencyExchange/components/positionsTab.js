@@ -14,8 +14,8 @@ const Side = ({children, title}) => {
 
 const useStyles = createUseStyles({
   main: {
-    borderTop: '1px solid #ccc',
-    borderRight: '1px solid #ccc',
+    borderTop: '1px solid var(--text-color-secondary)',
+    borderRight: '1px solid var(--text-color-secondary)',
     marginTop: '52px',
   }
 });

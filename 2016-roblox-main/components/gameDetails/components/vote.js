@@ -14,7 +14,7 @@ const useStyles = createUseStyles({
     height: '5px',
   },
   borderLeft: {
-    borderLeft: '1px solid #c3c3c3',
+    borderLeft: '1px solid var(--text-color-quinary)',
   },
   thumbsText: {
     fontSize: '12px',

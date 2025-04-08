@@ -58,7 +58,7 @@ const useStyles = createUseStyles({
   container: {
     minWidth: '800px',
     overflow: 'auto',
-    background: '#fff',
+    background: 'var(--white-color)',
   },
   feedbackWrapper: {
     padding: '4px',

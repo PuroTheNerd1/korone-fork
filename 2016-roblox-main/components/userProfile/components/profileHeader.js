@@ -145,7 +145,7 @@ const useHeaderStyles = createUseStyles({
     borderRadius: '50%',
     verticalAlign: 'bottom',
   },
-
+  
   relationshipContainer: {
     '@media(max-width: 767px)': {
       marginTop: '6px',
@@ -155,19 +155,19 @@ const useHeaderStyles = createUseStyles({
     float: 'left',
     height: '54px',
     listStyle: 'none',
-    width: '40%',
+    width: '45%',
     margin: 0,
     padding: 0,
     '@media(max-width: 767px)': {
       width: '100%',
     },
   },
-
+  
   actionContainer: {
     margin: 0,
     padding: 0,
     float: 'right',
-    width: '60%',
+    width: '55%',
     '@media(max-width: 767px)': {
       width: '100%',
       display: 'flex',
@@ -180,7 +180,7 @@ const useHeaderStyles = createUseStyles({
     padding: '0 5px',
     float: 'right',
   },
-
+  
   container: {
     '@media(max-width: 767px)': {
       flexDirection: "column",
@@ -191,9 +191,9 @@ const useHeaderStyles = createUseStyles({
 const ProfileHeader = props => {
   const auth = AuthenticationStore.useContainer();
   const store = UserProfileStore.useContainer();
-
+  
   const statusInput = useRef(null);
-
+  
   const [dropdownOptions, setDropdownOptions] = useState(null);
   const [editStatus, setEditStatus] = useState(false);
   const [status, setStatus] = useState(null);
@@ -208,15 +208,15 @@ const ProfileHeader = props => {
     setDropdownOptions(null);
     setVerified(false);
   }, [store.userId]);
-
+  
   useEffect(() => {
     if (auth.isPending) return;
-
+    
     multiGetPresence({ userIds: [store.userId] }).then((d) => {
       setStatus(d[0]);
     });
     getMembershipType({ userId: store.userId }).then(d => {
-      if (d == 4) {
+      if (d === 4) {
         d = 3
       }
       setBcLevel(d);
@@ -225,7 +225,7 @@ const ProfileHeader = props => {
     })
     setVerified(store.userInfo.hasVerifiedBadge);
     const buttons = [];
-    const isOwnProfile = auth.userId == store.userId;
+    const isOwnProfile = auth.userId === store.userId;
     if (store.friendStatus === "Friends") {
       buttons.push({
         name: 'Message',
@@ -289,13 +289,13 @@ const ProfileHeader = props => {
     }
     setDropdownOptions(buttons);
   }, [auth.userId, auth.isPending, store.isFollowing, editStatus, store.userId]);
-
+  
   const s = useHeaderStyles();
   const cardStyles = useCardStyles();
   const statusClass = status ? s.userStatusMargined : '';
-
+  
   const showButtons = auth.userId != store.userId && !auth.isPending;
-
+  
   const BcIcon = () => {
     if (bcLevel === 0) {
       return null;
@@ -322,7 +322,7 @@ const ProfileHeader = props => {
         return null;
     }
   }
-
+  
   return <div className={`flex ${s.profileHeaderContainer}`}>
     <div className='col-12'>
       <div className={`card ${cardStyles.card}`}>
@@ -376,28 +376,28 @@ const ProfileHeader = props => {
                   </>
                 */}
                 {
-                  showButtons && <ul className={s.actionContainer}>
-
-                    <div style={{ order: '4' }} className={s.buttonContainer}>
-                      <FriendButton />
-                    </div>
-
-                    {store.friendStatus != "Friends" &&
-                      <div style={{ order: '3' }} className={s.buttonContainer}>
-                        <MessageButton />
+                    showButtons && <ul className={s.actionContainer}>
+                      
+                      <div style={{ order: '4' }} className={s.buttonContainer}>
+                        <FriendButton />
                       </div>
-                    }
-                    {store.friendStatus == "Friends" &&
-                      <div style={{ order: '2' }} className={s.buttonContainer}>
-                        <ChatButton />
-                      </div>
-                    }
-                    {status && status?.userPresenceType === "InGame" &&
-                      <div style={{ order: '1' }} className={s.buttonContainer}>
-                        <JoinButton placeId={status.placeId} />
-                      </div>
-                    }
-                  </ul>
+                      
+                      {store.friendStatus != "Friends" &&
+                          <div style={{ order: '3' }} className={s.buttonContainer}>
+                            <MessageButton />
+                          </div>
+                      }
+                      {store.friendStatus == "Friends" &&
+                          <div style={{ order: '2' }} className={s.buttonContainer}>
+                            <ChatButton />
+                          </div>
+                      }
+                      {status && status?.userPresenceType === "InGame" &&
+                          <div style={{ order: '1' }} className={s.buttonContainer}>
+                            <JoinButton placeId={status.placeId} />
+                          </div>
+                      }
+                    </ul>
                 }
               </div>
             </div>

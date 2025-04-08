@@ -13,10 +13,10 @@ const useStyles = createUseStyles({
     fontWeight: 700,
     fontSize: '32px',
     marginBottom: '12px',
-    color: '#343434',
+    color: 'var(--text-color-primary)',
   },
   catalogContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     padding: '2px 4px',
   },
 })
@@ -24,7 +24,7 @@ const useStyles = createUseStyles({
 const CatalogPage = props => {
   const s = useStyles();
   return <CatalogPageStore.Provider>
-      <div className='container mt-4'>
+      <div className='container mt-4 ssp'>
         <AdBanner/>
         <div className={s.catalogContainer}>
           <div className='row mt-2'>

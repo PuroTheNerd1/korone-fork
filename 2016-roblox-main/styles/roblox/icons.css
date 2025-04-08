@@ -357,6 +357,16 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	vertical-align: middle;
 }
 
+.icon-checkmark-white-hold {
+	background-image: url(/img/generic_light_2025.svg);
+	background-repeat: no-repeat;
+	background-size: auto auto;
+	width: 28px;
+	height: 28px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
 .icon-default-generic-16x16,
 .icon-edit-16x16,
 .icon-right-16x16,
@@ -502,6 +512,16 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	background-size: auto auto;
 	width: 28px;
 	height: 28px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.icon-robux-16x16 {
+	background-image: url(/img/branded.svg);
+	background-repeat: no-repeat;
+	background-size: 32px auto;
+	width: 16px;
+	height: 16px;
 	display: inline-block;
 	vertical-align: middle;
 }
@@ -760,6 +780,13 @@ a:hover .icon-left {
 
 .icon-checkmark-on {
 	background-position: -28px -560px;
+}
+
+.icon-checkmark-white-hold {
+	background-position: 0 -516px;
+	width: 12px;
+	height: 12px;
+	background-size: 24px auto;
 }
 
 .icon-close {
@@ -1071,6 +1098,10 @@ a:hover .icon-favorite {
 
 .icon-robux {
 	background-position: 0 -112px;
+}
+
+.icon-robux-16x16 {
+	background-position: 0 -64px;
 }
 
 .icon-tix {

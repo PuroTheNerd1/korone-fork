@@ -77,7 +77,7 @@ public class EconomyControllerV2 : ControllerBase
                         details = new
                         {
                             id = c.assetId,
-                            userAssetId = c.userAssetId,
+                            c.userAssetId,
                             name = c.assetName,
                             type = "Asset",
                         };
@@ -136,8 +136,23 @@ public class EconomyControllerV2 : ControllerBase
                             type = "RobloxProduct",
                         };
                         break;
+                    case TransactionSubType.GameMediaUpload:
+                        details = new
+                        {
+                            name = "Game Media: Image",
+                            type = "RobloxProduct",
+                        };
+                        break;
                     default:
                         // TODO: Log somewhere isntead of errroring
+                        if (c.itemName != null) {
+                            details = new
+                            {
+                                name = c.itemName,
+                                type = "DeveloperProduct",
+                            };
+                            break;
+                        }
                         throw new Exception("Unexpected subType: " + c.subType);
                 }
 

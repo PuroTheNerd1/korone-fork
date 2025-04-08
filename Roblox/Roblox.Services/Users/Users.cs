@@ -1288,6 +1288,16 @@ public class UsersService : ServiceBase, IService
                 });
         return (long) result.id;
     }
+    
+    public async Task DeleteUserAsset(long userId, long assetId)
+    {
+        await db.QuerySingleOrDefaultAsync(
+            "DELETE FROM user_asset WHERE user_id = :userId AND asset_id = :assetId", new
+            {
+                userId,
+                assetId,
+            });
+    }
 
     public async Task<IEnumerable<CollectibleUserAssetEntry>> GetUserAssets(long userId, long assetId)
     {
@@ -1570,6 +1580,91 @@ public class UsersService : ServiceBase, IService
 
         return PurchaseAbuseFailureReason.Ok;
     }
+    
+    // ok most of this can and should be cleaned up this is fucking disgusting
+    private async Task<PurchaseAbuseFailureReason> CanDevProductBePurchased(long productId, long buyerUserId, CurrencyType currency)
+    {
+        // basic heuristics to detect abusive activity.
+        // this function is only for normal purchases. not to be used with uaid purchases.
+        // for a similar function, see TradesService.CanTradeBeCompeted()
+        // list of things we currently try to detect:
+        //  - people alt hoarding newly released collectible items
+        currency = CurrencyType.Robux;
+        using var games = ServiceProvider.GetOrCreate<GamesService>(this);
+        var productList = await games.GetDeveloperProductInfoFull(productId, 1, 0);
+        var details = productList.FirstOrDefault();
+        if (details == null) {
+            return PurchaseAbuseFailureReason.Unknown;
+        }
+
+        // don't check free items
+        if (details.isForSale && details.price == 0)
+            return PurchaseAbuseFailureReason.Ok;
+
+        var sellerId = details.creatorId;
+        // don't check Roblox or UGC items
+        if (sellerId is 1 or 2 && details.creatorType == CreatorType.User)
+            return PurchaseAbuseFailureReason.Ok;
+
+        if (details.creatorType == CreatorType.Group) {
+            Console.WriteLine("CreatorType cannot be a group!");
+            return PurchaseAbuseFailureReason.Unknown;
+        }
+        var buyerInvite = await GetUserInvite(buyerUserId);
+        var sellerInvite = await GetUserInvite(sellerId);
+
+        var didBuyerJoinFromSeller = sellerInvite?.authorId == buyerUserId;
+        var didSellerJoinFromBuyer = buyerInvite?.authorId == sellerId;
+        var usersInvitedBySamePerson = sellerInvite != null && buyerInvite != null && sellerInvite.authorId == buyerInvite.authorId;
+        var didAnyUserJoinFromInviteByRelatedParty =
+            didBuyerJoinFromSeller ||
+            didSellerJoinFromBuyer ||
+            usersInvitedBySamePerson;
+
+        if (didAnyUserJoinFromInviteByRelatedParty)
+        {
+            Writer.Info(LogGroup.AbuseDetection, "didAnyUserJoinFromInviteByRelatedParty true");
+            var infoBuyer = await GetUserById(buyerUserId);
+            var infoSeller = await GetUserById(sellerId);
+            // Check creation date
+            if (usersInvitedBySamePerson)
+            {
+                if (infoBuyer.created > DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)) ||
+                    infoSeller.created > DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)))
+                    return PurchaseAbuseFailureReason.UsersRelatedAndCreatedTooEarly;
+            }
+
+            // check balance
+            using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
+            var buyerBalance = await ec.GetUserBalance(buyerUserId);
+            if (buyerBalance.robux == details.price || details.price / 2 > buyerBalance.robux)
+                return PurchaseAbuseFailureReason.UsersRelatedAndPriceIsEqualToBalance;
+            // check transactions for seller
+            var sellerEarnings = await GetTotalCurrencyExchangedWithInvitedUsers(sellerId, TimeSpan.FromDays(1));
+            // we do not want total transactions to exceed the value if completed
+            const int maxTicketsPerDay = 600;
+            const int maxRobuxPerDay = 60;
+            // check current totals before checking add total - this is so people can't do both tickets AND robux
+            if (sellerEarnings.robux > maxRobuxPerDay || sellerEarnings.tickets > maxTicketsPerDay)
+                return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransacted;
+            // check half as well (roughly 30 robux + 300 tickets would equal 60 robux, hitting the max)
+            if (sellerEarnings.robux > maxRobuxPerDay/2 && sellerEarnings.tickets > maxTicketsPerDay/2)
+                return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransacted;
+
+            if (sellerEarnings.robux + details.price > maxRobuxPerDay)
+                return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransactedIfCompleted;
+            // if seller and invite root are not the same, check the invite parent too
+            if (buyerInvite != null && sellerId != buyerInvite.authorId)
+            {
+                sellerEarnings = await GetTotalCurrencyExchangedWithInvitedUsers(buyerInvite.authorId, TimeSpan.FromDays(1));
+                if (sellerEarnings.robux + details.price > 60)
+                    return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransactedIfCompleted;
+            }
+        }
+        Writer.Info(LogGroup.AbuseDetection, "CanAssetBePurchased true");
+
+        return PurchaseAbuseFailureReason.Ok;
+    }
 
   /*  private async Task BeforePurchase(long userIdBuyer, long assetId)
     {
@@ -1637,6 +1732,7 @@ public class UsersService : ServiceBase, IService
             var isExpired = assetDetails.offsaleAt != null && assetDetails.offsaleAt <= DateTime.UtcNow;
             if (!assetDetails.isForSale)
             {
+                Console.WriteLine(assetId);
                 EconomyMetrics.ReportItemNoLongerForSaleDuringPurchase(log.GetLoggedStrings(), userIdBuyer, assetDetails.assetId);
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.AssetNotForSale);
             }
@@ -1775,6 +1871,101 @@ public class UsersService : ServiceBase, IService
             return 0;
         });
     }
+    
+    public async Task<string> PurchaseDeveloperProduct(long userIdBuyer, long productId) {
+        using var log = Writer.CreateWithId(LogGroup.ItemPurchase);
+        log.Info($"PurchaseDeveloperProduct start. buyer={userIdBuyer} productId={productId}");
+
+        var canPurchase = await CanDevProductBePurchased(productId, userIdBuyer, CurrencyType.Robux);
+        if (canPurchase != PurchaseAbuseFailureReason.Ok)
+        {
+            log.Info("cannot purchase dev product. CanDevProductBePurchased returned {0}", canPurchase.ToString());
+            throw new RobloxException(400, 0, "Cannot purchase developer product at this time. Try again later.");
+        }
+        // Acquire a lock on the assetId before starting
+        await using var redLock = await Cache.redLock.CreateLockAsync("PurchaseDeveloperProduct:" + productId, TimeSpan.FromSeconds(10));
+        if (!redLock.IsAcquired)
+            throw new RobloxException(429, 0, "TooManyRequests");
+        log.Info($"got PurchaseDeveloperProduct lock");
+
+        return await InTransaction(async _ =>
+        {
+            using var games = ServiceProvider.GetOrCreate<GamesService>(this);
+            var productList = await games.GetDeveloperProductInfoFull(productId, 1, 0);
+            var productDetails = productList.FirstOrDefault();
+            if (productDetails == null)
+                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductDoesNotExist);
+
+            if (!productDetails.isForSale)
+            {
+                EconomyMetrics.ReportDevProductNoLongerForSaleDuringPurchase(log.GetLoggedStrings(), userIdBuyer, productDetails.id);
+                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductNotForSale);
+            }
+
+            using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
+            await using var buyerLock = await ec.AcquireEconomyLock(CreatorType.User, userIdBuyer);
+            // Check balance
+            var userBalance = await ec.GetUserBalance(userIdBuyer);
+            var balance = userBalance.robux;
+            var realPrice = productDetails.price;
+            // Null means not for sale
+            if (realPrice == null)
+                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductPriceIsNull);
+
+            if (realPrice < 0)
+                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductPriceLessThanZero);
+
+            if (balance < realPrice)
+            {
+                EconomyMetrics.ReportUserDoesNotHaveEnoughRobuxDuringPurchase(log.GetLoggedStrings(), userIdBuyer, productId, balance, productDetails.price);
+                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.BalanceLessThanPrice);
+            }
+            log.Info("buyer balance = {0} dev product price = {1}", balance, productDetails.price);
+            
+            // Only do economy changes on non-free items
+            long amountToSeller = 0;
+            if (realPrice != 0)
+            {
+                // Subtract price from buyer
+                Debug.Assert(realPrice != null && realPrice > 0);
+                await ec.DecrementCurrency(CreatorType.User, userIdBuyer, CurrencyType.Robux, productDetails.price);
+                log.Info("currency is {0}", CurrencyType.Robux);
+                log.Info("subtracted amount from buyer. price = {0}", productDetails.price);
+
+                amountToSeller = (long)(0.7 * realPrice);
+                log.Info("item is not free. amount to seller = {0}", amountToSeller);
+
+                if (amountToSeller <= 0)
+                    amountToSeller = 0;
+
+                if (amountToSeller != 0)
+                {
+                    // Increment seller balance
+                    await ec.IncrementCurrency(productDetails.creatorType, productDetails.creatorId, CurrencyType.Robux, amountToSeller);
+                }
+            }
+            
+            // Create buyer transaction
+            var buyerTransaction = await ec.InsertTransaction(new DevProdPurchaseTransaction(userIdBuyer, productDetails.creatorType,
+                productDetails.creatorId, CurrencyType.Robux, realPrice, productDetails.name));
+            log.Info("created buyerTransaction {0}", buyerTransaction);
+            
+            // Create transaction for seller
+            var sellerTransaction = await ec.InsertTransaction(new DevProdSaleTransaction(userIdBuyer, productDetails.creatorType,
+                productDetails.creatorId, CurrencyType.Robux, realPrice, productDetails.name));
+            log.Info("created sellerTransaction {0}", sellerTransaction);
+            
+            await games.IncrementDevProdSales(productId);
+            await games.CreateProductReceipt(log.GetId(), userIdBuyer, productId, realPrice);
+            log.Info("PurchaseDeveloperProduct success");
+            // Finally, metrics
+            if (productDetails.price > 0)
+                EconomyMetrics.ReportRobuxVolumeChange(productDetails.price);
+
+            return log.GetId();
+        });
+    }
+    
     /*
     private async Task BeforeResalePurchase(long userIdBuyer, long userAssetId)
     {

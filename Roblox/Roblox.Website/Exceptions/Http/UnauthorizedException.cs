@@ -4,7 +4,7 @@ namespace Roblox.Exceptions;
 
 public class UnauthorizedException : HttpBaseException, IHttpException
 {
-    public UnauthorizedException() : base()
+    public UnauthorizedException() : base(0, "Authorization has been denied for this request.")
     {
         statusCode = HttpStatusCode.Unauthorized;
     }

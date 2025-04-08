@@ -7,7 +7,7 @@ import MoneyPageStore from "./stores/moneyPageStore";
 
 const useStyles = createUseStyles({
   moneyContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     overflow: 'hidden',
     padding: '2px 4px',
   }

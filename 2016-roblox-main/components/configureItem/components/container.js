@@ -7,11 +7,12 @@ import ConfigureRow from "./configureRow";
 import SellItem from "./sellItem";
 import Comments from "./comments";
 import Genre from "./genre";
+import UpdateBadge from "./updateBadge";
 
 const Container = props => {
   const {assetId} = props;
   const store = ConfigureItemStore.useContainer();
-  useEffect(( ) => {
+  useEffect(() => {
     if (!assetId)
       return;
 
@@ -39,7 +40,9 @@ const Container = props => {
     <div className='col-12'>
       <ConfigureHeader />
       <ConfigureRow />
-      <SellItem />
+      {
+        store.details.assetType !== 21 ? <SellItem /> : <UpdateBadge />
+      }
       <Comments />
       <Genre />
     </div>

@@ -8,7 +8,7 @@ const useStyles = createUseStyles({
     textAlign: 'center',
   },
   buttonWrapper: {
-    background: '#00A2FF',
+    background: 'var(--primary-color)',
     width: '100%',
     color: 'white',
     textAlign: 'center',

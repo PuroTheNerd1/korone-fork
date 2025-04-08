@@ -62,7 +62,6 @@ const isResellable = details => {
   return isLimited(details) && !details.isForSale;
 }
 
-
 const CatalogDetailsPage = createContainer(() => {
   /**
    * @type {[AssetDetailsEntry, import('react').Dispatch<AssetDetailsEntry>]}
@@ -76,6 +75,7 @@ const CatalogDetailsPage = createContainer(() => {
   const [ownedCopies, setOwnedCopies] = useState(null);
   const [resaleModalOpen, setResaleModalOpen] = useState(false);
   const [unlistModalOpen, setUnlistModalOpen] = useState(false);
+  const [removeItemModalOpen, setRemoveItemModalOpen] = useState(false);
   const [inCollection, setInCollection] = useState(false);
   const [offsaleDeadline, setOffsaleDeadline] = useState(null);
 
@@ -147,6 +147,9 @@ const CatalogDetailsPage = createContainer(() => {
 
     resaleModalOpen,
     setResaleModalOpen,
+    
+    removeItemModalOpen,
+    setRemoveItemModalOpen,
 
     resellers,
     setResellers,

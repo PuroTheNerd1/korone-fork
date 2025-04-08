@@ -20,7 +20,7 @@ const useStyles = createUseStyles({
         maxWidth: '200px',
     },
     tabPane: {
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
         padding: '15px',
         display: 'flex',
         flexDirection: 'column',
@@ -68,10 +68,10 @@ const useStyles = createUseStyles({
         userSelect: 'none',
         cursor: 'pointer',
         textDecoration: 'none!important',
-        color: '#00a2ff',
+        color: 'var(--primary-color)',
         '&:hover': {
             textDecoration: 'underline!important',
-            color: '#00a2ff',
+            color: 'var(--primary-color)',
         },
     },
 })

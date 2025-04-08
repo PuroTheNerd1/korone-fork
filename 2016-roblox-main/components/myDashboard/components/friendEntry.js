@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
   thumbnailWrapper: {
     maxWidth: '85px',
     borderRadius: '100%',
-    border: '1px solid #c3c3c3',
+    border: '1px solid var(--text-color-quinary)',
     overflow: 'hidden',
     boxShadow: '0 1px 3px rgb(150 150 150 / 74%)',
     margin: '0 auto',

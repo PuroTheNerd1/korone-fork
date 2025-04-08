@@ -13,9 +13,9 @@ const useStyles = createUseStyles({
     },
   },
   wrapperSelected: {
-    borderLeft: '1px solid #ccc',
-    borderTop: '1px solid #ccc',
-    borderBottom: '1px solid #ccc',
+    borderLeft: '1px solid var(--text-color-secondary)',
+    borderTop: '1px solid var(--text-color-secondary)',
+    borderBottom: '1px solid var(--text-color-secondary)',
 
     backgroundColor: '#efefef',
   },

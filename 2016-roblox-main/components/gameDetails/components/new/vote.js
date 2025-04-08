@@ -15,7 +15,7 @@ const useStyles = createUseStyles({
     height: '5px',
   },
   borderLeft: {
-    borderLeft: '1px solid #c3c3c3',
+    borderLeft: '1px solid var(--text-color-quinary)',
   },
   thumbsText: {
     fontSize: '12px',
@@ -35,7 +35,7 @@ const useStyles = createUseStyles({
     margin: '6px 0 0 0',
   },
   voteBackground: {
-    backgroundColor: '#B8B8B8',
+    backgroundColor: 'var(--text-color-secondary)',
     width: '100%',
 
     position: 'absolute',
@@ -43,7 +43,7 @@ const useStyles = createUseStyles({
     left: 0,
     height: '2px',
   },
-  hasVotes: { backgroundColor: '#E27676' },
+  hasVotes: { backgroundColor: 'var(--bad-color)' },
   votePercentage: {
     backgroundColor: '#02b757',
     position: 'absolute',
@@ -53,7 +53,7 @@ const useStyles = createUseStyles({
   },
 
   segment: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     height: '6px',
     width: '2px',
     position: 'absolute',

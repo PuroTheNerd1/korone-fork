@@ -10,7 +10,7 @@ import {getPermissionsForRoleset, getUserGroups} from "../../services/groups";
 
 const useStyles = createUseStyles({
   developerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--white-color)',
     padding: '4px 8px',
     overflow: 'visible',
   },

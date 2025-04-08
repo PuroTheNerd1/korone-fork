@@ -1,61 +1,51 @@
-using MVC = Microsoft.AspNetCore.Mvc;
-using CsvHelper;
-using System.Xml;
 using Roblox.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using Roblox.Dto.Users;
+using Roblox.Dto.Games;
 using Roblox.Exceptions;
-using Roblox.Services;
+using Roblox.Models.Assets;
 using Roblox.Services.App.FeatureFlags;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
-using ServiceProvider = Roblox.Services.ServiceProvider;
+using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
+using Type = Roblox.Models.Assets.Type;
 
-using Roblox.Dto.Marketplace;
-namespace Roblox.Website.Controllers
-{
-
-    [MVC.ApiController]
-    [MVC.Route("/")]
-    public class Marketplace: ControllerBase
-    {
-
+namespace Roblox.Website.Controllers {
+    // im sorry shika but i had to reformat because when i copied and pasted some code that shit broke
+    [ApiController]
+    [Route("/")]
+    public class Marketplace : ControllerBase {
         [HttpGetBypass("marketplace/productinfo")]
-        public async Task<dynamic> GetProductInfo(long assetId)
-        {
-            try
-            {
-                long Remaining = 0;
+        public async Task<dynamic> GetProductInfo(long assetId) {
+            try {
                 var details = await services.assets.GetAssetCatalogInfo(assetId);
-            
-                if(details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"))
-                {
+                long Remaining = 0;
+                
+                if (details.itemRestrictions.Contains("Limited") ||
+                    details.itemRestrictions.Contains("LimitedUnique")) {
                     var resale = await services.assets.GetResaleData(assetId);
                     Remaining = resale.numberRemaining;
                 }
-                return new
-                {
+
+                return new {
                     TargetId = details.id,
                     AssetId = details.id,
-                    ProductId = details.id, 
+                    ProductId = details.id,
                     Name = details.name,
                     Description = details.description,
                     AssetTypeId = (int)details.assetType,
-                    Creator = new
-                    {
+                    Creator = new {
                         Id = details.creatorTargetId,
                         Name = details.creatorName,
                         CreatorType = details.creatorType,
                         CreatorTargetId = details.creatorTargetId
-                    },  
+                    },
                     IconImageAssetId = 0,
                     Created = details.createdAt,
                     Updated = details.updatedAt,
                     PriceInRobux = details.price,
                     PriceInTickets = details.priceTickets,
                     Sales = details.saleCount,
-                    IsNew = true,
+                    IsNew = details.createdAt.Add(TimeSpan.FromDays(1)) < DateTime.Now,
                     IsForSale = details.isForSale,
                     IsPublicDomain = details.isForSale && details.price == 0,
                     IsLimited = details.itemRestrictions.Contains("Limited"),
@@ -64,43 +54,43 @@ namespace Roblox.Website.Controllers
                     MinimumMembershipLevel = 0
                 };
             }
-            catch(RecordNotFoundException)
-            {
+            catch (RecordNotFoundException) {
                 return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
-            };
+            }
+
+            ;
         }
+
         [HttpGetBypass("v2/assets/{assetId:long}/details")]
-        public async Task<dynamic> GetProductInfoNew(long assetId)
-        {
+        public async Task<dynamic> GetProductInfoNew(long assetId) {
             long Remaining = 0;
             var details = await services.assets.GetAssetCatalogInfo(assetId);
-            if(details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"))
-            {
+            if (details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique")) {
                 var resale = await services.assets.GetResaleData(assetId);
                 Remaining = resale.numberRemaining;
             }
-            return new
-            {
+
+            // this has gotta be a Type somewhere right
+            return new {
                 TargetId = details.id,
                 AssetId = details.id,
-                ProductId = details.id, 
+                ProductId = details.id,
                 Name = details.name,
                 Description = details.description,
                 AssetTypeId = (int)details.assetType,
-                Creator = new
-                {
+                Creator = new {
                     Id = details.creatorTargetId,
                     Name = details.creatorName,
                     CreatorType = details.creatorType,
                     CreatorTargetId = details.creatorTargetId
-                },  
+                },
                 IconImageAssetId = 0,
                 Created = details.createdAt,
                 Updated = details.updatedAt,
                 PriceInRobux = details.price,
                 PriceInTickets = details.priceTickets,
                 Sales = details.saleCount,
-                IsNew = true,
+                IsNew = details.createdAt.Add(TimeSpan.FromDays(1)) < DateTime.Now,
                 IsForSale = details.isForSale,
                 IsPublicDomain = details.isForSale && details.price == 0,
                 IsLimited = details.itemRestrictions.Contains("Limited"),
@@ -109,44 +99,275 @@ namespace Roblox.Website.Controllers
                 MinimumMembershipLevel = 0
             };
         }
-        [HttpPostBypass("marketplace/purchase")]
-        public async Task <dynamic> PurchaseProductMarket([FromForm] Dto.Marketplace.PurchaseRequest purchaseRequest)
-        {
+
+        // client here
+        [HttpPostBypass("marketplace/submitpurchase")]
+        public async Task<dynamic> SubmitPurchase([FromForm] Dto.Marketplace.ProductPurchaseRequest purchaseRequest) {
+            var userId = safeUserSession.userId;
             FeatureFlags.FeatureCheck(FeatureFlag.EconomyEnabled);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             // some sanity checks
+            
+            var productInfoList =
+                (await services.games.GetDeveloperProductInfoFull(purchaseRequest.productId, 1, 0)).ToList();
+            if (productInfoList.FirstOrDefault() == null)
+                throw new RecordNotFoundException("Developer Product is invalid or does not exist");
+            var productInfo = productInfoList.First();
+            if (!productInfo.isForSale)
+                throw new BadRequestException(0, "Developer Product is not for sale");
+            var iconModStatus = await services.assets.GetAssetModerationStatus(productInfo.iconImageAssetId);
+            if (iconModStatus.moderationstatus != (short?)ModerationStatus.ReviewApproved)
+                throw new BadRequestException(0, "Developer Product is not approved");
+            var uni = (await services.games.MultiGetUniverseInfo(new[] {productInfo.universeId})).ToList();
+            if (uni.FirstOrDefault() is null || uni.First().rootPlaceId != purchaseRequest.placeId)
+                throw new BadRequestException(0, "Place is invalid for this purchase or does not exist");
+            if (productInfo.price != purchaseRequest.expectedUnitPrice)
+                throw new BadRequestException(0, "Expected price is not the actual price");
+
+            var receiptId = await services.users.PurchaseDeveloperProduct(userId, purchaseRequest.productId);
+            stopwatch.Stop();
+            Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
+                false);
+            return new {
+                success = true,
+                status = "Bought",
+                receipt = receiptId
+            };
+        }
+
+        [HttpPostBypass("marketplace/purchase")]
+        public async Task<dynamic> PurchaseProductMarket([FromForm] Dto.Marketplace.PurchaseRequest purchaseRequest) {
+            FeatureFlags.FeatureCheck(FeatureFlag.EconomyEnabled);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            // some sanity checks
+            Console.WriteLine(purchaseRequest.productId);
+            Console.WriteLine(purchaseRequest.locationId);
             var productInfo = await services.assets.GetProductForAsset(purchaseRequest.productId);
             if (purchaseRequest.productId is 0 or < 0)
                 purchaseRequest.productId = 0;
-            if(productInfo.isLimited || productInfo.isLimitedUnique)
-            {
-                return new
-                {
+            if (productInfo.isLimited || productInfo.isLimitedUnique) {
+                return new {
                     status = "error",
                 };
             }
-            
+
             // Confirm asset is buyable
             var user18Plus = await services.users.Is18Plus(safeUserSession.userId);
-            if (!user18Plus)
-            {
+            if (!user18Plus) {
                 if (await services.assets.Is18Plus(purchaseRequest.productId))
                     throw new RobloxException(400, 0,
                         "You cannot purchase 18+ items until you confirm you are 18 or over.");
             }
-            
-            await services.users.PurchaseNormalItem(safeUserSession.userId, purchaseRequest.productId, purchaseRequest.currencyTypeId);
+
+            await services.users.PurchaseNormalItem(safeUserSession.userId, purchaseRequest.productId,
+                purchaseRequest.currencyTypeId);
             stopwatch.Stop();
             Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
                 false);
-            return new 
-            {
+            return new {
                 success = true,
                 status = "Bought",
                 receipt = "test"
             };
         }
 
+        // look for dev prod, if not, look for normal asset, if not 400
+        [HttpGetBypass("marketplace/productdetails")]
+        public async Task<dynamic> GetProductDetailsMarketplace(long productId) {
+            // based off of
+            // https://web.archive.org/web/20220707014309/https://api.roblox.com/marketplace/productDetails?productId=19804017
+            // and
+            // https://web.archive.org/web/20171112192130/http://api.roblox.com/Marketplace/Productinfo?assetid=1149615185
+            // (where it's not a developer product)
+            var productInfo = (await services.games.GetDeveloperProductInfoFull(productId, 1, 0)).ToList();
+            
+            if (productInfo.FirstOrDefault() != null) {
+                var details = productInfo.First();
+                return new {
+                    // on roblox this usually leads to the id of a random shirt template??? LMFAOOOO
+                    // idfk why and i dont really care to figure out cuz i dont think its necessary
+                    // so for convenience sake of anyone using this api im putting the universe id
+                    TargetId = details.universeId,
+                    AssetId = 0,
+                    ProductId = details.id,
+                    ProductType = "Developer Product",
+                    Name = details.name,
+                    details.Description,
+                    AssetTypeId = 0,
+                    Creator = new {
+                        Id = 0,
+                        Name = (string?)null,
+                        // once again roblox api is weird
+                        // these are usually null and 0 respectively but
+                        // for convenience sakes ive set to the actual values
+                        CreatorType = details.creatorType,
+                        CreatorTargetId = details.creatorId
+                    },
+                    IconImageAssetId = details.iconImageAssetId,
+                    Created = details.createdAt,
+                    Updated = details.updatedAt,
+                    PriceInRobux = details.price,
+                    PriceInTickets = (int?)null,
+                    Sales = details.sales,
+                    IsNew = details.createdAt.Add(TimeSpan.FromDays(1)) < DateTime.Now,
+                    IsForSale = details.isForSale,
+                    IsPublicDomain = details.isForSale && details.price == 0,
+                    IsLimited = false,
+                    IsLimitedUnique = false,
+                    Remaining = (int?)null,
+                    MinimumMembershipLevel = 0
+                };
+            }
+            
+            var asset = await services.assets.DoesAssetExistType(productId);
+            
+            if (asset.exists) {
+                switch (asset.assetType) {
+                    case (int)Type.GamePass:
+                        return Redirect($"/marketplace/game-pass-product-info?gamePassId={productId}");
+                    default:
+                        return Redirect($"/marketplace/productinfo?assetId={productId}");
+                }
+            }
+            
+            throw new BadRequestException(0, "Asset " + productId + " does not exist.");
+        }
+
+        // Studio
+        [HttpGetBypass("marketplace/game-pass-product-info")]
+        public async Task<dynamic> GetPassInfo(long gamePassId) {
+            // based off of this
+            // https://web.archive.org/web/20211201073809/https://api.roblox.com/marketplace/game-pass-product-info?gamePassId=12828275
+            MultiGetEntry details;
+
+            try {
+                details = await services.assets.GetAssetCatalogInfo(gamePassId);
+            }
+            catch (RecordNotFoundException e) {
+                throw new BadRequestException(0, "Asset " + gamePassId + " does not exist");
+            }
+
+            if (details.assetType != Type.GamePass) {
+                throw new BadRequestException(0, "Asset " + gamePassId + " is not a Game Pass");
+            }
+
+            var gamePassDetails = await services.games.GetGamePassInfo(gamePassId);
+            return new {
+                TargetId = details.id,
+                ProductType = "Game Pass",
+                AssetId = 0,
+                ProductId = await services.games.GetRootPlaceId(gamePassDetails.First()
+                    .universeId), // root place id of gamepass
+                Name = details.name,
+                Description = details.description,
+                AssetTypeId = 0, // idk why roblox didnt put the id, but just incase: (int)details.assetType
+                Creator = new {
+                    Id = details.creatorTargetId,
+                    Name = details.creatorName,
+                    CreatorType = details.creatorType,
+                    CreatorTargetId = details.creatorTargetId
+                },
+                IconImageAssetId = details.id,
+                Created = details.createdAt,
+                Updated = details.updatedAt,
+                PriceInRobux = details.price,
+                PriceInTickets = details.priceTickets,
+                Sales = details.saleCount,
+                IsNew = details.createdAt.Add(TimeSpan.FromDays(1)) < DateTime.Now,
+                IsForSale = details.isForSale,
+                IsPublicDomain = details.isForSale && details.price == 0,
+                IsLimited = false,
+                IsLimitedUnique = false,
+                Remaining = 0,
+                MinimumMembershipLevel = 0,
+                ContentRatingTypeId = 0
+            };
+        }
+
+        [HttpPostBypass("marketplace/validatepurchase")]
+        public async Task<ReceiptResponse> ValidatePurchase(string receiptId) {
+            Console.WriteLine(Request.Method);
+            if (!isRoblox || 
+                !Request.Headers.ContainsKey("Requester") ||
+                !Request.Headers.ContainsKey("Roblox-Place-Id") ||
+                !long.TryParse(Request.Headers["Roblox-Place-Id"], out _)
+                )
+                throw new UnauthorizedException();
+            if (!Guid.TryParse(receiptId, out _))
+                throw new BadRequestException(0, "Receipt ID is invalid");
+            var userId = safeUserSession.userId;
+            // var rawRequestBody = await new StreamReader(Request.Body).ReadToEndAsync();
+            // if (!rawRequestBody.Equals("GameServerVerifyPurchase"))
+            //     throw new NotImplementedException("Not implemented. Request: " + rawRequestBody);
+
+            var receipt = await services.games.GetProductReceiptSecure(userId, Guid.Parse(receiptId));
+
+            if (receipt is null) {
+                return new ReceiptResponse
+                {
+                    playerId = userId,
+                    placeId = long.Parse(Request.Headers["Roblox-Place-Id"]),
+                    isValid = false,
+                    productId = null
+                };
+            }
+            
+            return new ReceiptResponse
+            {
+                playerId = userId,
+                placeId = long.Parse(Request.Headers["Roblox-Place-Id"]),
+                isValid = true,
+                productId = receipt.productId,
+            };
+        }
+        
+        [HttpGetBypass("gametransactions/getpendingtransactions")]
+        public async Task<dynamic> GetPendingTransactions(long PlaceId, long PlayerId) {
+            if (!isRCC || !Request.Headers.ContainsKey("Requester") || Request.Headers["Requester"] != "Server")
+                throw new UnauthorizedException();
+
+            var universeId = await services.games.GetUniverseId(PlaceId);
+            var pendingReceipt = await services.games.GetSingleProcessingProductReceipt(PlayerId, universeId);
+            if (pendingReceipt is null)
+                return Array.Empty<dynamic>();
+            
+            await services.games.ProcessProductReceipt(pendingReceipt.id);
+            return new[] {
+                new {
+                    playerId = PlayerId,
+                    placeId = PlaceId,
+                    receipt = pendingReceipt.id,
+                    actionArgs = new List<dynamic> {
+                        new {
+                            Key = "productId",
+                            Value = pendingReceipt.productId
+                        },
+                        new {
+                            Key = "currencyTypeId",
+                            Value = 1
+                        },
+                        new {
+                            Key = "unitPrice",
+                            Value = pendingReceipt.price
+                        }
+                    }
+                }
+            };
+        }
+
+        [HttpPostBypass("gametransactions/settransactionstatuscomplete")]
+        public async Task<dynamic> ProcessTransaction([FromForm] string receiptStr) {
+            if (!Guid.TryParse(receiptStr, out _))
+                throw new BadRequestException(0, "Receipt is invalid or does not exist.");
+            var receiptId = Guid.Parse(receiptStr);
+            var receipt = await services.games.GetProductReceipt(receiptId); // is this even necessary lol
+            if (receipt == null)
+                throw new BadRequestException(0, "Receipt is invalid or does not exist.");
+            await services.games.ProcessProductReceipt(receiptId);
+            
+            return new { success = true };
+        }
     }
 }

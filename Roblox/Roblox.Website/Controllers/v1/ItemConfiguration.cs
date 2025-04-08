@@ -61,6 +61,7 @@ public class ItemConfigurationV1 : ControllerBase
         Type.Shirt,
         Type.Pants,
         Type.TeeShirt,
+        Type.GamePass
     };
 
     private readonly Type[] freeAssetTypes =
@@ -68,7 +69,7 @@ public class ItemConfigurationV1 : ControllerBase
         Type.Animation,
         Type.Image,
         Type.Decal,
-        Type.Image,
+        Type.Image, // why are there 2 here
         Type.Mesh,
         Type.Model,
         Type.SolidModel,

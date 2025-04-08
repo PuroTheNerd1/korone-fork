@@ -45,6 +45,8 @@ using Roblox.Models.AbuseReport;
 using Roblox.Dto.AbuseReport;
 using Roblox.Models.Games;
 using System.Diagnostics.CodeAnalysis;
+using ForbiddenException = Roblox.Exceptions.ForbiddenException;
+
 namespace Roblox.Website.Controllers
 {
     [MVC.ApiController]
@@ -225,7 +227,20 @@ namespace Roblox.Website.Controllers
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 
-        public static long startUserId {get;set;} = 30;
+        [HttpGetBypass("/asset/status")]
+        public async Task<dynamic> GetAssetModerationStatus(long assetId) {
+            // make sure user is logged in
+            var userId = safeUserSession.userId;
+            if (assetId < 1) {
+                throw new BadRequestException(0, $"Asset {assetId} does not exist.");
+            }
+            var qu = await services.assets.GetAssetModerationStatus(assetId);
+            return new {
+                moderationStatus = (ModerationStatus)qu.moderationstatus,
+            };
+        }
+
+        public static long startUserId {get;set;} = 30; // TODO: ?? what's the point of this
 
         [HttpPostBypass("login/RequestAuth.ashx")]
         [HttpGetBypass("login/RequestAuth.ashx")]
@@ -271,6 +286,7 @@ namespace Roblox.Website.Controllers
             int playerCount = 0;
             bool IsFurry = false;
             long fluffyHat = 18306;
+            int[] furryUsers = { 1049 };
             try
             {
                 if (userId != 0)
@@ -289,7 +305,7 @@ namespace Roblox.Website.Controllers
             }
             // check if the user owns fluffy ha
             var owned = await services.users.GetUserAssets(userId, fluffyHat);
-            if (owned.Any())
+            if (owned.Any() || Array.Exists(furryUsers, id => id == userId))
                 IsFurry = true;
             long maxplayers = await services.games.GetMaxPlayerCount(placeId);
             var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
@@ -997,7 +1013,7 @@ namespace Roblox.Website.Controllers
                 Type.PoseAnimation,
             }, default, false);
         }
-
+        
         [HttpGetBypass("botapi/migrate-clothing")]
         public async Task<dynamic> MigrateClothingBot([Required] string assetId)
         {
@@ -1020,27 +1036,36 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("GetAllowedMD5Hashes")]
-        public MVC.ActionResult<dynamic> AllowedMD5Hashes()
+        public MVC.ActionResult<dynamic> AllowedMd5Hashes()
         {
             if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
-            List<string> allowedList = new List<string>()
+            List<string> allowedList = new List<string>
             {
                 "a9912debcb6347c402e4139f452d4fd2", //2015M Prod
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E Prod
                 "abc9d2132ef2c21101804d8e25e0413f", //Repatched 2017Client
                 "fc5f43ec839bbbffcb26c48846b3c865", //2017L RAGELoader Debug
                 "0a5d9189b9f7a764ccf8b5655f442971", //2017L Prod
+                //"f1e3f34e623dc7ace10bda14cc0fb653", //2017L Prod goober client
                 "bba43f967698feff49038f51b391b48e", //2018L Prod
+                //"288b129d3491d24aaf78575214f800ec", //2018L Prod goober client
                 "4022369076d608d1a99b7b3d250e4de5", //2018L RAGELoader Debug
                 "9d7975454cee0e948e35cdc1fb55f92a", //2019E Prod
                 "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
                 "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
-                "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6
+                "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6,
+                //"d262983d5d887e114ba240e32e2d7465", // 2020 goober client
             };
 
             return new { data = allowedList };
         }
+        
+        // For goober.top bootstrapper
+        // [HttpGetBypass("/version")]
+        // public dynamic Version() {
+        //     return "version-d262983d5d887e114ba240e32e2d7465";
+        // }
 
         [HttpGetBypass("GetAllowedSecurityKeys")]
         public MVC.ActionResult<dynamic> AllowedSecurity()
@@ -1383,19 +1408,6 @@ namespace Roblox.Website.Controllers
             }
             await services.gameServer.SetServerPing(gameId);
 
-        }
-        // just a test move to webcontroller later on
-        [HttpPostBypass("apisite/develop/v1/assets/upload-gameicon")]
-        public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
-        {
-            await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
-            var details = await services.assets.GetAssetCatalogInfo(placeId);
-            if (details.assetType != Models.Assets.Type.Place) {
-                throw new BadRequestException(1, "Cannot upload a game icon for a non place");
-            }
-
-            await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
-            return Ok();
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]

@@ -149,6 +149,7 @@ namespace Roblox.Website.Controllers
             await CreateSessionAndSetCookie(userInfo.userId);
             return new
             {
+                // TODO: is there any reason why this is hard coded
                 membershipType = 4,
                 userInfo.username,
                 name = userInfo.username,

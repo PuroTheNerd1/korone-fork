@@ -15,7 +15,7 @@ const useStyles = createUseStyles({
   gameTitle: {
     fontWeight: 700,
     fontSize: '30px',
-    color: '#343434',
+    color: 'var(--text-color-primary)',
   },
 })
 

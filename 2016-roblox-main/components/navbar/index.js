@@ -11,11 +11,15 @@ import Search from "./components/search";
 
 const useNavBarStyles = createUseStyles({
   navbar: {
-    backgroundColor: p => p.theme === themeType.obc2016 ? '#393939' : '#0074BD',
+    //backgroundColor: p => p.theme === themeType.obc2016 ? '#393939' : 'var(--primary-color)',
+    backgroundColor: p => p.theme === themeType.obc2016 ? '#393939' : 'var(--secondary-color)',
     paddingTop: '0!important',
     paddingBottom: '0!important',
     display: 'block',
     boxShadow: '0 3px 3px -3px rgba(25, 25, 25, 0.3)',
+    //backgroundImage: 'url(/img/holiday/snow-4.png)',
+    backgroundRepeat: 'repeat-x',
+    verticalAlign: 'bottom',
   },
   navContainer: {
     maxWidth: '100%!important',

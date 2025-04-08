@@ -17,10 +17,11 @@ import TabSection from "./components/tabSection";
 import UserProfileStore from "./stores/UserProfileStore";
 import Favorites from "./components/favorites";
 import HorizontalTabs from "../horizontalTabs";
+import Badges from "./components/badges";
 
 const useStyles = createUseStyles({
   profileContainer: {
-    background: '#e3e3e3',
+    background: 'var(--background-color)',
     marginTop: '8px',
   },
   container: {
@@ -68,6 +69,7 @@ const UserProfile = props => {
             <Groups />
             <Favorites userId={store.userId} />
             <RobloxBadges userId={store.userId} />
+            <Badges userId={store.userId} />
             <Statistics />
           </>
         },

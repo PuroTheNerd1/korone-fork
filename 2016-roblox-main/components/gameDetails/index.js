@@ -17,13 +17,14 @@ import GameDetailsStore from "./stores/gameDetailsStore"
 
 const useStyles = createUseStyles({
   gameContainer: {
-    //backgroundColor: '#fff',
+    //backgroundColor: 'var(--white-color)',
     background: 'none',
     //padding: '4px 8px',
     //overflow: 'hidden',
     maxWidth: '970px',
     display: 'inline-block',
     position: 'relative',
+    width: 'calc(100% - 165px)',
     //top: '-182px',
     //'@media (max-width: 1511px)': {
       top: 0,

@@ -24,7 +24,7 @@ const useStyles = createUseStyles({
   },
   postRow: {
     background: '#f9f9f9',
-    borderBottom: '1px solid #c3c3c3',
+    borderBottom: '1px solid var(--text-color-quinary)',
   },
   userStat: {
     marginBottom: 0,

@@ -703,7 +703,7 @@ public class Catalog : ControllerBase
 	    var result = await services.assets.MultiGetInfoById(request.items.Select(c => c.id));
 	    return new RobloxCollection<MultiGetEntry>()
 	    {
-		    data = result,
+		    data = result
 	    };
     }
 

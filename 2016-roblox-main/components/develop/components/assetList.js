@@ -13,6 +13,8 @@ import { getAssetThumbnail, getUniverseIcon, multiGetUniverseIcons } from "../..
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
 import AudioPlayButton from "../../catalogDetailsPage/components/audioPlayButton";
+import AssetListGamePassEntry from "./assetListGamePassEntry";
+import AssetListBadgeEntry from "./assetListBadgeEntry";
 
 const useStyles = createUseStyles({
   image: {
@@ -71,11 +73,11 @@ const AssetEntry = props => {
     },
     isPlace && {
       name: 'Create Badge',
-      url: `/develop?selectedPlaceId=${props.assetId}&View=21`,
+      url: `/develop?universeId=${props.universeId}&View=21`,
     },
     isPlace && {
       name: 'Create Pass',
-      url: `/develop?selectedplaceId=${props.assetId}&View=34`,
+      url: `/develop?universeId=${props.universeId}&View=34`,
     },
     isPlace && {
       name: 'Developer Stats',
@@ -96,7 +98,6 @@ const AssetEntry = props => {
       name: 'Run',
       onClick: e => {
         e.preventDefault();
-        console.log('run ad');
         setRunMenuOpen(!runMenuOpen);
       },
     },
@@ -159,7 +160,7 @@ const AssetEntry = props => {
       </Link>
     </div>
     <div className={
-      //isPlace ? 'col-7 ps-0' :
+      //isPlace ? 'col-7 ps-0' : 
       'col-9 ps-0'}>
       <p className='mb-0'>
         <Link href={url}>
@@ -172,11 +173,13 @@ const AssetEntry = props => {
         isAd ? <AssetListAdEntry ad={props.ad} target={props.target} runMenuOpen={runMenuOpen} setRunMenuOpen={setRunMenuOpen} />
           : props.assetType === 9 ?
             <AssetListGameEntry url={assetUrl} startPlaceName={props.name} />
-            : <AssetListCatalogEntry created={props.created} />
+            : props.assetType === 34 ? <AssetListGamePassEntry updated={props.updated} sales={props.sales} isForSale={props.isForSale} />
+                : props.assetType === 21 ? <AssetListBadgeEntry badge={props} />
+                   : <AssetListCatalogEntry created={props.created} />
       }
     </div>
     <div className={
-      //isPlace ? `col-4 ${s.gearDropdownWrapper}` :
+      //isPlace ? `col-4 ${s.gearDropdownWrapper}` : 
       'col-1'}>
       {/*isPlace && <div className={s.editWrapper}>
         <ActionButton onClick={() => {}} disabled={true} label='Edit' buttonStyle={buttonStyles.cancelButton}></ActionButton>

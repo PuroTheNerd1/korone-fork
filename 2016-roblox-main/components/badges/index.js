@@ -8,7 +8,7 @@ const useBadgeStyles = createUseStyles({
         minHeight: '110px',
     },
     title: {
-        color: '#191919',
+        color: 'var(--text-color-primary)',
         fontSize: '32px',
         fontWeight: '800',
         padding: '5px 0',
@@ -17,7 +17,7 @@ const useBadgeStyles = createUseStyles({
     subTitle: {
         fontSize: '24px',
         fontWeight: '700',
-        color: '#191919',
+        color: 'var(--text-color-primary)',
         padding: '5px 0',
         margin: 0,
     },
@@ -25,7 +25,7 @@ const useBadgeStyles = createUseStyles({
         margin: '0 0 6px',
         padding: '15px',
         position: 'relative',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--white-color)',
     },
     badgeImageContainer: {
         width: '75px',
@@ -100,7 +100,7 @@ const CommunityBadges = [
     },
     {
         name: 'Veteran Badge',
-        desc: 'This badge recognizes members who have played Pekora for one year or more. They are stalwart community members who have stuck with us over countless releases, and have helped shape Pekora into the game that it is today. These medalists are the true steel, the core of the Pekorian history ... and its future.',
+        desc: 'This badge recognizes members who have played Pekora for one year or more. They are stalwart community members who have stuck with us over countless releases, and have helped shape Pekora into the game that it is today. These medalists are the true steel, the core of the Projexian history ... and its future.',
         iconOne: 8,
         iconTwo: 0,
     },
@@ -133,7 +133,7 @@ const DeveloperBadges = [
     },
     {
         name: 'Bricksmith Badge',
-        desc: 'The Bricksmith badge is earned by having a popular personal place. Once your place has been visited 1000 times, you will receive this award. Pekoraians with Bricksmith badges are accomplished builders who were able to create a place that people wanted to explore a thousand times. They no doubt know a thing or two about putting bricks together.',
+        desc: 'The Bricksmith badge is earned by having a popular personal place. Once your place has been visited 1000 times, you will receive this award. Pekorians with Bricksmith badges are accomplished builders who were able to create a place that people wanted to explore a thousand times. They no doubt know a thing or two about putting bricks together.',
         iconOne: 5,
         iconTwo: 0,
     },
