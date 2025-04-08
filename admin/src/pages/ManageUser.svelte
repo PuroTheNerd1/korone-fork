@@ -403,7 +403,7 @@
 					modalCb = (t) => {
 					  if (t) {
 						request
-						  .get(`/users/${userId}/${info.data.verified ? 'unverify' : 'verify'}-user`, {})
+						  .post(`/users/${userId}/${info.data.verified ? 'unverify' : 'verify'}-user`, {})
 						  .then(() => {
 							window.location.reload();
 						  })
