@@ -23,7 +23,7 @@ public class RobloxPlayerCorsMiddleware
         var scriptSrc =
             "'unsafe-eval' 'self' https://challenges.cloudflare.com/turnstile/v0/api.js https://translate.google.com https://hcaptcha.com https://*.hcaptcha.com https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js https://pekora.zip http://*.archive.org https://*.archive.org http://js.rbxcdn.com/46eace8231bf3c1ce64c55407d9ae60d.js";
 
-        var fontSrc = "'self' https://fonts.gstatic.com http://www.pekora.zip https://pekora.zip https://www.pekora.zip";
+        var fontSrc = "'self' https://fonts.gstatic.com http://www.pekora.zip https://pekora.zip https://*.pekora.zip https://www.pekora.zip/fonts/GothamSSmBold.woff2 https://www.pekora.zip/fonts/GothamSSmMedium.woff2 https://www.pekora.zip/fonts/GothamSSmBook.woff2";
 
         return "default-src 'self'; img-src " + imgSrc + "; child-src 'self'; script-src " + scriptSrc + "; frame-src 'self' https://hcaptcha.com https://challenges.cloudflare.com http://challenges.cloudflare.com https://*.archive.org; style-src 'unsafe-inline' 'self' http://*.archive.org https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com https://pekora.zip https://www.pekora.zip https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css https://pekora.zip/fonts/gotham.css http://*.pekora.zip; font-src " + fontSrc + "; connect-src " + connectSrc + "; worker-src 'self';";
     }
