@@ -2725,10 +2725,7 @@ Thank you for your understanding,
     [HttpPost("groups/status/delete"), StaffFilter(Access.DeleteGroupStatus)]
     public async Task DeleteGroupStatus(long id)
     {
-        await db.ExecuteAsync("DELETE FROM group_status WHERE id = :id", new
-        {
-            id,
-        });
+        await services.groups.DeleteGroupStatus(id);
     }
 
     [HttpGet("users/status"), StaffFilter(Access.GetAllUserStatuses)]
@@ -2784,13 +2781,10 @@ Thank you for your understanding,
     [HttpGet("groups/get-by-name"), StaffFilter(Access.GetGroupManageInfo)]
     public async Task<dynamic> GetGroupByName(string name)
     {
-        var result = await db.QuerySingleOrDefaultAsync("SELECT id FROM \"group\" g WHERE g.name = :name", new
-        {
-            name,
-        });
-        if (result == null)
+        long? id = await services.groups.GetGroupIdByName(name);
+        if (id == null)
             throw new StaffException("Group name is invalid or does not exist");
-        return await GetGroupModerationInfo(result.id);
+        return await GetGroupModerationInfo((long)id);
     }
 
     [HttpGet("groups/audit-log"), StaffFilter(Access.GetGroupManageInfo)]
@@ -3099,8 +3093,7 @@ Thank you for your understanding,
     // [StaffFilter(Access.GetGameServers)]
     // public async Task<dynamic> GetGameServers()
     // {
-    //     var result = await services.gameServer.GetAllGameServers();
-    //     var l = new List<dynamic>();
+    //     var result = await services.gameServer.GetAllGameServers()
     //     return result;
     // }
 }

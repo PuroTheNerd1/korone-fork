@@ -75,7 +75,14 @@ public class GroupsService : ServiceBase, IService
             });
         return groups.total;
     }
-
+    public async Task<long> GetGroupIdByName(string name)
+    {
+        var result = await db.QuerySingleOrDefaultAsync("SELECT id FROM \"group\" g WHERE g.name = :name", new
+        {
+            name,
+        });
+        return result.id;
+    }
     public async Task<GroupEntry> GetGroupById(long groupId)
     {
         var dbResult = await db.QuerySingleOrDefaultAsync<GroupEntryDb>(
@@ -618,7 +625,13 @@ public class GroupsService : ServiceBase, IService
             },
         };
     }
-
+    public async Task DeleteGroupStatus(long id)
+    {
+        await db.ExecuteAsync("DELETE FROM group_status WHERE id = :id", new
+        {
+            id,
+        });
+    }
     public async Task RemoveUserFromGroup(long groupId, long userId, long userIdPerformingAction)
     {
         await InTransaction(async _ =>
