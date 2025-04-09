@@ -248,7 +248,7 @@ namespace Roblox.Website.Controllers
             }
             await services.users.DeleteTicket(request.ticket);
 
-            return Ok();
+            return Content("{}", "application/json");
         }
 
         [HttpPostBypass("v2/twostepverification/verify")]
