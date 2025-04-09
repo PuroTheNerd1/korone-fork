@@ -12,24 +12,29 @@ public class BadgesService : ServiceBase, IService {
         int offset, SortOrder? sort)
     {
         var qu = await db.QueryAsync<BadgeAssetDetailsDb>(
-        @"SELECT a.id, a.name, a.description, ab.enabled,
-        (
-            SELECT COUNT(*) FROM user_asset AS ua
-            WHERE ua.asset_id = a.id
-            AND ua.created_at >= NOW() - INTERVAL '1 day'
-        ) as awardedCount,
-        a.created_at as created,
-        a.moderation_status as moderationStatus,
-        a.updated_at as updated,
-        (
-            SELECT COUNT(*) FROM asset_play_history AS aph
-            WHERE aph.asset_id = :rootPlaceId   
-            AND aph.created_at >= NOW() - INTERVAL '1 day'
-        ) as pastDayUniverseVisitors
-        FROM asset AS a
-        INNER JOIN asset_badge ab ON ab.asset_id = a.id
-        WHERE ab.universe_id = :universeId
-        LIMIT :limit OFFSET :offset",
+    @"SELECT a.id, a.name, a.description, ab.enabled,
+    (
+        SELECT COUNT(*) FROM user_asset AS ua
+        WHERE ua.asset_id = a.id
+        AND ua.created_at >= NOW() - INTERVAL '1 day'
+    ) as awardedCount,
+    (
+        SELECT COUNT(*) FROM user_asset AS ua
+        WHERE ua.asset_id = a.id
+        AND ua.created_at >= NOW() - INTERVAL '1 day'
+    ) as pastDayAwardedCount,
+    a.created_at as created,
+    a.moderation_status as moderationStatus,
+    a.updated_at as updated,
+    (
+        SELECT COUNT(*) FROM asset_play_history AS aph
+        WHERE aph.asset_id = :rootPlaceId   
+        AND aph.created_at >= NOW() - INTERVAL '1 day'
+    ) as pastDayUniverseVisitors
+    FROM asset AS a
+    INNER JOIN asset_badge ab ON ab.asset_id = a.id
+    WHERE ab.universe_id = :universeId
+    LIMIT :limit OFFSET :offset",
     new { universe.rootPlaceId, universeId = universe.id, limit, offset });
 
         return qu.Select(c => new BadgeAssetDetails()
