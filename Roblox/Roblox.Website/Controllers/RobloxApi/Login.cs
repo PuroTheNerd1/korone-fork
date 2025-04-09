@@ -342,7 +342,7 @@ namespace Roblox.Website.Controllers
                 SameSite = SameSiteMode.Lax,
             });
 
-            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.AltCookieName, sessionCookie, new CookieOptions()
             {
                 Domain = ".pekora.zip",
                 Secure = false,

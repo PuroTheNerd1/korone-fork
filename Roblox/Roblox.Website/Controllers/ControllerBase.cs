@@ -75,7 +75,11 @@ namespace Roblox.Website.Controllers
                 {
                     return (UserSession?)dict[Middleware.SessionMiddleware.CookieName];
                 }
-
+                else if (dict.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.AltCookieName))
+                {
+                    return (UserSession?)dict[Middleware.SessionMiddleware.AltCookieName];
+                }
+                
                 return null;
             }
         }
