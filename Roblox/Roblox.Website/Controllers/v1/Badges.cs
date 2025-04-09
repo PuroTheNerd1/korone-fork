@@ -163,7 +163,7 @@ public class BadgesControllerV1 : ControllerBase
         if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) { 
             await services.assets.IncrementSaleCount(badgeId);
             await services.users.CreateUserAsset(userId, badgeId);
-            await services.assets.IncrementAssetSales(badgeId);
+            // await services.assets.IncrementAssetSales(badgeId);
         }
         
         if (Request.Path == "/assets/award-badge") 
