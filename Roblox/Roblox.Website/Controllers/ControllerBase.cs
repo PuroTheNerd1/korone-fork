@@ -70,11 +70,7 @@ namespace Roblox.Website.Controllers
         {
             get
             {
-                if (_cachedUserSession == null)
-                {
-                    _cachedUserSession = LoadUserSessionAsync();
-                }
-
+                _cachedUserSession = LoadUserSessionAsync();
                 return _cachedUserSession.IsCompletedSuccessfully ? _cachedUserSession.Result : null;
             }
         }
