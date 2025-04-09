@@ -2527,6 +2527,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         throw new PermissionException(assetId, userId);
     }
+
+    public async Task IncrementAssetSales(long assetId) {
+        await db.QueryAsync(@"UPDATE asset SET sale_count = sale_count + 1 WHERE id = :assetId", new { assetId });
+    }
     public async Task EnsureAssetIsModerated(long assetId)
     {
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT moderation_status FROM asset WHERE id = :id AND moderation_status = :acceptedStatus", 
