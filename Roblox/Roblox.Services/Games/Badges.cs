@@ -51,12 +51,14 @@ public class BadgesService : ServiceBase, IService {
             moderationStatus = c.moderationStatus,
             created = c.created,
             updated = c.updated,
-            statistics = new BadgeStatistics {
+            statistics = new BadgeStatistics 
+            {
                 awardedCount = c.awardedCount,
                 pastDayAwardedCount = c.pastDayAwardedCount,
                 winRatePercentage = c.pastDayAwardedCount == 0 ? 0 : Math.Round((decimal)c.pastDayAwardedCount / c.pastDayUniverseVisitors, 1)
             },
-            awardingUniverse = new BadgeAwardingUniverse {
+            awardingUniverse = new BadgeAwardingUniverse 
+            {
                 id = universe.id,
                 name = universe.name,
                 rootPlaceId = universe.rootPlaceId

@@ -161,6 +161,7 @@ public class BadgesControllerV1 : ControllerBase
         if (badgeInfo.universeId != universeId)
             throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
         if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) { 
+            await services.assets.IncrementSaleCount(badgeId);
             await services.users.CreateUserAsset(userId, badgeId);
             await services.assets.IncrementAssetSales(badgeId);
         }

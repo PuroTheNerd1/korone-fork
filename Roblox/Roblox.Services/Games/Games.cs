@@ -90,6 +90,7 @@ public class GamesService : ServiceBase, IService
         if (universe is null) 
             throw new RecordNotFoundException("Universe doesn't exist");
         
+
         if (universe.creatorId != userId) 
             throw new PermissionException(universe.rootPlaceId, userId);
         
