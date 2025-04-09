@@ -53,7 +53,7 @@ public class BadgesService : ServiceBase, IService {
             {
                 awardedCount = c.awardedCount,
                 pastDayAwardedCount = c.pastDayAwardedCount,
-                winRatePercentage = c.pastDayAwardedCount == 0 ? 0 : Math.Round((decimal)c.pastDayAwardedCount / c.pastDayUniverseVisitors, 1)
+                winRatePercentage = c.pastDayUniverseVisitors == 0 ? 0 : Math.Round((decimal)c.pastDayAwardedCount / c.pastDayUniverseVisitors * 100, 1)
             },
             awardingUniverse = new BadgeAwardingUniverse 
             {
