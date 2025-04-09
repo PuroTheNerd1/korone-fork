@@ -222,7 +222,13 @@ namespace Roblox.Website.Controllers
                 verificationToken = await services.users.GenerateLoginTicket(loginTicketInfo)
             };
         }
-        
+
+        [HttpPostBypass("v1/twostepverification/verify")]
+        public async Task TwoStepVerificationV1()
+        {
+            Console.WriteLine(GetRequestBody())
+        }
+
         [HttpPostBypass("v2/twostepverification/verify")]
         public async Task TwoStepVerification([FromBody] TwoFactor request)
         {
