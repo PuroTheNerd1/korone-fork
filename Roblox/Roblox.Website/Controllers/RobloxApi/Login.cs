@@ -224,35 +224,8 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("v1/twostepverification/verify")]
-        public async Task<dynamic> TwoStepVerificationV1([FromBody] TwoFactor request)
-        {
-            TwoFactorTicket info;
-            try
-            {
-                info = await services.users.GetInfoFrom2SVTicket(request.ticket);
-                UserInfo userInfo = await services.users.GetUserById(info.userId);
-                if (userInfo.username != request.username || info.hashedIp != GetIP())
-                    throw new RecordNotFoundException();
-
-                if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
-                    throw new BadRequestException(6, "Failure2SVNotEnabled");
-
-                TotpInfo totpInfo = await services.users.GetTotp(info.userId);
-                if (!services.users.VerifyTotp(totpInfo.secret, request.code))
-                    throw new BadRequestException(6, "Failure2SVInvalidCode");
-
-            }
-            catch (RecordNotFoundException)
-            {
-                throw new BadRequestException(5, "Invalid two step verification ticket.");
-            }
-            await services.users.DeleteTicket(request.ticket);
-
-            return Content("{}", "application/json");
-        }
-
         [HttpPostBypass("v2/twostepverification/verify")]
-        public async Task TwoStepVerification([FromBody] TwoFactor request)
+        public async Task<dynamic> TwoStepVerification([FromBody] TwoFactor request)
         {
             TwoFactorTicket info;
             try
@@ -277,6 +250,8 @@ namespace Roblox.Website.Controllers
             await services.users.DeleteTicket(request.ticket);
 
             await CreateSessionAndSetCookie(info.userId);
+
+            return Content("{}", "application/json");
         }
         [HttpPostBypass("v2/twostepverification/login/verify")]
         public async Task<dynamic> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
