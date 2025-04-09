@@ -237,9 +237,9 @@ namespace Roblox.Website.Controllers
 
                 if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
                     throw new BadRequestException(6, "Failure2SVNotEnabled");
-                Console.WriteLine(request.code);
                 TotpInfo totpInfo = await services.users.GetTotp(info.userId);
-                if (!services.users.VerifyTotp(totpInfo.secret, request.code))
+                Console.WriteLine(totpInfo.secret);
+                if (services.users.VerifyTotp(totpInfo.secret, request.code))
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
 
             }
