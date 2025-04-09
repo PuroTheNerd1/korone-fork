@@ -30,7 +30,7 @@ public class BadgesService : ServiceBase, IService {
         INNER JOIN asset_badge ab ON ab.asset_id = a.id
         WHERE ab.universe_id = :universeId
         LIMIT :limit OFFSET :offset",
-    new { universe.rootPlaceId, universe.id, limit, offset });
+    new { universe.rootPlaceId, universeId = universe.id, limit, offset });
 
         return qu.Select(c => new BadgeAssetDetails()
         {
