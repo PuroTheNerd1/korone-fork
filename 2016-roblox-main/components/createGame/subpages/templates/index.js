@@ -78,7 +78,7 @@ const Templates = props => {
                                 props.setTemplate(template.universe.rootPlaceId);
                             }}>
                             <div className={s.templateThumbContainer}>
-                                <img src={`/thumbs/asset.ashx?assetId=${template.universe.tempThumbnailId}`}/>
+                                <img src={`/thumbs/asset.ashx?assetId=${template.universe.rootPlaceId}`}/>
                             </div>
                             <span className={s.templateName}>{template.universe.name}</span>
                         </div>
