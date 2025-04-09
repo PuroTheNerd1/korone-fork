@@ -115,6 +115,14 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMvc(c =>
     c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
 );
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.RequestHeaders.Add("Cookie");
+    logging.ResponseHeaders.Add("Cookie");
+    logging.RequestBodyLogLimit = 4096;
+    logging.ResponseBodyLogLimit = 4096;
+
+});
 builder.Services.AddCompression(options =>
 {
     options.AllowedMediaTypes = new List<MediaTypeHeaderValue>
@@ -232,7 +240,10 @@ _ = Task.Run(async () =>
     using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
     await assets.FixAssetImagesWithoutMetadata();
 });
-
+app.UseWhen(context => context.Request.Path.StartsWithSegments("/v1/users"), appBuilder =>
+{
+    appBuilder.UseHttpLogging();
+});
 app.UseEndpoints(e =>
 {
     e.MapHub<ChatHub>("/chat");

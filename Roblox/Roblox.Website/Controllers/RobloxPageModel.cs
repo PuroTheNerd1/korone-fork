@@ -13,7 +13,13 @@ public class RobloxPageModel : PageModel
         {
             var dict = HttpContext.Items;
             if (dict.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.CookieName))
+            {
                 return (UserSession?)dict[Middleware.SessionMiddleware.CookieName];
+            }
+            else if (dict.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.AltCookieName))
+            {
+                return (UserSession?)dict[Middleware.SessionMiddleware.AltCookieName];
+            }
 
             return null;
         }

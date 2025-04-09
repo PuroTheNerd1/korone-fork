@@ -200,10 +200,11 @@ public class DevelopControllerV1 : ControllerBase
 
     // get universe's products
     [HttpGet("universes/{universeId:long}/developerproducts")]
-    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long pageNumber, long? pageSize = 10) {
+    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long pageNumber, long? pageSize = 10) 
+    {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         long parsedSize = (pageSize > 50 || pageSize < 1) ? 10 : (pageSize ?? 10);
         if (pageNumber > 100 || pageSize < 1) pageNumber = 1;
-        await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         var offset = parsedSize * (pageNumber == 0 ? 0 : pageNumber - 1);
         return await services.games.GetDeveloperProducts(
             universeId,
@@ -214,9 +215,10 @@ public class DevelopControllerV1 : ControllerBase
     // create developer product
     // https://apidocs.sixteensrc.zip/develop/docs.html#!/DeveloperProducts/post_v1_universes_universeId_developerproducts
     [HttpPost("universes/{universeId:long}/developerproducts")]
-    public async Task<dynamic> CreateDeveloperProduct(long universeId, string name, string description, long priceInRobux, long iconImageAssetId) {
+    public async Task<dynamic> CreateDeveloperProduct(long universeId, string name, string description, long priceInRobux, long iconImageAssetId) 
+    {
         MultiGetEntry asset;
-        long userId;
+        long userId = safeUserSession.userId;
 
         // this god awful code is presented to you by the fact i barely know how
         // developer products work so i gotta stick as close to the roblox api as possible
@@ -224,30 +226,35 @@ public class DevelopControllerV1 : ControllerBase
         if (priceInRobux < 0 || priceInRobux > 1000000) {
             throw new BadRequestException(0, "Price in Robux can not be negative or above 1 million.");
         }
-        
-        try {
-            await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
-            userId = safeUserSession.userId;
+
+        try 
+        {
+            await services.games.SafeGetUniverseInfo(userId, universeId);
         }
-        catch (RecordNotFoundException e) {
+        catch (RecordNotFoundException) 
+        {
             throw new NotFoundException(5, "Universe not found.");
         }
-        catch (PermissionException e) {
+        catch (PermissionException) 
+        {
             throw new ForbiddenException(6, "User doesn't have access to universe.");
         }
-        catch (RobloxException e) {
-            throw new UnauthorizedException();
-        }
-        if ((await services.games.GetDeveloperProductCount(universeId) ?? 0) >= 25) {
+
+        if ((await services.games.GetDeveloperProductCount(universeId)) >= 25) {
             throw new BadRequestException(0, "Too many developer products for this universe.");
         }
-        try {
+        
+        try 
+        {
             asset = await services.assets.GetAssetCatalogInfo(iconImageAssetId);
         }
-        catch (RecordNotFoundException e) {
+        catch (RecordNotFoundException) 
+        {
             throw new NotFoundException(3, "Icon Asset not found.");
         }
-        if (asset.creatorTargetId != userId) { // ?? no idea why roblox does that
+        // ?? no idea why roblox does that
+        if (asset.creatorTargetId != userId) 
+        { 
             throw new ForbiddenException(2, "Icon Asset is created by another user.");
         }
 
@@ -281,8 +288,7 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("universes/{universeId:long}/developerproducts/{productId}/update")]
     public async Task UpdateDeveloperProduct(long universeId, long productId, [FromBody] UpdateDevProductRequest request) 
     {
-        MultiGetEntry asset;
-        long userId;
+        long userId = safeUserSession.userId;
 
         // this god awful code is presented to you by the fact i barely know how
         // developer products work so i gotta stick as close to the roblox api as possible
@@ -291,23 +297,19 @@ public class DevelopControllerV1 : ControllerBase
             throw new BadRequestException(0, "Price in robux can not be negative or above 1 million.");
         }
         
-        try {
-            await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
-            userId = safeUserSession.userId;
+        try 
+        {
+            await services.games.CanManageUniverse(userId, universeId);
         }
-        catch (RecordNotFoundException e) {
+        catch (RecordNotFoundException) 
+        {
             throw new NotFoundException(5, "Universe not found.");
         }
-        catch (PermissionException e) {
+        catch (PermissionException) 
+        {
             throw new ForbiddenException(6, "User doesn't have access to universe.");
         }
-        catch (RobloxException e) {
-            throw new UnauthorizedException();
-        }
         var product = await services.games.GetDeveloperProduct(productId);
-        if (product is null) {
-            throw new BadRequestException(0, "Developer product not found.");
-        }
 
         if (product.name == request.Name &&
             product.Description == request.Description &&
@@ -316,16 +318,15 @@ public class DevelopControllerV1 : ControllerBase
             // nothing changed lal
             return;
         }
-        try {
-            asset = await services.assets.GetAssetCatalogInfo(request.IconImageAssetId);
-        }
-        catch (RecordNotFoundException e) {
-            throw new NotFoundException(3, "Icon Asset not found.");
-        }
-        if (asset.creatorTargetId != userId) { // ?? no idea why roblox does that
+        var asset = await services.assets.GetAssetCatalogInfo(request.IconImageAssetId);
+
+        // ?? no idea why roblox does that
+        if (asset.creatorTargetId != userId) 
+        { 
             throw new ForbiddenException(2, "Icon Asset is created by another user.");
         }
-        if (asset.assetType != Type.Image) {
+        if (asset.assetType != Type.Image) 
+        {
             throw new BadRequestException(0, "Icon asset type is not an image.");
         }
 

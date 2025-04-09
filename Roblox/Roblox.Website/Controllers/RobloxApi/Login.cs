@@ -222,9 +222,10 @@ namespace Roblox.Website.Controllers
                 verificationToken = await services.users.GenerateLoginTicket(loginTicketInfo)
             };
         }
-        
+
+        [HttpPostBypass("v1/twostepverification/verify")]
         [HttpPostBypass("v2/twostepverification/verify")]
-        public async Task TwoStepVerification([FromBody] TwoFactor request)
+        public async Task<dynamic> TwoStepVerification([FromBody] TwoFactor request)
         {
             TwoFactorTicket info;
             try
@@ -249,6 +250,8 @@ namespace Roblox.Website.Controllers
             await services.users.DeleteTicket(request.ticket);
 
             await CreateSessionAndSetCookie(info.userId);
+
+            return Content("{}", "application/json");
         }
         [HttpPostBypass("v2/twostepverification/login/verify")]
         public async Task<dynamic> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
@@ -321,6 +324,15 @@ namespace Roblox.Website.Controllers
                 }
             };
         }
+
+        [HttpGetBypass("v2/passwords/current-status")]
+        public dynamic GetPasswordStatus()
+        {
+            return new 
+            {
+                valid = userSession != null
+            };
+        }
         private async Task<string> CreateSessionAndSetCookie(long userId)
         {
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
@@ -329,15 +341,6 @@ namespace Roblox.Website.Controllers
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
             // will be removed later this is just a hack to get the website to work :sob:
-            HttpContext.Response.Cookies.Append("USERID", userId.ToString(), new CookieOptions()
-            {
-                Domain = $".{Configuration.ShortBaseUrl}",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
             {
                 Domain = ".pekora.zip",
@@ -345,7 +348,17 @@ namespace Roblox.Website.Controllers
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
                 Path = "/",
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Lax,
+            });
+
+            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.AltCookieName, sessionCookie, new CookieOptions()
+            {
+                Domain = ".pekora.zip",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
             });
             return sessionCookie;
         }

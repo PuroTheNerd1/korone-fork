@@ -1,4 +1,5 @@
 using Dapper;
+using InfluxDB.Client.Api.Domain;
 using Newtonsoft.Json.Linq;
 using Roblox.Dto;
 using Roblox.Dto.Games;
@@ -55,16 +56,32 @@ public class GamesService : ServiceBase, IService
         return result?.total > 0;
     }
 
-    public async Task<bool> CanManageUniverse(long userId, long universeId)
+    public async Task CanManageUniverse(long userId, long universeId)
     {
-        var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
+        var universe = await db.QuerySingleOrDefaultAsync<Dto.Total>(
+            "SELECT COUNT(*) AS total FROM universe WHERE id = :id", new
+            {
+                id = universeId,
+            });
+
+        if (universe?.total == 0)
+        {
+            throw new RecordNotFoundException("Universe does not exist.");
+        }
+
+        var creatorCheck = await db.QuerySingleOrDefaultAsync<Dto.Total>(
             "SELECT COUNT(*) AS total FROM universe WHERE id = :id AND creator_id = :userId", new
             {
                 id = universeId,
                 userId,
             });
-        return result?.total > 0;
+
+        if (creatorCheck?.total == 0)
+        {
+            throw new PermissionException(universeId, userId);
+        }
     }
+
 
     public async Task<long> GetYear(long placeId)
     {
@@ -83,6 +100,14 @@ public class GamesService : ServiceBase, IService
                 id = universeId,
             });
         return result;
+    }
+        
+    public async Task<MultiGetUniverseEntry> GetUniverseInfo(long universeId)
+    {
+        var universe = (await MultiGetUniverseInfo(new[] {universeId})).First();
+        if (universe is null) 
+            throw new RecordNotFoundException("Universe doesn't exist");
+        return universe;
     }
     public async Task<MultiGetUniverseEntry> SafeGetUniverseInfo(long userId, long universeId)
     {
@@ -977,9 +1002,10 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<DeveloperProducts?> GetDeveloperProduct(long productId) {
+    public async Task<DeveloperProducts> GetDeveloperProduct(long productId) 
+    {
         // universe id is the shop id because idfk what shop id even is
-        return await db.QuerySingleOrDefaultAsync<DeveloperProducts>(
+        var result = await db.QuerySingleOrDefaultAsync<DeveloperProducts>(
             @"SELECT dv.id, dv.sales, dv.name, 
             dv.description as Description,
             dv.universe_id as shopId,
@@ -991,11 +1017,15 @@ public class GamesService : ServiceBase, IService
             {
                 productId
             });
+        if (result == null)
+            throw new RecordNotFoundException("Product not found");
+        return result;
     }
     
-    public async Task<int?> GetDeveloperProductCount(long universeId) {
+    public async Task<int> GetDeveloperProductCount(long universeId) 
+    {
         // universe id is the shop id because idfk what shop id even is
-        var qu = await db.QuerySingleOrDefaultAsync<int?>(
+        var qu = await db.QuerySingleOrDefaultAsync<int>(
             @"SELECT COUNT(*)
             FROM developer_product AS dv
             WHERE dv.universe_id = :universeId",
@@ -1003,9 +1033,6 @@ public class GamesService : ServiceBase, IService
             {
                 universeId
             });
-        if (qu == null) {
-            return null;
-        }
         return qu;
     }
     

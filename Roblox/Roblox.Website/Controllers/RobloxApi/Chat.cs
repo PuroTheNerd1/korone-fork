@@ -114,8 +114,7 @@ public class Chat : ControllerBase
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
         long universeId = await services.games.GetUniverseId(request.placeId);
-        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
-            throw new RobloxException(400, 0, "BadRequest");
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         var result = await services.chat.CreateCloudEditConversation(safeUserSession.userId, request.placeId);
         return new
         {
