@@ -185,27 +185,28 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGetBypass("developerproducts/list")]
-    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId, long? universeId) {
-        if (page < 1 || page > 5) {
+    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId, long? universeId) 
+    {
+        if (page < 1 || page > 5) 
+        {
             page = 1;
         }
 
         long uniId;
 
-        if (universeId != null) {
+        if (universeId != null) 
+        {
             var universes = await services.games.MultiGetUniverseInfo(new[] {universeId.Value});
             if (universes.FirstOrDefault() == null)
                 throw new BadRequestException(0, "Universe ID is invalid or does not exist");
             uniId = universeId.Value;
-        } else if (placeId != null) {
-            try {
-                uniId = await services.games.GetUniverseId(placeId.Value);
-            }
-            catch (RecordNotFoundException e) {
-                throw new BadRequestException(0, "Place ID is invalid or does not exist");
-            }
+        } 
+        else if (placeId != null) 
+        {
+            uniId = await services.games.GetUniverseId(placeId.Value);
         }
-        else {
+        else 
+        {
             throw new BadRequestException(0, "Universe Id and Place Id cannot both be null.");
         }
         
@@ -213,9 +214,11 @@ public class UniverseV1 : ControllerBase
         //var universeId = await services.games.GetUniverseId(placeId);
 
         var products = (await services.games.GetDeveloperProducts(uniId, 5, 5 * (page - 1))).ToList();
-        return new {
+        return new 
+        {
             FinalPage = products.Count < 5 || page == 5,
-            DeveloperProducts = products.Select(c => new {
+            DeveloperProducts = products.Select(c => new 
+            {
                 ProductId = c.id,
                 DeveloperProductId = c.iconImageAssetId,
                 Name = c.name,

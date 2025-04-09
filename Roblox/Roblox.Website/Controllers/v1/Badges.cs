@@ -29,12 +29,9 @@ public class BadgesControllerV1 : ControllerBase
             throw new BadRequestException(0, "Badge is invalid or does not exist");
         }
 
-        var uni = (await services.games.MultiGetUniverseInfo(new []{basicBadgeInfo.universeId})).ToList();
-        if (uni.First() is null) {
-            throw new BadRequestException(0, "Badge is invalid or does not exist");
-        }
+        var uni = await services.games.GetUniverseInfo(basicBadgeInfo.universeId);
         // no need to check if it's null right?
-        var badgeInfo = await services.badges.GetBadgeInfoExtended(badgeId, uni.First(), 1, 0, null);
+        var badgeInfo = await services.badges.GetBadgeInfoExtended(badgeId, uni, 1, 0, null);
         
         return badgeInfo.First();
     }
@@ -69,11 +66,8 @@ public class BadgesControllerV1 : ControllerBase
     {
         if (limit is > 100 or < 1) limit = 10;
         var offset = cursor != null ? int.Parse(cursor) : 0;
-        var uni = (await services.games.MultiGetUniverseInfo(new []{universeId})).ToList();
-        if (uni.First() is null) {
-            throw new BadRequestException(0, "Badge is invalid or does not exist");
-        }
-        var badgeInfo = (await services.badges.GetBadgesForUniverse(uni.First(), limit, offset, sortOrder)).ToList();
+        var uni = await services.games.GetUniverseInfo(universeId);
+        var badgeInfo = (await services.badges.GetBadgesForUniverse(uni, limit, offset, sortOrder)).ToList();
         
         return new RobloxCollectionPaginated<BadgeAssetDetails>()
         {
@@ -150,7 +144,7 @@ public class BadgesControllerV1 : ControllerBase
         var user = await services.users.GetUserById(userId);
         var universeId = await services.games.GetUniverseId(placeId.Value);
         // shouldnt have to check null cuz of above right?
-        var uni = (await services.games.MultiGetUniverseInfo(new[]{universeId})).ToList();
+        var uni = await services.games.GetUniverseInfo(universeId);
         var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
         if (badgeInfo is null) {
             throw new BadRequestException(0, "Badge is invalid or does not exist");
@@ -173,8 +167,8 @@ public class BadgesControllerV1 : ControllerBase
         
         return new 
         {
-            creatorType = uni.First().creator.type,
-            creatorId = uni.First().creator.id,
+            creatorType = uni.creator.type,
+            creatorId = uni.creator.id,
             awardAssetIds = Array.Empty<dynamic>()
         };
     }
