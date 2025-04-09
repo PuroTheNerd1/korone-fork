@@ -665,6 +665,43 @@ public class GamesService : ServiceBase, IService
             created = c.created
         }));
     }
+    // Doesn't care for moderation status
+    public async Task<IEnumerable<UniverseGamePassEntry>> GetGamePassesForUniverseModStatus(long universeId, int limit,
+        int offset, long? userId, SortOrder? sort)
+    {
+        var qu = await db.QueryAsync<UniverseGamePassEntryDb>(
+            @"SELECT a.id, a.name,
+            a.price_robux as priceRobux,
+            a.is_for_sale as isForSale,
+            a.sale_count as sales,
+            a.created_at as created,
+            a.updated_at as updated
+            FROM asset AS a
+            INNER JOIN asset_gamepass ag ON ag.asset_id = a.id
+            WHERE ag.universe_id = :universeId
+            LIMIT :limit OFFSET :offset",
+            new
+            {
+                universeId,
+                acceptedStatus = ModerationStatus.ReviewApproved,
+                limit,
+                offset,
+            });
+        using var users = ServiceProvider.GetOrCreate<UsersService>(this);
+        return await Task.WhenAll(qu.Select(async c => new UniverseGamePassEntry
+        {
+            id = c.id,
+            name = c.name,
+            displayName = c.name,
+            productId = c.id,
+            price = c.priceRobux,
+            isForSale = c.isForSale,
+            isOwned = userId != null && await DoesUserOwnAsset(userId.Value, c.id),
+            sales = c.sales,
+            updated = c.updated,
+            created = c.created
+        }));
+    }
     private async Task<bool> DoesUserOwnAsset(long userId, long assetId) {
         using var users = ServiceProvider.GetOrCreate<UsersService>(this);
         return await users.HasUserPurchasedAssetBefore(userId, assetId);

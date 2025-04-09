@@ -148,11 +148,11 @@ export const getGamePassRootPlace = async ({ assetId }) => {
 
 /**
  *
- * @param universeId
+ * @param {{ universeId: number; unfiltered?: boolean; }} props
  * @returns {Promise<GamepassEntry[]>}
  */
-export const getUniverseGamePasses = ({ universeId }) => {
-    return request('GET', getFullUrl('games', `/v1/games/${universeId}/game-passes`)).then(d => d.data.data);
+export const getUniverseGamePasses = ({ universeId, unfiltered = false }) => {
+    return request('GET', getFullUrl('games', `/v1/games/${universeId}/game-passes${unfiltered ? "?unfiltered=1" : ""}`)).then(d => d.data.data);
 }
 
 /**

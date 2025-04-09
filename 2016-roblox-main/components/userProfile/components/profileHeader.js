@@ -168,9 +168,11 @@ const useHeaderStyles = createUseStyles({
     padding: 0,
     float: 'right',
     width: '55%',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     '@media(max-width: 767px)': {
       width: '100%',
-      display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
       marginTop: '11px',
@@ -303,7 +305,7 @@ const ProfileHeader = props => {
     // If the user is verified we should overwrite the bcIcon with the verified icon
     if (verified) {
       return <span className={`icon-verified ${s.verifiedIcon}`} />
-    } 
+    }
 
     // 1 = BC
     // 2 = TBC
