@@ -32,9 +32,7 @@ public class Economy : ControllerBase
     public async Task<dynamic> GetUserCurrency(long userId)
     {
         FeatureCheck();
-        if (userSession == null || userId != userSession.userId)
-            throw new ForbiddenException();
-        return await services.economy.GetUserBalance(userId);
+        return await services.economy.GetUserBalance(userSession.userId);
     }
 
     [HttpGetBypass("v1/assets/{assetId}/users/{userId}/resellable-copies")]

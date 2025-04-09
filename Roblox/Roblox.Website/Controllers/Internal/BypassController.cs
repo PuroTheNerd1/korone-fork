@@ -822,7 +822,7 @@ namespace Roblox.Website.Controllers
         {
             return new
             {
-                robux = await services.economy.GetUserRobux(userSession?.userId ?? (long.TryParse(HttpContext.Request.Cookies["USERID"], out var userId) ? userId : 1)),
+                robux = await services.economy.GetUserRobux(userSession.userId),
             };
         }
         [HttpGetBypass("Users/ListStaff.ashx")]
@@ -1241,7 +1241,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/currency/balance")]
         public async Task<dynamic> GetBalance()
         {
-            return await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
+            return await services.economy.GetBalance(CreatorType.User, userSession.userId);
         }
 
         [HttpGetBypass("/ownership/hasasset")]
