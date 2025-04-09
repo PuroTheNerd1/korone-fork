@@ -532,9 +532,7 @@ public class UniverseV1 : ControllerBase
     [HttpGet("v2/universes/{universeId}/permissions")]
     public async Task<dynamic> CanManageV2(long universeId) 
     {
-        bool canManage = await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        if (!canManage)
-            throw new RobloxException(403, 0, "The user is not authorized to perform this action.");
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         return new 
         {
             data = new List<object>()
@@ -545,7 +543,16 @@ public class UniverseV1 : ControllerBase
     [HttpGetBypass("v1/universes/{universeId}/permissions")]
     public async Task<dynamic> CanManage(long universeId) 
     {
-        bool canManage = await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        bool canManage = true;
+        try 
+        {
+            await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        }
+        catch (Exception)
+        {
+            canManage = false;
+        }
+
         bool canCloudEdit = await services.games.CanCloudEdit(safeUserSession.userId, universeId) ? canManage : false;
         return new 
         {
@@ -557,9 +564,7 @@ public class UniverseV1 : ControllerBase
     [HttpPatch("v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> SetTeamCreateSettings([FromBody] TeamCreateSettings request, long universeId) 
     {
-        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId)) 
-            throw new ForbiddenException(0, "You are not authorized to configure this universe.");
-        
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
 
         await services.games.SetCloudedit(request.isEnabled, universeId);
         return Content("{}", "application/json");
@@ -619,8 +624,7 @@ public class UniverseV1 : ControllerBase
             "Console",
             "VR"
         };
-        if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId)) 
-            throw new ForbiddenException(0, "You are not authorized to configure this universe.");
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         
 
         //await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
