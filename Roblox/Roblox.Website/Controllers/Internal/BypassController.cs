@@ -1241,7 +1241,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/currency/balance")]
         public async Task<dynamic> GetBalance()
         {
-            return await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
+            return await services.economy.GetBalance(CreatorType.User, userSession.userId);
         }
 
         [HttpGetBypass("/ownership/hasasset")]
