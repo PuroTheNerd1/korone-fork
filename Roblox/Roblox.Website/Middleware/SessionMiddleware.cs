@@ -95,13 +95,16 @@ public class SessionMiddleware
                         return;
                     }
                     decodedResult = DecodeJwt<JwtEntry>(cookie2);
-
                 }
                 else
                 {
                     decodedResult =  DecodeJwt<JwtEntry>(cookie);
                 }
-
+                if (currentPath.Contains("v1/users/") && ctx.Request.Headers["User-Agent"].Contains("Roblox"))
+                {
+                    Console.WriteLine("Got session");
+                }
+                
                 if (!string.IsNullOrEmpty(decodedResult.sessionId))
                 {
                     using var users = ServiceProvider.GetOrCreate<UsersService>();
