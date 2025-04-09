@@ -15,7 +15,7 @@ public class BadgesService : ServiceBase, IService {
         @"SELECT a.id, a.name, a.description, ab.enabled,
         (
             SELECT COUNT(*) FROM user_asset AS ua
-            WHERE ua.badge_id = a.id
+            WHERE ua.asset_id = a.id
             AND ua.created_at >= NOW() - INTERVAL '1 day'
         ) as awardedCount,
         a.created_at as created,
