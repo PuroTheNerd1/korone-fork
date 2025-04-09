@@ -15,7 +15,7 @@ public class BadgesService : ServiceBase, IService {
         @"SELECT a.id, a.name, a.description, ab.enabled,
         (
             SELECT COUNT(*) FROM user_asset AS ua
-            WHERE ua.badge_id = a.id
+            WHERE ua.asset_id = a.id
             AND ua.created_at >= NOW() - INTERVAL '1 day'
         ) as awardedCount,
         a.created_at as created,
@@ -30,7 +30,7 @@ public class BadgesService : ServiceBase, IService {
         INNER JOIN asset_badge ab ON ab.asset_id = a.id
         WHERE ab.universe_id = :universeId
         LIMIT :limit OFFSET :offset",
-    new { universe.rootPlaceId, universe.id, limit, offset });
+    new { universe.rootPlaceId, universeId = universe.id, limit, offset });
 
         return qu.Select(c => new BadgeAssetDetails()
         {
