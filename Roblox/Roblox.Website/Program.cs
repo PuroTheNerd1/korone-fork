@@ -232,7 +232,7 @@ _ = Task.Run(async () =>
     using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
     await assets.FixAssetImagesWithoutMetadata();
 });
-
+app.UseHttpLogging();
 app.UseEndpoints(e =>
 {
     e.MapHub<ChatHub>("/chat");
