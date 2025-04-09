@@ -103,33 +103,34 @@ public class Application : RobloxPageModel
     }
     private async Task<DiscordInfo> InfoDiscordUser(string discord_id)
     {
-        return new DiscordInfo { success = true, username = "zyythy" };
-        // var httpClient = new HttpClient();
-        // var response = await httpClient.GetAsync($"http://localhost:3550/isuserinserver?discordId={discord_id}");
+        // for goober
+        //return new DiscordInfo { success = true, username = "zyythy" };
+        var httpClient = new HttpClient();
+        var response = await httpClient.GetAsync($"http://localhost:3550/isuserinserver?discordId={discord_id}");
 
-        // if (response.IsSuccessStatusCode)
-        // {
-        //     var userInfoJson = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            var userInfoJson = await response.Content.ReadAsStringAsync();
 
-        //     if (string.IsNullOrEmpty(userInfoJson))
-        //     {
-        //         return new DiscordInfo { success = false, username = null! };
-        //     }
+            if (string.IsNullOrEmpty(userInfoJson))
+            {
+                return new DiscordInfo { success = false, username = null! };
+            }
 
-        //     try
-        //     {
-        //         var desUserInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<DiscordInfo>(userInfoJson);
-        //         return desUserInfo!;
-        //     }
-        //     catch (Exception)
-        //     {
-        //         return new DiscordInfo { success = false, username = null! };
-        //     }
-        // }
-        // else
-        // {
-        //     return new DiscordInfo { success = false, username = null! };
-        // }
+            try
+            {
+                var desUserInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<DiscordInfo>(userInfoJson);
+                return desUserInfo!;
+            }
+            catch (Exception)
+            {
+                return new DiscordInfo { success = false, username = null! };
+            }
+        }
+        else
+        {
+            return new DiscordInfo { success = false, username = null! };
+        }
     }
 
     public async Task<IActionResult> OnGet()
