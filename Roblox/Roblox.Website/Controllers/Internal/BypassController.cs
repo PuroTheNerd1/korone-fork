@@ -1161,8 +1161,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
         public async Task<OkObjectResult> EnableCloudEdit(long universeId)
         {
-            if (!await services.games.CanManageUniverse(safeUserSession.userId, universeId))
-                throw new RobloxException(403, 0, "Unauthorized");
+            await services.games.CanManageUniverse(safeUserSession.userId, universeId);
             await services.games.SetCloudedit(true, universeId);
             return Ok(new { });
         }
