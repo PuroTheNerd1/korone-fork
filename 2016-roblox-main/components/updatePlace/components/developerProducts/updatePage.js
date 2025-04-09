@@ -142,7 +142,7 @@ const UpdateDevProduct = () => {
                                 productId: productStore.selectedProduct,
                                 name,
                                 description: desc,
-                                priceInRobux: price,
+                                price,
                                 imageId: imageAssetId
                             }).then(d1 => d1.data).then(() => {
                                 productStore.refreshProducts();

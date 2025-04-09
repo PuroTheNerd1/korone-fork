@@ -154,10 +154,13 @@ public class BadgesControllerV1 : ControllerBase
             throw new BadRequestException(8, "The badge is disabled.");
         if (badgeInfo.universeId != universeId)
             throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
-        if (!(await services.users.GetUserAssets(userId, badgeId)).Any()) { 
-            await services.assets.IncrementSaleCount(badgeId);
-            await services.users.CreateUserAsset(userId, badgeId);
-        }
+        if ((await services.users.GetUserAssets(userId, badgeId)).Any())
+            throw new BadRequestException(0, "User already owns the badge");
+        // TODO: put proper error code here from apidocs sixteensrc 
+        
+        await services.assets.IncrementSaleCount(badgeId);
+        await services.users.CreateUserAsset(userId, badgeId);
+        // await services.assets.IncrementAssetSales(badgeId);
         
         if (Request.Path == "/assets/award-badge") 
         {

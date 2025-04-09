@@ -53,7 +53,7 @@ public class BadgesService : ServiceBase, IService {
             {
                 awardedCount = c.awardedCount,
                 pastDayAwardedCount = c.pastDayAwardedCount,
-                winRatePercentage = c.pastDayUniverseVisitors == 0 ? 0 : Math.Round((decimal)c.pastDayAwardedCount / c.pastDayUniverseVisitors * 100, 1)
+                winRatePercentage = c.pastDayUniverseVisitors == 0 || c.pastDayAwardedCount == 0 ? 0 : Math.Round((decimal)c.pastDayAwardedCount / c.pastDayUniverseVisitors * 100, 1)
             },
             awardingUniverse = new BadgeAwardingUniverse 
             {
@@ -75,9 +75,9 @@ public class BadgesService : ServiceBase, IService {
             uv.root_asset_id as rootPlaceId,
             a.updated_at as updated,
             (
-                SELECT COUNT(*) FROM user_transaction AS ut
-                                WHERE ut.asset_id = a.id
-                                AND ut.created_at >= NOW() - INTERVAL '1 day'
+                SELECT COUNT(*) FROM user_asset AS ua
+                                WHERE ua.asset_id = a.id
+                                AND ua.updated_at >= NOW() - INTERVAL '1 day'
             ) as pastDayAwardedCount,
             (
                 SELECT COUNT(*) FROM asset_play_history as aph
@@ -136,9 +136,9 @@ public class BadgesService : ServiceBase, IService {
             a.moderation_status as moderationStatus,
             a.updated_at as updated,
             (
-                SELECT COUNT(*) FROM user_transaction AS ut
-                                WHERE ut.asset_id = a.id
-                                AND ut.created_at >= NOW() - INTERVAL '1 day'
+                SELECT COUNT(*) FROM user_asset AS ua
+                                WHERE ua.asset_id = a.id
+                                AND ua.updated_at >= NOW() - INTERVAL '1 day'
             ) as pastDayAwardedCount,
             (
                 SELECT COUNT(*) FROM asset_play_history as aph

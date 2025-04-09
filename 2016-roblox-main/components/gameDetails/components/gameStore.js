@@ -238,7 +238,7 @@ const GameStore = props => {
     setPasses(0);
     getUniverseGamePasses({universeId: store.universeDetails.id, unfiltered: false}).then(d => {
       try { // accounts for d being null if for whatever rerason it is
-        d = d.filter(pass => pass.price >= 5).filter(pass => pass.isForSale === true);
+        d = d.filter(pass => pass.price >= 2).filter(pass => pass.isForSale === true);
         if (d.length === 0) {
           setPasses(1);
           return;
@@ -261,7 +261,7 @@ const GameStore = props => {
             {passes.map(pass => <GamePassEntry key={pass.id} id={pass.id} name={pass.name} price={pass.price} isOwned={pass.isOwned} />)}
             {/* TODO: will need to be changed if we ever add group games */}
             {
-              store.universeDetails.creator.id === auth.userId && passes.length !== 15 ?
+              store.universeDetails.creator.id === auth.userId && passes.length < 16 ?
                   <AddPassEntry universeId={store.universeDetails.id} />
                   : null
             }
