@@ -239,7 +239,7 @@ namespace Roblox.Website.Controllers
                     throw new BadRequestException(6, "Failure2SVNotEnabled");
                 TotpInfo totpInfo = await services.users.GetTotp(info.userId);
                 Console.WriteLine(totpInfo.secret);
-                if (services.users.VerifyTotp(totpInfo.secret, request.code))
+                if (!services.users.VerifyTotp(totpInfo.secret, request.code))
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
 
             }
