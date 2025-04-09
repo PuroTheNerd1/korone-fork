@@ -100,11 +100,7 @@ public class SessionMiddleware
                 {
                     decodedResult =  DecodeJwt<JwtEntry>(cookie);
                 }
-                if (currentPath.Contains("v1/users/") && ctx.Request.Headers["User-Agent"].Contains("Roblox"))
-                {
-                    Console.WriteLine("Got session");
-                }
-                
+
                 if (!string.IsNullOrEmpty(decodedResult.sessionId))
                 {
                     using var users = ServiceProvider.GetOrCreate<UsersService>();
