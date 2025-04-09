@@ -32,7 +32,7 @@ public class Economy : ControllerBase
     public async Task<dynamic> GetUserCurrency(long userId)
     {
         //FeatureCheck();
-        return await services.economy.GetUserBalance(userSession.userId);
+        return await services.economy.GetUserBalance(safeUserSession.userId);
     }
 
     [HttpGetBypass("v1/assets/{assetId}/users/{userId}/resellable-copies")]
