@@ -224,12 +224,6 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("v1/twostepverification/verify")]
-        public async Task<dynamic> TwoStepVerificationV1()
-        {
-            Console.WriteLine(await GetRequestBody());
-            return Ok();
-        }
-
         [HttpPostBypass("v2/twostepverification/verify")]
         public async Task TwoStepVerification([FromBody] TwoFactor request)
         {
