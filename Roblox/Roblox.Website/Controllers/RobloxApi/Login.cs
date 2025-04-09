@@ -332,15 +332,6 @@ namespace Roblox.Website.Controllers
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
             // will be removed later this is just a hack to get the website to work :sob:
-            HttpContext.Response.Cookies.Append("USERID", userId.ToString(), new CookieOptions()
-            {
-                Domain = $".{Configuration.ShortBaseUrl}",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
             {
                 Domain = ".pekora.zip",
@@ -348,7 +339,17 @@ namespace Roblox.Website.Controllers
                 Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
                 IsEssential = true,
                 Path = "/",
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Lax,
+            });
+
+            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+            {
+                Domain = ".pekora.zip",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
             });
             return sessionCookie;
         }

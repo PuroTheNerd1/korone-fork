@@ -27,6 +27,7 @@ public class SessionMiddleware
 {
     private RequestDelegate _next;
     public const string CookieName = ".ROBLOSECURITY";
+    public const string AltCookieName = ".PEKORASECURITY";
     // JWT Config
     private static readonly IJwtAlgorithm Algorithm = new HMACSHA512Algorithm();
     private static readonly IJsonSerializer Serializer = new JsonNetSerializer();
