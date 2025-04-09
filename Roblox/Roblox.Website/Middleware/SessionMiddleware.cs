@@ -27,7 +27,7 @@ public class SessionMiddleware
 {
     private RequestDelegate _next;
     public const string CookieName = ".ROBLOSECURITY";
-    public const string AltCookieName = ".PEKORASECURITY";
+    public const string AltCookieName = ".ROBLOSECURITY";
     // JWT Config
     private static readonly IJwtAlgorithm Algorithm = new HMACSHA512Algorithm();
     private static readonly IJsonSerializer Serializer = new JsonNetSerializer();
@@ -71,7 +71,6 @@ public class SessionMiddleware
     private async Task OnBadSession(HttpContext ctx)
     {
         ctx.Response.Cookies.Delete(CookieName);
-        ctx.Response.Cookies.Delete(AltCookieName);
         await _next(ctx);
     }
 
@@ -83,24 +82,15 @@ public class SessionMiddleware
         {
             if (ctx.Request.Cookies.ContainsKey(CookieName))
             {
-                dynamic decodedResult;
                 var cookie = ctx.Request.Cookies[CookieName];
-                var cookie2 = ctx.Request.Cookies[AltCookieName];
                 if (string.IsNullOrWhiteSpace(cookie))
                 {
-                    if (string.IsNullOrWhiteSpace(cookie2))
-                    {
-                        authTimer.Stop();
-                        await OnBadSession(ctx);
-                        return;
-                    }
-                    decodedResult = DecodeJwt<JwtEntry>(cookie2);
+                    authTimer.Stop();
+                    await OnBadSession(ctx);
+                    return;
                 }
-                else
-                {
-                    decodedResult =  DecodeJwt<JwtEntry>(cookie);
-                }
-
+                
+                var decodedResult = DecodeJwt<JwtEntry>(cookie);
                 if (!string.IsNullOrEmpty(decodedResult.sessionId))
                 {
                     using var users = ServiceProvider.GetOrCreate<UsersService>();
@@ -126,8 +116,7 @@ public class SessionMiddleware
                     }
 
                     ctx.Items[CookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
-                    ctx.Items[AltCookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
-                    
+
                     if (userInfo.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned
                         or AccountStatus.Deleted)
                     {
