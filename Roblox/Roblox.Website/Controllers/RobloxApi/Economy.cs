@@ -31,7 +31,8 @@ public class Economy : ControllerBase
     [HttpGetBypass("v1/users/{userId:long}/currency")]
     public async Task<dynamic> GetUserCurrency(long userId)
     {
-        FeatureCheck();
+        //FeatureCheck();
+        Console.WriteLine("Cookie: " + HttpContext.Request.Cookies[Roblox.Website.Middleware.SessionMiddleware.AltCookieName]);
         return await services.economy.GetUserBalance(userSession.userId);
     }
 
