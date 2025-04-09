@@ -83,18 +83,25 @@ public class SessionMiddleware
         {
             if (ctx.Request.Cookies.ContainsKey(CookieName))
             {
+                dynamic decodedResult;
                 var cookie = ctx.Request.Cookies[CookieName];
                 var cookie2 = ctx.Request.Cookies[AltCookieName];
-                if (string.IsNullOrWhiteSpace(cookie) && string.IsNullOrWhiteSpace(cookie2))
+                if (string.IsNullOrWhiteSpace(cookie))
                 {
-                    authTimer.Stop();
-                    await OnBadSession(ctx);
-                    return;
+                    if (string.IsNullOrWhiteSpace(cookie2))
+                    {
+                        authTimer.Stop();
+                        await OnBadSession(ctx);
+                        return;
+                    }
+                    decodedResult = DecodeJwt<JwtEntry>(cookie2);
+
                 }
- 
-                dynamic decodedResult = DecodeJwt<JwtEntry>(cookie);
-                if (decodedResult == null)
-                    decodedResult =  DecodeJwt<JwtEntry>(cookie2);
+                else
+                {
+                    decodedResult =  DecodeJwt<JwtEntry>(cookie);
+                }
+
                 if (!string.IsNullOrEmpty(decodedResult.sessionId))
                 {
                     using var users = ServiceProvider.GetOrCreate<UsersService>();
@@ -121,6 +128,7 @@ public class SessionMiddleware
 
                     ctx.Items[CookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
                     ctx.Items[AltCookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
+                    
                     if (userInfo.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned
                         or AccountStatus.Deleted)
                     {

@@ -79,7 +79,7 @@ namespace Roblox.Website.Controllers
                 {
                     return (UserSession?)dict[Middleware.SessionMiddleware.AltCookieName];
                 }
-                
+
                 return null;
             }
         }
