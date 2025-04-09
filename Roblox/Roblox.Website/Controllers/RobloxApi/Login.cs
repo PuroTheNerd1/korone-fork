@@ -324,6 +324,15 @@ namespace Roblox.Website.Controllers
                 }
             };
         }
+
+        [HttpGetBypass("v2/passwords/current-status")]
+        public dynamic GetPasswordStatus()
+        {
+            return new 
+            {
+                valid = userSession != null
+            };
+        }
         private async Task<string> CreateSessionAndSetCookie(long userId)
         {
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
