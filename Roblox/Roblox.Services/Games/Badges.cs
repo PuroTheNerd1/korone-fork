@@ -16,7 +16,6 @@ public class BadgesService : ServiceBase, IService {
     (
         SELECT COUNT(*) FROM user_asset AS ua
         WHERE ua.asset_id = a.id
-        AND ua.created_at >= NOW() - INTERVAL '1 day'
     ) as awardedCount,
     (
         SELECT COUNT(*) FROM user_asset AS ua
