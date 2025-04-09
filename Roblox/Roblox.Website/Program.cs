@@ -115,6 +115,14 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMvc(c =>
     c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
 );
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.RequestHeaders.Add("Cookie");
+    logging.ResponseHeaders.Add("Cookie");
+    logging.RequestBodyLogLimit = 4096;
+    logging.ResponseBodyLogLimit = 4096;
+
+});
 builder.Services.AddCompression(options =>
 {
     options.AllowedMediaTypes = new List<MediaTypeHeaderValue>
