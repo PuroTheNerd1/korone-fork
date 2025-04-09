@@ -79,7 +79,7 @@ const CreateGame = props => {
     const [gameGenre, setGameGenre] = useState('All');
     
     useEffect(async () => {
-        setGameName(`${auth.username}'s Place Number: ${await getUserCreatedPlaceCount({userId: auth.userId})}`);
+        setGameName(`${auth.username}'s Place Number: ${await getUserCreatedPlaceCount({userId: auth.userId}) + 1}`);
     }, []);
     
     const [playableDevices, setPlayableDevices] = useState({
