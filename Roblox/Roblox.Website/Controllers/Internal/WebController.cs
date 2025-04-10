@@ -26,6 +26,7 @@ using DSharpPlus.Net;
 using Roblox.Logging;
 using Roblox.Website.Pages.Auth;
 using DSharpPlus.Entities;
+using InfluxDB.Client.Api.Domain;
 
 namespace Roblox.Website.Controllers;
 
@@ -54,55 +55,104 @@ public class WebController : ControllerBase
         });
     }
 
-    [HttpGetBypass("api/callback")]
-    public async Task<IActionResult> DiscordOAuthCallback(string code)
+    [HttpGetBypass("auth/discord-login")]
+    public IActionResult DiscordLogin()
     {
-        string key = "PEKORA-DISCORD";
-        DiscordApi discordOAuth;
-        // the user already has a discord session lets check if its valid
-        if (discordSession != null)
+        return Redirect("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Flogincallback&scope=identify+guilds.members.read+guilds.join");
+    }
+    [HttpGetBypass("api/callback")]
+    public async Task<IActionResult> DiscordLoginCallBack(string code)
+    {
+        // If we already have a session lets redirect
+        if (userSession != null)
+            return Redirect("/home");
+        DiscordApi discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/api/logincallback");
+        var discordUserInfo = discordOAuth.GetUserInfo();
+        // Failed to login or no user info
+        if (discordUserInfo == null)
         {
-            discordOAuth = new(discordSession, true);
-            // session waas not valid lets delete the cookies
-            if (!await discordOAuth.IsValid())
-            {
-                HttpContext.Response.Cookies.Delete(key);
-            }
-            Writer.Info(LogGroup.DiscordApi, "Session {0} was valid redirecting", discordSession);
-            return Redirect("/api/userinfo");
+            return Content("Login via discord has failed, please try logging in normally");
         }
-        // No session was found lets create a new Discord client
-        discordOAuth = new(code, false);
-        string session = Guid.NewGuid().ToString();
-        // Set the newly created access token in redis
-        Writer.Info(LogGroup.DiscordApi, "Access key: {0}, expire time {1}", discordOAuth.accessToken, discordOAuth.expiresIn);
-        await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds(604800));
-        HttpContext.Response.Cookies.Append(key, session, new CookieOptions
+        Dto.Users.UserInfo user;
+        try
         {
-            IsEssential = true,
-            Path = "/",
-            HttpOnly = true,
+            user = await services.users.GetUserByDiscordId(discordUserInfo.Id.ToString());
+        }
+        // there is no account tied to the discord id this can either mean they havent linked their account or there is no account made
+        catch (RecordNotFoundException)
+        {
+            await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, discordUserInfo.Id.ToString(), discordOAuth.accessToken);
+            return Content("We couldn't find a pekora account relating to this account, we have automatically joined the Pekora discord server for you so you can register an account or link it!");
+        }
+
+        // create session
+        var sess = await services.users.CreateSession(user.userId);
+        var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+        {
+            sessionId = sess,
+            createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        });
+        HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+        {
             Secure = true,
-            Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
+            Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+            IsEssential = true,
+            HttpOnly = true,
+            Path = "/",
             SameSite = SameSiteMode.Lax,
         });
-        var userInfo = await discordOAuth.GetUserInfo();
-        await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordOAuth.accessToken);
-        return Redirect("/api/userinfo");
+        // We have logged in time to redirect
+        return Redirect("/home");
     }
+    // [HttpGetBypass("api/callback")]
+    // public async Task<IActionResult> DiscordOAuthCallback(string code)
+    // {
+    //     string key = "PEKORA-DISCORD";
+    //     DiscordApi discordOAuth;
+    //     // the user already has a discord session lets check if its valid
+    //     if (discordSession != null)
+    //     {
+    //         discordOAuth = new(discordSession, true);
+    //         // session waas not valid lets delete the cookies
+    //         if (!await discordOAuth.IsValid())
+    //         {
+    //             HttpContext.Response.Cookies.Delete(key);
+    //         }
+    //         Writer.Info(LogGroup.DiscordApi, "Session {0} was valid redirecting", discordSession);
+    //         return Redirect("/api/userinfo");
+    //     }
+    //     // No session was found lets create a new Discord client
+    //     discordOAuth = new(code, false);
+    //     string session = Guid.NewGuid().ToString();
+    //     // Set the newly created access token in redis
+    //     Writer.Info(LogGroup.DiscordApi, "Access key: {0}, expire time {1}", discordOAuth.accessToken, discordOAuth.expiresIn);
+    //     await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds(604800));
+    //     HttpContext.Response.Cookies.Append(key, session, new CookieOptions
+    //     {
+    //         IsEssential = true,
+    //         Path = "/",
+    //         HttpOnly = true,
+    //         Secure = true,
+    //         Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
+    //         SameSite = SameSiteMode.Lax,
+    //     });
+    //     var userInfo = await discordOAuth.GetUserInfo();
+    //     await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordOAuth.accessToken);
+    //     return Redirect("/api/userinfo");
+    // }
     
-    [HttpGetBypass("api/userinfo")]
-    public async Task<dynamic?> UserInfo()
-    {
-        DiscordApi discordOAuth = new(discordSession, true);
-        var userInfo = await discordOAuth.GetUserInfo();
-        return new
-        {
-            username = userInfo.Username,
-            avatarUrl = userInfo.AvatarUrl,
-            id = userInfo.Id
-        };
-    }
+    // [HttpGetBypass("api/userinfo")]
+    // public async Task<dynamic?> UserInfo()
+    // {
+    //     DiscordApi discordOAuth = new(discordSession, true);
+    //     var userInfo = await discordOAuth.GetUserInfo();
+    //     return new
+    //     {
+    //         username = userInfo.Username,
+    //         avatarUrl = userInfo.AvatarUrl,
+    //         id = userInfo.Id
+    //     };
+    // }
     [HttpGet("userads/redirect")]
     public async Task<IActionResult> AdRedirect(string data)
     {

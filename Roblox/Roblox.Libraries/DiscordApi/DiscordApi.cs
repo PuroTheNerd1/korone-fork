@@ -31,10 +31,11 @@ public class DiscordApi
         }
     }
     private DiscordHttpClient discordClient;
+    public string redirectUri { get; set; }
     public string accessToken { get; set; }
     public string refreshToken { get; set; }
     public int expiresIn { get; set; }
-    public DiscordApi(string codeoOrToken, bool isToken)
+    public DiscordApi(string codeoOrToken, bool isToken, string redirectUri)
     {
         discordClient = new(isToken ? codeoOrToken : Configuration.DiscordOAuthToken);
         // Only authorize when we have a dont have a proper token
@@ -46,6 +47,7 @@ public class DiscordApi
                 accessToken =  discordToken.accessToken;
                 refreshToken = discordToken.refreshToken;
                 expiresIn = discordToken.expiresIn;
+                this.redirectUri = redirectUri;
                 discordClient.ChangeAuthorizationToken(accessToken);
             }
             catch (Exception e)
@@ -104,7 +106,7 @@ public class DiscordApi
             {"client_id", Configuration.DiscordClientId.ToString()},
             {"client_secret", Configuration.DiscordClientSecret.ToString()},
             {"grant_type", "authorization_code"},
-            {"redirect_uri", $"https://www.{Configuration.ShortBaseUrl}/api/callback"},
+            {"redirect_uri", redirectUri},
             {"scope", "identify guilds"},
             {useRefreshToken ? "refresh_token" : "code", codeOrToken}
         };
