@@ -584,6 +584,11 @@ public class UsersService : ServiceBase, IService
         if (res == null) throw new RecordNotFoundException();
         return res;
     }
+    public async Task<bool> IsUserLinked(long userId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<string?>("SELECT discord_id FROM \"user\" WHERE id = :id", new { id = userId});
+        return res != null;
+    }
     public async Task<IEnumerable<MultiGetAccountStatusEntry>> MultiGetAccountStatus(IEnumerable<long> userIds)
     {
         var ids = userIds.Distinct().ToList();
@@ -867,42 +872,18 @@ public class UsersService : ServiceBase, IService
         );
         return authCode;
     }
-    public async Task LinkDiscordAccount(string discordAuthCode, long userId)
+    public async Task LinkDiscordAccount(string discordId, long userId)
     {
-        string discordId = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discord_id FROM discord_link WHERE discordAuthCode = :linkcode AND status = :status",
+        await db.ExecuteAsync(
+            "UPDATE \"user\" SET discord_id = :discordid, linkstatus = :lstat WHERE id = :uid AND linkstatus = :lstatus",
             new
             {
-                linkcode = discordAuthCode,
-                status = (int)DiscordLinkstatus.PendingVerification
+                uid = userId,
+                discordid = discordId,
+                lstat = (int)DiscordLinkstatus.Linked,
+                lstatus = (int)DiscordLinkstatus.Unlinked
             });
 
-        if (discordId != null)
-        {
-            await db.ExecuteAsync(
-                "UPDATE \"user\" SET discord_id = :discordid, linkstatus = :lstat WHERE id = :uid AND linkstatus = :lstatus",
-                new
-                {
-                    uid = userId,
-                    discordid = discordId,
-                    lstat = (int)DiscordLinkstatus.Linked,
-                    lstatus = (int)DiscordLinkstatus.Unlinked
-                });
-
-            await db.ExecuteAsync(
-                "UPDATE discord_link SET status = :lstat WHERE discordauthcode = :linkcode AND status = :lstatus",
-                new
-                {
-                    linkcode = discordAuthCode,
-                    lstat = (int)DiscordLinkstatus.Linked,
-                    lstatus = (int)DiscordLinkstatus.PendingVerification
-                });
-
-        }
-        else
-        {
-            throw new InvalidOperationException("Invalid Discord authentication code or status.");
-        }
     }
     public async Task<string> CreateApplication(CreateUserApplicationRequest request)
     {
