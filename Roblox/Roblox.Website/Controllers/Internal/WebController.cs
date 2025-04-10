@@ -89,7 +89,7 @@ public class WebController : ControllerBase
     }
     
     [HttpGetBypass("api/userinfo")]
-    public async Task<dynamic?> DiscordOAuthCallback()
+    public async Task<dynamic?> UserInfo()
     {
         DiscordApi discordOAuth = new(discordSession, true);
         return await discordOAuth.GetUserInfo();
