@@ -17,7 +17,7 @@ public class DiscordApi
     {
         public DiscordHttpClient(string authorization) : base(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
         {
-            this.BaseAddress = new Uri("https://discord.com/api");
+            this.BaseAddress = new Uri("https://discord.com/api/");
             DefaultRequestHeaders.Add("Authorization", "Bearer " + authorization );
         }
         public void ChangeAuthorizationToken(string token)
@@ -58,7 +58,7 @@ public class DiscordApi
 
     public async Task<DiscordMember?> GetGuildMember(ulong guildId)
     {
-        var result = await discordClient.GetAsync($"/users/@me/guilds/{guildId}/member");
+        var result = await discordClient.GetAsync($"users/@me/guilds/{guildId}/member");
         if (result.IsSuccessStatusCode)
         {
             string body = await result.Content.ReadAsStringAsync();
@@ -73,7 +73,7 @@ public class DiscordApi
 
     public async Task<DiscordUser?> GetUserInfo()
     {
-        var result = await discordClient.GetAsync("/users/@me");
+        var result = await discordClient.GetAsync("users/@me");
         if (result.IsSuccessStatusCode)
         {
             string body = await result.Content.ReadAsStringAsync();
@@ -103,7 +103,7 @@ public class DiscordApi
         };
         var content = new FormUrlEncodedContent(data);
 
-        var response = await discordClient.PostAsync("/oauth2/token", content);
+        var response = await discordClient.PostAsync("oauth2/token", content);
         string body = await response.Content.ReadAsStringAsync();
         if (response.IsSuccessStatusCode)
         {

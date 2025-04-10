@@ -68,7 +68,7 @@ public class WebController : ControllerBase
                 HttpContext.Response.Cookies.Delete(key);
             }
             Writer.Info(LogGroup.DiscordApi, "Session {0} was valid redirecting", discordSession);
-            return Redirect("api/userinfo");
+            return Redirect("/api/userinfo");
         }
         // No session was found lets create a new Discord client
         discordOAuth = new(code, false);
@@ -85,7 +85,7 @@ public class WebController : ControllerBase
             Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
             SameSite = SameSiteMode.Lax,
         });
-        return Redirect("api/userinfo");
+        return Redirect("/api/userinfo");
     }
     
     [HttpGetBypass("api/userinfo")]
