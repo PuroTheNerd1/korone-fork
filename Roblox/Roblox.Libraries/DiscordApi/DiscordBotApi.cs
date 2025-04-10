@@ -20,7 +20,7 @@ public class DiscordBotApi
     {
         public DiscordHttpClient(string authorization) : base(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
         {
-            this.BaseAddress = new Uri("https://discord.com/api/v10/");
+            this.BaseAddress = new Uri("https://discord.com/api/");
             DefaultRequestHeaders.Add("Authorization", "Bot " + authorization );
         }
         public void ChangeAuthorizationToken(string token)
@@ -43,7 +43,7 @@ public class DiscordBotApi
         };
         var jsonData = JsonConvert.SerializeObject(data);
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/json");
-        var result = await discordClient.PutAsync($"guilds/${guildId}/members/${discordId}", contentData);
+        var result = await discordClient.PutAsync($"guilds/{guildId}/members/{discordId}", contentData);
         if (result.IsSuccessStatusCode)
         {
             Writer.Info(LogGroup.DiscordApi, "Succcessfully added {0} to Pekora", discordId);
