@@ -827,51 +827,6 @@ public class UsersService : ServiceBase, IService
 
         return isDuplicate > 0;
     }
-    public async Task<string?> GenerateAuthCode(string discordId)
-    {
-        string existingAuthCode = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
-            new
-            {
-                discord_id = discordId,
-                status = (int)DiscordLinkstatus.PendingVerification
-            });
-
-        if (existingAuthCode != null)
-        {
-            return existingAuthCode;
-        }
-
-        string alreadyVerified = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
-            new
-            {
-                discord_id = discordId,
-                status = (int)DiscordLinkstatus.Linked
-            });
-        string alreadyVerified2 = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discord_id FROM \"user\" WHERE discord_id = :discord_id AND status = :status",
-            new
-            {
-                discord_id = discordId,
-                status = (int)DiscordLinkstatus.Linked
-            });
-        if (alreadyVerified != null || alreadyVerified2 != null)
-        {
-            return null;
-        }
-        string authCode = Guid.NewGuid().ToString();
-        await db.ExecuteAsync(
-            "INSERT INTO discord_link (discord_id, discordAuthCode, status) VALUES (:discord_id, :authcode, :status)",
-            new
-            {
-                authcode = authCode,
-                discord_id = discordId,
-                status = (int)DiscordLinkstatus.PendingVerification
-            }
-        );
-        return authCode;
-    }
     public async Task LinkDiscordAccount(string discordId, long userId)
     {
         await db.ExecuteAsync(
