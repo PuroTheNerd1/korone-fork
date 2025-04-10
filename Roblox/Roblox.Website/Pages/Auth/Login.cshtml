@@ -46,11 +46,15 @@
                     }
                     <div class="cf-turnstile mt-4 mb-2" data-sitekey="@Model.siteKey" data-theme="dark"></div>
                     @Html.AntiForgeryToken()
-                    <input  class="btn btn-primary" type="submit" value="Login" id="login-submit"/>
                     <div class="d-flex" style="gap: 8px;">
-                        <input disabled="@Model.loginDisabled" class="btn btn-primary d-flex align-items-center" type="submit" value="Login" id="login-submit"/>
+                        <input disabled="@Model.loginDisabled" class=="btn btn-primary btn-custom" type="submit" value="Login" id="login-submit"/>
                         @if (!Model.loginDisabled)
                         {
+                            <hr class="m-0 my-2">
+
+                            <a href="/auth/discord-login" class="btn btn-discord btn-custom">
+                                <i class="bi bi-discord me-2"></i> Login with Discord
+                            </a>
                             <a href="/auth/discord-login" class="btn btn-discord d-flex align-items-center">
                                 <i class="bi bi-discord me-2"></i> Login with Discord
                             </a>
