@@ -14,7 +14,7 @@ public class RobloxPlayerCorsMiddleware
     {
         var connectSrc = "'self' https://*.pekora.zip wss://*.pekora.zip https://hcaptcha.com https://*.hcaptcha.com https://*.cdn.com https://*.archive.org/* https://web.archive.org https://challenges.cloudflare.com/* ws://localhost:*";
 
-        var imgSrc = "'self' data:";
+        var imgSrc = "'self' data: cdn.discordapp.com";
         if (isAuthenticated)
         {
             imgSrc += " https://*.pekora.zip https://*.cdn.com https://*.archive.org http://*.archive.org https://challenges.cloudflare.com/*";
