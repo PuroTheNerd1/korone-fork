@@ -52,8 +52,7 @@ public class DiscordApi
             }
             catch (Exception e)
             {
-                Writer.Info(LogGroup.DiscordApi, "An error occured while getting token: " + e.Message);
-                throw;
+                Console.WriteLine(e.Message);
             }
         }
         else 
