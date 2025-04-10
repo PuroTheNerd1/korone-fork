@@ -104,42 +104,41 @@ public class WebController : ControllerBase
         // We have logged in time to redirect
         return Redirect("/home");
     }
-    // [HttpGetBypass("api/callback")]
-    // public async Task<IActionResult> DiscordOAuthCallback(string code)
-    // {
-    //     string key = "PEKORA-DISCORD";
-    //     DiscordApi discordOAuth;
-    //     // the user already has a discord session lets check if its valid
-    //     if (discordSession != null)
-    //     {
-    //         discordOAuth = new(discordSession, true);
-    //         // session waas not valid lets delete the cookies
-    //         if (!await discordOAuth.IsValid())
-    //         {
-    //             HttpContext.Response.Cookies.Delete(key);
-    //         }
-    //         Writer.Info(LogGroup.DiscordApi, "Session {0} was valid redirecting", discordSession);
-    //         return Redirect("/api/userinfo");
-    //     }
-    //     // No session was found lets create a new Discord client
-    //     discordOAuth = new(code, false);
-    //     string session = Guid.NewGuid().ToString();
-    //     // Set the newly created access token in redis
-    //     Writer.Info(LogGroup.DiscordApi, "Access key: {0}, expire time {1}", discordOAuth.accessToken, discordOAuth.expiresIn);
-    //     await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds(604800));
-    //     HttpContext.Response.Cookies.Append(key, session, new CookieOptions
-    //     {
-    //         IsEssential = true,
-    //         Path = "/",
-    //         HttpOnly = true,
-    //         Secure = true,
-    //         Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
-    //         SameSite = SameSiteMode.Lax,
-    //     });
-    //     var userInfo = await discordOAuth.GetUserInfo();
-    //     await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordOAuth.accessToken);
-    //     return Redirect("/api/userinfo");
-    // }
+    [HttpGetBypass("api/applicationcallback")]
+    public async Task<IActionResult> DiscordOAuthCallback(string code)
+    {
+        string key = "PEKORA-DISCORD";
+        DiscordApi discordOAuth;
+        // the user already has a discord session lets check if its valid
+        if (discordSession != null)
+        {
+            discordOAuth = new(discordSession, true, $"https://www.{Configuration.ShortBaseUrl}/api/applicationcallback");
+            // session waas not valid lets delete the cookies
+            if (!await discordOAuth.IsValid())
+            {
+                HttpContext.Response.Cookies.Delete(key);
+            }
+            Writer.Info(LogGroup.DiscordApi, "Session {0} was valid redirecting", discordSession);
+            return Redirect("/auth/application");
+        }
+        // No session was found lets create a new Discord client
+        discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/api/applicationcallback");
+        string session = Guid.NewGuid().ToString();
+        // Set the newly created access token in redis
+        Writer.Info(LogGroup.DiscordApi, "Access key: {0}, expire time {1}", discordOAuth.accessToken, discordOAuth.expiresIn);
+        await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds(604800));
+        HttpContext.Response.Cookies.Append(key, session, new CookieOptions
+        {
+            IsEssential = true,
+            Path = "/",
+            HttpOnly = true,
+            Secure = true,
+            Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
+            SameSite = SameSiteMode.Lax,
+        });
+        
+        return Redirect("/auth/application");
+    }
     
     // [HttpGetBypass("api/userinfo")]
     // public async Task<dynamic?> UserInfo()

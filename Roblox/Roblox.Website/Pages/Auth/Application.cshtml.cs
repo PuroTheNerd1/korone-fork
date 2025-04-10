@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Roblox.Dto.Users;
 using Roblox.Exceptions;
 using Roblox.Libraries.Captcha;
+using Roblox.Libraries.DiscordApi;
 using Roblox.Libraries.EasyJwt;
+using DSharpPlus.Entities;
 using Roblox.Libraries.TwitterApi;
 using Roblox.Logging;
 using Roblox.Services;
@@ -32,6 +34,8 @@ public class Application : RobloxPageModel
     public string? successMessage { get; set; }
     public bool showBannerForOldUsers { get; set; }
     public bool submitDisabled { get; set; }
+    public DiscordUser discordUser { get; set; }
+    public string accessToken { get; set; }
     public string siteKey => Configuration.HCaptchaPublicKey;
     public UserApplicationEntry? application { get; set; }
 
@@ -51,8 +55,6 @@ public class Application : RobloxPageModel
     public string socialUrl { get; set; }
     [BindProperty]
     public string robloxUsername { get; set; }
-    [BindProperty]
-    public string discordId { get; set; }
     [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
     public string? verificationPhrase { get; set; }
@@ -96,45 +98,24 @@ public class Application : RobloxPageModel
             }
         }
     }
-    private async void MessageUser(string discord_id, string applicationId)
-    {
-        // var httpClient = new HttpClient();
-        // await httpClient.GetAsync($"http://localhost:3550/sendmsg?discordId={discord_id}&applicationId={applicationId}");
-    }
-    private async Task<DiscordInfo> InfoDiscordUser(string discord_id)
-    {
-        // for goober
-        //return new DiscordInfo { success = true, username = "zyythy" };
-        var httpClient = new HttpClient();
-        var response = await httpClient.GetAsync($"http://localhost:3550/isuserinserver?discordId={discord_id}");
-
-        if (response.IsSuccessStatusCode)
-        {
-            var userInfoJson = await response.Content.ReadAsStringAsync();
-
-            if (string.IsNullOrEmpty(userInfoJson))
-            {
-                return new DiscordInfo { success = false, username = null! };
-            }
-
-            try
-            {
-                var desUserInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<DiscordInfo>(userInfoJson);
-                return desUserInfo!;
-            }
-            catch (Exception)
-            {
-                return new DiscordInfo { success = false, username = null! };
-            }
-        }
-        else
-        {
-            return new DiscordInfo { success = false, username = null! };
-        }
-    }
 
     public async Task<IActionResult> OnGet()
     {
+        if (discordSession == null)
+        {
+            return Redirect("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
+        }
+        DiscordApi discordOAuth = new(discordSession, true, $"https://www.{Configuration.BaseUrl}/api/applicationcallback");
+        var info = await discordOAuth.GetUserInfo();
+        if (info == null)
+        {
+            errorMessage = "Please try re-authorizing ur account";
+        }
+        else
+        {
+            discordUser = info;
+        }
+
         var apps = new ApplicationWebsiteService(HttpContext);
         try
         {
@@ -183,7 +164,7 @@ public class Application : RobloxPageModel
         }
         await ApplyBanner();
         await ApplyApplication();
-        var userInfo = await InfoDiscordUser(discordId);
+
         if (action == "Get New Code")
         {
             Writer.Info(LogGroup.AbuseDetection, "Regen code");
@@ -255,29 +236,12 @@ public class Application : RobloxPageModel
         }
         socialUrl = $"https://www.roblox.com/users/{userId}/profile";
 
-        if (string.IsNullOrEmpty(discordId))
+        if(await services.users.CheckDuplicateDiscord(discordUser.Id.ToString()))
         {
-            errorMessage = "Your Discord ID is empty, please try again.";
+            errorMessage = $"We couldn't find \"{discordUser.Id}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord #1";
             return new PageResult();
         }
-
-        if (!Regex.IsMatch(discordId, @"^\d+$"))
-        {
-            errorMessage = "Your Discord ID must contain only numeric characters, please try again";
-            return new PageResult();
-        }
-
-        if (!userInfo.success)
-        {
-            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord";
-            return new PageResult();
-        }
-
-        if(await services.users.CheckDuplicateDiscord(discordId))
-        {
-            errorMessage = $"We couldn't find \"{discordId}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord #1";
-            return new PageResult();
-        }
+        await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, discordUser.Id.ToString(), accessToken);
         await using var rateLimitLock =
             await Roblox.Services.Cache.redLock.CreateLockAsync("ApplicationSubmitV1:" + hashedIp, TimeSpan.FromSeconds(5));
         if (!rateLimitLock.IsAcquired)
@@ -354,8 +318,8 @@ public class Application : RobloxPageModel
                 verifiedUrl = result.verifiedUrl,
                 verifiedId = result.verifiedId,
                 verificationPhrase = verificationPhrase!,
-                discordId = discordId,
-                discordUsername = userInfo.username
+                discordId = discordUser.Id.ToString(),
+                discordUsername = discordUser.Username
             });
             HttpContext.Response.Cookies.Append("es-application-1", applicationId, new CookieOptions()
             {
@@ -364,7 +328,7 @@ public class Application : RobloxPageModel
                 MaxAge = TimeSpan.FromDays(30),
                 Secure = true,
             });
-            MessageUser(discordId, applicationId);
+
             application = await services.users.GetApplicationById(applicationId);
             apps.DeleteVerificationCookie();
 
