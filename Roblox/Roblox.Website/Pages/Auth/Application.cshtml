@@ -103,7 +103,7 @@
                                     <p class="mb-0">For further authentication, we need you to authorize our bot to know you aren't a bot. You will also be added to the Pekora Discord Guild.</p>
                                     <div class="alert alert-primary mt-2 mb-2 d-flex align-items-center">
                                         <img src="@Model.discordUser.AvatarUrl" alt="Discord Avatar" style="width: 20px; height: 20px; margin-right: 8px;">
-                                        <span class="ml-auto">@Model.discordUser.Username (@Model.discordUser.Id.ToString())</span>
+                                        <span class="ml-auto">@('@' + Model.discordUser.Username) (@Model.discordUser.Id.ToString())</span>
                                     </div>
                                 </div>
                             </div>
