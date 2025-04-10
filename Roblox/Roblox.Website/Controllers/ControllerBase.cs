@@ -63,9 +63,16 @@ namespace Roblox.Website.Controllers
                 return Request.Headers["User-Agent"].ToString().ToLower().Contains("roblox");
             }
         }
-
+        protected string? discordSession
+        {
+            get
+            {
+                string key = "PEKORA-DISCORD";
+                return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key]!.ToString());
+            }
+        }
         private Task<Roblox.Models.Sessions.UserSession?> _cachedUserSession;
-
+    
         protected Roblox.Models.Sessions.UserSession? userSession
         {
             get
@@ -74,7 +81,6 @@ namespace Roblox.Website.Controllers
                 return _cachedUserSession.IsCompletedSuccessfully ? _cachedUserSession.Result : null;
             }
         }
-
         private async Task<Roblox.Models.Sessions.UserSession?> LoadUserSessionAsync()
         {
         #if DEBUG

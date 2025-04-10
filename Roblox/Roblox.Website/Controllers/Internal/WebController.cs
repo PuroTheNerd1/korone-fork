@@ -1,8 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.IO.Compression;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Assets;
@@ -11,9 +7,7 @@ using Roblox.Libraries.Assets;
 using Roblox.Models.Assets;
 using Roblox.Models.Groups;
 using Roblox.Models.Staff;
-using Roblox.Models.Thumbnails;
 using Roblox.Models.Users;
-using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
@@ -25,7 +19,12 @@ using SixLabors.ImageSharp.Formats.Png;
 using Type = System.Type;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Roblox.Exceptions.Services.Users;
+using Roblox.Libraries.DiscordApi;
 using Roblox.Models.Db;
+using DSharpPlus;
+using DSharpPlus.Net;
+using Roblox.Logging;
+using Roblox.Website.Pages.Auth;
 
 namespace Roblox.Website.Controllers;
 
@@ -54,6 +53,46 @@ public class WebController : ControllerBase
         });
     }
 
+    [HttpGetBypass("api/callback")]
+    public async Task<IActionResult> DiscordOAuthCallback(string code)
+    {
+        string key = "PEKORA-DISCORD";
+        DiscordApi discordOAuth;
+        // the user already has a discord session lets check if its valid
+        if (discordSession != null)
+        {
+            discordOAuth = new(discordSession, true);
+            // session waas not valid lets delete the cookies
+            if (!await discordOAuth.IsValid())
+            {
+                HttpContext.Response.Cookies.Delete(key);
+            }
+            Writer.Info(LogGroup.DiscordApi, "Session {0} was valid redirecting", discordSession);
+            return Redirect("api/userinfo");
+        }
+        // No session was found lets create a new Discord client
+        discordOAuth = new(code, false);
+        string session = Guid.NewGuid().ToString();
+        // Set the newly created access token in redis
+        await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds((double)discordOAuth.expiresIn));
+        HttpContext.Response.Cookies.Append(key, session, new CookieOptions
+        {
+            IsEssential = true,
+            Path = "/",
+            HttpOnly = true,
+            Secure = true,
+            Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds((double)discordOAuth.expiresIn)),
+            SameSite = SameSiteMode.Lax,
+        });
+        return Redirect("api/userinfo");
+    }
+    
+    [HttpGetBypass("api/userinfo")]
+    public async Task<dynamic?> DiscordOAuthCallback()
+    {
+        DiscordApi discordOAuth = new(discordSession, true);
+        return await discordOAuth.GetUserInfo();
+    }
     [HttpGet("userads/redirect")]
     public async Task<IActionResult> AdRedirect(string data)
     {
