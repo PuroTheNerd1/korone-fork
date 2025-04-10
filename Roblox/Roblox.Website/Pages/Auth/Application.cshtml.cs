@@ -103,7 +103,7 @@ public class Application : RobloxPageModel
     {
         if (discordSession == null)
         {
-            return Redirect("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
+            return new RedirectResult("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
         }
         DiscordApi discordOAuth = new(discordSession, true, $"https://www.{Configuration.BaseUrl}/api/applicationcallback");
         var info = await discordOAuth.GetUserInfo();
