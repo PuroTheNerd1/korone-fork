@@ -68,7 +68,7 @@ namespace Roblox.Website.Controllers
             get
             {
                 string key = "PEKORA-DISCORD";
-                return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key]!.ToString());
+                return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
             }
         }
         private Task<Roblox.Models.Sessions.UserSession?> _cachedUserSession;
