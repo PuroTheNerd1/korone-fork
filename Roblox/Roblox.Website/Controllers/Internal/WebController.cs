@@ -74,14 +74,15 @@ public class WebController : ControllerBase
         discordOAuth = new(code, false);
         string session = Guid.NewGuid().ToString();
         // Set the newly created access token in redis
-        await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds((double)discordOAuth.expiresIn));
+        Writer.Info(LogGroup.DiscordApi, "Access key: {0}, expire time {1}", discordOAuth.accessToken, discordOAuth.expiresIn);
+        await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds((604800));
         HttpContext.Response.Cookies.Append(key, session, new CookieOptions
         {
             IsEssential = true,
             Path = "/",
             HttpOnly = true,
             Secure = true,
-            Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds((double)discordOAuth.expiresIn)),
+            Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
             SameSite = SameSiteMode.Lax,
         });
         return Redirect("api/userinfo");
