@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Roblox.Logging;
 using System.Dynamic;
 using Newtonsoft.Json.Linq;
+using System.Text;
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -34,9 +35,15 @@ public class DiscordBotApi
         discordClient = new(token);
     }
 
-    public async Task AddGuildMember(string guildId, string discordId)
+    public async Task AddGuildMember(string guildId, string discordId, string accessToken)
     {
-        var result = await discordClient.PutAsync($"guilds/${guildId}/members/${discordId}", null);
+        var data = new Dictionary<string,string>
+        {
+            {"access_token", accessToken},
+        };
+        var jsonData = JsonConvert.SerializeObject(data);
+        var contentData = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var result = await discordClient.PutAsync($"guilds/${guildId}/members/${discordId}", contentData);
         if (result.IsSuccessStatusCode)
         {
             Writer.Info(LogGroup.DiscordApi, "Succcessfully added {0} to Pekora", discordId);

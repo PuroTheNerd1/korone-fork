@@ -87,7 +87,7 @@ public class WebController : ControllerBase
             SameSite = SameSiteMode.Lax,
         });
         var userInfo = await discordOAuth.GetUserInfo();
-        await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString());
+        await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordOAuth.accessToken);
         return Redirect("/api/userinfo");
     }
     
