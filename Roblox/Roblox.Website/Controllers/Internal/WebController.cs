@@ -60,7 +60,7 @@ public class WebController : ControllerBase
     {
         return Redirect("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Flogincallback&scope=identify+guilds.members.read+guilds.join");
     }
-    [HttpGetBypass("api/callback")]
+    [HttpGetBypass("api/logincallback")]
     public async Task<IActionResult> DiscordLoginCallBack(string code)
     {
         // If we already have a session lets redirect
