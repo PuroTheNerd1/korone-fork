@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Roblox.Logging;
 using System.Dynamic;
 using Newtonsoft.Json.Linq;
+using System.Runtime.Serialization;
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -73,20 +74,7 @@ public class DiscordApi
             return null;
         }
     }
-    public async Task AddGuildMember(string guildId)
-    {
-        var result = await discordClient.PutAsync($"users/@me/guilds/{guildId}/member", null);
-        var user = await GetUserInfo();
-        if (result.IsSuccessStatusCode)
-        {
-            Writer.Info(LogGroup.DiscordApi, "Succcessfully added {0} to Pekora", user.Username);
-        }
-        else
-        {
-            Writer.Info(LogGroup.DiscordApi, "Failed to add {0} to pekora status: {1}", user.Username, result.StatusCode);
-        }
-    }
-    
+
     public async Task<DiscordUser?> GetUserInfo()
     {
         var result = await discordClient.GetAsync("users/@me");

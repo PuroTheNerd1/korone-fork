@@ -25,6 +25,7 @@ using DSharpPlus;
 using DSharpPlus.Net;
 using Roblox.Logging;
 using Roblox.Website.Pages.Auth;
+using DSharpPlus.Entities;
 
 namespace Roblox.Website.Controllers;
 
@@ -85,7 +86,8 @@ public class WebController : ControllerBase
             Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
             SameSite = SameSiteMode.Lax,
         });
-        await discordOAuth.AddGuildMember(Configuration.DiscordGuildId);
+        var userInfo = await discordOAuth.GetUserInfo();
+        await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString());
         return Redirect("/api/userinfo");
     }
     

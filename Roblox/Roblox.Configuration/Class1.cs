@@ -39,6 +39,7 @@ public static class Configuration
     public static string DiscordClientId { get; set; }
     public static string DiscordClientSecret { get; set; }
     public static string DiscordGuildId { get; set; }
+    public static string DiscordBotToken { get; set; }
     public static string DiscordOAuthToken
     {
         get
