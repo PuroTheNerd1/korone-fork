@@ -6,13 +6,28 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using Roblox.Logging;
 using System.Dynamic;
+using Newtonsoft.Json.Linq;
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 namespace Roblox.Libraries.DiscordApi;
+public class DiscordUserWrapper
+{
+    public DiscordUser User { get; private set; }
+
+    public bool IsCurrent { get; set; }
+
+    public DiscordUserWrapper(DiscordUser user)
+    {
+        User = user;
+        IsCurrent = false;
+    }
+}
+
 
 public class DiscordApi
 {
+
     private class DiscordHttpClient : HttpClient
     {
         public DiscordHttpClient(string authorization) : base(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
@@ -71,13 +86,17 @@ public class DiscordApi
         }
     }
 
-    public async Task<DiscordUser?> GetUserInfo()
+    public async Task<dynamic?> GetUserInfo()
     {
         var result = await discordClient.GetAsync("users/@me");
         if (result.IsSuccessStatusCode)
         {
             string body = await result.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<DiscordUser>(body);
+            var json = JsonConvert.DeserializeObject<DiscordUser>(body);
+            var wrappedUser = new DiscordUserWrapper(json);
+
+            wrappedUser.IsCurrent = false;
+            return wrappedUser;
         }
         else
         {
