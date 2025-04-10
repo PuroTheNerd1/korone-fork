@@ -33,8 +33,8 @@ public class DiscordApi
     public DiscordApi(string codeoOrToken, bool isToken)
     {
         discordClient = new(isToken ? codeoOrToken : Configuration.DiscordOAuthToken);
-        // Only authorize when we have a proper token
-        if (isToken)
+        // Only authorize when we have a dont have a proper token
+        if (!isToken)
         {
             try
             {
