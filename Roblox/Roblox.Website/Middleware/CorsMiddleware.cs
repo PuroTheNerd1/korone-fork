@@ -25,7 +25,7 @@ public class RobloxPlayerCorsMiddleware
 
         var fontSrc = "'self' https://fonts.gstatic.com http://www.pekora.zip https://pekora.zip https://*.pekora.zip https://www.pekora.zip/fonts/GothamSSmBold.woff2 https://www.pekora.zip/fonts/GothamSSmMedium.woff2 https://www.pekora.zip/fonts/GothamSSmBook.woff2";
 
-        return "default-src 'self'; img-src " + imgSrc + "; child-src 'self'; script-src " + scriptSrc + "; frame-src 'self' https://hcaptcha.com https://challenges.cloudflare.com http://challenges.cloudflare.com https://*.archive.org; style-src 'unsafe-inline' 'self' http://*.archive.org https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com https://pekora.zip https://www.pekora.zip https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css https://pekora.zip/fonts/gotham1.css http://*.pekora.zip; font-src " + fontSrc + "; connect-src " + connectSrc + "; worker-src 'self';";
+        return "default-src 'self'; img-src " + imgSrc + "; child-src 'self'; script-src " + scriptSrc + "; frame-src 'self' https://hcaptcha.com https://challenges.cloudflare.com http://challenges.cloudflare.com https://*.archive.org; style-src 'unsafe-inline' 'self' http://*.archive.org https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com https://pekora.zip https://www.pekora.zip https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css https://pekora.zip/fonts/gotham1.css http://*.pekora.zip; font-src " + fontSrc + "; connect-src " + connectSrc + "; worker-src 'self';";
     }
 
 
@@ -34,10 +34,10 @@ public class RobloxPlayerCorsMiddleware
         var isAuthenticated = ctx.Items.ContainsKey(".ROBLOSECURITY");
         ctx.Response.Headers["Cross-Origin-Opener-Policy"] = "same-origin";
         ctx.Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
-        //ctx.Response.Headers["Access-Control-Allow-Origin"] = "*";
+        ctx.Response.Headers["Access-Control-Allow-Origin"] = "*";
         ctx.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
         ctx.Response.Headers["X-XSS-Protection"] = "1; mode=block";
-        //ctx.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload";
+        ctx.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload";
         ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
         ctx.Response.Headers["Content-Security-Policy"] = GenerateCspHeader(isAuthenticated);
         await _next(ctx);
