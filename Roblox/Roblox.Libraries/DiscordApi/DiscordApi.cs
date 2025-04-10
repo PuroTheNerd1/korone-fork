@@ -108,7 +108,7 @@ public class DiscordApi
             {"client_secret", Configuration.DiscordClientSecret.ToString()},
             {"grant_type", "authorization_code"},
             {"redirect_uri", redirectUri},
-            {"scope", "identify guilds"},
+            {"scope", "identify guilds.join"},
             {useRefreshToken ? "refresh_token" : "code", codeOrToken}
         };
         var content = new FormUrlEncodedContent(data);
