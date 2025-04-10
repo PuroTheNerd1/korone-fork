@@ -152,6 +152,7 @@
                                     <p class="mb-0">We just have to make sure you aren't a robot.</p>
                                     <div class="cf-turnstile mt-4" data-sitekey="@Model.siteKey" data-theme="dark"></div>
                                 </div>
+                                @Html.AntiForgeryToken()
                             </div>
                         </div>
 
