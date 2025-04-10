@@ -68,6 +68,10 @@ namespace Roblox.Website.Controllers
             get
             {
                 string key = "PEKORA-DISCORD";
+                if (!HttpContext.Request.Cookies.ContainsKey(key))
+                {
+                    return null;
+                }
                 return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
             }
         }
