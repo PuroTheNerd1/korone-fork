@@ -43,16 +43,17 @@ public class DiscordApi
         {
             try
             {
+                this.redirectUri = redirectUri;
                 var discordToken = RequestAccessToken(codeoOrToken, false).Result;
                 accessToken =  discordToken.accessToken;
                 refreshToken = discordToken.refreshToken;
                 expiresIn = discordToken.expiresIn;
-                this.redirectUri = redirectUri;
                 discordClient.ChangeAuthorizationToken(accessToken);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+                throw;
             }
         }
         else 
