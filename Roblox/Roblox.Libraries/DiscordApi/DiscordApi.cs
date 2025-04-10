@@ -43,11 +43,12 @@ public class DiscordApi
         {
             try
             {
-                this.redirectUri = redirectUri;
-                var discordToken = RequestAccessToken(codeoOrToken, false).Result;
+
+                var discordToken = RequestAccessToken(codeoOrToken, false, redirectUri).Result;
                 accessToken =  discordToken.accessToken;
                 refreshToken = discordToken.refreshToken;
                 expiresIn = discordToken.expiresIn;
+                this.redirectUri = redirectUri;
                 discordClient.ChangeAuthorizationToken(accessToken);
             }
             catch (Exception e)
@@ -99,7 +100,7 @@ public class DiscordApi
     {
         return await GetUserInfo() != null;
     }
-    private async Task<DiscordTokenResponse> RequestAccessToken(string codeOrToken, bool useRefreshToken)
+    private async Task<DiscordTokenResponse> RequestAccessToken(string codeOrToken, bool useRefreshToken, string redirectUri)
     {
         Dictionary<string, string> data = new Dictionary<string, string>
         {
