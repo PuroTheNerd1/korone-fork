@@ -11,18 +11,6 @@ using Newtonsoft.Json.Linq;
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 namespace Roblox.Libraries.DiscordApi;
-public class DiscordUserWrapper
-{
-    public DiscordUser User { get; private set; }
-
-    public bool IsCurrent { get; set; }
-
-    public DiscordUserWrapper(DiscordUser user)
-    {
-        User = user;
-        IsCurrent = false;
-    }
-}
 
 
 public class DiscordApi
@@ -92,11 +80,11 @@ public class DiscordApi
         if (result.IsSuccessStatusCode)
         {
             string body = await result.Content.ReadAsStringAsync();
-            var json = JsonConvert.DeserializeObject<DiscordUser>(body);
-            var wrappedUser = new DiscordUserWrapper(json);
+            JsonSerializerSettings jsSettings = new JsonSerializerSettings();
+            jsSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            var json = JsonConvert.DeserializeObject<DiscordUser>(body, jsSettings);
 
-            wrappedUser.IsCurrent = false;
-            return wrappedUser;
+            return json;
         }
         else
         {
