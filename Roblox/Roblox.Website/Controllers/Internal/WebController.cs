@@ -85,6 +85,7 @@ public class WebController : ControllerBase
             Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
             SameSite = SameSiteMode.Lax,
         });
+        await discordOAuth.AddGuildMember(Configuration.DiscordGuildId);
         return Redirect("/api/userinfo");
     }
     

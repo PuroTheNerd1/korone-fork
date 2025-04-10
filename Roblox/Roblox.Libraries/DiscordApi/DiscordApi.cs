@@ -73,7 +73,20 @@ public class DiscordApi
             return null;
         }
     }
-
+    public async Task AddGuildMember(string guildId)
+    {
+        var result = await discordClient.PutAsync($"users/@me/guilds/{guildId}/member", null);
+        var user = await GetUserInfo();
+        if (result.IsSuccessStatusCode)
+        {
+            Writer.Info(LogGroup.DiscordApi, "Succcessfully added {0} to Pekora", user.Username);
+        }
+        else
+        {
+            Writer.Info(LogGroup.DiscordApi, "Failed to add {0} to pekora status: {1}", user.Username, result.StatusCode);
+        }
+    }
+    
     public async Task<DiscordUser?> GetUserInfo()
     {
         var result = await discordClient.GetAsync("users/@me");
@@ -89,6 +102,8 @@ public class DiscordApi
             return null;
         }
     }
+
+
     // we should have a better way to check if the OAuth token is valid
     public async Task<bool> IsValid()
     {
