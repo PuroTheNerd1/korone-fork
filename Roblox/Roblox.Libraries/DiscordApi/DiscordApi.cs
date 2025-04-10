@@ -74,16 +74,13 @@ public class DiscordApi
         }
     }
 
-    public async Task<dynamic?> GetUserInfo()
+    public async Task<DiscordUser?> GetUserInfo()
     {
         var result = await discordClient.GetAsync("users/@me");
         if (result.IsSuccessStatusCode)
         {
             string body = await result.Content.ReadAsStringAsync();
-            JsonSerializerSettings jsSettings = new JsonSerializerSettings();
-            jsSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            var json = JsonConvert.DeserializeObject<DiscordUser>(body, jsSettings);
-
+            var json = JsonConvert.DeserializeObject<DiscordUser>(body);
             return json;
         }
         else

@@ -92,7 +92,13 @@ public class WebController : ControllerBase
     public async Task<dynamic?> UserInfo()
     {
         DiscordApi discordOAuth = new(discordSession, true);
-        return await discordOAuth.GetUserInfo();
+        var userInfo = await discordOAuth.GetUserInfo();
+        return new
+        {
+            username = userInfo.Username,
+            avatarUrl = userInfo.AvatarUrl,
+            id = userInfo.Id
+        };
     }
     [HttpGet("userads/redirect")]
     public async Task<IActionResult> AdRedirect(string data)
