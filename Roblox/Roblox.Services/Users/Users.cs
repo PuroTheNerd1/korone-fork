@@ -875,13 +875,11 @@ public class UsersService : ServiceBase, IService
     public async Task LinkDiscordAccount(string discordId, long userId)
     {
         await db.ExecuteAsync(
-            "UPDATE \"user\" SET discord_id = :discordid, linkstatus = :lstat WHERE id = :uid AND linkstatus = :lstatus",
+            "UPDATE \"user\" SET discord_id = :discordid WHERE id = :uid",
             new
             {
                 uid = userId,
                 discordid = discordId,
-                lstat = (int)DiscordLinkstatus.Linked,
-                lstatus = (int)DiscordLinkstatus.Unlinked
             });
 
     }
