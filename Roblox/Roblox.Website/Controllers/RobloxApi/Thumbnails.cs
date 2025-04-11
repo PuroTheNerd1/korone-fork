@@ -1,27 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using System.IO.Compression;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Roblox.Dto.Assets;
 using Roblox.Dto.Thumbnails;
 using Roblox.Exceptions;
-using Roblox.Libraries.Assets;
 using Roblox.Models;
-using Roblox.Models.Assets;
-using Roblox.Models.Groups;
-using Roblox.Models.Staff;
 using Roblox.Models.Thumbnails;
-using Roblox.Models.Users;
-using Roblox.Services;
-using Roblox.Services.App.FeatureFlags;
-using Roblox.Services.Exceptions;
-using Roblox.Website.Filters;
-using Roblox.Website.WebsiteModels.Catalog;
 using Roblox.Website.WebsiteModels.Thumbnails;
-using Type = System.Type;
 
 namespace Roblox.Website.Controllers;
 [ApiController]

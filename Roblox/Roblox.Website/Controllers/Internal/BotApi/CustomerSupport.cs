@@ -70,13 +70,12 @@ namespace Roblox.Website.Controllers
 
             // Example: 19bcbfac216d46cbaeb826125d1bae42
             string randomlyGeneratedPassword = (Guid.NewGuid().ToString().Replace("-", "") + Guid.NewGuid().ToString().Replace("-", "")).Substring(0, 32);
-            UserInfo userInfo = await services.users.GetUserById(userId);
             await services.users.UpdatePassword(userId, randomlyGeneratedPassword);
             return new
             {
                 success = true,
                 password = randomlyGeneratedPassword,
-                message = $"The password has been successfully reset of **{userInfo.username}**.\nThe password has been sent in your DM's"
+                message = $"The password has been successfully reset of **{userDiscordInfo.username}**.\nThe password has been sent in your DM's"
             };
         }
     }
