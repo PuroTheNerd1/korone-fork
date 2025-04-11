@@ -7,6 +7,7 @@ using Roblox.Logging;
 using Roblox.Metrics;
 using Roblox.Models.Users;
 using Roblox.Services;
+using DSharpPlus.Entities;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Controllers;

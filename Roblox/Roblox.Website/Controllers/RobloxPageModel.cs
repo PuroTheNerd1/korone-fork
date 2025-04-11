@@ -31,6 +31,18 @@ public class RobloxPageModel : PageModel
             return Request.Headers["Exposed-Credential-Check"].ToString() == "4";
         }
     }
+    protected string? discordSession
+    {
+        get
+        {
+            string key = "PEKORA-DISCORD";
+            if (!HttpContext.Request.Cookies.ContainsKey(key))
+            {
+                return null;
+            }
+            return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
+        }
+    }
     public bool isAuthenticated => userSession != null;
     protected string rawIpAddress => Roblox.Website.Controllers.ControllerBase.GetRequesterIpRaw(HttpContext);
     protected string hashedIp => Roblox.Website.Controllers.ControllerBase.GetIP(rawIpAddress);

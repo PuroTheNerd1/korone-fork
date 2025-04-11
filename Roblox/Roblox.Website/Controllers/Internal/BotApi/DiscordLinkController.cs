@@ -1,5 +1,5 @@
 using MVC = Microsoft.AspNetCore.Mvc;
-
+using Roblox.Libraries.DiscordApi;
 namespace Roblox.Website.Controllers
 {
     /* 
@@ -11,24 +11,33 @@ namespace Roblox.Website.Controllers
     {
         [BotAuthorization]
         [HttpGetBypass("bot/generatecode")]
-        public async Task<string> GenerateLinkCode(string discordId)
+        public async Task<string> GenerateLinkCode()
         {
-            return await services.users.GenerateAuthCode(discordId) ?? "";
+            return $"Head to https://www.{Configuration.ShortBaseUrl}/bot/verify to link your account";
         }
         
         [HttpGetBypass("bot/verify")]
-        public async Task<dynamic> LinkDiscord(string linkcode)
+        public async Task<dynamic> LinkDiscord(string? code)
         {
-            try
+            if (await services.users.IsUserLinked(safeUserSession.userId))
             {
-                await services.users.LinkDiscordAccount(linkcode, safeUserSession.userId);
+                return "You have already linked your discord account to Pekora";
             }
-            catch(Exception e)
+            // if there isnt a code we will redirect it to the oauth link to get the code
+            if (code == null)
             {
-                Console.WriteLine($"Something went wrong while linking the account{e.Message.ToString()}");
-                return "Something went wrong while trying to link your account";
+                return Redirect("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fbot%2Fverify&scope=identify+guilds.members.read+guilds.join");
             }
-            return "Successfully linked your account";
+            DiscordApi discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/bot/verify");
+            var userInfo = await discordOAuth.GetUserInfo();
+            if (userInfo == null)
+            {
+                return "Invalid Discord Account";
+            }
+            await services.users.LinkDiscordAccount(userInfo.Id.ToString(), safeUserSession.userId);
+            // just incase
+            await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordOAuth.accessToken);
+            return "You have linked your account to Pekora";
         }
     }
 }

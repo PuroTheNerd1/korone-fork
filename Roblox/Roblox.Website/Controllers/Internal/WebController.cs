@@ -1,8 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.IO.Compression;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Assets;
@@ -11,9 +7,7 @@ using Roblox.Libraries.Assets;
 using Roblox.Models.Assets;
 using Roblox.Models.Groups;
 using Roblox.Models.Staff;
-using Roblox.Models.Thumbnails;
 using Roblox.Models.Users;
-using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
@@ -25,7 +19,14 @@ using SixLabors.ImageSharp.Formats.Png;
 using Type = System.Type;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Roblox.Exceptions.Services.Users;
+using Roblox.Libraries.DiscordApi;
 using Roblox.Models.Db;
+using DSharpPlus;
+using DSharpPlus.Net;
+using Roblox.Logging;
+using Roblox.Website.Pages.Auth;
+using DSharpPlus.Entities;
+using InfluxDB.Client.Api.Domain;
 
 namespace Roblox.Website.Controllers;
 
@@ -54,6 +55,103 @@ public class WebController : ControllerBase
         });
     }
 
+    [HttpGetBypass("auth/discord-login")]
+    public IActionResult DiscordLogin()
+    {
+        return Redirect("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Flogincallback&scope=identify+guilds.members.read+guilds.join");
+    }
+    [HttpGetBypass("api/logincallback")]
+    public async Task<IActionResult> DiscordLoginCallBack(string code)
+    {
+        // If we already have a session lets redirect
+        if (userSession != null)
+            return Redirect("/home");
+        DiscordApi discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/api/logincallback");
+        var discordUserInfo = await discordOAuth.GetUserInfo();
+        // Failed to login or no user info
+        if (discordUserInfo == null)
+        {
+            return Content("Login via discord has failed, please try logging in normally");
+        }
+        Dto.Users.UserInfo user;
+        try
+        {
+            user = await services.users.GetUserByDiscordId(discordUserInfo.Id.ToString());
+        }
+        // there is no account tied to the discord id this can either mean they havent linked their account or there is no account made
+        catch (RecordNotFoundException)
+        {
+            await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, discordUserInfo.Id.ToString(), discordOAuth.accessToken);
+            return Content("We couldn't find a pekora account relating to this account, we have automatically joined the Pekora discord server for you so you can register an account or link it!");
+        }
+
+        // create session
+        var sess = await services.users.CreateSession(user.userId);
+        var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+        {
+            sessionId = sess,
+            createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        });
+        HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+        {
+            Secure = true,
+            Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+            IsEssential = true,
+            HttpOnly = true,
+            Path = "/",
+            SameSite = SameSiteMode.Lax,
+        });
+        // We have logged in time to redirect
+        return Redirect("/home");
+    }
+    [HttpGetBypass("api/applicationcallback")]
+    public async Task<IActionResult> DiscordOAuthCallback(string code)
+    {
+        string key = "PEKORA-DISCORD";
+        DiscordApi discordOAuth;
+        // the user already has a discord session lets check if its valid
+        if (discordSession != null)
+        {
+            discordOAuth = new(discordSession, true, $"https://www.{Configuration.ShortBaseUrl}/api/applicationcallback");
+            // session waas not valid lets delete the cookies
+            if (!await discordOAuth.IsValid())
+            {
+                HttpContext.Response.Cookies.Delete(key);
+            }
+            Writer.Info(LogGroup.DiscordApi, "Session {0} was valid redirecting", discordSession);
+            return Redirect("/auth/application");
+        }
+        // No session was found lets create a new Discord client
+        discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/api/applicationcallback");
+        string session = Guid.NewGuid().ToString();
+        // Set the newly created access token in redis
+        Writer.Info(LogGroup.DiscordApi, "Access key: {0}, expire time {1}", discordOAuth.accessToken, discordOAuth.expiresIn);
+        await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds(604800));
+        HttpContext.Response.Cookies.Append(key, session, new CookieOptions
+        {
+            IsEssential = true,
+            Path = "/",
+            HttpOnly = true,
+            Secure = true,
+            Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
+            SameSite = SameSiteMode.Lax,
+        });
+        
+        return Redirect("/auth/application");
+    }
+    
+    // [HttpGetBypass("api/userinfo")]
+    // public async Task<dynamic?> UserInfo()
+    // {
+    //     DiscordApi discordOAuth = new(discordSession, true);
+    //     var userInfo = await discordOAuth.GetUserInfo();
+    //     return new
+    //     {
+    //         username = userInfo.Username,
+    //         avatarUrl = userInfo.AvatarUrl,
+    //         id = userInfo.Id
+    //     };
+    // }
     [HttpGet("userads/redirect")]
     public async Task<IActionResult> AdRedirect(string data)
     {

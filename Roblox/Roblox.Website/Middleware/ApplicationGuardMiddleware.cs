@@ -87,11 +87,11 @@ public class ApplicationGuardMiddleware
             // return ctx.Request.Cookies[AuthorizationCookieName]?.Contains(authorization) ?? false;
         }
 
-        if (ctx.Request.Headers["User-Agent"].ToString().Contains("Roblox"))
+        if (ctx.Request.Headers["User-Agent"].ToString().ToLower().Contains("roblox"))
         {
             return true;
         }
-        if (ctx.Items.ContainsKey(".ROBLOSECURITY"))
+        if (ctx.Items.ContainsKey(SessionMiddleware.CookieName) || ctx.Items.ContainsKey(SessionMiddleware.AltCookieName))
             return true;
 
         return false;

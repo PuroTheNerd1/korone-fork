@@ -31,7 +31,7 @@ public class Economy : ControllerBase
     [HttpGetBypass("v1/users/{userId:long}/currency")]
     public async Task<dynamic> GetUserCurrency(long userId)
     {
-        FeatureCheck();
+        //FeatureCheck();
         return await services.economy.GetUserBalance(userSession.userId);
     }
 

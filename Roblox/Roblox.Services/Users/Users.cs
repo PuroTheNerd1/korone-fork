@@ -584,6 +584,11 @@ public class UsersService : ServiceBase, IService
         if (res == null) throw new RecordNotFoundException();
         return res;
     }
+    public async Task<bool> IsUserLinked(long userId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<string?>("SELECT discord_id FROM \"user\" WHERE id = :id", new { id = userId});
+        return res != null;
+    }
     public async Task<IEnumerable<MultiGetAccountStatusEntry>> MultiGetAccountStatus(IEnumerable<long> userIds)
     {
         var ids = userIds.Distinct().ToList();
@@ -822,87 +827,16 @@ public class UsersService : ServiceBase, IService
 
         return isDuplicate > 0;
     }
-    public async Task<string?> GenerateAuthCode(string discordId)
+    public async Task LinkDiscordAccount(string discordId, long userId)
     {
-        string existingAuthCode = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
-            new
-            {
-                discord_id = discordId,
-                status = (int)DiscordLinkstatus.PendingVerification
-            });
-
-        if (existingAuthCode != null)
-        {
-            return existingAuthCode;
-        }
-
-        string alreadyVerified = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discordAuthCode FROM discord_link WHERE discord_id = :discord_id AND status = :status",
-            new
-            {
-                discord_id = discordId,
-                status = (int)DiscordLinkstatus.Linked
-            });
-        string alreadyVerified2 = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discord_id FROM \"user\" WHERE discord_id = :discord_id AND status = :status",
-            new
-            {
-                discord_id = discordId,
-                status = (int)DiscordLinkstatus.Linked
-            });
-        if (alreadyVerified != null || alreadyVerified2 != null)
-        {
-            return null;
-        }
-        string authCode = Guid.NewGuid().ToString();
         await db.ExecuteAsync(
-            "INSERT INTO discord_link (discord_id, discordAuthCode, status) VALUES (:discord_id, :authcode, :status)",
+            "UPDATE \"user\" SET discord_id = :discordid WHERE id = :uid",
             new
             {
-                authcode = authCode,
-                discord_id = discordId,
-                status = (int)DiscordLinkstatus.PendingVerification
-            }
-        );
-        return authCode;
-    }
-    public async Task LinkDiscordAccount(string discordAuthCode, long userId)
-    {
-        string discordId = await db.QuerySingleOrDefaultAsync<string>(
-            "SELECT discord_id FROM discord_link WHERE discordAuthCode = :linkcode AND status = :status",
-            new
-            {
-                linkcode = discordAuthCode,
-                status = (int)DiscordLinkstatus.PendingVerification
+                uid = userId,
+                discordid = discordId,
             });
 
-        if (discordId != null)
-        {
-            await db.ExecuteAsync(
-                "UPDATE \"user\" SET discord_id = :discordid, linkstatus = :lstat WHERE id = :uid AND linkstatus = :lstatus",
-                new
-                {
-                    uid = userId,
-                    discordid = discordId,
-                    lstat = (int)DiscordLinkstatus.Linked,
-                    lstatus = (int)DiscordLinkstatus.Unlinked
-                });
-
-            await db.ExecuteAsync(
-                "UPDATE discord_link SET status = :lstat WHERE discordauthcode = :linkcode AND status = :lstatus",
-                new
-                {
-                    linkcode = discordAuthCode,
-                    lstat = (int)DiscordLinkstatus.Linked,
-                    lstatus = (int)DiscordLinkstatus.PendingVerification
-                });
-
-        }
-        else
-        {
-            throw new InvalidOperationException("Invalid Discord authentication code or status.");
-        }
     }
     public async Task<string> CreateApplication(CreateUserApplicationRequest request)
     {

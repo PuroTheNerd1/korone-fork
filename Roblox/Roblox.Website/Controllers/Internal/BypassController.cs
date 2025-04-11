@@ -822,7 +822,7 @@ namespace Roblox.Website.Controllers
         {
             return new
             {
-                robux = await services.economy.GetUserRobux(userSession.userId),
+                robux = await services.economy.GetUserRobux(safeUserSession.userId),
             };
         }
         [HttpGetBypass("Users/ListStaff.ashx")]

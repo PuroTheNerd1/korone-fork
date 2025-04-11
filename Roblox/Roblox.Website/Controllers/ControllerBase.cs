@@ -3,9 +3,11 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Roblox.Dto.Users;
 using Roblox.Models.Sessions;
 using Roblox.Services;
 using Roblox.Services.Exceptions;
+using Roblox.Website.Middleware;
 namespace Roblox.Website.Controllers
 {
     public class ControllerBase : Microsoft.AspNetCore.Mvc.ControllerBase
@@ -61,27 +63,74 @@ namespace Roblox.Website.Controllers
                 return Request.Headers["User-Agent"].ToString().ToLower().Contains("roblox");
             }
         }
-
+        protected string? discordSession
+        {
+            get
+            {
+                string key = "PEKORA-DISCORD";
+                if (!HttpContext.Request.Cookies.ContainsKey(key))
+                {
+                    return null;
+                }
+                return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
+            }
+        }
+        private Task<Roblox.Models.Sessions.UserSession?> _cachedUserSession;
+    
         protected Roblox.Models.Sessions.UserSession? userSession
         {
             get
             {
-#if DEBUG
-                if (userSessionForTests != null)
-                    return userSessionForTests;
-#endif
-                var dict = HttpContext.Items;
-                if (dict.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.CookieName))
-                {
-                    return (UserSession?)dict[Middleware.SessionMiddleware.CookieName];
-                }
-                else if (dict.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.AltCookieName))
-                {
-                    return (UserSession?)dict[Middleware.SessionMiddleware.AltCookieName];
-                }
-                
-                return null;
+                _cachedUserSession = LoadUserSessionAsync();
+                return _cachedUserSession.IsCompletedSuccessfully ? _cachedUserSession.Result : null;
             }
+        }
+        private async Task<Roblox.Models.Sessions.UserSession?> LoadUserSessionAsync()
+        {
+        #if DEBUG
+            if (userSessionForTests != null)
+                return userSessionForTests;
+        #endif
+            var dict = HttpContext.Items;
+            var cookies = HttpContext.Request.Cookies;
+
+            if (dict.ContainsKey(Middleware.SessionMiddleware.CookieName))
+            {
+                return (UserSession?)dict[Middleware.SessionMiddleware.CookieName];
+            }
+            else if (dict.ContainsKey(Middleware.SessionMiddleware.AltCookieName))
+            {
+                return (UserSession?)dict[Middleware.SessionMiddleware.AltCookieName];
+            }
+            else
+            {
+                using var users = Services.ServiceProvider.GetOrCreate<UsersService>();
+                using var accountInformation = Services.ServiceProvider.GetOrCreate<AccountInformationService>();
+                var cookie = cookies[SessionMiddleware.AltCookieName].ToString();
+
+                if (cookie == null)
+                    return null;
+
+                var decodedResult = SessionMiddleware.DecodeJwt<JwtEntry>(cookie);
+                
+                UserInfo userInfo;
+                try
+                {
+                    var sessResult = await users.GetSessionById(decodedResult.sessionId);
+                    userInfo = await users.GetUserById(sessResult.userId); 
+                }
+                catch (RecordNotFoundException)
+                {
+                    return null;
+                }
+
+                dict[SessionMiddleware.CookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
+                dict[SessionMiddleware.AltCookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
+
+                return (UserSession?)dict[Middleware.SessionMiddleware.AltCookieName];
+            }
+
+            return null;
         }
 
         /// <summary>

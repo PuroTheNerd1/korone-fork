@@ -1,7 +1,8 @@
 ﻿// ReSharper disable InconsistentNaming
 #pragma warning disable CS8618
 using System.Dynamic;
-
+using System.Text;
+using System.Text.Encodings;
 namespace Roblox;
 
 public class GameServerConfigEntry
@@ -35,6 +36,18 @@ public static class Configuration
     public static string ShortBaseUrl { get; set; }
     public static string HCaptchaPublicKey { get; set; }
     public static string HCaptchaPrivateKey { get; set; }
+    public static string DiscordClientId { get; set; }
+    public static string DiscordClientSecret { get; set; }
+    public static string DiscordGuildId { get; set; }
+    public static string DiscordBotToken { get; set; }
+    public static string DiscordOAuthToken
+    {
+        get
+        {
+            string credentials = $"{DiscordClientId}:{DiscordClientSecret}";
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
+        }
+    }
     public static IEnumerable<GameServerConfigEntry> GameServerIpAddresses { get; set; }
     public static string GameServerAuthorization { get; set; }
     public static string RobloxAppPrefix { get; set; } = "rbxeconsim:";

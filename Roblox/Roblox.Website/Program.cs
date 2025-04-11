@@ -49,6 +49,10 @@ Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value;
 Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https://www.", "");
 Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value;
 Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value;
+Roblox.Configuration.DiscordClientId = configuration.GetSection("Discord:ClientId").Value;
+Roblox.Configuration.DiscordClientSecret = configuration.GetSection("Discord:ClientSecret").Value;
+Roblox.Configuration.DiscordGuildId = configuration.GetSection("Discord:GuildId").Value;
+Roblox.Configuration.DiscordBotToken = configuration.GetSection("Discord:BotToken").Value;
 Roblox.Configuration.GameServerAuthorization = configuration.GetSection("GameServerAuthorization").Value;
 Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value;
 Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value;
@@ -225,7 +229,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseMiddleware<FrontendProxyMiddleware>();
-app.UseRobloxLoggingMiddleware();
+//app.UseRobloxLoggingMiddleware();
 
 app.UseExceptionHandler("/error");
 //await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");

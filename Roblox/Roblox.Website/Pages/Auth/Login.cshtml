@@ -44,9 +44,19 @@
                     {
                         <p><a href="/auth/password-reset">Reset Password</a></p>
                     }
-                    <div class="cf-turnstile mt-4 mb-2" data-sitekey="@Model.siteKey" data-theme="dark"></div>
+                    <div class="cf-turnstile text-center mt-4 mb-2" data-sitekey="@Model.siteKey" data-theme="dark"></div>
                     @Html.AntiForgeryToken()
-                    <input disabled="@Model.loginDisabled" class="btn btn-primary" type="submit" value="Login" id="login-submit"/>
+                    <div class="d-grid gap-2 mt-4 mb-4">
+                        <input disabled="@Model.loginDisabled" class="btn btn-primary btn-custom" type="submit" value="Login" id="login-submit"/>
+                    @if (!Model.loginDisabled)
+                    {
+                        <hr class="m-0 my-2">
+
+                        <a href="/auth/discord-login" class="btn btn-discord btn-custom">
+                            <i class="bi bi-discord me-2"></i> Login with Discord
+                        </a>
+                    }
+                    </div>
                 </form>
             </div>
         </div>

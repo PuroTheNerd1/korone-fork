@@ -71,7 +71,6 @@ public class SessionMiddleware
     private async Task OnBadSession(HttpContext ctx)
     {
         ctx.Response.Cookies.Delete(CookieName);
-        ctx.Response.Cookies.Delete(AltCookieName);
         await _next(ctx);
     }
 
@@ -84,17 +83,14 @@ public class SessionMiddleware
             if (ctx.Request.Cookies.ContainsKey(CookieName))
             {
                 var cookie = ctx.Request.Cookies[CookieName];
-                var cookie2 = ctx.Request.Cookies[AltCookieName];
-                if (string.IsNullOrWhiteSpace(cookie) && string.IsNullOrWhiteSpace(cookie2))
+                if (string.IsNullOrWhiteSpace(cookie))
                 {
                     authTimer.Stop();
                     await OnBadSession(ctx);
                     return;
                 }
- 
-                dynamic decodedResult = DecodeJwt<JwtEntry>(cookie);
-                if (decodedResult == null)
-                    decodedResult =  DecodeJwt<JwtEntry>(cookie2);
+                
+                var decodedResult = DecodeJwt<JwtEntry>(cookie);
                 if (!string.IsNullOrEmpty(decodedResult.sessionId))
                 {
                     using var users = ServiceProvider.GetOrCreate<UsersService>();
@@ -120,7 +116,7 @@ public class SessionMiddleware
                     }
 
                     ctx.Items[CookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
-                    ctx.Items[AltCookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
+
                     if (userInfo.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned
                         or AccountStatus.Deleted)
                     {

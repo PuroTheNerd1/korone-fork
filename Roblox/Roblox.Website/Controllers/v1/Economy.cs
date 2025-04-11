@@ -28,9 +28,7 @@ public class EconomyControllerV1 : ControllerBase
     public async Task<dynamic> GetUserCurrency(long userId)
     {
         FeatureCheck();
-        if (userSession == null || userId != userSession.userId)
-            throw new ForbiddenException();
-        return await services.economy.GetUserBalance(userId);
+        return await services.economy.GetUserBalance(userSession.userId);
     }
 
     [HttpGet("assets/{assetId}/users/{userId}/resellable-copies")]
