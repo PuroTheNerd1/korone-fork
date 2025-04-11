@@ -21,7 +21,7 @@ const getUrlWithProxy = (url) => {
     return url;
 }
 
-const request = async (method, url, data) => {
+const request = async (method, url, data, verbose = false) => {
     const isBrowser = typeof window !== 'undefined';
     try {
         let headers = {
@@ -35,14 +35,13 @@ const request = async (method, url, data) => {
             // Custom user agent
             headers['user-agent'] = 'Roblox2016/1.0';
         }
-        const result = await axios.request({
+        return await axios.request({
             method,
             url: getUrlWithProxy(url),
             data: data,
             headers: headers,
             maxRedirects: 0,
         });
-        return result;
     } catch (e) {
         if (e.response) {
             let resp = e.response;
@@ -59,7 +58,8 @@ const request = async (method, url, data) => {
                 if (e.response.data && e.response.data.errors && e.response.data.errors.length) {
                     let err = e.response.data.errors[0]
                     e.message = e.message + ': ' + (err.code + ': ' + err.message);
-                    if (Number(String(e.response.status, "Could not parse response status")[0]) !== 5) {
+                    // TODO: confirm this is causing issues
+                    if (verbose && Number(String(e.response.status, "Could not parse response status")[0]) !== 5) {
                         return e.response;
                     }
                 }

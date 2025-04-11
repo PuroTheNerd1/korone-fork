@@ -168,9 +168,10 @@ const CreateGame = props => {
             genres: [gameGenre],
             isCopyingAllowed: uncopylocked,
             enableComments: commentsEnabled === 'true' || commentsEnabled === true,
+            verbose: true
         });
-        await setUniverseMaxPlayers({ universeId: placeId.universeId, maxPlayers: playerCount });
-        await setUniverseYear({ universeId: placeId.universeId, year: gameYear });
+        await setUniverseMaxPlayers({ universeId: placeId.universeId, maxPlayers: playerCount, verbose: true });
+        await setUniverseYear({ universeId: placeId.universeId, year: gameYear, verbose: true });
         
         window.location.href = `/games/${placeId.placeId}/--`
         // const gameStuff = {

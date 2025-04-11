@@ -309,7 +309,7 @@ export const getGameTemplates = async () => {
 export const createGameRequest = ({ templatePlaceId = null }) => {
     return request('POST', getBaseUrl2(`/universes/create`), {
         templatePlaceIdToUse: templatePlaceId ?? 0,
-    }).then(response => {
+    }, true).then(response => {
         console.log(response.data);
         if (response.data?.errors?.length > 0) {
             return response.data.errors[0].message;

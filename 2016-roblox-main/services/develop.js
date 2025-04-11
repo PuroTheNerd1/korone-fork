@@ -80,7 +80,7 @@ export const getCreatedItems = ({ assetType, limit, cursor, groupId }) => {
   })
 }
 
-export const updateAsset = async ({ assetId, name, description, genres, isCopyingAllowed, enableComments, isForSale = false }) => {
+export const updateAsset = async ({ assetId, name, description, genres, isCopyingAllowed, enableComments, isForSale = false, verbose = false }) => {
   return await request('PATCH', getFullUrl('develop', `/v1/assets/${assetId}`), {
     name,
     description,
@@ -88,7 +88,7 @@ export const updateAsset = async ({ assetId, name, description, genres, isCopyin
     isCopyingAllowed,
     enableComments,
     isForSale
-  });
+  }, verbose);
 }
 
 export const setAssetPrice = async ({ assetId, priceInRobux, priceInTickets }) => {
@@ -104,16 +104,16 @@ export const setAssetPrice = async ({ assetId, priceInRobux, priceInTickets }) =
 export const getAllGenres = async () => {
   return (await request('GET', getFullUrl('develop', '/v1/assets/genres'))).data.data;
 }
-export const setUniverseYear = async ({ universeId, year }) => {
+export const setUniverseYear = async ({ universeId, year, verbose = false }) => {
   return await request('PATCH', getFullUrl('develop', `/v1/universes/${universeId}/set-year`), {
     year,
-  });
+  }, verbose);
 }
 
-export const setUniverseMaxPlayers = async ({ universeId, maxPlayers }) => {
+export const setUniverseMaxPlayers = async ({ universeId, maxPlayers, verbose = false }) => {
   return await request('PATCH', getFullUrl('develop', `/v1/universes/${universeId}/max-player-count`), {
     maxPlayers,
-  });
+  }, verbose);
 }
 
 export const uploadGameIcon = async ({ placeId, file }) => {
