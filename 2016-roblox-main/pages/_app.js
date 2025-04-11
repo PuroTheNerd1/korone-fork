@@ -18,6 +18,8 @@ import ThumbnailStore from "../stores/thumbnailStore";
 import getFlag from "../lib/getFlag";
 import Chat from "../components/chat";
 import FeedbackStore from "../stores/feedback";
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime.js'
 
 if (typeof window !== 'undefined') {
     console.log(String.raw`
@@ -61,6 +63,7 @@ function RobloxApp({Component, pageProps}) {
         //     document.documentElement.style.setProperty('--primary-color-hover', 'rgb(210,0,87)');
         //   }
         // }
+        dayjs.extend(relativeTime);
         const el = typeof window !== 'undefined' && document.getElementsByTagName('body');
         if (el && el.length) {
             const theme = getTheme();
