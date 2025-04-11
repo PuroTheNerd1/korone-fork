@@ -239,12 +239,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("user/get-friendship-count")]
         public async Task<dynamic> GetFriendsAmount(long? userId)
         {
-            if (userId == null)
-                userId = safeUserSession.userId;
             return new
             {
                 success = true,
-                count = await services.friends.CountFriends((long)userId),
+                count = await services.friends.GetFriendRequestCount(userId ?? safeUserSession.userId)
             };
         }
         // [HttpGetBypass("v1/users/{userId}/friends/statuses")]
