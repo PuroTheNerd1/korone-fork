@@ -252,7 +252,7 @@ public class AssetsService : ServiceBase, IService
         content.Seek(0, SeekOrigin.Begin);
         await content.CopyToAsync(file);
         // Done
-        await content.DisposeAsync();
+        //await content.DisposeAsync();
         return plainHash;
     }
     public Task DeleteAssetContent(string key, string? directory = null)
