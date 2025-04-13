@@ -494,18 +494,18 @@ public class UsersService : ServiceBase, IService
         {
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
             var balance = await ec.GetUserBalance(userId);
-            if (balance.robux < 250)
+            if (balance.robux < 1000)
                 throw new NotEnoughRobuxForPurchaseException();
 
             // subtract from balance
-            await ec.DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, 250);
+            await ec.DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, 1000);
 
             // trans
             await InsertAsync("user_transaction", new
             {
                 type = PurchaseType.Purchase,
                 currency_type = 1,
-                amount = 250,
+                amount = 1000,
                 // details
                 old_username = oldUsername,
                 new_username = newUsername,
