@@ -69,13 +69,16 @@ public class DevelopControllerV1 : ControllerBase
         return Ok();
     }
     
-    [HttpPost("assets/upload-thumbnail")]
     public async Task<dynamic> UploadGameThumbnail(long universeId, [Required, FromForm] IFormFile file)
     {
         if (!await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
         {
             throw new TooManyRequestsException(0, "Too many requests");
         }
+        // have to do this retarded check because we dont wanna charge people until the thumbnail has been created
+        var balance = await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
+        if (balance.robux < 10)
+            throw new BadRequestException(0, "Not enough Robux for purchase");
         var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         
         if (await services.games.GetGameMediaCount(universe.rootPlaceId) >= 10)
@@ -94,7 +97,8 @@ public class DevelopControllerV1 : ControllerBase
             var readStream = file.OpenReadStream();
             if (readStream is null)
                 throw new BadRequestException(0, "File provided is invalid");
-            try 
+            await services.assets.CreateGameThumbnail(universe.rootPlaceId, readStream);
+            try
             {
                 await services.economy.ChargeForGameMediaUpload(CreatorType.User, safeUserSession.userId);
             }
@@ -102,7 +106,6 @@ public class DevelopControllerV1 : ControllerBase
             {
                 throw new BadRequestException(0, "Not enough Robux for purchase");
             }
-            await services.assets.CreateGameThumbnail(universe.rootPlaceId, readStream);
         }
         finally
         {
