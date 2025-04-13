@@ -816,7 +816,7 @@ public class WebController : ControllerBase
                 case Models.Assets.Type.GamePass:
                     return await UploadGamePass(request, stream, creatorId, creatorType);
                  case Models.Assets.Type.Badge:
-                     return await UploadAssetBadge(request, stream, creatorId, creatorType);
+                    return await UploadAssetBadge(request, stream, creatorId, creatorType);
                 default:
                     throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
             }
