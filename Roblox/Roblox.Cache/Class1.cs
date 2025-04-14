@@ -55,7 +55,7 @@ public class DistributedCache
     {
         if (cache.Count > 10000 || key.Contains("chloeasset"))
         {
-            Console.WriteLine("[info] Roblox.Cache.DistributedCache.cache is too large, key will not be added: {0}",key);
+            //Console.WriteLine("[info] Roblox.Cache.DistributedCache.cache is too large, key will not be added: {0}",key);
             return;
         }
         cache[key] = new (value, lifetime);
