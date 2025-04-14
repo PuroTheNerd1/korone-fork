@@ -227,7 +227,8 @@ const ProfileHeader = props => {
     })
     setVerified(store.userInfo.hasVerifiedBadge);
     const buttons = [];
-    const isOwnProfile = auth.userId === store.userId;
+    // Don't make it ===, because store.userId is a string and auth.userId is a number
+    const isOwnProfile = auth.userId == store.userId;
     if (store.friendStatus === "Friends") {
       buttons.push({
         name: 'Message',
