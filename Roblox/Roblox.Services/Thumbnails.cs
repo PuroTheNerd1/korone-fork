@@ -128,7 +128,7 @@ public class ThumbnailsService : ServiceBase, IService
             }
             else if (c.type == Type.Video)
             {
-                c.imageUrl = "/img/Audio.png";
+                c.imageUrl = "/img/Video.png";
             }
             else if (!string.IsNullOrEmpty(c.imageUrl) && !c.imageUrl.Contains("images/thumbnails"))
             {
