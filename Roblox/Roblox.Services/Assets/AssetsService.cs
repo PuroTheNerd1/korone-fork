@@ -995,7 +995,7 @@ public class AssetsService : ServiceBase, IService
     private async Task CreateBodyPartThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
-        string response = await RenderingHandler.RequestBodyPartRender($"https://{Configuration.BaseUrl}/v1/asset?id={assetId}", 20);
+        string response = await RenderingHandler.RequestBodyPartRender($"{Configuration.BaseUrl}/v1/asset?id={assetId}", 20);
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
         using (var imageStream = new MemoryStream(imageBytes))
