@@ -35,7 +35,7 @@ public class AvatarRBX : ControllerBase
 
         await Task.Run(async () =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(2));
+            //await Task.Delay(TimeSpan.FromSeconds(2));
             Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarTypeAsync(userId);
             using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
             try
