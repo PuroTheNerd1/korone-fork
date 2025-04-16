@@ -70,10 +70,10 @@
                 }
                 <div class="alert alert-secondary mt-2 mb-2">
                     <p class="mb-0">@Model.ban.reason</p>
-                    <p class="mb-0 fst-italic mt-4">Ban created: @Model.ban.createdAt.ToString("f")</p>
+                    <p class="mb-0 fst-italic mt-4">Ban created: @Model.ban.createdAt.ToString("f") UTC</p>
                     @if (Model.ban.expiredAt != null)
                     {
-                        <p class="mb-0 fst-italic mt-1">Ban expiration: @Model.ban.expiredAt.Value.ToString("f")</p>
+                        <p class="mb-0 fst-italic mt-1">Ban expiration: @Model.ban.expiredAt.Value.ToString("f") UTC</p>
                     }
                 </div>
                 @if (Model.ban.canUnlock)
