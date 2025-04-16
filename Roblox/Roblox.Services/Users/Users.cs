@@ -378,7 +378,7 @@ public class UsersService : ServiceBase, IService
 
     public async Task ResetUsername(long userId, long requesterUserId)
     {
-        var newName = "[ Account Reset (" + userId + ") ]";
+        var newName = $"pekora_user_{userId}";
         await db.ExecuteAsync(
             "INSERT INTO moderation_bad_username_log (username, user_id, author_id) VALUES (:name, :id, :author)", new
             {
