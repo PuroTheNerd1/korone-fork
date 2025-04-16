@@ -85,7 +85,6 @@ public class AvatarRBX : ControllerBase
         
         equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == Models.Assets.Type.Gear).Select(d => d.id));
         accessoryVersionIds.AddRange(assetInfo.Where(d => d.assetType != Models.Assets.Type.Gear && d.assetType != Models.Assets.Type.EmoteAnimation).Select(d => d.id));
-        long placeId = long.Parse(Request.Headers["roblox-place-id"].ToString());
         if (UserAgent != "Roblox/Win2020")
         {
             equippedGearVersionIds = new List<long>();
