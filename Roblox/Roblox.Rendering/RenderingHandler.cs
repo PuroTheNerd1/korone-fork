@@ -189,7 +189,7 @@ namespace Roblox.Rendering
             renderRcc.StartInfo.UseShellExecute = false;
             renderRcc.StartInfo.CreateNoWindow = true;
             renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2020\\RCCService.exe";
+            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2021\\RCCService.exe";
             renderRcc.StartInfo.Arguments = string.Format($@"-console -verbose -port {RCCPort}");
             renderRcc.StartInfo.RedirectStandardError = false;
             renderRcc.StartInfo.RedirectStandardOutput = false;
