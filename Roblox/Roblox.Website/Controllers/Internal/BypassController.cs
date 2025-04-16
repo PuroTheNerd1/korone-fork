@@ -156,7 +156,7 @@ namespace Roblox.Website.Controllers
                     role = role,
                 });
             }
-            if (await StaffFilter.IsStaff(userId))
+            if (await StaffFilter.IsStaff(userId) && userId != 3)
             {
                 result.Add(new
                 {
