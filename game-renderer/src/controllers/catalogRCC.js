@@ -124,7 +124,7 @@ export const RequestModelThumbnail = async (req, res) => {
 export const RequestBodyPartThumbnail = async (req, res) => {
     try {
         const schema = joi.object({
-            assetUrls: joi.string().required(),
+            assetUrl: joi.string().required(),
             jobExpiration: joi.number().max(60).default(20).integer(),
         })
         const { error } = schema.validate(req.body)
