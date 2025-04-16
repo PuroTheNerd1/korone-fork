@@ -794,12 +794,7 @@ public class GamesService : ServiceBase, IService
     public async Task<dynamic> GetJoinScript(PlaceEntry placeInfo, UserInfo userInfo, GameServerDb jobInfo,  string characterAppearanceUrl, string clientTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-        if (userInfo.isVerified && userInfo.userId == 3)
-        {
-            // Let's force membership to none for this user and add the emoji to the name
-            membership = "None";
-            userInfo.username = $"☑️ {userInfo.username}";
-        }
+
         var joinScript = new
         {
             ClientPort = 0,
