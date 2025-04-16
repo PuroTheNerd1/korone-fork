@@ -735,12 +735,14 @@ public class AssetsService : ServiceBase, IService
             return;
 
         byte[] imageBytes;
+        var modStatus = ModerationStatus.Declined;
         if (thumbnailToUse is null)
         {
             Writer.Info(LogGroup.GameIconRender, "starting game icon render for placeId={0}", assetId);
             string rawRender = await RenderingHandler.RequestPlaceRender(assetId, 60, 1680, 1680);
             string resizedBase64 = await AvatarService.GetResizedImageFromBase64(rawRender, 352, 352);
             imageBytes = Convert.FromBase64String(resizedBase64);
+            modStatus = ModerationStatus.ReviewApproved;
             Writer.Info(LogGroup.GameIconRender, "completed game icon render for placeId={0}", assetId);
         }
         else
@@ -758,7 +760,7 @@ public class AssetsService : ServiceBase, IService
 
         using var imageStream = new MemoryStream(imageBytes);
         string key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
-        await InsertOrReplaceIcon(assetId, key, ModerationStatus.AwaitingApproval);
+        await InsertOrReplaceIcon(assetId, key, modStatus);
     }
     
     public static string TrimTo255(string input)
