@@ -795,10 +795,7 @@ public class GamesService : ServiceBase, IService
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
         string chatStyle = "ClassicAndBubble";
-        if (placeInfo.year > 2019)
-        {
-            chatStyle = "Bubble";
-        }
+
         var joinScript = new
         {
             ClientPort = 0,
