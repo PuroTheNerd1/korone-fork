@@ -140,7 +140,7 @@ export const RequestBodyPartThumbnail = async (req, res) => {
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[3] = 1680;
         xml.Settings.Arguments[4] = 1680;
-        xml.Settings.Arguments[5] = `${conf.baseUrl}/asset/?id=1785197`; // double slash, could cause issue. idk.
+        xml.Settings.Arguments[5] = `${conf.baseUrl}asset/?id=1785197`; // double slash, could cause issue. idk.
 
         const response = await request({
             RCC: port,
@@ -178,7 +178,7 @@ export const RequestPackageThumbnail = async (req, res) => {
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[3] = 1680;
         xml.Settings.Arguments[4] = 1680;
-        xml.Settings.Arguments[5] = `${conf.baseUrl}/asset/?id=1785197`; // double slash, could cause issue. idk.
+        xml.Settings.Arguments[5] = `${conf.baseUrl}asset/?id=1785197`; // double slash, could cause issue. idk.
 
         const response = await request({
             RCC: port,

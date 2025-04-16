@@ -697,7 +697,7 @@ public class AssetsService : ServiceBase, IService
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
         var assets = await GetPackageAssets(assetId);
-        string assetUrls = string.Join(";", assets.Select(c => Configuration.BaseUrl + "/Asset/?id=" + c));
+        string assetUrls = string.Join(";", assets.Select(c => Configuration.BaseUrl + "/asset/?id=" + c));
         string response = await RenderingHandler.RequestPackageRender(assetUrls, 20);
         string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
         byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
