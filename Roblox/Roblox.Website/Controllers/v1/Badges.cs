@@ -146,14 +146,16 @@ public class BadgesControllerV1 : ControllerBase
         // shouldnt have to check null cuz of above right?
         var uni = await services.games.GetUniverseInfo(universeId);
         var badgeInfo = await services.badges.GetBadgeInfo(badgeId);
-        if (badgeInfo is null) {
+
+        if (badgeInfo is null) 
             throw new BadRequestException(0, "Badge is invalid or does not exist");
-        }
-        await services.assets.EnsureAssetIsModerated(badgeId);
+        
         if (!badgeInfo.enabled)
             throw new BadRequestException(8, "The badge is disabled.");
+
         if (badgeInfo.universeId != universeId)
             throw new ForbiddenException(8, "The place doesn't have permission to award the badge.");
+
         if ((await services.users.GetUserAssets(userId, badgeId)).Any())
             throw new BadRequestException(0, "User already owns the badge");
         // TODO: put proper error code here from apidocs sixteensrc 
