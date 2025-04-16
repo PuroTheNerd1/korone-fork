@@ -794,7 +794,11 @@ public class GamesService : ServiceBase, IService
     public async Task<dynamic> GetJoinScript(PlaceEntry placeInfo, UserInfo userInfo, GameServerDb jobInfo,  string characterAppearanceUrl, string clientTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
-
+        string chatStyle = "ClassicAndBubble";
+        if (placeInfo.year > 2019)
+        {
+            chatStyle = "Bubble";
+        }
         var joinScript = new
         {
             ClientPort = 0,
@@ -815,7 +819,7 @@ public class GamesService : ServiceBase, IService
             MeasurementUrl = "",
             WaitingForCharacterGuid = Guid.NewGuid().ToString(),
             BaseUrl = Configuration.BaseUrl,
-            ChatStyle = "ClassicAndBubble",
+            ChatStyle = chatStyle,
             VendorId = 0,
             ScreenShotInfo = "",
             VideoInfo = "",
