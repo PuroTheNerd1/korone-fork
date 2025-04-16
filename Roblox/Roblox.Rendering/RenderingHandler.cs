@@ -32,7 +32,6 @@ namespace Roblox.Rendering
             Place,
             Model,
             Emote,
-
         }
         private class RenderResponse
         {
@@ -47,7 +46,7 @@ namespace Roblox.Rendering
             LuaScriptPath = luaScriptPath;
         }
 
-        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false)
+        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false,  string? assetUrls = null)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -66,6 +65,7 @@ namespace Roblox.Rendering
                     url = "player/headshot";
                     break;
                 case RenderType.Package:
+                    renderRequest.assetUrls = assetUrls;
                     url = "catalog/package";
                     break;
                 case RenderType.Head:
@@ -113,36 +113,6 @@ namespace Roblox.Rendering
             return request?.data ?? "FAILURE";
         }
 
-
-        private static async Task<string> SendRequestToRcc(string URL, string XML, string SOAPAction)
-        {
-            using (HttpClient RccHttpClient = new HttpClient())
-            {
-                RccHttpClient.DefaultRequestHeaders.Add("SOAPAction", $"http://pekora.zip/{SOAPAction}");
-                HttpContent XMLContent = new StringContent(XML, Encoding.UTF8, "text/xml");
-                try
-                {
-                    HttpResponseMessage RccHttpClientPost = await RccHttpClient.PostAsync(URL, XMLContent);
-                    string RccHttpClientResponse = await RccHttpClientPost.Content.ReadAsStringAsync();
-                    if (!RccHttpClientPost.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine($"[RCCSendRequest] Recieved not OK status request: {RccHttpClientPost.StatusCode}, full response: {RccHttpClientResponse}");
-                    }
-
-                    XDocument Doc = XDocument.Parse(RccHttpClientResponse);
-                    XNamespace ns1 = "http://pekora.zip/";
-                    XElement Element = Doc.Descendants(ns1 + "value").FirstOrDefault()!;
-                    string LuaValue = Element.Value ?? "";
-                    return LuaValue;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"[RCCSendRequest] Failed to send request to RCC: {e}");
-                }
-            }
-            return "FAILURE";
-        }
-
         public static async Task<string> RequestHatThumbnail(long assetId, int JobExpiration)
         {
             return await SendRenderRequest(assetId, RenderType.Hat);
@@ -184,55 +154,7 @@ namespace Roblox.Rendering
         }
         public static async Task<string> RequestPackageRender(string assetUrls, int JobExpiration)
         {
-            int RCCPort = RandomComponent.Next(10003, 25000);
-            Process renderRcc = new Process();
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            renderRcc.StartInfo.FileName = $"{RccServicePath}\\RCCService2021\\RCCService.exe";
-            renderRcc.StartInfo.Arguments = string.Format($@"-console -verbose -port {RCCPort}");
-            renderRcc.StartInfo.RedirectStandardError = false;
-            renderRcc.StartInfo.RedirectStandardOutput = false;
-            renderRcc.StartInfo.UseShellExecute = false;
-            renderRcc.StartInfo.CreateNoWindow = true;
-            renderRcc.Start();
-            string originalScript = File.ReadAllText($"{LuaScriptPath}\\NewRenderJSON\\Package.txt");
-            string finalScript = originalScript.Replace
-                ("%assetUrls%", $@"""{assetUrls}""").Replace
-                ("%fileExtension%", $@"""png""").Replace
-                ("%x%", $@"""{1680}""").Replace
-                ("%y%", $@"""{1680}""").Replace
-                ("%baseUrl%", $@"""{BaseUrl}/""").Replace
-                ("%RigURL%", $@"""{BaseUrl}/asset/?id=1785197""");
-
-
-            string XML = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-            <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-               xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-               xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-                    <BatchJobEx xmlns=""http://pekora.zip/"">
-                        <job>
-                            <id>{Guid.NewGuid().ToString()}</id>
-                            <category>1</category>
-                            <cores>1</cores>
-                            <expirationInSeconds>{JobExpiration}</expirationInSeconds>
-                        </job>
-                        <script>
-                            <name>{Guid.NewGuid().ToString()}</name>
-                            <script>
-                                <![CDATA[
-                                {finalScript}
-                                ]]>
-                            </script>
-                        </script>
-                    </BatchJobEx>
-                </soap:Body>
-            </soap:Envelope>";
-            await WaitForPort(RCCPort);
-            string result = await SendRequestToRcc($"http://127.0.0.1:{RCCPort}", XML, "BatchJobEx");
-            renderRcc.Kill();
-            return result;
+            return await SendRenderRequest(0, RenderType.Package, assetUrls: assetUrls);
         }
         public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
         {
@@ -241,27 +163,6 @@ namespace Roblox.Rendering
         public static async Task<string> RequestHeadshotThumbnail(long userId, int JobExpiration)
         {
             return await SendRenderRequest(userId, RenderType.Headshot);
-        }
-        static Task WaitForPort(int RCCPort)
-        {
-            while (true)
-            {
-                try
-                {
-                    using (TcpClient client = new TcpClient())
-                    {
-                        client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
-                        Console.WriteLine("did not find port");
-                        break;
-                    }
-                }
-                catch (SocketException)
-                {
-                    Thread.Sleep(0);
-                }
-            }
-            Console.WriteLine($"found port: {RCCPort}");
-            return Task.CompletedTask;
         }
     }
 }
