@@ -647,8 +647,8 @@ public class AssetsService : ServiceBase, IService
         if (mediaInfo == null || mediaInfo.PrimaryVideoStream == null || mediaInfo.VideoStreams == null || mediaInfo.Duration.TotalSeconds == 0)
             return MediaValidation.UnsupportedFormat;
         // Max 800 secs
-        if (mediaInfo.Duration.TotalSeconds > 800)
-            return MediaValidation.UnsupportedFormat;
+        // if (mediaInfo.Duration.TotalMinutes > 40)
+        //     return MediaValidation.UnsupportedFormat;
         // We only support webm
         if (mediaInfo.Format.FormatName.Contains("webm", StringComparison.OrdinalIgnoreCase))
             return MediaValidation.Ok;
