@@ -6,6 +6,7 @@ import xml2js from 'xml2js'
 import responseUtil from "../util/response.js";
 import HatTemplate from '../../scripts/Hat.json' with { type: 'json' };
 import PackageTemplate from '../../scripts/Package.json' with { type: 'json' };
+import BodyPartTemplate from '../../scripts/BodyPart.json' with { type: 'json' };
 import MeshTemplate from '../../scripts/Mesh.json' with { type: 'json' };
 import HeadTemplate from '../../scripts/Head.json' with { type: 'json' };
 import ModelTemplate from '../../scripts/Model.json' with { type: 'json' };
@@ -102,6 +103,44 @@ export const RequestModelThumbnail = async (req, res) => {
         const xml = JSON.parse(JSON.stringify(ModelTemplate));
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[4] = conf.baseUrl;
+
+        const response = await request({
+            RCC: port,
+            XML: xml,
+            jobExpiration,
+        })
+        xml2js.parseString(response.data, (err, jsXmlData) => {
+            if (err) {
+                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
+            }
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            return responseUtil(res, 'success', 200, true, { data: xmlData });
+        })
+    } catch (err) {
+        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
+    }
+}
+
+export const RequestBodyPartThumbnail = async (req, res) => {
+    try {
+        const schema = joi.object({
+            assetUrls: joi.string().required(),
+            jobExpiration: joi.number().max(60).default(20).integer(),
+        })
+        const { error } = schema.validate(req.body)
+        if (error) {
+            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
+        }
+
+        var { assetUrl, jobExpiration } = req.body
+        if (jobExpiration == undefined) { jobExpiration = 20 }
+
+        const xml = JSON.parse(JSON.stringify(BodyPartTemplate));
+        xml.Settings.Arguments[0] = assetUrl;
+        xml.Settings.Arguments[1] = conf.baseUrl;
+        xml.Settings.Arguments[3] = 1680;
+        xml.Settings.Arguments[4] = 1680;
+        xml.Settings.Arguments[5] = `${conf.baseUrl}/asset/?id=1785197`; // double slash, could cause issue. idk.
 
         const response = await request({
             RCC: port,
