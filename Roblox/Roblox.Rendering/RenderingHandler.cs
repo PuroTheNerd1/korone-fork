@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using System.Text;
-using System.Xml.Linq;
-using System.Net.Sockets;
-using System.Net;
+using Roblox;
 using System.Text.Json;
 using System.Net.Http.Json;
 using System.Dynamic;
@@ -24,6 +22,7 @@ namespace Roblox.Rendering
             Headshot,
             Head,
             Package,
+            BodyPart,
             Image,
             Clothing,
             Face,
@@ -46,7 +45,7 @@ namespace Roblox.Rendering
             LuaScriptPath = luaScriptPath;
         }
 
-        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false,  string? assetUrls = null)
+        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false,  string? assetUrl = null)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -65,8 +64,12 @@ namespace Roblox.Rendering
                     url = "player/headshot";
                     break;
                 case RenderType.Package:
-                    renderRequest.assetUrls = assetUrls;
+                    renderRequest.assetUrls = assetUrl;
                     url = "catalog/package";
+                    break;
+                case RenderType.BodyPart:
+                    renderRequest.assetUrl = assetUrl;
+                    url = "catalog/bodypart";
                     break;
                 case RenderType.Head:
                     renderRequest.assetId = id;
@@ -154,7 +157,11 @@ namespace Roblox.Rendering
         }
         public static async Task<string> RequestPackageRender(string assetUrls, int JobExpiration)
         {
-            return await SendRenderRequest(0, RenderType.Package, assetUrls: assetUrls);
+            return await SendRenderRequest(0, RenderType.Package, assetUrl: assetUrls);
+        }
+        public static async Task<string> RequestBodyPartRender(string assetUrl, int JobExpiration)
+        {
+            return await SendRenderRequest(0, RenderType.BodyPart, assetUrl: assetUrl);
         }
         public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
         {

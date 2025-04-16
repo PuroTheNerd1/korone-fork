@@ -558,7 +558,6 @@ public class AssetsService : ServiceBase, IService
     }
 
     private static long maxAudioFileSizeBytes = 20447232;
-    private static long maxVideoFileSizeBytes = 41943040;
     public async Task<MediaValidation> IsAudioValid(Stream content)
     {
         if (content.Length > maxAudioFileSizeBytes) return MediaValidation.FileTooLarge;
@@ -606,7 +605,6 @@ public class AssetsService : ServiceBase, IService
 
     public async Task<MediaValidation> IsVideoValid(Stream content)
     {
-        if (content.Length > maxVideoFileSizeBytes) return MediaValidation.FileTooLarge;
         if (content.Length == 0) return MediaValidation.EmptyStream;
         content.Position = 0;
         IMediaAnalysis mediaInfo;
@@ -994,7 +992,18 @@ public class AssetsService : ServiceBase, IService
             await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.AwaitingApproval);
         }
     }
-
+    private async Task CreateBodyPartThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
+    {
+        var latestVersion = await GetLatestAssetVersion(assetId);
+        string response = await RenderingHandler.RequestBodyPartRender($"https://{Configuration.BaseUrl}/v1/asset?id={assetId}", 20);
+        string ResizedBase64 = await AvatarService.GetResizedImageFromBase64(response, 420, 420);
+        byte[] imageBytes = Convert.FromBase64String(ResizedBase64);
+        using (var imageStream = new MemoryStream(imageBytes))
+        {
+            var key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+            await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.AwaitingApproval);
+        }
+    }
     private async Task CreateHeadThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
@@ -1043,7 +1052,7 @@ public class AssetsService : ServiceBase, IService
             case Type.RightArm:
             case Type.LeftLeg:
             case Type.RightLeg:
-                thumbRequests.Add(CreateClothingThumbnail(assetId, assetType, cancellationToken));
+                thumbRequests.Add(CreateBodyPartThumbnail(assetId, assetType, cancellationToken));
                 break;
             case Models.Assets.Type.Package:
                 thumbRequests.Add(CreatePackageThumbnail(assetId, cancellationToken));
