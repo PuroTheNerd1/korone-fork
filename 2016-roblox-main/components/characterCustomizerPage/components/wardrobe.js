@@ -117,42 +117,38 @@ const wardrobeItems = [
   {
     label: 'Animations',
     categories: [
-      // {
-      //   id: 48,
-      //   name: 'Climb Animations',
-      // },
-      // {
-      //   id: 49,
-      //   name: 'Death Animations',
-      // },
-      // {
-      //   id: 50,
-      //   name: 'Fall Animations',
-      // },
-      // {
-      //   id: 51,
-      //   name: 'Idle Animations',
-      // },
-      // {
-      //   id: 52,
-      //   name: 'Jump Animations',
-      // },
-      // {
-      //   id: 53,
-      //   name: 'Run Animations',
-      // },
-      // {
-      //   id: 54,
-      //   name: 'Swim Animations',
-      // },
-      // {
-      //   id: 55,
-      //   name: 'Walk Animations',
-      // },
-      // {
-      //   id: 55,
-      //   name: 'Walk Animations',
-      // },
+      {
+        id: 48,
+        name: 'Climb',
+      },
+      {
+        id: 49,
+        name: 'Death',
+      },
+      {
+        id: 50,
+        name: 'Fall',
+      },
+      {
+        id: 51,
+        name: 'Idle',
+      },
+      {
+        id: 52,
+        name: 'Jump',
+      },
+      {
+        id: 53,
+        name: 'Run',
+      },
+      {
+        id: 54,
+        name: 'Swim',
+      },
+      {
+        id: 55,
+        name: 'Walk',
+      },
       {
         id: 61,
         name: 'Emotes',
