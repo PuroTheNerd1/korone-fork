@@ -2242,7 +2242,28 @@ Thank you for your understanding,
                 result[type]++;
             }
             // confirm all required types are specified
-            var optionalOneOf = new List<Type>() {Type.LeftArm, Type.LeftLeg, Type.RightLeg, Type.RightArm, Type.Torso, Type.Head, Type.Gear, Type.Shirt, Type.Pants, Type.Face};
+           var optionalOneOf = new List<Type>() 
+           {
+                Type.LeftArm,
+                Type.LeftLeg,
+                Type.RightLeg,
+                Type.RightArm,
+                Type.Torso,
+                Type.Head,
+                Type.Gear,
+                Type.Shirt,
+                Type.Pants,
+                Type.Face,
+                Type.RunAnimation,
+                Type.IdleAnimation,
+                Type.WalkAnimation,
+                Type.FallAnimation,
+                Type.ClimbAnimation,
+                Type.JumpAnimation,
+                Type.SwimAnimation,
+                Type.EmoteAnimation
+            };
+
             var optionalCanHaveMoreThanOne = new List<Type>() {Type.Hat, Type.HairAccessory, Type.ShoulderAccessory, Type.BackAccessory, Type.FrontAccessory, Type.WaistAccessory, Type.NeckAccessory};
             // optional
             foreach (var type in optionalOneOf)
