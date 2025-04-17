@@ -985,6 +985,8 @@ public class AssetsService : ServiceBase, IService
                 thumbRequests.Add(CreateGameIcon(assetId, default, cancellationToken));
                 break;
             case Models.Assets.Type.Mesh:
+                thumbRequests.Add(CreateMeshPartThumbnail(assetId, cancellationToken));
+                break;
             case Models.Assets.Type.MeshPart:
                 thumbRequests.Add(CreateMeshThumbnail(assetId, cancellationToken));
                 break;
