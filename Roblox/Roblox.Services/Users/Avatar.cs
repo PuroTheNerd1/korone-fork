@@ -462,6 +462,14 @@ public class AvatarService : ServiceBase, IService
         var head = 0;
         var animations = 0;
         var emotes = 0;
+
+        var idleAnimation = 0;
+        var walkAnimation = 0;
+        var runAnimation = 0;
+        var jumpAnimation = 0;
+        var poseAnimation = 0;
+        var swimAnimation = 0;
+
         foreach (var item in details)
         {
             switch (item.assetType)
@@ -513,12 +521,22 @@ public class AvatarService : ServiceBase, IService
                     rightLeg++;
                     break;
                 case Models.Assets.Type.IdleAnimation:
+                    idleAnimation++;
+                    break;
                 case Models.Assets.Type.WalkAnimation:
+                    walkAnimation++;
+                    break;
                 case Models.Assets.Type.RunAnimation:
+                    runAnimation++;
+                    break;
                 case Models.Assets.Type.JumpAnimation:
+                    jumpAnimation++;
+                    break;
                 case Models.Assets.Type.PoseAnimation:
+                    poseAnimation++;
+                    break;
                 case Models.Assets.Type.SwimAnimation:
-                    animations++;
+                    swimAnimation++;
                     break;
                 case Models.Assets.Type.EmoteAnimation:
                     emotes++;
@@ -535,6 +553,16 @@ public class AvatarService : ServiceBase, IService
         if (accessories > 15) return false;
         if (leftArm > 1 || rightArm > 1 || leftLeg > 1 || rightLeg > 1 || torso > 1 || head > 1) return false;
         if (emotes > 8) return false;
+        if (idleAnimation > 1 || 
+            walkAnimation > 1 || 
+            runAnimation > 1 || 
+            jumpAnimation > 1 || 
+            poseAnimation > 1 || 
+            swimAnimation > 1)
+        {
+            return false;
+        }
+        
         return true;
     }
 
