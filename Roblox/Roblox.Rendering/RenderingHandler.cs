@@ -31,6 +31,7 @@ namespace Roblox.Rendering
             Place,
             Model,
             Emote,
+            Animation
         }
         private class RenderResponse
         {
@@ -45,7 +46,7 @@ namespace Roblox.Rendering
             LuaScriptPath = luaScriptPath;
         }
 
-        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false,  string? assetUrl = null)
+        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false,  string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -106,6 +107,11 @@ namespace Roblox.Rendering
                     renderRequest.assetId = id;
                     url = "catalog/animationsilhouette";
                     break;
+                case RenderType.Animation:
+                    renderRequest.characterAppearanceUrl = characterAppearanceUrl;
+                    renderRequest.animationUrl = animationUrl;
+                    url = "catalog/animation";
+                    break;
             }
             // i will add error handling to this later
             var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
@@ -151,9 +157,13 @@ namespace Roblox.Rendering
             return await SendRenderRequest(assetId, RenderType.Head);
         }
 
-        public static async Task<string> RequestAnimationRender(long assetId, int JobExpiration)
+        public static async Task<string> RequestAnimationSilhouetteRender(long assetId, int JobExpiration)
         {
             return await SendRenderRequest(assetId, RenderType.Emote);
+        }
+        public static async Task<string> RequestAnimationRender(string characterAppearanceUrl, string animationUrl)
+        {
+            return await SendRenderRequest(0, RenderType.Animation, characterAppearanceUrl: characterAppearanceUrl, animationUrl: animationUrl);
         }
         public static async Task<string> RequestPackageRender(string assetUrls, int JobExpiration)
         {

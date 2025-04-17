@@ -1962,7 +1962,7 @@ Thank you for your understanding,
     public async Task<dynamic> CopyBundle(long bundleId)
     {
         var details = await services.robloxApi.GetBundle(bundleId);
-        if (details.bundleType != "BodyParts") throw new StaffException("Invalid bundleType " + details.bundleType);
+        if (details.bundleType != "BodyParts" || details.bundleType != "AvatarAnimations") throw new StaffException("Invalid bundleType " + details.bundleType);
 
         // Check if duplicate?
         var alreadyExists = await services.assets.SearchCatalog(new CatalogSearchRequest()

@@ -705,10 +705,17 @@ public class AssetsService : ServiceBase, IService
         string key = await UploadThumbnail(response, 420, 420);
         await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.AwaitingApproval);
     }
-    private async Task CreateAnimationRender(long assetId, CancellationToken? cancellationToken = null)
+    private async Task CreateAnimationThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
-        string response = await Rendering.RenderingHandler.RequestAnimationRender(assetId, 20);
+        string response = await Rendering.RenderingHandler.RequestAnimationRender($"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId=1", $"{Configuration.BaseUrl}/v1/asset?id={assetId}");
+        string key = await UploadThumbnail(response, 420, 420);
+        await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.AwaitingApproval);
+    }
+    private async Task CreateAnimationSilhouetteRender(long assetId, CancellationToken? cancellationToken = null)
+    {
+        var latestVersion = await GetLatestAssetVersion(assetId);
+        string response = await Rendering.RenderingHandler.RequestAnimationSilhouetteRender(assetId, 20);
         string key = await UploadThumbnail(response, 420, 420);
         await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.AwaitingApproval);
     }
@@ -942,21 +949,24 @@ public class AssetsService : ServiceBase, IService
 
             case Models.Assets.Type.Animation:
             case Models.Assets.Type.EmoteAnimation:
-                thumbRequests.Add(CreateAnimationRender(assetId, cancellationToken));
+                thumbRequests.Add(CreateAnimationSilhouetteRender(assetId, cancellationToken));
                 break;
             // items without custom icons
             case Models.Assets.Type.Audio:
+            case Models.Assets.Type.Lua:
+            case Models.Assets.Type.Plugin:
+                break;
+            // All animations
             case Models.Assets.Type.ClimbAnimation:
             case Models.Assets.Type.DeathAnimation:
             case Models.Assets.Type.FallAnimation:
-            case Models.Assets.Type.Lua:
             case Models.Assets.Type.IdleAnimation:
             case Models.Assets.Type.WalkAnimation:
             case Models.Assets.Type.RunAnimation:
             case Models.Assets.Type.JumpAnimation:
             case Models.Assets.Type.PoseAnimation:
             case Models.Assets.Type.SwimAnimation:
-            case Models.Assets.Type.Plugin:
+                thumbRequests.Add(CreateAnimationThumbnail(assetId, cancellationToken));
                 break;
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Model:

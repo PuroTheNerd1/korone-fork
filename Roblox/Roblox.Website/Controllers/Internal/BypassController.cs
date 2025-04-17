@@ -134,7 +134,6 @@ namespace Roblox.Website.Controllers
             }
 
             return $"<Value Type\"boolean\">{method == "isbestfriendswith"}</value>";
-            throw new NotImplementedException();
         }
 
         [HttpGetBypass("v2/users/{userId:long}/groups/roles")]

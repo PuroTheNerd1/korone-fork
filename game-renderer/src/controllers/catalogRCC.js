@@ -11,6 +11,7 @@ import MeshTemplate from '../../scripts/Mesh.json' with { type: 'json' };
 import HeadTemplate from '../../scripts/Head.json' with { type: 'json' };
 import ModelTemplate from '../../scripts/Model.json' with { type: 'json' };
 import AnimationSilhouetteTemplate from '../../scripts/AnimationSilhouette.json' with { type: 'json' };
+import AnimationTemplate from '../../scripts/AvatarAnimation.json' with { type: 'json' };
 const port = enums.CatalogRCC;
 
 export const RequestHatThumbnail = async (req, res) => {
@@ -68,6 +69,41 @@ export const RequestAnimationSilhouetteThumbnail = async (req, res) => {
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[4] = '128/128/128';
+        const response = await request({
+            RCC: port,
+            XML: xml,
+            jobExpiration,
+        })
+        xml2js.parseString(response.data, (err, jsXmlData) => {
+            if (err) {
+                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
+            }
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            return responseUtil(res, 'success', 200, true, { data: xmlData });
+        })
+    } catch (err) {
+        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
+    }
+}
+
+export const RequestAnimationThumbnail = async (req, res) => {
+    try {
+        const schema = joi.object({
+            characterAppearanceUrl: joi.string().required(),
+            animationUrl: joi.string().required(),
+            jobExpiration: joi.number().max(60).default(20).integer(),
+        })
+        const { error } = schema.validate(req.body)
+        if (error) {
+            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
+        }
+        var { characterAppearanceUrl, animationUrl, jobExpiration } = req.body
+        if (jobExpiration == undefined) { jobExpiration = 20 }
+
+        const xml = JSON.parse(JSON.stringify(AnimationTemplate));
+        xml.Settings.Arguments[0] = characterAppearanceUrl;
+        xml.Settings.Arguments[1] = conf.baseUrl;
+        xml.Settings.Arguments[5] = animationUrl;
         const response = await request({
             RCC: port,
             XML: xml,
