@@ -77,7 +77,7 @@ const developerPages = [
     id: 40,
     name: 'Mesh Parts',
     element: props => <Clothing id={40} {...props} />,
-  }
+  },
   {
     id: 101,
     name: 'User Ads',
