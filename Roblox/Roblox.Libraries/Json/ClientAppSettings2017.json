@@ -261,6 +261,8 @@
   "DFFlagIsUrlCheckAssetStringLength": "True",
   "DFFlagKeepXmlIdsBetweenLoads": "True",
   "DFFlagLegacyBodyColorsOnCharacterLoadFailure": "False",
+  "DFFlagUseCustomAnimations": "True",
+  "FFlagUseCustomAnimations": "True",
   "DFFlagLimitScrollWheelMaxToHalfWindowSize": "True",
   "DFFlagListenForZVectorChanges": "True",
   "DFFlagListenPositionEnabled": "True",
