@@ -462,7 +462,7 @@ public class AvatarService : ServiceBase, IService
         var head = 0;
         var animations = 0;
         var emotes = 0;
-        var fallAnimation
+        var fallAnimation = 0;
         var idleAnimation = 0;
         var walkAnimation = 0;
         var runAnimation = 0;
@@ -562,7 +562,7 @@ public class AvatarService : ServiceBase, IService
             jumpAnimation > 1 || 
             poseAnimation > 1 || 
             swimAnimation > 1 || 
-            fallAnimation > 1) return false;
+            fallAnimation > 1) 
         {
             return false;
         }
