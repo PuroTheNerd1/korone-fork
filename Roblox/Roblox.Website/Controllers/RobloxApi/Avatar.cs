@@ -83,15 +83,7 @@ public class AvatarRBX : ControllerBase
         dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
         
         equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == Models.Assets.Type.Gear).Select(d => d.id));
-        accessoryVersionIds.AddRange(assetInfo.Where(d => d.assetType != Models.Assets.Type.Gear 
-                                                        && d.assetType != Models.Assets.Type.EmoteAnimation
-                                                        && d.assetType != Models.Assets.Type.RunAnimation
-                                                        && d.assetType != Models.Assets.Type.JumpAnimation
-                                                        && d.assetType != Models.Assets.Type.FallAnimation
-                                                        && d.assetType != Models.Assets.Type.ClimbAnimation
-                                                        && d.assetType != Models.Assets.Type.IdleAnimation
-                                                        && d.assetType != Models.Assets.Type.WalkAnimation
-                                                        && d.assetType != Models.Assets.Type.SwimAnimation).Select(d => d.id));
+        accessoryVersionIds.AddRange(assetInfo.Where(d => d.assetType != Models.Assets.Type.Gear && d.assetType != Models.Assets.Type.EmoteAnimation).Select(d => d.id));
         if (UserAgent != "Roblox/Win2020")
         {
             equippedGearVersionIds = new List<long>();
@@ -125,7 +117,6 @@ public class AvatarRBX : ControllerBase
             }),
             backpackGearVersionIds = equippedGearVersionIds,
             animationAssetIds = animationAssetIds,
-            animations = animationAssetIds.Select(c => c.Value).ToList(),
             playerAvatarType = avatar.avatarType.ToString(),
             scales,
             bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
