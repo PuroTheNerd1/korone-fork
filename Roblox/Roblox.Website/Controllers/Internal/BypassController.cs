@@ -654,11 +654,10 @@ namespace Roblox.Website.Controllers
             return new
             {
                 gameAvatarType = uni.universeAvatarType,
-                allowCustomAnimations = "True",
+                allowCustomAnimations = true,
                 universeAvatarCollisionType = "OuterBox",
                 universeAvatarBodyType = "Standard",
                 jointPositioningType = "ArtistIntent",
-                message = "",
                 universeAvatarMinScales = new
                 {
                     height = 0.9,
@@ -678,7 +677,6 @@ namespace Roblox.Website.Controllers
                     bodyType = 1.0
                 },
                 universeAvatarAssetOverrides = new List<object>(),
-                moderationStatus = ""
             };
         }
         [HttpGetBypass("hor")]

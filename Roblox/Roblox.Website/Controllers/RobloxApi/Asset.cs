@@ -181,11 +181,11 @@ public class Asset : ControllerBase
             case Models.Assets.Type.DeathAnimation:
             case Models.Assets.Type.FallAnimation:
             case Models.Assets.Type.IdleAnimation:
-            case Models.Assets.Type.JumpAnimation:
-            case Models.Assets.Type.RunAnimation:
-            case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.WalkAnimation:
+            case Models.Assets.Type.RunAnimation:
+            case Models.Assets.Type.JumpAnimation:
             case Models.Assets.Type.PoseAnimation:
+            case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Video:
                 if (details.assetType == Type.Audio)
