@@ -64,6 +64,18 @@ public class AvatarRBX : ControllerBase
         var wornAssets = await services.avatar.GetWornAssets(userId);
         var avatar = await services.avatar.GetAvatar(userId);
         var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
+        var animationAssetIds = assetInfo
+            .Where(c => c.assetType == Models.Assets.Type.RunAnimation 
+                    || c.assetType == Models.Assets.Type.JumpAnimation 
+                    || c.assetType == Models.Assets.Type.FallAnimation 
+                    || c.assetType == Models.Assets.Type.ClimbAnimation
+                    || c.assetType == Models.Assets.Type.IdleAnimation
+                    || c.assetType == Models.Assets.Type.WalkAnimation
+                    || c.assetType == Models.Assets.Type.SwimAnimation)
+            .ToDictionary(
+                c => c.assetType.ToString().Replace("Animation", "").ToLower(),
+                c => c.id 
+            );
 
         dynamic bodyColors = new
         {
@@ -101,7 +113,7 @@ public class AvatarRBX : ControllerBase
                 assetTypeId = (int)c.assetType,
             }),
             backpackGearVersionIds = equippedGearVersionIds,
-            animationAssetIds = new {},
+            animationAssetIds = animationAssetIds,
             playerAvatarType = avatar.avatarType.ToString(),
             scales,
             bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
