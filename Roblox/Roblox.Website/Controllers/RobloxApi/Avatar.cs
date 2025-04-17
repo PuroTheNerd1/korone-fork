@@ -125,6 +125,7 @@ public class AvatarRBX : ControllerBase
             }),
             backpackGearVersionIds = equippedGearVersionIds,
             animationAssetIds = animationAssetIds,
+            animations = animationAssetIds.Select(c => c.Value).ToList(),
             playerAvatarType = avatar.avatarType.ToString(),
             scales,
             bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
