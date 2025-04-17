@@ -656,7 +656,7 @@ namespace Roblox.Website.Controllers
                 gameAvatarType = uni.universeAvatarType,
                 allowCustomAnimations = true,
                 universeAvatarCollisionType = "OuterBox",
-                universeAvatarBodyType = "Standard",
+                universeAvatarBodyType = "PlayerChoice",
                 jointPositioningType = "ArtistIntent",
                 universeAvatarMinScales = new
                 {
