@@ -76,6 +76,7 @@ const developerPages = [
   {
     id: 40,
     name: 'Mesh Parts',
+    url: '/develop?View=40',
     element: props => <Clothing id={40} {...props} />,
   },
   {
