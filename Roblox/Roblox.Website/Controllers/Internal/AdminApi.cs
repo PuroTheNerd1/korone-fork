@@ -2001,7 +2001,7 @@ Thank you for your understanding,
             // Make the item!
             var assetDetails = await services.assets.CreateAsset(item.name, null, 1,
                 CreatorType.User, 1, content, info.AssetTypeId.Value, Genre.All, ModerationStatus.ReviewApproved,
-                DateTime.UtcNow, DateTime.UtcNow, item.id);
+                DateTime.UtcNow, DateTime.UtcNow);
             Thread.Sleep(1000);
             ids.Add(assetDetails.assetId);
         }
