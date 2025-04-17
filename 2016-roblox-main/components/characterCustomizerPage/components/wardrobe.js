@@ -121,10 +121,10 @@ const wardrobeItems = [
         id: 48,
         name: 'Climb',
       },
-      {
-        id: 49,
-        name: 'Death',
-      },
+      // {
+      //   id: 49,
+      //   name: 'Death',
+      // },
       {
         id: 50,
         name: 'Fall',
