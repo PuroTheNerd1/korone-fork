@@ -8,6 +8,7 @@ import HatTemplate from '../../scripts/Hat.json' with { type: 'json' };
 import PackageTemplate from '../../scripts/Package.json' with { type: 'json' };
 import BodyPartTemplate from '../../scripts/BodyPart.json' with { type: 'json' };
 import MeshTemplate from '../../scripts/Mesh.json' with { type: 'json' };
+import MeshPartTemplate from '../../scripts/MeshPart.json' with { type: 'json' };
 import HeadTemplate from '../../scripts/Head.json' with { type: 'json' };
 import ModelTemplate from '../../scripts/Model.json' with { type: 'json' };
 import AnimationSilhouetteTemplate from '../../scripts/AnimationSilhouette.json' with { type: 'json' };
@@ -276,6 +277,45 @@ export const RequestMeshThumbnail = async (req, res) => {
         const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
 
         const xml = JSON.parse(JSON.stringify(MeshTemplate));
+        xml.Settings.Arguments[0] = assetUrl;
+        xml.Settings.Arguments[2] = 1260;
+        xml.Settings.Arguments[3] = 1260;
+        xml.Settings.Arguments[4] = conf.baseUrl;
+
+        const response = await request({
+            RCC: port,
+            XML: xml,
+            jobExpiration,
+        })
+        xml2js.parseString(response.data, (err, jsXmlData) => {
+            if (err) {
+                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
+            }
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            return responseUtil(res, 'success', 200, true, { data: xmlData });
+        })
+    } catch (err) {
+        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
+    }
+}
+
+
+export const RequestMeshPartThumbnail = async (req, res) => {
+    try {
+        const schema = joi.object({
+            assetId: joi.number().required().integer(),
+            jobExpiration: joi.number().max(60).default(20).integer(),
+        })
+        const { error } = schema.validate(req.body)
+        if (error) {
+            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
+        }
+
+        var { assetId, jobExpiration } = req.body
+        if (jobExpiration == undefined) { jobExpiration = 20 }
+        const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
+
+        const xml = JSON.parse(JSON.stringify(MeshPartTemplate));
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[2] = 1260;
         xml.Settings.Arguments[3] = 1260;

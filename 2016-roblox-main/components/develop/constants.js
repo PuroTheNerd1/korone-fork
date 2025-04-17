@@ -74,6 +74,11 @@ const developerPages = [
     element: props => <Clothing id={4} {...props} />,
   },
   {
+    id: 40,
+    name: 'Mesh Parts',
+    element: props => <Clothing id={40} {...props} />,
+  }
+  {
     id: 101,
     name: 'User Ads',
     url: '/develop?View=101',

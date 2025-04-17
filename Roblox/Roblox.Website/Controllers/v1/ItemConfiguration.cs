@@ -71,6 +71,7 @@ public class ItemConfigurationV1 : ControllerBase
         Type.Decal,
         Type.Image, // why are there 2 here
         Type.Mesh,
+        Type.MeshPart,
         Type.Model,
         Type.SolidModel,
     };

@@ -1,5 +1,5 @@
 import route from 'ultimate-express'
-import { RequestHatThumbnail, RequestModelThumbnail, RequestAnimationSilhouetteThumbnail, RequestHeadRender, RequestMeshThumbnail, RequestPackageThumbnail, RequestBodyPartThumbnail, RequestAnimationThumbnail } from '../controllers/catalogRCC.js'
+import { RequestHatThumbnail, RequestModelThumbnail, RequestAnimationSilhouetteThumbnail, RequestHeadRender, RequestMeshThumbnail, RequestMeshPartThumbnail,  RequestPackageThumbnail, RequestBodyPartThumbnail, RequestAnimationThumbnail } from '../controllers/catalogRCC.js'
 import authMiddleware from '../middleware/auth.js'
 
 const router = route.Router();
@@ -10,6 +10,7 @@ router.post(`/animation`, authMiddleware, RequestAnimationThumbnail);
 router.post(`/package`, authMiddleware, RequestPackageThumbnail);
 router.post(`/bodypart`, authMiddleware, RequestBodyPartThumbnail);
 router.post(`/mesh`, authMiddleware, RequestMeshThumbnail);
+router.post(`/meshpart`, authMiddleware, RequestMeshPartThumbnail);
 router.post(`/head`, authMiddleware, RequestHeadRender);
 
 export default router;

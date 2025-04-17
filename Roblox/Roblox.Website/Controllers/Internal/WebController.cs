@@ -684,6 +684,7 @@ public class WebController : ControllerBase
         Models.Assets.Type.Image,
         Models.Assets.Type.Video,
         Models.Assets.Type.Mesh,
+        Models.Assets.Type.MeshPart,
         Models.Assets.Type.Model,
         Models.Assets.Type.GamePass,
         Models.Assets.Type.Badge
@@ -811,6 +812,8 @@ public class WebController : ControllerBase
                     return await UploadVideo(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.Mesh:
                     return await UploadMesh(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.MeshPart:
+                    return await UploadMeshPart(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.Model:
                     return await UploadModel(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.GamePass:
@@ -994,6 +997,19 @@ public class WebController : ControllerBase
         // create item
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
             safeUserSession.userId, stream, Models.Assets.Type.Mesh, Genre.All, ModerationStatus.AwaitingApproval);
+        return asset;
+    }
+    private async Task<CreateResponse> UploadMeshPart(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        stream.Position = 0;
+        if (!await services.assets.RobloxFileValidation(stream))
+        {
+            throw new BadRequestException(0, "Bad mesh file");
+        }
+        stream.Position = 0;
+        // create item
+        var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
+            safeUserSession.userId, stream, Models.Assets.Type.MeshPart, Genre.All, ModerationStatus.AwaitingApproval);
         return asset;
     }
     private async Task<CreateResponse> UploadModel(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)

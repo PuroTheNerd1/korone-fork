@@ -27,6 +27,7 @@ namespace Roblox.Rendering
             Clothing,
             Face,
             Mesh,
+            MeshPart,
             Hat,
             Place,
             Model,
@@ -90,6 +91,10 @@ namespace Roblox.Rendering
                     renderRequest.assetId = id;
                     url = "catalog/mesh";
                     break;
+                case RenderType.MeshPart:
+                    renderRequest.assetId = id;
+                    url = "catalog/meshpart";
+                    break;
                 case RenderType.Hat:
                     renderRequest.assetId = id;
                     url = "catalog/hat";
@@ -131,6 +136,11 @@ namespace Roblox.Rendering
         public static async Task<string> RequestMeshThumbnail(long assetId, int JobExpiration)
         {
             return await SendRenderRequest(assetId, RenderType.Mesh);
+        }
+
+        public static async Task<string> RequestMeshPartThumbnail(long assetId, int JobExpiration)
+        {
+            return await SendRenderRequest(assetId, RenderType.MeshPart);
         }
 
         public static async Task<string> RequestModelThumbnail(long assetId, int JobExpiration)

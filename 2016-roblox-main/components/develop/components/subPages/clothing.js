@@ -20,6 +20,12 @@ const detailsMap = {
     title: 'Mesh',
     fileLabel: '.mesh',
   },
+  40: {
+    name: 'Mesh Part',
+    namePlural: 'mesh parts',
+    title: 'Mesh Part',
+    fileLabel: '.rbxm',
+  },
   10: {
     name: 'Model',
     namePlural: 'models',
