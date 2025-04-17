@@ -65,6 +65,7 @@ namespace Roblox.Rendering
                     url = "player/headshot";
                     break;
                 case RenderType.Package:
+                    Console.WriteLine("[RenderingHandler] Requesting package render for " + assetUrl);
                     renderRequest.assetUrls = assetUrl;
                     url = "catalog/package";
                     break;
