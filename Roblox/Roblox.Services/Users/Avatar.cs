@@ -462,6 +462,7 @@ public class AvatarService : ServiceBase, IService
         var head = 0;
         var animations = 0;
         var emotes = 0;
+        var climbAnimation = 0;
         var fallAnimation = 0;
         var idleAnimation = 0;
         var walkAnimation = 0;
@@ -520,8 +521,11 @@ public class AvatarService : ServiceBase, IService
                 case Models.Assets.Type.RightLeg:
                     rightLeg++;
                     break;
-                case Models.Assets.Type.ClimbAnimation:
+                case Models.Assets.Type.FallAnimation:
                     fallAnimation++;
+                    break;
+                case Models.Assets.Type.ClimbAnimation:
+                    climbAnimation++;
                     break;
                 case Models.Assets.Type.IdleAnimation:
                     idleAnimation++;
