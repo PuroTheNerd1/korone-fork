@@ -730,7 +730,7 @@ public class AssetsService : ServiceBase, IService
     private async Task CreateMeshPartThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
-        string response = await RenderingHandler.RequestMeshThumbnail(assetId, 20);
+        string response = await RenderingHandler.RequestMeshPartThumbnail(assetId, 20);
         string key = await UploadThumbnail(response, 420, 420);
         await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, ModerationStatus.AwaitingApproval);
     }
