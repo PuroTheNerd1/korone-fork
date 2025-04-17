@@ -64,19 +64,6 @@ public class AvatarRBX : ControllerBase
         var wornAssets = await services.avatar.GetWornAssets(userId);
         var avatar = await services.avatar.GetAvatar(userId);
         var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
-        var animationAssetIds = assetInfo
-            .Where(c => c.assetType == Models.Assets.Type.RunAnimation 
-                    || c.assetType == Models.Assets.Type.JumpAnimation 
-                    || c.assetType == Models.Assets.Type.FallAnimation 
-                    || c.assetType == Models.Assets.Type.ClimbAnimation
-                    || c.assetType == Models.Assets.Type.IdleAnimation
-                    || c.assetType == Models.Assets.Type.WalkAnimation
-                    || c.assetType == Models.Assets.Type.SwimAnimation)
-            .ToDictionary(
-                c => c.assetType.ToString().Replace("Animation", "").ToLower(),
-                c => c.id 
-            );
-
         dynamic bodyColors = new
         {
             headColorId = avatar.headColorId,
@@ -102,15 +89,31 @@ public class AvatarRBX : ControllerBase
             equippedGearVersionIds = new List<long>();
         }
         int positionCounter = 1;
+        var animationAssetIds = assetInfo
+            .Where(c => c.assetType == Models.Assets.Type.RunAnimation 
+                    || c.assetType == Models.Assets.Type.JumpAnimation 
+                    || c.assetType == Models.Assets.Type.FallAnimation 
+                    || c.assetType == Models.Assets.Type.ClimbAnimation
+                    || c.assetType == Models.Assets.Type.IdleAnimation
+                    || c.assetType == Models.Assets.Type.WalkAnimation
+                    || c.assetType == Models.Assets.Type.SwimAnimation)
+            .ToDictionary(
+                c => c.assetType.ToString().Replace("Animation", "").ToLower(),
+                c => c.id 
+            );
+
         var result = new 
         {
             resolvedAvatarType = avatar.avatarType.ToString(),
             accessoryVersionIds,
             equippedGearVersionIds,
-            assetAndAssetTypeIds = assetInfo.Where(c => c.assetType != Models.Assets.Type.EmoteAnimation).Select(c => new
-            {
-                assetId = c.id,
-                assetTypeId = (int)c.assetType,
+            assetAndAssetTypeIds = assetInfo
+                .Where(c => c.assetType != Models.Assets.Type.EmoteAnimation 
+                            && !animationAssetIds.ContainsKey(c.assetType.ToString().Replace("Animation", "").ToLower()))
+                .Select(c => new
+                {
+                    assetId = c.id,
+                    assetTypeId = (int)c.assetType,
             }),
             backpackGearVersionIds = equippedGearVersionIds,
             animationAssetIds = animationAssetIds,
