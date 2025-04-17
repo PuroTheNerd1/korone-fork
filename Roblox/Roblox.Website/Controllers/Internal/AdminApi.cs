@@ -1994,9 +1994,9 @@ Thank you for your understanding,
             var info = await services.robloxApi.GetProductInfo(item.id, false);
 
             var content = await services.robloxApi.GetAssetContentFromProxy(item.id);
-            var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId!.Value);
-            if (!isOk)
-                throw new StaffException("The asset file doesn't look correct. Please try again.");
+            // var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId!.Value);
+            // if (!isOk)
+            //     throw new StaffException("The asset file doesn't look correct. Please try again.");
             content.Position = 0;
             // Make the item!
             var assetDetails = await services.assets.CreateAsset(item.name, null, 1,
