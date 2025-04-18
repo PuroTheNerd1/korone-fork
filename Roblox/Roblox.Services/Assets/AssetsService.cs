@@ -746,7 +746,7 @@ public class AssetsService : ServiceBase, IService
             return;
 
         byte[] imageBytes;
-        var modStatus = ModerationStatus.Declined;
+        var modStatus = ModerationStatus.AwaitingApproval;
         if (thumbnailToUse is null)
         {
             Writer.Info(LogGroup.GameIconRender, "starting game icon render for placeId={0}", assetId);
