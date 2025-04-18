@@ -839,7 +839,7 @@ public class WebController : ControllerBase
         if (pictureData == null) throw new BadRequestException(0, "Invalid image file");
         stream.Position = 0;
         var cleanImage = await services.assets.CleanImage(stream);
-
+        cleanImage.Position = 0;
         var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
 
         await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)cleanImage.Length, pictureData.width, pictureData.height, pictureData.imageFormat, await services.assets.GenerateImageHash(cleanImage));

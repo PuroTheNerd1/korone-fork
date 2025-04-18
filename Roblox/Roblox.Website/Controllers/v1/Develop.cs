@@ -69,6 +69,7 @@ public class DevelopControllerV1 : ControllerBase
         return Ok();
     }
     
+    [HttpPost("assets/upload-thumbnail")]
     public async Task<dynamic> UploadGameThumbnail(long universeId, [Required, FromForm] IFormFile file)
     {
         if (!await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
