@@ -57,7 +57,7 @@ public class AvatarRBX : ControllerBase
     }
     [HttpGetBypass("/v1/avatar-fetch")]
     [HttpGetBypass("/v1.1/avatar-fetch")]
-    public async Task<IActionResult> CharacterFetch(long userId)
+    public async Task<IActionResult> CharacterFetch(long? placeId, long userId)
     {
         List<long> accessoryVersionIds = new List<long>();
         List<long> equippedGearVersionIds = new List<long>();
@@ -84,7 +84,7 @@ public class AvatarRBX : ControllerBase
         
         equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == Models.Assets.Type.Gear).Select(d => d.id));
         accessoryVersionIds.AddRange(assetInfo.Where(d => d.assetType != Models.Assets.Type.Gear && d.assetType != Models.Assets.Type.EmoteAnimation).Select(d => d.id));
-        if (UserAgent != "Roblox/Win2020")
+        if (placeId != 0)
         {
             equippedGearVersionIds = new List<long>();
         }
