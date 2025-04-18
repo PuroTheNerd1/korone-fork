@@ -311,15 +311,11 @@ public class AssetsService : ServiceBase, IService
     
     public async Task InsertOrReplaceGameMedia(long assetId, long mediaAssetId, Models.Assets.Type assetType)
     {
-        await InTransaction(async (tr) =>
+        await InsertAsync("asset_media", new
         {
-            await InsertAsync("asset_media", new
-            {
-                asset_id = assetId,
-                media_asset_id = mediaAssetId,
-                asset_type = assetType,
-            });
-            return 0;
+            asset_id = assetId,
+            media_asset_id = mediaAssetId,
+            asset_type = assetType,
         });
 
         // await InTransaction(async (tr) =>
