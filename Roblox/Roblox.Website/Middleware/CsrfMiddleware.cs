@@ -154,6 +154,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/internal/contest/first-contest",
         "/internal/tixexchange",
         "/internal/robuxexchange",
+        "/internal/referral",
         "/auth/account-deletion",
         "/auth/2fa",
         "/auth/accountlogin",
