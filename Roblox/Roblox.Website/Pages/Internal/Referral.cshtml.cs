@@ -47,18 +47,18 @@ public class Referral : RobloxPageModel
             await OnPageLoad();
     }
 
-    public async Task OnPost()
+    public async Task<dynamic> OnPost()
     {
         FeatureCheck();
         if (errorMessage is null)
             await OnPageLoad();
         else
-            return;
+            return new PageResult();
         
         if (action == "CreateUserReferral")
         {
             if (userSession == null)
-                return;
+                return new PageResult();
             
             try
             {
@@ -70,14 +70,14 @@ public class Referral : RobloxPageModel
                 await services.users.CreateReferralCode(userSession.userId, userSession.username);
                 // Reload sent invites
                 referral = await services.users.GetUserReferral(userSession.userId);
-                HttpContext.Response.Headers.Location = "/internal/referral?success=true";
+                return new RedirectResult("/internal/referral");
             }
             catch (RobloxException e)
             {
-                if (e.errorMessage.Contains(""))
                 errorMessage = e.errorMessage;
+                return new PageResult();
             }
         }
-        
+        return new PageResult();
     }
 }
