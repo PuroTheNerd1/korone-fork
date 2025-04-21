@@ -909,10 +909,6 @@ namespace Roblox.Website.Controllers
         {
             CheckServerAuth(request.auth);
             // Sanity checks
-            long placeId;
-            long.TryParse(Request.Headers["roblox-place-id"].ToString(), out placeId);
-            if (placeId != 56739)
-                throw new BadRequestException(0, "Invalid placeId");
             if (request.userId == 0)
                 throw new BadRequestException(0, "Invalid userId");
             // Check if user actually exists in db
