@@ -70,7 +70,7 @@ public class Referral : RobloxPageModel
                 await services.users.CreateReferralCode(userSession.userId, userSession.username);
                 // Reload sent invites
                 referral = await services.users.GetUserReferral(userSession.userId);
-                return new RedirectResult("/internal/referral");
+                return new RedirectResult("/internal/referral?suc=true");
             }
             catch (RobloxException e)
             {
