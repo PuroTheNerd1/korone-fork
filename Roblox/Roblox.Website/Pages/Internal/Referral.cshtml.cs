@@ -66,9 +66,6 @@ public class Referral : RobloxPageModel
                 if (exists != null)
                     throw new RobloxException(400, 0, "User already has a referral code.");
 
-                var referral = await services.users.GetReferralCode(userSession.username);
-                if (referral != null)
-                    throw new RobloxException(400, 0, "Referral code already exists.");
                 // Create user refferal with username
                 await services.users.CreateReferralCode(userSession.userId, userSession.username);
                 // Reload sent invites
