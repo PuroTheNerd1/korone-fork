@@ -2484,7 +2484,7 @@ public class UsersService : ServiceBase, IService
         var result = await db.QuerySingleOrDefaultAsync<Referral?>(
             "SELECT user_id as userId, referral_code as referralCode FROM user_referral WHERE referral_code = :referral_code", new
             {
-                referral_code = referralCode,
+                referral_code = referralCode.ToLower(),
             });
         if (result == null)
             return null;
@@ -2509,7 +2509,7 @@ public class UsersService : ServiceBase, IService
             await db.ExecuteAsync("INSERT INTO user_referral (user_id, referral_code) VALUES (:user_id, :referral_code)", new
             {
                 user_id = userId,
-                referral_code = referralCode,
+                referral_code = referralCode.ToLower(),
             });
 
             return 0;
