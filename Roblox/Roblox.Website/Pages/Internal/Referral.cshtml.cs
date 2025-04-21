@@ -68,6 +68,7 @@ public class Referral : RobloxPageModel
 
                 // Create user refferal with username
                 await services.users.CreateReferralCode(userSession.userId, userSession.username);
+                Thread.Sleep(2000);
                 // Reload sent invites
                 referral = await services.users.GetUserReferral(userSession.userId);
             }
