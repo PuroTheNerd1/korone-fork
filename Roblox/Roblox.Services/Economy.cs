@@ -281,8 +281,14 @@ public class EconomyService : ServiceBase, IService
         if (newBalance < 0)
             throw new Exception("After increment, new balance was less than zero: " + newBalance);
     }
-
-
+    public async Task IncrementUserCurrencyWithTransaction(long userId, long amount)
+    {
+        await InTransaction(async _ =>
+        {
+            await IncrementCurrency(CreatorType.User, userId, CurrencyType.Robux, amount);
+            return 0;
+        });
+    }
     [Obsolete("Use method with a CreatorType instead")]
     public async Task<IEnumerable<TransactionEntryDb>> GetTransactions(long userId, PurchaseType purchaseType, int limit, int offset)
     {
