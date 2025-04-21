@@ -2702,7 +2702,14 @@ public class UsersService : ServiceBase, IService
             await UnlockAccount(ticket.userId);
         }
     }
-
+    public async Task GiveUserInviterBadge(long userId)
+    {
+        await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
+        {
+            user_id = userId,
+            badge_id = 8,
+        });
+    }
     public bool IsThreadSafe()
     {
         return true;

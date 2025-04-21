@@ -276,6 +276,8 @@ public class Signup : RobloxPageModel
             await services.economy.IncrementCurrency((long)createdUser.userId, Models.Economy.CurrencyType.Robux, 50);
             // Give the referrer 50 robux for signing up a user
             await services.economy.IncrementCurrency((long)refferedBy, Models.Economy.CurrencyType.Robux, 50);
+
+            await services.users.GiveUserInviterBadge((long)refferedBy);
         }
 
         return Redirect("/home");
