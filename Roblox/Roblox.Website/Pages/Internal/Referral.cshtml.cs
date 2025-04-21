@@ -47,41 +47,37 @@ public class Referral : RobloxPageModel
             await OnPageLoad();
     }
 
-    public async Task<dynamic> OnPost()
+    public async Task OnPost()
     {
         FeatureCheck();
         if (errorMessage is null)
             await OnPageLoad();
         else
-            return new PageResult();
+            return;
         
         if (action == "CreateUserReferral")
         {
             if (userSession == null)
-                return new PageResult();
+                return;
             
             try
             {
-                // messy!
-                var referral = await services.users.GetUserReferral(userSession.userId);
-                if (referral != null)
-                {
-                    referral = await services.users.GetUserReferral(userSession.userId);
-                    return new PageResult();
-                }
+                var exists = await services.users.GetUserReferral(userSession.userId);
+                if (exists != null)
+                    throw new RobloxException(400, 0, "User already has a referral code.");
 
                 // Create user refferal with username
                 await services.users.CreateReferralCode(userSession.userId, userSession.username);
                 // Reload sent invites
                 referral = await services.users.GetUserReferral(userSession.userId);
-                return new RedirectResult("/internal/referral?suc=true");
+                HttpContext.Response.Headers.Location = "/internal/referral?success=true";
             }
             catch (RobloxException e)
             {
+                if (e.errorMessage.Contains(""))
                 errorMessage = e.errorMessage;
-                return new PageResult();
             }
         }
-        return new PageResult();
+        
     }
 }
