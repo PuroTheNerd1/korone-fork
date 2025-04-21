@@ -55,6 +55,8 @@ public class Application : RobloxPageModel
     public string socialUrl { get; set; }
     [BindProperty]
     public string robloxUsername { get; set; }
+    [BindProperty]
+    public string? referralCode { get; set; }
     [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
     public string? verificationPhrase { get; set; }
@@ -253,9 +255,10 @@ public class Application : RobloxPageModel
 
         if(await services.users.CheckDuplicateDiscord(discordUser.Id.ToString()))
         {
-            errorMessage = $"We couldn't find \"{discordUser.Id}\" in the Discord server.\nPlease try again after joining our Discord server using this invite link: https://www.pekora.zip/auth/discord #1";
+            errorMessage = $"There was already an account made with this Discord account. Please try to login with that account instead";
             return new PageResult();
         }
+
         await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, discordUser.Id.ToString(), accessToken);
         await using var rateLimitLock =
             await Roblox.Services.Cache.redLock.CreateLockAsync("ApplicationSubmitV1:" + hashedIp, TimeSpan.FromSeconds(5));
@@ -323,6 +326,21 @@ public class Application : RobloxPageModel
 #endif
         try
         {
+            long? refferedByUserId = null;
+            // Hey this nigger has signed up with a refferal code lets do the work!
+            if (!string.IsNullOrEmpty(referralCode))
+            {
+                var code = await services.users.GetReferralCode(referralCode);
+                // Fucking black bitch got the code wrong let this nigger try again
+                if (code == null)
+                {
+                    errorMessage = "Invalid referral code. Please try again.";
+                    return new PageResult();
+                }
+                // Ok so this nigger got the code right lets set the id
+                refferedByUserId = code.userId;
+            }
+
             var applicationId = await services.users.CreateApplication(new()
             {
                 about = about,
@@ -334,8 +352,10 @@ public class Application : RobloxPageModel
                 verifiedId = result.verifiedId,
                 verificationPhrase = verificationPhrase!,
                 discordId = discordUser.Id.ToString(),
-                discordUsername = discordUser.Username
+                discordUsername = discordUser.Username,
+                refferedBy = refferedByUserId
             });
+            
             HttpContext.Response.Cookies.Append("es-application-1", applicationId, new CookieOptions()
             {
                 IsEssential = true,
@@ -357,18 +377,19 @@ public class Application : RobloxPageModel
             //     await services.users.ClearApplication(applicationId);
             //     await services.users.ProcessApplication(applicationId, 1, UserApplicationStatus.SilentlyRejected);
             // }
-            await Task.Run(async () =>
-            {
-                try
-                {
-                    using var app = ServiceProvider.GetOrCreate<ApplicationProcessorService>();
-                    await app.AttemptBackgroundApplicationProcess(application!, result.socialData);
-                }
-                catch (Exception e)
-                {
-                    Writer.Info(LogGroup.AbuseDetection, "app approve bg fail {0}", e.Message);
-                }
-            });
+            // Useless as well since we don't do rich mindset anymore
+            // await Task.Run(async () =>
+            // {
+            //     try
+            //     {
+            //         using var app = ServiceProvider.GetOrCreate<ApplicationProcessorService>();
+            //         await app.AttemptBackgroundApplicationProcess(application!, result.socialData);
+            //     }
+            //     catch (Exception e)
+            //     {
+            //         Writer.Info(LogGroup.AbuseDetection, "app approve bg fail {0}", e.Message);
+            //     }
+            // });
         }
         catch (Exception e)
         {

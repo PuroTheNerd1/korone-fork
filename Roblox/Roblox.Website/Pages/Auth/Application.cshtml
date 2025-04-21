@@ -144,10 +144,19 @@
                                 </div>
                             </div>
 
+                            <div class="stage-5">
+                                <h4>Step 5 - Referral</h4>
+                                <div class="p-2">
+                                    <p class="mb-0">Enter the referral code here, if you don't have one you can leave it blank</p>
+                                    <p class="mb-2 mt-2"><span class="fw-bold">You will both will receive 50 robux.</p>
+                                    <input placeholder="Your Referral code" value="@Model.referralCode" disabled="@Model.submitDisabled" type="text" class="form-control" name="referralCode" maxlength="60"/>
+                                </div>
+                            </div>
+
                             <div class="input-padding"></div>
 
-                            <div class="stage-5">
-                                <h4>Step 5 - Captcha</h4>
+                            <div class="stage-6">
+                                <h4>Step 6 - Captcha</h4>
                                 <div class="p-2">
                                     <p class="mb-0">We just have to make sure you aren't a robot.</p>
                                     <div class="cf-turnstile mt-4" data-sitekey="@Model.siteKey" data-theme="dark"></div>

@@ -844,6 +844,7 @@ public class UsersService : ServiceBase, IService
             verification_phrase = request.verificationPhrase,
             discord_id = request.discordId,
             discord_username = request.discordUsername,
+            reffered_by = request.refferedBy,
         });
         return applicationId;
     }
@@ -1039,6 +1040,11 @@ public class UsersService : ServiceBase, IService
     {
         var app = await GetApplicationByJoinId(applicationId);
         return CanRedeemApplication(app);
+    }
+    public async Task<long?> GetUserRefferedBy(string applicationId)
+    {
+        var app = await GetApplicationByJoinId(applicationId);
+        return app?.refferedBy;
     }
 
     public async Task<bool> IsDuplicateSocialId(string id)
@@ -2472,6 +2478,59 @@ public class UsersService : ServiceBase, IService
                 user_id = userId,
             });
         return result;
+    }
+    public async Task<Referral?> GetReferralCode(string referralCode)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Referral?>(
+            "SELECT user_id as userId, referral_code as referralCode FROM user_referral WHERE referral_code = :referral_code", new
+            {
+                referral_code = referralCode,
+            });
+        if (result == null)
+            return null;
+        return result;
+    }
+    public async Task<Referral?> GetUserReferral(long userId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Referral?>(
+            "SELECT user_id as userId, referral_code as referralCode FROM user_referral WHERE user_id = :user_id", new
+            {
+                user_id = userId,
+            });
+        if (result == null)
+            return null;
+        return result;
+    }
+    public async Task CreateReferralCode(long userId, string referralCode)
+    {
+        await InTransaction(async _ =>
+        {
+            var exists = await GetUserReferral(userId);
+            if (exists != null)
+                throw new RobloxException(400, 0, "User already has a referral code.");
+
+            var referral = await GetReferralCode(referralCode);
+            if (referral != null)
+                throw new RobloxException(400, 0, "Referral code already exists.");
+                
+            await db.ExecuteAsync("INSERT INTO user_referral (user_id, referral_code) VALUES (:user_id, :referral_code)", new
+            {
+                user_id = userId,
+                referral_code = referralCode,
+            });
+
+            return 0;
+        });
+    }
+    public async Task<long?> GetReferralCodeUseCount(long userId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<long?>(
+            "SELECT COUNT(*) as total FROM join_application WHERE reffered_by = :id AND status = :status", new
+            {
+                id = userId,
+                status = (int)UserApplicationStatus.Approved,
+            });
+        return result ?? 0;
     }
     public async Task<string> GetUserMemberShipAsString(long userId)
     {

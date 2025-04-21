@@ -143,36 +143,36 @@ public class Signup : RobloxPageModel
 
             redlockKey = "SignUpWithApplicationId:v1:" + applicationId;
         }
-        else if (inviteId != null)
-        {
-            Writer.Info(LogGroup.SignUp, "Sign up with invite id");
-            FeatureFlags.FeatureCheck(FeatureFlag.InvitesEnabled);
-            method = SignupMethod.InviteUrl;
-            // validate id
-            if (!IsGuidValid(inviteId))
-            {
-                Writer.Info(LogGroup.SignUp, "Invalid invite guid");
-                errorMessage = InvalidIdMessage;
-                return new PageResult();
-            }
-            // validate invite
-            var invite = await services.users.GetInviteById(inviteId);
-            if (invite == null || invite.userId != null)
-            {
-                Writer.Info(LogGroup.SignUp, "Invite is null or already used");
-                errorMessage = InvalidIdMessage;
-                return new PageResult();
-            }
-            // confirm author wasn't banned
-            var authorInfo = await services.users.GetUserById(invite.authorId);
-            if (authorInfo.accountStatus != AccountStatus.Ok)
-            {
-                Writer.Info(LogGroup.SignUp, "Inviter was deleted or banned");
-                errorMessage = InvalidIdMessage;
-                return new PageResult();
-            }
-            redlockKey = "SignUpWithInviteId:v1:" + inviteId;
-        }
+        // else if (inviteId != null)
+        // {
+        //     Writer.Info(LogGroup.SignUp, "Sign up with invite id");
+        //     FeatureFlags.FeatureCheck(FeatureFlag.InvitesEnabled);
+        //     method = SignupMethod.InviteUrl;
+        //     // validate id
+        //     if (!IsGuidValid(inviteId))
+        //     {
+        //         Writer.Info(LogGroup.SignUp, "Invalid invite guid");
+        //         errorMessage = InvalidIdMessage;
+        //         return new PageResult();
+        //     }
+        //     // validate invite
+        //     var invite = await services.users.GetInviteById(inviteId);
+        //     if (invite == null || invite.userId != null)
+        //     {
+        //         Writer.Info(LogGroup.SignUp, "Invite is null or already used");
+        //         errorMessage = InvalidIdMessage;
+        //         return new PageResult();
+        //     }
+        //     // confirm author wasn't banned
+        //     var authorInfo = await services.users.GetUserById(invite.authorId);
+        //     if (authorInfo.accountStatus != AccountStatus.Ok)
+        //     {
+        //         Writer.Info(LogGroup.SignUp, "Inviter was deleted or banned");
+        //         errorMessage = InvalidIdMessage;
+        //         return new PageResult();
+        //     }
+        //     redlockKey = "SignUpWithInviteId:v1:" + inviteId;
+        // }
         else
         {
             errorMessage = InvalidIdMessage;
@@ -269,7 +269,15 @@ public class Signup : RobloxPageModel
             // create universe too
             await services.games.CreateUniverse(asset.placeId);
         }
-        
+        long? refferedBy = await services.users.GetUserRefferedBy(applicationId);
+        if (refferedBy != null)
+        {
+            // Give the user 50 robux for signing up
+            await services.economy.IncrementCurrency((long)createdUser.userId, Models.Economy.CurrencyType.Robux, 50);
+            // Give the referrer 50 robux for signing up a user
+            await services.economy.IncrementCurrency((long)refferedBy, Models.Economy.CurrencyType.Robux, 50);
+        }
+
         return Redirect("/home");
     }
 }

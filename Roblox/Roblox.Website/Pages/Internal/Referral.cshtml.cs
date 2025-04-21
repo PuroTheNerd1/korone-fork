@@ -1,3 +1,4 @@
+using InfluxDB.Client.Api.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Roblox.Dto.Users;
@@ -6,15 +7,14 @@ using Roblox.Services.Exceptions;
 
 namespace Roblox.Website.Pages.Internal;
 
-public class Invite : RobloxPageModel
+public class Referral : RobloxPageModel
 {
-    public UserApplicationEntry? application { get; set; }
-    public IEnumerable<UserInviteEntry>? sentInvites { get; set; }
-    public bool canCreateInvite { get; set; } = true;
-    public bool wasInvited { get; set; }
+    public Dto.Users.Referral? referral { get; set; }
+    public long? count { get; set; }
     [BindProperty]
     public string? action { get; set; }
     public string? errorMessage { get; set; }
+    public bool canCreateReferral => referral == null && userSession != null && userSession.userId != 0;
     private void FeatureCheck()
     {
         try
@@ -23,7 +23,7 @@ public class Invite : RobloxPageModel
         }
         catch (RobloxException)
         {
-            errorMessage = "Invites are disabled at this time. Try again later.";
+            errorMessage = "Referrals are disabled at this time. Try again later.";
         }
     }
     private async Task OnPageLoad()
@@ -32,26 +32,11 @@ public class Invite : RobloxPageModel
             return;
         
         var userInfo = await services.users.GetUserById(userSession.userId);
-        application = await services.users.GetApplicationByUserId(userSession.userId);
-        if (application != null && application.status != UserApplicationStatus.Approved)
-            application = null;
-        sentInvites = await services.users.GetInvitesByUser(userSession.userId);
-#if RELEASE
-        if (await services.users.IsInviteCreationFloodChecked(userSession.userId))
-        {
-            canCreateInvite = false;
-        }
-#endif
-
-        if (application == null)
-        {
-            wasInvited = true;
-        }
-
+        referral = await services.users.GetUserReferral(userSession.userId);
+        count = await services.users.GetReferralCodeUseCount(userSession.userId);
         if (userInfo.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1)))
         {
             errorMessage = "You cannot create an invite since your account is too new. Try again tomorrow.";
-            canCreateInvite = false;
         }
     }
     
@@ -70,16 +55,17 @@ public class Invite : RobloxPageModel
         else
             return;
         
-        if (action == "CreateInvite")
+        if (action == "CreateUserReferral")
         {
             if (userSession == null)
                 return;
             
             try
             {
-                await services.users.CreateInvite(userSession.userId);
+                // Create user refferal with username
+                await services.users.CreateReferralCode(userSession.userId, userSession.username);
                 // Reload sent invites
-                sentInvites = await services.users.GetInvitesByUser(userSession.userId);
+                referral = await services.users.GetUserReferral(userSession.userId);
             }
             catch (RobloxException e)
             {

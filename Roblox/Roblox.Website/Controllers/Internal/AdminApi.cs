@@ -2615,9 +2615,15 @@ Thank you for your understanding,
         var appInfo = await services.users.GetApplicationById(applicationId);
         if (appInfo?.status == UserApplicationStatus.Pending)
         {
+            // award commission for reviewing the application
             await AwardCommissionForApplicationReview();
         }
+        else if (appInfo?.status == UserApplicationStatus.Approved || appInfo?.status == UserApplicationStatus.Rejected)
+        {
+            throw new StaffException("Application is already approved or rejected");
+        }
         var result = await services.users.ProcessApplication(applicationId, userSession.userId, UserApplicationStatus.Approved);
+
         return new
         {
             joinId = result,

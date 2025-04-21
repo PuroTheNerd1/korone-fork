@@ -159,6 +159,7 @@ public class CreateUserApplicationRequest
     public string? verificationPhrase { get; set; }
     public string discordId { get; set; }
     public string discordUsername { get; set; }
+    public long? refferedBy{ get; set; }
 }
 
 public class UserApplicationEntry : CreateUserApplicationRequest

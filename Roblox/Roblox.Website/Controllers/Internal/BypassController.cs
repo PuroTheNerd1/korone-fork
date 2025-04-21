@@ -491,25 +491,17 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("my/settings/json")]
         public async Task<dynamic> SettingsJsonA()
         {
-            var userInfo = await services.users.GetUserById(userSession.userId);
-            string membership;
-            bool isAdmin = await StaffFilter.IsStaff(userSession.userId);
-            var membership2 = await services.users.GetUserMembership(userSession.userId);
-            if (membership2 == null)
-            {
-                membership = "None";
-            }
-            else
-            {
-                membership = (int)membership2!.membershipType == 4 ? "Premium" : (int)membership2!.membershipType == 3 ? "OutrageousBuildersClub" : (int)membership2.membershipType == 2 ? "TurboBuildersClub" : (int)membership2.membershipType == 1 ? "BuildersClub" : "None";
-            }
+            var userInfo = await services.users.GetUserById(safeUserSession.userId);
+            string membership = await services.users.GetUserMemberShipAsString(safeUserSession.userId);
+            bool isAdmin = await StaffFilter.IsStaff(safeUserSession.userId);
+
             return new
             {
                 ChangeUsernameEnabled = true,
                 IsAdmin = isAdmin,
-                UserId = userSession.userId,
-                Name = userSession.username,
-                DisplayName = userSession.username,
+                UserId = safeUserSession.userId,
+                Name = safeUserSession.username,
+                DisplayName = safeUserSession.username,
                 IsEmailOnFile = true,
                 IsEmailVerified = true,
                 IsPhoneFeatureEnabled = true,
