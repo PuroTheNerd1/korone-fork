@@ -902,7 +902,7 @@ public class UsersService : ServiceBase, IService
     private (SqlBuilder, SqlBuilder.Template) GetApplicationQuery()
     {
         var q = new SqlBuilder();
-        var t = q.AddTemplate("SELECT id, join_id as joinId, about, social_presence as socialPresence, user_id as userId, author_id as authorId, reject_reason as rejectionReason, status, created_at as createdAt, updated_at as updatedAt, is_verified as isVerified, verified_url as verifiedUrl, verification_phrase as verificationPhrase, discord_id as discordId, discord_username as discordUsername FROM join_application /**where**/ /**orderby**/");
+        var t = q.AddTemplate("SELECT id, join_id as joinId, about, social_presence as socialPresence, user_id as userId, author_id as authorId, reject_reason as rejectionReason, status, created_at as createdAt, updated_at as updatedAt, is_verified as isVerified, verified_url as verifiedUrl, verification_phrase as verificationPhrase, discord_id as discordId, discord_username as discordUsername, reffered_by as refferedBy FROM join_application /**where**/ /**orderby**/");
         return (q, t);
     }
 
