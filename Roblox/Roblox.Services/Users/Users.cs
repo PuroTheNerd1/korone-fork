@@ -2505,14 +2505,7 @@ public class UsersService : ServiceBase, IService
     {
         await InTransaction(async _ =>
         {
-            var exists = await GetUserReferral(userId);
-            if (exists != null)
-                throw new RobloxException(400, 0, "User already has a referral code.");
-
-            var referral = await GetReferralCode(referralCode);
-            if (referral != null)
-                throw new RobloxException(400, 0, "Referral code already exists.");
-                
+       
             await db.ExecuteAsync("INSERT INTO user_referral (user_id, referral_code) VALUES (:user_id, :referral_code)", new
             {
                 user_id = userId,
