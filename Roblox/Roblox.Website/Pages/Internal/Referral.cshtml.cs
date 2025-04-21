@@ -36,7 +36,7 @@ public class Referral : RobloxPageModel
         count = await services.users.GetReferralCodeUseCount(userSession.userId);
         if (userInfo.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1)))
         {
-            errorMessage = "You cannot create an invite since your account is too new. Try again tomorrow.";
+            errorMessage = "You cannot create an referral code since your account is too new. Try again tomorrow.";
         }
     }
     
