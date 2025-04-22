@@ -277,7 +277,11 @@ namespace Roblox.Website.Controllers
             var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{ROBLOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
             return Redirect($"pekora-player{bootstrapperArgs}");
         }
-
+        [HttpGetBypass("sendmessage")]
+        public async Task SendMessage(string message, string id)
+        {
+            await services.discordBotApi.MessageUser(id, message);
+        }
         [HttpGetBypass("getrichpresence")]
         public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId, string jobId)
         {
