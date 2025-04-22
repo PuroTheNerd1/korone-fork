@@ -117,14 +117,14 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
     {
-        if (userId != 3 && userId != 16 && userId != 3434 && userId != 52 && userId != 1188 && userId != 261)
-        {
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.Error,
-                message = "The game is not active."
-            };
-        }
+        // if (userId != 3 && userId != 16 && userId != 3434 && userId != 52 && userId != 1188 && userId != 261)
+        // {
+        //     return new PlaceLaunchResponse()
+        //     {
+        //         status = (int)JoinStatus.Error,
+        //         message = "The game is not active."
+        //     };
+        // }
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved)
