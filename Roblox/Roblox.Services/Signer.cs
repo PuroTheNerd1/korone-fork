@@ -93,7 +93,7 @@ public class SignService : ServiceBase
             case 2018:
                 return GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
             case 2019:
-                return GenerateClientTicketV3(userId, username, jobId, characterAppearanceUrl);
+                return GenerateClientTicketV3(userId, username, jobId);
             case 2020:
             case 2021:
                 return GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
@@ -127,8 +127,10 @@ public class SignService : ServiceBase
         string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature};2";
         return finalTicket;
     }
-    public string GenerateClientTicketV3(long userId, string username, string jobId, string dateTime)
+    public string GenerateClientTicketV3(long userId, string username, string jobId)
     {
+        DateTime currentUtcDateTime = DateTime.UtcNow;
+        string dateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
         // the second userid is meant to be characterAppearanceId
         string ticket2 = $"{userId}\n{username}\n{userId}\n{jobId}\n{dateTime}";
         string ticket2Signature = SignString2048(ticket2);
