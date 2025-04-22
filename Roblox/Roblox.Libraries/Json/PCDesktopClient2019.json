@@ -1109,6 +1109,7 @@
 		"FFlagRenderShadowDynamicInstancing": "True",
 		"FFlagFixPluginQWidgetInitialization2": "True",
 		"FFlagRenderForcefieldMaterial2": "True",
+		"FFlagRequireRbxSig2": "True",
 		"DFFlagRemoveDeadCode": "True",
 		"DFFlagNotChristmasTodayEither3": "True",
 		"DFFlagPlayerGeneratedOnTheServerNoBacksies": "True",
