@@ -1042,6 +1042,7 @@ namespace Roblox.Website.Controllers
                 //"288b129d3491d24aaf78575214f800ec", //2018L Prod goober client
                 "4022369076d608d1a99b7b3d250e4de5", //2018L RAGELoader Debug
                 "9d7975454cee0e948e35cdc1fb55f92a", //2019E Prod
+                "15c69e21a90ed1d10e686db71d62c955", //2019M Prod
                 "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
                 "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
                 "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6,
@@ -1075,6 +1076,7 @@ namespace Roblox.Website.Controllers
                 "0.376.0pcplayer",
                 "0.355.0pcplayer",
                 "2.355.0iosapp",
+                "0.395.0pcplayer",
                 "0.450.0pcplayer",
                 "0.463.0pcplayer"
             };
