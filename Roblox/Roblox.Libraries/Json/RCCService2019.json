@@ -1,9 +1,5 @@
 {
     "applicationSettings": {
-      "FFlagChinaLicensingApp": "False",
-      "FFlagDebugLocalRccServerConnection": "True",
-      "DFFlagDebugCurlOption32": "False",
-      "DFFlagDebugCurlOption12": "False",
       "AllowVideoPreRoll": "True",
       "AxisAdornmentGrabSize": "12",
       "CaptureCountersIntervalInMinutes": "5",
