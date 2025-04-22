@@ -117,7 +117,7 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
     {
-        if (userId != 3 && userId != 16 && userId != 3434 && userId != 52 && userId != 1188)
+        if (userId != 3 && userId != 16 && userId != 3434 && userId != 52 && userId != 1188 && userId != 261)
         {
             return new PlaceLaunchResponse()
             {
