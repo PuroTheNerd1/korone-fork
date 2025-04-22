@@ -93,6 +93,7 @@ public class SignService : ServiceBase
             case 2018:
                 return GenerateClientTicketV2(userId, username, jobId, characterAppearanceUrl);
             case 2019:
+                return GenerateClientTicketV3(userId, username, jobId, characterAppearanceUrl);
             case 2020:
             case 2021:
                 return GenerateClientTicketV4(userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
