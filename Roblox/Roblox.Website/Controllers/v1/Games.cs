@@ -130,7 +130,7 @@ public class GamesControllerV1 : ControllerBase
     [HttpGet("games/list")]
     public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)
     {
-        if (!await services.cooldown.TryCooldownCheck($"GetGames:{safeUserSession.userId}", TimeSpan.FromSeconds(5), 10))
+        if (!await services.cooldown.TryIncrementBucketCooldown($"GetGames:{safeUserSession.userId}", 10, TimeSpan.FromSeconds(5)))
         {
             throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
         }
