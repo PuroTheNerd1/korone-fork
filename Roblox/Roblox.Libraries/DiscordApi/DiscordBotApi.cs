@@ -59,9 +59,13 @@ public class DiscordBotApi
     {
         var data = new Dictionary<string, dynamic>
         {
-            {"content", content},
-            {"embeds", new List<DiscordEmbed?> { discordEmbed }},
+            {"content", content}
         };
+
+        if (discordEmbed != null)
+        {
+            data["embeds"] = new List<DiscordEmbed?> { discordEmbed };
+        }
         var jsonData = JsonConvert.SerializeObject(data);
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var result = await discordClient.PostAsync($"channels/{channelId}/messages", contentData);
