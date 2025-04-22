@@ -127,7 +127,8 @@ public class PlaceLauncherService : ServiceBase
         // }
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved)
+        // Block 2017 due to authentication issues
+        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved || placeInfo.year == 2017)
         {
             return new PlaceLaunchResponse()
             {
