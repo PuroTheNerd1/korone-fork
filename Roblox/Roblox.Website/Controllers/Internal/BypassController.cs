@@ -904,30 +904,6 @@ namespace Roblox.Website.Controllers
         }
 
         
-        [HttpPostBypass("gayfurry/sex")]
-        public async Task<dynamic> GayFurrySex([FromBody] GayFurrySexModel request)
-        {
-            HttpClient client = new HttpClient();
-            var data = new Dictionary<string,string>
-            {
-                {"content", $"User: {request.userId} has won 1k"},
-            };
-
-            CheckServerAuth(request.auth);
-            // Sanity checks
-            if (request.userId == 0)
-                throw new BadRequestException(0, "Invalid userId");
-            // Check if user actually exists in db
-            await services.users.GetUserById(request.userId);
-            var jsonData = JsonConvert.SerializeObject(data);
-            var contentData = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            // lowkey should not hardcode webhook
-            await client.PostAsync("https://discord.com/api/webhooks/1309550260082966670/aGOwbg-I6k9QArjOiiRIVtY1FgaKVo20D_U8sXiCQNfCvREvPOCLjb4oUUMcZLyuoKKl", contentData);
-            await services.economy.IncrementUserCurrencyWithTransaction(request.userId, 1000);
-            
-            return Ok();
-        }
-
         [HttpGetBypass("rcc/killserver")]
         public async Task<dynamic> ShutdownSpecificServerForPlace(long placeId, string jobId)
         {
