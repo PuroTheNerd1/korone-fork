@@ -175,7 +175,7 @@ public class FilterService : ServiceBase, IService
         .ToLower()
         // Will prevent bypassing chat filter with words like n!gga
         .Replace("#", "")
-        .Replace("$", "")
+        .Replace("$", "s")
         .Replace("!", "i")
         .Replace("*", "");
         foreach (string word in filteredWords)
