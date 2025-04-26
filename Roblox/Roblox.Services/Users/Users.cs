@@ -2704,6 +2704,12 @@ public class UsersService : ServiceBase, IService
     }
     public async Task GiveUserInviterBadge(long userId)
     {
+        using var accountService = ServiceProvider.GetOrCreate<AccountInformationService>(this);
+        var badges = await accountService.GetUserBadges(userId);
+        if (badges.Any(b => b.id == 8))
+        {
+            return;
+        }
         await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
         {
             user_id = userId,
