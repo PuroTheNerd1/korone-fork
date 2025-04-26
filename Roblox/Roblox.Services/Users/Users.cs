@@ -337,6 +337,21 @@ public class UsersService : ServiceBase, IService
             {
                 user_id = userId,
             });
+            // delete user previous usernames
+            await db.ExecuteAsync("DELETE FROM user_previous_username WHERE user_id = :user_id", new
+            {
+                user_id = userId,
+            });
+            // delete user 2fa
+            await db.ExecuteAsync("DELETE FROM user_totp WHERE user_id = :user_id", new
+            {
+                user_id = userId,
+            });
+            // delete referral
+            await db.ExecuteAsync("DELETE FROM user_referral WHERE user_id = :user_id", new
+            {
+                user_id = userId,
+            });
             // TODO: Should we be deleting assets, games, and play history?
             // todo: should we delete/lock groups?
             // todo: should we delete transaction? not the entire data, but like clear the user_id or something?
