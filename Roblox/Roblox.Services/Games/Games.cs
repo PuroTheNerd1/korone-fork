@@ -408,15 +408,6 @@ public class GamesService : ServiceBase, IService
             });
         }
 
-        var is18Plus = false;
-        if (contextUserId != null)
-        {
-            using var us = ServiceProvider.GetOrCreate<UsersService>();
-            is18Plus = await us.Is18Plus(contextUserId.Value);
-        }
-        if (!is18Plus)
-            query.Where("NOT asset.is_18_plus");
-
         List<long>? sortOrder = null;
         var sortRequired = true;
         switch (sortToken?.ToLower())
