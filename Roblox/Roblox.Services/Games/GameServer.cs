@@ -306,6 +306,7 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerLeave(long userId, long placeId, string serverId)
     {
+        if (!CurrentPlayersInGame.ContainsKey(userId)) return;
         lock (CurrentPlayersInGame)
         {
             CurrentPlayersInGame.Remove(userId);
