@@ -132,7 +132,7 @@ public class GamesControllerV1 : ControllerBase
     {
         if (!await services.cooldown.TryIncrementBucketCooldown($"GetGames:{safeUserSession.userId}", 3, TimeSpan.FromSeconds(5)))
         {
-            Console.WriteLine($"GetGames:{safeUserSession.userId} IP: {GetRequesterIpRaw(HttpContext)}");
+            Console.WriteLine($"GetGames:{safeUserSession.userId} IP: {GetRequesterIpRaw(HttpContext)} UA: {UserAgent}");
             throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
         }
         if (maxRows is > 100 or < 1) maxRows = 10;
