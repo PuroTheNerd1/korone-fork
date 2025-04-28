@@ -127,21 +127,21 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [HttpGet("games/list")]
-    public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)
-    {
-        if (!await services.cooldown.TryIncrementBucketCooldown($"GetGames:{safeUserSession.userId}", 3, TimeSpan.FromSeconds(5)))
-        {
-             Console.WriteLine($"GetGames:{safeUserSession.userId}");
-            throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
-        }
-        if (maxRows is > 100 or < 1) maxRows = 10;
-        var result = await services.games.GetGamesList(userSession?.userId, sortToken, maxRows, genre, keyword);
-        return new
-        {
-            games = result,
-        };
-    }
+    // [HttpGet("games/list")]
+    // public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)
+    // {
+    //     if (!await services.cooldown.TryIncrementBucketCooldown($"GetGames:{safeUserSession.userId}", 3, TimeSpan.FromSeconds(5)))
+    //     {
+    //          Console.WriteLine($"GetGames:{safeUserSession.userId}");
+    //         throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
+    //     }
+    //     if (maxRows is > 100 or < 1) maxRows = 10;
+    //     var result = await services.games.GetGamesList(userSession?.userId, sortToken, maxRows, genre, keyword);
+    //     return new
+    //     {
+    //         games = result,
+    //     };
+    // }
 
     private static Regex numberRegex { get; } = new("([0-9]+)");
     
