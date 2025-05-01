@@ -20,6 +20,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/login")]
         public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
         {
+            FeatureCheck();
             await RateLimitCheck();
             string username = request.cvalue;
             string password = request.password;
@@ -61,6 +62,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/login")]
         public async Task<dynamic> LoginV2()
         {
+            FeatureCheck();
             await RateLimitCheck();
             string requestBody = await GetRequestBody();
             string? username = "";
@@ -172,6 +174,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
         public async Task<dynamic> TwoStepVerificationEmailLogin([FromRoute] long userId, [FromBody] TwoFactorEmailLogin request)
         {
+            FeatureCheck();
             await RateLimitCheck();
             LoginTicet ticketInfo = await services.users.GetLoginTicketInfo(request.verificationToken);
 
@@ -191,6 +194,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
         public async Task<dynamic> TwoStepVerificationEmail([FromRoute] long userId, [FromBody] TwoFactorEmail request)
         {
+            FeatureCheck();
             await RateLimitCheck();
             TwoFactorTicket info;
             try
@@ -231,6 +235,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/twostepverification/verify")]
         public async Task<dynamic> TwoStepVerification([FromBody] TwoFactor request)
         {
+            FeatureCheck();
             await RateLimitCheck();
             TwoFactorTicket info;
             try
@@ -261,6 +266,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/twostepverification/login/verify")]
         public async Task<dynamic> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
         {
+            FeatureCheck();
             await RateLimitCheck();
             TwoFactorTicket info;
             try
@@ -291,6 +297,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("mobileapi/login")]
         public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
         {
+            FeatureCheck();
             await RateLimitCheck();
             // Format: {username}|{2facode}
             string[] splittedUsername = request.username.Split('|');
