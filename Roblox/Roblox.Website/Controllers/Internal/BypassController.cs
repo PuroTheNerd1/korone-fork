@@ -408,10 +408,14 @@ namespace Roblox.Website.Controllers
                     status = 5
                 };
             }
-
+            // paranoia
             var userInfo = await services.users.GetUserById(userId);
-            var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
 
+            if (userInfo.accountStatus != AccountStatus.Ok)
+            {
+                throw new ForbiddenException(0, "User is banned");
+            }
+            var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             string membership = await services.users.GetUserMemberShipAsString(userId);
             if (placeInfo.year != 2020 && placeInfo.year != 2021 && membership == "Premium")
             {
