@@ -20,8 +20,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/login")]
         public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
         {
-            if (!await services.cooldown.TryIncrementBucketCooldown("LoginAttemptCountV2:" + GetIP(), 15, TimeSpan.FromMinutes(10)))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+            await RateLimitCheck();
             string username = request.cvalue;
             string password = request.password;
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
@@ -62,8 +61,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/login")]
         public async Task<dynamic> LoginV2()
         {
-            if (!await services.cooldown.TryIncrementBucketCooldown("LoginAttemptCountV2:" + GetIP(), 15, TimeSpan.FromMinutes(10)))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+            await RateLimitCheck();
             string requestBody = await GetRequestBody();
             string? username = "";
             string? password = "";
@@ -174,8 +172,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
         public async Task<dynamic> TwoStepVerificationEmailLogin([FromRoute] long userId, [FromBody] TwoFactorEmailLogin request)
         {
-            if (!await services.cooldown.TryIncrementBucketCooldown("LoginAttemptCountV2:" + GetIP(), 15, TimeSpan.FromMinutes(10)))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+            await RateLimitCheck();
             LoginTicet ticketInfo = await services.users.GetLoginTicketInfo(request.verificationToken);
 
             if (ticketInfo.userId != userId || ticketInfo.challengeId != request.challengeId)
@@ -194,8 +191,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
         public async Task<dynamic> TwoStepVerificationEmail([FromRoute] long userId, [FromBody] TwoFactorEmail request)
         {
-            if (!await services.cooldown.TryIncrementBucketCooldown("LoginAttemptCountV2:" + GetIP(), 15, TimeSpan.FromMinutes(10)))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+            await RateLimitCheck();
             TwoFactorTicket info;
             try
             {
@@ -235,8 +231,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/twostepverification/verify")]
         public async Task<dynamic> TwoStepVerification([FromBody] TwoFactor request)
         {
-            if (!await services.cooldown.TryIncrementBucketCooldown("LoginAttemptCountV2:" + GetIP(), 15, TimeSpan.FromMinutes(10)))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+            await RateLimitCheck();
             TwoFactorTicket info;
             try
             {
@@ -266,8 +261,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/twostepverification/login/verify")]
         public async Task<dynamic> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
         {
-            if (!await services.cooldown.TryIncrementBucketCooldown("LoginAttemptCountV2:" + GetIP(), 15, TimeSpan.FromMinutes(10)))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+            await RateLimitCheck();
             TwoFactorTicket info;
             try
             {
@@ -297,8 +291,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("mobileapi/login")]
         public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
         {
-            if (!await services.cooldown.TryIncrementBucketCooldown("LoginAttemptCountV2:" + GetIP(), 15, TimeSpan.FromMinutes(10)))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+            await RateLimitCheck();
             // Format: {username}|{2facode}
             string[] splittedUsername = request.username.Split('|');
 
@@ -378,9 +371,7 @@ namespace Roblox.Website.Controllers
         private async Task<bool> Login(string username, string password, long userId, string? totpCode, bool isPasswordLeaked, bool? skip2FA = false)
         {
             FeatureCheck();
-            var loginKey = "LoginAttemptCountV1:" + GetIP();
-            var attemptCount = (await services.cooldown.GetBucketDataForKey(loginKey, TimeSpan.FromMinutes(10))).ToArray();
-
+            await RateLimitCheck();
             if (!await services.cooldown.TryIncrementBucketCooldown(loginKey, 15, TimeSpan.FromMinutes(10), attemptCount, true))
                 throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
 
@@ -411,6 +402,16 @@ namespace Roblox.Website.Controllers
             }
 
             return true;
+        }
+        private async Task RateLimitCheck()
+        {
+            var loginKey = "LoginAttemptCountV1:" + GetIP();
+            var attemptCount = (await services.cooldown.GetBucketDataForKey(loginKey, TimeSpan.FromMinutes(10))).ToArray();
+
+            if (!await services.cooldown.TryIncrementBucketCooldown(loginKey, 15, TimeSpan.FromMinutes(10), attemptCount, true))
+            {
+                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+            }
         }
         private void FeatureCheck()
         {
