@@ -379,9 +379,6 @@ namespace Roblox.Website.Controllers
         {
             FeatureCheck();
             await RateLimitCheck();
-            if (!await services.cooldown.TryIncrementBucketCooldown(loginKey, 15, TimeSpan.FromMinutes(10), attemptCount, true))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
-
             //get totp info
             try
             {
