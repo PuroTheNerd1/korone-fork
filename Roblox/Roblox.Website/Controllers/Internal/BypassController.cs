@@ -422,16 +422,7 @@ namespace Roblox.Website.Controllers
                 membership = "OutrageousBuildersClub";
             }
             string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
-
-            dynamic? joinScript;
-            try
-            {
-                joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
-            }
-            catch (Exception)
-            {
-                throw new BadRequestException(1, "Couldn't find gameserver");
-            }
+            var joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
 
             return services.games.SignJoinScript(placeInfo.year, joinScript);
         }
@@ -1038,7 +1029,7 @@ namespace Roblox.Website.Controllers
             {
                 "a9912debcb6347c402e4139f452d4fd2", //2015M Prod
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E Prod
-                "abc9d2132ef2c21101804d8e25e0413f", //Repatched 2017Client
+                "3db49e80046cba4283bf4806fe465299", //2017L KETLoader Debug
                 "fc5f43ec839bbbffcb26c48846b3c865", //2017L RAGELoader Debug
                 "0a5d9189b9f7a764ccf8b5655f442971", //2017L Prod
                 //"f1e3f34e623dc7ace10bda14cc0fb653", //2017L Prod goober client
