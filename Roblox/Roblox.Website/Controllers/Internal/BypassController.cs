@@ -390,7 +390,7 @@ namespace Roblox.Website.Controllers
             string username = safeUserSession.username;
             long userId = safeUserSession.userId;
 
-            GameServerDb jobInfo = await services.gameServer.GetGameServer(jobId);
+            var jobInfo = await services.gameServer.GetGameServer(jobId);
             if (jobInfo == null)
                 throw new BadRequestException(1, "Gameserver does not exist");
             
@@ -415,6 +415,9 @@ namespace Roblox.Website.Controllers
             {
                 throw new ForbiddenException(0, "User is banned");
             }
+            // Kick the player to prevent them from being in multiple games at once
+            await services.gameServer.KickPlayer(userId);
+
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             string membership = await services.users.GetUserMemberShipAsString(userId);
             if (placeInfo.year != 2020 && placeInfo.year != 2021 && membership == "Premium")

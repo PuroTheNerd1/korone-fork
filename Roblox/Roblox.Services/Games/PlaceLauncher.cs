@@ -27,8 +27,6 @@ public class PlaceLauncherService : ServiceBase
     {
         if (plRequest.username == null || plRequest.userId == null || plRequest.cookie == null)
             throw new ArgumentNullException("One of the arguments are missing");
-        // Kick the player to prevent them from being in multiple games at once
-        await gameServer.KickPlayer((long)plRequest.userId);
         switch (plRequest.request)
         {
             case "RequestGameJob":
