@@ -92,13 +92,37 @@ public class AvatarControllerV1 : ControllerBase, IService
         
         AttemptScheduleRender();
     }
-
-    [HttpGet("avatar/set-rig")]
-    public async Task SetRigType(string rigtype)
+    
+    [HttpPost("avatar/assets/{assetId:long}/remove")]
+    public async Task RemoveAsset([Required] long assetId)
     {
-        int type = (rigtype == "R15") ? 2 : 1;
+        FeatureCheck();
+        var currentlyWorn = (await services.avatar.GetWornAssets(safeUserSession.userId)).ToList();
+        if (!currentlyWorn.Contains(assetId)) { // if not wearing just return
+            return;
+        }
+        currentlyWorn.Remove(assetId);
 
-        await services.avatar.UpdateRigType(type, safeUserSession.userId);
+        using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
+        await cache.SetPendingAssets(safeUserSession.userId, currentlyWorn);
+        
+        AttemptScheduleRender();
+    }
+
+    [HttpPost("avatar/set-scales")]
+    public async Task SetBodyAttributes([Required, FromBody] BodyScales request)
+    {
+        if (!services.avatar.AreScalesValid(request))
+            throw new BadRequestException(0, "One or more scales are out of bounds.");
+        
+        await services.avatar.UpdateBodyScales(request, safeUserSession.userId);
+        AttemptScheduleRender();
+    }
+    
+    [HttpPost("avatar/set-player-avatar-type")]
+    public async Task SetBodyRigType([Required, FromBody] AvatarType type)
+    {
+        await services.avatar.UpdateRigType((int) type, safeUserSession.userId);
         AttemptScheduleRender();
     }
 
@@ -110,6 +134,15 @@ public class AvatarControllerV1 : ControllerBase, IService
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetColors(safeUserSession.userId, colors);
         
+        AttemptScheduleRender();
+    }
+    
+    [HttpGet("avatar/set-rig")]
+    public async Task SetRigType(string rigtype)
+    {
+        int type = (rigtype == "R15") ? 2 : 1;
+
+        await services.avatar.UpdateRigType(type, safeUserSession.userId);
         AttemptScheduleRender();
     }
 
@@ -240,15 +273,7 @@ public class AvatarControllerV1 : ControllerBase, IService
 
         return new
         {
-            scales = new
-            {
-                height = 1,
-                width = 1,
-                head = 1,
-                depth = 1,
-                proportion = 1,
-                bodyType = 1,
-            },
+            existingAvatar.scales,
             playerAvatarType = existingAvatar.avatarType,
             bodyColors = (ColorEntry)existingAvatar,
             assets = multiGetResults.Select(c =>
@@ -451,12 +476,6 @@ public class AvatarControllerV1 : ControllerBase, IService
             bundlesEnabledForUser = false,
             emotesEnabledForUser = false,
         };
-    }
-
-    [HttpPost("avatar/set-scales"), HttpPost("avatar/set-player-avatar-type")]
-    public void AvatarNoOp()
-    {
-        
     }
 
     public bool IsThreadSafe()

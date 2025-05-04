@@ -11,6 +11,12 @@ public class DatabaseAvatar
     public int left_arm_color_id { get; set; }
     public int right_arm_color_id { get; set; }
     public AvatarType avatar_type { get; set;}
+    public double scale_height { get; set;}
+    public double scale_width { get; set;}
+    public double scale_head { get; set;}
+    public double scale_depth { get; set;}
+    public double scale_proportion { get; set;}
+    public double scale_body_type { get; set;}
 }
 
 public class DatabaseAvatarWithImages : DatabaseAvatar
