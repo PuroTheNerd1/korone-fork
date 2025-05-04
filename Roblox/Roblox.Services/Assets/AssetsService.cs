@@ -982,7 +982,6 @@ public class AssetsService : ServiceBase, IService
                 break;
             case Models.Assets.Type.Mesh:
                 thumbRequests.Add(CreateMeshThumbnail(assetId, cancellationToken));
-                
                 break;
             case Models.Assets.Type.MeshPart:
                 thumbRequests.Add(CreateMeshPartThumbnail(assetId, cancellationToken));
