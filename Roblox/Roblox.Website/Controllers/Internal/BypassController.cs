@@ -417,13 +417,12 @@ namespace Roblox.Website.Controllers
                 throw new ForbiddenException(0, "User is banned");
             }
 
-            // Check if the user is in game
+            // Get user presence
             var onlineStatus = (await services.users.MultiGetPresence(new[] {userId})).First();
             // Theres probaly a better way of doing this but whatever
-            // The user is in game let's kick them
             if (onlineStatus.userPresenceType == PresenceType.InGame)
             {
-                // Kick the player to prevent them from being in multiple games at once
+                // The user is in game let's kick them
                 await services.gameServer.KickPlayer(userId);
             }
 
