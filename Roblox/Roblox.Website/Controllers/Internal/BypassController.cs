@@ -400,6 +400,7 @@ namespace Roblox.Website.Controllers
             string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
+            
             if (jobPlayers.Count() >= placeInfo.maxPlayerCount)
             {
                 return new
@@ -415,8 +416,17 @@ namespace Roblox.Website.Controllers
             {
                 throw new ForbiddenException(0, "User is banned");
             }
-            // Kick the player to prevent them from being in multiple games at once
-            await services.gameServer.KickPlayer(userId);
+
+            // Check if the user is in game
+            var onlineStatus = (await services.users.MultiGetPresence(new[] {userId})).First();
+            // Theres probaly a better way of doing this but whatever
+            // The user is in game let's kick them
+            if (onlineStatus.userPresenceType == PresenceType.InGame)
+            {
+                // Kick the player to prevent them from being in multiple games at once
+                await services.gameServer.KickPlayer(userId);
+            }
+
 
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             string membership = await services.users.GetUserMemberShipAsString(userId);
