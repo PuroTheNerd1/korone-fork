@@ -80,7 +80,21 @@ public class AvatarRBX : ControllerBase
             RightLegColor = avatar.rightLegColorId,
             TorsoColor = avatar.torsoColorId
         };
-        dynamic scales = new { height = 1, Height = 1, width = 1, Width = 1, head = 1, Head = 1, Depth = 1, depth = 1, proportion = 0, Proportion = 0, bodyType = 0, BodyType = 0};
+        // why the fuck are there capitalized and not capitalized, super ugly
+        dynamic scales = new { 
+            avatar.scales.height,
+            Height = avatar.scales.height,
+            avatar.scales.width,
+            Width = avatar.scales.width,
+            avatar.scales.head,
+            Head = avatar.scales.head,
+            avatar.scales.depth,
+            Depth = avatar.scales.depth,
+            avatar.scales.proportion,
+            Proportion = avatar.scales.proportion,
+            avatar.scales.bodyType,
+            BodyType = avatar.scales.bodyType
+        };
         
         equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == Models.Assets.Type.Gear).Select(d => d.id));
         accessoryVersionIds.AddRange(assetInfo.Where(d => (d.assetType != Models.Assets.Type.Gear && placeId != 0) && d.assetType != Models.Assets.Type.EmoteAnimation).Select(d => d.id));
@@ -323,12 +337,12 @@ public class AvatarRBX : ControllerBase
         {
             scales = new
             {
-                height = 1,
-                width = 1,
-                head = 1,
-                depth = 1,
-                proportion = 1,
-                bodyType = 1,
+                existingAvatar.scales.height,
+                existingAvatar.scales.width,
+                existingAvatar.scales.head,
+                existingAvatar.scales.depth,
+                existingAvatar.scales.proportion,
+                existingAvatar.scales.bodyType,
             },
             playerAvatarType = existingAvatar.avatarType.ToString(),
             bodyColors = (ColorEntry)existingAvatar,
@@ -396,7 +410,7 @@ public class AvatarRBX : ControllerBase
                 },
                 head = new
                 {
-                    min = 0.95,
+                    min = 0.9,
                     max = 1.0,
                     increment = 0.01,
                 },

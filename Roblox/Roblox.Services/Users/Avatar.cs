@@ -73,11 +73,57 @@ public class AvatarService : ServiceBase, IService
                 user_id = userId,
             });
     }
+    
+    // DOES NOT CHECK FOR CORRECT SCALES, do it yourself below lal
+    public async Task UpdateBodyScales(BodyScales scales, long userId)
+    {
+        await db.ExecuteAsync(
+            @"UPDATE user_avatar SET 
+                       scale_height = :height,
+                       scale_width = :width,
+                       scale_head = :head,
+                       scale_depth = :depth,
+                       scale_proportion = :proportion,
+                       scale_body_type = :bodyType
+                  WHERE user_id = :userId",
+            new
+            {
+                userId,
+                height = Math.Round(scales.height, 2),
+                width = Math.Round(scales.width, 2),
+                head = Math.Round(scales.head, 2),
+                depth = Math.Round(scales.depth, 2),
+                proportion = Math.Round(scales.proportion, 2),
+                bodyType = Math.Round(scales.bodyType, 2),
+            });
+    }
+    
+    // LIMITS:
+    /*
+     * HEIGHT: 90-105%
+     * WIDTH: 70-100%
+     * HEAD: 90-100%
+     * DEPTH: same as Width, usually merged actually but is different on API
+     * PROPORTION: 0-100%
+     * BODYTYPE: 0-100%
+     */
+    public bool AreScalesValid(BodyScales scales) {
+
+        // i feel like there's a better way to do this but idk lal
+        if (scales.height > 1.05 || scales.height < 0.9) return false;
+        if (scales.width > 1 || scales.width < 0.7) return false;
+        if (scales.head > 1 || scales.head < 0.9) return false;
+        if (scales.depth > 1 || scales.depth < 0.7) return false;
+        if (scales.proportion > 1 || scales.proportion < 0) return false;
+        if (scales.bodyType > 1 || scales.bodyType < 0) return false;
+
+        return true;
+    }
 
     public async Task<AvatarWithColors> GetAvatar(long userId)
     {
         var existingAvatar = await db.QuerySingleOrDefaultAsync<DatabaseAvatarWithImages>(
-            "SELECT head_color_id, torso_color_id, left_arm_color_id,right_arm_color_id,left_leg_color_id,right_leg_color_id,avatar_type,thumbnail_url,headshot_thumbnail_url FROM user_avatar WHERE user_id = :user_id",
+            "SELECT * FROM user_avatar WHERE user_id = :user_id",
             new
             {
                 user_id = userId,
@@ -95,6 +141,14 @@ public class AvatarService : ServiceBase, IService
             avatarType = existingAvatar.avatar_type,
             thumbnailUrl = existingAvatar.thumbnail_url,
             headshotUrl = existingAvatar.headshot_thumbnail_url,
+            scales = new BodyScales {
+                width = existingAvatar.scale_width,
+                height = existingAvatar.scale_height,
+                head = existingAvatar.scale_head,
+                depth = existingAvatar.scale_depth,
+                proportion = existingAvatar.scale_proportion,
+                bodyType = existingAvatar.scale_body_type
+            }
         };
     }
 

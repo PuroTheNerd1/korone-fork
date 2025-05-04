@@ -13,11 +13,21 @@ public class ColorEntry
 
 }
 
+public class BodyScales {
+    public double height { get; set; } 
+    public double width { get; set; } 
+    public double head { get; set; } 
+    public double depth { get; set; } 
+    public double proportion { get; set; } 
+    public double bodyType { get; set; } 
+}
+
 public class AvatarWithColors : ColorEntry
 {
     public AvatarType avatarType { get; set; }
     public string? thumbnailUrl { get; set; }
     public string? headshotUrl { get; set; }
+    public BodyScales scales { get; set; }
 }
 
 public class OutfitAvatar : ColorEntry
