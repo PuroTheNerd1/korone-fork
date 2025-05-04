@@ -4,6 +4,7 @@
 
 :root{
     --primary-color: #00a2ff;
+    --primary-color-2: rgb(0, 162, 255);
     --primary-color-hover: #3ab8ff;
     --secondary-color: #0074bd;
     --success-color: #02b757;
@@ -156,6 +157,14 @@ a.nav-link:focus, a.nav-link:hover {
 .flex {
     display: flex;
     flex-wrap: wrap;
+}
+
+.flex-row {
+    flex-direction: row;
+}
+
+.flex-column {
+    flex-direction: column;
 }
 
 a.normal {

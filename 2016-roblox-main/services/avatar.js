@@ -27,6 +27,16 @@ export const setColors = (bodyColors) => {
   return request('POST', getFullUrl('avatar', '/v1/avatar/set-body-colors'), bodyColors);
 }
 
+export const setRigType = (rigType) => {
+  return request('POST', getFullUrl('avatar', '/v1/avatar/set-player-avatar-type'), {
+    playerAvatarType: rigType === "R15" ? 2 : 1,
+  });
+}
+
+export const setScales = (scales) => {
+  return request('POST', getFullUrl('avatar', '/v1/avatar/set-scales'), scales);
+}
+
 export const getOutfits = ({ userId }) => {
   return request('GET', getFullUrl('avatar', '/v1/users/' + userId + '/outfits?itemsPerPage=50&page=1')).then(d => d.data);
 }
