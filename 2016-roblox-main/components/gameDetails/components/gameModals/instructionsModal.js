@@ -196,10 +196,10 @@ const instructionsModal = props => {
 
     return <>
         {!props.closeModals && <NewModal containerWidth={1000} footerClass={s.footer} exitFunction={props.exitFunction} title="Thanks for playing Pekora" footerElements={<>
-            <span style={{ color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>The Pekora installer should download shortly. If it doesn't, start the <Link href="https://setup.pekora.zip/ProjectXPlayerLauncher.exe">
-                <a className="link2018" href="https://setup.pekora.zip/ProjectXPlayerLauncher.exe">download now.</a>
+            <span style={{ color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>The Pekora installer should download shortly. If it doesn't, start the <Link href="https://setup.goober.top/ProjectXPlayerLauncher.exe">
+                <a className="link2018" href="https://setup.goober.top/ProjectXPlayerLauncher.exe">download now.</a>
             </Link></span>
-            <span style={{ float: "right", color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>Having trouble installing? Click <Link href="https://setup.pekora.zip/ProjectXPlayerLauncher.exe">
+            <span style={{ float: "right", color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>Having trouble installing? Click <Link href="https://setup.goober.top/ProjectXPlayerLauncher.exe">
                 <a className="link2018" href="/help/install">here for help.</a>
             </Link></span>
         </>}>

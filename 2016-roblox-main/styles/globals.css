@@ -167,6 +167,10 @@ a.nav-link:focus, a.nav-link:hover {
     flex-direction: column;
 }
 
+.inherit-color * {
+    color: inherit;
+}
+
 a.normal {
     color: #000;
 }
@@ -284,6 +288,12 @@ html div.container {
     height: 24px;
     margin: 6px auto;
     background-image: url("/img/loading.gif");
+}
+
+.text-overflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #__next {

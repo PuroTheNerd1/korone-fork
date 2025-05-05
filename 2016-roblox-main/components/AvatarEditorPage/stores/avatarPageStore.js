@@ -1,0 +1,127 @@
+import {createContainer} from "unstated-next";
+import {useEffect, useState} from "react";
+import {getRecentItems, RECENT_ITEMS} from "../../../services/avatar";
+import {getInventory} from "../../../services/inventory";
+import {SUBMENU_MODE} from "../components/avatarTabSubmenu";
+import AuthenticationStore from "../../../stores/authentication";
+import {multiGetAssetThumbnails} from "../../../services/thumbnails";
+
+/** @typedef EmptyType */
+
+/**
+ * @typedef SortedItem
+ * @property {string} name
+ * @property {number} assetId
+ * @property {number} assetType
+ * @property {string?} thumbnail
+ * @property {string} thumbnailState
+ */
+
+/**
+ * @typedef ItemListMetadata
+ * @property {number?} itemsLength
+ * @property {number?} pageSize
+ * @property {string?} nextPageCursor
+ * @property {string?} previousPageCursor
+ * @property {number?} assetType
+ * @property {string?} recentType
+ * @property {string?} listMode
+ */
+
+const AvatarPageStore = createContainer(() => {
+    const [listItems, setListItems] = useState([]);
+    const [listItemMetadata, setListItemMetadata] = useState({});
+    // there is a state for the currently showing and selected list, which is like the Clothing > Hat text
+    // there is state for the currently clicked tab. when a tab is clicked, ti will set this state to tiself and open submenu
+    //
+    // each click closes the open submenu, and resets the above state to the top most state
+    // this should only change when list changes
+    const [selectedList, setSelectedList] = useState({
+        tab: "recent",
+        subTab: "all",
+    });
+    const [openSubmenu, setOpenSubmenu] = useState(null);
+    const auth = AuthenticationStore.useContainer();
+    
+    async function LoadRecentItemsToList(type) {
+        let recent = (await getRecentItems(type)).data;
+        ClearListItems();
+        let thumbnails = await multiGetAssetThumbnails({ assetIds: recent.map(item => item.id) });
+        setListItems(recent.map(item => {
+            let thumb = thumbnails?.find(v => v.targetId === item.id) || null;
+            return {
+                name: item.name,
+                assetId: item.id,
+                assetType: item.assetType.id,
+                thumbnail: thumb?.imageUrl,
+                thumbnailState: thumb?.state ?? "Pending",
+            }
+        }));
+        setListItemMetadata({
+            itemsLength: listItems.length,
+            pageSize: 50,
+            nextPageCursor: null,
+            previousPageCursor: null,
+            recentType: type,
+            listMode: SUBMENU_MODE.DEFAULT,
+        });
+        return listItems;
+    }
+    
+    async function LoadAssetTypeToList(type) {
+        let invList = (await getInventory({
+            userId: auth.userId,
+            assetTypeId: type,
+            cursor: listItemMetadata?.nextPageCursor,
+            limit: 25,
+        })).Data;
+        let thumbnails = await multiGetAssetThumbnails({ assetIds: invList.Items.map(item => item.Item.AssetId) });
+        let newItems = invList.Items.map(item => {
+            let thumb = thumbnails?.find(v => v.targetId === item.Item.AssetId) || null;
+            return {
+                name: item.Item.Name,
+                assetId: item.Item.AssetId,
+                assetType: item.Item.AssetType,
+                thumbnail: thumb?.imageUrl,
+                thumbnailState: thumb?.state ?? "Pending",
+            }
+        });
+        setListItems(prev => ({ ...prev, ...newItems }));
+        setListItemMetadata({
+            itemsLength: listItems.length,
+            pageSize: listItemMetadata?.pageSize ?? invList.ItemsPerPage,
+            nextPageCursor: invList.nextPageCursor,
+            previousPageCursor: invList.previousPageCursor,
+            assetType: listItemMetadata?.assetType ?? invList.Items[0].Item.AssetType ?? 1,
+            listMode: SUBMENU_MODE.DEFAULT,
+        });
+        return listItems;
+    }
+    
+    function ClearListItems() {
+        setListItems([]);
+        setListItemMetadata({});
+    }
+    
+    useEffect(async () => {
+        if (listItems.length === 0) await LoadRecentItemsToList(RECENT_ITEMS.ALL);
+    }, []);
+    
+    return {
+        LoadRecentItemsToList,
+        LoadAssetTypeToList,
+        ClearListItems,
+        
+        /** @type SortedItem[] */
+        listItems,
+        /** @type ItemListMetadata */
+        listItemMetadata,
+        
+        selectedList,
+        setSelectedList,
+        openSubmenu,
+        setOpenSubmenu,
+    }
+})
+
+export default AvatarPageStore;

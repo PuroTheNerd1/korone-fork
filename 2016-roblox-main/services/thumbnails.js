@@ -88,6 +88,17 @@ export const multiGetGroupIcons = ({ groupIds }) => {
   return request('get', getFullUrl('thumbnails', `/v1/groups/icons?groupIds=${toCsv(groupIds)}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
 }
 
+/**
+ * @typedef ThumbnailEntry
+ * @property {number} targetId
+ * @property {string} state
+ * @property {string} imageUrl
+ */
+
+/**
+ * @param assetIds
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
 export const multiGetAssetThumbnails = ({ assetIds }) => {
   return request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${toCsv(assetIds)}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
 }

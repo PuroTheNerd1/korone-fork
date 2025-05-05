@@ -23,7 +23,6 @@ const AvatarInfoStore = createContainer(() => {
     const [canForce, setCanForce] = useState(true);
     const [isModified, setIsModified] = useState(false);
     
-    // i dont think this works
     const feedback = FeedbackStore.useContainer();
     const auth = AuthenticationStore.useContainer();
     
@@ -59,7 +58,7 @@ const AvatarInfoStore = createContainer(() => {
         await redrawMyAvatar();
         setAvThumb(null);
         setIsRendering(true);
-        await wait(1);
+        await wait(3);
         setCanForce(true);
     }
     
@@ -69,7 +68,7 @@ const AvatarInfoStore = createContainer(() => {
         setWearingAssets(avatar.assets.map(v => {
             return {
                 name: v.name,
-                assetId: v.assetId,
+                assetId: v.id,
                 assetType: v.assetType.id,
                 assetTypeName: v.assetType.name
             }

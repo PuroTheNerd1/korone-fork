@@ -16,3 +16,7 @@ export const Random = (min, max) => {
  */
 export const wait = (seconds) =>
     new Promise(resolve => setTimeout(resolve, seconds * 1000));
+
+export function IsNullOrEmpty(value) {
+  return !value || value.trim().length === 0;
+}

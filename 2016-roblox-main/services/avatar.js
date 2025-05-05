@@ -13,6 +13,26 @@ export const getMyAvatar = () => {
   return request('GET', getFullUrl('avatar', '/v1/avatar')).then(d => d.data);
 }
 
+/**
+ *
+ * @param {string} listType
+ * @returns {Promise<PekoraCollection<Asset>>}
+ */
+export const getRecentItems = async (listType) => {
+  let req = await request("GET", getFullUrl("avatar", `/v1/recent-items/${listType}/list`));
+  return req.data;
+}
+
+export const RECENT_ITEMS = Object.freeze({
+  ALL: "all",
+  CLOTHING: "clothing",
+  BODY_PARTS: "bodyparts",
+  ANIMATIONS: "avataranimations",
+  ACCESSORIES: "accessories",
+  OUTFITS: "outfits",
+  GEAR: "gear",
+})
+
 export const redrawMyAvatar = () => {
   return request('POST', getFullUrl('avatar', '/v1/avatar/redraw-thumbnail')).then(d => d.data);
 }

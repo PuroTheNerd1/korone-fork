@@ -3,13 +3,16 @@ import React from "react";
 import AvatarEditor from "../../components/AvatarEditorPage";
 import AvatarInfoStore from "../../components/AvatarEditorPage/stores/avatarInfoStore";
 import Theme2016 from "../../components/theme2016";
+import AvatarPageStore from "../../components/AvatarEditorPage/stores/avatarPageStore";
 
 const AvatarPage = () => {
     return <Theme2016>
-        <div className="container flex flex-column" style={{gap: 10}}>
+        <div className="container flex flex-column ssp">
             <AdBanner context="MyCharacterPage"/>
             <AvatarInfoStore.Provider>
-                <AvatarEditor />
+                <AvatarPageStore.Provider>
+                    <AvatarEditor />
+                </AvatarPageStore.Provider>
             </AvatarInfoStore.Provider>
         </div>
     </Theme2016>
