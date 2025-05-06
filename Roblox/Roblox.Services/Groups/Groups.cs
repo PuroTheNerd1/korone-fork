@@ -98,6 +98,15 @@ public class GroupsService : ServiceBase, IService
         };
         return resp;
     }
+    public async Task<bool> IsUserInGroup(long userId, long groupId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync("SELECT id FROM group_user WHERE user_id = :user_id AND group_id = :group_id", new
+        {
+            user_id = userId,
+            group_id = groupId,
+        });
+        return result != null;
+    }
 
     private async Task<StatusEntry?> GetGroupStatus(long groupId)
     {

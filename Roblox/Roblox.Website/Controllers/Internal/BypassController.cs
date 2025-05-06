@@ -390,7 +390,7 @@ namespace Roblox.Website.Controllers
             string username = safeUserSession.username;
             long userId = safeUserSession.userId;
 
-            GameServerDb jobInfo = await services.gameServer.GetGameServer(jobId);
+            var jobInfo = await services.gameServer.GetGameServer(jobId);
             if (jobInfo == null)
                 throw new BadRequestException(1, "Gameserver does not exist");
             
@@ -400,6 +400,7 @@ namespace Roblox.Website.Controllers
             string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
+            
             if (jobPlayers.Count() >= placeInfo.maxPlayerCount)
             {
                 return new
@@ -415,6 +416,17 @@ namespace Roblox.Website.Controllers
             {
                 throw new ForbiddenException(0, "User is banned");
             }
+
+            // Get user presence
+            var onlineStatus = (await services.users.MultiGetPresence(new[] {userId})).First();
+            // Theres probaly a better way of doing this but whatever
+            if (onlineStatus.userPresenceType == PresenceType.InGame)
+            {
+                // The user is in game let's kick them
+                await services.gameServer.KickPlayer(userId);
+            }
+
+
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             string membership = await services.users.GetUserMemberShipAsString(userId);
             if (placeInfo.year != 2020 && placeInfo.year != 2021 && membership == "Premium")
@@ -422,16 +434,7 @@ namespace Roblox.Website.Controllers
                 membership = "OutrageousBuildersClub";
             }
             string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
-
-            dynamic? joinScript;
-            try
-            {
-                joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
-            }
-            catch (Exception)
-            {
-                throw new BadRequestException(1, "Couldn't find gameserver");
-            }
+            var joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
 
             return services.games.SignJoinScript(placeInfo.year, joinScript);
         }
@@ -1038,7 +1041,7 @@ namespace Roblox.Website.Controllers
             {
                 "a9912debcb6347c402e4139f452d4fd2", //2015M Prod
                 "d902c5a3a4a33954bc6fbd0daa485966", //2016E Prod
-                "abc9d2132ef2c21101804d8e25e0413f", //Repatched 2017Client
+                "3db49e80046cba4283bf4806fe465299", //2017L KETLoader Debug
                 "fc5f43ec839bbbffcb26c48846b3c865", //2017L RAGELoader Debug
                 "0a5d9189b9f7a764ccf8b5655f442971", //2017L Prod
                 //"f1e3f34e623dc7ace10bda14cc0fb653", //2017L Prod goober client
