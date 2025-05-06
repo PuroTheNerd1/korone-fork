@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import {createUseStyles} from "react-jss";
 import AvatarPageStore from "../stores/avatarPageStore";
 import {abbreviateNumber} from "../../../lib/numberUtils";
-import AvatarInfoStore from "../stores/avatarInfoStore";
+import {wait} from "../../../lib/utils";
 
 const useStyles = createUseStyles({
     vTab: {
@@ -53,7 +53,7 @@ const useStyles = createUseStyles({
         position: 'relative',
         "& *": {
             userSelect: "none",
-            cursor: "pointer",
+            cursor: 'pointer',
         }
     },
     btnBottomSeperator: {
@@ -77,40 +77,7 @@ const useStyles = createUseStyles({
     },
     selectedElement: {
         margin: 0,
-        display: "flex",
-    },
-    
-    wrapper: {
-        pointerEvents: "auto",
-        zIndex: 0,
-        position: "absolute",
-        left: 0,
-        top: 0,
-        display: "flex",
-        height: "100%",
-        width: "100%",
-        background: "transparent",
-        "&::before": {
-            content: "",
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-        },
-        "& *": {
-            pointerEvents: "auto",
-        }
-    },
-    
-    submenuContainer: {
-        padding: 12,
-        borderTop: "1px solid #b8b8b8",
-        opacity: 1,
-        transition: "opacity 100ms",
-        width: "100%",
-        position: "absolute",
-        zIndex: 1,
-        margin: "0 0 18px",
-    },
+    }
 });
 
 /**
@@ -125,50 +92,47 @@ const useStyles = createUseStyles({
 const avatarTabs = props => {
     const s = useStyles();
     const {options} = props;
-    const store = AvatarInfoStore.useContainer();
-    
-    // active submenu is the CLICKED submenu, open submenu is the HOVERED submenu
-    // active always takes priority over open
-    const {activeSubmenu, setActiveSubmenu, openSubmenu, setOpenSubmenu, selectedList} = AvatarPageStore.useContainer();
-    const [hoveringTabs, setHoveringTabs] = useState(false);
-    
-    const selmElmRef = useRef(null);
-    const tabElmRef = useRef(null);
+    const {activeSubmenu, setActiveSubmenu, openSubmenu, setOpenSubmenu} = AvatarPageStore.useContainer();
+    const [selectedMouseHover, setSelectedMouseHover] = useState(false);
+    const [currentHovered, setCurrentHovered] = useState(null);
     
     useEffect(() => {
+        //if (!openSubmenu) setOpenSubmenu(options[0]);
+        
         const handleClick = () => {
-            setActiveSubmenu(null);
-            setHoveringTabs(false);
+            if (activeSubmenu) {
+                setActiveSubmenu(null);
+            }
         };
-        const handleMouseMove = (event) => {
-            const elements = document.elementsFromPoint(event.clientX, event.clientY);
-            setHoveringTabs(elements.includes(selmElmRef.current) || elements.includes(tabElmRef.current));
-        }
         document.addEventListener('click', handleClick);
-        document.addEventListener('mousemove', handleMouseMove);
         return () => {
             document.removeEventListener('click', handleClick);
-            document.removeEventListener('mousemove', handleMouseMove);
         }
-    }, [activeSubmenu, openSubmenu]);
+    }, []);
     
-    function getListTab() {
-        return options.find(v => v.id === selectedList.tab);
-    }
+    useEffect(() => {
+        if (openSubmenu && !activeSubmenu && currentHovered) setOpenSubmenu(currentHovered);
+    }, [openSubmenu]);
     
-    return <div style={{position: 'relative', userSelect: 'none'}}>
-        <div className={`${s.buttonCol} col-12`} ref={tabElmRef}>
+    return <div style={{position: 'relative'}}>
+        <div className={`${s.buttonCol} col-12`}>
             {
                 options.map(option => {
-                    const isSelected =
-                        option.id === activeSubmenu?.id ||
-                        option.id === openSubmenu?.id && hoveringTabs ||
-                        option.id === getListTab()?.id && !activeSubmenu?.id;
+                    const isSelected = option.id === openSubmenu?.id;
                     return <div key={option.name} className={s.vTab} onClick={() => {
-                        setActiveSubmenu(option);
+                        setActiveSubmenu(activeSubmenu ? null : option);
                         if (props.onChange) props.onChange(option);
                         if (option.onClick) option.onClick(option);
-                    }} onMouseOver={() => setOpenSubmenu(option)}>
+                    }} onMouseEnter={() => {
+                        setCurrentHovered(option);
+                        setOpenSubmenu(option);
+                    }} onMouseLeave={async () => {
+                        setCurrentHovered(null);
+                        if (!selectedMouseHover) {
+                            await wait(0.1);
+                            setOpenSubmenu(null);
+                        }
+                    }}>
                         <p className={`${!isSelected && s.vTabUnselected} ${s.vTabLabel}`}>
                             <span className={s.spanText}>
                                 {option.name}
@@ -182,15 +146,16 @@ const avatarTabs = props => {
                 })
             }
         </div>
-        {
-            (() => {
-                if (activeSubmenu?.element || hoveringTabs && openSubmenu?.element) {
-                    return <div className={`${s.submenuContainer} section-content`} ref={selmElmRef}>
-                        {activeSubmenu?.element || hoveringTabs && openSubmenu?.element}
-                    </div>
-                }
-            })()
-        }
+        <div className={'col-12 ' + s.selectedElement + ' ' + props.elementClass}
+             onMouseEnter={() => setSelectedMouseHover(true)} onMouseLeave={async () => {
+            setSelectedMouseHover(false)
+            if (!currentHovered) {
+                await wait(0.1);
+                setOpenSubmenu(null);
+            }
+        }}>
+            {activeSubmenu?.element || openSubmenu?.element}
+        </div>
     </div>
 }
 

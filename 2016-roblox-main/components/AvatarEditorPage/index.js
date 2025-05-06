@@ -11,7 +11,8 @@ import HorizontalTabs from "../horizontalTabs";
 import AvatarTabSubmenu, {SUBMENU_MODE} from "./components/avatarTabSubmenu";
 import AvatarPageStore from "./stores/avatarPageStore";
 import AvatarTabs from "./components/avatarTabs";
-import {IsNullOrEmpty} from "../../lib/utils";
+import {IsNullOrEmpty, wait} from "../../lib/utils";
+import {useEffect, useRef, useState} from "react";
 
 const useStyles = createUseStyles({
     sliderInput: {
@@ -80,6 +81,13 @@ function AvatarEditor() {
     const auth = AuthenticationStore.useContainer();
     const store = AvatarInfoStore.useContainer();
     const page = AvatarPageStore.useContainer();
+    const listItemMetadata = useRef(page.listItemMetadata);
+    const debounce = useRef(false);
+    
+    useEffect(() => {
+        listItemMetadata.current = page.listItemMetadata;
+    }, [page.listItemMetadata]); // keeps listItemMetadata fresh for below functions
+    // (because apparently that doesnt happen by default?? i have no clue)
     
     /**
      * @param {SubmenuData} item
@@ -87,11 +95,15 @@ function AvatarEditor() {
      * @constructor
      */
     async function AssetTypeClick(item, e) {
+        if (debounce.current || listItemMetadata.current.assetType === item.typeId) return;
+        debounce.current = true;
         page.setSelectedList({
-            tab: page.openSubmenu.name,
+            tab: page.openSubmenu.id,
             subTab: item.name,
         });
         await page.LoadAssetTypeToList(item.typeId);
+        await wait(0.5);
+        debounce.current = false;
     }
     
     /**
@@ -100,12 +112,23 @@ function AvatarEditor() {
      * @constructor
      */
     async function RecentClick(item, e) {
+        if (debounce.current || listItemMetadata.current.recentType == item.typeId) return;
+        debounce.current = true;
         page.setSelectedList({
-            tab: page.openSubmenu.name,
+            tab: page.openSubmenu.id,
             subTab: item.name,
         });
         await page.LoadRecentItemsToList(item.typeId);
+        await wait(0.5);
+        debounce.current = false;
     }
+    
+    useEffect(async () => {
+        if (debounce.current) {
+            await wait(3);
+            if (debounce.current) debounce.current = false;
+        }
+    }, [debounce]);
     
     return <div>
         <div className={`${s.avatarHeader} flex justify-content-between align-items-center`}>
@@ -205,7 +228,7 @@ function AvatarEditor() {
                                         typeId: "outfits",
                                     },
                                 ]}
-                                onButtonClick={RecentClick}
+                                onButtonClick={async (item, e) => await RecentClick(item, e)}
                             />
                         },
                         {
@@ -272,7 +295,7 @@ function AvatarEditor() {
                                         items: [{name: "Gear", typeId: 19}],
                                     },
                                 ]}
-                                onButtonClick={AssetTypeClick}
+                                onButtonClick={async (item, e) => await AssetTypeClick(item, e)}
                                 mode={SUBMENU_MODE.NESTED}
                             />
                         },
@@ -318,7 +341,7 @@ function AvatarEditor() {
                                         typeId: 31,
                                     },
                                 ]}
-                                onButtonClick={AssetTypeClick}
+                                onButtonClick={async (item, e) => await AssetTypeClick(item, e)}
                             />
                         },
                         {
@@ -355,7 +378,7 @@ function AvatarEditor() {
                                         typeId: 51,
                                     },
                                 ]}
-                                onButtonClick={AssetTypeClick}
+                                onButtonClick={async (item, e) => await AssetTypeClick(item, e)}
                             />
                         },
                         {
@@ -369,24 +392,26 @@ function AvatarEditor() {
                     ]}
                     default={<span style={{fontSize: 18}}>Recent <span className={`icon-down ${s.iconDown}`}/></span>}
                 />
-                <div style={{ display: "flex" }}>
+                <div>
+                    <div style={{display: "flex"}}>
                     <span
-                        style={{ paddingTop: 9, paddingBottom: 4, marginLeft: 5 }}
+                        style={{paddingTop: 9, paddingBottom: 4, marginLeft: 5}}
                     >{CapitalizeVariable(page.selectedList.tab)}
                         {!IsNullOrEmpty(page?.selectedList?.subTab) && ` > ${CapitalizeVariable(page?.selectedList?.subTab)}`}
                     </span>
+                    </div>
+                    <AvatarCardList/>
                 </div>
-                <AvatarCardList />
             </div>
         </div>
     </div>
 }
 
 export function CapitalizeVariable(str) {
-    console.log(str);
+    if (!str) return str;
     return str
-        ?.replace(/([A-Z])/g, " $1")
-        ?.replace(/^./, str => str?.toUpperCase());
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, str => str?.toUpperCase());
 }
 
 export default AvatarEditor;

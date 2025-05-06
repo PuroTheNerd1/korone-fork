@@ -1,17 +1,7 @@
-import React from "react";
+import React, {useEffect, useRef} from "react";
 import {createUseStyles} from "react-jss";
 
 const useStyles = createUseStyles({
-    submenuContainer: {
-        padding: 12,
-        borderTop: "1px solid #b8b8b8",
-        opacity: 1,
-        transition: "opacity 100ms",
-        width: "100%",
-        position: "absolute",
-        zIndex: 1,
-        margin: "0 0 18px",
-    },
     submenuButton: {
         "-webkit-transition": "all 200ms ease",
         transition: "all 200ms ease",
@@ -20,7 +10,8 @@ const useStyles = createUseStyles({
         margin: "0 3px",
         padding: 7,
         float: "left",
-        lineHeight: '100%',
+        lineHeight: '1.3em',
+        fontWeight: 300,
         "&:hover": {
             color: "#fff",
             backgroundColor: "var(--primary-color)",
@@ -33,6 +24,7 @@ const useStyles = createUseStyles({
     
     submenuNestContainer: {
         paddingTop: 12,
+        display: "flex",
     },
     submenuNestLabel: {
         width: 90,
@@ -43,6 +35,7 @@ const useStyles = createUseStyles({
         color: "#b8b8b8",
         fontWeight: 400,
         fontSize: 16,
+        textAlign: "start",
     },
     submenuColumn: {
         flexDirection: 'column',
@@ -83,8 +76,16 @@ const nested = [
  */
 const AvatarSubmenu = ({ data, onButtonClick, mode = SUBMENU_MODE.DEFAULT }) => {
     const s = useStyles();
+    const ref = useRef(null);
     
-    return <div className={`${s.submenuContainer} section-content ${mode === SUBMENU_MODE.NESTED && s.submenuColumn}`}>
+    useEffect(() => {
+        if (mode === SUBMENU_MODE.NESTED) {
+            let par = ref.current.parentElement;
+            if (par) par.classList.add(s.submenuColumn);
+        }
+    }, [ref]);
+    
+    return <>
         {
             mode === SUBMENU_MODE.DEFAULT &&
             data.map(item =>
@@ -116,7 +117,8 @@ const AvatarSubmenu = ({ data, onButtonClick, mode = SUBMENU_MODE.DEFAULT }) => 
                 </div>
             })
         }
-    </div>
+        <div ref={ref}></div>
+    </>
 }
 
 export const SUBMENU_MODE = Object.freeze({

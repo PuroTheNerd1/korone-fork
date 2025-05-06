@@ -41,11 +41,23 @@ const AvatarPageStore = createContainer(() => {
         subTab: "all",
     });
     const [openSubmenu, setOpenSubmenu] = useState(null);
+    const [activeSubmenu, setActiveSubmenu] = useState(null);
     const auth = AuthenticationStore.useContainer();
     
     async function LoadRecentItemsToList(type) {
         let recent = (await getRecentItems(type)).data;
         ClearListItems();
+        if (recent.length === 0) {
+            setListItemMetadata({
+                itemsLength: 0,
+                pageSize: 50,
+                nextPageCursor: null,
+                previousPageCursor: null,
+                recentType: type,
+                listMode: SUBMENU_MODE.DEFAULT,
+            });
+            return;
+        }
         let thumbnails = await multiGetAssetThumbnails({ assetIds: recent.map(item => item.id) });
         setListItems(recent.map(item => {
             let thumb = thumbnails?.find(v => v.targetId === item.id) || null;
@@ -68,13 +80,25 @@ const AvatarPageStore = createContainer(() => {
         return listItems;
     }
     
-    async function LoadAssetTypeToList(type) {
+    async function LoadAssetTypeToList(type, loadMore) {
         let invList = (await getInventory({
             userId: auth.userId,
             assetTypeId: type,
-            cursor: listItemMetadata?.nextPageCursor,
+            cursor: loadMore ? listItemMetadata?.nextPageCursor : null,
             limit: 25,
         })).Data;
+        if (invList.Items.length === 0) {
+            setListItems([]);
+            setListItemMetadata({
+                itemsLength: 0,
+                pageSize: listItemMetadata?.pageSize ?? invList.ItemsPerPage,
+                nextPageCursor: null,
+                previousPageCursor: invList.previousPageCursor,
+                assetType: type,
+                listMode: SUBMENU_MODE.DEFAULT,
+            });
+            return;
+        }
         let thumbnails = await multiGetAssetThumbnails({ assetIds: invList.Items.map(item => item.Item.AssetId) });
         let newItems = invList.Items.map(item => {
             let thumb = thumbnails?.find(v => v.targetId === item.Item.AssetId) || null;
@@ -86,13 +110,17 @@ const AvatarPageStore = createContainer(() => {
                 thumbnailState: thumb?.state ?? "Pending",
             }
         });
-        setListItems(prev => ({ ...prev, ...newItems }));
+        if (loadMore) {
+            setListItems(prev => [...prev, ...newItems]);
+        } else {
+            setListItems(newItems);
+        }
         setListItemMetadata({
             itemsLength: listItems.length,
             pageSize: listItemMetadata?.pageSize ?? invList.ItemsPerPage,
             nextPageCursor: invList.nextPageCursor,
             previousPageCursor: invList.previousPageCursor,
-            assetType: listItemMetadata?.assetType ?? invList.Items[0].Item.AssetType ?? 1,
+            assetType: type,
             listMode: SUBMENU_MODE.DEFAULT,
         });
         return listItems;
@@ -121,6 +149,9 @@ const AvatarPageStore = createContainer(() => {
         setSelectedList,
         openSubmenu,
         setOpenSubmenu,
+        
+        activeSubmenu,
+        setActiveSubmenu
     }
 })
 

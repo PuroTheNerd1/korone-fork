@@ -1,10 +1,11 @@
 import {createContainer} from "unstated-next";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import FeedbackStore from "../../../stores/feedback";
 import {FeedbackType} from "../../../models/feedback";
 import {multiGetUserThumbnails} from "../../../services/thumbnails";
 import AuthenticationStore from "../../../stores/authentication";
-import {getMyAvatar, getRules, redrawMyAvatar} from "../../../services/avatar";
+import {getMyAvatar, getRules, redrawMyAvatar, setColors, setRigType, setScales} from "../../../services/avatar";
+import * as AvatarService from "../../../services/avatar";
 import {wait} from "../../../lib/utils";
 
 const AvatarInfoStore = createContainer(() => {
@@ -15,40 +16,33 @@ const AvatarInfoStore = createContainer(() => {
     const [bodyRigType, setBodyRigType] = useState(null);
     const [avThumb, setAvThumb] = useState(null);
     
-    // changed assets is an array of asset ids that are added or removed,
-    // denoted by whether its positive or negative integer
-    const [changedAssets, setChangedAssets] = useState([]);
     const [isRendering, setIsRendering] = useState(false);
     const [avRules, setAvRules] = useState(false);
     const [canForce, setCanForce] = useState(true);
-    const [isModified, setIsModified] = useState(false);
     
+    // changed assetId is number of which asset id has been changed
+    // denoted by whether its positive or negative integer
+    const [modifiedAsset, setModifiedAsset] = useState(null);
+    // the rest of these should correspond to the actual value name in the API to get avatars
+    // so modified scaling would be { height: 0.5 }
+    const [modifiedBC, setModifiedBC] = useState(null);
+    const [modifiedScaling, setModifiedScaling] = useState(null);
+    const [modifiedRigType, setModifiedRigType] = useState(null);
+    
+    const debo = useRef(false);
+
     const feedback = FeedbackStore.useContainer();
     const auth = AuthenticationStore.useContainer();
     
-    // could and probably should be merged into 1 function
-    function AddAsset(assetId) {
-        // check if asset was already marked for removal, if was, remove the negative and return
-        // else, add to changedAssets array
-        
-        if (changedAssets.includes(assetId * -1)) {
-            setChangedAssets(arr => arr.filter((_, index) => index !== assetId * -1));
-            return;
-        }
-        
-        setChangedAssets(arr => [...arr, assetId]);
+    function AddAsset(asset) {
+        setModifiedAsset(asset);
     }
     
-    function RemoveAsset(assetId) {
-        // check if asset was already marked for addition, if was, remove the positive and return
-        // else, add to changedAssets array
-        
-        if (changedAssets.includes(assetId)) {
-            setChangedAssets(arr => arr.filter((_, index) => index !== assetId));
-            return;
-        }
-        
-        setChangedAssets(arr => [...arr, assetId * -1]);
+    function RemoveAsset(asset) {
+        setModifiedAsset({
+            ...asset,
+            assetId: asset.assetId * -1,
+        });
     }
     
     async function ForceRender() {
@@ -60,6 +54,16 @@ const AvatarInfoStore = createContainer(() => {
         setIsRendering(true);
         await wait(3);
         setCanForce(true);
+    }
+    
+    async function GetUpdatedAvatar() {
+        if (isRendering) {
+            while (isRendering) {
+                await wait(1);
+            }
+        }
+        setAvThumb(null);
+        setIsRendering(true);
     }
     
     useEffect(async () => {
@@ -80,16 +84,16 @@ const AvatarInfoStore = createContainer(() => {
     }, []);
     
     useEffect(async () => {
-        // can cause issues if not done right
-        if (!isRendering || avThumb != null) return;
+        if (debo.current || !isRendering || avThumb != null) return;
+        debo.current = true;
         
-        setIsModified(false);
         let attempts = 0;
         while (avThumb == null && attempts <= 10) {
             let thumbnail = await multiGetUserThumbnails({userIds: [auth.userId]})
                 .then(result => result[0]);
             if (thumbnail.state === "Completed" && typeof thumbnail.imageUrl === "string") {
                 setAvThumb(thumbnail.imageUrl);
+                break;
             } else {
                 console.warn("User thumbnail has not completed rendering yet.");
             }
@@ -99,12 +103,79 @@ const AvatarInfoStore = createContainer(() => {
         if (attempts > 10 && avThumb == null)
             feedback.addFeedback("Could not get new avatar render. Please try again later.", FeedbackType.ERROR);
         setIsRendering(false);
+        await wait(0.5);
+        debo.current = false;
     }, [isRendering]);
-    // this probably needs to be rewritten, just for testing for now
-    useEffect(async () => {
-        if (!isModified) return;
-        await ForceRender();
-    }, [isModified]);
+    
+    useEffect(() => {
+        if (!modifiedScaling) return;
+        
+        const applyScaling = async () => {
+            setBodyScales(prev => {
+                const newScales = { ...prev, ...modifiedScaling };
+                setModifiedScaling(null);
+                console.dir(newScales);
+                (async () => {
+                    await setScales(newScales);
+                    await GetUpdatedAvatar();
+                })();
+                return newScales;
+            });
+        };
+        
+        applyScaling().then();
+    }, [modifiedScaling]);
+    useEffect(() => {
+        if (!modifiedBC) return;
+        
+        const applyBC = async () => {
+            setBodyColors(prev => {
+                const newBC = { ...prev, ...modifiedBC };
+                setModifiedBC(null);
+                console.dir(newBC);
+                (async () => {
+                    await setColors(newBC);
+                    await GetUpdatedAvatar();
+                })();
+                return newBC;
+            });
+        };
+        
+        applyBC().then();
+    }, [modifiedBC]);
+    useEffect(() => {
+        if (!modifiedRigType) return;
+        let newRigType = modifiedRigType;
+        setModifiedRigType(null);
+        
+        const applyRigType = async () => {
+            await setRigType(newRigType);
+            await GetUpdatedAvatar();
+        };
+        
+        applyRigType().then();
+    }, [modifiedRigType]);
+    useEffect(() => {
+        if (!modifiedAsset) return;
+        let newAsset = modifiedAsset;
+        setModifiedAsset(null);
+        
+        setWearingAssets(prev => {
+            let updated;
+            if (IsNegative(newAsset.assetId)) {
+                updated = prev.filter(v => v.assetId !== newAsset.assetId * -1);
+            } else {
+                updated = [...prev, newAsset];
+            }
+            
+            (async () => {
+                await AvatarService.setWearingAssets({ assetIds: updated.map(d => d.assetId) });
+                await GetUpdatedAvatar();
+            })();
+            
+            return updated;
+        });
+    }, [modifiedAsset]);
     
     return {
         // Functions
@@ -132,8 +203,11 @@ const AvatarInfoStore = createContainer(() => {
          * @type AvatarRules
          */
         avRules,
-        isModified,
     }
 })
+
+function IsNegative(int) {
+    return int < 0;
+}
 
 export default AvatarInfoStore;

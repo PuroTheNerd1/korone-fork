@@ -3,7 +3,7 @@ import Link from "../../link";
 import AvatarPageStore from "../stores/avatarPageStore";
 import AvatarInfoStore from "../stores/avatarInfoStore";
 import ActionButton from "../../actionButton";
-import {useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import {wait} from "../../../lib/utils";
 
 const useAvCardStyles = createUseStyles({
@@ -94,16 +94,22 @@ function ThumbnailFromState(thumbnail, state) {
 
 /**
  * @param {SortedItem} asset
+ * @param {boolean} equipped
  * @returns {JSX.Element}
  * @constructor
  */
-function AvatarCard({ asset }) {
+function AvatarCard({ asset, equipped }) {
     const s = useAvCardStyles();
     const store = AvatarInfoStore.useContainer();
-    const isEquipped = store?.wearingAssets?.length && store.wearingAssets.map(d => d.assetId).includes(asset.assetId);
     
     return <div className={`${s.avatarCardWrapper}`}>
-        <div className={`${s.avatarCardContainer}`}>
+        <div className={`${s.avatarCardContainer}`} onClick={e => {
+            if (equipped) {
+                store.RemoveAsset(asset);
+            } else {
+                store.AddAsset(asset);
+            }
+        }}>
             <div className={s.avatarCardImage}>
                 <img
                     src={ThumbnailFromState(asset.thumbnail, asset.thumbnailState)} alt={asset.name}/>
@@ -114,8 +120,8 @@ function AvatarCard({ asset }) {
                 </a>
             </Link>
             {
-                isEquipped && <div className={s.avatarCardEquipped}>
-                    <span></span>
+                equipped && <div className={s.avatarCardEquipped}>
+                    <span />
                 </div>
             }
         </div>
@@ -124,13 +130,25 @@ function AvatarCard({ asset }) {
 
 function AvatarCardList() {
     const page = AvatarPageStore.useContainer();
+    const store = AvatarInfoStore.useContainer();
     const deb = useRef(false);
+    const [wearingAssets, setWearingAssets] = useState(null);
+    
+    useEffect(() => {
+        setWearingAssets(store.wearingAssets);
+    }, [store.wearingAssets]);
     
     return <div className={`flex`}>
         {
-            page.listItems.map(item =>
-                <AvatarCard asset={item} />
-            )
+            page.listItems.map(item => {
+                const isEquipped = wearingAssets?.length && wearingAssets.map(d => d.assetId).includes(item.assetId);
+                return <AvatarCard asset={item} equipped={isEquipped} />
+            })
+        }
+        {
+            page.listItems.length === 0 && <span className={`section-content-off w-100`}>
+                You do not have any items here.
+            </span>
         }
         {
             page?.listItemMetadata?.nextPageCursor && page?.listItemMetadata?.assetType &&
@@ -138,7 +156,7 @@ function AvatarCardList() {
                 <ActionButton label="Load More" onClick={async () => {
                     if (deb) return;
                     deb.current = true;
-                    await page.LoadAssetTypeToList(page.listItemMetadata.assetType);
+                    await page.LoadAssetTypeToList(page.listItemMetadata.assetType, true);
                     await wait(2.5);
                     deb.current = false;
                 }} />

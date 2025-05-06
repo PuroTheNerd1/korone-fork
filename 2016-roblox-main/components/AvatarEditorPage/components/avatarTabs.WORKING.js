@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import {createUseStyles} from "react-jss";
 import AvatarPageStore from "../stores/avatarPageStore";
 import {abbreviateNumber} from "../../../lib/numberUtils";
-import AvatarInfoStore from "../stores/avatarInfoStore";
+import {SUBMENU_MODE} from "./avatarTabSubmenu";
 
 const useStyles = createUseStyles({
     vTab: {
@@ -125,50 +125,59 @@ const useStyles = createUseStyles({
 const avatarTabs = props => {
     const s = useStyles();
     const {options} = props;
-    const store = AvatarInfoStore.useContainer();
     
-    // active submenu is the CLICKED submenu, open submenu is the HOVERED submenu
-    // active always takes priority over open
-    const {activeSubmenu, setActiveSubmenu, openSubmenu, setOpenSubmenu, selectedList} = AvatarPageStore.useContainer();
-    const [hoveringTabs, setHoveringTabs] = useState(false);
+    const {activeSubmenu, setActiveSubmenu, openSubmenu, setOpenSubmenu} = AvatarPageStore.useContainer();
+    const [submenuHovered, setSubmenuHovered] = useState(false);
+    const [tabHovered, setTabHovered] = useState(false);
+    const timeoutRef = useRef(null);
     
     const selmElmRef = useRef(null);
     const tabElmRef = useRef(null);
     
     useEffect(() => {
         const handleClick = () => {
-            setActiveSubmenu(null);
-            setHoveringTabs(false);
+            if (activeSubmenu) {
+                setActiveSubmenu(null);
+            }
         };
-        const handleMouseMove = (event) => {
+        const handleMouseMove = () => (event) => {
             const elements = document.elementsFromPoint(event.clientX, event.clientY);
-            setHoveringTabs(elements.includes(selmElmRef.current) || elements.includes(tabElmRef.current));
+            console.dir(elements);
         }
         document.addEventListener('click', handleClick);
         document.addEventListener('mousemove', handleMouseMove);
         return () => {
             document.removeEventListener('click', handleClick);
             document.removeEventListener('mousemove', handleMouseMove);
+            clearTimeout(timeoutRef?.current);
         }
     }, [activeSubmenu, openSubmenu]);
     
-    function getListTab() {
-        return options.find(v => v.id === selectedList.tab);
-    }
+    useEffect(() => {
+        // console.log(`SUBMENUHOVERED: ${submenuHovered}. TABHOVERED: ${tabHovered}`);
+    }, [submenuHovered, tabHovered]);
     
-    return <div style={{position: 'relative', userSelect: 'none'}}>
-        <div className={`${s.buttonCol} col-12`} ref={tabElmRef}>
+    return <div style={{position: 'relative'}}>
+        <div className={`${s.buttonCol} col-12`} ref={tabElmRef}
+             onMouseEnter={e => {
+                 setTabHovered(true);
+             }}
+             onMouseLeave={e => {
+                 setTabHovered(false);
+             }}
+        >
             {
                 options.map(option => {
-                    const isSelected =
-                        option.id === activeSubmenu?.id ||
-                        option.id === openSubmenu?.id && hoveringTabs ||
-                        option.id === getListTab()?.id && !activeSubmenu?.id;
+                    const isSelected = option.id === openSubmenu?.id;
                     return <div key={option.name} className={s.vTab} onClick={() => {
                         setActiveSubmenu(option);
                         if (props.onChange) props.onChange(option);
                         if (option.onClick) option.onClick(option);
-                    }} onMouseOver={() => setOpenSubmenu(option)}>
+                    }}
+                                onMouseOver={e => {
+                                    setOpenSubmenu(option);
+                                }}
+                    >
                         <p className={`${!isSelected && s.vTabUnselected} ${s.vTabLabel}`}>
                             <span className={s.spanText}>
                                 {option.name}
@@ -184,9 +193,16 @@ const avatarTabs = props => {
         </div>
         {
             (() => {
-                if (activeSubmenu?.element || hoveringTabs && openSubmenu?.element) {
-                    return <div className={`${s.submenuContainer} section-content`} ref={selmElmRef}>
-                        {activeSubmenu?.element || hoveringTabs && openSubmenu?.element}
+                if (activeSubmenu?.element || (submenuHovered || tabHovered) && openSubmenu?.element) {
+                    return <div
+                        onMouseEnter={e => {
+                            setSubmenuHovered(true);
+                        }}
+                        onMouseLeave={e => {
+                            setSubmenuHovered(false);
+                        }}
+                        className={`${s.submenuContainer} section-content`} ref={selmElmRef}>
+                        {activeSubmenu?.element || (submenuHovered || tabHovered) && openSubmenu?.element}
                     </div>
                 }
             })()
