@@ -42,7 +42,7 @@ public class DiscordBotApi
         }
         else
         {
-            Writer.Info(LogGroup.DiscordApi, "Failed to add {0} to pekora status: {1}", discordId, result.StatusCode);
+            Writer.Info(LogGroup.DiscordApi, "Failed to add {0} to pekora status: {1} with response: {2}", discordId, result.StatusCode, await result.Content.ReadAsStringAsync());
         }
     }
     public async Task MessageUser(string discordId, string content, DiscordEmbed? discordEmbed = null)
