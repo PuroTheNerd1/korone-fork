@@ -9,4 +9,5 @@ public class UserSettingsEntry
     public InventoryPrivacy inventoryPrivacy { get; set; }
     public GeneralPrivacy tradePrivacy { get; set; }
     public TradeQualityFilter tradeFilter { get; set; }
+    public AvatarPageStyle avatarPageStyle { get; set; }
 }

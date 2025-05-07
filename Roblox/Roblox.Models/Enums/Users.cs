@@ -59,6 +59,12 @@ namespace Roblox.Models.Users
         Light = 1,
         Dark,
     }
+    
+    public enum AvatarPageStyle
+    {
+        Modern = 1,
+        Legacy,
+    }
 
     public enum PresenceType
     {

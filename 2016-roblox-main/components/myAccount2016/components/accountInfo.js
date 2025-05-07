@@ -2,13 +2,14 @@ import React, { useRef } from "react";
 import { createUseStyles } from "react-jss";
 import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
-import { getTheme, setTheme } from "../../../services/theme";
+import {getAvPageStyle, getTheme, setAvPageStyle, setTheme} from "../../../services/theme";
 import AuthenticationStore from "../../../stores/authentication";
 import useCardStyles from "../../userProfile/styles/card";
 import MyAccountStore from "../stores/myAccountStore"
 import useFormStyles from "../styles/forms";
 import GenderSelection from "./genderSelection";
 import Subtitle from "./subtitle";
+import {setAvPageStyleReq} from "../../../services/accountSettings";
 
 const useEditButtonStyles = createUseStyles({
   editButton: {
@@ -115,7 +116,8 @@ const AccountInfo = props => {
         <div className={cardStyles.card + ' p-3'}>
           <div className='row mt-1'>
             <div className='col pe-0'>
-              <input className={'form-control ' + s.select + ' ' + s.disabled} value='Website Theme' readOnly={true} type='text'></input>
+              <input className={'form-control ' + s.select + ' ' + s.disabled} value='Website Theme' readOnly={true}
+                     type='text'></input>
             </div>
             <div className='col ps-0 pe-0'>
               <select className={'form-control ' + s.select} value={getTheme()} onChange={(ev) => {
@@ -124,6 +126,22 @@ const AccountInfo = props => {
               }}>
                 <option value='light'>Default</option>
                 <option value='obc2016'>OBC Theme</option>
+              </select>
+            </div>
+          </div>
+          <div className='row mt-2'>
+            <div className='col pe-0'>
+              <input className={'form-control ' + s.select + ' ' + s.disabled} value='Avatar Page Style' readOnly={true}
+                     type='text'></input>
+            </div>
+            <div className='col ps-0 pe-0'>
+              <select className={'form-control ' + s.select} value={getAvPageStyle()} onChange={(ev) => {
+                setAvPageStyle(ev.currentTarget.value);
+                setAvPageStyleReq({ newAvatarPageStyle: ev.currentTarget.value });
+                window.location.reload();
+              }}>
+                <option value="Modern">Modern (2017+)</option>
+                <option value="Legacy">Legacy (2013-2017)</option>
               </select>
             </div>
           </div>

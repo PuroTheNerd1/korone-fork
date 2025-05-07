@@ -3,7 +3,7 @@ import { createUseStyles } from "react-jss";
 import AuthenticationStore from "../../stores/authentication";
 import NavigationStore from "../../stores/navigation";
 import LinkEntry from "./components/linkEntry";
-import { getTheme, themeType } from "../../services/theme";
+import {avPageStyleType, getAvPageStyle, getTheme, themeType} from "../../services/theme";
 
 const useNavSideBarStyles = createUseStyles({
   container: {
@@ -93,8 +93,7 @@ const NavSideBar = props => {
       <LinkEntry theme={getTheme()} name='Profile' url={'/users/' + authStore.userId + '/profile'} icon='icon-nav-profile' />
       <LinkEntry theme={getTheme()} name='Messages' url='/My/Messages' icon='icon-nav-message' count={authStore.notificationCount.messages} />
       <LinkEntry theme={getTheme()} name='Friends' url={'/users/' + authStore.userId + '/friends'} icon='icon-nav-friends' count={authStore.notificationCount.friendRequests} />
-      <LinkEntry theme={getTheme()} name='Character' url='/My/Character.aspx' icon='icon-nav-charactercustomizer' />
-      <LinkEntry theme={getTheme()} name='Avatar' url='/My/Avatar' icon='icon-nav-charactercustomizer' />
+      <LinkEntry theme={getTheme()} name='Avatar' url={getAvPageStyle() === avPageStyleType.Legacy ? '/My/Character.aspx' : '/My/Avatar'} icon='icon-nav-charactercustomizer' />
       <LinkEntry theme={getTheme()} name='Inventory' url={'/users/' + authStore.userId + '/inventory'} icon='icon-nav-inventory' />
       <LinkEntry theme={getTheme()} name='Trade' url='/My/Trades.aspx' icon='icon-nav-trade' count={authStore.notificationCount.trades} />
       <LinkEntry theme={getTheme()} name='Groups' url='/My/Groups.aspx' icon='icon-nav-group' />

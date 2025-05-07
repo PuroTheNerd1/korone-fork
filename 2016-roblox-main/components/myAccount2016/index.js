@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { createUseStyles } from "react-jss";
-import { getInventoryPrivacy, getTradePrivacy, getTradeValue } from "../../services/accountSettings";
+import {getInventoryPrivacy, getTradePrivacy, getTradeValue} from "../../services/accountSettings";
 import { getUserInfo } from "../../services/users";
 import AuthenticationStore from "../../stores/authentication";
 import AccountInfo from "./components/accountInfo";

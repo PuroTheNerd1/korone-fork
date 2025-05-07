@@ -27,7 +27,7 @@ public class AccountInformationService : ServiceBase, IService
 
     public async Task<UserSettingsEntry> GetUserSettings(long userId)
     {
-        return await db.QuerySingleOrDefaultAsync<UserSettingsEntry>("SELECT gender, theme, inventory_privacy as inventoryPrivacy, trade_privacy as tradePrivacy, trade_filter as tradeFilter FROM user_settings WHERE user_id = :user_id",
+        return await db.QuerySingleOrDefaultAsync<UserSettingsEntry>("SELECT gender, theme, inventory_privacy as inventoryPrivacy, trade_privacy as tradePrivacy, trade_filter as tradeFilter, avatar_page_style as avatarPageStyle FROM user_settings WHERE user_id = :user_id",
             new {user_id = userId});
     }
 
@@ -64,6 +64,28 @@ public class AccountInformationService : ServiceBase, IService
         });
         using var themeCache = ServiceProvider.GetOrCreate<UserThemeCache>();
         themeCache.Set(userId, theme);
+    }
+    
+    public async Task<AvatarPageStyle> GetUserAvatarPageStyle(long userId)
+    {
+        using var styleCache = ServiceProvider.GetOrCreate<UserAvatarPageStyleCache>();
+        var (exists, cached) = styleCache.Get(userId);
+        if (exists)
+            return cached;
+        
+        cached = (await GetUserSettings(userId)).avatarPageStyle;
+        styleCache.Set(userId, cached);
+        return cached;
+    }
+    
+    public async Task SetUserAvatarPageStyle(long userId, AvatarPageStyle style)
+    {
+        await UpdateAsync("user_settings", "user_id", userId, new
+        {
+            avatar_page_style = style,
+        });
+        using var styleCache = ServiceProvider.GetOrCreate<UserAvatarPageStyleCache>();
+        styleCache.Set(userId, style);
     }
 
     public async Task<InventoryPrivacy> GetUserInventoryPrivacy(long userId)
