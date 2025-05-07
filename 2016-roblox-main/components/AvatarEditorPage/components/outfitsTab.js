@@ -21,12 +21,9 @@ const useCardStyles = createUseStyles({
         borderRadius: 3,
         display: "flex",
         flexDirection: "column",
-        padding: 5,
-        "@media(max-width: 992px)": {
-            aspectRatio: "4 / 5",
-            width: "calc(20% - 8px)",
-            padding: 0,
-        },
+        aspectRatio: "4 / 5",
+        width: "calc(20% - 8px)",
+        padding: 0,
         "@media(max-width: 768px)": {
             width: "calc(25% - 8px)",
         },
@@ -288,9 +285,7 @@ const useStyles = createUseStyles({
         width: "100%",
         flexWrap: "wrap",
         position: "relative",
-        "@media(max-width: 992px)": {
-            gap: 10,
-        }
+        gap: 10,
     },
 });
 

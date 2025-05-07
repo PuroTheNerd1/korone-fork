@@ -203,7 +203,7 @@ function Slider({ className, step, min, max, value, setValue, changeValue, disab
             slider.addEventListener('input', updateProgress);
             updateProgress();
         });
-    }, [disabled]);
+    }, [disabled, value]);
     
     const onInputUp = e => {
         if (downStats === value) return;

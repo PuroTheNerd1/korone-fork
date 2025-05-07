@@ -64,6 +64,17 @@ const useStyles = createUseStyles({
             paddingBottom: 0,
         },
     },
+    scalingContainerDesktop: {
+        "@media(max-width: 576px)": {
+            display: "none",
+        }
+    },
+    scalingContainerMobile: {
+        display: "none",
+        "@media(max-width: 576px)": {
+            display: "block",
+        }
+    },
     scalingHeaderContainer: {
         textAlign: 'start',
         fontSize: 21,
@@ -161,7 +172,6 @@ function AvatarEditor() {
     const [avThumb, setAvThumb] = useState(null);
     const [isRendering, setIsRendering] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
-    const isMobileRes = useWindowQuery("max-width: 576px");
     
     useEffect(() => {
         listItemMetadata.current = page.listItemMetadata;
@@ -221,45 +231,6 @@ function AvatarEditor() {
         setIsRendering(store.isRendering)
     }, [store.isRendering]);
     
-    const Scaling = () => {
-        return <div className={s.scalingContainer}>
-            <div className={s.scalingHeaderContainer}>
-                <h1 className={s.scalingHeader}>Scaling</h1>
-            </div>
-            <div>
-                {
-                    store?.avRules && store?.bodyScales &&
-                    Object.entries(store.avRules.scales).map(([key, value]) => (
-                        <>
-                            <div
-                                style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}}
-                                className="flex justify-content-between">
-                                <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
-                                <span>{Math.round(store.bodyScales[key] * 100)}%</span>
-                            </div>
-                            <Slider
-                                className={s.sliderInput}
-                                min={value.min}
-                                max={value.max}
-                                step={value.increment * 5}
-                                value={store.bodyScales[key]}
-                                setValue={(val) => {
-                                    store.setBodyScales(prev => ({...prev, [key]: Number(val.target.value)}));
-                                }}
-                                changeValue={(val) => {
-                                    store.setModifiedScaling({
-                                        [key]: Number(val.target.value),
-                                    });
-                                }}
-                                disabled={store.bodyRigType === "R6"}
-                            />
-                        </>
-                    ))
-                }
-            </div>
-        </div>
-    }
-    
     return <div>
         <div className={`${s.avatarHeader} flex justify-content-between align-items-center`}>
             <h1 className={s.avatarHeaderText}>Avatar Editor</h1>
@@ -291,9 +262,45 @@ function AvatarEditor() {
                             ]} selected={store?.bodyRigType} setSelected={store?.setModifiedRigType}/>
                         </div>
                     </div>
-                    {
-                        !isMobileRes ? <Scaling key="desktop" /> : null
-                    }
+                    <div className={`${s.scalingContainer} ${s.scalingContainerDesktop}`}>
+                        <div className={s.scalingHeaderContainer}>
+                            <h1 className={s.scalingHeader}>Scaling</h1>
+                        </div>
+                        <div>
+                            {
+                                store?.avRules && store?.bodyScales &&
+                                Object.entries(store.avRules.scales).map(([key, value]) => (
+                                    <>
+                                        <div
+                                            style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}}
+                                            className="flex justify-content-between">
+                                            <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
+                                            <span>{Math.round(store.bodyScales[key] * 100)}%</span>
+                                        </div>
+                                        <Slider
+                                            className={s.sliderInput}
+                                            min={value.min}
+                                            max={value.max}
+                                            step={value.increment * 5}
+                                            value={store.bodyScales[key]}
+                                            setValue={(val) => {
+                                                store.setBodyScales(prev => ({
+                                                    ...prev,
+                                                    [key]: Number(val.target.value)
+                                                }));
+                                            }}
+                                            changeValue={(val) => {
+                                                store.setModifiedScaling({
+                                                    [key]: Number(val.target.value),
+                                                });
+                                            }}
+                                            disabled={store.bodyRigType === "R6"}
+                                        />
+                                    </>
+                                ))
+                            }
+                        </div>
+                    </div>
                 </div>
                 <div className={`flex justify-content-between ${s.redrawContainer} ${s.firstRedraw}`}>
                     <span>Avatar isn't updated?</span>
@@ -566,10 +573,46 @@ function AvatarEditor() {
                 }
             </div>
             {
-                isMobileRes ? <div className={`section-content`} style={{ padding: 0, }}>
-                    <Scaling key="mobile" />
-                </div> : null
+                /** this had to be copy and pasted twice for mobile support but its SO ugly */
             }
+            <div className={`section-content ${s.scalingContainerMobile}`} style={{ padding: 0 }}>
+                <div className={`${s.scalingContainer}`}>
+                    <div className={s.scalingHeaderContainer}>
+                        <h1 className={s.scalingHeader}>Scaling</h1>
+                    </div>
+                    <div>
+                        {
+                            store?.avRules && store?.bodyScales &&
+                            Object.entries(store.avRules.scales).map(([key, value]) => (
+                                <>
+                                    <div
+                                        style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}}
+                                        className="flex justify-content-between">
+                                        <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
+                                        <span>{Math.round(store.bodyScales[key] * 100)}%</span>
+                                    </div>
+                                    <Slider
+                                        className={s.sliderInput}
+                                        min={value.min}
+                                        max={value.max}
+                                        step={value.increment * 5}
+                                        value={store.bodyScales[key]}
+                                        setValue={(val) => {
+                                            store.setBodyScales(prev => ({...prev, [key]: Number(val.target.value)}));
+                                        }}
+                                        changeValue={(val) => {
+                                            store.setModifiedScaling({
+                                                [key]: Number(val.target.value),
+                                            });
+                                        }}
+                                        disabled={store.bodyRigType === "R6"}
+                                    />
+                                </>
+                            ))
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 }
