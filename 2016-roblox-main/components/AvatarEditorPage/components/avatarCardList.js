@@ -189,13 +189,7 @@ function AvatarCardList() {
             <div className={s.btnContainer}>
                 <ActionButton
                     label="Load More"
-                    onClick={async () => {
-                        if (deb) return;
-                        deb.current = true;
-                        await page.LoadAssetTypeToList(page.listItemMetadata.assetType, true);
-                        await wait(2.5);
-                        deb.current = false;
-                    }}
+                    onClick={() => page.LoadAssetTypeToList(page.listItemMetadata.assetType, true)}
                     buttonStyle={buttonStyles.newCancelButton}
                     className={s.loadMoreBtn}
                 />
