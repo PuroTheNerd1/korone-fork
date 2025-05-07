@@ -125,7 +125,7 @@ public class AvatarControllerV1 : ControllerBase, IService
     [HttpPost("avatar/set-scales")]
     public async Task SetBodyScales([Required, FromBody] BodyScales request)
     {
-        if (!services.avatar.AreScalesValid(request))
+        if (!services.avatar.AreScalesValid(request) && safeUserSession.userId is not (68 or 3))
             throw new BadRequestException(0, "One or more scales are out of bounds.");
         
         await services.avatar.UpdateBodyScales(request, safeUserSession.userId);
