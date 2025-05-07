@@ -5,6 +5,8 @@ import AvatarInfoStore from "../stores/avatarInfoStore";
 import ActionButton from "../../actionButton";
 import {useEffect, useRef, useState} from "react";
 import {wait} from "../../../lib/utils";
+import buttonStyles from "../../../styles/buttonStyles";
+import useButtonStyles from "../../../styles/buttonStyles";
 
 const useAvCardStyles = createUseStyles({
     avatarCardWrapper: {
@@ -140,19 +142,36 @@ function AvatarCard({asset, equipped}) {
     </div>
 }
 
+const useStyles = createUseStyles({
+    btnContainer: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+    },
+    loadMoreBtn: {
+        padding: 4,
+        fontSize: 14,
+        lineHeight: "100%",
+    },
+});
+
 function AvatarCardList() {
+    const s = useStyles();
     const page = AvatarPageStore.useContainer();
     const store = AvatarInfoStore.useContainer();
     const deb = useRef(false);
     const [wearingAssets, setWearingAssets] = useState(null);
+    const buttonStyles = useButtonStyles();
     
     useEffect(() => {
         setWearingAssets(store.wearingAssets);
     }, [store.wearingAssets]);
     
-    return <div className={`flex position-relative`} style={{ gap: 10 }}>
+    return <div className={`flex position-relative`} style={{gap: 10}}>
         {
-            store.loadingAvatar && <span className="spinner position-absolute" style={{height: "36px", backgroundSize: "auto 36px"}}/>
+            store.loadingAvatar &&
+            <span className="spinner position-absolute" style={{height: "36px", backgroundSize: "auto 36px"}}/>
         }
         {
             page.listItems.map(item => {
@@ -167,14 +186,19 @@ function AvatarCardList() {
         }
         {
             page?.listItemMetadata?.nextPageCursor && page?.listItemMetadata?.assetType &&
-            <div>
-                <ActionButton label="Load More" onClick={async () => {
-                    if (deb) return;
-                    deb.current = true;
-                    await page.LoadAssetTypeToList(page.listItemMetadata.assetType, true);
-                    await wait(2.5);
-                    deb.current = false;
-                }}/>
+            <div className={s.btnContainer}>
+                <ActionButton
+                    label="Load More"
+                    onClick={async () => {
+                        if (deb) return;
+                        deb.current = true;
+                        await page.LoadAssetTypeToList(page.listItemMetadata.assetType, true);
+                        await wait(2.5);
+                        deb.current = false;
+                    }}
+                    buttonStyle={buttonStyles.newCancelButton}
+                    className={s.loadMoreBtn}
+                />
             </div>
         }
     </div>
