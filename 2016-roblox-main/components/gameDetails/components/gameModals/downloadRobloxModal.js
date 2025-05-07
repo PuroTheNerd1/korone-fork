@@ -116,7 +116,7 @@ const downloadProjexModal = props => {
     const onClick = e => {
         e.preventDefault();
         setOpen(false);
-        window.location.href = "https://setup.goober.top/ProjectXPlayerLauncher.exe";
+        window.location.href = "https://setup.pekora.zip/ProjectXPlayerLauncher.exe";
     }
 
     useEffect(async () => {
