@@ -1644,3 +1644,21 @@ span.game-privacy-symbol.gps-active {
 	margin-left: 5px;
 	top: 2px;
 }
+
+.icon-default-generic-16x16,.icon-settings-16x16,.icon-edit-16x16,.icon-moreinfo-16x16,.icon-right-16x16,.icon-left-16x16,.icon-up-16x16,.icon-down-16x16,.icon-checkmark-16x16,.icon-close-16x16,.icon-red-timer-16x16,.icon-close-gray-16x16,.rbx-select-group:hover .icon-down,.input-group-btn .input-dropdown-btn:hover .icon-down,.input-group-btn .input-dropdown-btn:focus .icon-down,.open .input-dropdown-btn .icon-down {
+	background-image: url(/img/generic_03112016.svg);
+	background-repeat: no-repeat;
+	background-size: 32px auto;
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.icon-settings-16x16 {
+	background-position: 0 -32px;
+}
+
+.icon-settings-16x16:hover {
+	background-position: -16px -32px;
+}

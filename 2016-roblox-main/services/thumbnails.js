@@ -80,6 +80,12 @@ export const multiGetUserHeadshots = ({ userIds, size = '420x420', format = 'png
   });
 }
 
+/**
+ * @param {number[]} userOutfitIds
+ * @param {string} size
+ * @param {string} format
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
 export const multiGetOutfitThumbnails = ({ userOutfitIds, size = '420x420', format = 'png' }) => {
   return request('GET', getFullUrl('thumbnails', `/v1/users/outfits?userOutfitIds=${toCsv(userOutfitIds)}&size=${size}&format=${format}`)).then(d => d.data.data);
 }
@@ -88,6 +94,17 @@ export const multiGetGroupIcons = ({ groupIds }) => {
   return request('get', getFullUrl('thumbnails', `/v1/groups/icons?groupIds=${toCsv(groupIds)}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
 }
 
+/**
+ * @typedef ThumbnailEntry
+ * @property {number} targetId
+ * @property {string} state
+ * @property {string} imageUrl
+ */
+
+/**
+ * @param assetIds
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
 export const multiGetAssetThumbnails = ({ assetIds }) => {
   return request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${toCsv(assetIds)}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
 }

@@ -7,6 +7,7 @@ using Roblox.Exceptions;
 using Roblox.Models.Avatar;
 using Roblox.Services.App.FeatureFlags;
 using Newtonsoft.Json;
+using Roblox.Logging;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Roblox.Services.Exceptions;
 #pragma warning disable CS8600
@@ -23,7 +24,7 @@ public class AvatarRBX : ControllerBase
     }
 
     private async void AttemptScheduleRender(bool forceRedraw = false)
-    {
+    { //
         var userId = safeUserSession.userId;
         if (!forceRedraw)
         {
@@ -162,22 +163,7 @@ public class AvatarRBX : ControllerBase
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, request.assetIds);
 
-        AttemptScheduleRender();
-    }
-
-    [HttpPostBypass("v1/avatar/assets/{assetId:long}/wear")]
-    public async Task WearAsset([Required] long assetId)
-    {
-        FeatureCheck();
-        var currentlyWorn = (await services.avatar.GetWornAssets(safeUserSession.userId)).ToList();
-        if (!currentlyWorn.Contains(assetId))
-        {
-            currentlyWorn.Add(assetId);
-        }
-
-        using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
-        await cache.SetPendingAssets(safeUserSession.userId, currentlyWorn);
-
+        
         AttemptScheduleRender();
     }
 
@@ -201,28 +187,6 @@ public class AvatarRBX : ControllerBase
         AttemptScheduleRender();
     }
 
-    [HttpGetBypass("v1/recent-items/{item}/list")]
-    public async Task<dynamic> GetRecentItems()
-    {
-        FeatureCheck();
-        var recent = await services.avatar.GetRecentItems(safeUserSession.userId);
-        var multiGet = await services.assets.MultiGetInfoById(recent);
-        return new
-        {
-            data = multiGet.Select(c => new
-            {
-                id = c.id,
-                name = c.name,
-                type = "Asset",
-                assetType = new
-                {
-                    id = (int) c.assetType,
-                    name = c.assetType,
-                }
-            })
-        };
-    }
-
     [HttpGetBypass("v1/users/{userId:long}/outfits")]
     public async Task<dynamic> GetUserOutfits(long userId, int itemsPerPage, int page)
     {
@@ -242,7 +206,7 @@ public class AvatarRBX : ControllerBase
     {
         FeatureCheck();
         var outfitDetails = await services.avatar.GetOutfitById(outfitId);
-        await services.avatar.RedrawAvatar(safeUserSession.userId, outfitDetails.assetIds, outfitDetails.details, AvatarType.R6);
+        await services.avatar.RedrawAvatar(safeUserSession.userId, outfitDetails.assetIds, outfitDetails.details);
     }
 
     /// <summary>
@@ -260,7 +224,7 @@ public class AvatarRBX : ControllerBase
         await services.avatar.CreateOutfit(safeUserSession.userId, request.name, existingAvatar.thumbnailUrl,
             existingAvatar.headshotUrl, new OutfitExtendedDetails()
             {
-                details = new OutfitAvatar()
+                details = new OutfitAvatar
                 {
                     headColorId = existingAvatar.headColorId,
                     torsoColorId = existingAvatar.torsoColorId,
@@ -268,6 +232,13 @@ public class AvatarRBX : ControllerBase
                     rightArmColorId = existingAvatar.rightArmColorId,
                     leftLegColorId = existingAvatar.leftLegColorId,
                     rightLegColorId = existingAvatar.rightLegColorId,
+                    height = existingAvatar.scales.height,
+                    width = existingAvatar.scales.width,
+                    head = existingAvatar.scales.head,
+                    depth = existingAvatar.scales.depth,
+                    proportion = existingAvatar.scales.proportion,
+                    bodyType = existingAvatar.scales.bodyType,
+                    avatarType = existingAvatar.avatarType,
                     userId = safeUserSession.userId,
                 },
                 assetIds = assets,
@@ -285,6 +256,17 @@ public class AvatarRBX : ControllerBase
         await services.avatar.DeleteOutfit(outfitId);
     }
 
+    [HttpPost("outfits/{outfitId:long}/rename")]
+    public async Task RenameOutfit(long outfitId, [Required,FromBody] UpdateOutfitRequest request)
+    {
+        FeatureCheck();
+        if (request.name == null) throw new BadRequestException(0, "Name field required in body");
+        var outfitDetails = await services.avatar.GetOutfitById(outfitId);
+        if (outfitDetails.details.userId != safeUserSession.userId)
+            throw new ForbiddenException();
+        await services.avatar.RenameOutfit(outfitId, request.name);
+    }
+    
     /// <summary>
     /// Update an outfit
     /// </summary>
@@ -311,6 +293,13 @@ public class AvatarRBX : ControllerBase
                     rightArmColorId = existingAvatar.rightArmColorId,
                     leftLegColorId = existingAvatar.leftLegColorId,
                     rightLegColorId = existingAvatar.rightLegColorId,
+                    height = existingAvatar.scales.height,
+                    width = existingAvatar.scales.width,
+                    head = existingAvatar.scales.head,
+                    depth = existingAvatar.scales.depth,
+                    proportion = existingAvatar.scales.proportion,
+                    bodyType = existingAvatar.scales.bodyType,
+                    avatarType = existingAvatar.avatarType,
                     userId = safeUserSession.userId,
                 },
                 assetIds = assets,
@@ -546,11 +535,5 @@ public class AvatarRBX : ControllerBase
             bundlesEnabledForUser = false,
             emotesEnabledForUser = false,
         };
-    }
-
-    [HttpPostBypass("v1/avatar/set-scales"), HttpPostBypass("v1/avatar/set-player-avatar-type")]
-    public void AvatarNoOp()
-    {
-
     }
 }

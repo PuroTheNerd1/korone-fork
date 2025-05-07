@@ -9,3 +9,14 @@ export const isTouchDevice = () => {
 export const Random = (min, max) => {
   return Math.floor(Math.random() * (max - min) ) + min;
 }
+
+/**
+ * @param {number} seconds
+ * @returns {Promise}
+ */
+export const wait = (seconds) =>
+    new Promise(resolve => setTimeout(resolve, seconds * 1000));
+
+export function IsNullOrEmpty(value) {
+  return !value || value.trim().length === 0;
+}

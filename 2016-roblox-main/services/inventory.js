@@ -14,6 +14,14 @@ export const getOwnedCopies = ({ assetId, userId }) => {
   }));
 }
 
+/**
+ *
+ * @param {number} userId
+ * @param {number} limit
+ * @param {number} cursor
+ * @param {number} assetTypeId
+ * @returns {Promise<{Data: DataInv}>}
+ */
 export const getInventory = ({ userId, limit, cursor, assetTypeId }) => {
   return request('GET', getBaseUrl() + `/users/inventory/list-json?userId=${userId}&assetTypeId=${assetTypeId}&cursor=${encodeURIComponent(cursor || '')}&itemsPerPage=${limit}`).then(d => d.data);
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Avatar;
@@ -71,13 +72,21 @@ public class AvatarControllerV1 : ControllerBase, IService
     {
         FeatureCheck();
         
+        var currentlyWorn = (await services.avatar.GetWornAssets(safeUserSession.userId)).ToList();
+        var newAssetIds = request.assetIds.ToList();
+        var changedAssetIds = currentlyWorn.Except(newAssetIds).Concat(newAssetIds.Except(currentlyWorn));
+        
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, request.assetIds);
         
         AttemptScheduleRender();
+        foreach (long assetId in changedAssetIds) {
+            await services.avatar.UpdateLastUpdated(safeUserSession.userId, assetId);
+        }
     }
 
     [HttpPost("avatar/assets/{assetId:long}/wear")]
+    [HttpPostBypass("/v1/avatar/assets/{assetId:long}/wear")]
     public async Task WearAsset([Required] long assetId)
     {
         FeatureCheck();
@@ -89,11 +98,13 @@ public class AvatarControllerV1 : ControllerBase, IService
 
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, currentlyWorn);
+        await services.avatar.UpdateLastUpdated(safeUserSession.userId, assetId);
         
         AttemptScheduleRender();
     }
     
     [HttpPost("avatar/assets/{assetId:long}/remove")]
+    [HttpPostBypass("/v1/avatar/assets/{assetId:long}/remove")]
     public async Task RemoveAsset([Required] long assetId)
     {
         FeatureCheck();
@@ -105,12 +116,14 @@ public class AvatarControllerV1 : ControllerBase, IService
 
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, currentlyWorn);
+        await services.avatar.UpdateLastUpdated(safeUserSession.userId, assetId);
         
         AttemptScheduleRender();
     }
 
+    [HttpPostBypass("/v1/avatar/set-scales")]
     [HttpPost("avatar/set-scales")]
-    public async Task SetBodyAttributes([Required, FromBody] BodyScales request)
+    public async Task SetBodyScales([Required, FromBody] BodyScales request)
     {
         if (!services.avatar.AreScalesValid(request))
             throw new BadRequestException(0, "One or more scales are out of bounds.");
@@ -119,20 +132,41 @@ public class AvatarControllerV1 : ControllerBase, IService
         AttemptScheduleRender();
     }
     
+    [HttpPostBypass("/v1/avatar/set-player-avatar-type")]
     [HttpPost("avatar/set-player-avatar-type")]
-    public async Task SetBodyRigType([Required, FromBody] AvatarType type)
+    public async Task SetBodyRigType([Required, FromBody] SetAvatarTypeRequest request)
     {
-        await services.avatar.UpdateRigType((int) type, safeUserSession.userId);
+        if (!Enum.IsDefined(typeof(AvatarType), request.playerAvatarType))
+            throw new BadRequestException(0, "Invalid player avatar type");
+        await services.avatar.UpdateRigType((int) request.playerAvatarType, safeUserSession.userId);
         AttemptScheduleRender();
     }
 
     [HttpPost("avatar/set-body-colors")]
-    public async Task SetBodyColors([Required, FromBody] SetColorsRequest colors)
+    public async Task SetBodyColors([Required, FromBody] ColorEntry colors)
     {
         FeatureCheck();
+        var userId = safeUserSession.userId;
+        
+        dynamic avatarRules = GetAvatarRules();
+        List<int> rules = new List<int>();
+
+        foreach (var color in avatarRules.bodyColorsPalette)
+        {
+            rules.Add((int)color.brickColorId);
+        }
+        if (
+            !rules.Contains(colors.headColorId) ||
+            !rules.Contains(colors.torsoColorId) ||
+            !rules.Contains(colors.leftArmColorId) ||
+            !rules.Contains(colors.rightArmColorId) ||
+            !rules.Contains(colors.leftLegColorId) ||
+            !rules.Contains(colors.rightLegColorId)
+        )
+            throw new BadRequestException(0, "Invalid body color(s).");
         
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
-        await cache.SetColors(safeUserSession.userId, colors);
+        await cache.SetColors(userId, colors);
         
         AttemptScheduleRender();
     }
@@ -146,18 +180,26 @@ public class AvatarControllerV1 : ControllerBase, IService
         AttemptScheduleRender();
     }
 
-    [HttpGet("recent-items/{item}/list")]
-    public async Task<dynamic> GetRecentItems()
+    [HttpGet("recent-items/{recentType}/list")]
+    [HttpGetBypass("/v1/recent-items/{recentType}/list")]
+    public async Task<dynamic> GetRecentItems([Required] string recentType)
     {
         FeatureCheck();
-        var recent = await services.avatar.GetRecentItems(safeUserSession.userId);
+
+        var prop = typeof(AvatarService.AssetTypeGroups).GetProperty(recentType, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+        int[]? assetTypes = prop?.GetValue(services.avatar.RecentAssetTypes) as int[];
+
+        if (assetTypes == null)
+            throw new BadRequestException(0, "Bad Recent Type path parameter");
+        
+        var recent = (await services.avatar.GetRecentAvatarItems(safeUserSession.userId, assetTypes)).ToList();
         var multiGet = await services.assets.MultiGetInfoById(recent);
         return new
         {
-            data = multiGet.Select(c => new
+            data = multiGet.OrderBy(e => recent.IndexOf(e.id)).Select(c => new
             {
-                id = c.id,
-                name = c.name,
+                c.id,
+                c.name,
                 type = "Asset",
                 assetType = new
                 {
@@ -189,7 +231,16 @@ public class AvatarControllerV1 : ControllerBase, IService
     {
         FeatureCheck();
         var outfitDetails = await services.avatar.GetOutfitById(outfitId);
-        await services.avatar.RedrawAvatar(safeUserSession.userId, outfitDetails.assetIds, outfitDetails.details, AvatarType.R6);
+        var scales = new BodyScales {
+            height = outfitDetails.details.height,
+            width = outfitDetails.details.width,
+            head = outfitDetails.details.head,
+            depth = outfitDetails.details.depth,
+            bodyType = outfitDetails.details.bodyType,
+            proportion = outfitDetails.details.proportion,
+        };
+        await services.avatar.RedrawAvatar(safeUserSession.userId, outfitDetails.assetIds, outfitDetails.details, 
+            outfitDetails.details.avatarType, false, false, false, scales);
     }
 
     /// <summary>
@@ -215,6 +266,13 @@ public class AvatarControllerV1 : ControllerBase, IService
                     rightArmColorId = existingAvatar.rightArmColorId,
                     leftLegColorId = existingAvatar.leftLegColorId,
                     rightLegColorId = existingAvatar.rightLegColorId,
+                    height = existingAvatar.scales.height,
+                    width = existingAvatar.scales.width,
+                    head = existingAvatar.scales.head,
+                    depth = existingAvatar.scales.depth,
+                    proportion = existingAvatar.scales.proportion,
+                    bodyType = existingAvatar.scales.bodyType,
+                    avatarType = existingAvatar.avatarType,
                     userId = safeUserSession.userId,
                 },
                 assetIds = assets,
@@ -230,6 +288,17 @@ public class AvatarControllerV1 : ControllerBase, IService
             throw new ForbiddenException(0, "Forbidden");
         
         await services.avatar.DeleteOutfit(outfitId);
+    }
+    
+    [HttpPost("outfits/{outfitId:long}/rename")]
+    public async Task RenameOutfit(long outfitId, [Required,FromBody] UpdateOutfitRequest request)
+    {
+        FeatureCheck();
+        if (request.name == null) throw new BadRequestException(0, "Name field required in body");
+        var outfitDetails = await services.avatar.GetOutfitById(outfitId);
+        if (outfitDetails.details.userId != safeUserSession.userId)
+            throw new ForbiddenException();
+        await services.avatar.RenameOutfit(outfitId, request.name);
     }
     
     /// <summary>
@@ -258,6 +327,13 @@ public class AvatarControllerV1 : ControllerBase, IService
                     rightArmColorId = existingAvatar.rightArmColorId,
                     leftLegColorId = existingAvatar.leftLegColorId,
                     rightLegColorId = existingAvatar.rightLegColorId,
+                    height = existingAvatar.scales.height,
+                    width = existingAvatar.scales.width,
+                    head = existingAvatar.scales.head,
+                    depth = existingAvatar.scales.depth,
+                    proportion = existingAvatar.scales.proportion,
+                    bodyType = existingAvatar.scales.bodyType,
+                    avatarType = existingAvatar.avatarType,
                     userId = safeUserSession.userId,
                 },
                 assetIds = assets,
@@ -487,5 +563,23 @@ public class AvatarControllerV1 : ControllerBase, IService
     {
         throw new NotImplementedException();
     }
+    
+    public class AvatarMetadata
+    {
+        public string[] playerAvatarTypes { get; set; }
+        public List<BodyColor> bodyColorsPalette { get; set; }
+        public List<BodyColor> basicBodyColorsPalette { get; set; }
+        public double minimumDeltaEBodyColorDifference { get; set; }
+        public bool bundlesEnabledForUser { get; set; }
+        public bool emotesEnabledForUser { get; set; }
+    }
+    
+    public class BodyColor
+    {
+        public int brickColorId { get; set; }
+        public string hexColor { get; set; }
+        public string name { get; set; }
+    }
+
 
 }
