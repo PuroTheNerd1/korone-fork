@@ -18,12 +18,17 @@ public class SetColorsRequest : Roblox.Dto.Avatar.ColorEntry
     
 }
 
+public class SetAvatarTypeRequest
+{
+    public AvatarType playerAvatarType { get; set; }
+}
+
 public class CreateOutfitRequest
 {
     public string name { get; set; }
 }
 
-public class UpdateOutfitRequest : CreateOutfitRequest
+public class UpdateOutfitRequest
 {
-    
+    public string? name { get; set; }
 }

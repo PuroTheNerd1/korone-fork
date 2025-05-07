@@ -3,6 +3,7 @@ import {createUseStyles} from "react-jss";
 import AvatarPageStore from "../stores/avatarPageStore";
 import {abbreviateNumber} from "../../../lib/numberUtils";
 import AvatarInfoStore from "../stores/avatarInfoStore";
+import {wait} from "../../../lib/utils";
 
 const useStyles = createUseStyles({
     vTab: {
@@ -25,6 +26,9 @@ const useStyles = createUseStyles({
         '&:hover': {
             background: '#f2f2f2'
         },
+        "@media(max-width: 992px)": {
+            padding: '10px 2%',
+        }
     },
     spanText: {
         display: 'inline-block',
@@ -35,6 +39,9 @@ const useStyles = createUseStyles({
         "& *": {
             fontSize: "inherit",
             lineHeight: "inherit",
+        },
+        "@media(max-width: 992px)": {
+            fontSize: "14px!important",
         }
     },
     vTagSelected: {},
@@ -116,10 +123,11 @@ const useStyles = createUseStyles({
 /**
  * Vertical tabs, custom for avatar
  * @param {{
- * options: {id: string; name: string; element: JSX.Element; onClick?: any; count?: number}[];
+ * options: {id: string; name: string; element: JSX.Element; onClick?: any; tabType?: number; count?: number}[];
  * onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void;
  * default?: string;
  * elementClass?: string;
+ * setTabType: (number) => void;
  * }} props
  */
 const avatarTabs = props => {
@@ -131,14 +139,21 @@ const avatarTabs = props => {
     // active always takes priority over open
     const {activeSubmenu, setActiveSubmenu, openSubmenu, setOpenSubmenu, selectedList} = AvatarPageStore.useContainer();
     const [hoveringTabs, setHoveringTabs] = useState(false);
+    const [hoveringSubmenuTabs, setHoveringSubmenuTabs] = useState(false);
     
     const selmElmRef = useRef(null);
     const tabElmRef = useRef(null);
+    const timeoutRef = useRef(null);
     
     useEffect(() => {
         const handleClick = () => {
-            setActiveSubmenu(null);
-            setHoveringTabs(false);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            timeoutRef.current = setTimeout(() => {
+                if (!activeSubmenu?.clickImmune) {
+                    setActiveSubmenu(null);
+                }
+                setHoveringTabs(false);
+            }, 25);
         };
         const handleMouseMove = (event) => {
             const elements = document.elementsFromPoint(event.clientX, event.clientY);
@@ -149,6 +164,7 @@ const avatarTabs = props => {
         return () => {
             document.removeEventListener('click', handleClick);
             document.removeEventListener('mousemove', handleMouseMove);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
         }
     }, [activeSubmenu, openSubmenu]);
     
@@ -165,10 +181,23 @@ const avatarTabs = props => {
                         option.id === openSubmenu?.id && hoveringTabs ||
                         option.id === getListTab()?.id && !activeSubmenu?.id;
                     return <div key={option.name} className={s.vTab} onClick={() => {
-                        setActiveSubmenu(option);
+                        if (option.tabType) {
+                            props.setTabType(option.tabType);
+                            setActiveSubmenu({
+                                ...option,
+                                clickImmune: true,
+                            });
+                        } else {
+                            props.setTabType(0);
+                            setActiveSubmenu(option);
+                        }
                         if (props.onChange) props.onChange(option);
                         if (option.onClick) option.onClick(option);
-                    }} onMouseOver={() => setOpenSubmenu(option)}>
+                    }}
+                                onMouseOver={() => setOpenSubmenu(option)}
+                                onMouseEnter={() => setHoveringSubmenuTabs(true)}
+                                onMouseLeave={() => setHoveringSubmenuTabs(false)}
+                    >
                         <p className={`${!isSelected && s.vTabUnselected} ${s.vTabLabel}`}>
                             <span className={s.spanText}>
                                 {option.name}

@@ -255,7 +255,15 @@ const About = props => {
     },
     {
       name: 'Download',
-      url: `/asset/?id=${placeId}`
+      onClick: (e) => {
+        e.preventDefault();
+        const a = document.createElement("a");
+        a.href = `/asset/?id=${placeId}`;
+        a.download = `${gameName}.rbxl`
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     }
   ]
 

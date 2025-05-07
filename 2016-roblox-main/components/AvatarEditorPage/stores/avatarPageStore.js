@@ -1,10 +1,11 @@
 import {createContainer} from "unstated-next";
 import {useEffect, useState} from "react";
-import {getRecentItems, RECENT_ITEMS} from "../../../services/avatar";
+import {getOutfits, getRecentItems, RECENT_ITEMS} from "../../../services/avatar";
 import {getInventory} from "../../../services/inventory";
 import {SUBMENU_MODE} from "../components/avatarTabSubmenu";
 import AuthenticationStore from "../../../stores/authentication";
-import {multiGetAssetThumbnails} from "../../../services/thumbnails";
+import {multiGetAssetThumbnails, multiGetOutfitThumbnails} from "../../../services/thumbnails";
+import AvatarInfoStore from "./avatarInfoStore";
 
 /** @typedef EmptyType */
 
@@ -13,6 +14,15 @@ import {multiGetAssetThumbnails} from "../../../services/thumbnails";
  * @property {string} name
  * @property {number} assetId
  * @property {number} assetType
+ * @property {string?} thumbnail
+ * @property {string} thumbnailState
+ */
+
+/**
+ * @typedef SortedOutfit
+ * @property {string} name
+ * @property {number} outfitId
+ * @property {string} createdAt - ISO 8601 timestamp indicating when the item was created.
  * @property {string?} thumbnail
  * @property {string} thumbnailState
  */
@@ -31,6 +41,7 @@ import {multiGetAssetThumbnails} from "../../../services/thumbnails";
 const AvatarPageStore = createContainer(() => {
     const [listItems, setListItems] = useState([]);
     const [listItemMetadata, setListItemMetadata] = useState({});
+    const [outfits, setOutfits] = useState([]);
     // there is a state for the currently showing and selected list, which is like the Clothing > Hat text
     // there is state for the currently clicked tab. when a tab is clicked, ti will set this state to tiself and open submenu
     //
@@ -43,8 +54,10 @@ const AvatarPageStore = createContainer(() => {
     const [openSubmenu, setOpenSubmenu] = useState(null);
     const [activeSubmenu, setActiveSubmenu] = useState(null);
     const auth = AuthenticationStore.useContainer();
+    const { setLoadingAvatar } = AvatarInfoStore.useContainer();
     
     async function LoadRecentItemsToList(type) {
+        setLoadingAvatar(true);
         let recent = (await getRecentItems(type)).data;
         ClearListItems();
         if (recent.length === 0) {
@@ -56,11 +69,13 @@ const AvatarPageStore = createContainer(() => {
                 recentType: type,
                 listMode: SUBMENU_MODE.DEFAULT,
             });
+            setLoadingAvatar(false);
             return;
         }
         let thumbnails = await multiGetAssetThumbnails({ assetIds: recent.map(item => item.id) });
         setListItems(recent.map(item => {
             let thumb = thumbnails?.find(v => v.targetId === item.id) || null;
+            setLoadingAvatar(false);
             return {
                 name: item.name,
                 assetId: item.id,
@@ -77,10 +92,12 @@ const AvatarPageStore = createContainer(() => {
             recentType: type,
             listMode: SUBMENU_MODE.DEFAULT,
         });
+        setLoadingAvatar(false);
         return listItems;
     }
     
     async function LoadAssetTypeToList(type, loadMore) {
+        setLoadingAvatar(true);
         let invList = (await getInventory({
             userId: auth.userId,
             assetTypeId: type,
@@ -97,11 +114,13 @@ const AvatarPageStore = createContainer(() => {
                 assetType: type,
                 listMode: SUBMENU_MODE.DEFAULT,
             });
+            setLoadingAvatar(false);
             return;
         }
         let thumbnails = await multiGetAssetThumbnails({ assetIds: invList.Items.map(item => item.Item.AssetId) });
         let newItems = invList.Items.map(item => {
             let thumb = thumbnails?.find(v => v.targetId === item.Item.AssetId) || null;
+            setLoadingAvatar(false);
             return {
                 name: item.Item.Name,
                 assetId: item.Item.AssetId,
@@ -123,7 +142,29 @@ const AvatarPageStore = createContainer(() => {
             assetType: type,
             listMode: SUBMENU_MODE.DEFAULT,
         });
+        setLoadingAvatar(false);
         return listItems;
+    }
+    
+    async function LoadOutfits() {
+        setOutfits([]);
+        let outfits = await getOutfits({ userId: auth.userId, limit: 100 });
+        if (outfits.total === 0) return;
+        
+        let outfitThumbnails = await multiGetOutfitThumbnails(
+            { userOutfitIds: outfits.data.map(v => v.id), size: '100x100' }
+        );
+        setOutfits(outfits.data.map(outfit => {
+            let outfitThumb = outfitThumbnails?.find(v => v.targetId === outfit.id) || null;
+            return {
+                name: outfit.name,
+                outfitId: outfit.id,
+                createdAt: outfit.created,
+                thumbnail: outfitThumb?.imageUrl,
+                thumbnailState: outfitThumb?.state ?? "Pending",
+            };
+        }));
+        return outfits;
     }
     
     function ClearListItems() {
@@ -138,12 +179,16 @@ const AvatarPageStore = createContainer(() => {
     return {
         LoadRecentItemsToList,
         LoadAssetTypeToList,
-        ClearListItems,
+        LoadOutfits,
         
         /** @type SortedItem[] */
         listItems,
         /** @type ItemListMetadata */
         listItemMetadata,
+        
+        /** @type SortedOutfit[] */
+        outfits,
+        setOutfits,
         
         selectedList,
         setSelectedList,

@@ -1,5 +1,7 @@
 import React, {useEffect, useRef} from "react";
 import {createUseStyles} from "react-jss";
+import AvatarInfoStore from "../stores/avatarInfoStore";
+import AvatarPageStore from "../stores/avatarPageStore";
 
 const useStyles = createUseStyles({
     submenuButton: {
@@ -12,9 +14,12 @@ const useStyles = createUseStyles({
         float: "left",
         lineHeight: '1.3em',
         fontWeight: 300,
-        "&:hover": {
+        "&:hover,&.active": {
             color: "#fff",
             backgroundColor: "var(--primary-color)",
+        },
+        "@media(max-width: 768px)": {
+            margin: 0,
         }
     },
     submenuButtonActive: {
@@ -25,6 +30,7 @@ const useStyles = createUseStyles({
     submenuNestContainer: {
         paddingTop: 12,
         display: "flex",
+        flexWrap: "wrap",
     },
     submenuNestLabel: {
         width: 90,
@@ -46,6 +52,7 @@ const useStyles = createUseStyles({
  * @typedef SubmenuData
  * @property {string} name
  * @property {number} typeId
+ * @property {number?} tabType
  * @property {bool} active
  */
 /**
@@ -74,9 +81,10 @@ const nested = [
  * @returns {Element}
  * @constructor
  */
-const AvatarSubmenu = ({ data, onButtonClick, mode = SUBMENU_MODE.DEFAULT }) => {
+const AvatarSubmenu = ({data, onButtonClick, mode = SUBMENU_MODE.DEFAULT}) => {
     const s = useStyles();
     const ref = useRef(null);
+    const page = AvatarPageStore.useContainer();
     
     useEffect(() => {
         if (mode === SUBMENU_MODE.NESTED) {
@@ -90,7 +98,12 @@ const AvatarSubmenu = ({ data, onButtonClick, mode = SUBMENU_MODE.DEFAULT }) => 
             mode === SUBMENU_MODE.DEFAULT &&
             data.map(item =>
                 <div
-                    className={`${s.submenuButton} ${item.active && s.submenuButtonActive}`}
+                    className={`
+                    ${s.submenuButton}
+                    ${
+                        (page.listItemMetadata?.assetType === item.typeId || page.listItemMetadata?.recentType === item.typeId)
+                        ? "active" : ""}
+                    `}
                     onClick={e => onButtonClick(item, e)}
                 >
                     {item.name}
@@ -107,7 +120,9 @@ const AvatarSubmenu = ({ data, onButtonClick, mode = SUBMENU_MODE.DEFAULT }) => 
                     {
                         nest.items.map(item =>
                             <div
-                                className={`${s.submenuButton} ${item.active && s.submenuButtonActive}`}
+                                className={`${s.submenuButton} ${
+                                    (page.listItemMetadata?.assetType === item.typeId || page.listItemMetadata?.recentType === item.typeId) && s.submenuButtonActive
+                                }`}
                                 onClick={e => onButtonClick(item, e)}
                             >
                                 {item.name}

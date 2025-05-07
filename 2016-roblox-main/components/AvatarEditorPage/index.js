@@ -13,12 +13,30 @@ import AvatarPageStore from "./stores/avatarPageStore";
 import AvatarTabs from "./components/avatarTabs";
 import {IsNullOrEmpty, wait} from "../../lib/utils";
 import {useEffect, useRef, useState} from "react";
+import OutfitsTab from "./components/outfitsTab";
+import BodyColorsTab from "./components/bodyColorsTab";
+import useWindowQuery from "../windowQuery";
 
 const useStyles = createUseStyles({
     sliderInput: {
         width: "100%",
     },
-    avatarHeader: {},
+    avatarHeader: {
+        "@media(max-width: 576px)": {
+            flexDirection: "column",
+            marginBottom: 15,
+        },
+    },
+    avatarHeaderText: {
+        fontSize: 36,
+        fontWeight: 500,
+        padding: "15px 0",
+        margin: 0,
+        "@media(max-width: 576px)": {
+            padding: "0 0 10px 0",
+            fontSize: 48,
+        },
+    },
     avatarThumbContainer: {
         position: "relative",
         backgroundImage: "url(/img/avatar-background.svg)",
@@ -36,6 +54,37 @@ const useStyles = createUseStyles({
             top: 18,
             right: "-37.5px",
             userSelect: "none",
+        }
+    },
+    scalingContainer: {
+        padding: 15,
+        paddingTop: 0,
+        "@media(max-width: 720px)": {
+            flex: 1,
+            paddingBottom: 0,
+        },
+    },
+    scalingHeaderContainer: {
+        textAlign: 'start',
+        fontSize: 21,
+        padding: "15px 0px 13px 0",
+        margin: 0,
+        "@media(max-width: 720px)": {
+            padding: "10px 0 8px 0"
+        },
+    },
+    scalingHeader: {
+        margin: 0,
+    },
+    contentContainer: {
+        padding: 0,
+        "@media(max-width: 720px)": {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+        },
+        "@media(max-width: 576px)": {
+            justifyContent: "center",
         }
     },
     avatarRigTypeSelector: {
@@ -58,7 +107,16 @@ const useStyles = createUseStyles({
         backgroundSize: "24px auto",
         bottom: "2px",
         position: "relative",
-        marginLeft: "6px"
+        marginLeft: "6px",
+        "@media(max-width: 992px)": {
+            backgroundPosition: "0 -169px",
+            width: 10,
+            height: 10,
+            backgroundSize: "20px auto",
+        },
+        "@media(max-width: 768px)": {
+            display: "none",
+        }
     },
     redrawContainer: {
         "& span": {
@@ -69,6 +127,23 @@ const useStyles = createUseStyles({
         padding: 4,
         fontSize: 14,
         lineHeight: "100%",
+    },
+    idekbuh: {
+        "@media(max-width: 720px)": {
+            width: "100%",
+        }
+    },
+    content: {
+        gap: 15,
+        "@media(max-width: 720px)": {
+            flexDirection: "column",
+        }
+    },
+    firstRedraw: {
+        marginBottom: 18,
+        "@media(max-width: 720px)": {
+            marginBottom: 8,
+        }
     },
 });
 
@@ -83,6 +158,10 @@ function AvatarEditor() {
     const page = AvatarPageStore.useContainer();
     const listItemMetadata = useRef(page.listItemMetadata);
     const debounce = useRef(false);
+    const [avThumb, setAvThumb] = useState(null);
+    const [isRendering, setIsRendering] = useState(false);
+    const [activeTab, setActiveTab] = useState(0);
+    const isMobileRes = useWindowQuery("max-width: 576px");
     
     useEffect(() => {
         listItemMetadata.current = page.listItemMetadata;
@@ -101,7 +180,11 @@ function AvatarEditor() {
             tab: page.openSubmenu.id,
             subTab: item.name,
         });
-        await page.LoadAssetTypeToList(item.typeId);
+        if (!item.tabType) {
+            await page.LoadAssetTypeToList(item.typeId);
+        } else {
+            setActiveTab(item.tabType);
+        }
         await wait(0.5);
         debounce.current = false;
     }
@@ -130,69 +213,99 @@ function AvatarEditor() {
         }
     }, [debounce]);
     
-    return <div>
-        <div className={`${s.avatarHeader} flex justify-content-between align-items-center`}>
-            <h1 style={{ fontSize: 36, fontWeight: 500, padding: "15px 0", margin: 0, }}>Avatar Editor</h1>
-            <div className="flex justify-content-center align-items-center" style={{ gap: 12 }}>
-                <span>Explore the catalog to find more clothes!</span>
-                <ActionButton label="Get More" className={s.moreBut} buttonStyle={buttonStyles.newBuyButton} onClick={() => {
-                    window.location.href = "/catalog"
-                }}/>
+    useEffect(() => {
+        setAvThumb(store.avThumb)
+    }, [store.avThumb]);
+    
+    useEffect(() => {
+        setIsRendering(store.isRendering)
+    }, [store.isRendering]);
+    
+    const Scaling = () => {
+        return <div className={s.scalingContainer}>
+            <div className={s.scalingHeaderContainer}>
+                <h1 className={s.scalingHeader}>Scaling</h1>
+            </div>
+            <div>
+                {
+                    store?.avRules && store?.bodyScales &&
+                    Object.entries(store.avRules.scales).map(([key, value]) => (
+                        <>
+                            <div
+                                style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}}
+                                className="flex justify-content-between">
+                                <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
+                                <span>{Math.round(store.bodyScales[key] * 100)}%</span>
+                            </div>
+                            <Slider
+                                className={s.sliderInput}
+                                min={value.min}
+                                max={value.max}
+                                step={value.increment * 5}
+                                value={store.bodyScales[key]}
+                                setValue={(val) => {
+                                    store.setBodyScales(prev => ({...prev, [key]: Number(val.target.value)}));
+                                }}
+                                changeValue={(val) => {
+                                    store.setModifiedScaling({
+                                        [key]: Number(val.target.value),
+                                    });
+                                }}
+                                disabled={store.bodyRigType === "R6"}
+                            />
+                        </>
+                    ))
+                }
             </div>
         </div>
-        <div className="flex" style={{ gap: 15 }}>
-            <div>
-                <div className="section-content" style={{ padding: 0 }}>
+    }
+    
+    return <div>
+        <div className={`${s.avatarHeader} flex justify-content-between align-items-center`}>
+            <h1 className={s.avatarHeaderText}>Avatar Editor</h1>
+            <div className="flex justify-content-center align-items-center" style={{gap: 12}}>
+                <span>Explore the catalog to find more clothes!</span>
+                <ActionButton label="Get More" className={s.moreBut} buttonStyle={buttonStyles.newBuyButton}
+                              onClick={() => {
+                                  window.location.href = "/catalog"
+                              }}/>
+            </div>
+        </div>
+        <div className={`flex ${s.content}`}>
+            <div className={s.idekbuh}>
+                <div className={`section-content ${s.contentContainer}`}>
                     <div className={s.avatarThumbContainer}>
                         {
-                            store?.avThumb ?
-                                <img src={store.avThumb} alt={`${auth.username}'s Avatar`}/>
-                                : !store.isRendering ?
-                                    <img src="/img/placeholder-t.png" alt={`U`}/>
-                                    : <span className="spinner" style={{height: "100%", backgroundSize: "auto 36px"}}/>
+                            avThumb ?
+                                <img src={avThumb} alt={`${auth.username}'s Avatar`}/>
+                                // :
+                                // !isRendering ?
+                                //     <img src="/img/placeholder-t.png" alt={`U`}/>
+                                :
+                                <span className="spinner" style={{height: "100%", backgroundSize: "auto 36px"}}/>
                         }
                         <div className={s.avatarRigTypeSelector}>
                             <RadioPill options={[
                                 "R6",
                                 "R15"
-                            ]} selected={store?.bodyRigType} setSelected={store?.setBodyRigType} />
+                            ]} selected={store?.bodyRigType} setSelected={store?.setModifiedRigType}/>
                         </div>
                     </div>
-                    <div className={s.scalingContainer} style={{ padding: 15, paddingTop: 0 }}>
-                        <div>
-                            <h1 style={{ textAlign: 'start', fontSize: 21, padding: "15px 0px 13px 0", margin: 0, }}>Scaling</h1>
-                        </div>
-                        <div>
-                            {
-                                store?.avRules && store?.bodyScales &&
-                                Object.entries(store.avRules.scales).map(([key, value]) => (
-                                    <>
-                                        <div style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}} className="flex justify-content-between">
-                                            <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
-                                            <span>{Math.round(store.bodyScales[key] * 100)}%</span>
-                                        </div>
-                                        <Slider
-                                            className={s.sliderInput}
-                                            min={value.min}
-                                            max={value.max}
-                                            step={value.increment * 5}
-                                            value={store.bodyScales[key]}
-                                            setValue={(val) => {
-                                                store.setBodyScales(prev => ({...prev, [key]: val.target.value}));
-                                            }}
-                                            disabled={store.bodyRigType === "R6"}
-                                        />
-                                    </>
-                                ))
-                            }
-                        </div>
-                    </div>
+                    {
+                        !isMobileRes ? <Scaling key="desktop" /> : null
+                    }
+                </div>
+                <div className={`flex justify-content-between ${s.redrawContainer} ${s.firstRedraw}`}>
+                    <span>Avatar isn't updated?</span>
+                    <ActionButton onClick={async () => {
+                        await store.GetUpdatedAvatar();
+                    }} label="Refetch" buttonStyle={buttonStyles.newCancelButton} className={s.redrawBtn}/>
                 </div>
                 <div className={`flex justify-content-between ${s.redrawContainer}`}>
                     <span>Avatar isn't loading correctly?</span>
                     <ActionButton onClick={async () => {
                         await store.ForceRender();
-                    }} label="Redraw" buttonStyle={buttonStyles.newCancelButton} className={s.redrawBtn} />
+                    }} label="Redraw" buttonStyle={buttonStyles.newCancelButton} className={s.redrawBtn}/>
                 </div>
             </div>
             <div className={s.itemContainer}>
@@ -200,40 +313,47 @@ function AvatarEditor() {
                     options={[
                         {
                             id: "recent",
-                            name: <span style={{ fontSize: 18 }}>Recent <span className={`icon-down ${s.iconDown}`} /></span>,
+                            name: <span>Recent <span
+                                className={`icon-down ${s.iconDown}`}/></span>,
                             element: <AvatarTabSubmenu
                                 data={[
                                     {
+                                        tabId: "recent",
                                         name: "All",
                                         typeId: "all",
                                     },
                                     {
-                                        name: "Clothing",
-                                        typeId: "clothing",
-                                    },
-                                    {
-                                        name: "Body Parts",
-                                        typeId: "bodyparts",
-                                    },
-                                    {
-                                        name: "Animations",
-                                        typeId: "avataranimations",
-                                    },
-                                    {
+                                        tabId: "recent",
                                         name: "Accessories",
                                         typeId: "accessories",
                                     },
                                     {
-                                        name: "Outfits",
-                                        typeId: "outfits",
+                                        tabId: "recent",
+                                        name: "Clothing",
+                                        typeId: "clothing",
                                     },
+                                    {
+                                        tabId: "recent",
+                                        name: "Body Parts",
+                                        typeId: "bodyparts",
+                                    },
+                                    {
+                                        tabId: "recent",
+                                        name: "Animations",
+                                        typeId: "avataranimations",
+                                    },
+                                    // TODO: implement recent outfits {
+                                    //     name: "Outfits",
+                                    //     typeId: "outfits",
+                                    // },
                                 ]}
                                 onButtonClick={async (item, e) => await RecentClick(item, e)}
                             />
                         },
                         {
                             id: "clothing",
-                            name: <span style={{ fontSize: 18 }}>Clothing <span className={`icon-down ${s.iconDown}`} /></span>,
+                            name: <span>Clothing <span
+                                className={`icon-down ${s.iconDown}`}/></span>,
                             element: <AvatarTabSubmenu
                                 data={[
                                     {
@@ -241,34 +361,42 @@ function AvatarEditor() {
                                         items: [
                                             {
                                                 name: "Hat",
+                                                tabId: "recent",
                                                 typeId: 8,
                                             },
                                             {
                                                 name: "Hair",
+                                                tabId: "recent",
                                                 typeId: 41,
                                             },
                                             {
                                                 name: "Face",
+                                                tabId: "recent",
                                                 typeId: 42,
                                             },
                                             {
                                                 name: "Neck",
+                                                tabId: "recent",
                                                 typeId: 43,
                                             },
                                             {
                                                 name: "Shoulders",
+                                                tabId: "recent",
                                                 typeId: 44,
                                             },
                                             {
                                                 name: "Front",
+                                                tabId: "recent",
                                                 typeId: 45,
                                             },
                                             {
                                                 name: "Back",
+                                                tabId: "recent",
                                                 typeId: 46,
                                             },
                                             {
                                                 name: "Waist",
+                                                tabId: "recent",
                                                 typeId: 47,
                                             },
                                         ],
@@ -301,44 +429,55 @@ function AvatarEditor() {
                         },
                         {
                             id: "body",
-                            name: <span style={{ fontSize: 18 }}>Body <span className={`icon-down ${s.iconDown}`} /></span>,
+                            name: <span>Body <span
+                                className={`icon-down ${s.iconDown}`}/></span>,
                             element: <AvatarTabSubmenu
                                 data={[
                                     {
                                         name: "Skin Tone",
                                         typeId: 0,
+                                        tabType: 2,
+                                        tabId: "body",
                                     },
                                     {
                                         name: "Packages",
                                         typeId: 32,
+                                        tabId: "body",
                                     },
                                     {
                                         name: "Face",
                                         typeId: 18,
+                                        tabId: "body",
                                     },
                                     {
                                         name: "Head",
                                         typeId: 17,
+                                        tabId: "body",
                                     },
                                     {
                                         name: "Torso",
                                         typeId: 27,
+                                        tabId: "body",
                                     },
                                     {
                                         name: "Left Arms",
                                         typeId: 29,
+                                        tabId: "body",
                                     },
                                     {
                                         name: "Right Arms",
                                         typeId: 28,
+                                        tabId: "body",
                                     },
                                     {
                                         name: "Left Legs",
                                         typeId: 30,
+                                        tabId: "body",
                                     },
                                     {
                                         name: "Right Legs",
                                         typeId: 31,
+                                        tabId: "body",
                                     },
                                 ]}
                                 onButtonClick={async (item, e) => await AssetTypeClick(item, e)}
@@ -346,36 +485,48 @@ function AvatarEditor() {
                         },
                         {
                             id: "animations",
-                            name: <span style={{ fontSize: 18 }}>Animations <span className={`icon-down ${s.iconDown}`} /></span>,
+                            name: <span>Animations <span className={`icon-down ${s.iconDown}`}/></span>,
                             element: <AvatarTabSubmenu
                                 data={[
                                     {
                                         name: "Walk",
                                         typeId: 55,
+                                        tabId: "animations",
                                     },
                                     {
                                         name: "Run",
                                         typeId: 53,
+                                        tabId: "animations",
                                     },
                                     {
                                         name: "Fall",
                                         typeId: 50,
+                                        tabId: "animations",
                                     },
                                     {
                                         name: "Jump",
                                         typeId: 52,
+                                        tabId: "animations",
                                     },
                                     {
                                         name: "Swim",
                                         typeId: 54,
+                                        tabId: "animations",
                                     },
                                     {
                                         name: "Climb",
                                         typeId: 48,
+                                        tabId: "animations",
                                     },
                                     {
                                         name: "Idle",
                                         typeId: 51,
+                                        tabId: "animations",
+                                    },
+                                    {
+                                        name: "Emotes",
+                                        typeId: 61,
+                                        tabId: "animations",
                                     },
                                 ]}
                                 onButtonClick={async (item, e) => await AssetTypeClick(item, e)}
@@ -383,26 +534,42 @@ function AvatarEditor() {
                         },
                         {
                             id: "outfits",
-                            name: <span style={{ fontSize: 18 }}>Outfits</span>,
+                            name: <span>Outfits</span>,
                             element: null,
-                            onClick: (v) => {
-                                console.log("OUTFITS");
-                            }
+                            onClick: () => page.setOutfits([]),
+                            tabType: 1,
                         },
                     ]}
-                    default={<span style={{fontSize: 18}}>Recent <span className={`icon-down ${s.iconDown}`}/></span>}
+                    setTabType={setActiveTab}
+                    default={<span>Recent <span className={`icon-down ${s.iconDown}`}/></span>}
                 />
-                <div>
-                    <div style={{display: "flex"}}>
-                    <span
-                        style={{paddingTop: 9, paddingBottom: 4, marginLeft: 5}}
-                    >{CapitalizeVariable(page.selectedList.tab)}
-                        {!IsNullOrEmpty(page?.selectedList?.subTab) && ` > ${CapitalizeVariable(page?.selectedList?.subTab)}`}
-                    </span>
-                    </div>
-                    <AvatarCardList/>
-                </div>
+                {
+                    (() => {
+                        switch (activeTab) {
+                            case 1:
+                                return <OutfitsTab/>
+                            case 2:
+                                return <BodyColorsTab/>
+                            default:
+                                return <div>
+                                    <div style={{display: "flex"}}>
+                                        <span
+                                            style={{paddingTop: 9, paddingBottom: 4, marginLeft: 5}}
+                                        >{CapitalizeVariable(page.selectedList.tab)}
+                                            {!IsNullOrEmpty(page?.selectedList?.subTab) && ` > ${CapitalizeVariable(page?.selectedList?.subTab)}`}
+                                        </span>
+                                    </div>
+                                    <AvatarCardList/>
+                                </div>;
+                        }
+                    })()
+                }
             </div>
+            {
+                isMobileRes ? <div className={`section-content`} style={{ padding: 0, }}>
+                    <Scaling key="mobile" />
+                </div> : null
+            }
         </div>
     </div>
 }

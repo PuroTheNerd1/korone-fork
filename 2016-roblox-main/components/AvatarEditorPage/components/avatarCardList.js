@@ -9,13 +9,22 @@ import {wait} from "../../../lib/utils";
 const useAvCardStyles = createUseStyles({
     avatarCardWrapper: {
         borderRadius: 3,
-        width: "20%",
-        padding: 5,
+        aspectRatio: "4 / 5",
+        width: "calc(20% - 8px)",
         display: "flex",
         flexDirection: "column",
+        "@media(max-width: 768px)": {
+            width: "calc(25% - 8px)",
+        },
+        "@media(max-width: 576px)": {
+            width: "calc(33% - 8px)",
+        },
     },
     avatarCardContainer: {
-        width: 126,
+        width: "100%",
+        height: "100%",
+        flexDirection: "column",
+        display: "flex",
         backgroundColor: "#fff",
         position: "relative",
         boxShadow: "0 1px 4px 0 rgba(25,25,25,0.3)",
@@ -29,8 +38,8 @@ const useAvCardStyles = createUseStyles({
     },
     avatarCardImage: {
         cursor: "pointer",
-        width: "126px",
-        height: "126px",
+        width: "100%",
+        aspectRatio: "1 / 1",
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
         borderBottom: "1px solid #e3e3e3",
@@ -44,10 +53,9 @@ const useAvCardStyles = createUseStyles({
         }
     },
     avatarCardItemLink: {
-        paddingTop: 6,
         lineHeight: "16px",
         width: "100%",
-        padding: "6px 6px 0 6px",
+        padding: "0 6px",
         display: "inline-block",
         "& span": {
             height: "20px",
@@ -56,6 +64,9 @@ const useAvCardStyles = createUseStyles({
             maxWidth: '100%',
             fontSize: 16,
             padding: 0,
+        },
+        "@media(min-width: 992px)": {
+            paddingTop: 6,
         }
     },
     avatarCardEquipped: {
@@ -79,8 +90,9 @@ const useAvCardStyles = createUseStyles({
     },
 });
 
-function ThumbnailFromState(thumbnail, state) {
-    switch (state.toLowerCase()) {
+export function ThumbnailFromState(thumbnail, state) {
+    if (state) state = state.toLowerCase();
+    switch (state) {
         case "pending":
             return "/img/placeholder.png";
         case "blocked":
@@ -98,31 +110,31 @@ function ThumbnailFromState(thumbnail, state) {
  * @returns {JSX.Element}
  * @constructor
  */
-function AvatarCard({ asset, equipped }) {
+function AvatarCard({asset, equipped}) {
     const s = useAvCardStyles();
     const store = AvatarInfoStore.useContainer();
     
     return <div className={`${s.avatarCardWrapper}`}>
-        <div className={`${s.avatarCardContainer}`} onClick={e => {
-            if (equipped) {
-                store.RemoveAsset(asset);
-            } else {
-                store.AddAsset(asset);
-            }
-        }}>
-            <div className={s.avatarCardImage}>
-                <img
-                    src={ThumbnailFromState(asset.thumbnail, asset.thumbnailState)} alt={asset.name}/>
+        <div className={`${s.avatarCardContainer}`}>
+            <div className={s.avatarCardImage} onClick={() => {
+                if (equipped) {
+                    store.RemoveAsset(asset);
+                } else {
+                    store.AddAsset(asset);
+                }
+            }}>
+                <img src={ThumbnailFromState(asset.thumbnail, asset.thumbnailState)} alt={asset.name}/>
             </div>
             <Link href={`/catalog/${asset.assetId}/${encodeURIComponent(asset.name)}`}>
-                <a className={s.avatarCardItemLink} href={`/catalog/${asset.assetId}/${encodeURIComponent(asset.name)}`}>
+                <a className={s.avatarCardItemLink}
+                   href={`/catalog/${asset.assetId}/${encodeURIComponent(asset.name)}`}>
                     <span className='text-overflow'>{asset.name}</span>
                 </a>
             </Link>
             {
-                equipped && <div className={s.avatarCardEquipped}>
-                    <span />
-                </div>
+                equipped ? <div className={s.avatarCardEquipped}>
+                    <span/>
+                </div> : null
             }
         </div>
     </div>
@@ -138,15 +150,18 @@ function AvatarCardList() {
         setWearingAssets(store.wearingAssets);
     }, [store.wearingAssets]);
     
-    return <div className={`flex`}>
+    return <div className={`flex position-relative`} style={{ gap: 10 }}>
+        {
+            store.loadingAvatar && <span className="spinner position-absolute" style={{height: "36px", backgroundSize: "auto 36px"}}/>
+        }
         {
             page.listItems.map(item => {
                 const isEquipped = wearingAssets?.length && wearingAssets.map(d => d.assetId).includes(item.assetId);
-                return <AvatarCard asset={item} equipped={isEquipped} />
+                return <AvatarCard asset={item} equipped={isEquipped}/>
             })
         }
         {
-            page.listItems.length === 0 && <span className={`section-content-off w-100`}>
+            !store.loadingAvatar && page.listItems.length === 0 && <span className={`section-content-off w-100`}>
                 You do not have any items here.
             </span>
         }
@@ -159,7 +174,7 @@ function AvatarCardList() {
                     await page.LoadAssetTypeToList(page.listItemMetadata.assetType, true);
                     await wait(2.5);
                     deb.current = false;
-                }} />
+                }}/>
             </div>
         }
     </div>

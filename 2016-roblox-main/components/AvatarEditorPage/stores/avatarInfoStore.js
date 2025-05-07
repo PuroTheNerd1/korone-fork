@@ -18,6 +18,7 @@ const AvatarInfoStore = createContainer(() => {
     
     const [isRendering, setIsRendering] = useState(false);
     const [avRules, setAvRules] = useState(false);
+    const [loadingAvatar, setLoadingAvatar] = useState(true);
     const [canForce, setCanForce] = useState(true);
     
     // changed assetId is number of which asset id has been changed
@@ -45,28 +46,9 @@ const AvatarInfoStore = createContainer(() => {
         });
     }
     
-    async function ForceRender() {
-        if (!canForce) return;
-        setCanForce(false);
-        
-        await redrawMyAvatar();
+    async function ReloadAvatar(){
+        setLoadingAvatar(true);
         setAvThumb(null);
-        setIsRendering(true);
-        await wait(3);
-        setCanForce(true);
-    }
-    
-    async function GetUpdatedAvatar() {
-        if (isRendering) {
-            while (isRendering) {
-                await wait(1);
-            }
-        }
-        setAvThumb(null);
-        setIsRendering(true);
-    }
-    
-    useEffect(async () => {
         setAvRules(await getRules());
         let avatar = await getMyAvatar();
         setWearingAssets(avatar.assets.map(v => {
@@ -80,8 +62,34 @@ const AvatarInfoStore = createContainer(() => {
         setBodyColors(avatar.bodyColors);
         setBodyRigType(avatar.playerAvatarType);
         setBodyScales(avatar.scales);
+        setLoadingAvatar(false);
         setIsRendering(true);
-    }, []);
+    }
+    
+    async function ForceRender() {
+        if (!canForce) return;
+        setCanForce(false);
+        
+        await redrawMyAvatar();
+        setAvThumb(null);
+        await wait(1);
+        setIsRendering(true);
+        await wait(3);
+        setCanForce(true);
+    }
+    
+    async function GetUpdatedAvatar() {
+        if (isRendering) {
+            while (isRendering) {
+                await wait(1);
+            }
+        }
+        setAvThumb(null);
+        await wait(1);
+        setIsRendering(true);
+    }
+    
+    useEffect(ReloadAvatar, []);
     
     useEffect(async () => {
         if (debo.current || !isRendering || avThumb != null) return;
@@ -114,7 +122,6 @@ const AvatarInfoStore = createContainer(() => {
             setBodyScales(prev => {
                 const newScales = { ...prev, ...modifiedScaling };
                 setModifiedScaling(null);
-                console.dir(newScales);
                 (async () => {
                     await setScales(newScales);
                     await GetUpdatedAvatar();
@@ -132,7 +139,6 @@ const AvatarInfoStore = createContainer(() => {
             setBodyColors(prev => {
                 const newBC = { ...prev, ...modifiedBC };
                 setModifiedBC(null);
-                console.dir(newBC);
                 (async () => {
                     await setColors(newBC);
                     await GetUpdatedAvatar();
@@ -149,6 +155,7 @@ const AvatarInfoStore = createContainer(() => {
         setModifiedRigType(null);
         
         const applyRigType = async () => {
+            setBodyRigType(newRigType);
             await setRigType(newRigType);
             await GetUpdatedAvatar();
         };
@@ -159,6 +166,11 @@ const AvatarInfoStore = createContainer(() => {
         if (!modifiedAsset) return;
         let newAsset = modifiedAsset;
         setModifiedAsset(null);
+        
+        if (wearingAssets.length >= 15) {
+            feedback.addFeedback("Too many assets equipped", FeedbackType.ERROR);
+            return;
+        }
         
         setWearingAssets(prev => {
             let updated;
@@ -182,6 +194,8 @@ const AvatarInfoStore = createContainer(() => {
         AddAsset,
         RemoveAsset,
         ForceRender,
+        GetUpdatedAvatar,
+        ReloadAvatar,
         
         // States (all United)
         wearingAssets,
@@ -195,8 +209,15 @@ const AvatarInfoStore = createContainer(() => {
         bodyRigType,
         setBodyRigType,
         
+        setModifiedRigType,
+        setModifiedBC,
+        setModifiedScaling,
+        
         avThumb,
         setAvThumb,
+        
+        loadingAvatar,
+        setLoadingAvatar,
         
         isRendering,
         /**

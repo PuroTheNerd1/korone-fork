@@ -80,6 +80,12 @@ export const multiGetUserHeadshots = ({ userIds, size = '420x420', format = 'png
   });
 }
 
+/**
+ * @param {number[]} userOutfitIds
+ * @param {string} size
+ * @param {string} format
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
 export const multiGetOutfitThumbnails = ({ userOutfitIds, size = '420x420', format = 'png' }) => {
   return request('GET', getFullUrl('thumbnails', `/v1/users/outfits?userOutfitIds=${toCsv(userOutfitIds)}&size=${size}&format=${format}`)).then(d => d.data.data);
 }

@@ -1,5 +1,5 @@
 import {createUseStyles} from "react-jss";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 
 const useStyles = createUseStyles({
     sliderContainer: {
@@ -188,8 +188,9 @@ const useStyles = createUseStyles({
     },
 });
 
-function Slider({ className, step, min, max, value, setValue, disabled }) {
+function Slider({ className, step, min, max, value, setValue, changeValue, disabled }) {
     const s = useStyles();
+    const [downStats, setDownStats] = useState(null);
     
     useEffect(() => {
         const sliders = document.querySelectorAll('input[type="range"]');
@@ -204,7 +205,25 @@ function Slider({ className, step, min, max, value, setValue, disabled }) {
         });
     }, [disabled]);
     
-    return <input type="range" disabled={disabled} className={className + ' ' + s.slider} step={step} min={min} max={max} value={value} onChange={setValue}/>
+    const onInputUp = e => {
+        if (downStats === value) return;
+        setDownStats(null);
+        changeValue(e);
+    }
+    
+    return <input
+        type="range"
+        disabled={disabled}
+        className={`${className} ${s.slider}`}
+        step={step}
+        min={min}
+        max={max}
+        value={value}
+        onMouseDown={() => setDownStats(value)}
+        onMouseUp={onInputUp}
+        onTouchEnd={onInputUp}
+        onChange={setValue}
+    />
 }
 
 export default Slider;
