@@ -6,6 +6,7 @@ import ItemImage from "../../itemImage";
 import PlayerImage from "../../playerImage"
 import Subtitle from "./subtitle"
 import Link from "../../link";
+import { getAssetRestrictions } from "../../../services/develop";
 
 const useAvatarStyles = createUseStyles({
   avatarImageWrapper: {
@@ -36,6 +37,13 @@ const useAvatarStyles = createUseStyles({
   disabledPagination: {
 
   },
+  restrictionsContainer: {
+    position: 'absolute',
+    bottom: -3,
+    left: -3,
+    overflow: 'hidden',
+    borderBottomLeftRadius: 10.5,
+  },
 });
 
 const Avatar = props => {
@@ -46,13 +54,22 @@ const Avatar = props => {
   const [selectedAssets, setSelectedAssets] = useState(null);
   const [assetPages, setAssetPages] = useState(1);
   const [assetPage, setAssetPage] = useState(1);
-  useEffect(() => {
-    getAvatar({ userId }).then(d => {
-      setAssets(d.assets);
-      setSelectedAssets(d.assets.slice(0, assetsLimit));
-      setAssetPage(1);
-      setAssetPages(Math.ceil(d.assets.length / assetsLimit));
-    })
+  useEffect(async () => {
+    let avatar = await getAvatar({ userId });
+    let assetIds = avatar.assets.map(d => d.id);
+    let assetRestrictions = await getAssetRestrictions(assetIds);
+    let avatarAssets = avatar.assets.map(asset => {
+      let restriction = assetRestrictions.find(d => d.assetId === asset.id);
+      return {
+        ...asset,
+        isLimited: restriction.isLimited,
+        isLimitedUnique: restriction.isLimitedUnique,
+      };
+    });
+    setAssets(avatarAssets);
+    setSelectedAssets(avatarAssets.slice(0, assetsLimit));
+    setAssetPage(1);
+    setAssetPages(Math.ceil(avatarAssets.length / assetsLimit));
   }, [userId]);
 
   return <div className='flex marginStuff'>
@@ -72,11 +89,20 @@ const Avatar = props => {
           {selectedAssets && selectedAssets.map(v => {
             return <div className='col-3 pt-2 ps-1 pe-1' key={v.id}>
               <div className='card' title={v.name}>
-                <Link href={getItemUrl({name: v.name, assetId: v.id})}>
-                  <a title={v.name}>
+                <Link href={getItemUrl({ name: v.name, assetId: v.id })}>
+                  <a title={v.name} href={getItemUrl({ name: v.name, assetId: v.id })}>
                     <ItemImage id={v.id} className='pt-0'/>
                   </a>
                 </Link>
+                <div className={s.restrictionsContainer}>
+                  {
+                    v.isLimitedUnique ?
+                    <span className="icon-limited-unique-label"/>
+                    : v.isLimited ?
+                    <span className="icon-limited-label"/>
+                    : null
+                  }
+                </div>
               </div>
             </div>
           })}
@@ -84,12 +110,12 @@ const Avatar = props => {
         <div className='flex'>
           <div className='col-12'>
             {
-              assetPages > 1 && <p className={s.pagination}>
-                {
-                  [...new Array(assetPages)].map((_, v) => {
-                    const disabled = (v + 1) === assetPage;
-                    if (disabled) {
-                      return <span className={s.disabledPagination}>●</span>
+                assetPages > 1 && <p className={s.pagination}>
+                  {
+                    [...new Array(assetPages)].map((_, v) => {
+                      const disabled = (v + 1) === assetPage;
+                      if (disabled) {
+                        return <span className={s.disabledPagination}>●</span>
                     }
                     return <span onClick={() => {
                       setAssetPage(v + 1);

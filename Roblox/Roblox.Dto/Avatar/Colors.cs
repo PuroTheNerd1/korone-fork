@@ -31,6 +31,13 @@ public class AvatarWithColors : ColorEntry
 }
 
 public class OutfitAvatar : ColorEntry
-{
+{ 
     public long userId { get; set; }
+    public double height { get; set; } 
+    public double width { get; set; } 
+    public double head { get; set; } 
+    public double depth { get; set; } 
+    public double proportion { get; set; } 
+    public double bodyType { get; set; } 
+    public AvatarType avatarType { get; set; } 
 }

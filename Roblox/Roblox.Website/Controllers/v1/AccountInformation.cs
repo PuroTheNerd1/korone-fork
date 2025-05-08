@@ -69,9 +69,9 @@ public class AccountInformationControllerV1 : ControllerBase
     {
         return new
         {
-            birthMonth = 1,
-            birthDay = 1,
-            birthYear = 1990,
+            birthMonth = 9,
+            birthDay = 11,
+            birthYear = 2001,
         };
     }
 
@@ -95,6 +95,22 @@ public class AccountInformationControllerV1 : ControllerBase
     public async Task SetGender([Required, FromBody] UpdateGenderRequest request)
     {
         await services.accountInformation.SetUserGender(safeUserSession.userId, request.gender);
+    }
+    
+    [HttpGet("avatar-page-style")]
+    public async Task<dynamic> GetAvatarPageStyle()
+    {
+        var result = await services.accountInformation.GetUserAvatarPageStyle(safeUserSession.userId);
+        return new
+        {
+            avatarPageStyle = result,
+        };
+    }
+
+    [HttpPost("avatar-page-style")]
+    public async Task SetAvatarPageStyle([Required, FromBody] UpdateAvPageStyleRequest request)
+    {
+        await services.accountInformation.SetUserAvatarPageStyle(safeUserSession.userId, request.avatarPageStyle);
     }
 
     [HttpGet("promotion-channels")]

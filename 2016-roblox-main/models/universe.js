@@ -126,20 +126,6 @@
  */
 
 /**
- * @template T
- * @typedef {Object} RobloxCollectionPaginated
- * @property {string|null} nextPageCursor
- * @property {string|null} previousPageCursor
- * @property {T[]} data
- */
-
-/**
- * @template T
- * @typedef {Object} RobloxCollection
- * @property {T[]} data
- */
-
-/**
  * @typedef DeveloperProductEntry
  * @property {number} id
  * @property {string} name

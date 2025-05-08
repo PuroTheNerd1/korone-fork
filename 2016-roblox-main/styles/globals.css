@@ -4,6 +4,7 @@
 
 :root{
     --primary-color: #00a2ff;
+    --primary-color-2: rgb(0, 162, 255);
     --primary-color-hover: #3ab8ff;
     --secondary-color: #0074bd;
     --success-color: #02b757;
@@ -158,6 +159,18 @@ a.nav-link:focus, a.nav-link:hover {
     flex-wrap: wrap;
 }
 
+.flex-row {
+    flex-direction: row;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.inherit-color * {
+    color: inherit;
+}
+
 a.normal {
     color: #000;
 }
@@ -277,6 +290,12 @@ html div.container {
     background-image: url("/img/loading.gif");
 }
 
+.text-overflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 #__next {
     min-height: 100vh;
 }
@@ -315,4 +334,29 @@ html div.container {
 .status-error {
     background-color: #FAE5E5;
     border: 1px solid #C00;
+}
+
+.inputTextStyle {
+    border: 1px solid #b8b8b8;
+    color: #191919;
+    font-weight: 300;
+    font-size: 16px;
+    height: 38px;
+    line-height: 100%;
+    padding: 5px 12px;
+    -webkit-appearance: none;
+    display: block;
+    width: 100%;
+    background-color: #fff;
+    background-image: none;
+    border-radius: 3px;
+    outline: none;
+}
+
+.inputTextStyle:focus,.inputTextStyle:focus-visible {
+    border-color: var(--primary-color);
+}
+
+.inputTextStyle.hasError, .inputTextStyle:focus.hasError, .inputTextStyle:focus-visible.hasError {
+    border-color: #D86868!important;
 }

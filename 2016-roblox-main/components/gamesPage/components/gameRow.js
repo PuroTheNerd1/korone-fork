@@ -147,7 +147,7 @@ export const useStyles = createUseStyles({
 });
 
 /**
- * A game row 
+ * A game row
  * @param {{
  * title: string;
  * games: any[];
@@ -216,7 +216,7 @@ const GameRow = props => {
       <div className={s.goBack + ' ' + s.pagerButton + ' ' + (offset === 0 ? 'opacity-25' : '')} onClick={() => {
         if (offset === 0)
           return;
-        setOffset((offset - limit));
+        setOffset(offset - limit);
       }} style={{ height: rowHeight }}>
         <p className={s.pagerCaret}><span className={s.caretRight}>^</span></p>
       </div>

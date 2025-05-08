@@ -15,12 +15,12 @@ On Windows, installing Pekora is easy.
 
 #### Supported Windows Versions
 | Windows Release     | Support                        |
-| ------------------- | ------------------------------ |
+| ------------------- |--------------------------------|
 | Windows 11          | ✅                              |
 | Windows 10          | ✅                              |
 | Windows 8.1/8       | ✅                              |
-| Windows 7           | ✅                              |
-| Windows Vista       | ⚠️ (Untested, could work)       |
+| Windows 7           | ⚠️ (Works, but not supported)  |
+| Windows Vista       | ⚠️ (Untested, could work)      |
 | Windows XP or below | ⛔(Untested, likely won't work) |
 
 ### **macOS**

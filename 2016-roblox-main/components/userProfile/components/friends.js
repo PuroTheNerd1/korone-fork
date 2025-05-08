@@ -77,7 +77,12 @@ const useFriendStyles = createUseStyles({
     width: '100%',
     height: '100%',
     display: 'block',
+    transition: "box-shadow 200ms ease",
+    boxShadow: "0 1px 4px 0 rgba(25,25,25,0.3)",
     //margin: '3px auto',
+    "&:hover": {
+      boxShadow: "0 1px 6px 0 rgba(25, 25, 25, 0.75)",
+    },
   },
   playerName: {
     margin: '3px 0 0',

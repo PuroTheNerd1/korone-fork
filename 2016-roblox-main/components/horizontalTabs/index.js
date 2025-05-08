@@ -69,7 +69,7 @@ const useStyles = createUseStyles({
 
 /**
  * Vertical tabs in new style
- * @param {{options: {name: string; element: JSX.Element; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string; elementClass?: string;}} props 
+ * @param {{options: {name: string; element: JSX.Element; onClick?: any; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string; elementClass?: string;}} props
  */
 const horizontalTabs = props => {
   const s = useStyles();
@@ -101,6 +101,9 @@ const horizontalTabs = props => {
             window.location.hash = v.name.toLowerCase()
             if (props.onChange) {
               props.onChange(v);
+            }
+            if (v.onClick) {
+              v.onClick(v);
             }
           }}>
             <p className={`${!isSelected ? s.vTabUnselected : ''} ${s.vTabLabel}`}>

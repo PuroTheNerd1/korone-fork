@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Dapper;
@@ -16,8 +17,27 @@ using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
 
-public class AvatarService : ServiceBase, IService
-{
+public class AvatarService : ServiceBase, IService {
+
+    public class AssetTypeGroups
+    {
+        public int[] clothing { get; set; }
+        public int[] accessories { get; set; }
+        public int[] avataranimations { get; set; }
+        public int[] bodyparts { get; set; }
+        public int[] packages { get; set; }
+        public int[] all { get; set; }
+    }
+    
+    public AssetTypeGroups RecentAssetTypes = new AssetTypeGroups {
+        clothing = new[]{2, 11, 12},
+        accessories = new[]{8,41,42,43,44,45,46,47},
+        avataranimations = new[]{48,50,51,52,53,54,55,61,18},
+        bodyparts = new[]{17,27,28,29,30,31},
+        packages = new[]{31},
+        all = new[]{2, 11, 12, 8, 41, 42, 43, 44, 45, 46, 47, 48, 50, 51, 52, 53, 54, 55, 61, 18, 17, 27, 28, 29, 30, 31, 31, 19},
+    };
+    
     public async Task<IEnumerable<long>> GetWornAssets(long userId)
     {
         // useless inner join is intentional:
@@ -51,6 +71,18 @@ public class AvatarService : ServiceBase, IService
                 });
         return result.Select(c => (long) c.asset_id);
     }
+    public async Task<IEnumerable<long>> GetRecentAvatarItems(long userId, int[] assetTypes)
+    {
+        var result =
+            await db.QueryAsync(
+                "SELECT asset_id FROM user_asset ua INNER JOIN asset a ON a.id = ua.asset_id WHERE user_id = :user_id AND a.asset_type = ANY(:types) ORDER BY ua.updated_at DESC LIMIT 25",
+                new
+                {
+                    user_id = userId,
+                    types = assetTypes.Select(i => (short)i).ToArray(),
+                });
+        return result.Select(c => (long) c.asset_id);
+    }
     public async Task<int> GetAvatarTypeAsync(long userId)
     {
         var AvatarRigType = await db.QuerySingleOrDefaultAsync(
@@ -61,6 +93,25 @@ public class AvatarService : ServiceBase, IService
             });
 
         return AvatarRigType.avatar_type;
+    }
+    
+    public async Task<BodyScales> GetAvatarScalesAsync(long userId)
+    {
+        var avatarScales = await db.QuerySingleOrDefaultAsync<BodyScales>(
+            @"SELECT 
+                scale_height as height,
+                scale_width as width,
+                scale_head as head,
+                scale_depth as depth,
+                scale_proportion as proportion,
+                scale_body_type as bodyType
+                FROM user_avatar WHERE user_id = :user_id",
+            new
+            {
+                user_id = userId,
+            });
+
+        return avatarScales;
     }
 
     public async Task UpdateRigType(int type, long userId)
@@ -282,12 +333,27 @@ public class AvatarService : ServiceBase, IService
         return assetIds;
     }
 
-    public string GetAvatarHash(ColorEntry colors, IEnumerable<long> assetVersionIds)
+    public string GetAvatarHash(ColorEntry colors, IEnumerable<long> assetVersionIds, BodyScales scales, AvatarType rigType)
     {
         var assets = assetVersionIds.Distinct().ToList();
         assets.Sort((a, b) => a > b ? 1 : a == b ? 0 : -1);
         var str =
-            $"avatar-hash-1.4:{string.Join(",", assets)}:{colors.headColorId},{colors.torsoColorId},{colors.leftArmColorId},{colors.rightArmColorId},{colors.leftLegColorId},{colors.rightLegColorId}";
+            $@"avatar-hash-1.5:
+                {string.Join(",", assets)}:
+                {colors.headColorId},
+                {colors.torsoColorId},
+                {colors.leftArmColorId},
+                {colors.rightArmColorId},
+                {colors.leftLegColorId},
+                {colors.rightLegColorId},
+                {scales.height},
+                {scales.width},
+                {scales.depth},
+                {scales.proportion},
+                {scales.head},
+                {scales.bodyType},
+                {(int)rigType},
+            ";
         var hasher = SHA256.Create();
         var bits = hasher.ComputeHash(Encoding.UTF8.GetBytes(str));
         return Convert.ToHexString(bits).ToLower();
@@ -309,7 +375,8 @@ public class AvatarService : ServiceBase, IService
     /// <summary>
     /// Update the userId's avatar. Returns a hash. This does not render or validate anything.
     /// </summary>
-    public async Task<string> UpdateUserAvatar(long userId, ColorEntry colors, IEnumerable<long> assetIds)
+    public async Task<string> UpdateUserAvatar(long userId, ColorEntry colors, IEnumerable<long> assetIds,
+        BodyScales scales, AvatarType rigType)
     {
         var idsList = assetIds.ToList();
         return await InTransaction(async (trx) =>
@@ -322,6 +389,13 @@ public class AvatarService : ServiceBase, IService
                 left_arm_color_id = colors.leftArmColorId,
                 right_leg_color_id = colors.rightLegColorId,
                 left_leg_color_id = colors.leftLegColorId,
+                scale_height = scales.height,
+                scale_width = scales.width,
+                scale_head = scales.head,
+                scale_depth = scales.depth,
+                scale_proportion = scales.proportion,
+                scale_body_type = scales.bodyType,
+                avatar_type = (int)rigType,
             });
             await db.ExecuteAsync("DELETE FROM user_avatar_asset WHERE user_id = :user_id", new
             {
@@ -338,7 +412,7 @@ public class AvatarService : ServiceBase, IService
             }
 
             var assetVersions = await MultiGetAssetVersionsFromAssetIds(idsList);
-            return GetAvatarHash(colors, assetVersions);
+            return GetAvatarHash(colors, assetVersions, scales, rigType);
         });
     }
 
@@ -361,15 +435,31 @@ public class AvatarService : ServiceBase, IService
             new
             {
                 user_id = userId,
-                limit = limit,
-                offset = offset,
+                limit,
+                offset,
             });
     }
 
     public async Task<OutfitExtendedDetails> GetOutfitById(long outfitId)
     {
         var result = await db.QuerySingleOrDefaultAsync<OutfitAvatar>(
-            "SELECT head_color_id as headColorId, torso_color_id as torsoColorId, left_arm_color_id as leftArmColorId, right_arm_color_id as rightArmColorId, left_leg_color_id as leftLegColorId, right_leg_color_id as rightLegColorId, user_id as userId FROM user_outfit WHERE id = :id",
+            @"SELECT 
+                    name,
+                    head_color_id as headColorId,
+                    torso_color_id as torsoColorId,
+                    left_arm_color_id as leftArmColorId,
+                    right_arm_color_id as rightArmColorId,
+                    left_leg_color_id as leftLegColorId,
+                    right_leg_color_id as rightLegColorId,
+                    user_id as userId,
+                    scale_height as height,
+                    scale_width as width,
+                    scale_head as head,
+                    scale_depth as depth,
+                    scale_proportion as proportion,
+                    scale_body_type as bodyType,
+                    avatar_type as avatarType
+                  FROM user_outfit WHERE id = :id",
             new
             {
                 id = outfitId,
@@ -418,7 +508,14 @@ public class AvatarService : ServiceBase, IService
                 left_leg_color_id = outfitDetails.details.leftLegColorId,
                 right_leg_color_id = outfitDetails.details.rightLegColorId,
                 // type
-                avatar_type = AvatarType.R6,
+                avatar_type = outfitDetails.details.avatarType,
+                // scales
+                scale_height = outfitDetails.details.height,
+                scale_width = outfitDetails.details.width,
+                scale_head = outfitDetails.details.head,
+                scale_depth = outfitDetails.details.depth,
+                scale_proportion = outfitDetails.details.proportion,
+                scale_body_type = outfitDetails.details.bodyType,
                 // images
                 headshot_thumbnail_url = headshotUrl,
                 thumbnail_url = thumbnailUrl,
@@ -436,13 +533,25 @@ public class AvatarService : ServiceBase, IService
         });
     }
 
-    public async Task UpdateOutfit(long outfitId, string name, string? thumbnailUrl, string? headshotUrl,
-        OutfitExtendedDetails outfitDetails)
-    {
+    public async Task RenameOutfit(long outfitId, string name) {
         if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
             throw new OutfitNameTooShortException();
         if (name.Length > 25)
             throw new OutfitNameTooLongException();
+        await UpdateAsync("user_outfit", outfitId, new {
+            name
+        });
+    }
+    
+    public async Task UpdateOutfit(long outfitId, string? name, string? thumbnailUrl, string? headshotUrl,
+        OutfitExtendedDetails outfitDetails)
+    {
+        if (name != null) {
+            if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
+                throw new OutfitNameTooShortException();
+            if (name.Length > 25)
+                throw new OutfitNameTooLongException();
+        }
         // image check
         if (string.IsNullOrWhiteSpace(thumbnailUrl) || string.IsNullOrWhiteSpace(headshotUrl))
             throw new NoImageUrlException();
@@ -450,7 +559,6 @@ public class AvatarService : ServiceBase, IService
         {
             await UpdateAsync("user_outfit", outfitId, new
             {
-                name = name,
                 // colors
                 head_color_id = outfitDetails.details.headColorId,
                 torso_color_id = outfitDetails.details.torsoColorId,
@@ -459,11 +567,22 @@ public class AvatarService : ServiceBase, IService
                 left_leg_color_id = outfitDetails.details.leftLegColorId,
                 right_leg_color_id = outfitDetails.details.rightLegColorId,
                 // type
-                avatar_type = AvatarType.R6,
+                avatar_type = outfitDetails.details.avatarType,
+                // scales
+                scale_height = outfitDetails.details.height,
+                scale_width = outfitDetails.details.width,
+                scale_head = outfitDetails.details.head,
+                scale_depth = outfitDetails.details.depth,
+                scale_proportion = outfitDetails.details.proportion,
+                scale_body_type = outfitDetails.details.bodyType,
                 // images
                 headshot_thumbnail_url = headshotUrl,
                 thumbnail_url = thumbnailUrl,
             });
+            if (name != null) {
+                // TODO: there's gotta be a better way to do this but idk hjow
+                await UpdateAsync("user_outfit", outfitId, new { name });
+            }
             await db.ExecuteAsync("DELETE FROM user_outfit_asset WHERE outfit_id = :id", new {id = outfitId});
             foreach (var assetId in outfitDetails.assetIds)
             {
@@ -529,77 +648,77 @@ public class AvatarService : ServiceBase, IService
         {
             switch (item.assetType)
             {
-                case Models.Assets.Type.TeeShirt:
+                case Type.TeeShirt:
                     tShirt++;
                     break;
-                case Models.Assets.Type.Shirt:
+                case Type.Shirt:
                     shirt++;
                     break;
-                case Models.Assets.Type.Pants:
+                case Type.Pants:
                     pants++;
                     break;
-                case Models.Assets.Type.Animation:
+                case Type.Animation:
                     animations++;
                     break;
-                case Models.Assets.Type.Gear:
+                case Type.Gear:
                     gear++;
                     break;
-                case Models.Assets.Type.Face:
+                case Type.Face:
                     face++;
                     break;
-                case Models.Assets.Type.Hat:
-                case Models.Assets.Type.FrontAccessory:
-                case Models.Assets.Type.BackAccessory:
-                case Models.Assets.Type.HairAccessory:
-                case Models.Assets.Type.NeckAccessory:
-                case Models.Assets.Type.ShoulderAccessory:
-                case Models.Assets.Type.WaistAccessory:
-                case Models.Assets.Type.FaceAccessory:
+                case Type.Hat:
+                case Type.FrontAccessory:
+                case Type.BackAccessory:
+                case Type.HairAccessory:
+                case Type.NeckAccessory:
+                case Type.ShoulderAccessory:
+                case Type.WaistAccessory:
+                case Type.FaceAccessory:
                     accessories++;
                     break;
-                case Models.Assets.Type.Head:
+                case Type.Head:
                     head++;
                     break;
-                case Models.Assets.Type.Torso:
+                case Type.Torso:
                     torso++;
                     break;
-                case Models.Assets.Type.LeftArm:
+                case Type.LeftArm:
                     leftArm++;
                     break;
-                case Models.Assets.Type.RightArm:
+                case Type.RightArm:
                     rightArm++;
                     break;
-                case Models.Assets.Type.LeftLeg:
+                case Type.LeftLeg:
                     leftLeg++;
                     break;
-                case Models.Assets.Type.RightLeg:
+                case Type.RightLeg:
                     rightLeg++;
                     break;
-                case Models.Assets.Type.FallAnimation:
+                case Type.FallAnimation:
                     fallAnimation++;
                     break;
-                case Models.Assets.Type.ClimbAnimation:
+                case Type.ClimbAnimation:
                     climbAnimation++;
                     break;
-                case Models.Assets.Type.IdleAnimation:
+                case Type.IdleAnimation:
                     idleAnimation++;
                     break;
-                case Models.Assets.Type.WalkAnimation:
+                case Type.WalkAnimation:
                     walkAnimation++;
                     break;
-                case Models.Assets.Type.RunAnimation:
+                case Type.RunAnimation:
                     runAnimation++;
                     break;
-                case Models.Assets.Type.JumpAnimation:
+                case Type.JumpAnimation:
                     jumpAnimation++;
                     break;
-                case Models.Assets.Type.PoseAnimation:
+                case Type.PoseAnimation:
                     poseAnimation++;
                     break;
-                case Models.Assets.Type.SwimAnimation:
+                case Type.SwimAnimation:
                     swimAnimation++;
                     break;
-                case Models.Assets.Type.EmoteAnimation:
+                case Type.EmoteAnimation:
                     emotes++;
                     break;
                 default:
@@ -642,6 +761,14 @@ public class AvatarService : ServiceBase, IService
         return false;
     }
 
+    public async Task UpdateLastUpdated(long userId, long assetId) {
+        await db.QueryAsync("UPDATE user_asset SET updated_at = now() WHERE user_id = :userId AND asset_id = :assetId", new
+        {
+            userId,
+            assetId,
+        });
+    }
+
     public bool AreColorsOk(ColorEntry colors)
     {
         if (!IsColorValid(colors.headColorId)) return false;
@@ -659,27 +786,34 @@ public class AvatarService : ServiceBase, IService
     }
 
     public async Task RedrawAvatar(long userId, IEnumerable<long>? newAssetIds = null, ColorEntry? colors = null,
-        AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false, bool? skipRender = false)
+        AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false, 
+        bool? skipRender = false, BodyScales? scales = null)
     {
         // required services
         using var assets = ServiceProvider.GetOrCreate<AssetsService>();
-
-        // params
-        avatarType ??= AvatarType.R6;
-
-
+        
         await using var redLock =
             await Cache.redLock.CreateLockAsync(GetAvatarRedLockKey(userId), TimeSpan.FromSeconds(5));
         if (!redLock.IsAcquired && !ignoreLock) throw new LockNotAcquiredException();
 
         var assetIds = newAssetIds?.ToList();
         // If list provided is null, then the caller wants us to grab the items ourselves
-        assetIds ??= (await GetWornAssets(userId)).ToList();
+        if (avatarType is null) {
+            var type = await GetAvatarTypeAsync(userId);
+            if (!Enum.IsDefined(typeof(AvatarType), type))
+                throw new RobloxException(400, 0, "Avatar type is invalid");
+            avatarType = (AvatarType)type;
+        }
+        scales ??= await GetAvatarScalesAsync(userId);
         colors ??= await GetAvatarColors(userId);
-
+        assetIds ??= (await GetWornAssets(userId)).ToList();
+        
+        // TODO: do we check if avatar type is valid? probably not but either way that should prob be rewritten
+        //  (the way we get AvatarType from int
         if (!AreColorsOk(colors))
             throw new RobloxException(400, 0, "Colors are invalid");
-
+        if (!AreScalesValid(scales) && userId is not (68 or 3))
+            throw new RobloxException(400, 0, "Scales are invalid");
 
         if (assetIds.Count != 0)
         {
@@ -690,7 +824,7 @@ public class AvatarService : ServiceBase, IService
         if (!assetsOk)
             throw new RobloxException(400, 0, "One or more assets are invalid");
         // Now, update the avatar. This returns a hash
-        var avatarHash = await UpdateUserAvatar(userId, colors, assetIds);
+        var avatarHash = await UpdateUserAvatar(userId, colors, assetIds, scales, avatarType.Value);
         if ((bool)skipRender) return;
         // We don't wanna waste time rendering if we don't have to
 

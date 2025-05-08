@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
@@ -121,6 +122,30 @@ public class ItemConfigurationV1 : ControllerBase
         await services.assets.ValidatePermissions(assetId, userSession.userId);
         // services/api/src/controllers/proxy/v1/ItemConfiguration.ts:75
         throw new NotImplementedException();
+    }
+
+    [HttpGet("assets/restrictions")]
+    public async Task<RobloxCollection<ItemRestrictions>> GetAssetRestrictions(string assetIds) {
+        var parsed = assetIds.Split(",").Select(long.Parse).Distinct().ToList();
+        if (parsed.Count is > 200 or < 0) throw new BadRequestException(0, "Invalid asset id list");
+
+        var results = (await services.assets.MultiGetAssetRestrictions(parsed)).ToList();
+
+        if (parsed.Count != results.Count) {
+            var returnedIds = results.Select(r => r.assetId).ToList();
+            foreach (var missingId in parsed.Where(id => !returnedIds.Contains(id))) {
+                results.Add(new ItemRestrictions {
+                    assetId = missingId,
+                    isLimited = false,
+                    isLimitedUnique = false,
+                    exists = false,
+                });
+            }
+        }
+
+        return new() {
+            data = results,
+        };
     }
 
     [HttpGet("creations/get-assets")]

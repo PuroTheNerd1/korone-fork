@@ -90,6 +90,25 @@ const useButtonStyles = createUseStyles({
       cursor: 'pointer',
     },
   },
+  newDisabledContinueButton: {
+    background: '#99DAFF',
+    border: '1px solid #99DAFF',
+    borderColor: '#99DAFF!important',
+    borderRadius: '3px',
+    fontWeight: '500',
+    color: '#fff!important',
+    fontSize: '18px',
+    cursor: "default",
+    
+    userSelect: 'none',
+    display: 'inline-block',
+    height: 'auto',
+    textAlign: 'center',
+    whiteSpace: 'nowrap',
+    verticalAlign: 'middle',
+    padding: '9px',
+    lineHeight: '100%',
+  },
   newCancelButton: {
     background: '#fff',
     border: '1px solid var(--text-color-secondary)',
@@ -127,6 +146,33 @@ const useButtonStyles = createUseStyles({
       pointerEvents: 'none',
       boxShadow: 'none'
     }
+  },
+  newWarningButton: {
+    background: '#D86868',
+    border: '1px solid #D86868',
+    borderColor: '#D86868!important',
+    borderRadius: '3px',
+    fontWeight: '500',
+    color: '#fff!important',
+    fontSize: '18px',
+    
+    userSelect: 'none',
+    display: 'inline-block',
+    height: 'auto',
+    textAlign: 'center',
+    whiteSpace: 'nowrap',
+    verticalAlign: 'middle',
+    padding: '9px',
+    lineHeight: '100%',
+    transition: "box-shadow 200ms ease-in-out",
+    "-webkit-transition": "box-shadow 200ms ease-in-out",
+    '&:hover': {
+      background: '#E27676!important',
+      borderColor: '#E27676!important',
+      boxShadow: "0 1px 3px rgba(150,150,150,0.74)",
+      color: '#fff',
+      cursor: 'pointer',
+    },
   },
 });
 

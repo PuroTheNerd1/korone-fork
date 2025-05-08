@@ -1951,6 +1951,15 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         return null;
     }
+    public async Task<IEnumerable<ItemRestrictions>> MultiGetAssetRestrictions(IEnumerable<long> listIds) {
+        return await db.QueryAsync<ItemRestrictions>(@"
+            SELECT 
+                is_limited as isLimited,
+                is_limited_unique as isLimitedUnique,
+                id as assetId
+            FROM asset WHERE id = ANY(:assetIds) ORDER BY updated_at DESC LIMIT 200", new { assetIds = listIds.ToList() }
+        );
+    }
     public async Task<SearchResponse> SearchCatalog(CatalogSearchRequest request)
     {
         var resp = new SearchResponse();

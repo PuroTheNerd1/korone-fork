@@ -99,9 +99,19 @@ const useStyles = createUseStyles({
 });
 
 /**
- * 
- * @param {{title: any; children: any; footerElements?: any; footerText?: any; footerClass?: string; exitFunction?: () => void; containerWidth?: number;}} props 
- * @returns 
+ *
+ * @param {{
+ * title: any;
+ * children: any;
+ * footerElements?: any;
+ * footerText?: any;
+ * footerClass?: string;
+ * containerClass?: string;
+ * exitFunction?: () => void;
+ * containerWidth?: number;
+ * offset?: number;
+ * }} props
+ * @returns
  */
 
 const newModal = props => {
@@ -117,8 +127,8 @@ const newModal = props => {
     const bottomBorder = modalHeader == null || modalHeader == undefined || modalHeader == "" ? null : s.modalHeaderBottomBorder
 
     return <div className={s.modalBg}>
-        <div className={s.modalContainer}>
-            <div className={s.modalWrapper} style={props.containerWidth && {marginTop: 'calc(50vh - 200px)'}}>
+        <div className={`${s.modalContainer} ${props.containerClass ? props.containerClass : ""}`}>
+            <div className={s.modalWrapper} style={props.offset ? {marginTop: `calc(50vh - ${props.offset}px)`} : {}}>
                 <div className={s.modalDialog} style={props.containerWidth && {width: props.containerWidth + 'px'}}>
                     <div className={s.modalContent}>
                         <div className={`${s.modalHeader} ${bottomBorder}`}>

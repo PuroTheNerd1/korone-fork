@@ -37,3 +37,13 @@ export const setTradeValue = ({ newValue }) => {
     tradeValue: newValue,
   });
 }
+
+export const getAvPageStyleReq = () => {
+  return request('GET', getFullUrl('accountsettings', '/v1/avatar-page-style')).then(d => d.data.avatarPageStyle);
+}
+
+export const setAvPageStyleReq = ({ newAvatarPageStyle }) => {
+  return request('POST', getFullUrl('accountsettings', '/v1/avatar-page-style'), {
+    avatarPageStyle: newAvatarPageStyle,
+  });
+}

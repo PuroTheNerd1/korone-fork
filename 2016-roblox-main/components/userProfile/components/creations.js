@@ -8,6 +8,8 @@ import { createUseStyles } from "react-jss";
 
 const useStyles = createUseStyles({
   listItem: {
+    padding: 0,
+    width: 'calc(16.67% - 10px)',
     '@media(max-width: 767px)': {
       minWidth: '144px',
     },
@@ -40,7 +42,7 @@ const Creations = props => {
       <Subtitle>Games</Subtitle>
     </div>
     <div className='col-12'>
-      <div className='flex'>
+      <div className='flex' style={{ gap: 10 }}>
         {
           store.createdGames.map(v => {
             return <NewGameCard key={v.id}
