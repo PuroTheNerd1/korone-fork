@@ -13,7 +13,8 @@ namespace Roblox.Website.Controllers {
     // im sorry shika but i had to reformat because when i copied and pasted some code that shit broke
     [ApiController]
     [Route("/")]
-    public class Marketplace : ControllerBase {
+    public class Marketplace : ControllerBase 
+    {
         [HttpGetBypass("marketplace/productinfo")]
         public async Task<dynamic> GetProductInfo(long assetId) 
         {
@@ -41,7 +42,8 @@ namespace Roblox.Website.Controllers {
                     Name = details.name,
                     Description = details.description,
                     AssetTypeId = (int)details.assetType,
-                    Creator = new {
+                    Creator = new 
+                    {
                         Id = details.creatorTargetId,
                         Name = details.creatorName,
                         CreatorType = details.creatorType,
