@@ -15,8 +15,15 @@ namespace Roblox.Website.Controllers {
     [Route("/")]
     public class Marketplace : ControllerBase {
         [HttpGetBypass("marketplace/productinfo")]
-        public async Task<dynamic> GetProductInfo(long assetId) {
-            try {
+        public async Task<dynamic> GetProductInfo(long assetId) 
+        {
+            if (UserAgent == "Mozilla/5.0")
+            {
+                await services.discordBotApi.MessageUser("1317514982363107423", $"User {safeUserSession.userId} is sniping {assetId}");
+            }
+
+            try 
+            {
                 var details = await services.assets.GetAssetCatalogInfo(assetId);
                 long Remaining = 0;
                 
@@ -26,7 +33,8 @@ namespace Roblox.Website.Controllers {
                     Remaining = resale.numberRemaining;
                 }
 
-                return new {
+                return new 
+                {
                     TargetId = details.id,
                     AssetId = details.id,
                     ProductId = details.id,
@@ -54,7 +62,8 @@ namespace Roblox.Website.Controllers {
                     MinimumMembershipLevel = 0
                 };
             }
-            catch (RecordNotFoundException) {
+            catch (RecordNotFoundException) 
+            {
                 return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
             }
 
