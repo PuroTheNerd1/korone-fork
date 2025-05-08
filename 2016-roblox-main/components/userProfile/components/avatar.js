@@ -89,22 +89,20 @@ const Avatar = props => {
           {selectedAssets && selectedAssets.map(v => {
             return <div className='col-3 pt-2 ps-1 pe-1' key={v.id}>
               <div className='card' title={v.name}>
-                <Link href={getItemUrl({name: v.name, assetId: v.id})}>
-                  <>
-                    <a title={v.name}>
-                      <ItemImage id={v.id} className='pt-0'/>
-                    </a>
-                    <div className={s.restrictionsContainer}>
-                      {
-                        v.isLimitedUnique ?
-                        <span className="icon-limited-unique-label"/>
-                        : v.isLimited ?
-                        <span className="icon-limited-label"/>
-                        : null
-                      }
-                    </div>
-                  </>
+                <Link href={getItemUrl({ name: v.name, assetId: v.id })}>
+                  <a title={v.name} href={getItemUrl({ name: v.name, assetId: v.id })}>
+                    <ItemImage id={v.id} className='pt-0'/>
+                  </a>
                 </Link>
+                <div className={s.restrictionsContainer}>
+                  {
+                    v.isLimitedUnique ?
+                    <span className="icon-limited-unique-label"/>
+                    : v.isLimited ?
+                    <span className="icon-limited-label"/>
+                    : null
+                  }
+                </div>
               </div>
             </div>
           })}
