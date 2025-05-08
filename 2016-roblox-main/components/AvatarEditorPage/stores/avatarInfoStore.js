@@ -8,8 +8,17 @@ import {getMyAvatar, getRules, redrawMyAvatar, setColors, setRigType, setScales}
 import * as AvatarService from "../../../services/avatar";
 import {wait} from "../../../lib/utils";
 
+/**
+ * @typedef WearingAsset
+ * @property {string} name
+ * @property {number} assetId
+ * @property {number} assetType
+ * @property {string} assetTypeName
+ */
+
 const AvatarInfoStore = createContainer(() => {
     // CURRENT STUFF
+    /** @type {WearingAsset[]} */
     const [wearingAssets, setWearingAssets] = useState(null);
     const [bodyColors, setBodyColors] = useState(null);
     const [bodyScales, setBodyScales] = useState(null);
@@ -85,7 +94,6 @@ const AvatarInfoStore = createContainer(() => {
             }
         }
         setAvThumb(null);
-        await wait(1);
         setIsRendering(true);
     }
     
@@ -111,7 +119,6 @@ const AvatarInfoStore = createContainer(() => {
         if (attempts > 10 && avThumb == null)
             feedback.addFeedback("Could not get new avatar render. Please try again later.", FeedbackType.ERROR);
         setIsRendering(false);
-        await wait(0.5);
         debo.current = false;
     }, [isRendering]);
     
@@ -163,13 +170,39 @@ const AvatarInfoStore = createContainer(() => {
         applyRigType().then();
     }, [modifiedRigType]);
     useEffect(() => {
-        if (!modifiedAsset) return;
+        if (!modifiedAsset || wearingAssets === null) return;
+        /** @type SortedItem */
         let newAsset = modifiedAsset;
         setModifiedAsset(null);
         
-        if (wearingAssets.length >= 15) {
-            feedback.addFeedback("Too many assets equipped", FeedbackType.ERROR);
-            return;
+        // Limiting
+        if (!IsNegative(newAsset.assetId)) {
+            if (AssetTypeCategory.LimitToOne.includes(newAsset.assetType)) {
+                for (const assetType of AssetTypeCategory.LimitToOne) {
+                    let onlyOneAllowed = wearingAssets.filter(/** @param {WearingAsset} asset */ asset => {
+                        return asset.assetType === assetType && newAsset.assetType === assetType;
+                    });
+                    if (onlyOneAllowed.length > 0) {
+                        setWearingAssets(wearingAssets.filter(asset => asset.assetType !== assetType));
+                    }
+                }
+            } else if (AssetTypeCategory.Accessories.includes(newAsset.assetType)) {
+                let accessories = wearingAssets.filter(/** @param {WearingAsset} asset */ asset =>
+                    AssetTypeCategory.Accessories.includes(asset.assetType)
+                );
+                if (accessories.length > 15) {
+                    feedback.addFeedback("Too many accessories equipped", FeedbackType.ERROR);
+                    return;
+                }
+            } else if (AssetTypeCategory.Emotes.includes(newAsset.assetType)) {
+                let emotes = wearingAssets.filter(/** @param {WearingAsset} asset */ asset =>
+                    AssetTypeCategory.Emotes.includes(asset.assetType)
+                )
+                if (emotes.length > 8) {
+                    feedback.addFeedback("Too many emotes equipped", FeedbackType.ERROR);
+                    return;
+                }
+            }
         }
         
         setWearingAssets(prev => {
@@ -227,7 +260,14 @@ const AvatarInfoStore = createContainer(() => {
     }
 })
 
-function IsNegative(int) {
+export const AssetTypeCategory = {
+    Accessories: [8, 41, 42, 43, 44, 45, 46, 47], // all limit of 15
+    Emotes: [61], // all limit of 8
+    LimitToOne: [50, 51, 52, 53, 54, 55, 17, 27, 28, 29, 30, 31, 18, 19, 12, 11, 2],
+    Unlimited: [24]
+}
+
+export function IsNegative(int) {
     return int < 0;
 }
 

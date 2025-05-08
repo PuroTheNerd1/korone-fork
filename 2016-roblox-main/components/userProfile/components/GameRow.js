@@ -12,7 +12,7 @@ const useStyles = createUseStyles({
         padding: 0,
         flexDirection: 'row',
         gap: '12px',
-        height: '250px'
+        height: '250px',
     },
 });
 
@@ -21,7 +21,7 @@ const useStyles = createUseStyles({
  * @param {{
 * games: any[];
 * }} props
-* @returns 
+* @returns
 */
 
 const GameRow = props => {

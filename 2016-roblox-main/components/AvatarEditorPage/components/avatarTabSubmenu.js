@@ -52,6 +52,7 @@ const useStyles = createUseStyles({
  * @typedef SubmenuData
  * @property {string} name
  * @property {number} typeId
+ * @property {number} tabId
  * @property {number?} tabType
  * @property {bool} active
  */
@@ -101,7 +102,7 @@ const AvatarSubmenu = ({data, onButtonClick, mode = SUBMENU_MODE.DEFAULT}) => {
                     className={`
                     ${s.submenuButton}
                     ${
-                        (page.listItemMetadata?.assetType === item.typeId || page.listItemMetadata?.recentType === item.typeId)
+                        (page.activeTab === 0 && (page.listItemMetadata?.assetType === item.typeId || page.listItemMetadata?.recentType === item.typeId))
                         ? "active" : ""}
                     `}
                     onClick={e => onButtonClick(item, e)}

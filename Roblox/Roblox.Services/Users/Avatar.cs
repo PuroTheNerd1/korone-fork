@@ -648,77 +648,77 @@ public class AvatarService : ServiceBase, IService {
         {
             switch (item.assetType)
             {
-                case Models.Assets.Type.TeeShirt:
+                case Type.TeeShirt:
                     tShirt++;
                     break;
-                case Models.Assets.Type.Shirt:
+                case Type.Shirt:
                     shirt++;
                     break;
-                case Models.Assets.Type.Pants:
+                case Type.Pants:
                     pants++;
                     break;
-                case Models.Assets.Type.Animation:
+                case Type.Animation:
                     animations++;
                     break;
-                case Models.Assets.Type.Gear:
+                case Type.Gear:
                     gear++;
                     break;
-                case Models.Assets.Type.Face:
+                case Type.Face:
                     face++;
                     break;
-                case Models.Assets.Type.Hat:
-                case Models.Assets.Type.FrontAccessory:
-                case Models.Assets.Type.BackAccessory:
-                case Models.Assets.Type.HairAccessory:
-                case Models.Assets.Type.NeckAccessory:
-                case Models.Assets.Type.ShoulderAccessory:
-                case Models.Assets.Type.WaistAccessory:
-                case Models.Assets.Type.FaceAccessory:
+                case Type.Hat:
+                case Type.FrontAccessory:
+                case Type.BackAccessory:
+                case Type.HairAccessory:
+                case Type.NeckAccessory:
+                case Type.ShoulderAccessory:
+                case Type.WaistAccessory:
+                case Type.FaceAccessory:
                     accessories++;
                     break;
-                case Models.Assets.Type.Head:
+                case Type.Head:
                     head++;
                     break;
-                case Models.Assets.Type.Torso:
+                case Type.Torso:
                     torso++;
                     break;
-                case Models.Assets.Type.LeftArm:
+                case Type.LeftArm:
                     leftArm++;
                     break;
-                case Models.Assets.Type.RightArm:
+                case Type.RightArm:
                     rightArm++;
                     break;
-                case Models.Assets.Type.LeftLeg:
+                case Type.LeftLeg:
                     leftLeg++;
                     break;
-                case Models.Assets.Type.RightLeg:
+                case Type.RightLeg:
                     rightLeg++;
                     break;
-                case Models.Assets.Type.FallAnimation:
+                case Type.FallAnimation:
                     fallAnimation++;
                     break;
-                case Models.Assets.Type.ClimbAnimation:
+                case Type.ClimbAnimation:
                     climbAnimation++;
                     break;
-                case Models.Assets.Type.IdleAnimation:
+                case Type.IdleAnimation:
                     idleAnimation++;
                     break;
-                case Models.Assets.Type.WalkAnimation:
+                case Type.WalkAnimation:
                     walkAnimation++;
                     break;
-                case Models.Assets.Type.RunAnimation:
+                case Type.RunAnimation:
                     runAnimation++;
                     break;
-                case Models.Assets.Type.JumpAnimation:
+                case Type.JumpAnimation:
                     jumpAnimation++;
                     break;
-                case Models.Assets.Type.PoseAnimation:
+                case Type.PoseAnimation:
                     poseAnimation++;
                     break;
-                case Models.Assets.Type.SwimAnimation:
+                case Type.SwimAnimation:
                     swimAnimation++;
                     break;
-                case Models.Assets.Type.EmoteAnimation:
+                case Type.EmoteAnimation:
                     emotes++;
                     break;
                 default:

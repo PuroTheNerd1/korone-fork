@@ -16,6 +16,7 @@ const useCollectionStyles = createUseStyles({
     border: '1px solid var(--text-color-quinary)',
     //borderRadius: '4px',
     borderRadius: 0,
+    position: 'relative',
   },
   image: {
     width: '100%',
@@ -32,8 +33,11 @@ const useCollectionStyles = createUseStyles({
   },
   labelWrapper: {
     width: '100%',
-    marginTop: '-27px',
+    // marginTop: '-27px',
     overflow: 'hidden',
+    position: 'absolute',
+    bottom: -2,
+    left: -2,
   },
   overlayLimited: {
     height: '28px',
@@ -88,10 +92,17 @@ const Collections = props => {
                       {/*     className={s.image}/>*/}
                       <ItemImage id={assetId} className={s.image} />
                       {hasOverlay ? <div className={s.labelWrapper}>
+                        {/*{*/}
+                        {/*  isLimited ? <img className={s.overlayLimited} src='/img/limitedOverlay_itemPage.png'/>*/}
+                        {/*      : isLimitedUnique ? <img className={s.overlayLimitedUnique}*/}
+                        {/*                               src='/img/limitedUniqueOverlay_itemPage.png'/> : null*/}
+                        {/*}*/}
                         {
-                          isLimited ? <img className={s.overlayLimited} src='/img/limitedOverlay_itemPage.png'/>
-                              : isLimitedUnique ? <img className={s.overlayLimitedUnique}
-                                                       src='/img/limitedUniqueOverlay_itemPage.png'/> : null
+                          isLimited ?
+                              <span className="icon-limited-label" />
+                          : isLimitedUnique ?
+                              <span className="icon-limited-unique-label" />
+                          : null
                         }
                       </div> : null}
                     </div>

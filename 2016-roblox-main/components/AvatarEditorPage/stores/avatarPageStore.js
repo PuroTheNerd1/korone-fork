@@ -53,6 +53,7 @@ const AvatarPageStore = createContainer(() => {
     });
     const [openSubmenu, setOpenSubmenu] = useState(null);
     const [activeSubmenu, setActiveSubmenu] = useState(null);
+    const [activeTab, setActiveTab] = useState(0);
     const auth = AuthenticationStore.useContainer();
     const { setLoadingAvatar } = AvatarInfoStore.useContainer();
     
@@ -98,6 +99,7 @@ const AvatarPageStore = createContainer(() => {
     
     async function LoadAssetTypeToList(type, loadMore) {
         setLoadingAvatar(true);
+        if (!loadMore) ClearListItems(); // TODO: is this right?
         let invList = (await getInventory({
             userId: auth.userId,
             assetTypeId: type,
@@ -180,6 +182,7 @@ const AvatarPageStore = createContainer(() => {
         LoadRecentItemsToList,
         LoadAssetTypeToList,
         LoadOutfits,
+        ClearListItems,
         
         /** @type SortedItem[] */
         listItems,
@@ -196,7 +199,10 @@ const AvatarPageStore = createContainer(() => {
         setOpenSubmenu,
         
         activeSubmenu,
-        setActiveSubmenu
+        setActiveSubmenu,
+        
+        activeTab,
+        setActiveTab,
     }
 })
 

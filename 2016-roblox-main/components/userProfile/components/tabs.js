@@ -28,14 +28,8 @@ const TabEntry = (props) => {
   }}>{props.children}</p>
 }
 
-const useTabStyles = createUseStyles({
-
-});
-
 const Tabs = props => {
   const cardStyles = useCardStyles();
-  const s = useTabStyles();
-  const store = UserProfileStore.useContainer();
 
   return <div className='flex'>
     <div className='col-12'>

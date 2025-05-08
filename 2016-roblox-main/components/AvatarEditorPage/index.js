@@ -12,7 +12,7 @@ import AvatarTabSubmenu, {SUBMENU_MODE} from "./components/avatarTabSubmenu";
 import AvatarPageStore from "./stores/avatarPageStore";
 import AvatarTabs from "./components/avatarTabs";
 import {IsNullOrEmpty, wait} from "../../lib/utils";
-import {useEffect, useRef, useState} from "react";
+import {act, useEffect, useRef, useState} from "react";
 import OutfitsTab from "./components/outfitsTab";
 import BodyColorsTab from "./components/bodyColorsTab";
 import useWindowQuery from "../windowQuery";
@@ -167,11 +167,11 @@ function AvatarEditor() {
     const auth = AuthenticationStore.useContainer();
     const store = AvatarInfoStore.useContainer();
     const page = AvatarPageStore.useContainer();
+    const { activeTab, setActiveTab } = page;
     const listItemMetadata = useRef(page.listItemMetadata);
     const debounce = useRef(false);
     const [avThumb, setAvThumb] = useState(null);
     const [isRendering, setIsRendering] = useState(false);
-    const [activeTab, setActiveTab] = useState(0);
     
     useEffect(() => {
         listItemMetadata.current = page.listItemMetadata;
@@ -187,10 +187,11 @@ function AvatarEditor() {
         if (debounce.current || listItemMetadata.current.assetType === item.typeId) return;
         debounce.current = true;
         page.setSelectedList({
-            tab: page.openSubmenu.id,
+            tab: item.tabId,
             subTab: item.name,
         });
         if (!item.tabType) {
+            setActiveTab(0);
             await page.LoadAssetTypeToList(item.typeId);
         } else {
             setActiveTab(item.tabType);
@@ -208,10 +209,15 @@ function AvatarEditor() {
         if (debounce.current || listItemMetadata.current.recentType == item.typeId) return;
         debounce.current = true;
         page.setSelectedList({
-            tab: page.openSubmenu.id,
+            tab: item.tabId,
             subTab: item.name,
         });
-        await page.LoadRecentItemsToList(item.typeId);
+        if (!item.tabType) {
+            setActiveTab(0);
+            await page.LoadRecentItemsToList(item.typeId);
+        } else {
+            setActiveTab(item.tabType);
+        }
         await wait(0.5);
         debounce.current = false;
     }
@@ -368,42 +374,42 @@ function AvatarEditor() {
                                         items: [
                                             {
                                                 name: "Hat",
-                                                tabId: "recent",
+                                                tabId: "clothing",
                                                 typeId: 8,
                                             },
                                             {
                                                 name: "Hair",
-                                                tabId: "recent",
+                                                tabId: "clothing",
                                                 typeId: 41,
                                             },
                                             {
                                                 name: "Face",
-                                                tabId: "recent",
+                                                tabId: "clothing",
                                                 typeId: 42,
                                             },
                                             {
                                                 name: "Neck",
-                                                tabId: "recent",
+                                                tabId: "clothing",
                                                 typeId: 43,
                                             },
                                             {
                                                 name: "Shoulders",
-                                                tabId: "recent",
+                                                tabId: "clothing",
                                                 typeId: 44,
                                             },
                                             {
                                                 name: "Front",
-                                                tabId: "recent",
+                                                tabId: "clothing",
                                                 typeId: 45,
                                             },
                                             {
                                                 name: "Back",
-                                                tabId: "recent",
+                                                tabId: "clothing",
                                                 typeId: 46,
                                             },
                                             {
                                                 name: "Waist",
-                                                tabId: "recent",
+                                                tabId: "clothing",
                                                 typeId: 47,
                                             },
                                         ],
@@ -414,20 +420,23 @@ function AvatarEditor() {
                                             {
                                                 name: "Shirts",
                                                 typeId: 11,
+                                                tabId: "clothing",
                                             },
                                             {
                                                 name: "Pants",
                                                 typeId: 12,
+                                                tabId: "clothing",
                                             },
                                             {
                                                 name: "T-Shirts",
                                                 typeId: 2,
+                                                tabId: "clothing",
                                             },
                                         ],
                                     },
                                     {
                                         label: "Gear",
-                                        items: [{name: "Gear", typeId: 19}],
+                                        items: [{name: "Gear", typeId: 19, tabId: "clothing"}],
                                     },
                                 ]}
                                 onButtonClick={async (item, e) => await AssetTypeClick(item, e)}
@@ -543,12 +552,20 @@ function AvatarEditor() {
                             id: "outfits",
                             name: <span>Outfits</span>,
                             element: null,
-                            onClick: () => page.setOutfits([]),
+                            onClick: () => {
+                                page.setOutfits([]);
+                                page.setSelectedList({
+                                    tab: "outfits",
+                                    subTab: "fsgvbjfsgbjsdgjajsndmadkgil",
+                                });
+                                page.ClearListItems();
+                            },
                             tabType: 1,
                         },
                     ]}
                     setTabType={setActiveTab}
                     default={<span>Recent <span className={`icon-down ${s.iconDown}`}/></span>}
+                    tabType={activeTab}
                 />
                 {
                     (() => {
@@ -561,7 +578,7 @@ function AvatarEditor() {
                                 return <div>
                                     <div style={{display: "flex"}}>
                                         <span
-                                            style={{paddingTop: 9, paddingBottom: 4, marginLeft: 5}}
+                                            style={{paddingTop: 9, paddingBottom: 4}}
                                         >{CapitalizeVariable(page.selectedList.tab)}
                                             {!IsNullOrEmpty(page?.selectedList?.subTab) && ` > ${CapitalizeVariable(page?.selectedList?.subTab)}`}
                                         </span>

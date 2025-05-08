@@ -127,13 +127,13 @@ const useStyles = createUseStyles({
  * onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void;
  * default?: string;
  * elementClass?: string;
+ * tabType: number;
  * setTabType: (number) => void;
  * }} props
  */
 const avatarTabs = props => {
     const s = useStyles();
     const {options} = props;
-    const store = AvatarInfoStore.useContainer();
     
     // active submenu is the CLICKED submenu, open submenu is the HOVERED submenu
     // active always takes priority over open
@@ -188,7 +188,6 @@ const avatarTabs = props => {
                                 clickImmune: true,
                             });
                         } else {
-                            props.setTabType(0);
                             setActiveSubmenu(option);
                         }
                         if (props.onChange) props.onChange(option);

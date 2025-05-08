@@ -1324,35 +1324,35 @@ a:hover .icon-thumbs-down {
 }
 
 .icon-welcome-to-the-club {
-	background-position: -140px -140px;
+	background-position: -140px 0;
 }
 
 .icon-ambassador {
-	background-position: 0 -420px;
+	background-position: -140px -140px;
 }
 
 .icon-combat-initiation {
-	background-position: -140px -420px;
+	background-position: 0 -280px;
 }
 
 .icon-warrior {
-	background-position: 0 -560px;
+	background-position: -140px -280px;
 }
 
 .icon-bloxxer {
-	background-position: -140px -560px;
+	background-position: 0 -420px;
 }
 
 .icon-homestead {
-	background-position: 0 -700px;
+	background-position: -140px -420px;
 }
 
 .icon-bricksmith {
-	background-position: -140px -700px;
+	background-position: 0 -560px;
 }
 
 .icon-official-model-maker {
-	background-position: -140px -1260px;
+	background-position: -140px -560px;
 }
 
 .icon-builders-club {
@@ -1391,7 +1391,7 @@ a:hover .icon-thumbs-down {
 }
 
 .icon-veteran {
-	background-position: 0 -1680px;
+	background-position: 0 -980px;
 }
 
 .icon-line-chart {
