@@ -862,6 +862,9 @@ public class GroupsService : ServiceBase, IService
             if (oldInfo == null)
                 throw new Exception("Tried to update non-existent role");
 
+            if (oldInfo.rank == 0)
+                throw new Exception("Cannot update the guest role");
+                
             if (oldInfo.rank == 255 && rank != 255)
                 throw new Exception("Cannot update the rank property of this role");
 

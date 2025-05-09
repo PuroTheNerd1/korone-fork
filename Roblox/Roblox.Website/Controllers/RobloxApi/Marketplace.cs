@@ -9,7 +9,8 @@ using BadRequestException = Roblox.Exceptions.BadRequestException;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
 
-namespace Roblox.Website.Controllers {
+namespace Roblox.Website.Controllers 
+{
     // im sorry shika but i had to reformat because when i copied and pasted some code that shit broke
     [ApiController]
     [Route("/")]
@@ -67,9 +68,7 @@ namespace Roblox.Website.Controllers {
             catch (RecordNotFoundException) 
             {
                 return Redirect($"https://economy.roblox.com/v2/assets/{assetId}/details");
-            }
-
-            ;
+            };
         }
 
         [HttpGetBypass("v2/assets/{assetId:long}/details")]
