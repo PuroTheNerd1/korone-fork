@@ -919,7 +919,7 @@ public class GroupsService : ServiceBase, IService
                 throw new Exception("Tried to delete non-existent role");
             if (data.memberCount != 0)
                 throw new ArgumentException("Cannot delete a role with members");
-            if (allRoles.Count <= 2)
+            if (allRoles.Count <= 3)
                 throw new ArgumentException("Cannot delete the last role in a group");
             await db.ExecuteAsync("DELETE FROM group_role_permission WHERE group_role_id = :id", new
             {
