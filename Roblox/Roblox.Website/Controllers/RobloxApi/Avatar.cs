@@ -82,7 +82,8 @@ public class AvatarRBX : ControllerBase
             TorsoColor = avatar.torsoColorId
         };
         // why the fuck are there capitalized and not capitalized, super ugly
-        dynamic scales = new { 
+        dynamic scales = new 
+        {
             avatar.scales.height,
             Height = avatar.scales.height,
             avatar.scales.width,
