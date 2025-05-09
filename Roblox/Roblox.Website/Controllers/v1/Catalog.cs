@@ -765,7 +765,8 @@ public class CatalogControllerV1 : ControllerBase
     }
 
     [HttpGet("canedit")]
-    public async Task<bool> CanEdit(long assetId) {
+    public async Task<bool> CanEdit(long assetId) 
+	{
 	    return await services.assets.CanUserModifyItem(assetId, safeUserSession.userId) || safeUserSession.userId == 3;
     }
 

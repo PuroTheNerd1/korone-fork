@@ -916,7 +916,10 @@ namespace Roblox.Website.Controllers
         {
             if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            
+                
+            var jobInfo = await services.gameServer.GetGameServer(jobId);
+            if (jobInfo.asset_id != placeId)
+                throw new BadRequestException(0, "Job does not exist for this place");
             await services.gameServer.ShutDownServerAsync(jobId);
             return "OK!";
         }
