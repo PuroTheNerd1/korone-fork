@@ -418,9 +418,17 @@ public class RobloxApi
         return response;
     }
 
-    public async Task<Stream> GetAssetContentFromProxy(long assetId)
+    public async Task<Stream> GetAssetContentFromProxy(long assetId, long? version = null)
     {
-        var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
+        HttpResponseMessage? result = null;
+        if (version != null)
+        {
+            result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}&version={version}");
+        }
+        else
+        {
+            result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
+        }
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
         if (result == null)

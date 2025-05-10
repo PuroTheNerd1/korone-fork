@@ -1993,7 +1993,15 @@ Thank you for your understanding,
             Console.WriteLine("Getting {0}", item.id);
             var info = await services.robloxApi.GetProductInfo(item.id, false);
 
-            var content = await services.robloxApi.GetAssetContentFromProxy(item.id);
+            Stream content;
+            if (details.bundleType == "AvatarAnimations")
+            {
+                content = await services.robloxApi.GetAssetContentFromProxy(item.id, 1);
+            }
+            else
+            {
+                content = await services.robloxApi.GetAssetContentFromProxy(item.id);
+            }
             // var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId!.Value);
             // if (!isOk)
             //     throw new StaffException("The asset file doesn't look correct. Please try again.");
