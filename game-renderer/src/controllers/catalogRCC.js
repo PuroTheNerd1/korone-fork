@@ -103,7 +103,6 @@ export const RequestAnimationThumbnail = async (req, res) => {
         console.debug('[RequestAnimationThumbnail] payload:', req.body)
         var { characterAppearanceUrl, animationUrl, jobExpiration} = req.body
         if (jobExpiration == undefined) { jobExpiration = 20 }
-        console.debug('[RequestAnimationThumbnail] assetUrl:', assetUrl)
 
         const xml = JSON.parse(JSON.stringify(AnimationTemplate));
         xml.Settings.Arguments[0] = characterAppearanceUrl;
