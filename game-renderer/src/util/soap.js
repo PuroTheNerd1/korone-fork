@@ -6,7 +6,7 @@ export const soap = (baseUrl, jobExpiration, finalScript) => {
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rob="${conf.baseUrl}">
    <soapenv:Header/>
    <soapenv:Body>
-      <rob:BatchJobEx>
+      <rob:BatchJob>
          <rob:job>
             <rob:id>${uuidv4().toString()}</rob:id>
             <rob:expirationInSeconds>${jobExpiration}</rob:expirationInSeconds>
@@ -21,7 +21,7 @@ export const soap = (baseUrl, jobExpiration, finalScript) => {
                 {Arguments}
             </arguments>*/null}
          </rob:script>
-      </rob:BatchJobEx>
+      </rob:BatchJob>
    </soapenv:Body>
 </soapenv:Envelope>
 `
@@ -53,7 +53,7 @@ export const soap = (baseUrl, jobExpiration, finalScript) => {
                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
-                    <BatchJobEx xmlns=""${baseUrl}"">
+                    <BatchJob xmlns=""${baseUrl}"">
                         <job>
                             <id>${uuidv4().toString()}</id>
                             <category>1</category>
@@ -68,7 +68,7 @@ export const soap = (baseUrl, jobExpiration, finalScript) => {
                                 ]]>
                             </script>
                         </script>
-                    </BatchJobEx>
+                    </BatchJob>
                 </soap:Body>
             </soap:Envelope>`*/
 }

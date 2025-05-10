@@ -80,7 +80,7 @@ export const RequestImageThumbnail = async (req, res) => {
                         return reject(err);
                     }
                     try {
-                        const data = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
+                        const data = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
                         resolve(data);
                     } catch (e) {
                         reject(e);
@@ -125,7 +125,7 @@ export const RequestClothingThumbnail = async (req, res) => {
                         return reject(err);
                     }
                     try {
-                        const data = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
+                        const data = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
                         resolve(data);
                     } catch (e) {
                         reject(e);
@@ -169,7 +169,7 @@ export const RequestTeeShirtThumbnail = async (req, res) => {
                         return reject(err);
                     }
                     try {
-                        const data = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
+                        const data = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
                         resolve(data);
                     } catch (e) {
                         reject(e);
