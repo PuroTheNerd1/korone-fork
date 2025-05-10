@@ -3,7 +3,7 @@ import {v4 as uuidv4} from "uuid";
 export const SOAP = (baseUrl: string, jobExpiration: number, finalScript: string) => {
     // REQUIRES leading slash (for some reason)
     return `
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rob="${baseUrl}/">
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rob="${baseUrl}">
    <soapenv:Header/>
    <soapenv:Body>
       <rob:BatchJob>
