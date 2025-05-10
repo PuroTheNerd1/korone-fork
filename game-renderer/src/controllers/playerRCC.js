@@ -97,7 +97,7 @@ const handleRequest = async (req, res, template, width, height, currentPort) => 
                 if (err) return reject(err);
                 try {
                     const xmlData =
-                        jsXmlData["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns1:BatchJobResponse"][0]["ns1:BatchJobResult"][0]["ns1:value"][0];
+                        jsXmlData["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns1:BatchJobExResponse"][0]["ns1:BatchJobExResult"][0]["ns1:value"][0];
                     console.log(`[info] Rendered on port ${currentPort} successfully`);
                     resolve(responseUtil(res, "success", 200, true, { data: xmlData }));
                 } catch (e) {

@@ -43,7 +43,7 @@ export const RequestHatThumbnail = async (req, res) => {
             if (err) {
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
@@ -79,7 +79,7 @@ export const RequestAnimationSilhouetteThumbnail = async (req, res) => {
             if (err) {
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
@@ -123,7 +123,7 @@ export const RequestAnimationThumbnail = async (req, res) => {
                 if (err) {
                     return reject(new Error('Failed to parse XML response.'));
                 }
-                const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+                const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
                 resolve(xmlData);
             });
         });
@@ -178,7 +178,7 @@ export const RequestModelThumbnail = async (req, res) => {
             if (err) {
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
@@ -216,7 +216,7 @@ export const RequestBodyPartThumbnail = async (req, res) => {
             if (err) {
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
@@ -254,7 +254,7 @@ export const RequestPackageThumbnail = async (req, res) => {
             if (err) {
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
@@ -292,7 +292,7 @@ export const RequestMeshThumbnail = async (req, res) => {
             if (err) {
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
@@ -331,7 +331,7 @@ export const RequestMeshPartThumbnail = async (req, res) => {
             if (err) {
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
@@ -370,7 +370,7 @@ export const RequestHeadRender = async (req, res) => {
             if (err) {
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobExResponse'][0]['ns1:BatchJobExResult'][0]['ns1:value'][0];
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
