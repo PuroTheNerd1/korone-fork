@@ -96,11 +96,9 @@ export const RequestAnimationThumbnail = async (req, res) => {
     
         const { error } = schema.validate(req.body)
         if (error) {
-            console.debug('[RequestAnimationThumbnail] validation error:', error.message)
             return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
         }
 
-        console.debug('[RequestAnimationThumbnail] payload:', req.body)
         var { characterAppearanceUrl, animationUrl, jobExpiration} = req.body
         if (jobExpiration == undefined) { jobExpiration = 20 }
 
@@ -108,27 +106,22 @@ export const RequestAnimationThumbnail = async (req, res) => {
         xml.Settings.Arguments[0] = characterAppearanceUrl;
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[5] = animationUrl;
-        console.debug('[RequestAnimationThumbnail] XML to send:', JSON.stringify(xml))
 
         const response = await request({
-            RCC: 1000,
+            RCC: port,
             XML: xml,
             jobExpiration: 1000,
         });
-        console.debug('[RequestAnimationThumbnail] raw RCC response:', response.data)
 
         xml2js.parseString(response.data, (err, jsXmlData) => {
             if (err) {
-                console.error('[RequestAnimationThumbnail] XML parse error:', err)
                 return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
             }
-            console.debug('[RequestAnimationThumbnail] parsed JS object:', jsXmlData)
             const xmlData = jsXmlData['SOAP-ENV:Envelope']
                                      ['SOAP-ENV:Body'][0]
                                      ['ns1:BatchJobResponse'][0]
                                      ['ns1:BatchJobResult'][0]
                                      ['ns1:value'][0];
-            console.debug('[RequestAnimationThumbnail] extracted value:', xmlData)
             return responseUtil(res, 'success', 200, true, { data: xmlData });
         })
     } catch (err) {
