@@ -23,9 +23,11 @@ export class Queue<T> {
             this.pending.Remove(item);
             try {
                 Console.Debug(`Processing item on port ${this.port}`);
+                const time = new Date().getTime();
                 const result = await item.task(this.port);
+                const afterTime = new Date().getTime();
                 item.resolve(result);
-                Console.Debug(`Resolved item on port ${this.port}`);
+                Console.Debug(`Resolved item on port ${this.port}. Time to render: ${afterTime - time}ms`);
             } catch (e: any) {
                 Console.Error(`Error while processing item on queue &c&l${this.port}&r in box &c&l${this.boxId}&r.\n &c&lMessage:&r \n ${e?.message} \n&c&lFull Error:&r \n ${e}\n`);
                 item.reject(e);
