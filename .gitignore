@@ -4,6 +4,8 @@
 **/config.json
 # env files
 **/*.env
+# js files (in src)
+src/*.js
 
 # prefix folders with old- if not used anymore/unsure if going to be added
 services/old-*
@@ -68,3 +70,11 @@ import tkinter as tk.py
 /2016-roblox-main.old
 2016-roblox-main/package-lock.json
 2016-roblox-main/package-lock.json
+/game-renderer/dist
+/game-renderer/RCCService
+/RCCService2020.Pekora
+game-renderer/themeparktycoon2.rbxl
+game-renderer/package-lock.json
+game-renderer/package-lock.json
+game-renderer/eslint.config.js.old
+/game-renderer/.idea
