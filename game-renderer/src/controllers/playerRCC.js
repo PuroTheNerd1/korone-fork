@@ -8,6 +8,8 @@ import AvatarTemplate from "../../scripts/Avatar.json" with { type: "json" };
 import HeadshotTemplate from "../../scripts/Closeup.json" with { type: "json" };
 const port0 = enums.PlayerRCC[0];
 const port1 = enums.PlayerRCC[1];
+const port2 = enums.PlayerRCC[2];
+const port3 = enums.PlayerRCC[3];
 
 const schema = joi.object({
     userId: joi.number().required().integer(),
@@ -109,7 +111,20 @@ const handleRequest = async (req, res, template, width, height, currentPort) => 
         if (currentPort === port0) {
             console.log(`[error] Render on port ${port0} failed, retrying on port ${port1}`);
             return await handleRequest(req, res, template, width, height, port1);
-        } else {
+        } 
+        else if (currentPort === port1) {
+            console.log(`[error] Render on port ${port1} failed, retrying on port ${port0}`);
+            return await handleRequest(req, res, template, width, height, port0);
+        }
+        else if (currentPort === port2) {
+            console.log(`[error] Render on port ${port2} failed, retrying on port ${port3}`);
+            return await handleRequest(req, res, template, width, height, port3);
+        } 
+        else if (currentPort === port3) {
+            console.log(`[error] Render on port ${port3} failed, retrying on port ${port2}`);
+            return await handleRequest(req, res, template, width, height, port2);
+        }
+        else {
             console.log(`[error] Render on port ${port1} failed, retrying on port ${port0}`);
             return await handleRequest(req, res, template, width, height, port0);
         }
