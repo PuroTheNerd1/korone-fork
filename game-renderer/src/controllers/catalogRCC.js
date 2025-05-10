@@ -114,7 +114,7 @@ export const RequestAnimationThumbnail = async (req, res) => {
         const response = await request({
             RCC: port,
             XML: xml,
-            jobExpiration,
+            jobExpiration: 1,
         });
 
         xml2js.parseString(response.data, (err, jsXmlData) => {

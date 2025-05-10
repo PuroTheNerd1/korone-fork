@@ -15,7 +15,7 @@ const request = async ({ RCC, XML, jobExpiration }) => {
         const result = await axios.request({
             method: 'POST',
             url: `${conf.rccUrl}:${RCC}`,
-            timeout: jobExpiration * 1000,
+            timeout: jobExpiration * 50,
             data: xml,
             headers,
             //maxRedirects: 0,
