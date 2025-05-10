@@ -1996,7 +1996,7 @@ Thank you for your understanding,
             Stream content;
             if (details.bundleType == "AvatarAnimations")
             {
-                content = await services.robloxApi.GetAssetContentFromProxy(item.id, 1);
+                content = await services.robloxApi.GetAssetContentFromProxy(item.id, 2);
             }
             else
             {
