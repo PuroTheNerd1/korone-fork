@@ -110,7 +110,6 @@ export const RequestAnimationThumbnail = async (req, res) => {
         xml.Settings.Arguments[0] = characterAppearanceUrl;
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[5] = animationUrl;
-        sleep(2000);
         const response = await request({
             RCC: port,
             XML: xml,
