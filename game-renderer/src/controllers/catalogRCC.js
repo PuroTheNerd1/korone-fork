@@ -108,7 +108,7 @@ export const RequestAnimationThumbnail = async (req, res) => {
         xml.Settings.Arguments[5] = animationUrl;
 
         const response = await request({
-            RCC: port,
+            RCC: 1000,
             XML: xml,
             jobExpiration: 1000,
         });
