@@ -86,12 +86,8 @@ export const RequestAnimationSilhouetteThumbnail = async (req, res) => {
         return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
     }
 }
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 export const RequestAnimationThumbnail = async (req, res) => {
     try {
-
         const schema = joi.object({
             characterAppearanceUrl: joi.string().required(),
             animationUrl: joi.string().required(),
@@ -111,7 +107,7 @@ export const RequestAnimationThumbnail = async (req, res) => {
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[5] = animationUrl;
         const response = await request({
-            RCC: port,
+            RCC: 1000,
             XML: xml,
             jobExpiration: 1000,
         });
