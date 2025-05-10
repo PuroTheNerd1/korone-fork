@@ -25,7 +25,7 @@ export const RequestRCCBase = async (
             result = result as SOAPEnvelope;
             xmlData = result.Body.BatchJobResponse.BatchJobResult[0].value;
         }
-        Console.Log(`&aRendered &lsuccessfully&r&a on port &l${port}&r with UserId &l${request.userId}&r.`);
+        Console.Log(`&aRendered &lsuccessfully&r&a on port &l${port}&r with UserId &l${request.userId}&r, &lAssetId ${request.assetId}&r.`);
         // return res.status(200).set("Content-Type", "image/png").send(Buffer.from(xmlData, "base64"));
         return Resp(res, 200, "success", true, {data: xmlData});
     } catch (e: any) {
