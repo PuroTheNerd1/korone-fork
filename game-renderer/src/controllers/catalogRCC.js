@@ -2,8 +2,10 @@ import conf from "../util/config.js";
 import request from "../util/request.js";
 import enums from "../util/enums.js";
 import joi from "joi";
-import xml2js from 'xml2js'
 import responseUtil from "../util/response.js";
+import { enqueue } from "../util/rccQueue.js";
+import { parseXml } from "../util/xmlUtil.js";
+
 import HatTemplate from '../../scripts/Hat.json' with { type: 'json' };
 import PackageTemplate from '../../scripts/Package.json' with { type: 'json' };
 import BodyPartTemplate from '../../scripts/BodyPart.json' with { type: 'json' };
@@ -13,367 +15,248 @@ import HeadTemplate from '../../scripts/Head.json' with { type: 'json' };
 import ModelTemplate from '../../scripts/Model.json' with { type: 'json' };
 import AnimationSilhouetteTemplate from '../../scripts/AnimationSilhouette.json' with { type: 'json' };
 import AnimationTemplate from '../../scripts/AvatarAnimation.json' with { type: 'json' };
-const port = enums.CatalogRCC;
+
+const RCC_PORT = enums.CatalogRCC;
+const MAX_JOB_EXPIRATION = 60;
+const DEFAULT_JOB_EXPIRATION = 20;
+
+function validate(schema, payload) {
+  const { error } = schema.validate(payload);
+  if (error) throw new Error(`Invalid form: ${error.message}`);
+}
+
+async function runRender(xmlTemplate, argsSetter, jobExpiration) {
+  const xml = JSON.parse(JSON.stringify(xmlTemplate));
+  argsSetter(xml);
+  const response = await request({ RCC: RCC_PORT, XML: xml, jobExpiration });
+  return parseXml(response.data);
+}
 
 export const RequestHatThumbnail = async (req, res) => {
-    try {
-        const schema = joi.object({
-            assetId: joi.number().required().integer(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
+  try {
+    validate(
+      joi.object({
+        assetId: joi.number().integer().required(),
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { assetId, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
+    const assetUrl = `${conf.baseUrl}asset?id=${assetId}`;
 
-        var { assetId, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-        const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
-
-        const xml = JSON.parse(JSON.stringify(HatTemplate));
+    const data = await enqueue(() =>
+      runRender(HatTemplate, xml => {
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[4] = conf.baseUrl;
-
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
-}
-
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
 
 export const RequestAnimationSilhouetteThumbnail = async (req, res) => {
-    try {
-        const schema = joi.object({
-            assetId: joi.number().required().integer(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
-        var { assetId, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-        const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
+  try {
+    validate(
+      joi.object({
+        assetId: joi.number().integer().required(),
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { assetId, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
+    const assetUrl = `${conf.baseUrl}asset?id=${assetId}`;
 
-        const xml = JSON.parse(JSON.stringify(AnimationSilhouetteTemplate));
+    const data = await enqueue(() =>
+      runRender(AnimationSilhouetteTemplate, xml => {
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[1] = conf.baseUrl;
-        xml.Settings.Arguments[4] = '128/128/128';
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
-}
+        xml.Settings.Arguments[4] = "128/128/128";
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
 
 export const RequestAnimationThumbnail = async (req, res) => {
-    const maxRetries = 5; 
-    let attempt = 0;
-
-    const schema = joi.object({
+  try {
+    validate(
+      joi.object({
         characterAppearanceUrl: joi.string().required(),
         animationUrl: joi.string().required(),
-        jobExpiration: joi.number().max(60).default(20).integer(),
-    });
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { characterAppearanceUrl, animationUrl, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
 
-    const validateRequest = () => {
-        const { error } = schema.validate(req.body);
-        if (error) {
-            throw new Error(`Invalid form: ${error.message}`);
-        }
-    };
-
-    const processRequest = async () => {
-        const { characterAppearanceUrl, animationUrl, jobExpiration = 20 } = req.body;
-
-        const xml = JSON.parse(JSON.stringify(AnimationTemplate));
+    const data = await enqueue(() =>
+      runRender(AnimationTemplate, xml => {
         xml.Settings.Arguments[0] = characterAppearanceUrl;
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[5] = animationUrl;
-
-        const response = await request({
-            RCC: 1000,
-            XML: xml,
-            jobExpiration,
-        });
-
-        return new Promise((resolve, reject) => {
-            xml2js.parseString(response.data, (err, jsXmlData) => {
-                if (err) {
-                    return reject(new Error('Failed to parse XML response.'));
-                }
-                const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-                resolve(xmlData);
-            });
-        });
-    };
-
-    try {
-        validateRequest();
-
-        while (attempt < maxRetries) {
-            try {
-                attempt++;
-                const xmlData = await processRequest();
-                return responseUtil(res, 'success', 200, true, { data: xmlData });
-            } catch (err) {
-                if (attempt >= maxRetries) {
-                    throw err;
-                }
-                console.error(`Attempt ${attempt} failed, retrying...`);
-            }
-        }
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message });
-    }
-}
-
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
 
 export const RequestModelThumbnail = async (req, res) => {
-    try {
-        const schema = joi.object({
-            assetId: joi.number().required().integer(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
+  try {
+    validate(
+      joi.object({
+        assetId: joi.number().integer().required(),
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { assetId, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
+    const assetUrl = `${conf.baseUrl}asset?id=${assetId}`;
 
-        var { assetId, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-        const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
-
-        const xml = JSON.parse(JSON.stringify(ModelTemplate));
+    const data = await enqueue(() =>
+      runRender(ModelTemplate, xml => {
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[4] = conf.baseUrl;
-
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
-}
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
 
 export const RequestBodyPartThumbnail = async (req, res) => {
-    try {
-        const schema = joi.object({
-            assetUrl: joi.string().required(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
+  try {
+    validate(
+      joi.object({
+        assetUrl: joi.string().required(),
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { assetUrl, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
 
-        var { assetUrl, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-
-        const xml = JSON.parse(JSON.stringify(BodyPartTemplate));
+    const data = await enqueue(() =>
+      runRender(BodyPartTemplate, xml => {
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[3] = 1680;
         xml.Settings.Arguments[4] = 1680;
-        xml.Settings.Arguments[5] = `${conf.baseUrl}asset/?id=1785197`; // double slash, could cause issue. idk.
-
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
-}
+        xml.Settings.Arguments[5] = `${conf.baseUrl}asset/?id=1785197`;
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
 
 export const RequestPackageThumbnail = async (req, res) => {
-    try {
-        const schema = joi.object({
-            assetUrls: joi.string().required(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
+  try {
+    validate(
+      joi.object({
+        assetUrls: joi.string().required(),
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { assetUrls, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
 
-        var { assetUrls, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-
-        const xml = JSON.parse(JSON.stringify(PackageTemplate));
+    const data = await enqueue(() =>
+      runRender(PackageTemplate, xml => {
         xml.Settings.Arguments[0] = assetUrls;
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[3] = 1680;
         xml.Settings.Arguments[4] = 1680;
-        xml.Settings.Arguments[5] = `${conf.baseUrl}asset/?id=1785197`; // double slash, could cause issue. idk.
-
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
-}
+        xml.Settings.Arguments[5] = `${conf.baseUrl}asset/?id=1785197`;
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
 
 export const RequestMeshThumbnail = async (req, res) => {
-    try {
-        const schema = joi.object({
-            assetId: joi.number().required().integer(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
+  try {
+    validate(
+      joi.object({
+        assetId: joi.number().integer().required(),
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { assetId, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
+    const assetUrl = `${conf.baseUrl}asset?id=${assetId}`;
 
-        var { assetId, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-        const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
-
-        const xml = JSON.parse(JSON.stringify(MeshTemplate));
+    const data = await enqueue(() =>
+      runRender(MeshTemplate, xml => {
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[2] = 1260;
         xml.Settings.Arguments[3] = 1260;
         xml.Settings.Arguments[4] = conf.baseUrl;
-
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
-}
-
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
 
 export const RequestMeshPartThumbnail = async (req, res) => {
-    try {
-        const schema = joi.object({
-            assetId: joi.number().required().integer(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
+  try {
+    validate(
+      joi.object({
+        assetId: joi.number().integer().required(),
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { assetId, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
+    const assetUrl = `${conf.baseUrl}v1/asset?id=${assetId}`;
 
-        var { assetId, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-        const assetUrl = `${conf.baseUrl}v1/asset?id=${assetId}`
-
-        const xml = JSON.parse(JSON.stringify(MeshPartTemplate));
+    const data = await enqueue(() =>
+      runRender(MeshPartTemplate, xml => {
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[2] = 1260;
         xml.Settings.Arguments[3] = 1260;
         xml.Settings.Arguments[4] = conf.baseUrl;
-
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
-}
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
 
 export const RequestHeadRender = async (req, res) => {
-    try {
-        const schema = joi.object({
-            assetId: joi.number().required().integer(),
-            jobExpiration: joi.number().max(60).default(20).integer(),
-        })
-        const { error } = schema.validate(req.body)
-        if (error) {
-            return responseUtil(res, 'Invalid form', 400, false, { error: error.message })
-        }
+  try {
+    validate(
+      joi.object({
+        assetId: joi.number().integer().required(),
+        jobExpiration: joi.number().integer().max(MAX_JOB_EXPIRATION).default(DEFAULT_JOB_EXPIRATION),
+      }),
+      req.body
+    );
+    const { assetId, jobExpiration = DEFAULT_JOB_EXPIRATION } = req.body;
+    const assetUrl = `${conf.baseUrl}asset?id=${assetId}`;
 
-        var { assetId, jobExpiration } = req.body
-        if (jobExpiration == undefined) { jobExpiration = 20 }
-        const assetUrl = `${conf.baseUrl}asset?id=${assetId}`
-
-        const xml = JSON.parse(JSON.stringify(HeadTemplate));
+    const data = await enqueue(() =>
+      runRender(HeadTemplate, xml => {
         xml.Settings.Arguments[0] = assetUrl;
         xml.Settings.Arguments[2] = 1680;
         xml.Settings.Arguments[3] = 1680;
         xml.Settings.Arguments[4] = conf.baseUrl;
         xml.Settings.Arguments[5] = 1785197;
-
-        const response = await request({
-            RCC: port,
-            XML: xml,
-            jobExpiration,
-        })
-        xml2js.parseString(response.data, (err, jsXmlData) => {
-            if (err) {
-                return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
-            }
-            const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-            return responseUtil(res, 'success', 200, true, { data: xmlData });
-        })
-    } catch (err) {
-        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message })
-    }
-}
+      }, jobExpiration)
+    );
+    return responseUtil(res, "success", 200, true, { data });
+  } catch (err) {
+    return responseUtil(res, err.message.startsWith("Invalid") ? "Invalid form" : "An internal server error occurred.", err.message.startsWith("Invalid") ? 400 : 500, false, { error: err.message });
+  }
+};
