@@ -88,7 +88,7 @@ export const RequestAnimationSilhouetteThumbnail = async (req, res) => {
 }
 
 export const RequestAnimationThumbnail = async (req, res) => {
-    const maxRetries = 5; // Define the maximum number of retries
+    const maxRetries = 5; 
     let attempt = 0;
 
     const schema = joi.object({
@@ -170,7 +170,7 @@ export const RequestModelThumbnail = async (req, res) => {
         xml.Settings.Arguments[4] = conf.baseUrl;
 
         const response = await request({
-            RCC: port,
+            RCC: 1000,
             XML: xml,
             jobExpiration,
         })
