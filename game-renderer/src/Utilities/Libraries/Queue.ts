@@ -59,7 +59,7 @@ export class QueueBox<T> {
 
         return new Promise<T>((res, rej) => {
             queue.Add({ task, resolve: res, reject: rej });
-            Console.Debug(`Processing queue... Queue: ${queue.port}, Pending: ${queue.pending}`);
+            Console.Debug(`Processing queue... Queue: ${queue.port}, Pending: ${queue.pending.Count()}`);
             queue.Process();
         });
     }
