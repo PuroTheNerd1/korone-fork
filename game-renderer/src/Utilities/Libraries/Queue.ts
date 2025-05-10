@@ -21,8 +21,8 @@ export class Queue<T> {
         while (!this.pending.Empty()) {
             const item = this.pending.First();
             this.pending.Remove(item);
-            Console.Debug(`Processing item on port ${this.port}`);
             try {
+                Console.Debug(`Processing item on port ${this.port}`);
                 const result = await item.task(this.port);
                 item.resolve(result);
                 Console.Debug(`Resolved item on port ${this.port}`);
@@ -59,7 +59,7 @@ export class QueueBox<T> {
 
         return new Promise<T>((res, rej) => {
             queue.Add({ task, resolve: res, reject: rej });
-            Console.Debug("Processing queue...");
+            Console.Debug(`Processing queue... Queue: ${queue.port}, Pending: ${queue.pending}`);
             queue.Process();
         });
     }

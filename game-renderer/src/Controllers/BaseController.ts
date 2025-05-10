@@ -47,7 +47,7 @@ export const RequestRCCBaseXMLData = async (
     type: string,
     envelopeType?: number
 ) => {
-    const request: PlayerRenderRequest = req.body;
+    const request: any = req.body;
 
     const response: any = await RCCRequest(port, xml, request.jobExpiration);
     try {
@@ -63,13 +63,13 @@ export const RequestRCCBaseXMLData = async (
                 xmlData = result.Body.BatchJobResponse.BatchJobResult[0].value;
                 break;
         }
-        Console.Log(`&aRendered &lsuccessfully&r&a on port &l${port}&r with UserId &l${request.userId}&r.`);
+        Console.Log(`&aRendered &lsuccessfully&r&a on port &l${port}&r with ${request.userId}&r, &c&lAssetId ${request.assetId}&r.`);
         return xmlData;
     } catch (e: any) {
         if (e.message.startsWith("Non-whitespace before first tag.")) {
-            Console.Error(`${type} render with &c&lUserId ${request.userId}&r on &c&lport ${port}&r failed with the following error message, likely due to a malformed XML provided to RCC: \n${e.message}`);
+            Console.Error(`${type} render with &c&lUserId ${request.userId}&r, &c&lAssetId ${request.assetId}&r on &c&lport ${port}&r failed with the following error message, likely due to a malformed XML provided to RCC: \n${e.message}`);
         } else {
-            Console.Error(`${type} render with &c&lUserId ${request.userId}&r on &c&lport ${port}&r failed with the following error message: \n${e.message}`);
+            Console.Error(`${type} render with ${request.userId}&r, &c&lAssetId ${request.assetId}&r on &c&lport ${port}&r failed with the following error message: \n${e.message}`);
         }
         return Resp(res, 500, e.message);
     }
