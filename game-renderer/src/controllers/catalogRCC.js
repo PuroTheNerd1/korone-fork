@@ -71,7 +71,7 @@ export const RequestAnimationSilhouetteThumbnail = async (req, res) => {
         xml.Settings.Arguments[1] = conf.baseUrl;
         xml.Settings.Arguments[4] = '128/128/128';
         const response = await request({
-            RCC: 1000,
+            RCC: port,
             XML: xml,
             jobExpiration,
         })
@@ -113,7 +113,7 @@ export const RequestAnimationThumbnail = async (req, res) => {
         xml.Settings.Arguments[5] = animationUrl;
 
         const response = await request({
-            RCC: port,
+            RCC: 1000,
             XML: xml,
             jobExpiration,
         });
