@@ -6,7 +6,7 @@ export const soap = (baseUrl, jobExpiration, finalScript) => {
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rob="${conf.baseUrl}">
    <soapenv:Header/>
    <soapenv:Body>
-      <rob:BatchJob>
+      <rob:BatchJobEx>
          <rob:job>
             <rob:id>${uuidv4().toString()}</rob:id>
             <rob:expirationInSeconds>${jobExpiration}</rob:expirationInSeconds>
@@ -21,7 +21,7 @@ export const soap = (baseUrl, jobExpiration, finalScript) => {
                 {Arguments}
             </arguments>*/null}
          </rob:script>
-      </rob:BatchJob>
+      </rob:BatchJobEx>
    </soapenv:Body>
 </soapenv:Envelope>
 `
