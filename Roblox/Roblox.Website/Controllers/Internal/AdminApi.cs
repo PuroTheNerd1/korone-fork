@@ -2150,6 +2150,7 @@ Thank you for your understanding,
             Type.Head,
             Type.EmoteAnimation,
         };
+
         if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
             throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);
         if (string.IsNullOrWhiteSpace(details.Name))
