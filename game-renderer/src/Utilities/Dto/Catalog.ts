@@ -11,6 +11,21 @@ export class PlayerRenderRequest {
     jobExpiration = 20;
 }
 
+export class AnimationRenderRequest {
+    @IsDefined()
+    @IsString()
+    characterAppearanceUrl!: string;
+
+    @IsDefined()
+    @IsString()
+    animationUrl!: string;
+
+    @IsOptional()
+    @IsInt()
+    @Max(60)
+    jobExpiration?: number = 20;
+}
+
 export class AssetRenderRequest {
     @IsDefined()
     @IsInt()

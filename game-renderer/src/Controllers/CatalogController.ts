@@ -3,7 +3,7 @@ import Config from "../Utilities/Libraries/Config.js";
 import Valid from "../Utilities/Middleware/ValidateDto.js";
 import {QueueBox} from "../Utilities/Libraries/Queue.js";
 import {BaseJson, RequestRCCBase} from "./BaseController.js";
-import {AssetRenderRequest, PackageRenderRequest} from "../Utilities/Dto/Catalog.js";
+import {AnimationRenderRequest, AssetRenderRequest, PackageRenderRequest} from "../Utilities/Dto/Catalog.js";
 import {Console} from "../Utilities/Libraries/CS.js";
 
 import HatTemplate from "../../scripts/Hat.json" with {type: "json"};
@@ -12,6 +12,7 @@ import ModelTemplate from "../../scripts/Model.json" with {type: "json"};
 import MeshTemplate from "../../scripts/Mesh.json" with {type: "json"};
 import PackageTemplate from "../../scripts/Package.json" with {type: "json"};
 import AnimSilhouetteTemplate from "../../scripts/AnimationSilhouette.json" with {type: "json"};
+import AnimationTemplate from "../../scripts/AvatarAnimation.json" with {type: "json"};
 
 const router = express.Router();
 const box = new QueueBox<express.Response>(`CatalogBox`, Config.Ports.RCC.Catalog);
@@ -106,6 +107,21 @@ router.post("/animationsilhouette", Valid(AssetRenderRequest), async (req: Reque
         xml,
         port,
         "Catalog animation silhouette"
+    ));
+});
+
+router.post("/animation", Valid(AnimationRenderRequest), async (req: Request, res: Response) => {
+    const xml: BaseJson = JSON.parse(JSON.stringify(AnimationTemplate));
+    xml.Settings.Arguments[0] = req.body.characterAppearanceUrl;
+    xml.Settings.Arguments[1] = Config.BaseUrl;
+    xml.Settings.Arguments[5] = req.body.animationUrl;
+    Console.Debug(`Queueing catalog animation with AssetId ${req.body.assetUrls}`);
+    return await box.Enqueue((port: number) => RequestRCCBase(
+        req,
+        res,
+        xml,
+        port,
+        "Catalog animation"
     ));
 });
 
