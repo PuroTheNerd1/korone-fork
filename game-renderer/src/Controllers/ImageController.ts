@@ -102,8 +102,8 @@ router.post("/teeshirt", Valid(AssetRenderRequest), async (req, res) => {
                 top: 85,
                 left: 85,
             }]).png().toBuffer();
-        // return Resp(res, 200, "success", true, {data: TeeShirtFinal.toString("base64")});
-        return res.status(200).set("Content-Type", "image/png").send(TeeShirtFinal);
+        return Resp(res, 200, "success", true, {data: TeeShirtFinal.toString("base64")});
+        // return res.status(200).set("Content-Type", "image/png").send(TeeShirtFinal);
     } catch (e: any) {
         Console.Error(`TeeShirt overlay could not be applied for TeeShirt ${req.body.assetId}. Message:\n ${e.message}`);
         return Resp(res, 206, "TeeShirt overlay could not be applied.", false, { error: e.message, data: base64Image });
