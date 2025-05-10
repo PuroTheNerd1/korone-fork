@@ -97,27 +97,58 @@ export const RequestAnimationThumbnail = async (req, res) => {
         jobExpiration: joi.number().max(60).default(20).integer(),
     });
 
-    const { characterAppearanceUrl, animationUrl, jobExpiration = 20 } = req.body;
-
-    const xml = JSON.parse(JSON.stringify(AnimationTemplate));
-    xml.Settings.Arguments[0] = characterAppearanceUrl;
-    xml.Settings.Arguments[1] = conf.baseUrl;
-    xml.Settings.Arguments[5] = animationUrl;
-
-    const response = await request({
-        RCC: port,
-        XML: xml,
-        jobExpiration,
-    });
-    xml2js.parseString(response.data, (err, jsXmlData) => {
-        if (err) {
-            return responseUtil(res, 'An internal server error occurred.', 500, false, { data: enums.RenderFailed })
+    const validateRequest = () => {
+        const { error } = schema.validate(req.body);
+        if (error) {
+            throw new Error(`Invalid form: ${error.message}`);
         }
-        const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
-        return responseUtil(res, 'success', 200, true, { data: xmlData });
-    })
+    };
 
+    const processRequest = async () => {
+        const { characterAppearanceUrl, animationUrl, jobExpiration = 20 } = req.body;
+
+        const xml = JSON.parse(JSON.stringify(AnimationTemplate));
+        xml.Settings.Arguments[0] = characterAppearanceUrl;
+        xml.Settings.Arguments[1] = conf.baseUrl;
+        xml.Settings.Arguments[5] = animationUrl;
+
+        const response = await request({
+            RCC: port,
+            XML: xml,
+            jobExpiration,
+        });
+
+        return new Promise((resolve, reject) => {
+            xml2js.parseString(response.data, (err, jsXmlData) => {
+                if (err) {
+                    return reject(new Error('Failed to parse XML response.'));
+                }
+                const xmlData = jsXmlData['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns1:BatchJobResponse'][0]['ns1:BatchJobResult'][0]['ns1:value'][0];
+                resolve(xmlData);
+            });
+        });
+    };
+
+    try {
+        validateRequest();
+
+        while (attempt < maxRetries) {
+            try {
+                attempt++;
+                const xmlData = await processRequest();
+                return responseUtil(res, 'success', 200, true, { data: xmlData });
+            } catch (err) {
+                if (attempt >= maxRetries) {
+                    throw err;
+                }
+                console.error(`Attempt ${attempt} failed, retrying...`);
+            }
+        }
+    } catch (err) {
+        return responseUtil(res, 'An internal server error occurred.', 500, false, { error: err.message });
+    }
 }
+
 
 export const RequestModelThumbnail = async (req, res) => {
     try {
