@@ -113,9 +113,10 @@ public class AvatarRBX : ControllerBase
                     || c.assetType == Models.Assets.Type.IdleAnimation
                     || c.assetType == Models.Assets.Type.WalkAnimation
                     || c.assetType == Models.Assets.Type.SwimAnimation)
+            .GroupBy(c => c.assetType.ToString().Replace("Animation", "").ToLower())
             .ToDictionary(
-                c => c.assetType.ToString().Replace("Animation", "").ToLower(),
-                c => c.id 
+                g => g.Key,
+                g => g.First().id 
             );
 
         var result = new 
