@@ -4,7 +4,6 @@ import {RCCRequest, SOAPEnvelope, SOAPEnvelope2} from "../Utilities/Libraries/Re
 import xml2js from "xml2js";
 import {Console} from "../Utilities/Libraries/CS.js";
 import Resp from "../Utilities/Libraries/Resp.js";
-import {Errback} from "express-serve-static-core";
 
 export const RequestRCCBase = async (
     req: Request,

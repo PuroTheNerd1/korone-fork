@@ -34,7 +34,6 @@ export class Queue<T> {
 
         Console.Debug(`Done Processing items on port ${this.port}`);
         this.isProcessing = false;
-        if (!this.pending.Empty()) this.Process().then();
     }
 
     public Add(item: QueuePromise<T>) {
