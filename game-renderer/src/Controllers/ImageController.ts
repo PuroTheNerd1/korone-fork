@@ -44,7 +44,7 @@ router.post("/image", Valid(AssetRenderRequest), async (req, res) => {
 
 router.post("/clothing", Valid(AssetRenderRequest), async (req, res) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(ClothingTemplate));
-    xml.Settings.Arguments[0] = `${Config.BaseUrl}//asset?id=${req.body.assetId}`;
+    xml.Settings.Arguments[0] = `${Config.BaseUrl}` + `/asset?id=${req.body.assetId}`;
     xml.Settings.Arguments[2] = 1680;
     xml.Settings.Arguments[3] = 1680;
     xml.Settings.Arguments[4] = Config.BaseUrl;
