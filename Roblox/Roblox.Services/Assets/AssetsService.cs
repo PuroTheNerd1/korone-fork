@@ -908,7 +908,7 @@ public class AssetsService : ServiceBase, IService
         }
     }
     #endregion
-
+    private readonly List<long> inqueueAssetIds = new();
     /// <summary>
     /// Render asset and wait for it to finish
     /// </summary>
@@ -918,6 +918,12 @@ public class AssetsService : ServiceBase, IService
     /// <exception cref="Exception"></exception>
     public async Task RenderAssetAsync(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
     {
+        if (inqueueAssetIds.Contains(assetId))
+        {
+            Writer.Info(LogGroup.AssetRender, "Already rendering asset {0}", assetId);
+            return;
+        }
+        inqueueAssetIds.Add(assetId);
         List<Task> thumbRequests = new();
         switch (assetType)
         {
@@ -1015,6 +1021,7 @@ public class AssetsService : ServiceBase, IService
         {
             Console.WriteLine("[error] Render failed for {0}:{1}: {2}", assetId, assetType, e.Message);
         }
+        inqueueAssetIds.Remove(assetId);
     }
 
     public void RenderAsset(long assetId, Models.Assets.Type assetType)

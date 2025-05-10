@@ -65,8 +65,8 @@ router.post("/model", Valid(AssetRenderRequest), async (req: Request, res: Respo
 router.post("/mesh", Valid(AssetRenderRequest), async (req: Request, res: Response) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(MeshTemplate));
     xml.Settings.Arguments[0] = `${Config.BaseUrl}/v1/asset?id=${req.body.assetId}`;
-    xml.Settings.Arguments[2] = 1260;
-    xml.Settings.Arguments[3] = 1260;
+    xml.Settings.Arguments[2] = 420;
+    xml.Settings.Arguments[3] = 420;
     xml.Settings.Arguments[4] = Config.BaseUrl;
     Console.Debug(`Queueing catalog mesh with AssetId ${req.body.assetId}`);
     return await box.Enqueue((port: number) => RequestRCCBase(
@@ -82,8 +82,8 @@ router.post("/package", Valid(PackageRenderRequest), async (req: Request, res: R
     const xml: BaseJson = JSON.parse(JSON.stringify(PackageTemplate));
     xml.Settings.Arguments[0] = req.body.assetUrls;
     xml.Settings.Arguments[1] = Config.BaseUrl;
-    xml.Settings.Arguments[3] = 1680;
-    xml.Settings.Arguments[4] = 1680;
+    xml.Settings.Arguments[3] = 420;
+    xml.Settings.Arguments[4] = 420;
     xml.Settings.Arguments[5] = `${Config.BaseUrl}/v1/asset/?id=1785197`;
     Console.Debug(`Queueing catalog package with AssetUrls ${req.body.assetUrls}`);
     return await box.Enqueue((port: number) => RequestRCCBase(
