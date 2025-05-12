@@ -1,21 +1,19 @@
-import {createUseStyles} from "react-jss";
+import { createUseStyles } from "react-jss";
 import AvatarInfoStore from "./stores/avatarInfoStore";
 import AuthenticationStore from "../../stores/authentication";
-import FeedbackStore from "../../stores/feedback";
 import ActionButton from "../actionButton";
 import useButtonStyles from "../../styles/buttonStyles";
 import AvatarCardList from "./components/avatarCardList";
 import RadioPill from "../radioPill";
 import Slider from "../slider";
-import HorizontalTabs from "../horizontalTabs";
-import AvatarTabSubmenu, {SUBMENU_MODE} from "./components/avatarTabSubmenu";
+import AvatarTabSubmenu, { SUBMENU_MODE } from "./components/avatarTabSubmenu";
 import AvatarPageStore from "./stores/avatarPageStore";
 import AvatarTabs from "./components/avatarTabs";
-import {IsNullOrEmpty, wait} from "../../lib/utils";
-import {act, useEffect, useRef, useState} from "react";
+import { IsNullOrEmpty, wait } from "../../lib/utils";
+import { useEffect, useRef, useState } from "react";
 import OutfitsTab from "./components/outfitsTab";
 import BodyColorsTab from "./components/bodyColorsTab";
-import useWindowQuery from "../windowQuery";
+import { useRouter } from "next/router";
 
 const useStyles = createUseStyles({
     sliderInput: {
@@ -44,7 +42,7 @@ const useStyles = createUseStyles({
         overflow: "hidden",
         height: 352,
         width: 277,
-        "& img": {
+        "& img, & canvas": {
             width: 352,
             height: "100%",
             verticalAlign: "middle",
@@ -54,7 +52,10 @@ const useStyles = createUseStyles({
             top: 18,
             right: "-37.5px",
             userSelect: "none",
-        }
+        },
+        "& canvas": {
+            top: "0!important",
+        },
     },
     scalingContainer: {
         padding: 15,
@@ -102,6 +103,18 @@ const useStyles = createUseStyles({
         position: "absolute",
         right: 10,
         top: 10,
+    },
+    thumbnail3DButtonContainer: {
+        display: "flex",
+        position: "absolute",
+        bottom: 10,
+        right: 10,
+    },
+    thumbnail3DButton: {
+        padding: 9,
+        fontSize: "18px!important",
+        lineHeight: "100%!important",
+        minHeight: 32,
     },
     itemContainer: {
         flex: 1,
@@ -171,7 +184,12 @@ function AvatarEditor() {
     const listItemMetadata = useRef(page.listItemMetadata);
     const debounce = useRef(false);
     const [avThumb, setAvThumb] = useState(null);
+    const [avThumb3D, setAvThumb3D] = useState(null);
     const [isRendering, setIsRendering] = useState(false);
+    
+    const canvasParentRef = useRef(null);
+    const canvasRef = useRef(null);
+    const [isRendering3D, setIsRendering3D] = useState(false);
     
     useEffect(() => {
         listItemMetadata.current = page.listItemMetadata;
@@ -234,17 +252,115 @@ function AvatarEditor() {
     }, [store.avThumb]);
     
     useEffect(() => {
-        setIsRendering(store.isRendering)
+        setAvThumb3D(store.avThumb3D);
+    }, [store.avThumb3D]);
+    
+    useEffect(() => {
+        setIsRendering(store.isRendering);
+        while (canvasParentRef.current.firstChild) {
+            canvasParentRef.current.removeChild(canvasParentRef.current.firstChild);
+        }
     }, [store.isRendering]);
+    
+    useEffect(async () => {
+        if (isRendering3D || page.thumbnailType !== 1 || !avThumb3D || !canvasParentRef.current) return;
+        /** @type Thumbnail3D */
+        let avThumb3DLocal = avThumb3D;
+        setIsRendering3D(true);
+        let scene = new THREE.Scene();
+        let threeCam = new THREE.PerspectiveCamera(avThumb3DLocal.camera.fov);
+        let renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setClearColor(0x000000, 0);
+        renderer.setSize(352, 352);
+        canvasParentRef.current.appendChild(renderer.domElement);
+        canvasRef.current = renderer.domElement;
+        
+        let mtlLoader = new THREE.MTLLoader();
+        let orbitControls = new THREE.OrbitControls(threeCam, renderer.domElement, avThumb3DLocal);
+        orbitControls.update();
+        
+        scene.add(new THREE.AmbientLight(0x808080, 1));
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        directionalLight.position.set(avThumb3DLocal.aabb.max.x, avThumb3DLocal.aabb.max.y + 5, avThumb3DLocal.aabb.max.z + 5);
+        directionalLight.castShadow = false;
+        scene.add(directionalLight);
+        
+        mtlLoader.load(avThumb3DLocal.mtl, (mater) => {
+                /** @type MaterialCreator */
+                let materials = mater;
+                if (avThumb3DLocal.textures?.length > 0) {
+                    for (const materialName in materials.materialsInfo) {
+                        const info = materials.materialsInfo[materialName];
+                        
+                        // Update any texture map entry to point to a new path
+                        for (const key in info) {
+                            if (key.startsWith('map_')) {
+                                info[key] = avThumb3DLocal.textures[info.d - 1];
+                            }
+                        }
+                    }
+                }
+                materials.preload();
+                
+                let objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.load(avThumb3DLocal.obj, (object) => {
+                    object.scale.set(1, 1, 1);
+                    scene.add(object);
+                    
+                    renderer.render(scene, threeCam);
+                    setIsRendering3D(false);
+                    function animate() {
+                        if (avThumb3DLocal !== avThumb3D || page.thumbnailType !== 1 || !avThumb3D || !canvasParentRef.current) {
+                            scene.traverse((object) => {
+                                if (object.isMesh) {
+                                    if (object.geometry) object.geometry.dispose();
+                                    if (object.material) {
+                                        if (Array.isArray(object.material)) {
+                                            object.material.forEach((material) => material.dispose());
+                                        } else {
+                                            object.material.dispose();
+                                        }
+                                    }
+                                    if (object.material && object.material.map) {
+                                        object.material.map.dispose();
+                                    }
+                                }
+                            });
+                            objLoader = null;
+                            mtlLoader = null;
+                            orbitControls.dispose();
+                            canvasParentRef.current.removeChild(renderer.domElement);
+                            scene.clear();
+                        } else {
+                            requestAnimationFrame(animate);
+                        }
+                        
+                        orbitControls.update();
+                        renderer.render(scene, threeCam);
+                    }
+                    animate();
+                });
+            }
+        );
+    }, [avThumb3D, page.thumbnailType]);
+    
+    useEffect(() => {
+        if (page.thumbnailType !== 1 && canvasRef.current !== null) {
+            canvasParentRef.current.removeChild(canvasRef.current);
+        }
+    }, [page.thumbnailType]);
     
     return <div>
         <div className={`${s.avatarHeader} flex justify-content-between align-items-center`}>
             <h1 className={s.avatarHeaderText}>Avatar Editor</h1>
-            <div className="flex justify-content-center align-items-center" style={{gap: 12}}>
+            <div className="flex justify-content-center align-items-center" style={{ gap: 12 }}>
                 <span>Explore the catalog to find more clothes!</span>
                 <ActionButton label="Get More" className={s.moreBut} buttonStyle={buttonStyles.newBuyButton}
                               onClick={() => {
-                                  window.location.href = "/catalog"
+                                  const router = useRouter();
+                                  router.push("/catalog").then();
                               }}/>
             </div>
         </div>
@@ -253,19 +369,28 @@ function AvatarEditor() {
                 <div className={`section-content ${s.contentContainer}`}>
                     <div className={s.avatarThumbContainer}>
                         {
-                            avThumb ?
-                                <img src={avThumb} alt={`${auth.username}'s Avatar`}/>
-                                // :
-                                // !isRendering ?
-                                //     <img src="/img/placeholder-t.png" alt={`U`}/>
-                                :
-                                <span className="spinner" style={{height: "100%", backgroundSize: "auto 36px"}}/>
+                            avThumb && page.thumbnailType !== 1 ?
+                            <img src={avThumb} alt={`${auth.username}'s Avatar`}/>
+                            :
+                            avThumb3D && !isRendering3D ?
+                            null
+                            :
+                            <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
                         }
+                        <div className={s.thumbnail3DContainer} ref={canvasParentRef} />
                         <div className={s.avatarRigTypeSelector}>
                             <RadioPill options={[
                                 "R6",
                                 "R15"
                             ]} selected={store?.bodyRigType} setSelected={store?.setModifiedRigType}/>
+                        </div>
+                        <div className={s.thumbnail3DButtonContainer}>
+                            <ActionButton
+                                label={page.thumbnailType === 1 ? "2D" : "3D"}
+                                buttonStyle={buttonStyles.newCancelButton}
+                                className={s.thumbnail3DButton}
+                                onClick={() => page.LoadNewThumbnailType(page.thumbnailType === 1 ? 0 : 1)}
+                            />
                         </div>
                     </div>
                     <div className={`${s.scalingContainer} ${s.scalingContainerDesktop}`}>
@@ -278,9 +403,9 @@ function AvatarEditor() {
                                 Object.entries(store.avRules.scales).map(([key, value]) => (
                                     <>
                                         <div
-                                            style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}}
+                                            style={{ color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)" }}
                                             className="flex justify-content-between">
-                                            <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
+                                            <span style={{ color: 'inherit' }}>{CapitalizeVariable(key)}</span>
                                             <span>{Math.round(store.bodyScales[key] * 100)}%</span>
                                         </div>
                                         <Slider
@@ -436,7 +561,7 @@ function AvatarEditor() {
                                     },
                                     {
                                         label: "Gear",
-                                        items: [{name: "Gear", typeId: 19, tabId: "clothing"}],
+                                        items: [{ name: "Gear", typeId: 19, tabId: "clothing" }],
                                     },
                                 ]}
                                 onButtonClick={async (item, e) => await AssetTypeClick(item, e)}
@@ -576,9 +701,9 @@ function AvatarEditor() {
                                 return <BodyColorsTab/>
                             default:
                                 return <div>
-                                    <div style={{display: "flex"}}>
+                                    <div style={{ display: "flex" }}>
                                         <span
-                                            style={{paddingTop: 9, paddingBottom: 4}}
+                                            style={{ paddingTop: 9, paddingBottom: 4 }}
                                         >{CapitalizeVariable(page.selectedList.tab)}
                                             {!IsNullOrEmpty(page?.selectedList?.subTab) && ` > ${CapitalizeVariable(page?.selectedList?.subTab)}`}
                                         </span>
@@ -603,9 +728,9 @@ function AvatarEditor() {
                             Object.entries(store.avRules.scales).map(([key, value]) => (
                                 <>
                                     <div
-                                        style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}}
+                                        style={{ color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)" }}
                                         className="flex justify-content-between">
-                                        <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
+                                        <span style={{ color: 'inherit' }}>{CapitalizeVariable(key)}</span>
                                         <span>{Math.round(store.bodyScales[key] * 100)}%</span>
                                     </div>
                                     <Slider
@@ -615,7 +740,7 @@ function AvatarEditor() {
                                         step={value.increment * 5}
                                         value={store.bodyScales[key]}
                                         setValue={(val) => {
-                                            store.setBodyScales(prev => ({...prev, [key]: Number(val.target.value)}));
+                                            store.setBodyScales(prev => ({ ...prev, [key]: Number(val.target.value) }));
                                         }}
                                         changeValue={(val) => {
                                             store.setModifiedScaling({

@@ -107,6 +107,19 @@ public class RbxThumbnails : ControllerBase
             SubstitutionType = 0
         };
     }
+    
+    [HttpGetBypass("avatar-thumbnail-3d/json")]
+    public async Task<dynamic> GetAvatarThumbnail3DJson([Required] long userId) {
+        if (userId == 62022330) userId = 3;
+        var result = (await services.thumbnails.GetUserThumbnails3D(new[] {userId})).ToList();
+        var imageUrl = result.Count > 0 ? result[0].imageUrl : null;
+        return new
+        {
+            Url = imageUrl != null ? $"{Configuration.BaseUrl}{imageUrl}" : null,
+            Final = true,
+            SubstitutionType = 0
+        };
+    }
 
     [HttpGetBypass("thumbnail/avatar-headshot")]
     public async Task<dynamic> GetHeadshotThumbnailJson(long userId)

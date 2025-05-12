@@ -1,8 +1,12 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using CsvHelper;
 using Dapper;
+using Newtonsoft.Json;
 using Roblox.Dto;
+using Roblox.Dto.Assets;
 using Roblox.Dto.Avatar;
 using Roblox.Models.Assets;
 using Roblox.Models.Avatar;
@@ -13,6 +17,8 @@ using Roblox.Services.Exceptions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
+using AssetId = Roblox.Services.DbModels.AssetId;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
@@ -191,6 +197,7 @@ public class AvatarService : ServiceBase, IService {
             leftLegColorId = existingAvatar.left_leg_color_id,
             avatarType = existingAvatar.avatar_type,
             thumbnailUrl = existingAvatar.thumbnail_url,
+            thumbnail3DUrl = existingAvatar.thumbnail_3d_url,
             headshotUrl = existingAvatar.headshot_thumbnail_url,
             scales = new BodyScales {
                 width = existingAvatar.scale_width,
@@ -416,14 +423,15 @@ public class AvatarService : ServiceBase, IService {
         });
     }
 
-    public async Task UpdateUserAvatarImages(long userId, string? headshotImage, string? thumbnailImage)
+    public async Task UpdateUserAvatarImages(long userId, string? headshotImage, string? thumbnailImage, string? thumbnail3DImage)
     {
         await db.ExecuteAsync(
-            "UPDATE user_avatar SET thumbnail_url = :thumbnail_url, headshot_thumbnail_url = :headshot_url WHERE user_id = :user_id",
+            "UPDATE user_avatar SET thumbnail_url = :thumbnail_url, headshot_thumbnail_url = :headshot_url, thumbnail_3d_url = :thumbnail_3d_url WHERE user_id = :user_id",
             new
             {
                 user_id = userId,
                 thumbnail_url = thumbnailImage,
+                thumbnail_3d_url = thumbnail3DImage,
                 headshot_url = headshotImage,
             });
     }
@@ -830,22 +838,24 @@ public class AvatarService : ServiceBase, IService {
 
         // Get our image urls
         var thumbnailUrl = $"/images/thumbnails/{avatarHash}_thumbnail.png";
+        var thumbnail3DUrl = $"/images/thumbnails/{avatarHash}_thumbnail3d.json";
         var headshotUrl = $"/images/thumbnails/{avatarHash}_headshot.png";
         if (!forceRedraw)
         {
             // Check if the hash exists already - If they do, we can skip rendering!
             if (File.Exists(Configuration.PublicDirectory + thumbnailUrl) &&
+                File.Exists(Configuration.PublicDirectory + thumbnail3DUrl) &&
                 File.Exists(Configuration.PublicDirectory + headshotUrl))
             {
                 // Since both files exist, we can just update the URL and exit
-                await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl);
+                await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
                 return;
             }
         }
         // We have to call render library now.
         // Set image urls to null:
-        await UpdateUserAvatarImages(userId, null, null);
-        // Create request
+        await UpdateUserAvatarImages(userId, null, null, null);
+        // Create request TODO: why is this called?
         var extendedAssetDetails = await assets.MultiGetInfoById(assetIds);
         // Sane timeout of 2 minutes. If a render takes longer than this, something's probably broken
         using var cancellation = new CancellationTokenSource();
@@ -885,8 +895,74 @@ public class AvatarService : ServiceBase, IService {
         {
             Console.WriteLine($"[RewrittenRCC]: Failed to save thumbnail: {e}");
         }
-        // Finally, update the avatar thumbnail
-        await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl);
+        
+        // Update the avatar thumbnail, excluding 3D
+        await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, null);
+
+        var thumbnail3DResult = await RenderingHandler.RequestPlayerThumbnail3D(userId, 20);
+        // Now thumbnail 3D, these have a unique format in JSON
+        try {
+            // TODO: we should maybe resize these 3d renders, they're quite large
+            var thumbJson = JsonSerializer.Deserialize<Thumbnail3DRender>(thumbnail3DResult);
+            if (thumbJson is null)
+                throw new Exception("Renderer returned incorrect 3D thumbnail.");
+            string? obj = null;
+            string? mtl = null;
+            var textures = new List<string>();
+            using SHA256 hasher = SHA256.Create();
+            if (thumbJson.files.TryGetValue("scene.obj", out var sceneObj))
+            {
+                var objDecoded = Convert.FromBase64String(sceneObj.content);
+                var bits = Convert.ToHexString(hasher.ComputeHash(objDecoded)).ToLower();
+                var objFile = $"{Configuration.ThumbnailsDirectory}3d/{bits}";
+                obj = $"/images/thumbnails/3d/{bits}";
+                if (!File.Exists(objFile)) {
+                    await File.WriteAllBytesAsync(objFile, objDecoded);
+                }
+            }
+            if (thumbJson.files.TryGetValue("scene.mtl", out var sceneMtl))
+            {
+                var mtlDecoded = Convert.FromBase64String(sceneMtl.content);
+                var bits = Convert.ToHexString(hasher.ComputeHash(mtlDecoded)).ToLower();
+                var mtlFile = $"{Configuration.ThumbnailsDirectory}3d/{bits}";
+                mtl = $"/images/thumbnails/3d/{bits}";
+                if (!File.Exists(mtlFile)) {
+                    await File.WriteAllBytesAsync(mtlFile, mtlDecoded);
+                }
+            }
+            
+            foreach (var (fileName, value) in thumbJson.files) {
+                if (fileName.Contains("Tex.png", StringComparison.OrdinalIgnoreCase)) {
+                    var textureData = Convert.FromBase64String(value.content);
+                    var textureHash = Convert.ToHexString(hasher.ComputeHash(textureData)).ToLower();
+                    var textureName = $"{Configuration.ThumbnailsDirectory}3d/{textureHash}";
+                    if (!File.Exists(textureName)) {
+                        await File.WriteAllBytesAsync(textureName, textureData);
+                    }
+                    textures.Add($"/images/thumbnails/3d/{textureHash}");
+                }
+            }
+
+            var thumbnail3DJson = new {
+                thumbJson.camera,
+                aabb = new {
+                    thumbJson.AABB.min,
+                    thumbJson.AABB.max,
+                },
+                mtl,
+                obj,
+                textures = textures.Count > 0 ? textures.ToArray() : null,
+            };
+            
+            string filename = $"{avatarHash}_thumbnail3d.json";
+            await File.WriteAllBytesAsync($"{Configuration.ThumbnailsDirectory}{filename}", Encoding.UTF8.GetBytes(JsonSerializer.Serialize(thumbnail3DJson)));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"[RewrittenRCC]: Failed to save 3D thumbnail: {e}");
+        }
+        // Finally, update the avatar thumbnail, including 3D
+        await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
     }
 
     public bool IsThreadSafe()

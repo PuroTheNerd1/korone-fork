@@ -167,6 +167,15 @@ public class ThumbnailsControllerV1 : ControllerBase
         return await Process18PlusAvatars(result);
     }
     
+    [HttpGet("users/avatar-3d")]
+    public async Task<RobloxCollection<ThumbnailEntry>> GetUserThumbnails3D(string userIds)
+    {
+        var parsed = userIds.Split(",").Select(long.Parse).Distinct().ToList();
+        if (parsed.Count is > 200 or < 0) throw new BadRequestException();
+        var result = await services.thumbnails.GetUserThumbnails3D(parsed);
+        return await Process18PlusAvatars(result);
+    }
+    
     private async Task<RobloxCollection<ThumbnailEntry>> Process18PlusAssets(IEnumerable<ThumbnailEntry> data)
     {
         var result = data.ToList();
