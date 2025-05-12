@@ -444,6 +444,8 @@ public class UsersService : ServiceBase, IService
         {
             if (normalizedName[i-1] == ' ' && normalizedName[i] == ' ') return false;
         }
+        // check for duplicate underscores
+        if (nameToCheck.Contains("__")) return false;
 
         // world filter, removing spaces and other words
         var lowerName = string.Join("", nameToCheck.ToLower().Split(" "));
