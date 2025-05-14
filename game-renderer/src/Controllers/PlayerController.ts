@@ -35,8 +35,8 @@ router.post("/thumbnail-3d", Valid(PlayerRenderRequest), async (req, res) => {
     xml.Settings.Arguments[0] = Config.BaseUrl;
     xml.Settings.Arguments[1] = charAppUrl;
     xml.Settings.Arguments[2] = "OBJ";
-    xml.Settings.Arguments[3] = 640;
-    xml.Settings.Arguments[4] = 640;
+    xml.Settings.Arguments[3] = 352;
+    xml.Settings.Arguments[4] = 352;
     Console.Debug(`Queueing 3D Player thumbnail request with UserId ${req.body.userId}`);
     return await box.Enqueue((port: number) => RequestRCCBase(
         req,

@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import OutfitsTab from "./components/outfitsTab";
 import BodyColorsTab from "./components/bodyColorsTab";
 import { useRouter } from "next/router";
+import { Thumbnail3DHandler } from "../thumbnail3D";
 
 const useStyles = createUseStyles({
     sliderInput: {
@@ -184,12 +185,12 @@ function AvatarEditor() {
     const listItemMetadata = useRef(page.listItemMetadata);
     const debounce = useRef(false);
     const [avThumb, setAvThumb] = useState(null);
-    const [avThumb3D, setAvThumb3D] = useState(null);
     const [isRendering, setIsRendering] = useState(false);
+    const [is3DReady, set3DReady] = useState(false);
     
+    /** @type RefObject<HTMLElement> */
     const canvasParentRef = useRef(null);
-    const canvasRef = useRef(null);
-    const [isRendering3D, setIsRendering3D] = useState(false);
+    const thumbnail3D = useRef(new Thumbnail3DHandler());
     
     useEffect(() => {
         listItemMetadata.current = page.listItemMetadata;
@@ -224,6 +225,7 @@ function AvatarEditor() {
      * @constructor
      */
     async function RecentClick(item, e) {
+        // DO NOT PUT === HERE!!
         if (debounce.current || listItemMetadata.current.recentType == item.typeId) return;
         debounce.current = true;
         page.setSelectedList({
@@ -252,105 +254,25 @@ function AvatarEditor() {
     }, [store.avThumb]);
     
     useEffect(() => {
-        setAvThumb3D(store.avThumb3D);
-    }, [store.avThumb3D]);
-    
-    useEffect(() => {
         setIsRendering(store.isRendering);
-        while (canvasParentRef.current.firstChild) {
-            canvasParentRef.current.removeChild(canvasParentRef.current.firstChild);
-        }
     }, [store.isRendering]);
     
     useEffect(async () => {
-        if (isRendering3D || page.thumbnailType !== 1 || !avThumb3D || !canvasParentRef.current) return;
-        /** @type Thumbnail3D */
-        let avThumb3DLocal = avThumb3D;
-        setIsRendering3D(true);
-        let scene = new THREE.Scene();
-        let threeCam = new THREE.PerspectiveCamera(avThumb3DLocal.camera.fov);
-        let renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setClearColor(0x000000, 0);
-        renderer.setSize(352, 352);
-        canvasParentRef.current.appendChild(renderer.domElement);
-        canvasRef.current = renderer.domElement;
-        
-        let mtlLoader = new THREE.MTLLoader();
-        let orbitControls = new THREE.OrbitControls(threeCam, renderer.domElement, avThumb3DLocal);
-        orbitControls.update();
-        
-        scene.add(new THREE.AmbientLight(0x808080, 1));
-        
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        directionalLight.position.set(avThumb3DLocal.aabb.max.x, avThumb3DLocal.aabb.max.y + 5, avThumb3DLocal.aabb.max.z + 5);
-        directionalLight.castShadow = false;
-        scene.add(directionalLight);
-        
-        mtlLoader.load(avThumb3DLocal.mtl, (mater) => {
-                /** @type MaterialCreator */
-                let materials = mater;
-                if (avThumb3DLocal.textures?.length > 0) {
-                    for (const materialName in materials.materialsInfo) {
-                        const info = materials.materialsInfo[materialName];
-                        
-                        // Update any texture map entry to point to a new path
-                        for (const key in info) {
-                            if (key.startsWith('map_')) {
-                                info[key] = avThumb3DLocal.textures[info.d - 1];
-                            }
-                        }
-                    }
-                }
-                materials.preload();
-                
-                let objLoader = new THREE.OBJLoader();
-                objLoader.setMaterials(materials);
-                objLoader.load(avThumb3DLocal.obj, (object) => {
-                    object.scale.set(1, 1, 1);
-                    scene.add(object);
-                    
-                    renderer.render(scene, threeCam);
-                    setIsRendering3D(false);
-                    function animate() {
-                        if (avThumb3DLocal !== avThumb3D || page.thumbnailType !== 1 || !avThumb3D || !canvasParentRef.current) {
-                            scene.traverse((object) => {
-                                if (object.isMesh) {
-                                    if (object.geometry) object.geometry.dispose();
-                                    if (object.material) {
-                                        if (Array.isArray(object.material)) {
-                                            object.material.forEach((material) => material.dispose());
-                                        } else {
-                                            object.material.dispose();
-                                        }
-                                    }
-                                    if (object.material && object.material.map) {
-                                        object.material.map.dispose();
-                                    }
-                                }
-                            });
-                            objLoader = null;
-                            mtlLoader = null;
-                            orbitControls.dispose();
-                            canvasParentRef.current.removeChild(renderer.domElement);
-                            scene.clear();
-                        } else {
-                            requestAnimationFrame(animate);
-                        }
-                        
-                        orbitControls.update();
-                        renderer.render(scene, threeCam);
-                    }
-                    animate();
-                });
-            }
-        );
-    }, [avThumb3D, page.thumbnailType]);
+        if (store.isRendering || page.thumbnailType !== 1 || !store.avThumb3D) {
+            await thumbnail3D.current.Stop();
+        } else if (page.thumbnailType === 1 && !thumbnail3D.current.isLoadingThumbnail) {
+            await thumbnail3D.current.LoadThumbnail(store.avThumb3D, canvasParentRef.current, set3DReady);
+        }
+    }, [store.avThumb3D, page.thumbnailType, canvasParentRef.current, store.isRendering]);
     
     useEffect(() => {
-        if (page.thumbnailType !== 1 && canvasRef.current !== null) {
-            canvasParentRef.current.removeChild(canvasRef.current);
+        if (typeof THREE !== "undefined" && thumbnail3D.current.scene === null) {
+            thumbnail3D.current.Init();
         }
-    }, [page.thumbnailType]);
+        return () => {
+            thumbnail3D.current.Dispose();
+        };
+    }, []);
     
     return <div>
         <div className={`${s.avatarHeader} flex justify-content-between align-items-center`}>
@@ -372,7 +294,7 @@ function AvatarEditor() {
                             avThumb && page.thumbnailType !== 1 ?
                             <img src={avThumb} alt={`${auth.username}'s Avatar`}/>
                             :
-                            avThumb3D && !isRendering3D ?
+                            store.avThumb3D && is3DReady ?
                             null
                             :
                             <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>

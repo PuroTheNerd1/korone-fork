@@ -322,4 +322,14 @@ namespace Roblox.Dto.Assets
         [JsonPropertyName("files")]
         public Dictionary<string, FileContent> files { get; set; }
     }
+    
+    public class Thumbnail3DRendered
+    {
+        public Camera camera { get; set; }
+        public AABB aabb { get; set; }
+
+        public string mtl { get; set; }
+        public string obj { get; set; }
+        public string[] textures { get; set; }
+    }
 }

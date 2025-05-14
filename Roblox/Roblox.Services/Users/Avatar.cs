@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using CsvHelper;
 using Dapper;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using Roblox.Dto;
 using Roblox.Dto.Assets;
@@ -12,6 +13,7 @@ using Roblox.Models.Assets;
 using Roblox.Models.Avatar;
 using Roblox.Services.DbModels;
 using Roblox.Exceptions.Services.Users;
+using Roblox.Logging;
 using Roblox.Rendering;
 using Roblox.Services.Exceptions;
 using SixLabors.ImageSharp;
@@ -793,6 +795,40 @@ public class AvatarService : ServiceBase, IService {
         return $"update avatar web v1 {userId}";
     }
 
+    public async Task Update3DRenderModified(long userId, string avatarHash) {
+        var thumbnail3DUrl = $"/images/thumbnails/{avatarHash}_thumbnail3d.json";
+        try {
+            var thumbnail3DJson = await File.ReadAllTextAsync(Configuration.PublicDirectory + thumbnail3DUrl);
+            var thumbJson = JsonSerializer.Deserialize<Thumbnail3DRendered>(thumbnail3DJson);
+            if (thumbJson is null)
+                throw new Exception("Renderer returned incorrect 3D thumbnail.");
+
+            var objPath = Configuration.ThumbnailsDirectory + thumbJson.obj.Replace("/images/thumbnails/", "");
+            if (File.Exists(objPath)) {
+                File.SetLastWriteTime(objPath, DateTime.Now);
+            }
+
+            var mtlPath = Configuration.ThumbnailsDirectory + thumbJson.mtl.Replace("/images/thumbnails/", "");
+            if (File.Exists(mtlPath)) {
+                File.SetLastWriteTime(mtlPath, DateTime.Now);
+            }
+
+            foreach (var filePath2 in thumbJson.textures) {
+                var filePath = Configuration.ThumbnailsDirectory + filePath2.Replace("/images/thumbnails/", "");
+                if (File.Exists(filePath)) {
+                    File.SetLastWriteTime(filePath, DateTime.Now);
+                }
+            }
+        }
+        catch (Exception e) {
+            Console.WriteLine($"[AvatarService] Couldn't set last updated for 3D Render for AvatarHash {avatarHash}. Error: {e.Message}");
+            if (e.Message.StartsWith("Could not find file")) {
+                Console.WriteLine("[AvatarService] Redrawing avatar due to missing 3D render files...");
+                await RedrawAvatar(userId);
+            }
+        }
+    }
+
     public async Task RedrawAvatar(long userId, IEnumerable<long>? newAssetIds = null, ColorEntry? colors = null,
         AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false, 
         bool? skipRender = false, BodyScales? scales = null)
@@ -849,6 +885,8 @@ public class AvatarService : ServiceBase, IService {
             {
                 // Since both files exist, we can just update the URL and exit
                 await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
+                // We must mark the 3D render as used (so it doesn't get deleted on 3D render cleanup)
+                await Update3DRenderModified(userId, avatarHash);
                 return;
             }
         }
@@ -932,18 +970,19 @@ public class AvatarService : ServiceBase, IService {
             }
             
             foreach (var (fileName, value) in thumbJson.files) {
-                if (fileName.Contains("Tex.png", StringComparison.OrdinalIgnoreCase)) {
+                if (fileName.Contains("tex.png", StringComparison.OrdinalIgnoreCase)) {
                     var textureData = Convert.FromBase64String(value.content);
                     var textureHash = Convert.ToHexString(hasher.ComputeHash(textureData)).ToLower();
-                    var textureName = $"{Configuration.ThumbnailsDirectory}3d/{textureHash}";
+                    var textureName = $"{Configuration.ThumbnailsDirectory}3d/{textureHash}_tex_{fileName.Replace(".png", "")}";
                     if (!File.Exists(textureName)) {
                         await File.WriteAllBytesAsync(textureName, textureData);
                     }
-                    textures.Add($"/images/thumbnails/3d/{textureHash}");
+                    textures.Add($"/images/thumbnails/3d/{textureHash}_tex_{fileName.Replace(".png", "")}");
                 }
             }
 
             var thumbnail3DJson = new {
+                userId,
                 thumbJson.camera,
                 aabb = new {
                     thumbJson.AABB.min,
@@ -956,13 +995,16 @@ public class AvatarService : ServiceBase, IService {
             
             string filename = $"{avatarHash}_thumbnail3d.json";
             await File.WriteAllBytesAsync($"{Configuration.ThumbnailsDirectory}{filename}", Encoding.UTF8.GetBytes(JsonSerializer.Serialize(thumbnail3DJson)));
+            // Finally, update the avatar thumbnail, including 3D
+            await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
         }
         catch (Exception e)
         {
             Console.WriteLine($"[RewrittenRCC]: Failed to save 3D thumbnail: {e}");
         }
-        // Finally, update the avatar thumbnail, including 3D
-        await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
+    }
+
+    public async Task TryAsset(long userId, long assetId) {
     }
 
     public bool IsThreadSafe()
@@ -1042,5 +1084,30 @@ public class AvatarService : ServiceBase, IService {
         {
             return "BAD";
         }
+    }
+
+    private static Timer _timer;
+
+    public static void StartTimerClear3D() {
+        _timer = new Timer(_ => {
+            // Clear 3D folder of any 3D asset that hasn't been used in 5+ days
+            Writer.Info(LogGroup.ClearThumbnail3DFolder, "Clearing 3D thumbnails that are older than 5 days...");
+            var thumbnail3DFolder = $"{Configuration.ThumbnailsDirectory}3d";
+            if (!Directory.Exists(thumbnail3DFolder)) {
+                Writer.Info(LogGroup.ClearThumbnail3DFolder, "3D thumbnail folder does not exist, returning...");
+                return;
+            };
+
+            foreach (var file in Directory.GetFiles(thumbnail3DFolder)) {
+                var lastModified = File.GetLastWriteTime(file);
+                var fiveDaysAgo = DateTime.Now.Subtract(TimeSpan.FromDays(5));
+                if (!(lastModified < fiveDaysAgo)) continue;
+                
+                // Delete file.
+                Writer.Info(LogGroup.ClearThumbnail3DFolder, $"Deleting 3D thumbnail {Path.GetFileName(file)}, last modified is more than 5 days ago. Last modified: {lastModified}");
+                File.Delete(file);
+            }
+            Writer.Info(LogGroup.ClearThumbnail3DFolder, "Successfully cleared 3D thumbnails that were older than 5 days.");
+        }, null, TimeSpan.FromSeconds(3), TimeSpan.FromHours(3));
     }
 }
