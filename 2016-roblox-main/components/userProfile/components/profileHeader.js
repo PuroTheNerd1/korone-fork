@@ -147,7 +147,6 @@ const useHeaderStyles = createUseStyles({
   },
   
   relationshipContainer: {
-    justifyContent: 'space-between',
     '@media(max-width: 767px)': {
       marginTop: '6px',
     },
@@ -156,7 +155,7 @@ const useHeaderStyles = createUseStyles({
     float: 'left',
     height: '54px',
     listStyle: 'none',
-    width: '55%',
+    width: '45%',
     margin: 0,
     padding: 0,
     '@media(max-width: 767px)': {
@@ -168,6 +167,7 @@ const useHeaderStyles = createUseStyles({
     margin: 0,
     padding: 0,
     float: 'right',
+    width: '55%',
     display: 'flex',
     justifyContent: 'flex-end',
     alignItems: 'center',
@@ -367,7 +367,6 @@ const ProfileHeader = props => {
                   <RelationshipStatistics id='friends' label='Friends' value={store.friends?.length} userId={store.userId} />
                   <RelationshipStatistics id='followers' label='Followers' value={store.followersCount} userId={store.userId} />
                   <RelationshipStatistics id='followings' label='Following' value={store.followingsCount} userId={store.userId} />
-                  <RelationshipStatistics id='rap' label='RAP' value={store.userInfo.inventory_rap} userId={store.userId} />
                 </ul>
                 {/*
                   showButtons && <>

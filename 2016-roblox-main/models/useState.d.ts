@@ -1,1 +1,1 @@
-type UseState<T> = [T, React.Dispatch<T>];
+type useState<T> = [T, React.Dispatch<T>];

@@ -45,7 +45,7 @@ export const RequestRCCBaseXMLData = async (
     port: number,
     type: string,
     envelopeType?: number
-): Promise<any> => {
+) => {
     const request: any = req.body;
 
     const response: any = await RCCRequest(port, xml, request.jobExpiration);

@@ -1,5 +1,5 @@
 import {createContainer} from "unstated-next";
-import { useEffect, useRef, useState } from "react";
+import {useEffect, useState} from "react";
 import {getOutfits, getRecentItems, RECENT_ITEMS} from "../../../services/avatar";
 import {getInventory} from "../../../services/inventory";
 import {SUBMENU_MODE} from "../components/avatarTabSubmenu";
@@ -54,10 +54,8 @@ const AvatarPageStore = createContainer(() => {
     const [openSubmenu, setOpenSubmenu] = useState(null);
     const [activeSubmenu, setActiveSubmenu] = useState(null);
     const [activeTab, setActiveTab] = useState(0);
-    // 1 == 3D
-    const [thumbnailType, setThumbnailType] = useState(0);
     const auth = AuthenticationStore.useContainer();
-    const { setLoadingAvatar, isRendering } = AvatarInfoStore.useContainer();
+    const { setLoadingAvatar } = AvatarInfoStore.useContainer();
     
     async function LoadRecentItemsToList(type) {
         setLoadingAvatar(true);
@@ -171,11 +169,6 @@ const AvatarPageStore = createContainer(() => {
         return outfits;
     }
     
-    function LoadNewThumbnailType(thumbnailType) {
-        if (isRendering) return;
-        setThumbnailType(thumbnailType);
-    }
-    
     function ClearListItems() {
         setListItems([]);
         setListItemMetadata({});
@@ -190,7 +183,6 @@ const AvatarPageStore = createContainer(() => {
         LoadAssetTypeToList,
         LoadOutfits,
         ClearListItems,
-        LoadNewThumbnailType,
         
         /** @type SortedItem[] */
         listItems,
@@ -211,8 +203,6 @@ const AvatarPageStore = createContainer(() => {
         
         activeTab,
         setActiveTab,
-        
-        thumbnailType,
     }
 })
 

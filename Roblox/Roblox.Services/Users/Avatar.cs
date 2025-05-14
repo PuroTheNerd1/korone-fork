@@ -1,26 +1,18 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using CsvHelper;
 using Dapper;
-using Microsoft.VisualBasic;
-using Newtonsoft.Json;
 using Roblox.Dto;
-using Roblox.Dto.Assets;
 using Roblox.Dto.Avatar;
 using Roblox.Models.Assets;
 using Roblox.Models.Avatar;
 using Roblox.Services.DbModels;
 using Roblox.Exceptions.Services.Users;
-using Roblox.Logging;
 using Roblox.Rendering;
 using Roblox.Services.Exceptions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
-using AssetId = Roblox.Services.DbModels.AssetId;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
@@ -199,7 +191,6 @@ public class AvatarService : ServiceBase, IService {
             leftLegColorId = existingAvatar.left_leg_color_id,
             avatarType = existingAvatar.avatar_type,
             thumbnailUrl = existingAvatar.thumbnail_url,
-            thumbnail3DUrl = existingAvatar.thumbnail_3d_url,
             headshotUrl = existingAvatar.headshot_thumbnail_url,
             scales = new BodyScales {
                 width = existingAvatar.scale_width,
@@ -425,15 +416,14 @@ public class AvatarService : ServiceBase, IService {
         });
     }
 
-    public async Task UpdateUserAvatarImages(long userId, string? headshotImage, string? thumbnailImage, string? thumbnail3DImage)
+    public async Task UpdateUserAvatarImages(long userId, string? headshotImage, string? thumbnailImage)
     {
         await db.ExecuteAsync(
-            "UPDATE user_avatar SET thumbnail_url = :thumbnail_url, headshot_thumbnail_url = :headshot_url, thumbnail_3d_url = :thumbnail_3d_url WHERE user_id = :user_id",
+            "UPDATE user_avatar SET thumbnail_url = :thumbnail_url, headshot_thumbnail_url = :headshot_url WHERE user_id = :user_id",
             new
             {
                 user_id = userId,
                 thumbnail_url = thumbnailImage,
-                thumbnail_3d_url = thumbnail3DImage,
                 headshot_url = headshotImage,
             });
     }
@@ -795,40 +785,6 @@ public class AvatarService : ServiceBase, IService {
         return $"update avatar web v1 {userId}";
     }
 
-    public async Task Update3DRenderModified(long userId, string avatarHash) {
-        var thumbnail3DUrl = $"/images/thumbnails/{avatarHash}_thumbnail3d.json";
-        try {
-            var thumbnail3DJson = await File.ReadAllTextAsync(Configuration.PublicDirectory + thumbnail3DUrl);
-            var thumbJson = JsonSerializer.Deserialize<Thumbnail3DRendered>(thumbnail3DJson);
-            if (thumbJson is null)
-                throw new Exception("Renderer returned incorrect 3D thumbnail.");
-
-            var objPath = Configuration.ThumbnailsDirectory + thumbJson.obj.Replace("/images/thumbnails/", "");
-            if (File.Exists(objPath)) {
-                File.SetLastWriteTime(objPath, DateTime.Now);
-            }
-
-            var mtlPath = Configuration.ThumbnailsDirectory + thumbJson.mtl.Replace("/images/thumbnails/", "");
-            if (File.Exists(mtlPath)) {
-                File.SetLastWriteTime(mtlPath, DateTime.Now);
-            }
-
-            foreach (var filePath2 in thumbJson.textures) {
-                var filePath = Configuration.ThumbnailsDirectory + filePath2.Replace("/images/thumbnails/", "");
-                if (File.Exists(filePath)) {
-                    File.SetLastWriteTime(filePath, DateTime.Now);
-                }
-            }
-        }
-        catch (Exception e) {
-            Console.WriteLine($"[AvatarService] Couldn't set last updated for 3D Render for AvatarHash {avatarHash}. Error: {e.Message}");
-            if (e.Message.StartsWith("Could not find file")) {
-                Console.WriteLine("[AvatarService] Redrawing avatar due to missing 3D render files...");
-                await RedrawAvatar(userId);
-            }
-        }
-    }
-
     public async Task RedrawAvatar(long userId, IEnumerable<long>? newAssetIds = null, ColorEntry? colors = null,
         AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false, 
         bool? skipRender = false, BodyScales? scales = null)
@@ -874,26 +830,22 @@ public class AvatarService : ServiceBase, IService {
 
         // Get our image urls
         var thumbnailUrl = $"/images/thumbnails/{avatarHash}_thumbnail.png";
-        var thumbnail3DUrl = $"/images/thumbnails/{avatarHash}_thumbnail3d.json";
         var headshotUrl = $"/images/thumbnails/{avatarHash}_headshot.png";
         if (!forceRedraw)
         {
             // Check if the hash exists already - If they do, we can skip rendering!
             if (File.Exists(Configuration.PublicDirectory + thumbnailUrl) &&
-                File.Exists(Configuration.PublicDirectory + thumbnail3DUrl) &&
                 File.Exists(Configuration.PublicDirectory + headshotUrl))
             {
                 // Since both files exist, we can just update the URL and exit
-                await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
-                // We must mark the 3D render as used (so it doesn't get deleted on 3D render cleanup)
-                await Update3DRenderModified(userId, avatarHash);
+                await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl);
                 return;
             }
         }
         // We have to call render library now.
         // Set image urls to null:
-        await UpdateUserAvatarImages(userId, null, null, null);
-        // Create request TODO: why is this called?
+        await UpdateUserAvatarImages(userId, null, null);
+        // Create request
         var extendedAssetDetails = await assets.MultiGetInfoById(assetIds);
         // Sane timeout of 2 minutes. If a render takes longer than this, something's probably broken
         using var cancellation = new CancellationTokenSource();
@@ -933,78 +885,8 @@ public class AvatarService : ServiceBase, IService {
         {
             Console.WriteLine($"[RewrittenRCC]: Failed to save thumbnail: {e}");
         }
-        
-        // Update the avatar thumbnail, excluding 3D
-        await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, null);
-
-        var thumbnail3DResult = await RenderingHandler.RequestPlayerThumbnail3D(userId, 20);
-        // Now thumbnail 3D, these have a unique format in JSON
-        try {
-            // TODO: we should maybe resize these 3d renders, they're quite large
-            var thumbJson = JsonSerializer.Deserialize<Thumbnail3DRender>(thumbnail3DResult);
-            if (thumbJson is null)
-                throw new Exception("Renderer returned incorrect 3D thumbnail.");
-            string? obj = null;
-            string? mtl = null;
-            var textures = new List<string>();
-            using SHA256 hasher = SHA256.Create();
-            if (thumbJson.files.TryGetValue("scene.obj", out var sceneObj))
-            {
-                var objDecoded = Convert.FromBase64String(sceneObj.content);
-                var bits = Convert.ToHexString(hasher.ComputeHash(objDecoded)).ToLower();
-                var objFile = $"{Configuration.ThumbnailsDirectory}3d/{bits}";
-                obj = $"/images/thumbnails/3d/{bits}";
-                if (!File.Exists(objFile)) {
-                    await File.WriteAllBytesAsync(objFile, objDecoded);
-                }
-            }
-            if (thumbJson.files.TryGetValue("scene.mtl", out var sceneMtl))
-            {
-                var mtlDecoded = Convert.FromBase64String(sceneMtl.content);
-                var bits = Convert.ToHexString(hasher.ComputeHash(mtlDecoded)).ToLower();
-                var mtlFile = $"{Configuration.ThumbnailsDirectory}3d/{bits}";
-                mtl = $"/images/thumbnails/3d/{bits}";
-                if (!File.Exists(mtlFile)) {
-                    await File.WriteAllBytesAsync(mtlFile, mtlDecoded);
-                }
-            }
-            
-            foreach (var (fileName, value) in thumbJson.files) {
-                if (fileName.Contains("tex.png", StringComparison.OrdinalIgnoreCase)) {
-                    var textureData = Convert.FromBase64String(value.content);
-                    var textureHash = Convert.ToHexString(hasher.ComputeHash(textureData)).ToLower();
-                    var textureName = $"{Configuration.ThumbnailsDirectory}3d/{textureHash}_tex_{fileName.Replace(".png", "")}";
-                    if (!File.Exists(textureName)) {
-                        await File.WriteAllBytesAsync(textureName, textureData);
-                    }
-                    textures.Add($"/images/thumbnails/3d/{textureHash}_tex_{fileName.Replace(".png", "")}");
-                }
-            }
-
-            var thumbnail3DJson = new {
-                userId,
-                thumbJson.camera,
-                aabb = new {
-                    thumbJson.AABB.min,
-                    thumbJson.AABB.max,
-                },
-                mtl,
-                obj,
-                textures = textures.Count > 0 ? textures.ToArray() : null,
-            };
-            
-            string filename = $"{avatarHash}_thumbnail3d.json";
-            await File.WriteAllBytesAsync($"{Configuration.ThumbnailsDirectory}{filename}", Encoding.UTF8.GetBytes(JsonSerializer.Serialize(thumbnail3DJson)));
-            // Finally, update the avatar thumbnail, including 3D
-            await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"[RewrittenRCC]: Failed to save 3D thumbnail: {e}");
-        }
-    }
-
-    public async Task TryAsset(long userId, long assetId) {
+        // Finally, update the avatar thumbnail
+        await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl);
     }
 
     public bool IsThreadSafe()
@@ -1084,30 +966,5 @@ public class AvatarService : ServiceBase, IService {
         {
             return "BAD";
         }
-    }
-
-    private static Timer _timer;
-
-    public static void StartTimerClear3D() {
-        _timer = new Timer(_ => {
-            // Clear 3D folder of any 3D asset that hasn't been used in 5+ days
-            Writer.Info(LogGroup.ClearThumbnail3DFolder, "Clearing 3D thumbnails that are older than 5 days...");
-            var thumbnail3DFolder = $"{Configuration.ThumbnailsDirectory}3d";
-            if (!Directory.Exists(thumbnail3DFolder)) {
-                Writer.Info(LogGroup.ClearThumbnail3DFolder, "3D thumbnail folder does not exist, returning...");
-                return;
-            };
-
-            foreach (var file in Directory.GetFiles(thumbnail3DFolder)) {
-                var lastModified = File.GetLastWriteTime(file);
-                var fiveDaysAgo = DateTime.Now.Subtract(TimeSpan.FromDays(5));
-                if (!(lastModified < fiveDaysAgo)) continue;
-                
-                // Delete file.
-                Writer.Info(LogGroup.ClearThumbnail3DFolder, $"Deleting 3D thumbnail {Path.GetFileName(file)}, last modified is more than 5 days ago. Last modified: {lastModified}");
-                File.Delete(file);
-            }
-            Writer.Info(LogGroup.ClearThumbnail3DFolder, "Successfully cleared 3D thumbnails that were older than 5 days.");
-        }, null, TimeSpan.FromSeconds(3), TimeSpan.FromHours(3));
     }
 }

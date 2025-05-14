@@ -41,14 +41,6 @@ public class GamesControllerV1 : ControllerBase
                 }
             },
             {
-                "classics", new
-                {
-                    token = "classics",
-                    name = "Classics",
-                    displayName = "Classics",
-                }
-            },
-            {
                 "roulette", new
                 {
                     token = "roulette",

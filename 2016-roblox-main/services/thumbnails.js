@@ -19,10 +19,6 @@ export const multiGetUserThumbnails = ({ userIds, size = '420x420', format = 'pn
   return request('GET', getFullUrl('thumbnails', `/v1/users/avatar?userIds=${toCsv(userIds)}&size=${size}&format=${format}`)).then(d => d.data.data).then(addBaseUrl);
 }
 
-export const multiGetUserThumbnails3D = ({ userIds, size = '420x420', format = 'png' }) => {
-  return request('GET', getFullUrl('thumbnails', `/v1/users/avatar-3d?userIds=${toCsv(userIds)}&size=${size}&format=${format}`)).then(d => d.data.data).then(addBaseUrl);
-}
-
 let _multiGetHeadshotsMeta = {
   locked: false,
   cache: {},

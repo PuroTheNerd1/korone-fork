@@ -450,33 +450,6 @@ public class GamesService : ServiceBase, IService
                 query.OrderBy("favorite_count DESC");
                 sortRequired = false;
                 break;
-            case "classics":
-                long[] placeIds = {
-                    22, // Natural Disaster Survival
-                    13228, // WAAPP
-                    22037, // MM2
-                    32309, // The Normal Elevator
-                    52729, // PEKORA High School
-                    1547, // Escape McDonalds!
-                    1176, // Epic Minigames
-                    1287, // Flood Escape 1
-                    14931, // Be Crushed By A Speeding Wall!
-                    3562, // Cart Ride into Stuff!
-                    1437, // Prison Life
-                    51090, // Speed Run 4
-                    25638, // ★Make a Cake And Feed the Giant Noob★
-                    16677, // Theme Park Tycoon 2
-                    4207, // Blox Hunt
-                    7826, // Hide and Seek Extreme
-                    5606, // Build a Boat for Treasure
-                };
-                sortOrder = new List<long>();
-                sortOrder.AddRange(placeIds);
-                foreach (var item in sortOrder)
-                {
-                    query.OrWhere("asset.id = " + item);
-                }
-                break;
             default:
                 // popular and default are same
                 query.OrderBy("playerCount DESC, asset_place.visit_count DESC");

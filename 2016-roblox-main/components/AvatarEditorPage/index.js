@@ -1,20 +1,21 @@
-import { createUseStyles } from "react-jss";
+import {createUseStyles} from "react-jss";
 import AvatarInfoStore from "./stores/avatarInfoStore";
 import AuthenticationStore from "../../stores/authentication";
+import FeedbackStore from "../../stores/feedback";
 import ActionButton from "../actionButton";
 import useButtonStyles from "../../styles/buttonStyles";
 import AvatarCardList from "./components/avatarCardList";
 import RadioPill from "../radioPill";
 import Slider from "../slider";
-import AvatarTabSubmenu, { SUBMENU_MODE } from "./components/avatarTabSubmenu";
+import HorizontalTabs from "../horizontalTabs";
+import AvatarTabSubmenu, {SUBMENU_MODE} from "./components/avatarTabSubmenu";
 import AvatarPageStore from "./stores/avatarPageStore";
 import AvatarTabs from "./components/avatarTabs";
-import { IsNullOrEmpty, wait } from "../../lib/utils";
-import { useEffect, useRef, useState } from "react";
+import {IsNullOrEmpty, wait} from "../../lib/utils";
+import {act, useEffect, useRef, useState} from "react";
 import OutfitsTab from "./components/outfitsTab";
 import BodyColorsTab from "./components/bodyColorsTab";
-import { useRouter } from "next/router";
-import { Thumbnail3DHandler } from "../thumbnail3D";
+import useWindowQuery from "../windowQuery";
 
 const useStyles = createUseStyles({
     sliderInput: {
@@ -43,7 +44,7 @@ const useStyles = createUseStyles({
         overflow: "hidden",
         height: 352,
         width: 277,
-        "& img, & canvas": {
+        "& img": {
             width: 352,
             height: "100%",
             verticalAlign: "middle",
@@ -53,10 +54,7 @@ const useStyles = createUseStyles({
             top: 18,
             right: "-37.5px",
             userSelect: "none",
-        },
-        "& canvas": {
-            top: "0!important",
-        },
+        }
     },
     scalingContainer: {
         padding: 15,
@@ -104,18 +102,6 @@ const useStyles = createUseStyles({
         position: "absolute",
         right: 10,
         top: 10,
-    },
-    thumbnail3DButtonContainer: {
-        display: "flex",
-        position: "absolute",
-        bottom: 10,
-        right: 10,
-    },
-    thumbnail3DButton: {
-        padding: 9,
-        fontSize: "18px!important",
-        lineHeight: "100%!important",
-        minHeight: 32,
     },
     itemContainer: {
         flex: 1,
@@ -186,11 +172,6 @@ function AvatarEditor() {
     const debounce = useRef(false);
     const [avThumb, setAvThumb] = useState(null);
     const [isRendering, setIsRendering] = useState(false);
-    const [is3DReady, set3DReady] = useState(false);
-    
-    /** @type RefObject<HTMLElement> */
-    const canvasParentRef = useRef(null);
-    const thumbnail3D = useRef(new Thumbnail3DHandler());
     
     useEffect(() => {
         listItemMetadata.current = page.listItemMetadata;
@@ -225,7 +206,6 @@ function AvatarEditor() {
      * @constructor
      */
     async function RecentClick(item, e) {
-        // DO NOT PUT === HERE!!
         if (debounce.current || listItemMetadata.current.recentType == item.typeId) return;
         debounce.current = true;
         page.setSelectedList({
@@ -254,35 +234,17 @@ function AvatarEditor() {
     }, [store.avThumb]);
     
     useEffect(() => {
-        setIsRendering(store.isRendering);
+        setIsRendering(store.isRendering)
     }, [store.isRendering]);
-    
-    useEffect(async () => {
-        if (store.isRendering || page.thumbnailType !== 1 || !store.avThumb3D) {
-            await thumbnail3D.current.Stop();
-        } else if (page.thumbnailType === 1 && !thumbnail3D.current.isLoadingThumbnail) {
-            await thumbnail3D.current.LoadThumbnail(store.avThumb3D, canvasParentRef.current, set3DReady);
-        }
-    }, [store.avThumb3D, page.thumbnailType, canvasParentRef.current, store.isRendering]);
-    
-    useEffect(() => {
-        if (typeof THREE !== "undefined" && thumbnail3D.current.scene === null) {
-            thumbnail3D.current.Init();
-        }
-        return () => {
-            thumbnail3D.current.Dispose();
-        };
-    }, []);
     
     return <div>
         <div className={`${s.avatarHeader} flex justify-content-between align-items-center`}>
             <h1 className={s.avatarHeaderText}>Avatar Editor</h1>
-            <div className="flex justify-content-center align-items-center" style={{ gap: 12 }}>
+            <div className="flex justify-content-center align-items-center" style={{gap: 12}}>
                 <span>Explore the catalog to find more clothes!</span>
                 <ActionButton label="Get More" className={s.moreBut} buttonStyle={buttonStyles.newBuyButton}
                               onClick={() => {
-                                  const router = useRouter();
-                                  router.push("/catalog").then();
+                                  window.location.href = "/catalog"
                               }}/>
             </div>
         </div>
@@ -291,28 +253,19 @@ function AvatarEditor() {
                 <div className={`section-content ${s.contentContainer}`}>
                     <div className={s.avatarThumbContainer}>
                         {
-                            avThumb && page.thumbnailType !== 1 ?
-                            <img src={avThumb} alt={`${auth.username}'s Avatar`}/>
-                            :
-                            store.avThumb3D && is3DReady ?
-                            null
-                            :
-                            <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
+                            avThumb ?
+                                <img src={avThumb} alt={`${auth.username}'s Avatar`}/>
+                                // :
+                                // !isRendering ?
+                                //     <img src="/img/placeholder-t.png" alt={`U`}/>
+                                :
+                                <span className="spinner" style={{height: "100%", backgroundSize: "auto 36px"}}/>
                         }
-                        <div className={s.thumbnail3DContainer} ref={canvasParentRef} />
                         <div className={s.avatarRigTypeSelector}>
                             <RadioPill options={[
                                 "R6",
                                 "R15"
                             ]} selected={store?.bodyRigType} setSelected={store?.setModifiedRigType}/>
-                        </div>
-                        <div className={s.thumbnail3DButtonContainer}>
-                            <ActionButton
-                                label={page.thumbnailType === 1 ? "2D" : "3D"}
-                                buttonStyle={buttonStyles.newCancelButton}
-                                className={s.thumbnail3DButton}
-                                onClick={() => page.LoadNewThumbnailType(page.thumbnailType === 1 ? 0 : 1)}
-                            />
                         </div>
                     </div>
                     <div className={`${s.scalingContainer} ${s.scalingContainerDesktop}`}>
@@ -325,9 +278,9 @@ function AvatarEditor() {
                                 Object.entries(store.avRules.scales).map(([key, value]) => (
                                     <>
                                         <div
-                                            style={{ color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)" }}
+                                            style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}}
                                             className="flex justify-content-between">
-                                            <span style={{ color: 'inherit' }}>{CapitalizeVariable(key)}</span>
+                                            <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
                                             <span>{Math.round(store.bodyScales[key] * 100)}%</span>
                                         </div>
                                         <Slider
@@ -483,7 +436,7 @@ function AvatarEditor() {
                                     },
                                     {
                                         label: "Gear",
-                                        items: [{ name: "Gear", typeId: 19, tabId: "clothing" }],
+                                        items: [{name: "Gear", typeId: 19, tabId: "clothing"}],
                                     },
                                 ]}
                                 onButtonClick={async (item, e) => await AssetTypeClick(item, e)}
@@ -623,9 +576,9 @@ function AvatarEditor() {
                                 return <BodyColorsTab/>
                             default:
                                 return <div>
-                                    <div style={{ display: "flex" }}>
+                                    <div style={{display: "flex"}}>
                                         <span
-                                            style={{ paddingTop: 9, paddingBottom: 4 }}
+                                            style={{paddingTop: 9, paddingBottom: 4}}
                                         >{CapitalizeVariable(page.selectedList.tab)}
                                             {!IsNullOrEmpty(page?.selectedList?.subTab) && ` > ${CapitalizeVariable(page?.selectedList?.subTab)}`}
                                         </span>
@@ -650,9 +603,9 @@ function AvatarEditor() {
                             Object.entries(store.avRules.scales).map(([key, value]) => (
                                 <>
                                     <div
-                                        style={{ color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)" }}
+                                        style={{color: store.bodyRigType === "R6" ? "#b8b8b8" : "var(--text-color-primary)"}}
                                         className="flex justify-content-between">
-                                        <span style={{ color: 'inherit' }}>{CapitalizeVariable(key)}</span>
+                                        <span style={{color: 'inherit'}}>{CapitalizeVariable(key)}</span>
                                         <span>{Math.round(store.bodyScales[key] * 100)}%</span>
                                     </div>
                                     <Slider
@@ -662,7 +615,7 @@ function AvatarEditor() {
                                         step={value.increment * 5}
                                         value={store.bodyScales[key]}
                                         setValue={(val) => {
-                                            store.setBodyScales(prev => ({ ...prev, [key]: Number(val.target.value) }));
+                                            store.setBodyScales(prev => ({...prev, [key]: Number(val.target.value)}));
                                         }}
                                         changeValue={(val) => {
                                             store.setModifiedScaling({

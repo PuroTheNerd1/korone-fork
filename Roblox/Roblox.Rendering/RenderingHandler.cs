@@ -32,8 +32,7 @@ namespace Roblox.Rendering
             Place,
             Model,
             Emote,
-            Animation,
-            Avatar3D
+            Animation
         }
         private class RenderResponse
         {
@@ -61,10 +60,6 @@ namespace Roblox.Rendering
                 case RenderType.Avatar:
                     renderRequest.userId = id;
                     url = "player/thumbnail";
-                    break;
-                case RenderType.Avatar3D:
-                    renderRequest.userId = id;
-                    url = "player/thumbnail-3d";
                     break;
                 case RenderType.Headshot:
                     renderRequest.userId = id;
@@ -192,10 +187,6 @@ namespace Roblox.Rendering
         public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
         {
             return await SendRenderRequest(userId, RenderType.Avatar);
-        }
-        public static async Task<string> RequestPlayerThumbnail3D(long userId, int JobExpiration)
-        {
-            return await SendRenderRequest(userId, RenderType.Avatar3D);
         }
         public static async Task<string> RequestHeadshotThumbnail(long userId, int JobExpiration)
         {

@@ -244,7 +244,6 @@ _ = Task.Run(async () =>
     using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
     await assets.FixAssetImagesWithoutMetadata();
 });
-_ = Task.Run(AvatarService.StartTimerClear3D);
 app.UseWhen(context => context.Request.Path.StartsWithSegments("/v1/users"), appBuilder =>
 {
     appBuilder.UseHttpLogging();
