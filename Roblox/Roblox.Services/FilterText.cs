@@ -1,12 +1,3 @@
-using System.Text.RegularExpressions;
-using Dapper;
-using Roblox.Dto.Economy;
-using Roblox.Dto.Users;
-using Roblox.Libraries.Exceptions;
-using Roblox.Models.Assets;
-using Roblox.Models.Economy;
-using Roblox.Services.Exceptions;
-
 namespace Roblox.Services;
 
 
@@ -172,14 +163,12 @@ public class FilterService : ServiceBase, IService
      };
     public string FilterText(string input)
     {
-        
         //remove all spaces
         string cleanedInput = String.Join("", input.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries))
         .ToLower()
         // Will prevent bypassing chat filter with words like n!gga
-        .Replace("#", "")
-        .Replace("$", "s")
-        .Replace("!", "i")
+        .Replace("#", "").Replace("$", "s")
+        .Replace("@", "a").Replace("!", "i")
         .Replace("*", "");
         foreach (string word in filteredWords)
         {
@@ -195,11 +184,11 @@ public class FilterService : ServiceBase, IService
     }
     public bool IsReusable()
     {
-        throw new NotImplementedException();
+        return true;
     }
 
     public bool IsThreadSafe()
     {
-        throw new NotImplementedException();
+        return true;
     }
 }
