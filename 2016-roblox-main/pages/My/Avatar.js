@@ -12,8 +12,8 @@ const AvatarPage = () => {
         <Head>
             <title>Avatar - Pekora</title>
             <script src="/js/3d/three-r137/three.js" />
-            <script src="/js/3d/three-r137/MTLLoader.js" />
-            <script src="/js/3d/three-r137/OBJLoader.js" />
+            <script src="/js/3d/three-r137/MTLLoaderr.js" />
+            <script src="/js/3d/three-r137/OBJLoaderr.js" />
             <script src="/js/3d/three-r137/RobloxOrbitControls.js" />
             <script src="/js/3d/tween.js" />
         </Head>
