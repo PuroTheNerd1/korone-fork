@@ -161,27 +161,40 @@ public class FilterService : ServiceBase, IService
         "whorehouse",
         "yourcock"
      };
+    private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
     public string FilterText(string input)
     {
-        //remove all spaces
-        string cleanedInput = String.Join("", input.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries))
-        .ToLower()
-        // Will prevent bypassing chat filter with words like n!gga
-        .Replace("#", "").Replace("$", "s")
-        .Replace("@", "a").Replace("!", "i")
-        .Replace("*", "");
-        foreach (string word in filteredWords)
+        if (string.IsNullOrEmpty(input))
         {
-            //check if the chat msg contains one of the filtering words
-            if (cleanedInput.Contains(word))
-            {
-                //replace the string with # like roblox does
-                input = new string('#', input.Length);
-                break;
-            }
+            return input;
         }
+        
+        string cleanedInput = new string(input.ToCharArray()
+            .Where(c => !char.IsWhiteSpace(c))
+            .Select(c => char.ToLower(c))
+            .Select(c =>
+            {
+                switch (c)
+                {
+                    case '#': return '\0';
+                    case '$': return 's';
+                    case '@': return 'a';
+                    case '!': return 'i';
+                    case '*': return '\0';
+                    default: return c;
+                }
+            })
+            .Where(c => c != '\0')
+            .ToArray());
+
+        if (_filteredWordsSet.Any(cleanedInput.Contains))
+        {
+            return new string('#', input.Length);
+        }
+
         return input;
     }
+
     public bool IsReusable()
     {
         return true;
