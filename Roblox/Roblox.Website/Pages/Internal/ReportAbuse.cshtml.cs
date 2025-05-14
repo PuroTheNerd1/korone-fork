@@ -53,7 +53,12 @@ public class ReportAbuse : RobloxPageModel
             failureMessage = "Report message be at least 10 characters. Please try again.";
             return;
         }
-
+        // Only report reason thats allowed is BadPrivateMessage
+        if (reportReason != AbuseReportReason.BadPrivateMessage)
+        {
+            failureMessage = "Report message must be less than 1000 characters. Please try again.";
+            return;
+        }
         using var ar = ServiceProvider.GetOrCreate<AbuseReportService>();
         if (!await services.cooldown.TryCooldownCheck($"AbuseReportV1_Cooldown:{userSession.userId}", TimeSpan.FromMinutes(20)))
         {
