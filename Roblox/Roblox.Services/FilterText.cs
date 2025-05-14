@@ -103,6 +103,7 @@ public class FilterService : ServiceBase, IService
         "niger",
         "nigger",
         "niggers",
+        "ngga",
         "nigga",
         "niigga",
         "niga",
