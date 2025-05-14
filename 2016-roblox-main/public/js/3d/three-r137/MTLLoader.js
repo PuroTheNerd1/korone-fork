@@ -25,8 +25,11 @@
       if (hash.includes('mats-thumbnails.roblox.com')) {
         return hash;
       }
-      if (hash.includes('pekora.zip')) {
+      if (hash.includes('www.pekora.zip')) {
         return hash;
+      }
+      if (hash.includes('https://pekora.zip/')) {
+        hash = hash.substring(str.indexOf('/', 8) + 1);
       }
       let st = 31;
       for (let ii = 0; ii < hash.length; ii++) {

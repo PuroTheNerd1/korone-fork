@@ -97,6 +97,12 @@ const UserProfileStore = createContainer(() => {
         }
     }, [userAv3D]);
     
+    useEffect(() => {
+        return () => {
+            setUserAv3D({});
+        };
+    }, []);
+    
     return {
         userId,
         setUserId,
