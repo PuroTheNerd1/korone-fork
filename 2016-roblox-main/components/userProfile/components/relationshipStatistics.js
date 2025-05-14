@@ -59,7 +59,7 @@ const RelationshipStatistics = props => {
   const s = useStyles();
 
   return <li style={{
-    width: '33%', float: 'left', padding: '0 5px', textAlign: 'center'
+    width: '25%', float: 'left', padding: '0 5px', textAlign: 'center'
   }}>
     <div className={s.statHeader}>{label}</div>
     {/*<Link href={`/users/${userId}/friends#!${id}`}>
@@ -67,7 +67,7 @@ const RelationshipStatistics = props => {
         {Number.isSafeInteger(value) ? abbreviateNumber(value) : '...'}
       </a>
     </Link>*/}
-    <Link href={`/users/${userId}/friends#!${id}`}>
+    <Link href={id === "rap" ? `/internal/collectibles?userId=${userId}` : `/users/${userId}/friends#!${id}`}>
       <a className={s.statTextContainer}>
         <h3 className={s.statText}>{Number.isSafeInteger(value) ? abbreviateNumber(value) : '...'}</h3>
       </a>
