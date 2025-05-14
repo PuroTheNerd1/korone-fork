@@ -256,6 +256,13 @@ const AvatarInfoStore = createContainer(() => {
         });
     }, [modifiedAsset]);
     
+    useEffect(() => {
+        return () => {
+            setAvThumb({});
+            setAvThumb3D({});
+        };
+    }, []);
+    
     return {
         // Functions
         AddAsset,
