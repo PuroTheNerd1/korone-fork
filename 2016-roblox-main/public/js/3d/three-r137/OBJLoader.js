@@ -303,15 +303,18 @@
       if (hash.includes('mats-thumbnails.roblox.com')) {
         return hash;
       }
-      if (hash.includes('pekora.zip')) {
+      if (hash.includes('www.pekora.zip')) {
         return hash;
+      }
+      if (hash.includes('https://pekora.zip/')) {
+        hash = hash.substring(str.indexOf('/', 8) + 1);
       }
       let st = 31;
       for (let ii = 0; ii < hash.length; ii++) {
         st ^= hash[ii].charCodeAt(0);
       }
       // return `https://t${(st % 8).toString()}.rbxcdn.com/${hash}`;
-      return `https://www.pekora.zip/${hash}`;
+      return `https://www.pekora.zip${hash.at(0) === '/' ? hash : '/' + hash}`;
     }
 
     load(hash, onLoad, onProgress, onError) {
