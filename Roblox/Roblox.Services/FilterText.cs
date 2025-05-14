@@ -104,6 +104,7 @@ public class FilterService : ServiceBase, IService
         "nigger",
         "niggers",
         "nigga",
+        "niigga",
         "niga",
         "ni$$a",
         "ni$$as",
@@ -169,29 +170,29 @@ public class FilterService : ServiceBase, IService
             return input;
         }
         
-        string cleanedInput = new string(input.ToCharArray()
+        string cleanedInput = string.Join("", input.ToCharArray()
             .Where(c => !char.IsWhiteSpace(c))
-            .Select(c => char.ToLower(c))
+            .Select(char.ToLower)
             .Select(c =>
             {
-                switch (c)
-                {
-                    case '#': return '\0';
-                    case '$': return 's';
-                    case '@': return 'a';
-                    case '!': return 'i';
-                    case '*': return '\0';
-                    default: return c;
-                }
+            /* This will prevent words like n!igga, n!gg@ etc */
+            switch (c)
+            {
+                case '#': return '\0';
+                case '$': return 's';
+                case '@': return 'a';
+                case '!': return 'i';
+                case '*': return '\0';
+                default: return c;
+            }
             })
             .Where(c => c != '\0')
             .ToArray());
 
-        if (_filteredWordsSet.Any(cleanedInput.Contains))
+        if (_filteredWordsSet.Any(word => cleanedInput.Contains(word)))
         {
             return new string('#', input.Length);
         }
-
         return input;
     }
 
