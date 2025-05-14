@@ -33,7 +33,7 @@
         st ^= hash[ii].charCodeAt(0);
       }
       // return `https://t${(st % 8).toString()}.rbxcdn.com/${hash}`;
-      return `https://pekora.zip/${hash}`;
+      return `https://www.pekora.zip/${hash}`;
     }
 
     load(hash, onLoad, onProgress, onError) {
