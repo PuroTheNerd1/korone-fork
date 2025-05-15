@@ -462,6 +462,7 @@ public class GamesService : ServiceBase, IService
                     1287, // Flood Escape 1
                     14931, // Be Crushed By A Speeding Wall!
                     3562, // Cart Ride into Stuff!
+                    56350, // Hotel Elephant
                     1437, // Prison Life
                     51090, // Speed Run 4
                     25638, // ★Make a Cake And Feed the Giant Noob★
