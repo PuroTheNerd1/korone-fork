@@ -2,11 +2,12 @@ import {createContainer} from "unstated-next";
 import {useEffect, useRef, useState} from "react";
 import FeedbackStore from "../../../stores/feedback";
 import {FeedbackType} from "../../../models/feedback";
-import {multiGetUserThumbnails} from "../../../services/thumbnails";
+import { multiGetUserThumbnails, multiGetUserThumbnails3D } from "../../../services/thumbnails";
 import AuthenticationStore from "../../../stores/authentication";
 import {getMyAvatar, getRules, redrawMyAvatar, setColors, setRigType, setScales} from "../../../services/avatar";
 import * as AvatarService from "../../../services/avatar";
-import {wait} from "../../../lib/utils";
+import { Stopwatch, wait } from "../../../lib/utils";
+import request from "../../../lib/request";
 
 /**
  * @typedef WearingAsset
@@ -24,6 +25,7 @@ const AvatarInfoStore = createContainer(() => {
     const [bodyScales, setBodyScales] = useState(null);
     const [bodyRigType, setBodyRigType] = useState(null);
     const [avThumb, setAvThumb] = useState(null);
+    const [avThumb3D, setAvThumb3D] = useState(null);
     
     const [isRendering, setIsRendering] = useState(false);
     const [avRules, setAvRules] = useState(false);
@@ -81,7 +83,8 @@ const AvatarInfoStore = createContainer(() => {
         
         await redrawMyAvatar();
         setAvThumb(null);
-        await wait(1);
+        setAvThumb3D(null);
+        await wait(0.2);
         setIsRendering(true);
         await wait(3);
         setCanForce(true);
@@ -94,15 +97,18 @@ const AvatarInfoStore = createContainer(() => {
             }
         }
         setAvThumb(null);
+        setAvThumb3D(null);
         setIsRendering(true);
     }
     
     useEffect(ReloadAvatar, []);
     
     useEffect(async () => {
-        if (debo.current || !isRendering || avThumb != null) return;
+        if (debo.current || !isRendering || avThumb != null || avThumb3D != null) return;
         debo.current = true;
         
+        let stopwatch = new Stopwatch();
+        stopwatch.Start();
         let attempts = 0;
         while (avThumb == null && attempts <= 10) {
             let thumbnail = await multiGetUserThumbnails({userIds: [auth.userId]})
@@ -116,8 +122,36 @@ const AvatarInfoStore = createContainer(() => {
             attempts++;
             await wait(1);
         }
+        stopwatch.Stop();
         if (attempts > 10 && avThumb == null)
             feedback.addFeedback("Could not get new avatar render. Please try again later.", FeedbackType.ERROR);
+        console.log(`Got avatar render in ${stopwatch.ElapsedMilliseconds()}ms, in ${attempts} attempts.`);
+        
+        // Separated because 3D renders usually take longer
+        attempts = 0;
+        stopwatch = new Stopwatch();
+        stopwatch.Start();
+        while (avThumb3D == null && attempts <= 10) {
+            let thumbnail = await multiGetUserThumbnails3D({userIds: [auth.userId]})
+                .then(result => result[0]);
+            if (thumbnail.state === "Completed" && typeof thumbnail.imageUrl === "string") {
+                /** @type Thumbnail3D */
+                let thumb = (await request("GET", thumbnail.imageUrl)).data;
+                if (thumb?.textures?.length && thumb.textures.length > 0) {
+                    setAvThumb3D(thumb);
+                    break;
+                }
+            } else {
+                console.warn("User thumbnail 3D has not completed rendering yet.");
+            }
+            attempts++;
+            await wait(1);
+        }
+        stopwatch.Stop();
+        if (attempts > 10 && avThumb3D == null)
+            feedback.addFeedback("Could not get new avatar render. Please try again later.", FeedbackType.ERROR);
+        console.log(`Got 3D avatar render in ${stopwatch.ElapsedMilliseconds()}ms, in ${attempts} attempts.`);
+        
         setIsRendering(false);
         debo.current = false;
     }, [isRendering]);
@@ -222,6 +256,13 @@ const AvatarInfoStore = createContainer(() => {
         });
     }, [modifiedAsset]);
     
+    useEffect(() => {
+        return () => {
+            setAvThumb({});
+            setAvThumb3D({});
+        };
+    }, []);
+    
     return {
         // Functions
         AddAsset,
@@ -249,6 +290,10 @@ const AvatarInfoStore = createContainer(() => {
         avThumb,
         setAvThumb,
         
+        /** @type Thumbnail3D */
+        avThumb3D,
+        setAvThumb3D,
+        
         loadingAvatar,
         setLoadingAvatar,
         
@@ -270,5 +315,21 @@ export const AssetTypeCategory = {
 export function IsNegative(int) {
     return int < 0;
 }
+
+/**
+ * @typedef Thumbnail3D
+ * @property {{ position: AABB; direction: AABB; fov: number; }} camera
+ * @property {{ min: AABB; max: AABB; }} aabb
+ * @property {string|null|undefined} mtl
+ * @property {string|null|undefined} obj
+ * @property {string[]|null|undefined} textures
+ */
+
+/**
+ * @typedef AABB
+ * @property {number} x
+ * @property {number} y
+ * @property {number} z
+ */
 
 export default AvatarInfoStore;

@@ -34,6 +34,13 @@ namespace Roblox.Website.Middleware
                     return;
                 }
 
+                if (normalizedPath.StartsWith("/images/thumbnails/3d/") && File.Exists(filePathWithoutExtension))
+                {
+                    context.Response.ContentType = "application/octet-stream";
+                    await context.Response.SendFileAsync(filePathWithoutExtension);
+                    return;
+                }
+                
                 if (File.Exists(filePathWithoutExtension))
                 {
                     context.Response.ContentType = "image/png";

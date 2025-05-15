@@ -20,3 +20,33 @@ export const wait = (seconds) =>
 export function IsNullOrEmpty(value) {
   return !value || value.trim().length === 0;
 }
+
+export class Stopwatch {
+  startTime = 0;
+  endTime = 0;
+  
+  Start() {
+    this.startTime = Date.now();
+  }
+  
+  Stop() {
+    this.endTime = Date.now();
+    return this.endTime - this.startTime;
+  }
+  
+  ElapsedMilliseconds() {
+    return this.endTime - this.startTime;
+  }
+  
+  ElapsedSeconds() {
+    return (this.endTime - this.startTime) / 1000;
+  }
+  
+  ElapsedMinutes() {
+    return (this.endTime - this.startTime) / 1000 * 60;
+  }
+  
+  ElapsedHours() {
+    return (this.endTime - this.startTime) / 1000 * 60 * 60;
+  }
+}
