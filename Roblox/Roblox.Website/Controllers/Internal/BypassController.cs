@@ -207,6 +207,7 @@ namespace Roblox.Website.Controllers
             };
             return await services.placeLauncherFactory.PlaceLauncherAsync(placeLauncherRequest);
         }
+
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
         public async Task<PlaceLaunchResponse> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
@@ -234,7 +235,8 @@ namespace Roblox.Website.Controllers
                 throw new BadRequestException(0, $"Asset {assetId} does not exist.");
             }
             var qu = await services.assets.GetAssetModerationStatus(assetId);
-            return new {
+            return new
+            {
                 moderationStatus = (ModerationStatus)qu.moderationstatus,
             };
         }

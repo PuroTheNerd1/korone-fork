@@ -72,16 +72,19 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("v2/assets/{assetId:long}/details")]
-        public async Task<dynamic> GetProductInfoNew(long assetId) {
+        public async Task<dynamic> GetProductInfoNew(long assetId)
+        {
             long Remaining = 0;
             var details = await services.assets.GetAssetCatalogInfo(assetId);
-            if (details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique")) {
+            if (details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"))
+            {
                 var resale = await services.assets.GetResaleData(assetId);
                 Remaining = resale.numberRemaining;
             }
 
             // this has gotta be a Type somewhere right
-            return new {
+            return new
+            {
                 TargetId = details.id,
                 AssetId = details.id,
                 ProductId = details.id,
@@ -112,7 +115,8 @@ namespace Roblox.Website.Controllers
 
         // client here
         [HttpPostBypass("marketplace/submitpurchase")]
-        public async Task<dynamic> SubmitPurchase([FromForm] Dto.Marketplace.ProductPurchaseRequest purchaseRequest) {
+        public async Task<dynamic> SubmitPurchase([FromForm] Dto.Marketplace.ProductPurchaseRequest purchaseRequest)
+        {
             var userId = safeUserSession.userId;
             FeatureFlags.FeatureCheck(FeatureFlag.EconomyEnabled);
             var stopwatch = new Stopwatch();
@@ -139,7 +143,8 @@ namespace Roblox.Website.Controllers
             stopwatch.Stop();
             Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
                 false);
-            return new {
+            return new
+            {
                 success = true,
                 status = "Bought",
                 receipt = receiptId
@@ -147,7 +152,8 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("marketplace/purchase")]
-        public async Task<dynamic> PurchaseProductMarket([FromForm] Dto.Marketplace.PurchaseRequest purchaseRequest) {
+        public async Task<dynamic> PurchaseProductMarket([FromForm] Dto.Marketplace.PurchaseRequest purchaseRequest)
+        {
             FeatureFlags.FeatureCheck(FeatureFlag.EconomyEnabled);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -157,8 +163,10 @@ namespace Roblox.Website.Controllers
             var productInfo = await services.assets.GetProductForAsset(purchaseRequest.productId);
             if (purchaseRequest.productId is 0 or < 0)
                 purchaseRequest.productId = 0;
-            if (productInfo.isLimited || productInfo.isLimitedUnique) {
-                return new {
+            if (productInfo.isLimited || productInfo.isLimitedUnique)
+            {
+                return new
+                {
                     status = "error",
                 };
             }
@@ -176,7 +184,8 @@ namespace Roblox.Website.Controllers
             stopwatch.Stop();
             Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
                 false);
-            return new {
+            return new
+            {
                 success = true,
                 status = "Bought",
                 receipt = "test"
@@ -193,9 +202,11 @@ namespace Roblox.Website.Controllers
             // (where it's not a developer product)
             var productInfo = (await services.games.GetDeveloperProductInfoFull(productId, 1, 0)).ToList();
             
-            if (productInfo.FirstOrDefault() != null) {
+            if (productInfo.FirstOrDefault() != null)
+            {
                 var details = productInfo.First();
-                return new {
+                return new
+                {
                     // on roblox this usually leads to the id of a random shirt template??? LMFAOOOO
                     // idfk why and i dont really care to figure out cuz i dont think its necessary
                     // so for convenience sake of anyone using this api im putting the universe id
@@ -233,8 +244,10 @@ namespace Roblox.Website.Controllers
             
             var asset = await services.assets.DoesAssetExistType(productId);
             
-            if (asset.exists) {
-                switch (asset.assetType) {
+            if (asset.exists)
+            {
+                switch (asset.assetType)
+                {
                     case (int)Type.GamePass:
                         return Redirect($"/marketplace/game-pass-product-info?gamePassId={productId}");
                     default:
@@ -314,7 +327,8 @@ namespace Roblox.Website.Controllers
 
             var receipt = await services.games.GetProductReceiptSecure(userId, Guid.Parse(receiptId));
 
-            if (receipt is null) {
+            if (receipt is null)
+            {
                 return new ReceiptResponse
                 {
                     playerId = userId,
@@ -334,8 +348,9 @@ namespace Roblox.Website.Controllers
         }
         
         [HttpGetBypass("gametransactions/getpendingtransactions")]
-        public async Task<dynamic> GetPendingTransactions(long PlaceId, long PlayerId) {
-            if (!isRCC || !Request.Headers.ContainsKey("Requester") || Request.Headers["Requester"] != "Server")
+        public async Task<dynamic> GetPendingTransactions(long PlaceId, long PlayerId)
+        {
+            if (!isRCC)
                 throw new UnauthorizedException();
 
             var universeId = await services.games.GetUniverseId(PlaceId);
@@ -349,16 +364,20 @@ namespace Roblox.Website.Controllers
                     playerId = PlayerId,
                     placeId = PlaceId,
                     receipt = pendingReceipt.id,
-                    actionArgs = new List<dynamic> {
-                        new {
+                    actionArgs = new List<dynamic>
+                    {
+                        new
+                        {
                             Key = "productId",
                             Value = pendingReceipt.productId
                         },
-                        new {
+                        new
+                        {
                             Key = "currencyTypeId",
                             Value = 1
                         },
-                        new {
+                        new
+                        {
                             Key = "unitPrice",
                             Value = pendingReceipt.price
                         }
@@ -368,16 +387,20 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("gametransactions/settransactionstatuscomplete")]
-        public async Task<dynamic> ProcessTransaction([FromForm] string receiptStr) {
-            if (!Guid.TryParse(receiptStr, out _))
+        public async Task<dynamic> ProcessTransaction([FromForm] string receiptStr)
+        {
+            Guid receiptId;
+            if (!Guid.TryParse(receiptStr, out receiptId))
                 throw new BadRequestException(0, "Receipt is invalid or does not exist.");
-            var receiptId = Guid.Parse(receiptStr);
             var receipt = await services.games.GetProductReceipt(receiptId); // is this even necessary lol
             if (receipt == null)
                 throw new BadRequestException(0, "Receipt is invalid or does not exist.");
             await services.games.ProcessProductReceipt(receiptId);
             
-            return new { success = true };
+            return new
+            {
+                success = true
+            };
         }
     }
 }
