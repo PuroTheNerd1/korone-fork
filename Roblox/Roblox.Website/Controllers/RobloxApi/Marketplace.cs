@@ -19,11 +19,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("marketplace/productinfo")]
         public async Task<dynamic> GetProductInfo(long assetId) 
         {
-            if (UserAgent == "Mozilla/5.0")
-            {
-                await services.discordBotApi.MessageUser("1317514982363107423", $"User {safeUserSession.userId} is sniping {assetId}");
-            }
-
             try 
             {
                 var details = await services.assets.GetAssetCatalogInfo(assetId);
