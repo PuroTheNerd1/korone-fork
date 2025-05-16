@@ -26,6 +26,7 @@ public class AvatarWithColors : ColorEntry
 {
     public AvatarType avatarType { get; set; }
     public string? thumbnailUrl { get; set; }
+    public string? thumbnail3DUrl { get; set; }
     public string? headshotUrl { get; set; }
     public BodyScales scales { get; set; }
 }

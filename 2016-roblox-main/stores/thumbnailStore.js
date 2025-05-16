@@ -131,7 +131,8 @@ const ThumbnailStore = createContainer(() => {
   const getThumbnailHandler = (type) => {
     return (id, size = '420x420') => {
       if (!['420x420'].includes(size)) {
-        throw new Error('Invalid size');
+        console.error('Invalid size, setting to 420x420');
+        size = '420x420';
       }
 
       const t = thumbnails[getKey(id, type, size)];

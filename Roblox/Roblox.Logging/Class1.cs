@@ -40,6 +40,7 @@ public enum LogGroup
     RealTimeChat,
     FixAssetImageMetadata,
     AdminApi,
+    ClearThumbnail3DFolder,
 }
 
 public class Writer
@@ -90,6 +91,7 @@ public class Writer
         {LogGroup.RealTimeChat, 10},
         {LogGroup.FixAssetImageMetadata, 100},
         {LogGroup.AdminApi, 100},
+        {LogGroup.ClearThumbnail3DFolder, 100},
     };
 
     private static List<Func<string,int>> onLogCallbacks { get; set; } = new();
