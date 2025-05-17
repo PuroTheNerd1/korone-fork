@@ -242,7 +242,7 @@ namespace Roblox.Website.Controllers
             return new
             {
                 success = true,
-                count = await services.friends.GetFriendRequestCount(userId ?? safeUserSession.userId)
+                count = await services.friends.CountFriends(userId ?? safeUserSession.userId)
             };
         }
         // [HttpGetBypass("v1/users/{userId}/friends/statuses")]
