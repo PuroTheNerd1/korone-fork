@@ -6,7 +6,7 @@ public static class UsersAbuse
 {
     private static UsersService users = new();
     private const int CreatedLastHourThresholdForDisable = 100;
-    private const int CreatedLastDayThresholdForDisable = 200;
+    private const int CreatedLastDayThresholdForDisable = 1000;
     private const int UserCreationAllowedAttemptsPerHour = 25;
 
     public static async Task<bool> ShouldAllowCreation(Models.ShouldAllowCreationRequest request)
