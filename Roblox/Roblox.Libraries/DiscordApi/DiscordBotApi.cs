@@ -55,7 +55,7 @@ public class DiscordBotApi
         }
         await SendMessageInChannel(channel.Id.ToString(), content, discordEmbed);
     }
-    private async Task SendMessageInChannel(string channelId, string content, DiscordEmbed? discordEmbed = null)
+    public async Task SendMessageInChannel(string channelId, string content, DiscordEmbed? discordEmbed = null)
     {
         var data = new Dictionary<string, dynamic>
         {
