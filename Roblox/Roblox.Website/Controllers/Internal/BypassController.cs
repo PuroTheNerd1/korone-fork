@@ -385,7 +385,7 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("game/join.ashx")]
         [HttpGetBypass("game/join.ashx")]
-        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false)
+        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false, bool? forceMessage = false)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
 
@@ -431,7 +431,7 @@ namespace Roblox.Website.Controllers
             // RAGESOC will trigger here it's most likely a cheater because why ever would a player not be online when joining a game
             // We check this by checking if the user was online in the last 5 minutes
             var hasSuspicousLastOnline = onlineStatus.lastOnline < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5)) || onlineStatus.userPresenceType == PresenceType.Offline;
-            if (hasSuspicousLastOnline)
+            if (hasSuspicousLastOnline || forceMessage == true)
             {
                 await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGESOC] UID: {userId} Flag: SuspicousLastOnline");
             }
