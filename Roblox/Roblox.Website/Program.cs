@@ -239,12 +239,12 @@ RenderingHandler.Configure(configuration.GetSection("BaseUrl").Value, configurat
 SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value);
 app.UseTimerMiddleware(); // Must always be last
 Roblox.Services.Signer.SignService.Setup();
-_ = Task.Run(async () =>
-{
-    using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
-    await assets.FixAssetImagesWithoutMetadata();
-});
-_ = Task.Run(AvatarService.StartTimerClear3D);
+// _ = Task.Run(async () =>
+// {
+//     using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
+//     await assets.FixAssetImagesWithoutMetadata();
+// });
+// _ = Task.Run(AvatarService.StartTimerClear3D);
 app.UseWhen(context => context.Request.Path.StartsWithSegments("/v1/users"), appBuilder =>
 {
     appBuilder.UseHttpLogging();
