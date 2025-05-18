@@ -42,7 +42,7 @@ public class Asset : ControllerBase
         */
         // @jaggerthejag
         if (playerId == 261 || id == 105897927)
-            id = 72133;
+            id = 72236;
         var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
         long.TryParse(placeIdHeader,  out long placeId);
         HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
