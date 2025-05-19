@@ -84,7 +84,9 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
+                // We couldn't find the asset, try to get the asset from Roblox from cache
                 string? location = await services.robloxassets.GetRobloxAssetLocationFromCache(id);
+                // We couldn't find the asset in cache, try to get it from Roblox
                 if (location == null)
                 {
                     // Don't bother caching assets for non roblox clients
@@ -104,7 +106,7 @@ public class Asset : ControllerBase
                     else
                     {
                         //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
-                        return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={id}");  
+                        return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={id}");
                     }
                     try
                     {
@@ -128,7 +130,7 @@ public class Asset : ControllerBase
                         //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
                         return Redirect(location);
                     }
-                   
+
                 }
 
             }
