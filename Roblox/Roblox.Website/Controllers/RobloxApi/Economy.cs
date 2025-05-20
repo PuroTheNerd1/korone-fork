@@ -34,7 +34,32 @@ public class Economy : ControllerBase
         //FeatureCheck();
         return await services.economy.GetUserBalance(userSession.userId);
     }
+    [HttpPostBypass("v2/developer-products/{productId}/purchase")]
+    public async Task<dynamic> PurchaseDeveloperProduct(long productId)
+    {
+        FeatureCheck();
+        var productInfoList =
+            (await services.games.GetDeveloperProductInfoFull(productId, 1, 0)).ToList();
+        if (productInfoList.FirstOrDefault() == null)
+            throw new RecordNotFoundException("Developer Product is invalid or does not exist");
+        var productInfo = productInfoList.First();
+        if (!productInfo.isForSale)
+            throw new BadRequestException(0, "Developer Product is not for sale");
+        var iconModStatus = await services.assets.GetAssetModerationStatus(productInfo.iconImageAssetId);
+        if (iconModStatus.moderationstatus != (short?)ModerationStatus.ReviewApproved)
+            throw new BadRequestException(0, "Developer Product is not approved");
 
+        var receiptId = await services.users.PurchaseDeveloperProduct(safeUserSession.userId, productId);
+        return new
+        {
+            purchased = true,
+            price = productInfo.price,
+            receipt = receiptId,
+            success = true,
+            productId = productId,
+
+        };
+    }
     [HttpGetBypass("v1/assets/{assetId}/users/{userId}/resellable-copies")]
     public async Task<dynamic> GetUserResellableCopiesOfAsset(long userId, long assetId)
     {
