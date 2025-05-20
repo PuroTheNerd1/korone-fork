@@ -18,3 +18,11 @@ public class ProductPurchaseRequest
     public long expectedUnitPrice { get; set; }
     public string requestId { get; set; }
 }
+
+public class DeveloperProductPurchaseRequest
+{
+    public long expectedPrice { get; set; }
+    public int saleLocationType { get; set; }
+    public long saleLocationId { get; set; }
+    public string requestId { get; set; }
+}
