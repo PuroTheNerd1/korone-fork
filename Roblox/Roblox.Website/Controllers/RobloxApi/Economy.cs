@@ -48,9 +48,6 @@ public class Economy : ControllerBase
         var iconModStatus = await services.assets.GetAssetModerationStatus(productInfo.iconImageAssetId);
         if (iconModStatus.moderationstatus != (short?)ModerationStatus.ReviewApproved)
             throw new BadRequestException(0, "Developer Product is not approved");
-        var uni = (await services.games.MultiGetUniverseInfo(new[] {productInfo.universeId})).ToList();
-        if (uni.FirstOrDefault() is null || uni.First().rootPlaceId != request.saleLocationId)
-            throw new BadRequestException(0, "Place is invalid for this purchase or does not exist");
         if (productInfo.price != request.expectedPrice)
             throw new BadRequestException(0, "Expected price is not the actual price");
         var receiptId = await services.users.PurchaseDeveloperProduct(safeUserSession.userId, productId);
