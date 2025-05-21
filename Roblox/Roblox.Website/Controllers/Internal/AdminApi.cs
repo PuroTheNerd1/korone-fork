@@ -421,7 +421,7 @@ public class AdminApiController : ControllerBase
                 Type.Package,
                 Type.Place,
                 Type.Plugin,
-                Type.MeshPart,
+                //Type.MeshPart,
                 Type.Mesh,
                 Type.SolidModel,
                 Type.Video,

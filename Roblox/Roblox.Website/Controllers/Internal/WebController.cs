@@ -684,7 +684,7 @@ public class WebController : ControllerBase
         Models.Assets.Type.Image,
         Models.Assets.Type.Video,
         Models.Assets.Type.Mesh,
-        Models.Assets.Type.MeshPart,
+        //Models.Assets.Type.MeshPart,
         Models.Assets.Type.Model,
         Models.Assets.Type.GamePass,
         Models.Assets.Type.Badge
