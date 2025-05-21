@@ -131,6 +131,8 @@ export function ConvertSocialToHuman(str) {
             return "TikTok";
         case "github":
             return "GitHub";
+        case "roblox":
+            return "ROBLOX";
         default:
             return str.charAt(0).toUpperCase() + str.slice(1);
     }

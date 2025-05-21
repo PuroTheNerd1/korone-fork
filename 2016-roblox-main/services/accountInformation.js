@@ -29,11 +29,12 @@ export const setUserConnections = ({ connections }) => {
 
 /**
  * @typedef UserConnection
- * @property {string} twitter
- * @property {string} discord
- * @property {string} telegram
- * @property {string} tiktok
- * @property {string} youtube
- * @property {string} twitch
- * @property {string} github
+ * @property {string?} twitter
+ * @property {string?} discord
+ * @property {string?} telegram
+ * @property {string?} tiktok
+ * @property {string?} youtube
+ * @property {string?} twitch
+ * @property {string?} github
+ * @property {string?} roblox
  */

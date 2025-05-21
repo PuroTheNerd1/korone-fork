@@ -131,11 +131,11 @@ public class AccountInformationService : ServiceBase, IService
     {
         using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>();
         var (exists, cached) = connectionsCache.Get(userId);
-        if (exists && cached != null)
-            return cached;
+        if (exists)
+            return cached ?? new UserConnections();
         
         cached = await db.QuerySingleOrDefaultAsync<UserConnections>(@"
-                SELECT discord, twitter, telegram, tiktok, youtube, twitch, github
+                SELECT discord, twitter, telegram, tiktok, youtube, twitch, github, roblox
                 FROM user_connections WHERE user_id = :userId",
             new {userId});
         if (cached == null) {
@@ -161,19 +161,11 @@ public class AccountInformationService : ServiceBase, IService
                 telegram = connections.telegram,
                 twitter = connections.twitter,
                 github = connections.github,
+                roblox = connections.roblox,
             });
         }
         else {
-            await UpdateAsync("user_connections", "user_id", userId, new
-            {
-                discord = connections.discord,
-                tiktok = connections.tiktok,
-                twitch = connections.twitch,
-                youtube = connections.youtube,
-                telegram = connections.telegram,
-                twitter = connections.twitter,
-                github = connections.github,
-            });
+            await UpdateAsync("user_connections", "user_id", userId, connections);
         }
         using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>();
         connectionsCache.Set(userId, connections);

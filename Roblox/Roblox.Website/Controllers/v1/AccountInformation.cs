@@ -143,6 +143,9 @@ public class AccountInformationControllerV1 : ControllerBase
             github = conn.github != null
                 ? (alwaysReturnUrls ? "https://github.com/" : "@") + conn.github
                 : null,
+            roblox = conn.roblox != null
+                ? (alwaysReturnUrls ? "https://www.roblox.com/users/profile?username=" : "@") + conn.roblox
+                : null,
             // these are always null!
             facebook = (string?) null,
             guilded = (string?) null,
@@ -178,6 +181,9 @@ public class AccountInformationControllerV1 : ControllerBase
                 : null,
             github = conn.github != null
                 ? (alwaysReturnUrls ? "https://github.com/" : "@") + conn.github
+                : null,
+            roblox = conn.roblox != null
+                ? (alwaysReturnUrls ? "https://www.roblox.com/users/profile?username=" : "@") + conn.roblox
                 : null,
             // these are always null!
             facebook = (string?) null,
@@ -234,6 +240,12 @@ public class AccountInformationControllerV1 : ControllerBase
              !Regex.IsMatch(conn.github, "^(?!-)(?!.*--)[A-Za-z0-9-]{1,39}(?<!-)$"))
         )
             throw new BadRequestException(14, "GitHub handle is invalid.");
+        if (
+            conn.roblox != null && 
+            (string.IsNullOrWhiteSpace(conn.roblox) ||
+             !Regex.IsMatch(conn.roblox, "^(?=.{3,20}$)(?!.*__)(?!.*_$)(?!^_)[A-Za-z0-9_]+$"))
+        )
+            throw new BadRequestException(14, "ROBLOX handle is invalid.");
         
         await services.accountInformation.SetUserConnections(safeUserSession.userId, conn);
         return new {};

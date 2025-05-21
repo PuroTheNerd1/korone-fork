@@ -164,6 +164,7 @@ function IsSocialHandleInvalid(social, value) {
         telegram: /^[A-Za-z][A-Za-z0-9_]{4,31}$/,
         twitch: /^[a-z][a-z0-9_]{3,24}$/,
         github: /^(?!-)(?!.*--)[A-Za-z0-9-]{1,39}(?<!-)$/,
+        roblox: /^(?=.{3,20}$)(?!.*__)(?!.*_$)(?!^_)[A-Za-z0-9_]+$/,
     };
     const regex = regexMap[social];
     if (!regex) return true;
