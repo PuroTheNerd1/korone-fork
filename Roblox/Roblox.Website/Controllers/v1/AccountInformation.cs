@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Exceptions;
 using Roblox.Models.Users;
@@ -114,25 +115,128 @@ public class AccountInformationControllerV1 : ControllerBase
     }
 
     [HttpGet("promotion-channels")]
-    public dynamic GetPromotionChannels()
-    {
+    [HttpGetBypass("/v1/promotion-channels")]
+    public async Task<dynamic> GetPromotionChannels(bool alwaysReturnUrls) {
+        var conn = await services.accountInformation.GetUserConnections(safeUserSession.userId);
+        var discordUrl = alwaysReturnUrls && conn.discord != null && IsDigits(conn.discord)
+            ? "https://discord.com/users/" + conn.discord
+            : conn.discord != null ? "@" + conn.discord : null;
         return new
         {
             promotionChannelsVisibilityPrivacy = "NoOne",
+            twitter = conn.twitter != null
+                ? (alwaysReturnUrls ? "https://x.com/" : "@") + conn.twitter
+                : null,
+            discord = discordUrl,
+            telegram = conn.telegram != null
+                ? (alwaysReturnUrls ? "https://t.me/" : "@") + conn.telegram
+                : null,
+            tiktok = conn.tiktok != null
+                ? (alwaysReturnUrls ? "https://tiktok.com/@" : "@") + conn.tiktok
+                : null,
+            youtube = conn.youtube != null
+                ? (alwaysReturnUrls ? "https://youtube.com/@" : "@") + conn.youtube
+                : null,
+            twitch = conn.twitch != null
+                ? (alwaysReturnUrls ? "https://twitch.tv/" : "@") + conn.twitch
+                : null,
+            github = conn.github != null
+                ? (alwaysReturnUrls ? "https://github.com/" : "@") + conn.github
+                : null,
+            // these are always null!
             facebook = (string?) null,
-            twitter = (string?) null,
-            youtube = (string?) null,
-            twitch = (string?) null
+            guilded = (string?) null,
+        };
+    }
+    
+    [HttpGet("users/{userId:long}/promotion-channels")]
+    [HttpGetBypass("/v1/users/{userId:long}/promotion-channels")]
+    public async Task<dynamic> GetPromotionChannelsFromUserId(long userId, bool alwaysReturnUrls = false) {
+        var _ = safeUserSession.userId; // confirm user is logged in
+        var conn = await services.accountInformation.GetUserConnections(userId);
+        var discordUrl = alwaysReturnUrls && conn.discord != null && IsDigits(conn.discord)
+            ? "https://discord.com/users/" + conn.discord
+            : conn.discord != null ? "@" + conn.discord : null;
+        return new
+        {
+            promotionChannelsVisibilityPrivacy = "NoOne",
+            twitter = conn.twitter != null
+                ? (alwaysReturnUrls ? "https://x.com/" : "@") + conn.twitter
+                : null,
+            discord = discordUrl,
+            telegram = conn.telegram != null
+                ? (alwaysReturnUrls ? "https://t.me/" : "@") + conn.telegram
+                : null,
+            tiktok = conn.tiktok != null
+                ? (alwaysReturnUrls ? "https://tiktok.com/@" : "@") + conn.tiktok
+                : null,
+            youtube = conn.youtube != null
+                ? (alwaysReturnUrls ? "https://youtube.com/@" : "@") + conn.youtube
+                : null,
+            twitch = conn.twitch != null
+                ? (alwaysReturnUrls ? "https://twitch.tv/" : "@") + conn.twitch
+                : null,
+            github = conn.github != null
+                ? (alwaysReturnUrls ? "https://github.com/" : "@") + conn.github
+                : null,
+            // these are always null!
+            facebook = (string?) null,
+            guilded = (string?) null,
         };
     }
 
     [HttpPost("promotion-channels")]
-    public dynamic SetPromotionChannels()
+    [HttpPostBypass("/v1/promotion-channels")]
+    public async Task<dynamic> SetPromotionChannels([Required, FromBody] UserConnections conn)
     {
-        return new
-        {
-            message = "This feature is temporarily unavailable",
-        };
+        // there's prob a better way to do this, maybe a dictionary with a regex of each connection or something
+        if (conn == null)
+            throw new BadRequestException(2, "The request was empty.");
+        if (
+            conn.twitter != null &&
+            (string.IsNullOrWhiteSpace(conn.twitter) ||
+             !Regex.IsMatch(conn.twitter, "^[_A-Za-z][A-Za-z0-9_]{3,14}$"))
+            )
+            throw new BadRequestException(12, "Twitter handle is invalid.");
+        if (
+            conn.youtube != null &&
+            (string.IsNullOrWhiteSpace(conn.youtube) ||
+             !Regex.IsMatch(conn.youtube, "^(?![.-])(?!.*[.]{2})[A-Za-z0-9._-]{3,30}$"))
+        )
+            throw new BadRequestException(13, "YouTube handle is invalid.");
+        if (
+            conn.tiktok != null &&
+            (string.IsNullOrWhiteSpace(conn.tiktok) ||
+             !Regex.IsMatch(conn.tiktok, @"^(?!.*\.\.)(?!.*\.$)[A-Za-z0-9._]{2,24}$"))
+        )
+            throw new BadRequestException(17, "TikTok handle is invalid.");
+        if (
+            conn.discord != null && 
+            (string.IsNullOrWhiteSpace(conn.discord) ||
+             !Regex.IsMatch(conn.discord, "^[a-z0-9._]{2,32}$"))
+        )
+            throw new BadRequestException(15, "Discord handle is invalid.");
+        if (
+            conn.telegram != null &&
+            (string.IsNullOrWhiteSpace(conn.telegram) ||
+             !Regex.IsMatch(conn.telegram, "^[A-Za-z][A-Za-z0-9_]{4,31}$"))
+        )
+            throw new BadRequestException(16, "Telegram handle is invalid.");
+        if (
+            conn.twitch != null && 
+            (string.IsNullOrWhiteSpace(conn.twitch) ||
+             !Regex.IsMatch(conn.twitch, "^[a-z][a-z0-9_]{3,24}$"))
+        )
+            throw new BadRequestException(14, "Twitch handle is invalid.");
+        if (
+            conn.github != null && 
+            (string.IsNullOrWhiteSpace(conn.github) ||
+             !Regex.IsMatch(conn.github, "^(?!-)(?!.*--)[A-Za-z0-9-]{1,39}(?<!-)$"))
+        )
+            throw new BadRequestException(14, "GitHub handle is invalid.");
+        
+        await services.accountInformation.SetUserConnections(safeUserSession.userId, conn);
+        return new {};
     }
 
     [HttpGet("star-code-affiliates")]
@@ -146,4 +250,15 @@ public class AccountInformationControllerV1 : ControllerBase
     {
         throw new BadRequestException(1, "The code was invalid");
     }
+    
+    public bool IsDigits(string input) {
+        if (string.IsNullOrEmpty(input))
+            return false;
+        foreach (char c in input) {
+            if (!char.IsDigit(c))
+                return false;
+        }
+        return true;
+    }
+
 }

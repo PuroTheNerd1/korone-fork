@@ -9,6 +9,7 @@ import PrivacySettings from "./components/privacySettings";
 import Tabs from "./components/tabs";
 import MyAccountStore from "./stores/myAccountStore";
 import Security from "./components/security";
+import Social from "./components/social";
 
 const useStyles = createUseStyles({
   settingsRow: {
@@ -46,6 +47,7 @@ const MyAccount = props => {
       <div className='col-12'>
         {store.tab === 'Account Info' ? <AccountInfo/> : null}
         {store.tab === 'Security' ? <Security /> : null}
+        {store.tab === 'Social' ? <Social /> : null}
         {store.tab === 'Privacy' ? <PrivacySettings/> : null}
       </div>
     </div>

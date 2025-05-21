@@ -2,10 +2,9 @@ import {createUseStyles} from "react-jss";
 import NewModal from "../../../newModal";
 import ActionButton from "../../../actionButton";
 import buttonStyles from "../../../../styles/buttonStyles";
-import {renameOutfit, updateOutfit} from "../../../../services/avatar";
+import {renameOutfit} from "../../../../services/avatar";
 import AvatarPageStore from "../../stores/avatarPageStore";
-import AvatarInfoStore from "../../stores/avatarInfoStore";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 
 const useStyles = createUseStyles({
     footerClass: {

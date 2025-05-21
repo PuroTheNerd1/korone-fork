@@ -46,6 +46,11 @@ public class UserAvatarPageStyleCache : GenericMemoryCache<long, AvatarPageStyle
     
 }
 
+public class UserConnectionsCache : GenericMemoryCache<long, UserConnections>
+{
+    
+}
+
 public class UserYearCache : GenericMemoryCache<long, WebsiteYear>
 {
     public UserYearCache()

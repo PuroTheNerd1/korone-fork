@@ -79,5 +79,15 @@ namespace Roblox.Models.Users
         Created = 1,
         PasswordChanged = 2,
     }
+    
+    public class UserConnections {
+        public string? discord { get; set; }
+        public string? twitter { get; set; }
+        public string? tiktok { get; set; }
+        public string? twitch { get; set; }
+        public string? youtube { get; set; }
+        public string? telegram { get; set; }
+        public string? github { get; set; }
+    }
 }
 

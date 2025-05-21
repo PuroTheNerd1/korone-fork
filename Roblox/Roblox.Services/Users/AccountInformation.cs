@@ -126,6 +126,58 @@ public class AccountInformationService : ServiceBase, IService
             trade_filter = filter,
         });
     }
+    
+    public async Task<UserConnections> GetUserConnections(long userId)
+    {
+        using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>();
+        var (exists, cached) = connectionsCache.Get(userId);
+        if (exists && cached != null)
+            return cached;
+        
+        cached = await db.QuerySingleOrDefaultAsync<UserConnections>(@"
+                SELECT discord, twitter, telegram, tiktok, youtube, twitch, github
+                FROM user_connections WHERE user_id = :userId",
+            new {userId});
+        if (cached == null) {
+            cached = new UserConnections();
+        }
+        connectionsCache.Set(userId, cached);
+        return cached;
+    }
+    
+    public async Task SetUserConnections(long userId, UserConnections connections)
+    {
+        var userConnectionCount = await db.QuerySingleOrDefaultAsync<int>(@"
+                SELECT COUNT(*) FROM user_connections WHERE user_id = :userId",
+            new {userId});
+        if (userConnectionCount == 0) {
+            await InsertAsync("user_connections", "user_id", new
+            {
+                user_id = userId,
+                discord = connections.discord,
+                tiktok = connections.tiktok,
+                twitch = connections.twitch,
+                youtube = connections.youtube,
+                telegram = connections.telegram,
+                twitter = connections.twitter,
+                github = connections.github,
+            });
+        }
+        else {
+            await UpdateAsync("user_connections", "user_id", userId, new
+            {
+                discord = connections.discord,
+                tiktok = connections.tiktok,
+                twitch = connections.twitch,
+                youtube = connections.youtube,
+                telegram = connections.telegram,
+                twitter = connections.twitter,
+                github = connections.github,
+            });
+        }
+        using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>();
+        connectionsCache.Set(userId, connections);
+    }
 
     public bool IsThreadSafe()
     {
