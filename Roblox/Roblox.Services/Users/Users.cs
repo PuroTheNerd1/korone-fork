@@ -426,14 +426,17 @@ public class UsersService : ServiceBase, IService
     /// <returns></returns>
     public async Task<bool> IsUsernameValid(string nameToCheck)
     {
+        // check for null/empty/whitespace
         if (string.IsNullOrEmpty(nameToCheck) || string.IsNullOrWhiteSpace(nameToCheck)) return false;
-        if (nameToCheck.Length >= 21 || nameToCheck.Length < 3) return false;
+        // check length
+        var isInvalidValidLength = nameToCheck.Length >= 21 || nameToCheck.Length < 3;
+        if (isInvalidValidLength) return false;
         // check start/end
         foreach (var badCharacter in UsernameCannotStartOrEndWith)
         {
             if (nameToCheck.StartsWith(badCharacter) || nameToCheck.EndsWith(badCharacter)) return false;
         }
-
+        // check for invalid characters
         var normalizedNameArray = UsernameValidationRegex.Match(nameToCheck);
         if (!normalizedNameArray.Success) return false;
         var normalizedName = normalizedNameArray.Value;
