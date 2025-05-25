@@ -129,7 +129,7 @@ public class AccountInformationService : ServiceBase, IService
     
     public async Task<UserConnections> GetUserConnections(long userId)
     {
-        using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>();
+        using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>(this);
         var (exists, cached) = connectionsCache.Get(userId);
         if (exists)
             return cached ?? new UserConnections();
@@ -150,7 +150,8 @@ public class AccountInformationService : ServiceBase, IService
         var userConnectionCount = await db.QuerySingleOrDefaultAsync<int>(@"
                 SELECT COUNT(*) FROM user_connections WHERE user_id = :userId",
             new {userId});
-        if (userConnectionCount == 0) {
+        if (userConnectionCount == 0)
+        {
             await InsertAsync("user_connections", "user_id", new
             {
                 user_id = userId,
@@ -164,7 +165,8 @@ public class AccountInformationService : ServiceBase, IService
                 roblox = connections.roblox,
             });
         }
-        else {
+        else
+        {
             await UpdateAsync("user_connections", "user_id", userId, connections);
         }
         using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>();

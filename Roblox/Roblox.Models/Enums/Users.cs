@@ -80,7 +80,8 @@ namespace Roblox.Models.Users
         PasswordChanged = 2,
     }
     
-    public class UserConnections {
+    public class UserConnections
+    {
         public string? discord { get; set; }
         public string? twitter { get; set; }
         public string? tiktok { get; set; }
