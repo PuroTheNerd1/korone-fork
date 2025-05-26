@@ -194,6 +194,24 @@ public class GamesService : ServiceBase, IService
 
         return await MultiGetUniverseInfo(result.Select(r => (long)r.universe_id));
     }
+    public async Task BatchUpdateUniversePermissions(IEnumerable<Dto.Games.UniversePermission> permissions, long universeId)
+    {
+        foreach (var permission in permissions)
+        {
+            await db.ExecuteAsync(@"
+                INSERT INTO universe_permissions (action, subject_type, subject_id, universe_id)
+                VALUES (:action, :subject_type, :subject_id, :universe_id)
+                ON CONFLICT (action, subject_type, subject_id, universe_id)
+                DO UPDATE SET action = :action
+            ", new
+            {
+                action = (int)permission.action,
+                subject_type = (int)permission.subjectType,
+                subject_id = permission.subjectId,
+                universe_id = universeId
+            });
+        }
+    }
     public async Task SetCloudedit(bool isEnabled, long universeId)
     {
         await db.ExecuteAsync("UPDATE universe SET cloudedit = :isEnabled WHERE id = :universeId",
