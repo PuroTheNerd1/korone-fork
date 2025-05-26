@@ -385,7 +385,7 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("game/join.ashx")]
         [HttpGetBypass("game/join.ashx")]
-        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false, bool? forceMessage = false)
+        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
 
