@@ -541,16 +541,12 @@ public class UniverseV1 : ControllerBase
             data = permissions.Select(c =>
             {
                 var user = userInfo.FirstOrDefault(u => u.id == c.subjectId);
-                // Really hacky
-                string allowedPermissions = c.action.ToString();
-                if (c.action == PermittedAction.Edit)
-                    allowedPermissions = "Edit,Play";
                 return new
                 {
                     userId = user.id,
                     userName = user.displayName,
                     action = c.action,
-                    allowedPermissions = allowedPermissions
+                    allowedPermissions = "Play,Edit"
                 };
             })
         };
