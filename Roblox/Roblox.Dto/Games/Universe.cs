@@ -131,7 +131,7 @@ public class GamesForCreatorDevelop
     public DateTime updated { get; set; }
 }
 
-public class UniversePermissions
+public class UniversePermission
 {
     public PermittedAction action { get; set; }
     public CreatorType subjectType { get; set; }
