@@ -614,7 +614,7 @@ public class GamesService : ServiceBase, IService
 
     public async Task SetPlacePrivacyType(long universeId, PrivacyType privacyType)
     {
-        var isVisible = privacyType == PrivacyType.Public;
+        var isVisible = (privacyType == PrivacyType.Public || privacyType == PrivacyType.FriendsOnly);  
         await db.ExecuteAsync("UPDATE universe SET is_public = :visible, privacy_type = :privacy WHERE id = :id", new
         {
             visible = isVisible,
