@@ -11,6 +11,7 @@ using Roblox.Models.Assets;
 using Roblox.Models.Studio;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
+using Roblox.Website.Pages.Auth;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Website.Controllers;
@@ -661,7 +662,7 @@ public class UniverseV1 : ControllerBase
 
     [HttpPatchBypass("v1/universes/{universeId}/configuration")]
     [HttpPatchBypass("v2/universes/{universeId}/configuration")]
-    public async Task<dynamic> SetUniverseConfiguration([FromRoute] long universeId) 
+    public async Task<dynamic> SetUniverseConfiguration([FromRoute] long universeId, [FromBody] UpdateUniverseConfiguration configuration) 
     {
         List<string> playableDevices = new List<string> {
             "Computer",
@@ -672,13 +673,16 @@ public class UniverseV1 : ControllerBase
         };
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         
-        Console.WriteLine("Setting universe configuration for universeId: " + await GetRequestBody());
+
         //await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
-        var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
-        if (uni == null)
-            throw new RecordNotFoundException();
-        //await services.games.SetForceMorph(universeId, configuration.universeAvatarType == "PlayerChoice" ? ForceMorphType.PlayerChoice : configuration.universeAvatarType == "MorphToR6" ? ForceMorphType.MorphToR6 : ForceMorphType.MorphToR15);
-        return new 
+
+        if (configuration.universeAvatarType != null)
+            await services.games.SetForceMorph(universeId, configuration.universeAvatarType == "PlayerChoice" ? ForceMorphType.PlayerChoice : configuration.universeAvatarType == "MorphToR6" ? ForceMorphType.MorphToR6 : ForceMorphType.MorphToR15);
+        if (configuration.isFriendsOnly != null)
+            await services.games.SetPlacePrivacyType(universeId, PrivacyType.FriendsOnly);
+        var uni = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+
+        return new
         {
             allowPrivateServers = false,
             privateServerPrice = 0,
@@ -690,7 +694,7 @@ public class UniverseV1 : ControllerBase
             universeCollisionType = R15CollisionType.OuterBox.ToString(),
             universeBodyType = "Standard",
             universeJointPositioningType = "ArtistIntent",
-            universeAvatarMinScales = new 
+            universeAvatarMinScales = new
             {
                 height = 0,
                 width = 0,
@@ -699,7 +703,7 @@ public class UniverseV1 : ControllerBase
                 proportion = 0,
                 bodyType = 0,
             },
-            universeAvatarMaxScales = new 
+            universeAvatarMaxScales = new
             {
                 height = 1,
                 width = 1,
@@ -708,11 +712,11 @@ public class UniverseV1 : ControllerBase
                 proportion = 1,
                 bodyType = 1,
             },
-            isArchived = false,
-            isFriendsOnly = false,
+            isArchived = uni.isPublic,
+            isFriendsOnly = uni.privacyType == PrivacyType.FriendsOnly,
             genre = uni.genre,
             playableDevices = playableDevices,
-            permissions = new 
+            permissions = new
             {
                 IsThirdPartyTeleportAllowed = true,
                 IsThirdPartyAssetAllowed = true,
@@ -722,7 +726,7 @@ public class UniverseV1 : ControllerBase
             price = 0,
             studioAccessToApisAllowed = true,
             isStudioAccessToApisAllowed = true,
-            privacyType = PrivacyType.Public,
+            privacyType = uni.isPublic ? PrivacyType.Public : PrivacyType.Private,
         };
     }
 
@@ -771,8 +775,8 @@ public class UniverseV1 : ControllerBase
                 proportion = 1,
                 bodyType = 1,
             },
-            isArchived = false,
-            isFriendsOnly = false,
+            isArchived = uni.isPublic,
+            isFriendsOnly = uni.privacyType == PrivacyType.FriendsOnly,
             genre = uni.genre,
             playableDevices = playableDevices,
             permissions = new 
@@ -785,10 +789,26 @@ public class UniverseV1 : ControllerBase
             price = 0,
             studioAccessToApisAllowed = true,
             isStudioAccessToApisAllowed = true,
-            privacyType = PrivacyType.Public,
+            privacyType = uni.isPublic ? PrivacyType.Public : PrivacyType.Private,
         };
     }
-    
+
+    [HttpPostBypass("v1/universes/{universeId}/activate")]
+    public async Task<dynamic> ActivateUniverse(long universeId)
+    {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        await services.games.SetPlacePrivacyType(universeId, PrivacyType.Public);
+        return new { };
+    }
+
+    [HttpPostBypass("v1/universes/{universeId}/deactivate")]
+    public async Task<dynamic> DeactivateUniverse(long universeId)
+    {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        await services.games.SetPlacePrivacyType(universeId, PrivacyType.Private);
+        return new { };
+    }
+
     [HttpGetBypass("/universal-app-configuration/v1/behaviors/studio/content")]
     public dynamic GetStudioContent()
     {
@@ -827,7 +847,8 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGetBypass("/v1/game-localization-roles/games/{universeId:long}/current-user/roles")]
-    public dynamic GetCurrentUserRoles() {
+    public dynamic GetCurrentUserRoles()
+    {
         
         return new
         {
@@ -836,7 +857,8 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpPostBypass("/v1/autolocalization/games/{universeId:long}/autolocalizationtable")]
-    public dynamic GetAutoLocalizationTable() {
+    public dynamic GetAutoLocalizationTable()
+    {
         return new
         {
             supportedLocales = new List<dynamic>

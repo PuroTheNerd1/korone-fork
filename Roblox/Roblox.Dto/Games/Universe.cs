@@ -35,6 +35,7 @@ public class MultiGetUniverseEntry
     public bool isFavoritedByUser { get; set; }
     public bool isAllGenre => genre == Genre.All;
     public ForceMorphType universeAvatarType { get; set; }
+    public PrivacyType privacyType { get; set; }
     public bool studioAccessToApisAllowed { get; set; }
     public long? price { get; set; }
     public bool isGenreEnforced { get; set; } = false;
@@ -174,7 +175,8 @@ public class TeamCreateSettings
 
 public class UpdateUniverseConfiguration
 {
-    public string universeAvatarType { get; set; }
+    public string? universeAvatarType { get; set; }
+    public bool? isFriendsOnly { get; set; }
 }
 
 public class CreateUniverseRequest

@@ -187,9 +187,11 @@ public class GamesService : ServiceBase, IService
     public async Task<IEnumerable<MultiGetUniverseEntry>> GetEditableUniversesForUser(long userId)
     {
         var result = await db.QueryAsync<dynamic>(
-            "SELECT universe_id FROM universe_permission WHERE user_id = :id AND action = 1", new
+            "SELECT universe_id FROM universe_permission WHERE subject_id = :id AND action = :action AND subject_type = :subjectType", new
             {
                 id = userId,
+                action = (int)PermittedAction.Edit,
+                subjectType = (int)CreatorType.User
             });
 
         return await MultiGetUniverseInfo(result.Select(r => (long)r.universe_id));
@@ -259,6 +261,7 @@ public class GamesService : ServiceBase, IService
                 universe.root_asset_id as rootPlaceId,
                 universe.is_public as isPublic,
                 universe.forcemorph_type as universeAvatarType,
+                universe.privacy_type as privacyType,
                 asset.name as sourceName,
                 asset.description as sourceDescription,
                 asset.name,
@@ -565,12 +568,14 @@ public class GamesService : ServiceBase, IService
         return result;
     }
 
-    public async Task SetPlaceVisibility(long universeId, bool isVisible)
+    public async Task SetPlacePrivacyType(long universeId, PrivacyType privacyType)
     {
-        await db.ExecuteAsync("UPDATE universe SET is_public = :visible WHERE id = :id", new
+        var isVisible = privacyType == PrivacyType.Public;
+        await db.ExecuteAsync("UPDATE universe SET is_public = :visible, privacy_type = :privacy WHERE id = :id", new
         {
-            id = universeId,
             visible = isVisible,
+            privacy = (int) privacyType,
+            id = universeId,
         });
     }
 
