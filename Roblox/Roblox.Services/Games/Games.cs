@@ -201,8 +201,8 @@ public class GamesService : ServiceBase, IService
             await db.ExecuteAsync(@"
                 INSERT INTO universe_permission (action, subject_type, subject_id, universe_id)
                 VALUES (:action, :subject_type, :subject_id, :universe_id)
-                ON CONFLICT (action, subject_type, subject_id, universe_id)
-                DO UPDATE SET action = :action
+                ON CONFLICT (subject_type, subject_id, universe_id)
+                DO UPDATE SET action = EXCLUDED.action
             ", new
             {
                 action = (int)permission.action,
@@ -212,6 +212,7 @@ public class GamesService : ServiceBase, IService
             });
         }
     }
+
     public async Task SetCloudedit(bool isEnabled, long universeId)
     {
         await db.ExecuteAsync("UPDATE universe SET cloudedit = :isEnabled WHERE id = :universeId",
