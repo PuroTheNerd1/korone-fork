@@ -395,7 +395,9 @@ namespace Roblox.Website.Controllers
             var jobInfo = await services.gameServer.GetGameServer(jobId);
             if (jobInfo == null)
                 throw new BadRequestException(1, "Gameserver does not exist");
-            
+            // Let's not allow cloud edit servers via here
+            if (jobInfo.type == 3)
+                throw new BadRequestException(1, "This is a cloudedit server, you cannot join it.");
             long placeId = jobInfo.asset_id;
             PlaceEntry placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             

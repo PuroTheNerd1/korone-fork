@@ -136,6 +136,17 @@ public class PlaceLauncherService : ServiceBase
                 message = "The game is not active."
             };
         }
+        // Cloud edit check
+        var canCloudEdit = await games.CanEditUniverse(userId, placeInfo.universeId) || placeInfo.builderId == userId;
+        if (!canCloudEdit)
+        {
+            return new PlaceLaunchResponse()
+            {
+                status = (int)JoinStatus.Error,
+                message = "You do not have permission to edit this place."
+            };
+        }
+
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {

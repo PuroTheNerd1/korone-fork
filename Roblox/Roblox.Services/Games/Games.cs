@@ -45,13 +45,15 @@ public class GamesService : ServiceBase, IService
         }
         return false;
     }
-    public async Task<bool> CanCloudEdit(long userId, long universeId)
+    public async Task<bool> CanEditUniverse(long userId, long universeId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
-            "SELECT COUNT(*) AS total FROM teamcreate_memberships WHERE universe_id = :id AND user_id = :userId", new
+            "SELECT COUNT(*) AS total FROM universe_permission WHERE universe_id = :id AND subject_id = :userId AND subject_type = :subjectType AND action = :action", new
             {
                 id = universeId,
                 userId,
+                subjectType = (int)CreatorType.User,
+                action = (int)PermittedAction.Edit
             });
         return result?.total > 0;
     }
