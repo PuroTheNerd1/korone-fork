@@ -565,9 +565,10 @@ public class UniverseV1 : ControllerBase
     [HttpPatchBypass("/v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> SetTeamCreateSettings([FromRoute] long universeId, [FromBody] TeamCreateSettings request) 
     {
-        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        // await services.games.CanManageUniverse(safeUserSession.userId, universeId);
 
-        await services.games.SetCloudedit(request.isEnabled, universeId);
+        // await services.games.SetCloudedit(request.isEnabled, universeId);
+        Console.WriteLine("aaa: " + await GetRequestBody());
         return Content("{}", "application/json");
     }
 
