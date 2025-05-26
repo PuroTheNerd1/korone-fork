@@ -679,7 +679,17 @@ public class UniverseV1 : ControllerBase
         if (configuration.universeAvatarType != null)
             await services.games.SetForceMorph(universeId, configuration.universeAvatarType == "PlayerChoice" ? ForceMorphType.PlayerChoice : configuration.universeAvatarType == "MorphToR6" ? ForceMorphType.MorphToR6 : ForceMorphType.MorphToR15);
         if (configuration.isFriendsOnly != null)
-            await services.games.SetPlacePrivacyType(universeId, PrivacyType.FriendsOnly);
+        {
+            if ((bool)configuration.isFriendsOnly)
+            {
+                await services.games.SetPlacePrivacyType(universeId, PrivacyType.FriendsOnly);
+            }
+            else
+            {
+                await services.games.SetPlacePrivacyType(universeId, PrivacyType.Public);
+            }
+        }
+
         var uni = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
 
         return new
