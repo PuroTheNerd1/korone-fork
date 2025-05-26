@@ -168,7 +168,7 @@ public class GamesService : ServiceBase, IService
     public async Task<IEnumerable<Dto.Games.UniversePermission>> GetUniversePermissions(long universeId)
     {
         var result = await db.QueryAsync<Dto.Games.UniversePermission>(
-            "SELECT action, subject_type as subjectType, subject_id as subjectId, universe_id as universeId FROM universe_permissions WHERE universe_id = :id", new
+            "SELECT action, subject_type as subjectType, subject_id as subjectId, universe_id as universeId FROM universe_permission WHERE universe_id = :id", new
             {
                 id = universeId,
             });
@@ -177,7 +177,7 @@ public class GamesService : ServiceBase, IService
     public async Task<IEnumerable<Dto.Games.UniversePermission>> GetUniversePermissionsForUser(long userId, long universeId)
     {
         var result = await db.QueryAsync<Dto.Games.UniversePermission>(
-            "SELECT action, subject_type as subjectType, subject_id as subjectId, universe_id as universeId FROM universe_permissions WHERE universe_id = :id AND subject_id = :userId AND subject_type = 1", new
+            "SELECT action, subject_type as subjectType, subject_id as subjectId, universe_id as universeId FROM universe_permission WHERE universe_id = :id AND subject_id = :userId AND subject_type = 1", new
             {
                 id = universeId,
                 userId,
@@ -199,7 +199,7 @@ public class GamesService : ServiceBase, IService
         foreach (var permission in permissions)
         {
             await db.ExecuteAsync(@"
-                INSERT INTO universe_permissions (action, subject_type, subject_id, universe_id)
+                INSERT INTO universe_permission (action, subject_type, subject_id, universe_id)
                 VALUES (:action, :subject_type, :subject_id, :universe_id)
                 ON CONFLICT (action, subject_type, subject_id, universe_id)
                 DO UPDATE SET action = :action
