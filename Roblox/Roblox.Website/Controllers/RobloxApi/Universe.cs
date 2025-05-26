@@ -495,7 +495,8 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGet("v1/places/{placeId}/teamcreate/active_session/members")]
-    public async Task<dynamic> GetTeamCreateMembers(long placeId) {
+    public async Task<dynamic> GetTeamCreateMembers(long placeId)
+    {
         List<dynamic> players = new List<dynamic>();
         var startIndex = 0;
         var limit = 1;
@@ -561,7 +562,7 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpPatch("v1/universes/{universeId}/teamcreate")]
+    [HttpPatchBypass("v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> SetTeamCreateSettings([FromBody] TeamCreateSettings request, long universeId) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
@@ -573,7 +574,8 @@ public class UniverseV1 : ControllerBase
     [HttpGet("v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> TeamCreateSettings(long universeId) 
     {
-        return new 
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        return new
         {
             isEnabled = await services.games.IsCloudeditEnabled(universeId),
         };
