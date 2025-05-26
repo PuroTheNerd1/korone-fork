@@ -640,7 +640,7 @@ public class UniverseV1 : ControllerBase
             description = uni.description,
             isArchived = false,
             rootPlaceId = uni.rootPlaceId,
-            isActive = assetInfo.moderationStatus != ModerationStatus.Declined || uni.privacyType != PrivacyType.Private,
+            isActive = uni.privacyType != PrivacyType.Private,
             privacyType = uni.isPublic ? PrivacyType.Public : PrivacyType.Private,
             creatorType = assetInfo.creator.type,
             creatorTargetId = uni.creatorId,
