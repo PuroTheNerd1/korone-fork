@@ -1,10 +1,11 @@
+using Roblox.Models.Assets;
 namespace Roblox.Models.Studio;
 
 public class UniversePermissionModel
 {
-    public string Action { get; set; }
-    public string SubjectType { get; set; }
-    public string SubjectId { get; set; }
+    public string action { get; set; }
+    public CreatorType subjectType { get; set; }
+    public long subjectId { get; set; }
 }
 
 public class Universe

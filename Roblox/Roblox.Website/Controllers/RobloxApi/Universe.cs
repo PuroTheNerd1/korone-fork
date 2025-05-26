@@ -543,7 +543,11 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> SetUniversePermissionsBatched(long universeId) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        Console.WriteLine(await GetRequestBody());
+        var request = JsonConvert.DeserializeObject<List<UniversePermission>>(await GetRequestBody());
+        foreach (var permission in request)
+        {
+            Console.WriteLine($"Setting permission: {permission.action} for {permission.subjectType} with ID {permission.subjectId} in universe {universeId}");
+        }
         return Content("{}", "application/json");
     }
     [HttpGetBypass("v1/universes/{universeId}/context-permission")]
