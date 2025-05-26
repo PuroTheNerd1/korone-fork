@@ -531,13 +531,10 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGet("v2/universes/{universeId}/permissions")]
-    public async Task<dynamic> CanManageV2(long universeId) 
+    public async Task<dynamic> GetUniversePermissions(long universeId) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        return new 
-        {
-            data = new List<object>()
-        };
+        return await services.games.GetUniversePermissions(universeId);
     }
     [HttpPostBypass("/v2/universes/{universeId}/permissions_batched")]
     public async Task<dynamic> SetUniversePermissionsBatched(long universeId) 
