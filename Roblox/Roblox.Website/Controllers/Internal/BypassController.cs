@@ -404,7 +404,7 @@ namespace Roblox.Website.Controllers
             // Check place privacy
             if (!await services.games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
             {
-                throw new ForbiddenException(1, "This is a cloudedit server, you cannot join it.");
+                throw new ForbiddenException(1, "You cannot join this game, you do not have permission.");
             }
             string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             
