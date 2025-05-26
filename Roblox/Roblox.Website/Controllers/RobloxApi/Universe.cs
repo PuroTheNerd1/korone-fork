@@ -561,7 +561,7 @@ public class UniverseV1 : ControllerBase
             canCloudEdit
         };
     }
-
+    [HttpPostBypass("/v1/universes/{universeId}/teamcreate")]
     [HttpPatchBypass("/v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> SetTeamCreateSettings([FromBody] TeamCreateSettings request, [FromRoute] long universeId) 
     {
