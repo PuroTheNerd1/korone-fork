@@ -631,7 +631,6 @@ public class WebController : ControllerBase
             TotalCollectionSize = servers.Count,
         };
     }
-    [HttpGetBypass("search/users/results")]
     [HttpGet("search/users/results")]
     public async Task<dynamic> SearchUsersJson(string? keyword = null, int offset = 0, int limit = 10)
     {
