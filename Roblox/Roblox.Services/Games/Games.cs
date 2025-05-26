@@ -187,7 +187,7 @@ public class GamesService : ServiceBase, IService
     public async Task<IEnumerable<MultiGetUniverseEntry>> GetEditableUniversesForUser(long userId)
     {
         var result = await db.QueryAsync<dynamic>(
-            "SELECT universe_id FROM teamcreate_memberships WHERE user_id = :id", new
+            "SELECT universe_id FROM universe_permission WHERE user_id = :id AND action = 1", new
             {
                 id = userId,
             });

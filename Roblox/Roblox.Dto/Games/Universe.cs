@@ -143,6 +143,7 @@ public class UniversePermission
 public enum PrivacyType
 {
     Public = 1,
+    FriendsOnly,
     Private
 }
 

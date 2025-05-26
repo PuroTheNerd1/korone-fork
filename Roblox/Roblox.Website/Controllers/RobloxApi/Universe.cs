@@ -375,7 +375,8 @@ public class UniverseV1 : ControllerBase
         var result =
             (await services.games.GetGamesForTypeDevelop(CreatorType.User, safeUserSession.userId,
                 safeUserSession.username, limit, offset, sortOrder ?? "asc", accessFilter ?? "All")).ToList();
-        return new RobloxCollectionPaginated<GamesForCreatorDevelop>() {
+        return new RobloxCollectionPaginated<GamesForCreatorDevelop>()
+        {
             nextPageCursor = result.Count >= limit ? (offset + limit).ToString() : null,
             previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
             data = result
