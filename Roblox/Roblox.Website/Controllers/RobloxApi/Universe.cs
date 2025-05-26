@@ -445,6 +445,7 @@ public class UniverseV1 : ControllerBase
     [HttpGetBypass("v1/universes/{universeId}/teamcreate/memberships")]
     public async Task<dynamic> GetMembershipsForUniverse(long universeId)
     {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         var memberships = await services.games.GetTeamcreateMembershipsForUniverse(universeId);
         return new
         {
@@ -479,6 +480,7 @@ public class UniverseV1 : ControllerBase
     [HttpGetBypass("universes/{universeId}/listcloudeditors")]
     public async Task<dynamic> GetCloudEditors(long universeId)
     {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         var editors = await services.games.GetTeamcreateMembershipsForUniverse(universeId);
         return new
         {
