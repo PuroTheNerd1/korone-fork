@@ -82,6 +82,35 @@ namespace Roblox.Website.Controllers
         }
     }
     
+    /// <summary>
+    /// Identifies an action that supports the HTTP DELETE method.
+    /// </summary>
+    public class HttpDeleteBypassAttribute : HttpMethodAttribute
+    {
+        private static readonly IEnumerable<string> _supportedMethods = new [] { "DELETE" };
+
+        /// <summary>
+        /// Creates a new <see cref="HttpDeleteBypassAttribute"/>.
+        /// </summary>
+        public HttpDeleteBypassAttribute()
+            : base(_supportedMethods)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="HttpDeleteBypassAttribute"/> with the given route template.
+        /// </summary>
+        /// <param name="template">The route template. May not be null.</param>
+        public HttpDeleteBypassAttribute(string template)
+            : base(_supportedMethods, template)
+        {
+            if (template == null)
+            {
+                throw new ArgumentNullException(nameof(template));
+            }
+            BypassConfiguration.AddToBypass(template);
+        }
+    }
 
 
     /// <summary>

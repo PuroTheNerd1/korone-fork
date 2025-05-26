@@ -551,6 +551,18 @@ public class UniverseV1 : ControllerBase
             })
         };
     }
+
+    [HttpDeleteBypass("/v2/universes/{universeId}/permissions_batched")]
+    public async Task<dynamic> DeleteUniversePermissionsBatched(long universeId) 
+    {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        var request = JsonConvert.DeserializeObject<List<UniversePermission>>(await GetRequestBody());
+
+        await services.games.BatchDeleteUniversePermissions(request, universeId);
+
+        return Content("{}", "application/json");
+    }
+
     [HttpPostBypass("/v2/universes/{universeId}/permissions_batched")]
     public async Task<dynamic> SetUniversePermissionsBatched(long universeId) 
     {

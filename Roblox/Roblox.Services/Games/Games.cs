@@ -212,7 +212,18 @@ public class GamesService : ServiceBase, IService
             });
         }
     }
-
+    public async Task BatchDeleteUniversePermissions(IEnumerable<Dto.Games.UniversePermission> permissions, long universeId)
+    {
+        foreach (var permission in permissions)
+        {
+            await db.ExecuteAsync("DELETE FROM universe_permission WHERE subject_type = :subject_type AND subject_id = :subject_id AND universe_id = :universe_id", new
+            {
+                subject_type = (int)permission.subjectType,
+                subject_id = permission.subjectId,
+                universe_id = universeId
+            });
+        }
+    }
     public async Task SetCloudedit(bool isEnabled, long universeId)
     {
         await db.ExecuteAsync("UPDATE universe SET cloudedit = :isEnabled WHERE id = :universeId",
