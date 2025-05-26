@@ -616,7 +616,7 @@ public class UsersService : ServiceBase, IService
         if (ids.Count == 0) return Array.Empty<MultiGetEntry>();
 
         var sql = new SqlBuilder();
-        var t = sql.AddTemplate("SELECT id, u.username as name, u.username as displayName FROM \"user\" u /**where**/");
+        var t = sql.AddTemplate("SELECT id, u.username as name, u.username as displayName, u.description, u.created_at as created FROM \"user\" u /**where**/");
         sql.OrWhereMulti("u.id = $1", ids);
         return await db.QueryAsync<MultiGetEntry>(t.RawSql, t.Parameters);
     }

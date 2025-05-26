@@ -22,6 +22,8 @@ public class MultiGetEntry
     public long id { get; set; }
     public string name { get; set; }
     public string requestedName { get; set; }
+    public DateTime? created { get; set; }
+    public string? description { get; set; }
     public string displayName { get; set; }
 }
 

@@ -631,6 +631,7 @@ public class WebController : ControllerBase
             TotalCollectionSize = servers.Count,
         };
     }
+
     [HttpGet("search/users/results")]
     public async Task<dynamic> SearchUsersJson(string? keyword = null, int offset = 0, int limit = 10)
     {
@@ -651,25 +652,31 @@ public class WebController : ControllerBase
             };
         // No DB pagination yet, it's just too expensive to be worth it right now
         var userInfo = await services.users.MultiGetUsersById(result.Skip(offset).Take(limit).Select(c => c.userId));
+        var userPresence = await services.users.MultiGetPresence(userInfo.Select(c => c.id).ToList());
+
         return new
         {
             Keyword = keyword,
             StartIndex = offset,
             MaxRows = limit,
             TotalResults = result.Length,
-            UserSearchResults = userInfo.Select(c => new
+            UserSearchResults = userInfo.Select(c =>
             {
-                UserId = c.id,
-                Name = c.name,
-                DisplayName = c.displayName,
-                Blurb = "",
-                PreviousUserNamesCsv = "",
-                IsOnline = false,
-                LastLocation = (string?) null,
-                UserProfilePageUrl = "/users/" + c.id + "/profile",
-                LastSeenDate = (string?) null,
-                PrimaryGroup = "",
-                PrimaryGroupUrl = "",
+                var presence = userPresence.FirstOrDefault(p => p.userId == c.id);
+                return new
+                {
+                    UserId = c.id,
+                    Name = c.name,
+                    DisplayName = c.displayName,
+                    Blurb = c.description,
+                    PreviousUserNamesCsv = "",
+                    IsOnline = presence != null && presence.userPresenceType != PresenceType.Offline,
+                    LastLocation = presence?.lastLocation,
+                    LastSeenDate = presence?.lastOnline,
+                    UserProfilePageUrl = "/users/" + c.id + "/profile",
+                    PrimaryGroup = "",
+                    PrimaryGroupUrl = "",
+                };
             }),
         };
     }
