@@ -84,7 +84,7 @@ public class GroupsControllerV1 : ControllerBase
 
     [HttpGet("groups/search")]
     [HttpGet("groups/search/lookup")]
-    [HttpGetBypass("groups/search/lookup")]
+    [HttpGetBypass("/groups/search/lookup")]
     public async Task<dynamic> SearchGroups(string keyword, string? cursor, int limit = 10, bool prioritizeExactMatch = false)
     {
         FeatureCheck();
