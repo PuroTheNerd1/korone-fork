@@ -399,8 +399,13 @@ namespace Roblox.Website.Controllers
             if (jobInfo.type == 3)
                 throw new BadRequestException(1, "This is a cloudedit server, you cannot join it.");
             long placeId = jobInfo.asset_id;
+
             PlaceEntry placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
-            
+            // Check place privacy
+            if (!await services.games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
+            {
+                throw new ForbiddenException(1, "This is a cloudedit server, you cannot join it.");
+            }
             string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);

@@ -45,6 +45,48 @@ public class GamesService : ServiceBase, IService
         }
         return false;
     }
+    public async Task<bool> CanPlayUniverse(long userId, long universeId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
+            "SELECT COUNT(*) AS total FROM universe_permission WHERE universe_id = :id AND subject_id = :userId AND subject_type = :subjectType", new
+            {
+                id = universeId,
+                userId,
+                subjectType = (int)CreatorType.User,
+            });
+        return result?.total > 0;
+    }
+
+    public async Task<bool> CanUserJoinUniverse(long userId, long creatorId, long universeId)
+    {
+        if (creatorId == userId)
+        {
+            return true;
+        }
+
+        var universe = await GetUniverseInfo(universeId);
+
+        bool canPlay = await CanPlayUniverse(userId, universeId);
+        
+        if (universe.privacyType == PrivacyType.Private && !canPlay)
+        {
+            return false;
+        }
+
+        if (universe.privacyType == PrivacyType.FriendsOnly)
+        {
+            var friendsService = ServiceProvider.GetOrCreate<FriendsService>(this);
+            bool isFriend = await friendsService.AreAlreadyFriends(userId, creatorId);
+            
+            if (!isFriend)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public async Task<bool> CanEditUniverse(long userId, long universeId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
