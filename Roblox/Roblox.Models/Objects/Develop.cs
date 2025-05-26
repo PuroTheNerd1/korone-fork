@@ -1,4 +1,12 @@
 namespace Roblox.Models.Studio;
+
+public class UniversePermissionModel
+{
+    public string Action { get; set; }
+    public string SubjectType { get; set; }
+    public string SubjectId { get; set; }
+}
+
 public class Universe
 {
     public long id { get; set; }

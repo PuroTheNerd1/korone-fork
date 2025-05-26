@@ -131,11 +131,27 @@ public class GamesForCreatorDevelop
     public DateTime updated { get; set; }
 }
 
+public class UniversePermissions
+{
+    public PermittedAction action { get; set; }
+    public CreatorType subjectType { get; set; }
+    public long subjectId { get; set; }
+    public long universeId { get; set; }
+}
+
+
 public enum PrivacyType
 {
     Public = 1,
     Private
 }
+
+public enum PermittedAction
+{
+    Play = 0,
+    Edit = 1,
+}
+
 
 public enum ForceMorphType
 {

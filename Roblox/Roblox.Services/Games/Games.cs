@@ -155,7 +155,7 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<IEnumerable<Dto.Users.MultiGetEntry>> GetTeamcreateMembershipsForUniverse(long universeId)
     {
-        UsersService user = new UsersService();
+        var user = ServiceProvider.GetOrCreate<UsersService>(this);
         var result = await db.QueryAsync<dynamic>(
             "SELECT user_id FROM teamcreate_memberships WHERE universe_id = :id", new
             {
@@ -164,7 +164,27 @@ public class GamesService : ServiceBase, IService
         var userInfo = await user.MultiGetUsersById(result.Select(r => (long)r.user_id));
         return userInfo;
     }
-    public async Task<IEnumerable<MultiGetUniverseEntry>> GetTeamcreateMembershipsForUser(long userId)
+
+    public async Task<IEnumerable<Dto.Games.UniversePermission>> GetUniversePermissions(long universeId)
+    {
+        var result = await db.QueryAsync<Dto.Games.UniversePermission>(
+            "SELECT action, subject_type as subjectType, subject_id as subjectId, universe_id as universeId FROM universe_permissions WHERE universe_id = :id", new
+            {
+                id = universeId,
+            });
+        return result;
+    }
+    public async Task<IEnumerable<Dto.Games.UniversePermission>> GetUniversePermissionsForUser(long userId, long universeId)
+    {
+        var result = await db.QueryAsync<Dto.Games.UniversePermission>(
+            "SELECT action, subject_type as subjectType, subject_id as subjectId, universe_id as universeId FROM universe_permissions WHERE universe_id = :id AND subject_id = :userId AND subject_type = 1", new
+            {
+                id = universeId,
+                userId,
+            });
+        return result;
+    }
+    public async Task<IEnumerable<MultiGetUniverseEntry>> GetEditableUniversesForUser(long userId)
     {
         var result = await db.QueryAsync<dynamic>(
             "SELECT universe_id FROM teamcreate_memberships WHERE user_id = :id", new

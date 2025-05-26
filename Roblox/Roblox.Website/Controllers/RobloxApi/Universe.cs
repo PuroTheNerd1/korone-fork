@@ -330,7 +330,7 @@ public class UniverseV1 : ControllerBase
         int offset = int.Parse("0");
         if (q.Contains("Team")) 
         {
-            var result = await services.games.GetTeamcreateMembershipsForUser(safeUserSession.userId);
+            var result = await services.games.GetEditableUniversesForUser(safeUserSession.userId);
             return new 
             {
                 previousPageCursor = (string?)null,
@@ -416,7 +416,7 @@ public class UniverseV1 : ControllerBase
     [HttpGetBypass("v1/user/teamcreate/memberships")]
     public async Task<dynamic> GetMembershipsForCurrentUser() 
     {
-        var memberships = await services.games.GetTeamcreateMembershipsForUser(safeUserSession.userId);
+        var memberships = await services.games.GetEditableUniversesForUser(safeUserSession.userId);
         return new 
         {
             previousPageCursor = (string?)null,
@@ -539,7 +539,14 @@ public class UniverseV1 : ControllerBase
             data = new List<object>()
         };
     }
-
+    [HttpPostBypass("/v2/universes/{universeId}/permissions_batched")]
+    public async Task<dynamic> SetUniversePermissionsBatched(long universeId) 
+    {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        Console.WriteLine($"Setting permissions for universe {universeId} with {permissions.Count} items");
+        Console.WriteLine(await GetRequestBody());
+        return Content("{}", "application/json");
+    }
     [HttpGetBypass("v1/universes/{universeId}/context-permission")]
     [HttpGetBypass("v1/universes/{universeId}/permissions")]
     public async Task<dynamic> CanManage(long universeId) 
@@ -749,7 +756,8 @@ public class UniverseV1 : ControllerBase
     }
     
     [HttpGetBypass("/universal-app-configuration/v1/behaviors/studio/content")]
-    public dynamic GetStudioContent() {
+    public dynamic GetStudioContent()
+    {
         return new {};
     }
 
@@ -762,8 +770,10 @@ public class UniverseV1 : ControllerBase
     // }
         
     [HttpGetBypass("/v1/universes/{universeId:long}/symbolic-links")]
-    public dynamic GetBoilerplateContent() {
-        return new {
+    public dynamic GetBoilerplateContent()
+    {
+        return new
+        {
             previousPageCursor = (string?)null,
             nextPageCursor = (string?)null,
             data =  Array.Empty<string>()
@@ -771,8 +781,11 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGetBypass("/v1/item-tags/metadata")]
-    public dynamic GetItemTags() {
-        return new {
+    public dynamic GetItemTags()
+    {
+        
+        return new
+        {
             isItemTagsFeatureEnabled = false,
             enabledAssetTypes =  Array.Empty<string>(),
             maximumItemTagsPerItem = 0
@@ -781,21 +794,27 @@ public class UniverseV1 : ControllerBase
 
     [HttpGetBypass("/v1/game-localization-roles/games/{universeId:long}/current-user/roles")]
     public dynamic GetCurrentUserRoles() {
-        return new {
-            data =  Array.Empty<string>()
+        
+        return new
+        {
+            data = Array.Empty<string>()
         };
     }
 
     [HttpPostBypass("/v1/autolocalization/games/{universeId:long}/autolocalizationtable")]
     public dynamic GetAutoLocalizationTable() {
-        return new {
-            supportedLocales = new List<dynamic> {
-                new {
+        return new
+        {
+            supportedLocales = new List<dynamic>
+            {
+                new
+                {
                     id = 1,
                     locale = "en_us",
                     name = "English(US)",
                     nativeName = "English",
-                    language = new {
+                    language = new
+                    {
                         id = 41,
                         name = "English",
                         nativeName = "English",
@@ -809,7 +828,8 @@ public class UniverseV1 : ControllerBase
     
     [HttpGetBypass("/universes/create")]
     [HttpPostBypass("/universes/create")]
-    public async Task<dynamic> CreateUniverseApi([FromBody] CreateUniverseRequest request) {
+    public async Task<dynamic> CreateUniverseApi([FromBody] CreateUniverseRequest request)
+    {
         if (userSession is null)
             throw new UnauthorizedException(0, "You are not logged in");
         if (!FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService))
