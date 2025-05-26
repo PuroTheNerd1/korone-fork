@@ -563,7 +563,7 @@ public class UniverseV1 : ControllerBase
     }
     [HttpPostBypass("/v1/universes/{universeId}/teamcreate")]
     [HttpPatchBypass("/v1/universes/{universeId}/teamcreate")]
-    public async Task<dynamic> SetTeamCreateSettings([FromBody] TeamCreateSettings request, [FromRoute] long universeId) 
+    public async Task<dynamic> SetTeamCreateSettings([FromRoute] long universeId, [FromBody] TeamCreateSettings request) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
 
