@@ -562,7 +562,7 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpPatchBypass("v1/universes/{universeId}/teamcreate")]
+    [HttpPatchBypass("/v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> SetTeamCreateSettings([FromBody] TeamCreateSettings request, long universeId) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
@@ -571,7 +571,7 @@ public class UniverseV1 : ControllerBase
         return Content("{}", "application/json");
     }
 
-    [HttpGet("v1/universes/{universeId}/teamcreate")]
+    [HttpGetBypass("v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> TeamCreateSettings(long universeId) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
@@ -581,7 +581,7 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpGet("v1/universes/{universeId}")]
+    [HttpGetBypass("v1/universes/{universeId}")]
     public async Task<dynamic> UniverseInfo(long universeId) 
     {
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
@@ -605,7 +605,7 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpGet("v1/universes/{universeId}/icon")]
+    [HttpGetBypass("v1/universes/{universeId}/icon")]
     public dynamic GetUniverseIcon(long universeId) 
     {
         return new 
