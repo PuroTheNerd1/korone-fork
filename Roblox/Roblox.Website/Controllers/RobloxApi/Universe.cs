@@ -447,19 +447,22 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> GetMembershipsForUniverse(long universeId)
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        var memberships = await services.games.GetTeamcreateMembershipsForUniverse(universeId);
+        var memberships = await services.games.GetUniversePermissions(universeId);
+        var userInfo = await services.users.MultiGetUsersById(memberships.Select(c => c.subjectId).Distinct());
+
         return new
         {
             previousPageCursor = (string?)null,
             nextPageCursor = (string?)null,
-            data = memberships.Select(c =>
+            data = memberships.Where(c => c.action != 0).Select(c =>
             {
+                var user = userInfo.FirstOrDefault(u => u.id == c.subjectId);
                 return new
                 {
                     buildersClubMembershipType = "None",
-                    userId = c.id,
-                    username = c.name,
-                    displayName = c.name,
+                    userId = user.id,
+                    username = user.displayName,
+                    displayName = user.displayName,
                 };
             })
         };
@@ -482,15 +485,17 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> GetCloudEditors(long universeId)
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        var editors = await services.games.GetTeamcreateMembershipsForUniverse(universeId);
+        var editors = await services.games.GetUniversePermissions(universeId);
+        var userInfo = await services.users.MultiGetUsersById(editors.Select(c => c.subjectId).Distinct());
         return new
         {
             finalPage = true,
-            users = editors.Select(c =>
+            users = editors.Where(c => c.action != 0).Select(c =>
             {
+                var user = userInfo.FirstOrDefault(u => u.id == c.subjectId);
                 return new
                 {
-                    userId = c.id,
+                    userId = user.id,
                     isAdmin = false,
                 };
             })
@@ -656,7 +661,7 @@ public class UniverseV1 : ControllerBase
 
     [HttpPatchBypass("v1/universes/{universeId}/configuration")]
     [HttpPatchBypass("v2/universes/{universeId}/configuration")]
-    public async Task<dynamic> SetUniverseConfiguration([FromRoute] long universeId, [FromBody] UpdateUniverseConfiguration configuration) 
+    public async Task<dynamic> SetUniverseConfiguration([FromRoute] long universeId) 
     {
         List<string> playableDevices = new List<string> {
             "Computer",
@@ -667,12 +672,12 @@ public class UniverseV1 : ControllerBase
         };
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         
-
+        Console.WriteLine("Setting universe configuration for universeId: " + await GetRequestBody());
         //await services.games.SetPlaceVisibility(universeId, configuration.privacyType == PrivacyType.Public);
         var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
         if (uni == null)
             throw new RecordNotFoundException();
-        await services.games.SetForceMorph(universeId, configuration.universeAvatarType == "PlayerChoice" ? ForceMorphType.PlayerChoice : configuration.universeAvatarType == "MorphToR6" ? ForceMorphType.MorphToR6 : ForceMorphType.MorphToR15);
+        //await services.games.SetForceMorph(universeId, configuration.universeAvatarType == "PlayerChoice" ? ForceMorphType.PlayerChoice : configuration.universeAvatarType == "MorphToR6" ? ForceMorphType.MorphToR6 : ForceMorphType.MorphToR15);
         return new 
         {
             allowPrivateServers = false,

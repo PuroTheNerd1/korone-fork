@@ -960,7 +960,7 @@ public class GamesService : ServiceBase, IService
             var uni = await InsertAsync("universe", new
             {
                 root_asset_id = rootPlaceId,
-                is_public = true,
+                visibility = true,
                 creator_id = (long) creatorInfo.creator_id,
                 creator_type = (int) creatorInfo.creator_type,
             });
