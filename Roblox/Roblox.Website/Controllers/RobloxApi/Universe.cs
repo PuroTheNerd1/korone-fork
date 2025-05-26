@@ -587,7 +587,7 @@ public class UniverseV1 : ControllerBase
             canManage = false;
         }
 
-        bool canCloudEdit = await services.games.CanCloudEdit(safeUserSession.userId, universeId) ? canManage : false;
+        bool canCloudEdit = await services.games.CanCloudEdit(safeUserSession.userId, universeId) || canManage;
         return new 
         {
             canManage,
