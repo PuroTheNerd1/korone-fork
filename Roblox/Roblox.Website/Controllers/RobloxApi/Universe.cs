@@ -543,7 +543,6 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> SetUniversePermissionsBatched(long universeId) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        Console.WriteLine($"Setting permissions for universe {universeId} with {permissions.Count} items");
         Console.WriteLine(await GetRequestBody());
         return Content("{}", "application/json");
     }
