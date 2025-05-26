@@ -561,14 +561,16 @@ public class UniverseV1 : ControllerBase
             canCloudEdit
         };
     }
+
     [HttpPostBypass("/v1/universes/{universeId}/teamcreate")]
     [HttpPatchBypass("/v1/universes/{universeId}/teamcreate")]
     public async Task<dynamic> SetTeamCreateSettings([FromRoute] long universeId) 
     {
-        // await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        // [FromBody] doesnt work
+        var request = JsonConvert.DeserializeObject<TeamCreateSettings>(await GetRequestBody());
+        await services.games.SetCloudedit(request.isEnabled, universeId);
 
-        // await services.games.SetCloudedit(request.isEnabled, universeId);
-        Console.WriteLine("aaa: " + await GetRequestBody());
         return Content("{}", "application/json");
     }
 
