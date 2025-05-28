@@ -42,15 +42,21 @@
 		loadAllTypes();
 	}
 
-	function onClick(approve, is18Plus, del, asset) {
+	function onClick(approve, is18Plus, del, hardDelete, asset) {
 		return (e) => {
 			assetsToApprove = assetsToApprove.filter((v) => v !== asset);
 			if (assetsToApprove.length === 0) {
 				loadAllTypes();
 			}
 			if (asset.mode === "asset") {
+				let endpoint = "/asset/moderate";
+				if (hardDelete) {
+					endpoint += "-and-hard-delete";
+				} else if (del) {
+					endpoint += "-and-delete";
+				}
 				request
-					.post("/asset/moderate" + (del ? "-and-delete" : ""), {
+					.post(endpoint, {
 						isApproved: approve,
 						assetId: asset.id,
 						is18Plus: is18Plus,
@@ -70,7 +76,7 @@
 					.catch((e) => {
 						console.error("[error] could not approve asset", e);
 					});
-			}else if (asset.mode === 'group') {
+			} else if (asset.mode === 'group') {
 				request.post("/groups/icon-toggle", {
 					groupId: asset.group_id,
 					name: asset.name,
@@ -84,7 +90,7 @@
 				})
 				.finally(() => {
 				})
-			}else{
+			} else {
 				console.error('invalid mode',asset.mode,asset);
 			}
 		};
@@ -212,14 +218,16 @@
 										<div class="row">
 											<div class="col-12">
 												<div class="btn-group w-100">
-													<button class="btn btn-success border border-dark" on:click={onClick(true, false, false, asset)}>OK</button>
+													<button class="btn btn-success border border-dark" on:click={onClick(true, false, false, false, asset)}>OK</button>
 												</div>
 											</div>
 											<div class="col-12 mt-4">
 												<div class="btn-group w-100">
-													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, false, asset)}>BAD</button>
+													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, false, false, asset)}>BAD</button>
 												
-													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, true, asset)}>BAD + DELETE</button>
+													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, true, false, asset)}>BAD + DELETE</button>
+
+													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, false, true, asset)}>HARD DELETE</button>
 												</div>
 											</div>
 										</div>
