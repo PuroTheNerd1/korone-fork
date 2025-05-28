@@ -1017,7 +1017,8 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductInfoFull(long productId, long limit, long offset) {
+    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductInfoFull(long productId, long limit, long offset)
+    {
         var qu = await db.QueryAsync<DeveloperProductDb>(
             @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
             dv.universe_id as universeId,
@@ -1089,7 +1090,8 @@ public class GamesService : ServiceBase, IService
         });
     }
     
-    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset) {
+    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset)
+    {
         return await db.QueryAsync<DeveloperProducts>(
             @"SELECT dv.id, dv.sales, dv.name, 
             dv.description as Description,
@@ -1185,19 +1187,20 @@ public class GamesService : ServiceBase, IService
         });
     }
     
-    public async Task IncrementDevProdSales(long productId) {
-        await db.ExecuteAsync(@"UPDATE developer_product SET 
-                   sales = sales + 1
-                         WHERE id = :productId", new
+    public async Task IncrementDevProdSales(long productId)
+    {
+        await db.ExecuteAsync(@"UPDATE developer_product SET sales = sales + 1 WHERE id = :productId", new
         {
             productId
         });
     }
 
-    public async Task CreateProductReceipt(string guid, long userId, long productId, long price) {
+    public async Task CreateProductReceipt(string guid, long userId, long productId, long price)
+    {
         if (!Guid.TryParse(guid, out _))
             throw new Exception("CreateProductReceipt: Guid provided is not a valid Guid!");
-        await InsertAsync("product_receipt", new {
+        await InsertAsync("product_receipt", new
+        {
             id = Guid.Parse(guid),
             user_id = userId,
             product_id = productId,
@@ -1205,15 +1208,18 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task ProcessProductReceipt(Guid id) {
+    public async Task ProcessProductReceipt(Guid id)
+    {
         await db.QueryAsync(
             @"UPDATE product_receipt SET processed = TRUE, processed_at = CURRENT_TIMESTAMP WHERE id = :receiptId",
-            new {
+            new
+            {
                 receiptId = id
             });
     }
     
-    public async Task<IEnumerable<ProductReceipt>> GetProcessingProductReceipts(long userId, long universeId) {
+    public async Task<IEnumerable<ProductReceipt>> GetProcessingProductReceipts(long userId, long universeId)
+    {
         return await db.QueryAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,
@@ -1247,7 +1253,8 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<ProductReceipt?> GetProductReceipt(Guid receiptId) {
+    public async Task<ProductReceipt?> GetProductReceipt(Guid receiptId)
+    {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,
@@ -1262,7 +1269,8 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<ProductReceipt?> GetProductReceiptSecure(long userId, Guid receiptId) {
+    public async Task<ProductReceipt?> GetProductReceiptSecure(long userId, Guid receiptId)
+    {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,
