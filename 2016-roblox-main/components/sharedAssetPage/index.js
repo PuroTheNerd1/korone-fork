@@ -11,7 +11,7 @@ import { getItemDetails, getItemUrl, getProductInfoLegacy, itemNameToEncodedName
 import { getGameUrl, getLibraryItemUrl, isLibraryItem, multiGetPlaceDetails, multiGetUniverseDetails } from "../../services/games";
 import { useRouter } from "next/dist/client/router";
 
-const getUrlForAssetType = ({ assetTypeId, assetId, name }) => {
+export const getUrlForAssetType = ({ assetTypeId, assetId, name }) => {
   if (assetTypeId === 9) {
     // Place
     return getGameUrl({

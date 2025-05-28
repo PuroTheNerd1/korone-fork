@@ -19,6 +19,48 @@ export const getResellableCopies = ({ assetId, userId }) => {
   return request('GET', getFullUrl('economy', `/v1/assets/${assetId}/users/${userId}/resellable-copies`)).then(d => d.data);
 }
 
+/**
+ * Represents a purchase detail request model.
+ * @typedef {Object} PurchaseDetailRequestModel
+ * @property {boolean} purchased - Defines if the product was purchased.
+ * @property {string} reason - Defines the reason for failure.
+ * @property {number} productId - Reflects the requested product id for reference.
+ * @property {number} statusCode - Represents the status code of the request.
+ * @property {string} title - The title associated with the request.
+ * @property {string} errorMsg - Error message, if applicable.
+ * @property {string} showDivId - The div ID to show.
+ * @property {number} shortfallPrice - The shortfall price if the purchase was unsuccessful.
+ * @property {number} balanceAfterSale - The balance after the sale.
+ * @property {number} expectedPrice - The expected price of the product.
+ * @property {number} currency - The currency type identifier.
+ * @property {number} price - The price of the asset.
+ * @property {number} assetId - The asset identifier.
+ * @property {string} assetName - The name of the asset.
+ * @property {string} assetType - The type of the asset.
+ * @property {string} assetTypeDisplayName - The display name of the asset type.
+ * @property {boolean} assetIsWearable - Indicates if the asset is wearable.
+ * @property {string} sellerName - The name of the seller.
+ * @property {string} transactionVerb - The verb describing the transaction type.
+ * @property {boolean} isMultiPrivateSale - Indicates if it is a multi-private sale.
+ * @property {PremiumPricingModel} premiumPricing - Premium pricing details.
+ */
+
+/**
+ * Represents the premium pricing for a product.
+ * @typedef {Object} PremiumPricingModel
+ * @property {number} premiumDiscountPercentage - The Premium discount percentage for a product.
+ * @property {number} premiumPriceInRobux - The Premium price for a product.
+ */
+
+/**
+ * @param {number} productId
+ * @param {number} assetId
+ * @param {number} sellerId
+ * @param {number} userAssetId
+ * @param {number} price
+ * @param {number} expectedCurrency
+ * @returns {Promise<PurchaseDetailRequestModel>}
+ */
 export const purchaseItem = ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
   return request('POST', getFullUrl('economy', `/v1/purchases/products/${productId}`), {
     assetId,

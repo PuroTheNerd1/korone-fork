@@ -111,7 +111,7 @@ const Games = props => {
                     value: 'recommended',
                   },
                   {
-                    name: 'Top Favorite',
+                    name: 'Top FavouriteButton',
                     value: 'top-favorite',
                   },
                   {

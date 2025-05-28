@@ -137,7 +137,7 @@ const AccountInfo = props => {
             <div className='col ps-0 pe-0'>
               <select className={'form-control ' + s.select} value={getAvPageStyle()} onChange={(ev) => {
                 setAvPageStyle(ev.currentTarget.value);
-                setAvPageStyleReq({ newAvatarPageStyle: ev.currentTarget.value });
+                setAvPageStyleReq({ newAvatarPageStyle: ev.currentTarget.value }).then();
                 window.location.reload();
               }}>
                 <option value="Modern">Modern (2017+)</option>

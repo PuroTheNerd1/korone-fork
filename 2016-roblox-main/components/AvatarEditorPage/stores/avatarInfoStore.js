@@ -305,11 +305,15 @@ const AvatarInfoStore = createContainer(() => {
     }
 })
 
+/**
+ * @type {{Accessories: number[], Emotes: number[], LimitToOne: number[], Unlimited: number[], All: number[]}}
+ */
 export const AssetTypeCategory = {
     Accessories: [8, 41, 42, 43, 44, 45, 46, 47], // all limit of 15
     Emotes: [61], // all limit of 8
     LimitToOne: [50, 51, 52, 53, 54, 55, 17, 27, 28, 29, 30, 31, 18, 19, 12, 11, 2],
-    Unlimited: [24]
+    Unlimited: [24],
+    All: [50, 51, 52, 53, 54, 55, 17, 27, 28, 29, 30, 31, 18, 19, 12, 11, 2, 24, 61, 8, 41, 42, 43, 44, 45, 46, 47]
 }
 
 export function IsNegative(int) {

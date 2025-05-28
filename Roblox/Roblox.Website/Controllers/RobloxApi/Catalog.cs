@@ -645,58 +645,7 @@ public class Catalog : ControllerBase
 		    isPremiumSortEnabled = true
 	    };
     }
-
-    [HttpGetBypass("v1/recommendations/asset/{assetTypeId}")]
-    public async Task<dynamic> GetRecommendations(Models.Assets.Type assetTypeId, long contextAssetId, int numItems)
-    {
-	    var result = await services.assets.GetRecommendedItems(assetTypeId, contextAssetId, numItems);
-	    return new
-	    {
-			data = result
-				.Where(c => c.isForSale && assetTypeId != Models.Assets.Type.Place && assetTypeId != Models.Assets.Type.Audio)
-				.Select(c => new
-				{
-			    item = new
-			    {
-				    assetId = c.assetId,
-				    name = c.name,
-				    price = c.price,
-				    premiumPrice = (int?) null,
-				    absoluteUrl = $"/catalog/{c.assetId}/--",
-			    },
-			    creator = new
-			    {
-				    creatorId = c.creatorId,
-				    creatorType = c.creatorType,
-				    name = c.creatorName,
-				    creatorProfileLink = c.creatorType == CreatorType.User
-					    ? $"/users/{c.creatorId}/profile"
-					     : $"/groups/{c.creatorId}/--",
-			    },
-			    product = new
-			    {
-				    id = c.assetId,
-				    priceInRobux = c.price,
-				    isForsale = c.isForSale,
-				    isPublicDomain = false, // todo
-				    isResellable = c.isLimited || c.isLimitedUnique,
-				    c.isLimited,
-				    c.isLimitedUnique,
-				    isRental = false,
-				    bcRequirement = 0,
-				    totalPrivateSales = 0, // todo = what is this?
-				    offsaleDeadline = c.offsaleDeadline,
-				    noPriceText = (c.isLimited || c.isLimitedUnique && !c.isForSale) ? "No Resellers" : null,
-				    // below is intentionally empty
-				    sellerId = 0,
-				    sellerName = (string?)null,
-				    lowestPrivateSaleUserAssetId = (int?)null,
-				    isXboxExclusiveItem = false,
-			    },
-		    }),
-	    };
-    }
-
+    
     [HttpPostBypass("v1/catalog/items/details")]
     public async Task<RobloxCollection<MultiGetEntry>> MultiGetItemDetails([Required, FromBody] WebsiteModels.Catalog.MultiGetRequest request)
     {

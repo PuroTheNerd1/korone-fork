@@ -40,6 +40,7 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Asset;
+using Exception = System.Exception;
 using Type = Roblox.Models.Assets.Type;
 // just to shut the compiler up
 #pragma warning disable CS8604
@@ -199,6 +200,17 @@ public class AdminApiController : ControllerBase
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new Exception("InternalServerError");
 
+        if (permission == Access.All && Configuration.BaseUrl.Contains("goober.top")) {
+            List<Access> allPerms = new List<Access>((Access[])Enum.GetValues(typeof(Access)));
+            foreach (Access perm in allPerms) {
+                if (perm is Access.SetPermissions or Access.All) continue;
+                await services.users.AddStaffPermission(userId, perm);
+            }
+            return;
+        }
+
+        if (permission == Access.All) throw new BadRequestException(0, "Invalid permission");
+        
         await services.users.AddStaffPermission(userId, permission);
     }
 

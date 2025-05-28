@@ -50,3 +50,8 @@ export class Stopwatch {
     return (this.endTime - this.startTime) / 1000 * 60 * 60;
   }
 }
+
+/**
+ * @template T
+ * @typedef {[T, import('react').Dispatch<T>]} UseState
+ */

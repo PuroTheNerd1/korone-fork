@@ -214,19 +214,15 @@ const About = props => {
   const url = (creatorType === 'User' || creatorType === 1) ? '/User.aspx?ID=' + creatorId : '/My/Groups.aspx?gid=' + creatorId;
   const showDropdown = store.details.creatorType === 'User' && store.details.creatorTargetId === auth.userId;
 
-  useEffect(() => {
-    async function getUniverseId() {
-      try {
-        multiGetPlaceDetails({ placeIds: [placeId] }).then(async data => {
-          let uniId = await data[0].universeId;
-          setUniverseId(uniId);
-        }, () => { })
-      } catch (error) {
-        console.error('Could not get universe id! Error: ' + error);
-      }
+  useEffect(async () => {
+    try {
+      multiGetPlaceDetails({ placeIds: [placeId] }).then(async data => {
+        let uniId = await data[0].universeId;
+        setUniverseId(uniId);
+      }, () => { })
+    } catch (error) {
+      console.error('Could not get universe id! Error: ' + error);
     }
-
-    getUniverseId();
   }, []);
 
   const dropdownOptions = [
@@ -273,7 +269,7 @@ const About = props => {
     }} />}
     <div className={s.thumbContainer}>
       <div className={s.carouselGameDetails}>
-        <GameThumbnails></GameThumbnails>
+        <GameThumbnails />
       </div>
     </div>
     <div className={s.callsToAction}>

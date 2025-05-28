@@ -120,6 +120,14 @@ public class InventoryService : ServiceBase, IService
         return newList;
     }
 
+    public async Task<bool> IsOwned(long userId, long assetId) {
+        var q = await db.QuerySingleOrDefaultAsync<Dto.Total>(@"
+                    SELECT 
+                        COUNT(*) as total 
+                    FROM user_asset INNER JOIN asset a ON user_asset.asset_id = a.id WHERE user_id = :userId AND a.id = :assetId", new {userId, assetId});
+        return q.total > 0;
+    }
+
     public async Task SetCollections(long userId, IEnumerable<long> assetIds)
     {
         assetIds = assetIds.Distinct().Take(64);
@@ -157,7 +165,7 @@ public class InventoryService : ServiceBase, IService
         });
     }
     
-            public async Task<bool> CanViewInventory(long userId, long contextUserId = 0)
+    public async Task<bool> CanViewInventory(long userId, long contextUserId = 0)
         {
             var result = await MultiCanViewInventory(new[] { userId }, contextUserId);
             return result.First().canView;
@@ -332,4 +340,5 @@ public class InventoryService : ServiceBase, IService
         {
             return false;
         }
+    
 }

@@ -39,6 +39,15 @@ export const getCollections = ({ userId }) => {
   return request('GET', getBaseUrl() + `/users/profile/robloxcollections-json?userId=${userId}`).then(d => d.data.CollectionsItems)
 }
 
+/**
+ * @param {number} userId
+ * @param {number} assetId
+ * @returns {Promise<boolean>}
+ */
+export const userOwnsItem = ({ userId, assetId }) => {
+  return request('GET', getFullUrl("inventory", `/v1/users/${userId}/items/asset/${assetId}/is-owned`)).then(d => d.data === "true" || d.data === true);
+}
+
 export const getCollectibleInventory = ({ userId, cursor, limit, assetTypeId = 'null' }) => {
   return request('GET', getFullUrl('inventory', `/v1/users/${userId}/assets/collectibles?cursor=${encodeURIComponent(cursor || '')}&limit=${limit}&assetType=${assetTypeId}`)).then(d => d.data);
 }

@@ -9,6 +9,8 @@
     --secondary-color: #0074bd;
     --success-color: #02b757;
     --success-color-hover: #3fc679;
+    --robux-color: #08C94F;
+    --tix-color: #CC9E71;
     --bad-color: #e27676;
     --text-color-primary: #191919;
     --text-color-secondary: #b8b8b8;
@@ -48,7 +50,7 @@ body {
 div#__next > div > div.container {
     min-height: 100vh;
 }
-html > body {
+html > body, pre {
     font-family: HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;
 }
 
@@ -89,9 +91,16 @@ a {
     margin: 0 0 18px;
 }
 
-.section-content.hoverShadow:hover {
+.section-content.hoverShadow {
     transition: box-shadow 200ms ease;
+}
+
+.section-content.hoverShadow:hover {
     box-shadow: 0 1px 6px 0 rgba(25,25,25,0.75);
+}
+
+.section-content.noShadow {
+    box-shadow: none !important;
 }
 
 .section-content-off {
@@ -207,6 +216,10 @@ html div.container {
     /*max-width: 1154px;*/
 }
 
+html div.container.big {
+    max-width: 1154px!important;
+}
+
 .cursor-pointer {
     cursor: pointer;
 }
@@ -261,7 +274,7 @@ html div.container {
 }
 
 .alert-success {
-    background-color: #02b757;
+    background-color: var(--success-color);
     border: 0;
     text-align: center;
     color: var(--white-color);
@@ -276,6 +289,14 @@ html div.container {
     color: #f2f2f2;
     padding: 15px;
     height: 48px;
+}
+
+.text-robux {
+    color: var(--robux-color);
+}
+
+.text-tix {
+    color: var(--tix-color);
 }
 
 .spinner {
@@ -306,6 +327,14 @@ html div.container {
 
 .vTabContent:has(.noPadding) {
     padding-left: 0;
+}
+
+.margin-none {
+    margin: 0!important;
+}
+
+.padding-none {
+    padding: 0!important;
 }
 
 .marginStuff {
@@ -359,4 +388,37 @@ html div.container {
 
 .inputTextStyle.hasError, .inputTextStyle:focus.hasError, .inputTextStyle:focus-visible.hasError {
     border-color: #D86868!important;
+}
+
+.w-fit-content {
+    width: fit-content;
+}
+
+/** SCROLLBAR */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgb(150, 150, 150);
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:active {
+    background: rgb(104, 104, 104);
+}
+
+.inherit-font-size {
+    font-size: inherit;
+}
+
+.color-text-secondary {
+    color: #b8b8b8!important;
+}
+
+.mt-44444 {
+    margin-top: 2px!important;
+}
+
+.bg-pos {
+    background-position: 0 -96px!important;
 }

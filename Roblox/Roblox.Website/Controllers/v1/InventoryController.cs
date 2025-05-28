@@ -58,5 +58,11 @@ public class InventoryControllerV1 : ControllerBase
         };
     }
 
+    [HttpGet("users/{userId:long}/items/asset/{assetId:long}/is-owned")]
+    [HttpGetBypass("/v1/users/{userId:long}/items/asset/{assetId:long}/is-owned")]
+    public async Task<bool> IsOwned(long userId, long assetId) {
+        return await services.inventory.IsOwned(userId, assetId);
+    }
+
 
 }

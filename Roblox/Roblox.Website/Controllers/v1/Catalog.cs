@@ -642,6 +642,7 @@ public class CatalogControllerV1 : ControllerBase
     }
 
     [HttpGet("recommendations/asset/{assetTypeId}")]
+    [HttpGetBypass("/v1/recommendations/asset/{assetTypeId}")]
     public async Task<dynamic> GetRecommendations(Models.Assets.Type assetTypeId, long contextAssetId, int numItems)
     {
 	    var result = await services.assets.GetRecommendedItems(assetTypeId, contextAssetId, numItems);
@@ -657,7 +658,7 @@ public class CatalogControllerV1 : ControllerBase
 				    name = c.name,
 				    price = c.price,
 				    premiumPrice = (int?) null,
-				    absoluteUrl = $"/catalog/{c.assetId}/--",
+				    absoluteUrl = $"/catalog/{c.assetId}/--", // TODO: incorrect, should be inclusive for library items like models
 			    },
 			    creator = new
 			    {
@@ -672,6 +673,7 @@ public class CatalogControllerV1 : ControllerBase
 			    {
 				    id = c.assetId,
 				    priceInRobux = c.price,
+				    c.priceInTickets,
 				    isForsale = c.isForSale,
 				    isPublicDomain = false, // todo
 				    isResellable = c.isLimited || c.isLimitedUnique,
@@ -681,7 +683,7 @@ public class CatalogControllerV1 : ControllerBase
 				    bcRequirement = 0,
 				    totalPrivateSales = 0, // todo = what is this?
 				    offsaleDeadline = c.offsaleDeadline,
-				    noPriceText = (c.isLimited || c.isLimitedUnique && !c.isForSale) ? "No Resellers" : null,
+				    noPriceText = (c.isLimited || c.isLimitedUnique) && !c.isForSale ? "No Resellers" : !c.isForSale ? "Offsale" : null,
 				    // below is intentionally empty
 				    sellerId = 0,
 				    sellerName = (string?)null,

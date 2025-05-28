@@ -23,7 +23,7 @@ const useStyles = createUseStyles({
 
 /**
  * User advertisement iframe
- * @param {{type: number}} props 
+ * @param {{type: number, wrapperClass: string}} props
  */
 const UserAdvertisement = props => {
   const info = adTypes[props.type];
@@ -63,7 +63,7 @@ const UserAdvertisement = props => {
   if (!imageUrl) {
     return <div style={{width: '100%', height: info.height}}/>
   }
-  return <div className={s.adWrapper} style={imageLoaded ? undefined : { height: info.height, width: '100%' }}>
+  return <div className={`${s.adWrapper} ${props?.wrapperClass || ''}`} style={imageLoaded ? undefined : { height: info.height, width: '100%' }}>
     <Link href={link || '#'}>
       <a title={title}>
         <img onLoad={() => { setImageLoaded(true) }} src={imageUrl} className={s.adImage} style={{ maxWidth: info.width, maxHeight: info.height }}/>

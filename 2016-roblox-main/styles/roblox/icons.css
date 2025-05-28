@@ -413,7 +413,7 @@ a.btn-generic-edit-xs:hover .icon-edit {
 .icon-BuildingTool,
 .icon-SocialItem,
 .icon-PersonalTransport {
-	background-image: url(/web/20160323201015im_/http://static.rbxcdn.com/images/NextStyleGuide/games.svg);
+	background-image: url(/img/games-styleguide.svg);
 	background-repeat: no-repeat;
 	background-size: auto auto;
 	width: 28px;
@@ -507,7 +507,7 @@ a.btn-generic-edit-xs:hover .icon-edit {
 .icon-favorite.favorited,
 .icon-robux,
 .icon-tix {
-	background-image: url(/web/20160323201015im_/http://static.rbxcdn.com/images/NextStyleGuide/branded.svg);
+	background-image: url(/img/branded.svg);
 	background-repeat: no-repeat;
 	background-size: auto auto;
 	width: 28px;
@@ -516,7 +516,17 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	vertical-align: middle;
 }
 
-.icon-robux-16x16 {
+.icon-robux-20x20, .icon-tix-20x20 {
+	background-image: url(/img/branded.svg);
+	background-repeat: no-repeat;
+	background-size: auto auto;
+	width: 20px;
+	height: 20px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.icon-robux-16x16, .icon-tix-16x16 {
 	background-image: url(/img/branded.svg);
 	background-repeat: no-repeat;
 	background-size: 32px auto;
@@ -607,6 +617,24 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	vertical-align: middle;
 }
 
+.icon-labels {
+	background-image: url(/img/icon_labels.svg);
+	background-repeat: no-repeat;
+	background-size: 100% auto;
+	width: 164px;
+	height: 24px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.icon-labels.Limited {
+	background-position: 0 calc(-27px * (4 - 1));
+}
+
+.icon-labels.LimitedUnique {
+	background-position: 0 calc(-27px * (8 - 1));
+}
+
 .icon-default-charts,
 .icon-line-chart,
 .icon-line-chart.selected,
@@ -637,6 +665,10 @@ a.btn-generic-edit-xs:hover .icon-edit {
 
 .icon-edit {
 	background-position: 0 -84px;
+}
+
+.icon-edit:hover, a:hover .icon-edit {
+	background-position: -28px -84px;
 }
 
 .icon-inactive {
@@ -1104,8 +1136,32 @@ a:hover .icon-favorite {
 	background-position: 0 -64px;
 }
 
+.icon-robux-20x20 {
+	background-position: 0 -80px;
+}
+
+.icon-robux-gray {
+	background-position: 0 -168px;
+}
+
+.icon-robux-gray-16x16 {
+	background-position: 0 -112px;
+}
+
+.icon-robux-gray-20x20 {
+	background-position: 0 -120px;
+}
+
 .icon-tix {
 	background-position: 0 -140px;
+}
+
+.icon-tix-16x16 {
+	background-position: 0 -96px;
+}
+
+.icon-tix-20x20 {
+	background-position: 0 -100px;
 }
 
 .icon-message {
@@ -1661,4 +1717,18 @@ span.game-privacy-symbol.gps-active {
 
 .icon-settings-16x16:hover {
 	background-position: -16px -32px;
+}
+
+.icon-default-negative-150x150, .icon-warning-orange-150x150 {
+	vertical-align: middle;
+	background-image: url(/img/warning.svg);
+	background-repeat: no-repeat;
+	background-size: 200%;
+	width: 150px;
+	height: 150px;
+	display: inline-block;
+}
+
+.icon-warning-orange-150x150 {
+	background-position: 0 -900px;
 }
