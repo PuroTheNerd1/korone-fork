@@ -406,14 +406,6 @@ public class GamesService : ServiceBase, IService
 
     public static int GetPlayerCount(long placeId)
     {
-        /*var query = await db.QuerySingleOrDefaultAsync<Total>(
-            "select count(*) as total FROM asset_server_player WHERE asset_server_player.asset_id = :id", new
-            {
-                id = placeId,
-            });
-            */
-        //return query.total;
-        // new code
         int count = 0;
         Dictionary<long, long> playersInGame = GameServerService.CurrentPlayersInGame;
         foreach (var kvp in playersInGame)
