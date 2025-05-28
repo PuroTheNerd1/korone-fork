@@ -553,7 +553,8 @@ public class AdminApiController : ControllerBase
         {
             var details = await services.assets.GetAssetCatalogInfo(request.assetId);
             var minCreationTime = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
-            if (details.createdAt < minCreationTime)
+            // Owners can delete assets any time they want
+            if (details.createdAt < minCreationTime && !StaffFilter.IsOwner(userSession.userId))
             {
                 throw new StaffException("This asset cannot be deleted since it was created too long ago");
             }
