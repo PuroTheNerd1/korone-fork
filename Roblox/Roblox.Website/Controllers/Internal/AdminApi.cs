@@ -612,15 +612,6 @@ public class AdminApiController : ControllerBase
                 id = request.iconId,
                 status = ModerationStatus.ReviewApproved,
             });
-
-            if (request.is18Plus)
-            {
-                // update asset
-                await db.ExecuteAsync("UPDATE asset SET is_18_plus = true WHERE id = :id", new
-                {
-                    id = (long) details.asset_id,
-                });
-            }
         }
         else
         {
