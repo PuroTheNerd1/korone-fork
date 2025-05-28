@@ -415,7 +415,7 @@ public class GamesService : ServiceBase, IService
         //return query.total;
         // new code
         int count = 0;
-        Dictionary<long, long> playersInGame = GameServerService.currentPlayersInGame;
+        Dictionary<long, long> playersInGame = GameServerService.CurrentPlayersInGame;
         foreach (var kvp in playersInGame)
         {
             if (kvp.Value == placeId)
