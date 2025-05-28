@@ -110,7 +110,7 @@ public class GameServerService : ServiceBase
     private static GamesService games = new GamesService();
     private static string jwtKey { get; set; } = string.Empty;
     private static Random RandomComponent = new Random();
-    public static Dictionary<long, long> CurrentPlayersInGame = new Dictionary<long, long>() { }; // userid, placeid
+    public static Dictionary<long, long> currentPlayersInGame = new Dictionary<long, long>() { }; // userid, placeid
     public static Dictionary<string, int> unreadyGameServers = new Dictionary<string, int>(); // Process, network server port
     public static void Configure(string newJwtKey)
     {
@@ -119,10 +119,10 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerJoin(long userId, long placeId, string serverId)
     {
-        lock (CurrentPlayersInGame)
+        lock (currentPlayersInGame)
         {
-            CurrentPlayersInGame.Remove(userId);
-            CurrentPlayersInGame.Add(userId, placeId);
+            currentPlayersInGame.Remove(userId);
+            currentPlayersInGame.Add(userId, placeId);
         }
 
         await db.ExecuteAsync(
@@ -220,10 +220,10 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerLeave(long userId, long placeId, string serverId)
     {
-        if (!CurrentPlayersInGame.ContainsKey(userId)) return;
-        lock (CurrentPlayersInGame)
+        if (!currentPlayersInGame.ContainsKey(userId)) return;
+        lock (currentPlayersInGame)
         {
-            CurrentPlayersInGame.Remove(userId);
+            currentPlayersInGame.Remove(userId);
         }
 
         await db.ExecuteAsync(
@@ -301,21 +301,21 @@ public class GameServerService : ServiceBase
 
     public static void RemoveAllPlayersFromPlaceId(long placeId)
     {
-        List<long> playersToRemove = CurrentPlayersInGame.Where(kvp => kvp.Value == placeId).Select(kvp => kvp.Key).ToList();
+        List<long> playersToRemove = currentPlayersInGame.Where(kvp => kvp.Value == placeId).Select(kvp => kvp.Key).ToList();
 
         foreach (var userId in playersToRemove)
         {
-            CurrentPlayersInGame.Remove(userId);
+            currentPlayersInGame.Remove(userId);
         }
     }
 
     public static long GetUserPlaceId(long userId) // get user game is in
     {
-        bool isInGame = CurrentPlayersInGame.ContainsKey(userId);
+        bool isInGame = currentPlayersInGame.ContainsKey(userId);
         if (!isInGame)
             return 0;
 
-        return CurrentPlayersInGame[userId];
+        return currentPlayersInGame[userId];
     }
 
     public async Task<DateTime> GetLastServerPing(string serverId)
