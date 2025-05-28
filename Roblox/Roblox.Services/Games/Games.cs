@@ -154,15 +154,13 @@ public class GamesService : ServiceBase, IService
         using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
         var details = await assets.GetAssetCatalogInfo(universe.rootPlaceId);
         // Second condition should almost never happen but just in case
-        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.creatorTargetId != userId) {
+        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.creatorTargetId != userId) 
             throw new PermissionException(universe.rootPlaceId, userId);
-        }
+        
         return universe;
     }
     public async Task<long> GetRootPlaceId(long universeId)
     {
-        //var details = await MultiGetUniverseInfo(new []{universeId});
-        //var arr = details.ToArray();
         var result = await db.QuerySingleOrDefaultAsync<long>(
             "SELECT root_asset_id FROM universe WHERE id = :id LIMIT 1", new
             {

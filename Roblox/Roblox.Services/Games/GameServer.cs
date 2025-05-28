@@ -106,101 +106,15 @@ public class GameServerService : ServiceBase
         }
     }
 
-    private const string ClientJoinTicketType = "GameJoinTicketV1.1";
-    private const string ServerJoinTicketType = "GameServerTicketV2";
     private static ArbiterHttpClient arbiterClient = new ArbiterHttpClient();
     private static GamesService games = new GamesService();
     private static string jwtKey { get; set; } = string.Empty;
-    private static EasyJwt jwt { get; } = new();
     private static Random RandomComponent = new Random();
-    private static PasswordHasher hasher { get; } = new();
-    private static Dictionary<long, long> gamePlayerCounts = new Dictionary<long, long>(); // placeid, playercount
-    private static Dictionary<string, Process> jobRccs = new Dictionary<string, Process>(); // jobid, rcc process
-    public static Dictionary<string, int> currentGameServerPorts = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
-    private static Dictionary<long, string> currentPlaceIdsInUse = new Dictionary<long, string>(); // placeid, jobid
     public static Dictionary<long, long> CurrentPlayersInGame = new Dictionary<long, long>() { }; // userid, placeid
-    public static Dictionary<Process, int> mainRCCPortsInUse = new Dictionary<Process, int>(); // Process, main RCC soap port
     public static Dictionary<string, int> unreadyGameServers = new Dictionary<string, int>(); // Process, network server port
     public static void Configure(string newJwtKey)
     {
         jwtKey = "hello world 12345";
-    }
-
-    private string HashIpAddress(string hashedIpAddress)
-    {
-        return hasher.Hash(hashedIpAddress);
-    }
-
-    private bool VerifyIpAddress(string hashedIpAddress, string providedIpAddress)
-    {
-        return hasher.Verify(hashedIpAddress, providedIpAddress);
-    }
-
-    /// <summary>
-    /// Create a ticket for joining a game
-    /// </summary>
-    /// <param name="userId">The ID of the user</param>
-    /// <param name="placeId">The ID of the place</param>
-    /// <param name="ipHash">The IP Address from ControllerBase.GetIP()</param>
-    /// <returns></returns>
-    public string CreateTicket(long userId, long placeId, string ipHash)
-    {
-        var entry = new GameServerJwt
-        {
-            t = ClientJoinTicketType,
-            userId = userId,
-            placeId = placeId,
-            ip = HashIpAddress(ipHash),
-            iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        };
-        return jwt.CreateJwt(entry, jwtKey);
-    }
-
-    public bool IsExpired(long issuedAt)
-    {
-        var createdAt = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(issuedAt);
-        var notExpired = createdAt.Add(TimeSpan.FromMinutes(5)) > DateTime.UtcNow;
-        if (!notExpired)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    public GameServerJwt DecodeTicket(string ticket)
-    {
-        var value = jwt.DecodeJwt<GameServerJwt>(ticket, jwtKey);
-        if (value.t != ClientJoinTicketType) throw new ArgumentException("Invalid ticket");
-        if (IsExpired(value.iat))
-        {
-            throw new ArgumentException("Invalid ticket");
-        }
-        return value;
-    }
-
-    public string CreateGameServerTicket(long placeId, string domain)
-    {
-        var ticket = new GameServerTicketJwt
-        {
-            t = ServerJoinTicketType,
-            placeId = placeId,
-            domain = domain,
-            iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        };
-        return jwt.CreateJwt(ticket, jwtKey);
-    }
-
-    public GameServerTicketJwt DecodeGameServerTicket(string ticket)
-    {
-        var value = jwt.DecodeJwt<GameServerTicketJwt>(ticket, jwtKey);
-        if (value.t != ServerJoinTicketType) throw new ArgumentException("Invalid ticket");
-        if (IsExpired(value.iat))
-        {
-            throw new ArgumentException("Invalid ticket");
-        }
-
-        return value;
     }
 
     public async Task OnPlayerJoin(long userId, long placeId, string serverId)
@@ -374,11 +288,7 @@ public class GameServerService : ServiceBase
         if (jobId == null) return;
         await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
     }
-    // public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
-    // {
-    //     await PostToGameServer<GameServerEmptyResponse>(ipAddress, port, "startGame",
-    //         new List<dynamic> {placeId, gameServerId, gameServerPort});
-    // }
+
 
     public async Task ShutDownServerAsync(string serverId)
     {
@@ -393,9 +303,9 @@ public class GameServerService : ServiceBase
     {
         List<long> playersToRemove = CurrentPlayersInGame.Where(kvp => kvp.Value == placeId).Select(kvp => kvp.Key).ToList();
 
-        foreach (var playerID in playersToRemove)
+        foreach (var userId in playersToRemove)
         {
-            CurrentPlayersInGame.Remove(playerID);
+            CurrentPlayersInGame.Remove(userId);
         }
     }
 
@@ -406,19 +316,6 @@ public class GameServerService : ServiceBase
             return 0;
 
         return CurrentPlayersInGame[userId];
-    }
-
-    public static long GetPlaceIdByJobId(string jobId)
-    {
-        foreach (var kvp in currentPlaceIdsInUse)
-        {
-            if (kvp.Value == jobId)
-            {
-                return kvp.Key;
-            }
-        }
-
-        return 0; // we never throw exceptions. EVER.
     }
 
     public async Task<DateTime> GetLastServerPing(string serverId)
@@ -459,29 +356,6 @@ public class GameServerService : ServiceBase
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
     }
-
-    private static readonly IEnumerable<int> GameServerPorts = new []
-    {
-        // this must always stay in sync with nginx config file
-        53640, // es1-1
-        53641, // es1-2, etc
-        53642, // 3
-        53643, // 4
-        53644, // 5
-        53645, // 6
-        53646, // 7
-        53647, // 8
-        53648, // 9
-        53649, // 10
-#if false
-        53650,
-        53651,
-        53652,
-        53653,
-        53654,
-        53655,
-#endif
-    };
 
     public async Task<string> GetJobIdByUserId(long userId)
     {
@@ -685,27 +559,6 @@ public class GameServerService : ServiceBase
         return result;
     }
 
-    static Task WaitForPort(int RCCPort)
-    {
-        while (true)
-        {
-            try
-            {
-                using (TcpClient client = new TcpClient())
-                {
-                    client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
-                    //Console.WriteLine("did not find port");
-                    break;
-                }
-            }
-            catch (SocketException)
-            {
-                Thread.Sleep(0);
-            }
-        }
-        //Console.WriteLine($"found port: {RCCPort}");
-        return Task.CompletedTask;
-    }
     public async Task<IEnumerable<GameServerEntry>> GetGamesUserIsPlaying(long userId)
     {
        return await db.QueryAsync<GameServerEntry>(
