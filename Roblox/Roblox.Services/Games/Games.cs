@@ -100,17 +100,6 @@ public class GamesService : ServiceBase, IService
 
     public async Task CanManageUniverse(long userId, long universeId)
     {
-        var universe = await db.QuerySingleOrDefaultAsync<Dto.Total>(
-            "SELECT COUNT(*) AS total FROM universe WHERE id = :id", new
-            {
-                id = universeId,
-            });
-
-        if (universe?.total == 0)
-        {
-            throw new RecordNotFoundException("Universe does not exist.");
-        }
-
         var creatorCheck = await db.QuerySingleOrDefaultAsync<Dto.Total>(
             "SELECT COUNT(*) AS total FROM universe WHERE id = :id AND creator_id = :userId", new
             {
@@ -632,8 +621,10 @@ public class GamesService : ServiceBase, IService
 
     public async Task SetYear(long placeId, int year)
     {
-        if (year != 2017 && year != 2018 && year != 2019 && year != 2020 && year != 2021)
-            throw new ArgumentException("Year can only be 2015, 2016, 2017, 2018, 2019 2020, 2021");
+        if (!clientVersionMap.ContainsKey(year))
+        {
+            return;
+        }
 
         await db.ExecuteAsync("UPDATE asset_place SET year = :year WHERE asset_id = :id", new
         {
