@@ -369,7 +369,7 @@ public class GameServerService : ServiceBase
     public async Task<GameServer> GetGameServer(string jobId)
     {
         return await db.QueryFirstOrDefaultAsync<GameServer>(
-            "SELECT id, assetId, port, updated_at as updatedAt, status, type  FROM asset_server WHERE id = :id::uuid",
+            "SELECT id, asset_id as assetId, port, updated_at as updatedAt, status, type  FROM asset_server WHERE id = :id::uuid",
             new
             {
                 id = Guid.Parse(jobId),
@@ -389,7 +389,7 @@ public class GameServerService : ServiceBase
     public async Task<IEnumerable<GameServer>> GetGameServersForPlace(long placeId, MatchmakingContext? matchmaking = MatchmakingContext.Default)
     {
         return await db.QueryAsync<GameServer>(
-            "SELECT id, assetId, port, updated_at as updatedAt, status, type FROM asset_server WHERE asset_id = :assetid AND type = :type",
+            "SELECT id, asset_id as assetId, port, updated_at as updatedAt, status, type FROM asset_server WHERE asset_id = :assetid AND type = :type",
             new
             {
                 assetid = placeId,
