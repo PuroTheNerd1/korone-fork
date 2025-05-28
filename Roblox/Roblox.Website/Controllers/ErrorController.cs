@@ -12,7 +12,7 @@ public class ErrorController : ControllerBase
 {
     [Route("/error")]
     [ApiExplorerSettings(IgnoreApi = true)]
-    public dynamic Error()
+    public ErrorResponse Error()
     {
         var context = HttpContext.Features.Get<IExceptionHandlerFeature>();
         var exception = context?.Error;
@@ -45,9 +45,9 @@ public class ErrorController : ControllerBase
                     code = HttpStatusCode.TooManyRequests;
                     break;
                 default:
-                    throw new Exception("Unexpected failType " + logicException.failType);
+                    throw new Exception("Unexpected failType "+logicException.failType);
             }
-            errorList.Add(new()
+            errorList.Add(new ()
             {
                 code = logicException.errorCode,
                 message = logicException.errorMessage,
@@ -69,7 +69,7 @@ public class ErrorController : ControllerBase
                 code = ex.errorCode,
                 message = ex.errorMessage,
             });
-            code = (HttpStatusCode)ex.statusCode;
+            code = (HttpStatusCode) ex.statusCode;
         }
         else if (exception is Roblox.Services.CooldownException)
         {
@@ -80,19 +80,9 @@ public class ErrorController : ControllerBase
             });
             code = HttpStatusCode.TooManyRequests;
         }
-        // PlaceLauncherException is a special case, because the client normal formatted response
-        else if (exception is PlaceLauncherException placeLauncherException)
-        {
-            code = HttpStatusCode.BadRequest;
-            return new
-            {
-                status = placeLauncherException.statusCode,
-                message = placeLauncherException.errorMessage,
-            };
-        }
         else
         {
-            Console.WriteLine("[error] Unknown exception caught by ErrorController.\n{0}\n{1}", exception?.Message, exception?.StackTrace);
+            Console.WriteLine("[error] Unknown exception caught by ErrorController.\n{0}\n{1}",exception?.Message,exception?.StackTrace);
         }
 
         if (errorList.Count == 0)

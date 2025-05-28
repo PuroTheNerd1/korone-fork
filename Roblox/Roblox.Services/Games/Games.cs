@@ -66,9 +66,11 @@ public class GamesService : ServiceBase, IService
 
         var universe = await GetUniverseInfo(universeId);
 
-        if (universe.privacyType == PrivacyType.Private)
+        bool canPlay = await CanPlayUniverse(userId, universeId);
+        
+        if (universe.privacyType == PrivacyType.Private && !canPlay)
         {
-            return await CanPlayUniverse(userId, universeId);
+            return false;
         }
 
         if (universe.privacyType == PrivacyType.FriendsOnly)
@@ -896,7 +898,7 @@ public class GamesService : ServiceBase, IService
             city = json["city"]!.ToString(),
         };
     }
-    public async Task<dynamic> GetJoinScript(PlaceEntry placeInfo, UserInfo userInfo, dynamic jobInfo,  string characterAppearanceUrl, string clientTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
+    public async Task<dynamic> GetJoinScript(PlaceEntry placeInfo, UserInfo userInfo, GameServerDb jobInfo,  string characterAppearanceUrl, string clientTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
         string chatStyle = "ClassicAndBubble";

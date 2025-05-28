@@ -46,7 +46,6 @@ using Roblox.Dto.AbuseReport;
 using Roblox.Models.Games;
 using System.Diagnostics.CodeAnalysis;
 using ForbiddenException = Roblox.Exceptions.ForbiddenException;
-using CsvHelper;
 
 namespace Roblox.Website.Controllers
 {
@@ -396,32 +395,36 @@ namespace Roblox.Website.Controllers
             var jobInfo = await services.gameServer.GetGameServer(jobId);
             if (jobInfo == null)
                 throw new BadRequestException(1, "Gameserver does not exist");
-
             // Let's not allow cloud edit servers via here
-            if (jobInfo.type == MatchmakingContext.CloudEdit)
+            if (jobInfo.type == 3)
                 throw new BadRequestException(1, "This is a cloudedit server, you cannot join it.");
+            long placeId = jobInfo.asset_id;
 
-            long placeId = jobInfo.assetId;
-
-            var placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
-
-            // Check if the place is approved
-            if (!placeInfo.IsApproved())
-                throw new BadRequestException(1, "This place is not available for play.");
-                
-            // Check if the user can join the universe
+            PlaceEntry placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
+            // Check place privacy
             if (!await services.games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
+            {
                 throw new ForbiddenException(1, "You cannot join this game, you do not have permission.");
+            }
+            string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             
-
-            if (await services.games.IsFull(jobId, placeInfo.placeId))
-                throw new BadRequestException(1, "The requested game is full");
+            var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             
+            if (jobPlayers.Count() >= placeInfo.maxPlayerCount)
+            {
+                return new
+                {
+                    error = "The requested game is full",
+                    status = 5
+                };
+            }
             // paranoia
             var userInfo = await services.users.GetUserById(userId);
 
-            if (userInfo.IsBanned())
+            if (userInfo.accountStatus != AccountStatus.Ok)
+            {
                 throw new ForbiddenException(0, "User is banned");
+            }
 
             // Get user presence
             var onlineStatus = (await services.users.MultiGetPresence(new[] {userId})).First();
@@ -432,13 +435,15 @@ namespace Roblox.Website.Controllers
                 await services.gameServer.KickPlayer(userId);
             }
 
+            
+            var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             string membership = await services.users.GetUserMemberShipAsString(userId);
-            if (placeInfo.year >= 2020 && membership == "Premium")
+            if (placeInfo.year != 2020 && placeInfo.year != 2021 && membership == "Premium")
             {
                 membership = "OutrageousBuildersClub";
             }
-            string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.GetCharacterAppearanceUrl(placeId), membership, jobId, userInfo.accountAgeDays, placeId);
-            var joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, userInfo.GetCharacterAppearanceUrl(placeInfo.placeId), clientTicket, membership, userInfo.accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
+            string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
+            var joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
 
             return services.games.SignJoinScript(placeInfo.year, joinScript);
         }
@@ -540,7 +545,7 @@ namespace Roblox.Website.Controllers
                 AgeBracket = 0,
                 UserAbove13 = true,
                 ClientIpAddress = GetRequesterIpRaw(HttpContext),
-                AccountAgeInDays = userInfo.accountAgeDays,
+                AccountAgeInDays = DateTime.UtcNow.Subtract(userInfo.created).Days,
                 IsOBC = false,
                 IsTBC = false,
                 IsAnyBC = false,
@@ -688,6 +693,42 @@ namespace Roblox.Website.Controllers
             return Content(await System.IO.File.ReadAllTextAsync("hor.txt"), "text/plan");
         }
 
+
+        private void CheckServerAuth(string auth)
+        {
+            if (auth != Configuration.GameServerAuthorization)
+            {
+                throw new BadRequestException();
+            }
+        }
+
+        [HttpPostBypass("/gs/activity")]
+        public async Task<dynamic> GetGsActivity([Required, MVC.FromBody] ReportActivity request)
+        {
+            Console.WriteLine(request.authorization);
+
+            CheckServerAuth(request.authorization);
+            var result = await services.gameServer.GetLastServerPing(request.serverId);
+            return new
+            {
+                isAlive = result >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(1)),
+                updatedAt = result,
+            };
+        }
+        [HttpPostBypass("/gs/ping")]
+        public async Task ReportServerActivity([Required, MVC.FromBody] ReportActivity request)
+        {
+            CheckServerAuth(request.authorization);
+            //await services.gameServer.SetServerGSPing(request.serverId, request.ping);
+            await services.gameServer.SetServerPing(request.serverId);
+        }
+
+        [HttpPostBypass("/gs/delete")]
+        public async Task DeleteServer([Required, MVC.FromBody] ReportActivity request)
+        {
+            CheckServerAuth(request.authorization);
+            await services.gameServer.DeleteGameServer(request.serverId);
+        }
         //this is for the newer years that dont have a custom monitoring script
         [HttpPostBypass("presence/register-game-presence")]
         public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType)
@@ -747,7 +788,38 @@ namespace Roblox.Website.Controllers
             //     await services.gameServer.OnPlayerLeave(userId, placeId, JobId);
             // }
         }
+        [HttpPostBypass("/gs/shutdown")]
+        public async Task ShutDownServer([Required, MVC.FromBody] ReportActivity request)
+        {
+            CheckServerAuth(request.authorization);
+            await services.gameServer.ShutDownServerAsync(request.serverId);
+        }
 
+        [HttpPostBypass("/gs/players/report")]
+        public async Task ReportPlayerActivity([Required, MVC.FromBody] ReportPlayerActivity request)
+        {
+            CheckServerAuth(request.authorization);
+            if (request.eventType == "Leave")
+            {
+                await services.gameServer.OnPlayerLeave(request.userId, request.placeId, request.serverId);
+            }
+            else if (request.eventType == "Join")
+            {
+                await Roblox.Metrics.GameMetrics.ReportGameJoinSuccess(request.placeId);
+                await services.gameServer.OnPlayerJoin(request.userId, request.placeId, request.serverId);
+            }
+            else
+            {
+                throw new Exception("Unexpected type " + request.eventType);
+            }
+        }
+
+        [HttpPostBypass("/gs/a")]
+        public void ReportGS()
+        {
+            // Doesn't do anything yet. See: services/api/src/controllers/bypass.ts:1473
+            return;
+        }
         [HttpPostBypass("game/validate-machine")]
         public dynamic ValidateMachineAsync()
         {
@@ -863,7 +935,7 @@ namespace Roblox.Website.Controllers
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
                 
             var jobInfo = await services.gameServer.GetGameServer(jobId);
-            if (jobInfo.assetId != placeId)
+            if (jobInfo.asset_id != placeId)
                 throw new BadRequestException(0, "Job does not exist for this place");
             await services.gameServer.ShutDownServerAsync(jobId);
             return "OK!";
@@ -1320,13 +1392,13 @@ namespace Roblox.Website.Controllers
 
             if(!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            // Server is now ready, so we can remove it from the unready list
-            if (GameServerService.unreadyGameServers.ContainsKey(gameId)) 
+
+            if (GameServerService.unreadyGameServers.ContainsKey(gameId)) {
                 GameServerService.unreadyGameServers.Remove(gameId);
-            
+            }
 
             int roundPing = (int)Math.Round(ping, 0);
-            await services.gameServer.SetServerPing(gameId, roundPing);
+            await services.gameServer.SetServerGSPing(gameId, roundPing);
             return "OK!";
 
         }
@@ -1352,6 +1424,8 @@ namespace Roblox.Website.Controllers
                 }
                 return;
             }
+            await services.gameServer.SetServerPing(gameId);
+
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]

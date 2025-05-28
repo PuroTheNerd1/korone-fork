@@ -58,13 +58,6 @@ public class UserInfo
     public string username { get; set; }
     public AccountStatus accountStatus { get; set; }
     public DateTime created { get; set; }
-    public int accountAgeDays
-    {
-        get
-        {
-            return DateTime.UtcNow.Subtract(created).Days;
-        }
-    }
     public bool isAdmin { get; set; }
     public bool isModerator { get; set; }
     public bool isVerified { get; set; }
