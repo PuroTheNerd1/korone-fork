@@ -84,8 +84,8 @@ public class PlaceLauncherService : ServiceBase
             string membership = await users.GetUserMemberShipAsString(userId);
             var userInfo = await users.GetUserById((long)userId);
 
-            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.characterAppearanceUrl, membership, result.job, userInfo.accountAgeDays, placeInfo.placeId);
-            joinScript = await games.GetJoinScript(placeInfo, userInfo, result, userInfo.characterAppearanceUrl, clientTicket, membership, userInfo.accountAgeDays, true, cookie);
+            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.GetCharacterAppearanceUrl(placeInfo.placeId), membership, result.job, userInfo.accountAgeDays, placeInfo.placeId);
+            joinScript = await games.GetJoinScript(placeInfo, userInfo, result, userInfo.GetCharacterAppearanceUrl(placeInfo.placeId), clientTicket, membership, userInfo.accountAgeDays, true, cookie);
 
         }
 
@@ -125,9 +125,9 @@ public class PlaceLauncherService : ServiceBase
         {
             string membership = await users.GetUserMemberShipAsString(userId);
             var userInfo = await users.GetUserById((long)userId);
-            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.characterAppearanceUrl, membership, result.job, userInfo.accountAgeDays, placeInfo.placeId);
+            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.GetCharacterAppearanceUrl(placeInfo.placeId), membership, result.job, userInfo.accountAgeDays, placeInfo.placeId);
 
-            dynamic settings = await games.GetJoinScript(placeInfo, userInfo, result, userInfo.characterAppearanceUrl, clientTicket, membership, userInfo.accountAgeDays, false, null);
+            dynamic settings = await games.GetJoinScript(placeInfo, userInfo, result,  userInfo.GetCharacterAppearanceUrl(placeInfo.placeId), clientTicket, membership, userInfo.accountAgeDays, false, null);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,

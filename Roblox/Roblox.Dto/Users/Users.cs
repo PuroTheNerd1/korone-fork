@@ -69,12 +69,9 @@ public class UserInfo
     public bool isModerator { get; set; }
     public bool isVerified { get; set; }
     public string description { get; set; }
-    public string characterAppearanceUrl
+    public string GetCharacterAppearanceUrl(long placeId)
     {
-        get
-        {
-            return $"{Roblox.Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}";
-        }
+        return $"{Roblox.Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
     }
     public bool IsBanned()
     {
