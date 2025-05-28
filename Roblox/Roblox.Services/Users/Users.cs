@@ -2359,8 +2359,6 @@ public class UsersService : ServiceBase, IService
         })).total;
     }
 
-    private static Mutex is18OrOverMapMux { get; } = new();
-    private static Dictionary<long, bool> is18OrOver { get; } = new();
 
 
     public async Task<IEnumerable<UserInviteEntry>> GetInvitesByUser(long userId)

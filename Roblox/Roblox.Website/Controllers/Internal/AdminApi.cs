@@ -612,6 +612,7 @@ public class AdminApiController : ControllerBase
                 id = request.iconId,
                 status = ModerationStatus.ReviewApproved,
             });
+
         }
         else
         {

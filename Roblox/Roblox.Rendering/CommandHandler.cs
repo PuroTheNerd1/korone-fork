@@ -150,7 +150,6 @@ namespace Roblox.Rendering
             var bits = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(cmd));
             while (ws is not {State: WebSocketState.Open})
             {
-                CommandHandler.Configure("ws://localhost:3189", "VestiaZeta");
                 Writer.Info(LogGroup.GeneralRender, "Ws not available, retry in a second");
 #if DEBUG 
                 await Task.Delay(TimeSpan.FromSeconds(60), cancellationToken  ?? CancellationToken.None);
@@ -191,90 +190,6 @@ namespace Roblox.Rendering
             if (result.status != 200) throw new Exception("Render failed with status = " + result.status);
             if (result.data == null) throw new Exception("Null stream returned from SendCommand");
             return result.data;
-        }
-
-        public static async Task<Stream> RequestPlayerThumbnail(AvatarData data, CancellationToken? cancellationToken = null)
-        {
-            if (data.playerAvatarType != "R6")
-                throw new Exception("Invalid PlayerAvatarType");
-            
-            // todo: do we need to get assetTypeId here, or can we just expect caller to get it for us?
-            var w = new Stopwatch();
-            w.Start();
-            
-            var result = await SendCommand("GenerateThumbnail",
-                new List<dynamic> {data}, cancellationToken);
-            w.Stop();
-            if (result.status != 200 || result.data == null)
-            {
-                if (result.data == null && result.status == 200)
-                    Roblox.Metrics.RenderMetrics.ReportRenderAvatarThumbnailFailureDueToNullBody(data.userId);
-                Roblox.Metrics.RenderMetrics.ReportRenderAvatarThumbnailFailure(data.userId);
-                throw new Exception("Render failed with status = " + result.status);
-            }
-            Metrics.RenderMetrics.ReportRenderAvatarThumbnailTime(data.userId, w.ElapsedMilliseconds);
-            return result.data;
-        }
-
-        public static async Task<Stream> RequestPlayerHeadshot(AvatarData data, CancellationToken? cancellationToken = null)
-        {
-            if (data.playerAvatarType != "R6")
-                throw new Exception("Invalid PlayerAvatarType");
-            
-            // todo: do we need to get assetTypeId here, or can we just expect caller to get it for us?
-            return await SendCmdWithErrHandlingAsync("GenerateThumbnailHeadshot", new List<dynamic> {data}, cancellationToken);
-        }
-
-        public static async Task<Stream> RequestTextureThumbnail(long assetId, int assetTypeId, CancellationToken? cancellationToken = null)
-        {
-            return await SendCmdWithErrHandlingAsync("GenerateThumbnailTexture", new List<dynamic>
-            {
-                assetId, 
-                assetTypeId
-            }, cancellationToken);
-        }
-        
-        public static async Task<Stream> RequestAssetThumbnail(long assetId, CancellationToken? cancellationToken = null)
-        {
-            return await SendCmdWithErrHandlingAsync("GenerateThumbnailAsset", new List<dynamic>
-            {
-                assetId, 
-            }, cancellationToken);
-        }
-        
-        public static async Task<Stream> RequestAssetMesh(long assetId, CancellationToken? cancellationToken = null)
-        {
-            return await SendCmdWithErrHandlingAsync("GenerateThumbnailMesh", new List<dynamic>
-            {
-                assetId, 
-            }, cancellationToken);
-        }
-
-        public static async Task<Stream> RequestPlaceConversion(string base64EncodedPlace, CancellationToken? cancellationToken = null)
-        {
-            return await SendCmdWithErrHandlingAsync("ConvertRobloxPlace", new List<dynamic>
-            {
-                base64EncodedPlace, 
-            }, cancellationToken);
-        }
-
-        public static async Task<Stream> RequestHatConversion(string base64EncodedHat,
-            CancellationToken? cancellationToken = null)
-        {
-            return await SendCmdWithErrHandlingAsync("ConvertHat", new List<dynamic>()
-            {
-                base64EncodedHat,
-            });
-        }
-        
-        public static async Task<Stream> RequestAssetGame(long assetId, int x, int y, CancellationToken? cancellationToken = null)
-        {
-            return await SendCmdWithErrHandlingAsync("GenerateThumbnailGame", new List<dynamic>
-            {
-                assetId,
-                x,
-                y,
-            }, cancellationToken);
         }
 
         public static async Task<Stream> RequestAssetTeeShirt(long assetId, long contentId, CancellationToken? cancellationToken = null)
