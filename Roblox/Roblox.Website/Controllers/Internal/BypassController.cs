@@ -437,7 +437,7 @@ namespace Roblox.Website.Controllers
             {
                 membership = "OutrageousBuildersClub";
             }
-            string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.GetCharacterAppearanceUrl(placeInfo.placeId), membership, jobId, userInfo.accountAgeDays, placeId);
+            string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.GetCharacterAppearanceUrl(placeId), membership, jobId, userInfo.accountAgeDays, placeId);
             var joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, userInfo.GetCharacterAppearanceUrl(placeInfo.placeId), clientTicket, membership, userInfo.accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
 
             return services.games.SignJoinScript(placeInfo.year, joinScript);
