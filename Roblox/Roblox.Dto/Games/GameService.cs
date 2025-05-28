@@ -27,14 +27,23 @@ public enum ServerStatus
     Loading = 1,
     Ready
 }
-public class GameServerDb
+
+public enum MatchmakingContext
+{
+    Default = 1,
+    Xbox,
+    CloudEdit,
+    CloudEditTest,
+}
+
+public class GameServer
 {
     public Guid id { get; set; }
-    public long asset_id { get; set; }
+    public long assetId { get; set; }
     public long port { get; set; }
-    public DateTime updated_at { get; set; }
+    public DateTime updatedAt { get; set; }
     public ServerStatus status;
-    public int type;
+    public MatchmakingContext type;
 }
 
 public class GameServerInfoResponse

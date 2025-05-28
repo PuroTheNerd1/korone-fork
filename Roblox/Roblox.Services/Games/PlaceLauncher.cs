@@ -1,5 +1,4 @@
 
-using InfluxDB.Client.Core.Exceptions;
 using Roblox;
 using Roblox.Dto.Games;
 using Roblox.Dto.Users;
@@ -7,6 +6,7 @@ using Roblox.Models.Assets;
 using Roblox.Models.Games;
 using Roblox.Models.GameServer;
 using Roblox.Services;
+using Roblox.Services.Exceptions;
 using Roblox.Services.Signer;
 namespace Roblox.Services.PlaceLauncher;
 public class PlaceLauncherService : ServiceBase
@@ -16,39 +16,41 @@ public class PlaceLauncherService : ServiceBase
     private static GameServerService gameServer = new GameServerService();
     private static UsersService users = new UsersService();
     private static SignService sign = new SignService();
-    public enum MatchmakingContextId
-    {
-        Default = 1,
-        Xbox,
-        CloudEdit,
-        CloudEditTest,
-    }
 
-    public async Task<PlaceLaunchResponse> PlaceLauncherAsync(PlaceLaunchRequest plRequest)
+
+    public async Task<PlaceLaunchResponse> PlaceLauncherAsync(PlaceLaunchRequest request)
     {
-        if (plRequest.username == null || plRequest.userId == null || plRequest.cookie == null)
+        if (request.username == null || request.userId == null || request.cookie == null)
             throw new ArgumentNullException("One of the arguments are missing");
-        switch (plRequest.request)
+
+        PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { request.placeId })).First();
+
+        await IsUserAllowedToJoin((long)request.userId, placeInfo);
+
+        switch (request.request)
         {
             case "RequestGameJob":
-                if (plRequest.gameId == null)
-                    throw new BadRequestException("Game Id is missing");
-                return await RequestGameJob(plRequest.gameId, plRequest.placeId);
+                return await RequestGameJob(request.gameId, request.placeId);
             case "RequestGame":
-                return await RequestGame(plRequest.placeId, (long)plRequest.userId, plRequest.cookie, plRequest.special, plRequest.username);
+                return await RequestGame(placeInfo, (long)request.userId, request.cookie, request.special, request.username);
             case "CloudEdit":
-                return await RequestCloudEdit(plRequest.placeId, (long)plRequest.userId, plRequest.username);
+                return await RequestCloudEdit(placeInfo, (long)request.userId, request.username);
             case "RequestPrivateGame":
                 break;
         }
         //default
-        return new PlaceLaunchResponse()
-        {
-            status = (int)JoinStatus.Error,
-            message = "An error occured while starting the game."
-        };
+        throw new PlaceLauncherException(JoinStatus.Error, "An error occured while starting the game.");
     }
-
+    private async Task IsUserAllowedToJoin(long userId, PlaceEntry placeInfo)
+    {
+        // Let's check if the user is allowed to join the game
+        if (!await games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
+            throw new PlaceLauncherException(JoinStatus.Unauthorized, "You are not allowed to join this game.");
+        
+        // Check if the place is approved
+        if (!placeInfo.IsApproved())
+            throw new PlaceLauncherException(JoinStatus.Restricted, "This place is not available for play.");
+    }
     public async Task<PlaceLaunchResponse> RequestGameJob(string gameId, long placeId)
     {
         if (await games.IsFull(gameId, placeId))
@@ -71,38 +73,19 @@ public class PlaceLauncherService : ServiceBase
         };
     }
 
-    public async Task<PlaceLaunchResponse> RequestGame(long placeId, long userId, string cookie, bool? Special = false, string? username = null)
+    public async Task<PlaceLaunchResponse> RequestGame(PlaceEntry placeInfo, long userId, string cookie, bool? Special = false, string? username = null)
     {
         dynamic? joinScript = null;
-        PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
-        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved || placeInfo.year == 2016)
-        {
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.Error,
-                message = "The game is not active."
-            };
-        }
 
-        if (!await games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
-        {
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.Unauthorized,
-                message = "You do not have permission to join this game."
-            };
-        }
-        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default);
+        var result = await gameServer.GetServerForPlace(placeInfo, MatchmakingContext.Default);
+        
         if (Special.HasValue && (bool)Special)
         {
             string membership = await users.GetUserMemberShipAsString(userId);
             var userInfo = await users.GetUserById((long)userId);
-            var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
 
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
-            GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
-            string clientTicket =  sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
-            joinScript = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
+            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.characterAppearanceUrl, membership, result.job, userInfo.accountAgeDays, placeInfo.placeId);
+            joinScript = await games.GetJoinScript(placeInfo, userInfo, result, userInfo.characterAppearanceUrl, clientTicket, membership, userInfo.accountAgeDays, true, cookie);
 
         }
 
@@ -125,48 +108,26 @@ public class PlaceLauncherService : ServiceBase
             message = "Server found, loading...",
         };
     }
-    public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
+    public async Task<PlaceLaunchResponse> RequestCloudEdit(PlaceEntry placeInfo, long userId, string username)
     {
-        // if (userId != 3 && userId != 16 && userId != 3434 && userId != 52 && userId != 1188 && userId != 261)
-        // {
-        //     return new PlaceLaunchResponse()
-        //     {
-        //         status = (int)JoinStatus.Error,
-        //         message = "The game is not active."
-        //     };
-        // }
-        string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
-        PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         // Block 2017 due to authentication issues
-        if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved || placeInfo.year == 2017)
-        {
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.Error,
-                message = "The game is not active."
-            };
-        }
+        if (placeInfo.year == 2017)
+            throw new PlaceLauncherException(JoinStatus.Disabled, "You cannot edit places from 2017");
+
         // Cloud edit check
         var canCloudEdit = await games.CanEditUniverse(userId, placeInfo.universeId) || placeInfo.builderId == userId;
         if (!canCloudEdit)
-        {
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.Error,
-                message = "You do not have permission to edit this place."
-            };
-        }
+            throw new PlaceLauncherException(JoinStatus.Unauthorized, "You do not have permission to edit this place.");
 
-        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit);
+        var result = await gameServer.GetServerForPlace(placeInfo, MatchmakingContext.CloudEdit);
+        
         if (result.status == JoinStatus.Joining)
         {
             string membership = await users.GetUserMemberShipAsString(userId);
             var userInfo = await users.GetUserById((long)userId);
-            var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
-            GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
-            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
+            string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, userInfo.characterAppearanceUrl, membership, result.job, userInfo.accountAgeDays, placeInfo.placeId);
 
-            dynamic settings = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, false, null);
+            dynamic settings = await games.GetJoinScript(placeInfo, userInfo, result, userInfo.characterAppearanceUrl, clientTicket, membership, userInfo.accountAgeDays, false, null);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,

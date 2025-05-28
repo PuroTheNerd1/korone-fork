@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Assets;
@@ -510,7 +511,7 @@ public class UniverseV1 : ControllerBase
         var startIndex = 0;
         var limit = 1;
         var offset = startIndex;
-        var servers = (await services.gameServer.GetGameServers(placeId, offset, limit, 3)).ToList();
+        var servers = (await services.gameServer.GetGameServers(placeId, offset, limit, MatchmakingContext.CloudEdit)).ToList();
 
         foreach (var server in servers)
         {

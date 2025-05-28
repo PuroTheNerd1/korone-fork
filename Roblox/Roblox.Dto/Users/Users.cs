@@ -58,11 +58,28 @@ public class UserInfo
     public string username { get; set; }
     public AccountStatus accountStatus { get; set; }
     public DateTime created { get; set; }
+    public int accountAgeDays
+    {
+        get
+        {
+            return DateTime.UtcNow.Subtract(created).Days;
+        }
+    }
     public bool isAdmin { get; set; }
     public bool isModerator { get; set; }
     public bool isVerified { get; set; }
     public string description { get; set; }
-
+    public string characterAppearanceUrl
+    {
+        get
+        {
+            return $"{Roblox.Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}";
+        }
+    }
+    public bool IsBanned()
+    {
+        return accountStatus != AccountStatus.Ok && accountStatus != AccountStatus.MustValidateEmail;
+    }
     public bool IsDeleted()
     {
         return accountStatus != AccountStatus.Ok && accountStatus != AccountStatus.MustValidateEmail &&
