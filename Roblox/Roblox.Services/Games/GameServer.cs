@@ -369,7 +369,7 @@ public class GameServerService : ServiceBase
     public async Task<GameServer> GetGameServer(string jobId)
     {
         return await db.QueryFirstOrDefaultAsync<GameServer>(
-            "SELECT * FROM asset_server WHERE id = :id::uuid",
+            "SELECT id, assetId, port, updated_at as updatedAt, status, type  FROM asset_server WHERE id = :id::uuid",
             new
             {
                 id = Guid.Parse(jobId),
