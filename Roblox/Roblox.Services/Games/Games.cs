@@ -102,6 +102,17 @@ public class GamesService : ServiceBase, IService
 
     public async Task CanManageUniverse(long userId, long universeId)
     {
+        var universe = await db.QuerySingleOrDefaultAsync<Dto.Total>(
+            "SELECT COUNT(*) AS total FROM universe WHERE id = :id", new
+            {
+                id = universeId,
+            });
+
+        if (universe?.total == 0)
+        {
+            throw new RecordNotFoundException("Universe does not exist.");
+        }
+
         var creatorCheck = await db.QuerySingleOrDefaultAsync<Dto.Total>(
             "SELECT COUNT(*) AS total FROM universe WHERE id = :id AND creator_id = :userId", new
             {
@@ -156,13 +167,15 @@ public class GamesService : ServiceBase, IService
         using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
         var details = await assets.GetAssetCatalogInfo(universe.rootPlaceId);
         // Second condition should almost never happen but just in case
-        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.creatorTargetId != userId) 
+        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.creatorTargetId != userId) {
             throw new PermissionException(universe.rootPlaceId, userId);
-        
+        }
         return universe;
     }
     public async Task<long> GetRootPlaceId(long universeId)
     {
+        //var details = await MultiGetUniverseInfo(new []{universeId});
+        //var arr = details.ToArray();
         var result = await db.QuerySingleOrDefaultAsync<long>(
             "SELECT root_asset_id FROM universe WHERE id = :id LIMIT 1", new
             {
@@ -406,6 +419,14 @@ public class GamesService : ServiceBase, IService
 
     public static int GetPlayerCount(long placeId)
     {
+        /*var query = await db.QuerySingleOrDefaultAsync<Total>(
+            "select count(*) as total FROM asset_server_player WHERE asset_server_player.asset_id = :id", new
+            {
+                id = placeId,
+            });
+            */
+        //return query.total;
+        // new code
         int count = 0;
         Dictionary<long, long> playersInGame = GameServerService.CurrentPlayersInGame;
         foreach (var kvp in playersInGame)
@@ -613,10 +634,8 @@ public class GamesService : ServiceBase, IService
 
     public async Task SetYear(long placeId, int year)
     {
-        if (!clientVersionMap.ContainsKey(year))
-        {
-            return;
-        }
+        if (year != 2017 && year != 2018 && year != 2019 && year != 2020 && year != 2021)
+            throw new ArgumentException("Year can only be 2015, 2016, 2017, 2018, 2019 2020, 2021");
 
         await db.ExecuteAsync("UPDATE asset_place SET year = :year WHERE asset_id = :id", new
         {
@@ -1011,8 +1030,7 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductInfoFull(long productId, long limit, long offset)
-    {
+    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductInfoFull(long productId, long limit, long offset) {
         var qu = await db.QueryAsync<DeveloperProductDb>(
             @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
             dv.universe_id as universeId,
@@ -1084,8 +1102,7 @@ public class GamesService : ServiceBase, IService
         });
     }
     
-    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset)
-    {
+    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset) {
         return await db.QueryAsync<DeveloperProducts>(
             @"SELECT dv.id, dv.sales, dv.name, 
             dv.description as Description,
@@ -1181,20 +1198,19 @@ public class GamesService : ServiceBase, IService
         });
     }
     
-    public async Task IncrementDevProdSales(long productId)
-    {
-        await db.ExecuteAsync(@"UPDATE developer_product SET sales = sales + 1 WHERE id = :productId", new
+    public async Task IncrementDevProdSales(long productId) {
+        await db.ExecuteAsync(@"UPDATE developer_product SET 
+                   sales = sales + 1
+                         WHERE id = :productId", new
         {
             productId
         });
     }
 
-    public async Task CreateProductReceipt(string guid, long userId, long productId, long price)
-    {
+    public async Task CreateProductReceipt(string guid, long userId, long productId, long price) {
         if (!Guid.TryParse(guid, out _))
             throw new Exception("CreateProductReceipt: Guid provided is not a valid Guid!");
-        await InsertAsync("product_receipt", new
-        {
+        await InsertAsync("product_receipt", new {
             id = Guid.Parse(guid),
             user_id = userId,
             product_id = productId,
@@ -1202,18 +1218,15 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task ProcessProductReceipt(Guid id)
-    {
+    public async Task ProcessProductReceipt(Guid id) {
         await db.QueryAsync(
             @"UPDATE product_receipt SET processed = TRUE, processed_at = CURRENT_TIMESTAMP WHERE id = :receiptId",
-            new
-            {
+            new {
                 receiptId = id
             });
     }
     
-    public async Task<IEnumerable<ProductReceipt>> GetProcessingProductReceipts(long userId, long universeId)
-    {
+    public async Task<IEnumerable<ProductReceipt>> GetProcessingProductReceipts(long userId, long universeId) {
         return await db.QueryAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,
@@ -1247,8 +1260,7 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<ProductReceipt?> GetProductReceipt(Guid receiptId)
-    {
+    public async Task<ProductReceipt?> GetProductReceipt(Guid receiptId) {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,
@@ -1263,8 +1275,7 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<ProductReceipt?> GetProductReceiptSecure(long userId, Guid receiptId)
-    {
+    public async Task<ProductReceipt?> GetProductReceiptSecure(long userId, Guid receiptId) {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,

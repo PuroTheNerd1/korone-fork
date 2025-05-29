@@ -232,7 +232,7 @@ app.UseMiddleware<FrontendProxyMiddleware>();
 app.UseRobloxLoggingMiddleware();
 
 app.UseExceptionHandler("/error");
-CommandHandler.Configure("ws://localhost:3189", "VestiaZeta");
+//await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");
 //CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value); // will be removed soon
 
 RenderingHandler.Configure(configuration.GetSection("BaseUrl").Value, configuration.GetSection("Directories:RCCService").Value, configuration.GetSection("Directories:RCCLuaScripts").Value,  configuration.GetSection("Directories:RCCService2").Value);

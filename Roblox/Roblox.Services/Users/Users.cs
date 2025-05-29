@@ -2359,7 +2359,45 @@ public class UsersService : ServiceBase, IService
         })).total;
     }
 
+    private static Mutex is18OrOverMapMux { get; } = new();
+    private static Dictionary<long, bool> is18OrOver { get; } = new();
 
+    public async Task<bool> Is18Plus(long userId)
+    {
+        lock (is18OrOverMapMux)
+        {
+            if (is18OrOver.ContainsKey(userId))
+                return is18OrOver[userId];
+        }
+
+        var result = await db.QuerySingleOrDefaultAsync<User18OrOver>("SELECT is_18_plus as is18Plus FROM \"user\" WHERE id = :id ", new
+        {
+            id = userId,
+        });
+
+        if (result == null)
+            return false;
+
+        lock (is18OrOverMapMux)
+        {
+            is18OrOver[userId] = result.is18Plus;
+        }
+
+        return result.is18Plus;
+    }
+
+    public async Task MarkAs18Plus(long userId)
+    {
+        lock (is18OrOverMapMux)
+        {
+            is18OrOver[userId] = true;
+        }
+
+        await Database.connection.ExecuteAsync("UPDATE \"user\" SET is_18_plus = true WHERE id = :id", new
+        {
+            id = userId,
+        });
+    }
 
     public async Task<IEnumerable<UserInviteEntry>> GetInvitesByUser(long userId)
     {

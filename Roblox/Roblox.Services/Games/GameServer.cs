@@ -126,6 +126,83 @@ public class GameServerService : ServiceBase
         jwtKey = "hello world 12345";
     }
 
+    private string HashIpAddress(string hashedIpAddress)
+    {
+        return hasher.Hash(hashedIpAddress);
+    }
+
+    private bool VerifyIpAddress(string hashedIpAddress, string providedIpAddress)
+    {
+        return hasher.Verify(hashedIpAddress, providedIpAddress);
+    }
+
+    /// <summary>
+    /// Create a ticket for joining a game
+    /// </summary>
+    /// <param name="userId">The ID of the user</param>
+    /// <param name="placeId">The ID of the place</param>
+    /// <param name="ipHash">The IP Address from ControllerBase.GetIP()</param>
+    /// <returns></returns>
+    public string CreateTicket(long userId, long placeId, string ipHash)
+    {
+        var entry = new GameServerJwt
+        {
+            t = ClientJoinTicketType,
+            userId = userId,
+            placeId = placeId,
+            ip = HashIpAddress(ipHash),
+            iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        };
+        return jwt.CreateJwt(entry, jwtKey);
+    }
+
+    public bool IsExpired(long issuedAt)
+    {
+        var createdAt = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(issuedAt);
+        var notExpired = createdAt.Add(TimeSpan.FromMinutes(5)) > DateTime.UtcNow;
+        if (!notExpired)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public GameServerJwt DecodeTicket(string ticket)
+    {
+        var value = jwt.DecodeJwt<GameServerJwt>(ticket, jwtKey);
+        if (value.t != ClientJoinTicketType) throw new ArgumentException("Invalid ticket");
+        if (IsExpired(value.iat))
+        {
+            throw new ArgumentException("Invalid ticket");
+        }
+        return value;
+    }
+
+    public string CreateGameServerTicket(long placeId, string domain)
+    {
+        var ticket = new GameServerTicketJwt
+        {
+            t = ServerJoinTicketType,
+            placeId = placeId,
+            domain = domain,
+            iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        };
+        return jwt.CreateJwt(ticket, jwtKey);
+    }
+
+    public GameServerTicketJwt DecodeGameServerTicket(string ticket)
+    {
+        var value = jwt.DecodeJwt<GameServerTicketJwt>(ticket, jwtKey);
+        if (value.t != ServerJoinTicketType) throw new ArgumentException("Invalid ticket");
+        if (IsExpired(value.iat))
+        {
+            throw new ArgumentException("Invalid ticket");
+        }
+
+        return value;
+    }
+
     public async Task OnPlayerJoin(long userId, long placeId, string serverId)
     {
         lock (CurrentPlayersInGame)
@@ -741,7 +818,7 @@ public class GameServerService : ServiceBase
         //     {
         //         status = JoinStatus.Loading,
         //     };
-       StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking);
+       _ = Task.Run(async () => await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking));
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
             new
@@ -768,7 +845,7 @@ public class GameServerService : ServiceBase
     }
 
 
-    public string StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, string jobId, int matchmaking)
+    public async Task<string> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, string jobId, int matchmaking)
     {
         Console.WriteLine("Starting Gameserver");
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);

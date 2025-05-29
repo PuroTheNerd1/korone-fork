@@ -173,6 +173,14 @@ namespace Roblox.Website.Controllers
                 };
             }
 
+            // Confirm asset is buyable
+            var user18Plus = await services.users.Is18Plus(safeUserSession.userId);
+            if (!user18Plus) {
+                if (await services.assets.Is18Plus(purchaseRequest.productId))
+                    throw new RobloxException(400, 0,
+                        "You cannot purchase 18+ items until you confirm you are 18 or over.");
+            }
+
             await services.users.PurchaseNormalItem(safeUserSession.userId, purchaseRequest.productId,
                 purchaseRequest.currencyTypeId);
             stopwatch.Stop();

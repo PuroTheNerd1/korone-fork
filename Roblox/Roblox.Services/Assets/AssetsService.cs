@@ -542,6 +542,17 @@ public class AssetsService : ServiceBase, IService
         }
     }
 
+    public async Task<bool> Is18Plus(long assetId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.IsAsset18Plus>(
+            "SELECT is_18_plus AS is18Plus FROM asset WHERE id = :id",
+            new
+            {
+                id = assetId,
+            });
+        return result.is18Plus;
+    }
+
     private static long maxAudioFileSizeBytes = 20447232;
     public async Task<MediaValidation> IsAudioValid(Stream content)
     {
@@ -2749,13 +2760,21 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         if (details.Length == 0) return null;
         if (details.Length == 1) return details[0]; // prevent out of range exception
-
+        var allow18Plus = false;
+        if (userId != null)
+        {
+            allow18Plus = await ServiceProvider.GetOrCreate<UsersService>(this).Is18Plus(userId.Value);
+        }
         // create a list. put one entry in list for each robux bid on each ad
         var adIds = new List<long>();
         var idx = 0;
         using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
         foreach (var item in details)
         {
+            var isAd18Plus = await assets.Is18Plus(item.advertisementAssetId);
+            if (isAd18Plus && !allow18Plus)
+                continue;
+
             for (long i = 0; i < item.bidAmountRobuxLastRun; i++)
             {
                 adIds.Add(idx);

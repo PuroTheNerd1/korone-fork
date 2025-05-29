@@ -18,7 +18,7 @@ public class RenderingTest
     public async Task RenderGameThumb1080p()
     {
         CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");
-        var assetResult = await RenderingHandler.RequestPlaceRender(139, 10, 1920, 1080);
+        var assetResult = await CommandHandler.RequestAssetGame(139, 1920, 1080);
         _testOutputHelper.WriteLine("Got result. Len={0}",assetResult.Length);
     }
 }

@@ -710,6 +710,7 @@ public class Catalog : ControllerBase
     [HttpGetBypass("v1/search/items")]
     public async Task<SearchResponse> SearchItems(string? category, string? subcategory, string? sortType, string? keyword, string? cursor, int limit = 10, CreatorType? creatorType = null, long? creatorTargetId = null, bool includeNotForSale = false, string? _genreFilterCsv = null)
     {
+	    var include18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
 	    var request = new CatalogSearchRequest()
 	    {
 		    category = category,
@@ -722,7 +723,7 @@ public class Catalog : ControllerBase
 		    creatorTargetId = creatorTargetId,
 		    includeNotForSale = includeNotForSale,
 		    genres = _genreFilterCsv?.Split(",").Select(Enum.Parse<Genre>),
-		    include18Plus = false,
+		    include18Plus = include18Plus,
 	    };
 	    if (request.limit is > 100 or < 1) request.limit = 10;
 	    return await services.assets.SearchCatalog(request);

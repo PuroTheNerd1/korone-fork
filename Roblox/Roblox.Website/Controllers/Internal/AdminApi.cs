@@ -553,8 +553,7 @@ public class AdminApiController : ControllerBase
         {
             var details = await services.assets.GetAssetCatalogInfo(request.assetId);
             var minCreationTime = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
-            // Owners can delete assets any time they want
-            if (details.createdAt < minCreationTime && !StaffFilter.IsOwner(userSession.userId))
+            if (details.createdAt < minCreationTime)
             {
                 throw new StaffException("This asset cannot be deleted since it was created too long ago");
             }
@@ -613,6 +612,14 @@ public class AdminApiController : ControllerBase
                 status = ModerationStatus.ReviewApproved,
             });
 
+            if (request.is18Plus)
+            {
+                // update asset
+                await db.ExecuteAsync("UPDATE asset SET is_18_plus = true WHERE id = :id", new
+                {
+                    id = (long) details.asset_id,
+                });
+            }
         }
         else
         {
