@@ -1309,6 +1309,7 @@ public class AssetsService : ServiceBase, IService
             Type.ShoulderAccessory,
             Type.FaceAccessory,
             Type.Head,
+            Type.Model
         };
         Console.WriteLine($"Backport asset type is: {accessoryAsset.AssetTypeId}");
         if (accessoryAsset.AssetTypeId.HasValue && allowedTypes.Contains(accessoryAsset.AssetTypeId.Value))
