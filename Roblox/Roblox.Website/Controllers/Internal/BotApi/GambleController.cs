@@ -72,11 +72,11 @@ namespace Roblox.Website.Controllers
                 };
             }
 
-            // 50% chance to win
+            // 40% chance to win
             int chance = RandomNumberGenerator.GetInt32(1, 100);
 
             // calculate if win
-            bool isWinner = chance <= 50;
+            bool isWinner = chance <= 40;
             int finalRobux = amount * 2;
 
             await services.economy.ChargeForCoinflip(userInfo.userId, amount, finalRobux, isWinner);
