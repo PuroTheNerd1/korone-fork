@@ -2069,7 +2069,8 @@ Thank you for your understanding,
             Type.ShoulderAccessory,
             Type.FaceAccessory,
             Type.Head,
-            Type.EmoteAnimation
+            Type.EmoteAnimation,
+            Type.Model
         };
         if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
             throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);
