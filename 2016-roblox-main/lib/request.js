@@ -24,7 +24,7 @@ export const getBaseUrl = () => {
  * @returns {string}
  */
 export const getBaseUrl2 = (str) => {
-    return config.publicRuntimeConfig.backend.baseUrl + str;
+    return config.publicRuntimeConfig.backend.baseUrl + (str.charAt(0) === '/' ? str : '/' + str);
 }
 
 /**

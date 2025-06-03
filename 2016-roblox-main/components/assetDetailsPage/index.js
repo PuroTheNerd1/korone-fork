@@ -25,6 +25,8 @@ import SellItemModal from "./modals/SellItemModal";
 import ConfirmSellModal from "./modals/ConfirmSellModal";
 import Authentication from "../../stores/authentication";
 import Owners from "./components/Owners";
+import RelatedGame from "./components/RelatedGame";
+import AudioPlayButton from "../catalogDetailsPage/components/audioPlayButton";
 
 const useStyles = createUseStyles({
     pageWrapper: {
@@ -34,6 +36,7 @@ const useStyles = createUseStyles({
     },
     container: {
         width: "calc(100% - 185px)",
+        maxWidth: 950,
     },
     itemContainer: {
         display: "flex",
@@ -63,6 +66,11 @@ const useStyles = createUseStyles({
             lineHeight: "1em",
             padding: "5px 0",
             margin: 0,
+            maxHeight: "2.225em",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            wordBreak: "break-word",
+            textOverflow: "ellipsis",
         },
     },
     itemDescription: {
@@ -71,6 +79,17 @@ const useStyles = createUseStyles({
         width: "calc(100% - 120px)",
         fontFamily: 'HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif'
     },
+    smallImg: {
+        width: 420,
+        height: 420,
+        display: "flex",
+        alignItems: "center",
+        "& img": {
+            width: 150,
+            height: 150,
+        }
+    },
+    
     img: { padding: 0 },
     
     itemDetails: {},
@@ -210,11 +229,11 @@ const useStyles = createUseStyles({
         fontSize: 16,
     },
     bannerAdContainer: {
-        height: 90,
+        maxHeight: 90,
         marginBottom: 15,
     },
     skyscraperAdContainer: {
-        width: 160,
+        maxWidth: 160,
     },
     ownedStat: {
         verticalAlign: 'text-bottom',
@@ -402,8 +421,8 @@ function AssetDetailsPage({ itemDetails }) {
         { modal.isConfirmSellModalOpen ? <ConfirmSellModal /> : null }
         <div className={`section-content noShadow ${s.itemContainer}`}>
             <div className={`${s.itemThumbContainer} flex flex-column`}>
-                <div className="w-fit-content position-relative">
-                    <ItemImage name={itemDetails.name} id={itemDetails.id} className={s.img}/>
+                <div className={`w-fit-content position-relative ${itemDetails.assetType === AssetType.Badge || itemDetails.assetType === AssetType.GamePass ? s.smallImg : ""}`}>
+                    <ItemImage name={itemDetails.name} id={itemDetails.id} className={`${s.img}`}/>
                     <div className={s.itemStatusContainer}>
                         {
                             isNew
@@ -438,6 +457,20 @@ function AssetDetailsPage({ itemDetails }) {
                             null
                         }
                     </div>
+                    {
+                        itemDetails.assetType === AssetType.Badge || itemDetails.assetType === AssetType.GamePass
+                        ?
+                        <RelatedGame />
+                        :
+                        null
+                    }
+                    {
+                        itemDetails.assetType === AssetType.Audio
+                        ?
+                        <AudioPlayButton audioId={itemDetails.id} />
+                        :
+                        null
+                    }
                 </div>
                 <div className={s.itemInteractionContainer}>
                     <div className="flex" style={{ marginTop: 6, }}>
@@ -514,7 +547,7 @@ export default function DetailsPageContainer({ details }) {
             <UserAdvertisement type={UserAdvertisementType.Banner728x90} wrapperClass={s.bannerAdContainer} />
             <div className={s.pageWrapper}>
                 <AssetDetailsPage itemDetails={details}/>
-                <UserAdvertisement type={UserAdvertisementType.SkyScraper160x600} />
+                <UserAdvertisement type={UserAdvertisementType.SkyScraper160x600} wrapperClass={s.skyscraperAdContainer} backupWidth="160px" />
             </div>
         </div>
     </Theme2016>

@@ -129,7 +129,14 @@ function Owners() {
         return newOwners;
     })
     
-    if (owners.length === 0) return null;
+    if (owners.length === 0) return <div>
+        <div id="itemResellerHeader" className={`flex ${s.containerHeader}`}>
+            <h3 style={{ margin: 0, }}>Owners</h3>
+        </div>
+        <div className={`section-content-off noShadow ${s.resellersWrapper}`} style={{ padding: 15 }}>
+            No one owns this item currently.
+        </div>
+    </div>;
     
     return <div>
         <div id="itemResellerHeader" className={`flex ${s.containerHeader}`}>
@@ -142,26 +149,31 @@ function Owners() {
                     return <div className={s.resellerContainer}>
                         <Link href={href}>
                             <a className={s.resellerImg} href={href}>
-                                <img src={ThumbnailFromState(owner.imageUrl || "", owner.state || "")} alt={owner.owner?.name || "Deleted / Private"} />
+                                <img src={ThumbnailFromState(owner.imageUrl || "", owner.state || "")}
+                                     alt={owner.owner?.name || "Deleted / Private"}/>
                             </a>
                         </Link>
                         <div className={s.resellerInfo}>
                             {
                                 owner.owner
                                 ?
-                                <CreatorLink newWeight={true} id={owner.owner.id} name={owner.owner.name} type={owner.owner.type} />
+                                <CreatorLink newWeight={true} id={owner.owner.id} name={owner.owner.name}
+                                             type={owner.owner.type}/>
                                 :
                                 <span>Deleted / Private</span>
                             }
                             <span style={{ padding: "0 5px", }}>-</span>
-                            <span style={{ fontSize: 12, fontWeight: 400 }}>Serial {owner.serialNumber ? `#${owner.serialNumber} of ${store.resaleData.sales}` : "N/A"}</span>
+                            <span style={{
+                                fontSize: 12,
+                                fontWeight: 400
+                            }}>Serial {owner.serialNumber ? `#${owner.serialNumber} of ${store.resaleData.sales}` : "N/A"}</span>
                             <div className={`${s.priceContainer} flex`}>
                                 <span className={s.priceLabel}
                                       style={{ color: "#b8b8b8" }}>{dayjs(owner.updated).fromNow()}</span>
                             </div>
                         </div>
                         <div className={s.btnContainer2}>
-                        {
+                            {
                                 !owner.owner || (owner.owner.id !== auth.userId && owner.owner.id !== 1 && owner.owner.id !== 68)
                                 ?
                                 <ActionButton

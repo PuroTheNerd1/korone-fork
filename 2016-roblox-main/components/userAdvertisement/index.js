@@ -23,7 +23,7 @@ const useStyles = createUseStyles({
 
 /**
  * User advertisement iframe
- * @param {{type: number, wrapperClass: string}} props
+ * @param {{type: number; wrapperClass: string; backupWidth?: number;}} props
  */
 const UserAdvertisement = props => {
   const info = adTypes[props.type];
@@ -61,7 +61,7 @@ const UserAdvertisement = props => {
   // TODO: calculate correct height of ad when current screen width is smaller than ad width. The height is way too big on mobile.
   if (!info) throw new Error(`unexpected adType: ${props.type}`);
   if (!imageUrl) {
-    return <div style={{width: '100%', height: info.height}}/>
+    return <div style={{width: props.backupWidth || '100%', height: info.height}}/>
   }
   return <div className={`${s.adWrapper} ${props?.wrapperClass || ''}`} style={imageLoaded ? undefined : { height: info.height, width: '100%' }}>
     <Link href={link || '#'}>
