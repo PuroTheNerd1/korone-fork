@@ -171,6 +171,7 @@ const useHeaderStyles = createUseStyles({
     display: 'flex',
     justifyContent: 'flex-end',
     alignItems: 'center',
+    width: "45%",
     '@media(max-width: 767px)': {
       width: '100%',
       flexDirection: 'row',
@@ -229,7 +230,7 @@ const ProfileHeader = props => {
     const buttons = [];
     // Don't make it ===, because store.userId is a string and auth.userId is a number
     const isOwnProfile = auth.userId == store.userId;
-    if (store.friendStatus === "Friends") {
+    if (store.friendStatus === "Friends" || status && status?.userPresenceType === "InGame") {
       buttons.push({
         name: 'Message',
         onClick: (e) => {
@@ -386,7 +387,7 @@ const ProfileHeader = props => {
                         <FriendButton />
                       </div>
                       
-                      {store.friendStatus != "Friends" &&
+                      {(store.friendStatus != "Friends" || status && status?.userPresenceType !== "InGame") &&
                           <div style={{ order: '3' }} className={s.buttonContainer}>
                             <MessageButton />
                           </div>

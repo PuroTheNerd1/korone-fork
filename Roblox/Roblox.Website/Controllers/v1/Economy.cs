@@ -232,14 +232,6 @@ public class EconomyControllerV1 : ControllerBase
             throw new RobloxException(400, 0, "Bad userId");
         if (request.userAssetId is 0 or < 0)
             request.userAssetId = null;
-        // Confirm asset is buyable
-        var user18Plus = await services.users.Is18Plus(safeUserSession.userId);
-        if (!user18Plus)
-        {
-            if (await services.assets.Is18Plus(assetId))
-                throw new RobloxException(400, 0,
-                    "You cannot purchase 18+ items until you confirm you are 18 or over.");
-        }
         
         if (request.userAssetId != null)
         {

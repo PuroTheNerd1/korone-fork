@@ -83,6 +83,7 @@ public class UsersControllerV1 : ControllerBase
             isBanned,
             isInventoryPublic = await services.inventory.CanViewInventory(info.userId, 0),
             isStaff = await StaffFilter.IsStaff(info.userId),
+            hasVerifiedBadge = info.isVerified,
             totalPlaceVisits = await services.games.GetTotalVisitsFromUser(info.userId),
             friendshipCount = await services.friends.CountFriends(info.userId),
             followingCount = await services.friends.CountFollowings(info.userId),

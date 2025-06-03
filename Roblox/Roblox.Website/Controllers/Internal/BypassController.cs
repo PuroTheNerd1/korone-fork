@@ -385,7 +385,7 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("game/join.ashx")]
         [HttpGetBypass("game/join.ashx")]
-        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false, bool? forceMessage = false)
+        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
 
@@ -395,10 +395,17 @@ namespace Roblox.Website.Controllers
             var jobInfo = await services.gameServer.GetGameServer(jobId);
             if (jobInfo == null)
                 throw new BadRequestException(1, "Gameserver does not exist");
-            
+            // Let's not allow cloud edit servers via here
+            if (jobInfo.type == 3)
+                throw new BadRequestException(1, "This is a cloudedit server, you cannot join it.");
             long placeId = jobInfo.asset_id;
+
             PlaceEntry placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
-            
+            // Check place privacy
+            if (!await services.games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
+            {
+                throw new ForbiddenException(1, "You cannot join this game, you do not have permission.");
+            }
             string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
@@ -428,14 +435,7 @@ namespace Roblox.Website.Controllers
                 await services.gameServer.KickPlayer(userId);
             }
 
-            // RAGESOC will trigger here it's most likely a cheater because why ever would a player not be online when joining a game
-            // We check this by checking if the user was online in the last 5 minutes
-            var hasSuspicousLastOnline = onlineStatus.lastOnline < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5)) || onlineStatus.userPresenceType == PresenceType.Offline;
-            if (hasSuspicousLastOnline || forceMessage == true)
-            {
-                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGESOC] UID: {userId} Flag: SuspicousLastOnline");
-            }
-
+            
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             string membership = await services.users.GetUserMemberShipAsString(userId);
             if (placeInfo.year != 2020 && placeInfo.year != 2021 && membership == "Premium")
@@ -735,6 +735,14 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new UnauthorizedAccessException();
+            var onlineStatus = (await services.users.MultiGetPresence(new[] {visitorId})).First();
+            // RAGESOC will trigger here it's most likely a cheater because why ever would a player not be online when joining a game
+            // We check this by checking if the user was online in the last 5 minutes
+            var hasSuspicousLastOnline = onlineStatus.lastOnline < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(2)) || onlineStatus.userPresenceType == PresenceType.Offline;
+            if (hasSuspicousLastOnline)
+            {
+                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGESOC] UID: {visitorId} Flag: SuspicousLastOnline");
+            }
 
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
             return Ok();

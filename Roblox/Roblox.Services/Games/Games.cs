@@ -45,13 +45,57 @@ public class GamesService : ServiceBase, IService
         }
         return false;
     }
-    public async Task<bool> CanCloudEdit(long userId, long universeId)
+    public async Task<bool> CanPlayUniverse(long userId, long universeId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
-            "SELECT COUNT(*) AS total FROM teamcreate_memberships WHERE universe_id = :id AND user_id = :userId", new
+            "SELECT COUNT(*) AS total FROM universe_permission WHERE universe_id = :id AND subject_id = :userId AND subject_type = :subjectType", new
             {
                 id = universeId,
                 userId,
+                subjectType = (int)CreatorType.User,
+            });
+        return result?.total > 0;
+    }
+
+    public async Task<bool> CanUserJoinUniverse(long userId, long creatorId, long universeId)
+    {
+        if (creatorId == userId)
+        {
+            return true;
+        }
+
+        var universe = await GetUniverseInfo(universeId);
+
+        bool canPlay = await CanPlayUniverse(userId, universeId);
+        
+        if (universe.privacyType == PrivacyType.Private && !canPlay)
+        {
+            return false;
+        }
+
+        if (universe.privacyType == PrivacyType.FriendsOnly)
+        {
+            var friendsService = ServiceProvider.GetOrCreate<FriendsService>(this);
+            bool isFriend = await friendsService.AreAlreadyFriends(userId, creatorId);
+            
+            if (!isFriend)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public async Task<bool> CanEditUniverse(long userId, long universeId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Dto.Total>(
+            "SELECT COUNT(*) AS total FROM universe_permission WHERE universe_id = :id AND subject_id = :userId AND subject_type = :subjectType AND action = :action", new
+            {
+                id = universeId,
+                userId,
+                subjectType = (int)CreatorType.User,
+                action = (int)PermittedAction.Edit
             });
         return result?.total > 0;
     }
@@ -155,7 +199,7 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<IEnumerable<Dto.Users.MultiGetEntry>> GetTeamcreateMembershipsForUniverse(long universeId)
     {
-        UsersService user = new UsersService();
+        var user = ServiceProvider.GetOrCreate<UsersService>(this);
         var result = await db.QueryAsync<dynamic>(
             "SELECT user_id FROM teamcreate_memberships WHERE universe_id = :id", new
             {
@@ -164,15 +208,67 @@ public class GamesService : ServiceBase, IService
         var userInfo = await user.MultiGetUsersById(result.Select(r => (long)r.user_id));
         return userInfo;
     }
-    public async Task<IEnumerable<MultiGetUniverseEntry>> GetTeamcreateMembershipsForUser(long userId)
+
+    public async Task<IEnumerable<Dto.Games.UniversePermission>> GetUniversePermissions(long universeId)
+    {
+        var result = await db.QueryAsync<Dto.Games.UniversePermission>(
+            "SELECT action, subject_type as subjectType, subject_id as subjectId, universe_id as universeId FROM universe_permission WHERE universe_id = :id", new
+            {
+                id = universeId,
+            });
+        return result;
+    }
+    public async Task<IEnumerable<Dto.Games.UniversePermission>> GetUniversePermissionsForUser(long userId, long universeId)
+    {
+        var result = await db.QueryAsync<Dto.Games.UniversePermission>(
+            "SELECT action, subject_type as subjectType, subject_id as subjectId, universe_id as universeId FROM universe_permission WHERE universe_id = :id AND subject_id = :userId AND subject_type = 1", new
+            {
+                id = universeId,
+                userId,
+            });
+        return result;
+    }
+    public async Task<IEnumerable<MultiGetUniverseEntry>> GetEditableUniversesForUser(long userId)
     {
         var result = await db.QueryAsync<dynamic>(
-            "SELECT universe_id FROM teamcreate_memberships WHERE user_id = :id", new
+            "SELECT universe_id FROM universe_permission WHERE subject_id = :id AND action = :action AND subject_type = :subjectType", new
             {
                 id = userId,
+                action = (int)PermittedAction.Edit,
+                subjectType = (int)CreatorType.User
             });
 
         return await MultiGetUniverseInfo(result.Select(r => (long)r.universe_id));
+    }
+    public async Task BatchUpdateUniversePermissions(IEnumerable<Dto.Games.UniversePermission> permissions, long universeId)
+    {
+        foreach (var permission in permissions)
+        {
+            await db.ExecuteAsync(@"
+                INSERT INTO universe_permission (action, subject_type, subject_id, universe_id)
+                VALUES (:action, :subject_type, :subject_id, :universe_id)
+                ON CONFLICT (subject_type, subject_id, universe_id)
+                DO UPDATE SET action = EXCLUDED.action
+            ", new
+            {
+                action = (int)permission.action,
+                subject_type = (int)permission.subjectType,
+                subject_id = permission.subjectId,
+                universe_id = universeId
+            });
+        }
+    }
+    public async Task BatchDeleteUniversePermissions(IEnumerable<Dto.Games.UniversePermission> permissions, long universeId)
+    {
+        foreach (var permission in permissions)
+        {
+            await db.ExecuteAsync("DELETE FROM universe_permission WHERE subject_type = :subject_type AND subject_id = :subject_id AND universe_id = :universe_id", new
+            {
+                subject_type = (int)permission.subjectType,
+                subject_id = permission.subjectId,
+                universe_id = universeId
+            });
+        }
     }
     public async Task SetCloudedit(bool isEnabled, long universeId)
     {
@@ -209,6 +305,7 @@ public class GamesService : ServiceBase, IService
                 universe.root_asset_id as rootPlaceId,
                 universe.is_public as isPublic,
                 universe.forcemorph_type as universeAvatarType,
+                universe.privacy_type as privacyType,
                 asset.name as sourceName,
                 asset.description as sourceDescription,
                 asset.name,
@@ -515,12 +612,14 @@ public class GamesService : ServiceBase, IService
         return result;
     }
 
-    public async Task SetPlaceVisibility(long universeId, bool isVisible)
+    public async Task SetPlacePrivacyType(long universeId, PrivacyType privacyType)
     {
-        await db.ExecuteAsync("UPDATE universe SET is_public = :visible WHERE id = :id", new
+        var isVisible = (privacyType == PrivacyType.Public || privacyType == PrivacyType.FriendsOnly);  
+        await db.ExecuteAsync("UPDATE universe SET is_public = :visible, privacy_type = :privacy WHERE id = :id", new
         {
-            id = universeId,
             visible = isVisible,
+            privacy = (int) privacyType,
+            id = universeId,
         });
     }
 
@@ -910,7 +1009,6 @@ public class GamesService : ServiceBase, IService
             var uni = await InsertAsync("universe", new
             {
                 root_asset_id = rootPlaceId,
-                is_public = true,
                 creator_id = (long) creatorInfo.creator_id,
                 creator_type = (int) creatorInfo.creator_type,
             });

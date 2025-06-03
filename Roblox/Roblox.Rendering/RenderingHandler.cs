@@ -96,10 +96,10 @@ namespace Roblox.Rendering
                     renderRequest.assetId = id;
                     url = "catalog/mesh";
                     break;
-                case RenderType.MeshPart:
-                    renderRequest.assetId = id;
-                    url = "catalog/meshpart";
-                    break;
+                // case RenderType.MeshPart:
+                //     renderRequest.assetId = id;
+                //     url = "catalog/meshpart";
+                //     break;
                 case RenderType.Hat:
                     renderRequest.assetId = id;
                     url = "catalog/hat";

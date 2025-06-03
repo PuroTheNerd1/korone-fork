@@ -35,6 +35,7 @@ public class MultiGetUniverseEntry
     public bool isFavoritedByUser { get; set; }
     public bool isAllGenre => genre == Genre.All;
     public ForceMorphType universeAvatarType { get; set; }
+    public PrivacyType privacyType { get; set; }
     public bool studioAccessToApisAllowed { get; set; }
     public long? price { get; set; }
     public bool isGenreEnforced { get; set; } = false;
@@ -131,11 +132,28 @@ public class GamesForCreatorDevelop
     public DateTime updated { get; set; }
 }
 
+public class UniversePermission
+{
+    public PermittedAction action { get; set; }
+    public CreatorType subjectType { get; set; }
+    public long subjectId { get; set; }
+    public long universeId { get; set; }
+}
+
+
 public enum PrivacyType
 {
     Public = 1,
+    FriendsOnly,
     Private
 }
+
+public enum PermittedAction
+{
+    Play = 0,
+    Edit = 1,
+}
+
 
 public enum ForceMorphType
 {
@@ -157,7 +175,8 @@ public class TeamCreateSettings
 
 public class UpdateUniverseConfiguration
 {
-    public string universeAvatarType { get; set; }
+    public string? universeAvatarType { get; set; }
+    public bool? isFriendsOnly { get; set; }
 }
 
 public class CreateUniverseRequest

@@ -537,7 +537,7 @@ public class WebController : ControllerBase
         clientVer = services.games.clientVersionMap.TryGetValue(year, out var ver) ? ver : throw new BadRequestException();
         var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
         if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved || assetInfo.typeId != (int)Models.Assets.Type.Place) 
-            throw new BadRequestException();
+            throw new BadRequestException(1, "Place is not active");
         var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{ROBLOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
             @$"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx 
@@ -631,7 +631,7 @@ public class WebController : ControllerBase
             TotalCollectionSize = servers.Count,
         };
     }
-
+    // Gonna clean this up later when im home
     [HttpGet("search/users/results")]
     public async Task<dynamic> SearchUsersJson(string? keyword = null, int offset = 0, int limit = 10)
     {
@@ -639,7 +639,57 @@ public class WebController : ControllerBase
             limit = 10;
         if ((offset / limit) > 1000)
             offset = 0;
+        // Exact matching
+        bool exactMatch = false;
+        string exactName = string.Empty;
+        if (!string.IsNullOrWhiteSpace(keyword) && keyword.StartsWith("@") && keyword.EndsWith("@") && keyword.Length > 2)
+        {
+            exactMatch = true;
+            exactName = keyword.Substring(1, keyword.Length - 2);
+        }
+        if (exactMatch)
+        {
+            // If the user is searching for an exact match, we can just return the user if they exist
+            var user = await services.users.GetUserByName(exactName);
+            if (user == null)
+            {
+                return new
+                {
+                    Keyword = keyword,
+                    StartIndex = offset,
+                    MaxRows = limit,
+                    TotalResults = 0,
+                    UserSearchResults = Array.Empty<int>(),
+                };
+            }
 
+            var presence = (await services.users.MultiGetPresence(new List<long> { user.userId })).First();
+
+            return new
+            {
+                Keyword = keyword,
+                StartIndex = offset,
+                MaxRows = limit,
+                TotalResults = 1,
+                UserSearchResults = new[]
+                {
+                    new
+                    {
+                        UserId = user.userId,
+                        Name = user.username,
+                        DisplayName = user.username,
+                        Blurb = user.description,
+                        PreviousUserNamesCsv = "",
+                        IsOnline = presence != null && presence.userPresenceType != PresenceType.Offline,
+                        LastLocation = presence?.lastLocation,
+                        LastSeenDate = presence?.lastOnline,
+                        UserProfilePageUrl = "/users/" + user.userId + "/profile",
+                        PrimaryGroup = "",
+                        PrimaryGroupUrl = "",
+                    }
+                },
+            };
+        }
         var result = (await services.users.SearchUsers(keyword, limit, offset)).ToArray();
         if (result.Length == 0)
             return new
@@ -652,25 +702,31 @@ public class WebController : ControllerBase
             };
         // No DB pagination yet, it's just too expensive to be worth it right now
         var userInfo = await services.users.MultiGetUsersById(result.Skip(offset).Take(limit).Select(c => c.userId));
+        var userPresence = await services.users.MultiGetPresence(userInfo.Select(c => c.id).ToList());
+
         return new
         {
             Keyword = keyword,
             StartIndex = offset,
             MaxRows = limit,
             TotalResults = result.Length,
-            UserSearchResults = userInfo.Select(c => new
+            UserSearchResults = userInfo.Select(c =>
             {
-                UserId = c.id,
-                Name = c.name,
-                DisplayName = c.displayName,
-                Blurb = "",
-                PreviousUserNamesCsv = "",
-                IsOnline = false,
-                LastLocation = (string?) null,
-                UserProfilePageUrl = "/users/" + c.id + "/profile",
-                LastSeenDate = (string?) null,
-                PrimaryGroup = "",
-                PrimaryGroupUrl = "",
+                var presence = userPresence.FirstOrDefault(p => p.userId == c.id);
+                return new
+                {
+                    UserId = c.id,
+                    Name = c.name,
+                    DisplayName = c.displayName,
+                    Blurb = c.description,
+                    PreviousUserNamesCsv = "",
+                    IsOnline = presence != null && presence.userPresenceType != PresenceType.Offline,
+                    LastLocation = presence?.lastLocation,
+                    LastSeenDate = presence?.lastOnline,
+                    UserProfilePageUrl = "/users/" + c.id + "/profile",
+                    PrimaryGroup = "",
+                    PrimaryGroupUrl = "",
+                };
             }),
         };
     }
@@ -684,7 +740,7 @@ public class WebController : ControllerBase
         Models.Assets.Type.Image,
         Models.Assets.Type.Video,
         Models.Assets.Type.Mesh,
-        Models.Assets.Type.MeshPart,
+        //Models.Assets.Type.MeshPart,
         Models.Assets.Type.Model,
         Models.Assets.Type.GamePass,
         Models.Assets.Type.Badge

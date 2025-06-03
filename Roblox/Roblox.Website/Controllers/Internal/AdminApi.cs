@@ -433,7 +433,7 @@ public class AdminApiController : ControllerBase
                 Type.Package,
                 Type.Place,
                 Type.Plugin,
-                Type.MeshPart,
+                //Type.MeshPart,
                 Type.Mesh,
                 Type.SolidModel,
                 Type.Video,
@@ -492,12 +492,19 @@ public class AdminApiController : ControllerBase
         }
 
         var latest = await services.assets.GetLatestAssetVersion(request.assetId);
+        var assetInfo = await services.assets.GetAssetCatalogInfo(request.assetId);
 
         if (latest.creatorId == userSession.userId && !StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("You cannot moderate your own assets");
 
-        if (details.canEarnRobuxFromApproval)
-            await AwardCommissionForModeration();
+
+        // Only rewared of items that are audios
+        if (assetInfo.assetType == Type.Audio)
+        {
+            if (details.canEarnRobuxFromApproval)
+                await AwardCommissionForModeration();
+        }
+
 
         var newStatus = request.isApproved ? ModerationStatus.ReviewApproved : ModerationStatus.Declined;
 
@@ -508,7 +515,8 @@ public class AdminApiController : ControllerBase
             id = request.assetId,
         });
         // for game media, this is necessary for the media to be shown on games page
-        if (newStatus == ModerationStatus.ReviewApproved) {
+        if (newStatus == ModerationStatus.ReviewApproved)
+        {
             await db.ExecuteAsync("UPDATE asset_media SET is_approved = TRUE WHERE media_asset_id = :id", new
             {
                 id = request.assetId,
@@ -614,7 +622,7 @@ public class AdminApiController : ControllerBase
                 "You can only moderate items in a pending state. This item was already approved or declined.");
         }
 
-        await AwardCommissionForModeration();
+        //await AwardCommissionForModeration();
 
         if (request.isApproved)
         {

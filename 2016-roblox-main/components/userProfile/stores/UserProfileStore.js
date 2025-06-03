@@ -16,12 +16,14 @@ import { Stopwatch, wait } from "../../../lib/utils";
 import request from "../../../lib/request";
 import { FeedbackType } from "../../../models/feedback";
 import FeedbackStore from "../../../stores/feedback";
+import { getUserConnections } from "../../../services/accountInformation";
 
 const UserProfileStore = createContainer(() => {
     const [userId, setUserId] = useState(null);
     const [username, setUsername] = useState(null);
     const [lastError, setLastError] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
+    const [userConns, setUserConns] = useState({});
     const [userAv3D, setUserAv3D] = useState(null);
     const [status, setStatus] = useState(null);
     const [previousNames, setPreviousNames] = useState(null);
@@ -88,6 +90,7 @@ const UserProfileStore = createContainer(() => {
         isAuthenticatedUserFollowingUserId({
             userId,
         }).then(setIsFollowing);
+        getUserConnections({ userId, returnUrls: true }).then(setUserConns);
         GetUserThumb3D(userId);
     }, [userId]);
     
@@ -142,6 +145,8 @@ const UserProfileStore = createContainer(() => {
         isFollowing,
         setIsFollowing,
         
+        /** @type UserConnection */
+        userConns,
         /** @type Thumbnail3D */
         userAv3D,
         

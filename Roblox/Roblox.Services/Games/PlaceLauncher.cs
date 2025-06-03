@@ -2,6 +2,7 @@
 using InfluxDB.Client.Core.Exceptions;
 using Roblox;
 using Roblox.Dto.Games;
+using Roblox.Dto.Users;
 using Roblox.Models.Assets;
 using Roblox.Models.Games;
 using Roblox.Models.GameServer;
@@ -82,6 +83,15 @@ public class PlaceLauncherService : ServiceBase
                 message = "The game is not active."
             };
         }
+
+        if (!await games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
+        {
+            return new PlaceLaunchResponse()
+            {
+                status = (int)JoinStatus.Unauthorized,
+                message = "You do not have permission to join this game."
+            };
+        }
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default);
         if (Special.HasValue && (bool)Special)
         {
@@ -136,6 +146,17 @@ public class PlaceLauncherService : ServiceBase
                 message = "The game is not active."
             };
         }
+        // Cloud edit check
+        var canCloudEdit = await games.CanEditUniverse(userId, placeInfo.universeId) || placeInfo.builderId == userId;
+        if (!canCloudEdit)
+        {
+            return new PlaceLaunchResponse()
+            {
+                status = (int)JoinStatus.Error,
+                message = "You do not have permission to edit this place."
+            };
+        }
+
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit);
         if (result.status == JoinStatus.Joining)
         {

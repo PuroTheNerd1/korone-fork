@@ -34,6 +34,7 @@ public class GameServerDb
     public long port { get; set; }
     public DateTime updated_at { get; set; }
     public ServerStatus status;
+    public int type;
 }
 
 public class GameServerInfoResponse
