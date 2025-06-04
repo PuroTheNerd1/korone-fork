@@ -62,6 +62,7 @@ const useStyles = createUseStyles({
         alignItems: "center",
     },
     ffffff: { marginLeft: 2, },
+    fffffff: { marginRight: 2, },
     labelClass: { margin: 0, fontSize: "inherit", fontWeight: 500, },
     iconClass: { marginRight: 2, },
 });
@@ -91,19 +92,17 @@ const BuyModal = () => {
     if (modals.purchaseState === PurchaseState.PurchaseError) return <NewModal
         title="Error"
         children={<>
-            <p>An error occurred while processing this transaction. No ROBUX or Tickets have been removed from your account. Please try again later.</p>
+            <p>An error occured while processing this transaction. No ROBUX or Tickets have been removed from your account. Please try again later.</p>
             <div className={s.imgContainer}>
                 <span className={`icon-warning-orange-150x150 ${s.robuxContainer}`} />
             </div>
         </>}
-        footerElements={<div className="flex">
-            <ActionButton
-                label="OK"
-                buttonStyle={btnStyles.newCancelButton}
-                onClick={closeModal}
-                className={s.modalBtn}
-            />
-        </div>}
+        footerElements={<ActionButton
+            label="OK"
+            buttonStyle={btnStyles.newCancelButton}
+            onClick={closeModal}
+            className={s.modalBtn}
+        />}
         footerClass={s.footerClass}
         containerClass={s.containerClass}
         exitFunction={closeModal}
@@ -122,7 +121,7 @@ const BuyModal = () => {
         // </>}
         children={<>
             <span className={s.spanText} style={{ marginBottom: 12, }}>
-                You need <Currency currencyType={GetEnum(CurrencyType, newBalance * -1)} size={CurrencySize["16x16"]} price={purchaseInfo.expectedPrice || "NaN"} divClass={s.ffffff} labelClass={s.labelClass} iconClass={s.iconClass}/> more to purchase this item.
+                You need <Currency currencyType={GetEnum(CurrencyType, purchaseInfo.currency)} size={CurrencySize["16x16"]} price={newBalance * -1 || "NaN"} divClass={s.ffffff + ' ' + s.fffffff} labelClass={s.labelClass} iconClass={s.iconClass}/> more to purchase this item.
             </span>
             <div className={s.imgContainer}>
                 <img alt="ROBUX" className={s.img} src="/img/ROBUX.webp" style={{
