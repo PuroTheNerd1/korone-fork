@@ -154,3 +154,7 @@ export const getGroupInfo = ({ groupId }) => {
 export const getGroupAuditLog = ({ groupId, cursor, userId, action }) => {
   return request('GET', getFullUrl('groups', `/v1/groups/${groupId}/audit-log?cursor=${cursor}&action=${action}&userId=${userId}&sortOrder=desc&limit=100`)).then(d => d.data);
 }
+
+export const searchGroups = async ({keyword, limit, offset}) => {
+  return await request('GET', getFullUrl('groups', 'v1/groups/search?keyword=' + (keyword||'') + '&maxRows='+limit+'&startIndex='+offset)).then(d => d.data);
+}

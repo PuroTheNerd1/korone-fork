@@ -80,7 +80,7 @@ const SearchSuggestionContainer = props => {
     <SearchSuggestionEntry mode='Catalog' url='/catalog' query={props.query} />
     <SearchSuggestionEntry mode='People' url='/search/users' query={props.query} />
     <SearchSuggestionEntry mode='Games' url='/games' query={props.query} />
-    <SearchSuggestionEntry mode='Groups' url='/My/Groups.aspx' query={props.query} />
+    <SearchSuggestionEntry mode='Groups' url='/search/groups' query={props.query} />
     <SearchSuggestionEntry gay={true} mode='Library' url={`/develop?keyword=${encodeURIComponent(props.query)}#library`} query={props.query} />
   </div>
 }
