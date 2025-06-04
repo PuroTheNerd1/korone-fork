@@ -45,7 +45,12 @@ const useStyles = createUseStyles({
     },
 });
 
-function PriceChart() {
+/**
+ * @param {boolean} [isLabelHidden]
+ * @returns {Element}
+ * @constructor
+ */
+function PriceChart({ isLabelHidden = false }) {
     const s = useStyles();
     const store = AssetDetailsStore.useContainer();
     const [priceChartData, setPriceChartData] = useState(([]));
@@ -65,9 +70,11 @@ function PriceChart() {
     
     if (!store.resaleData?.sales) {
         return <div>
-            <div className={`flex ${s.containerHeader}`}>
-                <h3 style={{ margin: 0, }}>Price Chart</h3>
-            </div>
+            {
+                !isLabelHidden ? <div className={`flex ${s.containerHeader}`}>
+                    <h3 style={{ margin: 0, }}>Price Chart</h3>
+                </div> : null
+            }
             <div className={`section-content`}>
                 <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
             </div>
@@ -75,9 +82,11 @@ function PriceChart() {
     }
     
     return <div>
-        <div className={`flex ${s.containerHeader}`}>
-            <h3 style={{ margin: 0, }}>Price Chart</h3>
-        </div>
+        {
+            !isLabelHidden ? <div className={`flex ${s.containerHeader}`}>
+                <h3 style={{ margin: 0, }}>Price Chart</h3>
+            </div> : null
+        }
         <div className={`section-content noShadow`}>
             {/*<div className={`flex flex-column w-100`}>*/}
             {/*    <HighchartsReact highcharts={Highcharts} options={{*/}

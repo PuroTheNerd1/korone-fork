@@ -18,7 +18,7 @@ const useStyles = createUseStyles({
             color: "#fff",
             backgroundColor: "var(--primary-color)",
         },
-        "@media(max-width: 768px)": {
+        "@media(max-width: 767px)": {
             margin: 0,
         }
     },

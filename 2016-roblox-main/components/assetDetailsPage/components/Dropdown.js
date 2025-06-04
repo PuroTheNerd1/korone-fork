@@ -27,14 +27,14 @@ function AssetDropdown() {
             store.isCollectioned ? {
                 name: "Remove from Profile",
                 onClick: () => {
-                    console.log("Removed from collection");
                     store.setCollectioned(false);
+                    store.ToggleFromCollection(false).then();
                 },
             } : store.ownedCopies?.length > 0 ? {
                 name: "Add to Profile",
                 onClick: () => {
-                    console.log("Added to collection");
                     store.setCollectioned(true);
+                    store.ToggleFromCollection(true).then();
                 },
             } : null,
             store.details.creatorTargetId === auth.userId ? {

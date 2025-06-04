@@ -9,7 +9,8 @@
     --secondary-color: #0074bd;
     --success-color: #02b757;
     --success-color-hover: #3fc679;
-    --robux-color: #08C94F;
+    --robux-color: #02b757;
+    --robux-color-vibrant: #08C94F;
     --tix-color: #CC9E71;
     --bad-color: #e27676;
     --text-color-primary: #191919;
@@ -220,6 +221,21 @@ html div.container.big {
     max-width: 1154px!important;
 }
 
+@media (max-width: 767px) {
+    html div.container.noPad767 {
+        padding: 0!important;
+    }
+    .invis767 {
+        display: none!important;
+    }
+}
+
+@media (min-width: 767px) {
+    .invis-767 {
+        display: none!important;
+    }
+}
+
 .cursor-pointer {
     cursor: pointer;
 }
@@ -421,4 +437,18 @@ html div.container.big {
 
 .bg-pos {
     background-position: 0 -96px!important;
+}
+
+.display-none {
+    display: none !important;
+}
+
+.invisible-1 {
+    visibility: hidden!important;
+    width: 0!important;
+    height: 0!important;
+    padding: 0!important;
+    margin: 0!important;
+    border: none!important;
+    line-height: 0!important;
 }

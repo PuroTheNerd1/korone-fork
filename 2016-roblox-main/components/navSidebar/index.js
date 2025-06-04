@@ -87,32 +87,34 @@ const NavSideBar = props => {
         const setPending = async () => {
             if (authStore.isStaff) {
                 let pendingAssCount = 0;
-                // ok for some reason using += here completely breaks the build of next
-                // and i have no idea why just dont do it
-                try {
-                    pendingAssCount = pendingAssCount + (await getPendingAssets()).length
+                // im pretty sure there's a better way to do this while keeping everything asynchronous but ong i forgot 😭😭
+                getPendingAssets().then(d => {
+                    pendingAssCount += d.length;
                     setPendingCount(pendingAssCount);
-                } catch (e) {}
-                try {
-                    pendingAssCount = pendingAssCount + (await getPendingIcons()).length
+                });
+                getPendingIcons().then(d => {
+                    pendingAssCount += d.length
                     setPendingCount(pendingAssCount);
-                } catch (e) {}
-                try {
-                    pendingAssCount = pendingAssCount + (await getPendingApplicationCount()).count
+                });
+                getPendingApplicationCount().then(d => {
+                    pendingAssCount += d.count
                     setPendingCount(pendingAssCount);
-                } catch (e) {}
-                try {
-                    pendingAssCount = pendingAssCount + (await getPendingReportCount()).count
+                });
+                getPendingReportCount().then(d => {
+                    pendingAssCount += d.count
                     setPendingCount(pendingAssCount);
-                } catch (e) {}
-                try {
-                    pendingAssCount = pendingAssCount + (await getPendingGroupIcons()).length
+                });
+                getPendingGroupIcons().then(d => {
+                    pendingAssCount += d.length
                     setPendingCount(pendingAssCount);
-                } catch (e) {}
+                });
             }
         }
         setPending().then();
     }, []);
+    useEffect(() => {
+        if (pendingCount === 0) setPendingCount(69);
+    }, [pendingCount]);
     const paddingTop = mainNavBarRef.current && mainNavBarRef.current.clientHeight + 'px' || 0;
     
     if (navStore.isSidebarOpen === false && dimensions.width <= 1324) {

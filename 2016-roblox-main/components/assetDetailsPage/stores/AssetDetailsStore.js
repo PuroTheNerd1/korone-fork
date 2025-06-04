@@ -5,9 +5,13 @@ import { multiGetUserHeadshots, multiGetUserHeadshots2, multiGetUserThumbnails }
 import { getCollectibleOwners, getCollections, getOwnedCopies, userOwnsItem } from "../../../services/inventory";
 import Authentication from "../../../stores/authentication";
 import { CurrencyType } from "../../../models/enums";
+import FeedbackStore from "../../../stores/feedback";
+import { addOrRemoveFromCollections } from "../../../services/catalog";
+import { FeedbackType } from "../../../models/feedback";
 
 const assetDetailsStore = createContainer(() => {
     const auth = Authentication.useContainer();
+    const feedback = FeedbackStore.useContainer();
     const [details, setDetails] = useState(/** @type {AssetDetailsEntry|null} */(null));
     const [resellers, setResellers] = useState(/** @type ResellerDataThumb[] */([]));
     const [owners, setOwners] = useState(/** @type OwnerEntryThumb[] */([]));
@@ -18,30 +22,56 @@ const assetDetailsStore = createContainer(() => {
     // const [isEquipped, setEquipped] = useState(false);
     const [resaleData, setResaleData] = useState(null);
     
+    /**
+     * @param {boolean} isCollected
+     * @returns {Promise<void>}
+     * @constructor
+     */
+    async function ToggleFromCollection(isCollected) {
+        try {
+            await addOrRemoveFromCollections({ assetId: details.id, addToProfile: isCollected });
+            feedback.addFeedback((isCollected ? "Added to" : "Removed from") + " your collection");
+        } catch (e) {
+            feedback.addFeedback(e.message, FeedbackType.ERROR);
+        }
+    }
+    
     useEffect(async () => {
         if (!details) return;
         
-        setOwned(await userOwnsItem({ userId: auth.userId, assetId: details.id }));
+        userOwnsItem({ userId: auth.userId, assetId: details.id })
+            .then(setOwned);
         /** @type number[] */
-        const collection = (await getCollections({ userId: auth.userId })).map(d => d.Id);
-        setCollectioned(collection.includes(details.id));
+        getCollections({ userId: auth.userId })
+            .then(d => setCollectioned(d.map(d => d.Id).includes(details.id)));
         
         if (isResellable()) {
-            setOwnedCopies((await getResellableCopies({ assetId: details.id, userId: auth.userId })).data || []);
+            getResellableCopies({ assetId: details.id, userId: auth.userId })
+                .then(d => setOwnedCopies(d?.data || []));
         } else {
-            setOwnedCopies((await getOwnedCopies({ assetId: details.id, userId: auth.userId })) || []);
+            getOwnedCopies({ assetId: details.id, userId: auth.userId })
+                .then(d => setOwnedCopies(d || []));
         }
         
         if (!isLimited()) return;
-        setResaleData(await getResaleData({ assetId: details.id }));
+        getResaleData({ assetId: details.id }).then(setResaleData);
         
         if (!isResellable()) return;
+        loadResellers();
+        loadOwners();
+    }, [details]);
+    
+    async function loadResellers() {
         let data = [];
         let cursor = '';
         // might have to be do while instead of while
         while (cursor !== null) {
             /** @type PekoraCollectionPaginated<ResellerData> */
             const resellData = (await getResellers({ assetId: details.id, cursor: cursor, limit: 100 })).data;
+            if (!resellData || resellData.data.length === 0) {
+                cursor = null;
+                break;
+            }
             const resellThumbs = await multiGetUserHeadshots2({ userIds: resellData.data.map(d => d.seller.id) });
             resellData.data.forEach(seller => {
                 let thumb = resellThumbs.find(d => d.targetId === seller.seller.id);
@@ -54,9 +84,10 @@ const assetDetailsStore = createContainer(() => {
             cursor = resellData.nextPageCursor;
         }
         setResellers(data);
-        
-        data = [];
-        cursor = '';
+    }
+    async function loadOwners() {
+        let data = [];
+        let cursor = '';
         // might have to be do while instead of while
         while (cursor !== null) {
             /** @type PekoraCollectionPaginated<OwnerEntry> */
@@ -77,7 +108,7 @@ const assetDetailsStore = createContainer(() => {
             cursor = ownerData.nextPageCursor;
         }
         setOwners(data);
-    }, [details]);
+    }
     
     // is it limited BUT not all copies have been bought?
     /** @returns {boolean} */
@@ -127,6 +158,8 @@ const assetDetailsStore = createContainer(() => {
     }
     
     return {
+        ToggleFromCollection,
+        
         /** @type AssetDetailsEntry */
         details,
         setDetails,

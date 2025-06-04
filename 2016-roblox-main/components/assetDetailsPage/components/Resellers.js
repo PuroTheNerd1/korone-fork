@@ -97,20 +97,48 @@ const useStyles = createUseStyles({
         "&:hover": {
             boxShadow: "0 1px 6px 0 rgba(25, 25, 25, 0.75)",
         },
+        "@media(max-width: 576px)": {
+            marginRight: 12,
+        },
     },
     priceContainer: {
         marginLeft: "auto",
         alignItems: "center",
+        "@media(max-width: 576px)": {
+            margin: 0,
+        },
+    },
+    serialText: {
+        fontSize: 12,
+        fontWeight: 400,
+        "@media(max-width: 576px)": {
+            marginTop: 2,
+        },
     },
     resellerInfo: {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         width: "calc(100% - 186px)",
+        "@media(max-width: 576px)": {
+            flexDirection: "column",
+            alignItems: "start",
+        },
+    },
+    separator: {
+        padding: "0 5px",
+        "@media(max-width: 576px)": {
+            display: "none",
+        },
     },
 });
 
-function Resellers() {
+/**
+ * @param {boolean} [isLabelHidden]
+ * @returns {Element}
+ * @constructor
+ */
+function Resellers({ isLabelHidden = false }) {
     const s = useStyles();
     const store = AssetDetailsStore.useContainer();
     const modal = AssetDetailsModalStore.useContainer();
@@ -132,9 +160,11 @@ function Resellers() {
     
     if (resellers.length === 0) {
         return <div>
-            <div className={`flex ${s.containerHeader}`}>
-                <h3>Resellers</h3>
-            </div>
+            {
+                !isLabelHidden ? <div className={`flex ${s.containerHeader}`}>
+                    <h3>Resellers</h3>
+                </div> : null
+            }
             <div className="section-content-off" style={{ marginBottom: 18, }}>
                 No one is reselling this item currently.
             </div>
@@ -142,9 +172,11 @@ function Resellers() {
     }
     
     return <div>
-        <div id="itemResellerHeader" className={`flex ${s.containerHeader}`}>
-            <h3 style={{ margin: 0, }}>Resellers</h3>
-        </div>
+        {
+            !isLabelHidden ? <div className={`flex ${s.containerHeader}`}>
+                <h3>Resellers</h3>
+            </div> : null
+        }
         <div className={`section-content noShadow ${s.resellersWrapper}`}>
             {
                 resellers.map(reseller => {
@@ -157,8 +189,8 @@ function Resellers() {
                         </Link>
                         <div className={s.resellerInfo}>
                             <CreatorLink newWeight={true} id={reseller.seller.id} name={reseller.seller.name} type={reseller.seller.type} />
-                            <span style={{ padding: "0 5px", }}>-</span>
-                            <span style={{ fontSize: 12, fontWeight: 400 }}>Serial {reseller.serialNumber ? `#${reseller.serialNumber} of ${store.resaleData.sales}` : "N/A"}</span>
+                            <span className={s.separator}>-</span>
+                            <span className={s.serialText}>Serial {reseller.serialNumber ? `#${reseller.serialNumber} of ${store.resaleData.sales}` : "N/A"}</span>
                             <div className={`${s.priceContainer} flex`}>
                                 <span className={`icon-robux ${s.priceIcon}`}/>
                                 <span className={s.priceLabel}

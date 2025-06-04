@@ -12,6 +12,8 @@ import ErrorPage from "../errorPage";
 import AssetDetailsStore from "../assetDetailsPage/stores/AssetDetailsStore";
 import AssetDetailsPage from "../assetDetailsPage";
 import AssetDetailsModalStore from "../assetDetailsPage/stores/AssetDetailsModalStore";
+import { catalogPageStyle, getCatalogPageStyle } from "../../services/theme";
+import SharedAssetPage from "../sharedAssetPage";
 
 const getUrlForAssetType = ({ assetTypeId, assetId, name }) => {
     if (assetTypeId === 9) {
@@ -33,11 +35,12 @@ const getUrlForAssetType = ({ assetTypeId, assetId, name }) => {
 
 /**
  * @param {string} idParamName
+ * @param {string} nameParamName
  * @param {ProductInfoLegacy} info
  * @returns {React.JSX.Element|null}
  * @constructor
  */
-const AssetPage = ({ idParamName }) => {
+const AssetPage = ({ idParamName, nameParamName = "" }) => {
     const router = useRouter();
     const [details, setDetails] = useState(null);
     const assetId = Number(router.query[idParamName]);
@@ -60,12 +63,14 @@ const AssetPage = ({ idParamName }) => {
                 }
             } else {
                 console.warn("New details length is 0, returning..");
-                return;
             }
         }
     }, [assetId]);
     
-    if (!details || !assetId) return <ErrorPage title="Page cannot be found or no longer exists" desc="Page Not found" code={404} />
+    if (getCatalogPageStyle() === catalogPageStyle.Legacy)
+        return <SharedAssetPage idParamName={idParamName} nameParamName={nameParamName} />
+    
+    if (!details || !assetId) return <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
     
     if (details.assetType === 9) {
         // Place
@@ -76,7 +81,7 @@ const AssetPage = ({ idParamName }) => {
     // Anything else (e.g. hat, shirt, model)
     return <AssetDetailsStore.Provider>
         <AssetDetailsModalStore.Provider>
-            <AssetDetailsPage details={details} />
+            <AssetDetailsPage details={details}/>
         </AssetDetailsModalStore.Provider>
     </AssetDetailsStore.Provider>
 }

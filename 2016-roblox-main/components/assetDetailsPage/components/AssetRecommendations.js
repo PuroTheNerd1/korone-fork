@@ -8,19 +8,30 @@ import ItemImage from "../../itemImage";
 import { CreatorType } from "../../../models/enums";
 import CreatorLink from "../../creatorLink";
 import { abbreviateNumber } from "../../../lib/numberUtils";
+import { wait } from "../../../lib/utils";
 
 const useEntryStyles = createUseStyles({
     recomCardContainer: {
         // borderRadius: 3,
         padding: 0,
-        width: "14.285714285%",
+        flex: "0 0 calc(14.285714285% - 9px)",
         boxShadow: "none",
+        minWidth: 85,
         "& *": {
             textAlign: "left",
         },
         "&:hover": {
             boxShadow: "0 1px 4px 0 rgba(25,25,25,.3)!important",
-        }
+        },
+        "@media(max-width: 970px)": {
+            flex: "0 0 calc(16.66667% - 8px)",
+        },
+        "@media(max-width: 767px)": {
+            flex: "0 0 calc(20% - 8px)",
+        },
+        "@media(max-width: 576px)": {
+            flex: "0 0 calc(33.3333% - 6px)",
+        },
     },
     thumbContainer: {
         borderTopLeftRadius: 3,
@@ -122,6 +133,9 @@ const useStyles = createUseStyles({
         flexDirection: "column",
         gap: 6,
         marginTop: 3,
+        "@media(max-width: 767px)": {
+            padding: "0 6px",
+        },
     },
     recommendationsHeaderContainer: {
         "& h3": {
@@ -151,14 +165,19 @@ function AssetRecommendations() {
     const { details } = store;
     
     const [recommendations, setRecommendations] = useState([]);
+    const [loadingRecoms, setLoadingRecoms] = useState(false);
     
     useEffect(async () => {
+        if (loadingRecoms) return;
+        setLoadingRecoms(true);
         const recommend = await getRecommendations({ assetId: details.id, assetTypeId: details.assetType, limit: 10 });
-        if (!recommend || !recommend.data.length) {
+        if (!recommend || !Array.isArray(recommend?.data)) {
             setRecommendations(null);
             return;
         }
         setRecommendations(recommend.data);
+        await wait(0.25);
+        setLoadingRecoms(false);
     }, [details.id]);
     
     return <div className={s.recommendationsContainer}>
@@ -171,12 +190,17 @@ function AssetRecommendations() {
                 <div className="section-content-off w-100">
                     Could not fetch recommendations for this item.
                 </div>
-                :
+                                 :
                 recommendations.length > 0
                 ?
-                recommendations.map(recommendation => <AssetRecommendationEntry recom={recommendation} assetType={details.assetType} />)
+                recommendations.map(recommendation => <AssetRecommendationEntry recom={recommendation}
+                                                                                assetType={details.assetType}/>)
                 : // Loading
-                <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }} />
+                loadingRecoms
+                ?
+                <span className="spinner" style={{ backgroundSize: "auto 36px" }}/>
+                :
+                <span className="section-content-off w-100">No recommendations for this item.</span>
             }
         </div>
     </div>

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { abbreviateNumber } from "../../../lib/numberUtils";
 import { createFavorite, deleteFavorite, getIsFavorited } from "../../../services/catalog";
 import authentication from "../../../stores/authentication";
+import { wait } from "../../../lib/utils";
 
 const useStyles = createUseStyles({
     wrapper: {},
@@ -20,7 +21,8 @@ const useStyles = createUseStyles({
         textAlign: 'center',
     },
     favoriteContainer: {
-        width: '68px',
+        // width: '68px',
+        width: "fit-content",
         textAlign: 'center',
         cursor: 'pointer',
     },
@@ -71,10 +73,25 @@ const FavouriteButton = ({ assetId, initFavCount }) => {
     const [iconHovered, setIconHovered] = useState(false);
     const mouseEnter = () => setIconHovered(true);
     const mouseLeave = () => setIconHovered(false);
-    
+    const deb = useRef(false);
+    const lastOpt = useRef({
+        assetId: 0,
+        initFavCount: -1,
+    });
     const buttonClass = (isFavorited || iconHovered) ? s.favoriteIconSelected : '';
     
+    // should be rewritten this is garbage
     useEffect(() => {
+        if (
+            deb.current ||
+            lastOpt.current.assetId === assetId ||
+            lastOpt.current.initFavCount === initFavCount
+        ) return;
+        deb.current = true;
+        lastOpt.current = {
+            assetId,
+            initFavCount,
+        };
         setIsFavorited(null);
         setFavoriteCount(initFavCount);
         setLocked(false);
@@ -87,8 +104,8 @@ const FavouriteButton = ({ assetId, initFavCount }) => {
                 setIsFavorited(false);
             })
         }
+        setTimeout(() => deb.current = false, 1000);
     }, [initFavCount, assetId, auth.userId]);
-    
     
     return <div className={s.favoriteContainer}>
         <a className={`${s.favoriteButton}`} href="#" onClick={e => {

@@ -27,16 +27,24 @@ import Authentication from "../../stores/authentication";
 import Owners from "./components/Owners";
 import RelatedGame from "./components/RelatedGame";
 import AudioPlayButton from "../catalogDetailsPage/components/audioPlayButton";
+import useWindowQuery from "../windowQuery";
+import HorizontalTabs from "../horizontalTabs";
 
 const useStyles = createUseStyles({
     pageWrapper: {
         display: "flex",
         gap: 15,
         justifyContent: "flex-end",
+        "@media(max-width: 1154px)": {
+            justifyContent: "center",
+        },
     },
     container: {
         width: "calc(100% - 185px)",
         maxWidth: 950,
+        "@media(max-width: 1154px)": {
+            width: "100%",
+        },
     },
     itemContainer: {
         display: "flex",
@@ -47,14 +55,45 @@ const useStyles = createUseStyles({
             textAlign: "start",
             fontWeight: 500,
             fontSize: 16,
-        }
+        },
+        "@media(max-width: 767px)": {
+            gap: 0,
+            paddingBottom: 0,
+        },
     },
     
     itemThumbContainer: {
         width: 420,
+        "@media(max-width: 970px)": {
+            width: 300
+        },
+        "@media(max-width: 767px)": {
+            width: "100%",
+            alignItems: "center",
+        },
+    },
+    itemThumb: {
+        "@media(max-width: 767px)": {
+            width: "420px!important",
+        },
+        "@media(max-width: 576px)": {
+            width: "200px!important",
+        },
+        "& img": {
+            maxWidth: 420,
+        },
     },
     itemDetailsContainer: {
         width: "calc(100% - 432px)",
+        "@media(max-width: 970px)": {
+            width: "calc(100% - 312px)",
+        },
+        "@media(max-width: 767px)": {
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+        },
     },
     itemHeaderContainer: {
         paddingBottom: 12,
@@ -71,13 +110,30 @@ const useStyles = createUseStyles({
             whiteSpace: "nowrap",
             wordBreak: "break-word",
             textOverflow: "ellipsis",
+            "@media(max-width: 576px)": {
+                fontSize: 24,
+            },
         },
+    },
+    itemHeaderInfo: {
+        "& *": {
+            "@media(max-width: 576px)": {
+                fontSize: "12px!important",
+            },
+        }
     },
     itemDescription: {
         fontWeight: 300,
-        whiteSpace: "pre-line",
+        whiteSpace: "pre-wrap",
+        wordWrap: "break-word",
         width: "calc(100% - 120px)",
-        fontFamily: 'HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif'
+        fontFamily: 'HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif',
+        "@media(max-width: 767px)": {
+            width: "100%",
+            marginTop: 12,
+            fontWeight: 400,
+            marginBottom: 6,
+        }
     },
     smallImg: {
         width: 420,
@@ -87,7 +143,14 @@ const useStyles = createUseStyles({
         "& img": {
             width: 150,
             height: 150,
-        }
+        },
+        "@media(max-width: 970px)": {
+            width: 300,
+            height: 300,
+        },
+        "@media(max-width: 767px)": {
+            width: "100%!important",
+        },
     },
     
     img: { padding: 0 },
@@ -98,11 +161,33 @@ const useStyles = createUseStyles({
         display: "flex",
         justifyContent: "space-between",
         width: "calc(100% - 120px)",
+        "@media(max-width: 767px)": {
+            width: "100%",
+            flexDirection: "column",
+        },
+    },
+    priceContainer: {
+        "@media(max-width: 767px)": {
+            justifyContent: "center",
+            marginBottom: 6,
+        },
+    },
+    priceInfo: {
+        marginRight: 12,
+        "@media(max-width: 767px)": {
+            justifyContent: "center",
+        },
     },
     editWrapper: {
         display: "flex",
         justifyContent: "space-between",
         width: "180px",
+        "@media(max-width: 767px)": {
+            width: "100%",
+            "& a": {
+                width: "100%",
+            },
+        }
     },
     buyBtn: {
         fontWeight: 500,
@@ -112,6 +197,10 @@ const useStyles = createUseStyles({
         borderRadius: 5,
         fontSize: 21,
         textAlign: "center",
+        "@media(max-width: 767px)": {
+            width: "100%",
+            padding: 9,
+        },
     },
     editBtn: {
         fontSize: 18,
@@ -120,6 +209,10 @@ const useStyles = createUseStyles({
     },
     buyBtnContainer: {
         position: "relative",
+    },
+    buyBtnContainerr: {
+        position: "relative",
+        width: "100%",
     },
     priceIcon: { marginRight: 3, },
     priceLabel: {
@@ -142,6 +235,26 @@ const useStyles = createUseStyles({
         width: 120,
         paddingRight: 9,
         display: "inline-block",
+        "@media(max-width: 767px)": {
+            width: "45%",
+        },
+    },
+    attrVal: {
+        "@media(max-width: 767px)": {
+            width: "55%",
+        },
+    },
+    detailTxt: {
+        fontSize: 12,
+        fontWeight: 500,
+        "@media(max-width: 767px)": {
+            textAlign: "center",
+            marginTop: 6,
+            "&.top": {
+                marginTop: 0,
+                marginBottom: 6,
+            }
+        },
     },
     
     restrictionsContainer: {
@@ -151,7 +264,15 @@ const useStyles = createUseStyles({
         overflow: 'hidden',
     },
     
-    itemInteractionContainer: {},
+    itemInteractionContainer: {
+        "@media(max-width: 767px)": {
+            padding: "5px 0",
+            borderTop: "1px solid #e3e3e3",
+            marginTop: 12,
+            marginLeft: -12,
+            marginRight: -12,
+        },
+    },
     
     itemStatusContainer: {
         position: 'absolute',
@@ -221,12 +342,23 @@ const useStyles = createUseStyles({
         fontSize: 16,
         paddingRight: 12,
     },
+    availableInventoryParent: {
+        "@media(max-width: 767px)": {
+            flexDirection: "column",
+            alignItems: "center",
+            marginBottom: -6,
+        },
+    },
     availableInventoryLabel: {
         width: "calc(100% - 180px)!important",
         color: "#191919",
         fontWeight: 500,
         lineHeight: "1.4em",
         fontSize: 16,
+        "@media(max-width: 767px)": {
+            width: "fit-content!important",
+            marginBottom: 6,
+        },
     },
     bannerAdContainer: {
         maxHeight: 90,
@@ -234,6 +366,9 @@ const useStyles = createUseStyles({
     },
     skyscraperAdContainer: {
         maxWidth: 160,
+        "@media(max-width: 1154px)": {
+            display: "none",
+        },
     },
     ownedStat: {
         verticalAlign: 'text-bottom',
@@ -249,6 +384,26 @@ const useStyles = createUseStyles({
         width: "auto",
         marginLeft: 12,
         marginRight: 3,
+        maxHeight: 18,
+        "@media(max-width: 576px)": {
+            marginLeft: 6,
+        },
+    },
+    
+    favBtnContainer: {
+        marginTop: 6,
+        "@media(max-width: 767px)": {
+            margin: "0!important",
+            justifyContent: "center",
+        }
+    },
+    noPriceContainer: {
+        "@media(max-width: 767px)": {
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "column",
+        },
     },
 });
 
@@ -265,6 +420,8 @@ function AssetDetailsPage({ itemDetails }) {
     const buttonStyles = useButtonStyles();
     const [detailOptions, setDetailOptions] = useState(/** @type DetailOptionEntry[] */([]));
     const [isNew, setNew] = useState(false);
+    // 767px or lower
+    const isWindow767 = useWindowQuery("max-width: 767px");
     
     useEffect(async () => {
         await store.setDetails(itemDetails);
@@ -275,40 +432,53 @@ function AssetDetailsPage({ itemDetails }) {
             (itemDetails.itemRestrictions.includes("Limited") || itemDetails.itemRestrictions.includes("LimitedUnique")) && !itemDetails.isForSale && store.resellers.length > 0 && (purchaseInfo.sellerId === auth.userId) ? {
                 label: "Best Price",
                 field: <div className={s.priceWrapper}>
-                    <div className={`flex flex-column justify-content-between`} style={{ marginRight: 12, }}>
+                    <div className={`flex flex-column justify-content-between ${s.priceInfo}`}>
                         <div className={`${s.priceContainer} flex`}>
                             <span className={`icon-robux ${s.priceIcon}`}/>
                             <span className={s.priceLabel}
                                   style={{ color: "var(--robux-color)" }}>{formatNum(purchaseInfo?.price || 0)}</span>
                         </div>
-                        <span style={{ fontSize: 12, fontWeight: 300 }}>You are selling this item.</span>
+                        <span className={`${s.detailTxt} invis767`}>You are selling this item.</span>
                     </div>
                     <ActionButton className={s.buyBtn} label="Buy" buttonStyle={buttonStyles.newBuyButton}
                                   disabled={true}/>
+                    <span className={`${s.detailTxt} invis-767`}>You are selling this item.</span>
                 </div>,
+                labelClass: `${s.attrLabel} invis767`,
             } : (itemDetails.itemRestrictions.includes("Limited") || itemDetails.itemRestrictions.includes("LimitedUnique")) && !itemDetails.isForSale && store.resellers.length > 0 && (store.resellers.length !== 1 || store.resellers[0].seller.id !== auth.userId) ? {
                 label: "Best Price",
                 field: <div className={s.priceWrapper}>
-                    <div className={`flex flex-column justify-content-between`} style={{ marginRight: 12, }}>
+                    <div className={`flex flex-column justify-content-between ${s.priceInfo}`}>
                         <div className={`${s.priceContainer} flex`}>
                             <span className={`icon-robux ${s.priceIcon}`}/>
                             <span className={s.priceLabel}
                                   style={{ color: "var(--robux-color)" }}>{formatNum(purchaseInfo?.price || 0)}</span>
                         </div>
-                        <span style={{ fontSize: 12, fontWeight: 400 }}>See more <a className={`link2018`} style={{fontSize:"inherit",fontWeight:"inherit"}} onClick={() => {
+                        <span className={`${s.detailTxt} invis767`}>See more <a className={`link2018`} style={{
+                            fontSize: "inherit",
+                            fontWeight: "inherit"
+                        }} onClick={() => {
                             document.getElementById("itemResellerHeader").scrollIntoView({ behavior: "smooth" });
                         }}>Resellers</a></span>
                     </div>
                     <ActionButton className={s.buyBtn} label="Buy" buttonStyle={buttonStyles.newBuyButton}
                                   onClick={() => modal.setBuyModalOpen(true)}/>
+                    <span className={`${s.detailTxt} invis-767`}>See more <a className={`link2018`} style={{
+                        fontSize: "inherit",
+                        fontWeight: "inherit"
+                    }} onClick={() => {
+                        document.getElementById("itemResellerHeader").scrollIntoView({ behavior: "smooth" });
+                    }}>Resellers</a></span>
                 </div>,
+                labelClass: `${s.attrLabel} invis767`,
             } : (itemDetails.itemRestrictions.includes("Limited") || itemDetails.itemRestrictions.includes("LimitedUnique")) && !itemDetails.isForSale ? {
                 label: "No one is selling this item currently.",
-                field: <div>
+                field: <div className={s.noPriceContainer}>
+                    <span className={`${s.detailTxt} top invis-767`}>No one is selling this item currently.</span>
                     <ActionButton className={s.buyBtn} label="Buy" buttonStyle={buttonStyles.newBuyButton}
-                                  disabled={true}/>
+                                  divClassName={s.buyBtnContainerr} disabled={true}/>
                 </div>,
-                labelClass: s.offsaleLabel,
+                labelClass: `${s.offsaleLabel} invis767`,
             } : store.isOwned && AssetTypeCategory.All.includes(itemDetails.assetType) ? {
                 label: "This item is available in your inventory.",
                 field: <div className={s.editWrapper}>
@@ -324,6 +494,7 @@ function AssetDetailsPage({ itemDetails }) {
                     </Link>
                 </div>,
                 labelClass: s.availableInventoryLabel,
+                parentClass: s.availableInventoryParent
             } : itemDetails.isForSale ? {
                 label: "Price",
                 field: <div className={s.priceWrapper}>
@@ -355,12 +526,22 @@ function AssetDetailsPage({ itemDetails }) {
                         null
                     } label="Buy" buttonStyle={buttonStyles.newBuyButton} onClick={() => modal.setBuyModalOpen(true)}/>
                 </div>,
+                labelClass: `${s.attrLabel} invis767`,
             } : {
                 label: "This item is not currently for sale.",
-                field: <div>
-                    <ActionButton className={s.buyBtn} label="Buy" buttonStyle={buttonStyles.newBuyButton} disabled={true}/>
+                field: <div className={s.noPriceContainer}>
+                    <span className={`${s.detailTxt} top invis-767`}>This item is not currently for sale.</span>
+                    <ActionButton className={s.buyBtn} label="Buy" buttonStyle={buttonStyles.newBuyButton}
+                                  divClassName={s.buyBtnContainerr} disabled={true}/>
                 </div>,
-                labelClass: s.offsaleLabel,
+                labelClass: `${s.offsaleLabel} invis767`,
+            },
+            {
+                label: ' ',
+                field: <pre
+                    className={s.itemDescription}>{itemDetails.description?.replace(/\\n/g, "\n") || "No description available"}</pre>,
+                labelClass: `display-none`,
+                parentClass: `invis-767`,
             },
             {
                 label: "Type",
@@ -406,82 +587,100 @@ function AssetDetailsPage({ itemDetails }) {
             // } : null,
             {
                 label: "Description",
-                field: <pre className={s.itemDescription}>{itemDetails.description?.replace(/\\n/g, "\n") || "No description available"}</pre>,
-            },
-        ]);
+                field: <pre
+                    className={s.itemDescription}>{itemDetails.description?.replace(/\\n/g, "\n") || "No description available"}</pre>,
+                parentClass: `invis767`,
+            }
+        ].filter(d => !!d));
     }, [itemDetails, store.details, store.resellers, store.isOwned]);
+    
+    useEffect(() => {
+        document.body.setAttribute("style", "background: #e3e3e3;");
+    }, [itemDetails]);
     
     if (!itemDetails || !store.details) {
         return <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
     }
     
-    return <div className={s.container}>
-        { modal.isBuyModalOpen ? <BuyModal /> : null }
-        { modal.isSellItemModalOpen ? <SellItemModal /> : null }
-        { modal.isConfirmSellModalOpen ? <ConfirmSellModal /> : null }
-        <div className={`section-content noShadow ${s.itemContainer}`}>
-            <div className={`${s.itemThumbContainer} flex flex-column`}>
-                <div className={`w-fit-content position-relative ${itemDetails.assetType === AssetType.Badge || itemDetails.assetType === AssetType.GamePass ? s.smallImg : ""}`}>
-                    <ItemImage name={itemDetails.name} id={itemDetails.id} className={`${s.img}`}/>
-                    <div className={s.itemStatusContainer}>
-                        {
-                            isNew
-                            ?
-                            <div className={s.itemStatusSale}>
-                                <span className={`${s.itemStatusSaleIcon} icon-clock`}/>
-                                <span className={s.itemStatusSaleNew}>New</span>
-                            </div>
-                            :
-                            null
-                        }
-                        {
-                            itemDetails.offsaleDeadline
-                            ?
-                            <div className={s.itemStatusSale}>
-                                <span className={`${s.itemStatusSaleIcon} icon-clock`}/>
-                            </div>
-                            :
-                            null
-                        }
+    const ItemInteraction = ({ isVisible }) => <div className={`${s.itemInteractionContainer} ${!isVisible ? "invisible-1" : null}`}>
+        <div className={`flex ${s.favBtnContainer}`}>
+            <FavouriteButton assetId={itemDetails.id} initFavCount={itemDetails.favoriteCount}/>
+        </div>
+    </div>
+    
+    const ItemThumb = ({ isVisible }) => <div
+        className={`${s.itemThumbContainer} flex flex-column ${!isVisible ? "invisible-1" : null}`}>
+        <div
+            className={`w-fit-content position-relative ${s.itemThumb} ${itemDetails.assetType === AssetType.Badge || itemDetails.assetType === AssetType.GamePass ? s.smallImg : ""}`}>
+            <ItemImage name={itemDetails.name} id={itemDetails.id} className={`${s.img}`}/>
+            <div className={s.itemStatusContainer}>
+                {
+                    isNew
+                    ?
+                    <div className={s.itemStatusSale}>
+                        <span className={`${s.itemStatusSaleIcon} icon-clock`}/>
+                        <span className={s.itemStatusSaleNew}>New</span>
                     </div>
-                    <div className={s.restrictionsContainer}>
-                        {
-                            itemDetails.itemRestrictions.includes("LimitedUnique")
-                            ?
-                            <span className="icon-labels LimitedUnique"/>
-                            :
-                            itemDetails.itemRestrictions.includes("Limited")
-                            ?
-                            <span className="icon-labels Limited"/>
-                            :
-                            null
-                        }
+                    :
+                    null
+                }
+                {
+                    itemDetails.offsaleDeadline
+                    ?
+                    <div className={s.itemStatusSale}>
+                        <span className={`${s.itemStatusSaleIcon} icon-clock`}/>
                     </div>
-                    {
-                        itemDetails.assetType === AssetType.Badge || itemDetails.assetType === AssetType.GamePass
-                        ?
-                        <RelatedGame />
-                        :
-                        null
-                    }
-                    {
-                        itemDetails.assetType === AssetType.Audio
-                        ?
-                        <AudioPlayButton audioId={itemDetails.id} />
-                        :
-                        null
-                    }
-                </div>
-                <div className={s.itemInteractionContainer}>
-                    <div className="flex" style={{ marginTop: 6, }}>
-                        <FavouriteButton assetId={itemDetails.id} initFavCount={itemDetails.favoriteCount} />
-                    </div>
-                </div>
+                    :
+                    null
+                }
             </div>
+            <div className={s.restrictionsContainer}>
+                {
+                    itemDetails.itemRestrictions.includes("LimitedUnique")
+                    ?
+                    <span className="icon-labels LimitedUnique"/>
+                    :
+                    itemDetails.itemRestrictions.includes("Limited")
+                    ?
+                    <span className="icon-labels Limited"/>
+                    :
+                    null
+                }
+            </div>
+            {
+                itemDetails.assetType === AssetType.Badge || itemDetails.assetType === AssetType.GamePass
+                ?
+                <RelatedGame/>
+                :
+                null
+            }
+            {
+                itemDetails.assetType === AssetType.Audio
+                ?
+                <AudioPlayButton audioId={itemDetails.id}/>
+                :
+                null
+            }
+        </div>
+        {
+            !isWindow767
+            ?
+            <ItemInteraction isVisible={true} />
+            :
+            null
+        }
+    </div>
+    
+    return <div className={s.container}>
+        {modal.isBuyModalOpen ? <BuyModal/> : null}
+        {modal.isSellItemModalOpen ? <SellItemModal/> : null}
+        {modal.isConfirmSellModalOpen ? <ConfirmSellModal/> : null}
+        <div className={`section-content noShadow ${s.itemContainer}`}>
+            <ItemThumb isVisible={!isWindow767} />
             <div className={s.itemDetailsContainer}>
                 <div className={`${s.itemHeaderContainer} flex w-100 flex-column`}>
                     <h2>{itemDetails.name}</h2>
-                    <div className="flex align-items-center">
+                    <div className={`flex align-items-center ${s.itemHeaderInfo}`}>
                         <span style={{ color: "var(--text-color-secondary)" }}>By <CreatorLink
                             type={itemDetails.creatorType} id={itemDetails.creatorTargetId}
                             name={itemDetails.creatorName}/></span>
@@ -490,7 +689,10 @@ function AssetDetailsPage({ itemDetails }) {
                                 <div className={s.ownedStat}>
                                     <span className='icon-checkmark-white-hold'/>
                                 </div>
-                                <span style={{ fontWeight: 500, fontSize: 14 }}>Item Owned {store.isResellable() && store.ownedCopies.length > 0 ? `(${store.ownedCopies.length})` : ""}</span>
+                                <span style={{
+                                    fontWeight: 500,
+                                    fontSize: 14
+                                }}>Item Owned {store.isResellable() && store.ownedCopies.length > 0 ? `(${store.ownedCopies.length})` : ""}</span>
                             </> : null
                         }
                     </div>
@@ -498,25 +700,33 @@ function AssetDetailsPage({ itemDetails }) {
                         <AssetDropdown/>
                     </div>
                 </div>
+                <ItemThumb isVisible={isWindow767} />
                 <div className={`${s.itemDetails} flex w-100 flex-column`}>
                     {
                         detailOptions.map((item, ind) => {
                             // are we first, and if not, is previous one price?
                             const isAfterBuy =
                                 detailOptions[0] !== item && detailOptions[ind - 1].label.includes("Price");
-                            return <div className={`${isAfterBuy ? "margin-none" : ''} ${s.attrContainer}`}>
+                            return <div className={`${isAfterBuy ? "margin-none" : ''} ${s.attrContainer} ${item.parentClass}`}>
                                 <span
-                                    className={`${!item.labelClass ? s.attrLabel : item.labelClass}`}
-                                >{item.label}</span>
+                                    className={`${!item?.labelClass ? s.attrLabel : item.labelClass}`}
+                                >{item?.label}</span>
                                 {
                                     typeof item.field === 'string'
                                     ?
-                                    <span>{item.field}</span>
+                                    <span className={s.attrVal}>{item.field}</span>
                                     :
                                     item.field
                                 }
                             </div>
                         })
+                    }
+                    {
+                        isWindow767
+                        ?
+                        <ItemInteraction isVisible={true} />
+                        :
+                        null
                     }
                     {
                         detailOptions.length === 0
@@ -529,13 +739,30 @@ function AssetDetailsPage({ itemDetails }) {
             </div>
         </div>
         {
-            store.isResellable() ? <>
-                <PriceChart />
-                <Resellers />
-                <Owners />
+            !isWindow767 && store.isResellable() ? <>
+                <PriceChart/>
+                <Resellers/>
+                <Owners/>
+            </> : store.isResellable() ? <>
+                <HorizontalTabs
+                    options={[
+                        {
+                            name: "Price Chart",
+                            element: <PriceChart isLabelHidden />,
+                        },
+                        {
+                            name: "Resellers",
+                            element: <Resellers isLabelHidden />,
+                        },
+                        {
+                            name: "Owners",
+                            element: <Owners isLabelHidden />,
+                        },
+                    ]}
+                />
             </> : null
         }
-        <AssetRecommendations />
+        <AssetRecommendations/>
     </div>
 }
 
@@ -543,11 +770,12 @@ export default function DetailsPageContainer({ details }) {
     const s = useStyles();
     
     return <Theme2016>
-        <div className="container big">
-            <UserAdvertisement type={UserAdvertisementType.Banner728x90} wrapperClass={s.bannerAdContainer} />
+        <div className="container big noPad767">
+            <UserAdvertisement type={UserAdvertisementType.Banner728x90} wrapperClass={s.bannerAdContainer}/>
             <div className={s.pageWrapper}>
                 <AssetDetailsPage itemDetails={details}/>
-                <UserAdvertisement type={UserAdvertisementType.SkyScraper160x600} wrapperClass={s.skyscraperAdContainer} backupWidth="160px" />
+                <UserAdvertisement type={UserAdvertisementType.SkyScraper160x600} wrapperClass={s.skyscraperAdContainer}
+                                   backupWidth="160px"/>
             </div>
         </div>
     </Theme2016>
@@ -678,5 +906,6 @@ export function formatNum(x) {
  * @property {string|JSX.Element} label
  * @property {string|JSX.Element} field
  * @property {string?} labelClass
+ * @property {string?} parentClass
  */
 

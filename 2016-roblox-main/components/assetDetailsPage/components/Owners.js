@@ -66,6 +66,10 @@ const useStyles = createUseStyles({
         fontSize: 16,
         fontWeight: 500,
         marginTop: 2,
+        color: "#b8b8b8",
+        "@media(max-width: 576px)": {
+            fontSize: 12,
+        }
     },
     
     resellerContainer: {
@@ -96,29 +100,56 @@ const useStyles = createUseStyles({
         "&:hover": {
             boxShadow: "0 1px 6px 0 rgba(25, 25, 25, 0.75)",
         },
+        "@media(max-width: 576px)": {
+            marginRight: 12,
+        },
     },
     priceContainer: {
         marginLeft: "auto",
         alignItems: "center",
+        "@media(max-width: 576px)": {
+            margin: 0,
+        },
+    },
+    serialText: {
+        fontSize: 12,
+        fontWeight: 400,
+        "@media(max-width: 576px)": {
+            marginTop: 2,
+        },
     },
     resellerInfo: {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         width: "calc(100% - 186px)",
+        "@media(max-width: 576px)": {
+            flexDirection: "column",
+            alignItems: "start",
+        },
+    },
+    separator: {
+        padding: "0 5px",
+        "@media(max-width: 576px)": {
+            display: "none",
+        },
     },
 });
 
-function Owners() {
+/**
+ * @param {boolean} [isLabelHidden]
+ * @returns {Element}
+ * @constructor
+ */
+function Owners({ isLabelHidden = false }) {
     const s = useStyles();
     const store = AssetDetailsStore.useContainer();
     const auth = Authentication.useContainer();
     const btnStyles = useButtonStyles();
     const [owners, setOwners] = useState(/** @type OwnerEntryThumb[] */([]));
     
-    useEffect(() => {
-        setOwners(store.owners.slice(0, 10));
-    }, [store.owners]);
+    useEffect(() => setOwners(store.owners.slice(0, 10)),
+        [store.owners]);
     
     const loadMoreOwners = () => setOwners(prev => {
         let newOwners = [
@@ -130,18 +161,22 @@ function Owners() {
     })
     
     if (owners.length === 0) return <div>
-        <div id="itemResellerHeader" className={`flex ${s.containerHeader}`}>
-            <h3 style={{ margin: 0, }}>Owners</h3>
-        </div>
+        {
+            !isLabelHidden ? <div id="itemResellerHeader" className={`flex ${s.containerHeader}`}>
+                <h3 style={{ margin: 0, }}>Owners</h3>
+            </div> : null
+        }
         <div className={`section-content-off noShadow ${s.resellersWrapper}`} style={{ padding: 15 }}>
             No one owns this item currently.
         </div>
     </div>;
     
     return <div>
-        <div id="itemResellerHeader" className={`flex ${s.containerHeader}`}>
-            <h3 style={{ margin: 0, }}>Owners</h3>
-        </div>
+        {
+            !isLabelHidden ? <div id="itemResellerHeader" className={`flex ${s.containerHeader}`}>
+                <h3 style={{ margin: 0, }}>Owners</h3>
+            </div> : null
+        }
         <div className={`section-content noShadow ${s.resellersWrapper}`}>
             {
                 owners.map(owner => {
@@ -162,14 +197,10 @@ function Owners() {
                                 :
                                 <span>Deleted / Private</span>
                             }
-                            <span style={{ padding: "0 5px", }}>-</span>
-                            <span style={{
-                                fontSize: 12,
-                                fontWeight: 400
-                            }}>Serial {owner.serialNumber ? `#${owner.serialNumber} of ${store.resaleData.sales}` : "N/A"}</span>
+                            <span className={s.separator}>-</span>
+                            <span className={s.serialText}>Serial {owner.serialNumber ? `#${owner.serialNumber} of ${store.resaleData.sales}` : "N/A"}</span>
                             <div className={`${s.priceContainer} flex`}>
-                                <span className={s.priceLabel}
-                                      style={{ color: "#b8b8b8" }}>{dayjs(owner.updated).fromNow()}</span>
+                                <span className={s.priceLabel}>{dayjs(owner.updated).fromNow()}</span>
                             </div>
                         </div>
                         <div className={s.btnContainer2}>

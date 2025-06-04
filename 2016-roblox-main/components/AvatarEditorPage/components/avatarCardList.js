@@ -15,7 +15,7 @@ const useAvCardStyles = createUseStyles({
         width: "calc(20% - 8px)",
         display: "flex",
         flexDirection: "column",
-        "@media(max-width: 768px)": {
+        "@media(max-width: 767px)": {
             width: "calc(25% - 8px)",
         },
         "@media(max-width: 576px)": {
