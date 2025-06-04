@@ -3,6 +3,7 @@ import {useEffect} from "react";
 import InputRow from "./inputRow";
 import UsersRow from "./usersRow";
 import {createUseStyles} from "react-jss";
+import GroupsRow from "./groupsRow";
 
 const useStyles = createUseStyles({
   row: {
@@ -22,7 +23,7 @@ const Container = props => {
   return <div className={'row '  +s.row}>
     <div className='col-12'>
       <InputRow />
-      <UsersRow />
+      <GroupsRow />
     </div>
   </div>
 }
