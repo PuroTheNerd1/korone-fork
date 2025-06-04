@@ -75,7 +75,7 @@ namespace Roblox.Website.Controllers
                 return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
             }
         }
-        public string? currentGameId
+        public string currentGameId
         {
             get
             {
@@ -83,7 +83,7 @@ namespace Roblox.Website.Controllers
                 {
                     return gameId.ToString();
                 }
-                return null;
+                return "";
             }
         }
         public long currentPlaceId

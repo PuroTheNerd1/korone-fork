@@ -309,34 +309,27 @@ public class Asset : ControllerBase
     }
     private async Task<bool> ValidateRCCRequest(MultiGetEntry details, long placeId, long assetId)
     {
-        // If rcc is trying to access current place, allow through
-        var isAuthorized = placeId == assetId;
-
-        // If game server is trying to load a new place (current placeId is empty)
-        // Let's check if the Game-Id (job id) actually exists in the database
-        var isLoadingNewPlace = details.assetType == Type.Place && placeId == 0;
-
-        if (!isAuthorized && isLoadingNewPlace)
+        // If the asset is a place we need to ensure that the RCC has the correct placeId
+        if (details.assetType == Type.Place)
         {
-           
-            // Game server is trying to load, so allow it
-            isAuthorized = true;
-        }
-        Console.WriteLine($"The gamserver is trying to load a new place with assetId {assetId} game id: {currentGameId ?? "unknown"}");
-        // If rcc is making the request, but it's not for a place, validate the request:
-        if (!isAuthorized)
-        {
-            // Check permissions
-            var placeDetails = await services.assets.GetAssetCatalogInfo(placeId);
+            // If the assetId doesn't match the placeId, it's not authorized
+            if (placeId != assetId)
+                return false;
 
-            if (placeDetails.creatorType == details.creatorType &&
-                placeDetails.creatorTargetId == details.creatorTargetId)
-            {
-                // We are authorized
-                isAuthorized = true;
-            }
+            // Let's get the gameserver associated with the current game
+            var gameServer = await services.gameServer.GetGameServer(currentGameId);
+            var isAllowed = gameServer.assetId == assetId;
+
+            Writer.Info(LogGroup.AssetDelivery, "RCC is requesting a place {0}, with game id {1}. Authorized: {2}", 
+                assetId, gameServer.assetId, isAllowed);
+
+            return isAllowed;
         }
-        return isAuthorized;
+        
+        var placeDetails = await services.assets.GetAssetCatalogInfo(placeId);
+        
+        return placeDetails.creatorType == details.creatorType && 
+               placeDetails.creatorTargetId == details.creatorTargetId;
     }
     private bool IsAssetApproved(MultiGetEntry details)
     {

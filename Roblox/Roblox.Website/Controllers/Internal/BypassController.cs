@@ -398,7 +398,7 @@ namespace Roblox.Website.Controllers
             // Let's not allow cloud edit servers via here
             if (jobInfo.type == 3)
                 throw new BadRequestException(1, "This is a cloudedit server, you cannot join it.");
-            long placeId = jobInfo.asset_id;
+            long placeId = jobInfo.assetId;
 
             PlaceEntry placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             // Check place privacy
@@ -935,7 +935,7 @@ namespace Roblox.Website.Controllers
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
                 
             var jobInfo = await services.gameServer.GetGameServer(jobId);
-            if (jobInfo.asset_id != placeId)
+            if (jobInfo.assetId != placeId)
                 throw new BadRequestException(0, "Job does not exist for this place");
             await services.gameServer.ShutDownServerAsync(jobId);
             return "OK!";

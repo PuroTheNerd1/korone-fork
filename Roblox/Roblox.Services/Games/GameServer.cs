@@ -719,7 +719,7 @@ public class GameServerService : ServiceBase
     public async Task<GameServerDb> GetGameServer(string jobId)
     {
         return await db.QueryFirstOrDefaultAsync<GameServerDb>(
-            "SELECT * FROM asset_server WHERE id = :id::uuid",
+            "SELECT id, asset_id as assetId, port, update_at as updatedAt, staus, type FROM asset_server WHERE id = :id::uuid",
             new
             {
                 id = Guid.Parse(jobId),
@@ -739,7 +739,7 @@ public class GameServerService : ServiceBase
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId, int? matchmaking = 1)
     {
         var result = await db.QueryAsync<GameServerDb>(
-            "SELECT * FROM asset_server WHERE asset_id = :assetid AND type = :type",
+            "SELECT id, asset_id as assetId, port, update_at as updatedAt, staus, type FROM asset_server WHERE asset_id = :assetid AND type = :type",
             new
             {
                 assetid = placeId,
@@ -753,7 +753,7 @@ public class GameServerService : ServiceBase
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking)
     {
         var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
-        foreach (GameServerDb server in gameServers)
+        foreach (var server in gameServers)
         {
             string jobid = server.id.ToString();
             var currentPlayerCount = await GetGameServerPlayers(jobid);
@@ -764,7 +764,7 @@ public class GameServerService : ServiceBase
                 continue;
             }
             // if the server is older than 5 minutes then shutdown the server
-            if (server.updated_at.AddMinutes(5) < DateTime.UtcNow)
+            if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
             {
                 await ShutDownServerAsync(jobid);
                 continue;
