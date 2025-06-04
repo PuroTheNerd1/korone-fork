@@ -693,47 +693,12 @@ namespace Roblox.Website.Controllers
             return Content(await System.IO.File.ReadAllTextAsync("hor.txt"), "text/plan");
         }
 
-
-        private void CheckServerAuth(string auth)
-        {
-            if (auth != Configuration.GameServerAuthorization)
-            {
-                throw new BadRequestException();
-            }
-        }
-
-        [HttpPostBypass("/gs/activity")]
-        public async Task<dynamic> GetGsActivity([Required, MVC.FromBody] ReportActivity request)
-        {
-            Console.WriteLine(request.authorization);
-
-            CheckServerAuth(request.authorization);
-            var result = await services.gameServer.GetLastServerPing(request.serverId);
-            return new
-            {
-                isAlive = result >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(1)),
-                updatedAt = result,
-            };
-        }
-        [HttpPostBypass("/gs/ping")]
-        public async Task ReportServerActivity([Required, MVC.FromBody] ReportActivity request)
-        {
-            CheckServerAuth(request.authorization);
-            //await services.gameServer.SetServerGSPing(request.serverId, request.ping);
-            await services.gameServer.SetServerPing(request.serverId);
-        }
-
-        [HttpPostBypass("/gs/delete")]
-        public async Task DeleteServer([Required, MVC.FromBody] ReportActivity request)
-        {
-            CheckServerAuth(request.authorization);
-            await services.gameServer.DeleteGameServer(request.serverId);
-        }
         //this is for the newer years that dont have a custom monitoring script
         [HttpPostBypass("presence/register-game-presence")]
         public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType)
         {
-            if (!isRCC)
+            // Security check
+            if (!isRCC || placeId != currentPlaceId || gameId != currentGameId)
                 throw new UnauthorizedAccessException();
             var onlineStatus = (await services.users.MultiGetPresence(new[] {visitorId})).First();
             // RAGESOC will trigger here it's most likely a cheater because why ever would a player not be online when joining a game
@@ -742,6 +707,20 @@ namespace Roblox.Website.Controllers
             if (hasSuspicousLastOnline)
             {
                 await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGESOC] UID: {visitorId} Flag: SuspicousLastOnline");
+            }
+            // Check if a gameserver exists for the gameId, and then check if the placeId matches the assetId of the game server
+            var gameServer = await services.gameServer.GetGameServer(gameId);
+            if (placeId != gameServer.assetId)
+            {
+                throw new BadRequestException();
+            }
+
+            var userInfo = await services.users.GetUserById(visitorId);
+            // If a banned user tries to join the game, we kick them
+            if (userInfo.IsDeleted())
+            {
+                await services.gameServer.KickPlayer(visitorId);
+                throw new ForbiddenException(0, "User is banned");
             }
 
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
