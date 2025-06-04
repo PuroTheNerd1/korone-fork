@@ -1326,18 +1326,19 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2/CreateOrUpdate")]
         [HttpGetBypass("v1/CreateOrUpdate")]
         [HttpPostBypass("v1/CreateOrUpdate")]
-        public async Task<dynamic> GetOrCreate(string gameId, decimal ping)
+        public async Task<dynamic> GetOrCreate(string gameId, decimal ping, decimal fps)
         {
 
             if(!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
-            if (GameServerService.unreadyGameServers.ContainsKey(gameId)) {
+            if (GameServerService.unreadyGameServers.ContainsKey(gameId)) 
                 GameServerService.unreadyGameServers.Remove(gameId);
-            }
+            
 
             int roundPing = (int)Math.Round(ping, 0);
-            await services.gameServer.SetServerGSPing(gameId, roundPing);
+            int roundFps = (int)Math.Round(fps, 0);
+            await services.gameServer.SetServerStats(gameId, roundPing, roundFps);
             return "OK!";
 
         }

@@ -490,19 +490,13 @@ public class GameServerService : ServiceBase
 
         return result;
     }
-    public async Task SetServerGSFPS(string serverId, long fps)
+
+    public async Task SetServerStats(string serverId, long ping, long fps)
     {
-        await db.ExecuteAsync("UPDATE asset_server SET fps = :GSFPS WHERE id = :id::uuid", new
+        await db.ExecuteAsync("UPDATE asset_server SET ping = :ping, fps = :fps WHERE id = :id::uuid", new
         {
-            GSFPS = (long)Math.Round((double)fps),
-            id = serverId,
-        });
-    }
-    public async Task SetServerGSPing(string serverId, long ping)
-    {
-        await db.ExecuteAsync("UPDATE asset_server SET ping = :GSP WHERE id = :id::uuid", new
-        {
-            GSP = ping,
+            ping,
+            fps,
             id = serverId,
         });
     }
