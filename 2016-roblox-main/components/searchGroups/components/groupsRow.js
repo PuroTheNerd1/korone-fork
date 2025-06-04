@@ -56,7 +56,7 @@ const GroupsRow = props => {
                        <p><span className={s.groupname}>{v.name}</span> </p>
                      </div>
                      <div className='col-12 col-md-3 col-lg-3'>
-                       <p className={s.textRight + ' ' + s.colorNormal}>{v.memberCount}</p>
+                       <p className={`${s.textRight} ${s.colorNormal}`}>{v.memberCount >= 1000 ? (v.memberCount / 1000).toFixed(1) + 'k+' : v.memberCount} Members</p>
                      </div>
                    </div>
                  </a>

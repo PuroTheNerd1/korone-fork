@@ -39,10 +39,10 @@ const InputRow = props => {
     <div className='col-8 col-lg-9'>
       <input disabled={store.locked} value={query} onChange={(e) => {
         setQuery(e.currentTarget.value);
-      }} className={s.input} type='text' placeholder='Username Query' />
+      }} className={s.input} type='text' placeholder='Group Name Query' />
     </div>
     <div className='col-2'>
-      <ActionButton disabled={store.locked} onClick={onClick} className={btnStyles.buyButton + ' ' + btnStyles.normal + ' ' + s.searchButton} label='Search Users' />
+      <ActionButton disabled={store.locked} onClick={onClick} className={btnStyles.buyButton + ' ' + btnStyles.normal + ' ' + s.searchButton} label='Search Groups' />
     </div>
   </div>
 }
