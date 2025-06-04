@@ -13,7 +13,7 @@ namespace Roblox.Services
 
         public DistributedCache redis => Roblox.Services.Cache.distributed;
 
-        private static Regex keywordRegex = new Regex("[a-zA-Z0-9]+");
+        private static Regex keywordRegex = new Regex("[a-zA-Z0-9 ]+");
         protected string FilterKeyword(string dirtyKeyword)
         {
             var newKeyword = keywordRegex.Match(dirtyKeyword);
