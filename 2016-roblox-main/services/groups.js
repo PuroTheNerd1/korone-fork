@@ -156,5 +156,5 @@ export const getGroupAuditLog = ({ groupId, cursor, userId, action }) => {
 }
 
 export const searchGroups = async ({keyword, limit, offset}) => {
-  return await request('GET', getFullUrl('groups', 'v1/groups/search?keyword=' + (keyword||'') + '&maxRows='+limit+'&startIndex='+offset)).then(d => d.data);
+  return await request('GET', getFullUrl('groups', '/v1/groups/search?keyword=' + (keyword||'') + '&maxRows='+limit+'&startIndex='+offset)).then(d => d.data);
 }
