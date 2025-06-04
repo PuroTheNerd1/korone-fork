@@ -707,16 +707,6 @@ public class GameServerService : ServiceBase
     }
 */
 
-    public async Task<long> GetRCCport(string jobId)
-    {
-        var result = await db.QueryFirstOrDefaultAsync<long?>("SELECT port FROM asset_server WHERE id = :id::uuid", new { id = jobId });
-
-        if (result.HasValue)
-        {
-            return result.Value;
-        }
-        throw new Exception("Port not found or NULL.");
-    }
     public async Task<string> GetJobIdByUserId(long userId)
     {
         var result = await db.QueryFirstOrDefaultAsync<Guid?>(
@@ -748,56 +738,54 @@ public class GameServerService : ServiceBase
     }
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId, int? matchmaking = 1)
     {
-        return await db.QueryAsync<GameServerDb>(
+        var result = await db.QueryAsync<GameServerDb>(
             "SELECT * FROM asset_server WHERE asset_id = :assetid AND type = :type",
             new
             {
                 assetid = placeId,
                 type = matchmaking,
             });
+        if (result == null)
+            return new List<GameServerDb>();
+        return result;
     }
 
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking)
     {
-        var GameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
-        
-        if (GameServers != null)
+        var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
+        foreach (GameServerDb server in gameServers)
         {
-            foreach (GameServerDb server in GameServers)
+            string jobid = server.id.ToString();
+            var currentPlayerCount = await GetGameServerPlayers(jobid);
+
+            // if the server is full continue the search for a good one
+            if (currentPlayerCount.Count() >= placeInfo.maxPlayerCount)
             {
-                if (GameServers == null)
-                    break;
-                string jobid = server.id.ToString();
-                var currentPlayerCount = await GetGameServerPlayers(jobid);
-
-                // if the server is full continue the search for a good one
-                if (currentPlayerCount.Count() >= placeInfo.maxPlayerCount)
-                {
-                    continue;
-                }
-                // if the server is older than 5 minutes then shutdown the server
-                if (server.updated_at.AddMinutes(5) < DateTime.UtcNow)
-                {
-                    await ShutDownServerAsync(jobid);
-                    continue;
-                }
-
-                //dict check!!! if it doesnt contain it lets kill it!
-                //if (!currentGameServerPorts.ContainsKey(jobid))
-                //{
-                    //_ = ShutDownServerAsync(jobid);
-                    //continue;
-                //}
-
-                // we found a server to join or.... its loading depending
-                return new GameServerGetOrCreateResponse()
-                {
-                    job = jobid,
-                    ip = Configuration.GameServerIp,
-                    port = server.port,
-                    status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
-                };
+                continue;
             }
+            // if the server is older than 5 minutes then shutdown the server
+            if (server.updated_at.AddMinutes(5) < DateTime.UtcNow)
+            {
+                await ShutDownServerAsync(jobid);
+                continue;
+            }
+
+            //dict check!!! if it doesnt contain it lets kill it!
+            //if (!currentGameServerPorts.ContainsKey(jobid))
+            //{
+                //_ = ShutDownServerAsync(jobid);
+                //continue;
+            //}
+
+            // we found a server to join or.... its loading depending
+            return new GameServerGetOrCreateResponse()
+            {
+                job = jobid,
+                ip = Configuration.GameServerIp,
+                port = server.port,
+                status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
+            };
+            
         }
 
         int mainRCCPort = RandomComponent.Next(30000, 40000);
@@ -819,17 +807,17 @@ public class GameServerService : ServiceBase
         //         status = JoinStatus.Loading,
         //     };
        _ = Task.Run(async () => await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking));
-            await db.ExecuteAsync(
-                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
-            new
-            {
-                id = jobId,
-                asset_id = placeInfo.placeId,
-                ip = Configuration.GameServerIp,
-                port = proxyPort,
-                server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
-                type = matchmaking
-            });
+        await db.ExecuteAsync(
+            "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
+        new
+        {
+            id = jobId,
+            asset_id = placeInfo.placeId,
+            ip = Configuration.GameServerIp,
+            port = proxyPort,
+            server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
+            type = matchmaking
+        });
         unreadyGameServers.Add(jobId, 0);
         while (unreadyGameServers.ContainsKey(jobId))
         {
