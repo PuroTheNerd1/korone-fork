@@ -110,6 +110,7 @@ const useStyles = createUseStyles({
  * exitFunction?: () => void;
  * containerWidth?: number;
  * offset?: number;
+ * headerBorder?: boolean;
  * }} props
  * @returns
  */
@@ -124,7 +125,7 @@ const newModal = props => {
 
     const footerClass = footer ? null : s.noDisplay;
     const opacityClass = hoverX ? s.fullOpacity : null
-    const bottomBorder = modalHeader == null || modalHeader == undefined || modalHeader == "" ? null : s.modalHeaderBottomBorder
+    const bottomBorder = !props.headerBorder || modalHeader == null || modalHeader == undefined || modalHeader == "" ? null : s.modalHeaderBottomBorder
 
     return <div className={s.modalBg}>
         <div className={`${s.modalContainer} ${props.containerClass ? props.containerClass : ""}`}>

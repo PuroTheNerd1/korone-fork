@@ -139,7 +139,7 @@ const useStyles = createUseStyles({
             height: 10,
             backgroundSize: "20px auto",
         },
-        "@media(max-width: 768px)": {
+        "@media(max-width: 767px)": {
             display: "none",
         }
     },

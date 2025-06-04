@@ -196,6 +196,7 @@ namespace Roblox.Dto.Assets
         public long assetId { get; set; }
         public string name { get; set; }
         public int? price { get; set; }
+        public int? priceInTickets { get; set; }
         public long creatorId { get; set; }
         public CreatorType creatorType { get; set; }
         public string creatorName { get; set; }

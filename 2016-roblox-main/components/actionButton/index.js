@@ -33,7 +33,7 @@ const useBuyButtonStyles = createUseStyles({
 });
 
 /**
- * 
+ *
  * @param {{
  * onClick?: (e: any) => void;
  * disabled?: boolean;
@@ -44,8 +44,9 @@ const useBuyButtonStyles = createUseStyles({
  * tooltipText?: string;
  * label?: any;
  * children?: any;
- * }} props 
- * @returns 
+ * divChildren?: any;
+ * }} props
+ * @returns
  */
 const ActionButton = props => {
   const s2 = useBuyButtonStyles();
@@ -62,6 +63,7 @@ const ActionButton = props => {
       className={`${s2.btn} ${props.className} ${bg}`}
       onClick={props.onClick}
       title={props.disabled ? props.tooltipText : ''}>{props.label || props.children || 'Buy Now'}</button>
+    {props.divChildren}
   </div>
 }
 

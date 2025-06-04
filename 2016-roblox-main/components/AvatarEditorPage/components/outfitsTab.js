@@ -24,7 +24,7 @@ const useCardStyles = createUseStyles({
         aspectRatio: "4 / 5",
         width: "calc(20% - 8px)",
         padding: 0,
-        "@media(max-width: 768px)": {
+        "@media(max-width: 767px)": {
             width: "calc(25% - 8px)",
         },
         "@media(max-width: 576px)": {

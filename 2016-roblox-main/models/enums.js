@@ -18,6 +18,11 @@ export const CreatorType = Object.freeze({
     Group: 2
 });
 
+export const CurrencyType = Object.freeze({
+    Robux: 1,
+    Tickets: 2
+});
+
 export const AssetType = Object.freeze({
     Image: 1,
     TeeShirt: 2,
@@ -101,3 +106,24 @@ export const AssetVoteType = Object.freeze({
     Upvote: 1,
     Downvote: 2
 });
+
+export const CurrencySize = Object.freeze({
+    "28x28": 1,
+    "20x20": 2,
+    "16x16": 3,
+});
+
+/**
+ * @template {Record<string|number, V>} O
+ * @template V
+ * @param {O} frozen
+ * @param {V} value
+ * @returns {(keyof O)|null}
+ * @constructor
+ */
+export function GetEnum(frozen, value) {
+    for (const key in frozen) {
+        if (frozen[key] === value) return key;
+    }
+    return null;
+}
