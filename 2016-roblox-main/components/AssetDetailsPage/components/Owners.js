@@ -205,7 +205,7 @@ function Owners({ isLabelHidden = false }) {
                         </div>
                         <div className={s.btnContainer2}>
                             {
-                                !owner.owner || (owner.owner.id !== auth.userId && owner.owner.id !== 1 && owner.owner.id !== 68)
+                                !owner.owner || !owner?.owner?.name || (owner.owner.id !== auth.userId && owner.owner.id !== 1 && owner.owner.id !== 68)
                                 ?
                                 <ActionButton
                                     label="Trade"
