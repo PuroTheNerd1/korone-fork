@@ -318,11 +318,11 @@ public class Asset : ControllerBase
 
         if (!isAuthorized && isLoadingNewPlace)
         {
-            Console.WriteLine($"The gamserver is trying to load a new place with assetId {assetId} game id: {currentGameId ?? "unknown"}");
+           
             // Game server is trying to load, so allow it
             isAuthorized = true;
         }
-
+        Console.WriteLine($"The gamserver is trying to load a new place with assetId {assetId} game id: {currentGameId ?? "unknown"}");
         // If rcc is making the request, but it's not for a place, validate the request:
         if (!isAuthorized)
         {
