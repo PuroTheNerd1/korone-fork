@@ -90,12 +90,15 @@ public class GroupsControllerV1 : ControllerBase
         FeatureCheck();
         var offset = int.Parse(cursor ?? "0");
         var result = (await services.groups.SearchGroups(keyword, cursor, limit)).ToList();
+
+        var orderedResult = result.OrderByDescending(g => g.memberCount).ToList();
+        
         return new
         {
             keyword = keyword,
             previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
-            nextPageCursor = result.Count >= limit ? (result.Count + offset).ToString() : null,
-            data = result,
+            nextPageCursor = orderedResult.Count >= limit ? (orderedResult.Count + offset).ToString() : null,
+            data = orderedResult,
         };
     }
 
