@@ -91,17 +91,19 @@ const BuyModal = () => {
     if (modals.purchaseState === PurchaseState.PurchaseError) return <NewModal
         title="Error"
         children={<>
-            <p>An error occured while processing this transaction. No ROBUX or Tickets have been removed from your account. Please try again later.</p>
+            <p>An error occurred while processing this transaction. No ROBUX or Tickets have been removed from your account. Please try again later.</p>
             <div className={s.imgContainer}>
                 <span className={`icon-warning-orange-150x150 ${s.robuxContainer}`} />
             </div>
         </>}
-        footerElements={<ActionButton
-            label="OK"
-            buttonStyle={btnStyles.newCancelButton}
-            onClick={closeModal}
-            className={s.modalBtn}
-        />}
+        footerElements={<div className="flex">
+            <ActionButton
+                label="OK"
+                buttonStyle={btnStyles.newCancelButton}
+                onClick={closeModal}
+                className={s.modalBtn}
+            />
+        </div>}
         footerClass={s.footerClass}
         containerClass={s.containerClass}
         exitFunction={closeModal}
@@ -110,15 +112,28 @@ const BuyModal = () => {
     
     if (newBalance < 0 || modals.purchaseState === PurchaseState.InsufficientFunds) return <NewModal
         title="Insufficient Funds"
+        // children={<>
+        //     <p>You need <Currency currencyType={GetEnum(CurrencyType, purchaseInfo.currency)} price={purchaseInfo.expectedPrice} /> more to purchase this item.</p>
+        //     <div className={s.imgContainer}>
+        //             <span className={s.robuxContainer}>
+        //                 <img alt="ROBUX" src="/img/ROBUX.webp" style={{ display: 'inline-block', width: '100%', height: '100%', verticalAlign: 'middle' }} />
+        //             </span>
+        //     </div>
+        // </>}
         children={<>
-            <p>You need <Currency currencyType={GetEnum(CurrencyType, purchaseInfo.currency)} price={purchaseInfo.expectedPrice} /> more to purchase this item.</p>
+            <span className={s.spanText} style={{ marginBottom: 12, }}>
+                You need <Currency currencyType={GetEnum(CurrencyType, newBalance * -1)} size={CurrencySize["16x16"]} price={purchaseInfo.expectedPrice || "NaN"} divClass={s.ffffff} labelClass={s.labelClass} iconClass={s.iconClass}/> more to purchase this item.
+            </span>
             <div className={s.imgContainer}>
-                    <span className={s.robuxContainer}>
-                        <img alt="ROBUX" src="/img/ROBUX.webp" style={{ display: 'inline-block', width: '100%', height: '100%', verticalAlign: 'middle' }} />
-                    </span>
+                <img alt="ROBUX" className={s.img} src="/img/ROBUX.webp" style={{
+                    display: 'inline-block',
+                    width: '100%',
+                    height: '100%',
+                    verticalAlign: 'middle'
+                }}/>
             </div>
         </>}
-        footerElements={<>
+        footerElements={<div className="flex">
             <ActionButton
                 label="Buy Robux"
                 buttonStyle={btnStyles.newBuyButton}
@@ -134,7 +149,7 @@ const BuyModal = () => {
                 onClick={closeModal}
                 className={s.modalBtn}
             />
-        </>}
+        </div>}
         footerClass={s.footerClass}
         containerClass={s.containerClass}
         exitFunction={closeModal}

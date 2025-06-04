@@ -101,8 +101,8 @@ const assetDetailsStore = createContainer(() => {
                 let thumb = ownerThumbs.find(d => d.targetId === (owner?.owner?.id || 0));
                 data.push({
                     ...owner,
-                    imageUrl: thumb.imageUrl || "",
-                    state: thumb.state || "",
+                    imageUrl: thumb?.imageUrl || "",
+                    state: thumb?.state || "",
                 });
             });
             cursor = ownerData.nextPageCursor;

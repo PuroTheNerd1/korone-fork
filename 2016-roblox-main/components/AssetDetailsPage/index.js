@@ -462,7 +462,12 @@ function AssetDetailsPage({ itemDetails }) {
                         }}>Resellers</a></span>
                     </div>
                     <ActionButton className={s.buyBtn} label="Buy" buttonStyle={buttonStyles.newBuyButton}
-                                  onClick={() => modal.setBuyModalOpen(true)}/>
+                                  onClick={() => {
+                                      const purch = store.getPurchaseInfo();
+                                      if (!purch) return;
+                                      modal.setBuyingUIAD(purch.userAssetId);
+                                      modal.setBuyModalOpen(true);
+                                  }}/>
                     <span className={`${s.detailTxt} invis-767`}>See more <a className={`link2018`} style={{
                         fontSize: "inherit",
                         fontWeight: "inherit"
