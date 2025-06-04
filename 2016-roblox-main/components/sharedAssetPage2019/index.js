@@ -9,9 +9,9 @@ import { getGameUrl, getLibraryItemUrl, isLibraryItem } from "../../services/gam
 import { useRouter } from "next/dist/client/router";
 import Feedback from "../../stores/feedback";
 import ErrorPage from "../errorPage";
-import AssetDetailsStore from "../assetDetailsPage/stores/AssetDetailsStore";
-import AssetDetailsPage from "../assetDetailsPage";
-import AssetDetailsModalStore from "../assetDetailsPage/stores/AssetDetailsModalStore";
+import AssetDetailsStore from "../AssetDetailsPage/stores/AssetDetailsStore";
+import AssetDetailsPage from "../AssetDetailsPage";
+import AssetDetailsModalStore from "../AssetDetailsPage/stores/AssetDetailsModalStore";
 import { catalogPageStyle, getCatalogPageStyle } from "../../services/theme";
 import SharedAssetPage from "../sharedAssetPage";
 

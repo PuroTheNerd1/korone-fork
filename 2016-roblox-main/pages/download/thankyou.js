@@ -7,12 +7,16 @@ import Theme2016 from "../../components/theme2016";
 const useStyles = createUseStyles({
     wrapper: {
         display: "flex",
-        marginLeft: "175px",
+        marginLeft: "auto",
     },
     container: {
         minHeight: 400,
         margin: "30px auto",
         backgroundColor: "#fff",
+        marginLeft: 175,
+        "@media(max-width: 970px)": {
+            marginLeft: 0,
+        },
     },
     gamesBtn: {
         padding: "7px 16px",

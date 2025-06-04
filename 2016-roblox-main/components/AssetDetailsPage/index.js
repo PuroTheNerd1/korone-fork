@@ -107,7 +107,7 @@ const useStyles = createUseStyles({
             margin: 0,
             maxHeight: "2.225em",
             overflow: "hidden",
-            whiteSpace: "nowrap",
+            whiteSpace: "pre-wrap",
             wordBreak: "break-word",
             textOverflow: "ellipsis",
             "@media(max-width: 576px)": {

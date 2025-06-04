@@ -1,6 +1,6 @@
 import {createUseStyles} from "react-jss";
 import React, { useEffect, useState } from "react";
-import { formatNum } from "./assetDetailsPage";
+import { formatNum } from "./AssetDetailsPage";
 import { CurrencySize, CurrencyType, GetEnum } from "../models/enums";
 
 const useStyles = createUseStyles({

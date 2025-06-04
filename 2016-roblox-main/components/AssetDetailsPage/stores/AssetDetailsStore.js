@@ -77,8 +77,8 @@ const assetDetailsStore = createContainer(() => {
                 let thumb = resellThumbs.find(d => d.targetId === seller.seller.id);
                 data.push({
                     ...seller,
-                    imageUrl: thumb.imageUrl || "",
-                    state: thumb.state || "",
+                    imageUrl: thumb?.imageUrl || "",
+                    state: thumb?.state || "",
                 });
             });
             cursor = resellData.nextPageCursor;
