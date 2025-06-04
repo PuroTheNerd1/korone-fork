@@ -13,6 +13,7 @@ using Roblox.Dto.Assets;
 using Roblox.Website.Middleware;
 using Roblox.Libraries.RobloxApi;
 using Roblox.Logging;
+using Roblox.Rendering;
 namespace Roblox.Website.Controllers;
 [ApiController]
 [Route("/")]
@@ -310,13 +311,25 @@ public class Asset : ControllerBase
         // If the asset is a place we need to ensure that the RCC has the correct placeId
         if (details.assetType == Type.Place)
         {
+            // If the place id is null it's most likely a render request
+            if (placeId == 0)
+            {
+                if (RenderingHandler.allowedPlaceForRender.ContainsKey(assetId))
+                {
+                    Writer.Info(LogGroup.AssetDelivery, "RCC is requesting a place {0} for rendering", assetId);
+                    RenderingHandler.allowedPlaceForRender.Remove(assetId);
+                    return true;
+                }
+                return false;
+            }
+
             // If the assetId doesn't match the placeId, it's not authorized
-            if (placeId != assetId && placeId != 0)
+            if (placeId != assetId)
             {
                 Writer.Info(LogGroup.AssetDelivery, "Mismatched placeId {0} and assetId {1} for place request", placeId, assetId);
                 return false;
             }
-                
+        
 
             // Let's get the gameserver associated with the current game
             var gameServer = await services.gameServer.GetGameServer(currentGameId);

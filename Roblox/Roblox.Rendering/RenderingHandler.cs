@@ -47,7 +47,7 @@ namespace Roblox.Rendering
             RccServicePath = rccPath;
             LuaScriptPath = luaScriptPath;
         }
-
+        public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>(); 
         private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false,  string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null)
         {
             Stopwatch sw = new Stopwatch();
@@ -109,6 +109,7 @@ namespace Roblox.Rendering
                     renderRequest.x = x;
                     renderRequest.y = y;
                     url = "game/thumbnail";
+                    allowedPlaceForRender.TryAdd(id, ""); // Add to the dictionary to allow rendering
                     break;
                 case RenderType.Model:
                     renderRequest.assetId = id;
