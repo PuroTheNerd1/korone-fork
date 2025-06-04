@@ -12,7 +12,7 @@ const SearchGroupsStore = createContainer(() => {
     if (!keyword && !getFlag('searchUsersAllowNullKeyword', false))
       return;
     setLocked(true);
-    searchGroups({keyword, limit: 12, offset: 0}).then(d => {
+    searchGroups({keyword: encodeURIComponent(keyword), limit: 12, offset: 0}).then(d => {
       setData(d);
       const ids = d.data.map(v => v.id);
     }).finally(() => {
