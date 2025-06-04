@@ -788,47 +788,7 @@ namespace Roblox.Website.Controllers
             //     await services.gameServer.OnPlayerLeave(userId, placeId, JobId);
             // }
         }
-        [HttpPostBypass("/gs/shutdown")]
-        public async Task ShutDownServer([Required, MVC.FromBody] ReportActivity request)
-        {
-            CheckServerAuth(request.authorization);
-            await services.gameServer.ShutDownServerAsync(request.serverId);
-        }
 
-        [HttpPostBypass("/gs/players/report")]
-        public async Task ReportPlayerActivity([Required, MVC.FromBody] ReportPlayerActivity request)
-        {
-            CheckServerAuth(request.authorization);
-            if (request.eventType == "Leave")
-            {
-                await services.gameServer.OnPlayerLeave(request.userId, request.placeId, request.serverId);
-            }
-            else if (request.eventType == "Join")
-            {
-                await Roblox.Metrics.GameMetrics.ReportGameJoinSuccess(request.placeId);
-                await services.gameServer.OnPlayerJoin(request.userId, request.placeId, request.serverId);
-            }
-            else
-            {
-                throw new Exception("Unexpected type " + request.eventType);
-            }
-        }
-
-        [HttpPostBypass("/gs/a")]
-        public void ReportGS()
-        {
-            // Doesn't do anything yet. See: services/api/src/controllers/bypass.ts:1473
-            return;
-        }
-        [HttpPostBypass("game/validate-machine")]
-        public dynamic ValidateMachineAsync()
-        {
-            return new
-            {
-                success = true,
-                message = "",
-            };
-        }
         [HttpGetBypass("/v1/user/currency")]
         [HttpGetBypass("/my/balance")]
         public async Task<dynamic> MyBalance()
