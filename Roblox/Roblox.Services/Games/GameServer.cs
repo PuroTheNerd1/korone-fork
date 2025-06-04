@@ -234,71 +234,77 @@ public class GameServerService : ServiceBase
             using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
             var placeDetails = await assets.GetAssetCatalogInfo(placeId);
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
-            if (placeDetails.creatorType == CreatorType.Group)
+            using var cooldown = ServiceProvider.GetOrCreate<CooldownService>(this);
+            // Per 100 users there is a 1 day cooldown to earn tickets from visits
+            if (await cooldown.TryIncrementBucketCooldown("TicketCreatorPlaceVisit:" + placeId, 100, TimeSpan.FromDays(1)));
             {
-                await InsertAsync("user_transaction", new
+                if (placeDetails.creatorType == CreatorType.Group)
                 {
-                    amount = 10,
-                    currency_type = CurrencyType.Tickets,
-                    user_id_one = (long?)null,
-                    user_id_two = userId,
-                    group_id_one = placeDetails.creatorTargetId,
-                    type = PurchaseType.PlaceVisit,
-                    // store id of the game as well
-                    asset_id = placeId,
-                });
-            }
-            else
-            {
-                if(placeDetails.creatorTargetId == userId)
-                {
-                    return 0;
+                    await InsertAsync("user_transaction", new
+                    {
+                        amount = 10,
+                        currency_type = CurrencyType.Tickets,
+                        user_id_one = (long?)null,
+                        user_id_two = userId,
+                        group_id_one = placeDetails.creatorTargetId,
+                        type = PurchaseType.PlaceVisit,
+                        // store id of the game as well
+                        asset_id = placeId,
+                    });
                 }
-                await ec.IncrementCurrency(CreatorType.User, placeDetails.creatorTargetId, CurrencyType.Tickets, 10);
-                await InsertAsync("user_transaction", new
+                else
                 {
-                    amount = 10,
-                    currency_type = CurrencyType.Tickets,
-                    user_id_one = placeDetails.creatorTargetId,
-                    user_id_two = userId,
-                    type = PurchaseType.PlaceVisit,
-                    // store id of the game as well
-                    asset_id = placeId,
-                });
-                /* 
-                    Homestead = 6
-                    Bricksmith = 7
-                */
-                using var accountService = ServiceProvider.GetOrCreate<AccountInformationService>(this);
-                var badges = await accountService.GetUserBadges(placeDetails.creatorTargetId);
-                switch (await games.GetTotalVisitsFromUser(placeDetails.creatorTargetId))
-                {
-                    case 100:
-                        if (badges.Any(b => b.id == 6))
-                        {
-                            return 0;
-                        }
-                        await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
-                        {
-                            user_id = placeDetails.creatorTargetId,
-                            badge_id = 6,
-                        });
-                        break;
-                    case 1000:
-                        if (badges.Any(b => b.id == 7))
-                        {
-                            return 0;
-                        }
-                        await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
-                        {
-                            user_id = placeDetails.creatorTargetId,
-                            badge_id = 7,
-                        });
-                        break;
-                    default:
-                        break;
+                    if (placeDetails.creatorTargetId == userId)
+                    {
+                        return 0;
+                    }
+                    await ec.IncrementCurrency(CreatorType.User, placeDetails.creatorTargetId, CurrencyType.Tickets, 10);
+                    await InsertAsync("user_transaction", new
+                    {
+                        amount = 10,
+                        currency_type = CurrencyType.Tickets,
+                        user_id_one = placeDetails.creatorTargetId,
+                        user_id_two = userId,
+                        type = PurchaseType.PlaceVisit,
+                        // store id of the game as well
+                        asset_id = placeId,
+                    });
+                    /* 
+                        Homestead = 6
+                        Bricksmith = 7
+                    */
+                    using var accountService = ServiceProvider.GetOrCreate<AccountInformationService>(this);
+                    var badges = await accountService.GetUserBadges(placeDetails.creatorTargetId);
+                    switch (await games.GetTotalVisitsFromUser(placeDetails.creatorTargetId))
+                    {
+                        case 100:
+                            if (badges.Any(b => b.id == 6))
+                            {
+                                return 0;
+                            }
+                            await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
+                            {
+                                user_id = placeDetails.creatorTargetId,
+                                badge_id = 6,
+                            });
+                            break;
+                        case 1000:
+                            if (badges.Any(b => b.id == 7))
+                            {
+                                return 0;
+                            }
+                            await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
+                            {
+                                user_id = placeDetails.creatorTargetId,
+                                badge_id = 7,
+                            });
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
+
 
             return 0;
         });

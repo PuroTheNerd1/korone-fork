@@ -62,9 +62,7 @@ public class Asset : ControllerBase
         // Opt
         if (Services.Cache.distributed.StringGetMemory(invalidIdKey) != null)
             throw new RobloxException(400, 0, "Asset is invalid or does not exist");
-
-        var isBotRequest = Request.Headers["bot-auth"].ToString() == Roblox.Configuration.BotAuthorization;
-
+            
         MultiGetEntry details;
         try
         {
@@ -132,8 +130,8 @@ public class Asset : ControllerBase
             }
         }
 
-        // TODO: Fix for this is using a diffrent access key for rendering
-        if (!IsAssetApproved(details) && !isBotRequest && !isRCC)
+        // Places can never be loaded if they are denied
+        if (!IsAssetApproved(details) && !isRCC && details.assetType != Type.Place)
             throw new RobloxException(403, 0, "Asset not approved for requester");
 
         dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
