@@ -25,10 +25,10 @@
       if (hash.includes('mats-thumbnails.roblox.com')) {
         return hash;
       }
-      if (hash.includes('www.goober.top')) {
+      if (hash.includes('www.pekora.zip')) {
         return hash;
       }
-      if (hash.includes('https://goober.top/')) {
+      if (hash.includes('https://pekora.zip/')) {
         hash = hash.substring(str.indexOf('/', 8) + 1);
       }
       let st = 31;
@@ -36,7 +36,7 @@
         st ^= hash[ii].charCodeAt(0);
       }
       // return `https://t${(st % 8).toString()}.rbxcdn.com/${hash}`;
-      return `https://www.goober.top${hash.at(0) === '/' ? hash : '/' + hash}`;
+      return `https://www.pekora.zip${hash.at(0) === '/' ? hash : '/' + hash}`;
     }
 
     load(hash, onLoad, onProgress, onError) {
@@ -286,7 +286,7 @@
           st ^= url[ii].charCodeAt(0);
         }
         // return `https://t${(st % 8).toString()}.rbxcdn.com/${url}`;
-        return `https://www.goober.top/${url}`;
+        return `https://www.pekora.zip/${url}`;
       }
 
       function setMapForType(mapType, value) {
