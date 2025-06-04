@@ -21,14 +21,6 @@ public class RbxThumbnails : ControllerBase
     }
     private async Task<RedirectResult> GetThumbnailUrl(long id, ThumbnailType type)
     {
-        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
-        if (!authUser18Plus)
-        {
-            var avatar18Plus = await services.avatar.IsUserAvatar18Plus(id);
-            if (avatar18Plus)
-                return new RedirectResult("/img/blocked.png", false);
-        }
-
         List<ThumbnailEntry> result = null;
 
         switch (type)
@@ -190,35 +182,14 @@ public class RbxThumbnails : ControllerBase
         var parsed = userIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
         var result = (await services.thumbnails.GetUserHeadshots(parsed)).ToList();
+
+        foreach (var item in result)
+        {
+            if (item.imageUrl is null) continue;
+
+            item.imageUrl = Configuration.BaseUrl + item.imageUrl;
+        }
         var result2 = result.ToList();
-        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
-        if (!authUser18Plus)
-        {
-            foreach (var item in result)
-            {
-                if (item.imageUrl is null) continue;
-
-                var avatar18Plus = await services.avatar.IsUserAvatar18Plus(item.targetId);
-                if (avatar18Plus)
-                {
-                    item.state = ThumbnailState.Blocked;
-                    item.imageUrl = "/img/blocked.png";
-                }
-                else
-                {
-                    item.imageUrl = Configuration.BaseUrl + item.imageUrl;
-                }
-            }
-        }
-        else
-        {
-            foreach (var item in result)
-            {
-                if (item.imageUrl is null) continue;
-
-                item.imageUrl = Configuration.BaseUrl + item.imageUrl;
-            }
-        }
         return new()
         {
             data = result2,

@@ -127,27 +127,6 @@ public class ThumbnailsControllerV1 : ControllerBase
         }
     }
 
-    private async Task<RobloxCollection<ThumbnailEntry>> Process18PlusAvatars(IEnumerable<ThumbnailEntry> data)
-    {
-        var result = data.ToList();
-        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
-        if (!authUser18Plus)
-        {
-            foreach (var item in result)
-            {
-                if (item.imageUrl is null) continue;
-                var avatar18Plus = await services.avatar.IsUserAvatar18Plus(item.targetId);
-                if (!avatar18Plus) continue;
-                item.state = ThumbnailState.Blocked;
-                item.imageUrl = "/img/blocked.png";
-            }
-        }
-
-        return new()
-        {
-            data = result,
-        };
-    }
 
     [HttpGet("users/avatar-headshot")]
     public async Task<RobloxCollection<ThumbnailEntry>> GetUserHeadshots(string userIds)
@@ -155,16 +134,22 @@ public class ThumbnailsControllerV1 : ControllerBase
         var parsed = userIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
         var result = (await services.thumbnails.GetUserHeadshots(parsed)).ToList();
-        return await Process18PlusAvatars(result);
+        return new()
+        {
+            data = result
+        };
     }
-    
+
     [HttpGet("users/avatar")]
     public async Task<RobloxCollection<ThumbnailEntry>> GetUserThumbnails(string userIds)
     {
         var parsed = userIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
         var result = await services.thumbnails.GetUserThumbnails(parsed);
-        return await Process18PlusAvatars(result);
+        return new()
+        {
+            data = result
+        };
     }
     
     [HttpGet("users/avatar-3d")]
@@ -186,38 +171,23 @@ public class ThumbnailsControllerV1 : ControllerBase
                 await services.avatar.RedrawAvatar(v);
             });
         }
-        return await Process18PlusAvatars(result);
-    }
-    
-    private async Task<RobloxCollection<ThumbnailEntry>> Process18PlusAssets(IEnumerable<ThumbnailEntry> data)
-    {
-        var result = data.ToList();
-        var authUser18Plus = userSession != null && await services.users.Is18Plus(userSession.userId);
-        if (!authUser18Plus)
-        {
-            foreach (var item in result)
-            {
-                if (item.imageUrl is null) continue;
-                var item18Plus = await services.assets.Is18Plus(item.targetId);
-                if (!item18Plus) continue;
-                item.state = ThumbnailState.Blocked;
-                item.imageUrl = "/img/blocked.png";
-            }
-        }
-
         return new()
         {
-            data = result,
+            data = result
         };
     }
     
+
     [HttpGet("assets")]
     public async Task<RobloxCollection<ThumbnailEntry>> GetAssetThumbnails(string assetIds)
     {
         var parsed = assetIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
         var result = await services.thumbnails.GetAssetThumbnails(parsed);
-        return await Process18PlusAssets(result);
+        return new()
+        {
+            data = result
+        };
     }
     
     [HttpGet("users/outfits")]
