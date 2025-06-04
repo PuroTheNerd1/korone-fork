@@ -321,7 +321,7 @@ public class Asset : ControllerBase
             var isAllowed = gameServer.assetId == assetId;
 
             Writer.Info(LogGroup.AssetDelivery, "RCC is requesting a place {0}, with game id {1}. Authorized: {2}", 
-                assetId, gameServer.assetId, isAllowed);
+                assetId, currentGameId, isAllowed);
 
             return isAllowed;
         }
