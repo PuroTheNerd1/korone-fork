@@ -1,10 +1,8 @@
 import searchUsersStore from "../stores/searchGroupsStore";
 import {useEffect} from "react";
 import InputRow from "./inputRow";
-import UsersRow from "./usersRow";
-import {createUseStyles} from "react-jss";
 import GroupsRow from "./groupsRow";
-
+import {createUseStyles} from "react-jss";
 const useStyles = createUseStyles({
   row: {
     background: 'var(--white-color)',
