@@ -75,6 +75,34 @@ namespace Roblox.Website.Controllers
                 return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
             }
         }
+        public string? currentGameId
+        {
+            get
+            {
+                if (Request.Headers.TryGetValue("Roblox-Game-Id", out var gameId))
+                {
+                    return gameId.ToString();
+                }
+                return null;
+            }
+        }
+        public long currentPlaceId
+        {
+            get
+            {
+                if (!Request.Headers.TryGetValue("Roblox-Place-Id", out var placeId))
+                {
+                    return 0;
+                }
+
+                if (long.TryParse(placeId.ToString(), out var parsedPlaceId))
+                {
+                    return parsedPlaceId;
+                }
+                
+                return 0;
+            }
+        }
         private Task<Roblox.Models.Sessions.UserSession?> _cachedUserSession;
     
         protected Roblox.Models.Sessions.UserSession? userSession

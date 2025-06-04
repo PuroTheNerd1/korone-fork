@@ -43,8 +43,6 @@ public class Asset : ControllerBase
         // @jaggerthejag
         if (playerId == 261 || id == 105897927)
             id = 72236;
-        var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
-        long.TryParse(placeIdHeader,  out long placeId);
 
         // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
         // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
@@ -201,7 +199,7 @@ public class Asset : ControllerBase
             default:
                 var isAuthorized = false;
                 if (isRCC)
-                    isAuthorized = await ValidateRCCRequest(details, placeId, assetId);
+                    isAuthorized = await ValidateRCCRequest(details, currentPlaceId, assetId);
                 // It's not RCC making the request. are we authorized?
                 else
                     // Use current user as access check
@@ -311,13 +309,20 @@ public class Asset : ControllerBase
     }
     private async Task<bool> ValidateRCCRequest(MultiGetEntry details, long placeId, long assetId)
     {
-        var isAuthorized = false;   
-        // if rcc is trying to access current place, allow through
-        isAuthorized = placeId == assetId;
-        // If game server is trying to load a new place (current placeId is empty), then allow it
-        if (!isAuthorized && details.assetType == Type.Place && placeId == 0)
+        // If rcc is trying to access current place, allow through
+        var isAuthorized = placeId == assetId;
+
+        // If game server is trying to load a new place (current placeId is empty)
+        // Let's check if the Game-Id (job id) actually exists in the database
+        var isLoadingNewPlace = details.assetType == Type.Place && placeId == 0;
+
+        if (!isAuthorized && isLoadingNewPlace)
+        {
+            Writer.Info(LogGroup.AssetDelivery, "The gamserver is trying to load a new place with assetId {0} game id: {1}", assetId, currentGameId);
             // Game server is trying to load, so allow it
             isAuthorized = true;
+        }
+
         // If rcc is making the request, but it's not for a place, validate the request:
         if (!isAuthorized)
         {
