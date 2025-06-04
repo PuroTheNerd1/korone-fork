@@ -318,7 +318,7 @@ public class Asset : ControllerBase
 
         if (!isAuthorized && isLoadingNewPlace)
         {
-            Console.WriteLine($"The gamserver is trying to load a new place with assetId {assetId} game id: {currentGameId}");
+            Console.WriteLine($"The gamserver is trying to load a new place with assetId {assetId} game id: {currentGameId ?? "unknown"}");
             // Game server is trying to load, so allow it
             isAuthorized = true;
         }
