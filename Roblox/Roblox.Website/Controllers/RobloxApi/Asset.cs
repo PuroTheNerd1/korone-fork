@@ -314,7 +314,11 @@ public class Asset : ControllerBase
         {
             // If the assetId doesn't match the placeId, it's not authorized
             if (placeId != assetId)
+            {
+                Writer.Info(LogGroup.AssetDelivery, "Mismatched placeId {0} and assetId {1} for place request", placeId, assetId);
                 return false;
+            }
+                
 
             // Let's get the gameserver associated with the current game
             var gameServer = await services.gameServer.GetGameServer(currentGameId);
