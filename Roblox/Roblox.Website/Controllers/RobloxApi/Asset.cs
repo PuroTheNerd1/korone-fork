@@ -62,7 +62,7 @@ public class Asset : ControllerBase
         // Opt
         if (Services.Cache.distributed.StringGetMemory(invalidIdKey) != null)
             throw new RobloxException(400, 0, "Asset is invalid or does not exist");
-            
+
         MultiGetEntry details;
         try
         {
@@ -311,7 +311,7 @@ public class Asset : ControllerBase
         if (details.assetType == Type.Place)
         {
             // If the assetId doesn't match the placeId, it's not authorized
-            if (placeId != assetId)
+            if (placeId != assetId && placeId != 0)
             {
                 Writer.Info(LogGroup.AssetDelivery, "Mismatched placeId {0} and assetId {1} for place request", placeId, assetId);
                 return false;
