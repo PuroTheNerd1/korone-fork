@@ -54,7 +54,7 @@ public class GroupsService : ServiceBase, IService
             "SELECT id, name, description, created_at as created, updated_at as updated FROM \"group\" WHERE name ilike :name LIMIT :limit OFFSET :offset",
             new
             {
-                name = searchQuery + "%",
+                name = "%" + searchQuery + "%",
                 limit,
                 offset,
             })).ToList();
