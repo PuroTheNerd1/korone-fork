@@ -10,7 +10,8 @@ const useLogoStyles = createUseStyles({
     // backgroundImage: `url(/img/roblox_logo.svg)`,
     //backgroundImage: 'url(/img/holiday/projex_logo_studio.png)',
     backgroundImage: `url(/img/logo.png)`,
-    backgroundSize: '122px 30px',
+    // backgroundSize: '122px 30px',
+    backgroundSize: "100% auto",
     display: 'none',
     '@media(min-width: 1325px)': {
       display: 'block',
@@ -74,7 +75,7 @@ const Logo = () => {
     <a className={s.imgDesktop} href='/home'></a>
     <a className={s.imgMobile} href='/home'></a>
     {/*<div className={s.imgMobileWrapper}>
-      
+    
     </div>*/}
   </div>
 }
