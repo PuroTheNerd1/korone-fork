@@ -903,6 +903,7 @@ function IsISOWithinDays(iso, days) {
  * @returns {string}
  */
 export function formatNum(x) {
+    if (typeof x !== "number" && typeof x !== "string") return x;
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
