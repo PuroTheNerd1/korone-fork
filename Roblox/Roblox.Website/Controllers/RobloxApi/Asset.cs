@@ -45,10 +45,7 @@ public class Asset : ControllerBase
             id = 72236;
         var placeIdHeader = Request.Headers["Roblox-Place-Id"].ToString();
         long.TryParse(placeIdHeader,  out long placeId);
-        HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store");
-        HttpContext.Response.Headers.Add("Pragma", "no-cache");
-        HttpContext.Response.Headers.Add("Expires", "-1");
-        HttpContext.Response.Headers.Add("ExpiresAbsolute", "0");
+
         // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
         // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
         if(id == 507766388)
@@ -92,6 +89,7 @@ public class Asset : ControllerBase
                     // Don't bother caching assets for non roblox clients
                     if (!isRoblox)
                         throw new RecordNotFoundException();
+
                     //Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
                     location = await services.robloxApi.GetAssetLocation(id);
 
@@ -139,6 +137,7 @@ public class Asset : ControllerBase
         // TODO: Fix for this is using a diffrent access key for rendering
         if (!IsAssetApproved(details) && !isBotRequest && !isRCC)
             throw new RobloxException(403, 0, "Asset not approved for requester");
+
         dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
 
         Stream? assetContent = null;

@@ -147,7 +147,16 @@ public class AssetsService : ServiceBase, IService
 
         return result.assetId;
     }
-
+    public bool TryGetAssetIdFromRobloxAssetId(long robloxAssetId, out long assetId)
+    {
+        var result = db.QuerySingleOrDefault<Dto.Assets.AssetId>(
+            "SELECT id as assetId FROM asset WHERE roblox_asset_id = :id LIMIT 1", new
+            {
+                id = robloxAssetId,
+            });
+        assetId = result.assetId;
+        return result != null;
+    }
     public async Task<Dto.Assets.AssetVersionEntry> GetLatestAssetVersion(long assetId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
