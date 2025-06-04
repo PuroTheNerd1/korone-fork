@@ -15,8 +15,24 @@ const addBaseUrl = (arrayOfThumbs) => {
   })
 }
 
+/**
+ * @param {number[]} userIds
+ * @param {string} size
+ * @param {string} format
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
 export const multiGetUserThumbnails = ({ userIds, size = '420x420', format = 'png' }) => {
   return request('GET', getFullUrl('thumbnails', `/v1/users/avatar?userIds=${toCsv(userIds)}&size=${size}&format=${format}`)).then(d => d.data.data).then(addBaseUrl);
+}
+
+/**
+ * @param {number[]} userIds
+ * @param {string} size
+ * @param {string} format
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
+export const multiGetUserHeadshots2 = ({ userIds, size = '420x420', format = 'png' }) => {
+  return request('GET', getFullUrl('thumbnails', `/v1/users/avatar-headshot?userIds=${toCsv(userIds)}&size=${size}&format=${format}`)).then(d => d.data.data).then(addBaseUrl);
 }
 
 export const multiGetUserThumbnails3D = ({ userIds, size = '420x420', format = 'png' }) => {

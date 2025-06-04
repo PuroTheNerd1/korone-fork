@@ -37,27 +37,10 @@ const useStyles = createUseStyles({
     },
 });
 
-// im a sinner (chat gpt code because i have no idea how this works and i dont care to figure out LMFAO)
-const linkChangeEffect = (callback) => {
-    useEffect(() => {
-        const handleLocationChange = () => {
-            callback();
-        };
-
-        window.addEventListener('popstate', handleLocationChange);
-        window.addEventListener('pushstate', handleLocationChange); // For handling programmatic changes
-
-        return () => {
-            window.removeEventListener('popstate', handleLocationChange);
-            window.removeEventListener('pushstate', handleLocationChange);
-        };
-    }, [callback]);
-};
-
 /**
- * 
- * @param {{audioId: number; small?: boolean;}} props 
- * @returns 
+ *
+ * @param {{audioId: number; small?: boolean;}} props
+ * @returns
  */
 
 const PlayButton = props => {

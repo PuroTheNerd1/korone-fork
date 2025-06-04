@@ -3,24 +3,47 @@ import config from '../lib/config';
 
 let _csrf = '';
 
-const getFullUrl = (apiSite, fullUrl) => {
-    return config.publicRuntimeConfig.backend.apiFormat.replace(/\{0\}/g, apiSite).replace(/\{1\}/g, fullUrl);
+/**
+ * @param {string} service
+ * @param {string} url
+ * @returns {string}
+ */
+export const getFullUrl = (service, url) => {
+    return config.publicRuntimeConfig.backend.apiFormat.replace(/\{0\}/g, service).replace(/\{1\}/g, url);
 }
 
-const getBaseUrl = () => {
+/**
+ * @returns {string}
+ */
+export const getBaseUrl = () => {
     return config.publicRuntimeConfig.backend.baseUrl;
 }
 
+/**
+ * @param {string} str
+ * @returns {string}
+ */
 export const getBaseUrl2 = (str) => {
-    return config.publicRuntimeConfig.backend.baseUrl + str;
+    return config.publicRuntimeConfig.backend.baseUrl + (str.charAt(0) === '/' ? str : '/' + str);
 }
 
-const getUrlWithProxy = (url) => {
+/**
+ * @param {string} url
+ * @returns {string}
+ */
+export const getUrlWithProxy = (url) => {
     if (config.publicRuntimeConfig.backend.proxyEnabled)
         return '/api/proxy?url=' + encodeURIComponent(url);
     return url;
 }
 
+/**
+ * @param {string} method
+ * @param {string} url
+ * @param {any?} data
+ * @param {boolean?} verbose
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
 const request = async (method, url, data, verbose = false) => {
     const isBrowser = typeof window !== 'undefined';
     try {
@@ -48,7 +71,7 @@ const request = async (method, url, data, verbose = false) => {
             console.log(resp.headers)
             if (resp.status === 403 && resp.headers['x-csrf-token']) {
                 _csrf = resp.headers['x-csrf-token'];
-                return await request(method, url, data);
+                return request(method, url, data);
             }
         }
         if (isBrowser) {
@@ -60,7 +83,7 @@ const request = async (method, url, data, verbose = false) => {
                     e.message = e.message + ': ' + (err.code + ': ' + err.message);
                     // TODO: confirm this is causing issues
                     if (verbose && Number(String(e.response.status, "Could not parse response status")[0]) !== 5) {
-                        return e.response;
+                        return Promise.resolve(e.response);
                     }
                 }
             }
@@ -72,9 +95,3 @@ const request = async (method, url, data, verbose = false) => {
 }
 
 export default request;
-
-export {
-    getFullUrl,
-    getBaseUrl,
-    getUrlWithProxy,
-}

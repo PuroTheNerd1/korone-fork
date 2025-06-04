@@ -1890,7 +1890,7 @@ public class AssetsService : ServiceBase, IService
 
 
         return await db.QueryAsync<RecommendedItemEntry>(
-            @"SELECT asset.id as assetId, asset.name, asset.price_robux as price, asset.creator_id as creatorId, asset.creator_type as creatorType, asset.is_for_sale as isForSale, asset.is_limited as isLimited, asset.is_limited_unique as isLimitedUnique, asset.offsale_at as offsaleDeadline,
+            @"SELECT asset.id as assetId, asset.name, asset.price_robux as price, asset.price_tix as priceInTickets, asset.creator_id as creatorId, asset.creator_type as creatorType, asset.is_for_sale as isForSale, asset.is_limited as isLimited, asset.is_limited_unique as isLimitedUnique, asset.offsale_at as offsaleDeadline,
 
 (case when asset.creator_type = 1 then ""user"".username else ""group"".name end) as creatorName
 

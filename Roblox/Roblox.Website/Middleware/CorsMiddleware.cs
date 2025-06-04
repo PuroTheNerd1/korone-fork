@@ -25,7 +25,16 @@ public class RobloxPlayerCorsMiddleware
 
         var fontSrc = "'self' https://fonts.gstatic.com https://cdn.jsdelivr.net http://www.pekora.zip https://pekora.zip https://*.pekora.zip https://www.pekora.zip/fonts/GothamSSmBold.woff2 https://www.pekora.zip/fonts/GothamSSmMedium.woff2 https://www.pekora.zip/fonts/GothamSSmBook.woff2";
 
-        return "default-src 'self'; img-src " + imgSrc + "; child-src 'self'; script-src " + scriptSrc + "; frame-src 'self' https://hcaptcha.com https://challenges.cloudflare.com http://challenges.cloudflare.com https://*.archive.org; style-src 'unsafe-inline' 'self' http://*.archive.org https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com https://pekora.zip https://www.pekora.zip https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css https://pekora.zip/fonts/gotham1.css http://*.pekora.zip; font-src " + fontSrc + "; connect-src " + connectSrc + "; worker-src 'self';";
+        var styleSrc = "";
+
+#if DEBUG
+        if (Configuration.BaseUrl.Contains("goober.top")) {
+            styleSrc = "https://www.goober.top/fonts/gotham1.css";
+            fontSrc = fontSrc + " https://www.goober.top/fonts/GothamSSmBold.woff2 https://www.goober.top/fonts/GothamSSmMedium.woff2 https://www.goober.top/fonts/GothamSSmBook.woff2 https://www.goober.top/fonts/GothamSSmLight.woff2 https://www.goober.top/fonts/GothamSSmBlack.woff2";
+        }
+#endif
+        
+        return "default-src 'self'; img-src " + imgSrc + "; child-src 'self'; script-src " + scriptSrc + "; frame-src 'self' https://hcaptcha.com https://challenges.cloudflare.com http://challenges.cloudflare.com https://*.archive.org; style-src 'unsafe-inline' 'self' http://*.archive.org https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com https://pekora.zip https://www.pekora.zip https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css https://pekora.zip/fonts/gotham1.css http://*.pekora.zip " + styleSrc + "; font-src " + fontSrc + "; connect-src " + connectSrc + "; worker-src 'self';";
     }
 
 

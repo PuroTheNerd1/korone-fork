@@ -128,22 +128,37 @@ export const shutdownSpecificServer = ({placeId, jobId}) => {
     return request('GET', getBaseUrl() + `/rcc/killserver?placeId=${placeId}&jobId=${jobId}`).then(d => d.data);
 }
 
+/**
+ * @param {number} assetId
+ * @returns {Promise<number|null>}
+ */
 export const getGamePassUniverse = ({ assetId }) => {
     return request('GET', getFullUrl('games', `/v1/games/game-passes/${assetId}`)).then(d => d?.data?.universeId);
 }
 
-export const getGamePassRootPlace = async ({ assetId }) => {
-    let rootPlace;
-    await getGamePassUniverse({ assetId }).then(async universeId => {
-        if (!universeId) {
-            return;
+/**
+ * @param {number} assetId
+ * @returns {Promise<{ id: number; name: string; }|null>}
+ */
+export const getGamePassRootPlace = ({ assetId }) => {
+    return getGamePassUniverse({ assetId }).then(async universeId => {
+        if (universeId) {
+            return await getUniversePlaces({universeId: universeId}).then(d => {
+                if (!d || !d.RootPlace || d.Places.length <= 0) return null;
+                let place = d.Places.find(v => v.PlaceId === d.RootPlace);
+                return place ? { id: place.PlaceId, name: place.Name } : null;
+            });
         }
-        await multiGetUniverseDetails({universeIds: [universeId]}).then(d => {
-            if (!Array.isArray(d) || d?.length === 0) return;
-            rootPlace = d[0];
-        });
+        return null;
     });
-    return rootPlace;
+}
+
+/**
+ * @param {number} universeId
+ * @returns {Promise<{ RootPlace: number; Places: { PlaceId: number; Name: string; }[]; }>}
+ */
+export const getUniversePlaces = ({ universeId }) => {
+    return request('GET', getBaseUrl2(`/universes/get-universe-places?universeId=${universeId}`)).then(d => d.data);
 }
 
 /**

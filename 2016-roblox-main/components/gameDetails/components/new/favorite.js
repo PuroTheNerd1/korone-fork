@@ -120,7 +120,7 @@ const Favorite = props => {
                 setLocked(false);
               })
             }
-          }}>{isFavorited ? 'Favorited' : 'Favorite'}</a>
+          }}>{isFavorited ? 'Favorited' : 'FavouriteButton'}</a>
         </span> : null
       }
     </div>

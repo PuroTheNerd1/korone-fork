@@ -1,7 +1,0 @@
-import { AxiosResponse } from "axios";
-
-export default (method: string, url: string, data?: any, verbose?: boolean) => Promise<AxiosResponse<any>>();
-export const getFullUrl = (service: string, url: string) => string;
-export const getBaseUrl2 = (url: string) => string;
-export const getBaseUrl = () => string;
-export const getUrlWithProxy = (url: string) => string;

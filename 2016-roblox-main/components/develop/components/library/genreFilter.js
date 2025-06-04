@@ -18,32 +18,37 @@ const useStyles = createUseStyles({
   },
 })
 
+/**
+ * @type {{genre: number, name: string}[]}
+ */
+export const genresList = [
+  { genre: 0, name: 'All' },
+  { genre: 13, name: 'Building' },
+  { genre: 5, name: 'Horror' },
+  { genre: 1, name: 'Town and City' },
+  { genre: 11, name: 'Military' },
+  { genre: 9, name: 'Comedy' },
+  { genre: 2, name: 'Medieval' },
+  { genre: 7, name: 'Adventure' },
+  { genre: 3, name: 'Sci-Fi' },
+  { genre: 6, name: 'Naval' },
+  { genre: 14, name: 'FPS' },
+  { genre: 15, name: 'RPG' },
+  { genre: 8, name: 'Sports' },
+  { genre: 4, name: 'Fighting' },
+  { genre: 10, name: 'Western' },
+];
+
 const GenreFilter = props => {
   const store = LibraryPageStore.useContainer();
   const s = useStyles();
-  const genres = [
-    { genre: 13, name: 'Building' },
-    { genre: 5, name: 'Horror' },
-    { genre: 1, name: 'Town and City' },
-    { genre: 11, name: 'Military' },
-    { genre: 9, name: 'Comedy' },
-    { genre: 2, name: 'Medieval' },
-    { genre: 7, name: 'Adventure' },
-    { genre: 3, name: 'Sci-Fi' },
-    { genre: 6, name: 'Naval' },
-    { genre: 14, name: 'FPS' },
-    { genre: 15, name: 'RPG' },
-    { genre: 8, name: 'Sports' },
-    { genre: 4, name: 'Fighting' },
-    { genre: 10, name: 'Western' },
-  ];
   return <div>
     <p className={s.header}>Genre</p>
     <p className={s.allGenres + ' cursor-pointer'} onClick={() => {
       store.setGenres([]);
     }}>All Genres</p>
     {
-      genres.map(v => {
+      genresList.map(v => {
         const id = 'catalog_genre_fitler_' + v.genre;
         return <p className='mb-0' key={id}>
           <input id={id} type='checkbox' checked={store.genres.includes(v.genre)} onChange={(c) => {

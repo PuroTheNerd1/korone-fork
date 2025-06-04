@@ -83,4 +83,5 @@ public enum Access
     CreateBundleCopiedFromRoblox,
     GetSaleHistoryForAsset,
     RefundAndDeleteFirstPartyAssetSale,
+    All, // fake perm
 }
