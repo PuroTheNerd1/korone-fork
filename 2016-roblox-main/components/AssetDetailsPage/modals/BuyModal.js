@@ -127,7 +127,7 @@ const BuyModal = () => {
             <div className={s.imgContainer}>
                 <img alt={purchaseInfo.currency === 2 ? "TIX" : "ROBUX"} className={s.img} src={`/img/${purchaseInfo.currency === 2 ? "TIX" : "ROBUX"}.webp`} style={{
                     display: 'inline-block',
-                    width: '100%',
+                    width: purchaseInfo.currency === 2 ? '45%' : '100%',
                     height: '100%',
                     verticalAlign: 'middle'
                 }}/>
