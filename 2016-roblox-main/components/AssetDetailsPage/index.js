@@ -527,7 +527,7 @@ function AssetDetailsPage({ itemDetails }) {
                         }
                     </div>
                     <ActionButton className={s.buyBtn} divClassName={s.buyBtnContainer} divChildren={
-                        itemDetails.offsaleDeadline
+                        itemDetails.offsaleDeadline && new Date() < new Date(itemDetails.offsaleDeadline)
                         ?
                         <div className={`${s.saleClockContainer}`} offsaleBy={itemDetails.offsaleDeadline}>
                             Offsale in
