@@ -12,6 +12,7 @@ import FeedbackStore from "../../../stores/feedback";
 import AuthenticationStore from "../../../stores/authentication";
 import { FeedbackType } from "../../../models/feedback";
 import useButtonStyles from "../../../styles/buttonStyles";
+import { useEffect } from "react";
 
 const useStyles = createUseStyles({
     footerClass: {
@@ -112,7 +113,7 @@ const BuyModal = () => {
     if (newBalance < 0 || modals.purchaseState === PurchaseState.InsufficientFunds) return <NewModal
         title="Insufficient Funds"
         // children={<>
-        //     <p>You need <Currency currencyType={GetEnum(CurrencyType, purchaseInfo.currency)} price={purchaseInfo.expectedPrice} /> more to purchase this item.</p>
+        //     <p>You need <Currency currencyType={purchaseInfo.currency} price={purchaseInfo.expectedPrice} /> more to purchase this item.</p>
         //     <div className={s.imgContainer}>
         //             <span className={s.robuxContainer}>
         //                 <img alt="ROBUX" src="/img/ROBUX.webp" style={{ display: 'inline-block', width: '100%', height: '100%', verticalAlign: 'middle' }} />
@@ -121,10 +122,10 @@ const BuyModal = () => {
         // </>}
         children={<>
             <span className={s.spanText} style={{ marginBottom: 12, }}>
-                You need <Currency currencyType={GetEnum(CurrencyType, purchaseInfo.currency)} size={CurrencySize["16x16"]} price={newBalance * -1 || "NaN"} divClass={s.ffffff + ' ' + s.fffffff} labelClass={s.labelClass} iconClass={s.iconClass}/> more to purchase this item.
+                You need <Currency currencyType={purchaseInfo.currency} size={CurrencySize["16x16"]} price={newBalance * -1 || "NaN"} divClass={s.ffffff + ' ' + s.fffffff} labelClass={s.labelClass} iconClass={s.iconClass}/> more to purchase this item.
             </span>
             <div className={s.imgContainer}>
-                <img alt="ROBUX" className={s.img} src="/img/ROBUX.webp" style={{
+                <img alt={purchaseInfo.currency === 2 ? "TIX" : "ROBUX"} className={s.img} src={`/img/${purchaseInfo.currency === 2 ? "TIX" : "ROBUX"}.webp`} style={{
                     display: 'inline-block',
                     width: '100%',
                     height: '100%',
@@ -134,8 +135,8 @@ const BuyModal = () => {
         </>}
         footerElements={<div className="flex">
             <ActionButton
-                label="Buy Robux"
-                buttonStyle={btnStyles.newBuyButton}
+                label={`Buy ${purchaseInfo.currency === 2 ? "Tickets" : "Robux"}`}
+                buttonStyle={`${btnStyles.newBuyButton} ${purchaseInfo.currency === 2 ? "tix" : ""}`}
                 onClick={async () => {
                     closeModal();
                     window.location.href = "/help/earn";
@@ -156,11 +157,11 @@ const BuyModal = () => {
     />
     
     return <NewModal
-        title="Buy Item"
+        title={purchaseInfo.expectedPrice === 0 ? "Get Item" : "Buy Item"}
         offset={200}
         children={<>
             <span className={s.spanText} style={{ marginBottom: 12, }}>
-                Would you like to buy the {getTypeStrFromTypeNum(store.details.assetType, true)}: <b style={{padding: "0 3px"}}>{store.details.name}</b> from {store.details.creatorName} for <Currency currencyType={GetEnum(CurrencyType, purchaseInfo.currency)} size={CurrencySize["16x16"]} price={purchaseInfo.expectedPrice || "NaN"} divClass={s.ffffff} labelClass={s.labelClass} iconClass={s.iconClass}/>
+                Would you like to buy the {getTypeStrFromTypeNum(store.details.assetType, true)}: <b style={{padding: "0 3px"}}>{store.details.name}</b> from {store.details.creatorName} for <Currency currencyType={purchaseInfo.currency} size={CurrencySize["16x16"]} price={purchaseInfo.expectedPrice || typeof purchaseInfo.expectedPrice === 'number' ? 0 : "NaN"} divClass={s.ffffff} labelClass={s.labelClass} iconClass={s.iconClass}/>?
             </span>
             <div className={s.imgContainer}>
                 <ItemImage id={store.details.id} name={store.details.name} className={s.img} />
@@ -169,8 +170,8 @@ const BuyModal = () => {
         footerElements={<>
             <div className="flex">
                 <ActionButton
-                    label="Buy Now"
-                    buttonStyle={btnStyles.newBuyButton}
+                    label={`${purchaseInfo.expectedPrice === 0 ? "Get" : "Buy"} Now`}
+                    buttonStyle={`${btnStyles.newBuyButton} ${purchaseInfo.currency === 2 ? "tix" : ""}`}
                     onClick={async () => {
                         closeModal();
                         let feedbacked = false
@@ -202,7 +203,16 @@ const BuyModal = () => {
                     className={s.modalBtn}
                 />
             </div>
-            <span className={`flex flex-wrap align-items-center`} style={{ marginTop: 12, color: "#b8b8b8", }}>Your balance after this transaction will be <Currency currencyType={GetEnum(CurrencyType, purchaseInfo.currency)} price={newBalance} size={CurrencySize["16x16"]} grayed={true} divClass={s.ffffff} labelClass={`color-text-secondary mt-44444 ${s.labelClass}`} iconClass={`bg-pos ${s.iconClass}`} /></span>
+            {purchaseInfo.expectedPrice === 0
+             ?
+             <span className={`flex flex-wrap align-items-center`} style={{ marginTop: 12, color: "#b8b8b8", }}>Your balance after this transaction will remain the same.</span>
+             :
+             <span className={`flex flex-wrap align-items-center`} style={{ marginTop: 12, color: "#b8b8b8", }}>Your balance after this transaction will be <Currency
+                 currencyType={purchaseInfo.currency} price={newBalance} size={CurrencySize["16x16"]} grayed={true}
+                 divClass={s.ffffff} labelClass={`color-text-secondary mt-44444 ${s.labelClass}`}
+                 iconClass={`bg-pos${purchaseInfo.currency === 2 ? "-tix" : ""} ${s.iconClass}`}/></span>
+                
+            }
         </>}
         footerClass={s.footerClass}
         containerClass={s.containerClass}

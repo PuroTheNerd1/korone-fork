@@ -120,7 +120,7 @@ function AssetRecommendationEntry({ recom, assetType }) {
                         <span className={`${s.currencyText} text-tix`}>{abbreviateNumber(recom.product.priceInTickets)}</span>
                     </>
                     :
-                    <span>{recom.product.noPriceText}</span>
+                    <span className={`${s.currencyText} text-robux`}>{recom.product.noPriceText || "Free"}</span>
                 }
             </div>
         </div>

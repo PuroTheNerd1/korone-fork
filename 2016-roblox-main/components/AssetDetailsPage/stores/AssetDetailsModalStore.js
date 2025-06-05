@@ -43,17 +43,17 @@ const AssetDetailsModalStore = createContainer(() => {
     useEffect(() => {
         if (!isBuyModalOpen) return;
         
-        const purchaseInfo = getPurchaseInfo(buyingUIAD === 0 ? null : buyingUIAD);
-        if (!purchaseInfo) {
+        const purchInfo = getPurchaseInfo(buyingUIAD === 0 ? null : buyingUIAD);
+        if (!purchInfo) {
             if (store.isOwned) {
                 setPurchaseState(PurchaseState.Owned);
-                return;
+            } else {
+                setPurchaseState(PurchaseState.Purchasing);
             }
-            setPurchaseState(PurchaseState.Purchasing);
             return;
         }
-        setPurchaseInfo(purchaseInfo);
-        setNewBalance((purchaseInfo.currency === CurrencyType.Tickets ? auth.tix : auth.robux) - purchaseInfo.expectedPrice);
+        setPurchaseInfo(purchInfo);
+        setNewBalance((purchInfo.currency === CurrencyType.Tickets ? auth.tix : auth.robux) - purchInfo.expectedPrice);
         setPurchaseState(newBalance < 0 ? PurchaseState.InsufficientFunds : PurchaseState.Purchasable);
     }, [isBuyModalOpen, buyingUIAD]);
     
