@@ -141,13 +141,21 @@ const SellItemModal = () => {
                     min={minSalePrice}
                 />
             </div>
-            <span style={{ marginTop: 3, }}>Selling serial <Selector options={store.ownedCopies.map(d => {
-                return {
-                    name: d.serialNumber,
-                    value: d,
-                }
-            })} shadow={true} className={s.padder} onChange={v => setSellingSerial(v.value)} /></span>
-            <span>Marketplace fee (at 30%) <Currency labelClass={s.labelClass} iconClass={s.iconClass} currencyType={CurrencyType.Robux} price={Math.ceil(resalePrice * 0.3)}
+            {
+                store.ownedCopies.length > 0
+                ?
+                <span style={{ marginTop: 3, }}>Selling serial <Selector options={store.ownedCopies.map(d => {
+                    return {
+                        name: d.serialNumber,
+                        value: d,
+                    }
+                })} shadow={true} className={s.padder} onChange={v => setSellingSerial(v.value)}/></span>
+                :
+                null
+            }
+            <span>Marketplace fee (at 30%) <Currency labelClass={s.labelClass} iconClass={s.iconClass}
+                                                     currencyType={CurrencyType.Robux}
+                                                     price={Math.ceil(resalePrice * 0.3)}
                                                      size={CurrencySize["16x16"]}/></span>
             <span>You get <Currency labelClass={s.labelClass} iconClass={s.iconClass} currencyType={CurrencyType.Robux} price={Math.trunc(resalePrice * 0.7)}
                                                      size={CurrencySize["16x16"]}/></span>

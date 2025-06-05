@@ -768,7 +768,7 @@ function AssetDetailsPage({ itemDetails }) {
                 />
             </> : null
         }
-        {/*<AssetRecommendations/>*/}
+        <AssetRecommendations/>
     </div>
 }
 

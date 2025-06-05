@@ -22,6 +22,7 @@ const useStyles = createUseStyles({
  * @param {string} [iconClass]
  * @param {string} [labelClass]
  * @param {boolean} [grayed]
+ * @param {boolean} [canBeFree]
  * @returns {JSX.Element}
  * @constructor
  */
@@ -31,7 +32,8 @@ function Currency({ currencyType, price,
                       divClass = "",
                       iconClass = "",
                       labelClass = "",
-                      grayed,
+                      grayed = false,
+                      canBeFree = false,
 }) {
     const s = useStyles();
     const [currencyColor, setCurrencyColor] = useState("var(--robux-color)");
@@ -49,7 +51,7 @@ function Currency({ currencyType, price,
     return <div className={`${s.priceContainer} flex ${divClass}`}>
         <span className={`${currencyIcon} ${s.priceIcon} ${iconClass}`} style={price === 0 ? { display: "none", } : {}}/>
         <span className={`${s.priceLabel} ${labelClass}`}
-              style={{ color: grayed ? "#b8b8b8" : currencyColor }}>{price === 0 ? "FREE" : formatted ? formatNum(price) : price}</span>
+              style={{ color: grayed ? "#b8b8b8" : currencyColor }}>{price === 0 && canBeFree ? "FREE" : formatted ? formatNum(price) : price}</span>
     </div>
 }
 
