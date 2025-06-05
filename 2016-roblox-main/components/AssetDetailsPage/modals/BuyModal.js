@@ -155,7 +155,7 @@ const BuyModal = () => {
         exitFunction={closeModal}
         headerBorder={true}
     />
-    
+    console.dir(purchaseInfo);
     return <NewModal
         title={purchaseInfo.expectedPrice === 0 ? "Get Item" : "Buy Item"}
         offset={200}
