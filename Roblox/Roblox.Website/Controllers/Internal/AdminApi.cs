@@ -261,13 +261,13 @@ public class AdminApiController : ControllerBase
             throw new StaffException("URL is over 255 characters");
         if (string.IsNullOrWhiteSpace(request.url))
             request.url = null;
-
-        if (request.url != null)
-        {
-            var url = new Uri(request.url);
-            if (!url.Host.EndsWith(".pekora.zip") && url.Host != "pekora.zip")
-                throw new StaffException("All URLs must link to pekora.zip. Base was " + url.Host);
-        }
+        // Usekess check
+        // if (request.url != null)
+        // {
+        //     var url = new Uri(request.url);
+        //     if (!url.Host.EndsWith(".pekora.zip") && url.Host != "pekora.zip")
+        //         throw new StaffException("All URLs must link to pekora.zip. Base was " + url.Host);
+        // }
         Writer.Info(LogGroup.AbuseDetection, "User {0} is setting alert to '{1}'", userSession.userId, request.text);
         await services.users.SetGlobalAlert(request.text, request.url);
         await db.ExecuteAsync("INSERT INTO moderation_set_alert (actor_id, alert, alert_url) VALUES (:user_id, :text, :url)", new
