@@ -120,10 +120,28 @@ const assetDetailsStore = createContainer(() => {
     const isResellable = () => {
         return isLimited() && !details.isForSale;
     }
+    /**
+     * @returns {CurrencyType}
+     */
+    const getCurrency = () => {
+        if (!details) return CurrencyType.Robux;
+        if (!details.price && details.priceTickets) return CurrencyType.Tickets;
+        return CurrencyType.Robux;
+    }
+    /**
+     * @param {number|null} price
+     * @param {number|null} priceTickets
+     * @returns {number}
+     */
+    const GetCurrencyFromPrices = (price, priceTickets) => {
+        if (!price || !priceTickets) return CurrencyType.Robux;
+        if (!price && priceTickets) return CurrencyType.Tickets;
+        return CurrencyType.Robux;
+    }
 
     /**
      * @param {number|null} [specificUAID]
-     * @returns {PurchaseDetails|null}n
+     * @returns {PurchaseDetails|null}
      */
     const getPurchaseInfo = (specificUAID = null) => {
         if (!details) return null;
@@ -138,7 +156,7 @@ const assetDetailsStore = createContainer(() => {
                 priceTickets: null,
                 userAssetId: seller.userAssetId,
                 productId: details.productId || details.id,
-                currency: details.currency || CurrencyType.Robux,
+                currency: getCurrency(),
                 expectedPrice: seller.price,
             };
         } else if (details.isForSale) {
@@ -150,8 +168,8 @@ const assetDetailsStore = createContainer(() => {
                 priceTickets: details.priceTickets,
                 userAssetId: null,
                 productId: details.productId || details.id,
-                currency: details.currency || 1,
-                expectedPrice: details.currency === CurrencyType.Tickets ? details.priceTickets : details.price,
+                currency: getCurrency(),
+                expectedPrice: getCurrency() === CurrencyType.Tickets ? details.priceTickets : details.price,
             }
         }
         return null;
@@ -159,6 +177,7 @@ const assetDetailsStore = createContainer(() => {
     
     return {
         ToggleFromCollection,
+        GetCurrencyFromPrices,
         
         /** @type AssetDetailsEntry */
         details,

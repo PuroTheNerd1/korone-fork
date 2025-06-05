@@ -505,31 +505,33 @@ a.btn-generic-edit-xs:hover .icon-edit {
 .icon-leaderboard,
 .icon-favorite,
 .icon-favorite.favorited,
-.icon-robux,
-.icon-tix {
+.icon-robux, .icon-robux-gray,
+.icon-tix, .icon-tix-gray {
 	background-image: url(/img/branded.svg);
 	background-repeat: no-repeat;
-	background-size: auto auto;
+	background-size: 200% auto;
 	width: 28px;
 	height: 28px;
 	display: inline-block;
 	vertical-align: middle;
 }
 
-.icon-robux-20x20, .icon-tix-20x20 {
+.icon-robux-20x20, .icon-robux-gray-20x20,
+.icon-tix-20x20, .icon-tix-gray-20x20 {
 	background-image: url(/img/branded.svg);
 	background-repeat: no-repeat;
-	background-size: auto auto;
+	background-size: 200% auto;
 	width: 20px;
 	height: 20px;
 	display: inline-block;
 	vertical-align: middle;
 }
 
-.icon-robux-16x16, .icon-tix-16x16 {
+.icon-robux-16x16, .icon-robux-gray-16x16,
+.icon-tix-16x16, .icon-tix-gray-16x16 {
 	background-image: url(/img/branded.svg);
 	background-repeat: no-repeat;
-	background-size: 32px auto;
+	background-size: 200% auto;
 	width: 16px;
 	height: 16px;
 	display: inline-block;
@@ -1157,11 +1159,29 @@ a:hover .icon-favorite {
 }
 
 .icon-tix-16x16 {
-	background-position: 0 -96px;
+	background-position: 0 -80px;
 }
 
 .icon-tix-20x20 {
 	background-position: 0 -100px;
+}
+
+.icon-tix-gray {
+	background-position: 0 -140px;
+	filter: grayscale(1);
+	opacity: .65;
+}
+
+.icon-tix-gray-16x16 {
+	background-position: 0 -80px;
+	filter: grayscale(1);
+	opacity: .65;
+}
+
+.icon-tix-gray-20x20 {
+	background-position: 0 -100px;
+	filter: grayscale(1);
+	opacity: .65;
 }
 
 .icon-message {

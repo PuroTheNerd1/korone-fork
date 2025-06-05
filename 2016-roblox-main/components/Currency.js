@@ -14,7 +14,7 @@ const useStyles = createUseStyles({
 });
 
 /**
- * @param {CurrencyType} currencyType
+ * @param {number} currencyType
  * @param {number|string} price
  * @param {boolean} [formatted]
  * @param {CurrencySize} [size]
@@ -22,6 +22,7 @@ const useStyles = createUseStyles({
  * @param {string} [iconClass]
  * @param {string} [labelClass]
  * @param {boolean} [grayed]
+ * @param {boolean} [canBeFree]
  * @returns {JSX.Element}
  * @constructor
  */
@@ -31,7 +32,8 @@ function Currency({ currencyType, price,
                       divClass = "",
                       iconClass = "",
                       labelClass = "",
-                      grayed,
+                      grayed = false,
+                      canBeFree = false,
 }) {
     const s = useStyles();
     const [currencyColor, setCurrencyColor] = useState("var(--robux-color)");
@@ -41,14 +43,15 @@ function Currency({ currencyType, price,
         setCurrencyColor(`var(--${currencyType === CurrencyType.Tickets ? "tix" : "robux"}-color)`);
         let classCurrency = currencyType === CurrencyType.Tickets ? "tix" : "robux";
         let classSize = size === CurrencySize["28x28"] ? "" : `-${GetEnum(CurrencySize, size)}`;
-        let classGray = grayed && currencyType === CurrencyType.Robux ? "-gray" : "";
+        let classGray = grayed ? "-gray" : "";
         setCurrencyIcon(`icon-${classCurrency}${classGray}${classSize}`);
+        console.log(price);
     }, [currencyType, size, grayed]);
     
     return <div className={`${s.priceContainer} flex ${divClass}`}>
-        <span className={`${currencyIcon} ${s.priceIcon} ${iconClass}`}/>
+        <span className={`${currencyIcon} ${s.priceIcon} ${iconClass}`} style={price === 0 ? { display: "none", } : {}}/>
         <span className={`${s.priceLabel} ${labelClass}`}
-              style={{ color: grayed ? "#b8b8b8" : currencyColor }}>{formatted ? formatNum(price) : price}</span>
+              style={{ color: grayed ? "#b8b8b8" : currencyColor }}>{price === 0 && canBeFree ? "FREE" : formatted ? formatNum(price) : price}</span>
     </div>
 }
 

@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { formatNum } from "../index";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
+import { CurrencySize, CurrencyType } from "../../../models/enums";
+import Currency from "../../Currency";
 
 const useStyles = createUseStyles({
     containerHeader: {
@@ -53,6 +55,11 @@ const useStyles = createUseStyles({
 function PriceChart({ isLabelHidden = false }) {
     const s = useStyles();
     const store = AssetDetailsStore.useContainer();
+    const [prices, setPrices] = useState({
+        originalPriceCurrency: 1,
+        originalPrice: -1,
+        averagePrice: -1,
+    });
     const [priceChartData, setPriceChartData] = useState(([]));
     const [volumeChartData, setVolumeChartData] = useState(([]));
     const [chartPref, setChartPref] = useState({
@@ -67,6 +74,18 @@ function PriceChart({ isLabelHidden = false }) {
         ]));
         setVolumeChartData(store.resaleData.volumeDataPoints);
     }, [store.resaleData]);
+    
+    useEffect(() => {
+        if (!store.details || !store.resaleData) return;
+        let currency = store.details?.priceTickets ? CurrencyType.Tickets : CurrencyType.Robux;
+        let originalPrice = store.details?.priceTickets || store.details?.price || 0;
+        let avgPrice = store.resaleData.recentAveragePrice;
+        setPrices({
+            originalPriceCurrency: currency,
+            originalPrice: originalPrice,
+            averagePrice: avgPrice,
+        });
+    }, [store.details, store.resaleData]);
     
     if (!store.resaleData?.sales) {
         return <div>
@@ -108,17 +127,26 @@ function PriceChart({ isLabelHidden = false }) {
                 <div className={s.priceChartStat}>
                     <span className={s.priceChartTextLabel}>Original Price</span>
                     <div className={`${s.priceContainer} flex`}>
-                        <span className={`icon-robux ${s.priceIcon}`}/>
-                        <span className={s.priceLabel}
-                              style={{ color: "var(--robux-color)" }}>{formatNum(store.details.price)}</span>
+                        {/*<span className={`icon-robux ${s.priceIcon}`}/>*/}
+                        {/*<span className={s.priceLabel}*/}
+                        {/*      style={{ color: "var(--robux-color)" }}>{formatNum(store.details.price)}</span>*/}
+                        <Currency
+                            canBeFree
+                            price={prices.originalPrice}
+                            currencyType={prices.originalPriceCurrency}
+                        />
                     </div>
                 </div>
                 <div className={s.priceChartStat}>
                     <span className={s.priceChartTextLabel}>Average Price</span>
                     <div className={`${s.priceContainer} flex`}>
-                        <span className={`icon-robux ${s.priceIcon}`}/>
-                        <span className={s.priceLabel}
-                              style={{ color: "var(--robux-color)" }}>{formatNum(store.resaleData.recentAveragePrice)}</span>
+                        {/*<span className={`icon-robux ${s.priceIcon}`}/>*/}
+                        {/*<span className={s.priceLabel}*/}
+                        {/*      style={{ color: "var(--robux-color)" }}>{formatNum(store.resaleData.recentAveragePrice)}</span>*/}
+                        <Currency
+                            price={prices.averagePrice}
+                            currencyType={CurrencyType.Robux}
+                        />
                     </div>
                 </div>
             </div>

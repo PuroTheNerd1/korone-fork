@@ -12,6 +12,7 @@
     --robux-color: #02b757;
     --robux-color-vibrant: #08C94F;
     --tix-color: #CC9E71;
+    --tix-color-hover: #D8B182;
     --bad-color: #e27676;
     --text-color-primary: #191919;
     --text-color-secondary: #b8b8b8;
@@ -437,6 +438,10 @@ html div.container.big {
 
 .bg-pos {
     background-position: 0 -96px!important;
+}
+
+.bg-pos-tix {
+    background-position: 0 -80px!important;
 }
 
 .display-none {

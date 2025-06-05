@@ -89,6 +89,18 @@ const useButtonStyles = createUseStyles({
             cursor: "not-allowed",
             pointerEvents: "none",
         },
+        "&.tix": {
+            background: 'var(--tix-color)',
+            borderColor: 'var(--tix-color)!important',
+            '&:hover': {
+                background: 'var(--tix-color-hover)!important',
+                borderColor: 'var(--tix-color-hover)!important',
+            },
+            "&:disabled": {
+                backgroundColor: "#E3C7A1",
+                borderColor: "#E3C7A1!important",
+            },
+        },
     },
     newContinueButton: {
         background: 'var(--primary-color)',

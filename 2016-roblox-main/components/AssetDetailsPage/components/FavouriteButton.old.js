@@ -4,7 +4,6 @@ import { abbreviateNumber } from "../../../lib/numberUtils";
 import { createFavorite, deleteFavorite, getIsFavorited } from "../../../services/catalog";
 import authentication from "../../../stores/authentication";
 import { wait } from "../../../lib/utils";
-import FavouriteButtonStore from "../stores/FavouriteButtonStore";
 
 const useStyles = createUseStyles({
     wrapper: {},
@@ -68,20 +67,18 @@ const FavouriteButton = ({ assetId, initFavCount, id }) => {
     const auth = authentication.useContainer();
     const s = useStyles();
     
-    const store = FavouriteButtonStore.useContainer();
-    const {
-        isFavorited,
-        setIsFavorited,
-        favoriteCount,
-        setFavoriteCount,
-        locked,
-        setLocked,
-        iconHovered,
-        mouseEnter,
-        mouseLeave,
-        deb,
-        lastOpt,
-    } = store;
+    const [isFavorited, setIsFavorited] = useState(null);
+    const [favoriteCount, setFavoriteCount] = useState(0);
+    const [locked, setLocked] = useState(false);
+    
+    const [iconHovered, setIconHovered] = useState(false);
+    const mouseEnter = () => setIconHovered(true);
+    const mouseLeave = () => setIconHovered(false);
+    const deb = useRef(false);
+    const lastOpt = useRef({
+        assetId: 0,
+        initFavCount: -1,
+    });
     const buttonClass = (isFavorited || iconHovered) ? s.favoriteIconSelected : '';
     
     // should be rewritten this is garbage

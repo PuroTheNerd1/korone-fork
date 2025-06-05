@@ -1,7 +1,7 @@
 import { createUseStyles } from "react-jss";
 import AssetDetailsStore from "./stores/AssetDetailsStore";
 import Feedback from "../../stores/feedback";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import UserAdvertisement from "../userAdvertisement";
 import { AssetType, UserAdvertisementType } from "../../models/enums";
 import ItemImage from "../itemImage";
@@ -29,6 +29,10 @@ import RelatedGame from "./components/RelatedGame";
 import AudioPlayButton from "../catalogDetailsPage/components/audioPlayButton";
 import useWindowQuery from "../windowQuery";
 import HorizontalTabs from "../horizontalTabs";
+import ReactDOM from "react-dom";
+import dayjs from "../../lib/dayjs";
+import { wait } from "../../lib/utils";
+import FavouriteButtonStore from "./stores/FavouriteButtonStore";
 
 const useStyles = createUseStyles({
     pageWrapper: {
@@ -420,13 +424,14 @@ function AssetDetailsPage({ itemDetails }) {
     const buttonStyles = useButtonStyles();
     const [detailOptions, setDetailOptions] = useState(/** @type DetailOptionEntry[] */([]));
     const [isNew, setNew] = useState(false);
+    const deb = useRef(false);
     // 767px or lower
     const isWindow767 = useWindowQuery("max-width: 767px");
     
     useEffect(async () => {
         await store.setDetails(itemDetails);
         await setNew(IsISOWithinDays(itemDetails.createdAt, 3));
-        if (!store.details || !store.resellers) return;
+        if (!store.details || !store.resellers || deb.current) return;
         let purchaseInfo = store.getPurchaseInfo();
         await setDetailOptions([
             (itemDetails.itemRestrictions.includes("Limited") || itemDetails.itemRestrictions.includes("LimitedUnique")) && !itemDetails.isForSale && store.resellers.length > 0 && (purchaseInfo.sellerId === auth.userId) ? {
@@ -505,23 +510,24 @@ function AssetDetailsPage({ itemDetails }) {
                 field: <div className={s.priceWrapper}>
                     <div className={`${s.priceContainer} flex`}>
                         {
+                            // this should be a <Currency/>
                             itemDetails.priceTickets
                             ?
                             <>
-                                <span className={`icon-tix ${s.priceIcon}`}/>
+                                <span className={`icon-tix ${s.priceIcon}`} style={itemDetails.priceTickets === 0 ? { display: "none" } : {}}/>
                                 <span className={s.priceLabel}
-                                      style={{ color: "var(--tix-color)" }}>{formatNum(itemDetails.priceTickets)}</span>
+                                      style={{ color: "var(--tix-color)" }}>{itemDetails.priceTickets === 0 && "Free" || formatNum(itemDetails.priceTickets)}</span>
                             </>
                             :
                             <>
-                                <span className={`icon-robux ${s.priceIcon}`}/>
+                                <span className={`icon-robux ${s.priceIcon}`} style={itemDetails.price === 0 ? { display: "none" } : {}}/>
                                 <span className={s.priceLabel}
-                                      style={{ color: "var(--robux-color)" }}>{formatNum(itemDetails.price)}</span>
+                                      style={{ color: "var(--robux-color)" }}>{itemDetails.price === 0 && "Free" || formatNum(itemDetails.price)}</span>
                             </>
                         }
                     </div>
                     <ActionButton className={s.buyBtn} divClassName={s.buyBtnContainer} divChildren={
-                        itemDetails.offsaleDeadline
+                        itemDetails.offsaleDeadline && new Date() < new Date(itemDetails.offsaleDeadline)
                         ?
                         <div className={`${s.saleClockContainer}`} offsaleBy={itemDetails.offsaleDeadline}>
                             Offsale in
@@ -529,7 +535,7 @@ function AssetDetailsPage({ itemDetails }) {
                         </div>
                         :
                         null
-                    } label="Buy" buttonStyle={buttonStyles.newBuyButton} onClick={() => modal.setBuyModalOpen(true)}/>
+                    } label={`${purchaseInfo?.expectedPrice === 0 ? "Get" : "Buy"}`} buttonStyle={`${buttonStyles.newBuyButton} ${itemDetails.priceTickets ? "tix" : ""}`} onClick={() => modal.setBuyModalOpen(true)}/>
                 </div>,
                 labelClass: `${s.attrLabel} invis767`,
             } : {
@@ -555,6 +561,10 @@ function AssetDetailsPage({ itemDetails }) {
             {
                 label: "Sales",
                 field: formatNum(itemDetails.saleCount),
+            },
+            {
+                label: "Created",
+                field: dayjs(itemDetails.createdAt).format('M/D/YYYY'),
             },
             {
                 label: "Genres",
@@ -607,12 +617,6 @@ function AssetDetailsPage({ itemDetails }) {
         return <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
     }
     
-    const ItemInteraction = ({ isVisible }) => <div className={`${s.itemInteractionContainer} ${!isVisible ? "invisible-1" : null}`}>
-        <div className={`flex ${s.favBtnContainer}`}>
-            <FavouriteButton assetId={itemDetails.id} initFavCount={itemDetails.favoriteCount}/>
-        </div>
-    </div>
-    
     const ItemThumb = ({ isVisible }) => <div
         className={`${s.itemThumbContainer} flex flex-column ${!isVisible ? "invisible-1" : null}`}>
         <div
@@ -630,7 +634,7 @@ function AssetDetailsPage({ itemDetails }) {
                     null
                 }
                 {
-                    itemDetails.offsaleDeadline
+                    itemDetails.offsaleDeadline && new Date() < new Date(itemDetails.offsaleDeadline)
                     ?
                     <div className={s.itemStatusSale}>
                         <span className={`${s.itemStatusSaleIcon} icon-clock`}/>
@@ -667,13 +671,11 @@ function AssetDetailsPage({ itemDetails }) {
                 null
             }
         </div>
-        {
-            !isWindow767
-            ?
-            <ItemInteraction isVisible={true} />
-            :
-            null
-        }
+        <div className={`${s.itemInteractionContainer} ${isWindow767 ? "display-none" : ""}`}>
+            <div id="desktopInteractionContainer" className={`flex ${s.favBtnContainer}`}>
+                <FavouriteButton assetId={itemDetails.id} initFavCount={itemDetails.favoriteCount}/>
+            </div>
+        </div>
     </div>
     
     return <div className={s.container}>
@@ -681,7 +683,7 @@ function AssetDetailsPage({ itemDetails }) {
         {modal.isSellItemModalOpen ? <SellItemModal/> : null}
         {modal.isConfirmSellModalOpen ? <ConfirmSellModal/> : null}
         <div className={`section-content noShadow ${s.itemContainer}`}>
-            <ItemThumb isVisible={!isWindow767} />
+            <ItemThumb isVisible={!isWindow767}/>
             <div className={s.itemDetailsContainer}>
                 <div className={`${s.itemHeaderContainer} flex w-100 flex-column`}>
                     <h2>{itemDetails.name}</h2>
@@ -712,7 +714,8 @@ function AssetDetailsPage({ itemDetails }) {
                             // are we first, and if not, is previous one price?
                             const isAfterBuy =
                                 detailOptions[0] !== item && detailOptions[ind - 1].label.includes("Price");
-                            return <div className={`${isAfterBuy ? "margin-none" : ''} ${s.attrContainer} ${item.parentClass}`}>
+                            return <div
+                                className={`${isAfterBuy ? "margin-none" : ''} ${s.attrContainer} ${item.parentClass}`}>
                                 <span
                                     className={`${!item?.labelClass ? s.attrLabel : item.labelClass}`}
                                 >{item?.label}</span>
@@ -726,13 +729,11 @@ function AssetDetailsPage({ itemDetails }) {
                             </div>
                         })
                     }
-                    {
-                        isWindow767
-                        ?
-                        <ItemInteraction isVisible={true} />
-                        :
-                        null
-                    }
+                    <div className={`${s.itemInteractionContainer} ${!isWindow767 ? "display-none" : ""}`}>
+                        <div id="mobileInteractionContainer" className={`flex ${s.favBtnContainer}`}>
+                            <FavouriteButton assetId={itemDetails.id} initFavCount={itemDetails.favoriteCount}/>
+                        </div>
+                    </div>
                     {
                         detailOptions.length === 0
                         ?
@@ -775,14 +776,17 @@ export default function DetailsPageContainer({ details }) {
     const s = useStyles();
     
     return <Theme2016>
-        <div className="container big noPad767">
-            <UserAdvertisement type={UserAdvertisementType.Banner728x90} wrapperClass={s.bannerAdContainer}/>
-            <div className={s.pageWrapper}>
-                <AssetDetailsPage itemDetails={details}/>
-                <UserAdvertisement type={UserAdvertisementType.SkyScraper160x600} wrapperClass={s.skyscraperAdContainer}
-                                   backupWidth="160px"/>
+        <FavouriteButtonStore.Provider>
+            <div className="container big noPad767">
+                <UserAdvertisement type={UserAdvertisementType.Banner728x90} wrapperClass={s.bannerAdContainer}/>
+                <div className={s.pageWrapper}>
+                    <AssetDetailsPage itemDetails={details}/>
+                    <UserAdvertisement type={UserAdvertisementType.SkyScraper160x600}
+                                       wrapperClass={s.skyscraperAdContainer}
+                                       backupWidth="160px"/>
+                </div>
             </div>
-        </div>
+        </FavouriteButtonStore.Provider>
     </Theme2016>
 }
 
@@ -915,3 +919,6 @@ export function formatNum(x) {
  * @property {string?} parentClass
  */
 
+const PortalComponent = ({ children, target }) => {
+    return target ? ReactDOM.createPortal(children, target) : null;
+};
