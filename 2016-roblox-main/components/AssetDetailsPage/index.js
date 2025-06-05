@@ -634,7 +634,7 @@ function AssetDetailsPage({ itemDetails }) {
                     null
                 }
                 {
-                    itemDetails.offsaleDeadline
+                    itemDetails.offsaleDeadline && new Date() < new Date(itemDetails.offsaleDeadline)
                     ?
                     <div className={s.itemStatusSale}>
                         <span className={`${s.itemStatusSaleIcon} icon-clock`}/>
