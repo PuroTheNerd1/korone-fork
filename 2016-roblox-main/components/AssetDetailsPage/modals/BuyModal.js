@@ -161,7 +161,7 @@ const BuyModal = () => {
         offset={200}
         children={<>
             <span className={s.spanText} style={{ marginBottom: 12, }}>
-                Would you like to buy the {getTypeStrFromTypeNum(store.details.assetType, true)}: <b style={{padding: "0 3px"}}>{store.details.name}</b> from {store.details.creatorName} for <Currency canBeFree currencyType={purchaseInfo.currency} size={CurrencySize["16x16"]} price={purchaseInfo.expectedPrice || typeof purchaseInfo.expectedPrice === 'number' ? 0 : "NaN"} divClass={s.ffffff} labelClass={s.labelClass} iconClass={s.iconClass}/>?
+                Would you like to buy the {getTypeStrFromTypeNum(store.details.assetType, true)}: <b style={{padding: "0 3px"}}>{store.details.name}</b> from {store.details.creatorName} for <Currency canBeFree currencyType={purchaseInfo.currency} size={CurrencySize["16x16"]} price={purchaseInfo.expectedPrice || (typeof purchaseInfo.expectedPrice === 'number' ? 0 : "NaN")} divClass={s.ffffff} labelClass={s.labelClass} iconClass={s.iconClass}/>?
             </span>
             <div className={s.imgContainer}>
                 <ItemImage id={store.details.id} name={store.details.name} className={s.img} />
