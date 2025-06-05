@@ -142,9 +142,9 @@ const SellItemModal = () => {
                 />
             </div>
             {
-                store.ownedCopies.length > 0
+                store.ownedCopies.filter(d => d.serialNumber != null).length > 0
                 ?
-                <span style={{ marginTop: 3, }}>Selling serial <Selector options={store.ownedCopies.map(d => {
+                <span style={{ marginTop: 3, }}>Selling serial <Selector options={store.ownedCopies.filter(d => d.serialNumber != null).map(d => {
                     return {
                         name: d.serialNumber,
                         value: d,
