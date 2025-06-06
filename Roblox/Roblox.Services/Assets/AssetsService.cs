@@ -2024,7 +2024,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         // Sort
         if (!string.IsNullOrEmpty(request.sortType))
         {
-            var column = "updated_at";
+            var column = "created_at";
             var mode = "desc";
             switch (request.sortType)
             {
@@ -2037,21 +2037,21 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     break;
                 case "4":
                     // price: low to high
-                    column = "price_robux";
+                    column = "CASE WHEN price_tix IS NOT NULL THEN price_tix / 10 ELSE price_robux END";
                     mode = "asc";
                     break;
                 case "5":
                     // price: high to low 
-                    column = "price_robux";
+                    column = "CASE WHEN price_tix IS NOT NULL THEN price_tix / 10 ELSE price_robux END";
                     break;
                 case "6":
                     // RAP: low to high
-                    column = "recent_average_price";
+                    column = "CASE WHEN recent_average_price IS NULL THEN 0 ELSE 1 END, recent_average_price";
                     mode = "asc";
                     break;
                 case "7":
                     // RAP: high to low
-                    column = "recent_average_price";
+                    column = "CASE WHEN recent_average_price IS NULL THEN 1 ELSE 0 END, recent_average_price";
                     break;
                 case "100":
                     // favorite count: high to low
@@ -2065,6 +2065,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         if (request.subcategory == "CommunityCreations")
         {
             builder.Where("creator_id != 1");
+        }
+
+        if (request.sortType is "7" or "6") {
+            builder.Where("is_limited = TRUE");
         }
 
         var cat = request.category?.ToLower();
@@ -2229,7 +2233,9 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 case "featured":
                     // TODO: this used to have clothing filters but I got rid of them in the name of performance
                     // Exact filters are at /services/api/src/controllers/proxy/v1/Catalog.ts:862
-                    doIdSort = true;
+                    if (!string.IsNullOrEmpty(request.sortType) && request.sortType == "0") {
+                        doIdSort = true;
+                    }
                     builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
                     break;
                 default:
@@ -2244,7 +2250,6 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 builder.Where($"asset.asset_genre = {(int)item}");
             }
         }
-
         var totalResults =
             await db.QuerySingleOrDefaultAsync<Total>(countTemplate.RawSql, countTemplate.Parameters);
         if (totalResults.total != 0)
