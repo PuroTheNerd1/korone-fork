@@ -130,9 +130,9 @@ public class Asset : ControllerBase
 
             }
         }
-
+        var isBot = Request.Headers["bot-auth"].ToString() == Configuration.BotAuthorization;
         // Places can never be loaded if they are denied
-        if (!IsAssetApproved(details) && !isRCC && details.assetType != Type.Place)
+        if (!IsAssetApproved(details) && !isRCC && !isBot && details.assetType != Type.Place)
             throw new RobloxException(403, 0, "Asset not approved for requester");
 
         dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
