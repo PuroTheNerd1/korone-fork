@@ -346,7 +346,7 @@ public class AdminApiController : ControllerBase
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("You are not allowed to do that");
         //12 hours
-        if (!await services.cooldown.TryIncrementBucketCooldown("GiftAssetV1_Hour", 10, TimeSpan.FromHours(12)))
+        if (!await services.cooldown.TryIncrementBucketCooldown("GiftAssetV2_Hour", 20, TimeSpan.FromHours(12)))
             throw new StaffException("Gift rate limit exceeded.");
 
         var details = await services.assets.GetAssetCatalogInfo(req.assetId);
