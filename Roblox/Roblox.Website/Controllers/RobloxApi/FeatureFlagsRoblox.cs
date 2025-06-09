@@ -36,9 +36,11 @@ namespace Roblox.Website.Controllers
             "RCCService2020",
             "PCStudioApp",
             "PCStudio221",
+            "PCStudio223",
             "RCCService2021",
             "PCDesktopClient",
             "PCDesktopClient2021",
+            "PCDesktopCli223",
             "AndroidApp",
             "iOSApp"
         };
