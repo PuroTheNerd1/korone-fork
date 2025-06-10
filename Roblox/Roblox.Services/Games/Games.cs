@@ -913,12 +913,19 @@ public class GamesService : ServiceBase, IService
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
         string chatStyle = "ClassicAndBubble";
-
+        // Malte testing
+        string ip = Configuration.GameServerIp;
+        long port = jobInfo.port;
+        if (placeInfo.placeId == 64139)
+        {
+            port = 6646;
+            ip = "147.185.221.17";
+        }
         var joinScript = new
         {
             ClientPort = 0,
-            MachineAddress = Configuration.GameServerIp,
-            ServerPort = jobInfo.port,
+            MachineAddress = ip,
+            ServerPort = port,
             PingUrl = "",
             PingInterval = 0,
             UserName = userInfo.username,
