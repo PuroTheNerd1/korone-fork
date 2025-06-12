@@ -1684,7 +1684,6 @@ public class AdminApiController : ControllerBase
         if (totalChanges.Count == 0)
             throw new StaffException("The username provided has not been used by this user.");
 
-        var amountToRefund = totalChanges.Count * 250;
         await services.users.InTransaction(async _ =>
         {
             var usersDb = services.users.db;
@@ -1697,18 +1696,12 @@ public class AdminApiController : ControllerBase
             await services.privateMessages.CreateMessage(request.userId, 1, 
             "Username Refund", @$"Hello,
 
-We have deleted one of your previous usernames, ""{request.username}"". You will no longer have access to this username. You have been refunded {amountToRefund} Robux for a total of {totalChanges.Count} times this name was in use.
+We have deleted one of your previous usernames, ""{request.username}"". You will no longer have access to this username.
 
 Thank you for your understanding,
 
 
 -The Roblox Team");
-            await usersDb.ExecuteAsync(
-                "UPDATE user_economy SET balance_robux = balance_robux + :amt WHERE user_id = :user_id", new
-                {
-                    user_id = request.userId,
-                    amt = amountToRefund,
-                });
             return 0;
         });
     }
