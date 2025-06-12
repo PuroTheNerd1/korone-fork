@@ -1751,13 +1751,13 @@ Thank you for your understanding,
     {
         var log = Writer.CreateWithId(LogGroup.Lottery);
         log.Info("Lottery start. Initiated by {0}", userSession.userId);
-#if !DEBUG
-        var runDate = await redis.StringGetAsync("lottery_run_v1");
-        if (runDate != null)
-        {
-            throw new StaffException("Lottery already ran recently. Try again later.");
-        }
-#endif
+// #if !DEBUG
+//         var runDate = await redis.StringGetAsync("lottery_run_v1");
+//         if (runDate != null)
+//         {
+//             throw new StaffException("Lottery already ran recently. Try again later.");
+//         }
+// #endif
 
         var allItems = (await GetLotteryItems()).ToList();
         log.Info("There are {0} items available",allItems.Count);
@@ -1790,7 +1790,7 @@ Thank you for your understanding,
             randomItem.name +
             " from your inventory, and awarded it to a random player who was active at the time of our lottery draw. We understand that you may not have been expecting this to happen, however, it is outlined in our policy that we reserve the right to remove items from accounts once they've been inactive for 6 months or longer. At the time of sending this message, your account has been inactive since " + randomUser.onlineAt.ToString("MMMM dd, yyyy") + "\n\nItems taken from your account for lottery purposes cannot be restored. We hope you understand,\n\n-The Roblox Team");
         log.Info("sent message to old asset owner {0}", randomItem.userId);
-        await redis.StringSetAsync("lottery_run_v1", "{}", TimeSpan.FromMinutes(30));
+        // await redis.StringSetAsync("lottery_run_v1", "{}", TimeSpan.FromMinutes(30));
         return new
         {
             randomItem.name, randomUser.username,
@@ -1813,9 +1813,14 @@ Thank you for your understanding,
     [HttpGet("lottery/get-items")]
     public async Task<IEnumerable<LotteryItemEntry>> GetLotteryItems()
     {
-        var eligibleItems = await db.QueryAsync<LotteryItemEntry>("SELECT a.name, a.id as assetId, a.recent_average_price as recentAveragePrice, u.id as userId, u.online_at as onlineAt, u.username, ua.id as userAssetId FROM user_asset ua INNER JOIN \"user\" u on u.id = ua.user_id INNER JOIN \"asset\" a ON a.id = ua.asset_id WHERE u.id = 12 AND (a.is_limited OR a.is_limited_unique) AND NOT a.is_for_sale ORDER BY u.online_at LIMIT 1000");
+        var eligibleItems = await db.QueryAsync<LotteryItemEntry>("SELECT a.name, a.id as assetId, a.recent_average_price as recentAveragePrice, u.id as userId, u.online_at as onlineAt, u.username, ua.id as userAssetId FROM user_asset ua INNER JOIN \"user\" u on u.id = ua.user_id INNER JOIN \"asset\" a ON a.id = ua.asset_id WHERE u.id != 1 AND u.online_at <= :time AND (a.is_limited OR a.is_limited_unique) AND NOT a.is_for_sale AND u.status = :status ORDER BY u.online_at LIMIT 1000", new
+        {
+            status = AccountStatus.Ok,
+            time = DateTime.UtcNow.Subtract(TimeSpan.FromDays(30 * 1)), // currently from 1 month
+        });
         return eligibleItems;
     }
+
 
     [HttpGet("asset/types")]
     public Dictionary<int,string> GetAssetTypes()
