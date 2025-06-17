@@ -1088,17 +1088,21 @@ public class AvatarService : ServiceBase, IService {
 
     private static Timer _timer;
 
-    public static void StartTimerClear3D() {
-        _timer = new Timer(_ => {
+    public static void StartTimerClear3D()
+    {
+        _timer = new Timer(_ =>
+        {
             // Clear 3D folder of any 3D asset that hasn't been used in 5+ days
             Writer.Info(LogGroup.ClearThumbnail3DFolder, "Clearing 3D thumbnails that are older than 5 days...");
             var thumbnail3DFolder = $"{Configuration.ThumbnailsDirectory}3d";
-            if (!Directory.Exists(thumbnail3DFolder)) {
+            if (!Directory.Exists(thumbnail3DFolder))
+            {
                 Writer.Info(LogGroup.ClearThumbnail3DFolder, "3D thumbnail folder does not exist, returning...");
                 return;
             };
 
-            foreach (var file in Directory.GetFiles(thumbnail3DFolder)) {
+            foreach (var file in Directory.GetFiles(thumbnail3DFolder))
+            {
                 var lastModified = File.GetLastWriteTime(file);
                 var fiveDaysAgo = DateTime.Now.Subtract(TimeSpan.FromDays(5));
                 if (!(lastModified < fiveDaysAgo)) continue;
