@@ -95,7 +95,7 @@ public class InventoryService : ServiceBase, IService
     
     public async Task<IEnumerable<long>> GetCollections(long userId)
     {
-        var result = await redis.StringGetAsync("user_collections_json_" + userId);
+        var result = await redis.StringGetAsync("user_collections_json_v2:" + userId);
         if (result == null)
             return ArraySegment<long>.Empty;
         var parsed = JsonSerializer.Deserialize<IEnumerable<long>>(result);
