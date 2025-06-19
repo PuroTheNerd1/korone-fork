@@ -136,7 +136,7 @@ public class InventoryService : ServiceBase, IService
             .Select(c => c.id);
         
         var str = JsonSerializer.Serialize(filteredIds);
-        await redis.StringSetAsync("user_collections_json_" + userId, str);
+        await redis.StringSetAsync("user_collections_json_v2" + userId, str);
     }
 
     public async Task<IEnumerable<OwnershipEntry>> GetOwners(long assetId, string sortOrder, int offset, int limit)
