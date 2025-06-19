@@ -95,29 +95,29 @@ public class InventoryService : ServiceBase, IService
     
     public async Task<IEnumerable<long>> GetCollections(long userId)
     {
-        var result = await redis.StringGetAsync("user_collections_json_v2:" + userId);
-        if (result == null)
-            return ArraySegment<long>.Empty;
+        var redisKey = $"user_collections_json_v2:{userId}";
+        var result = await redis.StringGetAsync(redisKey);
+        if (string.IsNullOrEmpty(result))
+            return Array.Empty<long>();
+
         var parsed = JsonSerializer.Deserialize<IEnumerable<long>>(result);
         if (parsed == null)
-            return ArraySegment<long>.Empty;
+            return Array.Empty<long>();
+
         var ids = parsed.ToList();
         using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
-        var details = (await assets.MultiGetInfoById(ids)).Where(c => CanAddTypeToCollections(c.assetType)).Select(c => c.id).ToList();
-        // get order of original list
-        var newList = new List<long>();
-        foreach (var oldId in ids)
-        {
-            var inDetails = details.IndexOf(oldId) != -1;
-            if (inDetails && !newList.Contains(oldId))
-            {
-                newList.Add(oldId);
-                if (newList.Count == 6)
-                    break;
-            }
-        }
+        var details = (await assets
+                .MultiGetInfoById(ids))
+            .Where(c => CanAddTypeToCollections(c.assetType))
+            .Select(c => c.id)
+            .ToList();
 
-        return newList;
+        var allowed = new HashSet<long>(details);
+        return ids
+            .Where(id => allowed.Contains(id))
+            .Distinct()
+            .Take(6)
+            .ToList();
     }
 
     public async Task<bool> IsOwned(long userId, long assetId) {
