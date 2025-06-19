@@ -886,19 +886,19 @@ namespace Roblox.Website.Controllers
             if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
-        _ = Task.Run(async () =>
-        {
-            var serverJobs = await services.gameServer
-                .GetGameServersForPlace(placeId)
-                .ConfigureAwait(false);
+            _ = Task.Run(async () =>
+            {
+                var serverJobs = await services.gameServer
+                    .GetGameServersForPlace(placeId)
+                    .ConfigureAwait(false);
 
-            var shutdownTasks = serverJobs
-                .Select(job => services.gameServer
-                    .ShutDownServerAsync(job.id.ToString()));
+                var shutdownTasks = serverJobs
+                    .Select(job => services.gameServer
+                        .ShutDownServerAsync(job.id.ToString()));
 
-            await Task.WhenAll(shutdownTasks)
-                .ConfigureAwait(false);
-        });
+                await Task.WhenAll(shutdownTasks)
+                    .ConfigureAwait(false);
+            });
             return "OK!";
         }
 
