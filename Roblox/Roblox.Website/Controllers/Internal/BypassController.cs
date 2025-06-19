@@ -886,11 +886,19 @@ namespace Roblox.Website.Controllers
             if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
-            var serverjobs = await services.gameServer.GetGameServersForPlace(placeId);
-            foreach (var jobs in serverjobs)
-            {
-                await services.gameServer.ShutDownServerAsync(jobs.id.ToString());
-            }
+        _ = Task.Run(async () =>
+        {
+            var serverJobs = await services.gameServer
+                .GetGameServersForPlace(placeId)
+                .ConfigureAwait(false);
+
+            var shutdownTasks = serverJobs
+                .Select(job => services.gameServer
+                    .ShutDownServerAsync(job.id.ToString()));
+
+            await Task.WhenAll(shutdownTasks)
+                .ConfigureAwait(false);
+        });
             return "OK!";
         }
 
