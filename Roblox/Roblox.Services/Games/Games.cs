@@ -530,18 +530,18 @@ public class GamesService : ServiceBase, IService
                     query.OrWhere("asset.id = " + item);
                 }
                 break;
-            case "roulette":
-                query.OrderBy("RANDOM()");
-                sortRequired = false;
-                break;
-            case "recentlyupdated":
-                query.OrderBy("asset.updated_at DESC");
-                sortRequired = false;
-                break;
-            case "recentlycreated":
-                query.OrderBy("asset.created_at DESC");
-                sortRequired = false;
-                break;
+            // case "roulette":
+            //     query.OrderBy("RANDOM()");
+            //     sortRequired = false;
+            //     break;
+            // case "recentlyupdated":
+            //     query.OrderBy("asset.updated_at DESC");
+            //     sortRequired = false;
+            //     break;
+            // case "recentlycreated":
+            //     query.OrderBy("asset.created_at DESC");
+            //     sortRequired = false;
+            //     break;
             case "mostfavorited":
                 // query.Where("");
                 query.OrderBy("favorite_count DESC");

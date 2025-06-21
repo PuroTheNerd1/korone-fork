@@ -49,14 +49,6 @@ public class GamesControllerV1 : ControllerBase
                 }
             },
             {
-                "roulette", new
-                {
-                    token = "roulette",
-                    name = "roulette",
-                    displayName = "roulette",
-                }
-            },
-            {
                 "recent", new
                 {
                     token = "recent",
@@ -72,22 +64,22 @@ public class GamesControllerV1 : ControllerBase
                     displayName = "Most Favorited",
                 }
             },
-            {
-                "recentlyUpdated", new
-                {
-                    token = "recentlyUpdated",
-                    name = "Recently Updated",
-                    displayName = "Recently Updated",
-                }
-            },
-            {
-                "recentlyCreated", new
-                {
-                    token = "recentlyCreated",
-                    name = "Recently Created",
-                    displayName = "Recently Created",
-                }
-            },
+            // {
+            //     "recentlyUpdated", new
+            //     {
+            //         token = "recentlyUpdated",
+            //         name = "Recently Updated",
+            //         displayName = "Recently Updated",
+            //     }
+            // },
+            // {
+            //     "recentlyCreated", new
+            //     {
+            //         token = "recentlyCreated",
+            //         name = "Recently Created",
+            //         displayName = "Recently Created",
+            //     }
+            // },
         };
 
         var results = new List<dynamic>();
@@ -100,7 +92,7 @@ public class GamesControllerV1 : ControllerBase
             if (recent.Any())
             {
                 results.Add(sorts["recent"]);
-                results.Add(sorts["roulette"]);
+                //results.Add(sorts["roulette"]);
                 results.Add(sorts["popular"]);
                 // results.Add(sorts["mostFavorited"]);
             }
@@ -109,9 +101,9 @@ public class GamesControllerV1 : ControllerBase
         {
             results.Add(sorts["popular"]);
             results.Add(sorts["classics"]);
-            results.Add(sorts["roulette"]);
+            //results.Add(sorts["roulette"]);
             results.Add(sorts["mostFavorited"]);
-            results.Add(sorts["recentlyUpdated"]);
+            //results.Add(sorts["recentlyUpdated"]);
             // results.Add(sorts["recentlyCreated"]);
         }
 
