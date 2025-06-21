@@ -932,7 +932,7 @@ public class AdminApiController : ControllerBase
         // mark as banned
         await db.ExecuteAsync("UPDATE \"user\" SET status = :st WHERE id = :id", new
         {
-            st =  doesExpire ? AccountStatus.Suppressed : AccountStatus.Deleted,
+            st = doesExpire ? AccountStatus.Suppressed : AccountStatus.Deleted,
             id = request.userId,
         });
         // take all limited items off sale
@@ -941,6 +941,7 @@ public class AdminApiController : ControllerBase
             user_id = request.userId,
         });
         await services.gameServer.KickPlayer(request.userId);
+        await services.users.ExpireAllSessions(request.userId);
     }
 
     [HttpPost("user/create-message"), StaffFilter(Access.CreateMessage)]
