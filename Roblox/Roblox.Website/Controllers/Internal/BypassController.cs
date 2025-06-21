@@ -1364,7 +1364,7 @@ namespace Roblox.Website.Controllers
             {
                 try
                 {
-                    await services.gameServer.ShutDownServerAsync(gameId);
+                    Task.Run(async () => await services.gameServer.ShutDownServerAsync(gameId));
                 }
                 catch (Exception)
                 {
