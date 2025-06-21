@@ -120,7 +120,8 @@ public class InventoryService : ServiceBase, IService
             .ToList();
     }
 
-    public async Task<bool> IsOwned(long userId, long assetId) {
+    public async Task<bool> IsOwned(long userId, long assetId)
+    {
         var q = await db.QuerySingleOrDefaultAsync<Dto.Total>(@"
                     SELECT 
                         COUNT(*) as total 
