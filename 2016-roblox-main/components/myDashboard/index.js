@@ -218,11 +218,6 @@ const sorts = [{
     name: 'favorited',
     displayName: 'My Favorites',
     games: [],
-}, {
-    token: 'roulette',
-    name: 'roulette',
-    displayName: 'Roulette',
-    games: [],
 }]
 
 const MyDashboard = props => {
