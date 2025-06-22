@@ -48,6 +48,12 @@ const useStyles = createUseStyles({
   groupShoutButton: {
     marginTop: '0',
   },
+  verifiedIcon: {
+    width: '16px',
+    height: '16px',
+    verticalAlign: 'text-bottom',
+    marginLeft: '0.5rem',
+  },
 })
 
 const GroupPage = props => {
@@ -133,8 +139,14 @@ const GroupPage = props => {
     </div>
     <div className='col-9 ps-0'>
       <h2>
-            {store.info.name}
-            {store.info.isVerified && <span className={`icon-verified ms-2`} />}
+        {store.info.name}
+        {store.info.isVerified && (
+          <img
+            src='/img/verified.svg'
+            alt='Verified'
+            className={s.verifiedIcon}
+          />
+        )}
       </h2>
       <p className={s.description}>{store.info.description}</p>
       {store.permissions['viewStatus'] && store.info.shout && store.info.shout.body && <div className='row'>
