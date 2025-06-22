@@ -86,7 +86,7 @@ public class GroupsService : ServiceBase, IService
     public async Task<GroupEntry> GetGroupById(long groupId)
     {
         var dbResult = await db.QuerySingleOrDefaultAsync<GroupEntryDb>(
-            "SELECT g.id, g.name, g.description, g.user_id as ownerUserId, \"user\".username as ownerUserName, g.locked as isLocked FROM \"group\" as g LEFT JOIN \"user\" ON \"user\".id = g.user_id WHERE g.id = :group_id",
+            "SELECT g.id, g.name, g.description, g.user_id as ownerUserId, \"user\".username as ownerUserName, g.locked as isLocked, g.verified as isVerified FROM \"group\" as g LEFT JOIN \"user\" ON \"user\".id = g.user_id WHERE g.id = :group_id",
             new
             {
                 group_id = groupId,
@@ -132,7 +132,7 @@ public class GroupsService : ServiceBase, IService
     public async Task<GroupWithShout> GetGroupWithShoutById(long groupId)
     {
         var dbResult = await db.QuerySingleOrDefaultAsync<GroupEntryDb>(
-            "SELECT g.id, g.name, g.description, g.user_id as ownerUserId, \"user\".username as ownerUserName, g.locked as isLocked FROM \"group\" as g LEFT JOIN \"user\" ON \"user\".id = g.user_id WHERE g.id = :group_id",
+            "SELECT g.id, g.name, g.description, g.user_id as ownerUserId, \"user\".username as ownerUserName, g.locked as isLocked, g.verified as isVerified FROM \"group\" as g LEFT JOIN \"user\" ON \"user\".id = g.user_id WHERE g.id = :group_id",
             new
             {
                 group_id = groupId,
@@ -148,6 +148,7 @@ public class GroupsService : ServiceBase, IService
             name = dbResult.name,
             description = dbResult.description,
             memberCount = mem,
+            isVerified = dbResult.isVerified,
             owner = dbResult.ownerUserId != null
                 ? new()
                 {

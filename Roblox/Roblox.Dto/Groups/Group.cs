@@ -8,6 +8,7 @@ public class GroupEntryDb
     public long? ownerUserId { get; set; }
     public string? ownerUsername { get; set; }
     public bool isLocked { get; set; }
+    public bool isVerified { get; set; }
 }
 
 public class GroupWithShout
@@ -16,6 +17,7 @@ public class GroupWithShout
     public string name { get; set; }
     public string? description { get; set; }
     public long memberCount { get; set; }
+    public bool isVerified { get; set; }
     public GroupUser? owner { get; set; }
     public StatusEntry? shout { get; set; }
 }
@@ -42,6 +44,7 @@ public class GroupEntry
     public GroupUser? owner { get; set; }
     public long memberCount { get; set; }
     public bool isLocked { get; set; }
+    public bool isVerified { get; set; } 
     public bool isBuildersClubOnly { get; set; } = false;
     public bool publicEntryAllowed { get; set; } = true;
 
