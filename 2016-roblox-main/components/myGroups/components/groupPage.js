@@ -132,7 +132,10 @@ const GroupPage = props => {
       }
     </div>
     <div className='col-9 ps-0'>
-      <h2>{store.info.name}</h2>
+      <h2>
+            {store.info.name}
+            {store.info.isVerified && <span className={`icon-verified ms-2`} />}
+      </h2>
       <p className={s.description}>{store.info.description}</p>
       {store.permissions['viewStatus'] && store.info.shout && store.info.shout.body && <div className='row'>
         <div className='col-10 mt-4'>
