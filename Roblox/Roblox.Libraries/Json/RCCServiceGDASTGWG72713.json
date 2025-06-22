@@ -5416,7 +5416,7 @@
     "CaptureQTStudioCountersEnabled": true,
     "DFFlagAddAssetCopyrightLog": true,
     "DFFlagBoxMappedMeshLODFix_v2": true,
-    "DFFlagCLI120342": false,
+    "DFFlagCLI120342": true,
     "DFFlagCyclicExecutiveThrottlingCancelWorldStepAccum": false,
     "DFFlagDebugCurlOption12": true,
     "DFFlagDebugCurlOption22": true,
