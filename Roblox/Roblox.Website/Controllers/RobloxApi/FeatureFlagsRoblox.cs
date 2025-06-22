@@ -38,6 +38,7 @@ namespace Roblox.Website.Controllers
             "PCStudio221",
             "PCStudio223",
             "RCCService2021",
+            "RCCServiceGDASTGWG72713", // 2021 Too
             "PCDesktopClient",
             "PCDesktopClient2021",
             "PCDesktopCli223",
