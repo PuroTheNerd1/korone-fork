@@ -49,10 +49,8 @@ const useStyles = createUseStyles({
     marginTop: '0',
   },
   verifiedIcon: {
-    width: '16px',
-    height: '16px',
-    verticalAlign: 'text-bottom',
-    marginLeft: '0.5rem',
+    position: 'relative',
+    bottom: '2.5px',
   },
 })
 
