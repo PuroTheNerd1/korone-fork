@@ -9,7 +9,10 @@ const Header = props => {
   return <div className='row'>
     {
       store.info ? <div className='col-6'>
-        <h3>{store.info.name}</h3>
+        <h3>
+          {store.info.name}
+          {store.info.isVerified ? <span className={`icon-verified`} /> : null}
+        </h3>
         <p className='fw-600 mb-0'>
           <span className={styles.labelName}>Owned by: </span>
           {
