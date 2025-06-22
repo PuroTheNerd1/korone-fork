@@ -30,16 +30,15 @@ const Favorites = props => {
         setFavorites(d)
       })
 
-      multiGetUniverseIcons({
+      /*multiGetUniverseIcons({
         universeIds: data.Data.Items.map(v => v.Item.UniverseId),
-        size: '150x150'
       }).then(d => {
         let newObj = {}
         for (const item of d) {
           newObj[item.targetId] = item.imageUrl;
         }
         setIcons(newObj);
-      })
+      })*/
     })
   }, [userId]);
 
@@ -55,9 +54,9 @@ const Favorites = props => {
     </div>
     <div className='col-12'>
       {
-        // favorites && favorites.length > 0 ? <GameRow games={favorites} />
-        //   : <div className={`section-content-off`} >User has no favourited games.</div>
-        favorites.slice(0,6).map(v => {
+        favorites && favorites.length > 0 ? <GameRow games={favorites} />
+          : <div className={`section-content-off`} >User has no favourited games.</div>
+        /*favorites.slice(0,6).map(v => {
           return <SmallGameCard
         key={v.Item.AssetId}
         name={v.Item.Name}
@@ -70,7 +69,7 @@ const Favorites = props => {
         hideVoting={true}
         playerCount={0}
       />
-        })
+        })*/
       }
     </div>
   </div>
