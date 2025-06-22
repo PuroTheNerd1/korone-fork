@@ -2375,6 +2375,19 @@ Thank you for your understanding,
         return await MigrateItem.MigrateItemFromRoblox(request.url);
     }
 
+    [HttpGet("group-verify"), StaffFilter(Access.LockAndUnlockGroup)]
+    public async Task<dynamic> GroupVerify(long groupId, bool verify)
+    {
+        if (!StaffFilter.IsOwner(safeUserSession.userId))
+            throw new StaffException("Not authorized to verify groups");
+        await db.ExecuteAsync("UPDATE \"group\" SET verified = :isVerified WHERE id = :id", new
+        {
+            isVerified = verify,
+            id = groupId,
+        });
+        return "Group " + groupId + " has been " + (verify ? "verified" : "unverified") + ".";
+    }   
+
     [HttpGet("create-promocode"), StaffFilter(Access.GiveUserItem)]
     public async Task<dynamic> CreatePromocode(string promocode, int? robux, long? assetId)
     {
