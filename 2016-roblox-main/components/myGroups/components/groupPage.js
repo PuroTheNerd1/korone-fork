@@ -51,6 +51,7 @@ const useStyles = createUseStyles({
   verifiedIcon: {
     position: 'relative',
     bottom: '2.5px',
+    left: '4px', 
   },
 })
 
