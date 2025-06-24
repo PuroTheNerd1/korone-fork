@@ -14,10 +14,9 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> IncrementPersistenceAsync(long placeId, string key, string type, string scope, string target, int? value = null)
         {
             // increment?placeId=%i&key=%s&type=%s&scope=%s&target=&value=%i
-            var ds = ServiceProvider.GetOrCreate<DataStoreService>();
             if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
-
+            var ds = ServiceProvider.GetOrCreate<DataStoreService>();
             if (value == null)
                 value = int.Parse(Request.Form["value"][0]);
             string? result = await ds.Get(placeId, type, scope, key, target);
@@ -38,7 +37,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "InvalidValue");
             }
 
-            await ds.Set(placeId, key, type, scope, target, 31, value.ToString());
+            await ds.Set(placeId, key, type, scope, target, value.ToString().Length, value.ToString());
             return new
             {
                 data = value,

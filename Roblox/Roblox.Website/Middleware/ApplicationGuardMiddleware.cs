@@ -26,7 +26,7 @@ public class ApplicationGuardMiddleware
         "/auth/captcha",
         "/auth/discord",
         "/auth/submit",
-        "/auth/homepage",
+        "/auth/home",
         "/auth/2fa",
         "/auth/privacy",
         "/auth/tos",
@@ -250,7 +250,7 @@ public class ApplicationGuardMiddleware
     private readonly string[] allowedPathsForBlockUserAgents = new[]
     {
         "/version",
-        "/auth/homepage",
+        "/auth/home",
         "/auth/2fa",
         "/auth/captcha",
     };
@@ -258,7 +258,7 @@ public class ApplicationGuardMiddleware
     private async Task Redirect(HttpContext ctx, string dest)
     {
         ctx.Response.StatusCode = 302;
-        ctx.Response.Headers.Location = "/auth/homepage";
+        ctx.Response.Headers.Location = "/auth/home";
         await ctx.Response.WriteAsync("Object moved to <a href=\""+dest+"\">here</a>.");
     }
 
@@ -387,13 +387,13 @@ public class ApplicationGuardMiddleware
             // If not blocked
             if (FeatureFlags.IsDisabled(FeatureFlag.AllowAccessToAllRequests) && !ua.ToLower().Contains("roblox") && ua != Configuration.UserAgentBypassSecret && !ua.ToLower().Contains("discordbot"))
             {
-                await Redirect(ctx, "/auth/homepage");
+                await Redirect(ctx, "/auth/home");
                 return;
             }
             // Otherwise, allow (almost) all
             if (normalizedPath == "")
             {
-                await Redirect(ctx, "/auth/homepage");
+                await Redirect(ctx, "/auth/home");
                 return;
             }
             appGuardTimer.Stop();

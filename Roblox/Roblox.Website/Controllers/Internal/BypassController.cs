@@ -356,7 +356,7 @@ namespace Roblox.Website.Controllers
         {
             //do this for anti reporting shit
             if(userSession == null)
-                return Redirect("/auth/homepage");
+                return Redirect("/auth/home");
 
             return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
         }
