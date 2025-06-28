@@ -33,6 +33,7 @@ import ReactDOM from "react-dom";
 import dayjs from "../../lib/dayjs";
 import { wait } from "../../lib/utils";
 import FavouriteButtonStore from "./stores/FavouriteButtonStore";
+import RemoveItemModal from "./modals/RemoveItemModal";
 
 const useStyles = createUseStyles({
     pageWrapper: {
@@ -682,6 +683,7 @@ function AssetDetailsPage({ itemDetails }) {
         {modal.isBuyModalOpen ? <BuyModal/> : null}
         {modal.isSellItemModalOpen ? <SellItemModal/> : null}
         {modal.isConfirmSellModalOpen ? <ConfirmSellModal/> : null}
+        {modal.isRemoveInvModalOpen ? <RemoveItemModal/> : null}
         <div className={`section-content noShadow ${s.itemContainer}`}>
             <ItemThumb isVisible={!isWindow767}/>
             <div className={s.itemDetailsContainer}>

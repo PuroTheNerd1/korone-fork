@@ -101,7 +101,7 @@ const NavigationLinks = props => {
   // }, [router]);
   return <div className={`${s.col} col-10 col-lg-3`}>
     <div className={s.container}>
-      <div className={`${s.row} row w-fit-content`}>
+      <div className={`${s.row} row`}>
         <LinkEntry url='games'>Games</LinkEntry>
         <LinkEntry url='catalog'>Catalog</LinkEntry>
         <LinkEntry url='develop'>Create</LinkEntry>

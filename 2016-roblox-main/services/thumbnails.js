@@ -129,6 +129,14 @@ export const multiGetAssetThumbnails = ({ assetIds }) => {
   return request('get', getFullUrl('thumbnails', `/v1/assets?assetIds=${toCsv(assetIds)}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
 }
 
+/**
+ * @param universeIds
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
+export const multiGetUniverseIcons2 = ({ universeIds }) => {
+  return request('get', getFullUrl('thumbnails', `/v1/games/icons?universeIds=${toCsv(universeIds)}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
+}
+
 export const multiGetUniverseIcons = ({ universeIds, size }) => {
   let all = [];
   let c = chunk(universeIds, 100);

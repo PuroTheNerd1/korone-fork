@@ -18,6 +18,7 @@ const AssetDetailsModalStore = createContainer(() => {
     const [isSellItemModalOpen, setSellItemModalOpen] = useState(false);
     const [isConfirmSellModalOpen, setConfirmSellModalOpen] = useState(false);
     const [isDelistItemModalOpen, setDelistItemModalOpen] = useState(false);
+    const [isRemoveInvModalOpen, setRemoveInvModalOpen] = useState(false);
     const [isDelisting, setDelisting] = useState(false);
     
     const [purchaseInfo, setPurchaseInfo] = useState(/** @type {PurchaseDetails|null} */(null));
@@ -113,6 +114,9 @@ const AssetDetailsModalStore = createContainer(() => {
         
         isDelistItemModalOpen,
         setDelistItemModalOpen,
+        
+        isRemoveInvModalOpen,
+        setRemoveInvModalOpen,
         
         resalePrice,
         setResalePrice,

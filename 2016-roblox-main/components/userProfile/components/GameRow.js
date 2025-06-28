@@ -3,6 +3,8 @@ import { createUseStyles } from "react-jss";
 import GameCard from '../../newGameCard';
 import ThumbnailStore from "../../../stores/thumbnailStore";
 import { multiGetGameVotes } from "../../../services/games";
+import { multiGetAssetThumbnails, multiGetUniverseIcons2 } from "../../../services/thumbnails";
+import { ThumbnailFromState } from "../../AvatarEditorPage/components/avatarCardList";
 
 const useStyles = createUseStyles({
     gameCardsContainer: {
@@ -28,29 +30,44 @@ const GameRow = props => {
     const s = useStyles();
     const store = ThumbnailStore.useContainer();
     const [games, setGames] = useState([]);
-
-    var customWidth = null;
-
+    
+    let customWidth = null;
+    
     useEffect(() => {
         if (props.games) {
             customWidth = 1 / props.games.length;
             //if (games.length !== 0) {
             const universeIds = props.games.map(game => game.universeId);
             const gamesNew = [];
-            multiGetGameVotes({ universeIds }).then((votes) => {
-                props.games.map((game) => {
-                    const voteData = votes.find(vote => vote.id === game.universeId);
-                    if (voteData) {
-                        gamesNew.push({
-                            ...game,
-                            totalUpVotes: voteData.upVotes,
-                            totalDownVotes: voteData.downVotes,
-                        })
-                    } else {
-                        gamesNew.push(game);
-                    }
-                });
-                setGames(gamesNew);
+            multiGetGameVotes({ universeIds }).then(votes => {
+                multiGetUniverseIcons2({universeIds: universeIds}).then(universes => {
+                    props.games.map(game => {
+                        const voteData = votes.find(vote => vote.id === game.universeId);
+                        const iconData = universes.find(thumb => thumb.targetId === game.universeId);
+                        if (voteData && iconData) {
+                            gamesNew.push({
+                                ...game,
+                                ...iconData,
+                                totalUpVotes: voteData.upVotes,
+                                totalDownVotes: voteData.downVotes,
+                            })
+                        } else if (voteData && !iconData) {
+                            gamesNew.push({
+                                ...game,
+                                totalUpVotes: voteData.upVotes,
+                                totalDownVotes: voteData.downVotes,
+                            })
+                        } else if (!voteData && iconData) {
+                            gamesNew.push({
+                                ...game,
+                                ...iconData,
+                            })
+                        } else {
+                            gamesNew.push(game);
+                        }
+                    });
+                    setGames(gamesNew);
+                })
             });
             //}
         }
@@ -58,10 +75,15 @@ const GameRow = props => {
 
     return <ul className={s.gameCardsContainer}>
         {
-            games.map((game) => {
-                var thumbnail;
-                var gameThumbnail = store.getGameIcon(game.placeId, '420x420');
-                gameThumbnail ? thumbnail = gameThumbnail : thumbnail = '/img/placeholder/icon_one.png';
+            games.map(game => {
+                // const gameThumbnail = store.getGameIcon(game.placeId, '420x420');
+                // gameThumbnail ? thumbnail = gameThumbnail : thumbnail = '/img/placeholder/icon_one.png';
+                const thumbnail =
+                    game?.state && game?.imageUrl
+                    ?
+                    ThumbnailFromState(game.imageUrl, game.state)
+                    :
+                    "/img/placeholder/icon_one.png";
                 return <GameCard
                     name={game.name}
                     playerCount={game.playerCount || '?'}

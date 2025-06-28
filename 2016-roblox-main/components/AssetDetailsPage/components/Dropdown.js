@@ -37,6 +37,10 @@ function AssetDropdown() {
                     store.ToggleFromCollection(true).then();
                 },
             } : null,
+            auth.isAuthenticated && (store.isOwned || store.ownedCopies?.length > 0) && !store.isResellable() ? {
+                name: "Remove from Inventory",
+                onClick: () => modals.setRemoveInvModalOpen(true),
+            } : null,
             store.details.creatorTargetId === auth.userId ? {
                 name: "Advertise",
                 url: `/My/CreateUserAd.aspx?targetId=${store.details.id}&targetType=asset`,
@@ -51,7 +55,8 @@ function AssetDropdown() {
         store.resaleData,
         store.isCollectioned,
         store.ownedCopies,
-        store.resellers
+        store.resellers,
+        store.isOwned,
     ]);
     
     return <Dropdown2016
