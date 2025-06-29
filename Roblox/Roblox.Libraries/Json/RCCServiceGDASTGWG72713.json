@@ -645,7 +645,7 @@
     "DFStringAdditionalBlacklistHeaders": "SOAPAction",
     "DFStringAltTelegrafAddress": "35.155.141.13",
     "DFStringAnalyticsNS1BeaconConfig": "https://c0ll.rbxcdn.com/test-50kb.png|g2kd2s|https://c0hw.rbxcdn.com/test-50kb.png|g2iyic|https://c0cfly.rbxcdn.com/test-50kb.png|g2hjxw|https://c0ak.rbxcdn.com/test-50kb.png|g2g5dg",
-    "DFStringDataStoreThrottleMsg": "DataStore request was added to queue. If request queue fills, further requests will be dropped. Try sending fewer requests.",
+    "DFStringDataStoreThrottleMsg": "Yo bro you sending datastores too fast g, chill the fuck out with them requests this current request has been added to the queue further requests will be dropped g.",
     "DFStringGlobalUniverse17sIds": "14743789;1482020489",
     "DFStringHttpRbxApi17sAllowedHosts": "chat.pekora.zip;presence.pekora.zip;avatar.pekora.zip;catalog.pekora.zip;inventory.pekora.zip",
     "DFStringPerfFilterPlaceId": "",
