@@ -30,8 +30,9 @@ public class RobloxPlayerCorsMiddleware
 
     #if DEBUG
         if (Configuration.BaseUrl.Contains("goober.top")) {
-            styleSrc = "https://www.goober.top/fonts/gotham1.css";
-            fontSrc = fontSrc + " https://www.goober.top/fonts/GothamSSmBold.woff2 https://www.goober.top/fonts/GothamSSmMedium.woff2 https://www.goober.top/fonts/GothamSSmBook.woff2 https://www.goober.top/fonts/GothamSSmLight.woff2 https://www.goober.top/fonts/GothamSSmBlack.woff2";
+            styleSrc = " https://www.goober.top/fonts/gotham1.css";
+            fontSrc += " https://www.goober.top/fonts/GothamSSmBold.woff2 https://www.goober.top/fonts/GothamSSmMedium.woff2 https://www.goober.top/fonts/GothamSSmBook.woff2 https://www.goober.top/fonts/GothamSSmLight.woff2 https://www.goober.top/fonts/GothamSSmBlack.woff2";
+            imgSrc += " https://*.pekora.zip";
         }
     #endif
 

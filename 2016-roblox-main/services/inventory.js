@@ -55,3 +55,7 @@ export const getCollectibleInventory = ({ userId, cursor, limit, assetTypeId = '
 export const getCollectibleOwners = ({ assetId, limit, sort, cursor }) => {
   return request('GET', getFullUrl('inventory', `/v2/assets/${assetId}/owners?cursor=${encodeURIComponent(cursor || '')}&limit=${limit}&sortOrder=${sort}`)).then(d => d.data);
 }
+
+export const deleteAssetFromInventory = ({ assetId }) => {
+  return request('DELETE', getFullUrl('inventory', `/v2/inventory/asset/${assetId}`)).then(d => d);
+}

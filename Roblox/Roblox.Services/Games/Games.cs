@@ -632,10 +632,19 @@ public class GamesService : ServiceBase, IService
         });
     }
 
+    public List<long> AllowedGameYears = new List<long>
+    {
+        2017,
+        2018,
+        2019,
+        2020,
+        2021
+    };
+
     public async Task SetYear(long placeId, int year)
     {
-        if (year != 2017 && year != 2018 && year != 2019 && year != 2020 && year != 2021)
-            throw new ArgumentException("Year can only be 2015, 2016, 2017, 2018, 2019 2020, 2021");
+        if (!AllowedGameYears.Contains(year))
+            throw new ArgumentException($"Year can only be {string.Join(", ", AllowedGameYears)}");
 
         await db.ExecuteAsync("UPDATE asset_place SET year = :year WHERE asset_id = :id", new
         {
@@ -674,7 +683,7 @@ public class GamesService : ServiceBase, IService
                 asset.id as placeId,
                 asset.description as description,
                 asset.asset_genre as genre,
-                (select count(*) as playerCount FROM asset_server_player WHERE asset_server_player.asset_id = asset.id),
+                (select count(*) AS playerCount FROM asset_server_player WHERE asset_server_player.asset_id = asset.id),
                 (case when ""asset"".creator_type = 1 then ""user"".username else ""group"".name end) as builder,
                 asset.created_at as created,
                 asset.updated_at as updated,
@@ -687,6 +696,7 @@ public class GamesService : ServiceBase, IService
                 INNER JOIN asset_place ON asset_place.asset_id = asset.id
                 LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
                 LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
+
             /**where**/
             /**orderby**/
             LIMIT 100");

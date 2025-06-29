@@ -128,6 +128,14 @@ public class InventoryService : ServiceBase, IService
                     FROM user_asset INNER JOIN asset a ON user_asset.asset_id = a.id WHERE user_id = :userId AND a.id = :assetId", new {userId, assetId});
         return q.total > 0;
     }
+    
+    public async Task DeleteUserAssetId(long userId, long assetId)
+    {
+        await db.QueryAsync(@"
+                DELETE FROM user_asset WHERE user_id = :userId AND asset_id = :assetId
+            ", new {userId, assetId}
+        );
+    }
 
     public async Task SetCollections(long userId, IEnumerable<long> assetIds)
     {
