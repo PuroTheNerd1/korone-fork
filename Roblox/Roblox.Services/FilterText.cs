@@ -203,7 +203,7 @@ public class FilterService : ServiceBase, IService
     public string CleanText(string input)
     {
         StringBuilder sb = new StringBuilder();
-        foreach (char c in "façade".Normalize(NormalizationForm.FormD))
+        foreach (char c in input.Normalize(NormalizationForm.FormC))
         {
             if (char.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
                 sb.Append(c);

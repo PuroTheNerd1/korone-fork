@@ -470,7 +470,7 @@ public class GroupsService : ServiceBase, IService
         var postCount = await GetPostCountByUserInTimeSpan(userId, TimeSpan.FromSeconds(5));
         if (postCount >= 1)
             throw new CooldownException();
-        // Block out all special unicodes 
+        // Hopefully this cleans the text
         using var filter = ServiceProvider.GetOrCreate<FilterService>(this);
         body = filter.CleanText(body);
         var createdAt = DateTime.UtcNow;
