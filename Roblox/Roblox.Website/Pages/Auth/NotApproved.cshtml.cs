@@ -25,7 +25,9 @@ public class NotApproved : RobloxPageModel
         }
         catch (RecordNotFoundException)
         {
-            if (userSession.accountStatus == AccountStatus.Ok) return;
+            var userInfo = await services.users.GetUserById(userSession.userId);
+            
+            if (userInfo.accountStatus == AccountStatus.Ok) return;
             // TODO: Report this - means accountStatus is invalid or ban doesn't exist when it should.
             ban = new()
             {
