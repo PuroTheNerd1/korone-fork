@@ -1,6 +1,6 @@
 import {createContainer} from "unstated-next";
 import { useEffect, useRef, useState } from "react";
-import {getOutfits, getRecentItems, RECENT_ITEMS} from "../../../services/avatar";
+import { getItemRestrictions, getOutfits, getRecentItems, RECENT_ITEMS } from "../../../services/avatar";
 import {getInventory} from "../../../services/inventory";
 import {SUBMENU_MODE} from "../components/avatarTabSubmenu";
 import AuthenticationStore from "../../../stores/authentication";
@@ -16,6 +16,8 @@ import AvatarInfoStore from "./avatarInfoStore";
  * @property {number} assetType
  * @property {string?} thumbnail
  * @property {string} thumbnailState
+ * @property {boolean} isLimited
+ * @property {boolean} isLimitedUnique
  */
 
 /**
@@ -76,8 +78,10 @@ const AvatarPageStore = createContainer(() => {
             return;
         }
         let thumbnails = await multiGetAssetThumbnails({ assetIds: recent.map(item => item.id) });
+        let itemRestrictions = await getItemRestrictions(recent.map(item => item.id));
         setListItems(recent.map(item => {
             let thumb = thumbnails?.find(v => v.targetId === item.id) || null;
+            let rest = itemRestrictions?.find(v => v.assetId === item.id);
             setLoadingAvatar(false);
             return {
                 name: item.name,
@@ -85,6 +89,8 @@ const AvatarPageStore = createContainer(() => {
                 assetType: item.assetType.id,
                 thumbnail: thumb?.imageUrl,
                 thumbnailState: thumb?.state ?? "Pending",
+                isLimited: rest?.isLimited ?? undefined,
+                isLimitedUnique: rest?.isLimitedUnique ?? undefined,
             }
         }));
         setListItemMetadata({

@@ -14,6 +14,22 @@ export const getMyAvatar = () => {
 }
 
 /**
+ * @typedef ItemRestrictionsClass
+ * @property {number} assetId
+ * @property {boolean} isLimited
+ * @property {boolean} isLimitedUnique
+ * @property {boolean} exists
+ */
+
+/**
+ * @param {number[]} assetIds
+ * @returns {Promise<ItemRestrictionsClass[]>}
+ */
+export const getItemRestrictions = (assetIds) => {
+  return request('GET', getFullUrl('api', `/v1/items/restrictions?assetIds=${assetIds}`)).then(d => d.data);
+}
+
+/**
  *
  * @param {string} listType
  * @returns {Promise<PekoraCollection<Asset>>}
