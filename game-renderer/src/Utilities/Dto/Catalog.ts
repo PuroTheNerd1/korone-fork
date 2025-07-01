@@ -30,6 +30,10 @@ export class AssetRenderRequest {
     @IsDefined()
     @IsInt()
     assetId!: number;
+    // Remove later
+    @IsOptional()
+    @IsString()
+    assetUrl?: number;
 
     @IsOptional()
     @IsInt()
