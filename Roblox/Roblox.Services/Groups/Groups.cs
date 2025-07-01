@@ -470,7 +470,11 @@ public class GroupsService : ServiceBase, IService
         var postCount = await GetPostCountByUserInTimeSpan(userId, TimeSpan.FromSeconds(5));
         if (postCount >= 1)
             throw new CooldownException();
-
+        // Block out all special unicodes 
+        using var filter = ServiceProvider.GetOrCreate<FilterService>(this);
+        if (!filter.IsNormalUnicode(body))
+            throw new ArgumentException("Invalid unicode in wall post");
+        
         var createdAt = DateTime.UtcNow;
         var id = await InsertAsync("group_wall", new
         {

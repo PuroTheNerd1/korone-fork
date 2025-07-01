@@ -678,6 +678,8 @@ public class UsersService : ServiceBase, IService
     {
         var currentStatus = await GetUserStatus(userId);
         if (currentStatus.status == newStatus) return;
+        // Only validate if the status is not null
+
         if (string.IsNullOrWhiteSpace(newStatus))
         {
             newStatus = null;
@@ -689,6 +691,10 @@ public class UsersService : ServiceBase, IService
             // Validation on non-null status
             if (newStatus.Length > 255) throw new StatusTooLongException();
             if (newStatus.Length <= 3) throw new StatusTooLongException();
+
+            using var filter = ServiceProvider.GetOrCreate<FilterService>(this);
+            if (!filter.IsNormalUnicode(newStatus))
+                throw new ArgumentException("Invalid unicode in user status");
         }
 
         await InsertAsync("user_status", new
