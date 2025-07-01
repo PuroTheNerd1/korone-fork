@@ -1378,7 +1378,7 @@ public class UsersService : ServiceBase, IService
 
     public async Task<bool> HasUserPurchasedAssetBefore(long userId, long assetId)
     {
-        return (await db.QuerySingleOrDefaultAsync<Dto.Total>("SELECT COUNT(*) AS total FROM user_transaction WHERE user_id_one = :user_id AND asset_id = :asset_id AND type = :type AND sub_type = :sub_type", new
+        return (await db.QuerySingleOrDefaultAsync<Dto.Total>("SELECT COUNT(*) AS total FROM user_transaction WHERE user_id_one = :user_id AND asset_id = :asset_id AND type = :type AND sub_type = :sub_type AND deleted = FALSE", new
         {
             user_id = userId,
             asset_id = assetId,

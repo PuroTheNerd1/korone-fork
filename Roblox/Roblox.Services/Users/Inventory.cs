@@ -136,6 +136,14 @@ public class InventoryService : ServiceBase, IService
             ", new {userId, assetId}
         );
     }
+    
+    public async Task MarkTransactionAsDeleted(long sellerId, long buyerId, long assetId)
+    {
+        await db.QueryAsync(@"
+                UPDATE user_transaction SET deleted = TRUE WHERE user_id_one = :buyerId AND user_id_two = :sellerId AND asset_id = :assetId
+            ", new {buyerId, sellerId, assetId}
+        );
+    }
 
     public async Task SetCollections(long userId, IEnumerable<long> assetIds)
     {

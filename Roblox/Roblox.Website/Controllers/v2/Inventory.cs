@@ -58,5 +58,6 @@ public class InventoryControllerV2 : ControllerBase
             throw new ForbiddenException(2, "You don't own the specified item.");
         
         await services.inventory.DeleteUserAssetId(userId, assetId);
+        await services.inventory.MarkTransactionAsDeleted(asset.creatorTargetId, userId, assetId);
     }
 }
