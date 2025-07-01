@@ -95,7 +95,7 @@ router.post("/package", Valid(PackageRenderRequest), async (req: Request, res: R
     ));
 });
 
-router.post("/bodypart", Valid(AssetRenderRequest), async (req: Request, res: Response) => {
+router.post("/bodypart", async (req: Request, res: Response) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(BodyPartTemplate));
     xml.Settings.Arguments[0] = req.body.assetUrl;
     xml.Settings.Arguments[1] = Config.BaseUrl;
