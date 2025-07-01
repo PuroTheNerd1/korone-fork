@@ -693,7 +693,7 @@ public class UsersService : ServiceBase, IService
             if (newStatus.Length <= 3) throw new StatusTooLongException();
 
             using var filter = ServiceProvider.GetOrCreate<FilterService>(this);
-            if (!filter.IsNormalUnicode(newStatus))
+            if (!filter.IsNormalText(newStatus))
                 throw new ArgumentException("Invalid unicode in user status");
         }
 

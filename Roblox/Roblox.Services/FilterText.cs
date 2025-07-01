@@ -198,9 +198,9 @@ public class FilterService : ServiceBase, IService
         return input;
     }
     // Only japanese and russian unicode is allowed
-    public bool IsNormalUnicode(string text)
+    public bool IsNormalText(string text)
     {
-        return text.Length < 1 || text.Length > 1000 || !text.All(c => c < 128 || (c >= 0x3040 && c <= 0x30FF) || (c >= 0x0400 && c <= 0x04FF));
+        return text.Length >= 1 && text.Length <= 1000 && text.All(c => c < 128 || (c >= 0x3040 && c <= 0x30FF) || (c >= 0x0400 && c <= 0x04FF) || char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsSymbol(c));
     }
 
     public bool IsReusable()

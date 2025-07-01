@@ -472,7 +472,7 @@ public class GroupsService : ServiceBase, IService
             throw new CooldownException();
         // Block out all special unicodes 
         using var filter = ServiceProvider.GetOrCreate<FilterService>(this);
-        if (!filter.IsNormalUnicode(body))
+        if (!filter.IsNormalText(body))
             throw new ArgumentException("Invalid unicode in wall post");
         
         var createdAt = DateTime.UtcNow;
