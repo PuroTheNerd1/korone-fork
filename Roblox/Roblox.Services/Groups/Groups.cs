@@ -1307,7 +1307,7 @@ public class GroupsService : ServiceBase, IService
             {
                 id = wallPostId,
             });
-            if (content.body.Length > 1000)
+            if (content.body.Length > 256)
                 content.body = "[Content too long to display]";
             await InsertAsync("group_audit_log", new
             {
