@@ -99,6 +99,9 @@ router.post("/bodypart", async (req: Request, res: Response) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(BodyPartTemplate));
     xml.Settings.Arguments[0] = req.body.assetUrl;
     xml.Settings.Arguments[1] = Config.BaseUrl;
+    xml.Settings.Arguments[3] = 420;
+    xml.Settings.Arguments[4] = 420;
+    xml.Settings.Arguments[5] = `${Config.BaseUrl}/v1/asset/?id=1785197`;
     Console.Debug(`Queueing bodypart with AssetId ${req.body.assetId}`);
     return await box.Enqueue((port: number) => RequestRCCBase(
         req,
