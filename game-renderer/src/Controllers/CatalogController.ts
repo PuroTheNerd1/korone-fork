@@ -3,7 +3,7 @@ import Config from "../Utilities/Libraries/Config.js";
 import Valid from "../Utilities/Middleware/ValidateDto.js";
 import {QueueBox} from "../Utilities/Libraries/Queue.js";
 import {BaseJson, RequestRCCBase} from "./BaseController.js";
-import {AnimationRenderRequest, AssetRenderRequest, PackageRenderRequest} from "../Utilities/Dto/Catalog.js";
+import {AnimationRenderRequest, AssetRenderRequest, BodyPartRenderRequest, PackageRenderRequest} from "../Utilities/Dto/Catalog.js";
 import {Console} from "../Utilities/Libraries/CS.js";
 
 import HatTemplate from "../../scripts/Hat.json" with {type: "json"};
@@ -95,7 +95,7 @@ router.post("/package", Valid(PackageRenderRequest), async (req: Request, res: R
     ));
 });
 
-router.post("/bodypart", async (req: Request, res: Response) => {
+router.post("/bodypart", Valid(BodyPartRenderRequest), async (req: Request, res: Response) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(BodyPartTemplate));
     Console.Log(`AssetUrl: ${req.body.assetUrl}`);
     xml.Settings.Arguments[0] = req.body.assetUrl;
@@ -103,13 +103,13 @@ router.post("/bodypart", async (req: Request, res: Response) => {
     xml.Settings.Arguments[3] = 420;
     xml.Settings.Arguments[4] = 420;
     xml.Settings.Arguments[5] = `${Config.BaseUrl}/v1/asset/?id=1785197`;
-    Console.Debug(`Queueing bodypart with AssetId ${req.body.assetId}`);
+    Console.Log(`Body part request XML: ${JSON.stringify(xml)}`);
     return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
         port,
-        "Body part render request"
+        "Body part request"
     ));
 });
 

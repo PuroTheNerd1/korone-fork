@@ -30,10 +30,6 @@ export class AssetRenderRequest {
     @IsDefined()
     @IsInt()
     assetId!: number;
-    // Remove later
-    @IsOptional()
-    @IsString()
-    assetUrl?: number;
 
     @IsOptional()
     @IsInt()
@@ -45,6 +41,17 @@ export class AssetRenderRequest {
     isFace?: boolean = false;
 }
 
+export class BodyPartRenderRequest {
+    @IsDefined()
+    @IsString()
+    assetUrl!: string;
+
+    @IsOptional()
+    @IsInt()
+    @Max(60)
+    jobExpiration?: number = 20;
+
+}
 export class PackageRenderRequest {
     @IsDefined()
     @IsString()
