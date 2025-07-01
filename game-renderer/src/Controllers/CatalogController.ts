@@ -13,7 +13,7 @@ import MeshTemplate from "../../scripts/Mesh.json" with {type: "json"};
 import PackageTemplate from "../../scripts/Package.json" with {type: "json"};
 import AnimSilhouetteTemplate from "../../scripts/AnimationSilhouette.json" with {type: "json"};
 import AnimationTemplate from "../../scripts/AvatarAnimation.json" with {type: "json"};
-
+import BodyPartTemplate from "../../scripts/BodyPart.json" with {type: "json"};
 const router = express.Router();
 const box = new QueueBox<express.Response>(`CatalogBox`, Config.Ports.RCC.Catalog);
 
@@ -95,12 +95,26 @@ router.post("/package", Valid(PackageRenderRequest), async (req: Request, res: R
     ));
 });
 
+router.post("/bodypart", Valid(AssetRenderRequest), async (req: Request, res: Response) => {
+    const xml: BaseJson = JSON.parse(JSON.stringify(AnimSilhouetteTemplate));
+    xml.Settings.Arguments[0] = `${Config.BaseUrl}/v1/asset?id=${req.body.assetId}`;
+    xml.Settings.Arguments[1] = Config.BaseUrl;
+    Console.Debug(`Queueing bodypart with AssetId ${req.body.assetId}`);
+    return await box.Enqueue((port: number) => RequestRCCBase(
+        req,
+        res,
+        xml,
+        port,
+        "Body part render request"
+    ));
+});
+
 router.post("/animationsilhouette", Valid(AssetRenderRequest), async (req: Request, res: Response) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(AnimSilhouetteTemplate));
     xml.Settings.Arguments[0] = `${Config.BaseUrl}/v1/asset?id=${req.body.assetId}`;
     xml.Settings.Arguments[1] = Config.BaseUrl;
     xml.Settings.Arguments[4] = '128/128/128';
-    Console.Debug(`Queueing catalog animation silhouette with AssetId ${req.body.assetUrls}`);
+    Console.Debug(`Queueing catalog animation silhouette with AssetId ${req.body.assetId}`);
     return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
