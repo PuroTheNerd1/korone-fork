@@ -96,7 +96,7 @@ router.post("/package", Valid(PackageRenderRequest), async (req: Request, res: R
 });
 
 router.post("/bodypart", Valid(AssetRenderRequest), async (req: Request, res: Response) => {
-    const xml: BaseJson = JSON.parse(JSON.stringify(AnimSilhouetteTemplate));
+    const xml: BaseJson = JSON.parse(JSON.stringify(BodyPartTemplate));
     xml.Settings.Arguments[0] = `${Config.BaseUrl}/v1/asset?id=${req.body.assetId}`;
     xml.Settings.Arguments[1] = Config.BaseUrl;
     Console.Debug(`Queueing bodypart with AssetId ${req.body.assetId}`);
