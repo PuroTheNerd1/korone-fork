@@ -95,6 +95,7 @@ public class AccountDeletion : RobloxPageModel
             failureMessage = "The username and password combination provided is invalid. Please try again.";
             return new PageResult();
         }
+
         if (isPasswordLeaked)
         {
             username = null;
@@ -104,6 +105,7 @@ public class AccountDeletion : RobloxPageModel
             return new PageResult();
         }
         
+
         if (await services.users.GetTotpStatus(user.userId) == TotpStatus.Enabled)
         {
             TotpInfo? totpInfo = await services.users.GetTotp(user.userId);
@@ -126,7 +128,20 @@ public class AccountDeletion : RobloxPageModel
                 return new PageResult();
             }
         }
-        await services.users.DeleteUser(user.userId, true);
+
+        try
+        {
+            await services.users.DeleteUser(user.userId, false);
+        }
+        catch (AccountLastOnlineTooRecentlyException)
+        {
+            username = null;
+            password = null;
+            failureMessage = "Your account was last online too recently. Please wait a day.";
+            return new PageResult();
+        }
+
+
 
         // reset av
         services.avatar.RedrawAvatar(user.userId, new List<long>(), new ColorEntry()

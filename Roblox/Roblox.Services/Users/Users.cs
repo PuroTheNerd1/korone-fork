@@ -271,7 +271,7 @@ public class UsersService : ServiceBase, IService
     public async Task DeleteUser(long userId, bool skipOnlineCheck)
     {
         var p = (await MultiGetPresence(new[] { userId })).First();
-        var maxLastOnline = DateTime.UtcNow.Subtract(TimeSpan.FromDays(7));
+        var maxLastOnline = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
         if (p.lastOnline > maxLastOnline && !skipOnlineCheck)
         {
             throw new AccountLastOnlineTooRecentlyException();
