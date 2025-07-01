@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Dto.Games;
 using Roblox.Services.Exceptions;
 
 namespace Roblox.Website.Controllers;
@@ -114,6 +115,15 @@ public class ApiController : ControllerBase
             LinkText = "",
             LinkUrl = alert?.url ?? "",
         };
+    }
+
+    [HttpGet("v1/items/restrictions")]
+    public async Task<dynamic> GetItemRestrictions(string assetIds)
+    {
+        var ids = assetIds.Split(",").Select(long.Parse).ToArray();
+        if (!ids.Any())
+            return Array.Empty<BadgeAwardDate>();
+        return await services.assets.MultiGetAssetRestrictions(ids);
     }
 }
 

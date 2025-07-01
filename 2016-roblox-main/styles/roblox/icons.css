@@ -637,6 +637,24 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	background-position: 0 calc(-27px * (8 - 1));
 }
 
+.icon-labels-18 {
+	background-image: url(/img/icon_labels.svg);
+	background-repeat: no-repeat;
+	background-size: 100% auto;
+	width: 123px;
+	height: 18px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.icon-labels-18.Limited {
+	background-position: 0 calc(-20px * (4 - 1));
+}
+
+.icon-labels-18.LimitedUnique {
+	background-position: 0 calc(-20px * (8 - 1));
+}
+
 .icon-default-charts,
 .icon-line-chart,
 .icon-line-chart.selected,

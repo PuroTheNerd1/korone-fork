@@ -4,7 +4,15 @@ import FeedbackStore from "../../../stores/feedback";
 import {FeedbackType} from "../../../models/feedback";
 import { multiGetUserThumbnails, multiGetUserThumbnails3D } from "../../../services/thumbnails";
 import AuthenticationStore from "../../../stores/authentication";
-import {getMyAvatar, getRules, redrawMyAvatar, setColors, setRigType, setScales} from "../../../services/avatar";
+import {
+    getItemRestrictions,
+    getMyAvatar,
+    getRules,
+    redrawMyAvatar,
+    setColors,
+    setRigType,
+    setScales
+} from "../../../services/avatar";
 import * as AvatarService from "../../../services/avatar";
 import { Stopwatch, wait } from "../../../lib/utils";
 import request from "../../../lib/request";
@@ -67,7 +75,7 @@ const AvatarInfoStore = createContainer(() => {
                 name: v.name,
                 assetId: v.id,
                 assetType: v.assetType.id,
-                assetTypeName: v.assetType.name
+                assetTypeName: v.assetType.name,
             }
         }));
         setBodyColors(avatar.bodyColors);

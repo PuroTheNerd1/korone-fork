@@ -3,7 +3,7 @@ import Link from "../../link";
 import AvatarPageStore from "../stores/avatarPageStore";
 import AvatarInfoStore from "../stores/avatarInfoStore";
 import ActionButton from "../../actionButton";
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {wait} from "../../../lib/utils";
 import buttonStyles from "../../../styles/buttonStyles";
 import useButtonStyles from "../../../styles/buttonStyles";
@@ -45,6 +45,7 @@ const useAvCardStyles = createUseStyles({
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
         borderBottom: "1px solid #e3e3e3",
+        position: "relative",
         "& img": {
             width: "100%",
             minHeight: "100%",
@@ -90,6 +91,12 @@ const useAvCardStyles = createUseStyles({
             right: 0,
         }
     },
+    restrictionsContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: -2,
+        overflow: 'hidden',
+    },
 });
 
 export function ThumbnailFromState(thumbnail, state) {
@@ -126,6 +133,19 @@ function AvatarCard({asset, equipped}) {
                 }
             }}>
                 <img src={ThumbnailFromState(asset.thumbnail, asset.thumbnailState)} alt={asset.name}/>
+                <div className={s.restrictionsContainer}>
+                    {
+                        asset.isLimitedUnique
+                        ?
+                        <span className="icon-labels-18 LimitedUnique"/>
+                        :
+                        asset.isLimited
+                        ?
+                        <span className="icon-labels-18 Limited"/>
+                        :
+                        null
+                    }
+                </div>
             </div>
             <Link href={`/catalog/${asset.assetId}/${encodeURIComponent(asset.name)}`}>
                 <a className={s.avatarCardItemLink}
