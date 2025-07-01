@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text;
+
 namespace Roblox.Services;
 
 
@@ -197,10 +200,15 @@ public class FilterService : ServiceBase, IService
         }
         return input;
     }
-    // Only japanese and russian unicode is allowed
-    public bool IsNormalText(string text)
+    public string CleanText(string input)
     {
-        return text.Length >= 1 && text.Length <= 1000 && text.All(c => c < 128 || (c >= 0x3040 && c <= 0x30FF) || (c >= 0x0400 && c <= 0x04FF) || char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsSymbol(c));
+        StringBuilder sb = new StringBuilder();
+        foreach (char c in "façade".Normalize(NormalizationForm.FormD))
+        {
+            if (char.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                sb.Append(c);
+        }
+        return sb.ToString();
     }
 
     public bool IsReusable()
