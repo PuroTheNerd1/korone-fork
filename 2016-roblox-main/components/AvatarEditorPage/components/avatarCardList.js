@@ -135,11 +135,11 @@ function AvatarCard({asset, equipped}) {
                 <img src={ThumbnailFromState(asset.thumbnail, asset.thumbnailState)} alt={asset.name}/>
                 <div className={s.restrictionsContainer}>
                     {
-                        asset.isLimitedUnique
+                        asset?.isLimitedUnique
                         ?
                         <span className="icon-labels-18 LimitedUnique"/>
                         :
-                        asset.isLimited
+                        asset?.isLimited
                         ?
                         <span className="icon-labels-18 Limited"/>
                         :
