@@ -41,6 +41,17 @@ export class AssetRenderRequest {
     isFace?: boolean = false;
 }
 
+export class BodyPartRenderRequest {
+    @IsDefined()
+    @IsString()
+    assetUrl!: string;
+
+    @IsOptional()
+    @IsInt()
+    @Max(60)
+    jobExpiration?: number = 20;
+
+}
 export class PackageRenderRequest {
     @IsDefined()
     @IsString()
