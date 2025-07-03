@@ -753,6 +753,29 @@ public class GameServerService : ServiceBase
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking)
     {
         var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
+        if (gameServers.Count() >= 1)
+        {
+            var gameServer = gameServers.FirstOrDefault();
+            var currentPlayerCount = await GetGameServerPlayers(gameServer.id.ToString());
+            if (currentPlayerCount.Count() >= placeInfo.maxPlayerCount)
+            {
+                // if the server is full continue the search for a good one
+                return new GameServerGetOrCreateResponse()
+                {
+                    job = gameServer.id.ToString(),
+                    ip = Configuration.GameServerIp,
+                    port = gameServer.port,
+                    status = JoinStatus.Loading
+                };
+            }
+            return new GameServerGetOrCreateResponse()
+            {
+                job = gameServer.id.ToString(),
+                ip = Configuration.GameServerIp,
+                port = gameServer.port,
+                status = gameServer.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
+            };
+        }
         foreach (var server in gameServers)
         {
             string jobid = server.id.ToString();
@@ -773,8 +796,8 @@ public class GameServerService : ServiceBase
             //dict check!!! if it doesnt contain it lets kill it!
             //if (!currentGameServerPorts.ContainsKey(jobid))
             //{
-                //_ = ShutDownServerAsync(jobid);
-                //continue;
+            //_ = ShutDownServerAsync(jobid);
+            //continue;
             //}
 
             // we found a server to join or.... its loading depending
@@ -785,7 +808,7 @@ public class GameServerService : ServiceBase
                 port = server.port,
                 status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
             };
-            
+
         }
 
         int mainRCCPort = RandomComponent.Next(30000, 40000);

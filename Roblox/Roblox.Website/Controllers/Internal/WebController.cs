@@ -538,6 +538,9 @@ public class WebController : ControllerBase
         var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
         if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved || assetInfo.typeId != (int)Models.Assets.Type.Place) 
             throw new BadRequestException(1, "Place is not active");
+        // Temp for event
+        clientVer = "2020L";
+        placeId = 49968;
         var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{ROBLOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
             @$"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx 
