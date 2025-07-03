@@ -41,37 +41,29 @@ public class GamesControllerV1 : ControllerBase
                 }
             },
             {
-                "event", new
+                "classics", new
                 {
-                    token = "event",
-                    name = "event",
-                    displayName = "Events",
+                    token = "classics",
+                    name = "Classics",
+                    displayName = "Classics",
                 }
             },
-            // {
-            //     "classics", new
-            //     {
-            //         token = "classics",
-            //         name = "Classics",
-            //         displayName = "Classics",
-            //     }
-            // },
-            // {
-            //     "recent", new
-            //     {
-            //         token = "recent",
-            //         name = "Recent",
-            //         displayName = "Recent",
-            //     }
-            // },
-            // {
-            //     "mostFavorited", new
-            //     {
-            //         token = "mostFavorited",
-            //         name = "Most Favorited",
-            //         displayName = "Most Favorited",
-            //     }
-            // },
+            {
+                "recent", new
+                {
+                    token = "recent",
+                    name = "Recent",
+                    displayName = "Recent",
+                }
+            },
+            {
+                "mostFavorited", new
+                {
+                    token = "mostFavorited",
+                    name = "Most Favorited",
+                    displayName = "Most Favorited",
+                }
+            },
             // {
             //     "recentlyUpdated", new
             //     {
