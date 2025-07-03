@@ -224,7 +224,6 @@ namespace Roblox.Website.Controllers
             Placelauncher.cookie = ROBLOSECURITY;
             Placelauncher.userId = userSession.userId;
             Placelauncher.username = userSession.username;
-            Placelauncher.placeId = 49968;
             return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
         }
 

@@ -91,20 +91,18 @@ public class GamesControllerV1 : ControllerBase
             var recent = await services.games.GetRecentGames(userSession.userId, 1);
             if (recent.Any())
             {
-                results.Add(sorts["event"]);
-                //results.Add(sorts["recent"]);
+                results.Add(sorts["recent"]);
                 //results.Add(sorts["roulette"]);
-                //results.Add(sorts["popular"]);
+                results.Add(sorts["popular"]);
                 // results.Add(sorts["mostFavorited"]);
             }
         }
         else
         {
-            results.Add(sorts["event"]);
-            //results.Add(sorts["popular"]);
-            //results.Add(sorts["classics"]);
+            results.Add(sorts["popular"]);
+            results.Add(sorts["classics"]);
             //results.Add(sorts["roulette"]);
-            //results.Add(sorts["mostFavorited"]);
+            results.Add(sorts["mostFavorited"]);
             //results.Add(sorts["recentlyUpdated"]);
             // results.Add(sorts["recentlyCreated"]);
         }
