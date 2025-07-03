@@ -208,18 +208,23 @@ const useStyles = createUseStyles({
     },
 })
 
+// const sorts = [{
+//     token: 'recent',
+//     name: 'recently_played',
+//     displayName: 'Recently Played',
+//     games: [],
+// }, {
+//     token: 'Favorited',
+//     name: 'favorited',
+//     displayName: 'My Favorites',
+//     games: [],
+// }]
 const sorts = [{
-    token: 'recent',
-    name: 'recently_played',
-    displayName: 'Recently Played',
-    games: [],
-}, {
-    token: 'Favorited',
-    name: 'favorited',
-    displayName: 'My Favorites',
+    token: 'event',
+    name: 'event',
+    displayName: 'Event',
     games: [],
 }]
-
 const MyDashboard = props => {
     const s = useStyles({theme: getTheme()});
     const buttonStyles = useButtonStyles();
