@@ -19,6 +19,12 @@ namespace Roblox.Website.Controllers;
 [Route("/")]
 public class Asset : ControllerBase
 {
+    // used to ddos
+    public List<long> BlacklistedAssetIds = new List<long>
+    {
+        72478963, // 163mb place 😭😭
+    };
+    // TODO: add flood check, make sure if loading asset from roblox, that its not above 50mb or something
     [HttpGetBypass("v1/asset")]
     [HttpPostBypass("v1/asset")]
     [HttpGetBypass("asset")]
@@ -54,6 +60,9 @@ public class Asset : ControllerBase
         else if(id == 507766666)
         {
             return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");
+        } else if (BlacklistedAssetIds.Contains(id))
+        {
+            throw new RobloxException(400, 0, "Asset is invalid or does not exist");
         }
         // If assetversionid isnt null, set id to assetveresionid
         id = assetversionid ?? id;

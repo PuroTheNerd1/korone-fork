@@ -128,8 +128,10 @@ const AvatarPageStore = createContainer(() => {
             return;
         }
         let thumbnails = await multiGetAssetThumbnails({ assetIds: invList.Items.map(item => item.Item.AssetId) });
+        let itemRestrictions = await getItemRestrictions(invList.Items.map(item => item.Item.AssetId));
         let newItems = invList.Items.map(item => {
             let thumb = thumbnails?.find(v => v.targetId === item.Item.AssetId) || null;
+            let rest = itemRestrictions?.find(v => v.assetId === item.Item.AssetId);
             setLoadingAvatar(false);
             return {
                 name: item.Item.Name,
@@ -137,6 +139,8 @@ const AvatarPageStore = createContainer(() => {
                 assetType: item.Item.AssetType,
                 thumbnail: thumb?.imageUrl,
                 thumbnailState: thumb?.state ?? "Pending",
+                isLimited: rest?.isLimited ?? undefined,
+                isLimitedUnique: rest?.isLimitedUnique ?? undefined,
             }
         });
         if (loadMore) {
