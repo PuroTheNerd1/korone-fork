@@ -2314,7 +2314,7 @@ Thank you for your understanding,
             // TODO: we should probably be validating audio and image uploads...
             if (request.assetTypeId != Type.Audio && request.assetTypeId != Type.EmoteAnimation && request.assetTypeId != Type.Image && request.assetTypeId != Type.Mesh && request.assetTypeId != Type.GamePass && request.assetTypeId != Type.Badge)
             {
-                var isOk = await services.assets.ValidateAssetFile(fileData, request.assetTypeId);
+                var isOk = await services.assets.RobloxFileValidation(fileData);
                 if (!isOk)
                     throw new StaffException("The asset file doesn't look correct. Please try again.");
             }
