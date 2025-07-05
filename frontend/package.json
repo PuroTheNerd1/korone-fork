@@ -1,7 +1,7 @@
 {
   "name": "pekora-2019-frontend",
   "version": "2.0.0",
-  "author": "Zyythy, shikataginaii, Floatzel, other people i forgor lal",
+  "author": "Yusof, Zyythy, shikataginaii, Floatzel, other people i forgor lal",
   "private": true,
   "scripts": {
     "dev": "next dev",
