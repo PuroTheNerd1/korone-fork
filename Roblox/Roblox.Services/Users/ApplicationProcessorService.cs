@@ -11,7 +11,7 @@ public class ApplicationProcessorService : ServiceBase, IService
     {
         if (entry == null || media == null || string.IsNullOrWhiteSpace(entry.id))
             return;
-        
+
         // This is the only supported site right now
         if (media.site == SocialMediaSite.RobloxUserId)
         {
@@ -23,8 +23,8 @@ public class ApplicationProcessorService : ServiceBase, IService
             if (!isYearOld)
                 return; // SKIP
             using var us = ServiceProvider.GetOrCreate<UsersService>();
-            await us.AcquireApplicationLocks(1, new[] {entry.id});
-            
+            await us.AcquireApplicationLocks(1, new[] { entry.id });
+
             var hasOneHundredVisits = robloxBadges.FirstOrDefault(a => a.id == 6) != null;
             var hasOneThousandVisits = robloxBadges.FirstOrDefault(a => a.id == 7) != null;
             var isAdmin = robloxBadges.FirstOrDefault(a => a.id == 1) != null;
@@ -33,12 +33,12 @@ public class ApplicationProcessorService : ServiceBase, IService
                 // uhh
                 throw new Exception("This user has the administrator badge - wtf?");
             }
-            
+
             var currentAvatar = await api.GetAvatar(userId);
             var assets = currentAvatar.assets.ToArray();
             var nonFreeItemCount = 0;
             var nonFreeUgcCount = 0;
-            
+
             if (assets.Length > 0)
             {
                 var details = await api.MultiGetAssetDetails(assets.Select(c => c.id).Select(c =>
@@ -97,7 +97,7 @@ public class ApplicationProcessorService : ServiceBase, IService
             var followers = await api.CountFollowers(userId);
             var friends = await api.CountFriends(userId);
             var isRichMindset = false; // user is rich/wellknown/other
-            
+
             if (followers >= 20000)
             {
                 // botted - this is probably somebody's main (which is a good thing!)
@@ -109,26 +109,27 @@ public class ApplicationProcessorService : ServiceBase, IService
 
             if (friends > 100 && followers > 100)
                 isRichMindset = true;
-            
+
             if (!isRichMindset)
             {
                 // check for premium/other stuff?
                 var profile = await api.GetProfile(userId);
                 if (profile.isPremium)
                     isRichMindset = false;
-                
+
                 var previousNames = profile.previousUsernames.Split("\r\n");
                 if (previousNames.Length > 2)
                     isRichMindset = true;
             }
             //why u may ask people love them alts.
-            isRichMindset = false;
+            isRichMindset = true;
             // Finally...
             if (isRichMindset)
             {
                 Writer.Info(LogGroup.AbuseDetection, "application {0} has a rich mindset. it will be accepted", entry.id);
                 await us.ProcessApplication(entry.id, 1, UserApplicationStatus.Approved);
             }
+            await us.ProcessApplication(entry.id, 1, UserApplicationStatus.Approved);
         }
     }
     

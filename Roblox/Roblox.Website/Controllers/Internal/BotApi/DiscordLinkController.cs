@@ -1,4 +1,5 @@
 using MVC = Microsoft.AspNetCore.Mvc;
+using System.Web;
 using Roblox.Libraries.DiscordApi;
 namespace Roblox.Website.Controllers
 {
@@ -26,7 +27,7 @@ namespace Roblox.Website.Controllers
             // if there isnt a code we will redirect it to the oauth link to get the code
             if (code == null)
             {
-                return Redirect("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fbot%2Fverify&scope=identify+guilds.members.read+guilds.join");
+                return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fbot%2Fverify&scope=identify+guilds.members.read+guilds.join");
             }
             DiscordApi discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/bot/verify");
             var userInfo = await discordOAuth.GetUserInfo();

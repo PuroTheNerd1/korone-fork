@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Web;
 using Roblox.Dto.Assets;
 using Roblox.Exceptions;
 using Roblox.Libraries.Assets;
@@ -58,7 +59,7 @@ public class WebController : ControllerBase
     [HttpGetBypass("auth/discord-login")]
     public IActionResult DiscordLogin()
     {
-        return Redirect("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Flogincallback&scope=identify+guilds.members.read+guilds.join");
+        return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Flogincallback&scope=identify+guilds.members.read+guilds.join");
     }
     [HttpGetBypass("api/logincallback")]
     public async Task<IActionResult> DiscordLoginCallBack(string code)

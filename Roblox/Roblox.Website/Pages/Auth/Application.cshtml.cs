@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Web;
 using Roblox.Dto.Users;
 using Roblox.Exceptions;
 using Roblox.Libraries.Captcha;
@@ -105,7 +106,7 @@ public class Application : RobloxPageModel
     {
         if (discordSession == null)
         {
-            return new RedirectResult("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
+            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
         }
         DiscordApi discordOAuth = new(discordSession, true, $"https://www.{Configuration.BaseUrl}/api/applicationcallback");
         var info = await discordOAuth.GetUserInfo();
@@ -157,7 +158,7 @@ public class Application : RobloxPageModel
         var apps = new ApplicationWebsiteService(HttpContext);
         if (discordSession == null)
         {
-            return new RedirectResult("https://discord.com/oauth2/authorize?client_id=1359582890232516618&response_type=code&redirect_uri=https%3A%2F%2Fwww.pekora.zip%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
+            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
         }
         DiscordApi discordOAuth = new(discordSession, true, $"https://www.{Configuration.BaseUrl}/api/applicationcallback");
         var info = await discordOAuth.GetUserInfo();
@@ -355,7 +356,7 @@ public class Application : RobloxPageModel
                 discordUsername = discordUser.Username,
                 refferedBy = refferedByUserId
             });
-            
+
             HttpContext.Response.Cookies.Append("es-application-1", applicationId, new CookieOptions()
             {
                 IsEssential = true,
@@ -366,6 +367,8 @@ public class Application : RobloxPageModel
 
             application = await services.users.GetApplicationById(applicationId);
             apps.DeleteVerificationCookie();
+            
+            await services.users.ProcessApplication(applicationId, 1, UserApplicationStatus.Approved);
 
             // Auto silent decline these apps now. There is no excuse to have a "web.roblox.com" link.
             // We also remove app data since people who are dumb enough to put a "web" link are likely also dumb
@@ -393,7 +396,7 @@ public class Application : RobloxPageModel
         }
         catch (Exception e)
         {
-            Roblox.Logging.Writer.Info(LogGroup.HttpRequest,"Error sending app: {0}", e.Message);
+            Roblox.Logging.Writer.Info(LogGroup.HttpRequest, "Error sending app: {0}", e.Message);
             errorMessage = "Unknown error sending application. Try again in a few minutes.";
             await services.cooldown.ResetCooldown(joinRlKey);
             return new PageResult();
