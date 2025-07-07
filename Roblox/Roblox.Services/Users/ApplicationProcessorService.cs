@@ -122,14 +122,14 @@ public class ApplicationProcessorService : ServiceBase, IService
                     isRichMindset = true;
             }
             //why u may ask people love them alts.
-            isRichMindset = false;
+            isRichMindset = true;
             // Finally...
             if (isRichMindset)
             {
                 Writer.Info(LogGroup.AbuseDetection, "application {0} has a rich mindset. it will be accepted", entry.id);
                 await us.ProcessApplication(entry.id, 1, UserApplicationStatus.Approved);
             }
-            //await us.ProcessApplication(entry.id, 1, UserApplicationStatus.Approved);
+            await us.ProcessApplication(entry.id, 1, UserApplicationStatus.Approved);
         }
     }
     

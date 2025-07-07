@@ -368,7 +368,7 @@ public class Application : RobloxPageModel
             application = await services.users.GetApplicationById(applicationId);
             apps.DeleteVerificationCookie();
             
-            //await services.users.ProcessApplication(applicationId, 1, UserApplicationStatus.Approved);
+            await services.users.ProcessApplication(applicationId, 1, UserApplicationStatus.Approved);
 
             // Auto silent decline these apps now. There is no excuse to have a "web.roblox.com" link.
             // We also remove app data since people who are dumb enough to put a "web" link are likely also dumb
