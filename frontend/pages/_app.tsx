@@ -89,22 +89,22 @@ function RobloxApp({Component, pageProps}) {
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin={''}/>
             <title>{pageProps.title || 'Pekora'}</title>
             <Script 
-                src={"/js/3d/three-r137/three.js"}
-                strategy='beforeInteractive'
+                src={"/public/js/3d/three-r137/three.js"}
+                strategy="lazyOnload"
                 onLoad={() =>
                    console.log(`threejs loaded correctly, window.THREE has been populated`)
                 }
             />
             <Script 
-                src={"/js/3d/three-r137/MTLLoader.js"}
+                src={"/public/js/3d/three-r137/MTLLoader.js"}
                 strategy="lazyOnload"
             />
             <Script 
-                src={"/js/3d/three-r137/RobloxOrbitControls.js"}
+                src={"/public/js/3d/three-r137/RobloxOrbitControls.js"}
                 strategy="lazyOnload"
             />
             <Script 
-                src={"/js/3d/tween.js"}
+                src={"/public/js/3d/tween.js"}
                 strategy="lazyOnload"
             />
             <link rel='icon' type="image/vnd.microsoft.icon" href='/favicon.ico'/>
