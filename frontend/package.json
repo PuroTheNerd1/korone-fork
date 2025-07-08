@@ -4,7 +4,7 @@
   "author": "Yusof, Zyythy, shikataginaii, Floatzel, other people i forgor lal",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "test": "./node_modules/.bin/jest",
@@ -37,13 +37,13 @@
     "jsonwebtoken": "9.0.0",
     "jss": "^10.7.1",
     "lodash": "^4.17.21",
-    "next": "^15.3.5",
+    "next": "^12.3.5",
     "nextjs-progressbar": "^0.0.14",
     "parse-domain": "^7.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "react-helmet": "^6.1.0",
-    "react-jss": "^10.10.0",
+    "react-jss": "^10.7.1",
     "react-markdown": "^8.0.7",
     "react-router-dom": "^6.23.0",
     "rehype-raw": "^7.0.0",
@@ -51,9 +51,17 @@
     "unstated-next": "^1.1.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.16.8",
+    "@babel/core": "^7.16.12",
+    "@babel/plugin-transform-modules-commonjs": "^7.16.8",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/register": "^7.16.9",
     "@types/jest": "^27.4.0",
-    "@types/three": "^0.178.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.6.6",
+    "babel": "^6.23.0",
+    "babel-jest": "^27.4.6",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-react": "^6.24.1",
     "chai": "^4.3.6",
     "cross-env": "^7.0.3",
     "enzyme": "^3.11.0",
@@ -61,7 +69,6 @@
     "eslint-config-next": "11.0.1",
     "expose-loader": "^3.0.0",
     "jest": "^27.4.7",
-    "regenerator-runtime": "^0.13.9",
-    "three": "^0.178.0"
+    "regenerator-runtime": "^0.13.9"
   }
 }

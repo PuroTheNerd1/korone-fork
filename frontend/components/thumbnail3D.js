@@ -1,14 +1,11 @@
 import { wait } from "../lib/utils";
 
-// i swwear to fuckigj god im not touching this shitty ass file i swear i swear i am never Touching this EVER please jujst keep this a javascript file i dont even want to have to DEAl with this anytime soon - yusof
-
 export class Thumbnail3DHandler {
     // Public
     /** @type {Thumbnail3D|null} */
     thumbJson = null;
     /** @type {HTMLElement|null} */
     canvasParent = null;
-    canvasRef = null;
     isLoadingThumbnail = false;
     set3DReady = null; // for usages outside of the function, this is a useState fn., it is ReadyForView
     
