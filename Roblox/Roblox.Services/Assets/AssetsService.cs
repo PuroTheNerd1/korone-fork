@@ -2229,6 +2229,8 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 case "collectibles":
                     builder.Where("asset.is_limited = true");
                     break;
+                // temp
+                case "all":
                 case "featured":
                     // TODO: this used to have clothing filters but I got rid of them in the name of performance
                     // Exact filters are at /services/api/src/controllers/proxy/v1/Catalog.ts:862
@@ -2244,7 +2246,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                         $"asset.asset_type = {(int)Models.Assets.Type.WaistAccessory} OR " +
                         $"asset.asset_type = {(int)Models.Assets.Type.ShoulderAccessory} OR " +
                         $"asset.asset_type = {(int)Models.Assets.Type.NeckAccessory} OR " +
-                        $"asset.asset_type = {(int)Models.Assets.Type.Face})");
+                        $"asset.asset_type = {(int)Models.Assets.Type.Face} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.Shirt} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.Pants} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.TeeShirt}");
                     builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
                     break;
                 default:
