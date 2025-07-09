@@ -85,6 +85,9 @@ namespace Roblox.Website.Controllers
 
             if (type == "PCStudio221")
                 type = "PCDesktopClient2021";
+            // temp
+            if (type == "RCCServiceGDASTGWG72713")
+                type = "RCCService2021";
             string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
             
             // Also should never happen, but just in case

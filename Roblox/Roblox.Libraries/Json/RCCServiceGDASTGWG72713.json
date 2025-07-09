@@ -1430,7 +1430,7 @@
     "FFlagStudioDeprecateRBXWorkspaceCleanupSteps": true,
     "FFlagStudioDeprecateRbxWorkspaceInStudioServiceHost": true,
     "FFlagStudioDeviceManagerDesignTweak": true,
-    "FFlagStudioDisableAutoSaveToCloud": true,
+    "FFlagStudioDisableAutoSaveToCloud": false,
     "FFlagStudioDocActivationHistoryPreventFocusLost": true,
     "FFlagStudioDraftsServiceFullNameInDiff": true,
     "FFlagStudioDraftsServiceGetEditors": true,
