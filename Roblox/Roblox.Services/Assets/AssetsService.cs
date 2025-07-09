@@ -2097,10 +2097,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 break;
         }
 
-        if (!request.includeNotForSale && libraryItem == false)
-        {
-            builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
-        }
+        // if (!request.includeNotForSale && libraryItem == false)
+        // {
+        //     builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
+        // }
 
         switch (cat)
         {
