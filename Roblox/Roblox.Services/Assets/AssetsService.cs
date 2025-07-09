@@ -2097,11 +2097,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 break;
         }
 
-        // if (!request.includeNotForSale && libraryItem == false)
-        // {
-        //     builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
+        //  if (!request.includeNotForSale && libraryItem == false)
+        //  {
+        //      builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
         // }
-
         switch (cat)
         {
             case "bodyparts":
@@ -2237,6 +2236,15 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                         doIdSort = true;
                     }
                     builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
+                    // temp
+                    builder.Where("asset.asset_type != :assetType", new
+                    {
+                        assetType = (int)Models.Assets.Type.Mesh,
+                    });
+                    builder.Where("asset.asset_type != :assetType", new
+                    {
+                        assetType = (int)Models.Assets.Type.Image,
+                    });
                     break;
                 default:
                     break;
