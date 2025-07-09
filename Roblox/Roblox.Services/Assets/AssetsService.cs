@@ -2231,6 +2231,12 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     break;
                 // temp
                 case "all":
+                    builder.Where(
+                        $"(asset.asset_type = {(int)Models.Assets.Type.Face} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.Shirt} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.Pants} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.TeeShirt})");
+                    break;
                 case "featured":
                     // TODO: this used to have clothing filters but I got rid of them in the name of performance
                     // Exact filters are at /services/api/src/controllers/proxy/v1/Catalog.ts:862
