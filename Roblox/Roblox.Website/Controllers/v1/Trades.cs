@@ -148,7 +148,7 @@ public class TradesControllerV1 : ControllerBase
         }
         // re-render
         var parties = await services.trades.GetTradeById(tradeId);
-        Task.Run(async () =>
+        await Task.Run(async () =>
         {
             using var avatarService = ServiceProvider.GetOrCreate<AvatarService>();
             try
