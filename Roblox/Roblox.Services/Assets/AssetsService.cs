@@ -2249,7 +2249,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                         $"asset.asset_type = {(int)Models.Assets.Type.Face} OR " +
                         $"asset.asset_type = {(int)Models.Assets.Type.Shirt} OR " +
                         $"asset.asset_type = {(int)Models.Assets.Type.Pants} OR " +
-                        $"asset.asset_type = {(int)Models.Assets.Type.TeeShirt}");
+                        $"asset.asset_type = {(int)Models.Assets.Type.TeeShirt})");
                     builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
                     break;
                 default:
