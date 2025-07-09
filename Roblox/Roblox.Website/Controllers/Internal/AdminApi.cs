@@ -484,11 +484,14 @@ public class AdminApiController : ControllerBase
         var currentStatus = details.moderationStatus;
         if (currentStatus == ModerationStatus.ReviewApproved && !request.isApproved)
         {
-            // Rate limit for staff to moderate already approved items
-            if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Hour", 60, TimeSpan.FromHours(1)))
-                throw new StaffException("Moderation of already approved item rate limit exceeded (hour). Contact an administrator.");
-            if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 100, TimeSpan.FromDays(1)))
-                throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
+            if (!StaffFilter.IsOwner(safeUserSession.userId))
+            {
+                // Rate limit for staff to moderate already approved items
+                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Hour", 60, TimeSpan.FromHours(1)))
+                    throw new StaffException("Moderation of already approved item rate limit exceeded (hour). Contact an administrator.");
+                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 100, TimeSpan.FromDays(1)))
+                    throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
+            }
         }
 
         var latest = await services.assets.GetLatestAssetVersion(request.assetId);
@@ -559,13 +562,16 @@ public class AdminApiController : ControllerBase
     [HttpPost("asset/moderate-and-delete"), StaffFilter(Access.SetAssetModerationStatus)]
     public async Task ModerateAndDeleteItem([Required, FromBody] ModerateAssetRequest request)
     {
-        // 30 deletions/hour
-        if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Hour", 30, TimeSpan.FromHours(1)))
-            throw new StaffException("Asset deletion rate limit exceeded (hour). Contact an administrator.");
+        if (!StaffFilter.IsOwner(safeUserSession.userId))
+        {
+            // 30 deletions/hour
+            if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Hour", 30, TimeSpan.FromHours(1)))
+                throw new StaffException("Asset deletion rate limit exceeded (hour). Contact an administrator.");
 
-        // 100/day
-        if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Day", 100, TimeSpan.FromDays(1)))
-            throw new StaffException("Asset deletion rate limit exceeded (day). Contact an administrator.");
+            // 100/day
+            if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Day", 100, TimeSpan.FromDays(1)))
+                throw new StaffException("Asset deletion rate limit exceeded (day). Contact an administrator.");
+        }
 
         await ModerateAsset(request);
 

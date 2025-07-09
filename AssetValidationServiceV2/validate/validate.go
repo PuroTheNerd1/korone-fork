@@ -2,10 +2,11 @@ package validate
 
 import (
 	"fmt"
-	"github.com/robloxapi/rbxfile"
-	"github.com/robloxapi/rbxfile/rbxl"
 	"io"
 	"log"
+
+	"github.com/robloxapi/rbxfile"
+	"github.com/robloxapi/rbxfile/rbxl"
 )
 
 func LoadFile(reader io.Reader) (*rbxfile.Root, error) {
