@@ -10,7 +10,7 @@ import HorizontalTabs from '../horizontalTabs';
 import Recommendations from "./components/recommendations";
 import NewGameOverview from "./components/newGameOverview";
 import GameServers from "./components/new/newGameServers";
-import Store from "./components/gameStore.js"
+import Store from "./components/gameStore"
 import GameAbout from './components/gameAbout'
 
 import GameDetailsStore from "./stores/gameDetailsStore"
