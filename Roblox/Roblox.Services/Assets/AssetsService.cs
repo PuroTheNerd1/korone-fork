@@ -2097,9 +2097,9 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 break;
         }
 
-        //  if (!request.includeNotForSale && libraryItem == false)
-        //  {
-        //      builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
+        // if (!request.includeNotForSale && libraryItem == false)
+        // {
+        //     builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
         // }
         switch (cat)
         {
@@ -2235,16 +2235,17 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     if (!string.IsNullOrEmpty(request.sortType) && request.sortType == "0") {
                         doIdSort = true;
                     }
+                    builder.Where(
+                        $"(asset.asset_type = {(int)Models.Assets.Type.Hat} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.HairAccessory} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.FaceAccessory} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.FrontAccessory} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.BackAccessory} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.WaistAccessory} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.ShoulderAccessory} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.NeckAccessory} OR " +
+                        $"asset.asset_type = {(int)Models.Assets.Type.Face}");
                     builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
-                    // temp
-                    builder.Where("asset.asset_type != :assetType", new
-                    {
-                        assetType = (int)Models.Assets.Type.Mesh,
-                    });
-                    builder.Where("asset.asset_type != :assetType", new
-                    {
-                        assetType = (int)Models.Assets.Type.Image,
-                    });
                     break;
                 default:
                     break;
