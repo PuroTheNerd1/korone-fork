@@ -2237,7 +2237,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                         doIdSort = true;
                     }
                     // If the keyword is empty, we are most likely on the front page so we only show non limiteds
-                    if (string.IsNullOrEmpty(request.keyword))
+                    if (string.IsNullOrEmpty(request.keyword) && request.sortType != "7" && request.sortType != "6")
                     {
                         builder.Where("(asset.is_limited = false AND asset.is_limited_unique = false)");
                     }
