@@ -2232,8 +2232,14 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 case "featured":
                     // TODO: this used to have clothing filters but I got rid of them in the name of performance
                     // Exact filters are at /services/api/src/controllers/proxy/v1/Catalog.ts:862
-                    if (!string.IsNullOrEmpty(request.sortType) && request.sortType == "0") {
+                    if (!string.IsNullOrEmpty(request.sortType) && request.sortType == "0")
+                    {
                         doIdSort = true;
+                    }
+                    // If the keyword is empty, we are most likely on the front page so we only show non limiteds
+                    if (string.IsNullOrEmpty(request.keyword))
+                    {
+                        builder.Where("(asset.is_limited = false AND asset.is_limited_unique = false)");
                     }
                     builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
                     break;
