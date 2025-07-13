@@ -24,7 +24,7 @@ public class AvatarRBX : ControllerBase
     }
 
     private async void AttemptScheduleRender(bool forceRedraw = false)
-    { //
+    { 
         var userId = safeUserSession.userId;
         if (!forceRedraw)
         {

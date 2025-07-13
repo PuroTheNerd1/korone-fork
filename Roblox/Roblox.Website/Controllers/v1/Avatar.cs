@@ -64,6 +64,8 @@ public class AvatarControllerV1 : ControllerBase, IService
     public void RequestRedrawAvatar()
     {
         FeatureCheck();
+        using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
+        cache.ClearPendingAssets(safeUserSession.userId);
         AttemptScheduleRender(true);
     }
 

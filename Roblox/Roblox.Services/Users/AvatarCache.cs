@@ -28,6 +28,11 @@ public class AvatarCache : ServiceBase, IService
             JsonSerializer.Serialize(new AvatarCacheAsset(assetIds.Distinct())), TimeSpan.FromMinutes(1));
     }
 
+    public async Task ClearPendingAssets(long userId)
+    {
+        await Cache.distributed.KeyDeleteAsync(GetPendingAssetsKey(userId));
+    }
+    
     private string GetPendingColorsKey(long userId)
     {
         return "AvatarCache:v1:PendingColors:" + userId;
