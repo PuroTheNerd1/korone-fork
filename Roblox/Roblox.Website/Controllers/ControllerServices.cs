@@ -17,6 +17,7 @@ namespace Roblox.Website.Controllers
         public AvatarService avatar { get; } = new();
         public FriendsService friends { get; } = new();
         public GamesService games { get; } = new();
+        public PlayerSecurityService playerSecurity { get; } = new();
         public BadgesService badges { get; } = new();
         public GroupsService groups { get; } = new();
         public InventoryService inventory { get; } = new();
@@ -25,7 +26,7 @@ namespace Roblox.Website.Controllers
         public TradesService trades { get; } = new();
         public GameServerService gameServer { get; } = new();
         public SetsService sets { get; } = new();
-        public PlaceLauncherService placeLauncherFactory { get; } = new();
+        public PlaceLauncherService placeLauncher { get; } = new();
         public SignService sign { get; } = new();
         public ForumsService forums { get; } = new();
         public CurrencyExchangeService currencyExchange { get; } = new();

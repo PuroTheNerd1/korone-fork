@@ -33,7 +33,7 @@ public class PlaceLauncherService : ServiceBase
             case "RequestGameJob":
                 if (plRequest.gameId == null)
                     throw new BadRequestException("Game Id is missing");
-                return await RequestGameJob(plRequest.gameId, plRequest.placeId);
+                return await RequestGameJob((long)plRequest.userId, plRequest.gameId, plRequest.placeId);
             case "RequestGame":
                 return await RequestGame(plRequest.placeId, (long)plRequest.userId, plRequest.cookie, plRequest.special, plRequest.username);
             case "CloudEdit":
@@ -49,8 +49,21 @@ public class PlaceLauncherService : ServiceBase
         };
     }
 
-    public async Task<PlaceLaunchResponse> RequestGameJob(string gameId, long placeId)
+    public async Task<PlaceLaunchResponse> RequestGameJob(long userId, string gameId, long placeId)
     {
+        var server = await gameServer.GetGameServer(gameId);
+        if (server == null)
+        {
+            return new PlaceLaunchResponse()
+            {
+                status = (int)JoinStatus.Error,
+                message = "The game server does not exist."
+            };
+        }
+        // Create security ticket for the player
+        using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
+        await playerSecurity.CreatePlayerTicket(userId, server.id.ToString());
+
         if (await games.IsFull(gameId, placeId))
         {
             return new PlaceLaunchResponse()
@@ -92,6 +105,7 @@ public class PlaceLauncherService : ServiceBase
                 message = "You do not have permission to join this game."
             };
         }
+
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default);
         if (Special.HasValue && (bool)Special)
         {
@@ -105,7 +119,9 @@ public class PlaceLauncherService : ServiceBase
             joinScript = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
 
         }
-
+        using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
+        // Create security ticket for the player
+        await playerSecurity.CreatePlayerTicket(userId, result.job);
         if (result.status == JoinStatus.Joining)
         {
             return new PlaceLaunchResponse()
@@ -127,14 +143,6 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
     {
-        // if (userId != 3 && userId != 16 && userId != 3434 && userId != 52 && userId != 1188 && userId != 261)
-        // {
-        //     return new PlaceLaunchResponse()
-        //     {
-        //         status = (int)JoinStatus.Error,
-        //         message = "The game is not active."
-        //     };
-        // }
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         // Block 2017 due to authentication issues
@@ -158,6 +166,10 @@ public class PlaceLauncherService : ServiceBase
         }
 
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit);
+        // Create security ticket for the player
+        using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
+        await playerSecurity.CreatePlayerTicket(userId, result.job);
+
         if (result.status == JoinStatus.Joining)
         {
             string membership = await users.GetUserMemberShipAsString(userId);

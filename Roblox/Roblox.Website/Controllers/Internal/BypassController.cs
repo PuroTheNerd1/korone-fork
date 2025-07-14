@@ -205,7 +205,7 @@ namespace Roblox.Website.Controllers
                 cookie = ROBLOSECURITY,
                 special = true
             };
-            return await services.placeLauncherFactory.PlaceLauncherAsync(placeLauncherRequest);
+            return await services.placeLauncher.PlaceLauncherAsync(placeLauncherRequest);
         }
 
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
@@ -224,7 +224,7 @@ namespace Roblox.Website.Controllers
             Placelauncher.cookie = ROBLOSECURITY;
             Placelauncher.userId = userSession.userId;
             Placelauncher.username = userSession.username;
-            return await services.placeLauncherFactory.PlaceLauncherAsync(Placelauncher);
+            return await services.placeLauncher.PlaceLauncherAsync(Placelauncher);
         }
 
         [HttpGetBypass("/asset/status")]
@@ -706,7 +706,7 @@ namespace Roblox.Website.Controllers
             var hasSuspicousLastOnline = onlineStatus.lastOnline < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(2)) || onlineStatus.userPresenceType == PresenceType.Offline;
             if (hasSuspicousLastOnline)
             {
-                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGESOC] UID: {visitorId} Flag: SuspicousLastOnline");
+                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGE-SS] UID: {visitorId} Flag: SuspicousLastOnline");
             }
             // Check if a gameserver exists for the gameId, and then check if the placeId matches the assetId of the game server
             var gameServer = await services.gameServer.GetGameServer(gameId);
@@ -719,10 +719,18 @@ namespace Roblox.Website.Controllers
             // If a banned user tries to join the game, we kick them
             if (userInfo.IsDeleted())
             {
-                await services.gameServer.KickPlayer(visitorId);
+                await services.gameServer.KickPlayer(visitorId, gameId);
+                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGE-SS] UID: {visitorId} Flag: BannedUser");
                 throw new ForbiddenException(0, "User is banned");
             }
-
+            // Now we check if the player has a placelauncher ticket, if they do not kick the player
+            // We will log this too
+            if (!await services.playerSecurity.IsPlayerTicketValid(userInfo.userId, gameId))
+            {
+                await services.gameServer.KickPlayer(visitorId, gameId);
+                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
+                throw new ForbiddenException(0, "User does not have a valid placelauncher ticket");
+            }
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
             return Ok();
         }

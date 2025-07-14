@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
@@ -416,10 +415,13 @@ public class GameServerService : ServiceBase
     //         return null;
     //     }
     // }
-    public async Task KickPlayer(long userId)
+    public async Task KickPlayer(long userId, string? jobId = null)
     {
-        string jobId = await GetJobIdByUserId(userId);
-        if (jobId == null) return;
+        if (jobId == null)
+        {
+            jobId = await GetJobIdByUserId(userId);
+        }
+
         await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
     }
     // public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
