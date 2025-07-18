@@ -12,7 +12,7 @@ public class InventoryService : ServiceBase, IService
         var sql = new SqlBuilder();
         var t = sql.AddTemplate(
             "SELECT user_id as userId, inventory_privacy as privacy FROM user_settings /**where**/ LIMIT 10000");
-        sql.Where("user_id IN :userIds", new { userIds });
+        sql.Where($"user_id IN ({string.Join(",",userIds)})");
 
         return await db.QueryAsync<InventoryPrivacyEntry>(t.RawSql, t.Parameters);
     }
