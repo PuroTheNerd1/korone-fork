@@ -276,7 +276,7 @@ public class Economy : ControllerBase
     {
         FeatureCheck();
         dynamic? request;
-        // wut
+        // This needs to be done because the Roblox client sends a JSON object with no trailing }
         using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
         {
             var json = await reader.ReadToEndAsync();

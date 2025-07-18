@@ -12,10 +12,7 @@ public class InventoryService : ServiceBase, IService
         var sql = new SqlBuilder();
         var t = sql.AddTemplate(
             "SELECT user_id as userId, inventory_privacy as privacy FROM user_settings /**where**/ LIMIT 10000");
-        foreach (var id in userIds)
-        {
-            sql.OrWhere("user_id = " + id);
-        }
+        sql.Where("user_id IN @userIds", new { userIds });
 
         return await db.QueryAsync<InventoryPrivacyEntry>(t.RawSql, t.Parameters);
     }
@@ -131,17 +128,15 @@ public class InventoryService : ServiceBase, IService
     
     public async Task DeleteUserAssetId(long userId, long assetId)
     {
-        await db.QueryAsync(@"
-                DELETE FROM user_asset WHERE user_id = :userId AND asset_id = :assetId
-            ", new {userId, assetId}
+        await db.QueryAsync("DELETE FROM user_asset WHERE user_id = :userId AND asset_id = :assetId",
+            new { userId, assetId }
         );
     }
     
     public async Task MarkTransactionAsDeleted(long sellerId, long buyerId, long assetId)
     {
-        await db.QueryAsync(@"
-                UPDATE user_transaction SET deleted = TRUE WHERE user_id_one = :buyerId AND user_id_two = :sellerId AND asset_id = :assetId
-            ", new {buyerId, sellerId, assetId}
+        await db.QueryAsync("UPDATE user_transaction SET deleted = TRUE WHERE user_id_one = :buyerId AND user_id_two = :sellerId AND asset_id = :assetId",
+            new { buyerId, sellerId, assetId }
         );
     }
 
@@ -183,72 +178,84 @@ public class InventoryService : ServiceBase, IService
     }
     
     public async Task<bool> CanViewInventory(long userId, long contextUserId = 0)
+    {
+        var result = await MultiCanViewInventory(new[] { userId }, contextUserId);
+        return result.First().canView;
+    }
+
+    public async Task<IEnumerable<Roblox.Dto.Users.CanViewInventoryEntry>> MultiCanViewInventory(IEnumerable<long> userIds, long contextUserId = 0)
+    {
+        // This function is big but not too hard to follow, just a lot of lists that get re-purposed
+        using var friends = ServiceProvider.GetOrCreate<FriendsService>();
+        using var users = ServiceProvider.GetOrCreate<UsersService>();
+
+        var toQuery = userIds.Distinct().ToList();
+        var results = new List<Dto.Users.CanViewInventoryEntry>();
+        var ids = toQuery.ToList();
+        foreach (var userId in ids)
         {
-            var result = await MultiCanViewInventory(new[] { userId }, contextUserId);
-            return result.First().canView;
-        }
-
-        public async Task<IEnumerable<Roblox.Dto.Users.CanViewInventoryEntry>> MultiCanViewInventory(IEnumerable<long> userIds, long contextUserId = 0)
-        {
-            // This function is big but not too hard to follow, just a lot of lists that get re-purposed
-            using var friends = ServiceProvider.GetOrCreate<FriendsService>();
-            using var users = ServiceProvider.GetOrCreate<UsersService>();
-
-            var toQuery = userIds.Distinct().ToList();
-            var results = new List<Dto.Users.CanViewInventoryEntry>();
-            var ids = toQuery.ToList();
-            foreach (var userId in ids)
-            {
-                if (userId == contextUserId)
-                {
-                    results.Add(new Dto.Users.CanViewInventoryEntry()
-                    {
-                        userId = userId,
-                        canView = true,
-                    });
-                    toQuery.Remove(userId);
-                }
-            }
-
-            // Early exit
-            if (toQuery.Count == 0) return results;
-            
-            // remove terminated users
-            var info = await users.MultiGetAccountStatus(ids);
-            foreach (var status in info.Where(c => c.IsDeleted()))
+            if (userId == contextUserId)
             {
                 results.Add(new Dto.Users.CanViewInventoryEntry()
                 {
-                    userId = status.userId,
-                    canView = false,
+                    userId = userId,
+                    canView = true,
                 });
-                toQuery.Remove(status.userId);
+                toQuery.Remove(userId);
             }
-            if (toQuery.Count == 0) return results;
+        }
 
-            // Privacy query
-            var privacyResults = (await MultiGetInventoryPrivacy(toQuery)).ToList();
-            foreach (var privacy in privacyResults.ToList())
+        // Early exit
+        if (toQuery.Count == 0) return results;
+        
+        // remove terminated users
+        var info = await users.MultiGetAccountStatus(ids);
+        foreach (var status in info.Where(c => c.IsDeleted()))
+        {
+            results.Add(new Dto.Users.CanViewInventoryEntry()
             {
-                if (privacy.privacy == InventoryPrivacy.AllUsers)
+                userId = status.userId,
+                canView = false,
+            });
+            toQuery.Remove(status.userId);
+        }
+        if (toQuery.Count == 0) return results;
+
+        // Privacy query
+        var privacyResults = (await MultiGetInventoryPrivacy(toQuery)).ToList();
+        foreach (var privacy in privacyResults.ToList())
+        {
+            if (privacy.privacy == InventoryPrivacy.AllUsers)
+            {
+                results.Add(new CanViewInventoryEntry()
                 {
-                    results.Add(new CanViewInventoryEntry()
-                    {
-                        canView = true,
-                        userId = privacy.userId,
-                    });
-                    privacyResults.Remove(privacy);
-                }
-                else if (privacy.privacy == InventoryPrivacy.AllAuthenticatedUsers)
+                    canView = true,
+                    userId = privacy.userId,
+                });
+                privacyResults.Remove(privacy);
+            }
+            else if (privacy.privacy == InventoryPrivacy.AllAuthenticatedUsers)
+            {
+                results.Add(new CanViewInventoryEntry()
                 {
-                    results.Add(new CanViewInventoryEntry()
-                    {
-                        canView = contextUserId != 0,
-                        userId = privacy.userId,
-                    });
-                    privacyResults.Remove(privacy);
-                }
-                else if (privacy.privacy == InventoryPrivacy.NoOne)
+                    canView = contextUserId != 0,
+                    userId = privacy.userId,
+                });
+                privacyResults.Remove(privacy);
+            }
+            else if (privacy.privacy == InventoryPrivacy.NoOne)
+            {
+                results.Add(new CanViewInventoryEntry()
+                {
+                    canView = false,
+                    userId = privacy.userId,
+                });
+                privacyResults.Remove(privacy);
+            }
+            else
+            {
+                // Followers, Followings, or Friends
+                if (contextUserId == 0)
                 {
                     results.Add(new CanViewInventoryEntry()
                     {
@@ -257,105 +264,93 @@ public class InventoryService : ServiceBase, IService
                     });
                     privacyResults.Remove(privacy);
                 }
+
+            }
+        }
+
+        // Early exit - we don't have to do friends query
+        if (privacyResults.Count == 0) return results;
+
+        var friendsStatus =
+            await friends.MultiGetFriendshipStatus(contextUserId, privacyResults.Select(c => c.userId));
+
+        var checkFollowers = new List<long>();
+        foreach (var friend in friendsStatus)
+        {
+            var privacyStatus = privacyResults.Find(c => c.userId == friend.id);
+            if (privacyStatus == null) throw new Exception("No privacy entry for " + friend.id);
+
+            if (friend.status == "Friends")
+            {
+                // Friend, so allow viewing
+                privacyResults.Remove(privacyStatus);
+                results.Add(new()
+                {
+                    canView = true,
+                    userId = friend.id,
+                });
+            }
+            else
+            {
+                // If you need to be a friend to view inventory, return false since user is not friend
+                if (privacyStatus.privacy != InventoryPrivacy.Friends)
+                {
+                    checkFollowers.Add(friend.id);
+                }
                 else
                 {
-                    // Followers, Followings, or Friends
-                    if (contextUserId == 0)
-                    {
-                        results.Add(new CanViewInventoryEntry()
-                        {
-                            canView = false,
-                            userId = privacy.userId,
-                        });
-                        privacyResults.Remove(privacy);
-                    }
-
-                }
-            }
-
-            // Early exit - we don't have to do friends query
-            if (privacyResults.Count == 0) return results;
-
-            var friendsStatus =
-                await friends.MultiGetFriendshipStatus(contextUserId, privacyResults.Select(c => c.userId));
-
-            var checkFollowers = new List<long>();
-            foreach (var friend in friendsStatus)
-            {
-                var privacyStatus = privacyResults.Find(c => c.userId == friend.id);
-                if (privacyStatus == null) throw new Exception("No privacy entry for " + friend.id);
-
-                if (friend.status == "Friends")
-                {
-                    // Friend, so allow viewing
-                    privacyResults.Remove(privacyStatus);
                     results.Add(new()
                     {
-                        canView = true,
+                        canView = false,
                         userId = friend.id,
                     });
                 }
-                else
-                {
-                    // If you need to be a friend to view inventory, return false since user is not friend
-                    if (privacyStatus.privacy != InventoryPrivacy.Friends)
-                    {
-                        checkFollowers.Add(friend.id);
-                    }
-                    else
-                    {
-                        results.Add(new()
-                        {
-                            canView = false,
-                            userId = friend.id,
-                        });
-                    }
-                }
             }
+        }
 
-            if (checkFollowers.Count == 0) return results;
-            foreach (var user in checkFollowers)
+        if (checkFollowers.Count == 0) return results;
+        foreach (var user in checkFollowers)
+        {
+            var privacy = privacyResults.Find(c => c.userId == user)!;
+            if (privacy.privacy == InventoryPrivacy.FriendsAndFollowing)
             {
-                var privacy = privacyResults.Find(c => c.userId == user)!;
-                if (privacy.privacy == InventoryPrivacy.FriendsAndFollowing)
+                var isUserFollowingCtx = await friends.IsOneFollowingTwo(user, contextUserId);
+                if (isUserFollowingCtx)
                 {
-                    var isUserFollowingCtx = await friends.IsOneFollowingTwo(user, contextUserId);
-                    if (isUserFollowingCtx)
-                    {
-                        results.Add(new CanViewInventoryEntry()
-                        {
-                            canView = true,
-                            userId = user,
-                        });
-                    }
-                }
-                else if (privacy.privacy == InventoryPrivacy.FriendsFollowingAndFollowers)
-                {
-                    var canView = await friends.IsOneFollowingTwo(user, contextUserId);
-                    if (!canView)
-                    {
-                        canView = await friends.IsOneFollowingTwo(contextUserId, user);
-                    }
-
                     results.Add(new CanViewInventoryEntry()
                     {
-                        canView = canView,
+                        canView = true,
                         userId = user,
                     });
                 }
             }
+            else if (privacy.privacy == InventoryPrivacy.FriendsFollowingAndFollowers)
+            {
+                var canView = await friends.IsOneFollowingTwo(user, contextUserId);
+                if (!canView)
+                {
+                    canView = await friends.IsOneFollowingTwo(contextUserId, user);
+                }
 
-            return results;
+                results.Add(new CanViewInventoryEntry()
+                {
+                    canView = canView,
+                    userId = user,
+                });
+            }
         }
 
-        public bool IsThreadSafe()
-        {
-            return true;
-        }
+        return results;
+    }
 
-        public bool IsReusable()
-        {
-            return false;
-        }
-    
+    public bool IsThreadSafe()
+    {
+        return true;
+    }
+
+    public bool IsReusable()
+    {
+        return false;
+    }
+
 }

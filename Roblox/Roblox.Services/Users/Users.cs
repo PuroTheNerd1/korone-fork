@@ -1353,32 +1353,9 @@ public class UsersService : ServiceBase, IService
         return response;
     }
 
-    private async Task<int> GetPurchaseCountByUserOrInvitedUsers(long userId, long assetId)
-    {
-        var invited = await GetInvitesByUser(userId);
-        var userIdsInvited = invited.Where(c => c.userId != null).Select(c => c.userId).ToArray();
-        if (userIdsInvited.Length == 0)
-            return 0;
-        var builder = new SqlBuilder();
-        var t = builder.AddTemplate("SELECT COUNT(*) AS total FROM user_transaction /**where**/");
-        builder.AddParameters(new
-        {
-            t = PurchaseType.Purchase,
-            asset_id = assetId
-        });
-        builder.OrWhereMulti("(user_id_one = $1 AND type = :t AND asset_id = :asset_id)", userIdsInvited);
-        // check parent in addition to all invited users
-        builder.OrWhere("(user_id_one = :user_id_main AND type = :t AND asset_id = :asset_id)", new
-        {
-            user_id_main = userId,
-        });
-        var purchaseCount = await db.QuerySingleOrDefaultAsync<Dto.Total>(t.RawSql, t.Parameters);
-        return purchaseCount.total;
-    }
-
     public async Task<bool> HasUserPurchasedAssetBefore(long userId, long assetId)
     {
-        return (await db.QuerySingleOrDefaultAsync<Dto.Total>("SELECT COUNT(*) AS total FROM user_transaction WHERE user_id_one = :user_id AND asset_id = :asset_id AND type = :type AND sub_type = :sub_type AND deleted = FALSE", new
+        return (await db.QuerySingleOrDefaultAsync<Dto.Total>("SELECT COUNT(*) AS total FROM user_transaction WHERE user_id_one = :user_id AND asset_id = :asset_id AND type = :type AND sub_type = :sub_type", new
         {
             user_id = userId,
             asset_id = assetId,
@@ -1454,83 +1431,7 @@ public class UsersService : ServiceBase, IService
                 return PurchaseAbuseFailureReason.Ok; // TODO
             sellerId = groupData.owner.userId;
         }
-        var buyerInvite = await GetUserInvite(buyerUserId);
-        var sellerInvite = await GetUserInvite(sellerId);
-
-        var didBuyerJoinFromSeller = sellerInvite?.authorId == buyerUserId;
-        var didSellerJoinFromBuyer = buyerInvite?.authorId == sellerId;
-        var usersInvitedBySamePerson = sellerInvite != null && buyerInvite != null && sellerInvite.authorId == buyerInvite.authorId;
-        var didAnyUserJoinFromInviteByRelatedParty =
-            didBuyerJoinFromSeller ||
-            didSellerJoinFromBuyer ||
-            usersInvitedBySamePerson;
-
-        if (didAnyUserJoinFromInviteByRelatedParty)
-        {
-            Writer.Info(LogGroup.AbuseDetection, "didAnyUserJoinFromInviteByRelatedParty true");
-            var infoBuyer = await GetUserById(buyerUserId);
-            var infoSeller = await GetUserById(sellerId);
-            // Check creation date
-            if (usersInvitedBySamePerson)
-            {
-                if (infoBuyer.created > DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)) ||
-                    infoSeller.created > DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)))
-                    return PurchaseAbuseFailureReason.UsersRelatedAndCreatedTooEarly;
-            }
-
-            // check balance
-            using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
-            var buyerBalance = await ec.GetUserBalance(buyerUserId);
-            var balanceInteger = currency == CurrencyType.Robux ? buyerBalance.robux : buyerBalance.tickets;
-            var priceInteger = currency == CurrencyType.Robux ? details.price : details.priceTickets;
-            if (balanceInteger == priceInteger || priceInteger / 2 > balanceInteger)
-                return PurchaseAbuseFailureReason.UsersRelatedAndPriceIsEqualToBalance;
-            // check transactions for seller
-            var sellerEarnings = await GetTotalCurrencyExchangedWithInvitedUsers(sellerId, TimeSpan.FromDays(1));
-            // we do not want total transactions to exceed the value if completed
-            const int maxTicketsPerDay = 600;
-            const int maxRobuxPerDay = 60;
-            // check current totals before checking add total - this is so people can't do both tickets AND robux
-            if (sellerEarnings.robux > maxRobuxPerDay || sellerEarnings.tickets > maxTicketsPerDay)
-                return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransacted;
-            // check half as well (roughly 30 robux + 300 tickets would equal 60 robux, hitting the max)
-            if (sellerEarnings.robux > maxRobuxPerDay/2 && sellerEarnings.tickets > maxTicketsPerDay/2)
-                return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransacted;
-
-            if (currency == CurrencyType.Robux)
-            {
-                if (sellerEarnings.robux + details.price > maxRobuxPerDay)
-                    return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransactedIfCompleted;
-            }
-            else
-            {
-                if (sellerEarnings.tickets + details.priceTickets > maxTicketsPerDay)
-                    return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransactedIfCompleted;
-            }
-            // if seller and invite root are not the same, check the invite parent too
-            if (buyerInvite != null && sellerId != buyerInvite.authorId)
-            {
-                sellerEarnings = await GetTotalCurrencyExchangedWithInvitedUsers(buyerInvite.authorId, TimeSpan.FromDays(1));
-                if (currency == CurrencyType.Robux)
-                {
-                    if (sellerEarnings.robux + details.price > 60)
-                        return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransactedIfCompleted;
-                }
-                else
-                {
-                    if (sellerEarnings.tickets + details.priceTickets > 1000)
-                        return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransactedIfCompleted;
-                }
-            }
-        }
-        // when purchasing a limited item, check if invited users already bought it 2+ times - could be a sign of hoarding
-        if (details.isForSale && isLimited && buyerInvite != null)
-        {
-            var totalPurchasedByRootOrChildren =
-                await GetPurchaseCountByUserOrInvitedUsers(buyerInvite.authorId, details.id);
-            if (totalPurchasedByRootOrChildren >= 2)
-                return PurchaseAbuseFailureReason.UsersRelatedPurchasedTooMany;
-        }
+ 
         Writer.Info(LogGroup.AbuseDetection, "CanAssetBePurchased true");
 
         return PurchaseAbuseFailureReason.Ok;
@@ -1565,89 +1466,10 @@ public class UsersService : ServiceBase, IService
             Console.WriteLine("CreatorType cannot be a group!");
             return PurchaseAbuseFailureReason.Unknown;
         }
-        var buyerInvite = await GetUserInvite(buyerUserId);
-        var sellerInvite = await GetUserInvite(sellerId);
-
-        var didBuyerJoinFromSeller = sellerInvite?.authorId == buyerUserId;
-        var didSellerJoinFromBuyer = buyerInvite?.authorId == sellerId;
-        var usersInvitedBySamePerson = sellerInvite != null && buyerInvite != null && sellerInvite.authorId == buyerInvite.authorId;
-        var didAnyUserJoinFromInviteByRelatedParty =
-            didBuyerJoinFromSeller ||
-            didSellerJoinFromBuyer ||
-            usersInvitedBySamePerson;
-
-        if (didAnyUserJoinFromInviteByRelatedParty)
-        {
-            Writer.Info(LogGroup.AbuseDetection, "didAnyUserJoinFromInviteByRelatedParty true");
-            var infoBuyer = await GetUserById(buyerUserId);
-            var infoSeller = await GetUserById(sellerId);
-            // Check creation date
-            if (usersInvitedBySamePerson)
-            {
-                if (infoBuyer.created > DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)) ||
-                    infoSeller.created > DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)))
-                    return PurchaseAbuseFailureReason.UsersRelatedAndCreatedTooEarly;
-            }
-
-            // check balance
-            using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
-            var buyerBalance = await ec.GetUserBalance(buyerUserId);
-            if (buyerBalance.robux == details.price || details.price / 2 > buyerBalance.robux)
-                return PurchaseAbuseFailureReason.UsersRelatedAndPriceIsEqualToBalance;
-            // check transactions for seller
-            var sellerEarnings = await GetTotalCurrencyExchangedWithInvitedUsers(sellerId, TimeSpan.FromDays(1));
-            // we do not want total transactions to exceed the value if completed
-            const int maxTicketsPerDay = 600;
-            const int maxRobuxPerDay = 60;
-            // check current totals before checking add total - this is so people can't do both tickets AND robux
-            if (sellerEarnings.robux > maxRobuxPerDay || sellerEarnings.tickets > maxTicketsPerDay)
-                return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransacted;
-            // check half as well (roughly 30 robux + 300 tickets would equal 60 robux, hitting the max)
-            if (sellerEarnings.robux > maxRobuxPerDay/2 && sellerEarnings.tickets > maxTicketsPerDay/2)
-                return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransacted;
-
-            if (sellerEarnings.robux + details.price > maxRobuxPerDay)
-                return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransactedIfCompleted;
-            // if seller and invite root are not the same, check the invite parent too
-            if (buyerInvite != null && sellerId != buyerInvite.authorId)
-            {
-                sellerEarnings = await GetTotalCurrencyExchangedWithInvitedUsers(buyerInvite.authorId, TimeSpan.FromDays(1));
-                if (sellerEarnings.robux + details.price > 60)
-                    return PurchaseAbuseFailureReason.UsersRelatedAndTooMuchTransactedIfCompleted;
-            }
-        }
         Writer.Info(LogGroup.AbuseDetection, "CanAssetBePurchased true");
 
         return PurchaseAbuseFailureReason.Ok;
     }
-
-  /*  private async Task BeforePurchase(long userIdBuyer, long assetId)
-    {
-        // the purpose of this function is so i can be a mini version of zlib.
-        const long ownerUserId = 12; // todo: get from appsettings
-        if (userIdBuyer == ownerUserId) return;
-#if RELEASE
-        using var assetService = ServiceProvider.GetOrCreate<AssetsService>(this);
-        var info = await assetService.GetAssetCatalogInfo(assetId);
-        if (info.itemRestrictions.Contains("Limited") || info.itemRestrictions.Contains("LimitedUnique"))
-        {
-            var owned = await GetUserAssets(ownerUserId, assetId);
-            if (!owned.Any())
-            {
-                try
-                {
-                    await PurchaseNormalItem(ownerUserId, assetId, info.priceTickets == null ? CurrencyType.Robux : CurrencyType.Tickets);
-                }
-                catch (Exception e)
-                {
-                    // ignore but log
-                    Writer.Info(LogGroup.ItemPurchase, "attempt to buy for admin failed: {0}", e.Message);
-                }
-            }
-        }
-#endif
-    }
-*/
     public async Task PurchaseNormalItem(long userIdBuyer, long assetId, CurrencyType expectedCurrency)
     {
         using var log = Writer.CreateWithId(LogGroup.ItemPurchase);
@@ -1827,7 +1649,8 @@ public class UsersService : ServiceBase, IService
         });
     }
     
-    public async Task<string> PurchaseDeveloperProduct(long userIdBuyer, long productId) {
+    public async Task<string> PurchaseDeveloperProduct(long userIdBuyer, long productId)
+    {
         using var log = Writer.CreateWithId(LogGroup.ItemPurchase);
         log.Info($"PurchaseDeveloperProduct start. buyer={userIdBuyer} productId={productId}");
 

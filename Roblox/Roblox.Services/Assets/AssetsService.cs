@@ -1827,7 +1827,8 @@ public class AssetsService : ServiceBase, IService
         return result.total;
     }
     
-    public async Task<ExistsType> DoesAssetExistType(long assetId) {
+    public async Task<ExistsType> DoesAssetExistType(long assetId)
+    {
         var guh = await db.QuerySingleOrDefaultAsync<ExistsType>("SELECT asset_type AS assetType FROM asset WHERE id = :assetId",
             new {
                 assetId
