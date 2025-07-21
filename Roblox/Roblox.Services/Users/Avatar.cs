@@ -37,7 +37,8 @@ public class AvatarService : ServiceBase, IService {
         public int[] all { get; set; }
     }
     
-    public AssetTypeGroups RecentAssetTypes = new AssetTypeGroups {
+    public AssetTypeGroups recentAssetTypes = new AssetTypeGroups
+    {
         clothing = new[]{2, 11, 12},
         accessories = new[]{8,41,42,43,44,45,46,47},
         avataranimations = new[]{48,50,51,52,53,54,55,61,18},

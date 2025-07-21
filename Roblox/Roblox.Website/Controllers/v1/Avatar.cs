@@ -189,7 +189,7 @@ public class AvatarControllerV1 : ControllerBase, IService
         FeatureCheck();
 
         var prop = typeof(AvatarService.AssetTypeGroups).GetProperty(recentType, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-        int[]? assetTypes = prop?.GetValue(services.avatar.RecentAssetTypes) as int[];
+        int[]? assetTypes = prop?.GetValue(services.avatar.recentAssetTypes) as int[];
 
         if (assetTypes == null)
             throw new BadRequestException(0, "Bad Recent Type path parameter");
