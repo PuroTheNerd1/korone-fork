@@ -12,6 +12,7 @@ using Roblox.Website.WebsiteModels;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Dapper;
 using SixLabors.ImageSharp.PixelFormats;
+using Roblox.Logging;
 
 namespace Roblox.Website.Controllers;
 
@@ -31,7 +32,12 @@ public class AvatarControllerV1 : ControllerBase, IService
         {
             using (var cache = ServiceProvider.GetOrCreate<AvatarCache>())
             {
-                if (!cache.AttemptScheduleRender(userId)) return;
+                if (!cache.AttemptScheduleRender(userId))
+                {
+                    Console.WriteLine("Render already scheduled for user {0}", userId);
+                    return;
+                }
+                ;
             }
         }        
         
