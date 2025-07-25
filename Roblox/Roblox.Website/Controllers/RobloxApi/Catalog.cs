@@ -1,12 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
 using Roblox.Models;
 using Roblox.Models.Assets;
-using Roblox.Services;
-using Roblox.Website.WebsiteModels;
-using Roblox.Website.WebsiteModels.Catalog;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 #pragma warning disable CS8600
 
@@ -699,23 +695,26 @@ public class Catalog : ControllerBase
 	    var displayed = 0;
 	    var retrieved = 0;
 	    var subject = "assets";
-	    
-	    if (page == "Avatar")
+	    switch (page)
 	    {
-		    displayed = 5;
-		    retrieved = 50;
-		    subject = "avatar";
-	    }
-	    else if (page == "Inventory")
-	    {
-		    displayed = 6;
-		    retrieved = 50;
-		    subject = "user-inventory";
-	    }
-	    else if (page == "CatalogItem")
-	    {
-		    displayed = 7;
-		    retrieved = 50;
+		    case "Avatar":
+			    displayed = 5;
+			    retrieved = 50;
+			    subject = "avatar";
+			    break;
+		    case "Inventory":
+			    displayed = 6;
+			    retrieved = 50;
+			    subject = "user-inventory";
+			    break;
+		    case "CatalogItem":
+			    displayed = 7;
+			    retrieved = 50;
+			    break;
+		    default:
+			    displayed = 4;
+			    retrieved = 20;
+			    break;
 	    }
 
 	    return new

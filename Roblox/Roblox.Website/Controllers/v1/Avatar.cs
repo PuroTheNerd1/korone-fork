@@ -36,8 +36,7 @@ public class AvatarControllerV1 : ControllerBase, IService
                 {
                     Console.WriteLine("Render already scheduled for user {0}", userId);
                     return;
-                }
-                ;
+                };
             }
         }        
         
@@ -51,8 +50,9 @@ public class AvatarControllerV1 : ControllerBase, IService
                 using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
                 var assetIds = await cache.GetPendingAssets(userId);
                 var newColors = await cache.GetColors(userId);
-                bool skipRender = false;
-                await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw, skipRender: skipRender);
+                const bool skipRender = false;
+                const bool skipLock = false;
+                await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw, skipLock, skipRender);
             }
             catch (Exception e)
             {
@@ -70,9 +70,8 @@ public class AvatarControllerV1 : ControllerBase, IService
     public void RequestRedrawAvatar()
     {
         FeatureCheck();
-        using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
-        cache.ClearPendingAssets(safeUserSession.userId);
-        AttemptScheduleRender(true);
+        const bool forceRedraw = true;
+        AttemptScheduleRender(forceRedraw);
     }
 
     [HttpPost("avatar/set-wearing-assets")]
@@ -88,7 +87,8 @@ public class AvatarControllerV1 : ControllerBase, IService
         await cache.SetPendingAssets(safeUserSession.userId, request.assetIds);
         
         AttemptScheduleRender();
-        foreach (long assetId in changedAssetIds) {
+        foreach (long assetId in changedAssetIds)
+        {
             await services.avatar.UpdateLastUpdated(safeUserSession.userId, assetId);
         }
     }

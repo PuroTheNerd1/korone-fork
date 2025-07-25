@@ -22,12 +22,12 @@ namespace Roblox.Website.Controllers
             try 
             {
                 var details = await services.assets.GetAssetCatalogInfo(assetId);
-                long Remaining = 0;
+                long remaining = 0;
                 
                 if (details.itemRestrictions.Contains("Limited") ||
                     details.itemRestrictions.Contains("LimitedUnique")) {
                     var resale = await services.assets.GetResaleData(assetId);
-                    Remaining = resale.numberRemaining;
+                    remaining = resale.numberRemaining;
                 }
 
                 return new 
@@ -56,7 +56,7 @@ namespace Roblox.Website.Controllers
                     IsPublicDomain = details.isForSale && details.price == 0,
                     IsLimited = details.itemRestrictions.Contains("Limited"),
                     IsLimitedUnique = details.itemRestrictions.Contains("LimitedUnique"),
-                    Remaining,
+                    Remaining = remaining,
                     MinimumMembershipLevel = 0
                 };
             }
