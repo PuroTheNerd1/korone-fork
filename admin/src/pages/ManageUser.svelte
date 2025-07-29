@@ -195,7 +195,7 @@
 									<p class="mb-0"><span class="fw-bold">Internal Reason</span>: <span class="monospace">{info.data["ban_reason_internal"] || "No internal reason specified"}</span></p>
 									<p class="mb-0"><span class="fw-bold">Author</span>: <a href={`/users/${info.data["ban_author_user_id"]}/profile`}>{info.data["ban_author_username"] || "No author"}</a></p>
 									<p class="mb-0"><span class="fw-bold">Created</span>: {moment(info.data["ban_created_at"]).format("MMM DD YYYY, h:mm A")}</p>
-									<p class="mb-0"><span class="fw-bold">Expiration</span>: {moment(info.data["ban_expired_at"]).format("MMM DD YYYY, h:mm A") : 'Never'}</p>
+									<p class="mb-0"><span class="fw-bold">Expiration</span>: {info.data["ban_expired_at"] ? moment(info.data["ban_expired_at"]).format("MMM DD YYYY, h:mm A") : 'Never'}</p>
 								{/if}
 							</div>
 						</div>
