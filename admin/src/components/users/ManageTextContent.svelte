@@ -94,6 +94,10 @@
 
                     {#if textView === 'Bans'}
                         <p class="mb-0">
+                            <span class="fw-bold">Ban ID:</span>
+                            <span class="monospace">{item.id}</span>
+                        </p>
+                        <p class="mb-0">
                             <span class="fw-bold">Author:</span>
                             <a href={`/admin/manage-user/${item.actor_id}`}>{item.actor_username}</a>
                         </p>
