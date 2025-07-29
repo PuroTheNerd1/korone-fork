@@ -1050,12 +1050,12 @@ public class AdminApiController : ControllerBase
 
             obj.id = item.id;
             obj.user_id = item.user_id;
-            obj.reason = item.reason ?? "[ No reason provided ]";
-            obj.internal_reason = item.internal_reason ?? "[ No internal reason provided ]";
+            obj.reason = item.reason ?? "No reason provided";
+            obj.internal_reason = item.internal_reason ?? "No internal reason provided ";
             obj.created_at = item.created_at.ToString("yyyy-MM-dd HH:mm:ss");
-            obj.expired_at = item.expired_at?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never";
+            obj.expired_at = item.expired_at?.ToString("yyyy-MM-dd HH:mm:ss");
             obj.actor_id = item.actor_id;
-            obj.actor_username = await services.users.GetUserById(item.actor_id);
+            obj.actor_username = (await services.users.GetUserById(item.actor_id)).username;
 
             result.Add(obj);
         }

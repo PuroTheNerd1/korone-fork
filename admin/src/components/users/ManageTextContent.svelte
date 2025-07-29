@@ -97,11 +97,26 @@
                         {moment(item.created_at || item.createdAt).format("MMM DD YYYY, h:mm A")}
                     </p>
                     {#if textView === 'Bans'}
-                        <p class="mb-0">Author <a href={`/admin/manage-user/${item.actor_id}`}>{item.actor_username}</a></p>
-                        <p class="mb-0">Reason: {item.reason}</p>
-                        <p class="mb-0">Internal Reason: {item.internal_reason}</p>
-                        <p class="mb-0">Created: {item.created_at ? moment(item.created_at).format("MMM DD YYYY, h:mm A") : 'Never'}</p>
-                        <p class="mb-0">Expires: {item.expired_at ? moment(item.expired_at).format("MMM DD YYYY, h:mm A") : 'Never'}</p>
+                        <p class="mb-0">
+                            <span class="fw-bold">Author</span>: 
+                            <a href={`/admin/manage-user/${item.actor_id}`}>{item.actor_username}</a>
+                        </p>
+                        <p class="mb-0">
+                            <span class="fw-bold">Reason</span>: 
+                            <span class="monospace">{item.reason}</span>
+                        </p>
+                        <p class="mb-0">
+                            <span class="fw-bold">Internal Reason</span>: 
+                            <span class="monospace">{item.internal_reason}</span>
+                        </p>
+                        <p class="mb-0">
+                            <span class="fw-bold">Created</span>: 
+                            {item.created_at ? moment(item.created_at).format("MMM DD YYYY, h:mm A") : 'Never'}
+                        </p>
+                        <p class="mb-0">
+                            <span class="fw-bold">Expires</span>: 
+                            {item.expired_at ? moment(item.expired_at).format("MMM DD YYYY, h:mm A") : 'Never'}
+                        </p>
                     {/if}
 
                     {#if textView === 'Status' || textView === 'Comments'}
