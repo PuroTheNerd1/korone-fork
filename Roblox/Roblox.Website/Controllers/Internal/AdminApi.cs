@@ -6,6 +6,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -1034,23 +1035,34 @@ public class AdminApiController : ControllerBase
         }, AvatarType.R6);
     }
     [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]
-    public async Task<dynamic> GetUserBanHistory([Required, FromQuery] long userId)
+    public async Task<IEnumerable<dynamic>> GetUserBanHistory([Required, FromQuery] long userId)
     {
-        var data = await db.QueryAsync("SELECT * FROM moderation_ban WHERE user_id = :user_id ORDER BY id DESC LIMIT 1000", new
+        var rawData = await db.QueryAsync("SELECT * FROM moderation_ban WHERE user_id = :user_id ORDER BY id DESC LIMIT 1000", new
         {
             user_id = userId,
         });
-        // Pain will rework later if i have time just really tired lol
-        foreach (var item in data)
+
+        var result = new List<ExpandoObject>();
+        // Really fucking hacky ill fix this later though :P
+        foreach (var item in rawData)
         {
-            item.reason = item.reason ?? "[ No reason provided ]";
-            item.internal_reason = item.internal_reason ?? "[ No internal reason provided ]";
-            item.expired_at = item.expired_at?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never";
-            item.created_at = item.created_at.ToString("yyyy-MM-dd HH:mm:ss");
-            item.actor_username = await services.users.GetUserById(item.actor_id);
+            dynamic obj = new ExpandoObject();
+
+            obj.id = item.id;
+            obj.user_id = item.user_id;
+            obj.reason = item.reason ?? "[ No reason provided ]";
+            obj.internal_reason = item.internal_reason ?? "[ No internal reason provided ]";
+            obj.created_at = item.created_at.ToString("yyyy-MM-dd HH:mm:ss");
+            obj.expired_at = item.expired_at?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never";
+            obj.actor_id = item.actor_id;
+            obj.actor_username = await services.users.GetUserById(item.actor_id);
+
+            result.Add(obj);
         }
-        return data;
+
+        return result;
     }
+
     [HttpGet("user/status-history"), StaffFilter(Access.GetUserStatusHistory)]
     public async Task<dynamic> GetUserStatusHistory([Required, FromQuery] long userId)
     {
