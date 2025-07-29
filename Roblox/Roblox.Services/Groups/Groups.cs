@@ -877,7 +877,11 @@ public class GroupsService : ServiceBase, IService
                 description,
                 rank,
             });
-
+            await db.ExecuteAsync("UPDATE group SET updated_at = :date WHERE id = :id", new
+            {
+                date = DateTime.UtcNow,
+                id = groupId,
+            });
             // If name or description updated
             if (oldInfo.name != name || oldInfo.description != description)
             {
@@ -932,7 +936,11 @@ public class GroupsService : ServiceBase, IService
             {
                 id = roleSetId,
             });
-
+            await db.ExecuteAsync("UPDATE group SET updated_at = :date WHERE id = :id", new
+            {
+                date = DateTime.UtcNow,
+                id = groupId,
+            });
             return 0;
         });
     }
@@ -1148,6 +1156,11 @@ public class GroupsService : ServiceBase, IService
 
     public async Task SetGroupSettings(long groupId, GroupSettingsEntry settings)
     {
+        await db.ExecuteAsync("UPDATE group SET updated_at = :date WHERE id = :id", new
+        {
+            date = DateTime.UtcNow,
+            id = groupId,
+        });
         await db.ExecuteAsync(
             "UPDATE group_settings SET approval_required=:approval, enemies_allowed=:enemies, funds_visible = :funds, games_visible = :games WHERE group_id = :gid",
             new
@@ -1183,11 +1196,13 @@ public class GroupsService : ServiceBase, IService
                 throw new RobloxException(403, 0, "Group owner cannot be modified until funds are withdrawn");
 
             // make owner
-            await db.ExecuteAsync("UPDATE \"group\" SET user_id = :user_id WHERE id = :gid", new
+            await db.ExecuteAsync("UPDATE \"group\" SET user_id = :user_id, updated_at = :date WHERE id = :gid", new
             {
                 user_id = userId,
+                date = DateTime.UtcNow,
                 gid = groupId,
             });
+
             // swap ranks
             await db.ExecuteAsync(
                 "UPDATE group_user SET group_role_id = :group_role_id WHERE group_role_id = :old_role_id AND user_id = :user_id",
@@ -1234,9 +1249,10 @@ public class GroupsService : ServiceBase, IService
 
     public async Task SetGroupDescription(long groupId, string newDescription)
     {
-        await db.ExecuteAsync("UPDATE \"group\" SET description = :description WHERE id = :gid", new
+        await db.ExecuteAsync("UPDATE \"group\" SET description = :description, updated_at = :date WHERE id = :gid", new
         {
             gid = groupId,
+            date = DateTime.UtcNow,
             description = newDescription,
         });
     }
