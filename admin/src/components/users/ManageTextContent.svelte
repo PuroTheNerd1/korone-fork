@@ -89,8 +89,6 @@
                         <p class="mb-0">
                             <a href={`/admin/manage-user/${item.userId}`}>Invited {item.userId}</a>
                         </p>
-                    {:else}
-                        <p class="mb-0">{item.status || item.comment}</p>
                     {/if}
 
 
@@ -116,6 +114,7 @@
                             {item.expired_at ? moment(item.expired_at).format("MMM DD YYYY, h:mm A") : 'Never'}
                         </p>
                     {:else}
+                        <p class="mb-0">{item.status || item.comment}</p>
                         <p class="mb-0">
                             {moment(item.created_at || item.createdAt).format("MMM DD YYYY, h:mm A")}
                         </p>
