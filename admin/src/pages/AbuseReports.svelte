@@ -126,8 +126,8 @@
 									{#if app.reportReason === "BadChatMessagesInGame"}
 										<button
 											class="btn btn-sm btn-outline-primary w-100"
-											on:click={() => window.location.href = `/admin-api/api/chat-messages/${app.id}`}
-										>
+											on:click={() => window.open(`/admin-api/api/chat-messages/${app.id}`)}
+										> window.open
 											View chat messages
 										</button>
 									{/if}

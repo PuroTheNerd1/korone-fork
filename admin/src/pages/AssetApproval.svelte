@@ -212,14 +212,29 @@
 										<div class="row">
 											<div class="col-12">
 												<div class="btn-group w-100">
-													<button class="btn btn-success border border-dark" on:click={onClick(true, false, false, asset)}>OK</button>
+													<button class="btn btn-success border border-dark" on:click={onClick(true, false, false, asset)}>
+														OK
+													</button>
 												</div>
 											</div>
 											<div class="col-12 mt-4">
 												<div class="btn-group w-100">
-													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, false, asset)}>BAD</button>
+													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, false, asset)}>
+														BAD
+													</button>
 												
-													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, true, asset)}>BAD + DELETE</button>
+													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, true, asset)}>
+														BAD + DELETE
+													</button>
+												</div>
+											</div>
+											<div class="col-12 mt-4">
+												<div class="btn-group w-100">
+													{#if asset.assetType === 'Audio' || asset.assetType === 'Video' || asset.assetType === 'Model'}
+													<button class="btn btn-info border border-dark" on:click={() => window.open(`/admin-api/api/get-asset-stream?assetId=${asset.asset_id || asset.id}`, '_blank')}>
+														Download Asset
+													</button>
+													{/if}
 												</div>
 											</div>
 										</div>

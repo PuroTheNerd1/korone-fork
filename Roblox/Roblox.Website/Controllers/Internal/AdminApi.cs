@@ -397,16 +397,21 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("assets/get-asset-stream"), StaffFilter(Access.GetPendingModerationItems)]
-    public async Task<Stream> GetPendingAssetStream(long assetId)
+    public async Task<dynamic> GetPendingAssetStream(long assetId)
     {
         var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
         if (assetInfo.moderationStatus != ModerationStatus.AwaitingApproval && !StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Item is not pending: " + assetInfo.moderationStatus);
-        if (assetInfo.assetType != Type.Audio && assetInfo.assetType != Type.Video)
+        if (assetInfo.assetType != Type.Audio && assetInfo.assetType != Type.Video && assetInfo.assetType != Type.Model)
             throw new StaffException("Only videos/audios are allowed");
         var version = await services.assets.GetLatestAssetVersion(assetId);
         if (version.contentUrl != null)
-            return await services.assets.GetAssetContent(version.contentUrl);
+        {
+            var content = await services.assets.GetAssetContent(version.contentUrl);
+            // Make when the url is clicked download the asset
+            return File(content, "application/octet-stream");
+        }
+
 
         throw new StaffException("Unsupported action");
     }
