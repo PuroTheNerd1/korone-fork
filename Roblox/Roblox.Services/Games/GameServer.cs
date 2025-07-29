@@ -828,7 +828,7 @@ public class GameServerService : ServiceBase
     {
         Console.WriteLine("Starting Gameserver");
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
-        _ = Task.Run(async () => await arbiterClient.StartGameServer(request));
+        await arbiterClient.StartGameServer(request);
         return "OK";
     }
 
