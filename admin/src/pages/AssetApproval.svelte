@@ -231,9 +231,9 @@
 											<div class="col-12 mt-4">
 												<div class="btn-group w-100">
 													{#if asset.assetType === 'Audio' || asset.assetType === 'Video' || asset.assetType === 'Model'}
-													<button class="btn btn-info border border-dark" on:click={() => window.open(`/admin-api/api/get-asset-stream?assetId=${asset.asset_id || asset.id}`, '_blank')}>
-														Download Asset
-													</button>
+														<button class="btn btn-warning border border-dark" on:click={() => window.open(`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`, '_blank')}>
+															Download Asset
+														</button>
 													{/if}
 												</div>
 											</div>
