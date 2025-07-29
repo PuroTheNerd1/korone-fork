@@ -1033,7 +1033,25 @@ public class AdminApiController : ControllerBase
             leftLegColorId = 102,
         }, AvatarType.R6);
     }
-
+    [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]
+    public async Task<dynamic> GetUserBanHistory([Required, FromQuery] long userId)
+    {
+        var data = await db.QueryAsync("SELECT * FROM moderation_ban WHERE user_id = :user_id ORDER BY id DESC LIMIT 1000", new
+        {
+            user_id = userId,
+        });
+        // Pain will rework later if i have time just really tired lol
+        foreach (var item in data)
+        {
+            item.reason = item.reason ?? "[ No reason provided ]";
+            item.internal_reason = item.internal_reason ?? "[ No internal reason provided ]";
+            item.expired_at = item.expired_at?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never";
+            item.created_at = item.created_at.ToString("yyyy-MM-dd HH:mm:ss");
+            item.updated_at = item.updated_at.ToString("yyyy-MM-dd HH:mm:ss");
+            item.actor_username = await services.users.GetUserById(item.actor_id);
+        }
+        return data;
+    }
     [HttpGet("user/status-history"), StaffFilter(Access.GetUserStatusHistory)]
     public async Task<dynamic> GetUserStatusHistory([Required, FromQuery] long userId)
     {
