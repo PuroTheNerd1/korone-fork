@@ -1047,7 +1047,6 @@ public class AdminApiController : ControllerBase
             item.internal_reason = item.internal_reason ?? "[ No internal reason provided ]";
             item.expired_at = item.expired_at?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never";
             item.created_at = item.created_at.ToString("yyyy-MM-dd HH:mm:ss");
-            item.updated_at = item.updated_at.ToString("yyyy-MM-dd HH:mm:ss");
             item.actor_username = await services.users.GetUserById(item.actor_id);
         }
         return data;
