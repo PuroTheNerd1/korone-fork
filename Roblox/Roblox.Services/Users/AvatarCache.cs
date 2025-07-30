@@ -56,14 +56,9 @@ public class AvatarCache : ServiceBase, IService
     {
         lock (updatingMutex)
         {
-            var date = updatedInfo.GetValueOrDefault(userId);
-            // If the last render was less than 3 minutes ago, unschedule the render
-            if (date != default && (DateTime.UtcNow - date).TotalMinutes < 3)
+            if (updatedInfo.ContainsKey(userId))
             {
-                updatedInfo.Remove(userId);
-            }
-            else
-            {
+                Console.WriteLine($"AvatarCache: User {userId} is already scheduled for render.");
                 return false;
             }
             updatedInfo[userId] = DateTime.UtcNow;

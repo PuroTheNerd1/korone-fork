@@ -81,7 +81,9 @@ public class AvatarControllerV1 : ControllerBase, IService
         
         var currentlyWorn = (await services.avatar.GetWornAssets(safeUserSession.userId)).ToList();
         var newAssetIds = request.assetIds.ToList();
-        var changedAssetIds = currentlyWorn.Except(newAssetIds).Concat(newAssetIds.Except(currentlyWorn));
+        Console.WriteLine("SetWornAssets current = {0} new = {1}", JsonSerializer.Serialize(currentlyWorn), JsonSerializer.Serialize(newAssetIds));
+        var changedAssetIds = currentlyWorn.Except(newAssetIds).Concat(newAssetIds.Except(currentlyWorn)).ToList();
+        Console.WriteLine("Changed assets = {0}", JsonSerializer.Serialize(changedAssetIds));
         
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, request.assetIds);
@@ -89,6 +91,7 @@ public class AvatarControllerV1 : ControllerBase, IService
         AttemptScheduleRender();
         foreach (long assetId in changedAssetIds)
         {
+            Console.WriteLine("Updating last updated for {0}", assetId);
             await services.avatar.UpdateLastUpdated(safeUserSession.userId, assetId);
         }
     }
