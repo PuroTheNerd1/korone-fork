@@ -515,6 +515,7 @@ public class AdminApiController : ControllerBase
         }
 
 
+
         var newStatus = request.isApproved ? ModerationStatus.ReviewApproved : ModerationStatus.Declined;
 
         await db.ExecuteAsync("UPDATE asset SET moderation_status = :status, is_18_plus = :is_18_plus WHERE id = :id", new
@@ -530,6 +531,15 @@ public class AdminApiController : ControllerBase
             {
                 id = request.assetId,
             });
+        }
+        // Shut down all servers for the place if it's not approved
+        if (assetInfo.assetType == Type.Place && newStatus != ModerationStatus.ReviewApproved)
+        {
+            var gameServers = await services.gameServer.GetGameServersForPlace(assetInfo.id);
+            foreach (var server in gameServers)
+            {
+                await services.gameServer.ShutDownServerAsync(server.id.ToString());
+            }
         }
         await services.assets.InsertAssetModerationLog(request.assetId, userSession.userId, newStatus);
         var children = (await db.QueryAsync<AssetVersionWithIdEntry>("SELECT DISTINCT asset_id as assetId FROM asset_version WHERE content_id = :id", new
