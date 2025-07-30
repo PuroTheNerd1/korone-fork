@@ -592,11 +592,13 @@ public class WebController : ControllerBase
         var details = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
         List<dynamic> collection = new List<dynamic>();
 
+        servers = servers.OrderByDescending(s => s.players.Count()).ToList();
         foreach (var server in servers)
         {
             var jobId = server.id;
             var players = server.players.ToList();
             long ping = await services.gameServer.GetServerStat(server.id);
+
             collection.Add(new
             {
                 placeId,
@@ -618,12 +620,11 @@ public class WebController : ControllerBase
                     Thumbnail = new
                     {
                         IsFinal = true,
-                        Url = "/Thumbs/Avatar-Headshot.ashx?userid=" + c.userId,
-                    },
-                }),
+                        Url = "/Thumbs/Avatar-Headshot.ashx?userid=" + c.userId
+                    }
+                })
             });
         }
-
         return new
         {
             PlaceId = placeId,
