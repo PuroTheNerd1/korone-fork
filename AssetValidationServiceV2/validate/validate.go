@@ -36,6 +36,50 @@ func IsItemValid(reader io.Reader) bool {
 	return len(services) == 0
 }
 
+func IsModelValid(reader io.Reader) bool {
+	file, err := LoadFile(reader)
+	if err != nil {
+		log.Println("Invalid model file:", err)
+		return false
+	}
+
+	for _, inst := range file.Instances {
+		if inst.IsService {
+			log.Printf("Invalid model: contains service %q\n", inst.ClassName)
+			return false
+		}
+	}
+
+	childSet := make(map[*rbxfile.Instance]struct{})
+	for _, inst := range file.Instances {
+		for _, child := range inst.Children {
+			childSet[child] = struct{}{}
+		}
+	}
+
+	rootModels := []*rbxfile.Instance{}
+	for _, inst := range file.Instances {
+		if inst.ClassName == "Model" {
+			if _, isChild := childSet[inst]; !isChild {
+				rootModels = append(rootModels, inst)
+			}
+		}
+	}
+
+	if len(rootModels) != 1 {
+		log.Printf("Invalid model: expected exactly 1 root Model, found %d\n", len(rootModels))
+		return false
+	}
+
+	root := rootModels[0]
+	if len(root.Children) == 0 {
+		log.Println("Invalid model: root Model has no children.")
+		return false
+	}
+
+	return true
+}
+
 func IsGameValid(reader io.Reader) bool {
 	file, err := LoadFile(reader)
 	if err != nil {

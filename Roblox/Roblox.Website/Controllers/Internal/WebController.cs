@@ -1072,7 +1072,7 @@ public class WebController : ControllerBase
     private async Task<CreateResponse> UploadModel(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         stream.Position = 0;
-        if (!await services.assets.RobloxFileValidation(stream))
+        if (!await services.assets.ValidateAssetFile(stream, Models.Assets.Type.Model))
         {
             throw new BadRequestException(0, "Bad model file");
         }

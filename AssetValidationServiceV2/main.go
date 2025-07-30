@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -7,6 +6,7 @@ import (
 	"log"
 	"sync"
 	"time"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -56,7 +56,7 @@ func main() {
 		beforeValidation()
 		log.Println("ClientReached")
 		defer afterValidation()
-		
+
 		body := c.Body()
 		log.Println("validating place with size=", len(body))
 		nReader := bytes.NewReader(body)
@@ -79,5 +79,17 @@ func main() {
 		})
 	})
 
+	app.Post("/api/v1/validate-model", func(c *fiber.Ctx) error {
+		beforeValidation()
+		defer afterValidation()
+
+		body := c.Body()
+		log.Println("validating model with size=", len(body))
+		nReader := bytes.NewReader(body)
+		isOk := validate.IsModelValid(nReader)
+		return c.Status(200).JSON(ValidationResponse{
+			IsValid: isOk,
+		})
+	})
 	log.Fatal(app.Listen(":4300"))
 }

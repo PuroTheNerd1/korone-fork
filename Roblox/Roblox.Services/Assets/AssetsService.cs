@@ -411,17 +411,21 @@ public class AssetsService : ServiceBase, IService
                 {
                     url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-place";
                 }
+                else if (assetType == Type.Model)
+                {
+                    url = Configuration.AssetValidationServiceUrl + "/api/v1/validate-model";
+                }
 
                 using (var response = await assetValidationClient.PostAsync(url, content))
-                {
-                    if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception("Got failure response from assetValidationService. Code = " + response.StatusCode);
-                    }
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            throw new Exception("Got failure response from assetValidationService. Code = " + response.StatusCode);
+                        }
 
-                    var result = JsonSerializer.Deserialize<AssetValidationResponse>(await response.Content.ReadAsStringAsync());
-                    return result?.isValid == true;
-                }
+                        var result = JsonSerializer.Deserialize<AssetValidationResponse>(await response.Content.ReadAsStringAsync());
+                        return result?.isValid == true;
+                    }
             }
         }
         catch (Exception e)
