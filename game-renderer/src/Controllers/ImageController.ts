@@ -14,7 +14,7 @@ import {Imager} from "../Utilities/Libraries/Imager.js";
 import Resp from "../Utilities/Libraries/Resp.js";
 
 const router = express.Router();
-const box = new QueueBox<any>(`ImageBox`, Config.Ports.RCC.Player);
+const box = new QueueBox<any>(`ImageBox`, Config.Ports.RCC.Image);
 
 router.post("/image", Valid(AssetRenderRequest), async (req, res) => {
     const assetUrl = `${Config.BaseUrl}/v1/asset?id=${req.body.assetId}`;
