@@ -57,47 +57,61 @@ func IsModelValid(reader io.Reader) bool {
 		}
 	}
 
-	rootModels := []*rbxfile.Instance{}
+	var rootModels []*rbxfile.Instance
+	var rootScripts []*rbxfile.Instance
+
 	for _, inst := range file.Instances {
-		if inst.ClassName == "Model" {
-			if _, isChild := childSet[inst]; !isChild {
-				rootModels = append(rootModels, inst)
-			}
+		if _, isChild := childSet[inst]; isChild {
+			continue
 		}
-	}
 
-	if len(rootModels) != 1 {
-		log.Printf("Invalid model: expected exactly 1 root Model, found %d\n", len(rootModels))
-		return false
-	}
-
-	root := rootModels[0]
-	if len(root.Children) == 0 {
-		log.Println("Invalid model: root Model has no children.")
-		return false
-	}
-
-	validClasses := map[string]bool{
-		"Part":               true,
-		"MeshPart":           true,
-		"SpecialMesh":        true,
-		"Sky":                true,
-		"LuaSourceContainer": true,
-		"Script":             true,
-		"LocalScript":        true,
-		"ModuleScript":       true,
-		"Decal":              true,
-		"Texture":            true,
-	}
-
-	for _, child := range root.Children {
-		if !validClasses[child.ClassName] && child.ClassName != "Model" {
-			log.Printf("Invalid model: unsupported child class %q in root model.\n", child.ClassName)
+		switch inst.ClassName {
+		case "Model":
+			rootModels = append(rootModels, inst)
+		case "Script", "LocalScript", "ModuleScript":
+			rootScripts = append(rootScripts, inst)
+		default:
+			log.Printf("Invalid model: unsupported top-level instance class %q\n", inst.ClassName)
 			return false
 		}
 	}
 
-	return true
+	if len(rootScripts) == 1 && len(rootModels) == 0 {
+		return true
+	}
+
+	if len(rootModels) == 1 && len(rootScripts) == 0 {
+		root := rootModels[0]
+		if len(root.Children) == 0 {
+			log.Println("Invalid model: root Model has no children.")
+			return false
+		}
+
+		validClasses := map[string]bool{
+			"Part":               true,
+			"MeshPart":           true,
+			"SpecialMesh":        true,
+			"Sky":                true,
+			"LuaSourceContainer": true,
+			"Script":             true,
+			"LocalScript":        true,
+			"ModuleScript":       true,
+			"Decal":              true,
+			"Texture":            true,
+		}
+
+		for _, child := range root.Children {
+			if !validClasses[child.ClassName] && child.ClassName != "Model" {
+				log.Printf("Invalid model: unsupported child class %q in root model.\n", child.ClassName)
+				return false
+			}
+		}
+
+		return true
+	}
+
+	log.Printf("Invalid model: expected exactly 1 root Model or 1 root Script, found %d models and %d scripts.\n", len(rootModels), len(rootScripts))
+	return false
 }
 
 func IsGameValid(reader io.Reader) bool {
