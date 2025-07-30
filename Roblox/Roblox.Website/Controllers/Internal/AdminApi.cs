@@ -7,13 +7,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Dynamic;
-using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Dapper;
-using Dapper.Contrib.Extensions;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using Roblox.Cache;
@@ -41,8 +38,10 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Asset;
+using ServiceProvider = Roblox.Services.ServiceProvider;
 using Exception = System.Exception;
 using Type = Roblox.Models.Assets.Type;
+using Roblox.Services;
 // just to shut the compiler up
 #pragma warning disable CS8604
 // ReSharper disable InconsistentNaming
@@ -1048,6 +1047,11 @@ public class AdminApiController : ControllerBase
             rightLegColorId = 102,
             leftLegColorId = 102,
         }, AvatarType.R6, true, true);
+        using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
+        avatarCache.UnscheduleRender(request.userId);
+
+        await Services.Cache.distributed.KeyDeleteAsync(avatarCache.GetPendingAssetsKey(request.userId));
+        await Services.Cache.distributed.KeyDeleteAsync(avatarCache.GetPendingColorsKey(request.userId));
     }
     [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]
     public async Task<IEnumerable<dynamic>> GetUserBanHistory([Required, FromQuery] long userId)

@@ -9,7 +9,7 @@ public class AvatarCache : ServiceBase, IService
     private Mutex updatingMutex { get; } = new();
     private Dictionary<long, DateTime> updatedInfo { get; set; } = new();
 
-    private string GetPendingAssetsKey(long userId)
+    public string GetPendingAssetsKey(long userId)
     {
         return "AvatarCache:v1:PendingAssets:" + userId;
     }
@@ -33,7 +33,7 @@ public class AvatarCache : ServiceBase, IService
         await Cache.distributed.KeyDeleteAsync(GetPendingAssetsKey(userId));
     }
     
-    private string GetPendingColorsKey(long userId)
+    public string GetPendingColorsKey(long userId)
     {
         return "AvatarCache:v1:PendingColors:" + userId;
     }
