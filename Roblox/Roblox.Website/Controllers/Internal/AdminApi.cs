@@ -1047,7 +1047,7 @@ public class AdminApiController : ControllerBase
             leftArmColorId = 194,
             rightLegColorId = 102,
             leftLegColorId = 102,
-        }, AvatarType.R6);
+        }, AvatarType.R6, true, true);
     }
     [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]
     public async Task<IEnumerable<dynamic>> GetUserBanHistory([Required, FromQuery] long userId)

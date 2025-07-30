@@ -832,7 +832,7 @@ public class AvatarService : ServiceBase, IService {
 
     public async Task RedrawAvatar(long userId, IEnumerable<long>? newAssetIds = null, ColorEntry? colors = null,
         AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = false, 
-        bool? skipRender = false, BodyScales? scales = null)
+        bool skipRender = false, BodyScales? scales = null)
     {
         // required services
         using var assets = ServiceProvider.GetOrCreate<AssetsService>();
@@ -870,7 +870,7 @@ public class AvatarService : ServiceBase, IService {
             throw new RobloxException(400, 0, "One or more assets are invalid");
         // Now, update the avatar. This returns a hash
         var avatarHash = await UpdateUserAvatar(userId, colors, assetIds, scales, avatarType.Value);
-        if ((bool)skipRender) return;
+        if (skipRender) return;
         // We don't wanna waste time rendering if we don't have to
 
         // Get our image urls
@@ -1005,7 +1005,8 @@ public class AvatarService : ServiceBase, IService {
         }
     }
 
-    public async Task TryAsset(long userId, long assetId) {
+    public async Task TryAsset(long userId, long assetId)
+    {
     }
 
     public bool IsThreadSafe()
