@@ -77,6 +77,26 @@ func IsModelValid(reader io.Reader) bool {
 		return false
 	}
 
+	validClasses := map[string]bool{
+		"Part":               true,
+		"MeshPart":           true,
+		"SpecialMesh":        true,
+		"Sky":                true,
+		"LuaSourceContainer": true,
+		"Script":             true,
+		"LocalScript":        true,
+		"ModuleScript":       true,
+		"Decal":              true,
+		"Texture":            true,
+	}
+
+	for _, child := range root.Children {
+		if !validClasses[child.ClassName] && child.ClassName != "Model" {
+			log.Printf("Invalid model: unsupported child class %q in root model.\n", child.ClassName)
+			return false
+		}
+	}
+
 	return true
 }
 
