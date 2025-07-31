@@ -298,14 +298,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("marketplace/validatepurchase")]
         public async Task<ReceiptResponse> ValidatePurchase(Guid receipt)
         {
-            Console.WriteLine(Request.Method);
-            if (!isRoblox || 
-                !Request.Headers.ContainsKey("Requester") ||
-                !Request.Headers.ContainsKey("Roblox-Place-Id") ||
-                !long.TryParse(Request.Headers["Roblox-Place-Id"], out _)
-                )
-                throw new UnauthorizedException();
-            
+            Console.WriteLine($"RCC: {isRCC}, {receipt}");
             var userId = safeUserSession.userId;
             // var rawRequestBody = await new StreamReader(Request.Body).ReadToEndAsync();
             // if (!rawRequestBody.Equals("GameServerVerifyPurchase"))
@@ -373,7 +366,7 @@ namespace Roblox.Website.Controllers
             // if (receipt == null)
             //     throw new BadRequestException(0, "Receipt is invalid or does not exist.");
             // await services.games.ProcessProductReceipt(receiptId);
-            Console.WriteLine($"RCC: {isRCC}, {GetRequestBody()}");
+            Console.WriteLine($"RCC: {isRCC}, {await GetRequestBody()}");
             return new
             {
                 success = true
