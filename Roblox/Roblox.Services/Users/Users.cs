@@ -1649,7 +1649,7 @@ public class UsersService : ServiceBase, IService
         });
     }
     
-    public async Task<string> PurchaseDeveloperProduct(long userIdBuyer, long productId)
+    public async Task<Guid> PurchaseDeveloperProduct(long userIdBuyer, long productId)
     {
         using var log = Writer.CreateWithId(LogGroup.ItemPurchase);
         log.Info($"PurchaseDeveloperProduct start. buyer={userIdBuyer} productId={productId}");
@@ -1729,13 +1729,13 @@ public class UsersService : ServiceBase, IService
                 productDetails.creatorId, CurrencyType.Robux, realPrice, productDetails.name));
             log.Info("created sellerTransaction {0}", sellerTransaction);
 
-            var transactionId = Guid.NewGuid();
+            Guid transactionId = Guid.NewGuid();
 
             await games.IncrementDevProdSales(productId);
             await games.CreateProductReceipt(transactionId, userIdBuyer, productId, realPrice);
             log.Info("PurchaseDeveloperProduct success");
 
-            return log.GetId();
+            return transactionId;
         });
     }
     
