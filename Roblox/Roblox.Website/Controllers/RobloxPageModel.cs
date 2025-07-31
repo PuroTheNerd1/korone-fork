@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Roblox.Models.Sessions;
 using Roblox.Website.Controllers;
@@ -31,16 +32,17 @@ public class RobloxPageModel : PageModel
             return Request.Headers["Exposed-Credential-Check"].ToString() == "4";
         }
     }
-    protected string? discordSession
+    protected string? discordAccessToken
     {
         get
         {
             string key = "PEKORA-DISCORD";
-            if (!HttpContext.Request.Cookies.ContainsKey(key))
+            var tokenEncoded = Request.Headers.ContainsKey(key) ? Request.Headers[key].ToString() : null;
+            if (tokenEncoded == null)
             {
                 return null;
             }
-            return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(tokenEncoded));
         }
     }
     public bool isAuthenticated => userSession != null;

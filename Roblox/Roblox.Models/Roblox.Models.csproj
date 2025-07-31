@@ -8,10 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="SixLabors.ImageSharp" Version="2.1.10" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Roblox.Configuration\Roblox.Configuration.csproj" />
     </ItemGroup>
 

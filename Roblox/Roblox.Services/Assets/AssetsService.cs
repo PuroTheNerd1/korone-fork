@@ -1697,7 +1697,7 @@ public class AssetsService : ServiceBase, IService
         });
     }
 
-    [Obsolete("Use UpdateAssetMarketInfo() without the price to update product data, or SetItemPrice to set the price")]
+    //[Obsolete("Use UpdateAssetMarketInfo() without the price to update product data, or SetItemPrice to set the price")]
     public async Task UpdateAssetMarketInfo(long assetId, bool isForSale, bool isLimited, bool isLimitedUnique,
         int? price, int? maxCopies, DateTime? offsaleDeadline)
     {

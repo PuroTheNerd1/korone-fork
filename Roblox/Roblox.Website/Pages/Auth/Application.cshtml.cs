@@ -104,11 +104,23 @@ public class Application : RobloxPageModel
 
     public async Task<IActionResult> OnGet()
     {
-        if (discordSession == null)
+        try
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.ApplicationsEnabled);
+        }
+        catch (RobloxException)
+        {
+            errorMessage = "Application submission is temporarily disabled at this time. Try again in a few hours.";
+            submitDisabled = true;
+            return new PageResult();
+        }
+
+        if (discordAccessToken == null)
         {
             return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
         }
-        DiscordApi discordOAuth = new(discordSession, true, $"https://www.{Configuration.BaseUrl}/api/applicationcallback");
+
+        DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
         var info = await discordOAuth.GetUserInfo();
         if (info == null)
         {
@@ -132,16 +144,6 @@ public class Application : RobloxPageModel
         await ApplyBanner();
         await ApplyApplication();
 
-        try
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.ApplicationsEnabled);
-        }
-        catch (RobloxException)
-        {
-            errorMessage = "Application submission is temporarily disabled at this time. Try again in a few hours.";
-            submitDisabled = true;
-            return new PageResult();
-        }
 
         if (await ShouldDisableSubmissions())
         {
@@ -155,12 +157,23 @@ public class Application : RobloxPageModel
 
     public async Task<IActionResult> OnPost()
     {
+        try
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.ApplicationsEnabled);
+        }
+        catch (RobloxException)
+        {
+            errorMessage = "Application submission is temporarily disabled at this time. Try again in a few hours.";
+            submitDisabled = true;
+            return new PageResult();
+        }
+
         var apps = new ApplicationWebsiteService(HttpContext);
-        if (discordSession == null)
+        if (discordAccessToken == null)
         {
             return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
         }
-        DiscordApi discordOAuth = new(discordSession, true, $"https://www.{Configuration.BaseUrl}/api/applicationcallback");
+        DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
         var info = await discordOAuth.GetUserInfo();
         if (info == null)
         {
@@ -247,7 +260,7 @@ public class Application : RobloxPageModel
         {
             userId = await services.robloxApi.GetUserIdByUsername(robloxUsername);
         }
-        catch(Exception e) 
+        catch(Exception) 
         {
             errorMessage = "We couldn't find your account on Roblox.";
             return new PageResult();

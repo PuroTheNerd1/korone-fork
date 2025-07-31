@@ -541,7 +541,7 @@ public class UniverseV1 : ControllerBase
                 var user = userInfo.FirstOrDefault(u => u.id == c.subjectId);
                 return new
                 {
-                    userId = user.id,
+                    userId = user!.id,
                     userName = user.displayName,
                     action = c.action,
                     allowedPermissions = "Play,Edit"

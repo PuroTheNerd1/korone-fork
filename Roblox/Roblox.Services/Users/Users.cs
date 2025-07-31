@@ -160,7 +160,7 @@ public class UsersService : ServiceBase, IService
     {
         string? info = await redis.StringGetAsync(ticket);
         if (info == null) throw new RecordNotFoundException();
-        return JsonSerializer.Deserialize<TwoFactorTicket>(info);
+        return JsonSerializer.Deserialize<TwoFactorTicket>(info)!;
     }
     public async Task DeleteTicket(string ticket)
     {
@@ -170,7 +170,7 @@ public class UsersService : ServiceBase, IService
     {
         string? info = await redis.StringGetAsync(ticket);
         if (info == null) throw new RecordNotFoundException();
-        return JsonSerializer.Deserialize<LoginTicet>(info);
+        return JsonSerializer.Deserialize<LoginTicet>(info)!;
     }
     public async Task<string> GenerateLoginTicket(LoginTicet info)
     {

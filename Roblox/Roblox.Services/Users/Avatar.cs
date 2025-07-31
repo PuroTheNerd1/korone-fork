@@ -1023,9 +1023,9 @@ public class AvatarService : ServiceBase, IService {
 
     }
 
-    public async Task TryAsset(long userId, long assetId)
-    {
-    }
+    // public async Task TryAsset(long userId, long assetId)
+    // {
+    // }
 
     public bool IsThreadSafe()
     {

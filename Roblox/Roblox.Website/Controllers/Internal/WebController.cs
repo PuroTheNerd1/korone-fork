@@ -1,7 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Web;
 using Roblox.Dto.Assets;
 using Roblox.Exceptions;
 using Roblox.Libraries.Assets;
@@ -14,20 +15,9 @@ using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Catalog;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Png;
-using Type = System.Type;
-using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
-using Roblox.Exceptions.Services.Users;
 using Roblox.Libraries.DiscordApi;
 using Roblox.Models.Db;
 using DSharpPlus;
-using DSharpPlus.Net;
-using Roblox.Logging;
-using Roblox.Website.Pages.Auth;
-using DSharpPlus.Entities;
-using InfluxDB.Client.Api.Domain;
 
 namespace Roblox.Website.Controllers;
 
@@ -67,22 +57,28 @@ public class WebController : ControllerBase
         // If we already have a session lets redirect
         if (userSession != null)
             return Redirect("/home");
-        var discordOAuth = new DiscordApi(code, false, $"https://www.{Configuration.ShortBaseUrl}/api/logincallback");
-        var discordUserInfo = await discordOAuth.GetUserInfo();
-        // Failed to login or no user info
-        if (discordUserInfo == null)
+
+        var discordApi = await DiscordApi.CreateFromOAuthCode(code, Configuration.DiscordLoginCallback);
+        if (discordApi == null)
         {
             return Content("Login via discord has failed, please try logging in normally");
         }
+        var userInfo = await discordApi.GetUserInfo();
+        // Failed to login or no user info
+        if (userInfo == null)
+        {
+            return Content("Login via discord has failed, please try logging in normally");
+        }
+
         Dto.Users.UserInfo user;
         try
         {
-            user = await services.users.GetUserByDiscordId(discordUserInfo.Id.ToString());
+            user = await services.users.GetUserByDiscordId(userInfo.Id.ToString());
         }
         // there is no account tied to the discord id this can either mean they havent linked their account or there is no account made
         catch (RecordNotFoundException)
         {
-            await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, discordUserInfo.Id.ToString(), discordOAuth.accessToken);
+            await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordApi.AccessToken);
             return Content("We couldn't find a pekora account relating to this account, we have automatically joined the Pekora discord server for you so you can register an account or link it!");
         }
 
@@ -105,30 +101,35 @@ public class WebController : ControllerBase
         // We have logged in time to redirect
         return Redirect("/home");
     }
+
     [HttpGetBypass("api/applicationcallback")]
     public async Task<IActionResult> DiscordOAuthCallback(string code)
     {
-        string key = "PEKORA-DISCORD";
-        DiscordApi discordOAuth;
-        // the user already has a discord session lets check if its valid
-        if (discordSession != null)
+        const string key = "PEKORA-DISCORD";
+        // Delete any old sessions
+        if (discordAccessToken != null)
         {
-            discordOAuth = new(discordSession, true, $"https://www.{Configuration.ShortBaseUrl}/api/applicationcallback");
-            // session waas not valid lets delete the cookies
-            if (!await discordOAuth.IsValid())
-            {
-                HttpContext.Response.Cookies.Delete(key);
-            }
-            Writer.Info(LogGroup.DiscordApi, "Session {0} was valid redirecting", discordSession);
-            return Redirect("/auth/application");
+            HttpContext.Response.Cookies.Delete(key);
         }
-        // No session was found lets create a new Discord client
-        discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/api/applicationcallback");
-        string session = Guid.NewGuid().ToString();
-        // Set the newly created access token in redis
-        Writer.Info(LogGroup.DiscordApi, "Access key: {0}, expire time {1}", discordOAuth.accessToken, discordOAuth.expiresIn);
-        await Services.Cache.distributed.StringSetAsync(key + ":" + session, discordOAuth.accessToken, TimeSpan.FromSeconds(604800));
-        HttpContext.Response.Cookies.Append(key, session, new CookieOptions
+
+        var discordApi = await DiscordApi.CreateFromOAuthCode(code, Configuration.DiscordApplicationCallback);
+        if (discordApi == null)
+        {
+            return Content("Login via discord has failed, please try logging in normally");
+        }
+
+        var userInfo = await discordApi.GetUserInfo();
+        if (userInfo == null)
+        {
+            return Content("Please try again later");
+        }
+
+        await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordApi.AccessToken);
+        // We store the access token as base64 in a cookie so we can use it later to get the user info
+        // This shouldnt be a problem :D
+        string base64AccessToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(discordApi.AccessToken));
+        
+        HttpContext.Response.Cookies.Append(key, base64AccessToken, new CookieOptions
         {
             IsEssential = true,
             Path = "/",

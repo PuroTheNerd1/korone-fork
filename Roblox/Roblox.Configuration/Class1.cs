@@ -48,6 +48,9 @@ public static class Configuration
             return Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
         }
     }
+    public static string DiscordApplicationCallback { get; set; }
+    public static string DiscordLoginCallback { get; set; }
+    public static string DiscordLinkCallback { get; set; }
     public static IEnumerable<GameServerConfigEntry> GameServerIpAddresses { get; set; }
     public static string GameServerAuthorization { get; set; }
     public static string RobloxAppPrefix { get; set; } = "rbxeconsim:";

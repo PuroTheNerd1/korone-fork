@@ -12,9 +12,9 @@ namespace Roblox.Website.Controllers
     {
         [BotAuthorization]
         [HttpGetBypass("bot/generatecode")]
-        public async Task<string> GenerateLinkCode()
+        public string GenerateLinkCode()
         {
-            return $"Head to https://www.{Configuration.ShortBaseUrl}/bot/verify to link your account";
+            return $"Head to {Configuration.BaseUrl}/bot/verify to link your account";
         }
         
         [HttpGetBypass("bot/verify")]
@@ -29,15 +29,21 @@ namespace Roblox.Website.Controllers
             {
                 return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fbot%2Fverify&scope=identify+guilds.members.read+guilds.join");
             }
-            DiscordApi discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/bot/verify");
-            var userInfo = await discordOAuth.GetUserInfo();
+            var discordApi = await DiscordApi.CreateFromOAuthCode(code, Configuration.DiscordLinkCallback);
+            if (discordApi == null)
+            {
+                return "An error occurred while trying to link your account. Please try again later.";
+            }
+            
+            var userInfo = await discordApi.GetUserInfo();
             if (userInfo == null)
             {
                 return "Invalid Discord Account";
             }
+
             await services.users.LinkDiscordAccount(userInfo.Id.ToString(), safeUserSession.userId);
             // just incase
-            await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordOAuth.accessToken);
+            await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordApi.AccessToken);
             return "You have linked your account to Pekora";
         }
     }

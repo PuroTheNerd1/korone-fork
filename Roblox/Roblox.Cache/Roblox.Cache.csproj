@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="SixLabors.ImageSharp" Version="2.1.10" />
       <PackageReference Include="StackExchange.Redis" Version="2.6.48" />
     </ItemGroup>
 

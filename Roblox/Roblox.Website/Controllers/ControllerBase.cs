@@ -63,16 +63,17 @@ namespace Roblox.Website.Controllers
                 return Request.Headers["User-Agent"].ToString().ToLower().Contains("roblox");
             }
         }
-        protected string? discordSession
+        protected string? discordAccessToken
         {
             get
             {
                 string key = "PEKORA-DISCORD";
-                if (!HttpContext.Request.Cookies.ContainsKey(key))
+                var tokenEncoded = Request.Headers.ContainsKey(key) ? Request.Headers[key].ToString() : null;
+                if (tokenEncoded == null)
                 {
                     return null;
                 }
-                return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
+                return Convert.ToBase64String(Encoding.UTF8.GetBytes(tokenEncoded));
             }
         }
         public string currentGameId

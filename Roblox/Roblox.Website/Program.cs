@@ -49,10 +49,14 @@ Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value;
 Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https://www.", "");
 Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value;
 Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value;
+// Discord OAuth related Stuff
 Roblox.Configuration.DiscordClientId = configuration.GetSection("Discord:ClientId").Value;
 Roblox.Configuration.DiscordClientSecret = configuration.GetSection("Discord:ClientSecret").Value;
 Roblox.Configuration.DiscordGuildId = configuration.GetSection("Discord:GuildId").Value;
 Roblox.Configuration.DiscordBotToken = configuration.GetSection("Discord:BotToken").Value;
+Roblox.Configuration.DiscordApplicationCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:ApplicationCallback").Value;
+Roblox.Configuration.DiscordLoginCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:LoginCallback").Value;
+Roblox.Configuration.DiscordLinkCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:LinkCallback").Value;
 Roblox.Configuration.GameServerAuthorization = configuration.GetSection("GameServerAuthorization").Value;
 Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value;
 Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value;
