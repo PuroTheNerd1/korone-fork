@@ -188,7 +188,8 @@ namespace Roblox.Website.Controllers
 
         // look for dev prod, if not, look for normal asset, if not 400
         [HttpGetBypass("marketplace/productdetails")]
-        public async Task<dynamic> GetProductDetailsMarketplace(long productId) {
+        public async Task<dynamic> GetProductDetailsMarketplace(long productId)
+        {
             // based off of
             // https://web.archive.org/web/20220707014309/https://api.roblox.com/marketplace/productDetails?productId=19804017
             // and
@@ -261,9 +262,9 @@ namespace Roblox.Website.Controllers
 
             details = await services.assets.GetAssetCatalogInfo(gamePassId);
 
-            if (details.assetType != Type.GamePass) {
+            if (details.assetType != Type.GamePass)
                 throw new BadRequestException(0, "Asset " + gamePassId + " is not a Game Pass");
-            }
+            
 
             var gamePassDetails = await services.games.GetGamePassInfo(gamePassId);
             return new
