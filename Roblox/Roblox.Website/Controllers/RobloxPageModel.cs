@@ -36,13 +36,13 @@ public class RobloxPageModel : PageModel
     {
         get
         {
-            string key = "PEKORA-DISCORD";
+            const string key = "PEKORA-DISCORD";
             var tokenEncoded = Request.Headers.ContainsKey(key) ? Request.Headers[key].ToString() : null;
             if (tokenEncoded == null)
             {
                 return null;
             }
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(tokenEncoded));
+            return Encoding.UTF8.GetString(Convert.FromBase64String(tokenEncoded));
         }
     }
     public bool isAuthenticated => userSession != null;
