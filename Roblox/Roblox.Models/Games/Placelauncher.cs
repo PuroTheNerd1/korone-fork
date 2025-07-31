@@ -7,7 +7,7 @@ public class PlaceLaunchRequest
 {
     public string? request { get; set; } = "RequestGame";
     public long placeId { get; set; }
-    public string? gameId { get; set; } = null;
+    public Guid? gameId { get; set; } = null;
     public bool? isPartyLeader { get; set; } = false;
     public bool? isTeleport { get; set; } = false;
     public string? accessCode { get; set; }
@@ -22,7 +22,7 @@ public class PlaceLaunchRequest
 public class PlaceLaunchResponse
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? jobId { get; set; }
+    public Guid? jobId { get; set; }
     public int status { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? joinScriptUrl { get; set; }

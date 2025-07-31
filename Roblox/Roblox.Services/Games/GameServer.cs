@@ -231,7 +231,7 @@ public class GameServerService : ServiceBase
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
             using var cooldown = ServiceProvider.GetOrCreate<CooldownService>(this);
             // Per 100 users there is a 1 day cooldown to earn tickets from visits
-            if (await cooldown.TryIncrementBucketCooldown("TicketCreatorPlaceVisit:" + placeId, 100, TimeSpan.FromDays(1)));
+            if (await cooldown.TryIncrementBucketCooldown("TicketCreatorPlaceVisit:" + placeId, 100, TimeSpan.FromDays(1)))
             {
                 if (placeDetails.creatorType == CreatorType.Group)
                 {

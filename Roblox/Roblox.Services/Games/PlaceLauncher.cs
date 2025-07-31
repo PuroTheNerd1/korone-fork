@@ -33,7 +33,7 @@ public class PlaceLauncherService : ServiceBase
             case "RequestGameJob":
                 if (plRequest.gameId == null)
                     throw new BadRequestException("Game Id is missing");
-                return await RequestGameJob((long)plRequest.userId, plRequest.gameId, plRequest.placeId);
+                return await RequestGameJob((long)plRequest.userId, (Guid)plRequest.gameId, plRequest.placeId);
             case "RequestGame":
                 return await RequestGame(plRequest.placeId, (long)plRequest.userId, plRequest.cookie, plRequest.special, plRequest.username);
             case "CloudEdit":
@@ -49,7 +49,7 @@ public class PlaceLauncherService : ServiceBase
         };
     }
 
-    public async Task<PlaceLaunchResponse> RequestGameJob(long userId, string gameId, long placeId)
+    public async Task<PlaceLaunchResponse> RequestGameJob(long userId, Guid gameId, long placeId)
     {
         var server = await gameServer.GetGameServer(gameId);
         if (server == null)
@@ -62,7 +62,7 @@ public class PlaceLauncherService : ServiceBase
         }
         // Create security ticket for the player
         using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
-        await playerSecurity.CreatePlayerTicket(userId, server.id.ToString());
+        await playerSecurity.CreatePlayerTicket(userId, server.id);
 
         if (await games.IsFull(gameId, placeId))
         {
@@ -115,7 +115,7 @@ public class PlaceLauncherService : ServiceBase
 
             string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
-            string clientTicket =  sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
+            string clientTicket =  sign.GenerateClientTicket(placeInfo.year, userId, username!, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
             joinScript = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
 
         }
