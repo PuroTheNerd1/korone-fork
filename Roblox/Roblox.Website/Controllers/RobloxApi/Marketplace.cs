@@ -259,28 +259,24 @@ namespace Roblox.Website.Controllers
             // https://web.archive.org/web/20211201073809/https://api.roblox.com/marketplace/game-pass-product-info?gamePassId=12828275
             MultiGetEntry details;
 
-            try {
-                details = await services.assets.GetAssetCatalogInfo(gamePassId);
-            }
-            catch (RecordNotFoundException e) {
-                throw new BadRequestException(0, "Asset " + gamePassId + " does not exist");
-            }
+            details = await services.assets.GetAssetCatalogInfo(gamePassId);
 
             if (details.assetType != Type.GamePass) {
                 throw new BadRequestException(0, "Asset " + gamePassId + " is not a Game Pass");
             }
 
             var gamePassDetails = await services.games.GetGamePassInfo(gamePassId);
-            return new {
-                TargetId = details.id,
+            return new
+            {
+                TargetId = await services.games.GetRootPlaceId(gamePassDetails.First().universeId),
                 ProductType = "Game Pass",
                 AssetId = 0,
-                ProductId = await services.games.GetRootPlaceId(gamePassDetails.First()
-                    .universeId), // root place id of gamepass
+                ProductId = details.id,
                 Name = details.name,
                 Description = details.description,
-                AssetTypeId = 0, // idk why roblox didnt put the id, but just incase: (int)details.assetType
-                Creator = new {
+                AssetTypeId = (int)details.assetType, 
+                Creator = new
+                {
                     Id = details.creatorTargetId,
                     Name = details.creatorName,
                     CreatorType = details.creatorType,
@@ -304,7 +300,8 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("marketplace/validatepurchase")]
-        public async Task<ReceiptResponse> ValidatePurchase(string receiptId) {
+        public async Task<ReceiptResponse> ValidatePurchase(string receiptId)
+        {
             Console.WriteLine(Request.Method);
             if (!isRoblox || 
                 !Request.Headers.ContainsKey("Requester") ||
@@ -342,21 +339,21 @@ namespace Roblox.Website.Controllers
         }
         
         [HttpGetBypass("gametransactions/getpendingtransactions")]
-        public async Task<dynamic> GetPendingTransactions(long PlaceId, long PlayerId)
+        public async Task<dynamic> GetPendingTransactions(long placeId, long playerId)
         {
             if (!isRCC)
                 throw new UnauthorizedException();
 
-            var universeId = await services.games.GetUniverseId(PlaceId);
-            var pendingReceipt = await services.games.GetSingleProcessingProductReceipt(PlayerId, universeId);
+            var universeId = await services.games.GetUniverseId(placeId);
+            var pendingReceipt = await services.games.GetSingleProcessingProductReceipt(playerId, universeId);
             if (pendingReceipt is null)
                 return Array.Empty<dynamic>();
             
             await services.games.ProcessProductReceipt(pendingReceipt.id);
             return new[] {
                 new {
-                    playerId = PlayerId,
-                    placeId = PlaceId,
+                    playerId,
+                    placeId,
                     receipt = pendingReceipt.id,
                     actionArgs = new List<dynamic>
                     {

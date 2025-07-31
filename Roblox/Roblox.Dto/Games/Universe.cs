@@ -383,7 +383,8 @@ public class UpdateDevProductRequest {
     public long PriceInRobux { get; set; }
 }
 
-public class ProductReceipt {
+public class ProductReceipt
+{
     public Guid id { get; set; }
     public long userId { get; set; }
     public long productId { get; set; }
