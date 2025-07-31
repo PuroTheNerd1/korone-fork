@@ -1686,10 +1686,7 @@ public class UsersService : ServiceBase, IService
             var userBalance = await ec.GetUserBalance(userIdBuyer);
             var balance = userBalance.robux;
             var realPrice = productDetails.price;
-            // Null means not for sale
-            if (realPrice == null)
-                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductPriceIsNull);
-
+            
             if (realPrice < 0)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductPriceLessThanZero);
 
@@ -1705,7 +1702,6 @@ public class UsersService : ServiceBase, IService
             if (realPrice != 0)
             {
                 // Subtract price from buyer
-                Debug.Assert(realPrice != null && realPrice > 0);
                 await ec.DecrementCurrency(CreatorType.User, userIdBuyer, CurrencyType.Robux, productDetails.price);
                 log.Info("currency is {0}", CurrencyType.Robux);
                 log.Info("subtracted amount from buyer. price = {0}", productDetails.price);
