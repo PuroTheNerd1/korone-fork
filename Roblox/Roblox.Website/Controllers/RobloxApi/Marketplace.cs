@@ -305,9 +305,7 @@ namespace Roblox.Website.Controllers
 
             var productReceipt = await services.games.GetProductReceipt(receipt);
             if (productReceipt == null)
-            {
                 throw new BadRequestException(0, "Receipt is invalid or does not exist.");
-            }
 
             return new ReceiptResponse
             {
@@ -374,7 +372,6 @@ namespace Roblox.Website.Controllers
 
             await services.games.ProcessProductReceipt(receiptId);
 
-            Console.WriteLine($"settransactionstatuscomplete RCC: {isRCC}, {receiptId}");
             return new
             {
                 success = true

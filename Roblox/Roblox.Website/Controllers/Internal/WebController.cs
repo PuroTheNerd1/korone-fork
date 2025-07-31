@@ -599,7 +599,6 @@ public class WebController : ControllerBase
         servers = servers.OrderByDescending(s => s.players.Count()).ToList();
         foreach (var server in servers)
         {
-            var jobId = server.id;
             var players = server.players.ToList();
             long ping = await services.gameServer.GetServerStat(server.id);
 
@@ -612,7 +611,7 @@ public class WebController : ControllerBase
                 ShowSlowGameMessage = ping > 200,
                 UserCanJoin = true, // todo: false if vip server
                 ShowShutdownButton = details.builderId == safeUserSession.userId,
-                jobId,
+                jobId = server.id,
                 FriendsMouseover = "",
                 FriendsDescription = "",
                 PlayersCapacity = $"{players.Count} of {details.maxPlayerCount}",
