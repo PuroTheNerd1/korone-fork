@@ -8,6 +8,7 @@ using Roblox.Services.App.FeatureFlags;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
+using Roblox.Logging;
 
 namespace Roblox.Website.Controllers 
 {
@@ -295,7 +296,7 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("marketplace/validatepurchase")]
-        public async Task<ReceiptResponse> ValidatePurchase(Guid receiptId)
+        public async Task<ReceiptResponse> ValidatePurchase(Guid receipt)
         {
             Console.WriteLine(Request.Method);
             if (!isRoblox || 
@@ -309,15 +310,15 @@ namespace Roblox.Website.Controllers
             // var rawRequestBody = await new StreamReader(Request.Body).ReadToEndAsync();
             // if (!rawRequestBody.Equals("GameServerVerifyPurchase"))
             //     throw new NotImplementedException("Not implemented. Request: " + rawRequestBody);
-
-            var receipt = await services.games.GetProductReceiptSecure(userId, receiptId);
+            Writer.Info(LogGroup.ItemPurchase, "Validating purchase for user {0} with receipt {1}", userId, receipt);
+            var productReceipt = await services.games.GetProductReceiptSecure(userId, receipt);
             
             return new ReceiptResponse
             {
                 playerId = userId,
                 placeId = long.Parse(Request.Headers["Roblox-Place-Id"]),
-                isValid = receipt != null,
-                productId = receipt!.productId,
+                isValid = productReceipt != null,
+                productId = productReceipt!.productId,
             };
         }
         
@@ -361,18 +362,18 @@ namespace Roblox.Website.Controllers
 
 
         [HttpPostBypass("gametransactions/settransactionstatuscomplete")]
-        public async Task<dynamic> ProcessTransaction([FromForm] string receiptStr)
+        public async Task<dynamic> ProcessTransaction()
         {
-            if (!isRCC)
-                throw new UnauthorizedException();
-            Guid receiptId;
-            if (!Guid.TryParse(receiptStr, out receiptId))
-                throw new BadRequestException(0, "Receipt is invalid or does not exist.");
-            var receipt = await services.games.GetProductReceipt(receiptId); // is this even necessary lol
-            if (receipt == null)
-                throw new BadRequestException(0, "Receipt is invalid or does not exist.");
-            await services.games.ProcessProductReceipt(receiptId);
-            
+            // if (!isRCC)
+            //     throw new UnauthorizedException();
+            // Guid receiptId;
+            // if (!Guid.TryParse(receiptStr, out receiptId))
+            //     throw new BadRequestException(0, "Receipt is invalid or does not exist.");
+            // var receipt = await services.games.GetProductReceipt(receiptId); // is this even necessary lol
+            // if (receipt == null)
+            //     throw new BadRequestException(0, "Receipt is invalid or does not exist.");
+            // await services.games.ProcessProductReceipt(receiptId);
+            Console.WriteLine($"RCC: {isRCC}, {GetRequestBody()}");
             return new
             {
                 success = true
