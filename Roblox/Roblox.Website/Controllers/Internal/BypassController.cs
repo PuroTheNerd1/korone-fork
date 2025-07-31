@@ -443,7 +443,7 @@ namespace Roblox.Website.Controllers
                 membership = "OutrageousBuildersClub";
             }
             string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
-            var joinScript = await services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
+            var joinScript = services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, ROBLOSECURITY);
 
             return services.games.SignJoinScript(placeInfo.year, joinScript);
         }
