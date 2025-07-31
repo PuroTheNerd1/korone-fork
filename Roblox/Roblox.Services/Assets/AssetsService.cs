@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Dapper;
 using FFMpegCore;
+using FFMpegCore.Enums;
 using Roblox.Dto;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Users;
@@ -503,57 +504,49 @@ public class AssetsService : ServiceBase, IService
 
     private static AsyncLimit audioConversionLimit { get; } = new("AudioConversionLimit", 5);
 
-    public async Task<Stream> GetAudioContentAsWav(long assetId, string contentUrl)
+    public async Task<Stream> GetAudioContentAsMp3(Stream inputStream)
     {
-        var fileName = Configuration.StorageDirectory + "/" + contentUrl + "_wav_cache_v1.wav";
-        if (File.Exists(fileName))
-        {
-            Writer.Info(LogGroup.AudioConversion, $"use cache for {assetId} - {contentUrl}");
-            return new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, default,
-                FileOptions.Asynchronous);
-        }
-        await using var limit = await audioConversionLimit.CreateAsync(TimeSpan.FromSeconds(10));
-        // files used because I couldn't get streaming/pipes working. hopefully temporary anyway
-        var tempFile = Path.GetTempFileName();
+        string tempInput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.tmp");
+        string tempOutput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp3");
 
         try
         {
-            var assetContent = await GetAssetContent(contentUrl);
-            assetContent.Position = 0;
-            Writer.Info(LogGroup.AudioConversion, "converting {0} to wav", assetId);
-
-            await using (var fs = File.OpenWrite(tempFile))
+            await using (var fileStream = File.Create(tempInput))
             {
-                assetContent.Seek(0, SeekOrigin.Begin);
-                await assetContent.CopyToAsync(fs);
+                inputStream.Seek(0, SeekOrigin.Begin);
+                await inputStream.CopyToAsync(fileStream);
             }
 
             await FFMpegArguments
-                .FromFileInput(tempFile)
-                .OutputToFile(fileName, true, options => options.WithAudioCodec("pcm_s16le"))
+                .FromFileInput(tempInput)
+                .OutputToFile(tempOutput, true, options => 
+                    options
+                        .WithAudioCodec("libmp3lame")
+                        .WithAudioBitrate(AudioQuality.Normal))
                 .ProcessAsynchronously();
 
-            return new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, default,
-                FileOptions.Asynchronous);
+            var memoryStream = new MemoryStream();
+            await using (var outputFileStream = File.OpenRead(tempOutput))
+            {
+                await outputFileStream.CopyToAsync(memoryStream);
+            }
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            return memoryStream;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            try
-            {
-                File.Delete(fileName);
-            }
-            catch (Exception deletionErr)
-            {
-                Writer.Info(LogGroup.AudioConversion, $"attempt to delete {fileName} after failed conversion but error: {deletionErr.Message}\n{deletionErr.StackTrace}");
-            }
-            Writer.Info(LogGroup.AudioConversion, "error converting audio to wav for game {0}\n{1}", e.Message, e.StackTrace);
+            Console.WriteLine($"[error] error converting audio to MP3: {ex.Message}\n");
             throw;
         }
         finally
         {
-            File.Delete(tempFile);
+            try { if (File.Exists(tempInput)) File.Delete(tempInput); } catch { }
+            try { if (File.Exists(tempOutput)) File.Delete(tempOutput); } catch { }
         }
     }
+
+
 
     public async Task<bool> Is18Plus(long assetId)
     {

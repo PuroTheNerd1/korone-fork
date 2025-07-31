@@ -921,11 +921,18 @@ public class WebController : ControllerBase
         {
             throw new BadRequestException(0, "Bad audio file. Error = " + isOk.ToString());
         }
+        stream.Position = 0;
+
+        Stream mp3Stream = await services.assets.GetAudioContentAsMp3(stream);
+        if (mp3Stream == null)
+            throw new BadRequestException(0, "Audio file is not a valid MP3");
+        mp3Stream.Position = 0;
+        
         // charge
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
         // create item
         var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
-            safeUserSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, mp3Stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
         return asset;
     }
     private async Task<CreateResponse> UploadImage(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
