@@ -341,7 +341,7 @@ public class Asset : ControllerBase
         
 
             // Let's get the gameserver associated with the current game
-            var gameServer = await services.gameServer.GetGameServer(currentGameId);
+            var gameServer = await services.gameServer.GetGameServer(Guid.Parse(currentGameId));
             var isAllowed = gameServer.assetId == assetId;
 
             Writer.Info(LogGroup.AssetDelivery, "RCC is requesting a place {0}, with game id {1}. Authorized: {2}", 

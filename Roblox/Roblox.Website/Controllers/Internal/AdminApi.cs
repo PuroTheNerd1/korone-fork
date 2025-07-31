@@ -537,7 +537,7 @@ public class AdminApiController : ControllerBase
             var gameServers = await services.gameServer.GetGameServersForPlace(assetInfo.id);
             foreach (var server in gameServers)
             {
-                await services.gameServer.ShutDownServerAsync(server.id.ToString());
+                await services.gameServer.ShutDownServerAsync(server.id);
             }
         }
         await services.assets.InsertAssetModerationLog(request.assetId, userSession.userId, newStatus);
@@ -2479,7 +2479,8 @@ Thank you for your understanding,
     [HttpPost("create-game"), StaffFilter(Access.CreateGameForUser)]
     public async Task<dynamic> CreateGame([Required, FromBody] UserIdRequest request)
     {
-        var asset = await services.assets.CreatePlace(request.userId, CreatorType.User, request.userId);
+        var username = (await services.users.GetUserById(request.userId)).username;
+        var asset = await services.assets.CreatePlace(request.userId, username, CreatorType.User, request.userId);
         var universe = await services.games.CreateUniverse(asset.placeId);
         return new
         {

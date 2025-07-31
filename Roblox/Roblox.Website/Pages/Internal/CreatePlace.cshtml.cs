@@ -251,43 +251,45 @@ public class CreatePlace : RobloxPageModel
         };
     }
 
-    public async Task OnPost() {
+    public async Task OnPost()
+    {
         return;
-        if (userSession == null)
-        {
-            errorMessage = "Not logged in.";
-            return;
-        }
+        //     if (userSession == null)
+        //     {
+        //         errorMessage = "Not logged in.";
+        //         return;
+        //     }
 
-        if (!FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService))
-        {
-            errorMessage = "Place creation is disabled globally at this time. Try again later.";
-            return;
-        }
+        //     if (!FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService))
+        //     {
+        //         errorMessage = "Place creation is disabled globally at this time. Try again later.";
+        //         return;
+        //     }
 
-        await using var createGameLock =
-            await Roblox.Services.Cache.redLock.CreateLockAsync("CreatePlaceSelfServiceV1:UserId:" + userSession.userId,
-                TimeSpan.FromSeconds(10));
+        //     await using var createGameLock =
+        //         await Roblox.Services.Cache.redLock.CreateLockAsync("CreatePlaceSelfServiceV1:UserId:" + userSession.userId,
+        //             TimeSpan.FromSeconds(10));
 
-        if (!createGameLock.IsAcquired)
-        {
-            Writer.Info(LogGroup.AbuseDetection, "CreatePlace OnPost could not acquire createGameLock");
-            errorMessage = "Too many attempts. Try again in a few seconds.";
-            return;
-        }
+        //     if (!createGameLock.IsAcquired)
+        //     {
+        //         Writer.Info(LogGroup.AbuseDetection, "CreatePlace OnPost could not acquire createGameLock");
+        //         errorMessage = "Too many attempts. Try again in a few seconds.";
+        //         return;
+        //     }
 
-        var createStatus = await CanCreatePlace(userSession.userId);
-        if (createStatus != PlaceCreationFailureReason.Ok)
-        {
-            errorMessage = GetMessage(createStatus);
-            return;
-        }
-        Writer.Info(LogGroup.AbuseDetection, "CreatePlace OnPost userId={0} can create a place, creating it", userSession.userId);
-        // create one!
-        var asset = await services.assets.CreatePlace(userSession.userId, CreatorType.User, userSession.userId);
-        // create universe too
-        await services.games.CreateUniverse(asset.placeId);
-        // give url
-        successUrl = "https://www.pekora.zip/internal/place-update?id=" + asset.placeId;
+        //     var createStatus = await CanCreatePlace(userSession.userId);
+        //     if (createStatus != PlaceCreationFailureReason.Ok)
+        //     {
+        //         errorMessage = GetMessage(createStatus);
+        //         return;
+        //     }
+        //     Writer.Info(LogGroup.AbuseDetection, "CreatePlace OnPost userId={0} can create a place, creating it", userSession.userId);
+        //     // create one!
+        //     var asset = await services.assets.CreatePlace(userSession.userId, CreatorType.User, userSession.userId);
+        //     // create universe too
+        //     await services.games.CreateUniverse(asset.placeId);
+        //     // give url
+        //     successUrl = "https://www.pekora.zip/internal/place-update?id=" + asset.placeId;
+        // 
     }
 }

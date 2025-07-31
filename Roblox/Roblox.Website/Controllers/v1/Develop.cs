@@ -322,9 +322,9 @@ public class DevelopControllerV1 : ControllerBase
         }
 
         var oldImage = await services.assets.GetAssetModerationStatus(product.iconImageAssetId);
-        if (oldImage.moderationstatus != (short)ModerationStatus.ReviewApproved) {
+        if (oldImage != ModerationStatus.ReviewApproved) 
             throw new BadRequestException(0, "You must wait until your Developer Product's former icon is approved by moderators.");
-        }
+        
         
         // dont want people to use this to test and exploit the chat filter
         request.Name = services.filter.FilterText(request.Name);

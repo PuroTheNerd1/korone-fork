@@ -46,7 +46,7 @@ public class Economy : ControllerBase
         if (!productInfo.isForSale)
             throw new BadRequestException(0, "Developer Product is not for sale");
         var iconModStatus = await services.assets.GetAssetModerationStatus(productInfo.iconImageAssetId);
-        if (iconModStatus.moderationstatus != (short?)ModerationStatus.ReviewApproved)
+        if (iconModStatus != ModerationStatus.ReviewApproved)
             throw new BadRequestException(0, "Developer Product is not approved");
         if (productInfo.price != request.expectedPrice)
             throw new BadRequestException(0, "Expected price is not the actual price");

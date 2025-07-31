@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="DSharpPlus" Version="4.5.0" />
     <PackageReference Include="JWT" Version="8.7.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.10" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
     <PackageReference Include="Sodium.Core" Version="1.2.3" />
   </ItemGroup>
 
