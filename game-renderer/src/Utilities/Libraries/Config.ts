@@ -13,6 +13,7 @@ export interface IConfig {
     Ports: {
         Process: number;
         RCC: {
+            All: number[];
             Player: number[];
             Image: number[];
             Place: number[];
