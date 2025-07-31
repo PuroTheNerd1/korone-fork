@@ -35,7 +35,7 @@ public class GamesService : ServiceBase, IService
             });
         return result?.total ?? 0;
     }
-    public async Task<bool> IsFull(string jobId, long placeId)
+    public async Task<bool> IsFull(Guid jobId, long placeId)
     {
         var jobPlayers = await gameServer.GetGameServerPlayers(jobId);
         var maxPlayerCount = await GetMaxPlayerCount(placeId);
@@ -917,7 +917,7 @@ public class GamesService : ServiceBase, IService
         });
         return result;
     }
-    
+
     public async Task<int> GetUniverseBadgeCount(long universeId)
     {
         var result = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM asset_badge WHERE universe_id = :universeId", new

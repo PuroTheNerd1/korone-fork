@@ -281,7 +281,7 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("getrichpresence")]
-        public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId, string jobId)
+        public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId, Guid jobId)
         {
             string username = "";
             int playerCount = 0;
@@ -385,7 +385,7 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("game/join.ashx")]
         [HttpGetBypass("game/join.ashx")]
-        public async Task<dynamic> JoinGame(string jobId, bool GenerateTeleportJoin = false)
+        public async Task<dynamic> JoinGame(Guid jobId, bool GenerateTeleportJoin = false)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
 
@@ -695,10 +695,10 @@ namespace Roblox.Website.Controllers
 
         //this is for the newer years that dont have a custom monitoring script
         [HttpPostBypass("presence/register-game-presence")]
-        public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, string gameId, string locationType)
+        public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, Guid gameId, string locationType)
         {
             // Security check
-            if (!isRCC || placeId != currentPlaceId || gameId != currentGameId)
+            if (!isRCC || placeId != currentPlaceId || gameId.ToString() != currentGameId)
                 throw new UnauthorizedAccessException();
             var onlineStatus = (await services.users.MultiGetPresence(new[] {visitorId})).First();
             // RAGESOC will trigger here it's most likely a cheater because why ever would a player not be online when joining a game
@@ -740,9 +740,7 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new UnauthorizedAccessException();
-            string jobId = await services.gameServer.GetJobIdByUserId(visitorId);
-            if(jobId == null)
-                return;
+            var jobId = await services.gameServer.GetJobIdByUserId(visitorId);
             long placeId = GameServerService.GetUserPlaceId(visitorId);
 
             await services.gameServer.OnPlayerLeave(visitorId, placeId, jobId);
@@ -876,7 +874,7 @@ namespace Roblox.Website.Controllers
 
         
         [HttpGetBypass("rcc/killserver")]
-        public async Task<dynamic> ShutdownSpecificServerForPlace(long placeId, string jobId)
+        public async Task<dynamic> ShutdownSpecificServerForPlace(long placeId, Guid jobId)
         {
             if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
@@ -902,7 +900,7 @@ namespace Roblox.Website.Controllers
 
                 var shutdownTasks = serverJobs
                     .Select(job => services.gameServer
-                        .ShutDownServerAsync(job.id.ToString()));
+                        .ShutDownServerAsync(job.id));
 
                 await Task.WhenAll(shutdownTasks)
                     .ConfigureAwait(false);
@@ -1318,7 +1316,7 @@ namespace Roblox.Website.Controllers
         
         [HttpGetBypass("v1/Close")]
         [HttpPostBypass("V1/Close")]
-        public async Task<dynamic> CloseGSNew(string gameId)
+        public async Task<dynamic> CloseGSNew(Guid gameId)
         {
 
             if(!isRCC)
@@ -1362,7 +1360,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2.0/Refresh")]
         [HttpGetBypass("v1.0/Refresh")]
         [HttpGetBypass("v2.0/Refresh")]
-        public async Task RefreshGameInstance(string gameId, long clientCount, Decimal gameTime)
+        public async Task RefreshGameInstance(Guid gameId, long clientCount, Decimal gameTime)
         {
             if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");

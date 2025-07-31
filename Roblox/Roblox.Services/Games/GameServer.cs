@@ -45,7 +45,7 @@ public class GameServerService : ServiceBase
             var result = await this.PostAsync("kill-game-server", new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
             return result.IsSuccessStatusCode;
         }
-        public static EvictPlayerRequest CreateEvictPlayerRequest(string jobId, long userId)
+        public static EvictPlayerRequest CreateEvictPlayerRequest(Guid jobId, long userId)
         {
             return new EvictPlayerRequest
             {
@@ -54,7 +54,7 @@ public class GameServerService : ServiceBase
                 messageVersionId = 0
             };
         }
-        public static StartGameServerRequest CreateGameServerRequest(PlaceEntry placeInfo, int rccPort, int networkServerPort, int proxyPort, string jobId, int matchmaking)
+        public static StartGameServerRequest CreateGameServerRequest(PlaceEntry placeInfo, int rccPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
         {
             return new StartGameServerRequest
             {
@@ -71,7 +71,7 @@ public class GameServerService : ServiceBase
                 year = placeInfo.year,
             };
         }
-        public static KillGameServerRequest CreateKillGameServerRequest(string jobId)
+        public static KillGameServerRequest CreateKillGameServerRequest(Guid jobId)
         {
             return new KillGameServerRequest
             {
@@ -80,13 +80,13 @@ public class GameServerService : ServiceBase
         }
         public class EvictPlayerRequest
         {
-            public string gameId { get; set; }
+            public Guid gameId { get; set; }
             public long userId { get; set; }
             public int messageVersionId { get; set; }
         }
         public class StartGameServerRequest
         {
-            public string jobId { get; set; }
+            public Guid jobId { get; set; }
             public long placeId { get; set; }
             public long universeId { get; set; }
             public int maxPlayerCount { get; set; }
@@ -101,7 +101,7 @@ public class GameServerService : ServiceBase
 
         public class KillGameServerRequest
         {
-            public string jobId { get; set; }
+            public Guid jobId { get; set; }
         }
     }
 
@@ -202,7 +202,7 @@ public class GameServerService : ServiceBase
         return value;
     }
 
-    public async Task OnPlayerJoin(long userId, long placeId, string serverId)
+    public async Task OnPlayerJoin(long userId, long placeId, Guid serverId)
     {
         CurrentPlayersInGame.Remove(userId);
         CurrentPlayersInGame.Add(userId, placeId);
@@ -305,7 +305,7 @@ public class GameServerService : ServiceBase
         });
     }
 
-    public async Task OnPlayerLeave(long userId, long placeId, string serverId)
+    public async Task OnPlayerLeave(long userId, long placeId, Guid serverId)
     {
         if (!CurrentPlayersInGame.ContainsKey(userId)) return;
         CurrentPlayersInGame.Remove(userId);
@@ -408,14 +408,14 @@ public class GameServerService : ServiceBase
     //         return null;
     //     }
     // }
-    public async Task KickPlayer(long userId, string? jobId = null)
+    public async Task KickPlayer(long userId, Guid? jobId = null)
     {
         if (jobId == null)
         {
             jobId = await GetJobIdByUserId(userId);
         }
 
-        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
+        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId.Value, userId));
     }
     // public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
     // {
@@ -423,12 +423,13 @@ public class GameServerService : ServiceBase
     //         new List<dynamic> {placeId, gameServerId, gameServerPort});
     // }
 
-    public async Task ShutDownServerAsync(string serverId)
+    public async Task ShutDownServerAsync(Guid serverId)
     {
-        if(await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId)))
+        if (await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId)))
             Console.WriteLine($"GameServer {serverId} was successfully closed!");
-        await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
-        await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
+        await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new { id = serverId, });
+        await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new { id = serverId });
+
         //Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
     }
 
@@ -473,7 +474,7 @@ public class GameServerService : ServiceBase
 
         return (DateTime) result.updated_at;
     }
-    public async Task<long> GetServerStat(string serverId)
+    public async Task<long> GetServerStat(Guid serverId)
     {
         var result = await db.QuerySingleOrDefaultAsync<long>("SELECT ping FROM asset_server WHERE id = :id::uuid", new
         {
@@ -495,17 +496,17 @@ public class GameServerService : ServiceBase
             id = serverId,
         });
     }
-    public async Task SetServerPing(string serverId)
+    public async Task SetServerPing(Guid serverId)
     {
         await db.ExecuteAsync("UPDATE asset_server SET updated_at = :u, status = :stat WHERE id = :id::uuid", new
         {
             u = DateTime.UtcNow,
-            stat = (int)ServerStatus.Ready,
+            stat = ServerStatus.Ready,
             id = serverId,
         });
     }
 
-    public async Task DeleteGameServer(string serverId)
+    public async Task DeleteGameServer(Guid serverId)
     {
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
@@ -702,22 +703,22 @@ public class GameServerService : ServiceBase
     }
 */
 
-    public async Task<string> GetJobIdByUserId(long userId)
+    public async Task<Guid> GetJobIdByUserId(long userId)
     {
-        var result = await db.QueryFirstOrDefaultAsync<Guid?>(
-            "SELECT server_id FROM asset_server_player WHERE user_id = :userId",
-            new { userId }
-        );
+        var result = await db.QueryFirstOrDefaultAsync<Guid?>("SELECT server_id FROM asset_server_player WHERE user_id = :userId", new
+        {
+            userId
+        });
 
-        return result.ToString() ?? throw new RecordNotFoundException();
+        return result ?? throw new RecordNotFoundException();
     }
-    public async Task<GameServerDb> GetGameServer(string jobId)
+    public async Task<GameServerDb> GetGameServer(Guid jobId)
     {
         return await db.QueryFirstOrDefaultAsync<GameServerDb>(
             "SELECT id, asset_id as assetId, port, updated_at as updatedAt, status, type FROM asset_server WHERE id = :id::uuid",
             new
             {
-                id = Guid.Parse(jobId),
+                id = jobId,
             });
     }
 
@@ -750,8 +751,7 @@ public class GameServerService : ServiceBase
         var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
         foreach (var server in gameServers)
         {
-            string jobid = server.id.ToString();
-            var currentPlayerCount = await GetGameServerPlayers(jobid);
+            var currentPlayerCount = await GetGameServerPlayers(server.id);
 
             // if the server is full continue the search for a good one
             if (currentPlayerCount.Count() >= placeInfo.maxPlayerCount)
@@ -761,7 +761,7 @@ public class GameServerService : ServiceBase
             // if the server is older than 5 minutes then shutdown the server
             if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
             {
-                await ShutDownServerAsync(jobid);
+                await ShutDownServerAsync(server.id);
                 continue;
             }
 
@@ -775,7 +775,7 @@ public class GameServerService : ServiceBase
             // we found a server to join or.... its loading depending
             return new GameServerGetOrCreateResponse()
             {
-                job = jobid,
+                job = server.id,
                 ip = Configuration.GameServerIp,
                 port = server.port,
                 status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
@@ -794,7 +794,7 @@ public class GameServerService : ServiceBase
             
         } while (true);
 
-        string jobId = Guid.NewGuid().ToString();
+        Guid jobId = Guid.NewGuid();
         // await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
         // if (!serverCreationLock.IsAcquired)
         //     return new GameServerGetOrCreateResponse
@@ -824,7 +824,7 @@ public class GameServerService : ServiceBase
     }
 
 
-    public async Task<string> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, string jobId, int matchmaking)
+    public async Task<string> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
     {
         Console.WriteLine("Starting Gameserver");
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
@@ -875,7 +875,7 @@ public class GameServerService : ServiceBase
         }
     }
 
-    public async Task<IEnumerable<GameServerPlayer>> GetGameServerPlayers(string serverId)
+    public async Task<IEnumerable<GameServerPlayer>> GetGameServerPlayers(Guid serverId)
     {
         return await db.QueryAsync<GameServerPlayer>(
             "SELECT user_id as userId, u.username FROM asset_server_player INNER JOIN \"user\" u ON u.id = asset_server_player.user_id WHERE server_id = :id::uuid", new

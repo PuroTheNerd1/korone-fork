@@ -84,7 +84,7 @@ public class SignService : ServiceBase
         }
     }
     // TODO: Fully rewrite the ticket system
-    public string GenerateClientTicket(long year, long userId, string username, string characterAppearanceUrl, string membership, string jobId, long accountAgeDays, long placeId)
+    public string GenerateClientTicket(long year, long userId, string username, string characterAppearanceUrl, string membership, Guid jobId, long accountAgeDays, long placeId)
     {
         switch (year)
         {
@@ -102,7 +102,7 @@ public class SignService : ServiceBase
         }
     }
 
-    public string GenerateClientTicketV1(long userId, string username, string jobId, string characterAppearanceUrl)
+    public string GenerateClientTicketV1(long userId, string username, Guid jobId, string characterAppearanceUrl)
     {
         DateTime currentUtcDateTime = DateTime.UtcNow;
         string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
@@ -114,7 +114,7 @@ public class SignService : ServiceBase
         return finalTicket;
     }
 
-    public string GenerateClientTicketV2(long userId, string username, string jobId, string characterAppearanceUrl)
+    public string GenerateClientTicketV2(long userId, string username, Guid jobId, string characterAppearanceUrl)
     {
         DateTime currentUtcDateTime = DateTime.UtcNow;
         string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
@@ -127,7 +127,7 @@ public class SignService : ServiceBase
         string finalTicket = $"{formattedDateTime};{ticketSignature2};{ticketSignature};2";
         return finalTicket;
     }
-    public string GenerateClientTicketV3(long userId, string username, string jobId)
+    public string GenerateClientTicketV3(long userId, string username, Guid jobId)
     {
         DateTime currentUtcDateTime = DateTime.UtcNow;
         string dateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");
@@ -140,7 +140,7 @@ public class SignService : ServiceBase
         string finalTicket = $"{dateTime};{ticket2Signature};{ticketSignature};3";
         return finalTicket;
     }
-    public string GenerateClientTicketV4(long userId, string username, string characterAppearanceUrl, string membership, string jobId, long accountAgeDays, long placeId)
+    public string GenerateClientTicketV4(long userId, string username, string characterAppearanceUrl, string membership, Guid jobId, long accountAgeDays, long placeId)
     {
         DateTime currentUtcDateTime = DateTime.UtcNow;
         string formattedDateTime = currentUtcDateTime.ToString("M/d/yyyy h:mm:ss tt");

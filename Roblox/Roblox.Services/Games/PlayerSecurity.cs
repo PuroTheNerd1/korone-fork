@@ -8,9 +8,9 @@ public class PlayerSecurityService :  ServiceBase, IService
         return "PlayerTicket:" + userId;
     }
     // 15 minutes is the default timeout for player tickets
-    public async Task CreatePlayerTicket(long userId, string jobId)
+    public async Task CreatePlayerTicket(long userId, Guid jobId)
     {
-        await redis.StringSetAsync(GetPlayerTicketKey(userId), jobId, TimeSpan.FromMinutes(15));
+        await redis.StringSetAsync(GetPlayerTicketKey(userId), jobId.ToString(), TimeSpan.FromMinutes(15));
     }
     private async Task<string?> GetPlayerTicket(long userId)
     {
@@ -20,14 +20,14 @@ public class PlayerSecurityService :  ServiceBase, IService
     {
         await redis.KeyDeleteAsync(GetPlayerTicketKey(userId));
     }
-    public async Task<bool> IsPlayerTicketValid(long userId, string jobId)
+    public async Task<bool> IsPlayerTicketValid(long userId, Guid jobId)
     {
         string? ticket = await GetPlayerTicket(userId);
         if (ticket == null)
         {
             return false;
         }
-        var isTicketValid = ticket == jobId;
+        var isTicketValid = ticket == jobId.ToString();
         // Remove the ticket so it cannot be reused
         await DeletePlayerTicket(userId);
         return isTicketValid;

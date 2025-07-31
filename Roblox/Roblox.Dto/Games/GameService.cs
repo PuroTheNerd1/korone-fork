@@ -8,7 +8,7 @@ public class GameServerGetOrCreateResponse
     public JoinStatus status { get; set; }
     public string ip { get; set; }
     public long port { get; set; }
-    public string job { get; set; }
+    public Guid job { get; set; }
 }
 
 public class GameServerMultiRunEntry
@@ -59,7 +59,7 @@ public class JoinGame
 }
 public class GameServerEntry
 {
-    public string id { get; set; } = string.Empty;
+    public Guid id { get; set; }
     public long assetId { get; set; }
 }
 
