@@ -21,10 +21,11 @@ public class RbxThumbnails : ControllerBase
     }
     private async Task<RedirectResult> GetThumbnailUrl(long id, ThumbnailType type)
     {
-        List<ThumbnailEntry> result = null;
-
+        List<ThumbnailEntry> result = new List<ThumbnailEntry>();
+        
         switch (type)
         {
+
             case ThumbnailType.UserHeadshot:
                 result = (await services.thumbnails.GetUserHeadshots(new[] { id })).ToList();
                 break;
@@ -40,7 +41,7 @@ public class RbxThumbnails : ControllerBase
                 break;
         }
 
-        var imageUrl = result?.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png";
+        var imageUrl = result.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png";
         return new RedirectResult(imageUrl, false);
     }
     //avatar stuff
@@ -131,7 +132,7 @@ public class RbxThumbnails : ControllerBase
         return new
         {
             Final = true,
-            Url = $"{Configuration.BaseUrl}{result[0].imageUrl.Replace(".png", "")}",
+            Url = $"{Configuration.BaseUrl}{result[0].imageUrl!.Replace(".png", "")}",
             RetryUrl = (string?)null,
         };
     }

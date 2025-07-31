@@ -289,7 +289,7 @@ public class EconomyService : ServiceBase, IService
             return 0;
         });
     }
-    [Obsolete("Use method with a CreatorType instead")]
+    //[Obsolete("Use method with a CreatorType instead")]
     public async Task<IEnumerable<TransactionEntryDb>> GetTransactions(long userId, PurchaseType purchaseType, int limit, int offset)
     {
         return await GetTransactions(userId, CreatorType.User, purchaseType, limit, offset);

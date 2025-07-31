@@ -144,7 +144,7 @@ public class AccountDeletion : RobloxPageModel
 
 
         // reset av
-        services.avatar.RedrawAvatar(user.userId, new List<long>(), new ColorEntry()
+        await services.avatar.RedrawAvatar(user.userId, new List<long>(), new ColorEntry()
         {
             headColorId = 194,
             torsoColorId = 23,

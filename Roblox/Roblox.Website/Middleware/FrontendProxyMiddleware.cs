@@ -135,7 +135,7 @@ public class FrontendProxyMiddleware
         return result;
     }
 
-    public async Task HandleProxyResult(string url, string? contentType, int statusCode, string? locationHeader, HttpContext ctx)
+    public void HandleProxyResult(string url, string? contentType, int statusCode, string? locationHeader, HttpContext ctx)
     {
         var frontendTimer = new MiddlewareTimer(ctx, "FProxy");
         ctx.Response.ContentType = contentType ?? "text/html";
@@ -170,10 +170,10 @@ public class FrontendProxyMiddleware
         frontendTimer.Stop();
     }
 
-    private static Dictionary<string, Tuple<string,string,string,int>> pageCache { get; set; } = new();
+    private static Dictionary<string, Tuple<string?,string,string?,int>> pageCache { get; set; } = new();
     private static Mutex pageCacheMux { get; set; } = new();
 
-    private Tuple<string,string,string,int>? GetPageFromCache(string url)
+    private Tuple<string?,string,string?,int>? GetPageFromCache(string url)
     {
         pageCacheMux.WaitOne();
         if (pageCache.ContainsKey(url))
@@ -219,7 +219,7 @@ public class FrontendProxyMiddleware
         if (cached != null)
         {
             ctx.Response.Headers.Add("x-cache-dbg", "f-2016; memv1;");
-            await HandleProxyResult(requestUrl, cached.Item1, cached.Item4, cached.Item3, ctx);
+            HandleProxyResult(requestUrl, cached.Item1, cached.Item4, cached.Item3, ctx);
             await ctx.Response.WriteAsync(cached.Item2);
             return;
         }
@@ -257,7 +257,7 @@ public class FrontendProxyMiddleware
             {
                 if (pageCache.Count < 1000)
                 {
-                    pageCache[requestUrl] = new(contentType, cacheStr, locationHeader, 200);
+                    pageCache[requestUrl] = new(contentType, cacheStr, locationHeader, (int)result.StatusCode);
                 }
                 else
                 {
@@ -270,7 +270,7 @@ public class FrontendProxyMiddleware
             }
         }
 
-        await HandleProxyResult(requestUrl, contentType, (int)result.StatusCode, locationHeader, ctx);
+        HandleProxyResult(requestUrl, contentType, (int)result.StatusCode, locationHeader, ctx);
         await mem.CopyToAsync(ctx.Response.BodyWriter.AsStream());
     }
 

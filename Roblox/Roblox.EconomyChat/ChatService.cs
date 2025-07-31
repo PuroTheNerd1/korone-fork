@@ -19,7 +19,7 @@ public class ChatService : ServiceBase
     private static Dictionary<long, DateTime> lastReadDates { get; set; } = new();
     private static long lastMessageId { get; set; } = 1;
     private static Mutex messageUpdateMux = new Mutex();
-    private static DistributedCache redis => Roblox.Services.Cache.distributed;
+    private static DistributedCache _redis => Roblox.Services.Cache.distributed;
 
     private async Task PublishEvent<T>(T eventData) where T : IChatEvent
     {
@@ -40,12 +40,12 @@ public class ChatService : ServiceBase
         }));
     }
 
-    public async Task ToggleTyping(long contextUserId, long channelId, bool isTyping)
+    public void ToggleTyping(long contextUserId, long channelId, bool isTyping)
     {
         
     }
 
-    public async Task<IEnumerable<Roblox.EconomyChat.Models.ChannelChatMessage>> GetMessagesInChannel(long channelId, long startMessageId, int limit)
+    public IEnumerable<Roblox.EconomyChat.Models.ChannelChatMessage> GetMessagesInChannel(long channelId, long startMessageId, int limit)
     {
         if (!chatMessageDb.ContainsKey(channelId))
             return Array.Empty<ChannelChatMessage>();
@@ -56,6 +56,8 @@ public class ChatService : ServiceBase
     public async Task<ChatMessage> CreateChannelMessage(long contextUserId, CreateMessageRequest request)
     {
         var channel = Channel.channels.Find(c => c.id == request.channelId);
+        if (channel == null)
+            throw new RobloxException(404, 0, "Channel not found");
         if (contextUserId != 12 && (channel.isAdminRequiredForReading || channel.isAdminRequiredForWriting))
             throw new RobloxException(403, 0, "Forbidden");
 
@@ -91,7 +93,7 @@ public class ChatService : ServiceBase
         return msg;
     }
 
-    public async Task<UnreadMessageCount> GetUnreadMessageCount(long contextUserId, long channelId)
+    public UnreadMessageCount GetUnreadMessageCount(long contextUserId, long channelId)
     {
         // Default to current time so first time users don't have thousands of unread messages
         if (!lastReadDates.ContainsKey(contextUserId))
@@ -103,7 +105,7 @@ public class ChatService : ServiceBase
         };
     }
 
-    public async Task SetReadMessage(long contextUserId, long channelId)
+    public void SetReadMessage(long contextUserId, long channelId)
     {
         lastReadDates[channelId] = DateTime.UtcNow;
     }

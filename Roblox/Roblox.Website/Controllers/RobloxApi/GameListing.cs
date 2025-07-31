@@ -19,7 +19,7 @@ namespace Roblox.Website.Controllers
         public dynamic MultiGetPlayabilityStatus()
         {
             var ids = HttpContext.Request.QueryString.Value;
-            return numberRegex.Matches(ids).Select(c => long.Parse(c.Value)).Distinct().Select(c => new
+            return numberRegex.Matches(ids ?? string.Empty).Select(c => long.Parse(c.Value)).Distinct().Select(c => new
             {
                 playabilityStatus = 0,
                 isPlayable = true,
@@ -46,7 +46,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/name-description/games/{universeId:long}")]
         public async Task<dynamic> GetGameDesc(long universeId)
         {
-            var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+            var uni = await services.games.GetUniverseInfo(universeId);
             return new
             {
                 data = new[]
@@ -83,7 +83,7 @@ namespace Roblox.Website.Controllers
         {
             if (maxRows is > 100 or < 1) maxRows = 10;
             // todo: actually add recommendeds
-            var result = await services.games.GetGamesList(userSession.userId, "popular", maxRows, null, null);
+            var result = await services.games.GetGamesList(safeUserSession.userId, "popular", maxRows, null, null);
             return new
             {
                 games = result,
@@ -125,8 +125,8 @@ namespace Roblox.Website.Controllers
         [HttpPatch("v1/games/{universeId:long}/user-votes")]
         public async Task VoteOnUniverse(long universeId, [Required, FromBody] VoteRequest request)
         {
-            var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
-            await services.assets.VoteOnAsset(uni.rootPlaceId, safeUserSession.userId, request.vote);
+            var universe = await services.games.GetUniverseInfo(universeId);
+            await services.assets.VoteOnAsset(universe.rootPlaceId, safeUserSession.userId, request.vote);
         }
         [HttpGetBypass("v1/games/list")]
         public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)

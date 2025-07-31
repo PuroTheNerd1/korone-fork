@@ -72,7 +72,7 @@ public class AuthenticationController : ControllerBase
     {
         FeatureFlags.FeatureCheck(FeatureFlag.ChangeUsernameEnabled);
         // pass first
-        var passwordOk = await services.users.VerifyPassword(userSession.userId, req.password);
+        var passwordOk = await services.users.VerifyPassword(safeUserSession.userId, req.password);
         if (!passwordOk)
         {
             throw new ForbiddenException(3, "Your password is incorrect");
@@ -81,18 +81,18 @@ public class AuthenticationController : ControllerBase
         var nameOk = await services.users.IsUsernameValid(req.username);
         if (!nameOk) 
             throw new BadRequestException(14, "This username is not valid");
-        var nameAvailable = await services.users.IsNameAvailableForNameChange(userSession.userId, req.username);
+        var nameAvailable = await services.users.IsNameAvailableForNameChange(safeUserSession.userId, req.username);
         if (!nameAvailable) 
             throw new BadRequestException(10, "This username is already in use");
-        var previous = await services.users.GetPreviousUsernames(userSession.userId);
+        var previous = await services.users.GetPreviousUsernames(safeUserSession.userId);
         if (previous.Count(c => c.createdAt >= DateTime.UtcNow.Subtract(TimeSpan.FromHours(1))) >= 1)
             throw new TooManyRequestsException(0, "Too many attempts");
         // charge user, then change name
-        await services.users.ChangeUsername(userSession.userId, req.username, userSession.username);
-        userSession.username = req.username;
+        await services.users.ChangeUsername(safeUserSession.userId, req.username, safeUserSession.username);
+        safeUserSession.username = req.username;
         // purge session cache so user doesnt get confused
         using var sessionCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
-        sessionCache.Remove(userSession.sessionId);
+        sessionCache.Remove(safeUserSession.sessionId);
     }
     
     // TODO: If we ever do impersonation, that should go here

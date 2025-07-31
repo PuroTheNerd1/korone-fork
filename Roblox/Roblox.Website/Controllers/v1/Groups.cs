@@ -289,7 +289,7 @@ public class GroupsControllerV1 : ControllerBase
     }
 
     [HttpGet("groups/{groupId:long}/relationships/{relationshipType}")]
-    public async Task<dynamic> GetGroupRelationships(long groupId, RelationshipType relationshipType, int maxRows, int startRowIndex)
+    public dynamic GetGroupRelationships(long groupId, RelationshipType relationshipType, int maxRows, int startRowIndex)
     {
         FeatureCheck();
         if (maxRows is > 100 or < 0) maxRows = 10;

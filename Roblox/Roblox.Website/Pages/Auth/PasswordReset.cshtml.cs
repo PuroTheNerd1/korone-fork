@@ -45,7 +45,7 @@ public class PasswordReset : RobloxPageModel
         return FeatureFlags.IsEnabled(FeatureFlag.PasswordReset);
     }
 
-    public async Task<IActionResult> OnGet()
+    public IActionResult OnGet()
     {
         if (!IsEnabled())
             return new RedirectResult("/auth/accountlogin");

@@ -63,7 +63,7 @@ namespace Roblox.Website.Controllers
                     type = "RCCService2018";
                     break;
                 case "76E5A40C-3AE1-4028-9F10-7C62520BD94F":
-                case "19C0B314-AC23-4CD4-8A37-02C4140F7240":  ///2018L AppSettings
+                case "19C0B314-AC23-4CD4-8A37-02C4140F7240":
                     type = "ClientAppSettings2018";
                     break;
                 default:

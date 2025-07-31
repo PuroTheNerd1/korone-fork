@@ -37,7 +37,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "InvalidValue");
             }
 
-            await ds.Set(placeId, key, type, scope, target, value.ToString().Length, value.ToString());
+            await ds.Set(placeId, key, type, scope, target, value.ToString()!.Length, value.ToString()!);
             return new
             {
                 data = value,

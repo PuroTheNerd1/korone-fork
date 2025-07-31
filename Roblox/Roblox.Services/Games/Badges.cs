@@ -122,9 +122,9 @@ public class BadgesService : ServiceBase, IService {
             },
             awardingUniverse = new BadgeAwardingUniverse
             {
-                id = c.universeId.Value,
-                name = c.universeName,
-                rootPlaceId = c.rootPlaceId.Value
+                id = c.universeId!.Value,
+                name = c.universeName!,
+                rootPlaceId = c.rootPlaceId!.Value
             }
         });
     }

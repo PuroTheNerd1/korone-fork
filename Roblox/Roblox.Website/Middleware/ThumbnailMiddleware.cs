@@ -20,7 +20,7 @@ namespace Roblox.Website.Middleware
         {
             var requestPath = context.Request.Path.Value;
 
-            var normalizedPath = NormalizePath(requestPath, "/images/thumbnails");
+            var normalizedPath = NormalizePath(requestPath!, "/images/thumbnails");
 
             if (!string.IsNullOrEmpty(normalizedPath))
             {

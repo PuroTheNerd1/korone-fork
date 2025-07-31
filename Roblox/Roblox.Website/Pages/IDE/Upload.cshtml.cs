@@ -11,6 +11,6 @@ public class Upload : RobloxPageModel
     public long userId { get; set; }
     public void OnGet()
     {
-        userId = userSession.userId;
+ 
     }
 }

@@ -61,7 +61,7 @@ public class ApplicationWebsiteService : WebsiteService
     /// <exception cref="AccountTooNewException">Social media account was created too recently</exception>
     /// <exception cref="UnableToFindVerificationPhraseException">Verification phrase does not exist on the profile</exception>
     /// <exception cref="NotImplementedException">The URL was parsed correctly, but support has not yet been added</exception>
-    public async Task<VerificationResult> AttemptVerifyUser(string? socialUrl, string verificationPhrase)
+    public async Task<VerificationResult> AttemptVerifyUser(string socialUrl, string verificationPhrase)
     {
         // WEB-25 - people apparently can't read...
         string? verifiedUrl = null;

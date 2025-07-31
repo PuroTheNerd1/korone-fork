@@ -9,12 +9,12 @@ namespace Roblox.Website.Controllers;
 [Route("/apisite/presence/v1")]
 public class PresenceControllerV1 : ControllerBase
 {
-    [HttpPost("presence/register-app-presence")]
-    public async Task RegisterPresence()
-    {
-        // TODO: Impersonating: Don't update online status if requester is impersonating
+    // [HttpPost("presence/register-app-presence")]
+    // public async Task RegisterPresence()
+    // {
+    //     // TODO: Impersonating: Don't update online status if requester is impersonating
         
-    }
+    // }
 
     [HttpPost("presence/users")]
     public async Task<GetPresenceResponse> MultiGetOnlineStatus([Required,FromBody] PresenceRequest req)

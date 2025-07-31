@@ -30,7 +30,7 @@ public class ChatHub : Hub
         }
     }
 
-    public async Task<string> ListenForMessages()
+    public string ListenForMessages()
     {
         return Guid.NewGuid().ToString();
     }

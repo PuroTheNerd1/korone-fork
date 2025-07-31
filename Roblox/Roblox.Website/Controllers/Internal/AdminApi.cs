@@ -2077,7 +2077,7 @@ Thank you for your understanding,
             content.Position = 0;
             // Make the item!
             var assetDetails = await services.assets.CreateAsset(item.name, null, 1,
-                CreatorType.User, 1, content, info.AssetTypeId.Value, Genre.All, ModerationStatus.ReviewApproved,
+                CreatorType.User, 1, content, info.AssetTypeId!.Value, Genre.All, ModerationStatus.ReviewApproved,
                 DateTime.UtcNow, DateTime.UtcNow, item.id);
             ids.Add(assetDetails.assetId);
         }

@@ -64,12 +64,12 @@ public class CsrfMiddleware : ControllerServicesExtended
         return result;
     }
 
-    public async Task<CsrfJwtEntry?> TryGetCookie(HttpContext ctx)
+    public CsrfJwtEntry? TryGetCookie(HttpContext ctx)
     {
         if (ctx.Request.Cookies.ContainsKey(CookieName))
         {
             var cookie = ctx.Request.Cookies[CookieName];
-            var decodedResult = DecodeJwt<CsrfJwtEntry>(cookie);
+            var decodedResult = DecodeJwt<CsrfJwtEntry>(cookie!);
             if (!string.IsNullOrEmpty(decodedResult.csrf) &&
                 decodedResult.createdAt.Add(TimeSpan.FromMinutes(5)) >= DateTime.UtcNow)
             {
@@ -194,7 +194,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         {
             if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !pathLower.Contains("multiget-friend-requests") && !pathLower.Contains("filter-friends") && !pathLower.Contains("abusereport") && !bypassUrls.Contains(pathLower)  && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products") && !pathLower.Contains("teamcreate"))
             {
-                var token = await TryGetCookie(ctx);
+                var token = TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
                 if (ctx.Request.Headers["User-Agent"].ToString().Contains("RobloxStudio") || ctx.Request.Headers["User-Agent"] == Configuration.UserAgentBypassSecret)
                 {

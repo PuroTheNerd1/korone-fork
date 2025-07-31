@@ -59,7 +59,7 @@ namespace Roblox.Website.Controllers
         }
 
         /// <summary>
-        /// Creates a new <see cref="HttpGetAttribute"/>.
+        /// Creates a new <see cref="HttpGetBypassAttribute"/>.
         /// </summary>
         public HttpGetBypassAttribute()
             : base(_supportedMethods)
@@ -67,7 +67,7 @@ namespace Roblox.Website.Controllers
         }
 
         /// <summary>
-        /// Creates a new <see cref="HttpGetAttribute"/> with the given route template.
+        /// Creates a new <see cref="HttpGetBypassAttribute"/> with the given route template.
         /// </summary>
         /// <param name="template">The route template. May not be null.</param>
         public HttpGetBypassAttribute(string template)

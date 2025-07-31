@@ -68,10 +68,10 @@ public class AuthenticationControllerV2 : ControllerBase
         HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.AltCookieName);
     }
 
-    [HttpPost("login")]
-    public async Task Login([Required, FromBody] LoginRequest request)
-    {
-        throw new RobloxException(503, 0, "Please use https://pekora.zip/auth/accountlogin");
+    // [HttpPost("login")]
+    // public async Task Login([Required, FromBody] LoginRequest request)
+    // {
+    //     throw new RobloxException(503, 0, "Please use https://pekora.zip/auth/accountlogin");
         // FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
         // if (request.ctype != "username")
         // {
@@ -95,12 +95,12 @@ public class AuthenticationControllerV2 : ControllerBase
         // }
 
         // await CreateSessionAndSetCookie(userId);
-    }
+    //}
     // will never be neabled
-    [HttpPost("signup")]
-    public void Signup([Required] SignUpRequest request)
-    {
-        throw new RobloxException(503, 0, "Service temporarily unavailable");
+    // [HttpPost("signup")]
+    // public void Signup([Required] SignUpRequest request)
+    // {
+    //     throw new RobloxException(503, 0, "Service temporarily unavailable");
         // FeatureFlags.FeatureCheck(FeatureFlag.SignupEnabled);
         // var usernameValid = await services.users.IsUsernameValid(request.username);
         // if (!usernameValid)
@@ -126,7 +126,7 @@ public class AuthenticationControllerV2 : ControllerBase
         // {
         //     userId = createdUser.userId,
         // };
-    }
+    //}
 
     [HttpPost("logoutfromallsessionsandreauthenticate")]
     public async Task LogoutFromAllSessionsAndReAuthenticate()

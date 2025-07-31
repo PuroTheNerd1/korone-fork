@@ -31,8 +31,8 @@ public class Economy : ControllerBase
     [HttpGetBypass("v1/users/{userId:long}/currency")]
     public async Task<dynamic> GetUserCurrency(long userId)
     {
-        //FeatureCheck();
-        return await services.economy.GetUserBalance(userSession.userId);
+        FeatureCheck();
+        return await services.economy.GetUserBalance(safeUserSession.userId);
     }
     [HttpPostBypass("v2/developer-products/{productId}/purchase")]
     public async Task<dynamic> PurchaseDeveloperProduct(long productId, [FromBody] Dto.Marketplace.DeveloperProductPurchaseRequest request)
@@ -376,7 +376,7 @@ public class Economy : ControllerBase
         {
             balance = await services.economy.GetBalance(CreatorType.Group, groupId);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             balance.robux = 0;
             balance.tickets = 0;

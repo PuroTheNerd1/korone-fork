@@ -40,8 +40,8 @@ namespace Roblox.Rendering
         private class RenderResponse
         {
             public bool success { get; set; }
-            public string message { get; set; }
-            public string data { get; set; }
+            public string? message { get; set; }
+            public string? data { get; set; }
         }
         public static void Configure(string baseUrl, string rccPath, string luaScriptPath, string rccPathGames)
         {

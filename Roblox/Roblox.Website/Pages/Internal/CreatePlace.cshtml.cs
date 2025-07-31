@@ -251,9 +251,9 @@ public class CreatePlace : RobloxPageModel
         };
     }
 
-    public async Task OnPost()
-    {
-        return;
+    // public async Task OnPost()
+    // {
+    //     return;
         //     if (userSession == null)
         //     {
         //         errorMessage = "Not logged in.";
@@ -291,5 +291,5 @@ public class CreatePlace : RobloxPageModel
         //     // give url
         //     successUrl = "https://www.pekora.zip/internal/place-update?id=" + asset.placeId;
         // 
-    }
+    // }
 }

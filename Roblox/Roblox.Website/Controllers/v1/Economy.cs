@@ -28,7 +28,7 @@ public class EconomyControllerV1 : ControllerBase
     public async Task<dynamic> GetUserCurrency(long userId)
     {
         FeatureCheck();
-        return await services.economy.GetUserBalance(userSession.userId);
+        return await services.economy.GetUserBalance(safeUserSession.userId);
     }
 
     [HttpGet("assets/{assetId}/users/{userId}/resellable-copies")]
@@ -324,7 +324,7 @@ public class EconomyControllerV1 : ControllerBase
         {
             balance = await services.economy.GetBalance(CreatorType.Group, groupId);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             balance.robux = 0;
             balance.tickets = 0;
@@ -333,7 +333,7 @@ public class EconomyControllerV1 : ControllerBase
     }
     
     [HttpGet("groups/{groupId}/users-payout-eligibility")]
-    public async Task<dynamic> GetUserPayoutEligibility(long groupId, string userIds)
+    public dynamic GetUserPayoutEligibility(long groupId, string userIds)
     {
         var ids = userIds.Split(",").Select(long.Parse).Distinct();
         var result = new Dictionary<string, string>();

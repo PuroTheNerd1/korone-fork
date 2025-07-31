@@ -74,17 +74,17 @@ public class WebController2021 : ControllerBase
         return Content(result, "text/html");
     }
 
-    public static dynamic ToDynamic<T>(T obj)
-    {
-        IDictionary<string, object> expando = new ExpandoObject();
+    // public static dynamic ToDynamic<T>(T obj)
+    // {
+    //     IDictionary<string, object> expando = new ExpandoObject();
 
-        foreach (var propertyInfo in typeof(T).GetProperties())
-        {
-            var currentValue = propertyInfo.GetValue(obj);
-            expando.Add(propertyInfo.Name, currentValue);
-        }
-        return expando as ExpandoObject;
-    }
+    //     foreach (var propertyInfo in typeof(T).GetProperties())
+    //     {
+    //         var currentValue = propertyInfo.GetValue(obj);
+    //         expando.Add(propertyInfo.Name, currentValue);
+    //     }
+    //     return expando as ExpandoObject;
+    // }
 
     [HttpGet("/home")]
     public async Task<IActionResult> GetHome()
@@ -111,62 +111,62 @@ public class WebController2021 : ControllerBase
     }
 
 
-    [HttpGet("/users/{userId:long}/profile")]
-    public async Task<IActionResult> GetUserProfile(long userId)
-    {
-        var info = await services.users.GetUserById(userId);
-        if (info.IsDeleted())
-        {
-            return Redirect("/404");
-        }
+    // [HttpGet("/users/{userId:long}/profile")]
+    // public async Task<IActionResult> GetUserProfile(long userId)
+    // {
+    //     var info = await services.users.GetUserById(userId);
+    //     if (info.IsDeleted())
+    //     {
+    //         return Redirect("/404");
+    //     }
 
-        var wornAssets = await services.assets.MultiGetInfoById(await services.avatar.GetWornAssets(userId));
-        var friendStatus = (await services.friends.MultiGetFriendshipStatus(userSession?.userId ?? 0, new[] {userId}))
-            .First();
-        var friends = await services.friends.GetFriends(userId);
-        var previousNames = await services.users.GetPreviousUsernames(userId);
-        var status = await services.users.GetUserStatus(userId);
-        var onlineStatus = (await services.users.MultiGetPresence(new[] {userId})).First();
-        var inventoryVisible = (await services.inventory.MultiCanViewInventory(new[] {userId}, userSession?.userId ?? 0)).First();
-        var followersCount = await services.friends.CountFollowers(userId);
-        var followingsCount = await services.friends.CountFollowings(userId);
-        var followStatus =
-            userSession != null && (await services.friends.IsOneFollowingTwo(userSession.userId, userId)) || false;
-        var playingGameDetails = onlineStatus.placeId != null
-            ? await services.assets.GetAssetCatalogInfo((long)onlineStatus.placeId)
-            : null;
-        var createdPlaces = (await services.games.GetGamesForType(CreatorType.User, userId, 100, 0, "asc", "all")).Select(c => ToDynamic(c)).ToList();
-        foreach (var place in createdPlaces)
-        {
-            var id = (long) place.rootPlace.id;
-            place.playerCount = Services.GamesService.GetPlayerCount(id);
-            place.visitCount = await services.games.GetVisitCount(id);
-        }
-        return await GetPage("userProfile", new List<dynamic>()
-        {
-            new
-            {
-                userId = userId,
-                username = info.username,
-                description = info.description,
-                imageUrl = "/thumbs/avatar.ashx?userId=" + userId,
-                wornAssets = wornAssets,
-                created = info.created,
-                friendshipStatus = friendStatus.status,
-                friends = friends,
-                previousUsernames = previousNames.Select(c => c.username),
-                status = status.status == null ? null : status,
-                onlineAt = onlineStatus.lastOnline,
-                followers = followersCount,
-                following = followingsCount,
-                canViewInventory = inventoryVisible.canView,
-                isFollowing = followStatus,
-                gameData = onlineStatus.gameId != null ? onlineStatus : null,
-                gameDetails = playingGameDetails,
-                places = createdPlaces,
-            },
-        });
-    }
+    //     var wornAssets = await services.assets.MultiGetInfoById(await services.avatar.GetWornAssets(userId));
+    //     var friendStatus = (await services.friends.MultiGetFriendshipStatus(userSession?.userId ?? 0, new[] {userId}))
+    //         .First();
+    //     var friends = await services.friends.GetFriends(userId);
+    //     var previousNames = await services.users.GetPreviousUsernames(userId);
+    //     var status = await services.users.GetUserStatus(userId);
+    //     var onlineStatus = (await services.users.MultiGetPresence(new[] {userId})).First();
+    //     var inventoryVisible = (await services.inventory.MultiCanViewInventory(new[] {userId}, userSession?.userId ?? 0)).First();
+    //     var followersCount = await services.friends.CountFollowers(userId);
+    //     var followingsCount = await services.friends.CountFollowings(userId);
+    //     var followStatus =
+    //         userSession != null && (await services.friends.IsOneFollowingTwo(userSession.userId, userId)) || false;
+    //     var playingGameDetails = onlineStatus.placeId != null
+    //         ? await services.assets.GetAssetCatalogInfo((long)onlineStatus.placeId)
+    //         : null;
+    //     var createdPlaces = (await services.games.GetGamesForType(CreatorType.User, userId, 100, 0, "asc", "all")).Select(c => ToDynamic(c)).ToList();
+    //     foreach (var place in createdPlaces)
+    //     {
+    //         var id = (long) place.rootPlace.id;
+    //         place.playerCount = Services.GamesService.GetPlayerCount(id);
+    //         place.visitCount = await services.games.GetVisitCount(id);
+    //     }
+    //     return await GetPage("userProfile", new List<dynamic>()
+    //     {
+    //         new
+    //         {
+    //             userId = userId,
+    //             username = info.username,
+    //             description = info.description,
+    //             imageUrl = "/thumbs/avatar.ashx?userId=" + userId,
+    //             wornAssets = wornAssets,
+    //             created = info.created,
+    //             friendshipStatus = friendStatus.status,
+    //             friends = friends,
+    //             previousUsernames = previousNames.Select(c => c.username),
+    //             status = status.status == null ? null : status,
+    //             onlineAt = onlineStatus.lastOnline,
+    //             followers = followersCount,
+    //             following = followingsCount,
+    //             canViewInventory = inventoryVisible.canView,
+    //             isFollowing = followStatus,
+    //             gameData = onlineStatus.gameId != null ? onlineStatus : null,
+    //             gameDetails = playingGameDetails,
+    //             places = createdPlaces,
+    //         },
+    //     });
+    // }
 
 
     [HttpGet("/search/groups")]
@@ -204,19 +204,19 @@ public class WebController2021 : ControllerBase
         return Redirect("/groups/search");
     }
 
-    [HttpGet("groups/{groupId:long}/{name}")]
-    public async Task<IActionResult> GetGroup(long groupId, string name)
-    {
-        var details = await services.groups.GetGroupById(groupId);
-        var expectedName = UrlUtilities.ConvertToSeoName(details.name);
-        if (expectedName != name) return Redirect("/groups/" + groupId + "/" + expectedName);
-        var thumb = await services.thumbnails.GetGroupIcons(new[] {groupId});
-        return await GetPage("group", new List<dynamic>()
-        {
-            details,
-            thumb.First()?.imageUrl,
-        });
-    }
+    // [HttpGet("groups/{groupId:long}/{name}")]
+    // public async Task<IActionResult> GetGroup(long groupId, string name)
+    // {
+    //     var details = await services.groups.GetGroupById(groupId);
+    //     var expectedName = UrlUtilities.ConvertToSeoName(details.name);
+    //     if (expectedName != name) return Redirect("/groups/" + groupId + "/" + expectedName);
+    //     var thumb = await services.thumbnails.GetGroupIcons(new[] {groupId});
+    //     return await GetPage("group", new List<dynamic>()
+    //     {
+    //         details,
+    //         thumb.First()?.imageUrl,
+    //     });
+    // }
 
     [HttpGet("groups/configure")]
     public async Task<IActionResult> ConfigureGroup(long id)
@@ -302,20 +302,20 @@ public class WebController2021 : ControllerBase
         return Redirect("/games/" + PlaceId + "/--");
     }
 
-    [HttpGet("games/{placeId:long}/{placeName}")]
-    public async Task<IActionResult> GetGameDetailsPage(long placeId, string placeName)
-    {
-        var details = ToDynamic((await services.games.MultiGetPlaceDetails(new[] {placeId})).First());
-        var expectedName = UrlUtilities.ConvertToSeoName(details.name);
-        if (expectedName != placeName)
-        {
-            return Redirect("/games/" + placeId + "/" + expectedName);
-        }
-        details.playerCount = Services.GamesService.GetPlayerCount(placeId);
-        details.favoriteCount = 0;
-        details.visitCount = await services.games.GetVisitCount(placeId);
-        return await GetPage("gameDetails", new []{details});
-    }
+    // [HttpGet("games/{placeId:long}/{placeName}")]
+    // public async Task<IActionResult> GetGameDetailsPage(long placeId, string placeName)
+    // {
+    //     var details = ToDynamic((await services.games.MultiGetPlaceDetails(new[] {placeId})).First());
+    //     var expectedName = UrlUtilities.ConvertToSeoName(details.name);
+    //     if (expectedName != placeName)
+    //     {
+    //         return Redirect("/games/" + placeId + "/" + expectedName);
+    //     }
+    //     details.playerCount = Services.GamesService.GetPlayerCount(placeId);
+    //     details.favoriteCount = 0;
+    //     details.visitCount = await services.games.GetVisitCount(placeId);
+    //     return await GetPage("gameDetails", new []{details});
+    // }
 
     [HttpGet("/games/votingservice/{placeId}")]
     public IActionResult GetVotingService()

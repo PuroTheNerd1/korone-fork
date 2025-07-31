@@ -33,35 +33,35 @@ public class EconomyChat : ControllerBase
     }
 
     [HttpGet("channels/{channelId:long}/messages")]
-    public async Task<IEnumerable<ChannelChatMessage>> GetMessages(long channelId, long startMessageId, int limit)
+    public IEnumerable<ChannelChatMessage> GetMessages(long channelId, long startMessageId, int limit)
     {
         if (limit is > 100 or < 1)
             limit = 100;
-        return await chatService.GetMessagesInChannel(channelId, startMessageId, limit);
+        return chatService.GetMessagesInChannel(channelId, startMessageId, limit);
     }
 
     [HttpPost("channels/{channelId:long}/typing")]
-    public async Task MarkAsTyping(long channelId)
+    public void MarkAsTyping(long channelId)
     {
-        await chatService.ToggleTyping(safeUserSession.userId, channelId, true);
+        chatService.ToggleTyping(safeUserSession.userId, channelId, true);
     }
 
     [HttpDelete("channels/{channelId:long}/typing")]
-    public async Task MarkAsNotTyping(long channelId)
+    public void MarkAsNotTyping(long channelId)
     {
-        await chatService.ToggleTyping(safeUserSession.userId, channelId, false);
+        chatService.ToggleTyping(safeUserSession.userId, channelId, false);
     }
 
     [HttpGet("channels/{channelId:long}/read")]
-    public async Task<UnreadMessageCount> GetUnreadMessageCount(long channelId)
+    public UnreadMessageCount GetUnreadMessageCount(long channelId)
     {
-        return await chatService.GetUnreadMessageCount(safeUserSession.userId, channelId);
+        return chatService.GetUnreadMessageCount(safeUserSession.userId, channelId);
     }
 
     [HttpPost("channels/{channelId:long}/read")]
-    public async Task MarkChannelAsRead(long channelId)
+    public void MarkChannelAsRead(long channelId)
     {
-        await chatService.SetReadMessage(safeUserSession.userId, channelId);
+        chatService.SetReadMessage(safeUserSession.userId, channelId);
     }
 
     [HttpPost("channels/{channelId:long}/send")]

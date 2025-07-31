@@ -18,10 +18,6 @@ public class Ticket : RobloxPageModel
     [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
     
-    public async Task OnAny()
-    {
-        
-    }
 
     private bool ValidateSubjectAndBody()
     {
@@ -40,11 +36,10 @@ public class Ticket : RobloxPageModel
         return true;
     }
     
-    public async Task<IActionResult> OnGet()
+    public IActionResult OnGet()
     {
         if (!FeatureFlags.IsEnabled(FeatureFlag.SupportTicket))
             return new RedirectResult("/");
-        await OnAny();
         return new PageResult();
     }
 
@@ -53,7 +48,6 @@ public class Ticket : RobloxPageModel
         if (!FeatureFlags.IsEnabled(FeatureFlag.SupportTicket))
             return new RedirectResult("/");
         
-        await OnAny();
         if (!ValidateSubjectAndBody())
             return new PageResult();
         if (!await HCaptcha.IsValid("", hCaptchaResponse))

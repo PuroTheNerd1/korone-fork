@@ -13,7 +13,7 @@ namespace Roblox.Rendering
         private static System.Threading.Mutex mux { get; set; } = new();
         private static ClientWebSocket? ws { get; set; }
         private static Dictionary<string, Func<RenderResponse<Stream>,int>> resultListeners { get; } = new();
-        private static Uri wsUrl { get; set; }
+        private static Uri? wsUrl { get; set; }
 
         public static void Configure(string baseUrl, string authorization)
         {
@@ -35,6 +35,12 @@ namespace Roblox.Rendering
             {
                 try
                 {
+                    if (ws == null)
+                    {
+                        Console.WriteLine("[info] ws is null, waiting for connection...");
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                        continue;
+                    }
                     var result = await ws.ReceiveAsync(memory.Memory, CancellationToken.None);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
@@ -68,16 +74,16 @@ namespace Roblox.Rendering
                     mux.WaitOne();
                     try
                     {
-                        var hasListener = resultListeners.ContainsKey(decoded.id);
-                        if (hasListener)
+                        if (!string.IsNullOrEmpty(decoded.id) && resultListeners.ContainsKey(decoded.id))
                         {
                             resultListeners[decoded.id](newResponse);
                             resultListeners.Remove(decoded.id);
                         }
                         else
                         {
-                            Console.WriteLine("[warning] got message for item without listener. id = {0}", decoded.id);
+                            Console.WriteLine("[warning] got message for item without listener. id = {0}", decoded.id ?? "null");
                         }
+
                     }
                     finally
                     {
@@ -109,6 +115,12 @@ namespace Roblox.Rendering
                         mux.WaitOne();
                         ws = new ClientWebSocket();
                         mux.ReleaseMutex();
+                        if (wsUrl == null)
+                        {
+                            Console.WriteLine("[error] WebSocket URL not configured.");
+                            return;
+                        }
+
                         await ws.ConnectAsync(wsUrl, CancellationToken.None);
                     }
                     await ListenForMessages();
@@ -173,7 +185,7 @@ namespace Roblox.Rendering
                 {
                     if (res.TrySetCanceled(cancellationToken.Value) && command != "Cancel")
                     {
-                        SendCommand("Cancel", new List<dynamic>()
+                        _ = SendCommand("Cancel", new List<dynamic>()
                         {
                             id,
                         }, CancellationToken.None);

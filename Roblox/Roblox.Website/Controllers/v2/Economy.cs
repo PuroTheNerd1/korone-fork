@@ -126,7 +126,7 @@ public class EconomyControllerV2 : ControllerBase
                         };
                         break;
                     case TransactionSubType.GroupPayoutReceived:
-                        details = null;
+                        details = "";
                         typeOverride = "Group Revenue Payout";
                         break;
                     case TransactionSubType.AudioUploadLong:

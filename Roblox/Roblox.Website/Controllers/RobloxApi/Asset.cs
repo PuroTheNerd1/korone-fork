@@ -289,7 +289,7 @@ public class Asset : ControllerBase
 
             // Get assetId from assets list
             var asset = robloxAssets.FirstOrDefault(a => ((dynamic)a).requestId == robloxAsset.requestId);
-            long assetId = ((dynamic)asset).assetId;
+            long assetId = ((dynamic)asset!).assetId;
             assets.Add(new
             {
                 location = robloxAsset.location,

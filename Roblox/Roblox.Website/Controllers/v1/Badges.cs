@@ -43,17 +43,11 @@ public class BadgesControllerV1 : ControllerBase
         await services.assets.ValidatePermissions(badgeId, safeUserSession.userId);
         
         var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
-        if (basicBadgeInfo is null) {
+        if (basicBadgeInfo is null) 
             throw new BadRequestException(0, "Badge is invalid or does not exist");
-        }
+        
 
-        try
-        {
-            await services.assets.EnsureAssetIsModerated(badgeId);
-        }
-        catch (Exception e) {
-            throw new BadRequestException(0, "Asset is not moderated.");
-        }
+        await services.assets.EnsureAssetIsModerated(badgeId);
         await services.badges.UpdateBadge(badgeId, request.enabled);
         await services.assets.UpdateAsset(badgeId);
         return new { };
@@ -204,8 +198,9 @@ public class BadgesControllerV1 : ControllerBase
     }
     
     // Removes a badge from the authenticated user.
-    [HttpDelete("users/badges/{badgeId:long}")]
-    public async Task<dynamic> RemoveBadgeFromSelf(long badgeId) {
+    // [HttpDelete("users/badges/{badgeId:long}")]
+    // public async Task<dynamic> RemoveBadgeFromSelf(long badgeId)
+    // {
         // TODO: is this safe?
         // var userId = safeUserSession.userId;
         //
@@ -216,6 +211,6 @@ public class BadgesControllerV1 : ControllerBase
         //
         // await services.users.DeleteUserAsset(userId, badgeId);
         
-        return new {};
-    }
+    //     return new {};
+    // }
 }

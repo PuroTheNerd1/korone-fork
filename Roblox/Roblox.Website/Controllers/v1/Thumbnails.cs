@@ -162,7 +162,7 @@ public class ThumbnailsControllerV1 : ControllerBase
             .Where(v => v.imageUrl != null)
             .Select(async v =>
                 await services.avatar.Update3DRenderModified(v.targetId,
-                    Path.GetFileNameWithoutExtension(v.imageUrl).Replace("_thumbnail3d", "")
+                    Path.GetFileNameWithoutExtension(v.imageUrl!).Replace("_thumbnail3d", "")
                     ))
         );
         foreach (var v in parsed.Except(result.Select(e => e.targetId)).ToList())

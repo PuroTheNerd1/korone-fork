@@ -129,12 +129,12 @@ public class TestBase
         return assetId.assetId;
     }
 
-    protected T ControllerAuth<T>(long userId) where T : ControllerBase, new()
-    {
-        return new T()
-        {
-            userSessionForTests = new UserSession(userId, "username", DateTime.Now, AccountStatus.Ok, 1,
-                false, Guid.NewGuid().ToString()),
-        };
-    }
+    // protected T ControllerAuth<T>(long userId) where T : ControllerBase, new()
+    // {
+    //     return new T()
+    //     {
+    //         userSessionForTests = new UserSession(userId, "username", DateTime.Now, AccountStatus.Ok, 1,
+    //             false, Guid.NewGuid().ToString()),
+    //     };
+    // }
 }

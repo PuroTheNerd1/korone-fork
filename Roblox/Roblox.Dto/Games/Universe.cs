@@ -97,7 +97,7 @@ public class GameListEntryRoblox
     public bool HasErrorOcurred = false;
     public string GameDetailReferralUrl = Roblox.Configuration.BaseUrl;
     public string Url = "";
-    public string RetryUrl = null;
+    public string RetryUrl;
     public bool Final = true;
     public string Name { get; set; }
     public long PlaceID { get; set; }

@@ -33,15 +33,15 @@ public class PrivateServerService : ServiceBase
     }
     */
 
-    private static string GenerateCryptographicallyStrongString(byte length)
-    {
-        int num = (byte)Math.Ceiling((double)(int)length / 4.0) * 3;
-        byte[] randomBytes = new byte[num];
-        using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
-        {
-            rng.GetBytes(randomBytes);
-        }
-        return Convert.ToBase64String(randomBytes).Substring(0, length).Replace('+', '-')
-            .Replace('/', '_');
-    }
+    // private static string GenerateCryptographicallyStrongString(byte length)
+    // {
+    //     int num = (byte)Math.Ceiling((double)(int)length / 4.0) * 3;
+    //     byte[] randomBytes = new byte[num];
+    //     using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+    //     {
+    //         rng.GetBytes(randomBytes);
+    //     }
+    //     return Convert.ToBase64String(randomBytes).Substring(0, length).Replace('+', '-')
+    //         .Replace('/', '_');
+    // }
 }

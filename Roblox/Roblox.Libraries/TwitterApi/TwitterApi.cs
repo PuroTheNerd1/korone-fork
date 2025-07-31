@@ -30,7 +30,7 @@ public class TwitterUserObject
 
 public class GenericTwitterResponse<T>
 {
-    public IEnumerable<T> data { get; set; }
+    public IEnumerable<T>? data { get; set; }
 }
 
 public class TwitterRecordNotFoundException : Exception
@@ -65,7 +65,7 @@ public class TwitterApi
         var json = JsonSerializer.Deserialize<GenericTwitterResponse<TwitterUserObject>>(str);
         if (json == null)
             throw new Exception("Null response from twitter");
-        var user = json.data.FirstOrDefault();
+        var user = json.data!.FirstOrDefault();
         if (user == null)
             throw new TwitterRecordNotFoundException();
         return user;
