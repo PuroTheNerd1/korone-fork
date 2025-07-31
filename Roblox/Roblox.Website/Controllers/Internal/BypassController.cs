@@ -1345,10 +1345,6 @@ namespace Roblox.Website.Controllers
             if(!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
-            if (GameServerService.unreadyGameServers.ContainsKey(gameId)) 
-                GameServerService.unreadyGameServers.Remove(gameId);
-            
-
             int roundPing = (int)Math.Round(ping, 0);
             int roundFps = (int)Math.Round(fps, 0);
             await services.gameServer.SetServerStats(gameId, roundPing, roundFps);
@@ -1364,8 +1360,9 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
+            var gameServer = await services.gameServer.GetGameServer(gameId);
 
-            if (clientCount == 0 && gameTime > 50)
+            if ((clientCount == 0 && gameTime > 50) || gameServer == null)
             {
                 await services.gameServer.ShutDownServerAsync(gameId);
                 return;
