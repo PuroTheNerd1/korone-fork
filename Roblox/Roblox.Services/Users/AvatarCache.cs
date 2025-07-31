@@ -58,7 +58,6 @@ public class AvatarCache : ServiceBase, IService
         {
             if (updatedInfo.ContainsKey(userId))
             {
-                Console.WriteLine($"AvatarCache: User {userId} is already scheduled for render.");
                 return false;
             }
             updatedInfo[userId] = DateTime.UtcNow;

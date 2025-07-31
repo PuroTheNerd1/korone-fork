@@ -238,7 +238,7 @@ namespace Roblox.Website.Controllers
             }
             
             var asset = await services.assets.DoesAssetExistType(productId);
-            
+
             if (asset.exists)
             {
                 switch (asset.assetType)

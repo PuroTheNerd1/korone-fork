@@ -124,7 +124,7 @@ public class FrontendProxyMiddleware
             }
         }
         */
-        Console.WriteLine("[PROXY] {0}", ctx.Request.GetEncodedUrl());
+
         var safeUrl = new Uri(fullUrl);
         if (safeUrl.Port != 3000)
             throw new ArgumentException("Unsafe Url: " + fullUrl);
@@ -189,23 +189,32 @@ public class FrontendProxyMiddleware
 
     public async Task InvokeAsync(HttpContext ctx)
     {
-        var requestUrl = ctx.Request.GetEncodedPathAndQuery();
-        var requestFullUrl = ctx.Request.GetEncodedUrl();
-        if (requestUrl.Contains("/canmanage/") || requestUrl.Contains("filter-friends") || requestUrl.Contains("multiget-friend-requests") || requestUrl.Contains("AbuseReport") || Regex.IsMatch(requestUrl, @"^/places/\d+/settings$") || Regex.IsMatch(requestUrl, @"^/users/\d+$") || Regex.IsMatch(requestUrl, @"^/Users/\d+$") || requestUrl.Contains("/universes/"))
+        string requestUrl = ctx.Request.GetEncodedPathAndQuery();
+        string requestFullUrl = ctx.Request.GetEncodedUrl();
+
+        if (requestUrl.Contains("/canmanage/") ||
+            requestUrl.Contains("filter-friends") ||
+            requestUrl.Contains("multiget-friend-requests") ||
+            requestUrl.Contains("AbuseReport") ||
+            Regex.IsMatch(requestUrl, @"^/places/\d+/settings$", RegexOptions.IgnoreCase) ||
+            Regex.IsMatch(requestUrl, @"^/users/\d+$", RegexOptions.IgnoreCase) ||
+            requestUrl.Contains("/universes/", StringComparison.OrdinalIgnoreCase))
         {
             await _next(ctx);
             return;
         }
 
-        foreach (var item in BypassUrls)
+        foreach (var prefix in BypassUrls)
         {
-            if (requestUrl.ToLower().StartsWith(item))
+            if (requestUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
                 await _next(ctx);
                 return;
             }
         }
-#if RELEASE
+
+    #if RELEASE
+        // Try to serve from in-memory page cache
         var cached = GetPageFromCache(requestUrl);
         if (cached != null)
         {
@@ -214,39 +223,55 @@ public class FrontendProxyMiddleware
             await ctx.Response.WriteAsync(cached.Item2);
             return;
         }
-#endif
-        var result = await ProxyRequestAsync(ctx, requestUrl);
-        var str = await result.Content.ReadAsStreamAsync();
-        // First, copy to memory
-        var mem = new MemoryStream();
-        await str.CopyToAsync(mem);
-        mem.Position = 0;
-        // Make a string
-        var cacheStr = await new StreamReader(mem).ReadToEndAsync();
-        mem.Position = 0;
-        var contentType = result.Content.Headers.ContentType?.ToString();
-        var locationHeader = result.Headers.Location?.ToString();
-        var cacheable = contentType != null && result.IsSuccessStatusCode && (
-                contentType.Contains("application/javascript") ||
-                contentType.Contains("text/html"));
-        if (requestUrl.ToLower().StartsWith("/forum/"))
-            cacheable = false;
+    #endif
 
-        if (cacheable)
+        // Make a proxy request
+        var result = await ProxyRequestAsync(ctx, requestUrl);
+        var resultStream = await result.Content.ReadAsStreamAsync();
+
+        var mem = new MemoryStream();
+        await resultStream.CopyToAsync(mem);
+        mem.Position = 0;
+
+        string cacheStr;
+        using (var reader = new StreamReader(mem, leaveOpen: true))
+        {
+            cacheStr = await reader.ReadToEndAsync();
+        }
+        mem.Position = 0;
+
+        string? contentType = result.Content.Headers.ContentType?.ToString();
+        string? locationHeader = result.Headers.Location?.ToString();
+
+        bool isSuccess = result.IsSuccessStatusCode;
+        bool isHtmlOrJs = contentType?.Contains("application/javascript") == true ||
+                        contentType?.Contains("text/html") == true;
+
+        bool isCacheable = isSuccess && isHtmlOrJs &&
+                        !requestUrl.StartsWith("/forum/", StringComparison.OrdinalIgnoreCase);
+
+        if (isCacheable)
         {
             pageCacheMux.WaitOne();
-            if (pageCache.Count < 1000)
+            try
             {
-                pageCache[requestUrl] = new(contentType, cacheStr, locationHeader, 200);
+                if (pageCache.Count < 1000)
+                {
+                    pageCache[requestUrl] = new(contentType, cacheStr, locationHeader, 200);
+                }
+                else
+                {
+                    Writer.Info(LogGroup.PerformanceDebugging, "2016 frontend page cache is full, not saving {0}", requestUrl);
+                }
             }
-            else
+            finally
             {
-                Writer.Info(LogGroup.PerformanceDebugging, "2016 frontend page cache is full, not saving {0}", requestUrl);
+                pageCacheMux.ReleaseMutex();
             }
-            pageCacheMux.ReleaseMutex();
         }
+
         await HandleProxyResult(requestUrl, contentType, (int)result.StatusCode, locationHeader, ctx);
         await mem.CopyToAsync(ctx.Response.BodyWriter.AsStream());
-
     }
+
 }

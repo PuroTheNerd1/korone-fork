@@ -13,13 +13,14 @@ public class ColorEntry
 
 }
 
-public class BodyScales {
-    public double height { get; set; } 
-    public double width { get; set; } 
-    public double head { get; set; } 
-    public double depth { get; set; } 
-    public double proportion { get; set; } 
-    public double bodyType { get; set; } 
+public class BodyScales
+{
+    public double height { get; set; }
+    public double width { get; set; }
+    public double head { get; set; }
+    public double depth { get; set; }
+    public double proportion { get; set; }
+    public double bodyType { get; set; }
 }
 
 public class AvatarWithColors : ColorEntry

@@ -4,6 +4,9 @@ using Roblox;
 using System.Text.Json;
 using System.Net.Http.Json;
 using System.Dynamic;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace Roblox.Rendering
 {
@@ -11,8 +14,6 @@ namespace Roblox.Rendering
     {
         private static string BaseUrl = "";
         public static string LuaScriptPath = "";
-        public static string RccServicePath = "C:\\ProjectX\\services\\RCCService\\";
-        public static string RccServicePathGames = "C:\\ProjectX\\services\\RCCService\\";
         private static Random RandomComponent = new Random();
         private static HttpClient client = new HttpClient();
         // TODO: REWRITE RENDERING HANDLER
@@ -25,6 +26,7 @@ namespace Roblox.Rendering
             BodyPart,
             Image,
             Clothing,
+            TeeShirt,
             Face,
             Mesh,
             MeshPart,
@@ -44,11 +46,10 @@ namespace Roblox.Rendering
         public static void Configure(string baseUrl, string rccPath, string luaScriptPath, string rccPathGames)
         {
             BaseUrl = baseUrl;
-            RccServicePath = rccPath;
             LuaScriptPath = luaScriptPath;
         }
-        public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>(); 
-        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false,  string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null)
+        public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>();
+        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false, string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -92,6 +93,10 @@ namespace Roblox.Rendering
                     renderRequest.assetId = id;
                     url = "image/clothing";
                     break;
+                case RenderType.TeeShirt:
+                    renderRequest.assetId = id;
+                    url = "image/teeshirt";
+                    break;
                 case RenderType.Mesh:
                     renderRequest.assetId = id;
                     url = "catalog/mesh";
@@ -134,47 +139,52 @@ namespace Roblox.Rendering
             return request?.data ?? "FAILURE";
         }
 
-        public static async Task<string> RequestHatThumbnail(long assetId, int JobExpiration)
+        public static async Task<string> RequestHatThumbnail(long assetId)
         {
             return await SendRenderRequest(assetId, RenderType.Hat);
         }
 
-        public static async Task<string> RequestMeshThumbnail(long assetId, int JobExpiration)
+        public static async Task<string> RequestMeshThumbnail(long assetId)
         {
             return await SendRenderRequest(assetId, RenderType.Mesh);
         }
 
-        public static async Task<string> RequestMeshPartThumbnail(long assetId, int JobExpiration)
+        public static async Task<string> RequestMeshPartThumbnail(long assetId)
         {
             return await SendRenderRequest(assetId, RenderType.MeshPart);
         }
 
-        public static async Task<string> RequestModelThumbnail(long assetId, int JobExpiration)
+        public static async Task<string> RequestModelThumbnail(long assetId)
         {
             return await SendRenderRequest(assetId, RenderType.Model);
         }
 
-        public static async Task<string> RequestImageThumbnail(long assetId, int JobExpiration, bool isFace = false)
+        public static async Task<string> RequestImageThumbnail(long assetId, bool isFace = false)
         {
             return await SendRenderRequest(assetId, RenderType.Image, isFace: isFace);
         }
 
-        public static async Task<string> RequestPlaceRender(long assetId, int JobExpiration, int x, int y)
+        public static async Task<string> RequestPlaceRender(long assetId, int x, int y)
         {
             return await SendRenderRequest(assetId, RenderType.Place, x, y);
         }
 
-        public static async Task<string> RequestClothingRender(long assetId, int JobExpiration)
+        public static async Task<string> RequestClothingRender(long assetId)
         {
             return await SendRenderRequest(assetId, RenderType.Clothing);
         }
 
-        public static async Task<string> RequestHeadRender(long assetId, int JobExpiration)
+        public static async Task<string> RequestTeeShirtRender(long assetId)
+        {
+            return await SendRenderRequest(assetId, RenderType.TeeShirt);
+        }
+        
+        public static async Task<string> RequestHeadRender(long assetId)
         {
             return await SendRenderRequest(assetId, RenderType.Head);
         }
 
-        public static async Task<string> RequestAnimationSilhouetteRender(long assetId, int JobExpiration)
+        public static async Task<string> RequestAnimationSilhouetteRender(long assetId)
         {
             return await SendRenderRequest(assetId, RenderType.Emote);
         }
@@ -182,25 +192,120 @@ namespace Roblox.Rendering
         {
             return await SendRenderRequest(0, RenderType.Animation, characterAppearanceUrl: characterAppearanceUrl, animationUrl: animationUrl);
         }
-        public static async Task<string> RequestPackageRender(string assetUrls, int JobExpiration)
+        public static async Task<string> RequestPackageRender(string assetUrls)
         {
             return await SendRenderRequest(0, RenderType.Package, assetUrl: assetUrls);
         }
-        public static async Task<string> RequestBodyPartRender(string assetUrl, int JobExpiration)
+        public static async Task<string> RequestBodyPartRender(string assetUrl)
         {
             return await SendRenderRequest(0, RenderType.BodyPart, assetUrl: assetUrl);
         }
-        public static async Task<string> RequestPlayerThumbnail(long userId, int JobExpiration)
+        public static async Task<string> RequestPlayerThumbnail(long userId)
         {
             return await SendRenderRequest(userId, RenderType.Avatar);
         }
-        public static async Task<string> RequestPlayerThumbnail3D(long userId, int JobExpiration)
+        public static async Task<string> RequestPlayerThumbnail3D(long userId)
         {
             return await SendRenderRequest(userId, RenderType.Avatar3D);
         }
-        public static async Task<string> RequestHeadshotThumbnail(long userId, int JobExpiration)
+        public static async Task<string> RequestHeadshotThumbnail(long userId)
         {
             return await SendRenderRequest(userId, RenderType.Headshot);
+        }
+        
+        /// <summary>
+        /// Resizes an image to the specified width and height.
+        /// </summary>
+        /// <typeparam name="TReturn">
+        /// The format you want the resized image returned in. It can be:
+        /// <list type="bullet">
+        ///   <item>A <see cref="MemoryStream"/></item>
+        ///   <item>A byte array (<see cref="byte[]"/>)</item>
+        ///   <item>A Base64 string representing the PNG image</item>
+        /// </list>
+        /// </typeparam>
+        /// <typeparam name="TImageType">
+        /// The type of the input image you provide. Supported types are:
+        /// <list type="bullet">
+        ///   <item>A Base64 string</item>
+        ///   <item>A byte array</item>
+        ///   <item>Any <see cref="Stream"/> that supports reading and seeking (like <see cref="MemoryStream"/> or <see cref="FileStream"/>)</item>
+        /// </list>
+        /// </typeparam>
+        /// <param name="inputImage">The image you want to resize, in one of the supported formats.</param>
+        /// <param name="width">The new width for the image.</param>
+        /// <param name="height">The new height for the image.</param>
+        /// <returns>
+        /// The resized image in the format you requested.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown if the input type isn't supported, if the input stream can't be read or seeked,
+        /// or if the requested return type isn't supported.
+        /// </exception>
+        public static async Task<TReturn> ResizeImage<TReturn, TImageType>(TImageType inputImage, int width, int height)
+        {
+            MemoryStream imageStream;
+            // Input image is a string meaning its a bsae64, lets decode it in a byte array and make a new MemoryStream
+            if (typeof(TImageType) == typeof(string))
+            {
+                string base64 = (string)(object)inputImage!;
+                byte[] imageBytes = Convert.FromBase64String(base64);
+                imageStream = new MemoryStream(imageBytes);
+            }
+            // Input image is a byte array, lets make a new MemoryStream
+            else if (typeof(TImageType) == typeof(byte[]))
+            {
+                byte[] bytes = (byte[])(object)inputImage!;
+                imageStream = new MemoryStream(bytes);
+            }
+            // Input image is a Stream, lets copy it to a new MemoryStream
+            else if (typeof(Stream).IsAssignableFrom(typeof(TImageType)))
+            {
+                var inputStream = (Stream)(object)inputImage!;
+                // seek check
+                if (!inputStream.CanSeek)
+                    throw new ArgumentException("Input stream must be seekable.");
+
+                inputStream.Position = 0;
+
+                imageStream = new MemoryStream();
+                await inputStream.CopyToAsync(imageStream);
+                imageStream.Position = 0;
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported image type for resizing.");
+            }
+
+            using (imageStream)
+            {
+                using var image = await Image.LoadAsync(imageStream);
+                image.Mutate(x => x.Resize(width, height));
+
+                var outStream = new MemoryStream();
+                await image.SaveAsync(outStream, new PngEncoder());
+                outStream.Position = 0;
+
+                if (typeof(TReturn) == typeof(MemoryStream))
+                {
+                    return (TReturn)(object)outStream;
+                }
+
+                byte[] bytesResult = outStream.ToArray();
+
+                if (typeof(TReturn) == typeof(byte[]))
+                {
+                    return (TReturn)(object)bytesResult;
+                }
+
+                if (typeof(TReturn) == typeof(string))
+                {
+                    string base64Result = Convert.ToBase64String(bytesResult);
+                    return (TReturn)(object)base64Result;
+                }
+
+                throw new ArgumentException("Unsupported return type requested.");
+            }
         }
     }
 }

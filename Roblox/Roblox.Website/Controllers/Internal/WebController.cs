@@ -67,7 +67,7 @@ public class WebController : ControllerBase
         // If we already have a session lets redirect
         if (userSession != null)
             return Redirect("/home");
-        DiscordApi discordOAuth = new(code, false, $"https://www.{Configuration.ShortBaseUrl}/api/logincallback");
+        var discordOAuth = new DiscordApi(code, false, $"https://www.{Configuration.ShortBaseUrl}/api/logincallback");
         var discordUserInfo = await discordOAuth.GetUserInfo();
         // Failed to login or no user info
         if (discordUserInfo == null)

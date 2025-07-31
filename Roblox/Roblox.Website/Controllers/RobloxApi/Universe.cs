@@ -1,4 +1,5 @@
 using System.Collections;
+using System.ComponentModel;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Assets;
@@ -186,35 +187,23 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGetBypass("developerproducts/list")]
-    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId, long? universeId)
+    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId = 0, long? universeId = 0)
     {
         if (page < 1 || page > 5)
         {
             page = 1;
         }
 
-        long uniId;
-
-        if (universeId != null)
+        if (universeId == null && placeId != null)
         {
-            var universes = await services.games.MultiGetUniverseInfo(new[] { universeId.Value });
-            if (universes.FirstOrDefault() == null)
-                throw new BadRequestException(0, "Universe ID is invalid or does not exist");
-            uniId = universeId.Value;
+            universeId = await services.games.GetUniverseId(placeId.Value);
         }
-        else if (placeId != null)
+        else if (universeId == null)
         {
-            uniId = await services.games.GetUniverseId(placeId.Value);
-        }
-        else
-        {
-            throw new BadRequestException(0, "Universe Id and Place Id cannot both be null.");
+            throw new BadRequestException(0, "You must provide a valid placeId or universeId.");
         }
 
-        // checks if universe exists so that's cool
-        //var universeId = await services.games.GetUniverseId(placeId);
-
-        var products = (await services.games.GetDeveloperProducts(uniId, 5, 5 * (page - 1))).ToList();
+        var products = (await services.games.GetDeveloperProducts(universeId.Value, 5, 5 * (page - 1))).ToList();
         return new
         {
             FinalPage = products.Count < 5 || page == 5,
@@ -279,7 +268,7 @@ public class UniverseV1 : ControllerBase
             {
                 gameTemplateType = "Generic",
                 hasTutorials = false,
-                universe = new Universe
+                universe = new 
                 {
                     id = c.universeId,
                     name = c.name,

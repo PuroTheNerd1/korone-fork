@@ -92,19 +92,19 @@ public class AvatarService : ServiceBase, IService {
                 });
         return result.Select(c => (long) c.asset_id);
     }
-    public async Task<int> GetAvatarTypeAsync(long userId)
+    public async Task<AvatarType> GetAvatarType(long userId)
     {
-        var AvatarRigType = await db.QuerySingleOrDefaultAsync(
-            "SELECT avatar_type FROM user_avatar WHERE user_id = :user_id",
+        var result = await db.QuerySingleOrDefaultAsync<AvatarType>(
+            "SELECT avatar_type as avatarType FROM user_avatar WHERE user_id = :user_id",
             new
             {
                 user_id = userId,
             });
 
-        return AvatarRigType.avatar_type;
+        return result;
     }
     
-    public async Task<BodyScales> GetAvatarScalesAsync(long userId)
+    public async Task<BodyScales> GetAvatarScales(long userId)
     {
         var avatarScales = await db.QuerySingleOrDefaultAsync<BodyScales>(
             @"SELECT 
@@ -123,13 +123,13 @@ public class AvatarService : ServiceBase, IService {
         return avatarScales;
     }
 
-    public async Task UpdateRigType(int type, long userId)
+    public async Task UpdateRigType(AvatarType type, long userId)
     {
         await db.ExecuteAsync(
             "UPDATE user_avatar SET avatar_type = :avatar_type WHERE user_id = :user_id",
             new
             {
-                avatar_type = type,
+                avatar_type = (int)type,
                 user_id = userId,
             });
     }
@@ -202,7 +202,8 @@ public class AvatarService : ServiceBase, IService {
             thumbnailUrl = existingAvatar.thumbnail_url,
             thumbnail3DUrl = existingAvatar.thumbnail_3d_url,
             headshotUrl = existingAvatar.headshot_thumbnail_url,
-            scales = new BodyScales {
+            scales = new BodyScales
+            {
                 width = existingAvatar.scale_width,
                 height = existingAvatar.scale_height,
                 head = existingAvatar.scale_head,
@@ -796,7 +797,8 @@ public class AvatarService : ServiceBase, IService {
         return $"update avatar web v1 {userId}";
     }
 
-    public async Task Update3DRenderModified(long userId, string avatarHash) {
+    public async Task Update3DRenderModified(long userId, string avatarHash)
+    {
         var thumbnail3DUrl = $"/images/thumbnails/{avatarHash}_thumbnail3d.json";
         try {
             var thumbnail3DJson = await File.ReadAllTextAsync(Configuration.PublicDirectory + thumbnail3DUrl);
@@ -842,14 +844,11 @@ public class AvatarService : ServiceBase, IService {
         if (!redLock.IsAcquired && !ignoreLock) throw new LockNotAcquiredException();
 
         var assetIds = newAssetIds?.ToList();
+        
         // If list provided is null, then the caller wants us to grab the items ourselves
-        if (avatarType is null) {
-            var type = await GetAvatarTypeAsync(userId);
-            if (!Enum.IsDefined(typeof(AvatarType), type))
-                throw new RobloxException(400, 0, "Avatar type is invalid");
-            avatarType = (AvatarType)type;
-        }
-        scales ??= await GetAvatarScalesAsync(userId);
+
+        avatarType ??= await GetAvatarType(userId); 
+        scales ??= await GetAvatarScales(userId);
         colors ??= await GetAvatarColors(userId);
         assetIds ??= (await GetWornAssets(userId)).ToList();
         
@@ -870,6 +869,7 @@ public class AvatarService : ServiceBase, IService {
             throw new RobloxException(400, 0, "One or more assets are invalid");
         // Now, update the avatar. This returns a hash
         var avatarHash = await UpdateUserAvatar(userId, colors, assetIds, scales, avatarType.Value);
+
         if (skipRender) return;
         // We don't wanna waste time rendering if we don't have to
 
@@ -894,115 +894,133 @@ public class AvatarService : ServiceBase, IService {
         // We have to call render library now.
         // Set image urls to null:
         await UpdateUserAvatarImages(userId, null, null, null);
-        // Create request TODO: why is this called?
-        var extendedAssetDetails = await assets.MultiGetInfoById(assetIds);
+
         // Sane timeout of 2 minutes. If a render takes longer than this, something's probably broken
         using var cancellation = new CancellationTokenSource();
         cancellation.CancelAfter(TimeSpan.FromMinutes(2));
         // Make both requests at once
         var tasks = new List<Task<string>>()
         {
-            RenderingHandler.RequestHeadshotThumbnail(userId, 20),
-            RenderingHandler.RequestPlayerThumbnail(userId, 20),
-            // Other asynchronous methods that return strings
+            RenderingHandler.RequestHeadshotThumbnail(userId),
+            RenderingHandler.RequestPlayerThumbnail(userId),
         };
         var result = await Task.WhenAll(tasks);
         var headshotResult = result[0];
         var thumbnailResult = result[1];
-        // Write the files
-        // Write the headshot first
+
         try
         {
-            string filename = $"{avatarHash}_headshot.png";
-            string ResizedImage = await GetResizedImageFromBase64(headshotResult, 150, 150);
-            byte[] BinaryData = Convert.FromBase64String(ResizedImage);
-            await File.WriteAllBytesAsync($"{Configuration.ThumbnailsDirectory}{filename}", BinaryData);
+            string headshotFileName = $"{avatarHash}_headshot.png";
+            byte[] headshotBytes = await RenderingHandler.ResizeImage<byte[], string>(headshotResult, 150, 150);
+            string headshotPath = Path.Combine(Configuration.ThumbnailsDirectory, headshotFileName);
+            await File.WriteAllBytesAsync(headshotPath, headshotBytes);
+
+            string thumbnailFileName = $"{avatarHash}_thumbnail.png";
+            byte[] thumbnailBytes = await RenderingHandler.ResizeImage<byte[], string>(thumbnailResult, 352, 352);
+            string thumbnailPath = Path.Combine(Configuration.ThumbnailsDirectory, thumbnailFileName);
+            await File.WriteAllBytesAsync(thumbnailPath, thumbnailBytes);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Console.WriteLine($"[RewrittenRCC]: Failed to save thumbnail: {e}");
+            Writer.Info(LogGroup.AvatarService, "Failed to save headshot or thumbnail for user {0}: {1}", userId, ex.Message);
         }
-        // Now thumbnail
-        try
-        {
-            string filename = $"{avatarHash}_thumbnail.png";
-            string ResizedImage = await GetResizedImageFromBase64(thumbnailResult, 352, 352);
-            byte[] BinaryData = Convert.FromBase64String(ResizedImage);
-            await File.WriteAllBytesAsync($"{Configuration.ThumbnailsDirectory}{filename}", BinaryData);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"[RewrittenRCC]: Failed to save thumbnail: {e}");
-        }
-        
+
         // Update the avatar thumbnail, excluding 3D
         await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, null);
 
-        var thumbnail3DResult = await RenderingHandler.RequestPlayerThumbnail3D(userId, 20);
+        var thumbnail3DResult = await RenderingHandler.RequestPlayerThumbnail3D(userId);
         // Now thumbnail 3D, these have a unique format in JSON
-        try {
-            // TODO: we should maybe resize these 3d renders, they're quite large
+        try
+        {
+            // TODO: consider resizing these 3D renders — they may be too large
             var thumbJson = JsonSerializer.Deserialize<Thumbnail3DRender>(thumbnail3DResult);
             if (thumbJson is null)
                 throw new Exception("Renderer returned incorrect 3D thumbnail.");
+
             string? obj = null;
             string? mtl = null;
             var textures = new List<string>();
+            
             using SHA256 hasher = SHA256.Create();
+
             if (thumbJson.files.TryGetValue("scene.obj", out var sceneObj))
             {
-                var objDecoded = Convert.FromBase64String(sceneObj.content);
-                var bits = Convert.ToHexString(hasher.ComputeHash(objDecoded)).ToLower();
-                var objFile = $"{Configuration.ThumbnailsDirectory}3d/{bits}";
-                obj = $"/images/thumbnails/3d/{bits}";
-                if (!File.Exists(objFile)) {
-                    await File.WriteAllBytesAsync(objFile, objDecoded);
-                }
-            }
-            if (thumbJson.files.TryGetValue("scene.mtl", out var sceneMtl))
-            {
-                var mtlDecoded = Convert.FromBase64String(sceneMtl.content);
-                var bits = Convert.ToHexString(hasher.ComputeHash(mtlDecoded)).ToLower();
-                var mtlFile = $"{Configuration.ThumbnailsDirectory}3d/{bits}";
-                mtl = $"/images/thumbnails/3d/{bits}";
-                if (!File.Exists(mtlFile)) {
-                    await File.WriteAllBytesAsync(mtlFile, mtlDecoded);
-                }
-            }
-            
-            foreach (var (fileName, value) in thumbJson.files) {
-                if (fileName.Contains("tex.png", StringComparison.OrdinalIgnoreCase)) {
-                    var textureData = Convert.FromBase64String(value.content);
-                    var textureHash = Convert.ToHexString(hasher.ComputeHash(textureData)).ToLower();
-                    var textureName = $"{Configuration.ThumbnailsDirectory}3d/{textureHash}_tex_{fileName.Replace(".png", "")}";
-                    if (!File.Exists(textureName)) {
-                        await File.WriteAllBytesAsync(textureName, textureData);
-                    }
-                    textures.Add($"/images/thumbnails/3d/{textureHash}_tex_{fileName.Replace(".png", "")}");
+                byte[] objData = Convert.FromBase64String(sceneObj.content);
+                string objHash = Convert.ToHexString(hasher.ComputeHash(objData)).ToLower();
+                string objFileName = objHash;
+                string objDiskPath = Path.Combine(Configuration.ThumbnailsDirectory, "3d", objFileName);
+                string objUrlPath = $"/images/thumbnails/3d/{objFileName}";
+
+                obj = objUrlPath;
+
+                if (!File.Exists(objDiskPath))
+                {
+                    await File.WriteAllBytesAsync(objDiskPath, objData);
                 }
             }
 
-            var thumbnail3DJson = new {
+            if (thumbJson.files.TryGetValue("scene.mtl", out var sceneMtl))
+            {
+                byte[] mtlData = Convert.FromBase64String(sceneMtl.content);
+                string mtlHash = Convert.ToHexString(hasher.ComputeHash(mtlData)).ToLower();
+                string mtlFileName = mtlHash;
+                string mtlDiskPath = Path.Combine(Configuration.ThumbnailsDirectory, "3d", mtlFileName);
+                string mtlUrlPath = $"/images/thumbnails/3d/{mtlFileName}";
+
+                mtl = mtlUrlPath;
+
+                if (!File.Exists(mtlDiskPath))
+                {
+                    await File.WriteAllBytesAsync(mtlDiskPath, mtlData);
+                }
+            }
+
+            foreach (var (fileName, fileValue) in thumbJson.files)
+            {
+                if (!fileName.Contains("tex.png", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                byte[] textureData = Convert.FromBase64String(fileValue.content);
+                string textureHash = Convert.ToHexString(hasher.ComputeHash(textureData)).ToLower();
+                string baseName = fileName.Replace(".png", "", StringComparison.OrdinalIgnoreCase);
+                string textureFileName = $"{textureHash}_tex_{baseName}";
+                string textureDiskPath = Path.Combine(Configuration.ThumbnailsDirectory, "3d", textureFileName);
+                string textureUrlPath = $"/images/thumbnails/3d/{textureFileName}";
+
+                if (!File.Exists(textureDiskPath))
+                {
+                    await File.WriteAllBytesAsync(textureDiskPath, textureData);
+                }
+
+                textures.Add(textureUrlPath);
+            }
+
+            var thumbnail3DJson = new
+            {
                 userId,
                 thumbJson.camera,
-                aabb = new {
+                aabb = new
+                {
                     thumbJson.AABB.min,
-                    thumbJson.AABB.max,
+                    thumbJson.AABB.max
                 },
                 mtl,
                 obj,
-                textures = textures.Count > 0 ? textures.ToArray() : null,
+                textures = textures.Count > 0 ? textures.ToArray() : null
             };
-            
-            string filename = $"{avatarHash}_thumbnail3d.json";
-            await File.WriteAllBytesAsync($"{Configuration.ThumbnailsDirectory}{filename}", Encoding.UTF8.GetBytes(JsonSerializer.Serialize(thumbnail3DJson)));
-            // Finally, update the avatar thumbnail, including 3D
+
+            string jsonOutputPath = Path.Combine(Configuration.ThumbnailsDirectory, $"{avatarHash}_thumbnail3d.json");
+            string jsonContent = JsonSerializer.Serialize(thumbnail3DJson);
+            await File.WriteAllBytesAsync(jsonOutputPath, Encoding.UTF8.GetBytes(jsonContent));
+
+            // Finally, update the avatar thumbnail (including 3D version)
             await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
         }
         catch (Exception e)
         {
             Console.WriteLine($"[RewrittenRCC]: Failed to save 3D thumbnail: {e}");
         }
+
     }
 
     public async Task TryAsset(long userId, long assetId)
@@ -1017,75 +1035,6 @@ public class AvatarService : ServiceBase, IService {
     public bool IsReusable()
     {
         return false;
-    }
-    public static async Task<byte[]> GetResizedImageFromStream(Stream stream, int newX, int newY)
-    {
-        try
-        {
-            if (stream.CanSeek)
-            {
-                Console.WriteLine("Seeked stream");
-                stream.Seek(0, SeekOrigin.Begin);
-            }
-
-            byte[] imageBytes;
-            using (var memoryStream = new MemoryStream())
-            {
-                await stream.CopyToAsync(memoryStream);
-                imageBytes = memoryStream.ToArray();
-            }
-
-            using (MemoryStream memoryStream = new MemoryStream(imageBytes))
-            using (Image image = await Image.LoadAsync(memoryStream))
-            {
-                image.Mutate(x => x.Resize(new ResizeOptions
-                {
-                    Size = new Size(newX, newY),
-                    Mode = ResizeMode.Stretch
-                }));
-
-                using (MemoryStream resizedMemoryStream = new MemoryStream())
-                {
-                    await image.SaveAsync(resizedMemoryStream, new PngEncoder());
-                    byte[] resizedImageBytes = resizedMemoryStream.ToArray();
-                    return resizedImageBytes;
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.ToString());
-            return null;
-        }
-    }
-
-    public static async Task<string> GetResizedImageFromBase64(string base64, int newX, int newY)
-    {
-        try
-        {
-            byte[] imageBytes = Convert.FromBase64String(base64);
-
-            using (MemoryStream memoryStream = new MemoryStream(imageBytes))
-            using (Image image = await Image.LoadAsync(memoryStream))
-            {
-                image.Mutate(x => x.Resize(new ResizeOptions
-                {
-                    Size = new Size(newX, newY),
-                    Mode = ResizeMode.Max
-                }));
-
-                using (MemoryStream resizedMemoryStream = new MemoryStream())
-                {
-                    await image.SaveAsync(resizedMemoryStream, new PngEncoder());
-                    byte[] resizedImageBytes = resizedMemoryStream.ToArray();
-                    return Convert.ToBase64String(resizedImageBytes);
-                }
-            }
-        }
-        catch
-        {
-            return "BAD";
-        }
     }
 
     private static Timer _timer;

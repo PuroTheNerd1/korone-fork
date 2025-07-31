@@ -10,7 +10,7 @@ import HeadshotTemplate from "../../scripts/Closeup.json" with {type: "json"};
 import {BaseJson, RequestRCCBase, RequestRCCBaseXMLData} from "./BaseController.js";
 
 const router = express.Router();
-const box = new QueueBox<express.Response>(`All`, Config.Ports.RCC.All);
+const box = new QueueBox<express.Response>(`PlayerBox`, Config.Ports.RCC.Player);
 
 router.post("/thumbnail", Valid(PlayerRenderRequest), async (req, res) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(AvatarTemplate));

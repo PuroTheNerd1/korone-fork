@@ -34,7 +34,7 @@ public class AvatarControllerV1 : ControllerBase, IService
             {
                 if (!cache.AttemptScheduleRender(userId))
                 {
-                    Console.WriteLine("Render already scheduled for user {0}", userId);
+                    Writer.Info(LogGroup.AvatarService, "Render already scheduled for user {0}", userId);
                     return;
                 };
             }
@@ -43,7 +43,7 @@ public class AvatarControllerV1 : ControllerBase, IService
         await Task.Run(async () =>
         {
             //await Task.Delay(TimeSpan.FromSeconds(2));
-            Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarTypeAsync(userId);
+            Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarType(userId);
             using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
             try
             {
@@ -81,9 +81,9 @@ public class AvatarControllerV1 : ControllerBase, IService
         
         var currentlyWorn = (await services.avatar.GetWornAssets(safeUserSession.userId)).ToList();
         var newAssetIds = request.assetIds.ToList();
-        Console.WriteLine("SetWornAssets current = {0} new = {1}", JsonSerializer.Serialize(currentlyWorn), JsonSerializer.Serialize(newAssetIds));
+        Writer.Info(LogGroup.AvatarService, "SetWornAssets current = {0} new = {1}", JsonSerializer.Serialize(currentlyWorn), JsonSerializer.Serialize(newAssetIds));
         var changedAssetIds = currentlyWorn.Except(newAssetIds).Concat(newAssetIds.Except(currentlyWorn)).ToList();
-        Console.WriteLine("Changed assets = {0}", JsonSerializer.Serialize(changedAssetIds));
+        Writer.Info(LogGroup.AvatarService, "Changed assets = {0}", JsonSerializer.Serialize(changedAssetIds));
         
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, request.assetIds);
@@ -120,7 +120,10 @@ public class AvatarControllerV1 : ControllerBase, IService
     {
         FeatureCheck();
         var currentlyWorn = (await services.avatar.GetWornAssets(safeUserSession.userId)).ToList();
-        if (!currentlyWorn.Contains(assetId)) { // if not wearing just return
+        // if not wearing just return
+        if (!currentlyWorn.Contains(assetId))
+        {
+            Writer.Info(LogGroup.AvatarService, "User {0} tried to remove asset {1} but it was not worn", safeUserSession.userId, assetId);    
             return;
         }
         currentlyWorn.Remove(assetId);
@@ -149,7 +152,7 @@ public class AvatarControllerV1 : ControllerBase, IService
     {
         if (!Enum.IsDefined(typeof(AvatarType), request.playerAvatarType))
             throw new BadRequestException(0, "Invalid player avatar type");
-        await services.avatar.UpdateRigType((int) request.playerAvatarType, safeUserSession.userId);
+        await services.avatar.UpdateRigType(request.playerAvatarType, safeUserSession.userId);
         AttemptScheduleRender();
     }
 
@@ -182,14 +185,6 @@ public class AvatarControllerV1 : ControllerBase, IService
         AttemptScheduleRender();
     }
     
-    [HttpGet("avatar/set-rig")]
-    public async Task SetRigType(string rigtype)
-    {
-        int type = (rigtype == "R15") ? 2 : 1;
-
-        await services.avatar.UpdateRigType(type, safeUserSession.userId);
-        AttemptScheduleRender();
-    }
 
     [HttpGet("recent-items/{recentType}/list")]
     [HttpGetBypass("/v1/recent-items/{recentType}/list")]

@@ -145,29 +145,23 @@ public class GamesService : ServiceBase, IService
             });
         return result;
     }
-        
-    public async Task<MultiGetUniverseEntry> GetUniverseInfo(long universeId)
+    
+    public async Task<Universe> SafeGetUniverseInfo(long userId, long universeId)
     {
-        var universe = (await MultiGetUniverseInfo(new[] {universeId})).First();
-        if (universe is null) 
+        var universe = (await MultiGetUniverseInfo(new[] { universeId })).First();
+        if (universe is null)
             throw new RecordNotFoundException("Universe doesn't exist");
-        return universe;
-    }
-    public async Task<MultiGetUniverseEntry> SafeGetUniverseInfo(long userId, long universeId)
-    {
-        var universe = (await MultiGetUniverseInfo(new[] {universeId})).First();
-        if (universe is null) 
-            throw new RecordNotFoundException("Universe doesn't exist");
-        
 
-        if (universe.creatorId != userId) 
+
+        if (universe.creatorId != userId)
             throw new PermissionException(universe.rootPlaceId, userId);
-        
+
 
         using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
         var details = await assets.GetAssetCatalogInfo(universe.rootPlaceId);
         // Second condition should almost never happen but just in case
-        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.creatorTargetId != userId) {
+        if (details.moderationStatus != ModerationStatus.ReviewApproved || details.creatorTargetId != userId)
+        {
             throw new PermissionException(universe.rootPlaceId, userId);
         }
         return universe;
@@ -347,6 +341,48 @@ public class GamesService : ServiceBase, IService
         {
             result[i].favoritedCount = favorites[i];
         }
+        return result;
+    }
+    public async Task<Universe> GetUniverseInfo(long universeId)
+    {
+        var build = new SqlBuilder();
+        var template = build.AddTemplate(
+            @"SELECT
+                u.id,
+                u.root_asset_id AS rootPlaceId,
+                u.is_public AS isPublic,
+                u.forcemorph_type AS universeAvatarType,
+                u.privacy_type AS privacyType,
+                a.name AS sourceName,
+                a.description AS sourceDescription,
+                a.asset_genre AS genre,
+                a.created_at AS created,
+                a.updated_at AS updated,
+                ap.max_player_count AS maxPlayers,
+                ap.year AS year,
+                ap.visit_count AS visits,
+                ap.is_vip_enabled AS createVipServersAllowed,
+                a.price_robux AS price,
+                a.creator_id AS creatorId,
+                a.creator_type AS creatorType,
+                (SELECT COUNT(*) FROM asset_server_player WHERE asset_id = u.root_asset_id) AS playing,
+                COALESCE(u_user.username, g.name) AS creatorName
+            FROM universe u
+            INNER JOIN asset a ON a.id = u.root_asset_id
+            INNER JOIN asset_place ap ON ap.asset_id = u.root_asset_id
+            LEFT JOIN ""user"" u_user ON a.creator_type = 1 AND u_user.id = a.creator_id
+            LEFT JOIN ""group"" g ON a.creator_type = 2 AND g.id = a.creator_id
+            /**where**/
+            LIMIT 1");
+
+        build.Where("u.id = @UniverseId", new { UniverseId = universeId });
+
+        var result = (await db.QueryAsync<MultiGetUniverseEntry>(template.RawSql, template.Parameters)).FirstOrDefault();
+        if (result == null)
+            throw new RecordNotFoundException("Universe does not exist.");
+
+        using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
+        result.favoritedCount = await assets.CountFavorites(result.rootPlaceId);
         return result;
     }
 
@@ -1023,8 +1059,16 @@ public class GamesService : ServiceBase, IService
     public async Task<IEnumerable<GameMediaEntry>> GetGameMedia(long placeId)
     {
         return await db.QueryAsync<GameMediaEntry>(
-            "SELECT asset_type as assetType, media_asset_id as imageId, media_video_hash as videoHash, media_video_title as videoTitle, is_approved as approved FROM asset_media WHERE asset_id = :id",
+            "SELECT asset_id as assetId, asset_type as assetType, media_asset_id as imageId, media_video_hash as videoHash, media_video_title as videoTitle, is_approved as approved FROM asset_media WHERE asset_id = :id",
             new {id = placeId});
+    }
+    public async Task<GameMediaEntry> GetSpecificGameMedia(long mediaAssetId)
+    {
+        return await db.QueryFirstOrDefaultAsync<GameMediaEntry>(
+            "SELECT asset_id as assetId, asset_type as assetType, media_asset_id as imageId, media_video_hash as videoHash, media_video_title as videoTitle, is_approved as approved FROM asset_media WHERE media_asset_id = :mediaAssetId", new
+            {
+                mediaAssetId = mediaAssetId
+            });
     }
     public async Task<long> GetGameMediaCount(long placeId)
     {
@@ -1190,7 +1234,8 @@ public class GamesService : ServiceBase, IService
         return qu;
     }
     
-    public async Task<long?> CreateDeveloperProduct(long userId, long universeId, string name, string description, long priceInRobux, long iconImageAssetId) {
+    public async Task<long> CreateDeveloperProduct(long userId, long universeId, string name, string description, long priceInRobux, long iconImageAssetId)
+    {
         if (string.IsNullOrEmpty(name)) throw new AssetNameTooShortException();
         if (name.Length > Rules.NameMaxLength)
             throw new AssetNameTooLongException();

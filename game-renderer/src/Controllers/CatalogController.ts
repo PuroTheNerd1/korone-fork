@@ -15,7 +15,7 @@ import AnimSilhouetteTemplate from "../../scripts/AnimationSilhouette.json" with
 import AnimationTemplate from "../../scripts/AvatarAnimation.json" with {type: "json"};
 import BodyPartTemplate from "../../scripts/BodyPart.json" with {type: "json"};
 const router = express.Router();
-const box = new QueueBox<express.Response>(`All`, Config.Ports.RCC.All);
+const box = new QueueBox<express.Response>(`CatalogBox`, Config.Ports.RCC.Catalog);
 
 router.post("/hat", Valid(AssetRenderRequest), async (req: Request, res: Response) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(HatTemplate));

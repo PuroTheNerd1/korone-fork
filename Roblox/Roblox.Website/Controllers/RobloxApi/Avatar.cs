@@ -30,14 +30,19 @@ public class AvatarRBX : ControllerBase
         {
             using (var cache = ServiceProvider.GetOrCreate<AvatarCache>())
             {
-                if (!cache.AttemptScheduleRender(userId)) return;
+                if (!cache.AttemptScheduleRender(userId))
+                {
+                    Writer.Info(LogGroup.AvatarService, "Avatar render already scheduled for user {0}", userId);
+                    return;
+                }
+
             }
         }
 
         await Task.Run(async () =>
         {
             //await Task.Delay(TimeSpan.FromSeconds(2));
-            Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarTypeAsync(userId);
+            Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarType(userId);
             using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
             try
             {
@@ -166,15 +171,6 @@ public class AvatarRBX : ControllerBase
         await cache.SetPendingAssets(safeUserSession.userId, request.assetIds);
 
         
-        AttemptScheduleRender();
-    }
-
-    [HttpGetBypass("v1/avatar/set-rig")]
-    public async Task SetRigType(string rigtype)
-    {
-        int type = (rigtype == "R15") ? 2 : 1;
-
-        await services.avatar.UpdateRigType(type, safeUserSession.userId);
         AttemptScheduleRender();
     }
 

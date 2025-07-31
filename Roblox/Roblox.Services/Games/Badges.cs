@@ -8,7 +8,7 @@ namespace Roblox.Services.Games;
 
 public class BadgesService : ServiceBase, IService {
     
-    public async Task<IEnumerable<BadgeAssetDetails>> GetBadgesForUniverse(MultiGetUniverseEntry universe, int limit,
+    public async Task<IEnumerable<BadgeAssetDetails>> GetBadgesForUniverse(Universe universe, int limit,
         int offset, SortOrder? sort)
     {
         var qu = await db.QueryAsync<BadgeAssetDetailsDb>(
@@ -126,7 +126,7 @@ public class BadgesService : ServiceBase, IService {
             }
         });
     }
-    public async Task<IEnumerable<BadgeAssetDetails>> GetBadgeInfoExtended(long assetId, MultiGetUniverseEntry universe, int limit,
+    public async Task<IEnumerable<BadgeAssetDetails>> GetBadgeInfoExtended(long assetId, Universe universe, int limit,
         int offset, SortOrder? sort)
     {
         var qu = await db.QueryAsync<BadgeAssetDetailsDb>(
@@ -182,7 +182,8 @@ public class BadgesService : ServiceBase, IService {
         });
     }
     
-    public async Task<IEnumerable<BadgeAwardDate>> GetUserBadgeAwardedDates(long userId, long[] badgeIds) {
+    public async Task<IEnumerable<BadgeAwardDate>> GetUserBadgeAwardedDates(long userId, long[] badgeIds)
+    {
 
         var builder = new SqlBuilder();
         var template = builder.AddTemplate(
@@ -213,7 +214,9 @@ public class BadgesService : ServiceBase, IService {
         if (qu == null) 
             return null;
 
-        var modStatus = await GetAssetModerationStatus(assetId);
+        using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
+
+        var modStatus = await assets.GetAssetModerationStatus(assetId);
         return new BadgeDetails 
         {
             assetId = qu.assetId,
@@ -229,13 +232,6 @@ public class BadgesService : ServiceBase, IService {
             badgeId,
             enabled
         });
-    }
-    
-    public async Task<ModerationStatus?> GetAssetModerationStatus(long assetId)
-    {
-        var res = await db.QuerySingleOrDefaultAsync<ModerationEntryDb>("SELECT moderation_status AS moderationStatus FROM asset WHERE id = :id", 
-            new { id = assetId });
-        return res?.moderationStatus;
     }
     
     public bool IsThreadSafe()

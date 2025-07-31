@@ -211,7 +211,7 @@ public class Asset : ControllerBase
                 // It's not RCC making the request. are we authorized?
                 else
                     // Use current user as access check
-                    isAuthorized = IsUserAuthorizedForAsset(details, assetId, safeUserSession.userId); 
+                    isAuthorized = await IsUserAuthorizedForAsset(details, assetId, safeUserSession.userId); 
                 if (isAuthorized && assetVersion.contentUrl != null)
                     assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                 break;
@@ -359,8 +359,8 @@ public class Asset : ControllerBase
     {
         return details.moderationStatus == ModerationStatus.ReviewApproved || details.moderationStatus == ModerationStatus.AwaitingModerationDecision;
     }
-    private bool IsUserAuthorizedForAsset(MultiGetEntry details, long assetId, long userId)
+    private async Task<bool> IsUserAuthorizedForAsset(MultiGetEntry details, long assetId, long userId)
     {
-        return services.assets.CanUserModifyItem(assetId, userId).Result || details.creatorType == CreatorType.User && details.creatorTargetId == 1;;
+        return await services.assets.CanUserModifyItem(assetId, userId) || details.creatorType == CreatorType.User && details.creatorTargetId == 1;;
     }
 }

@@ -9,7 +9,7 @@ import {Console} from "../Utilities/Libraries/CS.js";
 import PlaceTemplate from "../../scripts/Place.json" with {type: "json"};
 
 const router = express.Router();
-const box = new QueueBox<express.Response>(`All`, Config.Ports.RCC.All);
+const box = new QueueBox<express.Response>(`PlaceBox`, Config.Ports.RCC.Place);
 
 router.post("/thumbnail", Valid(PlaceRenderRequest), async (req: Request, res: Response) => {
     const xml: BaseJson = JSON.parse(JSON.stringify(PlaceTemplate));

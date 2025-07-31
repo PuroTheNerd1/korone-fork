@@ -14,7 +14,7 @@ public class UniverseCreator
 
 }
 
-public class MultiGetUniverseEntry
+public class Universe 
 {
     public long id { get; set; }
     public long rootPlaceId { get; set; }
@@ -52,6 +52,11 @@ public class MultiGetUniverseEntry
     [JsonIgnore]
     public string creatorName { get; set; }
 }
+
+public class MultiGetUniverseEntry : Universe
+{
+}
+
 
 public class GameListEntry
 {
@@ -312,31 +317,36 @@ public class BadgeAssetDetails {
     public BadgeAwardingUniverse awardingUniverse { get; set; }
 }
 
-public class BadgeStatistics {
+public class BadgeStatistics
+{
     public long pastDayAwardedCount { get; set; }
     public long awardedCount { get; set; }
     public decimal winRatePercentage { get; set; }
 }
 
-public class BadgeAwardingUniverse {
+public class BadgeAwardingUniverse
+{
     public long id { get; set; }
     public string name { get; set; }
     public long rootPlaceId { get; set; }
 }
 
-public class BadgeDetails {
+public class BadgeDetails
+{
     public long assetId { get; set; }
     public long universeId { get; set; }
     public bool enabled { get; set; }
 }
 
-public class BadgeUpdateRequest {
+public class BadgeUpdateRequest
+{
     public string? name { get; set; }
     public string? description { get; set; }
     public bool enabled { get; set; }
 }
 
-public class DeveloperProductDb {
+public class DeveloperProductDb
+{
     public long id { get; set; }
     public string name { get; set; }
     public string description { get; set; }
@@ -351,7 +361,8 @@ public class DeveloperProductDb {
     public long creatorId { get; set; }
 }
 
-public class DeveloperProduct {
+public class DeveloperProduct
+{
     public long id { get; set; }
     public string name { get; set; }
     public string Description { get; set; }
@@ -366,7 +377,8 @@ public class DeveloperProduct {
     public long creatorId { get; set; }
 }
 
-public class DeveloperProducts {
+public class DeveloperProducts
+{
     public long id { get; set; }
     public string name { get; set; }
     public string Description { get; set; }
@@ -376,7 +388,8 @@ public class DeveloperProducts {
     public long sales { get; set; }
 }
 
-public class UpdateDevProductRequest {
+public class UpdateDevProductRequest
+{
     public string Name { get; set; }
     public string Description { get; set; }
     public long IconImageAssetId { get; set; }
@@ -394,7 +407,8 @@ public class ProductReceipt
     public DateTime? processedAt { get; set; }
 }
 
-public class ReceiptResponse {
+public class ReceiptResponse
+{
     public long? playerId { get; set; }
     public long? placeId { get; set; }
     public bool isValid { get; set; }

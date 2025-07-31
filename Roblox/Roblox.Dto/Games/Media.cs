@@ -4,6 +4,7 @@ namespace Roblox.Dto.Games;
 
 public class GameMediaEntry
 {
+    public long assetId { get; set; }
     public Type assetType { get; set; }
     public long? imageId { get; set; }
     public string? videoHash { get; set; }

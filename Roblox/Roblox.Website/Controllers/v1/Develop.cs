@@ -139,8 +139,15 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("universes/{universeId}/thumbnails/{thumbnailAssetId}")]
     public async Task<dynamic> DeleteGameThumbnail(long universeId, long thumbnailAssetId)
     {
-        var place = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
-        await services.assets.DeleteGameThumbnail(place.rootPlaceId, thumbnailAssetId);
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+
+        var gameMedia = await services.games.GetSpecificGameMedia(thumbnailAssetId);
+        if (gameMedia is null || gameMedia.assetId != universe.rootPlaceId)
+        {
+            throw new NotFoundException(0, "Thumbnail not found");
+        }
+        
+        await services.assets.DeleteGameThumbnail(universe.rootPlaceId, thumbnailAssetId);
         return Ok();
     }
     
@@ -176,9 +183,8 @@ public class DevelopControllerV1 : ControllerBase
         await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
         
         var details = await services.assets.GetAssetCatalogInfo(assetId);
-        if (details.assetType != Models.Assets.Type.GamePass) {
+        if (details.assetType != Models.Assets.Type.GamePass)
             throw new BadRequestException(1, "This endpoint is meant for updating gamepass assets only. Use assets/{assetId} for other assets.");
-        }
         
         await services.assets.UpdateAsset(assetId, request.description, request.name, request.genres.First(),
             false, request.enableComments, request.isForSale, request.file != null ? request.file.OpenReadStream() : null);
@@ -221,7 +227,6 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("universes/{universeId:long}/developerproducts")]
     public async Task<dynamic> CreateDeveloperProduct(long universeId, string name, string description, long priceInRobux, long iconImageAssetId) 
     {
-        MultiGetEntry asset;
         long userId = safeUserSession.userId;
 
         // this god awful code is presented to you by the fact i barely know how
@@ -231,31 +236,13 @@ public class DevelopControllerV1 : ControllerBase
             throw new BadRequestException(0, "Price in Robux can not be negative or above 1 million.");
         }
 
-        try 
-        {
-            await services.games.SafeGetUniverseInfo(userId, universeId);
-        }
-        catch (RecordNotFoundException) 
-        {
-            throw new NotFoundException(5, "Universe not found.");
-        }
-        catch (PermissionException) 
-        {
-            throw new ForbiddenException(6, "User doesn't have access to universe.");
-        }
-
-        if ((await services.games.GetDeveloperProductCount(universeId)) >= 25) {
+        await services.games.SafeGetUniverseInfo(userId, universeId);
+        var developerProductCount = await services.games.GetDeveloperProductCount(universeId);
+        if (developerProductCount >= 25) 
             throw new BadRequestException(0, "Too many developer products for this universe.");
-        }
         
-        try 
-        {
-            asset = await services.assets.GetAssetCatalogInfo(iconImageAssetId);
-        }
-        catch (RecordNotFoundException) 
-        {
-            throw new NotFoundException(3, "Icon Asset not found.");
-        }
+        var asset = await services.assets.GetAssetCatalogInfo(iconImageAssetId);
+
         // ?? no idea why roblox does that
         if (asset.creatorTargetId != userId) 
         { 

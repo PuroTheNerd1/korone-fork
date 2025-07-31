@@ -106,7 +106,6 @@ public class CsrfMiddleware : ControllerServicesExtended
         ctx.Response.StatusCode = 403;
         ctx.Response.Headers.Add("x-csrf-token", csrf);
         var url = ctx.Request.GetEncodedUrl();
-        Console.WriteLine($"Token Validation Failed on url: {url}");
         await ctx.Response.WriteAsJsonAsync(new
         {
             errors = new List<dynamic>()
