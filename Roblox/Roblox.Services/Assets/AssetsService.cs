@@ -1566,37 +1566,30 @@ public class AssetsService : ServiceBase, IService
         });
     }
 
-    public async Task<CreatePlaceResponse> CreatePlace(long creatorId, CreatorType creatorType, long creatorUserId, long? templateId = 0)
+    public async Task<CreatePlaceResponse> CreatePlace(long creatorId, string creatorName, CreatorType creatorType, long creatorUserId, long? templateId = 0)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
 
-        var username = await GetUserName(creatorId);
-        if (username == null)
-            throw new RecordNotFoundException();
-        if (templateId.HasValue && !getStarterPlaces.ContainsValue(templateId.Value)) templateId = null;
+        if (templateId.HasValue && !getStarterPlaces.ContainsValue(templateId.Value))
+            templateId = 0;
 
-        // here because on goober.top some of the places dont fuckigng exist
-        AssetVersionEntry assetVersion = null;
-        try {
-            assetVersion = await GetLatestAssetVersion(templateId.Value);
-        }
-        catch {
-            templateId = null;
-        }
-        
         Stream stream;
-        if (templateId != null && assetVersion != null) {
-            stream = await GetAssetContent(assetVersion.contentUrl);
+
+        if (templateId != null && templateId != 0)
+        {
+            var assetVersion = await GetLatestAssetVersion((long)templateId);
+            stream = await GetAssetContent(assetVersion.contentUrl!);
         }
         // TODO: should we use baseplate template instead?
-        else {
+        else
+        {
             var basePlateLocation = Configuration.PublicDirectory + "/Baseplate.rbxl";
             stream = new FileStream(
                 basePlateLocation, FileMode.Open, FileAccess.Read,
-                FileShare.ReadWrite, bufferSize: default, FileOptions.Asynchronous);;
+                FileShare.ReadWrite, bufferSize: default, FileOptions.Asynchronous); ;
         }
 
-        var place = await CreateAsset($"{username}'s Place", null, creatorUserId, creatorType, creatorId, stream,
+        var place = await CreateAsset($"{creatorName}'s Place", null, creatorUserId, creatorType, creatorId, stream,
             Type.Place, Genre.All, ModerationStatus.ReviewApproved, DateTime.UtcNow, DateTime.UtcNow);
         return new()
         {
@@ -1604,15 +1597,7 @@ public class AssetsService : ServiceBase, IService
         };
     }
     
-    private async Task<string?> GetUserName(long userId)
-    {
-        var qu = await db.QuerySingleOrDefaultAsync<dynamic>(
-            "SELECT username as name FROM \"user\" WHERE id = :userId", new
-            {
-                userId
-            });
-        return qu?.name;
-    }
+
 
     public async Task CreateBadgeAsset(long assetId, long? universeId) {
         if (universeId is null)
@@ -2177,7 +2162,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 }
                 else
                 {
-                    var otherType = GetTypeFromPluralString(request.subcategory);
+                    var otherType = GetTypeFromPluralString(request.subcategory!);
                     if (otherType != null)
                     {
                         builder.Where($"asset.asset_type = {(int)otherType}");

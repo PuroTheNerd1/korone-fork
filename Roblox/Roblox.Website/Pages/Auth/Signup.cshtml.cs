@@ -263,9 +263,10 @@ public class Signup : RobloxPageModel
         });
         
         // Create default place for user
-        if (FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService)) {
+        if (FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService))
+        {
             // create place!
-            var asset = await services.assets.CreatePlace(createdUser.userId, CreatorType.User, createdUser.userId);
+            var asset = await services.assets.CreatePlace(createdUser.userId, username, CreatorType.User, createdUser.userId);
             // create universe too
             await services.games.CreateUniverse(asset.placeId);
         }
@@ -273,9 +274,9 @@ public class Signup : RobloxPageModel
         if (refferedBy != null)
         {
             // Give the user 50 robux for signing up
-            await services.economy.IncrementCurrency((long)createdUser.userId, Models.Economy.CurrencyType.Robux, 50);
+            await services.economy.IncrementCurrency(CreatorType.User,(long)createdUser.userId, Models.Economy.CurrencyType.Robux, 50);
             // Give the referrer 50 robux for signing up a user
-            await services.economy.IncrementCurrency((long)refferedBy, Models.Economy.CurrencyType.Robux, 50);
+            await services.economy.IncrementCurrency(CreatorType.User,(long)refferedBy,  Models.Economy.CurrencyType.Robux, 50);
 
             await services.users.GiveUserInviterBadge((long)refferedBy);
         }

@@ -450,7 +450,7 @@ public class UniverseV1 : ControllerBase
                 return new
                 {
                     buildersClubMembershipType = "None",
-                    userId = user.id,
+                    userId = user!.id,
                     username = user.displayName,
                     displayName = user.displayName,
                 };
@@ -485,7 +485,7 @@ public class UniverseV1 : ControllerBase
                 var user = userInfo.FirstOrDefault(u => u.id == c.subjectId);
                 return new
                 {
-                    userId = user.id,
+                    userId = user!.id,
                     isAdmin = false,
                 };
             })
@@ -554,7 +554,7 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> DeleteUniversePermissionsBatched(long universeId) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        var request = JsonConvert.DeserializeObject<List<UniversePermission>>(await GetRequestBody());
+        var request = JsonConvert.DeserializeObject<List<UniversePermission>>(await GetRequestBody())!;
 
         await services.games.BatchDeleteUniversePermissions(request, universeId);
 
@@ -565,7 +565,7 @@ public class UniverseV1 : ControllerBase
     public async Task<dynamic> SetUniversePermissionsBatched(long universeId) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        var request = JsonConvert.DeserializeObject<List<UniversePermission>>(await GetRequestBody());
+        var request = JsonConvert.DeserializeObject<List<UniversePermission>>(await GetRequestBody())!;
 
         await services.games.BatchUpdateUniversePermissions(request, universeId);
 
@@ -599,7 +599,7 @@ public class UniverseV1 : ControllerBase
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         // [FromBody] doesnt work
-        var request = JsonConvert.DeserializeObject<TeamCreateSettings>(await GetRequestBody());
+        var request = JsonConvert.DeserializeObject<TeamCreateSettings>(await GetRequestBody())!;
         await services.games.SetCloudedit(request.isEnabled, universeId);
 
         return Content("{}", "application/json");
@@ -885,10 +885,10 @@ public class UniverseV1 : ControllerBase
     [HttpPostBypass("/universes/create")]
     public async Task<dynamic> CreateUniverseApi([FromBody] CreateUniverseRequest request)
     {
-        if (userSession is null)
-            throw new UnauthorizedException(0, "You are not logged in");
         if (!FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService))
             throw new BadRequestException(0, "Place creation is currently disabled");
+        if (userSession is null)
+            throw new UnauthorizedException(0, "You are not logged in");
         await using var createGameLock =
             await Roblox.Services.Cache.redLock.CreateLockAsync("CreatePlaceSelfServiceV1:UserId:" + userSession.userId,
                 TimeSpan.FromSeconds(10));
@@ -899,16 +899,18 @@ public class UniverseV1 : ControllerBase
         }
         
         var createStatus = await CanCreatePlace(userSession.userId);
-        if (createStatus != PlaceCreationFailureReason.Ok) {
+        if (createStatus != PlaceCreationFailureReason.Ok) 
             throw new BadRequestException(0, GetMessage(createStatus));
-        }
+        
+
         Writer.Info(LogGroup.AbuseDetection, "CreatePlace API userId={0} can create a place, creating it", userSession.userId);
         // create one!
-        var asset = await services.assets.CreatePlace(userSession.userId, CreatorType.User, userSession.userId, request.templatePlaceIdToUse);
+        var asset = await services.assets.CreatePlace(userSession.userId, userSession.username, CreatorType.User, userSession.userId, request.templatePlaceIdToUse);
         // create universe too
         var universe = await services.games.CreateUniverse(asset.placeId);
         // give url
-        return new {
+        return new
+        {
             asset.placeId,
             universe.universeId,
         };
@@ -955,25 +957,6 @@ public class UniverseV1 : ControllerBase
                 log.Info("account place was created less than a day ago");
                 return PlaceCreationFailureReason.LatestPlaceCreatedTooRecently;
             }
-
-            // long totalPlaceVisits = 0;
-            // if (placeDetails.Length != 0)
-            // {
-            //     long placeVisitsRequiredForNewPlace = 100 * placeDetails.Length;
-            //     var universeDetails =
-            //         await services.games.MultiGetUniverseInfo(placeDetails.Select(c => c.universeId));
-            //     foreach (var item in universeDetails)
-            //     {
-            //         totalPlaceVisits += item.visits;
-            //     }
-            //
-            //     if (totalPlaceVisits < placeVisitsRequiredForNewPlace)
-            //     {
-            //         log.Info("user needs {0} visits for new place but only has {1}", placeVisitsRequiredForNewPlace,
-            //             totalPlaceVisits);
-            //         return PlaceCreationFailureReason.NotEnoughVisitsForNewPlace;
-            //     }
-            // }
         }
 
 
@@ -983,25 +966,6 @@ public class UniverseV1 : ControllerBase
             log.Info("user has no app or it is not approved {0}", app?.status.ToString());
             return PlaceCreationFailureReason.NoApplication;
         }
-
-        // lol
-        // anti brandon/sleep/xlxi check
-        /*
-        if (userId < 200)
-        {
-            log.Info("account is too inactive (branch X)");
-            return PlaceCreationFailureReason.TooInactive;
-        }
-        */
-
-
-
-        // if (!await IsActiveEnoughForPlace(userId))
-        // {
-        //     await Roblox.Services.Cache.distributed.StringSetAsync(GetRedisKeyForRejection(userId), "{}", TimeSpan.FromHours(12));
-        //     log.Info("set recent rejection to true, user is too inactive");
-        //     return PlaceCreationFailureReason.TooInactive;
-        // }
         
         log.Info("user is active enough for a place. return OK");
         return PlaceCreationFailureReason.Ok;
