@@ -150,7 +150,7 @@ public class GamesControllerV1 : ControllerBase
     [HttpGet("games/multiget-playability-status")]
     public dynamic MultiGetPlayabilityStatus()
     {
-        var ids = HttpContext.Request.QueryString.Value;
+        var ids = HttpContext.Request.QueryString.Value ?? "";
         return numberRegex.Matches(ids).Select(c => long.Parse(c.Value)).Distinct().Select(c => new
         {
             playabilityStatus = "Playable",
@@ -173,7 +173,7 @@ public class GamesControllerV1 : ControllerBase
     {
         if (maxRows is > 100 or < 1) maxRows = 10;
         // todo: actually add recommendeds
-        var result = await services.games.GetGamesList(userSession.userId, "popular", maxRows, null, null);
+        var result = await services.games.GetGamesList(safeUserSession.userId, "popular", maxRows, null, null);
         return new
         {
             games = result,
@@ -215,12 +215,13 @@ public class GamesControllerV1 : ControllerBase
     [HttpPatch("games/{universeId:long}/user-votes")]
     public async Task VoteOnUniverse(long universeId, [Required, FromBody] VoteRequest request)
     {
-        var uni = (await services.games.MultiGetUniverseInfo(new[] {universeId})).FirstOrDefault();
+        var uni = await services.games.GetUniverseInfo(universeId);
         await services.assets.VoteOnAsset(uni.rootPlaceId, safeUserSession.userId, request.vote);
     }
 
     [HttpGet("users/{userId:long}/count")]
-    public async Task<dynamic> GetUserGameCount(long userId) {
+    public async Task<dynamic> GetUserGameCount(long userId)
+    {
         var localUserId = safeUserSession.userId;
         await using var placeCuntLock =
             await Services.Cache.redLock.CreateLockAsync("GetPlaceCountV1:UserId:" + localUserId,
@@ -232,7 +233,8 @@ public class GamesControllerV1 : ControllerBase
         }
         
         var uniCount = await services.games.GetUserPlaceCount(userId);
-        return new {
+        return new
+        {
             universeCount = uniCount,
         };
     }
@@ -242,16 +244,8 @@ public class GamesControllerV1 : ControllerBase
     {
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
-        List<UniverseGamePassEntry> result;
-        if (unfiltered == 1) {
-            result = (await services.games.GetGamePassesForUniverseModStatus(universeId, limit ?? 10, offset,
-                userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
-        }
-        else {
-            result = (await services.games.GetGamePassesForUniverse(universeId, limit ?? 10, offset,
-                userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
-        }
-        
+        var result = (await services.games.GetGamePassesForUniverse(universeId, limit ?? 10, offset, userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
+
         return new RobloxCollectionPaginated<UniverseGamePassEntry>()
         {
             nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
@@ -261,21 +255,8 @@ public class GamesControllerV1 : ControllerBase
     }
     
     [HttpGet("games/game-passes/{assetId:long}")]
-    public async Task<GamePassDetails> GetGamePassInfo(long assetId) {
-        var asset = await services.assets.GetAssetCatalogInfo(assetId);
-        if (asset is null) {
-            throw new BadRequestException(0, "Asset does not exist");
-        }
-        if (asset.assetType != Type.GamePass) {
-            throw new BadRequestException(0, "Asset is not a Game Pass");
-        }
-
-        var passInfo = (await services.games.GetGamePassInfo(assetId)).FirstOrDefault();
-        if (passInfo is null) {
-            // not sure how this would ever happen but just in case
-            throw new RecordNotFoundException();
-        }
-        
-        return passInfo;
+    public async Task<GamePassDetails> GetGamePassInfo(long assetId)
+    {
+        return await services.games.GetGamePassInfo(assetId);
     }
 }

@@ -257,6 +257,7 @@ public class WebController : ControllerBase
     {
         var count = await services.inventory.CountInventory(userId, assetTypeId);
         if (count == 0)
+        {
             return new
             {
                 IsValid = true,
@@ -269,6 +270,8 @@ public class WebController : ControllerBase
                     Items = Array.Empty<int>(),
                 }
             };
+        }
+
         int offset = !string.IsNullOrWhiteSpace(cursor) ? int.Parse(cursor) : 0;
         int limit = itemsPerPage;
         if (limit is > 100 or < 1) limit = 10;
@@ -1006,8 +1009,8 @@ public class WebController : ControllerBase
         var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
         
-        var gamePasses = (await services.games.GetGamePassesForUniverseModStatus(universeId, 15, 0, null, SortOrder.Asc)).ToList();
-        if (gamePasses.Count >= 15) 
+        var gamePassCount = await services.games.GetUniverseGamePassCount(universeId);
+        if (gamePassCount >= 15) 
             throw new BadRequestException(0, "This universe has too many gamepasses");
         
         stream.Position = 0;

@@ -375,7 +375,7 @@ public class GamesService : ServiceBase, IService
             /**where**/
             LIMIT 1");
 
-        build.Where("u.id = @UniverseId", new { UniverseId = universeId });
+        build.Where("u.id = :universeId", new { universeId = universeId });
 
         var result = (await db.QueryAsync<MultiGetUniverseEntry>(template.RawSql, template.Parameters)).FirstOrDefault();
         if (result == null)
@@ -388,7 +388,7 @@ public class GamesService : ServiceBase, IService
 
     public async Task<long> GetTotalVisitsFromUser(long userId)
     {
-        AssetsService assets = new AssetsService();
+        using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
         long totalPlaceVisits = 0;
         var createdPlaces = (await assets.GetCreations(CreatorType.User, userId, Type.Place, 0, 100)).ToArray();
         var placeDetails = (await MultiGetPlaceDetails(createdPlaces
@@ -687,7 +687,7 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public List<long> AllowedGameYears = new List<long>
+    public readonly List<long> AllowedGameYears = new List<long>
     {
         2017,
         2018,
@@ -858,7 +858,7 @@ public class GamesService : ServiceBase, IService
                 limit,
                 offset,
             });
-        using var users = ServiceProvider.GetOrCreate<UsersService>(this);
+        using var inventory = ServiceProvider.GetOrCreate<InventoryService>(this);
         return await Task.WhenAll(qu.Select(async c => new UniverseGamePassEntry
         {
             id = c.id,
@@ -867,99 +867,66 @@ public class GamesService : ServiceBase, IService
             productId = c.id,
             price = c.priceRobux,
             isForSale = c.isForSale,
-            isOwned = userId != null && await DoesUserOwnAsset(userId.Value, c.id),
+            isOwned = userId != null && await inventory.IsOwned(userId.Value, c.id),
             sales = c.sales,
             updated = c.updated,
             created = c.created
         }));
     }
-    // Doesn't care for moderation status
-    public async Task<IEnumerable<UniverseGamePassEntry>> GetGamePassesForUniverseModStatus(long universeId, int limit,
-        int offset, long? userId, SortOrder? sort)
+
+
+    public async Task<GamePassDetails> GetGamePassInfo(long assetId)
     {
-        var qu = await db.QueryAsync<UniverseGamePassEntryDb>(
-            @"SELECT a.id, a.name,
-            a.price_robux as priceRobux,
-            a.is_for_sale as isForSale,
-            a.sale_count as sales,
-            a.created_at as created,
-            a.updated_at as updated
-            FROM asset AS a
-            INNER JOIN asset_gamepass ag ON ag.asset_id = a.id
-            WHERE ag.universe_id = :universeId
-            LIMIT :limit OFFSET :offset",
+        var gamePass = await db.QuerySingleOrDefaultAsync<GamePassDetails>(
+            @"SELECT ag.asset_id as assetId, ag.universe_id as universeId FROM asset_gamepass AS ag WHERE asset_id = :assetId",
             new
             {
-                universeId,
-                acceptedStatus = ModerationStatus.ReviewApproved,
-                limit,
-                offset,
+                assetId
             });
-        using var users = ServiceProvider.GetOrCreate<UsersService>(this);
-        return await Task.WhenAll(qu.Select(async c => new UniverseGamePassEntry
-        {
-            id = c.id,
-            name = c.name,
-            displayName = c.name,
-            productId = c.id,
-            price = c.priceRobux,
-            isForSale = c.isForSale,
-            isOwned = userId != null && await DoesUserOwnAsset(userId.Value, c.id),
-            sales = c.sales,
-            updated = c.updated,
-            created = c.created
-        }));
-    }
-    private async Task<bool> DoesUserOwnAsset(long userId, long assetId)
-    {
-        using var users = ServiceProvider.GetOrCreate<UsersService>(this);
-        return await users.HasUserPurchasedAssetBefore(userId, assetId);
-    }
-    public async Task<IEnumerable<GamePassDetails>> GetGamePassInfo(long assetId)
-    {
-        return await db.QueryAsync<GamePassDetails>(
-            @"SELECT 
-            ag.asset_id as assetId, 
-            ag.universe_id as universeId
-            FROM asset_gamepass AS ag
-            WHERE asset_id = :assetId
-            LIMIT 1",
-            new { assetId });
+
+        if (gamePass == null)
+            throw new RecordNotFoundException("Game pass not found.");
+
+        return gamePass;
     }
     
     public async Task<int> GetUserPlaceCount(long userId)
     {
-        var qu = await db.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(*)
-            FROM asset AS ass
-            WHERE ass.creator_id = :userId AND asset_type = :assetType",
-            new
-                { userId, assetType = Type.Place });
-        return qu;
+        var result = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM asset WHERE creator_id = :userId AND asset_type = :assetType", new
+        {
+            userId,
+            assetType = Type.Place
+        });
+        return result;
     }
     
-    public async Task<int> GetUserUniverseCount(long userId)
+    public async Task<int> GetUserUniverseCount(long creatorId)
     {
-        var qu = await db.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(*)
-            FROM universe AS uni
-            WHERE uni.creator_id = :userId",
-            new
-                { userId });
-        return qu;
+        var result = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM universe AS uni WHERE uni.creator_id = :userId", new
+        {
+            creatorId
+        });
+        return result;
+    }
+
+    public async Task<int> GetUniverseGamePassCount(long universeId)
+    {
+        var result = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM asset_gamepass WHERE universe_id = :universeId", new
+        {
+            universeId
+        });
+        return result;
     }
     
-    // TODO: gamepass should probably use this too
     public async Task<int> GetUniverseBadgeCount(long universeId)
     {
-        var qu = await db.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(*)
-            FROM asset_badge AS ab
-            WHERE ab.universe_id = :universeId",
-            new
-                { universeId });
-        return qu;
+        var result = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM asset_badge WHERE universe_id = :universeId", new
+        {
+            universeId
+        });
+        return result;
     }
+
     // if this src ever gets leaked this is NOT for storing ips, its for matchmaking and for getting the server info
     public async Task<dynamic> GetInfoFromIp(string ip)
     {
@@ -1100,10 +1067,6 @@ public class GamesService : ServiceBase, IService
                 universe_id = uni,
             });
             var uni2 = (await MultiGetUniverseInfo(new[] {uni})).FirstOrDefault();
-            await InsertAsync("universe_settings", new
-            {
-                id = uni,
-            });
             return new CreateUniverseResponse()
             {
                 universeId = uni,
@@ -1111,7 +1074,8 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductInfoFull(long productId, long limit, long offset) {
+    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductInfoFull(long productId, long limit, long offset)
+    {
         var qu = await db.QueryAsync<DeveloperProductDb>(
             @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
             dv.universe_id as universeId,
@@ -1147,7 +1111,8 @@ public class GamesService : ServiceBase, IService
         });
     }
     
-    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductsFull(long universeId, long limit, long offset) {
+    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductsFull(long universeId, long limit, long offset)
+    {
         var qu = await db.QueryAsync<DeveloperProductDb>(
             @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
             dv.universe_id as universeId,
@@ -1183,7 +1148,8 @@ public class GamesService : ServiceBase, IService
         });
     }
     
-    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset) {
+    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset)
+    {
         return await db.QueryAsync<DeveloperProducts>(
             @"SELECT dv.id, dv.sales, dv.name, 
             dv.description as Description,
@@ -1237,7 +1203,8 @@ public class GamesService : ServiceBase, IService
     
     public async Task<long> CreateDeveloperProduct(long userId, long universeId, string name, string description, long priceInRobux, long iconImageAssetId)
     {
-        if (string.IsNullOrEmpty(name)) throw new AssetNameTooShortException();
+        if (string.IsNullOrEmpty(name))
+            throw new AssetNameTooShortException();
         if (name.Length > Rules.NameMaxLength)
             throw new AssetNameTooLongException();
         if (description is { Length: > Rules.DescriptionMaxLength })
@@ -1256,7 +1223,8 @@ public class GamesService : ServiceBase, IService
         });
     }
     
-    public async Task UpdateDeveloperProduct(long productId, string name, string description, long priceInRobux, long iconImageAssetId) {
+    public async Task UpdateDeveloperProduct(long productId, string name, string description, long priceInRobux, long iconImageAssetId)
+    {
         if (string.IsNullOrEmpty(name)) throw new AssetNameTooShortException();
         if (name.Length > Rules.NameMaxLength)
             throw new AssetNameTooLongException();
@@ -1281,34 +1249,33 @@ public class GamesService : ServiceBase, IService
     }
     
     public async Task IncrementDevProdSales(long productId) {
-        await db.ExecuteAsync(@"UPDATE developer_product SET 
-                   sales = sales + 1
-                         WHERE id = :productId", new
+        await db.ExecuteAsync("UPDATE developer_product SET sales = sales + 1 WHERE id = :productId", new
         {
             productId
         });
     }
 
-    public async Task CreateProductReceipt(string guid, long userId, long productId, long price) {
-        if (!Guid.TryParse(guid, out _))
-            throw new Exception("CreateProductReceipt: Guid provided is not a valid Guid!");
-        await InsertAsync("product_receipt", new {
-            id = Guid.Parse(guid),
+    public async Task CreateProductReceipt(Guid id, long userId, long productId, long price)
+    {
+        await InsertAsync("product_receipt", new
+        {
+            id = id,
             user_id = userId,
             product_id = productId,
             price,
         });
     }
 
-    public async Task ProcessProductReceipt(Guid id) {
-        await db.QueryAsync(
-            @"UPDATE product_receipt SET processed = TRUE, processed_at = CURRENT_TIMESTAMP WHERE id = :receiptId",
-            new {
-                receiptId = id
-            });
+    public async Task ProcessProductReceipt(Guid id)
+    {
+        await db.QueryAsync("UPDATE product_receipt SET processed = TRUE, processed_at = CURRENT_TIMESTAMP WHERE id = :receiptId", new
+        {
+            receiptId = id
+        });
     }
     
-    public async Task<IEnumerable<ProductReceipt>> GetProcessingProductReceipts(long userId, long universeId) {
+    public async Task<IEnumerable<ProductReceipt>?> GetPendingProductReceipts(long userId, long universeId)
+    {
         return await db.QueryAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,
@@ -1325,7 +1292,8 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<ProductReceipt?> GetSingleProcessingProductReceipt(long userId, long universeId) {
+    public async Task<ProductReceipt?> GetSingleProcessingProductReceipt(long userId, long universeId)
+    {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,
@@ -1342,7 +1310,8 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<ProductReceipt?> GetProductReceipt(Guid receiptId) {
+    public async Task<ProductReceipt?> GetProductReceipt(Guid receiptId)
+    {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,
@@ -1357,7 +1326,8 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<ProductReceipt?> GetProductReceiptSecure(long userId, Guid receiptId) {
+    public async Task<ProductReceipt?> GetProductReceiptSecure(long userId, Guid receiptId)
+    {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
             @"SELECT pr.id, pr.price, pr.processed, 
             pr.created_at as createdAt,

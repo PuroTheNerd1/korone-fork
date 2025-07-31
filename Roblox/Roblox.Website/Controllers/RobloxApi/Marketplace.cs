@@ -133,7 +133,7 @@ namespace Roblox.Website.Controllers
             if (!productInfo.isForSale)
                 throw new BadRequestException(0, "Developer Product is not for sale");
             var iconModStatus = await services.assets.GetAssetModerationStatus(productInfo.iconImageAssetId);
-            if (iconModStatus.moderationstatus != (short?)ModerationStatus.ReviewApproved)
+            if (iconModStatus != ModerationStatus.ReviewApproved)
                 throw new BadRequestException(0, "Developer Product is not approved");
             var uni = (await services.games.MultiGetUniverseInfo(new[] {productInfo.universeId})).ToList();
             if (uni.FirstOrDefault() is null || uni.First().rootPlaceId != purchaseRequest.placeId)
@@ -166,13 +166,7 @@ namespace Roblox.Website.Controllers
             if (purchaseRequest.productId is 0 or < 0)
                 purchaseRequest.productId = 0;
             if (productInfo.isLimited || productInfo.isLimitedUnique) 
-            {
-                return new
-                {
-                    status = "error",
-                };
-            }
-
+                throw new BadRequestException(0, "Cannot purchase limited or limited unique items through this endpoint");
             await services.users.PurchaseNormalItem(safeUserSession.userId, purchaseRequest.productId,
                 purchaseRequest.currencyTypeId);
             stopwatch.Stop();
@@ -255,12 +249,12 @@ namespace Roblox.Website.Controllers
 
         // Studio
         [HttpGetBypass("marketplace/game-pass-product-info")]
-        public async Task<dynamic> GetPassInfo(long gamePassId) {
+        public async Task<dynamic> GetPassInfo(long gamePassId)
+        {
             // based off of this
             // https://web.archive.org/web/20211201073809/https://api.roblox.com/marketplace/game-pass-product-info?gamePassId=12828275
-            MultiGetEntry details;
 
-            details = await services.assets.GetAssetCatalogInfo(gamePassId);
+            var details = await services.assets.GetAssetCatalogInfo(gamePassId);
 
             if (details.assetType != Type.GamePass)
                 throw new BadRequestException(0, "Asset " + gamePassId + " is not a Game Pass");
@@ -269,7 +263,7 @@ namespace Roblox.Website.Controllers
             var gamePassDetails = await services.games.GetGamePassInfo(gamePassId);
             return new
             {
-                TargetId = await services.games.GetRootPlaceId(gamePassDetails.First().universeId),
+                TargetId = await services.games.GetRootPlaceId(gamePassDetails.universeId),
                 ProductType = "Game Pass",
                 AssetId = 0,
                 ProductId = details.id,
@@ -301,7 +295,7 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("marketplace/validatepurchase")]
-        public async Task<ReceiptResponse> ValidatePurchase(string receiptId)
+        public async Task<ReceiptResponse> ValidatePurchase(Guid receiptId)
         {
             Console.WriteLine(Request.Method);
             if (!isRoblox || 
@@ -310,32 +304,20 @@ namespace Roblox.Website.Controllers
                 !long.TryParse(Request.Headers["Roblox-Place-Id"], out _)
                 )
                 throw new UnauthorizedException();
-            if (!Guid.TryParse(receiptId, out _))
-                throw new BadRequestException(0, "Receipt ID is invalid");
+            
             var userId = safeUserSession.userId;
             // var rawRequestBody = await new StreamReader(Request.Body).ReadToEndAsync();
             // if (!rawRequestBody.Equals("GameServerVerifyPurchase"))
             //     throw new NotImplementedException("Not implemented. Request: " + rawRequestBody);
 
-            var receipt = await services.games.GetProductReceiptSecure(userId, Guid.Parse(receiptId));
-
-            if (receipt is null)
-            {
-                return new ReceiptResponse
-                {
-                    playerId = userId,
-                    placeId = long.Parse(Request.Headers["Roblox-Place-Id"]),
-                    isValid = false,
-                    productId = null
-                };
-            }
+            var receipt = await services.games.GetProductReceiptSecure(userId, receiptId);
             
             return new ReceiptResponse
             {
                 playerId = userId,
                 placeId = long.Parse(Request.Headers["Roblox-Place-Id"]),
-                isValid = true,
-                productId = receipt.productId,
+                isValid = receipt != null,
+                productId = receipt!.productId,
             };
         }
         
@@ -346,41 +328,43 @@ namespace Roblox.Website.Controllers
                 throw new UnauthorizedException();
 
             var universeId = await services.games.GetUniverseId(placeId);
-            var pendingReceipt = await services.games.GetSingleProcessingProductReceipt(playerId, universeId);
-            if (pendingReceipt is null)
+            var pendingReceipts = await services.games.GetPendingProductReceipts(playerId, universeId);
+
+            if (pendingReceipts is null)
                 return Array.Empty<dynamic>();
-            
-            await services.games.ProcessProductReceipt(pendingReceipt.id);
-            return new[] {
-                new {
-                    playerId,
-                    placeId,
-                    receipt = pendingReceipt.id,
-                    actionArgs = new List<dynamic>
+
+            return pendingReceipts.Select(pendingReceipt => new
+            {
+                playerId,
+                placeId,
+                receipt = pendingReceipt.id,
+                actionArgs = new List<dynamic>
+                {
+                    new
                     {
-                        new
-                        {
-                            Key = "productId",
-                            Value = pendingReceipt.productId
-                        },
-                        new
-                        {
-                            Key = "currencyTypeId",
-                            Value = 1
-                        },
-                        new
-                        {
-                            Key = "unitPrice",
-                            Value = pendingReceipt.price
-                        }
+                        Key = "productId",
+                        Value = pendingReceipt.productId
+                    },
+                    new
+                    {
+                        Key = "currencyTypeId",
+                        Value = 1
+                    },
+                    new
+                    {
+                        Key = "unitPrice",
+                        Value = pendingReceipt.price
                     }
                 }
-            };
+            }).ToArray();
         }
+
 
         [HttpPostBypass("gametransactions/settransactionstatuscomplete")]
         public async Task<dynamic> ProcessTransaction([FromForm] string receiptStr)
         {
+            if (!isRCC)
+                throw new UnauthorizedException();
             Guid receiptId;
             if (!Guid.TryParse(receiptStr, out receiptId))
                 throw new BadRequestException(0, "Receipt is invalid or does not exist.");

@@ -52,11 +52,11 @@ public class ItemConfigurationV1 : ControllerBase
         };
     }
 
-    [HttpPost("assets/{assetId:long}/update")]
-    public async Task UpdateAssetNoOp(long assetId)
-    {
-        return;
-    }
+    // [HttpPost("assets/{assetId:long}/update")]
+    // public async Task UpdateAssetNoOp(long assetId)
+    // {
+    //     return;
+    // }
 
     private readonly Models.Assets.Type[] sellableAssetTypes = {
         Type.Shirt,

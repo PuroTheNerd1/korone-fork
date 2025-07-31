@@ -1686,7 +1686,7 @@ public class UsersService : ServiceBase, IService
             var userBalance = await ec.GetUserBalance(userIdBuyer);
             var balance = userBalance.robux;
             var realPrice = productDetails.price;
-            
+
             if (realPrice < 0)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductPriceLessThanZero);
 
@@ -1728,13 +1728,12 @@ public class UsersService : ServiceBase, IService
             var sellerTransaction = await ec.InsertTransaction(new DevProdSaleTransaction(userIdBuyer, productDetails.creatorType,
                 productDetails.creatorId, CurrencyType.Robux, realPrice, productDetails.name));
             log.Info("created sellerTransaction {0}", sellerTransaction);
-            
+
+            var transactionId = Guid.NewGuid();
+
             await games.IncrementDevProdSales(productId);
-            await games.CreateProductReceipt(log.GetId(), userIdBuyer, productId, realPrice);
+            await games.CreateProductReceipt(transactionId, userIdBuyer, productId, realPrice);
             log.Info("PurchaseDeveloperProduct success");
-            // Finally, metrics
-            if (productDetails.price > 0)
-                EconomyMetrics.ReportRobuxVolumeChange(productDetails.price);
 
             return log.GetId();
         });

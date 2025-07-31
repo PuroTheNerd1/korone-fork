@@ -554,14 +554,14 @@ public class GroupsService : ServiceBase, IService
     {
         if (!IsLinkValid(type, url, title))
             throw new Exception("Invalid social media link");
+        await UpdateGroup(groupId);
         await db.ExecuteAsync(
-            "UPDATE group_social_Link SET title = :title, url = :url, type = :type, updated_at = :date WHERE id = :id AND group_id = :group_id",
+            "UPDATE group_social_Link SET title = :title, url = :url, type = :type WHERE id = :id AND group_id = :group_id",
             new
             {
                 title,
                 url,
-                type = (int) type,
-                updated_at = DateTime.UtcNow,
+                type = (int)type,
                 group_id = groupId,
                 id = socialId,
             });
@@ -877,11 +877,7 @@ public class GroupsService : ServiceBase, IService
                 description,
                 rank,
             });
-            await db.ExecuteAsync("UPDATE group SET updated_at = :date WHERE id = :id", new
-            {
-                date = DateTime.UtcNow,
-                id = groupId,
-            });
+            await UpdateGroup(groupId);
             // If name or description updated
             if (oldInfo.name != name || oldInfo.description != description)
             {
@@ -936,11 +932,7 @@ public class GroupsService : ServiceBase, IService
             {
                 id = roleSetId,
             });
-            await db.ExecuteAsync("UPDATE group SET updated_at = :date WHERE id = :id", new
-            {
-                date = DateTime.UtcNow,
-                id = groupId,
-            });
+
             return 0;
         });
     }
@@ -1156,11 +1148,7 @@ public class GroupsService : ServiceBase, IService
 
     public async Task SetGroupSettings(long groupId, GroupSettingsEntry settings)
     {
-        await db.ExecuteAsync("UPDATE group SET updated_at = :date WHERE id = :id", new
-        {
-            date = DateTime.UtcNow,
-            id = groupId,
-        });
+        await UpdateGroup(groupId);
         await db.ExecuteAsync(
             "UPDATE group_settings SET approval_required=:approval, enemies_allowed=:enemies, funds_visible = :funds, games_visible = :games WHERE group_id = :gid",
             new
@@ -1196,10 +1184,9 @@ public class GroupsService : ServiceBase, IService
                 throw new RobloxException(403, 0, "Group owner cannot be modified until funds are withdrawn");
 
             // make owner
-            await db.ExecuteAsync("UPDATE \"group\" SET user_id = :user_id, updated_at = :date WHERE id = :gid", new
+            await db.ExecuteAsync("UPDATE \"group\" SET user_id = :user_id WHERE id = :gid", new
             {
                 user_id = userId,
-                date = DateTime.UtcNow,
                 gid = groupId,
             });
 
@@ -1242,17 +1229,17 @@ public class GroupsService : ServiceBase, IService
                 is_read = false,
                 is_archived = false,
             });
-
+            await UpdateGroup(groupId);
             return 0;
         });
     }
 
     public async Task SetGroupDescription(long groupId, string newDescription)
     {
-        await db.ExecuteAsync("UPDATE \"group\" SET description = :description, updated_at = :date WHERE id = :gid", new
+        await UpdateGroup(groupId);
+        await db.ExecuteAsync("UPDATE \"group\" SET description = :description, WHERE id = :gid", new
         {
             gid = groupId,
-            date = DateTime.UtcNow,
             description = newDescription,
         });
     }
@@ -1654,7 +1641,13 @@ public class GroupsService : ServiceBase, IService
             return 0;
         });
     }
-
+    private async Task UpdateGroup(long groupId)
+    {
+        await db.ExecuteAsync("UPDATE \"group\" SET updated_at = NOW() WHERE id = :id", new
+        {
+            id = groupId,
+        });
+    }
     public bool IsThreadSafe()
     {
         return true;

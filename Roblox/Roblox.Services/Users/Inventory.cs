@@ -119,25 +119,33 @@ public class InventoryService : ServiceBase, IService
 
     public async Task<bool> IsOwned(long userId, long assetId)
     {
-        var q = await db.QuerySingleOrDefaultAsync<Dto.Total>(@"
-                    SELECT 
-                        COUNT(*) as total 
-                    FROM user_asset INNER JOIN asset a ON user_asset.asset_id = a.id WHERE user_id = :userId AND a.id = :assetId", new {userId, assetId});
-        return q.total > 0;
+        var result = await db.QuerySingleOrDefaultAsync<long>(
+            "SELECT COUNT(*) as total FROM user_asset WHERE user_id = :userId AND asset_id = :assetId", new
+            {
+                userId,
+                assetId
+            }
+        );
+        return result > 0;
     }
     
     public async Task DeleteUserAssetId(long userId, long assetId)
     {
-        await db.QueryAsync("DELETE FROM user_asset WHERE user_id = :userId AND asset_id = :assetId",
-            new { userId, assetId }
-        );
+        await db.QueryAsync("DELETE FROM user_asset WHERE user_id = :userId AND asset_id = :assetId", new
+        {
+            userId,
+            assetId
+        });
     }
     
     public async Task MarkTransactionAsDeleted(long sellerId, long buyerId, long assetId)
     {
-        await db.QueryAsync("UPDATE user_transaction SET deleted = TRUE WHERE user_id_one = :buyerId AND user_id_two = :sellerId AND asset_id = :assetId",
-            new { buyerId, sellerId, assetId }
-        );
+        await db.QueryAsync("UPDATE user_transaction SET deleted = TRUE WHERE user_id_one = :buyerId AND user_id_two = :sellerId AND asset_id = :assetId", new
+        {
+            buyerId,
+            sellerId,
+            assetId
+        });
     }
 
     public async Task SetCollections(long userId, IEnumerable<long> assetIds)
