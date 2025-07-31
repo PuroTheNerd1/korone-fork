@@ -1215,7 +1215,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("/currency/balance")]
         public async Task<dynamic> GetBalance()
         {
-            return await services.economy.GetBalance(CreatorType.User, userSession.userId);
+            return await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
         }
 
         [HttpGetBypass("/ownership/hasasset")]
@@ -1231,12 +1231,11 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("sign-out/v1")]
         [HttpPostBypass("sign-out/v1")]
         [HttpGetBypass("game/logout.aspx")]
-        public async Task<dynamic> Logout()
+        public void Logout()
         {
             using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
-            sessCache.Remove(userSession.sessionId);
+            sessCache.Remove(safeUserSession.sessionId);
             HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
-            return Ok();
         }
 
         [HttpGetBypass("users/get-by-username")]
@@ -1327,7 +1326,7 @@ namespace Roblox.Website.Controllers
 
             try
             {
-                Task.Run(async () => await services.gameServer.ShutDownServerAsync(gameId));
+                await services.gameServer.ShutDownServerAsync(gameId);
                 return "OK!";
             }
             catch (Exception)
