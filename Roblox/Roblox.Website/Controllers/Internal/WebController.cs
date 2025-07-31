@@ -957,22 +957,20 @@ public class WebController : ControllerBase
     }
     private async Task<CreateResponse> UploadAssetBadge(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        if (request.universeId is null || request.universeId.ToString() is null) {
+        if (request.universeId is null) 
             throw new BadRequestException(0, "Universe ID is required");
-        }
+
+        long universeId = (long)request.universeId;
+        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
         var imageData = await services.assets.ValidateImage(stream);
         if (imageData == null)
             throw new BadRequestException(0, "Invalid image file");
 
-        long universeId = long.Parse(request.universeId.ToString());
-        
-        var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
-        await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
-
         var badgeCount = await services.games.GetUniverseBadgeCount(universeId);
-        if (badgeCount >= 500) {
+        if (badgeCount >= 500) 
             throw new BadRequestException(0, "This universe has too many badges");
-        }
+        
         
         stream.Position = 0;
         // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
@@ -993,25 +991,24 @@ public class WebController : ControllerBase
     }
     private async Task<CreateResponse> UploadGamePass(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        if (request.universeId is null || request.universeId.ToString() is null) {
+        if (request.universeId is null) 
             throw new BadRequestException(0, "Universe ID is required");
-        }
-        if (request.priceInRobux is null && request.priceInTickets is null && request.isForSale == true) {
+        
+        if (request.priceInRobux is null && request.priceInTickets is null && request.isForSale == true)
             throw new BadRequestException(0, "A price is required");
-        }
+        
         var imageData = await services.assets.ValidateImage(stream);
         if (imageData == null)
             throw new BadRequestException(0, "Invalid image file");
 
-        long universeId = long.Parse(request.universeId.ToString());
+        long universeId = (long)request.universeId;
         
         var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
         
         var gamePasses = (await services.games.GetGamePassesForUniverseModStatus(universeId, 15, 0, null, SortOrder.Asc)).ToList();
-        if (gamePasses.Count == 15) {
+        if (gamePasses.Count >= 15) 
             throw new BadRequestException(0, "This universe has too many gamepasses");
-        }
         
         stream.Position = 0;
         // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
@@ -1025,7 +1022,7 @@ public class WebController : ControllerBase
             imageData.width, imageData.height, imageData.imageFormat,
             await services.assets.GenerateImageHash(cleanImage));
         // gamepass specific stuff
-        await services.assets.CreateGamePassAsset(gamepassAsset.assetId, request.universeId);
+        await services.assets.CreateGamePassAsset(gamepassAsset.assetId, universe.id);
         await services.assets.UpdateAssetMarketInfo(gamepassAsset.assetId, request.isForSale == true, false, false, null, null);
         await services.assets.SetItemPrice(gamepassAsset.assetId, request.priceInRobux, request.priceInTickets);
 

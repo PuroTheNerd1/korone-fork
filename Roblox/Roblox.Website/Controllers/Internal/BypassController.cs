@@ -1369,14 +1369,7 @@ namespace Roblox.Website.Controllers
 
             if (clientCount == 0 && gameTime > 50)
             {
-                try
-                {
-                    Task.Run(async () => await services.gameServer.ShutDownServerAsync(gameId));
-                }
-                catch (Exception)
-                {
-                    await services.gameServer.DeleteGameServer(gameId);
-                }
+                await services.gameServer.ShutDownServerAsync(gameId);
                 return;
             }
             await services.gameServer.SetServerPing(gameId);

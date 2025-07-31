@@ -238,7 +238,8 @@ public class GamesControllerV1 : ControllerBase
     }
     
     [HttpGet("games/{universeId:long}/game-passes")]
-    public async Task<RobloxCollectionPaginated<UniverseGamePassEntry>> GetUniverseGamePasses(long universeId, long? unfiltered = 0, SortOrder? sortOrder = SortOrder.Asc, int? limit = 10, string? cursor = null) {
+    public async Task<RobloxCollectionPaginated<UniverseGamePassEntry>> GetUniverseGamePasses(long universeId, long? unfiltered = 0, SortOrder? sortOrder = SortOrder.Asc, int? limit = 10, string? cursor = null)
+    {
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
         List<UniverseGamePassEntry> result;

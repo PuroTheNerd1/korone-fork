@@ -910,7 +910,8 @@ public class GamesService : ServiceBase, IService
             created = c.created
         }));
     }
-    private async Task<bool> DoesUserOwnAsset(long userId, long assetId) {
+    private async Task<bool> DoesUserOwnAsset(long userId, long assetId)
+    {
         using var users = ServiceProvider.GetOrCreate<UsersService>(this);
         return await users.HasUserPurchasedAssetBefore(userId, assetId);
     }

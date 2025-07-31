@@ -962,7 +962,6 @@ public class AssetsService : ServiceBase, IService
                 thumbRequests.Add(CreateModelThumbnail(assetId, cancellationToken));
                 break;
             case Models.Assets.Type.Place:
-                thumbRequests.Add(CreateGameThumbnail(assetId, default, cancellationToken));
                 thumbRequests.Add(CreateGameIcon(assetId, default, cancellationToken));
                 break;
             case Models.Assets.Type.Mesh:
@@ -1623,10 +1622,10 @@ public class AssetsService : ServiceBase, IService
         });
     }
     
-    public async Task CreateGamePassAsset(long assetId, long? universeId) {
-        if (universeId is null)
-            return;
-        await InsertAsync("asset_gamepass", new {
+    public async Task CreateGamePassAsset(long assetId, long universeId)
+    {
+        await InsertAsync("asset_gamepass", new
+        {
             asset_id = assetId,
             universe_id = universeId
         });
