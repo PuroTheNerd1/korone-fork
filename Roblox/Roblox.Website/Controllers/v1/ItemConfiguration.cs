@@ -82,9 +82,8 @@ public class ItemConfigurationV1 : ControllerBase
     {
         
         if (request.priceInRobux != 0 && (request.priceInRobux is > 1000000 or < 2))
-        {
             throw new BadRequestException(0, "Bad robux price");
-        }
+        
 
         if (request.priceInTickets is 0)
         {
@@ -92,9 +91,8 @@ public class ItemConfigurationV1 : ControllerBase
         }
 
         if (request.priceInTickets is > 1000000 or < 2)
-        {
             throw new BadRequestException(0, "Bad ticket price");
-        }
+        
         
         var details = await services.assets.GetAssetCatalogInfo(assetId);
         if (!sellableAssetTypes.Contains(details.assetType))
@@ -116,16 +114,17 @@ public class ItemConfigurationV1 : ControllerBase
         await services.assets.SetItemPrice(assetId, request.priceInRobux, request.priceInTickets);
     }
 
-    [HttpPost("assets/{assetId:long}/release")]
-    public async Task ReleaseAsset(long assetId)
-    {
-        await services.assets.ValidatePermissions(assetId, userSession.userId);
-        // services/api/src/controllers/proxy/v1/ItemConfiguration.ts:75
-        throw new NotImplementedException();
-    }
+    // [HttpPost("assets/{assetId:long}/release")]
+    // public async Task ReleaseAsset(long assetId)
+    // {
+    //     await services.assets.ValidatePermissions(assetId, userSession.userId);
+    //     // services/api/src/controllers/proxy/v1/ItemConfiguration.ts:75
+    //     throw new NotImplementedException();
+    // }
 
     [HttpGet("assets/restrictions")]
-    public async Task<RobloxCollection<ItemRestrictions>> GetAssetRestrictions(string assetIds) {
+    public async Task<RobloxCollection<ItemRestrictions>> GetAssetRestrictions(string assetIds)
+    {
         var parsed = assetIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException(0, "Invalid asset id list");
 

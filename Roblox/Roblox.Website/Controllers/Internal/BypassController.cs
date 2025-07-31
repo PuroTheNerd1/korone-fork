@@ -228,16 +228,16 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("/asset/status")]
-        public async Task<dynamic> GetAssetModerationStatus(long assetId) {
+        public async Task<dynamic> GetAssetModerationStatus(long assetId)
+        {
             // make sure user is logged in
             var userId = safeUserSession.userId;
             if (assetId < 1) {
                 throw new BadRequestException(0, $"Asset {assetId} does not exist.");
             }
-            var qu = await services.assets.GetAssetModerationStatus(assetId);
             return new
             {
-                moderationStatus = (ModerationStatus)qu.moderationstatus,
+                moderationStatus = await services.assets.GetAssetModerationStatus(assetId)
             };
         }
 
