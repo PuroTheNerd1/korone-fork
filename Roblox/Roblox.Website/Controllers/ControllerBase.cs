@@ -17,12 +17,53 @@ namespace Roblox.Website.Controllers
 #if DEBUG
         public UserSession? userSessionForTests { get; set; }
 #endif
+        protected Roblox.Models.Sessions.UserSession? userSession
+        {
+            get
+            {
+#if DEBUG
+                if (userSessionForTests != null)
+                    return userSessionForTests;
+#endif
+                var dict = HttpContext.Items;
+                if (dict.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.CookieName))
+                {
+                    return (UserSession?)dict[Middleware.SessionMiddleware.CookieName];
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Equivalent to userSession but it will throw "Unauthorized" if user is not logged in.
+        /// </summary>
+        /// <exception cref="RobloxException"></exception>
+        protected Roblox.Models.Sessions.UserSession safeUserSession
+        {
+            get
+            {
+                try
+                {
+                    if (userSession == null)
+                    {
+                        Console.WriteLine("User session is null.");
+                        throw new RobloxException(401, 0, "Unauthorized");
+                    }
+                    return userSession;
+                }
+                catch(Exception)
+                {
+                    throw new RobloxException(401, 0, "Unauthorized");
+                }
+            }
+        }
 
         protected string? ROBLOSECURITY
         {
             get
             {
-                return Request.Cookies.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.CookieName) ? Request.Cookies[Roblox.Website.Middleware.SessionMiddleware.CookieName].ToString() : null;
+                return Request.Cookies.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.CookieName) ? Request.Cookies[Roblox.Website.Middleware.SessionMiddleware.CookieName]!.ToString() : null;
             }
         }
 
@@ -102,87 +143,6 @@ namespace Roblox.Website.Controllers
                 }
                 
                 return 0;
-            }
-        }
-        private Task<Roblox.Models.Sessions.UserSession?> _cachedUserSession;
-    
-        protected Roblox.Models.Sessions.UserSession? userSession
-        {
-            get
-            {
-                _cachedUserSession = LoadUserSessionAsync();
-                return _cachedUserSession.IsCompletedSuccessfully ? _cachedUserSession.Result : null;
-            }
-        }
-        private async Task<Roblox.Models.Sessions.UserSession?> LoadUserSessionAsync()
-        {
-        #if DEBUG
-            if (userSessionForTests != null)
-                return userSessionForTests;
-        #endif
-            var dict = HttpContext.Items;
-            var cookies = HttpContext.Request.Cookies;
-
-            if (dict.ContainsKey(Middleware.SessionMiddleware.CookieName))
-            {
-                return (UserSession?)dict[Middleware.SessionMiddleware.CookieName];
-            }
-            else if (dict.ContainsKey(Middleware.SessionMiddleware.AltCookieName))
-            {
-                return (UserSession?)dict[Middleware.SessionMiddleware.AltCookieName];
-            }
-            else
-            {
-                using var users = Services.ServiceProvider.GetOrCreate<UsersService>();
-                using var accountInformation = Services.ServiceProvider.GetOrCreate<AccountInformationService>();
-                var cookie = cookies[SessionMiddleware.AltCookieName].ToString();
-
-                if (cookie == null)
-                    return null;
-
-                var decodedResult = SessionMiddleware.DecodeJwt<JwtEntry>(cookie);
-                
-                UserInfo userInfo;
-                try
-                {
-                    var sessResult = await users.GetSessionById(decodedResult.sessionId);
-                    userInfo = await users.GetUserById(sessResult.userId); 
-                }
-                catch (RecordNotFoundException)
-                {
-                    return null;
-                }
-
-                dict[SessionMiddleware.CookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
-                dict[SessionMiddleware.AltCookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
-
-                return (UserSession?)dict[Middleware.SessionMiddleware.AltCookieName];
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Equivalent to userSession but it will throw "Unauthorized" if user is not logged in.
-        /// </summary>
-        /// <exception cref="RobloxException"></exception>
-        protected Roblox.Models.Sessions.UserSession safeUserSession
-        {
-            get
-            {
-                try
-                {
-                    if (userSession == null)
-                    {
-                        Console.WriteLine("User session is null.");
-                        throw new RobloxException(401, 0, "Unauthorized");
-                    }
-                    return userSession;
-                }
-                catch(Exception)
-                {
-                    throw new RobloxException(401, 0, "Unauthorized");
-                }
             }
         }
         public ControllerBase()

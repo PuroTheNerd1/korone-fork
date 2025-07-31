@@ -656,9 +656,9 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("v1.1/game-start-info")]
-        public dynamic GameStartInfo(long universeId)
+        public async Task<dynamic> GameStartInfo(long universeId)
         {
-            var uni = services.games.MultiGetUniverseInfo(new[] { universeId }).Result.First();
+            var uni = await services.games.GetUniverseInfo(universeId);
             return new
             {
                 gameAvatarType = uni.universeAvatarType,
