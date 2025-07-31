@@ -892,19 +892,13 @@ namespace Roblox.Website.Controllers
             if (!await services.assets.CanUserModifyItem(placeId, safeUserSession.userId))
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
 
-            _ = Task.Run(async () =>
+            var gameServers = await services.gameServer.GetGameServersForPlace(placeId);
+            
+            foreach (var job in gameServers)
             {
-                var serverJobs = await services.gameServer
-                    .GetGameServersForPlace(placeId)
-                    .ConfigureAwait(false);
+                await services.gameServer.ShutDownServerAsync(job.id);
+            }
 
-                var shutdownTasks = serverJobs
-                    .Select(job => services.gameServer
-                        .ShutDownServerAsync(job.id));
-
-                await Task.WhenAll(shutdownTasks)
-                    .ConfigureAwait(false);
-            });
             return "OK!";
         }
 
@@ -1318,12 +1312,16 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("V1/Close")]
         public async Task<dynamic> CloseGSNew(Guid gameId)
         {
-
             if(!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-
             try
             {
+                // Check if the game server exists
+                var gameServer = await services.gameServer.GetGameServer(gameId);
+                if (gameServer == null)
+                {
+                    return "Game server not found";
+                }
                 await services.gameServer.ShutDownServerAsync(gameId);
                 return "OK!";
             }
