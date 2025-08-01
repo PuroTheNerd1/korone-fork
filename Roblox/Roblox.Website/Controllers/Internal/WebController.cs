@@ -933,7 +933,7 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Audio file is not a valid MP3");
     
         // We will check the decibel level of the audio file
-        var (peakDb, avgDb) = Services.AudioService.GetPeakAndRmsDbFromStream(mp3Stream);
+        var (peakDb, avgDb) = Services.AudioService.GetDecibelInfo(mp3Stream);
 
         Writer.Info(LogGroup.AudioService, "'{0}' (peak: {1:F2}dB, avg: {2:F2}dB)", request.name, peakDb, avgDb);
 

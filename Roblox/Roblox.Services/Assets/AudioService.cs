@@ -1,9 +1,11 @@
 using FFMpegCore;
 using FFMpegCore.Enums;
-using NAudio.Dsp;
-using NAudio.Wave;
+using CSCore;
+using CSCore.Codecs;
+using CSCore.DSP;
 using Newtonsoft.Json.Serialization;
 using Roblox.Models.Assets;
+using NAudio.Wave;
 
 namespace Roblox.Services;
 
@@ -11,52 +13,54 @@ public class AudioService : ServiceBase, IService
 {
     private const long maxAudioFileSizeBytes = 20447232;
     // really ugly function :(
-    public static (float peakDb, float rmsDb) GetPeakAndRmsDbFromStream(Stream audioStream)
+    public static (float peakDb, float averageDb) GetDecibelInfo(Stream audioStream)
     {
-        audioStream.Position = 0;
-        const int chunkMs = 100;
-        using var mp3Reader = new Mp3FileReader(audioStream);
-        var sampleProvider = mp3Reader.ToSampleProvider();
+        if (audioStream.CanSeek)
+            audioStream.Position = 0;
 
-        int sampleRate = mp3Reader.WaveFormat.SampleRate;
-        int channels = mp3Reader.WaveFormat.Channels;
-
-        int samplesPerChunk = sampleRate * channels * chunkMs / 1000;
-        float[] buffer = new float[samplesPerChunk];
-
-        List<float> rmsDbChunks = new();
-        float maxAmplitude = 0f;
-
-        int samplesRead;
-        while ((samplesRead = sampleProvider.Read(buffer, 0, samplesPerChunk)) > 0)
+        using (var reader = new Mp3FileReader(audioStream))
         {
+            var sampleProvider = reader.ToSampleProvider();
+            const int bufferSize = 4096;
+            var buffer = new float[bufferSize * reader.WaveFormat.Channels];
+            float maxSampleValue = 0;
             double sumSquares = 0;
+            long totalSamples = 0;
 
-            for (int i = 0; i < samplesRead; i++)
+            int samplesRead;
+            while ((samplesRead = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
             {
-                float sample = buffer[i];
-                float absSample = Math.Abs(sample);
+                totalSamples += samplesRead;
 
-                if (absSample > maxAmplitude)
-                    maxAmplitude = absSample;
-
-                sumSquares += sample * sample;
+                for (int i = 0; i < samplesRead; i++)
+                {
+                    float absValue = Math.Abs(buffer[i]);
+                    
+                    if (absValue > maxSampleValue)
+                        maxSampleValue = absValue;
+                    
+                    sumSquares += absValue * absValue;
+                }
             }
 
-            if (samplesRead == 0)
-                break;
+            if (totalSamples == 0)
+                return (float.NegativeInfinity, float.NegativeInfinity);
 
-            float rms = (float)Math.Sqrt(sumSquares / samplesRead);
-            float rmsDb = rms > 0 ? 20f * (float)Math.Log10(rms) : -100f;
+            double rms = Math.Sqrt(sumSquares / totalSamples);
+            const double minValue = 1e-6; 
 
-            rmsDbChunks.Add(rmsDb);
+            float peakDb = 20 * (float)Math.Log10(Math.Max(maxSampleValue, minValue));
+            float avgDb = 20 * (float)Math.Log10(Math.Max(rms, minValue));
+
+            return (peakDb, avgDb);
         }
-
-        float averageRmsDb = rmsDbChunks.Count > 0 ? rmsDbChunks.Average() : float.NegativeInfinity;
-        float peakDb = maxAmplitude > 0 ? 20f * (float)Math.Log10(maxAmplitude) : float.NegativeInfinity;
-
-        return (peakDb, averageRmsDb);
     }
+
+    private static double ClampMinValue(double value)
+    {
+        return Math.Max(value, 1e-12);
+    }
+
 
     
     public static async Task<MemoryStream> ConvertAudioToMp3(Stream inputStream)
