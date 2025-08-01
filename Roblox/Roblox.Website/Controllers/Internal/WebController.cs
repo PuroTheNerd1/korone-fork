@@ -935,7 +935,7 @@ public class WebController : ControllerBase
         // We will check the decibel level of the audio file
         var (peakDb, avgDb) = Services.AudioService.GetDecibelInfo(mp3Stream);
 
-        Writer.Info(LogGroup.AudioService, "'{0}' (peak: {1:F2}dB, avg: {2:F2}dB)", request.name, peakDb, avgDb);
+        Console.WriteLine($"Peak dB: {peakDb}, Average dB: {avgDb}");
 
         if (avgDb > maxDecibel)
         {

@@ -27,46 +27,70 @@ public class AudioService : ServiceBase, IService
             using (var reader = new Mp3FileReader(tempFile))
             {
                 var provider = reader.ToSampleProvider();
-                var buffer = new float[4096 * reader.WaveFormat.Channels];
+                int channels = reader.WaveFormat.Channels;
+                var buffer = new float[4096 * channels];
                 
-                float peak = 0;
-                double sum = 0;
+                float truePeak = 0;
+                double sumSquares = 0;
                 long totalSamples = 0;
                 
                 var resampler = new WdlResampler();
                 const int oversample = 4;
                 resampler.SetMode(true, oversample, false);
                 resampler.SetFeedMode(true);
+                resampler.SetRates(reader.WaveFormat.SampleRate, reader.WaveFormat.SampleRate * oversample);
+
+                float[] outputBuffer = new float[4096 * oversample * channels];
+                int maxOutputFrames = outputBuffer.Length / channels;
 
                 int samplesRead;
                 while ((samplesRead = provider.Read(buffer, 0, buffer.Length)) > 0) 
                 {
-                    int channels = reader.WaveFormat.Channels;
                     int frames = samplesRead / channels;
 
+                    // Process original samples for RMS
+                    for (int i = 0; i < samplesRead; i++)
+                    {
+                        float sample = buffer[i];
+                        sumSquares += sample * sample;
+                    }
+                    totalSamples += samplesRead;
+
+                    // Prepare resampler
                     resampler.ResamplePrepare(frames, channels, out var inBuffer, out var inBufferOffset);
                     Buffer.BlockCopy(buffer, 0, inBuffer, inBufferOffset * sizeof(float), samplesRead * sizeof(float));
                     
-                    int maxOutputFrames = frames * oversample;
-                    float[] outputBuffer = new float[maxOutputFrames * channels];
+                    // Get oversampled data
                     int outFrames = resampler.ResampleOut(outputBuffer, 0, frames, maxOutputFrames, channels);
                     int outSamples = outFrames * channels;
 
-                    totalSamples += outSamples;
-
+                    // Find true peak in oversampled data
                     for (int i = 0; i < outSamples; i++)
                     {
                         float abs = Math.Abs(outputBuffer[i]);
-                        if (abs > peak) peak = abs;
-                        sum += abs * abs;
+                        if (abs > truePeak) truePeak = abs;
                     }
                 }
 
+                // Flush remaining samples from resampler
+                int remainingFrames;
+                do
+                {
+                    remainingFrames = resampler.ResampleOut(outputBuffer, 0, 0, maxOutputFrames, channels);
+                    int remainingSamples = remainingFrames * channels;
+                    
+                    for (int i = 0; i < remainingSamples; i++)
+                    {
+                        float abs = Math.Abs(outputBuffer[i]);
+                        if (abs > truePeak) truePeak = abs;
+                    }
+                } while (remainingFrames > 0);
+
                 if (totalSamples == 0) return (float.NegativeInfinity, float.NegativeInfinity);
                 
-                float rms = (float)Math.Sqrt(sum / totalSamples);
+                float rms = (float)Math.Sqrt(sumSquares / totalSamples);
                 return (
-                    20 * MathF.Log10(Math.Max(peak, 0.000001f)),
+                    20 * MathF.Log10(Math.Max(truePeak, 0.000001f)),
                     20 * MathF.Log10(Math.Max(rms, 0.000001f))
                 );
             }
@@ -76,8 +100,7 @@ public class AudioService : ServiceBase, IService
             File.Delete(tempFile);
         }
     }
-
-    
+        
     public static async Task<MemoryStream> ConvertAudioToMp3(Stream inputStream)
     {
         string tempInput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.tmp");
