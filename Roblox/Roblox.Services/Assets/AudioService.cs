@@ -14,34 +14,26 @@ public class AudioService : ServiceBase, IService
     {
         audioStream.Position = 0;
 
-        using var reader = new Mp3FileReader(audioStream);
+        using var mp3Reader = new Mp3FileReader(audioStream);
+        ISampleProvider sampleProvider = mp3Reader.ToSampleProvider();
 
-        using var conversionStream = WaveFormatConversionStream.CreatePcmStream(reader);
-        using var floatStream = new Wave32To16Stream(conversionStream);
-
-        int bytesPerSample = conversionStream.WaveFormat.BitsPerSample / 8;
-        int sampleCount = 0;
         float maxAmplitude = 0f;
         double sumSquares = 0;
+        int sampleCount = 0;
 
-        byte[] buffer = new byte[4096];
-        int bytesRead;
+        float[] buffer = new float[1024];
+        int samplesRead;
 
-        while ((bytesRead = conversionStream.Read(buffer, 0, buffer.Length)) > 0)
+        while ((samplesRead = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
         {
-
-            int samplesInBuffer = bytesRead / bytesPerSample;
-
-            for (int i = 0; i < samplesInBuffer; i++)
+            for (int i = 0; i < samplesRead; i++)
             {
-                short sample = BitConverter.ToInt16(buffer, i * bytesPerSample);
-                float sample32 = sample / 32768f;
-
-                float absSample = Math.Abs(sample32);
+                float sample = buffer[i];
+                float absSample = Math.Abs(sample);
                 if (absSample > maxAmplitude)
                     maxAmplitude = absSample;
 
-                sumSquares += sample32 * sample32;
+                sumSquares += sample * sample;
                 sampleCount++;
             }
         }
