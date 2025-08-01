@@ -507,47 +507,6 @@ public class AssetsService : ServiceBase, IService
 
     private static AsyncLimit audioConversionLimit { get; } = new("AudioConversionLimit", 5);
 
-    public async Task<Stream> GetAudioContentAsMp3(Stream inputStream)
-    {
-        string tempInput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.tmp");
-        string tempOutput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp3");
-
-        try
-        {
-            await using (var fileStream = File.Create(tempInput))
-            {
-                inputStream.Seek(0, SeekOrigin.Begin);
-                await inputStream.CopyToAsync(fileStream);
-            }
-
-            await FFMpegArguments
-                .FromFileInput(tempInput)
-                .OutputToFile(tempOutput, true, options => 
-                    options
-                        .WithAudioCodec("libmp3lame")
-                        .WithAudioBitrate(AudioQuality.Normal))
-                .ProcessAsynchronously();
-
-            var memoryStream = new MemoryStream();
-            await using (var outputFileStream = File.OpenRead(tempOutput))
-            {
-                await outputFileStream.CopyToAsync(memoryStream);
-            }
-
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            return memoryStream;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[error] error converting audio to MP3: {ex.Message}\n");
-            throw;
-        }
-        finally
-        {
-            try { if (File.Exists(tempInput)) File.Delete(tempInput); } catch { }
-            try { if (File.Exists(tempOutput)) File.Delete(tempOutput); } catch { }
-        }
-    }
 
 
 
@@ -562,51 +521,6 @@ public class AssetsService : ServiceBase, IService
         return result.is18Plus;
     }
 
-    private static long maxAudioFileSizeBytes = 20447232;
-    public async Task<MediaValidation> IsAudioValid(Stream content)
-    {
-        if (content.Length > maxAudioFileSizeBytes) return MediaValidation.FileTooLarge;
-        if (content.Length == 0) return MediaValidation.EmptyStream;
-        content.Position = 0;
-        IMediaAnalysis mediaInfo;
-        // streams return an empty duration, so we have to write to disk and then read that...
-        // https://github.com/rosenbjerg/FFMpegCore/issues/130#issuecomment-739572946
-        var tempFile = Path.GetTempFileName();
-        try
-        {
-            await using (var fs = File.OpenWrite(tempFile))
-            {
-                content.Seek(0, SeekOrigin.Begin);
-                await content.CopyToAsync(fs);
-            }
-
-            mediaInfo = await FFProbe.AnalyseAsync(tempFile);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("[error] error validating audio: {0}\n{1}", e.Message, e.StackTrace);
-            return MediaValidation.UnsupportedFormat;
-        }
-        finally
-        {
-            File.Delete(tempFile);
-        }
-
-        if (mediaInfo.Duration > TimeSpan.FromMinutes(7)) return MediaValidation.TooLong;
-        if (mediaInfo.Duration < TimeSpan.FromMilliseconds(10))
-            return
-                MediaValidation
-                    .TooShort; // If duration is 0, FFProbe probably messed up, and we don't want to risk having users upload infinite duration files
-        var formatDetails = mediaInfo.Format;
-        // our game engine currently supports mp3 and ogg.
-        if (formatDetails.FormatName is "mp3" or "ogg")
-        {
-            // OK
-            return MediaValidation.Ok;
-        }
-
-        return MediaValidation.UnsupportedFormat;
-    }
 
     public async Task<MediaValidation> IsVideoValid(Stream content)
     {

@@ -918,19 +918,23 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Not enough Robux for purchase");
         // validate auto
         stream.Position = 0;
-        var isOk = await services.assets.IsAudioValid(stream);
+        var isOk = await Services.AudioService.IsAudioValid(stream);
 
         if (isOk != MediaValidation.Ok)
-        {
             throw new BadRequestException(0, "Bad audio file. Error = " + isOk.ToString());
-        }
+
         stream.Position = 0;
 
-        Stream mp3Stream = await services.assets.GetAudioContentAsMp3(stream);
+        MemoryStream mp3Stream = await Services.AudioService.GetAudioContentAsMp3(stream);
         if (mp3Stream == null)
             throw new BadRequestException(0, "Audio file is not a valid MP3");
-        mp3Stream.Position = 0;
         
+        float peakDb = Services.AudioService.GetPeakDbFromStream(mp3Stream);
+        if (peakDb > -2)
+        {
+            await services.discordBotApi.SendMessageInChannel("1364006085194813602",$"asset {request.name} creator: {safeUserSession.userId} peak {peakDb}dB");
+        }
+        mp3Stream.Position = 0;
         // charge
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
         // create item
