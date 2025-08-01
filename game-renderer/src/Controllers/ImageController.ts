@@ -33,7 +33,7 @@ router.post("/image", Valid(AssetRenderRequest), async (req, res) => {
         xml.Settings.Arguments[4] = 600;
     }
     Console.Debug(`Queueing ${req.body.isFace ? "face" : "image"} request with AssetId ${req.body.assetId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -49,7 +49,7 @@ router.post("/clothing", Valid(AssetRenderRequest), async (req, res) => {
     xml.Settings.Arguments[3] = 420;
     xml.Settings.Arguments[4] = Config.BaseUrl;
     Console.Debug(`Queueing clothing request with AssetId ${req.body.assetId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -65,7 +65,7 @@ router.post("/teeshirt", Valid(AssetRenderRequest), async (req, res) => {
     xml.Settings.Arguments[3] = 600;
     xml.Settings.Arguments[4] = 600;
     Console.Debug(`Queueing TeeShirt request with AssetId ${req.body.assetId}`);
-    const base64Image = await box.enqueue((port: number) => RequestRCCBaseXMLData(
+    const base64Image = await box.Enqueue((port: number) => RequestRCCBaseXMLData(
         req,
         res,
         xml,

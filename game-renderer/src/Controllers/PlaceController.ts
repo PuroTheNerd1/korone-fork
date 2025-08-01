@@ -19,7 +19,7 @@ router.post("/thumbnail", Valid(PlaceRenderRequest), async (req: Request, res: R
     xml.Settings.Arguments[4] = Config.BaseUrl;
     xml.Settings.Arguments[6] = Config.BaseUrl;
     Console.Debug(`Queueing place thumbnail request with PlaceId ${req.body.placeId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,

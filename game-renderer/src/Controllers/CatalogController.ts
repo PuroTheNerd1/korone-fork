@@ -22,7 +22,7 @@ router.post("/hat", Valid(AssetRenderRequest), async (req: Request, res: Respons
     xml.Settings.Arguments[0] = `${Config.BaseUrl}/v1/asset?id=${req.body.assetId}`;
     xml.Settings.Arguments[4] = Config.BaseUrl;
     Console.Debug(`Queueing catalog hat request with AssetId ${req.body.assetId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -39,7 +39,7 @@ router.post("/head", Valid(AssetRenderRequest), async (req: Request, res: Respon
     xml.Settings.Arguments[4] = Config.BaseUrl;
     xml.Settings.Arguments[5] = 1785197;
     Console.Debug(`Queueing catalog head with AssetId ${req.body.assetId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -53,7 +53,7 @@ router.post("/model", Valid(AssetRenderRequest), async (req: Request, res: Respo
     xml.Settings.Arguments[0] = `${Config.BaseUrl}/v1/asset?id=${req.body.assetId}`;
     xml.Settings.Arguments[4] = Config.BaseUrl;
     Console.Debug(`Queueing catalog model with AssetId ${req.body.assetId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -69,7 +69,7 @@ router.post("/mesh", Valid(AssetRenderRequest), async (req: Request, res: Respon
     xml.Settings.Arguments[3] = 420;
     xml.Settings.Arguments[4] = Config.BaseUrl;
     Console.Debug(`Queueing catalog mesh with AssetId ${req.body.assetId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -86,7 +86,7 @@ router.post("/package", Valid(PackageRenderRequest), async (req: Request, res: R
     xml.Settings.Arguments[4] = 420;
     xml.Settings.Arguments[5] = `${Config.BaseUrl}/v1/asset/?id=1785197`;
     Console.Debug(`Queueing catalog package with AssetUrls ${req.body.assetUrls}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -104,7 +104,7 @@ router.post("/bodypart", Valid(BodyPartRenderRequest), async (req: Request, res:
     xml.Settings.Arguments[4] = 420;
     xml.Settings.Arguments[5] = `${Config.BaseUrl}/v1/asset/?id=1785197`;
     Console.Log(`Body part request XML: ${JSON.stringify(xml)}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -119,7 +119,7 @@ router.post("/animationsilhouette", Valid(AssetRenderRequest), async (req: Reque
     xml.Settings.Arguments[1] = Config.BaseUrl;
     xml.Settings.Arguments[4] = '128/128/128';
     Console.Debug(`Queueing catalog animation silhouette with AssetId ${req.body.assetId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -134,7 +134,7 @@ router.post("/animation", Valid(AnimationRenderRequest), async (req: Request, re
     xml.Settings.Arguments[1] = Config.BaseUrl;
     xml.Settings.Arguments[5] = req.body.animationUrl;
     Console.Debug(`Queueing catalog animation with AssetId ${req.body.assetUrls}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,

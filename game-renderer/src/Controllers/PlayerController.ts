@@ -20,7 +20,7 @@ router.post("/thumbnail", Valid(PlayerRenderRequest), async (req, res) => {
     xml.Settings.Arguments[3] = 840;
     xml.Settings.Arguments[4] = 840;
     Console.Debug(`Queueing player thumbnail request with UserId ${req.body.userId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -38,7 +38,7 @@ router.post("/thumbnail-3d", Valid(PlayerRenderRequest), async (req, res) => {
     xml.Settings.Arguments[3] = 352;
     xml.Settings.Arguments[4] = 352;
     Console.Debug(`Queueing 3D Player thumbnail request with UserId ${req.body.userId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
@@ -55,7 +55,7 @@ router.post("/headshot", Valid(PlayerRenderRequest), async (req, res) => {
     xml.Settings.Arguments[3] = 720;
     xml.Settings.Arguments[4] = 720;
     Console.Debug(`Queueing player headshot request with UserId ${req.body.userId}`);
-    return await box.enqueue((port: number) => RequestRCCBase(
+    return await box.Enqueue((port: number) => RequestRCCBase(
         req,
         res,
         xml,
