@@ -38,7 +38,7 @@ public class RobloxPageModel : PageModel
         {
             const string key = "PEKORA-DISCORD";
             var tokenEncoded = Request.Headers[key].ToString();
-            if (tokenEncoded == null)
+            if (string.IsNullOrEmpty(tokenEncoded))
             {
                 return null;
             }
