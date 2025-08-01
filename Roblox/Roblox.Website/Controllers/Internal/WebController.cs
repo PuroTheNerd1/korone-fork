@@ -19,6 +19,7 @@ using Roblox.Libraries.DiscordApi;
 using Roblox.Models.Db;
 using DSharpPlus;
 using Roblox.Logging;
+using DSharpPlus.Entities;
 
 namespace Roblox.Website.Controllers;
 
@@ -930,16 +931,28 @@ public class WebController : ControllerBase
         MemoryStream mp3Stream = await Services.AudioService.ConvertAudioToMp3(stream);
         if (mp3Stream == null)
             throw new BadRequestException(0, "Audio file is not a valid MP3");
+    
+        // We will check the decibel level of the audio file
+        var (peakDb, avgDb) = Services.AudioService.GetPeakAndRmsDbFromStream(mp3Stream);
 
-        float peakDb = Services.AudioService.GetPeakDecibelFromStream(mp3Stream);
-        // lets check if the decibel level is too high
-        Writer.Info(LogGroup.AudioService, "{0} is trying to upload audio '{1}' {2:F2}dB", safeUserSession.username, request.name, peakDb);
-        if (peakDb > maxDecibel)
+        Writer.Info(LogGroup.AudioService, "'{0}' (peak: {1:F2}dB, max: {2:F2}dB)", request.name, peakDb, avgDb);
+
+        if (avgDb > maxDecibel)
         {
-            Writer.Info(LogGroup.AudioService, "audio '{0}' by {1} is too loud ({2:F2}dB)", request.name, safeUserSession.username, peakDb);
-            await services.discordBotApi.SendMessageInChannel("1364006085194813602", $"'{safeUserSession.username}' tried to upload audio '{request.name}' with {peakDb:F2}dB");
+            Writer.Info(LogGroup.AudioService, "audio '{0}' is too loud (peak: {1:F2}dB, max: {2:F2}dB)", request.name, peakDb, maxDecibel);
+            var embedBuilder = new DiscordEmbedBuilder
+            {
+                Title = "Loud Audio"
+            };
+
+            embedBuilder.AddField("User", $"``{safeUserSession.username}`` ({safeUserSession.userId})")
+                .AddField("Name", request.name)
+                .AddField("Peak", $"{peakDb:F2}dB", true)
+                .AddField("Average", $"{avgDb:F2}dB", true);
+
+            await services.discordBotApi.SendMessageInChannel("1364006085194813602", "", embedBuilder.Build());
         }
-        
+
         mp3Stream.Position = 0;
         // charge
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);

@@ -8,8 +8,8 @@ namespace Roblox.Services;
 public class AudioService : ServiceBase, IService
 {
     private const long maxAudioFileSizeBytes = 20447232;
-
-    public static float GetPeakDecibelFromStream(MemoryStream audioStream)
+    // really ugly function :(
+    public static (float peakDb, float rmsDb) GetPeakAndRmsDbFromStream(Stream audioStream)
     {
         string tempFile = Path.GetTempFileName();
         try
@@ -21,7 +21,10 @@ public class AudioService : ServiceBase, IService
             }
 
             using var reader = new AudioFileReader(tempFile);
-            float max = 0f;
+            float maxAmplitude = 0f;
+            double sumSquares = 0;
+            int sampleCount = 0;
+
             float[] buffer = new float[1024];
             int samplesRead;
 
@@ -30,20 +33,32 @@ public class AudioService : ServiceBase, IService
                 samplesRead = reader.Read(buffer, 0, buffer.Length);
                 for (int i = 0; i < samplesRead; i++)
                 {
-                    float abs = Math.Abs(buffer[i]);
-                    if (abs > max)
-                        max = abs;
+                    float sample = buffer[i];
+                    float abs = Math.Abs(sample);
+                    if (abs > maxAmplitude)
+                        maxAmplitude = abs;
+
+                    sumSquares += sample * sample;
+                    sampleCount++;
                 }
             } while (samplesRead > 0);
 
-            return max == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(max);
+            float peakDb = maxAmplitude == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(maxAmplitude);
+            float rms = sampleCount == 0 ? 0 : (float)Math.Sqrt(sumSquares / sampleCount);
+            float rmsDb = rms == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(rms);
+
+            return (peakDb, rmsDb);
+        }
+        catch (Exception)
+        {
+            return (float.NegativeInfinity, float.NegativeInfinity);
         }
         finally
         {
             File.Delete(tempFile);
         }
-
     }
+    
     public static async Task<MemoryStream> ConvertAudioToMp3(Stream inputStream)
     {
         string tempInput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.tmp");
