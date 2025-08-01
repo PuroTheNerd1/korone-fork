@@ -572,7 +572,7 @@ public class ForumsService : ServiceBase
             var postData = postInfo.FirstOrDefault(c => c.postId == item.id || c.threadId == item.id);
             if (postData == null) continue;
 
-            var replies = await CountReplies(item.threadId.Value);
+            var replies = await CountReplies(item.threadId!.Value);
             var isRead = contextUserId != null && await IsPostRead(contextUserId.Value, item.id);
             var parent = postData.threadId == null
                 ? postData
