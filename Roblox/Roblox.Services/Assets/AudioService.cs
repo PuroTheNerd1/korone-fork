@@ -24,11 +24,12 @@ public class AudioService : ServiceBase, IService
             const int bufferSize = 4096;
             var buffer = new float[bufferSize * reader.WaveFormat.Channels];
             
-            float maxPeak = 0;
+            float maxSampleValue = 0;
             double sumSquares = 0;
             long sampleCount = 0;
 
-            const float noiseFloor = 0.001122f;
+            const float noiseFloor = 0.001122f; 
+            const float maxPossible = 0.999999f; 
 
             int samplesRead;
             while ((samplesRead = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
@@ -37,25 +38,26 @@ public class AudioService : ServiceBase, IService
 
                 for (int i = 0; i < samplesRead; i++)
                 {
-                    float sample = Math.Max(Math.Abs(buffer[i]), noiseFloor);
+                    float sample = Math.Clamp(buffer[i], -1.0f, 1.0f);
+                    float absValue = Math.Max(Math.Abs(sample), noiseFloor);
 
                     if (i < samplesRead - 1)
                     {
-                        float interpolated = (buffer[i] + buffer[i+1]) / 2 * 1.414f;
-                        sample = Math.Max(sample, Math.Abs(interpolated));
+                        float nextSample = Math.Clamp(buffer[i+1], -1.0f, 1.0f);
+                        float slope = nextSample - sample;
+                        float estimatedPeak = sample + (slope * 0.5f) + (slope * slope * 0.125f);
+                        absValue = Math.Max(absValue, Math.Min(Math.Abs(estimatedPeak), maxPossible));
                     }
 
-                    if (sample > maxPeak)
-                        maxPeak = sample;
-
-                    sumSquares += sample * sample;
+                    maxSampleValue = Math.Max(absValue, maxSampleValue);
+                    sumSquares += absValue * absValue;
                 }
             }
 
             if (sampleCount == 0)
                 return (float.NegativeInfinity, float.NegativeInfinity);
 
-            float truePeakDb = 20 * MathF.Log10(maxPeak);
+            float truePeakDb = 20 * MathF.Log10(Math.Min(maxSampleValue, maxPossible));
             float avgDb = 20 * MathF.Log10((float)Math.Sqrt(sumSquares / sampleCount));
 
             return (truePeakDb, avgDb);
