@@ -16,6 +16,7 @@ public class AudioService : ServiceBase, IService
         var tempFile = Path.GetTempFileName();
         try
         {
+            // Save stream to temp file
             using (var fileStream = File.Create(tempFile))
             {
                 audioStream.CopyTo(fileStream);
@@ -24,76 +25,42 @@ public class AudioService : ServiceBase, IService
             using (var reader = new Mp3FileReader(tempFile))
             {
                 var provider = reader.ToSampleProvider();
-                int channels = reader.WaveFormat.Channels;
-                var buffer = new float[4096 * channels];
+                var buffer = new float[reader.WaveFormat.SampleRate * reader.WaveFormat.Channels]; // 1 second buffer
                 
-                float truePeak = 0;
+                float highestPeak = float.NegativeInfinity;
                 double sumSquares = 0;
                 long totalSamples = 0;
-                
-                var resampler = new WdlResampler();
-                const int oversample = 8;
-                resampler.SetMode(true, oversample, false);
-                resampler.SetFeedMode(true);
-                resampler.SetRates(reader.WaveFormat.SampleRate, reader.WaveFormat.SampleRate * oversample);
-
-                float[] outputBuffer = new float[4096 * oversample * channels];
-                int maxOutputFrames = outputBuffer.Length / channels;
 
                 int samplesRead;
-                while ((samplesRead = provider.Read(buffer, 0, buffer.Length)) > 0) 
+                while ((samplesRead = provider.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    int frames = samplesRead / channels;
-
-                    // Process original samples for RMS
                     for (int i = 0; i < samplesRead; i++)
                     {
                         float sample = buffer[i];
+                        float absSample = Math.Abs(sample);
+                        
+                        // Track peak
+                        if (absSample > 0)
+                        {
+                            float currentDb = 20 * MathF.Log10(absSample);
+                            if (currentDb > highestPeak)
+                            {
+                                highestPeak = currentDb;
+                            }
+                        }
+                        
+                        // Track RMS
                         sumSquares += sample * sample;
                     }
                     totalSamples += samplesRead;
-
-                    // Prepare resampler
-                    resampler.ResamplePrepare(frames, channels, out var inBuffer, out var inBufferOffset);
-                    Buffer.BlockCopy(buffer, 0, inBuffer, inBufferOffset * sizeof(float), samplesRead * sizeof(float));
-                    
-                    // Get oversampled data
-                    int outFrames = resampler.ResampleOut(outputBuffer, 0, frames, maxOutputFrames, channels);
-                    int outSamples = outFrames * channels;
-
-                    // Find true peak in oversampled data
-                    for (int i = 0; i < outSamples; i++)
-                    {
-                        float abs = Math.Abs(outputBuffer[i]);
-                        if (abs > truePeak) truePeak = abs;
-                    }
                 }
-
-                // Flush remaining samples from resampler
-                int remainingFrames;
-                do
-                {
-                    remainingFrames = resampler.ResampleOut(outputBuffer, 0, 0, maxOutputFrames, channels);
-                    int remainingSamples = remainingFrames * channels;
-                    
-                    for (int i = 0; i < remainingSamples; i++)
-                    {
-                        float abs = Math.Abs(outputBuffer[i]);
-                        if (abs > truePeak) truePeak = abs;
-                    }
-                } while (remainingFrames > 0);
 
                 if (totalSamples == 0) return (float.NegativeInfinity, float.NegativeInfinity);
                 
                 float rms = (float)Math.Sqrt(sumSquares / totalSamples);
+                float avgDb = 20 * MathF.Log10(rms);
                 
-                // Convert true peak to dBFS
-                float peakDb = truePeak > 0 ? 20 * MathF.Log10(truePeak) : float.NegativeInfinity;
-                
-                // Convert RMS to dBFS
-                float avgDb = rms > 0 ? 20 * MathF.Log10(rms) : float.NegativeInfinity;
-                
-                return (peakDb, avgDb);
+                return (highestPeak, avgDb);
             }
         }
         finally
