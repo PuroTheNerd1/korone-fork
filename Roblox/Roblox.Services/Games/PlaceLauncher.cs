@@ -116,7 +116,7 @@ public class PlaceLauncherService : ServiceBase
             string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
             string clientTicket =  sign.GenerateClientTicket(placeInfo.year, userId, username!, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
-            joinScript = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
+            joinScript = games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
 
         }
         using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
@@ -178,7 +178,7 @@ public class PlaceLauncherService : ServiceBase
             GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
             string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
 
-            dynamic settings = await games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, false, null);
+            dynamic settings = games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, false, null);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,
