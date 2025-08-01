@@ -117,7 +117,6 @@ public class Application : RobloxPageModel
 
         if (discordAccessToken == null)
         {
-            Console.WriteLine("Discord access token is null, redirecting to Discord OAuth2 authorization.");
             return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
         }
 
@@ -174,6 +173,7 @@ public class Application : RobloxPageModel
         {
             return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
         }
+        
         DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
         var info = await discordOAuth.GetUserInfo();
         if (info == null)

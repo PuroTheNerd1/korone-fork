@@ -108,6 +108,11 @@ public class WebController : ControllerBase
     public async Task<IActionResult> DiscordOAuthCallback(string code)
     {
         const string key = "PEKORA-DISCORD";
+        // Delete any old sessions
+        if (discordAccessToken != null)
+        {
+            HttpContext.Response.Cookies.Delete(key);
+        }
 
         var discordApi = await DiscordApi.CreateFromOAuthCode(code, Configuration.DiscordApplicationCallback);
         if (discordApi == null)
