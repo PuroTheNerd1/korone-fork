@@ -12,51 +12,48 @@ public class AudioService : ServiceBase, IService
     // really ugly function :(
     public static (float peakDb, float rmsDb) GetPeakAndRmsDbFromStream(Stream audioStream)
     {
-        string tempFile = Path.GetTempFileName();
-        try
+        audioStream.Position = 0;
+
+        using var reader = new Mp3FileReader(audioStream);
+
+        using var conversionStream = WaveFormatConversionStream.CreatePcmStream(reader);
+        using var floatStream = new Wave32To16Stream(conversionStream);
+
+        int bytesPerSample = conversionStream.WaveFormat.BitsPerSample / 8;
+        int sampleCount = 0;
+        float maxAmplitude = 0f;
+        double sumSquares = 0;
+
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+
+        while ((bytesRead = conversionStream.Read(buffer, 0, buffer.Length)) > 0)
         {
-            using (var fileStream = File.Create(tempFile))
+
+            int samplesInBuffer = bytesRead / bytesPerSample;
+
+            for (int i = 0; i < samplesInBuffer; i++)
             {
-                audioStream.Position = 0;
-                audioStream.CopyTo(fileStream);
+                short sample = BitConverter.ToInt16(buffer, i * bytesPerSample);
+                float sample32 = sample / 32768f;
+
+                float absSample = Math.Abs(sample32);
+                if (absSample > maxAmplitude)
+                    maxAmplitude = absSample;
+
+                sumSquares += sample32 * sample32;
+                sampleCount++;
             }
-
-            using var reader = new AudioFileReader(tempFile);
-            float maxAmplitude = 0f;
-            double sumSquares = 0;
-            int sampleCount = 0;
-
-            float[] buffer = new float[1024];
-            int samplesRead;
-
-            while ((samplesRead = reader.Read(buffer, 0, buffer.Length)) > 0)
-            {
-                for (int i = 0; i < samplesRead; i++)
-                {
-                    float sample = buffer[i];
-                    float absSample = Math.Abs(sample);
-
-                    if (absSample > maxAmplitude)
-                        maxAmplitude = absSample;
-
-                    sumSquares += sample * sample;
-                    sampleCount++;
-                }
-            }
-
-            const float MaxThreshold = 0.999f;
-            float clampedPeak = maxAmplitude >= MaxThreshold ? 1.0f : maxAmplitude;
-
-            float peakDb = clampedPeak == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(clampedPeak);
-            float rms = sampleCount == 0 ? 0 : (float)Math.Sqrt(sumSquares / sampleCount);
-            float rmsDb = rms == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(rms);
-
-            return (peakDb, rmsDb);
         }
-        finally
-        {
-            File.Delete(tempFile);
-        }
+
+        if (sampleCount == 0)
+            return (float.NegativeInfinity, float.NegativeInfinity);
+
+        float peakDb = maxAmplitude == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(maxAmplitude);
+        float rms = (float)Math.Sqrt(sumSquares / sampleCount);
+        float rmsDb = rms == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(rms);
+
+        return (peakDb, rmsDb);
     }
 
     
