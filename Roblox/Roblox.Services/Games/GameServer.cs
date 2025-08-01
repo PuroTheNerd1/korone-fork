@@ -410,11 +410,19 @@ public class GameServerService : ServiceBase
     // }
     public async Task KickPlayer(long userId, Guid? jobId = null)
     {
-        if (jobId == null)
+        try
         {
-            jobId = await GetJobIdByUserId(userId);
-        }
+            if (jobId == null)
+            {
+                jobId = await GetJobIdByUserId(userId);
+            }
 
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error getting jobId for user {userId}: {e.Message}");
+            return;
+        }
         await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId.Value, userId));
     }
     // public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
