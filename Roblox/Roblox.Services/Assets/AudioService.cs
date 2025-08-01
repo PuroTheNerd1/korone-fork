@@ -1,5 +1,6 @@
 using FFMpegCore;
 using FFMpegCore.Enums;
+using NAudio.Dsp;
 using NAudio.Wave;
 using Roblox.Models.Assets;
 
@@ -12,6 +13,7 @@ public class AudioService : ServiceBase, IService
     public static (float peakDb, float rmsDb) GetPeakAndRmsDbFromStream(Stream audioStream)
     {
         string tempFile = Path.GetTempFileName();
+        const int windowMilliseconds = 60;
         try
         {
             using (var fileStream = File.Create(tempFile))
@@ -21,6 +23,14 @@ public class AudioService : ServiceBase, IService
             }
 
             using var reader = new AudioFileReader(tempFile);
+            int sampleRate = reader.WaveFormat.SampleRate;
+
+            var filters = new BiQuadFilter[4];
+            filters[0] = BiQuadFilter.LowShelf(sampleRate, 20.6f, 0.5f, 4.0f);
+            filters[1] = BiQuadFilter.PeakingEQ(sampleRate, 107.7f, 1.0f, 1.0f);
+            filters[2] = BiQuadFilter.PeakingEQ(sampleRate, 737.9f, 1.0f, -1.0f);
+            filters[3] = BiQuadFilter.HighShelf(sampleRate, 12194f, 0.5f, -20.0f);
+
             float maxAmplitude = 0f;
             double sumSquares = 0;
             int sampleCount = 0;
@@ -28,30 +38,30 @@ public class AudioService : ServiceBase, IService
             float[] buffer = new float[1024];
             int samplesRead;
 
-            do
+            while ((samplesRead = reader.Read(buffer, 0, buffer.Length)) > 0)
             {
-                samplesRead = reader.Read(buffer, 0, buffer.Length);
                 for (int i = 0; i < samplesRead; i++)
                 {
                     float sample = buffer[i];
-                    float abs = Math.Abs(sample);
-                    if (abs > maxAmplitude)
-                        maxAmplitude = abs;
+                    foreach (var filter in filters)
+                    {
+                        sample = filter.Transform(sample);
+                    }
+
+                    float absSample = Math.Abs(sample);
+                    if (absSample > maxAmplitude)
+                        maxAmplitude = absSample;
 
                     sumSquares += sample * sample;
                     sampleCount++;
                 }
-            } while (samplesRead > 0);
+            }
 
             float peakDb = maxAmplitude == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(maxAmplitude);
             float rms = sampleCount == 0 ? 0 : (float)Math.Sqrt(sumSquares / sampleCount);
             float rmsDb = rms == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(rms);
 
             return (peakDb, rmsDb);
-        }
-        catch (Exception)
-        {
-            return (float.NegativeInfinity, float.NegativeInfinity);
         }
         finally
         {
