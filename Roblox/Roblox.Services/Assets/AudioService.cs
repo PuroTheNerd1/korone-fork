@@ -6,6 +6,7 @@ using CSCore.DSP;
 using Newtonsoft.Json.Serialization;
 using Roblox.Models.Assets;
 using NAudio.Wave;
+using NAudio.Dsp;
 
 namespace Roblox.Services;
 
@@ -13,55 +14,48 @@ public class AudioService : ServiceBase, IService
 {
     private const long maxAudioFileSizeBytes = 20447232;
     // really ugly function :(
-    public static (float truePeakDb, float avgLoudnessDb) GetDecibelInfo(Stream audioStream)
+    public static (float peakDb, float avgDb) GetDecibelInfo(Stream audioStream)
     {
-        if (audioStream.CanSeek)
-            audioStream.Position = 0;
+        if (audioStream.CanSeek) audioStream.Position = 0;
 
-        using (var reader = new Mp3FileReader(audioStream))
+        using var reader = new Mp3FileReader(audioStream);
+        var provider = reader.ToSampleProvider();
+        var buffer = new float[4096 * reader.WaveFormat.Channels];
+        
+        float peak = 0;
+        double sum = 0;
+        long count = 0;
+        
+        var resampler = new WdlResampler();
+        const int oversample = 4;
+        resampler.SetMode(true, oversample, false);
+        resampler.SetFeedMode(true);
+
+        int samplesRead;
+        while ((samplesRead = provider.Read(buffer, 0, buffer.Length)) > 0) 
         {
-            var sampleProvider = reader.ToSampleProvider();
-            const int bufferSize = 4096;
-            var buffer = new float[bufferSize * reader.WaveFormat.Channels];
+            count += samplesRead;
             
-            float maxSampleValue = 0;
-            double sumSquares = 0;
-            long sampleCount = 0;
-
-            const float noiseFloor = 0.001122f; 
-            const float maxPossible = 0.999999f; 
-
-            int samplesRead;
-            while ((samplesRead = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
+            resampler.ResamplePrepare(samplesRead, reader.WaveFormat.Channels, out var inBuffer, out var inBufferOffset);
+            Buffer.BlockCopy(buffer, 0, inBuffer, inBufferOffset * sizeof(float), samplesRead * sizeof(float));
+            
+            var outSamples = resampler.ResampleOut(new float[samplesRead * oversample], 0, samplesRead, samplesRead * oversample, reader.WaveFormat.Channels);
+            
+            for (int i = 0; i < outSamples; i++)
             {
-                sampleCount += samplesRead;
-
-                for (int i = 0; i < samplesRead; i++)
-                {
-                    float sample = Math.Clamp(buffer[i], -1.0f, 1.0f);
-                    float absValue = Math.Max(Math.Abs(sample), noiseFloor);
-
-                    if (i < samplesRead - 1)
-                    {
-                        float nextSample = Math.Clamp(buffer[i+1], -1.0f, 1.0f);
-                        float slope = nextSample - sample;
-                        float estimatedPeak = sample + (slope * 0.5f) + (slope * slope * 0.125f);
-                        absValue = Math.Max(absValue, Math.Min(Math.Abs(estimatedPeak), maxPossible));
-                    }
-
-                    maxSampleValue = Math.Max(absValue, maxSampleValue);
-                    sumSquares += absValue * absValue;
-                }
+                float abs = Math.Min(Math.Abs(inBuffer[i]), 1.0f);
+                if (abs > peak) peak = abs;
+                sum += abs * abs;
             }
-
-            if (sampleCount == 0)
-                return (float.NegativeInfinity, float.NegativeInfinity);
-
-            float truePeakDb = 20 * MathF.Log10(Math.Min(maxSampleValue, maxPossible));
-            float avgDb = 20 * MathF.Log10((float)Math.Sqrt(sumSquares / sampleCount));
-
-            return (truePeakDb, avgDb);
         }
+
+        if (count == 0) return (float.NegativeInfinity, float.NegativeInfinity);
+        
+        float rms = (float)Math.Sqrt(sum / (count * oversample));
+        return (
+            20 * MathF.Log10(Math.Max(peak, 0.000001f)),
+            20 * MathF.Log10(Math.Max(rms, 0.000001f))
+        );
     }
 
     private static float EstimateIntersamplePeak(float s0, float s1)
