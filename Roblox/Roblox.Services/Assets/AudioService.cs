@@ -35,7 +35,7 @@ public class AudioService : ServiceBase, IService
                 long totalSamples = 0;
                 
                 var resampler = new WdlResampler();
-                const int oversample = 4;
+                const int oversample = 8;
                 resampler.SetMode(true, oversample, false);
                 resampler.SetFeedMode(true);
                 resampler.SetRates(reader.WaveFormat.SampleRate, reader.WaveFormat.SampleRate * oversample);
@@ -89,10 +89,14 @@ public class AudioService : ServiceBase, IService
                 if (totalSamples == 0) return (float.NegativeInfinity, float.NegativeInfinity);
                 
                 float rms = (float)Math.Sqrt(sumSquares / totalSamples);
-                return (
-                    20 * MathF.Log10(Math.Max(truePeak, 0.000001f)),
-                    20 * MathF.Log10(Math.Max(rms, 0.000001f))
-                );
+                
+                // Convert true peak to dBFS
+                float peakDb = truePeak > 0 ? 20 * MathF.Log10(truePeak) : float.NegativeInfinity;
+                
+                // Convert RMS to dBFS
+                float avgDb = rms > 0 ? 20 * MathF.Log10(rms) : float.NegativeInfinity;
+                
+                return (peakDb, avgDb);
             }
         }
         finally
