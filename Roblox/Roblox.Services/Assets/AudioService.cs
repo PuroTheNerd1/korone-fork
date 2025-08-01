@@ -2,6 +2,7 @@ using FFMpegCore;
 using FFMpegCore.Enums;
 using NAudio.Dsp;
 using NAudio.Wave;
+using Newtonsoft.Json.Serialization;
 using Roblox.Models.Assets;
 
 namespace Roblox.Services;
@@ -13,53 +14,48 @@ public class AudioService : ServiceBase, IService
     public static (float peakDb, float rmsDb) GetPeakAndRmsDbFromStream(Stream audioStream)
     {
         audioStream.Position = 0;
-
+        const int chunkMs = 100;
         using var mp3Reader = new Mp3FileReader(audioStream);
-        ISampleProvider sampleProvider = mp3Reader.ToSampleProvider();
+        var sampleProvider = mp3Reader.ToSampleProvider();
 
+        int sampleRate = mp3Reader.WaveFormat.SampleRate;
         int channels = mp3Reader.WaveFormat.Channels;
 
-        float[] maxAmplitudes = new float[channels];
-        double[] sumSquares = new double[channels];
-        int[] sampleCounts = new int[channels];
+        int samplesPerChunk = sampleRate * channels * chunkMs / 1000;
+        float[] buffer = new float[samplesPerChunk];
 
-        float[] buffer = new float[1024 * channels];
+        List<float> rmsDbChunks = new();
+        float maxAmplitude = 0f;
+
         int samplesRead;
-
-        while ((samplesRead = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
+        while ((samplesRead = sampleProvider.Read(buffer, 0, samplesPerChunk)) > 0)
         {
-            int framesRead = samplesRead / channels;
+            double sumSquares = 0;
 
-            for (int frame = 0; frame < framesRead; frame++)
+            for (int i = 0; i < samplesRead; i++)
             {
-                for (int ch = 0; ch < channels; ch++)
-                {
-                    float sample = buffer[frame * channels + ch];
-                    float absSample = Math.Abs(sample);
+                float sample = buffer[i];
+                float absSample = Math.Abs(sample);
 
-                    if (absSample > maxAmplitudes[ch])
-                        maxAmplitudes[ch] = absSample;
+                if (absSample > maxAmplitude)
+                    maxAmplitude = absSample;
 
-                    sumSquares[ch] += sample * sample;
-                    sampleCounts[ch]++;
-                }
+                sumSquares += sample * sample;
             }
+
+            if (samplesRead == 0)
+                break;
+
+            float rms = (float)Math.Sqrt(sumSquares / samplesRead);
+            float rmsDb = rms > 0 ? 20f * (float)Math.Log10(rms) : -100f;
+
+            rmsDbChunks.Add(rmsDb);
         }
 
-        float combinedPeak = maxAmplitudes.Max();
+        float averageRmsDb = rmsDbChunks.Count > 0 ? rmsDbChunks.Average() : float.NegativeInfinity;
+        float peakDb = maxAmplitude > 0 ? 20f * (float)Math.Log10(maxAmplitude) : float.NegativeInfinity;
 
-        double totalSumSquares = sumSquares.Sum();
-        int totalSamples = sampleCounts.Sum();
-
-        if (totalSamples == 0)
-            return (float.NegativeInfinity, float.NegativeInfinity);
-
-        float rms = (float)Math.Sqrt(totalSumSquares / totalSamples);
-
-        float peakDb = combinedPeak == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(combinedPeak);
-        float rmsDb = rms == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(rms);
-
-        return (peakDb, rmsDb);
+        return (peakDb, averageRmsDb);
     }
 
     
