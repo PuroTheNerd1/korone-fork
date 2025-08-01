@@ -11,6 +11,7 @@ using Roblox.Models.Assets;
 using Roblox.Models.Economy;
 using Roblox.Models.GameServer;
 using Roblox.Services.Exceptions;
+using Roblox.Logging;
 
 namespace Roblox.Services;
 
@@ -433,8 +434,10 @@ public class GameServerService : ServiceBase
 
     public async Task ShutDownServerAsync(Guid serverId)
     {
-        if (await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId)))
-            Console.WriteLine($"GameServer {serverId} was successfully closed!");
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+        await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
+        Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new { id = serverId, });
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new { id = serverId });
 
