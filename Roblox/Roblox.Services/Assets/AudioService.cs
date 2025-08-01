@@ -8,7 +8,8 @@ namespace Roblox.Services;
 public class AudioService : ServiceBase, IService
 {
     private const long maxAudioFileSizeBytes = 20447232;
-    public static float GetPeakDbFromStream(MemoryStream audioStream)
+
+    public static float GetPeakDecibelFromStream(MemoryStream audioStream)
     {
         string tempFile = Path.GetTempFileName();
         try
@@ -43,7 +44,7 @@ public class AudioService : ServiceBase, IService
         }
 
     }
-    public static async Task<MemoryStream> GetAudioContentAsMp3(Stream inputStream)
+    public static async Task<MemoryStream> ConvertAudioToMp3(Stream inputStream)
     {
         string tempInput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.tmp");
         string tempOutput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp3");

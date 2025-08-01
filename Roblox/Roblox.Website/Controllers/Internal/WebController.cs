@@ -18,6 +18,7 @@ using SixLabors.ImageSharp;
 using Roblox.Libraries.DiscordApi;
 using Roblox.Models.Db;
 using DSharpPlus;
+using Roblox.Logging;
 
 namespace Roblox.Website.Controllers;
 
@@ -910,6 +911,7 @@ public class WebController : ControllerBase
 
         return clothingAsset;
     }
+    private const float maxDecibel = -2f;
     private async Task<CreateResponse> UploadAudio(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         var balance = await services.economy.GetBalance(creatorType, creatorId);
@@ -925,15 +927,19 @@ public class WebController : ControllerBase
 
         stream.Position = 0;
 
-        MemoryStream mp3Stream = await Services.AudioService.GetAudioContentAsMp3(stream);
+        MemoryStream mp3Stream = await Services.AudioService.ConvertAudioToMp3(stream);
         if (mp3Stream == null)
             throw new BadRequestException(0, "Audio file is not a valid MP3");
-        
-        float peakDb = Services.AudioService.GetPeakDbFromStream(mp3Stream);
-        if (peakDb > -2)
+
+        float peakDb = Services.AudioService.GetPeakDecibelFromStream(mp3Stream);
+        // lets check if the decibel level is too high
+        Writer.Info(LogGroup.AudioService, "{0} is trying to upload audio '{1}' {2:F2}dB", safeUserSession.username, request.name, peakDb);
+        if (peakDb > maxDecibel)
         {
-            await services.discordBotApi.SendMessageInChannel("1364006085194813602",$"asset {request.name} creator: {safeUserSession.userId} peak {peakDb}dB");
+            Writer.Info(LogGroup.AudioService, "audio '{0}' by {1} is too loud ({2:F2}dB)", request.name, safeUserSession.username, peakDb);
+            await services.discordBotApi.SendMessageInChannel("1364006085194813602", $"'{safeUserSession.username}' tried to upload audio '{request.name}' with {peakDb:F2}dB");
         }
+        
         mp3Stream.Position = 0;
         // charge
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
