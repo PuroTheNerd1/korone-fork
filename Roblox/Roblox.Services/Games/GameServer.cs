@@ -861,7 +861,7 @@ public class GameServerService : ServiceBase
     public async Task DeleteOldGameServers()
     {
         // first part, do game servers
-        var serversToDelete = (await db.QueryAsync<GameServerEntry>("SELECT id::text, asset_id as assetId FROM asset_server WHERE updated_at <= :t", new
+        var serversToDelete = (await db.QueryAsync<GameServerEntry>("SELECT id::uuid, asset_id as assetId FROM asset_server WHERE updated_at <= :t", new
         {
             t = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(2)),
         })).ToList();
@@ -911,7 +911,7 @@ public class GameServerService : ServiceBase
 
     public async Task<IEnumerable<GameServerEntryWithPlayers>> GetGameServers(long placeId, int offset, int limit, int type = 1)
     {
-        var result = (await db.QueryAsync<GameServerEntryWithPlayers>("SELECT id::text, asset_id as assetId FROM asset_server WHERE asset_id = :id AND type = :type LIMIT :limit OFFSET :offset", new
+        var result = (await db.QueryAsync<GameServerEntryWithPlayers>("SELECT id::uuid, asset_id as assetId FROM asset_server WHERE asset_id = :id AND type = :type LIMIT :limit OFFSET :offset", new
         {
             id = placeId,
             type,
@@ -950,7 +950,7 @@ public class GameServerService : ServiceBase
     public async Task<IEnumerable<GameServerEntry>> GetGamesUserIsPlaying(long userId)
     {
        return await db.QueryAsync<GameServerEntry>(
-            "SELECT s.id::text, s.asset_id as assetId FROM asset_server_player p INNER JOIN asset_server s ON s.id = p.server_id WHERE p.user_id = :id",
+            "SELECT s.id::uuid, s.asset_id as assetId FROM asset_server_player p INNER JOIN asset_server s ON s.id = p.server_id WHERE p.user_id = :id",
             new
             {
                 id = userId,
