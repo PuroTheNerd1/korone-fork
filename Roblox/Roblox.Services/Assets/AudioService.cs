@@ -13,63 +13,69 @@ namespace Roblox.Services;
 public class AudioService : ServiceBase, IService
 {
     private const long maxAudioFileSizeBytes = 20447232;
-    // really ugly function :(
+        // really ugly function :(
     public static (float peakDb, float avgDb) GetDecibelInfo(Stream audioStream)
     {
-        if (audioStream.CanSeek) audioStream.Position = 0;
-
-        using var reader = new Mp3FileReader(audioStream);
-        var provider = reader.ToSampleProvider();
-        var buffer = new float[4096 * reader.WaveFormat.Channels];
-        
-        float peak = 0;
-        double sum = 0;
-        long count = 0;
-        
-        var resampler = new WdlResampler();
-        const int oversample = 4;
-        resampler.SetMode(true, oversample, false);
-        resampler.SetFeedMode(true);
-
-        int samplesRead;
-        while ((samplesRead = provider.Read(buffer, 0, buffer.Length)) > 0) 
+        var tempFile = Path.GetTempFileName();
+        try
         {
-            count += samplesRead;
-            
-            resampler.ResamplePrepare(samplesRead, reader.WaveFormat.Channels, out var inBuffer, out var inBufferOffset);
-            Buffer.BlockCopy(buffer, 0, inBuffer, inBufferOffset * sizeof(float), samplesRead * sizeof(float));
-            
-            var outSamples = resampler.ResampleOut(new float[samplesRead * oversample], 0, samplesRead, samplesRead * oversample, reader.WaveFormat.Channels);
-            
-            for (int i = 0; i < outSamples; i++)
+            using (var fileStream = File.Create(tempFile))
             {
-                float abs = Math.Min(Math.Abs(inBuffer[i]), 1.0f);
-                if (abs > peak) peak = abs;
-                sum += abs * abs;
+                audioStream.CopyTo(fileStream);
+            }
+
+            using (var reader = new Mp3FileReader(tempFile))
+            {
+                var provider = reader.ToSampleProvider();
+                var buffer = new float[4096 * reader.WaveFormat.Channels];
+                
+                float peak = 0;
+                double sum = 0;
+                long totalSamples = 0;
+                
+                var resampler = new WdlResampler();
+                const int oversample = 4;
+                resampler.SetMode(true, oversample, false);
+                resampler.SetFeedMode(true);
+
+                int samplesRead;
+                while ((samplesRead = provider.Read(buffer, 0, buffer.Length)) > 0) 
+                {
+                    int channels = reader.WaveFormat.Channels;
+                    int frames = samplesRead / channels;
+
+                    resampler.ResamplePrepare(frames, channels, out var inBuffer, out var inBufferOffset);
+                    Buffer.BlockCopy(buffer, 0, inBuffer, inBufferOffset * sizeof(float), samplesRead * sizeof(float));
+                    
+                    int maxOutputFrames = frames * oversample;
+                    float[] outputBuffer = new float[maxOutputFrames * channels];
+                    int outFrames = resampler.ResampleOut(outputBuffer, 0, frames, maxOutputFrames, channels);
+                    int outSamples = outFrames * channels;
+
+                    totalSamples += outSamples;
+
+                    for (int i = 0; i < outSamples; i++)
+                    {
+                        float abs = Math.Abs(outputBuffer[i]);
+                        if (abs > peak) peak = abs;
+                        sum += abs * abs;
+                    }
+                }
+
+                if (totalSamples == 0) return (float.NegativeInfinity, float.NegativeInfinity);
+                
+                float rms = (float)Math.Sqrt(sum / totalSamples);
+                return (
+                    20 * MathF.Log10(Math.Max(peak, 0.000001f)),
+                    20 * MathF.Log10(Math.Max(rms, 0.000001f))
+                );
             }
         }
-
-        if (count == 0) return (float.NegativeInfinity, float.NegativeInfinity);
-        
-        float rms = (float)Math.Sqrt(sum / (count * oversample));
-        return (
-            20 * MathF.Log10(Math.Max(peak, 0.000001f)),
-            20 * MathF.Log10(Math.Max(rms, 0.000001f))
-        );
+        finally
+        {
+            File.Delete(tempFile);
+        }
     }
-
-    private static float EstimateIntersamplePeak(float s0, float s1)
-    {
-        if (Math.Sign(s0) == Math.Sign(s1)) 
-            return 0;
-
-        float k = (s1 - s0) / 2f;
-        float x = -k / (s0 - s1);
-        float peak = s0 + k * x + (s1 - s0) * x * x / 2f;
-        
-        return Math.Abs(peak);
-    }
-
 
     
     public static async Task<MemoryStream> ConvertAudioToMp3(Stream inputStream)
