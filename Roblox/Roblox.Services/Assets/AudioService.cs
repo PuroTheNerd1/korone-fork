@@ -23,7 +23,7 @@ public class AudioService : ServiceBase, IService
             var sampleProvider = reader.ToSampleProvider();
             const int bufferSize = 4096;
             var buffer = new float[bufferSize * reader.WaveFormat.Channels];
-            float maxSampleValue = 0;
+            float truePeak = 0; 
             double sumSquares = 0;
             long totalSamples = 0;
 
@@ -36,8 +36,16 @@ public class AudioService : ServiceBase, IService
                 {
                     float absValue = Math.Abs(buffer[i]);
                     
-                    if (absValue > maxSampleValue)
-                        maxSampleValue = absValue;
+                    if (absValue > truePeak)
+                        truePeak = absValue;
+                    
+                    if (i < samplesRead - 1)
+                    {
+                        float nextValue = Math.Abs(buffer[i + 1]);
+                        float interpolatedPeak = EstimateIntersamplePeak(buffer[i], buffer[i + 1]);
+                        if (interpolatedPeak > truePeak)
+                            truePeak = interpolatedPeak;
+                    }
                     
                     sumSquares += absValue * absValue;
                 }
@@ -49,16 +57,23 @@ public class AudioService : ServiceBase, IService
             double rms = Math.Sqrt(sumSquares / totalSamples);
             const double minValue = 1e-6; 
 
-            float peakDb = 20 * (float)Math.Log10(Math.Max(maxSampleValue, minValue));
+            float peakDb = 20 * (float)Math.Log10(Math.Max(truePeak, minValue));
             float avgDb = 20 * (float)Math.Log10(Math.Max(rms, minValue));
 
             return (peakDb, avgDb);
         }
     }
 
-    private static double ClampMinValue(double value)
+    private static float EstimateIntersamplePeak(float s0, float s1)
     {
-        return Math.Max(value, 1e-12);
+        if (Math.Sign(s0) == Math.Sign(s1)) 
+            return 0;
+
+        float k = (s1 - s0) / 2f;
+        float x = -k / (s0 - s1);
+        float peak = s0 + k * x + (s1 - s0) * x * x / 2f;
+        
+        return Math.Abs(peak);
     }
 
 
