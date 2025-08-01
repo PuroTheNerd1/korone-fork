@@ -27,6 +27,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Png;
+
 using AssetId = Roblox.Dto.Assets.AssetId;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
@@ -2556,20 +2557,24 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
     private async Task<UserAdvertisementType> ParseAdvertisementImage(Stream image)
     {
-        using var imageData = await SixLabors.ImageSharp.Image.LoadAsync(image);
-        if (imageData == null) throw new ArgumentException("Bad image");
 
-        if (imageData.Width == 728 && imageData.Height == 90)
+        var imageData = await Imager.ReadAsync(image);
+        if (imageData == null) throw new ArgumentException("Bad image");
+        if (imageData.imageFormat != ImagerFormat.PNG)
+        {
+            throw new ArgumentException("Image must be in PNG format");
+        }
+        if (imageData.width == 728 && imageData.height == 90)
         {
             return UserAdvertisementType.Banner728x90;
         }
 
-        if (imageData.Width == 160 && imageData.Height == 600)
+        if (imageData.width == 160 && imageData.height == 600)
         {
             return UserAdvertisementType.SkyScraper160x600;
         }
 
-        if (imageData.Width == 300 && imageData.Height == 250)
+        if (imageData.width == 300 && imageData.height == 250)
         {
             return UserAdvertisementType.Rectangle300x250;
         }

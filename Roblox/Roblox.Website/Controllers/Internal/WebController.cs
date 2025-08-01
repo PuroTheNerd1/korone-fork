@@ -933,26 +933,24 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Audio file is not a valid MP3");
     
         // We will check the decibel level of the audio file
-        var (peakDb, avgDb) = Services.AudioService.GetDecibelInfo(mp3Stream);
+        // var peakDb = Services.AudioService.GetPeakDbLevel(mp3Stream);
 
-        Console.WriteLine($"Peak dB: {peakDb}, Average dB: {avgDb}");
+        // Console.WriteLine($"Peak dB: {peakDb}");
 
-        if (avgDb > maxDecibel)
-        {
-            Writer.Info(LogGroup.AudioService, "audio '{0}' is too loud by {3:F2}dB (peak: {1:F2}dB, average: {2:F2}dB)", request.name, peakDb, avgDb, avgDb - maxDecibel);
-            var embedBuilder = new DiscordEmbedBuilder
-            {
-                Title = "Loud Audio"
-            };
+        // if (avgDb > maxDecibel)
+        // {
+        //     Writer.Info(LogGroup.AudioService, "audio '{0}' is too loud by {3:F2}dB (peak: {1:F2}dB, average: {2:F2}dB)", request.name, peakDb, avgDb, avgDb - maxDecibel);
+        //     var embedBuilder = new DiscordEmbedBuilder
+        //     {
+        //         Title = "Loud Audio"
+        //     };
 
-            embedBuilder.AddField("User", $"``{safeUserSession.username}`` ({safeUserSession.userId})")
-                .AddField("Name", request.name)
-                .AddField("Peak", $"{peakDb:F2}dB", true)
-                .AddField("Average", $"{avgDb:F2}dB", true)
-                .AddField("Too Loid by", $"{avgDb - maxDecibel:F2}dB", true);
+        //     embedBuilder.AddField("User", $"``{safeUserSession.username}`` ({safeUserSession.userId})")
+        //         .AddField("Name", request.name)
+        //         .AddField("Peak", $"{peakDb:F2}dB", true)
 
-            await services.discordBotApi.SendMessageInChannel("1364006085194813602", "", embedBuilder.Build());
-        }
+        //     await services.discordBotApi.SendMessageInChannel("1364006085194813602", "", embedBuilder.Build());
+        // }
 
         mp3Stream.Position = 0;
         // charge

@@ -11,46 +11,49 @@ public class AudioService : ServiceBase, IService
 {
     private const long maxAudioFileSizeBytes = 20447232;
         // really ugly function :(
-    public static (float peakDb, float avgDb) GetDecibelInfo(Stream audioStream)
+    public static float GetPeakDbLevel(MemoryStream mp3Stream)
     {
-        if (audioStream.CanSeek) audioStream.Position = 0;
-
-        using (var reader = new Mp3FileReader(audioStream))
+        mp3Stream.Position = 0;
+        
+        float peakDb = float.MinValue;
+        
+        using (var mp3Reader = new Mp3FileReader(mp3Stream))
+        using (var waveStream = WaveFormatConversionStream.CreatePcmStream(mp3Reader))
         {
-            var provider = reader.ToSampleProvider(); // This gives us float samples
-            float maxPeak = float.NegativeInfinity;
-            double sumSquares = 0;
-            long sampleCount = 0;
+            var sampleProvider = waveStream.ToSampleProvider();
+            int sampleRate = sampleProvider.WaveFormat.SampleRate;
+            int channels = sampleProvider.WaveFormat.Channels;
             
-            // Buffer for 100ms of audio in float format
-            int bufferSize = reader.WaveFormat.SampleRate / 10 * reader.WaveFormat.Channels;
-            var buffer = new float[bufferSize];
-
-            int samplesRead;
-            while ((samplesRead = provider.Read(buffer, 0, buffer.Length)) > 0)
+            float[] sampleBuffer = new float[(int)(sampleRate * 0.1) * channels];
+            
+            int bytesRead;
+            do
             {
-                for (int i = 0; i < samplesRead; i++)
+                bytesRead = sampleProvider.Read(sampleBuffer, 0, sampleBuffer.Length);
+                
+                if (bytesRead > 0)
                 {
-                    float sample = Math.Abs(buffer[i]);
+                    double sum = 0;
+                    int sampleCount = bytesRead / sizeof(float);
                     
-                    // Track peak sample value
-                    if (sample > maxPeak) maxPeak = sample;
+                    for (int i = 0; i < sampleCount; i++)
+                    {
+                        float sample = sampleBuffer[i];
+                        sum += sample * sample;
+                    }
                     
-                    // Accumulate for RMS
-                    sumSquares += sample * sample;
+                    double rms = Math.Sqrt(sum / sampleCount);
+                    double db = 20 * Math.Log10(Math.Max(0.0001, rms));
+                    
+                    if (db > peakDb)
+                    {
+                        peakDb = (float)db;
+                    }
                 }
-                sampleCount += samplesRead;
-            }
-
-            if (sampleCount == 0) return (float.NegativeInfinity, float.NegativeInfinity);
-
-            // Convert to dBFS
-            float peakDb = maxPeak > 0 ? 20 * MathF.Log10(maxPeak) : float.NegativeInfinity;
-            float rms = (float)Math.Sqrt(sumSquares / sampleCount);
-            float avgDb = rms > 0 ? 20 * MathF.Log10(rms) : float.NegativeInfinity;
-
-            return (peakDb, avgDb);
+            } while (bytesRead > 0);
         }
+        
+        return peakDb;
     }
             
     public static async Task<MemoryStream> ConvertAudioToMp3(Stream inputStream)
