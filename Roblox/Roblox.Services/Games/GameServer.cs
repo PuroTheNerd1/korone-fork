@@ -432,17 +432,31 @@ public class GameServerService : ServiceBase
     //         new List<dynamic> {placeId, gameServerId, gameServerPort});
     // }
 
-    public async Task ShutDownServerAsync(Guid serverId)
+    public Task ShutDownServerAsync(Guid serverId)
     {
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
-        await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
-        Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
-        await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new { id = serverId, });
-        await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new { id = serverId });
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
 
-        //Console.WriteLine($"GameServer {placeJobId} (place {placeId}) was successfully closed!");
+                await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
+
+                Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
+
+                await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new { id = serverId });
+                await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new { id = serverId });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error shutting down server {serverId}: {ex}");
+            }
+        });
+
+        return Task.CompletedTask;
     }
+
 
     public static void RemoveAllPlayersFromPlaceId(long placeId)
     {
