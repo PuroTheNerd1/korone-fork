@@ -1,8 +1,5 @@
 using FFMpegCore;
 using FFMpegCore.Enums;
-using CSCore;
-using CSCore.Codecs;
-using CSCore.DSP;
 using Newtonsoft.Json.Serialization;
 using Roblox.Models.Assets;
 using NAudio.Wave;
