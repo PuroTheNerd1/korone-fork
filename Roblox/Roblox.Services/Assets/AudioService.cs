@@ -13,7 +13,7 @@ public class AudioService : ServiceBase, IService
 {
     private const long maxAudioFileSizeBytes = 20447232;
     // really ugly function :(
-    public static (float peakDb, float averageDb) GetDecibelInfo(Stream audioStream)
+    public static (float truePeakDb, float avgLoudnessDb) GetDecibelInfo(Stream audioStream)
     {
         if (audioStream.CanSeek)
             audioStream.Position = 0;
@@ -23,44 +23,42 @@ public class AudioService : ServiceBase, IService
             var sampleProvider = reader.ToSampleProvider();
             const int bufferSize = 4096;
             var buffer = new float[bufferSize * reader.WaveFormat.Channels];
-            float truePeak = 0; 
+            
+            float maxPeak = 0;
             double sumSquares = 0;
-            long totalSamples = 0;
+            long sampleCount = 0;
+
+            const float noiseFloor = 0.001122f;
 
             int samplesRead;
             while ((samplesRead = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
             {
-                totalSamples += samplesRead;
+                sampleCount += samplesRead;
 
                 for (int i = 0; i < samplesRead; i++)
                 {
-                    float absValue = Math.Abs(buffer[i]);
-                    
-                    if (absValue > truePeak)
-                        truePeak = absValue;
-                    
+                    float sample = Math.Max(Math.Abs(buffer[i]), noiseFloor);
+
                     if (i < samplesRead - 1)
                     {
-                        float nextValue = Math.Abs(buffer[i + 1]);
-                        float interpolatedPeak = EstimateIntersamplePeak(buffer[i], buffer[i + 1]);
-                        if (interpolatedPeak > truePeak)
-                            truePeak = interpolatedPeak;
+                        float interpolated = (buffer[i] + buffer[i+1]) / 2 * 1.414f;
+                        sample = Math.Max(sample, Math.Abs(interpolated));
                     }
-                    
-                    sumSquares += absValue * absValue;
+
+                    if (sample > maxPeak)
+                        maxPeak = sample;
+
+                    sumSquares += sample * sample;
                 }
             }
 
-            if (totalSamples == 0)
+            if (sampleCount == 0)
                 return (float.NegativeInfinity, float.NegativeInfinity);
 
-            double rms = Math.Sqrt(sumSquares / totalSamples);
-            const double minValue = 1e-6; 
+            float truePeakDb = 20 * MathF.Log10(maxPeak);
+            float avgDb = 20 * MathF.Log10((float)Math.Sqrt(sumSquares / sampleCount));
 
-            float peakDb = 20 * (float)Math.Log10(Math.Max(truePeak, minValue));
-            float avgDb = 20 * (float)Math.Log10(Math.Max(rms, minValue));
-
-            return (peakDb, avgDb);
+            return (truePeakDb, avgDb);
         }
     }
 
