@@ -17,32 +17,46 @@ public class AudioService : ServiceBase, IService
         using var mp3Reader = new Mp3FileReader(audioStream);
         ISampleProvider sampleProvider = mp3Reader.ToSampleProvider();
 
-        float maxAmplitude = 0f;
-        double sumSquares = 0;
-        int sampleCount = 0;
+        int channels = mp3Reader.WaveFormat.Channels;
 
-        float[] buffer = new float[1024];
+        float[] maxAmplitudes = new float[channels];
+        double[] sumSquares = new double[channels];
+        int[] sampleCounts = new int[channels];
+
+        float[] buffer = new float[1024 * channels];
         int samplesRead;
 
         while ((samplesRead = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
         {
-            for (int i = 0; i < samplesRead; i++)
-            {
-                float sample = buffer[i];
-                float absSample = Math.Abs(sample);
-                if (absSample > maxAmplitude)
-                    maxAmplitude = absSample;
+            int framesRead = samplesRead / channels;
 
-                sumSquares += sample * sample;
-                sampleCount++;
+            for (int frame = 0; frame < framesRead; frame++)
+            {
+                for (int ch = 0; ch < channels; ch++)
+                {
+                    float sample = buffer[frame * channels + ch];
+                    float absSample = Math.Abs(sample);
+
+                    if (absSample > maxAmplitudes[ch])
+                        maxAmplitudes[ch] = absSample;
+
+                    sumSquares[ch] += sample * sample;
+                    sampleCounts[ch]++;
+                }
             }
         }
 
-        if (sampleCount == 0)
+        float combinedPeak = maxAmplitudes.Max();
+
+        double totalSumSquares = sumSquares.Sum();
+        int totalSamples = sampleCounts.Sum();
+
+        if (totalSamples == 0)
             return (float.NegativeInfinity, float.NegativeInfinity);
 
-        float peakDb = maxAmplitude == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(maxAmplitude);
-        float rms = (float)Math.Sqrt(sumSquares / sampleCount);
+        float rms = (float)Math.Sqrt(totalSumSquares / totalSamples);
+
+        float peakDb = combinedPeak == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(combinedPeak);
         float rmsDb = rms == 0 ? float.NegativeInfinity : 20 * (float)Math.Log10(rms);
 
         return (peakDb, rmsDb);
