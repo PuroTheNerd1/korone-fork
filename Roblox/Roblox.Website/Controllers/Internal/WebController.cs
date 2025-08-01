@@ -935,11 +935,11 @@ public class WebController : ControllerBase
         // We will check the decibel level of the audio file
         var (peakDb, avgDb) = Services.AudioService.GetPeakAndRmsDbFromStream(mp3Stream);
 
-        Writer.Info(LogGroup.AudioService, "'{0}' (peak: {1:F2}dB, max: {2:F2}dB)", request.name, peakDb, avgDb);
+        Writer.Info(LogGroup.AudioService, "'{0}' (peak: {1:F2}dB, avg: {2:F2}dB)", request.name, peakDb, avgDb);
 
         if (avgDb > maxDecibel)
         {
-            Writer.Info(LogGroup.AudioService, "audio '{0}' is too loud (peak: {1:F2}dB, max: {2:F2}dB)", request.name, peakDb, maxDecibel);
+            Writer.Info(LogGroup.AudioService, "audio '{0}' is too loud by {3:F2}dB (peak: {1:F2}dB, average: {2:F2}dB)", request.name, peakDb, avgDb, avgDb - maxDecibel);
             var embedBuilder = new DiscordEmbedBuilder
             {
                 Title = "Loud Audio"
@@ -948,7 +948,8 @@ public class WebController : ControllerBase
             embedBuilder.AddField("User", $"``{safeUserSession.username}`` ({safeUserSession.userId})")
                 .AddField("Name", request.name)
                 .AddField("Peak", $"{peakDb:F2}dB", true)
-                .AddField("Average", $"{avgDb:F2}dB", true);
+                .AddField("Average", $"{avgDb:F2}dB", true)
+                .AddField("Too Loid by", $"{avgDb - maxDecibel:F2}dB", true);
 
             await services.discordBotApi.SendMessageInChannel("1364006085194813602", "", embedBuilder.Build());
         }
