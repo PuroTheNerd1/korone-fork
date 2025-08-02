@@ -422,15 +422,15 @@ public class AssetsService : ServiceBase, IService
                 }
 
                 using (var response = await assetValidationClient.PostAsync(url, content))
+                {
+                    if (!response.IsSuccessStatusCode)
                     {
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            throw new Exception("Got failure response from assetValidationService. Code = " + response.StatusCode);
-                        }
-
-                        var result = JsonSerializer.Deserialize<AssetValidationResponse>(await response.Content.ReadAsStringAsync());
-                        return result?.isValid == true;
+                        throw new Exception("Got failure response from assetValidationService. Code = " + response.StatusCode);
                     }
+
+                    var result = JsonSerializer.Deserialize<AssetValidationResponse>(await response.Content.ReadAsStringAsync());
+                    return result?.isValid == true;
+                }
             }
         }
         catch (Exception e)

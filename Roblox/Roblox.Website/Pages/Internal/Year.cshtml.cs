@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Roblox.Models.Sessions;
 using Roblox.Models.Users;
 using Roblox.Services;
@@ -10,7 +9,7 @@ public class Year : RobloxPageModel
 {
     [BindProperty]
     public WebsiteYear year { get; set; }
-    private UserSession? session => (UserSession?) HttpContext.Items[".ROBLOSECURITY"];
+    private UserSession? session => (UserSession?) HttpContext.Items[".PEKOSECURITY"];
     public WebsiteYear currentYear { get; set; }
     
     public string? successMessage { get; set; }

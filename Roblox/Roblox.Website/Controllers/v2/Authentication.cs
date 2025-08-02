@@ -65,7 +65,6 @@ public class AuthenticationControllerV2 : ControllerBase
         using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
         sessCache.Remove(safeUserSession.sessionId);
         HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
-        HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.AltCookieName);
     }
 
     // [HttpPost("login")]

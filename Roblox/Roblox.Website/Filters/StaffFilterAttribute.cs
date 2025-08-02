@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Roblox.Models.Sessions;
 using Roblox.Models.Staff;
 using Roblox.Services;
+using Roblox.Website.Middleware;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
 namespace Roblox.Website.Filters;
@@ -80,7 +81,7 @@ public class StaffFilter : ActionFilterAttribute, IAsyncActionFilter
             return;
         }
         
-        var userInfo = (UserSession?) context.HttpContext.Items[".ROBLOSECURITY"];
+        var userInfo = (UserSession?) context.HttpContext.Items[SessionMiddleware.CookieName];
         if (userInfo == null)
         {
             await OnFail(context.HttpContext);

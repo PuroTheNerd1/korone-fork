@@ -3,9 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Roblox.Dto.Users;
 using Roblox.Models.Sessions;
-using Roblox.Services;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Middleware;
 namespace Roblox.Website.Controllers
@@ -59,11 +57,11 @@ namespace Roblox.Website.Controllers
             }
         }
 
-        protected string? ROBLOSECURITY
+        protected string? PEKOSECURITY
         {
             get
             {
-                return Request.Cookies.ContainsKey(Roblox.Website.Middleware.SessionMiddleware.CookieName) ? Request.Cookies[Roblox.Website.Middleware.SessionMiddleware.CookieName]!.ToString() : null;
+                return Request.Cookies.ContainsKey(SessionMiddleware.CookieName) ? Request.Cookies[SessionMiddleware.CookieName]!.ToString() : null;
             }
         }
 

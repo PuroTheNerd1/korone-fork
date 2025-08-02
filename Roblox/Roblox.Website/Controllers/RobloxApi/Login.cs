@@ -250,8 +250,9 @@ namespace Roblox.Website.Controllers
 
                 if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
                     throw new BadRequestException(6, "Failure2SVNotEnabled");
+
                 TotpInfo totpInfo = await services.users.GetTotp(info.userId);
-                Console.WriteLine(totpInfo.secret);
+
                 if (!services.users.VerifyTotp(totpInfo.secret, request.code))
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
 
@@ -359,15 +360,6 @@ namespace Roblox.Website.Controllers
             });
             // will be removed later this is just a hack to get the website to work :sob:
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-            {
-                Domain = ".pekora.zip",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
-            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.AltCookieName, sessionCookie, new CookieOptions()
             {
                 Domain = ".pekora.zip",
                 Secure = false,
