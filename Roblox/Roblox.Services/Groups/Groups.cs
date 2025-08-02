@@ -1237,7 +1237,7 @@ public class GroupsService : ServiceBase, IService
     public async Task SetGroupDescription(long groupId, string newDescription)
     {
         await UpdateGroup(groupId);
-        await db.ExecuteAsync("UPDATE \"group\" SET description = :description, WHERE id = :gid", new
+        await db.ExecuteAsync("UPDATE \"group\" SET description = :description WHERE id = :gid", new
         {
             gid = groupId,
             description = newDescription,
