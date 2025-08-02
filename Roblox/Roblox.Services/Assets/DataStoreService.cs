@@ -1,5 +1,7 @@
 using Dapper;
+using Microsoft.VisualBasic;
 using Roblox.Dto.Assets;
+using Roblox.Dto.Persistence;
 
 namespace Roblox.Services;
 
@@ -20,22 +22,83 @@ public class DataStoreService : ServiceBase, IService
             return KeyType.Standard;
         throw new ArgumentException("Invalid " + nameof(type));
     }
-    public async Task<IEnumerable<DataStoreEntry>> GetOrderedEntry(long placeId, string key, string scope, int pageSize)
+    public async Task<IEnumerable<OrderedDataStoreEntry>> GetAllOrderedEntries(long placeId, string key, string scope, bool isAscending, int pageSize, long? inclusiveMinValue = null, long? inclusiveMaxValue = null, string? exclusiveStartKeyRaw = null)
     {
-        return await db.QueryAsync<DataStoreEntry>(
-            "SELECT id, value, name from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope ORDER BY updated_at DESC LIMIT :pageSize",
-            new
+        long? exclusiveStartValue = null;
+        string? exclusiveStartKey = null;
+
+        if (exclusiveStartKeyRaw is not null)
+        {
+            string[] parts = exclusiveStartKeyRaw.Split('$');
+            exclusiveStartKey = parts[0];
+            // second is the start value
+            if (long.TryParse(parts[1], out long result))
             {
-                place_id = placeId,
-                key,
-                scope,
-                pageSize,
+                exclusiveStartValue = result;
+            }
+        }
+
+        var query = new SqlBuilder();
+        var temp = query.AddTemplate("SELECT DISTINCT ON (name) id, value::BIGINT, name, updated_at FROM asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope /**where**/ ORDER BY name, updated_at DESC /**orderby**/ LIMIT :pageSize OFFSET", new
+        {
+            place_id = placeId,
+            key,
+            scope,
+            pageSize
+        });
+
+        query.Where("value::TEXT ~ '^-?[0-9]+$' OR value IS NULL");
+
+        if (inclusiveMinValue is not null)
+        {
+            query.Where("value::BIGINT >= :inclusiveMinValue", new
+            {
+                inclusiveMinValue
             });
+        }
+
+        if (inclusiveMaxValue is not null)
+        {
+            query.Where("value::BIGINT <= :inclusiveMaxValue", new
+            {
+                inclusiveMaxValue
+            });
+        }
+
+        if (exclusiveStartKey is not null)
+        {
+            if (exclusiveStartValue is not null)
+            {
+                query.Where(isAscending
+                    ? "AND (key > :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
+                    : "AND (key < :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))",
+                    new { exclusiveStartKey, exclusiveStartValue });
+            }
+            else
+            {
+                query.Where(isAscending
+                    ? "AND key > :exclusiveStartKey"
+                    : "AND key < :exclusiveStartKey",
+                    new { exclusiveStartKey });
+            }
+        }
+
+        if (isAscending)
+        {
+            query.OrderBy("value::BIGINT ASC");
+        }
+        else
+        {
+            query.OrderBy("value::BIGINT DESC");
+        }
+
+        return (await db.QueryAsync<OrderedDataStoreEntry>(temp.RawSql, temp.Parameters)) ?? Enumerable.Empty<OrderedDataStoreEntry>();
     }
+
     public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
     {
-        return await db.QueryAsync<DataStoreEntry>(
-            "SELECT id, value from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope AND name = :name ORDER BY id DESC LIMIT 250",
+        var result = await db.QueryAsync<DataStoreEntry>(
+            "SELECT id, key, scope, name, value from asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope AND name = :name ORDER BY id DESC LIMIT 250",
             new
             {
                 place_id = placeId,
@@ -43,6 +106,27 @@ public class DataStoreService : ServiceBase, IService
                 scope,
                 name,
             });
+        return result ?? Enumerable.Empty<DataStoreEntry>();
+    }
+    public async Task<IEnumerable<DataStoreEntry>> MultiGetDataStores(long placeId, string type, string scope, List<QueuedKeyEntry> keys)
+    {
+        if (keys.Count == 0)
+            return Enumerable.Empty<DataStoreEntry>();
+
+        var keyList = keys.Select(k => k.key).ToList();
+        var nameList = keys.Select(k => k.target).ToList();
+        var scopeList = keys.Select(k => k.scope).Distinct().ToList();
+
+        var result = await db.QueryAsync<DataStoreEntry>(
+            "SELECT id, scope, key, name, value FROM asset_datastore WHERE asset_id = :place_id AND key = ANY(:keys) AND scope = ANY(:scope) AND name = :ANY(:names) ORDER BY id DESC LIMIT 250",
+            new
+            {
+                place_id = placeId,
+                keys = keyList,
+                scope = scopeList,
+                names = nameList,
+            });
+        return result;
     }
 
     private async Task PurgeExpiredEntries(DataStoreEntry[] all)
@@ -78,22 +162,26 @@ public class DataStoreService : ServiceBase, IService
 
         var uni = placeId == 0 ? 0 : await ServiceProvider.GetOrCreate<GamesService>().GetUniverseId(placeId);
 
-        var entries = (await GetAllEntries(placeId, key, scope, target)).ToArray();
-        await PurgeExpiredEntries(entries);
-        if (entries.Length > 0 && entries[0].value == value)
-            return; // No need to set
-
-        await db.ExecuteAsync(
-            "INSERT INTO asset_datastore (asset_id, universe_id, scope, key, name, value) VALUES (:place_id, :universe_id, :scope, :key, :name, :value)",
-            new
-            {
-                place_id = placeId,
-                universe_id = uni,
-                scope = scope,
-                key = key,
-                name = target,
-                value = value,
-            });
+        await db.ExecuteAsync("INSERT INTO asset_datastore (asset_id, universe_id, scope, key, name, value) VALUES (:place_id, :universe_id, :scope, :key, :name, :value) ON CONFLICT (asset_id, universe_id, scope, key, name DO UPDATE SET value = :value", new
+        {
+            place_id = placeId,
+            universe_id = uni,
+            scope = scope,
+            key = key,
+            name = target,
+            value = value,
+        });
+    }
+    public async Task Increment(long placeId, string key, string type, string scope, string target, long value)
+    {
+        await db.ExecuteAsync("UPDATE asset_datastore SET value = CAST(CAST(value AS BIGINT) + :value AS VARCHAR) WHERE asset_id = :place_id AND key = :key AND scope = :scope AND name = :name", new
+        {
+            place_id = placeId,
+            key = key,
+            scope = scope,
+            name = target,
+            value
+        });
     }
 
     public async Task<string?> Get(long placeId, string type, string scope, string key, string target)

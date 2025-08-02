@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Persistence;
+using Roblox.Logging;
 using Roblox.Services;
 using Roblox.Services.Exceptions;
 using ServiceProvider = Roblox.Services.ServiceProvider;
@@ -11,7 +13,7 @@ namespace Roblox.Website.Controllers
     public class Datastores : ControllerBase
     {
         [HttpPostBypass("persistence/increment")]
-        public async Task<dynamic> IncrementPersistenceAsync(long placeId, string key, string type, string scope, string target, int? value = null)
+        public async Task<dynamic> IncrementPersistenceAsync(long placeId, string key, string type, string scope, string target, long? value = null)
         {
             // increment?placeId=%i&key=%s&type=%s&scope=%s&target=&value=%i
             if (!isRCC)
@@ -19,28 +21,22 @@ namespace Roblox.Website.Controllers
             var ds = ServiceProvider.GetOrCreate<DataStoreService>();
             if (value == null)
                 value = int.Parse(Request.Form["value"][0]);
-            string? result = await ds.Get(placeId, type, scope, key, target);
+            var result = await ds.Get(placeId, key, type, scope, target);
 
-            if (result != null)
-            {
-                if (int.TryParse(result, out var parsedValue))
-                {
-                    value = parsedValue + value.Value;
-                }
-                else
-                {
-                    throw new RobloxException(400, 0, "InvalidValue");
-                }
-            }
-            else
-            {
-                throw new RobloxException(400, 0, "InvalidValue");
-            }
+            if (result is null)
+                throw new RobloxException(404, 0, "KeyNotFound");
 
-            await ds.Set(placeId, key, type, scope, target, value.ToString()!.Length, value.ToString()!);
+            long oldValue = long.Parse(result);
+
+            await ds.Increment(placeId, key, type, scope, target, value.Value);
+            result = await ds.Get(placeId, key, type, scope, target);
+
+            long newValue = long.Parse(result!);
+
+            Writer.Info(LogGroup.DataStoreService, $"Incremented {key} from {oldValue} to {newValue} for placeId {placeId}, scope {scope}, target {target}");
             return new
             {
-                data = value,
+                data = newValue,
             };
         }
 
@@ -50,6 +46,12 @@ namespace Roblox.Website.Controllers
             if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
             var value = Request.Form["value"][0];
+            if (type is not "standard")
+            {
+                // Check if the type is valid
+                long.Parse(value);
+            }
+
             await ServiceProvider.GetOrCreate<DataStoreService>()
                 .Set(placeId, key, type, scope, target, valueLength, value);
             return new
@@ -64,140 +66,120 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpPostBypass("persistence/getSortedValues")]
-        public async Task<dynamic> GetSortedPersistenceValues(long placeId, string type, string scope, string key, bool ascending, int pageSize = 50, int inclusiveMinValue = 0, int inclusiveMaxValue = 0, int? exclusiveStartKey = null)
+        public async Task<dynamic> GetSortedPersistenceValues(long placeId, string type, string scope, string key, bool ascending, int pageSize = 50, long? inclusiveMinValue = 0, long? inclusiveMaxValue = 0, string? exclusiveStartKey = null)
         {
             // persistence/getSortedValues?placeId=0&type=sorted&scope=global&key=Level%5FHighscores20&pageSize=10&ascending=False"
             // persistence/set?placeId=124921244&key=BF2%5Fds%5Ftest&&type=standard&scope=global&target=BF2%5Fds%5Fkey%5Ftmp&valueLength=31
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-            bool isEmpty = false;
-            dynamic result;
             if (!isRCC)
                 throw new RobloxException(403, 0, "BadRequest");
             if (pageSize > 100)
                 throw new RobloxException(400, 0, "PageSizeTooLarge");
             if (type != "sorted")
                 throw new RobloxException(400, 0, "TypeNotSorted");
-            if (exclusiveStartKey == null)
-                exclusiveStartKey = 1;
-            else if (exclusiveStartKey < 1)
-                throw new RobloxException(400, 0, "InValidExclusiveStartKey");
 
-            var res = await ds.GetOrderedEntry(placeId, key, scope, pageSize);
-            if (type == "sorted")
+            var result = await ds.GetAllOrderedEntries(placeId, key, scope, ascending, pageSize, inclusiveMinValue, inclusiveMaxValue, exclusiveStartKey);
+            // Let's check if there are possibily more results
+            if (result.Count() >= pageSize)
             {
-                result = new List<GetKeyEntrySorted>();
-                var addedTargets = new HashSet<string>();
-                foreach (DataStoreEntry item in res)
-                {
-                    int value;
-
-                    if (!int.TryParse(item.value, out value))
-                    {
-                        continue;
-                    }
-
-                    //rlly hacky but it works
-                    if (value == 0 || addedTargets.Contains(item.name))
-                    {
-                        continue;
-                    }
-                    result.Add(new GetKeyEntrySorted()
-                    {
-                        Target = item.name,
-                        Value = value,
-                    });
-                    addedTargets.Add(item.name);
-                }
-            }
-            else
-            {
-                result = new List<GetKeyEntry>();
-                foreach (DataStoreEntry item in res)
-                {
-                    if (item.value == null)
-                    {
-                        isEmpty = true;
-                        break;
-                    }
-                    result.Add(new GetKeyEntry()
-                    {
-                        Target = item.name,
-                        Value = item.value,
-                    });
-                }
-            }
-
-
-
-            if (!ascending)
-            {
-                result.Reverse();
-            }
-            result.Sort((Comparison<dynamic>)((a, b) => b.Value.CompareTo(a.Value)));
-            if (isEmpty)
-            {
-                result = new List<string>();
+                // Get the last result
+                var lastResult = result.LastOrDefault();
+                exclusiveStartKey = $"{lastResult!.name}${lastResult!.value}";
             }
             return new
             {
                 data = new
                 {
-                    Entries = result,
-                    ExclusiveStartKey = 1,
+                    Entries = result.Select(c => new GetKeyEntrySorted
+                    {
+                        Target = c.name,
+                        Value = c.value,
+                    }),
+                    ExclusiveStartKey = exclusiveStartKey
                 },
             };
         }
 
         [HttpPostBypass("persistence/getv2")]
-        public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope)
+        public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope, [FromBody] QueuedKeysRequest request)
         {
             if (!isRCC)
                 throw new RobloxException(403, 0, "Unauthorized");
-            int countRequest = 0;
+            
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-            dynamic result = new List<GetKeyEntry>();
-            bool isEmpty = false;
-            string qKeyscope;
-            string qKeyTarget;
-            string qKeyKey;
-            while (true)
+            // We only got one key, so we can just return it
+            if (request.qkeys.Count == 1)
             {
-                qKeyscope = Request.Form[$"qkeys[{countRequest}].scope"]!;
-                qKeyTarget = Request.Form[$"qkeys[{countRequest}].target"]!;
-                qKeyKey = Request.Form[$"qkeys[{countRequest}].key"]!;
-
-                if (qKeyscope == null || qKeyTarget == null || qKeyKey == null)
-                    break;
-
-                var entry = await ds.GetAllEntries(placeId, qKeyKey, scope, qKeyTarget);
-                if (entry == null)
-                {
-                    countRequest++;
-                    continue;
+                dynamic? value = await ds.Get(placeId, request.qkeys.FirstOrDefault()!.key, type, scope, request.qkeys.FirstOrDefault()!.target);
+                // Type was sorted, let's try to parse it as a long
+                if (type is not "standard")
+                {     
+                    value = long.Parse(value!);
                 }
-                foreach (DataStoreEntry item in entry)
+                return new
                 {
-                    //should never be null
-                    if (String.IsNullOrEmpty(item.value))
-                    {
-                        isEmpty = true;
-                        break;
-                    }
-                    result.Add(new GetKeyEntry()
-                    {
-                        Key = qKeyKey,
-                        Scope = qKeyscope,
-                        Target = qKeyTarget,
-                        Value = item.value
-                    });
-                }
-                countRequest++;
+                    data = value ?? new List<string>()
+                };
             }
-            if (isEmpty)
-                result = new List<string>();
-            var finalData = new { data = result};
-            string jsonString = JsonConvert.SerializeObject(finalData);
-            return Content(jsonString, "application/json");
+            var result = await ds.MultiGetDataStores(placeId, type, scope, request.qkeys);
+            return new
+            {
+                data = result.Select(c => new GetKeyEntry
+                {
+                    Key = c.key,
+                    Scope = c.scope,
+                    Target = c.name,
+                    Value = type != "standard" ? Convert.ToInt64(c.value) : c.value!
+                }).ToList()
+            };
+
+            //dynamic result = new List<GetKeyEntry>();
+            //bool isEmpty = false;
+            //string qKeyscope;
+            //string qKeyTarget;
+            //string qKeyKey;
+            //while (true)
+            //{
+            //    qKeyscope = Request.Form[$"qkeys[{countRequest}].scope"]!;
+            //    qKeyTarget = Request.Form[$"qkeys[{countRequest}].target"]!;
+            //    qKeyKey = Request.Form[$"qkeys[{countRequest}].key"]!;
+
+            //    if (qKeyscope == null || qKeyTarget == null || qKeyKey == null)
+            //        break;
+
+            //    var entry = await ds.GetAllEntries(placeId, qKeyKey, scope, qKeyTarget);
+            //    if (entry == null)
+            //    {
+            //        countRequest++;
+            //        continue;
+            //    }
+            //    foreach (DataStoreEntry item in entry)
+            //    {
+            //        //should never be null
+            //        if (String.IsNullOrEmpty(item.value))
+            //        {
+            //            isEmpty = true;
+            //            break;
+            //        }
+            //        result.Add(new GetKeyEntry()
+            //        {
+            //            Key = qKeyKey,
+            //            Scope = qKeyscope,
+            //            Target = qKeyTarget,
+            //            Value = item.value
+            //        });
+            //    }
+            //    countRequest++;
+            //}
+            //if (isEmpty)
+            //    result = new List<string>();
+            //GetKeysRequest
+            //            var finalData = new { data = result};
+            //string jsonString = JsonConvert.SerializeObject(finalData);
+            //return new
+            //{
+
+            //}
         }
     }
 }
