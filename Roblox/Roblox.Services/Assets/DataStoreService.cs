@@ -39,92 +39,43 @@ public class DataStoreService : ServiceBase, IService
         }
 
         var query = new SqlBuilder();
-        var temp = query.AddTemplate("SELECT DISTINCT ON (name) id, value::BIGINT, name, updated_at FROM asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope /**where**/ ORDER BY name, updated_at DESC /**orderby**/ LIMIT :pageSize OFFSET", new
+        var template = query.AddTemplate(@"SELECT DISTINCT ON (name) id, value::BIGINT AS value, name, updated_at FROM asset_datastore /**where**/ /**orderby**/");
+        query.Where("WHERE asset_id = :placeId AND key = :key AND scope = :scope", new
         {
-            place_id = placeId,
+            placeId,
             key,
-            scope,
-            pageSize
+            scope
         });
+        query.OrderBy($@"name, updated_at DESC, value::BIGINT " + (isAscending ? "ASC" : "DESC"));
 
-        bool addedWhereClause = false;
+        if (inclusiveMinValue.HasValue)
+            query.Where("value::BIGINT >= :inclusiveMinValue", new { inclusiveMinValue });
+        if (inclusiveMaxValue.HasValue)
+            query.Where("value::BIGINT <= :inclusiveMaxValue", new { inclusiveMaxValue });
+        query.Where("value::TEXT ~ '^-?[0-9]+$' OR value IS NULL");
 
-        if (inclusiveMinValue is not null)
+
+        if (exclusiveStartKey != null)
         {
-            if (!addedWhereClause)
+            if (exclusiveStartValue != null)
             {
-                query.Where("value::BIGINT >= :inclusiveMinValue", new { inclusiveMinValue });
-                addedWhereClause = true;
+                var condition = isAscending
+                    ? "(key > :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
+                    : "(key < :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))";
+
+                query.Where(condition, new { exclusiveStartKey, exclusiveStartValue });
             }
             else
             {
-                query.Where("AND value::BIGINT >= :inclusiveMinValue", new { inclusiveMinValue });
+                var condition = isAscending
+                    ? "key > :exclusiveStartKey"
+                    : "key < :exclusiveStartKey";
+
+                query.Where(condition, new { exclusiveStartKey });
             }
         }
 
-        if (inclusiveMaxValue is not null)
-        {
-            if (!addedWhereClause)
-            {
-                query.Where("value::BIGINT <= :inclusiveMaxValue", new { inclusiveMaxValue });
-                addedWhereClause = true;
-            }
-            else
-            {
-                query.Where("AND value::BIGINT <= :inclusiveMaxValue", new { inclusiveMaxValue });
-            }
-        }
-
-        if (exclusiveStartKey is not null)
-        {
-            if (exclusiveStartValue is not null)
-            {
-                if (!addedWhereClause)
-                {
-                    query.Where(isAscending
-                        ? "AND (key > :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
-                        : "AND (key < :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))",
-                        new { exclusiveStartKey, exclusiveStartValue });
-                    addedWhereClause = true;
-                }
-                else
-                {
-                    query.Where(isAscending
-                        ? "AND (key > :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
-                        : "AND (key < :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))",
-                        new { exclusiveStartKey, exclusiveStartValue });
-                }
-            }
-            else
-            {
-                if (!addedWhereClause)
-                {
-                    query.Where(isAscending
-                        ? "AND key > :exclusiveStartKey"
-                        : "AND key < :exclusiveStartKey",
-                        new { exclusiveStartKey });
-                    addedWhereClause = true;
-                }
-                else
-                {
-                    query.Where(isAscending
-                        ? "AND key > :exclusiveStartKey"
-                        : "AND key < :exclusiveStartKey",
-                        new { exclusiveStartKey });
-                }
-            }
-        }
-
-        if (isAscending)
-        {
-            query.OrderBy("value::BIGINT ASC");
-        }
-        else
-        {
-            query.OrderBy("value::BIGINT DESC");
-        }
-
-        return (await db.QueryAsync<OrderedDataStoreEntry>(temp.RawSql, temp.Parameters)) ?? Enumerable.Empty<OrderedDataStoreEntry>();
+        return (await db.QueryAsync<OrderedDataStoreEntry>(template.RawSql, template.Parameters)) ?? Enumerable.Empty<OrderedDataStoreEntry>();
     }
 
     public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
