@@ -1,5 +1,6 @@
 using System.Security.AccessControl;
 using Dapper;
+using InfluxDB.Client.Api.Domain;
 using Microsoft.VisualBasic;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Persistence;
@@ -114,16 +115,20 @@ public class DataStoreService : ServiceBase, IService
         var keyList = keys.Select(k => k.key).ToList();
         var nameList = keys.Select(k => k.target).ToList();
         var scopeList = keys.Select(k => k.scope).Distinct().ToList();
-
-        var result = await db.QueryAsync<DataStoreEntry>(
-            "SELECT id, scope, key, name, value FROM asset_datastore WHERE asset_id = @place_id AND key IN @keys AND scope IN @scopes AND name IN @names ORDER BY id DESC LIMIT 250", new
+        var query = new SqlBuilder();
+        var template = query.AddTemplate("SELECT id, scope, key, name, value FROM asset_datastore /**where**/ /**orderby**/ LIMIT 250");
+        foreach (var k in keys)
+        {
+            query.Where("asset_id = :placeId AND key = :key AND scope = :scope AND name = :name", new
             {
-                place_id = placeId,
-                keys = keyList,
-                scope = scopeList,
-                names = nameList,
+                placeId,
+                key = k.key,
+                scope = k.scope,
+                name = k.target,
             });
-        return result;
+        }
+
+        return await db.QueryAsync<DataStoreEntry>(template.RawSql, template.Parameters);
     }
 
     private async Task PurgeExpiredEntries(DataStoreEntry[] all)
