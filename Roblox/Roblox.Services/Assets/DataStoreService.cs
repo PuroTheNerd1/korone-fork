@@ -74,7 +74,7 @@ public class DataStoreService : ServiceBase, IService
                 query.Where(condition, new { exclusiveStartKey });
             }
         }
-
+        Console.WriteLine(template.RawSql);
         return (await db.QueryAsync<OrderedDataStoreEntry>(template.RawSql, template.Parameters)) ?? Enumerable.Empty<OrderedDataStoreEntry>();
     }
 
