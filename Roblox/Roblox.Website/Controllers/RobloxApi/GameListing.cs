@@ -14,6 +14,7 @@ namespace Roblox.Website.Controllers
     [Route("/")]
     public class GameListing: ControllerBase
     {
+        private static GamesControllerV1 _gamesControllerV1 { get; } = new();
         private static Regex numberRegex { get; } = new("([0-9]+)");
         [HttpGetBypass("v1/games/multiget-playability-status")]
         public dynamic MultiGetPlayabilityStatus()
@@ -36,7 +37,11 @@ namespace Roblox.Website.Controllers
                 data = result,
             };
         }
-
+        [HttpGetBypass("v1/games/sorts")]
+        public async Task<dynamic> GameSort(string? gameSortsContext)
+        {
+            return await _gamesControllerV1.GetGameSorts(gameSortsContext);
+        }
         [HttpGetBypass("v1/name-description/games/{universeId:long}")]
         public async Task<dynamic> GetGameDesc(long universeId)
         {

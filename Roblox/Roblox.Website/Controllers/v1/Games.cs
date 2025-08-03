@@ -27,7 +27,6 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [HttpGetBypass("v1/games/sorts")]
     [HttpGet("games/sorts")]
     public async Task<dynamic> GetGameSorts(string? gameSortsContext)
     {
