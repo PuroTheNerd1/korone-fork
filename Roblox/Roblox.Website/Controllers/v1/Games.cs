@@ -122,7 +122,7 @@ public class GamesControllerV1 : ControllerBase
                 c.token,
                 c.name,
                 c.displayName,
-                c.getSetTypeId,
+                c.gameSetTypeId,
                 c.gameSetTargetId,
                 timeOptionsAvailable = false,
                 genreOptionsAvailable = false,
