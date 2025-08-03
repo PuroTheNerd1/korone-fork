@@ -37,7 +37,7 @@ public class GamesControllerV1 : ControllerBase
                 {
                     token = "popular",
                     name = "Popular",
-                    displayName = "popular",
+                    displayName = "Popular",
                     gameSetTypeId = 1,
                     gameSetTargetId = 90
                 }
@@ -91,7 +91,8 @@ public class GamesControllerV1 : ControllerBase
         };
 
         var results = new List<dynamic>();
-        if (gameSortsContext == "HomeSorts")
+
+        if (gameSortsContext != null && (gameSortsContext.Contains("Home", StringComparison.OrdinalIgnoreCase)))
         {
             if (userSession == null)
                 throw new ForbiddenException();
