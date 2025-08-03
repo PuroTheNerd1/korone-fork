@@ -108,20 +108,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(403, 0, "Unauthorized");
             
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
-            // We only got one key, so we can just return it
-            if (request.qkeys.Count == 1)
-            {
-                dynamic? value = await ds.Get(placeId, request.qkeys.FirstOrDefault()!.key, type, scope, request.qkeys.FirstOrDefault()!.target);
-                // Type was sorted, let's try to parse it as a long
-                if (type is not "standard")
-                {     
-                    value = long.Parse(value!);
-                }
-                return new
-                {
-                    data = value ?? new List<string>()
-                };
-            }
+
             var result = await ds.MultiGetDataStores(placeId, type, scope, request.qkeys);
             return new
             {

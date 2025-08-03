@@ -40,18 +40,18 @@ public class DataStoreService : ServiceBase, IService
         }
 
         var query = new SqlBuilder();
-        var template = query.AddTemplate(@"SELECT DISTINCT ON (name) id, value::BIGINT AS value, name, updated_at FROM asset_datastore /**where**/ /**orderby**/");
+        var template = query.AddTemplate(@"SELECT id, value::BIGINT AS value, name, updated_at FROM asset_datastore /**where**/ /**orderby**/");
         query.Where("asset_id = :placeId AND key = :key AND scope = :scope", new
         {
             placeId,
             key,
             scope
         });
-        query.OrderBy($@"name, updated_at DESC, value::BIGINT " + (isAscending ? "ASC" : "DESC"));
+        query.OrderBy($@"value::BIGINT " + (isAscending ? "ASC" : "DESC"));
 
-        if (inclusiveMinValue.HasValue)
+        if (inclusiveMinValue is not 0)
             query.Where("value::BIGINT >= :inclusiveMinValue", new { inclusiveMinValue });
-        if (inclusiveMaxValue.HasValue)
+        if (inclusiveMaxValue is not 0)
             query.Where("value::BIGINT <= :inclusiveMaxValue", new { inclusiveMaxValue });
         query.Where("value::TEXT ~ '^-?[0-9]+$' OR value IS NULL");
 
