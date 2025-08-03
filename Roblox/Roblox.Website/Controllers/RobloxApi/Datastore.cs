@@ -101,7 +101,7 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("persistence/getv2")]
-        public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope, [FromBody] QueuedKeysRequest request)
+        public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope, [FromForm] QueuedKeysRequest request)
         {
             if (!isRCC)
                 throw new RobloxException(403, 0, "Unauthorized");
