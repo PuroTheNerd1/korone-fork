@@ -91,8 +91,7 @@ public class GamesControllerV1 : ControllerBase
         };
 
         var results = new List<dynamic>();
-
-        if (gameSortsContext != null && (gameSortsContext.Contains("Home", StringComparison.OrdinalIgnoreCase)))
+        if (gameSortsContext is "HomeSorts" or "UnifiedHomeSorts")
         {
             if (userSession == null)
                 throw new ForbiddenException();

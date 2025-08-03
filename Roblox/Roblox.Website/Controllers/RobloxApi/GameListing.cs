@@ -40,6 +40,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/games/sorts")]
         public async Task<dynamic> GameSort(string? gameSortsContext)
         {
+            if (gameSortsContext is not null)
+            {
+                Console.WriteLine($"GameSortsContext: {gameSortsContext}");
+            }
             return await _gamesControllerV1.GetGameSorts(gameSortsContext);
         }
         [HttpGetBypass("v1/name-description/games/{universeId:long}")]
