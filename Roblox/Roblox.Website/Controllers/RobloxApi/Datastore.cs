@@ -100,6 +100,7 @@ namespace Roblox.Website.Controllers
             };
         }
 
+        [Consumes("application/x-www-form-urlencoded")]
         [HttpPostBypass("persistence/getv2")]
         public async Task<dynamic> GetPersistenceV2(long placeId, string type, string scope, [FromForm] QueuedKeysRequest request)
         {

@@ -40,7 +40,7 @@ public class DataStoreService : ServiceBase, IService
 
         var query = new SqlBuilder();
         var template = query.AddTemplate(@"SELECT DISTINCT ON (name) id, value::BIGINT AS value, name, updated_at FROM asset_datastore /**where**/ /**orderby**/");
-        query.Where("WHERE asset_id = :placeId AND key = :key AND scope = :scope", new
+        query.Where("asset_id = :placeId AND key = :key AND scope = :scope", new
         {
             placeId,
             key,
