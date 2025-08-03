@@ -22,15 +22,7 @@ public class DataStoreService : ServiceBase, IService
             return KeyType.Standard;
         throw new ArgumentException("Invalid " + nameof(type));
     }
-    public async Task<IEnumerable<OrderedDataStoreEntry>> GetAllOrderedEntries(
-        long placeId,
-        string key,
-        string scope,
-        bool isAscending,
-        int pageSize,
-        long? inclusiveMinValue = null,
-        long? inclusiveMaxValue = null,
-        string? exclusiveStartKeyRaw = null)
+    public async Task<IEnumerable<OrderedDataStoreEntry>> GetAllOrderedEntries(long placeId, string key, string scope, bool isAscending, int pageSize, long? inclusiveMinValue = null, long? inclusiveMaxValue = null, string? exclusiveStartKeyRaw = null)
     {
         long? exclusiveStartValue = null;
         string? exclusiveStartKey = null;
@@ -39,6 +31,7 @@ public class DataStoreService : ServiceBase, IService
         {
             string[] parts = exclusiveStartKeyRaw.Split('$');
             exclusiveStartKey = parts[0];
+            // second is the start value
             if (long.TryParse(parts[1], out long result))
             {
                 exclusiveStartValue = result;
@@ -46,7 +39,7 @@ public class DataStoreService : ServiceBase, IService
         }
 
         var query = new SqlBuilder();
-        var parameters = new DynamicParameters(new
+        var temp = query.AddTemplate("SELECT DISTINCT ON (name) id, value::BIGINT, name, updated_at FROM asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope /**where**/ ORDER BY name, updated_at DESC /**orderby**/ LIMIT :pageSize OFFSET", new
         {
             place_id = placeId,
             key,
@@ -54,54 +47,85 @@ public class DataStoreService : ServiceBase, IService
             pageSize
         });
 
-        var template = query.AddTemplate(@"
-        SELECT id, value::BIGINT, name, updated_at
-        FROM asset_datastore
-        WHERE asset_id = :place_id AND key = :key AND scope = :scope
-        /**where**/
-        ORDER BY value::BIGINT " + (isAscending ? "ASC" : "DESC") + @"
-        LIMIT :pageSize");
-
-        query.Where("(value::TEXT ~ '^-?[0-9]+$' OR value IS NULL)");
+        bool addedWhereClause = false;
 
         if (inclusiveMinValue is not null)
         {
-            query.Where("value::BIGINT >= :inclusiveMinValue");
-            parameters.Add("inclusiveMinValue", inclusiveMinValue);
+            if (!addedWhereClause)
+            {
+                query.Where("value::BIGINT >= :inclusiveMinValue", new { inclusiveMinValue });
+                addedWhereClause = true;
+            }
+            else
+            {
+                query.Where("AND value::BIGINT >= :inclusiveMinValue", new { inclusiveMinValue });
+            }
         }
 
         if (inclusiveMaxValue is not null)
         {
-            query.Where("value::BIGINT <= :inclusiveMaxValue");
-            parameters.Add("inclusiveMaxValue", inclusiveMaxValue);
+            if (!addedWhereClause)
+            {
+                query.Where("value::BIGINT <= :inclusiveMaxValue", new { inclusiveMaxValue });
+                addedWhereClause = true;
+            }
+            else
+            {
+                query.Where("AND value::BIGINT <= :inclusiveMaxValue", new { inclusiveMaxValue });
+            }
         }
 
         if (exclusiveStartKey is not null)
         {
             if (exclusiveStartValue is not null)
             {
-                query.Where(isAscending
-                    ? "(name > :exclusiveStartKey OR (name = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
-                    : "(name < :exclusiveStartKey OR (name = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))");
-
-                parameters.Add("exclusiveStartKey", exclusiveStartKey);
-                parameters.Add("exclusiveStartValue", exclusiveStartValue);
+                if (!addedWhereClause)
+                {
+                    query.Where(isAscending
+                        ? "AND (key > :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
+                        : "AND (key < :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))",
+                        new { exclusiveStartKey, exclusiveStartValue });
+                    addedWhereClause = true;
+                }
+                else
+                {
+                    query.Where(isAscending
+                        ? "AND (key > :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
+                        : "AND (key < :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))",
+                        new { exclusiveStartKey, exclusiveStartValue });
+                }
             }
             else
             {
-                query.Where(isAscending
-                    ? "name > :exclusiveStartKey"
-                    : "name < :exclusiveStartKey");
-
-                parameters.Add("exclusiveStartKey", exclusiveStartKey);
+                if (!addedWhereClause)
+                {
+                    query.Where(isAscending
+                        ? "AND key > :exclusiveStartKey"
+                        : "AND key < :exclusiveStartKey",
+                        new { exclusiveStartKey });
+                    addedWhereClause = true;
+                }
+                else
+                {
+                    query.Where(isAscending
+                        ? "AND key > :exclusiveStartKey"
+                        : "AND key < :exclusiveStartKey",
+                        new { exclusiveStartKey });
+                }
             }
         }
 
-        return await db.QueryAsync<OrderedDataStoreEntry>(template.RawSql, parameters)
-               ?? Enumerable.Empty<OrderedDataStoreEntry>();
+        if (isAscending)
+        {
+            query.OrderBy("value::BIGINT ASC");
+        }
+        else
+        {
+            query.OrderBy("value::BIGINT DESC");
+        }
+
+        return (await db.QueryAsync<OrderedDataStoreEntry>(temp.RawSql, temp.Parameters)) ?? Enumerable.Empty<OrderedDataStoreEntry>();
     }
-
-
 
     public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
     {
