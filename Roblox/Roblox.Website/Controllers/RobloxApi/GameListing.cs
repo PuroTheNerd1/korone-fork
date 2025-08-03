@@ -36,13 +36,7 @@ namespace Roblox.Website.Controllers
                 data = result,
             };
         }
-        [HttpGetBypass("v1/games/sorts")]
-        public dynamic GameSort()
-        {
-            string rawJson = System.IO.File.ReadAllText(Configuration.JsonDataDirectory + "GameSort.json");
-            dynamic? json = JsonConvert.DeserializeObject<ExpandoObject>(rawJson);
-            return json ?? new ExpandoObject();
-        }
+
         [HttpGetBypass("v1/name-description/games/{universeId:long}")]
         public async Task<dynamic> GetGameDesc(long universeId)
         {
