@@ -102,6 +102,7 @@ public class DataStoreService : ServiceBase, IService
     }
 
 
+
     public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
     {
         var result = await db.QueryAsync<DataStoreEntry>(
