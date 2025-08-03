@@ -116,8 +116,7 @@ public class DataStoreService : ServiceBase, IService
         var scopeList = keys.Select(k => k.scope).Distinct().ToList();
 
         var result = await db.QueryAsync<DataStoreEntry>(
-            "SELECT id, scope, key, name, value FROM asset_datastore WHERE asset_id = @place_id AND key IN @keys AND scope IN @scopes AND name IN @names ORDER BY id DESC LIMIT 250";
-        new
+            "SELECT id, scope, key, name, value FROM asset_datastore WHERE asset_id = @place_id AND key IN @keys AND scope IN @scopes AND name IN @names ORDER BY id DESC LIMIT 250", new
             {
                 place_id = placeId,
                 keys = keyList,
