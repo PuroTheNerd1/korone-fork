@@ -112,10 +112,8 @@ public class DataStoreService : ServiceBase, IService
         if (keys.Count == 0)
             return Enumerable.Empty<DataStoreEntry>();
 
-        var keyList = keys.Select(k => k.key).ToList();
-        var nameList = keys.Select(k => k.target).ToList();
-        var scopeList = keys.Select(k => k.scope).Distinct().ToList();
         var query = new SqlBuilder();
+        // Really hackys
         var template = query.AddTemplate("SELECT id, scope, key, name, value FROM asset_datastore /**where**/ /**orderby**/ LIMIT 250");
         foreach (var k in keys)
         {
