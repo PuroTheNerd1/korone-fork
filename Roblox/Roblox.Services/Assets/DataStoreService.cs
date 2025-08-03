@@ -22,7 +22,15 @@ public class DataStoreService : ServiceBase, IService
             return KeyType.Standard;
         throw new ArgumentException("Invalid " + nameof(type));
     }
-    public async Task<IEnumerable<OrderedDataStoreEntry>> GetAllOrderedEntries(long placeId, string key, string scope, bool isAscending, int pageSize, long? inclusiveMinValue = null, long? inclusiveMaxValue = null, string? exclusiveStartKeyRaw = null)
+    public async Task<IEnumerable<OrderedDataStoreEntry>> GetAllOrderedEntries(
+        long placeId,
+        string key,
+        string scope,
+        bool isAscending,
+        int pageSize,
+        long? inclusiveMinValue = null,
+        long? inclusiveMaxValue = null,
+        string? exclusiveStartKeyRaw = null)
     {
         long? exclusiveStartValue = null;
         string? exclusiveStartKey = null;
@@ -31,7 +39,6 @@ public class DataStoreService : ServiceBase, IService
         {
             string[] parts = exclusiveStartKeyRaw.Split('$');
             exclusiveStartKey = parts[0];
-            // second is the start value
             if (long.TryParse(parts[1], out long result))
             {
                 exclusiveStartValue = result;
@@ -39,7 +46,7 @@ public class DataStoreService : ServiceBase, IService
         }
 
         var query = new SqlBuilder();
-        var temp = query.AddTemplate("SELECT DISTINCT ON (name) id, value::BIGINT, name, updated_at FROM asset_datastore WHERE asset_id = :place_id AND key = :key AND scope = :scope /**where**/ ORDER BY name, updated_at DESC /**orderby**/ LIMIT :pageSize OFFSET", new
+        var parameters = new DynamicParameters(new
         {
             place_id = placeId,
             key,
@@ -47,22 +54,26 @@ public class DataStoreService : ServiceBase, IService
             pageSize
         });
 
-        query.Where("value::TEXT ~ '^-?[0-9]+$' OR value IS NULL");
+        var template = query.AddTemplate(@"
+        SELECT id, value::BIGINT, name, updated_at
+        FROM asset_datastore
+        WHERE asset_id = :place_id AND key = :key AND scope = :scope
+        /**where**/
+        ORDER BY value::BIGINT " + (isAscending ? "ASC" : "DESC") + @"
+        LIMIT :pageSize");
+
+        query.Where("(value::TEXT ~ '^-?[0-9]+$' OR value IS NULL)");
 
         if (inclusiveMinValue is not null)
         {
-            query.Where("value::BIGINT >= :inclusiveMinValue", new
-            {
-                inclusiveMinValue
-            });
+            query.Where("value::BIGINT >= :inclusiveMinValue");
+            parameters.Add("inclusiveMinValue", inclusiveMinValue);
         }
 
         if (inclusiveMaxValue is not null)
         {
-            query.Where("value::BIGINT <= :inclusiveMaxValue", new
-            {
-                inclusiveMaxValue
-            });
+            query.Where("value::BIGINT <= :inclusiveMaxValue");
+            parameters.Add("inclusiveMaxValue", inclusiveMaxValue);
         }
 
         if (exclusiveStartKey is not null)
@@ -70,30 +81,26 @@ public class DataStoreService : ServiceBase, IService
             if (exclusiveStartValue is not null)
             {
                 query.Where(isAscending
-                    ? "AND (key > :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
-                    : "AND (key < :exclusiveStartKey OR (key = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))",
-                    new { exclusiveStartKey, exclusiveStartValue });
+                    ? "(name > :exclusiveStartKey OR (name = :exclusiveStartKey AND value::BIGINT > :exclusiveStartValue))"
+                    : "(name < :exclusiveStartKey OR (name = :exclusiveStartKey AND value::BIGINT < :exclusiveStartValue))");
+
+                parameters.Add("exclusiveStartKey", exclusiveStartKey);
+                parameters.Add("exclusiveStartValue", exclusiveStartValue);
             }
             else
             {
                 query.Where(isAscending
-                    ? "AND key > :exclusiveStartKey"
-                    : "AND key < :exclusiveStartKey",
-                    new { exclusiveStartKey });
+                    ? "name > :exclusiveStartKey"
+                    : "name < :exclusiveStartKey");
+
+                parameters.Add("exclusiveStartKey", exclusiveStartKey);
             }
         }
 
-        if (isAscending)
-        {
-            query.OrderBy("value::BIGINT ASC");
-        }
-        else
-        {
-            query.OrderBy("value::BIGINT DESC");
-        }
-
-        return (await db.QueryAsync<OrderedDataStoreEntry>(temp.RawSql, temp.Parameters)) ?? Enumerable.Empty<OrderedDataStoreEntry>();
+        return await db.QueryAsync<OrderedDataStoreEntry>(template.RawSql, parameters)
+               ?? Enumerable.Empty<OrderedDataStoreEntry>();
     }
+
 
     public async Task<IEnumerable<DataStoreEntry>> GetAllEntries(long placeId, string key, string scope, string name)
     {
@@ -162,7 +169,7 @@ public class DataStoreService : ServiceBase, IService
 
         var uni = placeId == 0 ? 0 : await ServiceProvider.GetOrCreate<GamesService>().GetUniverseId(placeId);
 
-        await db.ExecuteAsync("INSERT INTO asset_datastore (asset_id, universe_id, scope, key, name, value) VALUES (:place_id, :universe_id, :scope, :key, :name, :value) ON CONFLICT (asset_id, universe_id, scope, key, name DO UPDATE SET value = :value", new
+        await db.ExecuteAsync("INSERT INTO asset_datastore (asset_id, universe_id, scope, key, name, value) VALUES (:place_id, :universe_id, :scope, :key, :name, :value) ON CONFLICT (asset_id, universe_id, scope, key, name) DO UPDATE SET value = :value", new
         {
             place_id = placeId,
             universe_id = uni,
