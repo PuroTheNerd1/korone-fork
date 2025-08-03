@@ -1,3 +1,4 @@
+using System.Security.AccessControl;
 using Dapper;
 using Microsoft.VisualBasic;
 using Roblox.Dto.Assets;
@@ -74,7 +75,19 @@ public class DataStoreService : ServiceBase, IService
                 query.Where(condition, new { exclusiveStartKey });
             }
         }
-        Console.WriteLine(template.RawSql);
+
+        string rawSql = template.RawSql;
+        var parameters = template.Parameters as IDictionary<string, object>;
+        foreach (var param in parameters)
+        {
+
+            string paramValue = param.Value == null ? "NULL" : param.Value.ToString();
+
+            rawSql = rawSql.Replace($":{param.Key}", paramValue);
+        }
+
+        Console.WriteLine("Final SQL Query:");
+        Console.WriteLine(rawSql);
         return (await db.QueryAsync<OrderedDataStoreEntry>(template.RawSql, template.Parameters)) ?? Enumerable.Empty<OrderedDataStoreEntry>();
     }
 
