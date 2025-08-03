@@ -120,9 +120,9 @@ public class DataStoreService : ServiceBase, IService
             new
             {
                 place_id = placeId,
-                keys = keyList,
-                scope = scopeList,
-                names = nameList,
+                keys = keyList.ToArray(),
+                scope = scopeList.ToArray(),
+                names = nameList.ToArray(),
             });
         return result;
     }
