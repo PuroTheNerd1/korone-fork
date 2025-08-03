@@ -77,17 +77,19 @@ public class DataStoreService : ServiceBase, IService
         }
 
         string rawSql = template.RawSql;
-        var parameters = template.Parameters as IDictionary<string, object>;
-        foreach (var param in parameters)
-        {
 
-            string paramValue = param.Value == null ? "NULL" : param.Value.ToString();
-
-            rawSql = rawSql.Replace($":{param.Key}", paramValue);
-        }
 
         Console.WriteLine("Final SQL Query:");
         Console.WriteLine(rawSql);
+        Console.WriteLine($"PlaceId = {placeId}");
+        Console.WriteLine($"Key = {key}");
+        Console.WriteLine($"Scope = {scope}");
+        Console.WriteLine($"IsAscending = {isAscending}");
+        Console.WriteLine($"PageSize = {pageSize}");
+        Console.WriteLine($"InclusiveMinValue = {inclusiveMinValue}");
+        Console.WriteLine($"InclusiveMaxValue = {inclusiveMaxValue}");
+        Console.WriteLine($"ExclusiveStartKeyRaw = {exclusiveStartKeyRaw}");
+
         return (await db.QueryAsync<OrderedDataStoreEntry>(template.RawSql, template.Parameters)) ?? Enumerable.Empty<OrderedDataStoreEntry>();
     }
 

@@ -131,7 +131,7 @@ namespace Roblox.Website.Controllers
                     Scope = c.scope,
                     Target = c.name,
                     Value = type != "standard" ? Convert.ToInt64(c.value) : c.value!
-                }).ToList()
+                })
             };
 
             //dynamic result = new List<GetKeyEntry>();
