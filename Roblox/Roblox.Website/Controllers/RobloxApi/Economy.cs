@@ -38,11 +38,8 @@ public class Economy : ControllerBase
     public async Task<dynamic> PurchaseDeveloperProduct(long productId, [FromBody] Dto.Marketplace.DeveloperProductPurchaseRequest request)
     {
         FeatureCheck();
-        var productInfoList =
-            (await services.games.GetDeveloperProductInfoFull(productId, 1, 0)).ToList();
-        if (productInfoList.FirstOrDefault() == null)
-            throw new RecordNotFoundException("Developer Product is invalid or does not exist");
-        var productInfo = productInfoList.First();
+
+        var productInfo = await services.games.GetDeveloperProductInfoFull(productId);
         if (!productInfo.isForSale)
             throw new BadRequestException(0, "Developer Product is not for sale");
         var iconModStatus = await services.assets.GetAssetModerationStatus(productInfo.iconImageAssetId);

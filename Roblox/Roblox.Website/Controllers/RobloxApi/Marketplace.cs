@@ -125,12 +125,8 @@ namespace Roblox.Website.Controllers
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             // some sanity checks
-            
-            var productInfoList =
-                (await services.games.GetDeveloperProductInfoFull(purchaseRequest.productId, 1, 0)).ToList();
-            if (productInfoList.FirstOrDefault() == null)
-                throw new RecordNotFoundException("Developer Product is invalid or does not exist");
-            var productInfo = productInfoList.First();
+
+            var productInfo = await services.games.GetDeveloperProductInfoFull(purchaseRequest.productId);
             if (!productInfo.isForSale)
                 throw new BadRequestException(0, "Developer Product is not for sale");
             var iconModStatus = await services.assets.GetAssetModerationStatus(productInfo.iconImageAssetId);
@@ -190,62 +186,58 @@ namespace Roblox.Website.Controllers
             // and
             // https://web.archive.org/web/20171112192130/http://api.roblox.com/Marketplace/Productinfo?assetid=1149615185
             // (where it's not a developer product)
-            var productInfo = (await services.games.GetDeveloperProductInfoFull(productId, 1, 0)).ToList();
-            
-            if (productInfo.FirstOrDefault() != null)
+            var details = await services.games.GetDeveloperProductInfoFull(productId);
+            return new
             {
-                var details = productInfo.First();
-                return new
-                {
-                    // on roblox this usually leads to the id of a random shirt template??? LMFAOOOO
-                    // idfk why and i dont really care to figure out cuz i dont think its necessary
-                    // so for convenience sake of anyone using this api im putting the universe id
-                    TargetId = details.universeId,
-                    AssetId = 0,
-                    ProductId = details.id,
-                    ProductType = "Developer Product",
-                    Name = details.name,
-                    details.Description,
-                    AssetTypeId = 0,
-                    Creator = new {
-                        Id = 0,
-                        Name = (string?)null,
-                        // once again roblox api is weird
-                        // these are usually null and 0 respectively but
-                        // for convenience sakes ive set to the actual values
-                        CreatorType = details.creatorType,
-                        CreatorTargetId = details.creatorId
-                    },
-                    IconImageAssetId = details.iconImageAssetId,
-                    Created = details.createdAt,
-                    Updated = details.updatedAt,
-                    PriceInRobux = details.price,
-                    PriceInTickets = (int?)null,
-                    Sales = details.sales,
-                    IsNew = details.createdAt.Add(TimeSpan.FromDays(1)) < DateTime.Now,
-                    IsForSale = details.isForSale,
-                    IsPublicDomain = details.isForSale && details.price == 0,
-                    IsLimited = false,
-                    IsLimitedUnique = false,
-                    Remaining = (int?)null,
-                    MinimumMembershipLevel = 0
-                };
-            }
+                // on roblox this usually leads to the id of a random shirt template??? LMFAOOOO
+                // idfk why and i dont really care to figure out cuz i dont think its necessary
+                // so for convenience sake of anyone using this api im putting the universe id
+                TargetId = details.universeId,
+                AssetId = 0,
+                ProductId = details.id,
+                ProductType = "Developer Product",
+                Name = details.name,
+                Description = details.description,
+                AssetTypeId = 0,
+                Creator = new {
+                    Id = 0,
+                    Name = (string?)null,
+                    // once again roblox api is weird
+                    // these are usually null and 0 respectively but
+                    // for convenience sakes ive set to the actual values
+                    CreatorType = details.creatorType,
+                    CreatorTargetId = details.creatorId
+                },
+                IconImageAssetId = details.iconImageAssetId,
+                Created = details.createdAt,
+                Updated = details.updatedAt,
+                PriceInRobux = details.price,
+                PriceInTickets = (int?)null,
+                Sales = details.sales,
+                IsNew = details.createdAt.Add(TimeSpan.FromDays(1)) < DateTime.Now,
+                IsForSale = details.isForSale,
+                IsPublicDomain = details.isForSale && details.price == 0,
+                IsLimited = false,
+                IsLimitedUnique = false,
+                Remaining = (int?)null,
+                MinimumMembershipLevel = 0
+            };
             
-            var asset = await services.assets.DoesAssetExistType(productId);
+            
+            //var asset = await services.assets.DoesAssetExistType(productId);
 
-            if (asset.exists)
-            {
-                switch (asset.assetType)
-                {
-                    case (int)Type.GamePass:
-                        return Redirect($"/marketplace/game-pass-product-info?gamePassId={productId}");
-                    default:
-                        return Redirect($"/marketplace/productinfo?assetId={productId}");
-                }
-            }
+            //if (asset.exists)
+            //{
+            //    switch (asset.assetType)
+            //    {
+            //        case (int)Type.GamePass:
+            //            return Redirect($"/marketplace/game-pass-product-info?gamePassId={productId}");
+            //        default:
+            //            return Redirect($"/marketplace/productinfo?assetId={productId}");
+            //    }
+            //}
             
-            throw new BadRequestException(0, "Asset " + productId + " does not exist.");
+            //throw new BadRequestException(0, "Asset " + productId + " does not exist.");
         }
 
         // Studio

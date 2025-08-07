@@ -174,27 +174,45 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    // TODO: what does this even do? implement badges
     [HttpGetBypass("badges/list-badges-for-place/json")]
-    public dynamic GetGameBadges()
+    public async Task<dynamic> GetGameBadges(long placeId)
     {
+        var universeId = await services.games.GetUniverseId(placeId);
+        var universe = await services.games.GetUniverseInfo(universeId);
+        var badges = (await services.badges.GetBadgesForUniverse(universe, 100, 0, Models.Db.SortOrder.Desc)).ToList();
         return new
         {
             FinalPage = true,
-            GameBadges = new List<dynamic>(),
-            PageSize = 50
+            PlaceId = placeId,
+            GameBadges = badges.Select((BadgeAssetDetails c) => new
+            {
+                BadgeAssetId = c.id,
+                CreatorId = universe.creatorId,
+                ImageUrl = Configuration.BaseUrl + "/Thumbs/Asset.ashx?assetId=" + c.id,
+                IsImageUrlFinal = true,
+                Name = c.displayName,
+                Description = c.description,
+                IsOwned = false,
+                Rarity = c.statistics.winRatePercentage,
+                TotalAwarded = c.statistics.awardedCount,
+                TotalAwardedYesterday = c.statistics.pastDayAwardedCount,
+                Created = c.created,
+                Updated = c.updated,
+                RarityName = services.badges.GetDifficultyFromPercentage(c.statistics.winRatePercentage).ToString(),
+            }),
+            PageSize = badges.Count
         };
     }
 
     [HttpGetBypass("developerproducts/list")]
-    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId = 0, long? universeId = 0)
+    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId, long? universeId)
     {
         if (page < 1 || page > 5)
         {
             page = 1;
         }
 
-        if (universeId == null && placeId != null)
+        if (universeId is null && placeId is not null)
         {
             universeId = await services.games.GetUniverseId(placeId.Value);
         }
@@ -212,14 +230,14 @@ public class UniverseV1 : ControllerBase
                 ProductId = c.id,
                 DeveloperProductId = c.iconImageAssetId,
                 Name = c.name,
-                c.Description,
+                Description = c.description,
                 IconImageAssetId = c.iconImageAssetId,
                 displayName = (string?)null,
                 displayDescription = (string?)null,
                 displayIcon = (int?)null,
                 PriceInRobux = c.priceInRobux,
             }),
-            PageSize = 5
+            PageSize = products.Count
         };
     }
 

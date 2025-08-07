@@ -201,6 +201,7 @@ public class DevelopControllerV1 : ControllerBase
         await services.assets.ValidatePermissions(place, safeUserSession.userId);
         await services.games.SetMaxPlayerCount(place, request.maxPlayers);
     }
+
     [HttpPatch("places/{placeId}/roblox-place-id")]
     public async Task UpdateRobloxPlaceId(long placeId, [Required, FromBody] SetRobloxPlaceIdRequest request)
     {
@@ -214,17 +215,23 @@ public class DevelopControllerV1 : ControllerBase
     // TODO: this needs a rewrite bad and the ability for staff to review it and stuff
 
     // get universe's products
+    [HttpGetBypass("/v1/universes/{universeId}/developerproducts")]
     [HttpGet("universes/{universeId:long}/developerproducts")]
-    public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long pageNumber, long? pageSize = 10) 
+    public async Task<dynamic> GetDeveloperProducts(long universeId, long pageNumber, long? pageSize = 10) 
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         long parsedSize = (pageSize > 50 || pageSize < 1) ? 10 : (pageSize ?? 10);
         if (pageNumber > 100 || pageSize < 1) pageNumber = 1;
         var offset = parsedSize * (pageNumber == 0 ? 0 : pageNumber - 1);
-        return await services.games.GetDeveloperProducts(
-            universeId,
-            parsedSize * 1,
-            offset * 1);
+        var products = await services.games.GetDeveloperProducts(universeId, parsedSize * 1, offset * 1);
+        return products.Select(c => new
+        {
+            id = c.id,
+            name = c.name,
+            Description = c.description,
+            iconImageAssetId = c.iconImageAssetId,
+            shopId = c.shopId,
+        });
     }
     
     // create developer product
@@ -232,7 +239,7 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("universes/{universeId:long}/developerproducts")]
     public async Task<dynamic> CreateDeveloperProduct(long universeId, string name, string description, long priceInRobux, long iconImageAssetId) 
     {
-        long userId = safeUserSession.userId;
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
 
         // this god awful code is presented to you by the fact i barely know how
         // developer products work so i gotta stick as close to the roblox api as possible
@@ -241,7 +248,7 @@ public class DevelopControllerV1 : ControllerBase
             throw new BadRequestException(0, "Price in Robux can not be negative or above 1 million.");
         }
 
-        await services.games.SafeGetUniverseInfo(userId, universeId);
+
         var developerProductCount = await services.games.GetDeveloperProductCount(universeId);
         if (developerProductCount >= 25) 
             throw new BadRequestException(0, "Too many developer products for this universe.");
@@ -249,33 +256,18 @@ public class DevelopControllerV1 : ControllerBase
         var asset = await services.assets.GetAssetCatalogInfo(iconImageAssetId);
 
         // ?? no idea why roblox does that
-        if (asset.creatorTargetId != userId) 
+        if (asset.creatorTargetId != safeUserSession.userId) 
         { 
             throw new ForbiddenException(2, "Icon Asset is created by another user.");
         }
 
 
-        try 
+        long prodId = await services.games.CreateDeveloperProduct(safeUserSession.userId, universeId, name, description, priceInRobux,
+            iconImageAssetId);
+
+        return new
         {
-            long? prodId = await services.games.CreateDeveloperProduct(safeUserSession.userId, universeId, name, description, priceInRobux,
-                iconImageAssetId);
-            if (prodId != null) 
-            {
-                return new 
-                {
-                    productId = prodId
-                };
-            }
-        } 
-        catch (Exception e)
-        {
-            if (e is AssetNameTooShortException or AssetNameTooLongException or AssetDescriptionTooLongException)
-                throw new BadRequestException(0, "Name or Description are too long, or too short. You figure it out, loser.");
-            throw;
-        }
-        return new 
-        {
-            productId = (long?)null
+            productId = prodId
         };
     }
     
@@ -284,47 +276,39 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("universes/{universeId:long}/developerproducts/{productId}/update")]
     public async Task UpdateDeveloperProduct(long universeId, long productId, [FromBody] UpdateDevProductRequest request) 
     {
-        long userId = safeUserSession.userId;
-
         // this god awful code is presented to you by the fact i barely know how
         // developer products work so i gotta stick as close to the roblox api as possible
         // You're Welcome!
+
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+
+
         if (request.PriceInRobux < 0 || request.PriceInRobux > 1000000) {
             throw new BadRequestException(0, "Price in robux can not be negative or above 1 million.");
         }
         
-        try 
-        {
-            await services.games.CanManageUniverse(userId, universeId);
-        }
-        catch (RecordNotFoundException) 
-        {
-            throw new NotFoundException(5, "Universe not found.");
-        }
-        catch (PermissionException) 
-        {
-            throw new ForbiddenException(6, "User doesn't have access to universe.");
-        }
-        var product = await services.games.GetDeveloperProduct(productId);
+        var product = await services.games.GetDeveloperProductInfoFull(productId);
 
         if (product.name == request.Name &&
-            product.Description == request.Description &&
+            product.description == request.Description &&
             product.iconImageAssetId == request.IconImageAssetId &&
-            product.priceInRobux == request.PriceInRobux) {
+            product.price == request.PriceInRobux) {
             // nothing changed lal
             return;
         }
+
+        if (product.universeId != universeId)
+            throw new BadRequestException(0, "Developer Product does not belong to this Universe.");
+        if (product.creatorId != safeUserSession.userId)
+            throw new ForbiddenException(2, "You are not the creator of this Developer Product.");
+
         var asset = await services.assets.GetAssetCatalogInfo(request.IconImageAssetId);
 
         // ?? no idea why roblox does that
-        if (asset.creatorTargetId != userId) 
-        { 
+        if (asset.creatorTargetId != safeUserSession.userId)
             throw new ForbiddenException(2, "Icon Asset is created by another user.");
-        }
-        if (asset.assetType != Type.Image) 
-        {
+        if (asset.assetType != Type.Image)
             throw new BadRequestException(0, "Icon asset type is not an image.");
-        }
 
         var oldImage = await services.assets.GetAssetModerationStatus(product.iconImageAssetId);
         if (oldImage != ModerationStatus.ReviewApproved) 
@@ -335,7 +319,8 @@ public class DevelopControllerV1 : ControllerBase
         request.Name = services.filter.FilterText(request.Name);
         request.Description = services.filter.FilterText(request.Description);
         
-        if (string.IsNullOrEmpty(request.Name)) throw new AssetNameTooShortException();
+        if (string.IsNullOrEmpty(request.Name)) 
+            throw new AssetNameTooShortException();
         if (request.Name.Length > Rules.NameMaxLength)
             throw new AssetNameTooLongException();
         if (request.Description is { Length: > Rules.DescriptionMaxLength })

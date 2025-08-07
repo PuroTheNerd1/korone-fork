@@ -6,10 +6,10 @@ using Roblox.Services.DbModels;
 
 namespace Roblox.Services.Games;
 
-public class BadgesService : ServiceBase, IService {
+public class BadgesService : ServiceBase, IService 
+{
     
-    public async Task<IEnumerable<BadgeAssetDetails>> GetBadgesForUniverse(Universe universe, int limit,
-        int offset, SortOrder? sort)
+    public async Task<IEnumerable<BadgeAssetDetails>> GetBadgesForUniverse(Universe universe, int limit, int offset, SortOrder? sort)
     {
         var qu = await db.QueryAsync<BadgeAssetDetailsDb>(
     @"SELECT a.id, a.name, a.description, ab.enabled,
@@ -58,7 +58,7 @@ public class BadgesService : ServiceBase, IService {
             awardingUniverse = new BadgeAwardingUniverse 
             {
                 id = universe.id,
-                name = universe.name,
+                name = universe.sourceName,
                 rootPlaceId = universe.rootPlaceId
             }
         });
@@ -235,7 +235,23 @@ public class BadgesService : ServiceBase, IService {
             enabled
         });
     }
-    
+    public string GetDifficultyFromPercentage(decimal percentage)
+    {
+        if (percentage >= 90 && percentage <= 100) return "Freebie";
+        if (percentage >= 80 && percentage < 90) return "Cake Walk";
+        if (percentage >= 50 && percentage < 80) return "Easy";
+        if (percentage >= 30 && percentage < 50) return "Moderate";
+        if (percentage >= 20 && percentage < 30) return "Challenging";
+        if (percentage >= 10 && percentage < 20) return "Hard";
+        if (percentage >= 5 && percentage < 10) return "Extreme";
+        if (percentage >= 1 && percentage < 5) return "Insane";
+        if (percentage >= 0 && percentage < 1) return "Impossible";
+
+        return "Unknown";
+    }
+
+
+
     public bool IsThreadSafe()
     {
         return true;

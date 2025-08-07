@@ -1082,50 +1082,33 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductInfoFull(long productId, long limit, long offset)
+    public async Task<DeveloperProductDb> GetDeveloperProductInfoFull(long productId)
     {
-        var qu = await db.QueryAsync<DeveloperProductDb>(
+        var qu = await db.QueryFirstOrDefaultAsync<DeveloperProductDb?>(
             @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
             dv.universe_id as universeId,
             dv.is_for_sale as isForSale,
-            dv.image_asset_id as imageAssetId,
+            dv.image_asset_id as iconImageAssetId,
             dv.creator_id as creatorId,
             dv.creator_type as creatorType,
             dv.created_at as createdAt,
             dv.updated_at as updatedAt
             FROM developer_product AS dv
-            WHERE dv.id = :productId
-            LIMIT :limit OFFSET :offset",
+            WHERE dv.id = :productId",
             new
             {
                 productId,
-                limit,
-                offset,
             });
-        return qu.Select(c => new DeveloperProduct
-        {
-            id = c.id,
-            name = c.name,
-            Description = c.description,
-            sales = c.sales,
-            price = c.price,
-            isForSale = c.isForSale,
-            iconImageAssetId = c.imageAssetId,
-            universeId = c.universeId,
-            creatorId = c.creatorId,
-            creatorType = c.creatorType == 2 ? CreatorType.Group : CreatorType.User,
-            updatedAt = c.updatedAt,
-            createdAt = c.createdAt
-        });
+        return qu ?? throw new RecordNotFoundException("Developer product not found");
     }
     
-    public async Task<IEnumerable<DeveloperProduct>> GetDeveloperProductsFull(long universeId, long limit, long offset)
+    public async Task<IEnumerable<DeveloperProductDb>> GetDeveloperProductsFull(long universeId, long limit, long offset)
     {
         var qu = await db.QueryAsync<DeveloperProductDb>(
             @"SELECT dv.id, dv.name, dv.description, dv.sales, dv.price,
             dv.universe_id as universeId,
             dv.is_for_sale as isForSale,
-            dv.image_asset_id as imageAssetId,
+            dv.image_asset_id as iconImageAssetId,
             dv.creator_id as creatorId,
             dv.creator_type as creatorType,
             dv.created_at as createdAt,
@@ -1139,28 +1122,14 @@ public class GamesService : ServiceBase, IService
                 limit,
                 offset,
             });
-        return qu.Select(c => new DeveloperProduct
-        {
-            id = c.id,
-            name = c.name,
-            Description = c.description,
-            sales = c.sales,
-            price = c.price,
-            isForSale = c.isForSale,
-            iconImageAssetId = c.imageAssetId,
-            universeId = c.universeId,
-            creatorId = c.creatorId,
-            creatorType = c.creatorType == 2 ? CreatorType.Group : CreatorType.User,
-            updatedAt = c.updatedAt,
-            createdAt = c.createdAt
-        });
+        return qu;
     }
     
     public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset)
     {
         return await db.QueryAsync<DeveloperProducts>(
             @"SELECT dv.id, dv.sales, dv.name, 
-            dv.description as Description,
+            dv.description as description,
             dv.universe_id as shopId,
             dv.image_asset_id as iconImageAssetId,
             dv.price as priceInRobux
@@ -1175,25 +1144,6 @@ public class GamesService : ServiceBase, IService
             });
     }
     
-    public async Task<DeveloperProducts> GetDeveloperProduct(long productId) 
-    {
-        // universe id is the shop id because idfk what shop id even is
-        var result = await db.QuerySingleOrDefaultAsync<DeveloperProducts>(
-            @"SELECT dv.id, dv.sales, dv.name, 
-            dv.description as Description,
-            dv.universe_id as shopId,
-            dv.image_asset_id as iconImageAssetId,
-            dv.price as priceInRobux
-            FROM developer_product AS dv
-            WHERE dv.id = :productId",
-            new
-            {
-                productId
-            });
-        if (result == null)
-            throw new RecordNotFoundException("Product not found");
-        return result;
-    }
     
     public async Task<int> GetDeveloperProductCount(long universeId) 
     {

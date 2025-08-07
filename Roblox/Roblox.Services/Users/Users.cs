@@ -1447,8 +1447,7 @@ public class UsersService : ServiceBase, IService
         //  - people alt hoarding newly released collectible items
         currency = CurrencyType.Robux;
         using var games = ServiceProvider.GetOrCreate<GamesService>(this);
-        var productList = await games.GetDeveloperProductInfoFull(productId, 1, 0);
-        var details = productList.FirstOrDefault();
+        var details = await games.GetDeveloperProductInfoFull(productId);
         if (details == null) {
             return PurchaseAbuseFailureReason.Unknown;
         }
@@ -1669,8 +1668,7 @@ public class UsersService : ServiceBase, IService
         return await InTransaction(async _ =>
         {
             using var games = ServiceProvider.GetOrCreate<GamesService>(this);
-            var productList = await games.GetDeveloperProductInfoFull(productId, 1, 0);
-            var productDetails = productList.FirstOrDefault();
+            var productDetails = await games.GetDeveloperProductInfoFull(productId);
             if (productDetails == null)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductDoesNotExist);
 
