@@ -45,6 +45,7 @@ public class Universe
     public int maxPlayers { get; set; }
     public long visits { get; set; }
     public bool createVipServersAllowed { get; set; }
+    public long robloxPlaceId { get; set; }
     [JsonIgnore]
     public long creatorId { get; set; }
     [JsonIgnore]

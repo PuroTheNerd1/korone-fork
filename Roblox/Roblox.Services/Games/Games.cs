@@ -1,5 +1,4 @@
 using Dapper;
-using InfluxDB.Client.Api.Domain;
 using Newtonsoft.Json.Linq;
 using Roblox.Dto;
 using Roblox.Dto.Games;
@@ -7,7 +6,6 @@ using Roblox.Dto.Users;
 using Roblox.Exceptions.Services.Assets;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
-using Roblox.Models.Studio;
 using Roblox.Services.Exceptions;
 using Roblox.Services.Signer;
 using Type = Roblox.Models.Assets.Type;
@@ -314,6 +312,7 @@ public class GamesService : ServiceBase, IService
                 asset.price_robux as price,
                 asset.creator_id as creatorId,
                 asset.creator_type as creatorType,
+                asset_place.roblox_place_id as robloxPlaceId,
                 (SELECT COUNT(*) as playing FROM asset_server_player WHERE asset_id = universe.root_asset_id),
                 (case when ""asset"".creator_type = 1 then ""user"".username else ""group"".name end) as creatorName
             FROM
@@ -362,6 +361,7 @@ public class GamesService : ServiceBase, IService
                 ap.year AS year,
                 ap.visit_count AS visits,
                 ap.is_vip_enabled AS createVipServersAllowed,
+                ap.roblox_place_id AS robloxPlaceId,
                 a.price_robux AS price,
                 a.creator_id AS creatorId,
                 a.creator_type AS creatorType,
@@ -912,6 +912,16 @@ public class GamesService : ServiceBase, IService
         {
             universeId
         });
+        return result;
+    }
+
+    public async Task<long> GetRobloxPlaceIdForPlace(long placeId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<long>(
+            "SELECT roblox_place_id FROM asset_place WHERE asset_id = :id LIMIT 1", new
+            {
+                id = placeId,
+            });
         return result;
     }
 

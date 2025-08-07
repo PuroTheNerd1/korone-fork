@@ -1,19 +1,18 @@
-using System.Text;
-using System.IO.Compression;
-using MVC = Microsoft.AspNetCore.Mvc;
-using Roblox.Libraries.Assets;
-using Roblox.Services.Exceptions;
-using BadRequestException = Roblox.Exceptions.BadRequestException;
-using Roblox.Models.Assets;
-using JsonSerializer = System.Text.Json.JsonSerializer;
-using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
-using Type = Roblox.Models.Assets.Type;
-using Microsoft.AspNetCore.Mvc;
-using Roblox.Dto.Assets;
-using Roblox.Website.Middleware;
 using Roblox.Libraries.RobloxApi;
 using Roblox.Logging;
 using Roblox.Rendering;
+using Roblox.Services;
+using Roblox.Libraries.Assets;
+using Roblox.Services.Exceptions;
+using Roblox.Models.Assets;
+using Roblox.Exceptions;
+using ServiceProvider = Roblox.Services.ServiceProvider;
+using Type = Roblox.Models.Assets.Type;
+using System.Text;
+using Microsoft.AspNetCore.Mvc;
+using Roblox.Dto.Assets;
+using System.Text.Json;
+
 namespace Roblox.Website.Controllers;
 [ApiController]
 [Route("/")]
@@ -29,7 +28,7 @@ public class Asset : ControllerBase
     [HttpPostBypass("v1/asset")]
     [HttpGetBypass("asset")]
     [HttpPostBypass("asset")]
-    public async Task<MVC.ActionResult> GetAssetById(long? playerId, long id, long? assetversion = null, long? assetversionid = null)
+    public async Task<ActionResult> GetAssetById(long? playerId, long id, long? assetversion = null, long? assetversionid = null)
     {
         /*
         This is from corescripts from 2017 for more context
@@ -60,7 +59,8 @@ public class Asset : ControllerBase
         else if(id == 507766666)
         {
             return PhysicalFile(@"C:\ProjectX\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");
-        } else if (BlacklistedAssetIds.Contains(id))
+        } 
+        else if (BlacklistedAssetIds.Contains(id))
         {
             throw new RobloxException(400, 0, "Asset is invalid or does not exist");
         }
@@ -87,56 +87,9 @@ public class Asset : ControllerBase
             }
             catch (RecordNotFoundException)
             {
-                // We couldn't find the asset, try to get the asset from Roblox from cache
-                string? location = await services.robloxassets.GetRobloxAssetLocationFromCache(id);
-                // We couldn't find the asset in cache, try to get it from Roblox
-                if (location == null)
-                {
-                    // Don't bother caching assets for non roblox clients
-                    if (!isRoblox)
-                        throw new RecordNotFoundException();
-
-                    //Writer.Info(LogGroup.AssetDelivery, "Asset {0} not found in cache, fetching from Roblox", id);
-                    location = await services.robloxApi.GetAssetLocation(id);
-
-                    // Asset is OK!
-                    if (location != "BAD")
-                    {
-                        //Writer.Info(LogGroup.AssetDelivery, "Caching asset {0}", id);
-                        await services.robloxassets.SetRobloxAssetLocationInCache(id, location);
-                        //await Services.Cache.distributed.StringSetAsync(key, location, TimeSpan.FromDays(9));
-                    }
-                    // We probaly hit a rate limit of a 403 just redirect to Roblox
-                    else
-                    {
-                        //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
-                        return Redirect($"https://assetdelivery.roblox.com/v1/asset/?id={id}");
-                    }
-                    try
-                    {
-                        return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
-                    }
-                    catch (Exception)
-                    {
-                        //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
-                        return Redirect(location);
-                    }
-                }
-                else
-                {
-                    //Writer.Info(LogGroup.AssetDelivery, "Using cached asset {0}", id);
-                    try
-                    {
-                        return File(await services.robloxApi.GetStreamAsync(location), "application/binary");
-                    }
-                    catch (Exception)
-                    {
-                        //Writer.Info(LogGroup.AssetDelivery, "Asset {0} is bad, redirecting to Roblox", id);
-                        return Redirect(location);
-                    }
-
-                }
-
+                using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
+                var location = await robloxAssetService.GetAssetById(assetId);
+                return Redirect(location);
             }
         }
         var isBot = Request.Headers["bot-auth"].ToString() == Configuration.BotAuthorization;
@@ -151,11 +104,11 @@ public class Asset : ControllerBase
         {
             // Special types
             case Roblox.Models.Assets.Type.TeeShirt:
-                return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetTeeShirt(assetVersion.contentId)), "application/binary");
+                return new FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetTeeShirt(assetVersion.contentId)), "application/binary");
             case Models.Assets.Type.Shirt:
-                return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(assetVersion.contentId)), "application/binary");
+                return new FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(assetVersion.contentId)), "application/binary");
             case Models.Assets.Type.Pants:
-                return new MVC.FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetPants(assetVersion.contentId)), "application/binary");
+                return new FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetPants(assetVersion.contentId)), "application/binary");
             // Types that require no authentication and aren't encrypted
             case Models.Assets.Type.Image:
             case Models.Assets.Type.Special:
@@ -273,35 +226,13 @@ public class Asset : ControllerBase
         if (robloxAssetRequest.Count > 0)
         {
             //Writer.Info(LogGroup.AssetDelivery, "Fetching {0} batch assets from Roblox", robloxAssetRequest.Count);
-            var robloxAssets = await services.robloxApi.GetAssetsFromBatch(robloxAssetRequest);
+            using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
+            var robloxAssets = await robloxAssetService.GetAssetsInBulk(robloxAssetRequest, currentPlaceId);
             assets.AddRange(robloxAssets);
         }
 
 
         return Content(JsonSerializer.Serialize<List<AssetDeliveryV1BatchResponse>>(assets), "application/json");
-    }
-    private async Task ProcessRobloxAssetsAsync(IEnumerable<dynamic> robloxResults, List<object> robloxAssets, List<object> assets)
-    {
-        foreach (var robloxAsset in robloxResults)
-        {
-            if (robloxAsset.location == null)
-                continue;
-
-            // Get assetId from assets list
-            var asset = robloxAssets.FirstOrDefault(a => ((dynamic)a).requestId == robloxAsset.requestId);
-            long assetId = ((dynamic)asset!).assetId;
-            assets.Add(new
-            {
-                location = robloxAsset.location,
-                requestId = robloxAsset.requestId,
-                IsHashDynamic = false,
-                IsCopyrightProtected = false,
-                IsArchived = false,
-                assetTypeId = robloxAsset.assetTypeId
-            });
-
-            await services.robloxassets.SetRobloxAssetLocationInCache(assetId, robloxAsset.location);
-        }
     }
     private static AssetDeliveryV1BatchResponse CreateAssetResponse(Type assetType, string requestId, string? location)
     {

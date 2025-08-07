@@ -11,7 +11,7 @@ namespace Roblox.Website.Controllers
     {
         public AssetsService assets { get; } = new();
         public PromocodesService promocodes { get; } = new();
-        public RobloxAssetService robloxassets { get; } = new();
+        public RobloxAssetService robloxAssetCache { get; } = new();
         public UsersService users { get; } = new();
         public AccountInformationService accountInformation { get; } = new();
         public AvatarService avatar { get; } = new();

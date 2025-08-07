@@ -22,9 +22,11 @@ public class ProductDataResponse
     public DateTime? Updated { get; set; }
 }
 
-public class AssetDeliveryResponse
+public class AssetDelivery
 {
-    public string? location { get; set; }
+    public string location { get; set; }
+    public string requestId { get; set; }
+    public Models.Assets.Type assetTypeId { get; set; }
 }
 
 public class AssetDeliveryEntry
@@ -217,7 +219,6 @@ public class RobloxApi
             DefaultRequestHeaders.Add("Accept", "*/*");
             DefaultRequestHeaders.Add("User-Agent", "Roblox/WinInet");
             DefaultRequestHeaders.Add("Roblox-Browser-Asset-Request", "false");
-            DefaultRequestHeaders.Add("Roblox-Place-Id", "1818");
         }
     }
 
@@ -404,20 +405,38 @@ public class RobloxApi
         return await strResult.Content.ReadAsStreamAsync();
     }
 
-    public async Task<IEnumerable<AssetDeliveryV1BatchResponse>> GetAssetsFromBatch(List<BatchAssetRequest> request)
+    public static async Task<IEnumerable<AssetDeliveryV1BatchResponse>> GetAssetsFromBatch(List<BatchAssetRequest> assets, long? placeId = 1818)
     {
-        var result = await robloxApiClient.PostAsync("https://assetdelivery.roblox.com/v1/assets/batch", new StringContent(JsonSerializer.Serialize(request)));
+        var request = new HttpRequestMessage(
+            HttpMethod.Post, 
+            "https://assetdelivery.roblox.com/v1/assets/batch");
+
+        request.Content = new StringContent(JsonSerializer.Serialize(assets), Encoding.UTF8, "application/json");
+        request.Headers.Add("Roblox-Place-Id", placeId.ToString());
+
+        var result = await robloxApiClient.SendAsync(request);
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
-        if (result == null)
-            throw new Exception("Null response from Roblox");
+
         var response = await result.Content.ReadFromJsonAsync<IEnumerable<AssetDeliveryV1BatchResponse>>();
         if (response == null)
             throw new Exception("Null response from batch request");
 
         return response;
     }
+    public static async Task<AssetDelivery> GetAssetById(long assetId, long? placeId = 1818)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"https://assetdelivery.roblox.com/v1/assetid/{assetId}");
+        request.Headers.Add("Roblox-Place-Id", placeId.ToString());
+        var result = await robloxApiClient.SendAsync(request);
 
+        if (!result.IsSuccessStatusCode)
+            throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
+        var body = await result.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<AssetDelivery>(body)!;
+    }
     public async Task<Stream> GetAssetContentFromProxy(long assetId, long? version = null)
     {
         HttpResponseMessage? result = null;
@@ -441,40 +460,7 @@ public class RobloxApi
         var request = await robloxApiClient.GetAsync($"https://apis.roblox.com/toolbox-service/v1/{type}?keyword={keyword}&sortType={sortType}&limit={limit}");
         return await request.Content.ReadAsStringAsync();
     }
-    public async Task<string> GetAssetLocation(long assetId)
-    {
-        var v1Url = $"https://assetdelivery.roblox.com/v1/asset?id={assetId}";
-        var result = await robloxApiClient.GetAsync(v1Url);
 
-        if (result != null)
-        {
-            string assetLocation = result.RequestMessage!.RequestUri!.ToString();
-            //Writer.Info(LogGroup.RealRobloxApi, "got asset location for asset {0}: {1}", assetId, assetLocation);
-            return assetLocation;
-        }
-
-        // Fall back to AssetDeliveryV2
-        //Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV1 failed for asset {0}, trying V2", assetId);
-
-        var v2Url = $"https://assetdelivery.roblox.com/v2/asset?id={assetId}";
-        result = await robloxApiClient.GetAsync(v2Url);
-
-        if (!result.IsSuccessStatusCode)
-        {
-            //Writer.Info(LogGroup.RealRobloxApi, "AssetDeliveryV2 failed status: {0}", result.StatusCode);
-            return "BAD";
-        }
-
-        var assetDeliveryResponse = await result.Content.ReadAsStringAsync();
-        var assetDelivery = JsonSerializer.Deserialize<AssetDeliveryV2Response>(assetDeliveryResponse);
-
-        if (assetDelivery?.locations == null || !assetDelivery.locations.Any())
-            return "BAD";
-
-        var location = assetDelivery.locations.First().location ?? "BAD";
-        //Writer.Info(LogGroup.RealRobloxApi, "Got asset location for asset {0}: {1}", assetId, location);
-        return location;
-    }
     public async Task<Stream> GetAssetContent(long assetId)
     {
         while (true)
@@ -488,9 +474,9 @@ public class RobloxApi
             if (!result.IsSuccessStatusCode)
                 throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
             var str = await result.Content.ReadAsStringAsync();
-            var bod = JsonSerializer.Deserialize<AssetDeliveryResponse>(str);
+            var bod = JsonSerializer.Deserialize<AssetDelivery>(str);
             if (bod == null)
-                throw new Exception("Null " + nameof(AssetDeliveryResponse) + " from Roblox");
+                throw new Exception("Null " + nameof(AssetDelivery) + " from Roblox");
             if (string.IsNullOrEmpty(bod.location))
                 throw new Exception("Roblox did not give a URL for this asset content. Is the URL valid?");
 

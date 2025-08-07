@@ -1,40 +1,51 @@
-using System.Configuration;
-using System.Runtime.CompilerServices;
-
+using Roblox.Libraries.RobloxApi;
+using Roblox.Logging;
 namespace Roblox.Services;
 
 public class RobloxAssetService : ServiceBase, IService
 {
-
-    public async Task<string?> GetRobloxAssetLocationFromCache(long id)
+    private string GetAssetCacheKey(long id)
     {
-        string key = "chloeassetcachev3:" + id;
-        return await redis.StringGetAsync(key);
+        return "chloeassetcache_v4:" + id;
     }
-    public async Task SetRobloxAssetLocationInCache(long id, string location)
+    public async Task<string> GetAssetById(long id, long placeId = 0)
     {
-        string key = "chloeassetcachev3:" + id;
-        await redis.StringSetAsync(key, location, TimeSpan.FromHours(2));
-    }
-    public async Task ProcessRobloxAssets(IEnumerable<dynamic> robloxResults, List<object> assets)
-    {
-        foreach (var robloxAsset in robloxResults)
+        var location = await GetAssetInCacheById(id);
+        if (location is not null)
+            return location;
+        // We didn't find the asset in cache, let's get it
+        using var games = ServiceProvider.GetOrCreate<GamesService>(this);
+        // Get the Roblox place ID for the given place ID this is for impersonation
+        long robloxPlaceId = await games.GetRobloxPlaceIdForPlace(placeId);
+        // Non default placeId used let's log it for debugging
+        if (robloxPlaceId != 1818)
         {
-            if (robloxAsset.location == null)
-                continue;
-
-            assets.Add(new
-            {
-                location = robloxAsset.location,
-                requestId = robloxAsset.requestId,
-                IsHashDynamic = false,
-                IsCopyrightProtected = false,
-                IsArchived = false,
-                assetTypeId = (int)Enum.Parse(typeof(Type), robloxAsset.assetType),
-            });
-
-            await SetRobloxAssetLocationInCache(robloxAsset.assetId, robloxAsset.location);
+            Writer.Info(LogGroup.AssetDelivery, "GetAssetById assetId: {0}, place id: {1}, impersonator place id: {2}", id, placeId, robloxPlaceId);
         }
+        // Now we request asset delivery for the asset with our roblox place id
+        var assetDelivery = await RobloxApi.GetAssetById(id, robloxPlaceId);
+        // Set the asset in cache
+        await SetAssetInCacheById(id, assetDelivery.location);
+
+        return assetDelivery.location;
+    }
+    // TODO: Caching
+    public async Task<IEnumerable<AssetDeliveryV1BatchResponse>> GetAssetsInBulk(List<BatchAssetRequest> assets, long placeId)
+    {
+        using var games = ServiceProvider.GetOrCreate<GamesService>(this);
+        long robloxPlaceId = await games.GetRobloxPlaceIdForPlace(placeId);
+
+        return await RobloxApi.GetAssetsFromBatch(assets, robloxPlaceId);
+    }
+
+    private async Task<string?> GetAssetInCacheById(long id)
+    {
+        return await redis.StringGetAsync(GetAssetCacheKey(id));
+    }
+    private async Task SetAssetInCacheById(long id, string location)
+    {
+        // Cache for 2 days
+        await redis.StringSetAsync(GetAssetCacheKey(id), location, TimeSpan.FromDays(2));
     }
 
     public bool IsReusable()
