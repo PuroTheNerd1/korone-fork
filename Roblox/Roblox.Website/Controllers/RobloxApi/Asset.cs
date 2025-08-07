@@ -28,7 +28,7 @@ public class Asset : ControllerBase
     [HttpPostBypass("v1/asset")]
     [HttpGetBypass("asset")]
     [HttpPostBypass("asset")]
-    public async Task<ActionResult> GetAssetById(long? playerId, long id, long? assetversion = null, long? assetversionid = null)
+    public async Task<ActionResult> GetAssetById(long? playerId, long id, long? assetversion = null, long? assetversionid = null, long? serverplaceid = null)
     {
         /*
         This is from corescripts from 2017 for more context
@@ -46,9 +46,7 @@ public class Asset : ControllerBase
         }
 
         */
-        // @jaggerthejag
-        if (playerId == 261 || id == 105897927)
-            id = 72236;
+
 
         // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
         // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
@@ -88,7 +86,7 @@ public class Asset : ControllerBase
             catch (RecordNotFoundException)
             {
                 using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
-                var location = await robloxAssetService.GetAssetById(assetId, currentPlaceId);
+                var location = await robloxAssetService.GetAssetById(assetId, serverplaceid ?? currentPlaceId);
                 return Redirect(location);
             }
         }
