@@ -166,7 +166,7 @@ public class AssetsService : ServiceBase, IService
         var sortOrderSql = sortOrder == SortOrder.Asc ? "ASC" : "DESC";
 
         var result = await db.QueryAsync<AssetVersionEntry>(
-            $"SELECT id AS assetVersionId, version_number AS versionNumber, content_url AS contentUrl, content_id AS contentId, created_at AS createdAt, updated_at AS updatedAt, creator_id AS creatorId FROM asset_version WHERE asset_id = :id ORDER BY id {sortOrderSql} LIMIT :limit OFFSET :offset",
+            $"SELECT id AS assetVersionId, asset_id as assetId, version_number AS versionNumber, content_url AS contentUrl, content_id AS contentId, created_at AS createdAt, updated_at AS updatedAt, creator_id AS creatorId FROM asset_version WHERE asset_id = :id ORDER BY id {sortOrderSql} LIMIT :limit OFFSET :offset",
             new 
             { 
                 id = assetId, 
