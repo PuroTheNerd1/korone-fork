@@ -1,5 +1,7 @@
 using Roblox.Libraries.RobloxApi;
 using Roblox.Logging;
+using Roblox.Exceptions;
+using Roblox.Services.Exceptions;
 namespace Roblox.Services;
 
 public class RobloxAssetService : ServiceBase, IService
@@ -18,9 +20,15 @@ public class RobloxAssetService : ServiceBase, IService
         // Get the Roblox place ID for the given place ID this is for impersonation
         long robloxPlaceId = await games.GetRobloxPlaceIdForPlace(placeId);
         // Debug
-        Writer.Info(LogGroup.AssetDelivery, "GetAssetById assetId: {0}, place id: {1}, impersonator place id: {2}", id, placeId, robloxPlaceId);
+        if (placeId is not 0)
+        {
+            Writer.Info(LogGroup.AssetDelivery, "GetAssetById assetId: {0}, place id: {1}, impersonator place id: {2}", id, placeId, robloxPlaceId);
+        }
+        
         // Now we request asset delivery for the asset with our roblox place id
         var assetDelivery = await RobloxApi.GetAssetById(id, robloxPlaceId);
+        if (assetDelivery is null)
+            throw new RecordNotFoundException($"Asset {id} not found");
 
         // Set the asset in cache
         await SetAssetInCacheById(id, assetDelivery.location);

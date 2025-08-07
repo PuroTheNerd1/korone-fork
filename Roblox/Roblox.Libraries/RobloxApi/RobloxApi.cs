@@ -424,7 +424,7 @@ public class RobloxApi
 
         return response;
     }
-    public static async Task<AssetDelivery> GetAssetById(long assetId, long? placeId = 1818)
+    public static async Task<AssetDelivery?> GetAssetById(long assetId, long? placeId = 1818)
     {
         var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -433,7 +433,8 @@ public class RobloxApi
         var result = await robloxApiClient.SendAsync(request);
 
         if (!result.IsSuccessStatusCode)
-            throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
+            return null;
+
         var body = await result.Content.ReadAsStringAsync();
 
         return JsonSerializer.Deserialize<AssetDelivery>(body)!;
