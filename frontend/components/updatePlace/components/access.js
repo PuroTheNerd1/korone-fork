@@ -29,7 +29,7 @@ const Access = (props) => {
     setPlaceRobloxPlaceId({
       placeId: store.details.placeId,
       robloxPlaceId: robloxPlaceId,
-    });
+    })
     setUniverseMaxPlayers({
       universeId: store.details.universeId,
       maxPlayers: maxPlayers,
