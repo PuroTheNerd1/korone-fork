@@ -14,7 +14,7 @@ public class DevelopControllerV2 : ControllerBase
         await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
         if (limit is < 1 or > 100) limit = 10;
         int offset = !string.IsNullOrWhiteSpace(cursor) ? int.Parse(cursor) : 0;
-        var versions = (await services.assets.GetAssetVersions(assetId, limit, offset, sortOrder)).ToList();
+        var versions = (await services.assets.GetAssetVersions(assetId, offset, limit, sortOrder)).ToList();
         return new
         {
             previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
