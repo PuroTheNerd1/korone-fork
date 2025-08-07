@@ -435,7 +435,7 @@ public class RobloxApi
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
-        Console.Write(body);
+
         return JsonSerializer.Deserialize<AssetDelivery>(body)!;
     }
     public async Task<Stream> GetAssetContentFromProxy(long assetId, long? version = null)

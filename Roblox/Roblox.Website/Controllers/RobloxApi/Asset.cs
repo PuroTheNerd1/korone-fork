@@ -88,7 +88,7 @@ public class Asset : ControllerBase
             catch (RecordNotFoundException)
             {
                 using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
-                var location = await robloxAssetService.GetAssetById(assetId);
+                var location = await robloxAssetService.GetAssetById(assetId, currentPlaceId);
                 return Redirect(location);
             }
         }
