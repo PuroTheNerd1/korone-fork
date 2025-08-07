@@ -189,8 +189,7 @@ public class AssetsService : ServiceBase, IService
                 id = assetId,
                 version = assetVersion,
             });
-        if (result == null) 
-            throw new RecordNotFoundException();
+        if (result == null) throw new RecordNotFoundException();
         return result;
     }
     private void ValidateNameAndDescription(string name, string? description)
@@ -1319,6 +1318,30 @@ public class AssetsService : ServiceBase, IService
             assetVersionId = id,
         };
     }
+    public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, Stream assetContent)
+    {
+        var latest = await GetLatestAssetVersion(assetId);
+        var fileId = await UploadAssetContent(assetContent, Configuration.AssetDirectory);
+        var created = DateTime.UtcNow;
+
+        var id = await InsertAsync("asset_version", new
+        {
+            asset_id = assetId,
+            version_number = latest.versionNumber + 1,
+            creator_id = creatorUserId,
+            created_at = created,
+            updated_at = created,
+            content_url = fileId,
+        });
+
+        await UpdateAsset(assetId);
+
+        return new()
+        {
+            assetId = assetId,
+            assetVersionId = id,
+        };
+    }
     public async Task UpdateAsset(long assetId)
     {
         await db.ExecuteAsync("UPDATE asset SET updated_at = now() WHERE id = :id", new
@@ -1326,6 +1349,8 @@ public class AssetsService : ServiceBase, IService
             id = assetId,
         });
     }
+
+
 
     private static readonly Models.Assets.Type[] TypesToGrantOnCreation = new[]
     {
