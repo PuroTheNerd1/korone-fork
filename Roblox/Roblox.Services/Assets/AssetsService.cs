@@ -31,6 +31,7 @@ using SixLabors.ImageSharp.Formats.Png;
 using AssetId = Roblox.Dto.Assets.AssetId;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
+using Roblox.Models.Db;
 
 namespace Roblox.Services;
 public class EasyConverters
@@ -149,8 +150,7 @@ public class AssetsService : ServiceBase, IService
 
         return result.assetId;
     }
-
-    public async Task<Dto.Assets.AssetVersionEntry> GetLatestAssetVersion(long assetId)
+    public async Task<AssetVersionEntry> GetLatestAssetVersion(long assetId)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
             "SELECT id as assetVersionId, version_number as versionNumber, content_url as contentUrl, content_id as contentId, created_at as createdAt, updated_at as updatedAt, creator_id as creatorId FROM asset_version WHERE asset_id = :id ORDER BY id DESC LIMIT 1",
@@ -161,6 +161,25 @@ public class AssetsService : ServiceBase, IService
         if (result == null) throw new RecordNotFoundException();
         return result;
     }
+    public async Task<IEnumerable<AssetVersionEntry>> GetAssetVersions(long assetId, int offset, int limit, SortOrder sortOrder)
+    {
+        var sortOrderSql = sortOrder == SortOrder.Asc ? "ASC" : "DESC";
+
+        var result = await db.QueryAsync<AssetVersionEntry>(
+            $"SELECT id AS assetVersionId, version_number AS versionNumber, content_url AS contentUrl, content_id AS contentId, created_at AS createdAt, updated_at AS updatedAt, creator_id AS creatorId FROM asset_version WHERE asset_id = :id ORDER BY id {sortOrderSql} LIMIT :limit OFFSET :offset",
+            new 
+            { 
+                id = assetId, 
+                limit, 
+                offset 
+            });
+
+        if (result == null || !result.Any())
+            throw new RecordNotFoundException();
+
+        return result;
+    }
+
     public async Task<Dto.Assets.AssetVersionEntry> GetSpecificAssetVersion(long assetId, long assetVersion)
     {
         var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
@@ -170,7 +189,8 @@ public class AssetsService : ServiceBase, IService
                 id = assetId,
                 version = assetVersion,
             });
-        if (result == null) throw new RecordNotFoundException();
+        if (result == null) 
+            throw new RecordNotFoundException();
         return result;
     }
     private void ValidateNameAndDescription(string name, string? description)
@@ -1276,19 +1296,9 @@ public class AssetsService : ServiceBase, IService
             assetVersionId = id,
         };
     }
-
-    public async Task UpdateAsset(long assetId)
-    {
-        await db.ExecuteAsync("UPDATE asset SET updated_at = now() WHERE id = :id", new
-        {
-            id = assetId,
-        });
-    }
-
-    public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, Stream assetContent)
+    public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, string contentUrl)
     {
         var latest = await GetLatestAssetVersion(assetId);
-        var fileId = await UploadAssetContent(assetContent, Configuration.AssetDirectory);
         var created = DateTime.UtcNow;
 
         var id = await InsertAsync("asset_version", new
@@ -1298,7 +1308,7 @@ public class AssetsService : ServiceBase, IService
             creator_id = creatorUserId,
             created_at = created,
             updated_at = created,
-            content_url = fileId,
+            content_url = contentUrl,
         });
 
         await UpdateAsset(assetId);
@@ -1308,6 +1318,13 @@ public class AssetsService : ServiceBase, IService
             assetId = assetId,
             assetVersionId = id,
         };
+    }
+    public async Task UpdateAsset(long assetId)
+    {
+        await db.ExecuteAsync("UPDATE asset SET updated_at = now() WHERE id = :id", new
+        {
+            id = assetId,
+        });
     }
 
     private static readonly Models.Assets.Type[] TypesToGrantOnCreation = new[]

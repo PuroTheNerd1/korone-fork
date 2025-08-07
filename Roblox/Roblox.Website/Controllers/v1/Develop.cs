@@ -1,12 +1,14 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
 using Roblox.Exceptions.Services.Assets;
+using Roblox.Libraries.Cursor;
 using Roblox.Libraries.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
-using Roblox.Services.Exceptions;
+using Roblox.Models.Db;
 using Roblox.Website.WebsiteModels.Catalog;
 using Type = Roblox.Models.Assets.Type;
 
@@ -49,6 +51,82 @@ public class DevelopControllerV1 : ControllerBase
         };
     }
 
+    [HttpGetBypass("/v1/assets/{assetId}/latest-saved-version")]
+    [HttpGet("assets/{assetId}/latest-saved-version")]
+    public async Task<dynamic> GetLatestSavedVersion(long assetId)
+    {
+        await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
+        var version = await services.assets.GetLatestAssetVersion(assetId);
+        return new
+        {
+            assetId = version.assetId,
+            assetVersionNumber = version.versionNumber,
+            creatorTargetId = version.creatorId,
+            creatingUniverseId = 0,
+            created = version.createdAt,
+            isEqualToCurrentPublishedVersion = true,
+            isPublished = true
+        };
+    }
+
+    [HttpGetBypass("/v1/assets/{assetId}/published-versions")]
+    [HttpGet("assets/{assetId}/published-versions")]
+    public async Task<dynamic> GetPublishedVersions(long assetId, string? cursor, int limit = 10, SortOrder sortOrder = SortOrder.Desc)
+    {
+        await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
+        if (limit is < 1 or > 100) limit = 10;
+        int offset = !string.IsNullOrWhiteSpace(cursor) ? int.Parse(cursor) : 0;
+        var versions = (await services.assets.GetAssetVersions(assetId, limit, offset, sortOrder)).ToList();
+        return new
+        {
+            previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
+            nextPageCursor = versions.Count >= limit ? (offset + limit).ToString() : null,
+            data = versions.Select(c => new
+            {
+                assetId = c.assetId,
+                assetVersionNumber = c.versionNumber,
+                creatorTargetId = c.creatorId,
+                creatingUniverseId = 0,
+                created = c.createdAt,
+                isEqualToCurrentPublishedVersion = c.contentUrl == versions.First().contentUrl,
+                isPublished = true
+            })
+        };
+    }
+
+    [HttpGetBypass("/v1/assets/{assetId}/versions/{versionNumber}")]
+    [HttpGet("assets/{assetId}/versions/{versionNumber}")]
+    public async Task<dynamic> GetPublishedAssetVersion(long assetId, long versionNumber)
+    {
+        await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
+        var version = await services.assets.GetSpecificAssetVersion(assetId, versionNumber);
+        var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
+        return new
+        {
+            assetId = version.assetId,
+            assetVersionNumber = version.versionNumber,
+            creatorTargetId = version.creatorId,
+            creatingUniverseId = 0,
+            created = version.createdAt,
+            isEqualToCurrentPublishedVersion = version.contentUrl == latestVersion.contentUrl,
+            isPublished = version.contentUrl == latestVersion.contentUrl,
+        };
+    }
+    [HttpPostBypass("/v1/assets/{assetId}/revert-version")]
+    [HttpPost("assets/{assetId}/revert-version")]
+    public async Task<dynamic> RevertAssetVersion(long assetId, long assetVersionNumber)
+    {
+        await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
+        if (assetVersionNumber < 1)
+            throw new BadRequestException(0, "Version number must be greater than 0");
+        var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
+        if (assetInfo.assetType != Type.Model && assetInfo.assetType != Type.Place)
+            throw new BadRequestException(1, "This endpoint is meant for models and places only. Use assets/{assetId} for other assets.");
+        var version = await services.assets.GetSpecificAssetVersion(assetId, assetVersionNumber);
+
+        await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, version.contentUrl!);
+        return Ok();
+    }
     [HttpPost("assets/upload-gameicon")]
     public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
     {
