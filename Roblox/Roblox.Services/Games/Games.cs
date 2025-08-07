@@ -709,6 +709,15 @@ public class GamesService : ServiceBase, IService
         });
     }
 
+    public async Task SetRobloxPlaceId(long placeId, long robloxPlaceId)
+    {
+        await db.ExecuteAsync("UPDATE asset_place SET roblox_place_id = :robloxPlaceId WHERE asset_id = :id", new
+        {
+            id = placeId,
+            robloxPlaceId,
+        });
+    }
+
     public async Task<IEnumerable<PlaceEntry>> MultiGetPlaceDetails(IEnumerable<long> placeIds)
     {
         var ids = placeIds.Distinct().ToArray();
@@ -732,6 +741,7 @@ public class GamesService : ServiceBase, IService
                 asset.updated_at as updated,
                 asset_place.max_player_count as maxPlayerCount,
                 asset_place.year as year,
+                asset_place.roblox_place_id as robloxPlaceId,
                 asset.moderation_status as moderationStatus
             FROM
                 asset

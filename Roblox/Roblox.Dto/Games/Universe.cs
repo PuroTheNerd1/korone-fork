@@ -245,6 +245,10 @@ public class SetMaxPlayerCountRequest
 {
     public int maxPlayers { get; set; }
 }
+public class SetRobloxPlaceIdRequest
+{
+    public long robloxPlaceId { get; set; }
+}
 
 public class UniverseGamePassEntryDb
 {

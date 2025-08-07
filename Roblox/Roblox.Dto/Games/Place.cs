@@ -8,6 +8,7 @@ public class PlaceEntry
     public string name { get; set; }
     public string? description { get; set; }
     public long year { get; set;}
+    public long robloxPlaceId { get; set; }
     public long builderId { get; set; }
     public CreatorType builderType { get; set; }
     public string builder { get; set; }

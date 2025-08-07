@@ -2,7 +2,7 @@ import updatePlaceStore from "../stores/updatePlaceStore";
 import { useEffect, useState } from "react";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
-import { setUniverseMaxPlayers, setUniverseYear } from "../../../services/develop";
+import { setUniverseMaxPlayers, setUniverseYear, setPlaceRobloxPlaceId } from "../../../services/develop";
 
 const Access = (props) => {
   const s = useButtonStyles();
@@ -10,11 +10,13 @@ const Access = (props) => {
   const [maxPlayers, setMaxPlayers] = useState(10);
   const [feedback, setFeedback] = useState(null);
   const [year, setSelectedYear] = useState(2017);
+  const [robloxPlaceId, setRobloxPlaceId] = useState(1818);
   
   const resetForm = () => {
     setFeedback(null);
     setMaxPlayers(store.details.maxPlayerCount);
     setSelectedYear(store.details.year);
+    setRobloxPlaceId(store.details.robloxPlaceId)
   };
 
   const save = () => {
@@ -23,6 +25,10 @@ const Access = (props) => {
     setUniverseYear({
       universeId: store.details.universeId,
       year: year,
+    });
+    setPlaceRobloxPlaceId({
+      placeId: store.details.placeId,
+      robloxPlaceId: robloxPlaceId,
     });
     setUniverseMaxPlayers({
       universeId: store.details.universeId,
@@ -78,6 +84,10 @@ const Access = (props) => {
             <option value={2020}>2020</option>
             <option value={2021}>2021</option>
           </select>
+          <p className="fw-bold">Animation/Audio place ID:</p>
+          <input type='number' className='w-50' value={robloxPlaceId} onChange={(v) => {
+            setRobloxPlaceId(parseInt(v.currentTarget.value));
+          }} />
         </div>
         <div className="mt-4">
           <div className="d-inline-block">

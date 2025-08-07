@@ -132,6 +132,7 @@ export const getAssetRestrictions = async (assetIds) => {
 export const getAllGenres = async () => {
     return (await request('GET', getFullUrl('develop', '/v1/assets/genres'))).data.data;
 }
+
 export const setUniverseYear = async ({ universeId, year, verbose = false }) => {
     return await request('PATCH', getFullUrl('develop', `/v1/universes/${universeId}/set-year`), {
         year,
@@ -141,6 +142,12 @@ export const setUniverseYear = async ({ universeId, year, verbose = false }) => 
 export const setUniverseMaxPlayers = async ({ universeId, maxPlayers, verbose = false }) => {
     return await request('PATCH', getFullUrl('develop', `/v1/universes/${universeId}/max-player-count`), {
         maxPlayers,
+    }, verbose);
+}
+
+export const setPlaceRobloxPlaceId = async ({ placeId, robloxPlaceId, verbose = false }) => {
+    return await request('PATCH', getFullUrl('develop', `/v1/places/${placeId}/roblox-place-id`), {
+        robloxPlaceId,
     }, verbose);
 }
 
