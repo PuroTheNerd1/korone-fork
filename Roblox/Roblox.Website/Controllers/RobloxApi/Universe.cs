@@ -221,6 +221,8 @@ public class UniverseV1 : ControllerBase
             throw new BadRequestException(0, "You must provide a valid placeId or universeId.");
         }
 
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId.Value);
+
         var products = (await services.games.GetDeveloperProducts(universeId.Value, 5, 5 * (page - 1))).ToList();
         return new
         {
@@ -232,8 +234,8 @@ public class UniverseV1 : ControllerBase
                 Name = c.name,
                 Description = c.description,
                 IconImageAssetId = c.iconImageAssetId,
-                displayName = (string?)null,
-                displayDescription = (string?)null,
+                displayName = c.name,
+                displayDescription = c.description,
                 displayIcon = (int?)null,
                 PriceInRobux = c.priceInRobux,
             }),
