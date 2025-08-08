@@ -69,6 +69,7 @@ public class DevelopControllerV1 : ControllerBase
         };
     }
 
+    [HttpGetBypass("/v1/assets/{assetId}/saved-versions")]
     [HttpGetBypass("/v1/assets/{assetId}/published-versions")]
     [HttpGet("assets/{assetId}/published-versions")]
     public async Task<dynamic> GetPublishedVersions(long assetId, string? cursor, int limit = 10, SortOrder sortOrder = SortOrder.Desc)
@@ -116,6 +117,9 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("assets/{assetId}/revert-version")]
     public async Task<dynamic> RevertAssetVersion(long assetId, long assetVersionNumber)
     {
+        if (!await services.cooldown.TryCooldownCheck("Place:RevertVersion:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Place:RevertVersion:StartIp:" + GetIP(), TimeSpan.FromSeconds(5))
+            throw new TooManyRequestsException(0, "Too many requests");
+        
         await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
         if (assetVersionNumber < 1)
             throw new BadRequestException(0, "Version number must be greater than 0");
