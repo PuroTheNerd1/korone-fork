@@ -42,6 +42,10 @@ public class DevelopControllerV2 : ControllerBase
         var rootPlace = await services.games.GetRootPlaceId(universeId);
         // Shutdown all normal servers for the root place
         var gameServers = await services.gameServer.GetGameServersForPlace(rootPlace, 1);
+        foreach (var server in gameServers)
+        {
+            await services.gameServer.ShutDownServerAsync(server.id);
+        }
         return new {};
     }
 }
