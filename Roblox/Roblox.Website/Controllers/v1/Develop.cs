@@ -144,7 +144,7 @@ public class DevelopControllerV1 : ControllerBase
                 id = c.placeId,
                 universeId = c.universeId,
                 name = c.name,
-                description = c.description,
+                description = c.description ?? "",
             })
         };
     }

@@ -54,7 +54,7 @@ public class DevelopControllerV2 : ControllerBase
                 id = c.placeId,
                 universeId = universeId,
                 name = c.name,
-                description = c.description,
+                description = c.description ?? "",
                 isRootPlace = c.placeId == c.universeRootPlaceId,
 
             })
