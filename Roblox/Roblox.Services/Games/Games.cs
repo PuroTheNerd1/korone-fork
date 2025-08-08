@@ -507,7 +507,7 @@ public class GamesService : ServiceBase, IService
             asset
             INNER JOIN universe_asset ON universe_asset.asset_id = asset.id
             INNER JOIN asset_place ON asset_place.asset_id = asset.id
-            INNER JOIN universe ON universe.id = universe_asset.universe_id
+            INNER JOIN universe u ON u.id = ua.universe_id AND a.id = u.root_asset_id
             LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
             LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
             
