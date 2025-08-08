@@ -132,7 +132,7 @@ public class RbxThumbnails : ControllerBase
         return new
         {
             Final = true,
-            Url = $"{Configuration.BaseUrl}{result[0].imageUrl!.Replace(".png", "")}",
+            Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
             RetryUrl = (string?)null,
         };
     }
