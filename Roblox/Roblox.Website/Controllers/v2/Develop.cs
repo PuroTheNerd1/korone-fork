@@ -45,17 +45,10 @@ public class DevelopControllerV2 : ControllerBase
             nextPageCursor = (string?)null,
             data = places.Select(c => new
             {
-                maxPlayerCount = c.maxPlayerCount,
-                socialSlotType = "Automatic",
-                allowCopying = false,
-                currentSavedVersion = 1,
-                allowedGearTypes = (string?)null,
-                maxPlayersAllowed = c.maxPlayerCount,
                 id = c.placeId,
                 universeId = universeId,
                 name = c.name,
                 description = c.description,
-                isRootPlace = c.placeId == uni.rootPlaceId,
             })
         };
     }
