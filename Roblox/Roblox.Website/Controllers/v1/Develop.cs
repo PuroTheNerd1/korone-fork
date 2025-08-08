@@ -191,9 +191,8 @@ public class DevelopControllerV1 : ControllerBase
     public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
     {
         if (!await services.cooldown.TryCooldownCheck("Place:GameIcon:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Place:GameIcon:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
-        {
             throw new TooManyRequestsException(0, "Too many requests");
-        }
+
         await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
         var details = await services.assets.GetAssetCatalogInfo(placeId);
         if (details.assetType != Models.Assets.Type.Place) {
