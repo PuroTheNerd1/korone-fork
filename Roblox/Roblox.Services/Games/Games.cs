@@ -541,6 +541,8 @@ public class GamesService : ServiceBase, IService
         {
             limit = maxRows
         });
+        query.Where("asset.id = universe.root_asset_id");
+
         // wheres that apply to all filters
         query.Where("asset.moderation_status = :mod_status", new
         {
