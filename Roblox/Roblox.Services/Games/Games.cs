@@ -543,10 +543,11 @@ public class GamesService : ServiceBase, IService
         });
 
         // wheres that apply to all filters
-        query.Where("asset.moderation_status = :mod_status AND asset.id = universe.root_asset_id", new
+        query.Where("asset.moderation_status = :mod_status", new
         {
             mod_status = ModerationStatus.ReviewApproved,
-        });        
+        });
+        query.Where("asset.id = universe.root_asset_id");
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
