@@ -182,7 +182,7 @@ public class GamesControllerV1 : ControllerBase
         //     throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
         // }
         if (UserAgent.Contains("Roblox/")) return new { };
-        if (maxRows is > 100 or < 1) maxRows = 10;
+        if (maxRows is > 50 or < 1) maxRows = 10;
         var result = await services.games.GetGamesList(userSession?.userId, sortToken, maxRows, genre, keyword);
         return new
         {
@@ -216,7 +216,7 @@ public class GamesControllerV1 : ControllerBase
     [HttpGet("games/recommendations/game/{universeId:long}")]
     public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
     {
-        if (maxRows is > 100 or < 1) maxRows = 10;
+        if (maxRows is > 50 or < 1) maxRows = 10;
         // todo: actually add recommendeds
         var result = await services.games.GetGamesList(safeUserSession.userId, "popular", maxRows, null, null);
         return new

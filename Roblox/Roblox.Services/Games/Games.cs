@@ -489,64 +489,65 @@ public class GamesService : ServiceBase, IService
     {
         var query = new SqlBuilder();
         var temp = query.AddTemplate(@"
-        SELECT 
-            asset.name,
-            asset.id as placeId,
-            asset.description as gameDescription,
-            asset.asset_genre as genre,
-            asset.creator_id as creatorId,
-            asset.creator_type as creatorTypeId,
-            asset_place.year as year,
-            universe.root_asset_id as rootPlaceId,  
-            universe.id as universeId,
-            asset_place.visit_count as visitCount,
-            COALESCE(asp.playerCount, 0) as playerCount,
-            COALESCE(af.favorite_count, 0) as favorite_count,
-            COALESCE(upv.totalUpVotes, 0) as totalUpVotes,
-            COALESCE(dnv.totalDownVotes, 0) as totalDownVotes,
-            COALESCE(CASE 
-                WHEN asset.creator_type = 1 THEN ""user"".username 
-                ELSE ""group"".name 
-            END, '') as creatorName
-        FROM asset
-        INNER JOIN universe ON universe.root_asset_id = asset.id
-        INNER JOIN asset_place ON asset_place.asset_id = asset.id
-        LEFT JOIN ""group"" 
-            ON ""group"".id = asset.creator_id AND asset.creator_type = 2
-        LEFT JOIN ""user"" 
-            ON ""user"".id = asset.creator_id AND asset.creator_type = 1
-        LEFT JOIN (
-            SELECT asset_id, COUNT(*) AS playerCount
-            FROM asset_server_player
-            GROUP BY asset_id
-        ) asp ON asp.asset_id = asset.id
-        LEFT JOIN (
-            SELECT asset_id, COUNT(*) AS favorite_count
-            FROM asset_favorite
-            GROUP BY asset_id
-        ) af ON af.asset_id = asset.id
-        LEFT JOIN (
-            SELECT asset_id, COUNT(*) AS totalUpVotes
-            FROM asset_vote
-            WHERE type = 1
-            GROUP BY asset_id
-        ) upv ON upv.asset_id = asset.id
-        LEFT JOIN (
-            SELECT asset_id, COUNT(*) AS totalDownVotes
-            FROM asset_vote
-            WHERE type = 2
-            GROUP BY asset_id
-        ) dnv ON dnv.asset_id = asset.id
-        /**where**/
-        /**orderby**/
-        LIMIT :limit
-    ", new { limit = maxRows });
+            SELECT asset.name,
+                   asset.id as placeId,
+                   asset.description as gameDescription,
+                   asset.asset_genre as genre,
+                   asset.creator_id as creatorId,
+                   asset.creator_type as creatorTypeId,
+                   asset_place.year as year,
+                   universe.root_asset_id as rootPlaceId,  
+                   universe_asset.universe_id as universeId,
+                   asset_place.visit_count as visitCount,
+                   COALESCE(asp.playerCount, 0) as playerCount,
+                   COALESCE(af.favorite_count, 0) as favorite_count,
+                   COALESCE(upv.totalUpVotes, 0) as totalUpVotes,
+                   COALESCE(dnv.totalDownVotes, 0) as totalDownVotes,
+                   COALESCE(CASE WHEN asset.creator_type = 1 THEN ""user"".username ELSE ""group"".name END, '') as creatorName
+            FROM 
+            asset
+            INNER JOIN universe_asset ON universe_asset.asset_id = asset.id
+            INNER JOIN asset_place ON asset_place.asset_id = asset.id
+            INNER JOIN universe ON universe.id = universe_asset.universe_id
+            LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
+            LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
+            
+            LEFT JOIN (
+                SELECT asset_id, COUNT(*) AS playerCount
+                FROM asset_server_player
+                GROUP BY asset_id
+            ) asp on asp.asset_id = asset.id
+            LEFT JOIN (
+                SELECT asset_id, COUNT(*) AS favorite_count
+                FROM asset_favorite
+                GROUP BY asset_id
+            ) af on af.asset_id = asset.id
+            LEFT JOIN (
+                SELECT asset_id, COUNT(*) AS totalUpVotes
+                FROM asset_vote
+                WHERE type = 1
+                GROUP BY asset_id
+            ) upv on upv.asset_id = asset.id
+            LEFT JOIN (
+                SELECT asset_id, COUNT(*) AS totalDownVotes
+                FROM asset_vote
+                WHERE type = 2
+                GROUP BY asset_id
+            ) dnv on dnv.asset_id = asset.id
+            
+            /**where**/
+            /**orderby**/
+            LIMIT :limit
+        ", new
+        {
+            limit = maxRows
+        });
 
         // wheres that apply to all filters
         query.Where("asset.moderation_status = :mod_status", new
         {
             mod_status = ModerationStatus.ReviewApproved,
-        });
+        });        
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -653,8 +654,7 @@ public class GamesService : ServiceBase, IService
             });
             result = newResults;
         }
-
-
+        result = result.Where(c => c.rootPlaceId == c.placeId).ToList();
         return result;
     }
 
