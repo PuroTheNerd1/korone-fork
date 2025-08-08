@@ -65,16 +65,18 @@ public class InventoryControllerV2 : ControllerBase
 
     [HttpGetBypass("/v2/users/{userId}/inventory")]
     [HttpGet("users/{userId}/inventory")]
-    public async Task<dynamic> GetUserInventory(long userId, List<Models.Assets.Type> assetTypes, string? cursor = null, int limit = 10, SortOrder sortOrder = SortOrder.Asc)
+    public async Task<dynamic> GetUserInventory(long userId, string assetTypes, string? cursor = null, int limit = 10, SortOrder sortOrder = SortOrder.Asc)
     {
         var offset = int.Parse(cursor ?? "0");
         if (limit is > 100 or < 1) limit = 10;
-
+        var assetTypeList = assetTypes.Split(',')
+            .Select(a => Enum.Parse<Models.Assets.Type>(a, true))
+            .ToList();
         var canView = await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0);
         if (!canView)
             throw new ForbiddenException(11, "You don't have permissions to view the specified user's inventory");
 
-        var result = (await services.inventory.GetInventoryWithSpecifcAssetTypes(userId, assetTypes, sortOrder, limit, offset)).ToList();
+        var result = (await services.inventory.GetInventoryWithSpecifcAssetTypes(userId, assetTypeList, sortOrder, limit, offset)).ToList();
         return new
         {
             previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
