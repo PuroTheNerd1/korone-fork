@@ -32,13 +32,13 @@ public class Chat : ControllerBase
             cachedDataFromLocalStorageExpirationMS = 30000,
             senderTypesForUnknownMessageTypeError = new List<string>() { "User" },
             isInvalidMessageTypeFallbackEnabled = false,
-            isRespectingMessageTypeEnabled = true,
+            isRespectingMessageTypeEnabled = false,
             validMessageTypesWhiteList = new List<string>() { "PlainText", "Link" },
             shouldRespectConversationHasUnreadMessageToMarkAsRead = true,
             isVoiceChatForClientSideEnabled = false,
             isAliasChatForClientSideEnabled = true,
             isPlayTogetherForGameCardsEnabled = true,
-            isRoactChatEnabled = false
+            isRoactChatEnabled = true
         };
     }
 
