@@ -32,4 +32,16 @@ public class DevelopControllerV2 : ControllerBase
             })
         };
     }
+
+    [HttpPostBypass("/v2/universes/{universeId}/shutdown")]
+    [HttpPost("universes/{universeId}/shutdown")]
+    public async Task<dynamic> ShutdownUniverse(long universeId)
+    {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        // only root place for now
+        var rootPlace = await services.games.GetRootPlaceId(universeId);
+        // Shutdown all normal servers for the root place
+        var gameServers = await services.gameServer.GetGameServersForPlace(rootPlace, 1);
+        return new {};
+    }
 }
