@@ -286,7 +286,7 @@ public class WebController : ControllerBase
                 Data = "User does not exist",
             };
 
-        var result = (await services.inventory.GetInventory(userId, assetTypeId, "desc", limit, offset)).ToList();
+        var result = (await services.inventory.GetInventory(userId, assetTypeId, SortOrder.Desc, limit, offset)).ToList();
         var moreAvailable = count > (offset + limit);
 
         return new
@@ -428,7 +428,7 @@ public class WebController : ControllerBase
         var result = (await services.inventory.GetCollections(userId)).ToList();
         if (result.Count < 1)
         {
-            var inventory = await services.inventory.GetInventory(userId, Models.Assets.Type.Hat, "desc", 6, 0);
+            var inventory = await services.inventory.GetInventory(userId, Models.Assets.Type.Hat, SortOrder.Desc, 6, 0);
             result = inventory.Take(6).Select(c => c.assetId).ToList();
         }
         var items = (await services.assets.MultiGetInfoById(result)).ToArray();
