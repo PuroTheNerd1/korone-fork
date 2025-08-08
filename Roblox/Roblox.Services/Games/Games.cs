@@ -792,6 +792,16 @@ public class GamesService : ServiceBase, IService
             new { universeId = universe });
         return result;
     }
+    public async Task<long> CountUniversePlaces(long universeId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<long?>(
+            "SELECT COUNT(*) FROM universe_asset WHERE universe_id = :universeId",
+            new
+            {
+                universeId,
+            });
+        return result ?? 0;
+    }
     public async Task<IEnumerable<GamesForCreatorDevelop>> GetGamesForTypeDevelop(CreatorType creatorType, long creatorId, string username, int limit,
         int offset, string? sort, string? accessFilter)
     {
