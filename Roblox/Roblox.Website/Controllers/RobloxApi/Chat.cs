@@ -4,6 +4,7 @@ using Roblox.Dto.Chat;
 using Roblox.Models.Chat;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
+using StackExchange.Redis;
 
 namespace Roblox.Website.Controllers;
 
@@ -145,7 +146,7 @@ public class Chat : ControllerBase
         var universe = await services.games.GetUniverseInfo(universeId);
         if (universe.creatorId != safeUserSession.userId && await services.games.CanEditUniverse(safeUserSession.userId, universe.id))
             throw new RobloxException(403, 0, "Forbidden");
-        await services.games.CanEditUniverse(safeUserSession.userId, universeId);
+
         var result = await services.chat.CreateCloudEditConversation(safeUserSession.userId, request.placeId);
         return new
         {
@@ -187,6 +188,7 @@ public class Chat : ControllerBase
             messageId = resp.id,
             sent = resp.createdAt,
             messageType = "PlainText",
+            resultType = "Success",
         };
     }
 
@@ -244,6 +246,7 @@ public class Chat : ControllerBase
             response.Add(new
             {
                 id = message.id,
+                senderType = "User",
                 sent = message.createdAt,
                 read = await services.chat.IsRead(message.id, message.conversationId, safeUserSession.userId),
                 messageType = "PlainText",
