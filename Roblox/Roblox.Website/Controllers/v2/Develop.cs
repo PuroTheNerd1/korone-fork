@@ -65,14 +65,16 @@ public class DevelopControllerV2 : ControllerBase
     public async Task<dynamic> ShutdownUniverse(long universeId)
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        // only root place for now
-        var rootPlace = await services.games.GetRootPlaceId(universeId);
-        // Shutdown all normal servers for the root place
-        var gameServers = await services.gameServer.GetGameServersForPlace(rootPlace, 1);
-        foreach (var server in gameServers)
+        var places = await services.games.GetUniversePlaces(universeId);
+        foreach (var place in places)
         {
-            await services.gameServer.ShutDownServerAsync(server.id);
+            var gameServers = await services.gameServer.GetGameServersForPlace(place.placeId, 1);
+            foreach (var server in gameServers)
+            {
+                await services.gameServer.ShutDownServerAsync(server.id);
+            }
         }
+
         return new {};
     }
 }
