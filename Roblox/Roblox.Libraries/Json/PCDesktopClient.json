@@ -3861,7 +3861,7 @@
 	"FFlagUserFixChatMessageLogPerformance4": true,
 	"FFlagUserFixClickToMoveWithACM": true,
 	"FFlagUserFixGamepadCameraTracking": true,
-	"FFlagUserFixMouseCapture": false,
+	"FFlagUserFixMouseCapture": true,
 	"FFlagUserFixMovementCameraStraightDown": true,
 	"FFlagUserFixTouchGuiWhenNoCharacter": true,
 	"FFlagUserFixZoomClampingIssues": true,
