@@ -79,7 +79,7 @@ public class DevelopControllerV1 : ControllerBase
         var versions = (await services.assets.GetAssetVersions(assetId, offset, limit, sortOrder)).ToList();
         long? universeId = null;
         var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
-        if (assetInfo.assetType != Type.Place)
+        if (assetInfo.assetType == Type.Place)
             universeId = await services.games.GetUniverseId(assetId);
         return new
         {
@@ -108,7 +108,7 @@ public class DevelopControllerV1 : ControllerBase
         var versions = (await services.assets.GetAssetVersions(assetId, offset, limit, sortOrder)).ToList();
         var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
         long? universeId = null;
-        if (assetInfo.assetType != Type.Place)
+        if (assetInfo.assetType == Type.Place)
             universeId = await services.games.GetUniverseId(assetId);
         return new
         {
