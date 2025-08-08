@@ -599,7 +599,7 @@ public class WebController : ControllerBase
         var place = await services.games.CreatePlaceInGame(safeUserSession.userId, safeUserSession.username, CreatorType.User, universeId);
         return new
         {
-            place_id = place.placeId,
+            PlaceId = place.placeId,
         };
     }
 
