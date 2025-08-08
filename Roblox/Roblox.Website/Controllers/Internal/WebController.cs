@@ -53,6 +53,7 @@ public class WebController : ControllerBase
     {
         return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Flogincallback&scope=identify+guilds.members.read+guilds.join");
     }
+
     [HttpGetBypass("api/logincallback")]
     public async Task<IActionResult> DiscordLoginCallBack(string code)
     {
@@ -586,6 +587,19 @@ public class WebController : ControllerBase
         return new
         {
             success = true,
+        };
+    }
+
+    [HttpPostBypass("ide/places/createV2")]
+    public async Task<dynamic> CreatePlaceInGame(long templatePlaceIdToUse, long universeId)
+    {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        if (!StaffFilter.IsOwner(safeUserSession.userId))
+            throw new ForbiddenException(11, "You don't have permissions to create a place in this universe");
+        var place = await services.games.CreatePlaceInGame(safeUserSession.userId, safeUserSession.username, CreatorType.User, universeId);
+        return new
+        {
+            place_id = place.placeId,
         };
     }
 

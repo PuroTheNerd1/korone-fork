@@ -133,7 +133,7 @@ public class DevelopControllerV1 : ControllerBase
     [HttpGet("universes/{universeId}/places")]
     public async Task<dynamic> GetUniversePlaces(long universeId)
     {
-        var uni = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         var places = await services.games.GetUniversePlaces(universeId);
         return new
         {
@@ -141,17 +141,10 @@ public class DevelopControllerV1 : ControllerBase
             nextPageCursor = (string?)null,
             data = places.Select(c => new
             {
-                maxPlayerCount = c.maxPlayerCount,
-                socialSlotType = "Automatic",
-                allowCopying = false,
-                currentSavedVersion = 1,
-                allowedGearTypes = (string?)null,
-                maxPlayersAllowed = c.maxPlayerCount,
                 id = c.placeId,
-                universeId = universeId,
+                universeId = c.universeId,
                 name = c.name,
                 description = c.description,
-                isRootPlace = c.placeId == uni.rootPlaceId,
             })
         };
     }

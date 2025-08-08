@@ -231,6 +231,12 @@ public class CreateUniverseResponse
     public long universeId { get; set; }
 }
 
+public class CreatePlaceInGameResponse
+{
+    public long placeId { get; set; }
+}
+
+
 public class PlayEntry
 {
     public DateTime createdAt { get; set; }

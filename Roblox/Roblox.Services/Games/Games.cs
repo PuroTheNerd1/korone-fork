@@ -1111,7 +1111,23 @@ public class GamesService : ServiceBase, IService
             };
         });
     }
-
+    public async Task<CreatePlaceInGameResponse> CreatePlaceInGame(long creatorId, string creatorName, CreatorType creatorType, long universeId)
+    {
+        return await InTransaction(async _ =>
+        {
+            using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
+            var place = await assets.CreatePlace(creatorId, creatorName, creatorType, creatorId);
+            await InsertAsync("universe_asset", new
+            {
+                asset_id = place.placeId,
+                universe_id = universeId,
+            });
+            return new CreatePlaceInGameResponse()
+            {
+                placeId = place.placeId
+            }
+        }
+    }
     public async Task<DeveloperProductDb> GetDeveloperProductInfoFull(long productId)
     {
         var qu = await db.QueryFirstOrDefaultAsync<DeveloperProductDb?>(
