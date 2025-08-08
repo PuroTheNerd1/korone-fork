@@ -9,6 +9,7 @@ namespace Roblox.Website.Controllers;
 [Route("/apisite/inventory/v1")]
 public class InventoryControllerV1 : ControllerBase
 {
+    [HttpGetBypass("/v1/users/{userId:long}/items/Asset/{assetId:long}")]
     [HttpGet("users/{userId:long}/items/Asset/{assetId:long}")]
     public async Task<RobloxCollectionPaginated<dynamic>> GetOwnedCopies(long userId, long assetId)
     {
@@ -27,7 +28,7 @@ public class InventoryControllerV1 : ControllerBase
             }),
         };
     }
-
+    [HttpGetBypass("/v1/users/{userId}/assets/collectibles")]
     [HttpGet("users/{userId}/assets/collectibles")]
     public async Task<RobloxCollectionPaginated<CollectibleItemEntry>> GetCollectibleItems(long userId, string? cursor, int limit = 50,
         string? sortOrder = "desc", string? assetType = null)
@@ -60,7 +61,8 @@ public class InventoryControllerV1 : ControllerBase
 
     [HttpGet("users/{userId:long}/items/asset/{assetId:long}/is-owned")]
     [HttpGetBypass("/v1/users/{userId:long}/items/asset/{assetId:long}/is-owned")]
-    public async Task<bool> IsOwned(long userId, long assetId) {
+    public async Task<bool> IsOwned(long userId, long assetId) 
+    {
         return await services.inventory.IsOwned(userId, assetId);
     }
 
