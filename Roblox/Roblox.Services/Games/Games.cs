@@ -519,7 +519,7 @@ public class GamesService : ServiceBase, IService
 
             LEFT JOIN LATERAL (
                 SELECT
-                    COUNT(DISTINCT asset_server_player.id) AS playerCount,
+                    COUNT(DISTINCT asset_server_player.user_id) AS playerCount,
                     COUNT(DISTINCT asset_favorite.id) AS favoriteCount,
                     COUNT(CASE WHEN asset_vote.type = 1 THEN 1 END) AS totalUpVotes,
                     COUNT(CASE WHEN asset_vote.type = 2 THEN 1 END) AS totalDownVotes
