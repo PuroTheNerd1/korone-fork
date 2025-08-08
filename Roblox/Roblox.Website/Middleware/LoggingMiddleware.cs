@@ -20,7 +20,9 @@ public class RobloxLoggingMiddleware
         await _next(ctx);
         watch.Stop();
 
-        var str = $"[{ctx.Request.Method.ToUpper()}] {ctx.Request.GetEncodedUrl()} - {watch.ElapsedMilliseconds}ms";
+        var str = $"[{ctx.Request.Method.ToUpper()}] {encodedUrl} - {watch.ElapsedMilliseconds}ms";
+        if (!encodedUrl.ToLower().Contains("inventory"))
+            return;
         if (
             encodedUrl.Contains(".png") ||
             encodedUrl.Contains("apisite") ||
