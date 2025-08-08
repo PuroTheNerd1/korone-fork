@@ -1126,7 +1126,7 @@ public class GamesService : ServiceBase, IService
             {
                 placeId = place.placeId
             }
-        }
+        });
     }
     public async Task<DeveloperProductDb> GetDeveloperProductInfoFull(long productId)
     {

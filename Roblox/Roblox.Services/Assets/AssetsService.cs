@@ -1547,7 +1547,8 @@ public class AssetsService : ServiceBase, IService
     
 
 
-    public async Task CreateBadgeAsset(long assetId, long? universeId) {
+    public async Task CreateBadgeAsset(long assetId, long? universeId) 
+    {
         if (universeId is null)
             return;
         await InsertAsync("asset_badge", new {
