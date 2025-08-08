@@ -64,6 +64,7 @@ public class GameListEntry
     public long universeId { get; set; }
     public string name { get; set; }
     public long placeId { get; set; }
+    public long rootPlaceId { get; set; }
     public string gameDescription { get; set; }
     public int playerCount { get; set; }
     public long visitCount { get; set; }

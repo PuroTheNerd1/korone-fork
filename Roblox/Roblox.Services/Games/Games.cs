@@ -496,6 +496,7 @@ public class GamesService : ServiceBase, IService
                    asset.creator_id as creatorId,
                    asset.creator_type as creatorTypeId,
                    asset_place.year as year,
+                   universe.root_asset_id as rootPlaceId,  
                    universe_asset.universe_id as universeId,
                    asset_place.visit_count as visitCount,
                    COALESCE(asp.playerCount, 0) as playerCount,
@@ -547,7 +548,6 @@ public class GamesService : ServiceBase, IService
         {
             mod_status = ModerationStatus.ReviewApproved,
         });
-        query.Where("asset.id = universe.root_asset_id");
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -654,6 +654,8 @@ public class GamesService : ServiceBase, IService
             });
             result = newResults;
         }
+        // Only get places that have rootPlaceId same as placeId
+        result = result.Where(c => c.rootPlaceId == c.placeId).ToList();
 
         return result;
     }
