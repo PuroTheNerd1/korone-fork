@@ -1,5 +1,7 @@
 using System.Collections;
 using System.ComponentModel;
+using System.Numerics;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Roblox.Dto.Assets;
@@ -154,23 +156,21 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGetBypass("universes/get-universe-places")]
-    public async Task<dynamic> GetPlaces(long universeId)
+    public async Task<dynamic> GetUniversePlaces(long universeId)
     {
-        var place = await services.games.GetRootPlaceId(universeId);
-        var placeInfo = await services.assets.GetAssetCatalogInfo(place);
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        var rootPlace = await services.games.GetRootPlaceId(universeId);
+        var places = await services.games.GetUniversePlaces(universeId);
         return new
         {
             FinalPage = true,
-            RootPlace = place,
-            Places = new List<dynamic>
+            RootPlace = rootPlace,
+            Places = places.Select(placeInfo => new
             {
-                new
-                {
-                    PlaceId = place,
-                    Name = placeInfo.name,
-                }
-            },
-            PageSize = 50
+                PlaceId = placeInfo.placeId,
+                Name = placeInfo.name,
+            }),
+            PageSize = places.Count()
         };
     }
 
