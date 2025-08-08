@@ -506,11 +506,17 @@ public class GamesService : ServiceBase, IService
                    COALESCE(CASE WHEN asset.creator_type = 1 THEN ""user"".username ELSE ""group"".name END, '') as creatorName
             FROM 
             asset
-            INNER JOIN universe_asset ON universe_asset.asset_id = asset.id
-            INNER JOIN asset_place ON asset_place.asset_id = asset.id
-            INNER JOIN universe ON universe.id = universe_asset.universe_id
-            LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
-            LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
+            INNER JOIN universe_asset 
+                ON universe_asset.asset_id = asset.id
+            INNER JOIN universe 
+                ON universe.id = universe_asset.universe_id
+                AND universe.root_asset_id = asset.id
+            INNER JOIN asset_place 
+                ON asset_place.asset_id = asset.id
+            LEFT JOIN ""group"" 
+                ON ""group"".id = asset.creator_id AND asset.creator_type = 2
+            LEFT JOIN ""user"" 
+                ON ""user"".id = asset.creator_id AND asset.creator_type = 1
             
             LEFT JOIN (
                 SELECT asset_id, COUNT(*) AS playerCount
