@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
@@ -9,6 +10,7 @@ using Roblox.Libraries.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
+using Roblox.Services.Exceptions;
 using Roblox.Website.WebsiteModels.Catalog;
 using Type = Roblox.Models.Assets.Type;
 
@@ -123,6 +125,33 @@ public class DevelopControllerV1 : ControllerBase
                 created = c.createdAt,
                 isEqualToCurrentPublishedVersion = c.contentUrl == versions.First().contentUrl,
                 isPublished = true
+            })
+        };
+    }
+
+    [HttpGetBypass("/v1/universes/{universeId}/places")]
+    [HttpGet("universes/{universeId}/places")]
+    public async Task<dynamic> GetUniversePlaces(long universeId)
+    {
+        var uni = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        var places = await services.games.GetUniversePlaces(universeId);
+        return new
+        {
+            previousPageCursor = (string?)null,
+            nextPageCursor = (string?)null,
+            data = places.Select(c => new
+            {
+                maxPlayerCount = c.maxPlayerCount,
+                socialSlotType = "Automatic",
+                allowCopying = false,
+                currentSavedVersion = 1,
+                allowedGearTypes = (string?)null,
+                maxPlayersAllowed = c.maxPlayerCount,
+                id = c.placeId,
+                universeId = universeId,
+                name = c.name,
+                description = c.description,
+                isRootPlace = c.placeId == uni.rootPlaceId,
             })
         };
     }

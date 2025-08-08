@@ -762,6 +762,36 @@ public class GamesService : ServiceBase, IService
 
         return await db.QueryAsync<PlaceEntry>(temp.RawSql, temp.Parameters);
     }
+    public async Task<IEnumerable<PlaceEntry>> GetUniversePlaces(long universe)
+    {
+        var result = await db.QueryAsync<PlaceEntry>(
+            @"SELECT
+                asset.id as universeRootPlaceId,
+                asset.creator_id as builderId,
+                asset.creator_type as builderType,
+                universe_asset.universe_id as universeId,
+                asset.name,
+                asset.id as placeId,
+                asset.description as description,
+                asset.asset_genre as genre,
+                (select count(*) AS playerCount FROM asset_server_player WHERE asset_server_player.asset_id = asset.id),
+                (case when ""asset"".creator_type = 1 then ""user"".username else ""group"".name end) as builder,
+                asset.created_at as created,
+                asset.updated_at as updated,
+                asset_place.max_player_count as maxPlayerCount,
+                asset_place.year as year,
+                asset_place.roblox_place_id as robloxPlaceId,
+                asset.moderation_status as moderationStatus
+            FROM
+                asset
+            INNER JOIN universe_asset ON universe_asset.asset_id = asset.id
+            INNER JOIN asset_place ON asset_place.asset_id = asset.id
+            LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
+            LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
+            WHERE universe_asset.universe_id = :universeId",
+            new { universeId = universe });
+        return result;
+    }
     public async Task<IEnumerable<GamesForCreatorDevelop>> GetGamesForTypeDevelop(CreatorType creatorType, long creatorId, string username, int limit,
         int offset, string? sort, string? accessFilter)
     {

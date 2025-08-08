@@ -393,36 +393,6 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpGet("v2/universes/{universeId}/places")]
-    [HttpGet("v1/universes/{universeId}/places")]
-    public async Task<dynamic> GetUniverseAttachedPlaces(long universeId)
-    {
-        var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
-        if (uni == null)
-            throw new RecordNotFoundException();
-        return new
-        {
-            previousPageCursor = (string?)null,
-            nextPageCursor = (string?)null,
-            data = new List<object>
-            {
-                new
-                {
-                    maxPlayerCount = uni.maxPlayers,
-                    socialSlotType = "Automatic",
-                    allowCopying = false,
-                    currentSavedVersion = 1,
-                    allowedGearTypes = (string?)null,
-                    maxPlayersAllowed = 0,
-                    id = uni.rootPlaceId,
-                    universeId = universeId,
-                    name = uni.name,
-                    description = uni.description,
-                    isRootPlace = true
-                }
-            }
-        };
-    }
 
     [HttpGetBypass("v1/user/teamcreate/memberships")]
     public async Task<dynamic> GetMembershipsForCurrentUser()

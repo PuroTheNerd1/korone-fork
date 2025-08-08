@@ -33,6 +33,32 @@ public class DevelopControllerV2 : ControllerBase
         };
     }
 
+    [HttpGetBypass("/v2/universes/{universeId}/places")]
+    [HttpGet("universes/{universeId}/places")]
+    public async Task<dynamic> GetUniversePlaces(long universeId)
+    {
+        var uni = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
+        var places = await services.games.GetUniversePlaces(universeId);
+        return new
+        {
+            previousPageCursor = (string?)null,
+            nextPageCursor = (string?)null,
+            data = places.Select(c => new
+            {
+                maxPlayerCount = c.maxPlayerCount,
+                socialSlotType = "Automatic",
+                allowCopying = false,
+                currentSavedVersion = 1,
+                allowedGearTypes = (string?)null,
+                maxPlayersAllowed = c.maxPlayerCount,
+                id = c.placeId,
+                universeId = universeId,
+                name = c.name,
+                description = c.description,
+                isRootPlace = c.placeId == uni.rootPlaceId,
+            })
+        };
+    }
     [HttpPostBypass("/v2/universes/{universeId}/shutdown")]
     [HttpPost("universes/{universeId}/shutdown")]
     public async Task<dynamic> ShutdownUniverse(long universeId)
