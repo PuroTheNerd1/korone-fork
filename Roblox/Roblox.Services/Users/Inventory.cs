@@ -210,6 +210,10 @@ public class InventoryService : ServiceBase, IService
     
     public async Task<bool> CanViewInventory(long userId, long contextUserId = 0)
     {
+        if (userId == contextUserId)
+        {
+            return true;
+        }
         var result = await MultiCanViewInventory(new[] { userId }, contextUserId);
         return result.First().canView;
     }
