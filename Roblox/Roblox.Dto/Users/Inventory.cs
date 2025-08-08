@@ -31,8 +31,8 @@ public class InventoryEntry : CollectibleItemEntry
 {
     public bool isLimited { get; set; }
     public bool isLimitedUnique { get; set; }
-    public long createdAt { get; set; }
-    public long updatedAt { get; set; } 
+    public DateTime createdAt { get; set; }
+    public DateTime updatedAt { get; set; } 
     public string creatorName { get; set; }
     public long creatorId { get; set; }
     public CreatorType creatorType { get; set; }
