@@ -399,7 +399,7 @@ const ProfileHeader = props => {
                       }
                       {status && status?.userPresenceType === "InGame" &&
                           <div style={{ order: '1' }} className={s.buttonContainer}>
-                            <JoinButton placeId={status.placeId} />
+                            <JoinButton placeId={status.rootPlaceId} />
                           </div>
                       }
                     </ul>

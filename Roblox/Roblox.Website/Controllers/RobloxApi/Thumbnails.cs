@@ -102,7 +102,8 @@ public class RbxThumbnails : ControllerBase
     }
     
     [HttpGetBypass("avatar-thumbnail-3d/json")]
-    public async Task<dynamic> GetAvatarThumbnail3DJson([Required] long userId) {
+    public async Task<dynamic> GetAvatarThumbnail3DJson([Required] long userId) 
+    {
         // if (userId == 62022330) userId = 3; avatar page testing
         var result = (await services.thumbnails.GetUserThumbnails3D(new[] {userId})).ToList();
         var imageUrl = result.Count > 0 ? result[0].imageUrl : null;
@@ -133,7 +134,6 @@ public class RbxThumbnails : ControllerBase
         {
             Final = true,
             Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
-            RetryUrl = (string?)null,
         };
     }
 

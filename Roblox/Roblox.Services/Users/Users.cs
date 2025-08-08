@@ -1891,7 +1891,21 @@ public class UsersService : ServiceBase, IService
         if (ids.Count == 0) return Array.Empty<PresenceEntry>();
 
         var sql = new SqlBuilder();
-        var t = sql.AddTemplate("SELECT id as userId, online_at as onlineAt, asset_server_player.asset_id as currentPlaceId, ua.universe_id as currentUniverseId FROM \"user\" LEFT JOIN asset_server_player ON asset_server_player.user_id = \"user\".id LEFT JOIN universe_asset ua on asset_server_player.asset_id = ua.asset_id /**where**/ LIMIT 1000");
+        var t = sql.AddTemplate(@"
+        SELECT 
+            user.id as userId,
+            user.online_at as onlineAt,
+            asset_server_player.asset_id as currentPlaceId,
+            asset_server_player.server_id as currentGameId,
+            ua.universe_id as currentUniverseId,
+            u.root_asset_id as rootPlaceId
+        FROM ""user""
+        LEFT JOIN asset_server_player ON asset_server_player.user_id = user.id
+        LEFT JOIN universe_asset ua ON asset_server_player.asset_id = ua.asset_id
+        LEFT JOIN universe u ON ua.universe_id = u.id
+        /**where**/
+        LIMIT 1000");
+
         foreach (var item in ids)
         {
             sql.OrWhere("\"user\".id = " + item);
@@ -1905,15 +1919,16 @@ public class UsersService : ServiceBase, IService
             var isOnline = item.onlineAt >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5));
             var placeId = item.currentPlaceId;
             var universeId = item.currentUniverseId;
-
+            var rootPlaceId = item.rootPlaceId;
+            var currentGameId = item.currentGameId;
             var result = new PresenceEntry
             {
                 userId = userId,
                 userPresenceType = placeId != null ? PresenceType.InGame :
                     isOnline ? PresenceType.Online : PresenceType.Offline,
                 lastLocation = placeId != null ? "Playing" : "Website",
-                rootPlaceId = placeId,
-                gameId = universeId,
+                rootPlaceId = rootPlaceId,
+                gameId = currentGameId.ToString(),
                 placeId = placeId,
                 lastOnline = placeId != null ? DateTime.UtcNow : item.onlineAt,
             };
