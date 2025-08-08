@@ -1155,8 +1155,9 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/validate-place-join")]
         [HttpPostBypass("universes/validate-place-join")]
         [HttpGetBypass("universes/validate-place-join")]
-        public MVC.ActionResult<dynamic> ValidateJoin()
+        public string ValidateJoin(long originPlaceId, long destinationPlaceId)
         {
+            Console.WriteLine($"Validating join from {originPlaceId} to {destinationPlaceId}");
             return "true";
         }
 
