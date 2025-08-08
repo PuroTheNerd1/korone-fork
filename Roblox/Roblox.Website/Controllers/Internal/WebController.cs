@@ -593,7 +593,7 @@ public class WebController : ControllerBase
     [HttpPostBypass("ide/places/createV2")]
     public async Task<dynamic> CreatePlaceInGame(long templatePlaceIdToUse, long universeId)
     {
-        if (await services.cooldown.TryCooldownCheck($"CreatePlaceInGame:{safeUserSession.userId}", TimeSpan.FromSeconds(5)))
+        if (!await services.cooldown.TryCooldownCheck($"CreatePlaceInGame:{safeUserSession.userId}", TimeSpan.FromSeconds(5)))
             throw new BadRequestException(1, "You are creating places too fast, please wait a few seconds before trying again");
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         // Whitelist 677
