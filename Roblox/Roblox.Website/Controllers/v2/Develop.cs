@@ -39,6 +39,7 @@ public class DevelopControllerV2 : ControllerBase
     {
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         var places = await services.games.GetUniversePlaces(universeId);
+        var universe = await services.games.GetUniverseInfo(universeId);
         return new
         {
             previousPageCursor = (string?)null,
@@ -47,15 +48,18 @@ public class DevelopControllerV2 : ControllerBase
             {
                 maxPlayerCount = c.maxPlayerCount,
                 socialSlotType = "Automatic",
+                customSocialSlotsCount = (string?)null,
                 allowCopying = false,
                 currentSavedVersion = 1,
                 allowedGearTypes = (string?)null,
                 maxPlayersAllowed = c.maxPlayerCount,
+                created = c.created,
+                updated = c.updated,
                 id = c.placeId,
                 universeId = universeId,
                 name = c.name,
                 description = c.description ?? "",
-                isRootPlace = c.placeId == c.universeRootPlaceId,
+                isRootPlace = c.placeId == universe.rootPlaceId,
 
             })
         };
