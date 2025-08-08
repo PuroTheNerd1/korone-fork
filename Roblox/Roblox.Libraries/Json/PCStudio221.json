@@ -4100,7 +4100,7 @@
 	"FFlagUseSteppingParamsInsteadOfConstants": false,
 	"FFlagUseSteppingParamsInsteadOfConstants2": true,
 	"FFlagUseStudioLocaleForForceLocale": true,
-	"FFlagUseThumbnailUrl": true,
+	"FFlagUseThumbnailUrl": false,
 	"FFlagUseUpdatedDisclaimerLinks": true,
 	"FFlagUseUsernameValidationPOSTApi": true,
 	"FFlagUseVersionedEncryptionFormat": false,
