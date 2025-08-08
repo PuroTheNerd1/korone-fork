@@ -59,10 +59,12 @@ public class DevelopControllerV1 : ControllerBase
         var version = await services.assets.GetLatestAssetVersion(assetId);
         return new
         {
+            Id = version.assetVersionId,
             assetId = version.assetId,
             assetVersionNumber = version.versionNumber,
             creatorTargetId = version.creatorId,
-            creatingUniverseId = 0,
+            creatorType = CreatorType.User,
+            creatingUniverseId = (string?)null,
             created = version.createdAt,
             isEqualToCurrentPublishedVersion = true,
             isPublished = true
@@ -77,20 +79,19 @@ public class DevelopControllerV1 : ControllerBase
         if (limit is < 1 or > 100) limit = 10;
         int offset = !string.IsNullOrWhiteSpace(cursor) ? int.Parse(cursor) : 0;
         var versions = (await services.assets.GetAssetVersions(assetId, offset, limit, sortOrder)).ToList();
-        long? universeId = null;
-        var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
-        if (assetInfo.assetType == Type.Place)
-            universeId = await services.games.GetUniverseId(assetId);
+
         return new
         {
             previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
             nextPageCursor = versions.Count >= limit ? (offset + limit).ToString() : null,
             data = versions.Select(c => new
             {
+                Id = c.assetVersionId,
                 assetId = c.assetId,
                 assetVersionNumber = c.versionNumber,
                 creatorTargetId = c.creatorId,
-                creatingUniverseId = universeId,
+                creatorType = CreatorType.User,
+                creatingUniverseId = (string?)null,
                 created = c.createdAt,
                 isEqualToCurrentPublishedVersion = c.contentUrl == versions.First().contentUrl,
                 isPublished = true
@@ -106,23 +107,22 @@ public class DevelopControllerV1 : ControllerBase
         if (limit is < 1 or > 100) limit = 10;
         int offset = !string.IsNullOrWhiteSpace(cursor) ? int.Parse(cursor) : 0;
         var versions = (await services.assets.GetAssetVersions(assetId, offset, limit, sortOrder)).ToList();
-        var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
-        long? universeId = null;
-        if (assetInfo.assetType == Type.Place)
-            universeId = await services.games.GetUniverseId(assetId);
+
         return new
         {
             previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
             nextPageCursor = versions.Count >= limit ? (offset + limit).ToString() : null,
             data = versions.Select(c => new
             {
+                Id = c.assetVersionId,
                 assetId = c.assetId,
                 assetVersionNumber = c.versionNumber,
+                creatorType = CreatorType.User,
                 creatorTargetId = c.creatorId,
-                creatingUniverseId = universeId,
+                creatingUniverseId = (string?)null,
                 created = c.createdAt,
                 isEqualToCurrentPublishedVersion = c.contentUrl == versions.First().contentUrl,
-                isPublished = c.contentUrl == versions.First().contentUrl
+                isPublished = true
             })
         };
     }
@@ -136,13 +136,15 @@ public class DevelopControllerV1 : ControllerBase
         var latestVersion = await services.assets.GetLatestAssetVersion(assetId);
         return new
         {
+            Id = version.assetVersionId,
             assetId = version.assetId,
             assetVersionNumber = version.versionNumber,
             creatorTargetId = version.creatorId,
-            creatingUniverseId = 0,
+            creatorType = CreatorType.User,
+            creatingUniverseId = (string?)null,
             created = version.createdAt,
             isEqualToCurrentPublishedVersion = version.contentUrl == latestVersion.contentUrl,
-            isPublished = version.contentUrl == latestVersion.contentUrl,
+            isPublished = true,
         };
     }
     [HttpPostBypass("/v1/assets/{assetId}/revert-version")]

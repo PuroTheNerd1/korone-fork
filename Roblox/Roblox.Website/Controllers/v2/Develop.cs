@@ -21,10 +21,11 @@ public class DevelopControllerV2 : ControllerBase
             nextPageCursor = versions.Count >= limit ? (offset + limit).ToString() : null,
             data = versions.Select(c => new
             {
+                Id = c.assetVersionId,
                 assetId = c.assetId,
                 assetVersionNumber = c.versionNumber,
                 creatorTargetId = c.creatorId,
-                creatingUniverseId = 0,
+                creatingUniverseId = (string?)null,
                 created = c.createdAt,
                 isEqualToCurrentPublishedVersion = c.contentUrl == versions.First().contentUrl,
                 isPublished = true
