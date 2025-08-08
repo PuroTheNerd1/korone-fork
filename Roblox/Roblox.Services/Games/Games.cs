@@ -1125,7 +1125,7 @@ public class GamesService : ServiceBase, IService
             return new CreatePlaceInGameResponse()
             {
                 placeId = place.placeId
-            }
+            };
         });
     }
     public async Task<DeveloperProductDb> GetDeveloperProductInfoFull(long productId)
