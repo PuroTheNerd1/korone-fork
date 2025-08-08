@@ -1893,18 +1893,19 @@ public class UsersService : ServiceBase, IService
         var sql = new SqlBuilder();
         var t = sql.AddTemplate(@"
         SELECT 
-            user.id as userId,
-            user.online_at as onlineAt,
+            ""user"".id as userId,
+            ""user"".online_at as onlineAt,
             asset_server_player.asset_id as currentPlaceId,
             asset_server_player.server_id as currentGameId,
             ua.universe_id as currentUniverseId,
             u.root_asset_id as rootPlaceId
         FROM ""user""
-        LEFT JOIN asset_server_player ON asset_server_player.user_id = user.id
+        LEFT JOIN asset_server_player ON asset_server_player.user_id = ""user"".id
         LEFT JOIN universe_asset ua ON asset_server_player.asset_id = ua.asset_id
         LEFT JOIN universe u ON ua.universe_id = u.id
         /**where**/
         LIMIT 1000");
+
 
         foreach (var item in ids)
         {
