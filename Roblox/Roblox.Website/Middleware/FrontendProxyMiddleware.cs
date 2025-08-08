@@ -130,10 +130,7 @@ public class FrontendProxyMiddleware
             throw new ArgumentException("Unsafe Url: " + fullUrl);
         if (safeUrl.Host != "localhost")
             throw new ArgumentException("Unsafe Url: " + fullUrl);
-        if (ctx.Request.Headers["User-Agent"].ToString().ToLower().Contains("roblox"))
-        {
-            Console.WriteLine("RBX URL: " + fullUrl);
-        }
+
         var result = await _httpClient.GetAsync(safeUrl);
         return result;
     }

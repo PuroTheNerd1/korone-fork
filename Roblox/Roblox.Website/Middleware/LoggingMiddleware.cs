@@ -21,8 +21,7 @@ public class RobloxLoggingMiddleware
         watch.Stop();
 
         var str = $"[{ctx.Request.Method.ToUpper()}] {encodedUrl} - {watch.ElapsedMilliseconds}ms";
-        if (!encodedUrl.ToLower().Contains("inventory"))
-            return;
+
         if (
             encodedUrl.Contains(".png") ||
             encodedUrl.Contains("apisite") ||

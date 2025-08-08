@@ -233,7 +233,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseMiddleware<FrontendProxyMiddleware>();
-app.UseMiddleware<RobloxLoggingMiddleware>();
+//app.UseMiddleware<RobloxLoggingMiddleware>();
 //app.UseRobloxLoggingMiddleware();
 
 app.UseExceptionHandler("/error");
