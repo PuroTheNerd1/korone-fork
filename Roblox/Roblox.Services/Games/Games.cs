@@ -505,7 +505,7 @@ public class GamesService : ServiceBase, IService
                    COALESCE(CASE WHEN asset.creator_type = 1 THEN ""user"".username ELSE ""group"".name END, '') as creatorName
             FROM 
             asset
-            INNER JOIN universe_asset ON universe_asset.asset_id = asset.id
+            INNER JOIN universe_asset ua ON universe_asset.asset_id = asset.id
             INNER JOIN asset_place ON asset_place.asset_id = asset.id
             INNER JOIN universe u ON u.id = ua.universe_id AND a.id = u.root_asset_id
             LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
