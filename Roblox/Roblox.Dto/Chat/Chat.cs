@@ -59,7 +59,11 @@ public class SendMessageRequest
     public long conversationId { get; set; }
     public string message { get; set; }
 }
-
+public class AddToConversationRequest
+{
+    public long conversationId { get; set; }
+    public List<long> participantUserIds { get; set; }
+}
 public class UpdateTypingStatusRequest
 {
     public long conversationId { get; set; }

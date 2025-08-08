@@ -131,6 +131,14 @@ public class ChatService : ServiceBase, IService
             });
         return result;
     }
+    public async Task<Conversation> GetConversation(long conversationId)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<Conversation>("SELECT id, created_at as createdAt, creator_id as creatorId, title, conversation_type as conversationType FROM user_conversation WHERE id = :id", new
+        {
+            id = conversationId,
+        });
+        return result;
+    }
     private string GetCreateConvoLock(long userIdA, long userIdB)
     {
         if (userIdA > userIdB)

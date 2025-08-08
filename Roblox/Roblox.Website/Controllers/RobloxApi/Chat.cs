@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Dto.Chat;
 using Roblox.Models.Chat;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
@@ -109,12 +110,42 @@ public class Chat : ControllerBase
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
         await services.chat.MarkMessageAsRead(request.conversationId, request.endMessageId, safeUserSession.userId);
     }
+    [HttpPostBypass("v2/add-to-conversation")]
+    public async Task<dynamic> AddToConversation([Required, FromBody] Dto.Chat.AddToConversationRequest request)
+    {
+        FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
+        if (request.participantUserIds.Count > 100 || request.participantUserIds.Count == 0)
+            throw new RobloxException(400, 0, "BadRequest");
+        var conversation = await services.chat.GetConversation(request.conversationId);
+        if (!await services.chat.IsUserInConversation(request.conversationId, safeUserSession.userId) && conversation.creatorId != safeUserSession.userId)
+            throw new RobloxException(403, 0, "Forbidden");
+        var participants = await services.chat.GetChatParticipants(request.conversationId);
+        // make sure not to add duplicates filter it
+        request.participantUserIds = request.participantUserIds
+            .Where(c => !participants.Any(p => p.userId == c))
+            .Distinct()
+            .ToList();
+        foreach (var participant in request.participantUserIds)
+        {
+            await services.chat.AddUserToConversation(request.conversationId, participant);
+        }
+
+        return new
+        {
+            conversationId = request.conversationId,
+            resultType = "Success",
+
+        };
+    }
     [HttpPostBypass("v2/start-cloud-edit-conversation")]
     public async Task<dynamic> StartCloudEditConversation([Required, FromBody] Dto.Chat.StartCloudeditConversationRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
         long universeId = await services.games.GetUniverseId(request.placeId);
-        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        var universe = await services.games.GetUniverseInfo(universeId);
+        if (universe.creatorId != safeUserSession.userId && await services.games.CanEditUniverse(safeUserSession.userId, universe.id))
+            throw new RobloxException(403, 0, "Forbidden");
+        await services.games.CanEditUniverse(safeUserSession.userId, universeId);
         var result = await services.chat.CreateCloudEditConversation(safeUserSession.userId, request.placeId);
         return new
         {
