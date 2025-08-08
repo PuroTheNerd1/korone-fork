@@ -654,7 +654,7 @@ public class GamesService : ServiceBase, IService
             });
             result = newResults;
         }
-
+        result = result.Where(c => c.rootPlaceId == c.placeId).ToList();
         return result;
     }
 
