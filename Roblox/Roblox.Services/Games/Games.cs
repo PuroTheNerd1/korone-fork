@@ -902,7 +902,26 @@ public class GamesService : ServiceBase, IService
         }));
     }
 
-
+    public async Task<string?> GetStudioData(long userId, string clientKey)
+    {
+        var result = await db.QuerySingleOrDefaultAsync<string?>("SELECT value FROM studio_data WHERE user_id = :userId AND key = :clientKey", new
+        {
+            userId,
+            clientKey
+        });
+        return result;
+    }
+    
+    public async Task SetStudioData(long userId, string clientKey, string value)
+    {
+        await db.ExecuteAsync("INSERT INTO studio_data (user_id, key, value) VALUES (:userId, :clientKey, :value) ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value",
+            new
+            {
+                userId,
+                clientKey,
+                value
+            });
+    }
     public async Task<GamePassDetails> GetGamePassInfo(long assetId)
     {
         var gamePass = await db.QuerySingleOrDefaultAsync<GamePassDetails>(

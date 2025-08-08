@@ -187,6 +187,33 @@ public class DevelopControllerV1 : ControllerBase
         await services.assets.CreateAssetVersion(assetId, safeUserSession.userId, version.contentUrl!);
         return Ok();
     }
+
+    [HttpGetBypass("/v1/user/studiodata")]
+    [HttpGet("user/studiodata")]
+    public async Task<dynamic> GetStudioData(string clientKey)
+    {
+        var data = await services.games.GetStudioData(safeUserSession.userId, clientKey);
+        if (data is null)
+            return NoContent();
+        return Content(data, "application/json");
+    }
+
+    [HttpPostBypass("/v1/user/studiodata")]
+    [HttpPost("user/studiodata")]
+    public async Task<dynamic> SetStudioData(string clientKey)
+    {
+        var data = await GetRequestBody();
+        // check if the body is a json
+        if (data is null || !data.StartsWith("{") || !data.EndsWith("}"))
+            throw new BadRequestException(0, "Data must be a valid JSON object");
+        
+        await services.games.SetStudioData(safeUserSession.userId, clientKey, data);
+        return new
+        {
+            success = true,
+        };
+    }
+
     [HttpPost("assets/upload-gameicon")]
     public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
     {
