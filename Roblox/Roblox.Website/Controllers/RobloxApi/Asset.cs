@@ -28,7 +28,7 @@ public class Asset : ControllerBase
     [HttpPostBypass("v1/asset")]
     [HttpGetBypass("asset")]
     [HttpPostBypass("asset")]
-    public async Task<ActionResult> GetAssetById(long? playerId, long id, long? assetversion = null, long? assetversionid = null, long? serverplaceid = null)
+    public async Task<ActionResult> GetAssetById(long? playerId, long id, long? version = null, long? assetversionid = null, long? serverplaceid = null)
     {
         /*
         This is from corescripts from 2017 for more context
@@ -95,7 +95,15 @@ public class Asset : ControllerBase
         if (!IsAssetApproved(details) && !isRCC && !isBot && details.assetType != Type.Place)
             throw new RobloxException(403, 0, "Asset not approved for requester");
 
-        dynamic assetVersion = assetversion != null ? await services.assets.GetSpecificAssetVersion(assetId, (long)assetversion) : await services.assets.GetLatestAssetVersion(assetId);
+        AssetVersionEntry assetVersion;
+        if (version is null)
+        {
+            assetVersion = await services.assets.GetLatestAssetVersion(id); 
+        }
+        else
+        {
+            assetVersion = await services.assets.GetSpecificAssetVersion(id, version.Value);
+        }
 
         Stream? assetContent = null;
         switch (details.assetType)
