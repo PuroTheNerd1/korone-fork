@@ -117,7 +117,7 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPost("assets/{assetId}/revert-version")]
     public async Task<dynamic> RevertAssetVersion(long assetId, long assetVersionNumber)
     {
-        if (!await services.cooldown.TryCooldownCheck("Place:RevertVersion:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Place:RevertVersion:StartIp:" + GetIP(), TimeSpan.FromSeconds(5))
+        if (!await services.cooldown.TryCooldownCheck("Place:RevertVersion:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Place:RevertVersion:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
             throw new TooManyRequestsException(0, "Too many requests");
         
         await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
