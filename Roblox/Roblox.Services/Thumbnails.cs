@@ -272,14 +272,13 @@ public class ThumbnailsService : ServiceBase, IService
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
+            c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
+
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
 
             if (c.moderationStatus == ModerationStatus.Declined)
                 c.imageUrl = "/img/blocked.png";
-
-            if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
 
             return new ThumbnailEntry()
             {
@@ -306,6 +305,8 @@ public class ThumbnailsService : ServiceBase, IService
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
+            c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
+
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
 
@@ -314,7 +315,7 @@ public class ThumbnailsService : ServiceBase, IService
 
             if (c.imageUrl != null)
                 c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
-
+            c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
             return new ThumbnailEntry()
             {
                 targetId = c.targetId,

@@ -256,7 +256,13 @@ public class ThumbnailsControllerV1 : ControllerBase
         var result = await services.thumbnails.GetUniverseIcons(parsed);
         return new()
         {
-            data = result,
+            data = result.Where(c => c.imageUrl != null).Select(c => new ThumbnailEntry
+            {
+                targetId = c.targetId,
+                imageUrl = Configuration.BaseUrl + c.imageUrl,
+                state = c.state,
+                version = c.version
+            }).ToList()
         };
     }
 
@@ -268,7 +274,13 @@ public class ThumbnailsControllerV1 : ControllerBase
         var result = await services.thumbnails.GetPlaceIcons(parsed);
         return new()
         {
-            data = result,
+            data = result.Where(c => c.imageUrl != null).Select(c => new ThumbnailEntry
+            {
+                targetId = c.targetId,
+                imageUrl = Configuration.BaseUrl + c.imageUrl,
+                state = c.state,
+                version = c.version
+            }).ToList()
         };
     }
 }

@@ -33,7 +33,7 @@ public class RbxThumbnails : ControllerBase
                 result = (await services.thumbnails.GetUserThumbnails(new[] { id })).ToList();
                 break;
             case ThumbnailType.Asset:
-                result = (await services.thumbnails.GetAssetThumbnails(new[] { id })).ToList();
+                result = Configuration.BaseUrl + (await services.thumbnails.GetAssetThumbnails(new[] { id })).ToList();
                 break;
             case ThumbnailType.PlaceIcon:
                 result = (await services.thumbnails.GetPlaceIcons(new[] { id })).ToList();
