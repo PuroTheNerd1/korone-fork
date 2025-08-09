@@ -268,7 +268,7 @@ public class ThumbnailsService : ServiceBase, IService
               INNER JOIN asset_icon ai ON ai.asset_id = u.root_asset_id 
               /**where**/"
         );
-        query.OrWhereMulti("universe_id = $1", ids);
+        query.OrWhereMulti("u.id = $1", ids);
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
