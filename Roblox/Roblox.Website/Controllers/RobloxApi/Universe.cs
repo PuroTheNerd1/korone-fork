@@ -8,9 +8,11 @@ using Roblox.Dto.Assets;
 using Roblox.Dto.Games;
 using Roblox.Dto.Users;
 using Roblox.Exceptions;
+using Roblox.Libraries.Cursor;
 using Roblox.Logging;
 using Roblox.Models;
 using Roblox.Models.Assets;
+using Roblox.Models.Db;
 using Roblox.Models.Studio;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
@@ -335,9 +337,10 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGet("v1/search/universes")]
-    public async Task<dynamic> SearchUniverse(string q)
+    public async Task<dynamic> SearchUniverse(string q, int limit, SortOrder sortOrder = SortOrder.Asc, string? cursor = null)
     {
-        int offset = int.Parse("0");
+        if (limit is > 100 or < 1) limit = 10;
+        int offset = int.Parse(cursor ?? "0");
         if (q.Contains("Team"))
         {
             var result = await services.games.GetEditableUniversesForUser(safeUserSession.userId);
@@ -369,9 +372,11 @@ public class UniverseV1 : ControllerBase
         {
             var result =
                 (await services.games.GetGamesForTypeDevelop(CreatorType.User, safeUserSession.userId,
-                    safeUserSession.username, 50, offset, null, null)).ToList();
+                    safeUserSession.username, limit, offset, sortOrder.ToString(), null)).ToList();
             return new RobloxCollectionPaginated<GamesForCreatorDevelop>()
             {
+                previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
+                nextPageCursor = result.Count >= limit ? (offset + limit).ToString() : null,
                 data = result
             };
         }
