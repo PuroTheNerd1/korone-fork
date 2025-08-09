@@ -111,13 +111,7 @@ public class RbxThumbnails : ControllerBase
         {
             await services.avatar.Update3DRenderModified(userId, Path.GetFileNameWithoutExtension(imageUrl).Replace("_thumbnail3d", ""));
         }
-        else
-        {
-            _ = Task.Run(async () =>
-            {
-                await services.avatar.RedrawAvatar(userId);
-            });
-        }
+
         return new
         {
             Url = imageUrl != null ? $"{Configuration.BaseUrl}{imageUrl}" : null,

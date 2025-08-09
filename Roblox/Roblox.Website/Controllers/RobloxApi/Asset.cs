@@ -77,6 +77,7 @@ public class Asset : ControllerBase
             details = await services.assets.GetAssetCatalogInfo(assetId);
             assetId = details.id; // Use the asset ID from the details in case its a roblox asset that was converted
         }
+        // Asset not found, let's try to get it from Roblox
         catch (RecordNotFoundException)
         {
             using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();

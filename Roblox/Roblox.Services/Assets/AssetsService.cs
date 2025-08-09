@@ -150,12 +150,16 @@ public class AssetsService : ServiceBase, IService
 
         return result.assetId;
     }
-    public async Task<AssetVersionEntry> GetLatestAssetVersion(long assetId)
+    public async Task<AssetVersionEntry> GetLatestAssetVersion(long assetId, bool skipCache = false)
     {
         using var assetVersionCache = ServiceProvider.GetOrCreate<GetLatestAssetVersionCache>();
-        var (exists, cached) = assetVersionCache.Get(assetId);
-        if (exists && cached != null)
-            return cached;
+        if (!skipCache)
+        {
+            var (exists, cached) = assetVersionCache.Get(assetId);
+            if (exists && cached != null)
+                return cached;
+        }
+
         var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
             "SELECT id as assetVersionId, version_number as versionNumber, content_url as contentUrl, content_id as contentId, created_at as createdAt, updated_at as updatedAt, creator_id as creatorId FROM asset_version WHERE asset_id = :id ORDER BY id DESC LIMIT 1",
             new
@@ -1267,7 +1271,8 @@ public class AssetsService : ServiceBase, IService
     }
     public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, long contentId)
     {
-        var latest = await GetLatestAssetVersion(assetId);
+        const bool skipCache = true;
+        var latest = await GetLatestAssetVersion(assetId, skipCache);
         var created = DateTime.UtcNow;
 
         var id = await InsertAsync("asset_version", new
@@ -1290,7 +1295,8 @@ public class AssetsService : ServiceBase, IService
     }
     public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, string contentUrl)
     {
-        var latest = await GetLatestAssetVersion(assetId);
+        const bool skipCache = true;
+        var latest = await GetLatestAssetVersion(assetId, skipCache);
         var created = DateTime.UtcNow;
 
         var id = await InsertAsync("asset_version", new
@@ -1313,7 +1319,8 @@ public class AssetsService : ServiceBase, IService
     }
     public async Task<CreateResponse> CreateAssetVersion(long assetId, long creatorUserId, Stream assetContent)
     {
-        var latest = await GetLatestAssetVersion(assetId);
+        const bool skipCache = true;
+        var latest = await GetLatestAssetVersion(assetId, skipCache);
         var fileId = await UploadAssetContent(assetContent, Configuration.AssetDirectory);
         var created = DateTime.UtcNow;
 
