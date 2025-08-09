@@ -33,11 +33,11 @@ public class RbxThumbnails : ControllerBase
                 result = (await services.thumbnails.GetUserThumbnails(new[] { id })).ToList();
                 break;
             case ThumbnailType.Asset:
-                result = Configuration.BaseUrl + (await services.thumbnails.GetAssetThumbnails(new[] { id })).ToList();
+                result = (await services.thumbnails.GetAssetThumbnails(new[] { id })).ToList();
                 break;
             case ThumbnailType.PlaceIcon:
                 result = (await services.thumbnails.GetPlaceIcons(new[] { id })).ToList();
-                break;
+                return new RedirectResult((Configuration.BaseUrl + result.FirstOrDefault()?.imageUrl) ?? "/img/placeholder.png", false);
         }
 
         var imageUrl = result.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png";
