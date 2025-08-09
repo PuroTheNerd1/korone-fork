@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,28 +16,18 @@ type ValidationResponse struct {
 var asyncValidationMux sync.Mutex
 var asyncValidationCount = 0
 
-const asyncValidationLimit = 2
+const asyncValidationLimit = 5
 
-func beforeValidation() {
+func tryBeforeValidation() bool {
 	asyncValidationMux.Lock()
-	if asyncValidationCount <= asyncValidationLimit {
+	defer asyncValidationMux.Unlock()
+	if asyncValidationCount < asyncValidationLimit {
 		asyncValidationCount++
-		asyncValidationMux.Unlock()
-		return
+		return true
 	}
-	asyncValidationMux.Unlock()
-
-	for {
-		time.Sleep(time.Millisecond * 500)
-		asyncValidationMux.Lock()
-		if asyncValidationCount <= asyncValidationLimit {
-			asyncValidationCount++
-			asyncValidationMux.Unlock()
-			break
-		}
-		asyncValidationMux.Unlock()
-	}
+	return false
 }
+
 func afterValidation() {
 	asyncValidationMux.Lock()
 	asyncValidationCount--
@@ -53,12 +42,16 @@ func main() {
 	})
 
 	app.Post("/api/v1/validate-place", func(c *fiber.Ctx) error {
-		beforeValidation()
-		log.Println("ClientReached")
+		if !tryBeforeValidation() {
+			c.Status(fiber.StatusTooManyRequests)
+			c.Set("Retry-After", "5")
+			return c.JSON(fiber.Map{
+				"error": "Too many validations in progress, try again later.",
+			})
+		}
 		defer afterValidation()
-
 		body := c.Body()
-		log.Println("validating place with size=", len(body))
+		log.Println("validating place with size =", len(body))
 		nReader := bytes.NewReader(body)
 		isOk := validate.IsGameValid(nReader)
 		return c.Status(200).JSON(ValidationResponse{
@@ -67,11 +60,16 @@ func main() {
 	})
 
 	app.Post("/api/v1/validate-item", func(c *fiber.Ctx) error {
-		beforeValidation()
+		if !tryBeforeValidation() {
+			c.Status(fiber.StatusTooManyRequests)
+			c.Set("Retry-After", "5")
+			return c.JSON(fiber.Map{
+				"error": "Too many validations in progress, try again later.",
+			})
+		}
 		defer afterValidation()
-
 		body := c.Body()
-		log.Println("validating item with size=", len(body))
+		log.Println("validating item with size =", len(body))
 		nReader := bytes.NewReader(body)
 		isOk := validate.IsItemValid(nReader)
 		return c.Status(200).JSON(ValidationResponse{
@@ -80,16 +78,22 @@ func main() {
 	})
 
 	app.Post("/api/v1/validate-model", func(c *fiber.Ctx) error {
-		beforeValidation()
+		if !tryBeforeValidation() {
+			c.Status(fiber.StatusTooManyRequests)
+			c.Set("Retry-After", "5")
+			return c.JSON(fiber.Map{
+				"error": "Too many validations in progress, try again later.",
+			})
+		}
 		defer afterValidation()
-
 		body := c.Body()
-		log.Println("validating model with size=", len(body))
+		log.Println("validating model with size =", len(body))
 		nReader := bytes.NewReader(body)
 		isOk := validate.IsModelValid(nReader)
 		return c.Status(200).JSON(ValidationResponse{
 			IsValid: isOk,
 		})
 	})
+
 	log.Fatal(app.Listen(":4300"))
 }
