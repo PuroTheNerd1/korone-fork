@@ -35,7 +35,9 @@ func afterValidation() {
 }
 
 func main() {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 30 * 1024 * 1024, // 30 MB
+	})
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("AssetValidationServiceV2 OK")
