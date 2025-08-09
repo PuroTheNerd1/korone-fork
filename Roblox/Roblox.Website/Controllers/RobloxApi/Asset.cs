@@ -167,7 +167,7 @@ public class Asset : ControllerBase
         }
 
         if (assetVersion.contentUrl is not null)
-            return File(await services.assets.GetAssetContent(assetVersion.contentUrl), assetVersion.contentUrl, "application/binary");
+            return File(await services.assets.GetAssetContent(assetVersion.contentUrl), "application/binary", assetVersion.contentUrl);
 
         // Should never happen
         throw new BadRequestException();
