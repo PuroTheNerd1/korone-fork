@@ -227,9 +227,29 @@ public class DevelopControllerV1 : ControllerBase
             throw new BadRequestException(1, "Cannot upload a game icon for a non place");
         
         if (details.moderationStatus is not ModerationStatus.AwaitingApproval)
-            throw new BadRequestException(1, "You must wait until your Place's icon is approved by moderators."); 
+            throw new BadRequestException(1, "You must wait until your Place's icon is approved by moderators.");
 
-        await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
+        lock (pendingThumbnailUploadsMux)
+        {
+            if (pendingThumbnailsUploads >= 5)
+            {
+                throw new TooManyRequestsException(0, "Too many pending uploads");
+            }
+            pendingThumbnailsUploads++;
+        }
+
+        try
+        {
+            await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
+        }
+        finally
+        {
+            lock (pendingThumbnailUploadsMux)
+            {
+                pendingThumbnailsUploads--;
+            }
+        }
+
         return Ok();
     }
     
