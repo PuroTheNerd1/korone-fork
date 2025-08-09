@@ -69,31 +69,24 @@ public class Asset : ControllerBase
         var invalidIdKey = "InvalidAssetIdForConversionV1:" + assetId;
         // Opt
         if (Services.Cache.distributed.StringGetMemory(invalidIdKey) != null)
-            throw new RobloxException(400, 0, "Asset is invalid or does not exist");
+            throw new BadRequestException(400, "Asset is invalid or does not exist");
 
         MultiGetEntry details;
         try
         {
             details = await services.assets.GetAssetCatalogInfo(assetId);
+            assetId = details.id; // Use the asset ID from the details in case its a roblox asset that was converted
         }
         catch (RecordNotFoundException)
         {
-            try
-            {
-                assetId = await services.assets.GetAssetIdFromRobloxAssetId(assetId);
-                details = await services.assets.GetAssetCatalogInfo(assetId);
-            }
-            catch (RecordNotFoundException)
-            {
-                using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
-                var location = await robloxAssetService.GetAssetById(assetId, serverplaceid ?? currentPlaceId);
-                return Redirect(location);
-            }
+            using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
+            var location = await robloxAssetService.GetAssetById(assetId, serverplaceid ?? currentPlaceId);
+            return Redirect(location);
         }
         var isBot = Request.Headers["bot-auth"].ToString() == Configuration.BotAuthorization;
         // Places can never be loaded if they are denied
         if (!IsAssetApproved(details) && !isRCC && !isBot && details.assetType != Type.Place)
-            throw new RobloxException(403, 0, "Asset not approved for requester");
+            throw new ForbiddenException(0, "Asset not approved for requester");
 
         AssetVersionEntry assetVersion;
         if (version is null)
@@ -105,7 +98,6 @@ public class Asset : ControllerBase
             assetVersion = await services.assets.GetSpecificAssetVersion(id, version.Value);
         }
 
-        Stream? assetContent = null;
         switch (details.assetType)
         {
             // Special types
@@ -115,10 +107,9 @@ public class Asset : ControllerBase
                 return new FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(assetVersion.contentId)), "application/binary");
             case Models.Assets.Type.Pants:
                 return new FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetPants(assetVersion.contentId)), "application/binary");
-            // Types that require no authentication and aren't encrypted
+            // Types that require no authentication
             case Models.Assets.Type.Image:
             case Models.Assets.Type.Special:
-            // Types that require no authentication
             case Models.Assets.Type.Audio:
             case Models.Assets.Type.Mesh:
             case Models.Assets.Type.Hat:
@@ -157,32 +148,27 @@ public class Asset : ControllerBase
             case Models.Assets.Type.SwimAnimation:
             case Models.Assets.Type.SolidModel:
             case Models.Assets.Type.Video:
-                if (details.assetType == Type.Audio)
-                    Console.WriteLine($"[info] got audio asset request AUD: {assetId}");
-                if (assetVersion.contentUrl != null)
-                    assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
                 break;
-                // anything else requires auth
             default:
-                var isAuthorized = false;
-                if (isRCC)
-                    isAuthorized = await ValidateRCCRequest(details, currentPlaceId, assetId);
-                // It's not RCC making the request. are we authorized?
-                else
-                    // Use current user as access check
-                    isAuthorized = await IsUserAuthorizedForAsset(details, assetId, safeUserSession.userId); 
-                if (isAuthorized && assetVersion.contentUrl != null)
-                    assetContent = await services.assets.GetAssetContent(assetVersion.contentUrl);
+                // If we are RCC and the validation fails, throw a 403
+                if (isRCC && !await ValidateRCCRequest(details, currentPlaceId, assetId))
+                {
+                    throw new ForbiddenException(3, "RCC request failed");
+                }
+                // We are a user check if we are authorized
+                else if (!await IsUserAuthorizedForAsset(details, assetId, safeUserSession.userId))
+                {
+                    throw new ForbiddenException(1, "User is not authorized to access Asset.");
+                }
+                // We are authorized
                 break;
         }
 
-        if (assetContent == null)
-        {
-            Console.WriteLine("[info] got BadRequest on /asset/ endpoint");
-            throw new BadRequestException();
-        }
+        if (assetVersion.contentUrl is not null)
+            return File(await services.assets.GetAssetContent(assetVersion.contentUrl), assetVersion.contentUrl, "application/binary");
 
-        return File(assetContent, "application/binary");
+        // Should never happen
+        throw new BadRequestException();
     }
     // TODO : Unhardcode
     [HttpPostBypass("v2/asset")]

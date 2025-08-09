@@ -152,6 +152,10 @@ public class AssetsService : ServiceBase, IService
     }
     public async Task<AssetVersionEntry> GetLatestAssetVersion(long assetId)
     {
+        using var assetVersionCache = ServiceProvider.GetOrCreate<GetLatestAssetVersionCache>();
+        var (exists, cached) = assetVersionCache.Get(assetId);
+        if (exists && cached != null)
+            return cached;
         var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
             "SELECT id as assetVersionId, version_number as versionNumber, content_url as contentUrl, content_id as contentId, created_at as createdAt, updated_at as updatedAt, creator_id as creatorId FROM asset_version WHERE asset_id = :id ORDER BY id DESC LIMIT 1",
             new
@@ -159,6 +163,7 @@ public class AssetsService : ServiceBase, IService
                 id = assetId,
             });
         if (result == null) throw new RecordNotFoundException();
+        assetVersionCache.Set(assetId, result);
         return result;
     }
     public async Task<IEnumerable<AssetVersionEntry>> GetAssetVersions(long assetId, int offset, int limit, SortOrder sortOrder)
@@ -1747,7 +1752,7 @@ public class AssetsService : ServiceBase, IService
                 sale_type = PurchaseType.Purchase,
                 sub_sale_type = TransactionSubType.ItemPurchase,
             });
-        query.OrWhereMulti("asset.id = $1", idsEnumerable);
+        query.OrWhereMulti("asset.id = $1 OR asset.roblox_asset_id = $1", idsEnumerable);
 
         var result = (await db.QueryAsync<Dto.Assets.MultiGetEntryInternal>(t.RawSql, t.Parameters)).ToList();
         watch.Stop();
