@@ -410,10 +410,11 @@ public class AssetsService : ServiceBase, IService
 
         try
         {
-            if (file.CanSeek)
-                file.Seek(0, SeekOrigin.Begin);
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
 
-            using (var content = new StreamContent(file, bufferSize: 81920)) // default buffer
+            using (var content = new StreamContent(memoryStream, bufferSize: 81920))
             {
                 content.Headers.Add("robloxAuthorization", Configuration.AssetValidationServiceAuthorization);
 
@@ -448,6 +449,7 @@ public class AssetsService : ServiceBase, IService
 
         return false;
     }
+
 
     public async Task<MemoryStream> CleanImage(Stream image)
     {

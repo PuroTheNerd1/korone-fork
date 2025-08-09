@@ -43,6 +43,7 @@ func main() {
 
 	app.Post("/api/v1/validate-place", func(c *fiber.Ctx) error {
 		if !tryBeforeValidation() {
+			log.Println("Validation limit reached, rejecting request")
 			c.Status(fiber.StatusTooManyRequests)
 			c.Set("Retry-After", "5")
 			return c.JSON(fiber.Map{
@@ -61,6 +62,7 @@ func main() {
 
 	app.Post("/api/v1/validate-item", func(c *fiber.Ctx) error {
 		if !tryBeforeValidation() {
+			log.Println("Validation limit reached, rejecting request")
 			c.Status(fiber.StatusTooManyRequests)
 			c.Set("Retry-After", "5")
 			return c.JSON(fiber.Map{
@@ -79,6 +81,7 @@ func main() {
 
 	app.Post("/api/v1/validate-model", func(c *fiber.Ctx) error {
 		if !tryBeforeValidation() {
+			log.Println("Validation limit reached, rejecting request")
 			c.Status(fiber.StatusTooManyRequests)
 			c.Set("Retry-After", "5")
 			return c.JSON(fiber.Map{
