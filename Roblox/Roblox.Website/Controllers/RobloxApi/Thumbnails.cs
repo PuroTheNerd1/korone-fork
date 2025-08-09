@@ -231,7 +231,7 @@ public class RbxThumbnails : ControllerBase
 
         return new RobloxCollection<dynamic>()
         {
-            data = allResults.SelectMany(result => result).ToList()
+            data = allResults.SelectMany(result => result)
         };
     }
 }
