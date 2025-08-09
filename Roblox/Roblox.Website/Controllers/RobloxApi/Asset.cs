@@ -84,6 +84,7 @@ public class Asset : ControllerBase
             var location = await robloxAssetService.GetAssetById(assetId, serverplaceid ?? currentPlaceId);
             return Redirect(location);
         }
+
         var isBot = Request.Headers["bot-auth"].ToString() == Configuration.BotAuthorization;
         // Places can never be loaded if they are denied
         if (!IsAssetApproved(details) && !isRCC && !isBot && details.assetType != Type.Place)
