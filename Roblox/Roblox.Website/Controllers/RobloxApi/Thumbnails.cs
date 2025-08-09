@@ -195,42 +195,17 @@ public class RbxThumbnails : ControllerBase
 
     public static async Task<IEnumerable<dynamic>> MultiGetThumbnailsGeneric(List<BatchRequestEntry> thumbs, string type, Func<IEnumerable<long>, Task<IEnumerable<ThumbnailEntry>>> method)
     {
-        var filtered = thumbs.Where(c => c.type == type).ToList();
-        if (filtered.Count == 0)
-            return Array.Empty<dynamic>();
-
-        var thumbnails = await method(filtered.Select(c => c.targetId).Distinct());
-
-        return filtered.Select(c =>
+        var idList = thumbs.Where(c => c.type == type).Select(c => c.targetId).ToList();
+        if (idList.Count == 0) return Array.Empty<dynamic>();
+        var thumbnails = await method(idList);
+        return thumbnails.Select(c => new
         {
-            var t = thumbnails.FirstOrDefault(x => x.targetId == c.targetId);
-
-            if (t == null || string.IsNullOrEmpty(t.imageUrl))
-            {
-                return (dynamic)new
-                {
-                    requestId = c.requestId ?? string.Empty,
-                    errorCode = 4,
-                    errorMessage = "The requested Ids are invalid, of an invalid type or missing.",
-                    targetId = c.targetId,
-                    state = ThumbnailState.Error,
-                    imageUrl = (string?)null,
-                    version = (string?)null
-                };
-            }
-
-            var finalUrl = Configuration.BaseUrl + t.imageUrl;
-
-            return (dynamic)new
-            {
-                requestId = c.requestId ?? string.Empty,
-                errorCode = 0,
-                errorMessage = string.Empty,
-                targetId = t.targetId,
-                state = t.state,
-                imageUrl = finalUrl,
-                version = t.version
-            };
+            requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
+            targetId = c.targetId,
+            state = c.version,
+            imageUrl = Configuration.BaseUrl + c.imageUrl,
+            Url = Configuration.BaseUrl + c.imageUrl,
+            version = c.version
         });
     }
 
