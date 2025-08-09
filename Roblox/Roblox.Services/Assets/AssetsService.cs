@@ -404,51 +404,46 @@ public class AssetsService : ServiceBase, IService
         stream.Position = 0;
         return startOfFile == "<roblox";
     }
+
     public async Task<bool> ValidateAssetFile(Stream file, Models.Assets.Type assetType)
     {
         Writer.Info(LogGroup.AssetValidation, "validating asset. type = {0}", assetType);
 
+        var url = assetType switch
+        {
+            Type.Place => Configuration.AssetValidationServiceUrl + "/api/v1/validate-place",
+            Type.Model => Configuration.AssetValidationServiceUrl + "/api/v1/validate-model",
+            _ => Configuration.AssetValidationServiceUrl + "/api/v1/validate-item"
+        };
+
+        if (file.CanSeek)
+            file.Seek(0, SeekOrigin.Begin);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        var content = new StreamContent(file, 81920);
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        request.Content = content;
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+
         try
         {
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
-            memoryStream.Seek(0, SeekOrigin.Begin);
+            using var response = await assetValidationClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            response.EnsureSuccessStatusCode();
 
-            using (var content = new StreamContent(memoryStream, bufferSize: 81920))
-            {
-                content.Headers.Add("robloxAuthorization", Configuration.AssetValidationServiceAuthorization);
-
-                var url = assetType switch
-                {
-                    Type.Place => Configuration.AssetValidationServiceUrl + "/api/v1/validate-place",
-                    Type.Model => Configuration.AssetValidationServiceUrl + "/api/v1/validate-model",
-                    _ => Configuration.AssetValidationServiceUrl + "/api/v1/validate-item"
-                };
-
-                assetValidationClient.Timeout = TimeSpan.FromMinutes(5);
-
-                using (var response = await assetValidationClient.PostAsync(url, content))
-                {
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        throw new Exception($"Got failure response from assetValidationService. Code = {response.StatusCode}");
-                    }
-
-                    var resultJson = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<AssetValidationResponse>(resultJson);
-                    return result?.isValid == true;
-                }
-            }
+            var resultJson = await response.Content.ReadAsStringAsync(cts.Token);
+            var result = JsonSerializer.Deserialize<AssetValidationResponse>(resultJson);
+            return result?.isValid == true;
         }
         catch (Exception e)
         {
             Writer.Info(LogGroup.AssetValidation,
                 "ValidateAssetFile caught exception. message = {0}\n{1}",
                 e.Message, e.StackTrace);
+            return false;
         }
-
-        return false;
     }
+
 
 
     public async Task<MemoryStream> CleanImage(Stream image)
