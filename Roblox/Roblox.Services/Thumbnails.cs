@@ -272,7 +272,7 @@ public class ThumbnailsService : ServiceBase, IService
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
-            if (c.moderationStatus != ModerationStatus.AwaitingApproval)
+            if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
 
             if (c.moderationStatus == ModerationStatus.Declined)
@@ -306,7 +306,7 @@ public class ThumbnailsService : ServiceBase, IService
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
-            if (c.moderationStatus != ModerationStatus.AwaitingApproval)
+            if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
 
             if (c.moderationStatus == ModerationStatus.Declined)
