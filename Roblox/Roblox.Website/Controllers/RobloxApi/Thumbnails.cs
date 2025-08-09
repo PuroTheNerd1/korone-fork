@@ -202,7 +202,7 @@ public class RbxThumbnails : ControllerBase
         {
             requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
             targetId = c.targetId,
-            state = c.version,
+            state = c.state,
             imageUrl = Configuration.BaseUrl + c.imageUrl,
             Url = Configuration.BaseUrl + c.imageUrl,
             version = c.version
