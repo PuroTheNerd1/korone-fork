@@ -152,18 +152,17 @@ public class Asset : ControllerBase
             case Models.Assets.Type.Video:
                 break;
             default:
-                // If we are RCC and the validation fails, throw a 403
-                if (isRCC && !await ValidateRCCRequest(details, currentPlaceId, assetId))
+                // If we are RCC and the validation is ok break out
+                if (isRCC && await ValidateRCCRequest(details, currentPlaceId, assetId))
                 {
-                    throw new ForbiddenException(3, "RCC request failed");
+                    break;
                 }
-                // We are a user check if we are authorized
-                else if (!await IsUserAuthorizedForAsset(details, assetId, safeUserSession.userId))
+                // We are a user, if we are authorized break again
+                if (await IsUserAuthorizedForAsset(details, assetId, safeUserSession.userId))
                 {
-                    throw new ForbiddenException(1, "User is not authorized to access Asset.");
+                    break;
                 }
-                // We are authorized
-                break;
+                throw new ForbiddenException(1, "User is not authorized to access Asset.");
         }
 
         if (assetVersion.contentUrl is not null)
