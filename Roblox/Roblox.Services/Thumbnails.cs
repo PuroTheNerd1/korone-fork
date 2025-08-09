@@ -315,7 +315,6 @@ public class ThumbnailsService : ServiceBase, IService
 
             if (c.imageUrl != null)
                 c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
-            c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
             return new ThumbnailEntry()
             {
                 targetId = c.targetId,
