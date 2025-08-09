@@ -337,7 +337,7 @@ public class UniverseV1 : ControllerBase
     }
 
     [HttpGet("v1/search/universes")]
-    public async Task<dynamic> SearchUniverse(string q, int limit, SortOrder sortOrder = SortOrder.Asc, string? cursor = null)
+    public async Task<dynamic> SearchUniverse(string q, int limit = 10, SortOrder sortOrder = SortOrder.Asc, string? cursor = null)
     {
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
