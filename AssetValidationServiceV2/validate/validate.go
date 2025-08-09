@@ -86,21 +86,74 @@ func IsModelValid(reader io.Reader) bool {
 			log.Println("Invalid model: root Model has no children.")
 			return false
 		}
-
+		// all valid classes
 		validClasses := map[string]bool{
-			"Part":               true,
-			"MeshPart":           true,
-			"SpecialMesh":        true,
-			"Sky":                true,
+			// Base building parts
+			"Part":            true,
+			"MeshPart":        true,
+			"SpecialMesh":     true,
+			"WedgePart":       true,
+			"CornerWedgePart": true,
+			"UnionOperation":  true,
+			"TrussPart":       true,
+			"VehicleSeat":     true,
+			"Seat":            true,
+			"SpawnLocation":   true,
+
+			// Meshes
+			"BlockMesh":    true,
+			"CylinderMesh": true,
+
+			// Constraints & joints
+			"Attachment":           true,
+			"Motor6D":              true,
+			"Weld":                 true,
+			"WeldConstraint":       true,
+			"HingeConstraint":      true,
+			"BallSocketConstraint": true,
+			"RodConstraint":        true,
+
+			// Visual effects
+			"Decal":           true,
+			"Texture":         true,
+			"SurfaceGui":      true,
+			"BillboardGui":    true,
+			"PointLight":      true,
+			"SpotLight":       true,
+			"SurfaceLight":    true,
+			"ParticleEmitter": true,
+			"Trail":           true,
+			"Fire":            true,
+			"Smoke":           true,
+
+			// Skybox
+			"Sky": true,
+
+			// Sounds
+			"Sound":                true,
+			"SoundGroup":           true,
+			"EqualizerSoundEffect": true,
+			"ReverbSoundEffect":    true,
+
+			// UI elements
+			"ScreenGui":      true,
+			"TextLabel":      true,
+			"TextButton":     true,
+			"ImageLabel":     true,
+			"ImageButton":    true,
+			"Frame":          true,
+			"ScrollingFrame": true,
+			"UIListLayout":   true,
+			"UIGridLayout":   true,
+			"UICorner":       true,
+			"UIStroke":       true,
+			"UIPadding":      true,
+
+			// Scripts
 			"LuaSourceContainer": true,
 			"Script":             true,
 			"LocalScript":        true,
 			"ModuleScript":       true,
-			"Decal":              true,
-			"Texture":            true,
-			"WedgePart":          true,
-			"UnionOperation":     true,
-			"ScreenGui":          true,
 		}
 
 		for _, child := range root.Children {
