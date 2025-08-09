@@ -261,7 +261,7 @@ public class ThumbnailsService : ServiceBase, IService
         var query = new SqlBuilder();
         var t = query.AddTemplate(
             @"SELECT 
-                u.universe_id AS targetId, 
+                u.id AS targetId, 
                 ai.content_url AS imageUrl, 
                 ai.moderation_status AS moderationStatus 
               FROM universe u
