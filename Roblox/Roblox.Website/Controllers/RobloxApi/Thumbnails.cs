@@ -193,7 +193,7 @@ public class RbxThumbnails : ControllerBase
         };
     }
 
-    public static async Task<IEnumerable<dynamic>> MultiGetThumbnailsGeneric( List<BatchRequestEntry> thumbs, string type, Func<IEnumerable<long>, Task<IEnumerable<ThumbnailEntry>>> method)
+    public static async Task<IEnumerable<dynamic>> MultiGetThumbnailsGeneric(List<BatchRequestEntry> thumbs, string type, Func<IEnumerable<long>, Task<IEnumerable<ThumbnailEntry>>> method)
     {
         var filtered = thumbs.Where(c => c.type == type).ToList();
         if (filtered.Count == 0)
@@ -205,7 +205,7 @@ public class RbxThumbnails : ControllerBase
         {
             var t = thumbnails.FirstOrDefault(x => x.targetId == c.targetId);
 
-            if (t == null)
+            if (t == null || string.IsNullOrEmpty(t.imageUrl))
             {
                 return (dynamic)new
                 {
@@ -219,6 +219,8 @@ public class RbxThumbnails : ControllerBase
                 };
             }
 
+            var finalUrl = Configuration.BaseUrl + t.imageUrl;
+
             return (dynamic)new
             {
                 requestId = c.requestId ?? string.Empty,
@@ -226,11 +228,10 @@ public class RbxThumbnails : ControllerBase
                 errorMessage = string.Empty,
                 targetId = t.targetId,
                 state = t.state,
-                imageUrl = Configuration.BaseUrl + t.imageUrl,
+                imageUrl = finalUrl,
                 version = t.version
             };
         });
-
     }
 
     [HttpPostBypass("v1/batch")]
