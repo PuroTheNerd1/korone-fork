@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using NAudio.CoreAudioApi.Interfaces;
 using Newtonsoft.Json;
 using Roblox.Dto.Thumbnails;
 using Roblox.Exceptions;
@@ -198,17 +197,41 @@ public class RbxThumbnails : ControllerBase
     {
         var idList = thumbs.Where(c => c.type == type).Select(c => c.targetId).ToList();
         if (idList.Count == 0) return Array.Empty<dynamic>();
+
         var thumbnails = await method(idList);
-        return thumbnails.Select(c => new
+        var results = new List<dynamic>();
+
+        foreach (var c in thumbnails)
         {
-            requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
-            errorCode = 0,
-            errorMessage = string.Empty,
-            targetId = c.targetId,
-            state = c.state,
-            imageUrl = Configuration.BaseUrl + c.imageUrl,
-            version = c.version
-        });
+            if (!string.IsNullOrEmpty(c.imageUrl))
+            {
+                results.Add(new
+                {
+                    requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
+                    errorCode = 0,
+                    errorMessage = string.Empty,
+                    targetId = c.targetId,
+                    state = c.state,
+                    imageUrl = Configuration.BaseUrl + c.imageUrl,
+                    version = c.version
+                });
+            }
+            else
+            {
+                results.Add(new
+                {
+                    requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
+                    errorCode = 4,
+                    errorMessage = "The requested Ids are invalid, of an invalid type or missing.",
+                    targetId = c.targetId,
+                    state = ThumbnailState.Error,
+                    imageUrl = (string?)null,
+                    version = (string?)null
+                });
+            }
+        }
+
+        return results;
     }
 
     [HttpPostBypass("v1/batch")]
@@ -233,7 +256,7 @@ public class RbxThumbnails : ControllerBase
 
         return new RobloxCollection<dynamic>()
         {
-            data = allResults.SelectMany(result => result)
+            data = allResults.SelectMany(result => result).ToList()
         };
     }
 }

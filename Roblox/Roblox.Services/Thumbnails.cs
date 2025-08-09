@@ -269,9 +269,9 @@ public class ThumbnailsService : ServiceBase, IService
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
-            if (!string.IsNullOrEmpty(c.imageUrl))
+            if (c.imageUrl is not null)
                 c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
-            
+
 
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
@@ -304,8 +304,8 @@ public class ThumbnailsService : ServiceBase, IService
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
-            if (!string.IsNullOrEmpty(c.imageUrl))
-                c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
+            if (c.imageUrl is not null)
+                c.imageUrl = "/images/thumbnails/" + c.imageUrl;
             
 
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
