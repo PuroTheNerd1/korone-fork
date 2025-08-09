@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using NAudio.CoreAudioApi.Interfaces;
 using Newtonsoft.Json;
 using Roblox.Dto.Thumbnails;
 using Roblox.Exceptions;
@@ -201,10 +202,11 @@ public class RbxThumbnails : ControllerBase
         return thumbnails.Select(c => new
         {
             requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
+            errorCode = 0,
+            errorMessage = string.Empty,
             targetId = c.targetId,
             state = c.state,
             imageUrl = Configuration.BaseUrl + c.imageUrl,
-            Url = Configuration.BaseUrl + c.imageUrl,
             version = c.version
         });
     }
