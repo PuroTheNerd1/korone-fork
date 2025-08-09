@@ -656,10 +656,6 @@ public class AssetsService : ServiceBase, IService
 
     public async Task CreateGameIcon(long assetId, Stream thumbnailToUse, CancellationToken? cancellationToken = null)
     {
-        var modInfo = (await MultiGetAssetDeveloperDetails(new[] { assetId })).First();
-        if (modInfo.moderationStatus != ModerationStatus.ReviewApproved)
-            return;
-
         var validImage = await ValidateImage(thumbnailToUse);
         if (validImage == null)
         {

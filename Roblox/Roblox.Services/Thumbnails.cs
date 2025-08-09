@@ -254,34 +254,66 @@ public class ThumbnailsService : ServiceBase, IService
             };
         });
     }
-    public async Task<IEnumerable<ThumbnailEntry>> GetGameIcons(IEnumerable<long> universeIds)
+    public async Task<IEnumerable<ThumbnailEntry>> GetUniverseIcons(IEnumerable<long> universeIds)
     {
         var ids = universeIds.Distinct().ToList();
         if (ids.Count == 0) return new ThumbnailEntry[] { };
         var query = new SqlBuilder();
         var t = query.AddTemplate(
-            "SELECT universe_id as targetId, content_url as imageUrl, moderation_status as moderationStatus FROM universe_asset INNER JOIN asset_icon ai ON ai.asset_id = universe_asset.asset_id /**where**/");
+            @"SELECT 
+                u.universe_id AS targetId, 
+                ai.content_url AS imageUrl, 
+                ai.moderation_status AS moderationStatus 
+              FROM universe u
+              INNER JOIN asset_icon ai ON ai.asset_id = u.root_asset_id 
+              /**where**/"
+        );
         query.OrWhereMulti("universe_id = $1", ids);
 
         return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
         {
-            if (c.moderationStatus != ModerationStatus.ReviewApproved)
-            {
-                c.imageUrl = null;
-            }
+            if (c.moderationStatus != ModerationStatus.AwaitingApproval)
+                c.imageUrl = "/img/placeholder.png";
 
-            if (!string.IsNullOrEmpty(c.imageUrl))
-            {
-                c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
-            }
+            if (c.moderationStatus == ModerationStatus.Declined)
+                c.imageUrl = "/img/blocked.png";
 
             if (c.imageUrl != null)
                 c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
 
-            if (c.moderationStatus == ModerationStatus.Declined)
+            return new ThumbnailEntry()
             {
+                targetId = c.targetId,
+                imageUrl = c.imageUrl,
+                state = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
+            };
+        });
+    }    
+    public async Task<IEnumerable<ThumbnailEntry>> GetPlaceIcons(IEnumerable<long> placeIds)
+    {
+        var ids = placeIds.Distinct().ToList();
+        if (ids.Count == 0) return new ThumbnailEntry[] { };
+        var query = new SqlBuilder();
+        var t = query.AddTemplate(
+            @"SELECT 
+                asset_id AS targetId, 
+                content_url AS imageUrl, 
+                moderation_status AS moderationStatus 
+              FROM asset_icon
+              /**where**/
+        ");
+        query.OrWhereMulti("asset_id = $1", ids);
+
+        return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
+        {
+            if (c.moderationStatus != ModerationStatus.AwaitingApproval)
+                c.imageUrl = "/img/placeholder.png";
+
+            if (c.moderationStatus == ModerationStatus.Declined)
                 c.imageUrl = "/img/blocked.png";
-            }
+
+            if (c.imageUrl != null)
+                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
 
             return new ThumbnailEntry()
             {

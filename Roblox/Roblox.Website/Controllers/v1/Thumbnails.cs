@@ -239,7 +239,7 @@ public class ThumbnailsControllerV1 : ControllerBase
         {
             MultiGetThumbnailsGeneric(thumbs, "AvatarThumbnail", services.thumbnails.GetUserThumbnails),
             MultiGetThumbnailsGeneric(thumbs, "AvatarHeadShot", services.thumbnails.GetUserHeadshots),
-            MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetGameIcons),
+            MultiGetThumbnailsGeneric(thumbs, "GameIcon", services.thumbnails.GetUniverseIcons),
             MultiGetThumbnailsGeneric(thumbs, "AssetThumbnail", services.thumbnails.GetAssetThumbnails),
         });
         return new RobloxCollection<dynamic>()
@@ -249,11 +249,23 @@ public class ThumbnailsControllerV1 : ControllerBase
     }
 
     [HttpGet("games/icons")]
-    public async Task<RobloxCollection<ThumbnailEntry>> GetGameIcons(string universeIds)
+    public async Task<RobloxCollection<ThumbnailEntry>> GetUniverseIcons(string universeIds)
     {
         var parsed = universeIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
-        var result = await services.thumbnails.GetGameIcons(parsed);
+        var result = await services.thumbnails.GetUniverseIcons(parsed);
+        return new()
+        {
+            data = result,
+        };
+    }
+
+    [HttpGet("places/gameicons")]
+    public async Task<RobloxCollection<ThumbnailEntry>> GetPlaceIcons(string placeIds)
+    {
+        var parsed = placeIds.Split(",").Select(long.Parse).Distinct().ToList();
+        if (parsed.Count is > 200 or < 0) throw new BadRequestException();
+        var result = await services.thumbnails.GetPlaceIcons(parsed);
         return new()
         {
             data = result,

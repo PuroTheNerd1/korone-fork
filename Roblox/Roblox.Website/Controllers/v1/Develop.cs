@@ -221,10 +221,13 @@ public class DevelopControllerV1 : ControllerBase
             throw new TooManyRequestsException(0, "Too many requests");
 
         await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
-        var details = await services.assets.GetAssetCatalogInfo(placeId);
-        if (details.assetType != Models.Assets.Type.Place) {
+        var details = (await services.assets.MultiGetAssetDeveloperDetails(new[] { placeId })).First();
+
+        if (details.typeId is not (int)Models.Assets.Type.Place)
             throw new BadRequestException(1, "Cannot upload a game icon for a non place");
-        }
+        
+        if (details.moderationStatus is not ModerationStatus.AwaitingApproval)
+            throw new BadRequestException(1, "You must wait until your Place's icon is approved by moderators."); 
 
         await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
         return Ok();
