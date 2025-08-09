@@ -135,6 +135,9 @@ func IsModelValid(reader io.Reader) bool {
 			"EqualizerSoundEffect": true,
 			"ReverbSoundEffect":    true,
 
+			// Containers
+			"Folder": true,
+
 			// UI elements
 			"ScreenGui":      true,
 			"TextLabel":      true,
