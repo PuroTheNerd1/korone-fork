@@ -74,9 +74,8 @@ public class AuthenticationController : ControllerBase
         // pass first
         var passwordOk = await services.users.VerifyPassword(safeUserSession.userId, req.password);
         if (!passwordOk)
-        {
             throw new ForbiddenException(3, "Your password is incorrect");
-        }
+        
         // name
         var nameOk = await services.users.IsUsernameValid(req.username);
         if (!nameOk) 

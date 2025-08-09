@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Exceptions;
 using Roblox.Libraries.Exceptions;
+using Roblox.Models.Economy;
 using Roblox.Services.Exceptions;
 using Roblox.Website.WebsiteModels;
 
@@ -80,9 +81,10 @@ public class ErrorController : ControllerBase
             });
             code = HttpStatusCode.TooManyRequests;
         }
+
         else
         {
-            Console.WriteLine("[error] Unknown exception caught by ErrorController.\n{0}\n{1}",exception?.Message,exception?.StackTrace);
+            Console.WriteLine("[error] Unknown exception caught by ErrorController.\n{0}\n{1}", exception?.Message, exception?.StackTrace);
         }
 
         if (errorList.Count == 0)
