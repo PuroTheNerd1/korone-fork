@@ -66,7 +66,7 @@ func IsModelValid(reader io.Reader) bool {
 		}
 
 		switch inst.ClassName {
-		case "Model", "Tool":
+		case "Model", "Tool", "Folder":
 			rootModels = append(rootModels, inst)
 		case "Script", "LocalScript", "ModuleScript":
 			rootScripts = append(rootScripts, inst)
