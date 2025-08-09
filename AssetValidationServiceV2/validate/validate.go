@@ -98,6 +98,9 @@ func IsModelValid(reader io.Reader) bool {
 			"ModuleScript":       true,
 			"Decal":              true,
 			"Texture":            true,
+			"WedgePart":          true,
+			"UnionOperation":     true,
+			"ScreenGui":          true,
 		}
 
 		for _, child := range root.Children {
