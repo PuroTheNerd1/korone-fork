@@ -136,7 +136,8 @@ func IsModelValid(reader io.Reader) bool {
 			"ReverbSoundEffect":    true,
 
 			// Containers
-			"Folder": true,
+			"Folder":             true,
+			"LuaSourceContainer": true,
 
 			// UI elements
 			"ScreenGui":      true,
@@ -153,10 +154,9 @@ func IsModelValid(reader io.Reader) bool {
 			"UIPadding":      true,
 
 			// Scripts
-			"LuaSourceContainer": true,
-			"Script":             true,
-			"LocalScript":        true,
-			"ModuleScript":       true,
+			"Script":       true,
+			"LocalScript":  true,
+			"ModuleScript": true,
 		}
 
 		for _, child := range root.Children {
