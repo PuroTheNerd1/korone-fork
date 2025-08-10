@@ -431,8 +431,8 @@ public class FriendsService : ServiceBase, IService
 
     public async Task FollowerUser(long userIdInitiating, long userIdToFollow)
     {
-        // if (await IsFloodCheckedForFollow(userIdInitiating))
-        //     throw new RobloxException(429, 0, "Too many requests");
+        if (await IsFloodCheckedForFollow(userIdInitiating))
+             throw new RobloxException(429, 0, "Too many requests");
         
         // locks
         await using var initiatorLock = await Cache.redLock.CreateLockAsync("FollowEdit:" + userIdInitiating, TimeSpan.FromMinutes(1));
