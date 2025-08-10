@@ -2264,9 +2264,7 @@ Thank you for your understanding,
                 }
         }
         var content = await services.robloxApi.GetAssetContentFromProxy(request.assetId);
-        var isOk = await services.assets.ValidateAssetFile(content, details.AssetTypeId.Value);
-        if (!isOk)
-            throw new StaffException("The asset file doesn't look correct. Please try again.");
+
         content.Position = 0;
         await CopyItemFloodCheck();
         // Now make the item!
