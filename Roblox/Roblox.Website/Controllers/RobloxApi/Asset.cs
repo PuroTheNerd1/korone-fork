@@ -93,7 +93,11 @@ public class Asset : ControllerBase
         AssetVersionEntry assetVersion;
         if (version is null)
         {
-            assetVersion = await services.assets.GetLatestAssetVersion(id); 
+            bool skipCache = false;
+            if (details.assetType == Type.Place)
+                skipCache = true;
+
+            assetVersion = await services.assets.GetLatestAssetVersion(id, skipCache); 
         }
         else
         {
