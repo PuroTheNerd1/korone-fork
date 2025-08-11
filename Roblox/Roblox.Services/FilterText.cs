@@ -36,6 +36,7 @@ public class FilterService : ServiceBase, IService
         "cocksucks",
         "condom",
         "condoms",
+        "condo",
         "cum",
         "cummer ",
         "cumming",
@@ -106,7 +107,6 @@ public class FilterService : ServiceBase, IService
         "niger",
         "nigger",
         "niggers",
-        "nga",
         "ngga",
         "nigga",
         "niigga",
@@ -165,7 +165,8 @@ public class FilterService : ServiceBase, IService
         "wanker",
         "whore",
         "whorehouse",
-        "yourcock"
+        "yourcock",
+        "femb",
      };
     private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
     public string FilterText(string input)
