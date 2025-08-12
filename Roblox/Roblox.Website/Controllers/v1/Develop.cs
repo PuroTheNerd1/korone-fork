@@ -357,7 +357,7 @@ public class DevelopControllerV1 : ControllerBase
     {
         await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
         
-        await services.assets.UpdateAsset(assetId, request.description, request.name, request.genres.First(),
+        await services.assets.UpdateAsset(assetId, request.description, services.filter.FilterText(request.name), request.genres.First(),
             request.isCopyingAllowed, request.enableComments, request.isForSale);
     }
 
@@ -370,7 +370,7 @@ public class DevelopControllerV1 : ControllerBase
         if (details.assetType != Models.Assets.Type.GamePass)
             throw new BadRequestException(1, "This endpoint is meant for updating gamepass assets only. Use assets/{assetId} for other assets.");
         
-        await services.assets.UpdateAsset(assetId, request.description, request.name, request.genres.First(),
+        await services.assets.UpdateAsset(assetId, request.description, services.filter.FilterText(request.name), request.genres.First(),
             false, request.enableComments, request.isForSale, request.file != null ? request.file.OpenReadStream() : null);
     }
     
