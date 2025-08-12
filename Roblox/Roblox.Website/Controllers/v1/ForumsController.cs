@@ -92,7 +92,7 @@ public class ForumsControllerV1 : ControllerBase
     public async Task ReplyToPost(long postId, [Required, FromBody] CreatePostRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.ForumsEnabled, FeatureFlag.ForumPostingEnabled);
-        await services.forums.ReplyToPost(postId, safeUserSession.userId, GetIP(), request.post);
+        await services.forums.ReplyToPost(postId, safeUserSession.userId, GetIP(), services.filter.FilterText(request.post));
     }
 
     private async Task<bool> IsModerator()
@@ -126,7 +126,7 @@ public class ForumsControllerV1 : ControllerBase
     public async Task<dynamic> CreateThread(long subCategoryId, [Required, FromBody] CreateThreadRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.ForumsEnabled);
-        var id = await services.forums.CreateThread(safeUserSession.userId, GetIP(), subCategoryId, request.subject, request.post);
+        var id = await services.forums.CreateThread(safeUserSession.userId, GetIP(), subCategoryId, services.filter.FilterText(request.subject), services.filter.FilterText(request.post));
         return new
         {
             id = id,
