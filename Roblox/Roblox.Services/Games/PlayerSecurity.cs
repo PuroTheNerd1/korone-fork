@@ -44,7 +44,9 @@ public class PlayerSecurityService :  ServiceBase, IService
         var isSubPlace = destinationInfo.rootPlaceId != destinationPlaceId;
         if (originPlaceId == 0)
         {
-            return isSubPlace;
+            return isSubPlace ?
+                false : // If the origin is 0, we can not teleport to a subplace
+                true; // If the origin is 0, we can teleport to the root place of the universe
         }
         // Should be OK
         if (originPlaceId == destinationPlaceId)
