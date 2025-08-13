@@ -33,25 +33,30 @@ public class PrivateMessagesService : ServiceBase, IService
 
     private async Task<bool> CanSendMessage(long userId, long contextUserId)
     {
-        var privacy = await db.QuerySingleOrDefaultAsync("SELECT user_settings.private_message_privacy FROM user_settings WHERE user_id = :uid", new
-        {
-            uid = userId,
-        });
-        privacy = (GeneralPrivacy)privacy.private_message_privacy;
+        using var accountInfo = ServiceProvider.GetOrCreate<AccountInformationService>();
         using var friendsService = ServiceProvider.GetOrCreate<FriendsService>();
-        switch (privacy)
+        var privacy = await accountInfo.GetUserPrivateMessagePrivacy(userId);
+        // Check friendship first since that overrides follows/followings
+        if (privacy is GeneralPrivacy.Followers or GeneralPrivacy.Following or GeneralPrivacy.Friends)
         {
-            case GeneralPrivacy.All:
-                return true; 
-            case GeneralPrivacy.Friends:
-                return await friendsService.AreAlreadyFriends(userId, contextUserId);
-            case GeneralPrivacy.Followers:
-                return await friendsService.IsOneFollowingTwo(contextUserId, userId);
-            case GeneralPrivacy.Following:
-                return await friendsService.IsOneFollowingTwo(userId, contextUserId);
-            case GeneralPrivacy.NoOne:
-                return false;
+            var friendshipStatus = await friendsService.GetFriendshipStatus(userId, contextUserId);
+            if (friendshipStatus.status == "Friends")
+                return true;
         }
+
+        if (privacy is GeneralPrivacy.Following)
+        {
+            if (await friendsService.IsOneFollowingTwo(userId, contextUserId))
+                return true;
+        }
+
+        if (privacy is GeneralPrivacy.Followers)
+        {
+            if (await friendsService.IsOneFollowingTwo(contextUserId, userId))
+                return true;
+        }
+
+        return false;
     }
 
     public async Task<bool> IsFloodChecked(long senderUserId)
