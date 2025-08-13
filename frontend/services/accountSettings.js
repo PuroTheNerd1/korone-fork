@@ -38,6 +38,16 @@ export const setTradeValue = ({ newValue }) => {
   });
 }
 
+export const getPrivateMessagePrivacy = () => {
+  return request('GET', getFullUrl('accountsettings', '/v1/private-message-privacy')).then(d => d.data.privateMessagePrivacy);
+}
+
+export const setPrivateMessagePrivacy = ({ newPrivacy }) => {
+  return request('POST', getFullUrl('accountsettings', '/v1/private-message-privacy'), {
+    privateMessagePrivacy: newPrivacy,
+  });
+}
+
 export const getAvPageStyleReq = () => {
   return request('GET', getFullUrl('accountsettings', '/v1/avatar-page-style')).then(d => d.data.avatarPageStyle);
 }

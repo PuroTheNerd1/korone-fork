@@ -27,7 +27,7 @@ public class AccountInformationService : ServiceBase, IService
 
     public async Task<UserSettingsEntry> GetUserSettings(long userId)
     {
-        return await db.QuerySingleOrDefaultAsync<UserSettingsEntry>("SELECT gender, theme, inventory_privacy as inventoryPrivacy, trade_privacy as tradePrivacy, trade_filter as tradeFilter, avatar_page_style as avatarPageStyle FROM user_settings WHERE user_id = :user_id",
+        return await db.QuerySingleOrDefaultAsync<UserSettingsEntry>("SELECT gender, theme, inventory_privacy as inventoryPrivacy, trade_privacy as tradePrivacy, trade_filter as tradeFilter, private_message_privacy as privateMessagePrivacy, avatar_page_style as avatarPageStyle FROM user_settings WHERE user_id = :user_id",
             new {user_id = userId});
     }
 
@@ -124,6 +124,18 @@ public class AccountInformationService : ServiceBase, IService
         await UpdateAsync("user_settings", "user_id", userId, new
         {
             trade_filter = filter,
+        });
+    }
+    public async Task<GeneralPrivacy> GetUserPrivateMessagePrivacy(long userId)
+    {
+        return (await GetUserSettings(userId)).privateMessagePrivacy;
+    }
+    
+    public async Task SetUserPrivateMessagePrivacy(long userId, GeneralPrivacy privacy)
+    {
+        await UpdateAsync("user_settings", "user_id", userId, new
+        {
+            private_message_privacy = privacy,
         });
     }
     

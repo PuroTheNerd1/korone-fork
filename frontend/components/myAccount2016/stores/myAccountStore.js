@@ -15,6 +15,7 @@ const MyAccountStore = createContainer(() => {
   const [gender, setGender] = useState(1); // 1 = unknown, 2 = male, 3 = female
   const [inventoryPrivacy, setInventoryPrivacy] = useState(null);
   const [tradePrivacy, setTradePrivacy] = useState(null);
+  const [privateMessagePrivacy, setPrivateMessagePrivacy] = useState(null);
   const [tradeFilter, setTradeFilter] = useState(null);
   /**
    * @type {[typeof modalTypes, import("react").Dispatch<typeof modalTypes>]}
@@ -56,6 +57,9 @@ const MyAccountStore = createContainer(() => {
 
     tradePrivacy,
     setTradePrivacy,
+
+    privateMessagePrivacy,
+    setPrivateMessagePrivacy,
 
     inventoryPrivacy,
     setInventoryPrivacy,

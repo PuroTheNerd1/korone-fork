@@ -37,8 +37,21 @@ public class PrivateMessagesService : ServiceBase, IService
         {
             uid = userId,
         });
-        // TODO: Actual checks
-        return ((GeneralPrivacy) privacy.private_message_privacy) == GeneralPrivacy.All;
+        privacy = (GeneralPrivacy)privacy.private_message_privacy;
+        using var friendsService = ServiceProvider.GetOrCreate<FriendsService>();
+        switch (privacy)
+        {
+            case GeneralPrivacy.All:
+                return true; 
+            case GeneralPrivacy.Friends:
+                return await friendsService.AreAlreadyFriends(userId, contextUserId);
+            case GeneralPrivacy.Followers:
+                return await friendsService.IsOneFollowingTwo(contextUserId, userId);
+            case GeneralPrivacy.Following:
+                return await friendsService.IsOneFollowingTwo(userId, contextUserId);
+            case GeneralPrivacy.NoOne:
+                return false;
+        }
     }
 
     public async Task<bool> IsFloodChecked(long senderUserId)

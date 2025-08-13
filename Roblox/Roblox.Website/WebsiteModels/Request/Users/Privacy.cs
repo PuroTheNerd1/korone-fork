@@ -16,3 +16,8 @@ public class SetTradeValueRequest
 {
     public TradeQualityFilter tradeValue { get; set; }
 }
+
+public class PrivateMessagePrivacyRequest
+{
+    public GeneralPrivacy privateMessagePrivacy { get; set; }
+}
