@@ -42,14 +42,9 @@ public class PlayerSecurityService :  ServiceBase, IService
         Console.WriteLine("Validating teleport from {0} to {1}", originPlaceId, destinationPlaceId);
         var destinationInfo = await games.GetUniverseInfo(await games.GetUniverseId(destinationPlaceId));
         var isSubPlace = destinationInfo.rootPlaceId != destinationPlaceId;
-        if (originPlaceId is 0)
+        if (originPlaceId == 0)
         {
-            // We cannot join a subplace while we are joining from 0
-            if (isSubPlace)
-            {
-                return false;
-            }
-            return true;
+            return isSubPlace;
         }
         // Should be OK
         if (originPlaceId == destinationPlaceId)

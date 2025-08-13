@@ -1160,9 +1160,9 @@ namespace Roblox.Website.Controllers
             using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
             if (await playerSecurity.ValidateTeleport(originPlaceId, destinationPlaceId))
             {
-                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] Flag: InvaliadTeleport\nOrigin Place Id:{originPlaceId}\nDestination Place Id: {destinationPlaceId}");
                 return "true";
             }
+            await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] Flag: InvalidTeleport\nOrigin Place Id:{originPlaceId}\nDestination Place Id: {destinationPlaceId}");
             return "false";
         }
 
