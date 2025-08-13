@@ -187,6 +187,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         }
         #endif
         var pathLower = ctx.Request.Path.ToString().ToLower();
+        var fullUrl = ctx.Request.GetEncodedUrl().ToLower();
         if (pathLower.EndsWith("/"))
         {
             pathLower = pathLower.Substring(0, pathLower.Length - 1);
@@ -201,9 +202,9 @@ public class CsrfMiddleware : ControllerServicesExtended
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
                 var userAgent = ctx.Request.Headers["User-Agent"].ToString();
                 var stupidHeader = ctx.Request.Headers["stupid"].ToString();
-                if (!string.IsNullOrEmpty(stupidHeader) || stupidHeader is not null)
+                if (fullUrl.Contains("messagerouter"))
                 {
-                    Console.WriteLine($"Log stupid header: {pathLower}");
+                    Console.WriteLine($"MEOW MEOW MEOW MEOW MEOW: {fullUrl}");
                 }
                 if (userAgent.ToLower().Contains("roblox") || userAgent == Configuration.UserAgentBypassSecret)
                 {
