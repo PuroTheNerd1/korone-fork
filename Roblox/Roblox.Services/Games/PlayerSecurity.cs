@@ -50,6 +50,10 @@ public class PlayerSecurityService :  ServiceBase, IService
             }
             return false;
         }
+        if (originPlaceId == destinationPlaceId)
+        {
+            return true;
+        }
         var originInfo = await games.GetUniverseInfo(await games.GetUniverseId(originPlaceId));
         // If the destination is a subplace does not belong to the same universe, we can not teleport
         if (isSubPlace && originInfo.id != destinationInfo.id)
