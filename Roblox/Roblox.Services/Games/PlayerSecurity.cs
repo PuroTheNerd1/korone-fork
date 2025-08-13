@@ -50,11 +50,14 @@ public class PlayerSecurityService :  ServiceBase, IService
             }
             return false;
         }
+        // Should be OK
         if (originPlaceId == destinationPlaceId)
         {
             return true;
         }
+        Console.WriteLine("Validating teleport from {0} to {1}", originPlaceId, destinationPlaceId);
         var originInfo = await games.GetUniverseInfo(await games.GetUniverseId(originPlaceId));
+        Console.WriteLine("Origin universe: {0}, Destination universe: {1}", originInfo.id, destinationInfo.id);
         // If the destination is a subplace does not belong to the same universe, we can not teleport
         if (isSubPlace && originInfo.id != destinationInfo.id)
         {
