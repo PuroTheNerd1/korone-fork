@@ -2,7 +2,7 @@ namespace Roblox.Services;
 
 public class PlayerSecurityService :  ServiceBase, IService 
 {
-#region Tickets
+    #region Tickets
     private string GetPlayerTicketKey(long userId)
     {
         return "PlayerTicket:" + userId;
@@ -34,6 +34,33 @@ public class PlayerSecurityService :  ServiceBase, IService
     }
     #endregion
 
+    #region Join Validation
+    
+    public async Task<bool> ValidateTeleport(long originPlaceId, long destinationPlaceId)
+    {
+        using var games = Services.ServiceProvider.GetOrCreate<GamesService>(this);
+        var destinationInfo = await games.GetUniverseInfo(await games.GetUniverseId(destinationPlaceId));
+        var isSubPlace = destinationInfo.rootPlaceId != destinationPlaceId;
+        if (originPlaceId is 0)
+        {
+            // We cannot join a subplace while we are joining from 0
+            if (isSubPlace)
+            {
+                return true;
+            }
+            return false;
+        }
+        var originInfo = await games.GetUniverseInfo(await games.GetUniverseId(originPlaceId));
+        // If the destination is a subplace does not belong to the same universe, we can not teleport
+        if (isSubPlace && originInfo.id != destinationInfo.id)
+        {
+            return false;
+        }
+        // OK!
+        return true;
+    }
+
+    #endregion
     public bool IsThreadSafe()
     {
         return true;

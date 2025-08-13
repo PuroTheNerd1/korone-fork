@@ -1155,10 +1155,14 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/validate-place-join")]
         [HttpPostBypass("universes/validate-place-join")]
         [HttpGetBypass("universes/validate-place-join")]
-        public string ValidateJoin(long originPlaceId, long destinationPlaceId)
+        public async Task<string> ValidateJoin(long originPlaceId, long destinationPlaceId)
         {
-            Console.WriteLine($"Validating join from {originPlaceId} to {destinationPlaceId}");
-            return "true";
+            using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
+            if (await playerSecurity.ValidateTeleport(originPlaceId, destinationPlaceId))
+            {
+                return "true";
+            }
+            return "false";
         }
 
         [HttpGetBypass("v2/get-rollout-settings")]

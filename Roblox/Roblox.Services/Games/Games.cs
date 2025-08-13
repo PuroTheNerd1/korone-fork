@@ -33,6 +33,7 @@ public class GamesService : ServiceBase, IService
             });
         return result?.total ?? 0;
     }
+
     public async Task<bool> IsFull(Guid jobId, long placeId)
     {
         var jobPlayers = await gameServer.GetGameServerPlayers(jobId);
