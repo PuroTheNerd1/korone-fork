@@ -167,6 +167,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         // hubs
         "/chat",
         "/chat/negotiate",
+        "/v1/router",
         "/version",
         "/v1/CreateOrUpdate",
         "/game/validate-machine",
