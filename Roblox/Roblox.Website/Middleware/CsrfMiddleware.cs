@@ -199,7 +199,8 @@ public class CsrfMiddleware : ControllerServicesExtended
             {
                 var token = TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
-                if (ctx.Request.Headers["User-Agent"].ToString().Contains("RobloxStudio") || ctx.Request.Headers["User-Agent"] == Configuration.UserAgentBypassSecret)
+                var userAgent = ctx.Request.Headers["User-Agent"].ToString();
+                if (userAgent.ToLower().Contains("roblox") || userAgent == Configuration.UserAgentBypassSecret)
                 {
                     await _next(ctx);
                     return;
