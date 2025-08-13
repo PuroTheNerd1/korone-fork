@@ -12,8 +12,6 @@ namespace Roblox.Rendering
 {
     public class RenderingHandler
     {
-        private static string BaseUrl = "";
-        public static string LuaScriptPath = "";
         private static Random RandomComponent = new Random();
         private static HttpClient client = new HttpClient();
         // TODO: REWRITE RENDERING HANDLER
@@ -43,10 +41,9 @@ namespace Roblox.Rendering
             public string? message { get; set; }
             public string? data { get; set; }
         }
-        public static void Configure(string baseUrl, string rccPath, string luaScriptPath, string rccPathGames)
+        public static void Configure()
         {
-            BaseUrl = baseUrl;
-            LuaScriptPath = luaScriptPath;
+
         }
         public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>();
         private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false, string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null)

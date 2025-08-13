@@ -124,14 +124,14 @@ public class BadgesControllerV1 : ControllerBase
             // attempt to pull from query, in accordance to assets/award-badge
             if (string.IsNullOrEmpty(Request.Query["userId"].ToString()) || !long.TryParse(Request.Query["userId"], out _))
                 throw new BadRequestException(0, "User does not exist.");
-            userId = long.Parse(Request.Query["userId"]);
+            userId = long.Parse(Request.Query["userId"]!);
         }
         
         if (badgeId is 0) {
             // attempt to pull from query, in accordance to assets/award-badge
             if (string.IsNullOrEmpty(Request.Query["badgeId"].ToString()) || !long.TryParse(Request.Query["badgeId"], out _))
                 throw new BadRequestException(0, "Badge does not exist.");
-            badgeId = long.Parse(Request.Query["badgeId"]);
+            badgeId = long.Parse(Request.Query["badgeId"]!);
         }
 
         // checks if userId is an actual user

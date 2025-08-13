@@ -104,7 +104,7 @@ public class CsrfMiddleware : ControllerServicesExtended
     public async Task SendTokenFailMessage(HttpContext ctx, string csrf)
     {
         ctx.Response.StatusCode = 403;
-        ctx.Response.Headers.Add("x-csrf-token", csrf);
+        ctx.Response.Headers.Append("x-csrf-token", csrf);
         var url = ctx.Request.GetEncodedUrl();
         await ctx.Response.WriteAsJsonAsync(new
         {

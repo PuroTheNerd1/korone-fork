@@ -25,7 +25,7 @@ public class TimerMiddleware
                 }
 
                 strs.Reverse();
-                ctx.Response.Headers.Add("x-timing", string.Join(",", strs));
+                ctx.Response.Headers.Append("x-timing", string.Join(",", strs));
             }
         }
 

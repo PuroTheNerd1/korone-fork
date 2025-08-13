@@ -125,7 +125,7 @@ public class SessionMiddleware
                         {
                             authTimer.Stop();
                             ctx.Response.StatusCode = 302;
-                            ctx.Response.Headers.Add("location", "/auth/notapproved");
+                            ctx.Response.Headers.Append("location", "/auth/notapproved");
                             return;
                         }
                     }
@@ -137,7 +137,7 @@ public class SessionMiddleware
                         {
                             authTimer.Stop();
                             ctx.Response.StatusCode = 302;
-                            ctx.Response.Headers.Add("location", "/auth/application");
+                            ctx.Response.Headers.Append("location", "/auth/application");
                             return;
                         }
                     }
@@ -157,7 +157,7 @@ public class SessionMiddleware
                     {
                         // Redirect to homepage
                         ctx.Response.StatusCode = 302;
-                        ctx.Response.Headers.Add("location", "/home");
+                        ctx.Response.Headers.Append("location", "/home");
                         return;
                     }
                     authTimer.Stop();

@@ -218,7 +218,7 @@ public class FrontendProxyMiddleware
         var cached = GetPageFromCache(requestUrl);
         if (cached != null)
         {
-            ctx.Response.Headers.Add("x-cache-dbg", "f-2016; memv1;");
+            ctx.Response.Headers.Append("x-cache-dbg", "f-2016; memv1;");
             HandleProxyResult(requestUrl, cached.Item1, cached.Item4, cached.Item3, ctx);
             await ctx.Response.WriteAsync(cached.Item2);
             return;

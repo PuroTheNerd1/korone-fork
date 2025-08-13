@@ -155,7 +155,7 @@ namespace Roblox.Website.Controllers
             var headers = ctx.Request.Headers;
             if (headers.ContainsKey("cf-connecting-ip"))
             {
-                return headers["cf-connecting-ip"];
+                return headers["cf-connecting-ip"]!;
             }
 
             var ipString = ctx.Connection.RemoteIpAddress?.ToString();
