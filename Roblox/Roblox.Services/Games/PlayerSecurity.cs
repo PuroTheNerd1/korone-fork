@@ -39,6 +39,7 @@ public class PlayerSecurityService :  ServiceBase, IService
     public async Task<bool> ValidateTeleport(long originPlaceId, long destinationPlaceId)
     {
         using var games = Services.ServiceProvider.GetOrCreate<GamesService>(this);
+        Console.WriteLine("Validating teleport from {0} to {1}", originPlaceId, destinationPlaceId);
         var destinationInfo = await games.GetUniverseInfo(await games.GetUniverseId(destinationPlaceId));
         var isSubPlace = destinationInfo.rootPlaceId != destinationPlaceId;
         if (originPlaceId is 0)
@@ -55,7 +56,7 @@ public class PlayerSecurityService :  ServiceBase, IService
         {
             return true;
         }
-        Console.WriteLine("Validating teleport from {0} to {1}", originPlaceId, destinationPlaceId);
+
         var originInfo = await games.GetUniverseInfo(await games.GetUniverseId(originPlaceId));
         Console.WriteLine("Origin universe: {0}, Destination universe: {1}", originInfo.id, destinationInfo.id);
         // If the destination is a subplace does not belong to the same universe, we can not teleport
