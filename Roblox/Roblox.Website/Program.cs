@@ -254,5 +254,5 @@ _ = Task.Run(AvatarService.StartTimerClear3D);
 app.MapControllers();
 app.MapRazorPages();
 app.UseWebSockets();
-app.MapHub<MessageRouterHub>("/v1/router");
+app.MapHub<MessageRouterHub>("/v1/router/signalr");
 app.Run();
