@@ -200,6 +200,10 @@ public class CsrfMiddleware : ControllerServicesExtended
                 var token = TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
                 var userAgent = ctx.Request.Headers["User-Agent"].ToString();
+                if (userAgent.ToLower().Contains("signalr"))
+                {
+                    await discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"URL: {pathLower}");
+                }
                 if (userAgent.ToLower().Contains("roblox") || userAgent == Configuration.UserAgentBypassSecret)
                 {
                     await _next(ctx);
