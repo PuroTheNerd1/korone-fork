@@ -266,7 +266,7 @@ namespace Roblox.Website.Controllers
             {
                 TargetId = await services.games.GetRootPlaceId(gamePassDetails.universeId),
                 ProductType = "Game Pass",
-                AssetId = 0,
+                AssetId = details.id,
                 ProductId = details.id,
                 Name = details.name,
                 Description = details.description,
