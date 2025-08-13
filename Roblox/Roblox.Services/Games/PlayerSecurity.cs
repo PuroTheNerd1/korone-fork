@@ -46,9 +46,9 @@ public class PlayerSecurityService :  ServiceBase, IService
             // We cannot join a subplace while we are joining from 0
             if (isSubPlace)
             {
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
         // Should be OK
         if (originPlaceId == destinationPlaceId)
