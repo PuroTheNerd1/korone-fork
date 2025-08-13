@@ -251,8 +251,8 @@ _ = Task.Run(async () =>
     await assets.FixAssetImagesWithoutMetadata();
 });
 _ = Task.Run(AvatarService.StartTimerClear3D);
-
 app.MapControllers();
 app.MapRazorPages();
 app.UseWebSockets();
+app.MapHub<MessageRouterHub>("/v1/router");
 app.Run();
