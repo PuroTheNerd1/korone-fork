@@ -33,20 +33,34 @@ public class UsersService : ServiceBase, IService
     private static TwoFactorAuth tfa = new TwoFactorAuth("Pekora");
     public async Task<bool> IsNameAvailableForNameChange(long contextUserId, string username)
     {
-        var alreadyInUse = await db.QuerySingleOrDefaultAsync("SELECT username FROM \"user\" WHERE username ilike :name",
-            new { name = username });
-        if (alreadyInUse != null) return false;
+        var escapedUsername = username
+            .Replace("\\", "\\\\") 
+            .Replace("%", "\\%") 
+            .Replace("_", "\\_");
 
-        var usedPreviously =
-            await db.QueryAsync<PreviousUsernameEntries>(
-                "SELECT username, user_id as userId from user_previous_username WHERE username ilike :name",
-                new { name = username });
-        // If never used before, user can take it!
-        if (usedPreviously == null) return true;
-        var usedByAnyoneExcludingContextUser = usedPreviously.ToList().Where(c => c.userId != contextUserId);
-        if (usedByAnyoneExcludingContextUser.Any()) return false; // Someone else already used it.
+        var alreadyInUse = await db.QuerySingleOrDefaultAsync(
+            "SELECT username FROM \"user\" WHERE username ILIKE :name ESCAPE '\\'",
+            new { name = escapedUsername }
+        );
 
-        // User *has* used it before, but nobody else has, so they can take it!
+        if (alreadyInUse != null)
+            return false;
+
+        // Check if it was used previously
+        var usedPreviously = await db.QueryAsync<PreviousUsernameEntries>(
+            "SELECT username, user_id as userId " +
+            "FROM user_previous_username " +
+            "WHERE username ILIKE :name ESCAPE '\\'",
+            new { name = escapedUsername }
+        );
+
+        if (usedPreviously == null || !usedPreviously.Any())
+            return true;
+
+        var usedByAnyoneElse = usedPreviously.Where(c => c.userId != contextUserId);
+        if (usedByAnyoneElse.Any())
+            return false; // Someone else already used it
+
         return true;
     }
 
@@ -572,10 +586,25 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<UserInfo> GetUserByName(string username)
     {
-        var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE username ILIKE :name", new { name = username });
-        if (res == null) throw new RecordNotFoundException();
+        var escapedUsername = username
+            .Replace("\\", "\\\\")
+            .Replace("%", "\\%")  
+            .Replace("_", "\\_"); 
+
+        var res = await db.QuerySingleOrDefaultAsync<UserInfo>(
+            "SELECT id as userId, username, status as accountStatus, created_at as created, description " +
+            "FROM \"user\" " +
+            "WHERE username ILIKE :name ESCAPE '\\'",
+            new { name = escapedUsername }
+        );
+
+        if (res == null)
+            throw new RecordNotFoundException();
+
         return res;
     }
+
+
     public async Task<UserInfo> GetUserById(long userId)
     {
         using var userInfoCache = ServiceProvider.GetOrCreate<GetUserByIdCache>();
@@ -623,43 +652,64 @@ public class UsersService : ServiceBase, IService
 
     public async Task<IEnumerable<MultiGetEntry>> MultiGetUsersByUsername(IEnumerable<string> usernames)
     {
-        var names = usernames.ToList();
-        // This function has to check both current and old names
-        // Start with current, since it's probably quicker
+        var names = usernames
+            .Select(n => n
+                .Replace("\\", "\\\\")
+                .Replace("%", "\\%")
+                .Replace("_", "\\_")
+            )
+            .ToList();
+
         var currentData =
-            (await MultiGetAsync<MultiGetDbEntry, string>("user", "username", new[] { "username", "id" },
-                names, "ILIKE")).ToList();
+            (await MultiGetAsync<MultiGetDbEntry, string>(
+                "user",
+                "username",
+                new[] { "username", "id" },
+                names,
+                "ILIKE ESCAPE '\\'")
+            ).ToList();
+
         var usersNotInList = names.Where(c =>
         {
-            return currentData.Find(v => v.username.ToLower() == c.ToLower()) == null;
+            return currentData.Find(v => v.username.Equals(c, StringComparison.OrdinalIgnoreCase)) == null;
         }).ToList();
+
         if (usersNotInList.Count != 0)
         {
-            // Find missing users
             foreach (var user in usersNotInList)
             {
                 var exists = await db.QuerySingleOrDefaultAsync(
-                    "SELECT \"user\".id, user_previous_username.username as requestedUsername, \"user\".username FROM user_previous_username LEFT JOIN \"user\" ON \"user\".id = user_previous_username.user_id WHERE user_previous_username.username ILIKE :username LIMIT 1",
+                    "SELECT \"user\".id, user_previous_username.username as requestedUsername, \"user\".username " +
+                    "FROM user_previous_username " +
+                    "LEFT JOIN \"user\" ON \"user\".id = user_previous_username.user_id " +
+                    "WHERE user_previous_username.username ILIKE :username ESCAPE '\\' " +
+                    "LIMIT 1",
                     new
                     {
-                        username = user,
-                    });
+                        username = user
+                            .Replace("\\", "\\\\")
+                            .Replace("%", "\\%")
+                            .Replace("_", "\\_")
+                    }
+                );
+
                 if (exists != null)
                 {
                     currentData.Add(new MultiGetDbEntry
                     {
                         username = exists.username,
                         id = exists.id,
-                        requestedUsername = user,
+                        requestedUsername = user
                     });
                 }
             }
         }
+
         return currentData.Select(c => new MultiGetEntry
         {
             id = c.id,
             name = c.username,
-            requestedName = c.requestedUsername ?? c.username,
+            requestedName = c.requestedUsername ?? c.username
         });
     }
 

@@ -129,6 +129,7 @@ public class FilterService : ServiceBase, IService
         "porn",
         "porno",
         "pornography",
+        "goon",
         "pornos",
         "pren",
         "prostitute",
