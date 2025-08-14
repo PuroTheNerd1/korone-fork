@@ -521,7 +521,7 @@ public class WebController : ControllerBase
         FeatureFlags.FeatureCheck(FeatureFlag.AssetCommentsEnabled);
         try
         {
-            await services.assets.AddComment(request.assetId, safeUserSession.userId, request.text);
+            await services.assets.AddComment(request.assetId, safeUserSession.userId, services.filter.FilterText(request.text));
             return new
             {
                 ErrorCode = (string?)null,
