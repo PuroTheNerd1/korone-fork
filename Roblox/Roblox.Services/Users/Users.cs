@@ -386,11 +386,15 @@ public class UsersService : ServiceBase, IService
 
     public async Task<bool> IsBadUsername(string usernameToCheck)
     {
+        var escaped = usernameToCheck
+            .Replace("\\", "\\\\")
+            .Replace("%", "\\%")
+            .Replace("_", "\\_");
+
         var result = await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COUNT(*) AS total FROM moderation_bad_username WHERE username ILIKE :name", new
-            {
-                name = usernameToCheck,
-            });
+            @"SELECT COUNT(*) AS total FROM moderation_bad_username WHERE username ILIKE :name ESCAPE '\'",
+            new { name = escaped });
+
         return result.total != 0;
     }
 
