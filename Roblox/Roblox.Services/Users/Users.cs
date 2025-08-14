@@ -376,7 +376,7 @@ public class UsersService : ServiceBase, IService
     public async Task<long> GetUserIdFromUsername(string username)
     {
         username = username.Replace("%", "");
-        var result = await db.QuerySingleOrDefaultAsync<UserId>("SELECT id as userId FROM \"user\" WHERE username ILIKE :username", new
+        var result = await db.QuerySingleOrDefaultAsync<UserId>("SELECT id as userId FROM \"user\" WHERE LOWER(username) = LOWER(:username)", new
         {
             username,
         });
@@ -392,11 +392,14 @@ public class UsersService : ServiceBase, IService
             .Replace("_", "\\_");
 
         var result = await db.QuerySingleOrDefaultAsync<Total>(
-            @"SELECT COUNT(*) AS total FROM moderation_bad_username WHERE username ILIKE :name ESCAPE '\'",
-            new { name = escaped });
+            @"SELECT COUNT(*) AS total 
+          FROM moderation_bad_username 
+          WHERE username ILIKE :name ESCAPE '\'",
+            new { name = $"%{escaped}%" });
 
         return result.total != 0;
     }
+
 
     public async Task AddBadUsername(string usernameToAdd)
     {
@@ -591,16 +594,11 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<UserInfo> GetUserByName(string username)
     {
-        var escapedUsername = username
-            .Replace("\\", "\\\\")
-            .Replace("%", "\\%")  
-            .Replace("_", "\\_"); 
-
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>(
-            "SELECT id as userId, username, status as accountStatus, created_at as created, description " +
+            "SELECT id AS userId, username, status AS accountStatus, created_at AS created, description " +
             "FROM \"user\" " +
-            "WHERE username ILIKE :name ESCAPE '\\'",
-            new { name = escapedUsername }
+            "WHERE LOWER(username) = LOWER(:name)",
+            new { name = username }
         );
 
         if (res == null)
@@ -608,6 +606,7 @@ public class UsersService : ServiceBase, IService
 
         return res;
     }
+
 
 
     public async Task<UserInfo> GetUserById(long userId)
@@ -658,44 +657,35 @@ public class UsersService : ServiceBase, IService
     public async Task<IEnumerable<MultiGetEntry>> MultiGetUsersByUsername(IEnumerable<string> usernames)
     {
         var names = usernames
-            .Select(n => n
-                .Replace("\\", "\\\\")
-                .Replace("%", "\\%")
-                .Replace("_", "\\_")
-            )
+            .Select(n => n.Trim())
             .ToList();
 
-        var currentData =
-            (await MultiGetAsync<MultiGetDbEntry, string>(
+        var currentData = (await MultiGetAsync<MultiGetDbEntry, string>(
                 "user",
                 "username",
                 new[] { "username", "id" },
                 names,
-                "ILIKE ESCAPE '\\'")
+                "LOWER(username) = LOWER(:username)")
             ).ToList();
 
-        var usersNotInList = names.Where(c =>
-        {
-            return currentData.Find(v => v.username.Equals(c, StringComparison.OrdinalIgnoreCase)) == null;
-        }).ToList();
+        var usersNotInList = names
+            .Where(name => currentData.Find(v =>
+                v.username.Equals(name, StringComparison.OrdinalIgnoreCase)) == null)
+            .ToList();
 
         if (usersNotInList.Count != 0)
         {
             foreach (var user in usersNotInList)
             {
                 var exists = await db.QuerySingleOrDefaultAsync(
-                    "SELECT \"user\".id, user_previous_username.username as requestedUsername, \"user\".username " +
-                    "FROM user_previous_username " +
-                    "LEFT JOIN \"user\" ON \"user\".id = user_previous_username.user_id " +
-                    "WHERE user_previous_username.username ILIKE :username ESCAPE '\\' " +
-                    "LIMIT 1",
-                    new
-                    {
-                        username = user
-                            .Replace("\\", "\\\\")
-                            .Replace("%", "\\%")
-                            .Replace("_", "\\_")
-                    }
+                    @"SELECT u.id, 
+                         upu.username AS requestedUsername, 
+                         u.username
+                  FROM user_previous_username upu
+                  LEFT JOIN ""user"" u ON u.id = upu.user_id
+                  WHERE LOWER(upu.username) = LOWER(:username)
+                  LIMIT 1",
+                    new { username = user }
                 );
 
                 if (exists != null)
