@@ -660,13 +660,13 @@ public class UsersService : ServiceBase, IService
             .Select(n => n.Trim())
             .ToList();
 
-        var currentData = (await MultiGetAsync<MultiGetDbEntry, string>(
-                "user",
-                "username",
-                new[] { "username", "id" },
-                names,
-                "LOWER(username) = LOWER(:username)")
-            ).ToList();
+        var currentData = (await db.QueryAsync<MultiGetDbEntry>(@"
+            SELECT id, username, description, created_at
+            FROM ""user""
+            WHERE LOWER(username) = LOWER(:username)",
+            new { username = names }
+        )).ToList();
+
 
         var usersNotInList = names
             .Where(name => currentData.Find(v =>
