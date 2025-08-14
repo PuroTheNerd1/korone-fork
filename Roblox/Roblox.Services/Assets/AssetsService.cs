@@ -2491,7 +2491,8 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         if (!IsCommentValid(comment))
             throw new ArgumentException("Comment is too short. It must be at least 3 alpha-numeric characters");
         if (comment.Length > 200) throw new ArgumentException("Comment is too long");
-
+        using var fs = ServiceProvider.GetOrCreate<FilterService>(this);
+        comment = fs.FilterText(comment);
         //var details = (await MultiGetAssetDeveloperDetails(new[] {assetId})).First();
         //if (!details.enableComments)
         //throw new ArgumentException("Asset does not support comments");
