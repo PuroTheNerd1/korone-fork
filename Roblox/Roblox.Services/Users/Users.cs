@@ -431,7 +431,8 @@ public class UsersService : ServiceBase, IService
         ".",
     };
 
-    private static readonly Regex UsernameValidationRegex = new Regex("([a-zA-Z0-9_. ]+)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    private static readonly Regex UsernameValidationRegex = new Regex(@"^[a-zA-Z0-9_. ]+$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
 
     /// <summary>
     /// Check if the username is valid
