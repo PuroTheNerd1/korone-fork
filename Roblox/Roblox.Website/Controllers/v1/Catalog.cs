@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
 using Roblox.Models;
 using Roblox.Models.Assets;
+using Roblox.Services.App.FeatureFlags;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 #pragma warning disable CS8600
 
@@ -703,7 +704,9 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGet("search/items")]
     public async Task<SearchResponse> SearchItems(string? category, string? subcategory, string? sortType, string? keyword, string? cursor, int limit = 10, CreatorType? creatorType = null, long? creatorTargetId = null, string? creatorName = null, bool includeNotForSale = false, string? _genreFilterCsv = null)
     {
-	    var request = new CatalogSearchRequest()
+		if (FeatureFlags.IsDisabled(FeatureFlag.EconomyEnabled))
+			return new SearchResponse();
+        var request = new CatalogSearchRequest()
 	    {
 		    category = category,
 		    keyword = keyword,

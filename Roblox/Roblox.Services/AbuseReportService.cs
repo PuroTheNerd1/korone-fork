@@ -72,7 +72,7 @@ public class AbuseReportService : ServiceBase, IService
 
     public async Task<string> InsertReport(long contextUserId, AbuseReportReason reason, string message)
     {
-        FeatureFlags.FeatureCheck(FeatureFlag.AbuseReportsEnabled);
+        FeatureFlags.IsDisabled(FeatureFlag.AbuseReportsEnabled);
         string abuseReportId = Guid.NewGuid().ToString();
         await db.ExecuteAsync(
             "INSERT INTO abuse_report (id, user_id, report_reason, report_status, report_message) VALUES (:id, :user_id, :reason, :status, :message)",
