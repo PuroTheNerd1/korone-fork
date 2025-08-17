@@ -488,6 +488,14 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<IEnumerable<GameListEntry>> GetGamesList(long? contextUserId, string? sortToken, int maxRows, Genre? genre, string? keyword)
     {
+        using var gamesCache = ServiceProvider.GetOrCreate<GetGamesListCache>(this);
+        var canCache = sortToken != "recent" || sortToken != "favorited" || sortToken != "favourited" && (sortToken != null && keyword == null);
+        if (canCache)
+        {
+            var (exists, cached) = gamesCache.Get(sortToken!);
+            if (exists && cached != null)
+                return cached;
+        }
         var query = new SqlBuilder();
         var temp = query.AddTemplate(@"
             SELECT asset.name,
@@ -656,6 +664,12 @@ public class GamesService : ServiceBase, IService
             result = newResults;
         }
         result = result.Where(c => c.rootPlaceId == c.placeId).ToList();
+
+        if (canCache)
+        {
+            gamesCache.Set(sortToken!, result);
+        }
+
         return result;
     }
 
