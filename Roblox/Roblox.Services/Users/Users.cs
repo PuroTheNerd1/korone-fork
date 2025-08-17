@@ -602,7 +602,7 @@ public class UsersService : ServiceBase, IService
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>(
             "SELECT id AS userId, username, status AS accountStatus, created_at AS created, description " +
             "FROM \"user\" " +
-            "WHERE LOWER(username) = LOWER(:c)",
+            "WHERE LOWER(username) = LOWER(:username)",
             new { username = username }
         );
 
