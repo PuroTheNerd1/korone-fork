@@ -594,6 +594,11 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<UserInfo> GetUserByName(string username)
     {
+        using var userInfoCache = ServiceProvider.GetOrCreate<GetUserByNameCache>();
+        var (exists, cached) = userInfoCache.Get(username);
+        if (exists && cached != null)
+            return cached;
+
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>(
             "SELECT id AS userId, username, status AS accountStatus, created_at AS created, description " +
             "FROM \"user\" " +
@@ -603,7 +608,7 @@ public class UsersService : ServiceBase, IService
 
         if (res == null)
             throw new RecordNotFoundException();
-
+        userInfoCache.Set(username, res);
         return res;
     }
 
