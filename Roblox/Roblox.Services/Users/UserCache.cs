@@ -41,6 +41,14 @@ public class GetUserByNameCache : GenericMemoryCache<string, UserInfo>
         
     }
 }
+public class GetUserByDiscordIdCache : GenericMemoryCache<string, UserInfo>
+{
+    // short ttl so we don't risk having banned users online for too long
+    public GetUserByDiscordIdCache() : base(TimeSpan.FromMinutes(15))
+    {
+        
+    }
+}
 
 public class UserThemeCache : GenericMemoryCache<long, ThemeTypes>
 {

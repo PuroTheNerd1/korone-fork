@@ -67,38 +67,38 @@ public class BadgesService : ServiceBase, IService
         int offset, SortOrder? sort)
     {
         var qu = await db.QueryAsync<BadgeAssetDetailsDb>(
-                    @"SELECT 
-                a.id,
-                a.name,
-                a.description,
-                ab.enabled,
-                a.sale_count AS awardedCount,
-                a.created_at AS created,
-                a.moderation_status AS moderationStatus,
-                ab.universe_id AS universeId,
-                uv.root_asset_id AS rootPlaceId,
-                a.updated_at AS updated,
-                ua_counts.pastDayAwardedCount,
-                aph_counts.pastDayUniverseVisitors,
-                ass.name AS universeName
-            FROM asset AS a
-            INNER JOIN asset_badge ab ON ab.asset_id = a.id
-            INNER JOIN universe uv ON uv.id = ab.universe_id
-            INNER JOIN user_asset ua_filter ON ua_filter.asset_id = a.id AND ua_filter.user_id = :userId
-            LEFT JOIN LATERAL (
-                SELECT COUNT(*) AS pastDayAwardedCount
-                FROM user_asset ua2
-                WHERE ua2.asset_id = a.id
-                  AND ua2.updated_at >= NOW() - INTERVAL '1 day'
-            ) ua_counts ON true
-            LEFT JOIN LATERAL (
-                SELECT COUNT(*) AS pastDayUniverseVisitors
-                FROM asset_play_history aph
-                WHERE aph.asset_id = uv.root_asset_id
-                  AND aph.created_at >= NOW() - INTERVAL '1 day'
-            ) aph_counts ON true
-            LEFT JOIN asset ass ON ass.id = uv.root_asset_id
-            LIMIT :limit OFFSET :offset",
+                        @"SELECT 
+                    a.id,
+                    a.name,
+                    a.description,
+                    ab.enabled,
+                    a.sale_count AS awardedCount,
+                    a.created_at AS created,
+                    a.moderation_status AS moderationStatus,
+                    ab.universe_id AS universeId,
+                    uv.root_asset_id AS rootPlaceId,
+                    a.updated_at AS updated,
+                    ua_counts.pastDayAwardedCount,
+                    aph_counts.pastDayUniverseVisitors,
+                    ass.name AS universeName
+                FROM asset AS a
+                INNER JOIN asset_badge ab ON ab.asset_id = a.id
+                INNER JOIN universe uv ON uv.id = ab.universe_id
+                INNER JOIN user_asset ua_filter ON ua_filter.asset_id = a.id AND ua_filter.user_id = :userId
+                LEFT JOIN LATERAL (
+                    SELECT COUNT(*) AS pastDayAwardedCount
+                    FROM user_asset ua2
+                    WHERE ua2.asset_id = a.id
+                      AND ua2.updated_at >= NOW() - INTERVAL '1 day'
+                ) ua_counts ON true
+                LEFT JOIN LATERAL (
+                    SELECT COUNT(*) AS pastDayUniverseVisitors
+                    FROM asset_play_history aph
+                    WHERE aph.asset_id = uv.root_asset_id
+                      AND aph.created_at >= NOW() - INTERVAL '1 day'
+                ) aph_counts ON true
+                LEFT JOIN asset ass ON ass.id = uv.root_asset_id
+                LIMIT :limit OFFSET :offset",
             new
             {
                 userId,

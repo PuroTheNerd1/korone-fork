@@ -628,8 +628,13 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<UserInfo> GetUserByDiscordId(string discordId)
     {
+        using var userInfoCache = ServiceProvider.GetOrCreate<GetUserByDiscordIdCache>();
+        var (exists, cached) = userInfoCache.Get(discordId);
+        if (exists && cached != null)
+            return cached;
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE discord_id = :id", new { id = discordId });
         if (res == null) throw new RecordNotFoundException();
+        userInfoCache.Set(discordId, res);
         return res;
     }
     public async Task<bool> IsUserLinked(long userId)
