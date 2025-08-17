@@ -2548,23 +2548,11 @@ Thank you for your understanding,
         {
             t,
         });
-        var OnlineUserNames = await db.QueryAsync("SELECT username FROM \"user\" WHERE online_at >= :t", new
-        {
-            t,
-        });
 
         var usernames = new List<string>();
-
-        foreach (var row in OnlineUserNames)
-        {
-            var username = (string)row.username;
-            usernames.Add(username);
-        }
-
         return new
         {
             total = (long)OnlineCount.total,
-            usernames = usernames.ToArray()
         };
     }
 
