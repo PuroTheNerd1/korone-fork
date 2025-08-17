@@ -101,7 +101,7 @@ public class BadgesService : ServiceBase, IService
         LEFT JOIN asset ass ON ass.id = uv.root_asset_id
         LEFT JOIN recent_badge_awards rba ON rba.asset_id = a.id
         LEFT JOIN recent_universe_visitors ruv ON ruv.root_asset_id = uv.root_asset_id
-        ORDER BY a.created DESC
+        ORDER BY a.created_at DESC
         LIMIT :limit OFFSET :offset;
     ";
 
@@ -141,6 +141,7 @@ public class BadgesService : ServiceBase, IService
             }
         });
     }
+
     public async Task<IEnumerable<BadgeAssetDetails>> GetBadgeInfoExtended(long assetId, Universe universe, int limit,
         int offset, SortOrder? sort)
     {
