@@ -67,7 +67,7 @@ public class Application : RobloxPageModel
     private async Task<bool> ShouldDisableSubmissions()
     {
         var pendingApps = await services.users.CountPendingApplications();
-        if (pendingApps >= 25)
+        if (pendingApps >= 100)
         {
             return true;
         }
