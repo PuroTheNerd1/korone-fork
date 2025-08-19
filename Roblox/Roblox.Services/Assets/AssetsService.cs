@@ -152,13 +152,13 @@ public class AssetsService : ServiceBase, IService
     }
     public async Task<AssetVersionEntry> GetLatestAssetVersion(long assetId, bool skipCache = false)
     {
-        using var assetVersionCache = ServiceProvider.GetOrCreate<GetLatestAssetVersionCache>();
-        if (!skipCache)
-        {
-            var (exists, cached) = assetVersionCache.Get(assetId);
-            if (exists && cached != null)
-                return cached;
-        }
+        //using var assetVersionCache = ServiceProvider.GetOrCreate<GetLatestAssetVersionCache>();
+        //if (!skipCache)
+        //{
+        //    var (exists, cached) = assetVersionCache.Get(assetId);
+        //    if (exists && cached != null)
+        //        return cached;
+        //}
 
         var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
             "SELECT id as assetVersionId, version_number as versionNumber, content_url as contentUrl, content_id as contentId, created_at as createdAt, updated_at as updatedAt, creator_id as creatorId FROM asset_version WHERE asset_id = :id ORDER BY id DESC LIMIT 1",
@@ -167,7 +167,7 @@ public class AssetsService : ServiceBase, IService
                 id = assetId,
             });
         if (result == null) throw new RecordNotFoundException();
-        assetVersionCache.Set(assetId, result);
+        //assetVersionCache.Set(assetId, result);
         return result;
     }
     public async Task<IEnumerable<AssetVersionEntry>> GetAssetVersions(long assetId, int offset, int limit, SortOrder sortOrder)
