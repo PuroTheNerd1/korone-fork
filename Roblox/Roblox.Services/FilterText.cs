@@ -182,6 +182,8 @@ public class FilterService : ServiceBase, IService
         "fembx",
         "jerkingoff",
         "jerkoff",
+        "jackoff",
+        "jackingoff",
         "kys",
         "killyourself",
         "killurself",
