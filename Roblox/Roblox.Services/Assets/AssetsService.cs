@@ -775,8 +775,11 @@ public class AssetsService : ServiceBase, IService
 
     private async Task UploadThumbnail(long assetId, string render, int x, int y, ModerationStatus moderationStatus, bool isIcon = false)
     {
-        using var imageStream = await RenderingHandler.ResizeImage<MemoryStream, string>(render, x, y);
-        var key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+        string key;
+        using (var imageStream = await RenderingHandler.ResizeImage<MemoryStream, string>(render, x, y))
+        {
+            key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+        }
         var latestVersion = await GetLatestAssetVersion(assetId);
         if (isIcon)
         {
@@ -793,8 +796,12 @@ public class AssetsService : ServiceBase, IService
         {
             image.Seek(0, SeekOrigin.Begin);
         }
-        using var imageStream = await RenderingHandler.ResizeImage<MemoryStream, Stream>(image, x, y);
-        var key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+        string key;
+        using (var imageStream = await RenderingHandler.ResizeImage<MemoryStream, Stream>(image, x, y))
+        {
+            key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
+        }
+
         var latestVersion = await GetLatestAssetVersion(assetId);
         if (isIcon)
         {
