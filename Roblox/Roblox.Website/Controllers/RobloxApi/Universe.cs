@@ -223,8 +223,6 @@ public class UniverseV1 : ControllerBase
             throw new BadRequestException(0, "You must provide a valid placeId or universeId.");
         }
 
-        await services.games.CanManageUniverse(safeUserSession.userId, universeId.Value);
-
         var products = (await services.games.GetDeveloperProducts(universeId.Value, 5, 5 * (page - 1))).ToList();
         return new
         {
