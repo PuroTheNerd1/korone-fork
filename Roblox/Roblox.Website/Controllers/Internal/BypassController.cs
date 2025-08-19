@@ -879,7 +879,7 @@ namespace Roblox.Website.Controllers
             var jobInfo = await services.gameServer.GetGameServer(jobId);
             if (jobInfo.assetId != placeId)
                 throw new BadRequestException(0, "Job does not exist for this place");
-            _ = services.gameServer.ShutDownServerAsync(jobId).ContinueWith(t => Console.Error.WriteLine($"Error: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
+            await services.gameServer.ShutDownServerAsync(jobId);
             return "OK!";
         }
 
@@ -893,7 +893,7 @@ namespace Roblox.Website.Controllers
             
             foreach (var job in gameServers)
             {
-                _ = services.gameServer.ShutDownServerAsync(job.id).ContinueWith(t => Console.Error.WriteLine($"Error: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
+                await services.gameServer.ShutDownServerAsync(job.id);
             }
 
             return "OK!";
@@ -1325,7 +1325,7 @@ namespace Roblox.Website.Controllers
                 {
                     return "Game server not found";
                 }
-                _ = services.gameServer.ShutDownServerAsync(gameServer.id).ContinueWith(t => Console.Error.WriteLine($"Error: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
+                await services.gameServer.ShutDownServerAsync(gameServer.id);
                 return "OK!";
             }
             catch (Exception)
@@ -1365,7 +1365,7 @@ namespace Roblox.Website.Controllers
 
             if ((clientCount == 0 && gameTime > 50) || gameServer == null)
             {
-                _ = services.gameServer.ShutDownServerAsync(gameServer!.id).ContinueWith(t => Console.Error.WriteLine($"Error: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
+                await services.gameServer.ShutDownServerAsync(gameId);
                 return;
             }
             await services.gameServer.SetServerPing(gameId);

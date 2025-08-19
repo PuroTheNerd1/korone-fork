@@ -41,9 +41,14 @@ public class GameServerService : ServiceBase
             var result = await this.PostAsync("evict-player", new StringContent(jsonRequest, Encoding.UTF8, "application/json"));
             return result.IsSuccessStatusCode;
         }
-        public async Task<bool> KillGameServer(KillGameServerRequest request)
+        public async Task<bool> KillGameServer(KillGameServerRequest request, CancellationToken cancellationToken)
         {
-            var result = await this.PostAsync("kill-game-server", new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+            var content = new StringContent(
+                JsonSerializer.Serialize(request),
+                Encoding.UTF8,
+                "application/json");
+
+            var result = await this.PostAsync("kill-game-server", content, cancellationToken);
             return result.IsSuccessStatusCode;
         }
         public static EvictPlayerRequest CreateEvictPlayerRequest(Guid jobId, long userId)
@@ -439,12 +444,26 @@ public class GameServerService : ServiceBase
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
+            {
+                await arbiterClient.KillGameServer(
+                    ArbiterHttpClient.CreateKillGameServerRequest(serverId),
+                    cts.Token);
+            }
 
             Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
 
-            await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new { id = serverId });
-            await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new { id = serverId });
+            await db.ExecuteAsync(
+                "DELETE FROM asset_server_player WHERE server_id = :id::uuid",
+                new { id = serverId });
+
+            await db.ExecuteAsync(
+                "DELETE FROM asset_server WHERE id = :id::uuid",
+                new { id = serverId });
+        }
+        catch (OperationCanceledException)
+        {
+            Console.Error.WriteLine($"KillGameServer timed out after 15 seconds for server {serverId}.");
         }
         catch (Exception ex)
         {
@@ -781,7 +800,7 @@ public class GameServerService : ServiceBase
             // if the server is older than 5 minutes then shutdown the server
             if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
             {
-                _ = ShutDownServerAsync(server.id).ContinueWith(t => Console.Error.WriteLine($"Error: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
+                await ShutDownServerAsync(server.id);
                 continue;
             }
 
@@ -821,7 +840,8 @@ public class GameServerService : ServiceBase
         //     {
         //         status = JoinStatus.Loading,
         //     };
-        await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking);
+        _ = Task.Run(async () => await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking));
+
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
         new
