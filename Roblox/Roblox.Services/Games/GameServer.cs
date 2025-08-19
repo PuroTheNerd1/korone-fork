@@ -432,29 +432,24 @@ public class GameServerService : ServiceBase
     //         new List<dynamic> {placeId, gameServerId, gameServerPort});
     // }
 
-    public Task ShutDownServerAsync(Guid serverId)
+    public async Task ShutDownServerAsync(Guid serverId)
     {
-        _ = Task.Run(async () =>
+        try
         {
-            try
-            {
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-                await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
+            await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
 
-                Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
+            Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
 
-                await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new { id = serverId });
-                await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new { id = serverId });
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Error shutting down server {serverId}: {ex}");
-            }
-        });
-
-        return Task.CompletedTask;
+            await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new { id = serverId });
+            await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new { id = serverId });
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error shutting down server {serverId}: {ex}");
+        }
     }
 
 
@@ -786,7 +781,7 @@ public class GameServerService : ServiceBase
             // if the server is older than 5 minutes then shutdown the server
             if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
             {
-                await ShutDownServerAsync(server.id);
+                _ = ShutDownServerAsync(server.id).ContinueWith(t => Console.Error.WriteLine($"Error: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
                 continue;
             }
 

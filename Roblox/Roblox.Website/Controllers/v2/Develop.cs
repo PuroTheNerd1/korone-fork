@@ -75,7 +75,7 @@ public class DevelopControllerV2 : ControllerBase
             var gameServers = await services.gameServer.GetGameServersForPlace(place.placeId, 1);
             foreach (var server in gameServers)
             {
-                await services.gameServer.ShutDownServerAsync(server.id);
+                _ = services.gameServer.ShutDownServerAsync(server.id).ContinueWith(t => Console.Error.WriteLine($"Error: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
             }
         }
 
