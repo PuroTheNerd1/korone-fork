@@ -22,19 +22,24 @@ public class RobloxLoggingMiddleware
 
         var str = $"[{ctx.Request.Method.ToUpper()}] {encodedUrl} - {watch.ElapsedMilliseconds}ms";
 
-        if (
-            encodedUrl.Contains(".png") ||
-            encodedUrl.Contains("apisite") ||
-            encodedUrl.Contains("Avatar.ashx") ||
-            encodedUrl.Contains("asset") ||
-            encodedUrl.Contains("CreateOrUpdate") ||
-            encodedUrl.Contains("v2.0/Refresh")
-            )
-        {
-            return;
-        }
+        //if (
+        //    encodedUrl.Contains(".png") ||
+        //    encodedUrl.Contains("apisite") ||
+        //    encodedUrl.Contains("Avatar.ashx") ||
+        //    encodedUrl.Contains("asset") ||
+        //    encodedUrl.Contains("CreateOrUpdate") ||
+        //    encodedUrl.Contains("v2.0/Refresh")
+        //    )
+        //{
+        //    return;
+        //}
 
-        Console.WriteLine(str);
+        if (watch.ElapsedMilliseconds >= 3000)
+        {
+            str = $"[SLOW] {str}";
+            Console.WriteLine(str);
+        }
+        return;
     }
 }
 

@@ -124,14 +124,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMvc(c =>
     c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
 );
-builder.Services.AddHttpLogging(logging =>
-{
-    logging.RequestHeaders.Add("Cookie");
-    logging.ResponseHeaders.Add("Cookie");
-    logging.RequestBodyLogLimit = 4096;
-    logging.ResponseBodyLogLimit = 4096;
-
-});
 builder.Services.AddCompression(options =>
 {
     options.AllowedMediaTypes = new List<MediaTypeHeaderValue>
@@ -223,6 +215,7 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseRobloxSessionMiddleware();
 app.UseMiddleware<ThumbnailMiddleware>(Roblox.Configuration.ThumbnailsDirectory);
+app.UseMiddleware<RobloxLoggingMiddleware>();
 app.UseRobloxPlayerCorsMiddleware(); // cors varies depending on authentication status, so it must be after session middleware
 
 app.UseRobloxCsrfMiddleware();
