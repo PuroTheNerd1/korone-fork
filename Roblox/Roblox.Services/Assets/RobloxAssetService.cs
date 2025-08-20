@@ -8,7 +8,7 @@ public class RobloxAssetService : ServiceBase, IService
 {
     private string GetAssetCacheKey(long id)
     {
-        return "chloeassetcache_v6:" + id;
+        return "chloeassetcache_v7:" + id;
     }
     public async Task<string> GetAssetById(long id, long placeId = 0)
     {
@@ -51,7 +51,7 @@ public class RobloxAssetService : ServiceBase, IService
     private async Task SetAssetInCacheById(long id, string location)
     {
         // Cache for 2 days
-        await redis.StringSetAsync(GetAssetCacheKey(id), location, TimeSpan.FromDays(2));
+        await redis.StringSetAsync(GetAssetCacheKey(id), location, TimeSpan.FromHours(4));
     }
 
     public bool IsReusable()
