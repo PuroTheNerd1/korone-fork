@@ -26,7 +26,13 @@ public class DistributedCache
 
     public static void Configure(string connectUrl)
     {
-        redis = ConnectionMultiplexer.Connect(connectUrl);
+        var options = ConfigurationOptions.Parse(connectUrl);
+
+        options.ConnectTimeout = 10000;
+        options.SyncTimeout = 10000;
+        options.AbortOnConnectFail = false;
+
+        redis = ConnectionMultiplexer.Connect(options);
         Task.Run(async () =>
         {
             while (true)
