@@ -594,11 +594,6 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<UserInfo> GetUserByName(string username)
     {
-        using var userInfoCache = ServiceProvider.GetOrCreate<GetUserByNameCache>();
-        var (exists, cached) = userInfoCache.Get(username);
-        if (exists && cached != null)
-            return cached;
-
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>(
             "SELECT id AS userId, username, status AS accountStatus, created_at AS created, description " +
             "FROM \"user\" " +
@@ -608,7 +603,6 @@ public class UsersService : ServiceBase, IService
 
         if (res == null)
             throw new RecordNotFoundException();
-        userInfoCache.Set(username, res);
         return res;
     }
 
@@ -628,13 +622,8 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<UserInfo> GetUserByDiscordId(string discordId)
     {
-        using var userInfoCache = ServiceProvider.GetOrCreate<GetUserByDiscordIdCache>();
-        var (exists, cached) = userInfoCache.Get(discordId);
-        if (exists && cached != null)
-            return cached;
         var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE discord_id = :id", new { id = discordId });
         if (res == null) throw new RecordNotFoundException();
-        userInfoCache.Set(discordId, res);
         return res;
     }
     public async Task<bool> IsUserLinked(long userId)
