@@ -12,6 +12,8 @@ using Roblox.Models.Economy;
 using Roblox.Models.GameServer;
 using Roblox.Services.Exceptions;
 using Roblox.Logging;
+using System.Collections.Concurrent;
+using Roblox.Dto.Users;
 
 namespace Roblox.Services;
 
@@ -123,7 +125,7 @@ public class GameServerService : ServiceBase
     private static Dictionary<string, Process> jobRccs = new Dictionary<string, Process>(); // jobid, rcc process
     public static Dictionary<string, int> currentGameServerPorts = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
     private static Dictionary<long, string> currentPlaceIdsInUse = new Dictionary<long, string>(); // placeid, jobid
-    public static Dictionary<long, long> CurrentPlayersInGame = new Dictionary<long, long>() { }; // userid, placeid
+    public static ConcurrentDictionary<long, long> CurrentPlayersInGame = new ConcurrentDictionary<long, long>() { }; // userid, placeid
     public static Dictionary<Process, int> mainRCCPortsInUse = new Dictionary<Process, int>(); // Process, main RCC soap port
     public static Dictionary<string, int> unreadyGameServers = new Dictionary<string, int>(); // Process, network server port
     public static void Configure(string newJwtKey)
@@ -210,8 +212,7 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerJoin(long userId, long placeId, Guid serverId)
     {
-        CurrentPlayersInGame.Remove(userId);
-        CurrentPlayersInGame.Add(userId, placeId);
+        CurrentPlayersInGame.AddOrUpdate(userId, placeId, (key, oldValue) => placeId);
         await db.ExecuteAsync(
             "INSERT INTO asset_server_player (asset_id, user_id, server_id) VALUES (:asset_id, :user_id, :server_id::uuid)",
             new
@@ -313,8 +314,7 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerLeave(long userId, long placeId, Guid serverId)
     {
-        if (!CurrentPlayersInGame.ContainsKey(userId)) return;
-        CurrentPlayersInGame.Remove(userId);
+        CurrentPlayersInGame.TryRemove(userId, out _);
 
         await db.ExecuteAsync(
             "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
@@ -476,9 +476,9 @@ public class GameServerService : ServiceBase
     {
         List<long> playersToRemove = CurrentPlayersInGame.Where(kvp => kvp.Value == placeId).Select(kvp => kvp.Key).ToList();
 
-        foreach (var playerID in playersToRemove)
+        foreach (var userId in playersToRemove)
         {
-            CurrentPlayersInGame.Remove(playerID);
+            CurrentPlayersInGame.TryRemove(userId, out _);
         }
     }
 
