@@ -88,9 +88,16 @@ namespace Roblox.Website.Controllers
             }
             else
             {
-                var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
-                username = loginRequest?.username ?? loginRequest?.cvalue;
-                password = loginRequest?.password;
+                try
+                {
+                    var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
+                    username = loginRequest?.username ?? loginRequest?.cvalue;
+                    password = loginRequest?.password;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Failed to login");
+                }
             }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
