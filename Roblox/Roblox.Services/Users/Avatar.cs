@@ -939,6 +939,8 @@ public class AvatarService : ServiceBase, IService {
         catch (Exception ex)
         {
             Writer.Info(LogGroup.AvatarService, "Failed to save headshot or thumbnail for user {0}: {1}", userId, ex.Message);
+            await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, null);
+            return;
         }
 
         // Update the avatar thumbnail, excluding 3D
