@@ -141,20 +141,10 @@ public class AccountInformationService : ServiceBase, IService
     
     public async Task<UserConnections> GetUserConnections(long userId)
     {
-        using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>(this);
-        var (exists, cached) = connectionsCache.Get(userId);
-        if (exists)
-            return cached ?? new UserConnections();
-        
-        cached = await db.QuerySingleOrDefaultAsync<UserConnections>(@"
+        return await db.QuerySingleOrDefaultAsync<UserConnections>(@"
                 SELECT discord, twitter, telegram, tiktok, youtube, twitch, github, roblox
                 FROM user_connections WHERE user_id = :userId",
             new {userId});
-        if (cached == null) {
-            cached = new UserConnections();
-        }
-        connectionsCache.Set(userId, cached);
-        return cached;
     }
     
     public async Task SetUserConnections(long userId, UserConnections connections)
@@ -181,8 +171,6 @@ public class AccountInformationService : ServiceBase, IService
         {
             await UpdateAsync("user_connections", "user_id", userId, connections);
         }
-        using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>();
-        connectionsCache.Set(userId, connections);
     }
 
     public bool IsThreadSafe()
