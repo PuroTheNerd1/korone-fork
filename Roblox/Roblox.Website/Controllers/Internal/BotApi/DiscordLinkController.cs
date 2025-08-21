@@ -1,6 +1,8 @@
 using MVC = Microsoft.AspNetCore.Mvc;
 using System.Web;
 using Roblox.Libraries.DiscordApi;
+using Roblox.Dto.Users;
+using Roblox.Services.Exceptions;
 namespace Roblox.Website.Controllers
 {
     /* 
@@ -16,7 +18,13 @@ namespace Roblox.Website.Controllers
         {
             return $"Head to {Configuration.BaseUrl}/bot/verify to link your account";
         }
-        
+        [BotAuthorization]
+        [HttpGetBypass("bot/unlink")]
+        public async Task UnlinkDiscord(string discordId)
+        {
+            UserInfo userInfo = await services.users.GetUserByDiscordId(discordId);
+            await services.users.UnlinkDiscordAccount(userInfo.userId);
+        }
         [HttpGetBypass("bot/verify")]
         public async Task<dynamic> LinkDiscord(string? code)
         {

@@ -906,6 +906,16 @@ public class UsersService : ServiceBase, IService
             });
 
     }
+    public async Task UnlinkDiscordAccount(long userId)
+    {
+        await db.ExecuteAsync(
+            "UPDATE \"user\" SET discord_id = '' WHERE id = :uid",
+            new
+            {
+                uid = userId,
+            });
+
+    }
     public async Task<string> CreateApplication(CreateUserApplicationRequest request)
     {
         var applicationId = Guid.NewGuid().ToString();
