@@ -834,12 +834,15 @@ public class GameServerService : ServiceBase
         } while (true);
 
         Guid jobId = Guid.NewGuid();
-        // await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
-        // if (!serverCreationLock.IsAcquired)
-        //     return new GameServerGetOrCreateResponse
-        //     {
-        //         status = JoinStatus.Loading,
-        //     };
+        await using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(3));
+        if (!serverCreationLock.IsAcquired)
+        {
+            return new GameServerGetOrCreateResponse
+            {
+                status = JoinStatus.Loading,
+            };
+        }
+
         _ = Task.Run(async () => await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking));
 
         await db.ExecuteAsync(
