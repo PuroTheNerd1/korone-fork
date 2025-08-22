@@ -89,7 +89,7 @@ namespace Roblox.Website.Controllers
                     message = "User already owns booster",
                 };
             }
-            await services.users.CreateUserAsset(itemId, userInfo.userId);
+            await services.users.CreateUserAsset(userInfo.userId, itemId);
             await services.economy.IncrementCurrency(userInfo.userId, Models.Economy.CurrencyType.Robux, robux);
             return new
             {
