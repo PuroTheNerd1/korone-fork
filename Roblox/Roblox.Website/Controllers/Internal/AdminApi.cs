@@ -492,9 +492,11 @@ public class AdminApiController : ControllerBase
             if (!StaffFilter.IsOwner(safeUserSession.userId))
             {
                 // Rate limit for staff to moderate already approved items
-                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Hour", 150, TimeSpan.FromHours(1)))
+                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Hour:{safeUserSession.userId}", 150, TimeSpan.FromHours(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (hour). Contact an administrator.");
-                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 400, TimeSpan.FromDays(1)))
+                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Day:{safeUserSession.userId}", 400, TimeSpan.FromDays(1)))
+                    throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
+                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Day_Global", 5000, TimeSpan.FromDays(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
             }
         }
