@@ -492,9 +492,9 @@ public class AdminApiController : ControllerBase
             if (!StaffFilter.IsOwner(safeUserSession.userId))
             {
                 // Rate limit for staff to moderate already approved items
-                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Hour", 60, TimeSpan.FromHours(1)))
+                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Hour", 150, TimeSpan.FromHours(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (hour). Contact an administrator.");
-                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 100, TimeSpan.FromDays(1)))
+                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 400, TimeSpan.FromDays(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
             }
         }
@@ -2619,7 +2619,7 @@ Thank you for your understanding,
         // get user data
         var userData = await services.users.GetUserById(userId);
         if (userData.isModerator || userData.isAdmin || await IsStaff(userData.userId))
-            throw new StaffException("Cannot change this user's username");
+            throw new StaffException("Cannot change this usefr's username");
         // ban the username
         await services.users.AddBadUsername(userData.username);
         // reset
