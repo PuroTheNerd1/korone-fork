@@ -900,7 +900,7 @@
   "DFFlagPhysicsFPSTimerFix": "True",
   "FFlagCyclicExecutiveRenderJobRunsFirst": "True",
   "FFlagPhysicsCylinders": "True",
-  "DFFlagPhysicsUseNewBulletContact": "True",
+  "DFFlagPhysicsUseNewBulletContact": "False",
   "FFlagReadCoordinateFrameFast": "False",
   "DFFlagRayHitMaterial": "True",
   "DFFlagPromptPurchaseOnGuestHandledInCoreScript": "True",
