@@ -909,7 +909,7 @@ public class UsersService : ServiceBase, IService
     public async Task UnlinkDiscordAccount(long userId)
     {
         await db.ExecuteAsync(
-            "UPDATE \"user\" SET discord_id = '' WHERE id = :uid",
+            "UPDATE \"user\" SET discord_id = null WHERE id = :uid",
             new
             {
                 uid = userId,
