@@ -63,6 +63,7 @@ namespace Roblox.Website.Controllers
                 message = "The two-factor authentication has been successfully removed.",
             };
         }
+        [BotAuthorization]
         [HttpGetBypass("bot/giveboosteritems")]
         public async Task<dynamic> GiveBoosterItems(string discordId, int robux, long itemId)
         {
