@@ -806,19 +806,17 @@ public class WebController : ControllerBase
             // idk atp
             var fs = request.file.OpenReadStream();
             fs.Position = 0;
-            var memoryStream = new MemoryStream();
+            var validationStream = new MemoryStream();
             var placeStream = new MemoryStream();
+            // copy to validation stream
+            await fs.CopyToAsync(validationStream);
+            validationStream.Position = 0;
+            await validationStream.CopyToAsync(placeStream);
+            validationStream.Position = 0;
 
-            await fs.CopyToAsync(memoryStream);
-            fs.Position = 0;
-            await fs.CopyToAsync(placeStream);
-            placeStream.Position = 0;
-            memoryStream.Position = 0;
-
-            if (!await services.assets.ValidateAssetFile(memoryStream, info.assetType))
+            if (!await services.assets.ValidateAssetFile(validationStream, info.assetType))
                 throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-
-            memoryStream.Position = 0;
+            placeStream.Position = 0;
             await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, placeStream);
 
             // Render in the background
