@@ -804,8 +804,8 @@ public class WebController : ControllerBase
         try
         {
             using (var fs = request.file.OpenReadStream())
-            using (var memoryStream = new MemoryStream())
             {
+                var memoryStream = new MemoryStream();
                 await fs.CopyToAsync(memoryStream);
                 memoryStream.Position = 0;
 
