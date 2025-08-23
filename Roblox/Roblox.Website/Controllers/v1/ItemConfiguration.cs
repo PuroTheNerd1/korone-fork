@@ -37,13 +37,15 @@ public class ItemConfigurationV1 : ControllerBase
         };
     }
 
+    [HttpPostBypass("/v1/creations/get-asset-details")]
     [HttpPost("creations/get-asset-details")]
     public async Task<dynamic> MultiGetAssetDetails([Required, FromBody] MultiGetAssetDetailsRequest request)
     {
         return await services.assets.MultiGetAssetDeveloperDetails(request.assetIds);
     }
-
+    
     [HttpGet("assets/{assetId:long}/get-selling-fee")]
+    [HttpGetBypass("/v1/assets/{assetId:long}/get-selling-fee")]
     public dynamic GetSellingFee()
     {
         return new
@@ -77,6 +79,7 @@ public class ItemConfigurationV1 : ControllerBase
         Type.SolidModel,
     };
 
+    [HttpPostBypass("/v1/assets/{assetId:long}/update-price")]
     [HttpPost("assets/{assetId:long}/update-price")]
     public async Task UpdateAssetPrice(long assetId, [Required,FromBody] UpdateAssetPriceRequest request)
     {
@@ -122,6 +125,7 @@ public class ItemConfigurationV1 : ControllerBase
     //     throw new NotImplementedException();
     // }
 
+    [HttpGetBypass("/v1/assets/restrictions")]
     [HttpGet("assets/restrictions")]
     public async Task<RobloxCollection<ItemRestrictions>> GetAssetRestrictions(string assetIds)
     {
@@ -142,11 +146,13 @@ public class ItemConfigurationV1 : ControllerBase
             }
         }
 
-        return new() {
+        return new()
+        { 
             data = results,
         };
     }
 
+    [HttpGetBypass("/v1/creations/get-assets")]
     [HttpGet("creations/get-assets")]
     public async Task<RobloxCollectionPaginated<CreationEntry>> GetUserCreations(Models.Assets.Type assetType, int limit = 10, string? cursor = null, long? groupId = null)
     {
@@ -168,7 +174,7 @@ public class ItemConfigurationV1 : ControllerBase
             data = result,
         };
     }
-
+    [HttpGetBypass("/v1/item-tags/metadata")]
     [HttpGet("item-tags/metadata")]
     public dynamic GetItemTagsMetadata()
     {
@@ -185,6 +191,7 @@ public class ItemConfigurationV1 : ControllerBase
     }
 
     // todo: figure out what these are... (some sort of searching metadata?)
+    [HttpGetBypass("/v1/item-tags")]
     [HttpGet("item-tags")]
     public dynamic GetTagsNoOp(string ItemIds)
     {
