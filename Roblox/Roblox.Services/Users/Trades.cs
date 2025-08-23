@@ -263,7 +263,7 @@ public class TradesService : ServiceBase, IService
             INNER JOIN ""user"" t1 ON t1.id = user_trade.user_id_one 
             INNER JOIN ""user"" t2 ON t2.id = user_trade.user_id_two 
             INNER JOIN user_trade_asset ON user_trade_asset.trade_id = user_trade.id
-            WHERE user_trade_asset.user_asset_id = :userAssetId",
+            WHERE user_trade_asset.user_asset_id = :userAssetId ORDER BY user_trade.id ASC",
             new
             {
                 userAssetId,
