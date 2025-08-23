@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { createUseStyles } from "react-jss";
-import {getInventoryPrivacy, getTradePrivacy, getTradeValue} from "../../services/accountSettings";
+import {getInventoryPrivacy, getTradePrivacy, getTradeValue, getPrivateMessagePrivacy} from "../../services/accountSettings";
 import { getUserInfo } from "../../services/users";
 import AuthenticationStore from "../../stores/authentication";
 import AccountInfo from "./components/accountInfo";
@@ -33,6 +33,8 @@ const MyAccount = props => {
     getTradePrivacy().then(store.setTradePrivacy);
     getInventoryPrivacy().then(store.setInventoryPrivacy);
     getTradeValue().then(store.setTradeFilter);
+    getPrivateMessagePrivacy().then(store.setPrivateMessagePrivacy);
+    
   }, [auth.userId, auth.isPending]);
   if (auth.isPending || !auth.userId) return null;
   return <div className='container ssp'>

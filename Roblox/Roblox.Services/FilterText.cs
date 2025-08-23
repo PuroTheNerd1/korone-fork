@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 
 namespace Roblox.Services;
@@ -19,6 +19,7 @@ public class FilterService : ServiceBase, IService
         "blowjob",
         "blowjobs",
         "boner",
+        "bitch",
         "boob",
         "boobies",
         "boobs",
@@ -48,9 +49,9 @@ public class FilterService : ServiceBase, IService
         "dick",
         "dicks",
         "dildo",
-        "dildo ",
         "dildos",
         "dildos",
+        "digga",
         "ejaculate ",
         "ejaculated ",
         "ejaculates",
@@ -59,6 +60,7 @@ public class FilterService : ServiceBase, IService
         "ejaculation",
         "faget",
         "fagg",
+        "fag",
         "fagget",
         "fagging",
         "faggit",
@@ -106,9 +108,16 @@ public class FilterService : ServiceBase, IService
         "nazis",
         "niger",
         "nigger",
+        "niigger",
         "niggers",
+        "niiggers",
         "ngga",
+        "negger",
+        "neckhurt",
         "nigga",
+        "n0gga",
+        "nhigga",
+        "n8ggas",
         "niigga",
         "niga",
         "ni$$a",
@@ -127,11 +136,14 @@ public class FilterService : ServiceBase, IService
         "penis",
         "phonesex",
         "porn",
+        "pron",
         "porno",
         "pornography",
+        "goon",
         "pornos",
         "pren",
         "prostitute",
+        "paygorn",
         "raip",
         "raiping",
         "rape",
@@ -167,6 +179,15 @@ public class FilterService : ServiceBase, IService
         "whorehouse",
         "yourcock",
         "femb",
+        "fembx",
+        "jerkingoff",
+        "jerkoff",
+        "jackoff",
+        "jackingoff",
+        "kys",
+        "killyourself",
+        "killurself",
+        "retard"
      };
     private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
     public string FilterText(string input)
@@ -185,10 +206,13 @@ public class FilterService : ServiceBase, IService
             switch (c)
             {
                 case '#': return '\0';
+                case '.': return '\0';
                 case '$': return 's';
                 case '@': return 'a';
                 case '!': return 'i';
+                case '0': return 'o';
                 case '*': return '\0';
+                case 'я': return 'r';
                 default: return c;
             }
             })

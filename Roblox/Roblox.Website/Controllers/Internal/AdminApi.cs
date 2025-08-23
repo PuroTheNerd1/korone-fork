@@ -492,9 +492,11 @@ public class AdminApiController : ControllerBase
             if (!StaffFilter.IsOwner(safeUserSession.userId))
             {
                 // Rate limit for staff to moderate already approved items
-                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Hour", 60, TimeSpan.FromHours(1)))
+                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Hour:{safeUserSession.userId}", 150, TimeSpan.FromHours(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (hour). Contact an administrator.");
-                if (!await services.cooldown.TryIncrementBucketCooldown("ModerateApprovedItem_Day", 100, TimeSpan.FromDays(1)))
+                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Day:{safeUserSession.userId}", 400, TimeSpan.FromDays(1)))
+                    throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
+                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Day_Global", 5000, TimeSpan.FromDays(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
             }
         }
@@ -1699,9 +1701,34 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("trackitem"), StaffFilter(Access.TrackItem)]
-    public dynamic TrackItem(long userAssetId)
+    public async Task<dynamic> TrackItem(long userAssetId)
     {
-        throw new StaffException("Endpoint is not implemented yet. Complain to the owner ;-;");
+        var saleData = await services.economy.GetTransactionsForUserAssetId(userAssetId);
+        var tradeData = await services.trades.GetTradesByUserAssetId(userAssetId);
+
+        dynamic history = new ExpandoObject();
+        foreach (var item in saleData)
+        {
+            history.track_type = "Sale";
+            history.user_id_two = item.userIdTwo;
+            history.user_id_one = item.userIdOne;
+            history.user_one_username = item.userNameOne;
+            history.user_two_username = item.userNameTwo;
+            history.amount = item.amount;
+            history.currency_type = (int)item.currency;
+        }
+
+        foreach (var item in tradeData)
+        {
+            history.track_type = "Trade";
+            history.user_id_two = item.userIdTwo;
+            history.user_id_one = item.userIdOne;
+            history.user_one_username = item.usernameOne;
+            history.user_two_username = item.usernameTwo;
+            history.id = item.id;
+        }
+
+        return history;
     }
 
     [HttpPost("user/delete"), StaffFilter(Access.DeleteUser)]
@@ -2548,23 +2575,11 @@ Thank you for your understanding,
         {
             t,
         });
-        var OnlineUserNames = await db.QueryAsync("SELECT username FROM \"user\" WHERE online_at >= :t", new
-        {
-            t,
-        });
 
         var usernames = new List<string>();
-
-        foreach (var row in OnlineUserNames)
-        {
-            var username = (string)row.username;
-            usernames.Add(username);
-        }
-
         return new
         {
             total = (long)OnlineCount.total,
-            usernames = usernames.ToArray()
         };
     }
 
@@ -2631,7 +2646,7 @@ Thank you for your understanding,
         // get user data
         var userData = await services.users.GetUserById(userId);
         if (userData.isModerator || userData.isAdmin || await IsStaff(userData.userId))
-            throw new StaffException("Cannot change this user's username");
+            throw new StaffException("Cannot change this usefr's username");
         // ban the username
         await services.users.AddBadUsername(userData.username);
         // reset

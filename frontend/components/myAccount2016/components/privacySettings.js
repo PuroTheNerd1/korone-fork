@@ -1,6 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
-import { setInventoryPrivacy, setTradePrivacy, setTradeValue } from "../../../services/accountSettings";
+import { setInventoryPrivacy, setTradePrivacy, setTradeValue, setPrivateMessagePrivacy } from "../../../services/accountSettings";
 import Selector from "../../selector";
 import useCardStyles from "../../userProfile/styles/card";
 import MyAccountStore from "../stores/myAccountStore"
@@ -67,7 +67,7 @@ const PrivacySettings = props => {
     },
   ];
 
-  if (!store.inventoryPrivacy || !store.tradePrivacy || !store.tradeFilter) return null;
+  if (!store.privateMessagePrivacy || !store.inventoryPrivacy || !store.tradePrivacy || !store.tradeFilter) return null;
 
   return <div className='row'>
     <div className='col-12 mt-2'>
@@ -76,8 +76,11 @@ const PrivacySettings = props => {
 
 
         <p className={s.label}>Who can message me:</p>
-        <Selector onChange={newPrivacy => {
-
+        <Selector value={store.privateMessagePrivacy} onChange={newPrivacy => {
+          store.setPrivateMessagePrivacy(newPrivacy.value);
+          setPrivateMessagePrivacy({
+            newPrivacy: newPrivacy.value,
+          });
         }} options={defaultPrivacySettings}></Selector>
 
 
@@ -104,6 +107,7 @@ const PrivacySettings = props => {
 
         <p className={s.label + ' mt-2'}>Who can trade with me:</p>
         <Selector value={store.tradePrivacy} onChange={newPrivacy => {
+          store.setTradePrivacy(newPrivacy.value);
           setTradePrivacy({
             newPrivacy: newPrivacy.value,
           });

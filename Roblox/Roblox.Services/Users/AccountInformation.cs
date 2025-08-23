@@ -27,7 +27,7 @@ public class AccountInformationService : ServiceBase, IService
 
     public async Task<UserSettingsEntry> GetUserSettings(long userId)
     {
-        return await db.QuerySingleOrDefaultAsync<UserSettingsEntry>("SELECT gender, theme, inventory_privacy as inventoryPrivacy, trade_privacy as tradePrivacy, trade_filter as tradeFilter, avatar_page_style as avatarPageStyle FROM user_settings WHERE user_id = :user_id",
+        return await db.QuerySingleOrDefaultAsync<UserSettingsEntry>("SELECT gender, theme, inventory_privacy as inventoryPrivacy, trade_privacy as tradePrivacy, trade_filter as tradeFilter, private_message_privacy as privateMessagePrivacy, avatar_page_style as avatarPageStyle FROM user_settings WHERE user_id = :user_id",
             new {user_id = userId});
     }
 
@@ -126,23 +126,25 @@ public class AccountInformationService : ServiceBase, IService
             trade_filter = filter,
         });
     }
+    public async Task<GeneralPrivacy> GetUserPrivateMessagePrivacy(long userId)
+    {
+        return (await GetUserSettings(userId)).privateMessagePrivacy;
+    }
+    
+    public async Task SetUserPrivateMessagePrivacy(long userId, GeneralPrivacy privacy)
+    {
+        await UpdateAsync("user_settings", "user_id", userId, new
+        {
+            private_message_privacy = privacy,
+        });
+    }
     
     public async Task<UserConnections> GetUserConnections(long userId)
     {
-        using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>(this);
-        var (exists, cached) = connectionsCache.Get(userId);
-        if (exists)
-            return cached ?? new UserConnections();
-        
-        cached = await db.QuerySingleOrDefaultAsync<UserConnections>(@"
+        return await db.QuerySingleOrDefaultAsync<UserConnections>(@"
                 SELECT discord, twitter, telegram, tiktok, youtube, twitch, github, roblox
                 FROM user_connections WHERE user_id = :userId",
             new {userId});
-        if (cached == null) {
-            cached = new UserConnections();
-        }
-        connectionsCache.Set(userId, cached);
-        return cached;
     }
     
     public async Task SetUserConnections(long userId, UserConnections connections)
@@ -169,8 +171,6 @@ public class AccountInformationService : ServiceBase, IService
         {
             await UpdateAsync("user_connections", "user_id", userId, connections);
         }
-        using var connectionsCache = ServiceProvider.GetOrCreate<UserConnectionsCache>();
-        connectionsCache.Set(userId, connections);
     }
 
     public bool IsThreadSafe()

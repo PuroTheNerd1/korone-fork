@@ -214,10 +214,14 @@ public class DevelopControllerV1 : ControllerBase
         };
     }
 
+    private readonly SemaphoreSlim pendingThumbnailSemaphore = new(1, 1);
+    private static readonly SemaphoreSlim _thumbnailUploadLimiter = new(5, 5);
+
     [HttpPost("assets/upload-gameicon")]
-    public async Task<dynamic> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
+    public async Task<IActionResult> UploadGameIcon(long placeId, [Required, FromForm] IFormFile file)
     {
-        if (!await services.cooldown.TryCooldownCheck("Place:GameIcon:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Place:GameIcon:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
+        if (!await services.cooldown.TryCooldownCheck("Place:GameIcon:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5))
+            || !await services.cooldown.TryCooldownCheck("Place:GameIcon:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
             throw new TooManyRequestsException(0, "Too many requests");
 
         await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
@@ -225,84 +229,83 @@ public class DevelopControllerV1 : ControllerBase
 
         if (details.typeId is not (int)Models.Assets.Type.Place)
             throw new BadRequestException(1, "Cannot upload a game icon for a non place");
-        
+
         if (details.moderationStatus is not ModerationStatus.ReviewApproved)
             throw new BadRequestException(1, "You must wait until your Place's icon is approved by moderators.");
 
-        lock (pendingThumbnailUploadsMux)
-        {
-            if (pendingThumbnailsUploads >= 5)
-            {
-                throw new TooManyRequestsException(0, "Too many pending uploads");
-            }
-            pendingThumbnailsUploads++;
-        }
-
+        await pendingThumbnailSemaphore.WaitAsync();
         try
         {
-            await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
-        }
-        finally
-        {
-            lock (pendingThumbnailUploadsMux)
+            if (pendingThumbnailsUploads >= 5)
+                throw new TooManyRequestsException(0, "Too many pending uploads");
+
+            pendingThumbnailsUploads++;
+
+            try
+            {
+                await services.assets.CreateGameIcon(placeId, file.OpenReadStream());
+            }
+            finally
             {
                 pendingThumbnailsUploads--;
             }
         }
+        finally
+        {
+            pendingThumbnailSemaphore.Release();
+        }
 
         return Ok();
     }
-    
+
     [HttpPost("assets/upload-thumbnail")]
-    public async Task<dynamic> UploadGameThumbnail(long universeId, [Required, FromForm] IFormFile file)
+    public async Task<IActionResult> UploadGameThumbnail(long universeId, [Required, FromForm] IFormFile file)
     {
-        if (!await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
+        if (!await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartUserId:" + safeUserSession.userId, TimeSpan.FromSeconds(5))
+            || !await services.cooldown.TryCooldownCheck("Universe:ThumbnailUpload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
         {
             throw new TooManyRequestsException(0, "Too many requests");
         }
-        // have to do this retarded check because we dont wanna charge people until the thumbnail has been created
+
         var balance = await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
         if (balance.robux < 10)
             throw new BadRequestException(0, "Not enough Robux for purchase");
+
         var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
-        
+
         if (await services.games.GetGameMediaCount(universe.rootPlaceId) >= 10)
             throw new BadRequestException(0, "Too many thumbnails on this Universe");
 
-        lock (pendingThumbnailUploadsMux)
+        if (!await _thumbnailUploadLimiter.WaitAsync(0))
         {
-            if (pendingThumbnailsUploads >= 5)
-            {
-                throw new TooManyRequestsException(0, "Too many pending uploads");
-            }
-            pendingThumbnailsUploads++;
+            throw new TooManyRequestsException(0, "Too many pending uploads");
         }
+
         try
         {
             var readStream = file.OpenReadStream();
             if (readStream is null)
                 throw new BadRequestException(0, "File provided is invalid");
+
             await services.assets.CreateGameThumbnail(universe.rootPlaceId, readStream);
+
             try
             {
                 await services.economy.ChargeForGameMediaUpload(CreatorType.User, safeUserSession.userId);
             }
-            catch (LogicException) 
+            catch (LogicException)
             {
                 throw new BadRequestException(0, "Not enough Robux for purchase");
             }
         }
         finally
         {
-            lock (pendingThumbnailUploadsMux)
-            {
-                pendingThumbnailsUploads--;
-            }
+            _thumbnailUploadLimiter.Release();
         }
-        
+
         return Ok();
     }
-    
+
     [HttpPost("universes/{universeId}/thumbnails/auto-generated")]
     public async Task<dynamic> UploadAutoGenThumbnail(long universeId)
     {
@@ -357,7 +360,7 @@ public class DevelopControllerV1 : ControllerBase
     {
         await services.assets.ValidatePermissions(assetId, safeUserSession.userId);
         
-        await services.assets.UpdateAsset(assetId, request.description, request.name, request.genres.First(),
+        await services.assets.UpdateAsset(assetId, request.description, services.filter.FilterText(request.name), request.genres.First(),
             request.isCopyingAllowed, request.enableComments, request.isForSale);
     }
 
@@ -370,7 +373,7 @@ public class DevelopControllerV1 : ControllerBase
         if (details.assetType != Models.Assets.Type.GamePass)
             throw new BadRequestException(1, "This endpoint is meant for updating gamepass assets only. Use assets/{assetId} for other assets.");
         
-        await services.assets.UpdateAsset(assetId, request.description, request.name, request.genres.First(),
+        await services.assets.UpdateAsset(assetId, request.description, services.filter.FilterText(request.name), request.genres.First(),
             false, request.enableComments, request.isForSale, request.file != null ? request.file.OpenReadStream() : null);
     }
     

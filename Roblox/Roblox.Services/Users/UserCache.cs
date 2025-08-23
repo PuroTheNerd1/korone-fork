@@ -33,7 +33,14 @@ public class GetUserByIdCache : GenericMemoryCache<long, UserInfo>
         
     }
 }
-
+public class GetUserByNameCache : GenericMemoryCache<string, UserInfo>
+{
+    // short ttl so we don't risk having banned users online for too long
+    public GetUserByNameCache() : base(TimeSpan.FromSeconds(15))
+    {
+        
+    }
+}
 public class UserThemeCache : GenericMemoryCache<long, ThemeTypes>
 {
     

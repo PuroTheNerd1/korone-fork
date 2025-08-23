@@ -223,8 +223,6 @@ public class UniverseV1 : ControllerBase
             throw new BadRequestException(0, "You must provide a valid placeId or universeId.");
         }
 
-        await services.games.CanManageUniverse(safeUserSession.userId, universeId.Value);
-
         var products = (await services.games.GetDeveloperProducts(universeId.Value, 5, 5 * (page - 1))).ToList();
         return new
         {
@@ -690,16 +688,16 @@ public class UniverseV1 : ControllerBase
             universeJointPositioningType = "ArtistIntent",
             universeAvatarMinScales = new
             {
-                height = 0,
-                width = 0,
-                head = 0,
-                depth = 0,
+                height = 0.90,
+                width = 0.70,
+                head = 0.90,
+                depth = 0.70,
                 proportion = 0,
                 bodyType = 0,
             },
             universeAvatarMaxScales = new
             {
-                height = 1,
+                height = 1.05,
                 width = 1,
                 head = 1,
                 depth = 1,
@@ -751,18 +749,18 @@ public class UniverseV1 : ControllerBase
             universeCollisionType = R15CollisionType.OuterBox.ToString(),
             universeBodyType = "Standard",
             universeJointPositioningType = "ArtistIntent",
-            universeAvatarMinScales = new 
+            universeAvatarMinScales = new
             {
-                height = 0,
-                width = 0,
-                head = 0,
-                depth = 0,
+                height = 0.90,
+                width = 0.70,
+                head = 0.90,
+                depth = 0.70,
                 proportion = 0,
                 bodyType = 0,
             },
-            universeAvatarMaxScales = new 
+            universeAvatarMaxScales = new
             {
-                height = 1,
+                height = 1.05,
                 width = 1,
                 head = 1,
                 depth = 1,

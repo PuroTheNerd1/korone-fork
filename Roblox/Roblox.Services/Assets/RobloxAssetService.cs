@@ -8,7 +8,7 @@ public class RobloxAssetService : ServiceBase, IService
 {
     private string GetAssetCacheKey(long id)
     {
-        return "chloeassetcache_v6:" + id;
+        return "chloeassetcache_v7:" + id;
     }
     public async Task<string> GetAssetById(long id, long placeId = 0)
     {
@@ -19,11 +19,6 @@ public class RobloxAssetService : ServiceBase, IService
         using var games = ServiceProvider.GetOrCreate<GamesService>(this);
         // Get the Roblox place ID for the given place ID this is for impersonation
         long robloxPlaceId = await games.GetRobloxPlaceIdForPlace(placeId);
-        // Debug
-        if (placeId is not 0)
-        {
-            Writer.Info(LogGroup.AssetDelivery, "GetAssetById assetId: {0}, place id: {1}, impersonator place id: {2}", id, placeId, robloxPlaceId);
-        }
         
         // Now we request asset delivery for the asset with our roblox place id
         var assetDelivery = await RobloxApi.GetAssetById(id, robloxPlaceId);
@@ -51,7 +46,7 @@ public class RobloxAssetService : ServiceBase, IService
     private async Task SetAssetInCacheById(long id, string location)
     {
         // Cache for 2 days
-        await redis.StringSetAsync(GetAssetCacheKey(id), location, TimeSpan.FromDays(2));
+        await redis.StringSetAsync(GetAssetCacheKey(id), location, TimeSpan.FromHours(4));
     }
 
     public bool IsReusable()

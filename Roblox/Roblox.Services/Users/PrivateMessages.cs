@@ -33,12 +33,30 @@ public class PrivateMessagesService : ServiceBase, IService
 
     private async Task<bool> CanSendMessage(long userId, long contextUserId)
     {
-        var privacy = await db.QuerySingleOrDefaultAsync("SELECT user_settings.private_message_privacy FROM user_settings WHERE user_id = :uid", new
+        using var accountInfo = ServiceProvider.GetOrCreate<AccountInformationService>();
+        using var friendsService = ServiceProvider.GetOrCreate<FriendsService>();
+        var privacy = await accountInfo.GetUserPrivateMessagePrivacy(userId);
+        // Check friendship first since that overrides follows/followings
+        if (privacy is GeneralPrivacy.Followers or GeneralPrivacy.Following or GeneralPrivacy.Friends)
         {
-            uid = userId,
-        });
-        // TODO: Actual checks
-        return ((GeneralPrivacy) privacy.private_message_privacy) == GeneralPrivacy.All;
+            var friendshipStatus = await friendsService.GetFriendshipStatus(userId, contextUserId);
+            if (friendshipStatus.status == "Friends")
+                return true;
+        }
+
+        if (privacy is GeneralPrivacy.Following)
+        {
+            if (await friendsService.IsOneFollowingTwo(userId, contextUserId))
+                return true;
+        }
+
+        if (privacy is GeneralPrivacy.Followers)
+        {
+            if (await friendsService.IsOneFollowingTwo(contextUserId, userId))
+                return true;
+        }
+
+        return false;
     }
 
     public async Task<bool> IsFloodChecked(long senderUserId)

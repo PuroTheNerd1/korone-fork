@@ -188,7 +188,7 @@ public class GroupsControllerV1 : ControllerBase
         await CheckPermission(groupId, GroupPermission.PostToWall);
         try
         {
-            var post = await services.groups.CreateWallPost(groupId, safeUserSession.userId, request.body);
+            var post = await services.groups.CreateWallPost(groupId, safeUserSession.userId, services.filter.FilterText(request.body));
             post.poster.username = safeUserSession.username;
             return post;
         }
@@ -518,7 +518,7 @@ public class GroupsControllerV1 : ControllerBase
     {
         FeatureCheck();
         await CheckPermission(groupId, GroupPermission.Owner);
-        await services.groups.SetGroupDescription(groupId, request.description);
+        await services.groups.SetGroupDescription(groupId, services.filter.FilterText(request.description));
     }
 
     [HttpDelete("groups/{groupId:long}/wall/posts/{postId:long}")]
@@ -646,7 +646,7 @@ public class GroupsControllerV1 : ControllerBase
         FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
         try
         {
-            return await services.groups.CreateGroup(request.name, request.description, request.icon.OpenReadStream(),
+            return await services.groups.CreateGroup(request.name, services.filter.FilterText(request.description), request.icon.OpenReadStream(),
                 safeUserSession.userId);
         }
         catch (ArgumentException e)

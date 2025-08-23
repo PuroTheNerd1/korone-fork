@@ -773,7 +773,7 @@ public class WebController : ControllerBase
     };
 
     private static int pendingAssetUploads { get; set; } = 0;
-    private static readonly Mutex pendingAssetUploadsMux = new();
+    private static readonly SemaphoreSlim pendingAssetUploadsMux = new(1, 1);
 
     [HttpPost("develop/upload-version")]
     public async Task UploadVersion([Required, FromForm] UploadAssetVersionRequest request)
@@ -784,18 +784,21 @@ public class WebController : ControllerBase
 
         // You can only upload place files right now
         if (info.assetType != Models.Assets.Type.Place)
-        {
             canUpload = false;
-        }
 
-        if (canUpload == false)
+        if (!canUpload)
             throw new RobloxException(403, 0, "Unauthorized");
 
-        lock (pendingAssetUploadsMux)
+        await pendingAssetUploadsMux.WaitAsync();
+        try
         {
             if (pendingAssetUploads >= 2)
                 throw new RobloxException(429, 0, "TooManyRequests");
             pendingAssetUploads++;
+        }
+        finally
+        {
+            pendingAssetUploadsMux.Release();
         }
 
         try
@@ -807,35 +810,36 @@ public class WebController : ControllerBase
 
             await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
             // Render in the background
-            // TODO: make sure commenting this doesn't fuck anything up
             //if (info.assetType != Models.Assets.Type.Place) {
             //    services.assets.RenderAsset(request.assetId, info.assetType);
             //}
         }
         finally
         {
-            lock (pendingAssetUploadsMux)
+            await pendingAssetUploadsMux.WaitAsync();
+            try
             {
                 pendingAssetUploads--;
             }
+            finally
+            {
+                pendingAssetUploadsMux.Release();
+            }
         }
     }
-
 
     [HttpPost("develop/upload")]
     public async Task<CreateResponse> UploadItem([Required, FromForm] UploadAssetRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
-        if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null) throw new BadRequestException(0, "Asset type not supported");
-        // flood check Start
-        // 1 attempt every 5 seconds per user
-        // IP flood check too! same limit as userId for now
-        if (!await services.cooldown.TryCooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5)) || !await services.cooldown.TryCooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
-        {
+
+        if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null)
+            throw new BadRequestException(0, "Asset type not supported");
+
+        if (!await services.cooldown.TryCooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5))
+            || !await services.cooldown.TryCooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
             throw new RobloxException(429, 0, "Too many requests");
-        }
-        
-        // Limit of 50 assets globally pending approval before failure
+
         var pendingAssets = await services.assets.CountAssetsPendingApproval();
         if (pendingAssets >= 50)
         {
@@ -843,29 +847,26 @@ public class WebController : ControllerBase
             throw new RobloxException(400, 0, "There are too many pending items. Try again in a few minutes.");
         }
 
-        var groupId = request.groupId == null ? 0 : request.groupId.Value;
+        var groupId = request.groupId ?? 0;
         var creatorType = groupId == 0 ? CreatorType.User : CreatorType.Group;
         var creatorId = creatorType == CreatorType.User ? userSession.userId : groupId;
-        // check perms
+
         if (creatorType == CreatorType.Group)
         {
-            var hasPermission = await services.groups.DoesUserHavePermission(userSession.userId, groupId,
-                GroupPermission.CreateItems);
+            var hasPermission = await services.groups.DoesUserHavePermission(userSession.userId, groupId, GroupPermission.CreateItems);
             if (!hasPermission)
                 throw new RobloxException(401, 0, "Unauthorized");
         }
 
-        // Limit of 10 pending assets per user/group
-        var myPendingItems =
-            await services.assets.CountAssetsByCreatorPendingApproval(groupId, CreatorType.Group);
+        var myPendingItems = await services.assets.CountAssetsByCreatorPendingApproval(groupId, CreatorType.Group);
         if (myPendingItems >= 20)
         {
             Metrics.UserMetrics.ReportPendingAssetsFloodCheckReached(userSession.userId);
             throw new RobloxException(409, 0, "You have uploaded too many items in a short period of time. Wait a few minutes and try again.");
         }
-        // Global max of 5 pending asset uploads. To prevent people spamming stuff from a million IPs and accounts.
-        // Note that this is not distributed right now, it's just local per server.
-        lock (pendingAssetUploadsMux)
+
+        await pendingAssetUploadsMux.WaitAsync();
+        try
         {
             if (pendingAssetUploads >= 5)
             {
@@ -874,7 +875,10 @@ public class WebController : ControllerBase
             }
             pendingAssetUploads++;
         }
-
+        finally
+        {
+            pendingAssetUploadsMux.Release();
+        }
 
         var stream = request.file.OpenReadStream();
 
@@ -900,7 +904,7 @@ public class WebController : ControllerBase
                     return await UploadModel(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.GamePass:
                     return await UploadGamePass(request, stream, creatorId, creatorType);
-                 case Models.Assets.Type.Badge:
+                case Models.Assets.Type.Badge:
                     return await UploadAssetBadge(request, stream, creatorId, creatorType);
                 default:
                     throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
@@ -908,12 +912,18 @@ public class WebController : ControllerBase
         }
         finally
         {
-            lock (pendingAssetUploadsMux)
+            await pendingAssetUploadsMux.WaitAsync();
+            try
             {
                 pendingAssetUploads--;
             }
+            finally
+            {
+                pendingAssetUploadsMux.Release();
+            }
         }
     }
+
     // helper functions ugh
     private async Task<CreateResponse> UploadClothing(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
