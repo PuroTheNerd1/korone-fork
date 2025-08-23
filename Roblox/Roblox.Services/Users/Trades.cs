@@ -254,7 +254,21 @@ public class TradesService : ServiceBase, IService
 
         return await db.QueryAsync<TradeEntryDb>(t.RawSql, t.Parameters);
     }
-
+    public async Task<IEnumerable<TradeEntryDbFull>> GetTradesByUserAssetId(long userAssetId)
+    {
+        // Use inner join to get user_trade_asset 
+        return await db.QueryAsync<TradeEntryDbFull>(@"
+            SELECT user_trade.id, user_trade.user_id_one as userIdOne, t1.username as usernameOne, user_trade.user_id_two as userIdTwo, t2.username as usernameTwo, user_id_one_robux as userOneRobux, user_id_two_robux as userTwoRobux, user_trade.created_at as createdAt, user_trade.updated_at as updatedAt, user_trade.expires_at as expiresAt, user_trade.status 
+            FROM user_trade 
+            INNER JOIN ""user\"" t1 ON t1.id = user_trade.user_id_one 
+            INNER JOIN ""user\"" t2 ON t2.id = user_trade.user_id_two 
+            INNER JOIN user_trade_asset ON user_trade_asset.trade_id = user_trade.id
+            WHERE user_trade_asset.user_asset_id = :userAssetId",
+            new
+            {
+                userAssetId,
+            });
+    }
     public async Task<TradeEntryDbFull> GetTradeById(long tradeId)
     {
         var tradeData = await db.QuerySingleOrDefaultAsync<TradeEntryDbFull>(

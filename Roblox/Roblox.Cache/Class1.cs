@@ -26,7 +26,13 @@ public class DistributedCache
 
     public static void Configure(string connectUrl)
     {
-        redis = ConnectionMultiplexer.Connect(connectUrl);
+        var options = ConfigurationOptions.Parse(connectUrl);
+
+        options.ConnectTimeout = 10000;
+        options.SyncTimeout = 10000;
+        options.AbortOnConnectFail = false;
+
+        redis = ConnectionMultiplexer.Connect(options);
         Task.Run(async () =>
         {
             while (true)
@@ -53,7 +59,7 @@ public class DistributedCache
 
     private static void AddToCache(string key, string value, DateTime lifetime)
     {
-        if (cache.Count > 10000 || key.Contains("chloeasset"))
+        if (cache.Count > 1000)
         {
             //Console.WriteLine("[info] Roblox.Cache.DistributedCache.cache is too large, key will not be added: {0}",key);
             return;

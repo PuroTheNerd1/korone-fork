@@ -104,7 +104,7 @@ public class CsrfMiddleware : ControllerServicesExtended
     public async Task SendTokenFailMessage(HttpContext ctx, string csrf)
     {
         ctx.Response.StatusCode = 403;
-        ctx.Response.Headers.Add("x-csrf-token", csrf);
+        ctx.Response.Headers.Append("x-csrf-token", csrf);
         var url = ctx.Request.GetEncodedUrl();
         await ctx.Response.WriteAsJsonAsync(new
         {
@@ -167,6 +167,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         // hubs
         "/chat",
         "/chat/negotiate",
+        "/v1/router",
         "/version",
         "/v1/CreateOrUpdate",
         "/game/validate-machine",
@@ -186,17 +187,26 @@ public class CsrfMiddleware : ControllerServicesExtended
         }
         #endif
         var pathLower = ctx.Request.Path.ToString().ToLower();
+        var fullUrl = ctx.Request.GetEncodedUrl().ToLower();
         if (pathLower.EndsWith("/"))
         {
             pathLower = pathLower.Substring(0, pathLower.Length - 1);
         }
         try
         {
-            if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !pathLower.Contains("multiget-friend-requests") && !pathLower.Contains("filter-friends") && !pathLower.Contains("abusereport") && !bypassUrls.Contains(pathLower)  && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products") && !pathLower.Contains("teamcreate"))
+            bool isBypassed = bypassUrls.Any(bypassPath => pathLower.Contains(bypassPath, StringComparison.OrdinalIgnoreCase));
+
+            if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !pathLower.Contains("v1/router") && !pathLower.Contains("multiget-friend-requests") && !pathLower.Contains("filter-friends") && !pathLower.Contains("abusereport") && !isBypassed && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products") && !pathLower.Contains("teamcreate"))
             {
                 var token = TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
-                if (ctx.Request.Headers["User-Agent"].ToString().Contains("RobloxStudio") || ctx.Request.Headers["User-Agent"] == Configuration.UserAgentBypassSecret)
+                var userAgent = ctx.Request.Headers["User-Agent"].ToString();
+                var stupidHeader = ctx.Request.Headers["stupid"].ToString();
+                if (fullUrl.Contains("messagerouter"))
+                {
+                    Console.WriteLine($"MEOW MEOW MEOW MEOW MEOW: {fullUrl}");
+                }
+                if (userAgent.ToLower().Contains("roblox") || userAgent == Configuration.UserAgentBypassSecret)
                 {
                     await _next(ctx);
                     return;

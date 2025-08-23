@@ -10,7 +10,7 @@ public class UniverseCreator
     public string name { get; set; }
     public CreatorType type { get; set; }
     public bool isRNVAccount { get; set; } = false;
-    public bool hasVerifiedBadge { get; set; } = false;
+    public bool hasVerifiedBadge { get; set; }
 
 }
 
@@ -29,7 +29,8 @@ public class Universe
     {
         id = creatorId,
         type = creatorType,
-        name = creatorName
+        name = creatorName,
+        hasVerifiedBadge = isVerified
     };
     public long favoritedCount { get; set; }
     public bool isFavoritedByUser { get; set; }
@@ -52,6 +53,8 @@ public class Universe
     public CreatorType creatorType { get; set; }
     [JsonIgnore]
     public string creatorName { get; set; }
+    [JsonIgnore]
+    public bool isVerified { get; set; }
 }
 
 public class MultiGetUniverseEntry : Universe

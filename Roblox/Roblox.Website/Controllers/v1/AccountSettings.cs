@@ -96,4 +96,20 @@ public class AccountSettingsControllerV1 : ControllerBase
     {
         await services.accountInformation.SetUserTradeValue(safeUserSession.userId, request.tradeValue);
     }
+
+    [HttpGet("private-message-privacy")]
+    public async Task<dynamic> GetPrivateMessagePrivacy()
+    {
+        var res = await services.accountInformation.GetUserPrivateMessagePrivacy(safeUserSession.userId);
+        return new
+        {
+            privateMessagePrivacy = res,
+        };
+    }
+
+    [HttpPost("private-message-privacy")]
+    public async Task SetPrivateMessagePrivacy([Required, FromBody] PrivateMessagePrivacyRequest request)
+    {
+        await services.accountInformation.SetUserPrivateMessagePrivacy(safeUserSession.userId, request.privateMessagePrivacy);
+    }
 }

@@ -31,9 +31,10 @@ public class Captcha : RobloxPageModel
         if (result)
         {
             var ua = HttpContext.Request.Headers.UserAgent;
+
             var jwt = new UserAgentBypass()
             {
-                userAgent = ua,
+                userAgent = ua!,
                 createdAt = DateTime.UtcNow,
             };
             jwt.ipAddress = GetIpHashWithSalt(jwt.GetSalt());
@@ -48,7 +49,7 @@ public class Captcha : RobloxPageModel
                 Expires = DateTime.UtcNow.AddDays(7),
                 Secure = true,
             });
-            Roblox.Metrics.ApplicationGuardMetrics.ReportCaptchaSuccessForUserAgent(ua);
+            Roblox.Metrics.ApplicationGuardMetrics.ReportCaptchaSuccessForUserAgent(ua!);
             return new RedirectResult("/auth/home");
         }
 

@@ -703,7 +703,7 @@ namespace Roblox.Website.Controllers
             var hasSuspicousLastOnline = onlineStatus.lastOnline < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(2)) || onlineStatus.userPresenceType == PresenceType.Offline;
             if (hasSuspicousLastOnline)
             {
-                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGE-SS] UID: {visitorId} Flag: SuspicousLastOnline");
+                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: SuspicousLastOnline");
             }
             // Check if a gameserver exists for the gameId, and then check if the placeId matches the assetId of the game server
             var gameServer = await services.gameServer.GetGameServer(gameId);
@@ -717,7 +717,7 @@ namespace Roblox.Website.Controllers
             if (userInfo.IsDeleted())
             {
                 await services.gameServer.KickPlayer(visitorId, gameId);
-                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGE-SS] UID: {visitorId} Flag: BannedUser");
+                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: BannedUser");
                 throw new ForbiddenException(0, "User is banned");
             }
             // Now we check if the player has a placelauncher ticket, if they do not kick the player
@@ -725,7 +725,7 @@ namespace Roblox.Website.Controllers
             if (!await services.playerSecurity.IsPlayerTicketValid(userInfo.userId, gameId))
             {
                 await services.gameServer.KickPlayer(visitorId, gameId);
-                await services.discordBotApi.SendMessageInChannel("1307760061476765702", $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
+                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
                 throw new ForbiddenException(0, "User does not have a valid placelauncher ticket");
             }
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
@@ -1155,10 +1155,15 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/validate-place-join")]
         [HttpPostBypass("universes/validate-place-join")]
         [HttpGetBypass("universes/validate-place-join")]
-        public string ValidateJoin(long originPlaceId, long destinationPlaceId)
+        public async Task<string> ValidateJoin(long originPlaceId, long destinationPlaceId)
         {
-            Console.WriteLine($"Validating join from {originPlaceId} to {destinationPlaceId}");
-            return "true";
+            using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
+            if (await playerSecurity.ValidateTeleport(originPlaceId, destinationPlaceId))
+            {
+                return "true";
+            }
+            await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] Flag: InvalidTeleport\nOrigin Place Id:{originPlaceId}\nDestination Place Id: {destinationPlaceId}");
+            return "false";
         }
 
         [HttpGetBypass("v2/get-rollout-settings")]
@@ -1310,7 +1315,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("V1/Close")]
         public async Task<dynamic> CloseGSNew(Guid gameId)
         {
-            if(!isRCC)
+            if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
             try
             {
@@ -1320,7 +1325,7 @@ namespace Roblox.Website.Controllers
                 {
                     return "Game server not found";
                 }
-                await services.gameServer.ShutDownServerAsync(gameId);
+                await services.gameServer.ShutDownServerAsync(gameServer.id);
                 return "OK!";
             }
             catch (Exception)

@@ -415,16 +415,6 @@ public class FriendsService : ServiceBase, IService
             UserMetrics.ReportFollowingFloodCheckReached(userId, currentFollowingCount.total);
             return true;
         }
-        var globalFollowCount = await db.QuerySingleOrDefaultAsync<Dto.Total>(
-            "SELECT COUNT(*) AS total FROM user_following WHERE created_at > :dt", new
-            {
-                dt = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)),
-            });
-        if (globalFollowCount.total >= 100)
-        {
-            UserMetrics.ReportGlobalFollowingFloodCheckReached(userId, globalFollowCount.total);
-            return true;
-        }
 
         return false;
     }

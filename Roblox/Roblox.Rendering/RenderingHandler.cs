@@ -12,8 +12,6 @@ namespace Roblox.Rendering
 {
     public class RenderingHandler
     {
-        private static string BaseUrl = "";
-        public static string LuaScriptPath = "";
         private static Random RandomComponent = new Random();
         private static HttpClient client = new HttpClient();
         // TODO: REWRITE RENDERING HANDLER
@@ -43,10 +41,9 @@ namespace Roblox.Rendering
             public string? message { get; set; }
             public string? data { get; set; }
         }
-        public static void Configure(string baseUrl, string rccPath, string luaScriptPath, string rccPathGames)
+        public static void Configure()
         {
-            BaseUrl = baseUrl;
-            LuaScriptPath = luaScriptPath;
+
         }
         public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>();
         private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false, string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null)
@@ -178,7 +175,7 @@ namespace Roblox.Rendering
         {
             return await SendRenderRequest(assetId, RenderType.TeeShirt);
         }
-        
+
         public static async Task<string> RequestHeadRender(long assetId)
         {
             return await SendRenderRequest(assetId, RenderType.Head);
@@ -212,7 +209,7 @@ namespace Roblox.Rendering
         {
             return await SendRenderRequest(userId, RenderType.Headshot);
         }
-        
+
         /// <summary>
         /// Resizes an image to the specified width and height.
         /// </summary>
@@ -245,24 +242,21 @@ namespace Roblox.Rendering
         public static async Task<TReturn> ResizeImage<TReturn, TImageType>(TImageType inputImage, int width, int height)
         {
             MemoryStream imageStream;
-            // Input image is a string meaning its a bsae64, lets decode it in a byte array and make a new MemoryStream
+
             if (typeof(TImageType) == typeof(string))
             {
                 string base64 = (string)(object)inputImage!;
                 byte[] imageBytes = Convert.FromBase64String(base64);
                 imageStream = new MemoryStream(imageBytes);
             }
-            // Input image is a byte array, lets make a new MemoryStream
             else if (typeof(TImageType) == typeof(byte[]))
             {
                 byte[] bytes = (byte[])(object)inputImage!;
                 imageStream = new MemoryStream(bytes);
             }
-            // Input image is a Stream, lets copy it to a new MemoryStream
             else if (typeof(Stream).IsAssignableFrom(typeof(TImageType)))
             {
                 var inputStream = (Stream)(object)inputImage!;
-                // seek check
                 if (!inputStream.CanSeek)
                     throw new ArgumentException("Input stream must be seekable.");
 
@@ -277,29 +271,34 @@ namespace Roblox.Rendering
                 throw new ArgumentException("Unsupported image type for resizing.");
             }
 
+            // Step 2: Process the image
             using (imageStream)
             {
                 using var image = await Image.LoadAsync(imageStream);
                 image.Mutate(x => x.Resize(width, height));
 
-                var outStream = new MemoryStream();
-                await image.SaveAsync(outStream, new PngEncoder());
-                outStream.Position = 0;
-
                 if (typeof(TReturn) == typeof(MemoryStream))
                 {
+                    var outStream = new MemoryStream();
+                    await image.SaveAsync(outStream, new PngEncoder());
+                    outStream.Position = 0;
                     return (TReturn)(object)outStream;
                 }
 
-                byte[] bytesResult = outStream.ToArray();
-
                 if (typeof(TReturn) == typeof(byte[]))
                 {
-                    return (TReturn)(object)bytesResult;
+                    var outStream = new MemoryStream();
+                    await image.SaveAsync(outStream, new PngEncoder());
+                    outStream.Position = 0;
+                    return (TReturn)(object)outStream.ToArray();
                 }
 
                 if (typeof(TReturn) == typeof(string))
                 {
+                    var outStream = new MemoryStream();
+                    await image.SaveAsync(outStream, new PngEncoder());
+                    outStream.Position = 0;
+                    byte[] bytesResult = outStream.ToArray();
                     string base64Result = Convert.ToBase64String(bytesResult);
                     return (TReturn)(object)base64Result;
                 }

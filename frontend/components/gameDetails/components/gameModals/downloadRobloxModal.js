@@ -116,7 +116,7 @@ const downloadProjexModal = props => {
     const onClick = e => {
         e.preventDefault();
         setOpen(false);
-        window.location.href = "https://setup.pekora.zip/ProjectXPlayerLauncher.exe";
+        window.location.href = "https://github.com/shikataganaii/Pekora-Bootstrapper/releases";
     }
 
     useEffect(async () => {

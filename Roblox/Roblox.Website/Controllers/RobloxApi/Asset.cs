@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
 using System.Text.Json;
+using NAudio.MediaFoundation;
 
 namespace Roblox.Website.Controllers;
 [ApiController]
@@ -28,7 +29,7 @@ public class Asset : ControllerBase
     [HttpPostBypass("v1/asset")]
     [HttpGetBypass("asset")]
     [HttpPostBypass("asset")]
-    public async Task<ActionResult> GetAssetById(long? playerId, long id, long? version = null, long? assetversionid = null, long? serverplaceid = null)
+    public async Task<dynamic> GetAssetById(long? playerId, long id, long? version = null, long? assetversionid = null, long? serverplaceid = null)
     {
         /*
         This is from corescripts from 2017 for more context
@@ -82,6 +83,14 @@ public class Asset : ControllerBase
         {
             using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
             var location = await robloxAssetService.GetAssetById(assetId, serverplaceid ?? currentPlaceId);
+            // I don't want this excepting becuase it will flood the logs
+            if (string.IsNullOrEmpty(location))
+            {
+                return new
+                {
+                    msg = "Asset not found",
+                };
+            }
             return Redirect(location);
         }
 

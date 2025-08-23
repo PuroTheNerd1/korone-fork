@@ -12,6 +12,8 @@ using Roblox.Models.Economy;
 using Roblox.Models.GameServer;
 using Roblox.Services.Exceptions;
 using Roblox.Logging;
+using System.Collections.Concurrent;
+using Roblox.Dto.Users;
 
 namespace Roblox.Services;
 
@@ -41,9 +43,14 @@ public class GameServerService : ServiceBase
             var result = await this.PostAsync("evict-player", new StringContent(jsonRequest, Encoding.UTF8, "application/json"));
             return result.IsSuccessStatusCode;
         }
-        public async Task<bool> KillGameServer(KillGameServerRequest request)
+        public async Task<bool> KillGameServer(KillGameServerRequest request, CancellationToken cancellationToken)
         {
-            var result = await this.PostAsync("kill-game-server", new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+            var content = new StringContent(
+                JsonSerializer.Serialize(request),
+                Encoding.UTF8,
+                "application/json");
+
+            var result = await this.PostAsync("kill-game-server", content, cancellationToken);
             return result.IsSuccessStatusCode;
         }
         public static EvictPlayerRequest CreateEvictPlayerRequest(Guid jobId, long userId)
@@ -118,7 +125,7 @@ public class GameServerService : ServiceBase
     private static Dictionary<string, Process> jobRccs = new Dictionary<string, Process>(); // jobid, rcc process
     public static Dictionary<string, int> currentGameServerPorts = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
     private static Dictionary<long, string> currentPlaceIdsInUse = new Dictionary<long, string>(); // placeid, jobid
-    public static Dictionary<long, long> CurrentPlayersInGame = new Dictionary<long, long>() { }; // userid, placeid
+    public static ConcurrentDictionary<long, long> CurrentPlayersInGame = new ConcurrentDictionary<long, long>() { }; // userid, placeid
     public static Dictionary<Process, int> mainRCCPortsInUse = new Dictionary<Process, int>(); // Process, main RCC soap port
     public static Dictionary<string, int> unreadyGameServers = new Dictionary<string, int>(); // Process, network server port
     public static void Configure(string newJwtKey)
@@ -205,8 +212,7 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerJoin(long userId, long placeId, Guid serverId)
     {
-        CurrentPlayersInGame.Remove(userId);
-        CurrentPlayersInGame.Add(userId, placeId);
+        CurrentPlayersInGame.AddOrUpdate(userId, placeId, (key, oldValue) => placeId);
         await db.ExecuteAsync(
             "INSERT INTO asset_server_player (asset_id, user_id, server_id) VALUES (:asset_id, :user_id, :server_id::uuid)",
             new
@@ -308,8 +314,7 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerLeave(long userId, long placeId, Guid serverId)
     {
-        if (!CurrentPlayersInGame.ContainsKey(userId)) return;
-        CurrentPlayersInGame.Remove(userId);
+        CurrentPlayersInGame.TryRemove(userId, out _);
 
         await db.ExecuteAsync(
             "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
@@ -432,29 +437,38 @@ public class GameServerService : ServiceBase
     //         new List<dynamic> {placeId, gameServerId, gameServerPort});
     // }
 
-    public Task ShutDownServerAsync(Guid serverId)
+    public async Task ShutDownServerAsync(Guid serverId)
     {
-        _ = Task.Run(async () =>
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CloseGameServer:{serverId.ToString()}", TimeSpan.FromSeconds(10));
+        if (!serverCreationLock.IsAcquired)
         {
-            try
+            // Silence.
+            return;
+        }
+        try
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
             {
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
-
-                await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
-
-                Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
-
-                await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new { id = serverId });
-                await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new { id = serverId });
+                await arbiterClient.KillGameServer(
+                    ArbiterHttpClient.CreateKillGameServerRequest(serverId),
+                    cts.Token);
             }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Error shutting down server {serverId}: {ex}");
-            }
-        });
 
-        return Task.CompletedTask;
+            Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
+
+            await DeleteGameServer(serverId);
+        }
+        catch (OperationCanceledException)
+        {
+            Console.Error.WriteLine($"KillGameServer timed out after 15 seconds for server {serverId}.");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error shutting down server {serverId}: {ex}");
+        }
     }
 
 
@@ -462,9 +476,9 @@ public class GameServerService : ServiceBase
     {
         List<long> playersToRemove = CurrentPlayersInGame.Where(kvp => kvp.Value == placeId).Select(kvp => kvp.Key).ToList();
 
-        foreach (var playerID in playersToRemove)
+        foreach (var userId in playersToRemove)
         {
-            CurrentPlayersInGame.Remove(playerID);
+            CurrentPlayersInGame.TryRemove(userId, out _);
         }
     }
 
@@ -820,13 +834,18 @@ public class GameServerService : ServiceBase
         } while (true);
 
         Guid jobId = Guid.NewGuid();
-        // await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(33));
-        // if (!serverCreationLock.IsAcquired)
-        //     return new GameServerGetOrCreateResponse
-        //     {
-        //         status = JoinStatus.Loading,
-        //     };
-        await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking);
+        // We need to create a lock to prevent multiple requests from creating the same game server
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(3));
+        if (!serverCreationLock.IsAcquired)
+        {
+            return new GameServerGetOrCreateResponse
+            {
+                status = JoinStatus.Loading,
+            };
+        }
+
+        _ = Task.Run(async () => await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking));
+
         await db.ExecuteAsync(
             "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
         new

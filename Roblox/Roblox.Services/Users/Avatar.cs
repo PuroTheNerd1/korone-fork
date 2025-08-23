@@ -911,18 +911,36 @@ public class AvatarService : ServiceBase, IService {
         try
         {
             string headshotFileName = $"{avatarHash}_headshot.png";
-            byte[] headshotBytes = await RenderingHandler.ResizeImage<byte[], string>(headshotResult, 150, 150);
-            string headshotPath = Path.Combine(Configuration.ThumbnailsDirectory, headshotFileName);
-            await File.WriteAllBytesAsync(headshotPath, headshotBytes);
+
+            using (var headshotStream = await RenderingHandler.ResizeImage<MemoryStream, string>(headshotResult, 150, 150))
+            using (var headshotFile = new FileStream(
+                Path.Combine(Configuration.ThumbnailsDirectory, headshotFileName),
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None))
+            {
+                headshotStream.Position = 0;
+                await headshotStream.CopyToAsync(headshotFile);
+            }
 
             string thumbnailFileName = $"{avatarHash}_thumbnail.png";
-            byte[] thumbnailBytes = await RenderingHandler.ResizeImage<byte[], string>(thumbnailResult, 352, 352);
-            string thumbnailPath = Path.Combine(Configuration.ThumbnailsDirectory, thumbnailFileName);
-            await File.WriteAllBytesAsync(thumbnailPath, thumbnailBytes);
+
+            using (var thumbnailStream = await RenderingHandler.ResizeImage<MemoryStream, string>(thumbnailResult, 352, 352))
+            using (var thumbnailFile = new FileStream(
+                Path.Combine(Configuration.ThumbnailsDirectory, thumbnailFileName),
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None))
+            {
+                thumbnailStream.Position = 0;
+                await thumbnailStream.CopyToAsync(thumbnailFile);
+            }
         }
         catch (Exception ex)
         {
             Writer.Info(LogGroup.AvatarService, "Failed to save headshot or thumbnail for user {0}: {1}", userId, ex.Message);
+            await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, null);
+            return;
         }
 
         // Update the avatar thumbnail, excluding 3D

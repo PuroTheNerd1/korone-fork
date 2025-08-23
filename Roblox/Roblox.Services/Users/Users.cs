@@ -33,20 +33,34 @@ public class UsersService : ServiceBase, IService
     private static TwoFactorAuth tfa = new TwoFactorAuth("Pekora");
     public async Task<bool> IsNameAvailableForNameChange(long contextUserId, string username)
     {
-        var alreadyInUse = await db.QuerySingleOrDefaultAsync("SELECT username FROM \"user\" WHERE username ilike :name",
-            new { name = username });
-        if (alreadyInUse != null) return false;
+        var escapedUsername = username
+            .Replace("\\", "\\\\") 
+            .Replace("%", "\\%") 
+            .Replace("_", "\\_");
 
-        var usedPreviously =
-            await db.QueryAsync<PreviousUsernameEntries>(
-                "SELECT username, user_id as userId from user_previous_username WHERE username ilike :name",
-                new { name = username });
-        // If never used before, user can take it!
-        if (usedPreviously == null) return true;
-        var usedByAnyoneExcludingContextUser = usedPreviously.ToList().Where(c => c.userId != contextUserId);
-        if (usedByAnyoneExcludingContextUser.Any()) return false; // Someone else already used it.
+        var alreadyInUse = await db.QuerySingleOrDefaultAsync(
+            "SELECT username FROM \"user\" WHERE username ILIKE :name ESCAPE '\\'",
+            new { name = escapedUsername }
+        );
 
-        // User *has* used it before, but nobody else has, so they can take it!
+        if (alreadyInUse != null)
+            return false;
+
+        // Check if it was used previously
+        var usedPreviously = await db.QueryAsync<PreviousUsernameEntries>(
+            "SELECT username, user_id as userId " +
+            "FROM user_previous_username " +
+            "WHERE username ILIKE :name ESCAPE '\\'",
+            new { name = escapedUsername }
+        );
+
+        if (usedPreviously == null || !usedPreviously.Any())
+            return true;
+
+        var usedByAnyoneElse = usedPreviously.Where(c => c.userId != contextUserId);
+        if (usedByAnyoneElse.Any())
+            return false; // Someone else already used it
+
         return true;
     }
 
@@ -362,7 +376,7 @@ public class UsersService : ServiceBase, IService
     public async Task<long> GetUserIdFromUsername(string username)
     {
         username = username.Replace("%", "");
-        var result = await db.QuerySingleOrDefaultAsync<UserId>("SELECT id as userId FROM \"user\" WHERE username ILIKE :username", new
+        var result = await db.QuerySingleOrDefaultAsync<UserId>("SELECT id as userId FROM \"user\" WHERE LOWER(username) = LOWER(:username)", new
         {
             username,
         });
@@ -372,13 +386,20 @@ public class UsersService : ServiceBase, IService
 
     public async Task<bool> IsBadUsername(string usernameToCheck)
     {
+        var escaped = usernameToCheck
+            .Replace("\\", "\\\\")
+            .Replace("%", "\\%")
+            .Replace("_", "\\_");
+
         var result = await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COUNT(*) AS total FROM moderation_bad_username WHERE username ILIKE :name", new
-            {
-                name = usernameToCheck,
-            });
+            @"SELECT COUNT(*) AS total 
+          FROM moderation_bad_username 
+          WHERE username ILIKE :name ESCAPE '\'",
+            new { name = $"%{escaped}%" });
+
         return result.total != 0;
     }
+
 
     public async Task AddBadUsername(string usernameToAdd)
     {
@@ -417,7 +438,8 @@ public class UsersService : ServiceBase, IService
         ".",
     };
 
-    private static readonly Regex UsernameValidationRegex = new Regex("([a-zA-Z0-9_. ]+)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    private static readonly Regex UsernameValidationRegex = new Regex(@"^[a-zA-Z0-9_. ]+$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
 
     /// <summary>
     /// Check if the username is valid
@@ -452,11 +474,17 @@ public class UsersService : ServiceBase, IService
 
         // world filter, removing spaces and other words
         var lowerName = string.Join("", nameToCheck.ToLower().Split(" "));
-        if (lowerName.Contains("nigg") || lowerName.Contains("n1gg") || lowerName.Contains("niigg") || lowerName.Contains("n11gg"))
+        if (lowerName.Contains("nigg") || lowerName.Contains("n1gg") || lowerName.Contains("niigg") || lowerName.Contains("n11gg") || lowerName.Contains("gga") || lowerName.Contains("gger"))
             return false;
         if (lowerName.Contains("porn") || lowerName.Contains("p0rn"))
             return false;
         if (lowerName.Contains("kike") || lowerName.Contains("goy"))
+            return false;
+        if (lowerName.Contains("bitch") || lowerName.Contains("b1tch"))
+            return false;        
+        if (lowerName.Contains("dick") || lowerName.Contains("d1ck"))
+            return false;
+        if (lowerName.Contains("fuck") || lowerName.Contains("f1ck"))
             return false;
         if (lowerName.Contains("tranny") || lowerName.Contains("fag") || lowerName.Contains("goblina") || lowerName.Contains("dyke") || lowerName.Contains("dick") || lowerName.Contains("cock") || lowerName.Contains("c0ck") || lowerName.Contains("d1ck") || lowerName.Contains("hitler") || lowerName.Contains("hitier"))
             return false;
@@ -572,10 +600,20 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<UserInfo> GetUserByName(string username)
     {
-        var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE username ILIKE :name", new { name = username });
-        if (res == null) throw new RecordNotFoundException();
+        var res = await db.QuerySingleOrDefaultAsync<UserInfo>(
+            "SELECT id AS userId, username, status AS accountStatus, created_at AS created, description " +
+            "FROM \"user\" " +
+            "WHERE LOWER(username) = LOWER(:username)",
+            new { username = username }
+        );
+
+        if (res == null)
+            throw new RecordNotFoundException();
         return res;
     }
+
+
+
     public async Task<UserInfo> GetUserById(long userId)
     {
         using var userInfoCache = ServiceProvider.GetOrCreate<GetUserByIdCache>();
@@ -623,43 +661,64 @@ public class UsersService : ServiceBase, IService
 
     public async Task<IEnumerable<MultiGetEntry>> MultiGetUsersByUsername(IEnumerable<string> usernames)
     {
-        var names = usernames.ToList();
-        // This function has to check both current and old names
-        // Start with current, since it's probably quicker
-        var currentData =
-            (await MultiGetAsync<MultiGetDbEntry, string>("user", "username", new[] { "username", "id" },
-                names, "ILIKE")).ToList();
-        var usersNotInList = names.Where(c =>
+        var names = usernames
+            .Select(n => n.Trim())
+            .ToList();
+
+        var sb = new SqlBuilder();
+        var selector = sb.AddTemplate(@"
+        SELECT id, username, description, created_at
+        FROM ""user""
+        /**where**/
+        ");
+
+        foreach (var name in names)
         {
-            return currentData.Find(v => v.username.ToLower() == c.ToLower()) == null;
-        }).ToList();
+            sb.Where("LOWER(username) = LOWER(:username)", new { username = name });
+        }
+
+        var currentData = (await db.QueryAsync<MultiGetDbEntry>(
+            selector.RawSql,
+            selector.Parameters
+        )).ToList();
+
+        var usersNotInList = names
+            .Where(name => currentData.Find(v =>
+                v.username.Equals(name, StringComparison.OrdinalIgnoreCase)) == null)
+            .ToList();
+
         if (usersNotInList.Count != 0)
         {
-            // Find missing users
             foreach (var user in usersNotInList)
             {
                 var exists = await db.QuerySingleOrDefaultAsync(
-                    "SELECT \"user\".id, user_previous_username.username as requestedUsername, \"user\".username FROM user_previous_username LEFT JOIN \"user\" ON \"user\".id = user_previous_username.user_id WHERE user_previous_username.username ILIKE :username LIMIT 1",
-                    new
-                    {
-                        username = user,
-                    });
+                    @"SELECT u.id, 
+                         upu.username AS requestedUsername, 
+                         u.username
+                  FROM user_previous_username upu
+                  LEFT JOIN ""user"" u ON u.id = upu.user_id
+                  WHERE LOWER(upu.username) = LOWER(:username)
+                  LIMIT 1",
+                    new { username = user }
+                );
+
                 if (exists != null)
                 {
                     currentData.Add(new MultiGetDbEntry
                     {
                         username = exists.username,
                         id = exists.id,
-                        requestedUsername = user,
+                        requestedUsername = user
                     });
                 }
             }
         }
+
         return currentData.Select(c => new MultiGetEntry
         {
             id = c.id,
             name = c.username,
-            requestedName = c.requestedUsername ?? c.username,
+            requestedName = c.requestedUsername ?? c.username
         });
     }
 
@@ -850,6 +909,16 @@ public class UsersService : ServiceBase, IService
             {
                 uid = userId,
                 discordid = discordId,
+            });
+
+    }
+    public async Task UnlinkDiscordAccount(long userId)
+    {
+        await db.ExecuteAsync(
+            "UPDATE \"user\" SET discord_id = null WHERE id = :uid",
+            new
+            {
+                uid = userId,
             });
 
     }

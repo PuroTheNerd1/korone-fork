@@ -10,8 +10,7 @@ namespace Roblox.Website.Controllers
     public class WebInfo: ControllerBase
     {
         private NpgsqlConnection db => services.assets.db;
-        
-        [BotAuthorization]
+
         [HttpGetBypass("bot/status")]
         public async Task<dynamic> GetWebInfo()
         {

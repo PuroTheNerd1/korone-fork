@@ -1,10 +1,12 @@
 using Dapper;
+using InfluxDB.Client.Api.Domain;
 using Roblox.Dto.Economy;
 using Roblox.Dto.Users;
 using Roblox.Libraries.Exceptions;
 using Roblox.Models.Assets;
 using Roblox.Models.Economy;
 using Roblox.Services.Exceptions;
+using StackExchange.Redis;
 
 namespace Roblox.Services;
 
@@ -361,6 +363,39 @@ public class EconomyService : ServiceBase, IService
         }
 
         return await db.QueryAsync<TransactionEntryDb>(template.RawSql, template.Parameters);
+    }
+    public async Task<IEnumerable<TransactionEntryDb>> GetTransactionsForUserAssetId(long userAssetId)
+    {
+        var query = @"
+        SELECT 
+            t.id,
+            t.item_name AS itemName,
+            t.created_at AS createdAt,
+            t.user_id_one AS userIdOne,
+            t.user_id_two AS userIdTwo,
+            u.username AS userNameTwo,
+            u2.username AS userNameOne,
+            t.group_id_two AS groupIdTwo,
+            g.name AS groupName,
+            t.amount,
+            t.currency_type AS currency,
+            t.type,
+            t.sub_type AS subType,
+            t.asset_id AS assetId,
+            a.name AS assetName,
+            t.user_asset_id AS userAssetId,
+            t.old_username AS oldUsername,
+            t.new_username AS newUsername
+            FROM user_transaction AS t
+            LEFT JOIN ""user"" u ON u.id = t.user_id_one
+            LEFT JOIN ""user"" u2 ON u2.id = t.user_id_two
+            LEFT JOIN asset a ON a.id = t.asset_id
+            LEFT JOIN ""group"" g ON g.id = t.group_id_two
+            WHERE t.user_asset_id = :user_asset_id;
+        ";
+    
+    var result = await db.QueryAsync<TransactionEntryDb>(query, new { user_asset_id = userAssetId });
+        return result;
     }
 
     public async Task<UserTransactionTotals> GetTransactionTotals(long userId, TimeSpan timeFrame)

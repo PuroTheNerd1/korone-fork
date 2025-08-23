@@ -20,7 +20,7 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             var ds = ServiceProvider.GetOrCreate<DataStoreService>();
             if (value == null)
-                value = int.Parse(Request.Form["value"][0]);
+                value = int.Parse(Request.Form["value"][0]!);
             var result = await ds.Get(placeId, key, type, scope, target);
 
             if (result is null)
@@ -45,7 +45,8 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
-            var value = Request.Form["value"][0];
+            var value = Request.Form["value"][0]!;
+
             if (type is not "standard")
             {
                 // Check if the type is valid

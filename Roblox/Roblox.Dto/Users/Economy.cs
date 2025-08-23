@@ -40,8 +40,11 @@ public class TransactionEntryDb
 {
     public long id { get; set; }
     public DateTime createdAt { get; set; }
+    public long? userIdOne { get; set; }
     public long? userIdTwo { get; set; }
     public string? username { get; set; }
+    public string? userNameOne { get; set; }
+    public string? userNameTwo { get; set; }
     public long? groupIdTwo { get; set; }
     public string? groupName { get; set; }
     public long amount { get; set; }
