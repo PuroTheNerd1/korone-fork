@@ -811,9 +811,6 @@ public class WebController : ControllerBase
                     throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
             }
             fs.Position = 0;
-            if (!await services.assets.RobloxFileValidation(fs))
-                throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-            fs.Position = 0;
 
             await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
             // Render in the background
