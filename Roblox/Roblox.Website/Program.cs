@@ -120,7 +120,6 @@ builder.Services.AddMvc(c =>
 
 var app = builder.Build();
 app.UseRouting();
-app.UseCompression();
 app.UseSwaggerUI(c =>
 {
     c.ShowCommonExtensions();
