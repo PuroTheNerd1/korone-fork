@@ -53,6 +53,7 @@ public class GroupEntry
         id = db.id;
         name = db.name;
         description = db.description;
+        isVerified = db.isVerified;
         if (db.ownerUserId != null)
         {
             if (db.ownerUsername == null)

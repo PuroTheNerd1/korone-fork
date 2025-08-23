@@ -169,6 +169,10 @@ const useGroupSquareStyles = createUseStyles({
     border: 0,
     borderRadius: 0,
   },
+  verifiedIcon: {
+    width: '28px',
+    height: '28px',
+  }
 });
 
 const GroupSquareEntry = props => {
@@ -209,6 +213,13 @@ const GroupSquareEntry = props => {
       <div className={`card ${s.groupCard}`}>
         <h3 className={s.groupName}>
           {group.group.name}
+          {group.group.isVerified && (
+            <img
+              src="/img/verified.svg"
+              alt="Verified"
+              className={s.verifiedIcon}
+            />
+          )}
         </h3>
         <p className={s.description}>
           {group.group.description}

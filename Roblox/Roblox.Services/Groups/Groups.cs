@@ -92,10 +92,8 @@ public class GroupsService : ServiceBase, IService
                 group_id = groupId,
             });
         if (dbResult == null) throw new RecordNotFoundException();
-        var resp = new GroupEntry(dbResult)
-        {
-            memberCount = await GetMemberCount(dbResult.id)
-        };
+        var resp = new GroupEntry(dbResult);
+        resp.memberCount = await GetMemberCount(dbResult.id);
         return resp;
     }
     public async Task<bool> IsUserInGroup(long userId, long groupId)

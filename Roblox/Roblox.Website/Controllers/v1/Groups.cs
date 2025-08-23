@@ -570,9 +570,6 @@ public class GroupsControllerV1 : ControllerBase
         foreach (var role in roles)
         {
             var groupData = await services.groups.GetGroupById(role.groupId);
-            var memCount = await services.groups.GetMemberCount(role.groupId);
-            groupData.memberCount = memCount;
-            
             result.Add(new
             {
                 role = role,

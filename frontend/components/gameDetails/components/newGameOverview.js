@@ -197,7 +197,12 @@ const useStyles = createUseStyles({
       right: '16px',
     },
   },
-
+  verifiedIcon: {
+    position: 'relative',
+    bottom: '2.5px',
+    width: '16px', 
+    height: '16px',
+  },
 })
 
 const About = props => {
@@ -206,6 +211,7 @@ const About = props => {
   const s = useStyles();
   const creatorName = store.details.creatorName;
   const gameName = store.details.name;
+  const isVerified = store.universeDetails.creator.hasVerifiedBadge;
   const creatorType = store.details.creatorType;
   const creatorId = store.details.creatorTargetId;
   const placeId = store.details.id;
@@ -280,7 +286,16 @@ const About = props => {
         <h2 className={s.gameName} title={gameName}>{gameName}</h2>
         <div className={s.gameCreator}>
           <span className={s.creatorLabel}>By </span>
-          <a href={url} className={s.creatorName} title={creatorName}>{creatorName}</a>
+          <a href={url} className={s.creatorName} title={creatorName}>
+            {creatorName}
+          </a>
+          {isVerified && (
+            <img
+              src='/img/verified.svg'
+              alt='Verified'
+              className={s.verifiedIcon}
+            />
+          )}
         </div>
       </div>
 

@@ -27,6 +27,7 @@
  * @property {number} creator.id
  * @property {string} creator.name
  * @property {string} creator.type
+ * @property {boolean} creator.hasVerifiedBadge
  * @property {string|null} description
  * @property {number} favoritedCount
  * @property {string} genre
