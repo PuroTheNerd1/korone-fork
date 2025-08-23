@@ -1706,29 +1706,33 @@ public class AdminApiController : ControllerBase
         var saleData = await services.economy.GetTransactionsForUserAssetId(userAssetId);
         var tradeData = await services.trades.GetTradesByUserAssetId(userAssetId);
 
-        dynamic history = new ExpandoObject();
+        var historyList = new List<dynamic>();
         foreach (var item in saleData)
         {
-            history.track_type = "Sale";
-            history.user_id_two = item.userIdTwo;
-            history.user_id_one = item.userIdOne;
-            history.user_one_username = item.userNameOne;
-            history.user_two_username = item.userNameTwo;
-            history.amount = item.amount;
-            history.currency_type = (int)item.currency;
+            dynamic historyEntry = new ExpandoObject();
+            historyEntry.track_type = "Sale";
+            historyEntry.user_id_two = item.userIdTwo;
+            historyEntry.user_id_one = item.userIdOne;
+            historyEntry.user_one_username = item.userNameOne;
+            historyEntry.user_two_username = item.userNameTwo;
+            historyEntry.amount = item.amount;
+            historyEntry.currency_type = (int)item.currency;
+            historyList.Add(historyEntry);
         }
 
         foreach (var item in tradeData)
         {
-            history.track_type = "Trade";
-            history.user_id_two = item.userIdTwo;
-            history.user_id_one = item.userIdOne;
-            history.user_one_username = item.usernameOne;
-            history.user_two_username = item.usernameTwo;
-            history.id = item.id;
+            dynamic historyEntry = new ExpandoObject();
+            historyEntry.track_type = "Trade";
+            historyEntry.user_id_two = item.userIdTwo;
+            historyEntry.user_id_one = item.userIdOne;
+            historyEntry.user_one_username = item.usernameOne;
+            historyEntry.user_two_username = item.usernameTwo;
+            historyEntry.id = item.id;
+            historyList.Add(historyEntry);
         }
 
-        return history;
+        return historyList;
     }
 
     [HttpPost("user/delete"), StaffFilter(Access.DeleteUser)]
