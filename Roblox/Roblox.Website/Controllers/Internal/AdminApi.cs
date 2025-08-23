@@ -1701,9 +1701,34 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("trackitem"), StaffFilter(Access.TrackItem)]
-    public dynamic TrackItem(long userAssetId)
+    public async Task<dynamic> TrackItem(long userAssetId)
     {
-        throw new StaffException("Endpoint is not implemented yet. Complain to the owner ;-;");
+        var saleData = await services.economy.GetTransactionsForUserAssetId(userAssetId);
+        var tradeData = await services.trades.GetTradesByUserAssetId(userAssetId);
+
+        dynamic history = new ExpandoObject();
+        foreach (var item in saleData)
+        {
+            history.track_type = "Sale";
+            history.user_id_two = item.userIdTwo;
+            history.user_id_one = item.userIdOne;
+            history.user_one_username = item.userNameOne;
+            history.user_two_username = item.userNameTwo;
+            history.amount = item.amount;
+            history.currency_type = (int)item.currency;
+        }
+
+        foreach (var item in tradeData)
+        {
+            history.track_type = "Trade";
+            history.user_id_two = item.userIdTwo;
+            history.user_id_one = item.userIdOne;
+            history.user_one_username = item.usernameOne;
+            history.user_two_username = item.usernameTwo;
+            history.id = item.id;
+        }
+
+        return history;
     }
 
     [HttpPost("user/delete"), StaffFilter(Access.DeleteUser)]
