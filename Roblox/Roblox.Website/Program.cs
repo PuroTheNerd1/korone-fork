@@ -124,24 +124,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMvc(c =>
     c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
 );
-builder.Services.AddCompression(options =>
-{
-    options.AllowedMediaTypes = new List<MediaTypeHeaderValue>
-    {
-        MediaTypeHeaderValue.Parse("text/*"),
-        MediaTypeHeaderValue.Parse("message/*"),
-        MediaTypeHeaderValue.Parse("application/x-javascript"),
-        MediaTypeHeaderValue.Parse("application/javascript"),
-        MediaTypeHeaderValue.Parse("application/json"),
-        MediaTypeHeaderValue.Parse("application/xml"),
-        MediaTypeHeaderValue.Parse("application/atom+xml"),
-        MediaTypeHeaderValue.Parse("application/xaml+xml")
-    };
-    options.IgnoredPaths = null;
-    options.MinimumCompressionThreshold = 0;
-    options.Compressors = null;
-    options.Decompressors = new List<IDecompressor> { new BrotliDecompressor(), new GZipDecompressor(), new DeflateDecompressor() };
-});
+
 var app = builder.Build();
 app.UseRouting();
 app.UseCompression();
@@ -247,5 +230,6 @@ _ = Task.Run(AvatarService.StartTimerClear3D);
 app.MapControllers();
 app.MapRazorPages();
 app.UseWebSockets();
+app.UseRequestDecompression();
 app.MapHub<MessageRouterHub>("/v1/router/signalr");
 app.Run();
