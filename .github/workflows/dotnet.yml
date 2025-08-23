@@ -23,4 +23,4 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore Roblox\Roblox.sln
     - name: Build
-      run: dotnet build Roblox\Roblox.sln--no-restore
+      run: dotnet build Roblox\Roblox.sln --no-restore
