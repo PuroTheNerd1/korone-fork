@@ -51,13 +51,19 @@ const detailsMap = {
     namePlural: 'audio',
     title: 'Audio',
     fileLabel: '.mp3 or .ogg file',
-    subtext: `Audio uploads cost 20 Robux regardless of size. Audio uploads must be less than 7 minutes and smaller than 19.5 MB.`,
+    subtext: `Audio uploads cost 100 Robux regardless of size. Audio uploads must be less than 7 minutes and smaller than 19.5 MB.`,
   },
   1: {
     name: 'Image',
     namePlural: 'images',
     title: 'Image',
     fileLabel: '.png or .jpeg',
+  },
+  24: {
+    name: 'Animation',
+    namePlural: 'animations',
+    title: 'Animation',
+    fileLabel: '.rbxm or rbxmx',
   },
   62: {
     name: 'Video',

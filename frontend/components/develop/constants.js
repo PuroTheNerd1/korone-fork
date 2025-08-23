@@ -65,7 +65,7 @@ const developerPages = [
     id: 24,
     name: 'Animations',
     url: '/develop?View=24',
-    disabled: true,
+    element: props => <Clothing id={24} {...props} />,
   },
   {
     id: 4,
