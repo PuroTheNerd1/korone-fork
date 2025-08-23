@@ -33,6 +33,12 @@ const useGroupGridEntryStyles = createUseStyles({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
+  verifiedIcon: {
+    width: '16px',
+    height: '16px',
+    marginLeft: '4px',
+    verticalAlign: 'middle',
+  }
 })
 
 const GroupGridEntry = props => {
@@ -43,7 +49,16 @@ const GroupGridEntry = props => {
         <div className='card pt-1 pb-1 pe-1 ps-1'>
           <img className={s.groupImage} src={props.icon} />
           <div className='pe-1 ps-1'>
-            <p className={s.name}>{props.group.group.name}</p>
+          <p className={s.name}>
+            {props.group.group.name}{' '}
+            {props.group.group.isVerified && (
+              <img
+                src="/img/verified.svg"
+                alt="Verified"
+                className={s.verifiedIcon}
+              />
+            )}
+          </p>
             <p className={s.memberCount}>{abbreviateNumber(props.group.group.memberCount)} Members</p>
             <p className={s.memberCount}>{props.group.role.name}</p>
           </div>
