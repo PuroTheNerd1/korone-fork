@@ -72,6 +72,7 @@ const GameDetailsStore = createContainer(() => {
      * @type UniverseDetails
      */
     universeDetails,
+    setUniverseDetails,
 
     media,
     setMedia,
