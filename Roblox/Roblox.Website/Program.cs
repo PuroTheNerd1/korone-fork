@@ -1,9 +1,6 @@
 using Roblox.Rendering;
 using Roblox.Website.Middleware;
 using System.Text.Json.Serialization;
-using InfluxDB.Client.Api.Client;
-using ZNetCS.AspNetCore.Compression;
-using ZNetCS.AspNetCore.Compression.Compressors;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
@@ -13,11 +10,6 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Hubs;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Roblox.Services.Signer;
 using Microsoft.AspNetCore.Mvc.Formatters;
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
