@@ -803,16 +803,19 @@ public class WebController : ControllerBase
 
         try
         {
-            var fs = request.file.OpenReadStream();
-            using (var validationStream = new MemoryStream())
+            using (var fs = request.file.OpenReadStream())
+            using (var memoryStream = new MemoryStream())
             {
-                await fs.CopyToAsync(validationStream);
-                if (!await services.assets.ValidateAssetFile(fs, info.assetType))
-                    throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-            }
-            fs.Position = 0;
+                await fs.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
 
-            await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
+                if (!await services.assets.ValidateAssetFile(memoryStream, info.assetType))
+                    throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
+
+                memoryStream.Position = 0;
+                await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, memoryStream);
+            }
+
             // Render in the background
             //if (info.assetType != Models.Assets.Type.Place) {
             //    services.assets.RenderAsset(request.assetId, info.assetType);
@@ -1133,8 +1136,10 @@ public class WebController : ControllerBase
 
     private async Task<CreateResponse> UploadAnimation(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
+        stream.Position = 0;
         using var validationStream = new MemoryStream();
         await stream.CopyToAsync(validationStream);
+        validationStream.Position = 0;
         if (!await services.assets.ValidateAssetFile(validationStream, Models.Assets.Type.Animation))
             throw new BadRequestException(0, "Bad animation file");
         stream.Position = 0;
