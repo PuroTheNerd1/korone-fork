@@ -150,6 +150,10 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 c.imageUrl = "/img/Audio.png";
             }
+            else if (c.type == Type.Animation)
+            {
+                c.imageUrl = "/img/Animation.png";
+            }
             else if (c.type == Type.Video)
             {
                 c.imageUrl = "/img/Video.png";

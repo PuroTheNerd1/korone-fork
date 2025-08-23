@@ -80,6 +80,24 @@ func main() {
 			IsValid: isOk,
 		})
 	})
+	app.Post("/api/v1/validate-animation", func(c *fiber.Ctx) error {
+		if !tryBeforeValidation() {
+			log.Println("Validation limit reached, rejecting request")
+			c.Status(fiber.StatusTooManyRequests)
+			c.Set("Retry-After", "5")
+			return c.JSON(fiber.Map{
+				"error": "Too many validations in progress, try again later.",
+			})
+		}
+		defer afterValidation()
+		body := c.Body()
+		log.Println("validating model with size =", len(body))
+		nReader := bytes.NewReader(body)
+		isOk := validate.IsAnimationValid(nReader)
+		return c.Status(200).JSON(ValidationResponse{
+			IsValid: isOk,
+		})
+	})
 
 	app.Post("/api/v1/validate-model", func(c *fiber.Ctx) error {
 		if !tryBeforeValidation() {
