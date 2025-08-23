@@ -834,7 +834,8 @@ public class GameServerService : ServiceBase
         } while (true);
 
         Guid jobId = Guid.NewGuid();
-        await using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(3));
+        // We need to create a lock to prevent multiple requests from creating the same game server
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(3));
         if (!serverCreationLock.IsAcquired)
         {
             return new GameServerGetOrCreateResponse
