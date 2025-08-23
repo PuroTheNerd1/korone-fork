@@ -439,6 +439,12 @@ public class GameServerService : ServiceBase
 
     public async Task ShutDownServerAsync(Guid serverId)
     {
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CloseGameServer:{serverId.ToString()}", TimeSpan.FromSeconds(10));
+        if (!serverCreationLock.IsAcquired)
+        {
+            // Silence.
+            return;
+        }
         try
         {
             Stopwatch stopwatch = new Stopwatch();

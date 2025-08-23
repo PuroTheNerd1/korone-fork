@@ -1315,7 +1315,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("V1/Close")]
         public async Task<dynamic> CloseGSNew(Guid gameId)
         {
-            if(!isRCC)
+            if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
             try
             {
