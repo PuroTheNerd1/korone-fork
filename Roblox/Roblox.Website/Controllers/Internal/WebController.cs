@@ -804,6 +804,13 @@ public class WebController : ControllerBase
         try
         {
             var fs = request.file.OpenReadStream();
+            using (var validationStream = new MemoryStream())
+            {
+                await validationStream.CopyToAsync(fs);
+                if (!await services.assets.ValidateAssetFile(fs, info.assetType))
+                    throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
+            }
+            fs.Position = 0;
             if (!await services.assets.RobloxFileValidation(fs))
                 throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
             fs.Position = 0;
@@ -841,7 +848,7 @@ public class WebController : ControllerBase
             throw new RobloxException(429, 0, "Too many requests");
 
         var pendingAssets = await services.assets.CountAssetsPendingApproval();
-        if (pendingAssets >= 50)
+        if (pendingAssets >= 150)
         {
             Metrics.UserMetrics.ReportGlobalPendingAssetsFloodCheckReached(userSession.userId);
             throw new RobloxException(400, 0, "There are too many pending items. Try again in a few minutes.");
@@ -906,6 +913,8 @@ public class WebController : ControllerBase
                     return await UploadGamePass(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.Badge:
                     return await UploadAssetBadge(request, stream, creatorId, creatorType);
+                case Models.Assets.Type.Animation:
+                    return await UploadAnimation(request, stream, creatorId, creatorType);
                 default:
                     throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
             }
@@ -961,26 +970,6 @@ public class WebController : ControllerBase
         if (mp3Stream == null)
             throw new BadRequestException(0, "Audio file is not a valid MP3");
     
-        // We will check the decibel level of the audio file
-        // var peakDb = Services.AudioService.GetPeakDbLevel(mp3Stream);
-
-        // Console.WriteLine($"Peak dB: {peakDb}");
-
-        // if (avgDb > maxDecibel)
-        // {
-        //     Writer.Info(LogGroup.AudioService, "audio '{0}' is too loud by {3:F2}dB (peak: {1:F2}dB, average: {2:F2}dB)", request.name, peakDb, avgDb, avgDb - maxDecibel);
-        //     var embedBuilder = new DiscordEmbedBuilder
-        //     {
-        //         Title = "Loud Audio"
-        //     };
-
-        //     embedBuilder.AddField("User", $"``{safeUserSession.username}`` ({safeUserSession.userId})")
-        //         .AddField("Name", request.name)
-        //         .AddField("Peak", $"{peakDb:F2}dB", true)
-
-        //     await services.discordBotApi.SendMessageInChannel("1364006085194813602", "", embedBuilder.Build());
-        // }
-
         mp3Stream.Position = 0;
         // charge
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
@@ -1136,13 +1125,25 @@ public class WebController : ControllerBase
         validationStream.Position = 0;
 
         if (!await services.assets.ValidateAssetFile(validationStream, Models.Assets.Type.Model))
-        {
             throw new BadRequestException(0, "Bad model file");
-        }
+        
         stream.Position = 0;
         // create item
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
             safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.AwaitingApproval);
         return asset;
     }
+
+    private async Task<CreateResponse> UploadAnimation(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
+    {
+        using var validationStream = new MemoryStream();
+        await stream.CopyToAsync(validationStream);
+        if (!await services.assets.ValidateAssetFile(validationStream, Models.Assets.Type.Animation))
+            throw new BadRequestException(0, "Bad animation file");
+        stream.Position = 0;
+        var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
+            safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.ReviewApproved);
+        return asset;
+    }
+
 }

@@ -1062,6 +1062,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("Data/Upload.ashx")]
         public async Task<dynamic> UploadPlaceFromStudio(long? assetId = null)
         {
+            FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
             // if assetId is 0 try getting it from the headers
             long placeId = assetId ?? 0;
             long userId = 0;
@@ -1085,7 +1086,7 @@ namespace Roblox.Website.Controllers
                 canUpload = isRCC;
             }
 
-            if (info.assetType != Models.Assets.Type.Place)
+            if (info.assetType != Type.Place && info.assetType != Type.Animation && info.assetType != Type.Model)
                 canUpload = false;
 
             if (!canUpload)
@@ -1099,13 +1100,17 @@ namespace Roblox.Website.Controllers
             }
             try
             {
-                MemoryStream placeStream = await GetRequestBodyAsMemoryStream();
-                if (!await services.assets.RobloxFileValidation(placeStream))
-                    throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
-                placeStream.Position = 0;
-                // Create asset version in background
-                _ = await services.assets.CreateAssetVersion(placeId, userId, placeStream);
-                services.assets.RenderAsset(placeId, info.assetType);
+                // Messy fixing later
+                using var placeStream = await GetRequestBodyAsMemoryStream();
+                using (var validationStream = new MemoryStream())
+                {
+                    await validationStream.CopyToAsync(placeStream);
+                    if (!await services.assets.ValidateAssetFile(placeStream, info.assetType))
+                        throw new RobloxException(400, 0, "BadRequest");
+                    placeStream.Position = 0;
+                    // Create asset version in background
+                    _ = await services.assets.CreateAssetVersion(placeId, userId, placeStream);
+                }
             }
             finally
             {

@@ -422,6 +422,7 @@ public class AssetsService : ServiceBase, IService
         {
             Type.Place => Configuration.AssetValidationServiceUrl + "/api/v1/validate-place",
             Type.Model => Configuration.AssetValidationServiceUrl + "/api/v1/validate-model",
+            Type.Animation => Configuration.AssetValidationServiceUrl + "/api/v1/validate-animation",
             _ => Configuration.AssetValidationServiceUrl + "/api/v1/validate-item"
         };
 
