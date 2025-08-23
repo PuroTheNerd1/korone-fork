@@ -1100,17 +1100,17 @@ namespace Roblox.Website.Controllers
             }
             try
             {
-                // Messy fixing later
                 using var placeStream = await GetRequestBodyAsMemoryStream();
-                using (var validationStream = new MemoryStream())
-                {
-                    await placeStream.CopyToAsync(validationStream);
-                    if (!await services.assets.ValidateAssetFile(placeStream, info.assetType))
-                        throw new RobloxException(400, 0, "BadRequest");
-                    placeStream.Position = 0;
-                    // Create asset version in background
-                    _ = await services.assets.CreateAssetVersion(placeId, userId, placeStream);
-                }
+
+                placeStream.Position = 0;
+
+                if (!await services.assets.ValidateAssetFile(placeStream, info.assetType))
+                    throw new RobloxException(400, 0, "BadRequest");
+
+                placeStream.Position = 0;
+
+                _ = services.assets.CreateAssetVersion(placeId, userId, placeStream);
+
             }
             finally
             {
