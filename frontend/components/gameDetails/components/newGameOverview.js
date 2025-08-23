@@ -211,7 +211,7 @@ const About = props => {
   const s = useStyles();
   const creatorName = store.details.creatorName;
   const gameName = store.details.name;
-  const isVerified = store.universeDetails.creator.hasVerifiedBadge;
+  const isVerified = store.universeDetails?.creator?.hasVerifiedBadge ?? false;
   const creatorType = store.details.creatorType;
   const creatorId = store.details.creatorTargetId;
   const placeId = store.details.id;
