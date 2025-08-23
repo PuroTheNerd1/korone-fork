@@ -1109,7 +1109,7 @@ namespace Roblox.Website.Controllers
 
                 placeStream.Position = 0;
 
-                _ = services.assets.CreateAssetVersion(placeId, userId, placeStream);
+                await services.assets.CreateAssetVersion(placeId, userId, placeStream);
 
             }
             finally
