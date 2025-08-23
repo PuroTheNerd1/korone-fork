@@ -315,7 +315,8 @@ public class GamesService : ServiceBase, IService
                 asset.creator_type as creatorType,
                 asset_place.roblox_place_id as robloxPlaceId,
                 (SELECT COUNT(*) as playing FROM asset_server_player WHERE asset_id = universe.root_asset_id),
-                (case when ""asset"".creator_type = 1 then ""user"".username else ""group"".name end) as creatorName
+                (CASE WHEN ""asset"".creator_type = 1 THEN ""user"".username ELSE ""group"".name END) AS creatorName,
+                (CASE WHEN ""asset"".creator_type = 1 THEN ""user"".verified ELSE NULL END) AS isVerified
             FROM
                 universe
             INNER JOIN
