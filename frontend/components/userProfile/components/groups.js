@@ -172,6 +172,8 @@ const useGroupSquareStyles = createUseStyles({
   verifiedIcon: {
     width: '28px',
     height: '28px',
+    left: '9px',
+    position: 'relative',
   }
 });
 

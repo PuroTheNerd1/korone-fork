@@ -202,6 +202,7 @@ const useStyles = createUseStyles({
     bottom: '2.5px',
     width: '16px', 
     height: '16px',
+    left: '5px'
   },
 })
 
