@@ -825,19 +825,6 @@ public class UniverseV1 : ControllerBase
             data =  Array.Empty<string>()
         };
     }
-
-    [HttpGetBypass("/v1/item-tags/metadata")]
-    public dynamic GetItemTags()
-    {
-        
-        return new
-        {
-            isItemTagsFeatureEnabled = false,
-            enabledAssetTypes =  Array.Empty<string>(),
-            maximumItemTagsPerItem = 0
-        };
-    }
-
     [HttpGetBypass("/v1/game-localization-roles/games/{universeId:long}/current-user/roles")]
     public dynamic GetCurrentUserRoles()
     {
