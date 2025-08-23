@@ -46,6 +46,7 @@ using Roblox.Dto.AbuseReport;
 using Roblox.Models.Games;
 using System.Diagnostics.CodeAnalysis;
 using ForbiddenException = Roblox.Exceptions.ForbiddenException;
+using System.IO;
 
 namespace Roblox.Website.Controllers
 {
@@ -1103,8 +1104,11 @@ namespace Roblox.Website.Controllers
                 using var placeStream = await GetRequestBodyAsMemoryStream();
 
                 placeStream.Position = 0;
+                using var validationStream = new MemoryStream();
+                await placeStream.CopyToAsync(validationStream);
+                validationStream.Position = 0;
 
-                if (!await services.assets.ValidateAssetFile(placeStream, info.assetType))
+                if (!await services.assets.ValidateAssetFile(validationStream, info.assetType))
                     throw new RobloxException(400, 0, "BadRequest");
 
                 placeStream.Position = 0;
