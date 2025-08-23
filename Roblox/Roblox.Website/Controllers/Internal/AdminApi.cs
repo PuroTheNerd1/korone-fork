@@ -1710,6 +1710,7 @@ public class AdminApiController : ControllerBase
         foreach (var item in saleData)
         {
             dynamic historyEntry = new ExpandoObject();
+            historyEntry.created_at = item.createdAt;
             historyEntry.track_type = "Sale";
             historyEntry.user_id_two = item.userIdTwo;
             historyEntry.user_id_one = item.userIdOne;
@@ -1723,6 +1724,7 @@ public class AdminApiController : ControllerBase
         foreach (var item in tradeData)
         {
             dynamic historyEntry = new ExpandoObject();
+            historyEntry.created_at = item.createdAt;
             historyEntry.track_type = "Trade";
             historyEntry.user_id_two = item.userIdTwo;
             historyEntry.user_id_one = item.userIdOne;
