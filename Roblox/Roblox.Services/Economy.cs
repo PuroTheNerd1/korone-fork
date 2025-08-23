@@ -391,7 +391,7 @@ public class EconomyService : ServiceBase, IService
             LEFT JOIN ""user"" u2 ON u2.id = t.user_id_two
             LEFT JOIN asset a ON a.id = t.asset_id
             LEFT JOIN ""group"" g ON g.id = t.group_id_two
-            WHERE t.user_asset_id = :user_asset_id;
+            WHERE t.user_asset_id = :user_asset_id AND t.user_id_one != 1
         ";
     
     var result = await db.QueryAsync<TransactionEntryDb>(query, new { user_asset_id = userAssetId });
