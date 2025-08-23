@@ -91,6 +91,7 @@ Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds!);
 //Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
 
 builder.Services.AddRazorPages();
+builder.Services.AddRequestDecompression();
 builder.Services.AddControllers(options =>
 {
     options.InputFormatters.Add(new XmlSerializerInputFormatter(options));
