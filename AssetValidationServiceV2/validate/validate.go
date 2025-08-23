@@ -20,6 +20,53 @@ func LoadFile(reader io.Reader) (*rbxfile.Root, error) {
 	return root, nil
 }
 
+func IsAnimationValid(reader io.Reader) bool {
+	file, err := LoadFile(reader)
+	if err != nil {
+		log.Println("Invalid animation file:", err)
+		return false
+	}
+
+	childSet := make(map[*rbxfile.Instance]struct{})
+	for _, inst := range file.Instances {
+		for _, child := range inst.Children {
+			childSet[child] = struct{}{}
+		}
+	}
+
+	var rootKeyframes []*rbxfile.Instance
+
+	for _, inst := range file.Instances {
+		if _, isChild := childSet[inst]; isChild {
+			continue
+		}
+
+		switch inst.ClassName {
+		case "KeyframeSequence":
+			rootKeyframes = append(rootKeyframes, inst)
+		default:
+			log.Printf("Invalid animation: unsupported top-level instance class %q\n", inst.ClassName)
+			return false
+		}
+	}
+
+	if len(rootKeyframes) == 0 {
+		log.Println("Invalid animation: no KeyframeSequence found at root")
+		return false
+	}
+
+	for _, kfs := range rootKeyframes {
+		for _, child := range kfs.Children {
+			if child.ClassName != "Keyframe" {
+				log.Printf("Invalid animation: unsupported child class %q in KeyframeSequence\n", child.ClassName)
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func IsItemValid(reader io.Reader) bool {
 	file, err := LoadFile(reader)
 	if err != nil {
