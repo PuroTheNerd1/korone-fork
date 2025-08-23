@@ -803,18 +803,18 @@ public class WebController : ControllerBase
 
         try
         {
-            using (var fs = request.file.OpenReadStream())
-            {
-                var memoryStream = new MemoryStream();
-                await fs.CopyToAsync(memoryStream);
-                memoryStream.Position = 0;
+            var fs = request.file.OpenReadStream();
+            fs.Position = 0;
+            var memoryStream = new MemoryStream();
+            await fs.CopyToAsync(memoryStream);
+            fs.Position = 0;
+            memoryStream.Position = 0;
 
-                if (!await services.assets.ValidateAssetFile(memoryStream, info.assetType))
-                    throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
+            if (!await services.assets.ValidateAssetFile(memoryStream, info.assetType))
+                throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
 
-                memoryStream.Position = 0;
-                await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, memoryStream);
-            }
+            memoryStream.Position = 0;
+            await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, fs);
 
             // Render in the background
             //if (info.assetType != Models.Assets.Type.Place) {
