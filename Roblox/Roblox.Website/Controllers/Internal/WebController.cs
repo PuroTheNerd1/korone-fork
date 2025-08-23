@@ -806,7 +806,7 @@ public class WebController : ControllerBase
             var fs = request.file.OpenReadStream();
             using (var validationStream = new MemoryStream())
             {
-                await validationStream.CopyToAsync(fs);
+                await fs.CopyToAsync(validationStream);
                 if (!await services.assets.ValidateAssetFile(fs, info.assetType))
                     throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
             }

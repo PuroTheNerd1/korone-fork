@@ -1104,7 +1104,7 @@ namespace Roblox.Website.Controllers
                 using var placeStream = await GetRequestBodyAsMemoryStream();
                 using (var validationStream = new MemoryStream())
                 {
-                    await validationStream.CopyToAsync(placeStream);
+                    await placeStream.CopyToAsync(validationStream);
                     if (!await services.assets.ValidateAssetFile(placeStream, info.assetType))
                         throw new RobloxException(400, 0, "BadRequest");
                     placeStream.Position = 0;
