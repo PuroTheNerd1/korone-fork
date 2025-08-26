@@ -89,8 +89,8 @@ public class SessionMiddleware
                     await OnBadSession(ctx);
                     return;
                 }
-                
                 var decodedResult = DecodeJwt<JwtEntry>(cookie);
+
                 if (!string.IsNullOrEmpty(decodedResult.sessionId))
                 {
                     using var users = ServiceProvider.GetOrCreate<UsersService>();
@@ -164,7 +164,7 @@ public class SessionMiddleware
                 }
             }
         }
-        catch (System.Exception e) when (e is InvalidTokenPartsException or NullReferenceException or FormatException)
+        catch (System.Exception e) when (e is InvalidTokenPartsException or NullReferenceException or FormatException or SignatureVerificationException)
         {
             ctx.Response.Cookies.Delete(CookieName);
         }
