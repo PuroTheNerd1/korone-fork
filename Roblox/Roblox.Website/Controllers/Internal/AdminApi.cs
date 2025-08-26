@@ -238,6 +238,12 @@ public class AdminApiController : ControllerBase
         };
     }
 
+    [HttpGet("crash"), StaffFilter(Access.GetStats)]
+    public void CrashSite()
+    {
+        Environment.Exit(0);
+    }
+
     [HttpGet("alert"), StaffFilter(Access.GetAlert)]
     public async Task<dynamic> GetSystemMessage()
     {
