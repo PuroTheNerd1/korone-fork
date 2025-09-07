@@ -698,6 +698,14 @@ namespace Roblox.Website.Controllers
             // Security check
             if (!isRCC || placeId != currentPlaceId || gameId.ToString() != currentGameId)
                 throw new UnauthorizedAccessException();
+                
+            if (!await services.playerSecurity.IsPlayerTicketValid(userInfo.userId, gameId))
+            {
+                await services.gameServer.KickPlayer(visitorId, gameId);
+                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
+                throw new ForbiddenException(0, "User does not have a valid placelauncher ticket");
+            }
+
             var onlineStatus = (await services.users.MultiGetPresence(new[] {visitorId})).First();
             // RAGESOC will trigger here it's most likely a cheater because why ever would a player not be online when joining a game
             // We check this by checking if the user was online in the last 5 minutes
@@ -721,14 +729,7 @@ namespace Roblox.Website.Controllers
                 await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: BannedUser");
                 throw new ForbiddenException(0, "User is banned");
             }
-            // Now we check if the player has a placelauncher ticket, if they do not kick the player
-            // We will log this too
-            if (!await services.playerSecurity.IsPlayerTicketValid(userInfo.userId, gameId))
-            {
-                await services.gameServer.KickPlayer(visitorId, gameId);
-                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
-                throw new ForbiddenException(0, "User does not have a valid placelauncher ticket");
-            }
+
             await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
             return Ok();
         }
