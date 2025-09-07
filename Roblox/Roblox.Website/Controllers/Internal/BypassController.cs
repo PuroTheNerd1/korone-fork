@@ -698,8 +698,8 @@ namespace Roblox.Website.Controllers
             // Security check
             if (!isRCC || placeId != currentPlaceId || gameId.ToString() != currentGameId)
                 throw new UnauthorizedAccessException();
-                
-            if (!await services.playerSecurity.IsPlayerTicketValid(userInfo.userId, gameId))
+
+            if (!await services.playerSecurity.IsPlayerTicketValid(visitorId, gameId))
             {
                 await services.gameServer.KickPlayer(visitorId, gameId);
                 await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
