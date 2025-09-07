@@ -78,7 +78,7 @@ const GameDetailsStore = createContainer(() => {
     setMedia,
     
     /**
-     * @type PekoraCollectionPaginated<BadgeEntry>
+     * @type KoroneCollectionPaginated<BadgeEntry>
      */
     badges,
     setBadges,

@@ -30,7 +30,7 @@ namespace Roblox.Services;
 
 public class UsersService : ServiceBase, IService
 {
-    private static TwoFactorAuth tfa = new TwoFactorAuth("Pekora");
+    private static TwoFactorAuth tfa = new TwoFactorAuth("Korone");
     public async Task<bool> IsNameAvailableForNameChange(long contextUserId, string username)
     {
         var escapedUsername = username
@@ -166,7 +166,7 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<string> Generate2SVTicket(TwoFactorTicket info)
     {
-        string ticket = "pekora2sv-v2:" + Guid.NewGuid().ToString();
+        string ticket = "korone2sv-v2:" + Guid.NewGuid().ToString();
         await redis.StringSetAsync(ticket, JsonSerializer.Serialize(info), TimeSpan.FromMinutes(1));
         return ticket;
     }
@@ -188,7 +188,7 @@ public class UsersService : ServiceBase, IService
     }
     public async Task<string> GenerateLoginTicket(LoginTicet info)
     {
-        string ticket = "pekora2svloginv2:" + Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
+        string ticket = "korone2svloginv2:" + Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
         await redis.StringSetAsync(ticket, JsonSerializer.Serialize(info), TimeSpan.FromSeconds(10));
         return ticket;
     }
@@ -414,7 +414,7 @@ public class UsersService : ServiceBase, IService
 
     public async Task ResetUsername(long userId, long requesterUserId)
     {
-        var newName = $"pekora_user_{userId}";
+        var newName = $"korone_user_{userId}";
         await db.ExecuteAsync(
             "INSERT INTO moderation_bad_username_log (username, user_id, author_id) VALUES (:name, :id, :author)", new
             {

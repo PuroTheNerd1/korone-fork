@@ -152,7 +152,7 @@ const instructionsModal = props => {
     const instructions = [
         {
             textElement: () => {
-                return <p>Click the <b>PekoraPlayerLauncher.exe</b> to run the Pekora installer, which just downloaded via your web browser.</p>
+                return <p>Click the <b>KoronePlayerLauncher.exe</b> to run the Korone installer, which just downloaded via your web browser.</p>
             },
             element: () => {
                 return <img src='/img/instructions/one.png' style={{ verticalAlign: 'middle', border: 0, marginTop: '60px' }}></img>
@@ -168,7 +168,7 @@ const instructionsModal = props => {
         },
         {
             textElement: () => {
-                return <p>Click <b>Ok</b> once you've successfully installed Pekora.</p>
+                return <p>Click <b>Ok</b> once you've successfully installed Korone.</p>
             },
             element: () => {
                 return <img src='/img/instructions/three.png' style={{ verticalAlign: 'middle', border: 0 }}></img>
@@ -176,7 +176,7 @@ const instructionsModal = props => {
         },
         /*{
             textElement: () => {
-                return <p>Your antivirus may detect Pekora as a false-positive virus, because it is unsigned. To fix this, you must <b>add the Pekora installer and "%localappdata%/ProjectX"</b> to your <b>antivirus' exclusion list</b> and relaunch the installer.</p>
+                return <p>Your antivirus may detect Korone as a false-positive virus, because it is unsigned. To fix this, you must <b>add the Korone installer and "%localappdata%/ProjectX"</b> to your <b>antivirus' exclusion list</b> and relaunch the installer.</p>
             },
             element: () => {
                 return <img src='/img/instructions/three.png' style={{ verticalAlign: 'middle', border: 0 }}></img>
@@ -195,11 +195,11 @@ const instructionsModal = props => {
     ]
 
     return <>
-        {!props.closeModals && <NewModal containerWidth={1000} footerClass={s.footer} exitFunction={props.exitFunction} title="Thanks for playing Pekora" footerElements={<>
-            <span style={{ color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>The Pekora installer should download shortly. If it doesn't, start the <Link href="https://github.com/shikataganaii/Pekora-Bootstrapper/releases">
-                <a className="link2018" href="https://github.com/shikataganaii/Pekora-Bootstrapper/releases">download now.</a>
+        {!props.closeModals && <NewModal containerWidth={1000} footerClass={s.footer} exitFunction={props.exitFunction} title="Thanks for playing Korone" footerElements={<>
+            <span style={{ color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>The Korone installer should download shortly. If it doesn't, start the <Link href="https://github.com/shikataganaii/Korone-Bootstrapper/releases">
+                <a className="link2018" href="https://github.com/shikataganaii/Korone-Bootstrapper/releases">download now.</a>
             </Link></span>
-            <span style={{ float: "right", color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>Having trouble installing? Click <Link href="https://github.com/shikataganaii/Pekora-Bootstrapper/releases">
+            <span style={{ float: "right", color: 'var(--text-color-secondary)', fontSize: '10px', fontWeight: 600 }}>Having trouble installing? Click <Link href="https://github.com/shikataganaii/Korone-Bootstrapper/releases">
                 <a className="link2018" href="/help/install">here for help.</a>
             </Link></span>
         </>}>

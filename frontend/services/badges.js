@@ -20,7 +20,7 @@ export const getBadgeInfoBasicByID = ({ badgeId }) => {
  * @param {number} userId
  * @param {number|null} cursor
  * @param {number|null} limit
- * @returns {Promise<PekoraCollectionPaginated<BadgeEntry>>}
+ * @returns {Promise<KoroneCollectionPaginated<BadgeEntry>>}
  */
 export const getUserBadges = ({ userId, cursor = null, limit = null }) => {
     let url = `/v1/users/${userId}/badges`;
@@ -40,7 +40,7 @@ export const getUserBadges = ({ userId, cursor = null, limit = null }) => {
 //  * @param {number} userId
 //  * @param {number|null} cursor
 //  * @param {number|null} limit
-//  * @returns {Promise<PekoraCollectionPaginated<BadgeEntryBasic>>}
+//  * @returns {Promise<KoroneCollectionPaginated<BadgeEntryBasic>>}
 //  */
 // export const getUserBadgesBasic = ({ userId, cursor = null, limit = null }) => {
 //     let url = `/v1/users/${userId}/badges/basic`;
@@ -59,7 +59,7 @@ export const getUserBadges = ({ userId, cursor = null, limit = null }) => {
  * @param {number} universeId
  * @param {number|null} cursor
  * @param {number|null} limit
- * @returns {Promise<PekoraCollectionPaginated<BadgeEntry>>}
+ * @returns {Promise<KoroneCollectionPaginated<BadgeEntry>>}
  */
 export const getUniverseBadges = ({ universeId, cursor = null, limit = null }) => {
     let url = `/v1/universes/${universeId}/badges`;
@@ -77,7 +77,7 @@ export const getUniverseBadges = ({ universeId, cursor = null, limit = null }) =
 /**
  * @param {number} userId
  * @param {number[]} badgeIds
- * @returns {Promise<PekoraCollection<BadgeAwardedDate>>}
+ * @returns {Promise<KoroneCollection<BadgeAwardedDate>>}
  */
 export const getBadgeAwardedDates = ({ userId, badgeIds }) => {
     return request('GET', getFullUrl('badges', `/v1/users/${userId}/badges/awarded-dates?badgeIds=${encodeURIComponent(badgeIds.join(','))}`)).then(d => d.data);
