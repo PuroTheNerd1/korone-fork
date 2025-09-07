@@ -474,7 +474,7 @@ do
 		end
 	end
 	function Util.FindAssetsInModel(object, baseUrl)
-		baseUrl = baseUrl or 'http://www.pekora.zip/asset/?id='
+		baseUrl = baseUrl or 'http://www.korone.zip/asset/?id='
 		local result = {}
 		findAssetsHelper(object, result, baseUrl)
 		return result

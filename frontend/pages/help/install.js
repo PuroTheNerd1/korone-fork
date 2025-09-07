@@ -21,7 +21,7 @@ const InstallHelp = props => {
 export const getStaticProps = () => {
     return {
         props: {
-            title: 'Installation Help - Pekora',
+            title: 'Installation Help - Korone',
             disableWebsiteTheming: true,
         },
     };

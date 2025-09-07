@@ -1,5 +1,5 @@
 This is a list of DMCA's/Phishing reports we got.
-If your e-mail is in here, ur a retarded faggot stop trying to take down Pekora it's cute >w<
+If your e-mail is in here, ur a retarded faggot stop trying to take down Korone it's cute >w<
 We will no longer redact information
 
 Enjoy ^w^
@@ -9,7 +9,7 @@ Type: Phishing
 Date: 03/24/2025
 Reporter: Anonymous
 Reported URLs:
-hxxps://www[.]pekora[.]zip/
+hxxps://www[.]korone[.]zip/
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ Reporter's Name: James Madison
 Reporter's Email Address: jrvgrbghkvbtbotnxv@hthlm.com
 Reporter's Address: 42 P. Sherman Wallaby Way, Sydney, Sydney, AU
 Reported URLs:
-hxxps://pekora[.]zip
+hxxps://korone[.]zip
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ Reporter's Company Name: Roblox
 Reporter's Telephone Number: 888 858-2569
 Reporter's Address: Roblox Corporation, 970 Park Place, Suite 100, San Mateo, CA 94403, San Mateo, California, US
 Reported URLs:
-hxxps://pekora[.]zip
+hxxps://korone[.]zip
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ Reporter's Company Name: ROBLOX SOLUTIONS HANDLER
 Reporter's Telephone Number: 8888582569
 Reporter's Address: 970 Park Pl , San Mateo, California, US
 Reported URLs:
-hxxps://pekora[.]zip/*
+hxxps://korone[.]zip/*
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
@@ -72,12 +72,12 @@ Type: DMCA
 Date: 03/02/2025
 Reporter's Name: P. Zhimoni
 Reporter's Email Address: copyright_agent@roblox.com
-Reporter's Title: pekora.zip
+Reporter's Title: korone.zip
 Reporter's Company Name: Roblox Coporation
 Reporter's Address: 3594 Timber Oak Drive, San Francisco, Canada, US
 Reported URLs:
-hxxps://www[.]pekora[.]zip/auth/homepage
-hxxps://www[.]pekora[.]zip/home
+hxxps://www[.]korone[.]zip/auth/homepage
+hxxps://www[.]korone[.]zip/home
 Verdict: Host called them retarded and ignored due to false claim
 ---------------------------------------------------------------------
 
@@ -92,15 +92,15 @@ Type: Phishing
 Date: 07/01/2025
 Reporter: Anonymous
 Reported URLs:
-hxxps://www[.]pekora[.]zip/auth/home
-hxxps://www[.]pekora[.]zip/auth/login
-hxxps://www[.]pekora[.]zip/home
-hxxps://www[.]pekora[.]zip/games
-hxxps://www[.]pekora[.]zip/catalog
+hxxps://www[.]korone[.]zip/auth/home
+hxxps://www[.]korone[.]zip/auth/login
+hxxps://www[.]korone[.]zip/home
+hxxps://www[.]korone[.]zip/games
+hxxps://www[.]korone[.]zip/catalog
 Verdict: Ignored by host due to false claim
 ---------------------------------------------------------------------
 
-I am writing to notify you of a copyright infringement on the website located at [https://www.pekora.zip/] (the “Infringing Website”). The content hosted on this website is using copyrighted materials owned by Roblox Corporation without authorization or license.
+I am writing to notify you of a copyright infringement on the website located at [https://www.korone.zip/] (the “Infringing Website”). The content hosted on this website is using copyrighted materials owned by Roblox Corporation without authorization or license.
 Details of the Copyrighted Work(s):
 The infringing materials include but may not be limited to:
 https://ibb.co/9G25w6h

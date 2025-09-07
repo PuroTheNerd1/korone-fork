@@ -32,7 +32,7 @@ export const getItemRestrictions = (assetIds) => {
 /**
  *
  * @param {string} listType
- * @returns {Promise<PekoraCollection<Asset>>}
+ * @returns {Promise<KoroneCollection<Asset>>}
  */
 export const getRecentItems = async (listType) => {
   let req = await request("GET", getFullUrl("avatar", `/v1/recent-items/${listType}/list`));

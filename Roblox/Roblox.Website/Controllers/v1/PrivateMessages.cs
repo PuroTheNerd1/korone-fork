@@ -26,7 +26,7 @@ public class PrivateMessagesControllerV1 : ControllerBase
                 name = "ROBLOX",
                 displayName = "ROBLOX",
             },
-            subject = "Welcome to Pekora",
+            subject = "Welcome to Korone",
             body = "",
             created = "2021-01-13T12:00:00.42Z",
             updated = "2021-01-13T12:00:00.42Z",

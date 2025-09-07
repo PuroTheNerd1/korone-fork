@@ -17,16 +17,16 @@ namespace Roblox.Website.Controllers
         {
             return new
             {
-                issuer = "https://apis.pekora.zip/oauth/",
-                authorization_endpoint = "https://apis.pekora.zip/oauth/v1/authorize",
-                token_endpoint = "https://apis.pekora.zip/oauth/v1/token",
-                introspection_endpoint = "https://apis.pekora.zip/oauth/v1/token/introspect",
-                revocation_endpoint = "https://apis.pekora.zip/oauth/v1/token/revoke",
-                resources_endpoint = "https://apis.pekora.zip/oauth/v1/token/resources",
-                userinfo_endpoint = "https://apis.pekora.zip/oauth/v1/userinfo",
-                jwks_uri = "https://apis.pekora.zip/oauth/v1/certs",
-                registration_endpoint = "https://create.pekora.zip/dashboard/credentials",
-                service_documentation = "https://create.pekora.zip/docs/reference/cloud",
+                issuer = "https://apis.korone.zip/oauth/",
+                authorization_endpoint = "https://apis.korone.zip/oauth/v1/authorize",
+                token_endpoint = "https://apis.korone.zip/oauth/v1/token",
+                introspection_endpoint = "https://apis.korone.zip/oauth/v1/token/introspect",
+                revocation_endpoint = "https://apis.korone.zip/oauth/v1/token/revoke",
+                resources_endpoint = "https://apis.korone.zip/oauth/v1/token/resources",
+                userinfo_endpoint = "https://apis.korone.zip/oauth/v1/userinfo",
+                jwks_uri = "https://apis.korone.zip/oauth/v1/certs",
+                registration_endpoint = "https://create.korone.zip/dashboard/credentials",
+                service_documentation = "https://create.korone.zip/docs/reference/cloud",
                 scopes_supported = new[]
                 {
                     "openid",
