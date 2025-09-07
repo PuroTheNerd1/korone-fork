@@ -9,10 +9,10 @@ const ItemPage = ({ name, description, assetId, ...props }) => {
         <Head>
           <title>{name} - Korone</title>
           <meta property="og:title" content={name} />
-          <meta property="og:url" content={`https://www.korone.zip/library/${assetId}/--`} />
+          <meta property="og:url" content={`https://www.goober.top/library/${assetId}/--`} />
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={description} />
-          <meta property="og:image" content={`https://www.korone.zip/thumbs/asset.ashx?assetId=${assetId}`} />
+          <meta property="og:image" content={`https://www.goober.top/thumbs/asset.ashx?assetId=${assetId}`} />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="og:site_name" content="Korone" />
           <meta name="theme-color" content="#E2231A" />
