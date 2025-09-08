@@ -66,12 +66,12 @@ const InstallHelpPage = props => {
     const subpages = [
         {
             id: "play",
-            name: "How to Install and Play Pekora",
+            name: "How to Install and Play Korone",
             el: () => <MarkdownContent mdUrl="installPlay.md" />,
         },
         {
             id: "trojan",
-            name: "Pekora detected as a trojan/virus",
+            name: "Korone detected as a trojan/virus",
             el: () => <MarkdownContent mdUrl="trojan.md" />,
         },
         {
@@ -81,12 +81,12 @@ const InstallHelpPage = props => {
         },
         {
             id: "error6",
-            name: "An error occurred while starting Pekora, Error Code: 6",
+            name: "An error occurred while starting Korone, Error Code: 6",
             el: () => <MarkdownContent mdUrl="errorCode6.md" />,
         },
         /*{
             id: "makeaccount",
-            name: "How to make a Pekora Account",
+            name: "How to make a Korone Account",
             el: () => <MarkdownContent mdUrl="createAccount.md" />,
         },
         {
@@ -114,12 +114,12 @@ const InstallHelpPage = props => {
                 <ol className={s.breadcrumbs}>
                     <li>
                         <Link href="/help">
-                            <a className="link2018" style={{ fontWeight: 300, fontSize: '13px', lineHeight: 1.5 }} href="/help">Pekora Support</a>
+                            <a className="link2018" style={{ fontWeight: 300, fontSize: '13px', lineHeight: 1.5 }} href="/help">Korone Support</a>
                         </Link>
                     </li>
                     <li>
                         <Link href="/help/install">
-                            <a className="link2018" style={{ fontWeight: 300, fontSize: '13px', lineHeight: 1.5 }} href="/help/install">Playing Pekora</a>
+                            <a className="link2018" style={{ fontWeight: 300, fontSize: '13px', lineHeight: 1.5 }} href="/help/install">Playing Korone</a>
                         </Link>
                     </li>
                     <li>

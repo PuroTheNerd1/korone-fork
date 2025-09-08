@@ -166,7 +166,7 @@ public class ApplicationService : ServiceBase, IService
             var word = verificationWords[random.Next(verificationWords.Count)];
             phrases.Add(word);
         }
-        return "pekora " + string.Join(" ", phrases);
+        return "korone " + string.Join(" ", phrases);
     }
 
     public bool IsThreadSafe()
