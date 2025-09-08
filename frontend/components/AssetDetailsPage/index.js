@@ -19,7 +19,7 @@ import AssetDropdown from "./components/Dropdown";
 import PriceChart from "./components/PriceChart";
 import Resellers from "./components/Resellers";
 import BuyModal from "./modals/BuyModal";
-import { avPageStyleType, getAvPageStyle } from "../../services/theme";
+import { avPageStyleType, getAvPageStyle, getTheme, themeType } from "../../services/theme";
 import { AssetTypeCategory } from "../AvatarEditorPage/stores/avatarInfoStore";
 import SellItemModal from "./modals/SellItemModal";
 import ConfirmSellModal from "./modals/ConfirmSellModal";
@@ -36,6 +36,9 @@ import FavouriteButtonStore from "./stores/FavouriteButtonStore";
 import RemoveItemModal from "./modals/RemoveItemModal";
 
 const useStyles = createUseStyles({
+    page: {
+        background: p => p.theme === themeType.obc2019 ? "var(--background-color)" : "",
+    },
     pageWrapper: {
         display: "flex",
         gap: 15,
@@ -314,7 +317,7 @@ const useStyles = createUseStyles({
     },
     saleClockContainer: {
         fontSize: 14,
-        color: "#191919",
+        color: "var(--text-color-primary)",
         textAlign: "center",
         fontWeight: 300,
         lineHeight: '1.4em',
@@ -324,7 +327,7 @@ const useStyles = createUseStyles({
     },
     saleClock: {
         fontSize: 14,
-        color: "#191919",
+        color: "var(--text-color-primary)",
         textAlign: "center",
         fontWeight: 300,
         lineHeight: '1.4em',
@@ -341,7 +344,7 @@ const useStyles = createUseStyles({
     },
     offsaleLabel: {
         width: "calc(100% - 180px)!important",
-        color: "#191919",
+        color: "var(--text-color-primary)",
         fontWeight: 400,
         lineHeight: "1.4em",
         fontSize: 16,
@@ -356,7 +359,7 @@ const useStyles = createUseStyles({
     },
     availableInventoryLabel: {
         width: "calc(100% - 180px)!important",
-        color: "#191919",
+        color: "var(--text-color-primary)",
         fontWeight: 500,
         lineHeight: "1.4em",
         fontSize: 16,
@@ -418,7 +421,7 @@ const useStyles = createUseStyles({
  * @constructor
  */
 function AssetDetailsPage({ itemDetails }) {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     const store = AssetDetailsStore.useContainer();
     const modal = AssetDetailsModalStore.useContainer();
     const auth = Authentication.useContainer();
@@ -775,11 +778,11 @@ function AssetDetailsPage({ itemDetails }) {
 }
 
 export default function DetailsPageContainer({ details }) {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     
     return <Theme2016>
         <FavouriteButtonStore.Provider>
-            <div className="container big noPad767">
+            <div className={`${s.page} container big noPad767`}>
                 <UserAdvertisement type={UserAdvertisementType.Banner728x90} wrapperClass={s.bannerAdContainer}/>
                 <div className={s.pageWrapper}>
                     <AssetDetailsPage itemDetails={details}/>

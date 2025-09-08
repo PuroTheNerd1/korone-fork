@@ -115,6 +115,18 @@ namespace Roblox.Website.Controllers
                 return Encoding.UTF8.GetString(Convert.FromBase64String(tokenEncoded));
             }
         }
+        protected string? robloxAccessToken
+        {
+            get
+            {
+                string key = "PEKORA-ROBLOX";
+                if (!HttpContext.Request.Cookies.ContainsKey(key))
+                {
+                    return null;
+                }
+                return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
+            }
+        }
         public string currentGameId
         {
             get

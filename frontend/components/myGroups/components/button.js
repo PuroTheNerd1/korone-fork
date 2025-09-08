@@ -7,9 +7,9 @@ const useStyles = createUseStyles({
     background: 'linear-gradient(0deg, rgba(197,197,197,1) 0%, rgba(255,255,255,1) 100%)',
     display: 'block',
     textAlign: 'center',
-    color: '#000',
+    color: '#191919',
     '&:hover': {
-      color: '#000',
+      color: '#191919',
       background: 'rgba(197,197,197,1)',
     }
   },

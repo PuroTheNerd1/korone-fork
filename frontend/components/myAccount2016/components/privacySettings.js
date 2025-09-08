@@ -8,10 +8,15 @@ import Subtitle from "./subtitle";
 
 const useStyles = createUseStyles({
   label: {
-    color: 'var(--text-color-quinary)',
+    color: 'var(--text-color-primary)',
     marginBottom: 0,
     fontSize: '15px',
   },
+  select: {
+      color: 'var(--text-color-tertiary)',
+      '&:hover': { color: 'var(--text-color-primary)' }
+  },
+  
 })
 
 const PrivacySettings = props => {
@@ -76,7 +81,7 @@ const PrivacySettings = props => {
 
 
         <p className={s.label}>Who can message me:</p>
-        <Selector value={store.privateMessagePrivacy} onChange={newPrivacy => {
+        <Selector className={s.select} value={store.privateMessagePrivacy} onChange={newPrivacy => {
           store.setPrivateMessagePrivacy(newPrivacy.value);
           setPrivateMessagePrivacy({
             newPrivacy: newPrivacy.value,
@@ -85,19 +90,19 @@ const PrivacySettings = props => {
 
 
         <p className={s.label + ' mt-2'}>Who can Invite me to VIP Servers:</p>
-        <Selector onChange={newPrivacy => {
+        <Selector className={s.select} onChange={newPrivacy => {
 
         }} options={defaultPrivacySettings}></Selector>
 
 
         <p className={s.label + ' mt-2'}>Who can follow me into the game:</p>
-        <Selector onChange={newPrivacy => {
+        <Selector className={s.select} onChange={newPrivacy => {
 
         }} options={defaultPrivacySettings}></Selector>
 
 
         <p className={s.label + ' mt-2'}>Who can see my inventory:</p>
-        <Selector value={store.inventoryPrivacy} onChange={newPrivacy => {
+        <Selector className={s.select} value={store.inventoryPrivacy} onChange={newPrivacy => {
           store.setInventoryPrivacy(newPrivacy.value);
           setInventoryPrivacy({
             newPrivacy: newPrivacy.value,
@@ -106,7 +111,7 @@ const PrivacySettings = props => {
 
 
         <p className={s.label + ' mt-2'}>Who can trade with me:</p>
-        <Selector value={store.tradePrivacy} onChange={newPrivacy => {
+        <Selector className={s.select} value={store.tradePrivacy} onChange={newPrivacy => {
           store.setTradePrivacy(newPrivacy.value);
           setTradePrivacy({
             newPrivacy: newPrivacy.value,
@@ -115,7 +120,7 @@ const PrivacySettings = props => {
 
 
         <p className={s.label + ' mt-2'}>Trade quality filter:</p>
-        <Selector value={store.tradeFilter} onChange={newValue => {
+        <Selector className={s.select} value={store.tradeFilter} onChange={newValue => {
           store.setTradeFilter(newValue.value);
           setTradeValue({
             newValue: newValue.value,

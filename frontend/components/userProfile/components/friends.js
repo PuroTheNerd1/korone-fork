@@ -93,12 +93,8 @@ const useFriendStyles = createUseStyles({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     textDecoration: 'none',
-    color: '#000',
     display: 'block',
     lineHeight: '1.867em',
-    '&:hover': {
-      color: 'var(--primary-color)'
-    }
   },
   image: {
     borderRadius: '50%',
@@ -136,7 +132,7 @@ const Friends = props => {
                       <span className={s.avatarWrapper}>
                         <PlayerImage className={s.image} id={v.id} name={s.username} />
                       </span>
-                      <span className={s.playerName}>{v.name}</span>
+                      <span className={`${s.playerName} link2019`}>{v.name}</span>
                     </a>
                   </Link>
                 </div>

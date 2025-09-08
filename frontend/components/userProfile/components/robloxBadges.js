@@ -60,7 +60,8 @@ const RobloxBadges = props => {
     <div className='col-12'>
       <div className='card pt-4 pb-4 pe-4 ps-4' style={{
         border: 0,
-        borderRadius: 0
+        borderRadius: 0,
+          background: 'var(--white-color)'
       }}>
         <div className='flex'>
           {

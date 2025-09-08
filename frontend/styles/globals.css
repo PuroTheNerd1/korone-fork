@@ -1,25 +1,33 @@
 /*:root{
 	--bs-body-font-weight: 500!important;
+
+	// heres var with opacity:
+	color-mix(in srgb, var(--secondary-color) 50%, transparent)
 }*/
 
 :root{
-    --primary-color: #00a2ff;
-    --primary-color-2: rgb(0, 162, 255);
-    --primary-color-hover: #3ab8ff;
-    --secondary-color: #0074bd;
+    --primary-color: #8A5149;
+    --primary-color-2: #915A4D;
+    --primary-color-hover: #9C6A5E;
+    --blue-color: #00a2ff;
+    --blue-color-2: rgb(0, 162, 255);
+    --blue-color-hover: #3ab8ff;
+    --blue--secondary-color: #0074bd;
+    --secondary-color: #653E35;
     --success-color: #02b757;
     --success-color-hover: #3fc679;
     --robux-color: #02b757;
     --robux-color-vibrant: #08C94F;
     --tix-color: #CC9E71;
     --tix-color-hover: #D8B182;
-    --bad-color: #e27676;
+    --bad-color: #D86868;
     --text-color-primary: #191919;
     --text-color-secondary: #b8b8b8;
     --text-color-tertiary: #757575;
-    --text-color-quaternary: #fff;
+    --text-color-quaternary: #fff; /* doesn't change on theme! */
     --text-color-quinary: #c3c3c3;
     --white-color: #fff;
+    --white-color-hover: #f2f2f2;
     --text-color-secondary-dark: #5a5a5a;
 
     --background-color: #e3e3e3;
@@ -74,10 +82,10 @@ a {
     color: var(--primary-color)!important;
 }
 
-.link2019 {
+.link2019, a.normal {
     color: var(--text-color-primary)!important;
 }
-.link2019:hover {
+.link2019:hover, a.normal:hover {
     color: var(--primary-color)!important;
 }
 
@@ -180,13 +188,6 @@ a.nav-link:focus, a.nav-link:hover {
 
 .inherit-color * {
     color: inherit;
-}
-
-a.normal {
-    color: #000;
-}
-a.normal:hover {
-    color: #0055b3;
 }
 
 html {
@@ -354,6 +355,10 @@ html div.container.big {
     padding: 0!important;
 }
 
+.padding-15 {
+    padding: 15px!important;
+}
+
 .marginStuff {
     margin: 0 0 8px!important;
 }
@@ -383,8 +388,8 @@ html div.container.big {
 }
 
 .inputTextStyle {
-    border: 1px solid #b8b8b8;
-    color: #191919;
+    border: 1px solid var(--text-color-secondary);
+    color: var(--text-color-primary);
     font-weight: 300;
     font-size: 16px;
     height: 38px;
@@ -393,7 +398,7 @@ html div.container.big {
     -webkit-appearance: none;
     display: block;
     width: 100%;
-    background-color: #fff;
+    background-color: var(--white-color);
     background-image: none;
     border-radius: 3px;
     outline: none;
@@ -404,7 +409,7 @@ html div.container.big {
 }
 
 .inputTextStyle.hasError, .inputTextStyle:focus.hasError, .inputTextStyle:focus-visible.hasError {
-    border-color: #D86868!important;
+    border-color: var(--bad-color)!important;
 }
 
 .w-fit-content {
@@ -456,4 +461,12 @@ html div.container.big {
     margin: 0!important;
     border: none!important;
     line-height: 0!important;
+}
+
+.text-color-primary {
+    color: var(--text-color-primary);
+}
+
+.text-color-secondary {
+    color: var(--text-color-secondary);
 }

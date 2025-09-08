@@ -30,7 +30,7 @@ const useStyles = createUseStyles({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingBottom: '5px',
-        // color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : '',
+        //color: p => p.theme === themeType.obc2019 ? 'var(--white-color)' : 'var(--text-color-primary)',
         color: 'var(--text-color-primary)',
         '& h3': {
             fontSize: '24px',
@@ -48,6 +48,7 @@ const useStyles = createUseStyles({
         paddingTop: '12px',
         margin: '0 auto',
         display: 'flex',
+        background: p => p.theme === themeType.obc2019 ? 'var(--background-color)' : 'transparent',
         '@media (max-width: 1682px)': {
             paddingLeft: '185.5px',
         },
@@ -143,8 +144,8 @@ const useStyles = createUseStyles({
         lineHeight: '1em',
         cursor: 'pointer',
         textDecoration: 'none!important',
-        //color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
         color: 'var(--text-color-primary)',
+        //color: 'var(--text-color-primary)',
     },
     friendSection: {
         minHeight: '1px',

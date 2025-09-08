@@ -11,7 +11,7 @@ const useSelectorStyles = createUseStyles({
         padding: '10px 15px',
         textAlign: 'left',
         width: '100%',
-        color: '#666',
+        color: 'var(--text-color-primary)',
         background: 'var(--white-color)',
         borderRadius: '4px',
         border: '1px solid var(--text-color-quinary)',
@@ -20,7 +20,7 @@ const useSelectorStyles = createUseStyles({
         cursor: 'pointer',
         '&:hover': {
             background: 'var(--primary-color)',
-            color: 'var(--white-color)',
+            color: 'var(--text-color-primary)',
         },
         "& *": {
             color: "inherit",

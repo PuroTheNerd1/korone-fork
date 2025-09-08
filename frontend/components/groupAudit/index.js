@@ -84,7 +84,7 @@ const GroupAudit = props => {
   }
 
   if (!groupInfo) return null;
-  return <div className='container card br-none'>
+  return <div className='container card br-none' style={{padding: '15px', backgroundColor: 'var(--white-color)'}}>
     <div className='row'>
       <div className='col-6'>
         <h3>{groupInfo.name}</h3>

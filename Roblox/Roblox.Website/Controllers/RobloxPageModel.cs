@@ -41,6 +41,18 @@ public class RobloxPageModel : PageModel
             return Encoding.UTF8.GetString(Convert.FromBase64String(tokenEncoded.ToString()));
         }
     }
+    protected string? robloxAccessToken
+    {
+        get
+        {
+            string key = "PEKORA-ROBLOX";
+            if (!HttpContext.Request.Cookies.ContainsKey(key))
+            {
+                return null;
+            }
+            return Services.Cache.distributed.StringGet(key + ":" + HttpContext.Request.Cookies[key].ToString());
+        }
+    }
     public bool isAuthenticated => userSession != null;
     protected string rawIpAddress => Roblox.Website.Controllers.ControllerBase.GetRequesterIpRaw(HttpContext);
     protected string hashedIp => Roblox.Website.Controllers.ControllerBase.GetIP(rawIpAddress);

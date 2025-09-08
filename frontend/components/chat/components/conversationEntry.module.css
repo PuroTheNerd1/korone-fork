@@ -10,7 +10,7 @@
 }
 
 .messageBoxOther {
-    background: var(--background-color);
+    background: var(--white-color-hover);
     border-radius: 3px;
     padding: 4px;
     color: var(--text-color-primary);

@@ -24,7 +24,7 @@ const useStyles = createUseStyles({
         lineHeight: '100%',
         boxShadow: 'inset 0 -4px 0 0 var(--primary-color)',
         '&:hover': {
-            background: '#f2f2f2'
+            background: 'var(--white-color-hover)'
         },
         "@media(max-width: 992px)": {
             padding: '10px 2%',
@@ -81,6 +81,7 @@ const useStyles = createUseStyles({
         border: '1px solid #84a5c9',
         paddingLeft: '4px',
         paddingRight: '4px',
+        color: '#191919'
     },
     selectedElement: {
         margin: 0,

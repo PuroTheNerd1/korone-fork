@@ -6,11 +6,13 @@
 	let data;
 	let offset = 0;
 	let limit = 10;
+	let author;
+	let author_value;
 	let disabled = false;
 	$: {
 		disabled = true;
 		request
-			.get(`/logs?logType=${logType}&offset=${offset}&limit=${limit}`)
+			.get(`/logs?logType=${logType}&offset=${offset}&limit=${limit}${author ? `&author=${author}` : ""}`)
 			.then((res) => {
 				data = res.data;
 			})
@@ -20,6 +22,13 @@
 	}
 
 	let logType = "ban";
+
+	function handleEnter(e) {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			author_value = author;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -32,7 +41,7 @@
 			<div class="col-12 col-md-6">
 				<h1>Moderation Logs</h1>
 			</div>
-			<div class="col-12 col-md-6">
+			<div class="col-6 col-md-3">
 				<label for="sort-selection">LOG TYPE</label>
 				<select
 					{disabled}
@@ -56,6 +65,18 @@
 					<option value='refund'>REFUND</option>
 				</select>
 			</div>
+			<div class="col-6 col-md-3">
+				<label for="search-author">SEARCH BY AUTHOR</label>
+				<input
+					{disabled}
+					class="form-control"
+					type="text"
+					value={author_value}
+					maxlength={32}
+					id="search-author"
+					on:keydown={handleEnter}
+				/>
+			</div>
 			{#if data && data.data}
 				<div class="col-12">
 					<table class="table">
@@ -67,6 +88,7 @@
 							</tr>
 						</thead>
 						<tbody>
+
 							{#each data.data as i}
 								<tr>
 									{#each Object.getOwnPropertyNames(i) as col}

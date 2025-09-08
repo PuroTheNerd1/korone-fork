@@ -200,7 +200,7 @@ public class AdminApiController : ControllerBase
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new Exception("InternalServerError");
 
-        if (permission == Access.All && Configuration.BaseUrl.Contains("goober.top")) {
+        if (permission == Access.All && (Configuration.BaseUrl.Contains("goober.top") || Configuration.BaseUrl.Contains("eaglercrack.net"))) {
             List<Access> allPerms = new List<Access>((Access[])Enum.GetValues(typeof(Access)));
             foreach (Access perm in allPerms) {
                 if (perm is Access.SetPermissions or Access.All) continue;
@@ -492,6 +492,15 @@ public class AdminApiController : ControllerBase
         var details = await db.QuerySingleOrDefaultAsync<AssetModerationStatus>(
             "SELECT moderation_status as moderationStatus, roblox_asset_id as robloxAssetId FROM asset WHERE asset.id = :id", new { id = request.assetId });
 
+        // since staff members can artificially inflate the amount of assets they've approved,
+        //   we must add a cooldown for approving the same asset multiple times
+        //     and also notify staff of this
+        if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Hour:{safeUserSession.userId}:{request.assetId}",
+                3, TimeSpan.FromHours(1)))
+        {
+            await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"## POSSIBLE ABUSE\nStaff member {safeUserSession.userId} has accepted Asset Id {request.assetId} more than three times in one hour.");
+            throw new StaffException("Moderation of same asset rate limit exceeded, please wait and try again later.");
+        }
         var currentStatus = details.moderationStatus;
         if (currentStatus == ModerationStatus.ReviewApproved && !request.isApproved)
         {
@@ -520,9 +529,7 @@ public class AdminApiController : ControllerBase
             if (details.canEarnRobuxFromApproval)
                 await AwardCommissionForModeration();
         }
-
-
-
+        
         var newStatus = request.isApproved ? ModerationStatus.ReviewApproved : ModerationStatus.Declined;
 
         await db.ExecuteAsync("UPDATE asset SET moderation_status = :status, is_18_plus = :is_18_plus WHERE id = :id", new
@@ -799,7 +806,7 @@ public class AdminApiController : ControllerBase
 
     [HttpGet("users"), StaffFilter(Access.GetUsersList)]
     public async Task<dynamic> GetUsers(string orderByColumn = "user.id", string? orderByMode = "asc", int limit = 10,
-        int offset = 0, string? query = null)
+        int offset = 0, string? query = null, long? userId = null)
     {
         if (!whitelistedUserSorts.Contains(orderByColumn))
             throw new StaffException("Invalid sort column");
@@ -816,6 +823,10 @@ public class AdminApiController : ControllerBase
         {
             var wildcardQuery = "%" + query + "%";
             sql.Where("u.username ILIKE :query", new { query = wildcardQuery });
+        }
+        if (userId != null)
+        {
+            sql.Where("u.id = :userId", new { userId });
         }
 
         var all = await db.QueryAsync(t.RawSql, t.Parameters);
@@ -1241,271 +1252,237 @@ public class AdminApiController : ControllerBase
         return await db.QueryAsync(t.RawSql, t.Parameters);
     }
 
+    private bool doesActionHaveActioned(string action)
+    {
+        switch (action)
+        {
+            case "ban":
+            case "unban":
+            case "item":
+            case "message":
+                return true;
+            default:
+                return false;
+        }
+    }
+    
     [HttpGet("logs"), StaffFilter(Access.GetAdminLogs)]
-    public async Task<dynamic> GetModerationLogs(string logType, int limit = 10, int offset = 0)
+    public async Task<dynamic> GetModerationLogs(string logType, int limit = 10, int offset = 0, bool descending = true, string? author = null, string? actioned = null)
     {
         if (limit is > 100 or < 1) limit = 10;
+        logType = logType.ToLower();
 
+        var sql = new SqlBuilder();
+        SqlBuilder.Template template;
+        string[] columns;
+        
         switch (logType)
         {
             case "ban":
             {
-                var result = await db.QueryAsync(
-                    "SELECT ub.id, ub.created_at, ub.expired_at, ub.reason, ub.internal_reason, ub.user_id, u1.username, ub.actor_id, u2.username as author_username FROM moderation_ban ub INNER JOIN \"user\" u1 ON u1.id = ub.user_id INNER JOIN \"user\" u2 ON u2.id = ub.actor_id ORDER BY ub.id DESC LIMIT :limit OFFSET :offset",
-                    new
-                    {
-                        limit, offset,
-                    });
-                return new
-                {
-                    data = result,
-                    columns = new[]
-                    {
-                        "#",
-                        "Date",
-                        "Expires",
-                        "Reason",
-                        "Internal Reason",
-                        "UserID",
-                        "Username",
-                        "AuthorID",
-                        "Author Username",
-                    },
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, mb.created_at, mb.expired_at, mb.reason, 
+                        mb.internal_reason, mb.user_id, actioned.username, mb.actor_id, 
+                        author.username as author_username 
+                    FROM moderation_ban mb
+                        INNER JOIN ""user"" actioned ON actioned.id = mb.user_id 
+                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[]
+                { "#", "Date", "Expires", "Reason", "Internal Reason", "UserID",
+                    "Username", "AuthorID", "Author Username",
                 };
+                break;
             }
             case "unban":
             {
-                var result = await db.QueryAsync(
-                    "SELECT ub.id, ub.created_at, ub.user_id, u1.username, ub.actor_id, u2.username as author_username FROM moderation_unban ub INNER JOIN \"user\" u1 ON u1.id = ub.user_id INNER JOIN \"user\" u2 ON u2.id = ub.actor_id ORDER BY ub.id DESC LIMIT :limit OFFSET :offset",
-                    new
-                    {
-                        limit,
-                        offset,
-                    });
-                return new
-                {
-                    data = result,
-                    columns = new[]
-                    {
-                        "#",
-                        "Date",
-                        "UserID",
-                        "Username",
-                        "AuthorID",
-                        "Author Username",
-                    },
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, mb.created_at, mb.user_id, 
+                        actioned.username, mb.actor_id, author.username as author_username 
+                    FROM moderation_unban mb
+                        INNER JOIN ""user"" actioned ON actioned.id = mb.user_id 
+                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[]
+                { "#", "Date", "UserID", "Username", 
+                    "AuthorID", "Author Username",
                 };
+                break;
             }
             case "item":
             {
-                var result = await db.QueryAsync(
-                    "SELECT mgi.id, mgi.created_at, mgi.user_asset_id, ua.asset_id, mgi.user_id, u1.username, mgi.author_user_id, u2.username as author_username FROM moderation_give_item mgi INNER JOIN \"user\" u1 ON u1.id = mgi.user_id INNER JOIN \"user\" u2 ON u2.id = mgi.author_user_id INNER JOIN \"user_asset\" ua ON ua.id = mgi.user_asset_id ORDER BY mgi.id DESC LIMIT :limit OFFSET :offset", new
-                    {
-                        limit,
-                        offset,
-                    });
-                return new
-                {
-                    data = result,
-                    columns = new[]
-                    {
-                        "#",
-                        "Date",
-                        "UserAssetID",
-                        "AssetID",
-                        "UserID",
-                        "Username",
-                        "Author ID",
-                        "Author Username",
-                    },
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, mb.created_at, mb.user_asset_id, ua.asset_id, mb.user_id, 
+                        actioned.username, mb.author_user_id, author.username as author_username
+                    FROM moderation_give_item mb
+                        INNER JOIN ""user"" actioned ON actioned.id = mb.user_id 
+                        INNER JOIN ""user"" author ON author.id = mb.author_user_id 
+                        INNER JOIN ""user_asset"" ua ON ua.id = mb.user_asset_id
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[]
+                { "#", "Date", "UserAssetID", "AssetID", "UserID",
+                    "Username", "Author ID", "Author Username",
                 };
+                break;
             }
             case "asset":
             {
-                var result =
-                    await db.QueryAsync(
-                        "SELECT id, asset_id, actor_id, action, created_at FROM moderation_manage_asset ORDER BY id DESC LIMIT :limit OFFSET :offset", new
-                        {
-                            limit,
-                            offset,
-                        });
-                return new
-                {
-                    data = result.Select(c =>
-                    {
-                        var oldStatus = (int) c.action;
-                        c.action = (object)(ModerationStatus) oldStatus;
-                        return c;
-                    }),
-                    columns = new List<string>
-                    {
-                        "#",
-                        "Asset ID",
-                        "Author ID",
-                        "Status",
-                        "Date",
-                    },
-                };
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, asset_id, actor_id, author.username as author_username, action, mb.created_at
+                    FROM moderation_manage_asset mb
+                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[] { "#", "Asset ID", "Author ID", "Author Username", "Status", "Date" };
+                break;
             }
             case "alert":
             {
-                var result =
-                    await db.QueryAsync(
-                        "SELECT id, alert, alert_url, actor_id, created_at FROM moderation_set_alert ORDER BY id DESC LIMIT :limit OFFSET :offset", new
-                        {
-                            limit,
-                            offset,
-                        });
-                return new
-                {
-                    data = result,
-                    columns = new List<string>
-                    {
-                        "#",
-                        "Text",
-                        "URL",
-                        "Author ID",
-                        "Date",
-                    },
-                };
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, alert, alert_url, actor_id, author.username as author_username, mb.created_at
+                    FROM moderation_set_alert mb
+                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[] { "#", "Text", "URL", "Author ID", "Author Username", "Date" };
+                break;
             }
             case "message":
             {
-                var result =
-                    await db.QueryAsync(
-                        "SELECT id, subject, body, actor_id, user_id, created_at FROM moderation_admin_message ORDER BY id DESC LIMIT :limit OFFSET :offset", new
-                        {
-                            limit,
-                            offset,
-                        });
-                return new
-                {
-                    data = result,
-                    columns = new List<string>
-                    {
-                        "#",
-                        "Subject",
-                        "Body",
-                        "Author ID",
-                        "User ID",
-                        "Date",
-                    },
-                };
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, subject, body, actor_id, user_id,
+                        author.username as author_username, actioned.username, mb.created_at
+                    FROM moderation_admin_message mb
+                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
+                        INNER JOIN ""user"" actioned ON actioned.id = mb.user_id 
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[] { "#", "Subject", "Body", "Author ID",
+                    "User ID", "Author Username", "Messaged Username", "Date" };
+                break;
             }
             case "applications":
             {
-                var result =
-                    await db.QueryAsync(
-                        "SELECT id, application_id, author_user_id, new_status, created_at FROM moderation_change_join_app ORDER BY id DESC LIMIT :limit OFFSET :offset", new
-                        {
-                            limit,
-                            offset,
-                        });
-                return new
-                {
-                    data = result.Select(c =>
-                    {
-                        var oldStatus = (int) c.new_status;
-                        c.new_status = (object)(UserApplicationStatus) oldStatus;
-                        return c;
-                    }),
-                    columns = new List<string>
-                    {
-                        "#",
-                        "Application ID",
-                        "Author ID",
-                        "New Status",
-                        "Date",
-                    },
-                };
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, application_id, author_user_id, new_status,
+                        author.username as author_username, mb.created_at
+                    FROM moderation_change_join_app mb
+                        INNER JOIN ""user"" author ON author.id = mb.author_user_id 
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[] { "#", "Application ID", "Author ID", "New Status", "Author Username", "Date" };
+                break;
             }
             case "refund":
             {
-                // moderation_refund_transaction
-                var result =
-                    await db.QueryAsync(
-                        "SELECT id, asset_id, actor_id, user_id_one, amount, currency_type, user_asset_id, created_at FROM moderation_refund_transaction ORDER BY id DESC LIMIT :limit OFFSET :offset", new
-                        {
-                            limit,
-                            offset,
-                        });
-                return new
-                {
-                    data = result,
-                    columns = new List<string>
-                    {
-                        "#",
-                        "Asset ID",
-                        "Author ID",
-                        "UserID",
-                        "Amount",
-                        "Currency",
-                        "UAID",
-                        "Date",
-                    },
-                };
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, asset_id, actor_id, user_id_one, amount,
+                        currency_type, user_asset_id, author.username as author_username, mb.created_at
+                    FROM moderation_refund_transaction mb
+                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[] { "#", "Asset ID", "Author ID",
+                    "UserID", "Amount", "Currency", "UAID", "Date", };
+                break;
             }
             case "product":
             {
-                var result =
-                    await db.QueryAsync(
-                        "SELECT p.id, p.asset_id, a.name, p.actor_id, p.is_for_sale, price_in_tickets, price_in_robux, p.is_limited, p.is_limited_unique, p.max_copies, p.offsale_at, p.created_at FROM moderation_update_product p LEFT JOIN asset a ON a.id = asset_id ORDER BY id DESC LIMIT :limit OFFSET :offset", new
-                        {
-                            limit,
-                            offset,
-                        });
-                return new
-                {
-                    data = result,
-                    columns = new List<string>
-                    {
-                        "#",
-                        "Asset ID",
-                        "Name",
-                        "Author ID",
-                        "IsForSale",
-                        "Price (R$)",
-                        "Price (T$)",
-                        "Limited",
-                        "LimitedU",
-                        "MaxCopies",
-                        "Offsale",
-                        "Date",
-                    },
-                };
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, mb.asset_id, a.name, mb.actor_id, mb.is_for_sale, price_in_tickets,
+                        price_in_robux, mb.is_limited, mb.is_limited_unique, mb.max_copies,
+                        mb.offsale_at, author.username as author_username, mb.created_at 
+                    FROM moderation_update_product mb 
+                        LEFT JOIN asset a ON a.id = asset_id
+                        INNER JOIN ""user"" author ON author.id = mb.actor_id
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[] { "#", "Asset ID", "Name", "Author ID", "IsForSale", "Price (R$)",
+                    "Price (T$)", "Limited", "LimitedU", "MaxCopies", "Offsale", "Author Username", "Date" };
+                break;
             }
             case "robux":
             case "tickets":
             {
                 var table = logType == "robux" ? "moderation_give_robux" : "moderation_give_tickets";
-                var result = await db.QueryAsync(
-                    "SELECT mgr.id, mgr.created_at, mgr.amount, mgr.user_id, u1.username, mgr.author_user_id, u2.username as author_username FROM "+table+" mgr INNER JOIN \"user\" u1 ON u1.id = mgr.user_id INNER JOIN \"user\" u2 ON u2.id = mgr.author_user_id ORDER BY mgr.id DESC LIMIT :limit OFFSET :offset ",
-                    new
-                    {
-                        limit,
-                        offset,
-                    });
-                return new
-                {
-                    data = result,
-                    columns = new[]
-                    {
-                        "#",
-                        "Date",
-                        logType == "robux" ? "Robux Amount" : "Tix Amount",
-                        "UserID",
-                        "Username",
-                        "Author ID",
-                        "Author Username",
-                    },
-                };
+                template = sql.AddTemplate(@"
+                    SELECT 
+                        mb.id, mb.created_at, mb.amount, mb.user_id, 
+                        mb.author_user_id, author.username as author_username
+                    FROM "+table+@" mb
+                        INNER JOIN ""user"" author ON author.id = mb.author_user_id
+                    /**where**/ /**orderby**/
+                    LIMIT :limit OFFSET :offset
+                    ", new {limit, offset});
+                columns = new[] { "#", "Date", logType == "robux" ? "Robux Amount" : "Tix Amount", 
+                    "User ID", "Author ID", "Author Username" };
+                break;
             }
             default:
                 throw new StaffException("Bad log type " + logType);
         }
+        
+        if (!string.IsNullOrWhiteSpace(actioned) && doesActionHaveActioned(logType))
+        {
+            sql.Where("actioned.username ILIKE :actioned", new {actioned});
+        }
+        if (!string.IsNullOrWhiteSpace(author))
+        {
+            Console.WriteLine(author);
+            sql.Where("author.username ILIKE :author", new {author});
+        }
 
+        var desc = descending ? "DESC" : "ASC";
+        sql.OrderBy($"mb.id {desc}");
+        
+        var result = await db.QueryAsync(template.RawSql, template.Parameters);
+
+        if (logType.Equals("applications"))
+        {
+            result = result.Select(c =>
+            {
+                var oldStatus = (int) c.new_status;
+                c.new_status = (object)(UserApplicationStatus) oldStatus;
+                return c;
+            });
+        } else if (logType.Equals("asset"))
+        {
+            result = result.Select(c =>
+            {
+                var oldStatus = (int)c.action;
+                c.action = (object)(ModerationStatus)oldStatus;
+                return c;
+            });
+        }
+        
+        return new
+        {
+            data = result,
+            columns,
+        };
     }
-
+    
     [HttpGet("getbadges"), StaffFilter(Access.GetUserBadges)]
     public async Task<dynamic> GetUserBadges(long userId)
     {
@@ -3247,4 +3224,111 @@ Thank you for your understanding,
     //     var result = await services.gameServer.GetAllGameServers()
     //     return result;
     // }
+    
+    /**
+     **********************
+     **
+     ** STAFF PERFORMANCE APIS
+     **
+     **********************
+     */
+    
+    [HttpGet("performance/totals/assets"), StaffFilter(Access.GetStaffPerformance)]
+    public async Task<long> GetPerfTotalsAsset(long userId)
+    {
+        // this is pretty complex but basically heres the gist:
+        // PROBLEM:
+        // some assets, such as teeshirts, will have two assets, the teeshirt itself, and the image.
+        // when a moderator accepts what may look like one asset, its actually accepting two
+        // and that'll go into the count, which inflates the number of actually approved assets
+        // FIX:
+        // we compare the previous value against the current, and check if the timestamp is under
+        // 500. if it is, dont count it. simple as that.
+        // since it'll usually auto accept the asset almost immediately, this works to filter out
+        // most joined assets, while making sure to not interfere with the real assets that are
+        // accepted quickly
+        return await db.QuerySingleOrDefaultAsync<long>(@"
+                WITH ordered_mma AS (
+                    SELECT 
+                        mma.created_at,
+                        LAG(mma.created_at) OVER (PARTITION BY actor_id ORDER BY mma.created_at) AS prev_created_at 
+                    FROM moderation_manage_asset as mma
+                        INNER JOIN asset ON asset.id = mma.asset_id
+                    WHERE actor_id = :userId AND asset.asset_type != :audioType
+                )
+                SELECT 
+                    COUNT(*) 
+                FROM ordered_mma 
+                    WHERE prev_created_at IS NULL
+                        OR EXTRACT(EPOCH FROM(created_at - prev_created_at)) * 1000 >= 500
+                ",
+            new
+            {
+                userId, audioType = Type.Audio
+            });
+    }
+    
+    [HttpGet("performance/totals/audios"), StaffFilter(Access.GetStaffPerformance)]
+    public async Task<long> GetPerfTotalsAudios(long userId)
+    {
+        return await db.QuerySingleOrDefaultAsync<long>(@"
+                SELECT 
+                    COUNT(*) 
+                FROM moderation_manage_asset as mma
+                INNER JOIN asset ON asset.id = mma.asset_id
+                WHERE actor_id = :userId AND asset.asset_type = :audioType
+                ",
+            new
+            {
+                userId, audioType = Type.Audio
+            });
+    }
+    
+    [HttpGet("performance/totals/signups"), StaffFilter(Access.GetStaffPerformance)]
+    public async Task<long> GetPerfTotalsApplications(long userId)
+    {
+        return await db.QuerySingleOrDefaultAsync<long>(@"
+                SELECT 
+                    COUNT(*) 
+                FROM moderation_change_join_app
+                    WHERE author_user_id = :userId
+                ", new { userId });
+    }
+    
+    [HttpGet("performance/totals/reports"), StaffFilter(Access.GetStaffPerformance)]
+    public async Task<long> GetPerfTotalsReports(long userId)
+    {
+        return await db.QuerySingleOrDefaultAsync<long>(@"
+                SELECT 
+                    COUNT(*) 
+                FROM abuse_report
+                    WHERE author_id = :userId AND report_status != :pending
+                ", new { userId, pending = AbuseReportStatus.Pending });
+    }
+    
+    [HttpGet("performance/totals/players-moderated"), StaffFilter(Access.GetStaffPerformance)]
+    public async Task<long> GetPerfTotalsPlayersModerated(long userId)
+    {
+        return await db.QuerySingleOrDefaultAsync<long>(@"
+                SELECT 
+                    COUNT(*) 
+                FROM moderation_ban
+                    WHERE actor_id = :userId
+                ", new { userId });
+    }
+    
+    [HttpGet("performance/permissions-gave"), StaffFilter(Access.GetStaffPerformance)]
+    public async Task<dynamic> GetPerfPermDate(long userId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<DateTime?>(@"
+                SELECT 
+                    MIN(created_at)
+                FROM user_permission
+                    WHERE user_id = :userId
+                ", new { userId });
+        return new
+        {
+            date = res
+        };
+    }
 }

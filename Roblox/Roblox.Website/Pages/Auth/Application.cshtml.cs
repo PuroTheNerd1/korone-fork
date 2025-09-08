@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,6 +9,7 @@ using Roblox.Libraries.Captcha;
 using Roblox.Libraries.DiscordApi;
 using Roblox.Libraries.EasyJwt;
 using DSharpPlus.Entities;
+using Roblox.Libraries.RobloxApi;
 using Roblox.Libraries.TwitterApi;
 using Roblox.Logging;
 using Roblox.Services;
@@ -35,8 +37,8 @@ public class Application : RobloxPageModel
     public string? successMessage { get; set; }
     public bool showBannerForOldUsers { get; set; }
     public bool submitDisabled { get; set; }
-    public DiscordUser discordUser { get; set; }
-    public string accessToken { get; set; }
+    public DiscordUser? discordUser { get; set; }
+    public OAuthRobloxApiResponse.RobloxUserInfo? robloxUser { get; set; }
     public string siteKey => Configuration.HCaptchaPublicKey;
     public UserApplicationEntry? application { get; set; }
 
@@ -48,19 +50,17 @@ public class Application : RobloxPageModel
                 ?
                 UserApplicationStatus.Pending.ToString()
                 : application.status.ToString();
-
     [BindProperty]
     public bool deleteCurrentApplicationCookie { get; set; }
     [BindProperty]
     public string about { get; set; }
-    public string socialUrl { get; set; }
-    [BindProperty]
-    public string robloxUsername { get; set; }
+    // public string socialUrl { get; set; }
+    // [BindProperty]
+    // public string robloxUsername { get; set; }
     [BindProperty]
     public string? referralCode { get; set; }
     [FromForm(Name = "cf-turnstile-response")]
     public string hCaptchaResponse { get; set; }
-    public string? verificationPhrase { get; set; }
     [BindProperty]
     public string? action { get; set; }
 
@@ -101,7 +101,7 @@ public class Application : RobloxPageModel
             }
         }
     }
-
+    
     public async Task<IActionResult> OnGet()
     {
         try
@@ -115,36 +115,36 @@ public class Application : RobloxPageModel
             return new PageResult();
         }
 
-        if (discordAccessToken == null)
+        if (discordAccessToken != null)
         {
-            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
+            DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
+            var info = await discordOAuth.GetUserInfo();
+            if (info == null)
+            {
+                errorMessage = "Please try re-authorizing your Discord account.";
+                return new PageResult();
+            }
+            else
+            {
+                discordUser = info;
+            }
         }
-
-        DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
-        var info = await discordOAuth.GetUserInfo();
-        if (info == null)
+        if (robloxAccessToken != null)
         {
-            errorMessage = "Please try re-authorizing ur account";
+            OAuthRobloxApi robloxOAuth = new(robloxAccessToken, true, $"https://www.{Configuration.BaseUrl}/api/application-callback-roblox");
+            var robloxInfo = await robloxOAuth.GetUserInfo();
+            if (robloxInfo == null) {
+                errorMessage = "Please try re-authorizing your ROBLOX account";
+                return new PageResult();
+            }
+            else {
+                robloxUser = robloxInfo;
+            }
         }
-        else
-        {
-            discordUser = info;
-        }
-
-        var apps = new ApplicationWebsiteService(HttpContext);
-        try
-        {
-            verificationPhrase = await apps.ApplyVerificationPhrase(hashedIp, ApplicationService.GenerationContext.ApplicationCreation);
-        }
-        catch (TooManyRequestsException)
-        {
-            errorMessage = "Too many attempts to generate a verification phrase. Make sure you have cookies enabled, then try again in a few minutes.";
-            return new PageResult();
-        }
+        
         await ApplyBanner();
         await ApplyApplication();
-
-
+        
         if (await ShouldDisableSubmissions())
         {
             errorMessage = "There are too many applications pending at this time. Try again in a few hours.";
@@ -167,50 +167,33 @@ public class Application : RobloxPageModel
             submitDisabled = true;
             return new PageResult();
         }
-
-        var apps = new ApplicationWebsiteService(HttpContext);
-        if (discordAccessToken == null)
-        {
-            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
-        }
         
-        DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
-        var info = await discordOAuth.GetUserInfo();
-        if (info == null)
+        if (discordAccessToken != null)
         {
-            errorMessage = "Please try re-authorizing ur account";
-        }
-        else
-        {
-            discordUser = info;
-        }
-        
-        try
-        {
-            verificationPhrase = await apps.ApplyVerificationPhrase(hashedIp, ApplicationService.GenerationContext.ApplicationCreation);
-        }
-        catch (TooManyRequestsException)
-        {
-            errorMessage = "Too many attempts to generate a verification phrase. Make sure you have cookies enabled, then try again in a few minutes.";
-            return new PageResult();
-        }
-        await ApplyBanner();
-        await ApplyApplication();
-
-        if (action == "Get New Code")
-        {
-            Writer.Info(LogGroup.AbuseDetection, "Regen code");
-            try
+            DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
+            var info = await discordOAuth.GetUserInfo();
+            if (info == null)
             {
-                verificationPhrase = await apps.ApplyVerificationPhrase(hashedIp, ApplicationService.GenerationContext.ApplicationCreation, true);
-            }
-            catch (TooManyRequestsException)
-            {
-                errorMessage = "Too many attempts to generate a verification phrase. Make sure you have cookies enabled, then try again in a few minutes.";
+                errorMessage = "Please try re-authorizing your Discord account.";
                 return new PageResult();
             }
-            return new PageResult();
+            discordUser = info;
         }
+
+        if (robloxAccessToken != null)
+        {
+            OAuthRobloxApi robloxOAuth = new(robloxAccessToken, true, $"https://www.{Configuration.BaseUrl}/api/application-callback-roblox");
+            var robloxInfo = await robloxOAuth.GetUserInfo();
+            if (robloxInfo == null) {
+                errorMessage = "Please try re-authorizing your ROBLOX account";
+                return new PageResult();
+            }
+            robloxUser = robloxInfo;
+        }
+        
+        await ApplyBanner();
+        await ApplyApplication();
+        var apps = new ApplicationWebsiteService(HttpContext);
 
         if (deleteCurrentApplicationCookie)
         {
@@ -220,11 +203,6 @@ public class Application : RobloxPageModel
         }
         if (application != null)
             return new PageResult();
-        if (verificationPhrase == null)
-        {
-            errorMessage = "Unable to check verification phrase. Please make sure cookies are enabled and try again.";
-            return new PageResult();
-        }
 
         try
         {
@@ -249,49 +227,31 @@ public class Application : RobloxPageModel
             errorMessage = "About must be between 10 and 4,000 characters.";
             return new PageResult();
         }
-
-        if (string.IsNullOrWhiteSpace(robloxUsername) || robloxUsername.Length is < 3 or > 60)
-        {
-            errorMessage = "Roblox username must be between 3 and 60 characters.";
-            return new PageResult();
-        }
-
-        long userId = 0;
-        try 
-        {
-            userId = await services.robloxApi.GetUserIdByUsername(robloxUsername);
-        }
-        catch(Exception) 
-        {
-            errorMessage = "We couldn't find your account on Roblox.";
-            return new PageResult();
-        }
-        socialUrl = $"https://www.roblox.com/users/{userId}/profile";
-
+        
         if(await services.users.CheckDuplicateDiscord(discordUser.Id.ToString()))
         {
             errorMessage = $"There was already an account made with this Discord account. Please try to login with that account instead";
             return new PageResult();
         }
 
-        await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, discordUser.Id.ToString(), accessToken);
+        await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, discordUser.Id.ToString(), discordAccessToken);
         await using var rateLimitLock =
-            await Roblox.Services.Cache.redLock.CreateLockAsync("ApplicationSubmitV1:" + hashedIp, TimeSpan.FromSeconds(5));
-        if (!rateLimitLock.IsAcquired)
+            await Services.Cache.redLock.CreateLockAsync("ApplicationSubmitV1:" + hashedIp, TimeSpan.FromSeconds(5));
+        if (!rateLimitLock.IsAcquired) // TODO: should this be moved up?
         {
             errorMessage = "Too many attempts. Try again in a few seconds.";
             return new PageResult();
         }
 
-        VerificationResult result;
+        bool result;
         try
         {
-            result = await apps.AttemptVerifyUser(socialUrl, verificationPhrase);
+            result = await apps.AttemptVerifyRobloxUser(robloxUser);
         }
-        catch (InvalidSocialMediaUrlException)
+        catch (AccountAlreadyExists)
         {
             errorMessage =
-                "Please enter a valid social media URL. Specifically, we only allow Roblox profiles.";
+                "The ROBLOX user you entered could not be verified. Please make sure it is valid, and that you have not submitted any applications in the past, then try again.";
             return new PageResult();
         }
         catch (AccountTooNewException)
@@ -299,29 +259,10 @@ public class Application : RobloxPageModel
             errorMessage = "Your account was created too recently to be used for verification.";
             return new PageResult();
         }
-        catch (UnableToFindVerificationPhraseException e)
-        {
-            errorMessage = e.Message;
-            return new PageResult();
-        }
 
-        if (result.verifiedId != null)
-            await services.users.DeleteUnusedApplicationsWithSameUrl(result.verifiedId);
-        await services.users.DeleteUnusedAppsWithSameUrlUnverified(socialUrl);
-#if !DEBUG
-            // Check if this is a duplicate
-            // TODO: We might want to look into not giving an error message for this and just silently rejecting.
-            var dupe = await services.users.IsDuplicateSocialUrl(result.socialData);
-            var dupeId = dupe != null ||
-                         (result.verifiedId != null && await services.users.IsDuplicateSocialId(result.verifiedId));
-            if (dupe != null || dupeId)
-            {
-                if (dupe != null)
-                    Roblox.Metrics.UserMetrics.ReportApplicationDuplicateSocialUrl(dupe.id, result.socialData.url, dupe.verifiedUrl ?? dupe.socialPresence);
-                errorMessage = "The social URL you entered could not be verified. Please make sure it is valid, and that you have not submitted any applications in the past, then try again.";
-                return new PageResult();
-            }
-#endif
+        if (result) // TODO: confirm this is.. correct
+            await services.users.DeleteUnusedApplicationsWithSameUrl($"RobloxUserId:{robloxUser.id}");
+        await services.users.DeleteUnusedAppsWithSameUrlUnverified($"https://www.roblox.com/users/{robloxUser.id}/profile");
 
         // Check captcha last
         var userIp = ControllerBase.GetRequesterIpRaw(HttpContext);
@@ -342,17 +283,14 @@ public class Application : RobloxPageModel
         try
         {
             long? refferedByUserId = null;
-            // Hey this nigger has signed up with a refferal code lets do the work!
             if (!string.IsNullOrEmpty(referralCode))
             {
                 var code = await services.users.GetReferralCode(referralCode);
-                // Fucking black bitch got the code wrong let this nigger try again
                 if (code == null)
                 {
                     errorMessage = "Invalid referral code. Please try again.";
                     return new PageResult();
                 }
-                // Ok so this nigger got the code right lets set the id
                 refferedByUserId = code.userId;
             }
 
@@ -361,11 +299,12 @@ public class Application : RobloxPageModel
                 about = about,
                 createdAt = DateTime.UtcNow,
                 updatedAt = DateTime.UtcNow,
-                socialPresence = result.normalizedUrl,
-                isVerified = result.isVerified,
-                verifiedUrl = result.verifiedUrl,
-                verifiedId = result.verifiedId,
-                verificationPhrase = verificationPhrase!,
+                socialPresence = $"https://www.roblox.com/users/{robloxUser.id}/profile",
+                isVerified = true,
+                verifiedUrl = $"https://www.roblox.com/users/{robloxUser.id}/profile",
+                verifiedId = robloxUser.id.ToString(),
+                verifiedUsername = robloxUser.username,
+                robloxId = robloxUser.id,
                 discordId = discordUser.Id.ToString(),
                 discordUsername = discordUser.Username,
                 refferedBy = refferedByUserId

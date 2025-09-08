@@ -6,10 +6,11 @@ import dayjs from "../../lib/dayjs";
 import ForumContainer from "../forumContainer";
 import useForumStyles from "../forumHome/forumStyles";
 import getFlag from "../../lib/getFlag";
+import { getThemeForumHeader } from "../../services/theme";
 
 const limit = 15;
 const ForumSubcategory = (props) => {
-  const s = useForumStyles();
+    const s = useForumStyles({stylize: getThemeForumHeader()});
   const {id} = props;
   const [sub, setSub] = useState(null);
   const [cat, setCat] = useState(null);

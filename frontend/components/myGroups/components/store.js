@@ -46,7 +46,7 @@ const GroupStore = props => {
                 </Link>
                 <p className='mb-0 text-truncate'>
                   <Link href={url}>
-                    <a>
+                    <a className='link2019'>
                       {v.name}
                     </a>
                   </Link>

@@ -72,7 +72,7 @@ const useStyles = createUseStyles({
         height: '95px',
         display: 'inline-block',
         verticalAlign: 'middle',
-        backgroundImage: 'url(/img/favicon.png)',
+        backgroundImage: 'url(/img/korone-icon-square.png)',
         backgroundSize: '85px 85px',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: '5px 0'
@@ -102,9 +102,9 @@ const useStyles = createUseStyles({
 })
 
 /**
- * 
- * @param {{exitFunction: () => void; closeModals: boolean;}} props 
- * @returns 
+ *
+ * @param {{exitFunction: () => void; closeModals: boolean;}} props
+ * @returns
  */
 
 const downloadProjexModal = props => {

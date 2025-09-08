@@ -5,7 +5,7 @@ const useStyles = createUseStyles({
     pillToggle: {
         height: 24,
         display: "inline-block",
-        backgroundColor: "#fff",
+        backgroundColor: "var(--white-color)",
         padding: 2,
         borderRadius: "24px",
         "& input": {

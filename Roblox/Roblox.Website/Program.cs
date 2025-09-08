@@ -41,6 +41,9 @@ Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value!;
 Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https://www.", "");
 Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value!;
 Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value!;
+// roblox oauth stuff
+Roblox.Configuration.RobloxClientId = configuration.GetSection("Roblox:ClientId").Value!;
+Roblox.Configuration.RobloxClientSecret = configuration.GetSection("Roblox:ClientSecret").Value!;
 // Discord OAuth related Stuff
 Roblox.Configuration.DiscordClientId = configuration.GetSection("Discord:ClientId").Value!;
 Roblox.Configuration.DiscordClientSecret = configuration.GetSection("Discord:ClientSecret").Value!;

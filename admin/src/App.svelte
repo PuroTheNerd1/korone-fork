@@ -43,6 +43,7 @@ import Permissions from "./pages/Permissions.svelte";
 import ForceApplication from "./pages/ForceApplication.svelte";
 import GiftAllUsers from "./pages/GiftAllUsers.svelte";
 	import CopyRobloxUgc from "./pages/CopyRobloxUGC.svelte";
+	import StaffStats from "./pages/StaffPerformance.svelte";
 	// import 'bootstrap';
 
 	var pushState = history.pushState;
@@ -171,8 +172,8 @@ import GiftAllUsers from "./pages/GiftAllUsers.svelte";
 		<Route path="/admin/reports">
 			<AbuseReports />
 		</Route>
-		<Route path="/admin/resolve-url">
-			<ResolveAsset />
+		<Route path="/admin/staff-performance/:userId" let:params>
+			<StaffStats userId={params.userId} />
 		</Route>
 	{/await}
 </Router>

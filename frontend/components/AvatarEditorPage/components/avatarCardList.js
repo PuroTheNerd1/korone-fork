@@ -27,7 +27,7 @@ const useAvCardStyles = createUseStyles({
         height: "100%",
         flexDirection: "column",
         display: "flex",
-        backgroundColor: "#fff",
+        backgroundColor: "var(--white-color)",
         position: "relative",
         boxShadow: "0 1px 4px 0 rgba(25,25,25,0.3)",
         borderRadius: 3,
@@ -44,7 +44,7 @@ const useAvCardStyles = createUseStyles({
         aspectRatio: "1 / 1",
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
-        borderBottom: "1px solid #e3e3e3",
+        borderBottom: "1px solid var(--text-color-quinary)",
         position: "relative",
         "& img": {
             width: "100%",
@@ -75,7 +75,7 @@ const useAvCardStyles = createUseStyles({
     avatarCardEquipped: {
         borderRadius: 3,
         pointerEvents: "none",
-        border: "2px solid #02b757",
+        border: "2px solid var(--success-color)",
         position: "absolute",
         top: 0,
         left: 0,
@@ -84,7 +84,7 @@ const useAvCardStyles = createUseStyles({
         "& span": {
             width: 0,
             height: 0,
-            borderTop: "36px solid #02b757",
+            borderTop: "36px solid var(--success-color)",
             borderLeft: "36px solid transparent",
             position: "absolute",
             top: 0,

@@ -13,7 +13,7 @@ import { FeedbackType } from "../../../models/feedback";
 
 const useStyles = createUseStyles({
     label: {
-        color: 'var(--text-color-quinary)',
+        color: 'var(--text-color-tertiary)',
         marginBottom: 0,
         fontSize: '15px',
         "&:not(:first-child)": {

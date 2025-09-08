@@ -17,8 +17,8 @@ const useStyles = createUseStyles({
     boxShadow: '0 1px 3px rgba(150,150,150,0.75)',
   },
   selectorOptionSelected: {
-    color: 'rgb(0, 162, 255)',
-    borderRight: '4px solid rgb(0, 162, 255)',
+    color: 'var(--primary-color-2)',
+    borderRight: '4px solid var(--primary-color-2)',
   },
   selectorOption: {
     cursor: 'pointer',
@@ -28,8 +28,8 @@ const useStyles = createUseStyles({
     fontWeight: '300',
     fontSize: '18px',
     '&:hover': {
-      color: 'rgb(0, 162, 255)',
-      borderRight: '4px solid rgb(0, 162, 255)',
+      color: 'var(--primary-color-2)',
+      borderRight: '4px solid var(--primary-color-2)',
     },
   },
   childSelector: {
@@ -182,7 +182,7 @@ const CategorySelection = props => {
       {
         selected && getFlag('accessoriesEnabled', false) && selected.children ? <>
           <h2 className={s.categoryTitle}>SUBCATEGORY</h2>
-          <Selector options={selected.children} onChange={onChangeSubCategory} value={8} /> 
+          <Selector options={selected.children} onChange={onChangeSubCategory} value={8} />
         </> : null
       }
     </div>

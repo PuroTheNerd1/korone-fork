@@ -24,12 +24,9 @@ const useStyles = createUseStyles({
     paddingTop: '20px',
     paddingBottom: '20px',
     '&:hover': {
-      background: '#e1e1e1',
+      background: 'var(--white-color-hover)',
       cursor: 'pointer',
     },
-  },
-  colorNormal: {
-    color: 'rgb(20,20,20)',
   },
 });
 
@@ -56,7 +53,7 @@ const GroupsRow = props => {
                        <p><span className={s.groupname}>{v.name}</span> </p>
                      </div>
                      <div className='col-12 col-md-3 col-lg-3'>
-                       <p className={`${s.textRight} ${s.colorNormal}`}>{v.memberCount >= 1000 ? (v.memberCount / 1000).toFixed(1) + 'k+' : v.memberCount} Members</p>
+                       <p className={`${s.textRight} text-color-primary`}>{v.memberCount >= 1000 ? (v.memberCount / 1000).toFixed(1) + 'k+' : v.memberCount} Members</p>
                      </div>
                    </div>
                  </a>

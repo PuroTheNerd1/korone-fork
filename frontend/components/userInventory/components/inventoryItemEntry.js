@@ -41,7 +41,7 @@ const useStyles = createUseStyles({
   itemLabel: {
     fontWeight: '400',
     fontSize: '12px',
-    color: 'rgb(25, 25, 25)',
+    color: 'var(--text-color-primary)',
     borderTop: '1px solid #f2f2f2',
     marginTop: '2px',
   },
@@ -52,7 +52,7 @@ const useStyles = createUseStyles({
     marginTop: '2px',
   },
   creatorUrl: {
-    color: 'rgb(25, 25, 25)',
+    color: 'var(--primary-color)',
   },
   column: {
     paddingLeft: '4px',

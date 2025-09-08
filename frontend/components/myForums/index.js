@@ -5,9 +5,10 @@ import {useEffect, useState} from "react";
 import authentication from "../../stores/authentication";
 import {getPostsByUser} from "../../services/forums";
 import ForumHeader from "../forumHeader";
+import { getThemeForumHeader } from "../../services/theme";
 
 const MyForums = props => {
-  const s = useForumStyles();
+    const s = useForumStyles({stylize: getThemeForumHeader()});
   const [posts, setPosts] = useState(null);
   const [offset, setOffset] = useState(0);
   const limit = 15;

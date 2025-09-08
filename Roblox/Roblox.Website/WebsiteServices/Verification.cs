@@ -38,6 +38,7 @@ public class VerificationResult
 // TODO: remove or recycle this class as it's no longer used since we now parse the username into a userid 
 public class InvalidSocialMediaUrlException : Exception {}
 public class AccountTooNewException : Exception {}
+public class AccountAlreadyExists : Exception {}
 
 public class UnableToFindVerificationPhraseException : Exception
 {
@@ -124,6 +125,32 @@ public class ApplicationWebsiteService : WebsiteService
         };
     }
 
+    /// <summary>
+    /// This method checks the users age, activity, etc. to ensure the user is legitimate
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns>bool</returns>
+    /// <exception cref="AccountTooNewException">Social media account was created too recently</exception>
+    public async Task<bool> AttemptVerifyRobloxUser(OAuthRobloxApiResponse.RobloxUserInfo user)
+    {
+#if !DEBUG 
+        if (user.createdAt >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(90)))
+        {
+            throw new AccountTooNewException();
+        }
+#endif
+        
+        var usersService = ServiceProvider.GetOrCreate<UsersService>();
+        if(await usersService.CheckDuplicateROBLOX(user.id))
+        {
+            throw new AccountAlreadyExists();
+        }
+        
+        // TODO: implement activity checks here
+
+        return true;
+    }
+    
     public void DeleteVerificationCookie()
     {
         httpContext.Response.Cookies.Delete(VerificationPhraseCookieName);

@@ -79,6 +79,18 @@ export const launchGame = async ({placeId}) => {
     }, 1000);
 }
 
+export const launchStudio = async ({placeId}) => {
+    const result = await request('GET', getBaseUrl() + '/game/get-studio-script?placeId=' + encodeURIComponent(placeId));
+    const aTag = document.createElement('a');
+    aTag.setAttribute('href', result.data.prefix + '' + result.data.joinScriptUrl);
+    document.body.appendChild(aTag);
+    aTag.click();
+    // delay before deletion is required on some browsers, not sure why (probably just too slow 😭)
+    setTimeout(() => {
+        aTag.remove();
+    }, 1000);
+}
+
 export const launchGameFromJobId = async ({placeId, jobId}) => {
     
     if (navigator.userAgent.includes("ROBLOX Android App") || navigator.userAgent.includes("ROBLOX iOS App")) {

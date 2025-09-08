@@ -1,30 +1,31 @@
 import searchUsersStore from "../stores/searchUsersStore";
-import {useEffect} from "react";
+import { useEffect } from "react";
 import InputRow from "./inputRow";
 import UsersRow from "./usersRow";
-import {createUseStyles} from "react-jss";
+import { createUseStyles } from "react-jss";
 
 const useStyles = createUseStyles({
-  row: {
-    background: 'var(--white-color)',
-    minHeight: '100vh',
-  }
+    row: {
+        background: 'var(--white-color)',
+        minHeight: '100vh',
+        padding: '15px',
+    }
 })
 
 const Container = props => {
-  const store = searchUsersStore.useContainer();
-  const s = useStyles();
-  useEffect(() => {
-    store.setKeyword(props.keyword);
-    store.setData(null);
-  }, [props]);
-
-  return <div className={'row '  +s.row}>
-    <div className='col-12'>
-      <InputRow />
-      <UsersRow />
+    const store = searchUsersStore.useContainer();
+    const s = useStyles();
+    useEffect(() => {
+        store.setKeyword(props.keyword);
+        store.setData(null);
+    }, [props]);
+    
+    return <div className={'flex ' + s.row}>
+        <div className='col-12'>
+            <InputRow/>
+            <UsersRow/>
+        </div>
     </div>
-  </div>
 }
 
 export default Container;

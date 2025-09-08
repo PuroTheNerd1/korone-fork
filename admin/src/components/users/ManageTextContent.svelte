@@ -78,6 +78,15 @@
                     on:click={(e) => { e.preventDefault(); textView = 'Bans'; }}
                 >Ban History</button>
             </Permission>
+
+            <Permission p="GetStaffPerformance">
+                <button
+                    class={textView === "Performance" ? "btn btn-primary" : "btn btn-outline-primary"}
+                    on:click={(e) => { e.preventDefault(); textView = 'Performance'; window.location.href = `/admin/staff-performance/${userId}`; }}
+                ><a class="button-color" href={`/admin/staff-performance/${userId}`}>
+                    Performance
+                </a></button>
+            </Permission>
         </div>
     </div>
 
@@ -154,3 +163,12 @@
         {/each}
     {/await}
 </div>
+
+<style>
+    .button-color {
+        color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+    }
+    .button-color:hover {
+        color: white;
+    }
+</style>

@@ -62,7 +62,7 @@ const useStyles = createUseStyles({
     color: '#b8b8b8',
   },
   textName: {
-    color: '#00a2ff',
+    color: 'var(--primary-color)',
     fontWeight: '500',
     fontSize: '16px',
     textDecoration: 'none!important',
@@ -82,7 +82,7 @@ const useStyles = createUseStyles({
 /**
  * CatalogDetails page
  * @param {{details: AssetDetailsEntry}} props
- * @returns 
+ * @returns
  */
 const CatalogDetails = (props) => {
   const { details } = props;

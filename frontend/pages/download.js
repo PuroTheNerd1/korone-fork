@@ -6,4 +6,10 @@ const DownloadPage = () => {
     return <Download></Download>
 }
 
+DownloadPage.getInitialProps = () => {
+    return {
+        title: 'Download - Korone',
+    }
+}
+
 export default DownloadPage;

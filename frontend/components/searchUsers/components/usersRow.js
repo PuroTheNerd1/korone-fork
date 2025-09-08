@@ -33,12 +33,9 @@ const useStyles = createUseStyles({
     paddingTop: '20px',
     paddingBottom: '20px',
     '&:hover': {
-      background: '#e1e1e1',
+      background: 'var(--white-color-hover)',
       cursor: 'pointer',
     },
-  },
-  colorNormal: {
-    color: 'rgb(20,20,20)',
   },
 });
 
@@ -68,7 +65,7 @@ const UsersRow = props => {
                        <p><span className={s.status + ' ' + (isUnknown ? s.unknownStatus : isOnline ? s.onlineStatus : s.offlineStatus)}>.</span> <span className={s.username}>{v.Name}</span> </p>
                      </div>
                      <div className='col-12 col-md-3 col-lg-3'>
-                       <p className={s.textRight + ' ' + s.colorNormal}>{presence ? dayjs(presence.lastOnline).format('M/D/YYYY h:mm A') : null}</p>
+                       <p className={s.textRight + ' text-color-primary'}>{presence ? dayjs(presence.lastOnline).format('M/D/YYYY h:mm A') : null}</p>
                      </div>
                    </div>
                  </a>

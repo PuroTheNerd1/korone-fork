@@ -55,7 +55,7 @@
 }
 
 .chatMessageHistory {
-    background: #f1f1f1;
+    background: var(--white-color);
     height: 261px;
     overflow-y: auto;
 }

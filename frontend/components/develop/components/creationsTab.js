@@ -1,9 +1,6 @@
-import React, {useEffect, useReducer, useState} from "react";
+import React from "react";
 import VerticalSelector from "../../verticalSelector";
 import { developerPages } from "../constants";
-import GamesSubPage from "./subPages/games";
-import {getPermissionsForRoleset, getRoles, getUserGroups} from "../../../services/groups";
-import authentication from "../../../stores/authentication";
 
 const CreationsTab = props => {
   const selected = developerPages.find(v => v.id === props.id) || developerPages[0];

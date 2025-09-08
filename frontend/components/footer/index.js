@@ -13,7 +13,7 @@ const footerLinks = {
 const useFooterStyles2 = createUseStyles({
   footerContainer:{
     padding: '12px',
-    background: p => p.theme === themeType.obc2016 ? '#393939' : 'var(--white-color)',
+    background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
     width: '100%',
     marginTop: '40px',
     boxShadow: '0 0 3px rgba(25, 25, 25, 0.3)',
@@ -49,7 +49,7 @@ const useFooterStyles2 = createUseStyles({
     '& a':{
       fontSize: '16px',
       fontWeight: '500',
-      color: p => p.theme === themeType.obc2016 ? '#var(--text-color-secondary-dark)' : 'var(--text-color-secondary)',
+      color: p => p.theme === themeType.dark ? '#var(--text-color-secondary-dark)' : 'var(--text-color-secondary)',
       textDecoration: 'none',
       '&:hover':{
         textDecoration: 'none',
@@ -64,7 +64,7 @@ const useFooterStyles2 = createUseStyles({
     margin: '12px auto',
     textAlign: 'center',
     width: '78%',
-    color: p => p.theme === themeType.obc2016 ? '#var(--text-color-secondary-dark)' : 'var(--text-color-secondary)',
+    color: p => p.theme === themeType.dark ? '#var(--text-color-secondary-dark)' : 'var(--text-color-secondary)',
     lineHeight: '1.5em',
     wordWrap: 'break-word',
     hyphens: 'none',
@@ -84,7 +84,7 @@ const Footer = props => {
           })
         }
       </ul>
-      <p className={s.footerNote}>©2024 Korone. Korone is not affliated with Roblox Corporation.</p>
+      <p className={s.footerNote}>©2025 Korone. Korone is not affliated with Roblox Corporation.</p>
     </div>
   </footer>
 
@@ -102,7 +102,7 @@ const Footer = props => {
         }
         <div className={'col-12 col-lg-10 ' + s.lowerFooterContainer}>
           <p className={`${s.text} ${s.text2}`}>
-            <a>©2024 Korone. Korone is not affliated with Roblox Corporation.</a>.
+            <a>©2025 Korone. Korone is not affliated with Roblox Corporation.</a>.
           </p>
         </div>
       </div>

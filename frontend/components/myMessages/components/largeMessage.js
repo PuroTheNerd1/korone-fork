@@ -49,12 +49,15 @@ const useStyles = createUseStyles({
     width: '170px',
     float: 'right',
   },
+    backButton: {
+      marginLeft: '0',
+    },
 })
 
 /**
  * Message Entry
  * @param {{fromUserId: number; fromUserName: string; subject: string; body: string; created: string; id: number; read: boolean;}} props
- * @returns 
+ * @returns
  */
 const LargeMessage = props => {
   const s = useStyles();
@@ -82,7 +85,7 @@ const LargeMessage = props => {
   return <div className='row pt-2'>
     <div className='col-12'>
       <div className={s.backButtonWrapper}>
-        <ActionButton label='Back' className={buttonStyles.cancelButton} onClick={() => {
+        <ActionButton label='Back' className={s.backButton} buttonStyle={buttonStyles.cancelButton} onClick={() => {
           store.setHighlightedMessage(null);
         }}/>
       </div>
@@ -103,7 +106,7 @@ const LargeMessage = props => {
     <div className='col-10'>
       <p className={s.username}>
         <Link href={`/users/${props.fromUserId}/profile`}>
-          <a className='normal'>
+          <a className='link2019'>
             {props.fromUserName}
           </a>
         </Link>

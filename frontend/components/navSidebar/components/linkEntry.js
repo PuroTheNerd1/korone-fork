@@ -4,7 +4,7 @@ import { themeType } from "../../../services/theme";
 import { useState } from "react";
 
 const formatCount = num => {
-  if (num > 99) return '99+';
+  if (num > 99) return '99+'; // really? 💀
   return num;
 }
 
@@ -18,7 +18,7 @@ const useStyles = createUseStyles({
     fontSize: '16px',
     fontWeight: 500,
     verticalAlign: 'middle',
-    color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
+    color: p => p.theme === themeType.obc2019 ? 'var(--white-color)' : 'var(--text-color-primary)',
   },
   wrapper: {
     color: 'inherit!important',
@@ -34,13 +34,13 @@ const useStyles = createUseStyles({
     paddingTop: '5px',
   },
   count: {
-    background: '#01a2fd',
+    background: 'var(--primary-color)',
     color: 'white',
     borderRadius: '10px',
     padding: '2px 7px',
   },
   icon: {
-    filter: p => p.theme === themeType.obc2016 ? 'invert(100%)' : 'none',
+    filter: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? 'invert(100%)' : 'none',
   },
   iconNoFilter: {
     filter: 'none!important',
@@ -49,8 +49,8 @@ const useStyles = createUseStyles({
 
 /**
  * Nav sidebar link entry
- * @param {{count?: number; name: string; icon: string; url: string; theme: any;}} props 
- * @returns 
+ * @param {{count?: number; name: string; icon: string; url: string; theme: any;}} props
+ * @returns
  */
 const LinkEntry = props => {
   const s = useStyles({ theme: props.theme });

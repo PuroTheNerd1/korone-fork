@@ -25,7 +25,7 @@ const Summary = props => {
   return <div className='row'>
     <div className='col-12 mb-3 mt-3'>
       <div className='d-inline-block'>
-        <p className='mb-0 fw-700 lighten-1 pe-2'>Time Period: </p>
+        <p className='mb-0 fw-700 text-color-secondary pe-2'>Time Period: </p>
       </div>
       <div className='d-inline-block'>
         <select value={period} onChange={(e) => {

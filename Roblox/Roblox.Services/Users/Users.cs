@@ -632,6 +632,12 @@ public class UsersService : ServiceBase, IService
         if (res == null) throw new RecordNotFoundException();
         return res;
     }
+    public async Task<UserInfo> GetUserByRobloxId(long robloxId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description FROM \"user\" WHERE roblox_id = :id", new { id = robloxId });
+        if (res == null) throw new RecordNotFoundException();
+        return res;
+    }
     public async Task<bool> IsUserLinked(long userId)
     {
         var res = await db.QuerySingleOrDefaultAsync<string?>("SELECT discord_id FROM \"user\" WHERE id = :id", new { id = userId});
@@ -888,6 +894,60 @@ public class UsersService : ServiceBase, IService
         // Default
         return false;
     }
+    public async Task<RobloxId?> GetRobloxIdFromApp(string appId)
+    {
+        return await db.QuerySingleOrDefaultAsync<RobloxId?>("SELECT roblox_id as robloxId FROM join_application WHERE join_id = :id AND status = :status", new
+        {
+            id = appId, status = UserApplicationStatus.Approved
+        });
+    }
+    public async Task<long?> GetRobloxIdFromAppWithUserId(long userId)
+    {
+        var verified = await db.QuerySingleOrDefaultAsync<VerifiedId?>("SELECT verified_id as verifiedId FROM join_application WHERE user_id = :userId AND status = :status", new
+        {
+            userId, status = UserApplicationStatus.Approved
+        });
+        if (verified == null) return null;
+        if (verified.verifiedId.Contains("RobloxUserId:"))
+        {
+            verified.verifiedId = verified.verifiedId.Replace("RobloxUserId:", "");
+        }
+
+        if (long.TryParse(verified.verifiedId, out long robloxId))
+        {
+            return robloxId;
+        }
+
+        return null;
+    }
+    public async Task SetUserRobloxId(long userId, long robloxId)
+    {
+        await db.ExecuteAsync("UPDATE \"user\" SET roblox_id = :robloxId WHERE id = :userId AND roblox_id IS NULL", new
+        {
+            userId,
+            robloxId,
+        });
+    }
+    public async Task<DiscordId?> GetDiscordIdFromApp(string appId)
+    {
+        return await db.QuerySingleOrDefaultAsync<DiscordId?>("SELECT discord_id as discordId FROM join_application WHERE join_id = :id AND status = :status", new
+        {
+            id = appId, status = UserApplicationStatus.Approved
+        });
+    }
+    /// <summary>
+    /// Check duplicate ROBLOX id.
+    /// </summary>
+    /// <param name="robloxId"></param>
+    public async Task<bool> CheckDuplicateROBLOX(long robloxId)
+    {
+        var isDuplicate = await db.QuerySingleAsync<int>(
+            "SELECT COUNT(roblox_id) FROM join_application WHERE join_application.roblox_id = :robloxId AND (join_application.status = :status1 OR join_application.status = :status2 OR join_application.status = :status3)",
+            new { robloxId, status1 = UserApplicationStatus.Approved, status2 = UserApplicationStatus.SilentlyRejected, status3 = UserApplicationStatus.Pending }
+        );
+
+        return isDuplicate > 0;
+    }
     /// <summary>
     /// Check duplicate discord id.
     /// </summary>
@@ -939,6 +999,8 @@ public class UsersService : ServiceBase, IService
             discord_id = request.discordId,
             discord_username = request.discordUsername,
             reffered_by = request.refferedBy,
+            roblox_id = request.robloxId,
+            roblox_username = request.verifiedUsername,
         });
         return applicationId;
     }

@@ -5,10 +5,10 @@ import { setUserDescription } from "../../../services/accountInformation";
 import {
     getAvPageStyle,
     getCatalogPageStyle,
-    getTheme,
+    getTheme, getThemeColor, getThemeFont,
     setAvPageStyle,
     setCatalogPageStyle,
-    setTheme
+    setTheme, setThemeColor, setThemeFont, setThemeForumHeader, setThemeRibbon, themeType
 } from "../../../services/theme";
 import AuthenticationStore from "../../../stores/authentication";
 import useCardStyles from "../../userProfile/styles/card";
@@ -17,13 +17,14 @@ import useFormStyles from "../styles/forms";
 import GenderSelection from "./genderSelection";
 import Subtitle from "./subtitle";
 import { setAvPageStyleReq } from "../../../services/accountSettings";
+import { ChangeVarsForTheme, ChangeVarsForThemeColor, ChangeVarsForThemeFont } from "../../../pages/_app";
 
 const useEditButtonStyles = createUseStyles({
     editButton: {
         float: 'right',
-        color: '#666',
+        color: 'var(--text-color-primary)',
         cursor: 'pointer',
-    },
+    }
 })
 
 const EditButton = (props) => {
@@ -31,10 +32,17 @@ const EditButton = (props) => {
     return <span className={s.editButton} onClick={props.onClick}>Edit</span>
 }
 
-const AccountInfo = props => {
+const  AccountInfo = props => {
     const store = MyAccountStore.useContainer();
     const auth = AuthenticationStore.useContainer();
     const descRef = useRef(null);
+    
+    const isDebug = false;
+    const year = new Date().getFullYear();
+    const christmasStart = new Date(year, 10, 28);
+    const christmasEnd = new Date(year, 12, 31);
+    const halloweenStart = new Date(year, 9, 1);
+    const halloweenEnd = new Date(year, 10, 5);
     
     const cardStyles = useCardStyles();
     const s = useFormStyles();
@@ -100,16 +108,6 @@ const AccountInfo = props => {
                         </div>
                     </div>
                 </div>
-                <div className='mt-2'>
-                    <div className='row'>
-                        <div className='col pe-0'>
-                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Gender'
-                                   readOnly={true} type='text'></input>
-                        </div>
-                        <GenderSelection id={2} displayName='Male'></GenderSelection>
-                        <GenderSelection id={3} displayName='Female'></GenderSelection>
-                    </div>
-                </div>
                 <div className='mt-1 mb-4'>
                     <div className={s.saveButtonWrapper}>
                         <button className={s.saveButton} onClick={() => {
@@ -126,25 +124,128 @@ const AccountInfo = props => {
         </div>
         {getFlag('settingsPageThemeSelectorEnabled', false) &&
             <div className='col-12 mt-2'>
-                <Subtitle>Extensions</Subtitle>
+                <Subtitle>Customize Your Korone</Subtitle>
                 <div className={cardStyles.card + ' p-3'}>
-                    <div className='row mt-1'>
+                    <div className='flex mt-1'>
                         <div className='col pe-0'>
                             <input className={'form-control ' + s.select + ' ' + s.disabled} value='Website Theme'
                                    readOnly={true}
                                    type='text'></input>
                         </div>
                         <div className='col ps-0 pe-0'>
-                            <select className={'form-control ' + s.select} value={getTheme()} onChange={(ev) => {
+                            <select className={'form-control ' + s.select} value={store.theme.theme} onChange={(ev) => {
                                 setTheme(ev.currentTarget.value);
+                                store.setTheme({
+                                    ...store.theme,
+                                    theme: ev.target.value,
+                                });
                                 window.location.reload();
                             }}>
-                                <option value='light'>Default</option>
-                                <option value='obc2016'>OBC Theme</option>
+                                <option value='light'>Light Theme</option>
+                                <option value='obc2019'>OBC Theme</option>
+                                <option value='dark'>Dark Theme (BETA)</option>
                             </select>
                         </div>
                     </div>
-                    <div className='row mt-2'>
+                    {
+                        getTheme() === themeType.dark || getTheme() === themeType.obc2019
+                        ?
+                        <div className='flex mt-1'>
+                            <div className='col pe-0'>
+                                <input className={'form-control ' + s.select + ' ' + s.disabled} value='Apply Theme to Ribbonbar'
+                                       readOnly={true}
+                                       type='text'></input>
+                            </div>
+                            <div className='col ps-0 pe-0'>
+                                <select className={'form-control ' + s.select} value={store.theme.themeRibbon} onChange={(ev) => {
+                                    setThemeRibbon(ev.currentTarget.value);
+                                    store.setTheme({
+                                        ...store.theme,
+                                        themeRibbon: ev.target.value,
+                                    });
+                                    window.location.reload();
+                                }}>
+                                    <option value='true'>Yes</option>
+                                    <option value='false'>No</option>
+                                </select>
+                            </div>
+                        </div>
+                        :
+                        null
+                    }
+                    <div className='flex mt-1'>
+                        <div className='col pe-0'>
+                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Website Color'
+                                   readOnly={true}
+                                   type='text'></input>
+                        </div>
+                        <div className='col ps-0 pe-0'>
+                            <select className={'form-control ' + s.select} value={store.theme.color} onChange={(ev) => {
+                                setThemeColor(ev.currentTarget.value);
+                                ChangeVarsForThemeColor(ev.currentTarget.value);
+                                store.setTheme({
+                                    ...store.theme,
+                                    color: ev.target.value,
+                                });
+                            }}>
+                                {
+                                    isDebug || year >= christmasStart && year <= christmasEnd ? <option value='cane'>Cane</option> : null
+                                }
+                                {
+                                    isDebug || year >= halloweenStart && year <= halloweenEnd ? <option value='spice'>Spice</option> : null
+                                }
+                                <option value='coffee'>Coffee</option>
+                                <option value='bliss'>Bliss</option>
+                                <option value='cobalt'>Cobalt</option>
+                                <option value='sunlit'>Sunlit</option>
+                                <option value='royalty'>Royalty</option>
+                                <option value='nobility'>Nobility (zyth's color :3)</option>
+                                <option value='harmony'>Harmony</option>
+                                <option value='witness'>Witness</option>
+                                <option value='whisper'>Velvet Whisper</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className='flex mt-1'>
+                        <div className='col pe-0'>
+                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Website Font'
+                                   readOnly={true}
+                                   type='text'></input>
+                        </div>
+                        <div className='col ps-0 pe-0'>
+                            <select className={'form-control ' + s.select} value={store.theme.font} onChange={(ev) => {
+                                setThemeFont(ev.currentTarget.value);
+                                ChangeVarsForThemeFont(ev.currentTarget.value);
+                                store.setTheme({
+                                    ...store.theme,
+                                    font: ev.target.value,
+                                });
+                            }}>
+                                <option value='gotham'>Gotham SSm</option>
+                                <option value='ssp'>Source Sans Pro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className='flex mt-1'>
+                        <div className='col pe-0'>
+                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Stylize Forum Headers'
+                                   readOnly={true}
+                                   type='text'></input>
+                        </div>
+                        <div className='col ps-0 pe-0'>
+                            <select className={'form-control ' + s.select} value={store.theme.stylizeForumHeader} onChange={(ev) => {
+                                setThemeForumHeader(ev.currentTarget.value);
+                                store.setTheme({
+                                    ...store.theme,
+                                    stylizeForumHeader: ev.target.value,
+                                });
+                            }}>
+                                <option value='true'>Yes</option>
+                                <option value='false'>No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className='flex mt-1'>
                         <div className='col pe-0'>
                             <input className={'form-control ' + s.select + ' ' + s.disabled} value='Avatar Page Style'
                                    readOnly={true}
@@ -161,7 +262,7 @@ const AccountInfo = props => {
                             </select>
                         </div>
                     </div>
-                    <div className='row mt-2'>
+                    <div className='flex mt-1'>
                         <div className='col pe-0'>
                             <input className={'form-control ' + s.select + ' ' + s.disabled} value='Catalog Page Style'
                                    readOnly={true}

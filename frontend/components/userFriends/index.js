@@ -47,7 +47,7 @@ const useStyles = createUseStyles({
     position: 'relative',
   },
   friendCard: {
-
+      backgroundColor: 'var(--white-color)'
   },
   friendCardWrapper: {
     boxShadow: '0 1px 4px 0 rgb(25 25 25 / 30%)',
@@ -72,7 +72,7 @@ const useStyles = createUseStyles({
     color: 'rgb(40,40,40)',
   },
   acceptButton: {
-    background: 'rgb(0, 162, 255)',
+    background: 'var(--primary-color-2)',
     color: '#fff',
   },
 })

@@ -7,6 +7,7 @@ const useStyles = createUseStyles({
   row: {
     background: 'var(--white-color)',
     minHeight: '100vh',
+      padding: '15px',
   }
 })
 
@@ -18,7 +19,7 @@ const Container = props => {
     store.setData(null);
   }, [props]);
 
-  return <div className={'row '  +s.row}>
+  return <div className={'flex '  +s.row}>
     <div className='col-12'>
       <InputRow />
       <GroupsRow />

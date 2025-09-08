@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { abbreviateNumber } from "../../lib/numberUtils";
+import { getTheme, themeType } from "../../services/theme";
 
 const useStyles = createUseStyles({
   vTab: {
@@ -25,14 +26,14 @@ const useStyles = createUseStyles({
   btnBottomSeperator: {
     width: '100%',
     height: '5px',
-    background: 'white',
+    background: 'var(--white-color)',
     marginBottom: '-5px',
   },
   vTabUnselected: {
-    background: '#d6d6d6',
+    background: p => p.theme === themeType.dark ? "var(--white-color)" : "#d6d6d6",
     paddingTop: '7px',
     '&:hover': {
-      background: '#e8e8e8'
+      background: p => p.theme === themeType.dark ? "var(--white-color-hover)" : "#e8e8e8",
     },
     // 9e9e9e
   },
@@ -41,6 +42,7 @@ const useStyles = createUseStyles({
     border: '1px solid #84a5c9',
     paddingLeft: '4px',
     paddingRight: '4px',
+      color: '#191919'
   },
 });
 
@@ -49,7 +51,7 @@ const useStyles = createUseStyles({
  * @param {{options: {name: string; displayName: string; element: JSX.Element; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string; contentStyles: string; ssp?: boolean;}} props
  */
 const OldVerticalTabs = props => {
-  const s = useStyles();
+  const s = useStyles({theme: getTheme()});
   const { options } = props;
   const hash = window != undefined ? window.location.hash.substring(1) : null;
   const hashtagSelected = options.find(v => v.name.toLowerCase() === hash.toLowerCase())

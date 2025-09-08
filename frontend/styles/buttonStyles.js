@@ -6,6 +6,7 @@ import { createUseStyles } from "react-jss";
  * @property {string} normal
  * @property {string} continueButton
  * @property {string} cancelButton
+ * @property {string} boxButton
  * @property {string} badPurchaseRow
  * @property {string} newBuyButton
  * @property {string} newContinueButton
@@ -55,6 +56,19 @@ const useButtonStyles = createUseStyles({
         border: '1px solid #404041',
         '&:hover': {
             'background': 'grey!important',
+        },
+    },
+    boxButton: {
+        color: '#191919',
+        fontFamily: 'Source Sans Pro, Arial',
+        backgroundColor: '#ccc',
+        textAlign: 'center',
+        background: 'linear-gradient(0deg, rgba(224,224,224,1) 0%, rgba(255,255,255,1) 100%)',
+        border: '1px solid #777777',
+        cursor: 'pointer',
+        userSelect: 'none',
+        '&:hover': {
+            'background': 'linear-gradient(0deg, rgba(203,216,255,1) 0%, rgba(255,255,255,1) 100%)',
         },
     },
     badPurchaseRow: {
@@ -151,7 +165,7 @@ const useButtonStyles = createUseStyles({
         lineHeight: '100%',
     },
     newCancelButton: {
-        background: '#fff',
+        background: 'var(--white-color)',
         border: '1px solid var(--text-color-secondary)',
         borderColor: 'var(--text-color-secondary)!important',
         borderRadius: '3px',
@@ -169,7 +183,7 @@ const useButtonStyles = createUseStyles({
         transition: "box-shadow 200ms ease-in-out",
         "-webkit-transition": "box-shadow 200ms ease-in-out",
         '&:hover': {
-            background: '#fff',
+            background: 'var(--white-color)',
             color: '#000',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgb(150 150 150 / 74%)'

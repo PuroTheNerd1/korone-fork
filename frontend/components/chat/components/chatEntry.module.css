@@ -7,7 +7,7 @@
 }
 
 .chatEntry:hover {
-    background: #f3f3f3;
+    background: var(--white-color-hover);
 }
 
 .chatHeadshotColumn {

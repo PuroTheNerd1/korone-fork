@@ -15,6 +15,7 @@ import OutfitsTab from "./components/outfitsTab";
 import BodyColorsTab from "./components/bodyColorsTab";
 import { useRouter } from "next/router";
 import { Thumbnail3DHandler } from "../thumbnail3D";
+import { getTheme, themeType } from "../../services/theme";
 
 const useStyles = createUseStyles({
     sliderInput: {
@@ -31,6 +32,7 @@ const useStyles = createUseStyles({
         fontWeight: 500,
         padding: "15px 0",
         margin: 0,
+        color: 'var(--text-color-primary)',
         "@media(max-width: 576px)": {
             padding: "0 0 10px 0",
             fontSize: 48,
@@ -133,6 +135,7 @@ const useStyles = createUseStyles({
         bottom: "2px",
         position: "relative",
         marginLeft: "6px",
+        filter: p => p.theme === themeType.dark ? "invert(1)" : "unset",
         "@media(max-width: 992px)": {
             backgroundPosition: "0 -169px",
             width: 10,
@@ -141,9 +144,10 @@ const useStyles = createUseStyles({
         },
         "@media(max-width: 767px)": {
             display: "none",
-        }
+        },
     },
     redrawContainer: {
+        color: 'var(--text-color-primary)',
         "& span": {
             fontSize: 16,
         }
@@ -170,13 +174,16 @@ const useStyles = createUseStyles({
             marginBottom: 8,
         }
     },
+    imthatguytrynagetmybagupbabyyy: {
+        color: 'var(--text-color-primary)',
+    },
 });
 
 // REF: https://youtu.be/iXI3aut2UWs
 // REF2: https://youtu.be/pF-jlI9OJGs
 
 function AvatarEditor() {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     const buttonStyles = useButtonStyles();
     const auth = AuthenticationStore.useContainer();
     const store = AvatarInfoStore.useContainer();
@@ -277,8 +284,8 @@ function AvatarEditor() {
     return <div>
         <div className={`${s.avatarHeader} flex justify-content-between align-items-center`}>
             <h1 className={s.avatarHeaderText}>Avatar Editor</h1>
-            <div className="flex justify-content-center align-items-center" style={{ gap: 12 }}>
-                <span>Explore the catalog to find more clothes!</span>
+            <div className={`flex justify-content-center align-items-center ${s.imthatguytrynagetmybagupbabyyy}`} style={{ gap: 12 }}>
+                <span style={{color:"inherit"}}>Explore the catalog to find more clothes!</span>
                 <ActionButton label="Get More" className={s.moreBut} buttonStyle={buttonStyles.newBuyButton}
                               onClick={() => {
                                   const router = useRouter();
@@ -356,13 +363,13 @@ function AvatarEditor() {
                     </div>
                 </div>
                 <div className={`flex justify-content-between ${s.redrawContainer} ${s.firstRedraw}`}>
-                    <span>Avatar isn't updated?</span>
+                    <span style={{color:"inherit"}}>Avatar isn't updated?</span>
                     <ActionButton onClick={async () => {
                         await store.GetUpdatedAvatar();
                     }} label="Refetch" buttonStyle={buttonStyles.newCancelButton} className={s.redrawBtn}/>
                 </div>
                 <div className={`flex justify-content-between ${s.redrawContainer}`}>
-                    <span>Avatar isn't loading correctly?</span>
+                    <span style={{color:"inherit"}}>Avatar isn't loading correctly?</span>
                     <ActionButton onClick={async () => {
                         await store.ForceRender();
                     }} label="Redraw" buttonStyle={buttonStyles.newCancelButton} className={s.redrawBtn}/>
@@ -623,9 +630,9 @@ function AvatarEditor() {
                                 return <BodyColorsTab/>
                             default:
                                 return <div>
-                                    <div style={{ display: "flex" }}>
+                                    <div className={s.imthatguytrynagetmybagupbabyyy} style={{ display: "flex" }}>
                                         <span
-                                            style={{ paddingTop: 9, paddingBottom: 4 }}
+                                            style={{ paddingTop: 9, paddingBottom: 4, color: "inherit" }}
                                         >{CapitalizeVariable(page.selectedList.tab)}
                                             {!IsNullOrEmpty(page?.selectedList?.subTab) && ` > ${CapitalizeVariable(page?.selectedList?.subTab)}`}
                                         </span>

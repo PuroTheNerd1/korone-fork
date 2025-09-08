@@ -41,12 +41,13 @@ const useStyles = createUseStyles({
     border: '1px solid #84a5c9',
     paddingLeft: '4px',
     paddingRight: '4px',
+      color: '#191919'
   },
 });
 
 /**
  * Vertical tabs in old style
- * @param {{options: {name: string; element: JSX.Element; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string}} props 
+ * @param {{options: {name: string; element: JSX.Element; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string}} props
  */
 const OldVerticalTabs = props => {
   const s = useStyles();

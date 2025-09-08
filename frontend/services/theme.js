@@ -1,7 +1,28 @@
 const themeType = {
-    obc2016: 'obc2016',
+    dark: 'dark',
+    obc2019: 'obc2019',
+    bliss: 'bliss',
     light: 'light',
     default: 'light',
+}
+
+const themeColor = {
+    coffee: 'coffee',
+    bliss: 'bliss',
+    cobalt: 'cobalt',
+    sunlit: 'sunlit',
+    royalty: 'royalty',
+    nobility: 'nobility',
+    harmony: 'harmony',
+    witness: 'witness',
+    whisper: 'whisper',
+    cane: 'cane',
+    spice: 'spice',
+}
+
+const themeFont = {
+    gotham: 'gotham',
+    ssp: 'ssp',
 }
 
 const avPageStyleType = {
@@ -36,6 +57,62 @@ const setTheme = (themeString) => {
     localStorage.setItem('rbx_theme_v1', themeString)
 }
 
+const getThemeRibbon = () => {
+    if (!isLocalStorageAvailable) return 'false';
+    
+    let value = localStorage.getItem('rbx_theme_ribbon_v1');
+    // validate
+    if (typeof value !== 'string' || !/^(true|false)$/i.test(value)) return 'false';
+    return value;
+}
+
+const setThemeRibbon = (themeString) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_theme_ribbon_v1', themeString)
+}
+
+const getThemeColor = () => {
+    if (!isLocalStorageAvailable) return themeColor.coffee;
+    
+    let value = localStorage.getItem('rbx_theme_color_v1');
+    // validate
+    if (typeof value !== 'string' || !Object.getOwnPropertyNames(themeColor).includes(value)) return themeColor.coffee;
+    return themeColor[value];
+}
+
+const setThemeColor = (themeString) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_theme_color_v1', themeString);
+}
+
+const getThemeFont = () => {
+    if (!isLocalStorageAvailable) return themeFont.gotham;
+    
+    let value = localStorage.getItem('rbx_theme_font_v1');
+    // validate
+    if (typeof value !== 'string' || !Object.getOwnPropertyNames(themeFont).includes(value)) return themeFont.gotham;
+    return themeFont[value];
+}
+
+const setThemeFont = (themeString) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_theme_font_v1', themeString)
+}
+
+const getThemeForumHeader = () => {
+    if (!isLocalStorageAvailable) return 'false';
+    
+    let value = localStorage.getItem('rbx_theme_forum_header_v1');
+    // validate
+    if (typeof value !== 'string' || !/^(true|false)$/i.test(value)) return 'false';
+    return value;
+}
+
+const setThemeForumHeader = (bool) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_theme_forum_header_v1', bool)
+}
+
 const getAvPageStyle = () => {
     if (!isLocalStorageAvailable) return avPageStyleType.default;
     
@@ -68,6 +145,18 @@ export {
     getTheme,
     setTheme,
     
+    getThemeFont,
+    setThemeFont,
+    
+    getThemeColor,
+    setThemeColor,
+    
+    getThemeForumHeader,
+    setThemeForumHeader,
+    
+    getThemeRibbon,
+    setThemeRibbon,
+    
     getAvPageStyle,
     setAvPageStyle,
     
@@ -75,6 +164,8 @@ export {
     setCatalogPageStyle,
     
     themeType,
+    themeColor,
+    themeFont,
     avPageStyleType,
     catalogPageStyle,
 }

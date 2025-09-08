@@ -46,7 +46,7 @@ const GroupGridEntry = props => {
   return <div className='col-6 col-lg-2 pe-0 ps-0'>
     <Link href={`/My/Groups.aspx?gid=${props.group.group.id}`}>
       <a>
-        <div className='card pt-1 pb-1 pe-1 ps-1'>
+        <div className='card pt-1 pb-1 pe-1 ps-1' style={{backgroundColor: 'var(--white-color)'}}>
           <img className={s.groupImage} src={props.icon} />
           <div className='pe-1 ps-1'>
           <p className={s.name}>
@@ -183,6 +183,7 @@ const useGroupSquareStyles = createUseStyles({
     height: '300px',
     border: 0,
     borderRadius: 0,
+      backgroundColor: 'var(--white-color)'
   },
   verifiedIcon: {
     width: '28px',
