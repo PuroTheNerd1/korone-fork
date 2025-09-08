@@ -35,7 +35,7 @@
 	</button>
 	<ul class="navbar-nav px-3 d-none d-md-block">
 		<li class="nav-item text-nowrap">
-			<a class="nav-link" href="/">Back to Korone</a>
+			<a class="nav-link" href="/">Back to Pekora</a>
 		</li>
 	</ul>
 </header>

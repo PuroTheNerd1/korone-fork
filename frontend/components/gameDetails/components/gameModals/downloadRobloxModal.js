@@ -116,7 +116,7 @@ const downloadProjexModal = props => {
     const onClick = e => {
         e.preventDefault();
         setOpen(false);
-        window.location.href = "https://github.com/shikataganaii/Korone-Bootstrapper/releases";
+        window.location.href = "https://github.com/shikataganaii/Pekora-Bootstrapper/releases";
     }
 
     useEffect(async () => {
@@ -145,7 +145,7 @@ const downloadProjexModal = props => {
                 <p className={s.loadingText}>You're moments away from getting into the game!</p>
             </div>
             <div className={s.buttons}>
-                <ActionButton onClick={onClick} buttonStyle={buttonStyles.newBuyButton} label="Download and Install Korone" className={s.button2} />
+                <ActionButton onClick={onClick} buttonStyle={buttonStyles.newBuyButton} label="Download and Install Pekora" className={s.button2} />
             </div>
         </NewModal>}
     </>

@@ -7,7 +7,7 @@ const CreateGamePage = () => {
 export const getStaticProps = () => {
     return {
         props: {
-            title: 'Create Game - Korone',
+            title: 'Create Game - Pekora',
         },
     };
 };

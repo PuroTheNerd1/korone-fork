@@ -108,4 +108,4 @@ function start(placeId, port, url)
 
 	end
 
-start(%placeId%, %port%, "http://korone.zip")
+start(%placeId%, %port%, "http://pekora.zip")

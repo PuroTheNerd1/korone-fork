@@ -275,7 +275,7 @@ namespace Roblox.Website.Controllers
             var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
             if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
             var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{PEKOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
-            return Redirect($"korone-player{bootstrapperArgs}");
+            return Redirect($"pekora-player{bootstrapperArgs}");
         }
 
         [HttpGetBypass("getrichpresence")]
@@ -530,7 +530,7 @@ namespace Roblox.Website.Controllers
                 IsSetPasswordNotificationEnabled = false,
                 ChangePasswordRequiresTwoStepVerification = false,
                 ChangeEmailRequiresTwoStepVerification = false,
-                UserEmail = "korone@korone.zip",
+                UserEmail = "pekora@pekora.zip",
                 UserEmailMasked = true,
                 UserEmailVerified = true,
                 CanHideInventory = true,
@@ -1263,7 +1263,7 @@ namespace Roblox.Website.Controllers
                 Username = safeUserSession.username,
                 DisplayName = safeUserSession.username,
                 HasPasswordSet = true,
-                Email = "korone@korone.zip",
+                Email = "pekora@pekora.zip",
                 MembershipType = 3,
                 RobuxBalance = userBalance.robux,
                 AgeBracket = 0,

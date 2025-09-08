@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "korone-2019-frontend",
+      "name": "pekora-2019-frontend",
       "dependencies": {
         "@microsoft/signalr": "^6.0.9",
         "axios": "1.8.2",

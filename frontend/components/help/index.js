@@ -113,18 +113,18 @@ const HelpPage = props => {
 
     const articles = [
         {
-            name: "Playing Korone",
-            description: "I'm having trouble playing Korone",
+            name: "Playing Pekora",
+            description: "I'm having trouble playing Pekora",
             url: "/help/install",
         },
         {
-            name: "Creating on Korone",
-            description: "I'm having trouble creating on Korone", // include guides on how to make games, game limits, studios, etc
+            name: "Creating on Pekora",
+            description: "I'm having trouble creating on Pekora", // include guides on how to make games, game limits, studios, etc
             url: "/help/create",
         },
         {
-            name: "Korone Account",
-            description: "I need help with my Korone account",
+            name: "Pekora Account",
+            description: "I need help with my Pekora account",
             url: "/help/account",
         },
         {
@@ -138,7 +138,7 @@ const HelpPage = props => {
         <FakeNavBar />
         <div className={s.banner} />
         <div className={`container ${s.container}`}>
-            <span style={{ textAlign: 'center', fontSize: '48px', fontWeight: 800, marginBottom: '30px' }}>Korone Help Articles</span>
+            <span style={{ textAlign: 'center', fontSize: '48px', fontWeight: 800, marginBottom: '30px' }}>Pekora Help Articles</span>
             <div className={s.articleContainer}>
                 {// eventually put search here? for now, span
                 }

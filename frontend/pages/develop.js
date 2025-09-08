@@ -14,7 +14,7 @@ const DevelopPage = props => {
 
 DevelopPage.getInitialProps = () => {
   return {
-    title: 'Develop - Korone',
+    title: 'Develop - Pekora',
   }
 }
 

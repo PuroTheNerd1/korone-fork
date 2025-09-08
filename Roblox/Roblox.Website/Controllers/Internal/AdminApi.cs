@@ -271,8 +271,8 @@ public class AdminApiController : ControllerBase
         // if (request.url != null)
         // {
         //     var url = new Uri(request.url);
-        //     if (!url.Host.EndsWith(".korone.zip") && url.Host != "korone.zip")
-        //         throw new StaffException("All URLs must link to korone.zip. Base was " + url.Host);
+        //     if (!url.Host.EndsWith(".pekora.zip") && url.Host != "pekora.zip")
+        //         throw new StaffException("All URLs must link to pekora.zip. Base was " + url.Host);
         // }
         Writer.Info(LogGroup.AbuseDetection, "User {0} is setting alert to '{1}'", userSession.userId, request.text);
         await services.users.SetGlobalAlert(request.text, request.url);
@@ -3147,7 +3147,7 @@ Thank you for your understanding,
         if (data == null || data.reportStatus != AbuseReportStatus.Pending)
             return;
         await services.abuseReport.SetReportStatus(id, AbuseReportStatus.Valid, safeUserSession.userId);
-        await services.privateMessages.CreateMessage(data.userId, 1, "Thank you for your report", "Your report has been reviewed and accepted. Thank you for helping keep Korone safe.");
+        await services.privateMessages.CreateMessage(data.userId, 1, "Thank you for your report", "Your report has been reviewed and accepted. Thank you for helping keep Pekora safe.");
         await RewardForReportReview();
     }
 

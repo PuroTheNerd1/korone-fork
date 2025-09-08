@@ -30,7 +30,7 @@ namespace Roblox.Website.Controllers
         {
             if (await services.users.IsUserLinked(safeUserSession.userId))
             {
-                return "You have already linked your discord account to Korone";
+                return "You have already linked your discord account to Pekora";
             }
             // if there isnt a code we will redirect it to the oauth link to get the code
             if (code == null)
@@ -52,7 +52,7 @@ namespace Roblox.Website.Controllers
             await services.users.LinkDiscordAccount(userInfo.Id.ToString(), safeUserSession.userId);
             // just incase
             await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordApi.AccessToken);
-            return "You have linked your account to Korone";
+            return "You have linked your account to Pekora";
         }
     }
 }

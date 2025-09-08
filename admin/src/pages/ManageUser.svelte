@@ -99,7 +99,7 @@
 								</p>
 								<img class="avatar-thumb" alt={`${info.data.username}'s Avatar`} src={info.data.thumbnail_url} />
 								<p>
-									<a href={`/users/${info.data.id}/profile`}><LinkIcon /> View Korone Profile</a>
+									<a href={`/users/${info.data.id}/profile`}><LinkIcon /> View Pekora Profile</a>
 								</p>
 							</div>
 						</div>

@@ -124,7 +124,7 @@ export const getItemDetails = async (assetIdArray) => {
 
 /**
  * @param {number[]} assetIdArray
- * @returns {Promise<KoroneCollection<AssetDetailsEntry>>}
+ * @returns {Promise<PekoraCollection<AssetDetailsEntry>>}
  */
 export const getItemDetailsNew = async (assetIdArray) => {
     if (assetIdArray.length === 0) return Promise.resolve({ data: [] });
@@ -161,7 +161,7 @@ export const getItemDetailsNew = async (assetIdArray) => {
  * @param {number} assetId
  * @param {number} assetTypeId
  * @param {number} limit
- * @returns {Promise<KoroneCollection<RecommendedItemEntry>>}
+ * @returns {Promise<PekoraCollection<RecommendedItemEntry>>}
  */
 export const getRecommendations = ({ assetId, assetTypeId, limit }) => {
     return request('GET', getFullUrl('catalog', '/v1/recommendations/asset/' + assetTypeId + '?contextAssetId=' + assetId + '&numItems=' + limit)).then(d => d.data);

@@ -82,7 +82,7 @@ public class WebController : ControllerBase
         catch (RecordNotFoundException)
         {
             await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordApi.AccessToken);
-            return Content("We couldn't find a korone account relating to this account, we have automatically joined the Korone discord server for you so you can register an account or link it!");
+            return Content("We couldn't find a pekora account relating to this account, we have automatically joined the Pekora discord server for you so you can register an account or link it!");
         }
 
         // create session
@@ -554,7 +554,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "korone-player",
+            prefix = "pekora-player",
             retroArgs = args
         };
     }
@@ -576,7 +576,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "korone-player",
+            prefix = "pekora-player",
             retroArgs = args
         };
     }

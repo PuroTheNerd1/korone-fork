@@ -66,7 +66,7 @@ const assetDetailsStore = createContainer(() => {
         let cursor = '';
         // might have to be do while instead of while
         while (cursor !== null) {
-            /** @type KoroneCollectionPaginated<ResellerData> */
+            /** @type PekoraCollectionPaginated<ResellerData> */
             const resellData = (await getResellers({ assetId: details.id, cursor: cursor, limit: 100 })).data;
             if (!resellData || resellData.data.length === 0) {
                 cursor = null;
@@ -90,7 +90,7 @@ const assetDetailsStore = createContainer(() => {
         let cursor = '';
         // might have to be do while instead of while
         while (cursor !== null) {
-            /** @type KoroneCollectionPaginated<OwnerEntry> */
+            /** @type PekoraCollectionPaginated<OwnerEntry> */
             const ownerData = (await getCollectibleOwners({ assetId: details.id, cursor: cursor, limit: 50, sort: "Asc" }));
             if (ownerData.data.length === 0) {
                 cursor = null;

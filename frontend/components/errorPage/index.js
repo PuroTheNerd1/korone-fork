@@ -67,7 +67,7 @@ const ErrorPage = ({ code, title, desc }) => {
     
     return <>
         <Head>
-            <title>{code} - Korone</title>
+            <title>{code} - Pekora</title>
         </Head>
         <Theme2016>
             <div className='col-12 h-100 flex justify-content-center align-items-center' style={{
