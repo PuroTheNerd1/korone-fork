@@ -9,7 +9,7 @@ const useLogoStyles = createUseStyles({
     height: '40px',
     // backgroundImage: `url(/img/roblox_logo.svg)`,
     //backgroundImage: 'url(/img/holiday/projex_logo_studio.png)',
-    backgroundImage: `url(/img/logo.png)`,
+    backgroundImage: `url(/img/korone.png)`,
     // backgroundSize: '122px 30px',
     backgroundSize: "100% auto",
     display: 'none',
@@ -21,7 +21,7 @@ const useLogoStyles = createUseStyles({
   },
   imgMobile: {
     //backgroundImage: `url(/img/logo_R.svg)`,
-    backgroundImage: 'url(/img/favicon.png)',
+    backgroundImage: 'url(/img/korone-icon-square.png)',
     width: '30px',
     height: '30px',
     display: 'block',
