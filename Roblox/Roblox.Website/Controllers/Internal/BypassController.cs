@@ -188,6 +188,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/v1/join-game")]
         public async Task<PlaceLaunchResponse> JoinGameMobile([FromBody] JoinGame request)
         {
+            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
             long year = await services.games.GetYear(request.placeId);
             if (year != 2020 && year != 2021)
             {
@@ -385,7 +386,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("game/join.ashx")]
         public async Task<dynamic> JoinGame(Guid jobId, bool GenerateTeleportJoin = false)
         {
-            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
+            FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
 
             string username = safeUserSession.username;
             long userId = safeUserSession.userId;

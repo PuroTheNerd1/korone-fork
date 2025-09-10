@@ -539,6 +539,7 @@ public class WebController : ControllerBase
     [HttpGet("game/get-join-script")]
     public async Task<dynamic> GetJoinScript(long placeId)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         // TODO: Rate limit, or caching, or something
         string clientVer;
         long year = await services.games.GetYear(placeId);
@@ -562,6 +563,7 @@ public class WebController : ControllerBase
     [HttpGet("game/get-join-script-fromjobid")]
     public async Task<dynamic> GetJoinScriptFromJobId(long placeId, string jobId)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         string clientVer;
         long year = await services.games.GetYear(placeId);
         clientVer = services.games.clientVersionMap.TryGetValue(year, out var ver) ? ver : throw new BadRequestException();
