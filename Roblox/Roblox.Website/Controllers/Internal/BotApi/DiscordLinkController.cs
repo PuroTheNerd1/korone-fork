@@ -35,7 +35,7 @@ namespace Roblox.Website.Controllers
             // if there isnt a code we will redirect it to the oauth link to get the code
             if (code == null)
             {
-                return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fbot%2Fverify&scope=identify+guilds.members.read+guilds.join");
+                return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fbot%2Fverify&scope=identify+guilds.join");
             }
             var discordApi = await DiscordApi.CreateFromOAuthCode(code, Configuration.DiscordLinkCallback);
             if (discordApi == null)
