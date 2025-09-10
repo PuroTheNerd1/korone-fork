@@ -116,7 +116,7 @@ public class WebController : ControllerBase
         }
         if (code is null)
         {
-            return Redirect($"https://discord.com/oauth2/authorize?client_id=%7BConfiguration.DiscordClientId%7D&response_type=code&redirect_uri=%7BHttpUtility.UrlEncode(Configuration.BaseUrl)%7D%252Fapi%252Fdiscordapplicationcallback&scope=identify+guilds.member");
+            return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}%&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%252Fapi%252Fdiscordapplicationcallback&scope=identify+guilds.member");
         }
         var discordApi = await DiscordApi.CreateFromOAuthCode(code, Configuration.DiscordApplicationCallback);
         if (discordApi == null)
