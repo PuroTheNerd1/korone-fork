@@ -129,6 +129,11 @@ func IsModelValid(reader io.Reader) bool {
 
 	if len(rootModels) == 1 && len(rootScripts) == 0 {
 		root := rootModels[0]
+
+		if root.ClassName == "MeshPart" {
+			return true
+		}
+
 		if len(root.Children) == 0 {
 			log.Println("Invalid model: root Model has no children.")
 			return false
