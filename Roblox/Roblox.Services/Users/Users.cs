@@ -988,7 +988,6 @@ public class UsersService : ServiceBase, IService
             discord_id = request.discordId,
             discord_username = request.discordUsername,
             reffered_by = request.refferedBy,
-            roblox_username = request.verifiedUsername,
         });
         return applicationId;
     }
