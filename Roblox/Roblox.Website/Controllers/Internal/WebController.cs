@@ -106,7 +106,7 @@ public class WebController : ControllerBase
     }
 
     [HttpGetBypass("api/discordapplicationcallback")]
-    public async Task<IActionResult> ApplicationDiscordCallback(string code)
+    public async Task<IActionResult> ApplicationDiscordCallback(string? code)
     {
         const string key = "PEKORA-DISCORD";
         // Delete any old sessions
@@ -114,7 +114,10 @@ public class WebController : ControllerBase
         {
             HttpContext.Response.Cookies.Delete(key);
         }
-
+        if (code is null)
+        {
+            return Redirect($"https://discord.com/oauth2/authorize?client_id=%7BConfiguration.DiscordClientId%7D&response_type=code&redirect_uri=%7BHttpUtility.UrlEncode(Configuration.BaseUrl)%7D%252Fapi%252Fdiscordapplicationcallback&scope=identify+guilds.member");
+        }
         var discordApi = await DiscordApi.CreateFromOAuthCode(code, Configuration.DiscordApplicationCallback);
         if (discordApi == null)
         {
