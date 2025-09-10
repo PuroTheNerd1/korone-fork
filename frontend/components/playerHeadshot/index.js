@@ -27,19 +27,25 @@ const PlayerHeadshot = (props) => {
     const [retryCount, setRetryCount] = useState(0);
     
     useEffect(() => {
-        setRetryCount(0);
-        multiGetUserHeadshots({
-            userIds: [props.id],
-            size: size + 'x' + size,
-        }).then(image => {
-            let u = image.find(v => v.targetId === props.id);
-            if (u?.state) {
-                setImage(ThumbnailFromState(u.imageUrl, u.state));
-            } else if (u?.imageUrl) {
-                setImage(u.imageUrl);
-            }
-        });
-    }, [props.id]);
+    setRetryCount(0);
+    multiGetUserHeadshots({
+        userIds: [props.id],
+        size: size + "x" + size,
+    }).then((results) => {
+        const u = results.find(v => String(v.targetId) === String(props.id));
+        if (!u) {
+        setImage("/img/empty.png");
+        return;
+        }
+
+        if (u.state === "Completed" && u.imageUrl) {
+        setImage(u.imageUrl);
+        } else {
+        setImage("/img/empty.png");
+        }
+    });
+    }, [props.id, size]);
+
     
     return <img className={`${s.image} ${props.className}`} src={image} alt={props?.name || ''} onError={(e) => {
         if (retryCount >= 3) return;

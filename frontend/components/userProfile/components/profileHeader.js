@@ -332,18 +332,18 @@ const ProfileHeader = props => {
       <div className={`card ${cardStyles.card}`}>
         <div className={`card-body ${s.cardBody}`}>
           <div className={`flex ${s.container}`}>
-            {<div className='col-12 col-lg-2 pe-0'>
+            {/*<div className='col-12 col-lg-2 pe-0'>
               <div className={s.iconWrapper}>
                 <PlayerHeadshot id={store.userId} name={store.username}/>
                 {status && <div className={s.activityWrapper}><Activity relative={false} {...status}></Activity></div>}
               </div>
-            </div>}
-            {/*<div className={`${s.thumbnailContainer}`}>
+            </div>*/}
+            <div className={`${s.thumbnailContainer}`}>
               <div className={s.avatarHeadshotContainer}>
                 <PlayerHeadshot className={s.image} id={store.userId} name={store.username} />
                 {status && <div className={s.activityWrapper}><Activity relative={false} {...status}></Activity></div>}
               </div>
-            </div>*/}
+            </div>
             <div className={`col-12 col-lg-10 ps-0 ${s.userInfoContainer}`}>
               <h2 className={s.username}>{store.username} {<BcIcon />} <div className={s.dropdown}>
                 {dropdownOptions && <Dropdown2016 options={dropdownOptions} dropdownClass={s.dropdownClass} wrapperClass={s.dropdownWrapper} />}
