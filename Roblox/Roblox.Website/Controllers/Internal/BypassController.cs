@@ -255,12 +255,6 @@ namespace Roblox.Website.Controllers
             return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={PEKOSECURITY}");
         }
 
-        [HttpGetBypass("getserverinfo")]
-        public async Task<dynamic> GetServerInfo(string ip)
-        {
-            return await services.games.GetInfoFromIp(ip);
-        }
-
         [HttpGetBypass("joinserver")]
         public async Task<IActionResult> JoinServerFromJobId(string jobId, long placeId)
         {

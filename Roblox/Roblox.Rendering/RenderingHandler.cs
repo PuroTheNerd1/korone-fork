@@ -13,7 +13,6 @@ namespace Roblox.Rendering
     public class RenderingHandler
     {
         private static Random RandomComponent = new Random();
-        private static HttpClient client = new HttpClient();
         // TODO: REWRITE RENDERING HANDLER
         private enum RenderType
         {
