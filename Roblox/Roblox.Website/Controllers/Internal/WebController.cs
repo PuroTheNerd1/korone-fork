@@ -105,8 +105,8 @@ public class WebController : ControllerBase
         return Redirect("/home");
     }
 
-    [HttpGetBypass("api/applicationcallback")]
-    public async Task<IActionResult> DiscordOAuthCallback(string code)
+    [HttpGetBypass("api/discordapplicationcallback")]
+    public async Task<IActionResult> ApplicationDiscordCallback(string code)
     {
         const string key = "PEKORA-DISCORD";
         // Delete any old sessions

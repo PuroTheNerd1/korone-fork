@@ -102,7 +102,7 @@
                                     <p class="mb-2">For further authentication, we need you to authorize our bot to know you aren't a bot. You will also be added to the Korone Discord Guild.</p>
                                     @if (Model.discordUser == null) {
                                         <div class="w-100 d-flex justify-content-center align-items-center">
-                                            <a href="/auth/discord-register" class="mt-2 btn btn-discord btn-custom">
+                                            <a href="https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fdiscordapplicationcallback&scope=identify+guilds.members.read+guilds.join" class="mt-2 btn btn-discord btn-custom">
                                                 <i class="bi bi-discord me-2"></i> Link Discord Account
                                             </a>
                                         </div>
