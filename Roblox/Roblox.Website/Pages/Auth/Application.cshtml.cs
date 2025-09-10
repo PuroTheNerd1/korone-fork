@@ -182,7 +182,7 @@ public class Application : RobloxPageModel
 
         if (robloxAccessToken != null)
         {
-            OAuthRobloxApi robloxOAuth = new(robloxAccessToken, true, $"https://www.{Configuration.BaseUrl}/api/application-callback-roblox");
+            OAuthRobloxApi robloxOAuth = new(robloxAccessToken, true, $"{Configuration.BaseUrl}/api/application-callback-roblox");
             var robloxInfo = await robloxOAuth.GetUserInfo();
             if (robloxInfo == null) {
                 errorMessage = "Please try re-authorizing your ROBLOX account";

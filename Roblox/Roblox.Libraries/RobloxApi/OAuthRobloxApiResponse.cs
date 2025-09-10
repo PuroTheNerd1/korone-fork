@@ -2,7 +2,8 @@ using Newtonsoft.Json;
 
 namespace Roblox.Libraries.RobloxApi;
 
-public class OAuthRobloxApiResponse {
+public class OAuthRobloxApiResponse
+{
     public class RobloxUserInfo
     {
         public long id { get; set; }
@@ -13,7 +14,8 @@ public class OAuthRobloxApiResponse {
         public string picture { get; set; }
     }
 
-    public class UserInfoResponseV1 {
+    public class UserInfoResponseV1
+    {
         public string sub { get; set; }
         public string name { get; set; }
         public string nickname { get; set; }
@@ -24,7 +26,8 @@ public class OAuthRobloxApiResponse {
         public string picture { get; set; }
     }
 
-    public class TokenResponseV1 {
+    public class TokenResponseV1
+    {
         public string access_token { get; set; }
         public string refresh_token { get; set; }
         public string token_type { get; set; }
