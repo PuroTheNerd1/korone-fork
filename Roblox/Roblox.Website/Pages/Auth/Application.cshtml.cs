@@ -342,17 +342,14 @@ public class Application : RobloxPageModel
         try
         {
             long? refferedByUserId = null;
-            // Hey this nigger has signed up with a refferal code lets do the work!
             if (!string.IsNullOrEmpty(referralCode))
             {
                 var code = await services.users.GetReferralCode(referralCode);
-                // Fucking black bitch got the code wrong let this nigger try again
                 if (code == null)
                 {
                     errorMessage = "Invalid referral code. Please try again.";
                     return new PageResult();
                 }
-                // Ok so this nigger got the code right lets set the id
                 refferedByUserId = code.userId;
             }
 
