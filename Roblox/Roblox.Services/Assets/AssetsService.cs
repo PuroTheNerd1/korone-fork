@@ -425,7 +425,7 @@ public class AssetsService : ServiceBase, IService
             Type.Animation => Configuration.AssetValidationServiceUrl + "/api/v1/validate-animation",
             _ => Configuration.AssetValidationServiceUrl + "/api/v1/validate-item"
         };
-
+        Writer.Info(LogGroup.AssetValidation, "url: {0}", url);
         if (file.CanSeek)
             file.Seek(0, SeekOrigin.Begin);
 

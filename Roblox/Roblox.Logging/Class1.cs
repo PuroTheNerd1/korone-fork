@@ -65,7 +65,7 @@ public class Writer
         {LogGroup.AssetRender, 4},
         {LogGroup.GameIconRender, 4},
         {LogGroup.GameThumbnailRender, 4},
-        {LogGroup.AssetValidation, 4},
+        {LogGroup.AssetValidation, 100},
         {LogGroup.ItemPurchase, 100},
         {LogGroup.ItemPurchaseResale, 100},
         {LogGroup.TradeSend, 100},
