@@ -40,7 +40,7 @@
 <div class="container mt-4 mb-4">
     <div class="row">
         <div class="col-12 col-xl-6 offset-xl-3 col-md-8 offset-md-2">
-            <div id="hi" class="card card-body bg-dark text-light">
+            <div class="card card-body bg-dark text-light">
                 @if (Model.errorMessage != null)
                 {
                     <div class="alert alert-danger">
@@ -51,15 +51,6 @@
                 <h3>Application</h3>
                 <p>To join this website, you must fill out an application. This is done to prevent bots and malicious users from joining.</p>
 
-                <div>
-                    <h4>Requirements</h4>
-                    <ul>
-                        <li>You must be 13 years of age or older</li>
-                        <li>You must have an active account ROBLOX account.</li>
-                        <li>You must have a Discord account.</li>
-                    </ul>
-                </div>
-                
                 @if (Model.application == null)
                 {
                     <p class="mb-0"><span class="fw-bold">Already filled out the application?</span> Click <a href="/auth/application-check">here</a> to view its status.</p>
@@ -95,52 +86,30 @@
                     <form method="post">
                         <div class="input-padding"></div>
 
+                        <div>
+                            <h4>Requirements</h4>
+                            <ul>
+                                <li>You must be 13 years of age or older</li>
+                                <li>You must have an active account on a public website such as Roblox or Twitter.</li>
+                            </ul>
+                        </div>
+
+                        <div class="input-padding"></div>
+
                         <div class="application-form-entry">
                             <div class="stage-1">
                                 <h4>Step 1 - Discord</h4>
                                 <div class="p-2">
-                                    <p class="mb-2">For further authentication, we need you to authorize our bot to know you aren't a bot. You will also be added to the Korone Discord Guild.</p>
-                                    @if (Model.discordUser == null) {
-                                        <div class="w-100 d-flex justify-content-center align-items-center">
-                                            <a href="/api/discordapplicationcallback" class="mt-2 btn btn-discord btn-custom">
-                                                <i class="bi bi-discord me-2"></i> Link Discord Account
-                                            </a>
-                                        </div>
-                                    }
-                                    else {
-                                        <div class="alert alert-primary mt-2 mb-2 d-flex align-items-center">
-                                            <img src="@Model.discordUser.AvatarUrl" alt="Discord Avatar" style="width: 20px; height: 20px; margin-right: 8px;">
-                                            <span class="ml-auto">@('@' + Model.discordUser.Username) (@Model.discordUser.Id.ToString())</span>
-                                        </div>
-                                    }
+                                    <p class="mb-0">For further authentication, we need you to authorize our bot to know you aren't a bot. You will also be added to the Korone Discord Guild.</p>
+                                    <div class="alert alert-primary mt-2 mb-2 d-flex align-items-center">
+                                        <img src="@Model.discordUser.AvatarUrl" alt="Discord Avatar" style="width: 20px; height: 20px; margin-right: 8px;">
+                                        <span class="ml-auto">@('@' + Model.discordUser.Username) (@Model.discordUser.Id.ToString())</span>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div class="input-padding"></div>
 
                             <div class="stage-2">
-                                <h4>Step 2 - Roblox Username</h4>
-                                <div class="p-2">
-                                    <p class="mb-0">For further authentication, we need you to authorize using ROBLOX OAuth2 to know you aren't a bot.</p>
-                                    <p class="mb-2 mt-2"><span class="fw-bold">Your account must have some activity on it</span>, such as friends/followers, games, or whatever constitutes activity on ROBLOX.</p>
-                                    @if (Model.robloxUser == null) {
-                                        <div class="w-100 d-flex justify-content-center align-items-center">
-                                            <a href="/auth/roblox-register" class="mt-2 btn btn-roblox btn-custom">
-                                                <i class="icon-custom-roblox me-2"></i> Link ROBLOX Account
-                                            </a>
-                                        </div>
-                                    }
-                                    else {
-                                        <div class="alert alert-primary mt-2 mb-2 d-flex align-items-center">
-                                            <img src="@Model.robloxUser.picture" alt="ROBLOX Avatar" style="width: 20px; height: 20px; margin-right: 8px;">
-                                            <span class="ml-auto">@($"{Model.robloxUser.nickname} (@{Model.robloxUser.username}, ID {Model.robloxUser.id})")</span>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                            
-                            <div class="stage-3">
-                                <h4>Step 3 - About Me</h4>
+                                <h4>Step 2 - About Me</h4>
                                 <div class="p-2">
                                     <p class="mb-1">You can list some interests, favorite video games, why you want to join, things you can create (e.g. clothing or games), etc. A sentence or two is fine. <span class="fw-bolder">Do <span class="text-decoration-underline">NOT</span> put personal information such as your age or email address</span>.</p>
                                     <textarea placeholder="About me (up to 4,000 characters)" disabled="@Model.submitDisabled" class="form-control w-100" rows="4" name="about" maxlength="4096">@Model.about</textarea>
@@ -149,23 +118,34 @@
 
                             <div class="input-padding"></div>
 
-                            @* <div class="stage-4"> *@
-                            @*     <h4>Step 4 - Verification</h4> *@
-                            @*     <div class="p-2"> *@
-                            @*         <p class="mb-0">Copy the entire phrase in the blue box below and paste it into the about section of your social media profile. This is done so that we can verify you aren't impersonating someone.</p> *@
-                            @*         <div class="alert alert-primary mt-2 mb-2"> *@
-                            @*             <p class="mb-0">@Model.verificationPhrase</p> *@
-                            @*         </div> *@
-                            @* *@
-                            @*         <div class="mt-2"> *@
-                            @*             <label>Code not working or getting filtered? </label> *@
-                            @*             <input type="submit" class="btn btn-outline-primary btn-sm" name="action" value="Get New Code"/> *@
-                            @*         </div> *@
-                            @*     </div> *@
-                            @* </div> *@
+                            <div class="stage-3">
+                                <h4>Step 3 - Roblox Username</h4>
+                                <div class="p-2">
+                                    <p class="mb-0">Please put your Roblox username here.</p>
+                                    <p class="mb-2 mt-2"><span class="fw-bold">Your account must have some activity on it</span>, such as friends/followers, games, or whatever constitutes activity on Roblox.</p>
+                                    <input placeholder="Your Roblox username" value="@Model.robloxUsername" disabled="@Model.submitDisabled" type="text" class="form-control" name="robloxUsername" maxlength="60"/>
+                                </div>
+                            </div>
+
+                            <div class="input-padding"></div>
 
                             <div class="stage-4">
-                                <h4>Step 4 - Referral</h4>
+                                <h4>Step 4 - Verification</h4>
+                                <div class="p-2">
+                                    <p class="mb-0">Copy the entire phrase in the blue box below and paste it into the about section of your social media profile. This is done so that we can verify you aren't impersonating someone.</p>
+                                    <div class="alert alert-primary mt-2 mb-2">
+                                        <p class="mb-0">@Model.verificationPhrase</p>
+                                    </div>
+
+                                    <div class="mt-2">
+                                        <label>Code not working or getting filtered? </label>
+                                        <input type="submit" class="btn btn-outline-primary btn-sm" name="action" value="Get New Code"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stage-5">
+                                <h4>Step 5 - Referral</h4>
                                 <div class="p-2">
                                     <p class="mb-0">Enter the referral code here, if you don't have one you can leave it blank</p>
                                     <p class="mb-2 mt-2"><span class="fw-bold">You will both will receive 50 robux.</span></p>
@@ -175,8 +155,8 @@
 
                             <div class="input-padding"></div>
 
-                            <div class="stage-5">
-                                <h4>Step 5 - Captcha</h4>
+                            <div class="stage-6">
+                                <h4>Step 6 - Captcha</h4>
                                 <div class="p-2">
                                     <p class="mb-0">We just have to make sure you aren't a robot.</p>
                                     <div class="cf-turnstile mt-4" data-sitekey="@Model.siteKey" data-theme="dark"></div>
@@ -184,10 +164,10 @@
                                 @Html.AntiForgeryToken()
                             </div>
                         </div>
-                        
+
                         <div class="stage-submit">
                             <div class="input-padding"></div>
-                            <input type="submit" class="btn btn-primary mt-2 submit-input" value="Submit Application"/>
+                            <input type="submit" class="btn btn-primary mt-2" value="Submit Application"/>
                         </div>
                     </form>
 
