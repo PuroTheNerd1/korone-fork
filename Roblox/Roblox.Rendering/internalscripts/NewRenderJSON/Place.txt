@@ -3,7 +3,7 @@
   "Settings": {
     "Type": "Place",
     "Arguments": [
-       "https://www.korone.zip/asset?id=%universeId%",
+       "https://www.pekora.zip/asset?id=%universeId%",
        "PNG",
       %x%,
       %y%,

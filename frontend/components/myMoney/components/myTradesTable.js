@@ -17,13 +17,13 @@ const useStyles = createUseStyles({
   tableHead: {
     borderTop: '1px solid #b9b9b9',
     borderBottom: '2px solid var(--background-color)',
-    background: 'var(--white-color-hover)',
+    background: '#f1f1f1',
   },
   tableHeadLabel: {
     paddingTop: '5px',
     paddingBottom: '5px',
     paddingLeft: '5px',
-    color: 'var(--text-color-primary)',
+    color: '#5d5a5b',
   },
   tableHeadBorder: {
     borderRight: '2px solid #e1e1e1',
@@ -66,7 +66,7 @@ const MyTradesTable = props => {
             <option value='inactive'>Inactive</option>
           </select>
           <p className={s.tradeTypeActions + ' ms-2'}>
-            <a href='https://goober.top/help'>
+            <a href='https://pekora.zip/help'>
               How do I send a trade?
             </a>
           </p>
