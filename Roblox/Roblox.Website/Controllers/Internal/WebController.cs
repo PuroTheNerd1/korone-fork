@@ -558,7 +558,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "korone-player",
+            prefix = "pekora-player",
             retroArgs = args
         };
     }
@@ -581,7 +581,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "korone-player",
+            prefix = "pekora-player",
             retroArgs = args
         };
     }
