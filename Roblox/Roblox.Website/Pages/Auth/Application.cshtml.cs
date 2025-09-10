@@ -117,7 +117,7 @@ public class Application : RobloxPageModel
 
         if (discordAccessToken == null)
         {
-            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
+            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={Configuration.DiscordApplicationCallback}&scope=identify+guilds.members.read+guilds.join");
         }
 
         DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
