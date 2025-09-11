@@ -61,6 +61,7 @@ public static class Configuration
     public static string AssetValidationServiceAuthorization { get; set; }
     public static string BotAuthorization { get; set; }
     public static string RccAuthorization { get; set; }
+    public static string RobloxAuthorization { get; set; }
     public static string ArbiterAuthorization { get; set; }
     public static string GameServerIp { get; set; }
     public static string UserAgentBypassSecret { get; set; }

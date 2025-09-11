@@ -56,6 +56,7 @@ Roblox.Configuration.DiscordLinkCallback = Roblox.Configuration.BaseUrl + config
 Roblox.Configuration.GameServerAuthorization = configuration.GetSection("GameServerAuthorization").Value!;
 Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value!;
 Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value!;
+Roblox.Configuration.RobloxAuthorization = configuration.GetSection("RobloxAuthorization").Value!;
 Roblox.Configuration.ArbiterAuthorization = configuration.GetSection("ArbiterAuthorization").Value!;
 Roblox.Configuration.GameServerIp = configuration.GetSection("GameServerIp").Value!;
 Roblox.Configuration.UserAgentBypassSecret = configuration.GetSection("UserAgentBypassSecret").Value!;
