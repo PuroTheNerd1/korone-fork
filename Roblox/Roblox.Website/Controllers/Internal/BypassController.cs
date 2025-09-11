@@ -1049,6 +1049,7 @@ namespace Roblox.Website.Controllers
         private static int pendingAssetUploads { get; set; } = 0;
         private static readonly Mutex pendingAssetUploadsMux = new();
 
+        [HttpPostBypass("ide/publish/uploadexistinganimation")]
         [HttpPostBypass("ide/publish/UploadFromCloudEdit")]
         [HttpPostBypass("Data/Upload.ashx")]
         public async Task<dynamic> UploadPlaceFromStudio(long? assetId = null)
