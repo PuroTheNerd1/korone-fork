@@ -1153,7 +1153,7 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Bad animation file");
         stream.Position = 0;
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.ReviewApproved);
+            safeUserSession.userId, stream, Models.Assets.Type.Animation, Genre.All, ModerationStatus.ReviewApproved);
         return asset;
     }
 
