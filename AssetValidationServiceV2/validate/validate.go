@@ -57,7 +57,7 @@ func IsAnimationValid(reader io.Reader) bool {
 
 	for _, kfs := range rootKeyframes {
 		for _, child := range kfs.Children {
-			if child.ClassName != "Keyframe" && child.ClassName != "AnimationRigData" {
+			if child.ClassName != "Keyframe" && child.ClassName != "Pose" {
 				log.Printf("Invalid animation: unsupported child class %q in KeyframeSequence\n", child.ClassName)
 				return false
 			}
