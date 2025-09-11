@@ -6,11 +6,12 @@ import { useEffect, useState } from "react";
 
 const useStyles = createUseStyles({
     image: {
-        maxWidth: '400px',
-        width: '100%',
+        width: '420px',
+        height: '420px',
+        objectFit: 'cover',
         margin: '0 auto',
-        height: 'auto',
         paddingTop: '20px',
+        display: 'block'
     },
 })
 
