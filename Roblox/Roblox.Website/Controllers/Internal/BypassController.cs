@@ -1114,6 +1114,9 @@ namespace Roblox.Website.Controllers
                 }
 
             }
+            // hacky fix for updating models/animations so it returns the proper id
+            if ((info.assetType == Type.Animation || info.assetType == Type.Model) && assetId != null)
+                return assetId;
             return new
             {
                 success = true,
