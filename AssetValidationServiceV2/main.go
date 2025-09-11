@@ -91,7 +91,7 @@ func main() {
 		}
 		defer afterValidation()
 		body := c.Body()
-		log.Println("validating model with size =", len(body))
+		log.Println("validating animation with size =", len(body))
 		nReader := bytes.NewReader(body)
 		isOk := validate.IsAnimationValid(nReader)
 		return c.Status(200).JSON(ValidationResponse{
