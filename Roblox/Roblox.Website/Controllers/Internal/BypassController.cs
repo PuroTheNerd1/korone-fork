@@ -1055,33 +1055,18 @@ namespace Roblox.Website.Controllers
         {
             FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
             // if assetId is 0 try getting it from the headers
-            long placeId = assetId ?? 0;
-            long userId = 0;
-            if (placeId == 0)
-            {
-                long.TryParse(Request.Headers["roblox-place-id"].ToString(), out placeId);
-            }
+            if (assetId == null && currentPlaceId != 0)
+                assetId = currentPlaceId;
 
-            var info = await services.assets.GetAssetCatalogInfo(placeId);
-            bool canUpload = false;
-            // check if the user can upload if they cant then check if rcc can
-            if (userSession != null)
-            {
-                userId = userSession.userId;
-                canUpload = await services.assets.CanUserModifyItem(placeId, userSession.userId);
-            }
+            var info = await services.assets.GetAssetCatalogInfo(assetId!.Value);
 
-            if (!canUpload)
-            {
-                userId = info.creatorTargetId;
-                canUpload = isRCC;
-            }
+            // Should be secure enough
+            bool isUserAllowedToUpload = (userSession is not null && await services.assets.CanUserModifyItem(assetId!.Value, userSession.userId));
+            if (!isUserAllowedToUpload && !isRCC)
+                throw new ForbiddenException(1, "Not allowed to upload");
 
             if (info.assetType != Type.Place && info.assetType != Type.Animation && info.assetType != Type.Model)
-                canUpload = false;
-
-            if (!canUpload)
-                throw new RobloxException(403, 0, "Unauthorized");
+                throw new BadRequestException(0, "This asset type is not supported");
 
             lock (pendingAssetUploadsMux)
             {
@@ -1091,19 +1076,19 @@ namespace Roblox.Website.Controllers
             }
             try
             {
-                using var placeStream = await GetRequestBodyAsMemoryStream();
+                using var assetStream = await GetRequestBodyAsMemoryStream();
 
-                placeStream.Position = 0;
+                assetStream.Position = 0;
                 using var validationStream = new MemoryStream();
-                await placeStream.CopyToAsync(validationStream);
+                await assetStream.CopyToAsync(validationStream);
                 validationStream.Position = 0;
 
                 if (!await services.assets.ValidateAssetFile(validationStream, info.assetType))
-                    throw new RobloxException(400, 0, "BadRequest");
+                    throw new RobloxException(400, 0, "Invalid asset file");
 
-                placeStream.Position = 0;
+                assetStream.Position = 0;
 
-                await services.assets.CreateAssetVersion(placeId, userId, placeStream);
+                await services.assets.CreateAssetVersion(assetId!.Value, info.creatorTargetId, assetStream);
 
             }
             finally
