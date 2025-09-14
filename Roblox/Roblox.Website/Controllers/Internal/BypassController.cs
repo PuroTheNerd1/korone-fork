@@ -1357,6 +1357,7 @@ namespace Roblox.Website.Controllers
                 return;
             }
             await services.gameServer.SetServerPing(gameId);
+            await services.gameServer.SetFilteringEnabled(gameId, true);
 
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
