@@ -173,9 +173,9 @@
 			{:else if assetsToApprove.length === 0}
 				<p class="text-cener">There are no assets to approve at this time.</p>
 			{:else}
-				<div class={"row mb-4"}>
+				<div class={"mb-4 flex-row"} style="display: flex;">
 					{#each assetsToApprove as asset}
-						<div class="col-12 mt-4 mb-4">
+						<div class="col-9 mt-4 mb-4">
 							<div class={"card card-body mod-card-" + modMode}>
 								<div class="row">
 									<div class="col-12 col-lg-6">
@@ -241,6 +241,17 @@
 									</div>
 								</div>
 							</div>
+						</div>
+						<div class="col-3 mt-4 mb-4 pl-1" style="padding-left: 10px;">
+							<video
+								class="w-auto h-100"
+								style="aspect-ratio: 9/16;"
+								src="/img/vid/brainrot.mp4"
+								autoplay
+								playsinline
+								muted
+								controls
+							/>
 						</div>
 					{/each}
 				</div>
