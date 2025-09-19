@@ -20,9 +20,9 @@ public static class Cache
         set => _redLock = value;
     }
 
-    public static void Configure(string connectUrl)
+    public static void Configure(string connectUrl, string? password = null)
     {
-        Roblox.Cache.DistributedCache.Configure(connectUrl);
+        Roblox.Cache.DistributedCache.Configure(connectUrl, password);
         redLock = RedLockFactory.Create(new List<RedLockMultiplexer>()
         {
             Roblox.Cache.DistributedCache.redis,

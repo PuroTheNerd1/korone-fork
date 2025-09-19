@@ -24,13 +24,17 @@ public class DistributedCache
         return DateTime.UtcNow > value.Item2;
     }
 
-    public static void Configure(string connectUrl)
+    public static void Configure(string connectUrl, string? password = null)
     {
         var options = ConfigurationOptions.Parse(connectUrl);
 
         options.ConnectTimeout = 10000;
         options.SyncTimeout = 10000;
         options.AbortOnConnectFail = false;
+        if (password != null)
+        {
+            options.Password = password;
+        }
 
         redis = ConnectionMultiplexer.Connect(options);
         Task.Run(async () =>

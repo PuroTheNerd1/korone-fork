@@ -498,9 +498,9 @@ public class AdminApiController : ControllerBase
             if (!StaffFilter.IsOwner(safeUserSession.userId))
             {
                 // Rate limit for staff to moderate already approved items
-                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Hour:{safeUserSession.userId}", 150, TimeSpan.FromHours(1)))
+                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Hour:{safeUserSession.userId}", 250, TimeSpan.FromHours(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (hour). Contact an administrator.");
-                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Day:{safeUserSession.userId}", 400, TimeSpan.FromDays(1)))
+                if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Day:{safeUserSession.userId}", 500, TimeSpan.FromDays(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
                 if (!await services.cooldown.TryIncrementBucketCooldown($"ModerateApprovedItem_Day_Global", 5000, TimeSpan.FromDays(1)))
                     throw new StaffException("Moderation of already approved item rate limit exceeded (day). Contact an administrator.");
@@ -585,13 +585,17 @@ public class AdminApiController : ControllerBase
     {
         if (!StaffFilter.IsOwner(safeUserSession.userId))
         {
-            // 30 deletions/hour
-            if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Hour", 30, TimeSpan.FromHours(1)))
+            // 250 deletions/hour
+            if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Hour", 250, TimeSpan.FromHours(1)))
                 throw new StaffException("Asset deletion rate limit exceeded (hour). Contact an administrator.");
 
-            // 100/day
-            if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Day", 100, TimeSpan.FromDays(1)))
+            // 500/day
+            if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Day", 500, TimeSpan.FromDays(1)))
                 throw new StaffException("Asset deletion rate limit exceeded (day). Contact an administrator.");
+
+            // 5000 globally
+            if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Global", 5000, TimeSpan.FromDays(1)))
+                throw new StaffException("Asset deletion rate limit exceeded (global). Contact an administrator.");
         }
 
         await ModerateAsset(request);
@@ -3322,4 +3326,5 @@ Thank you for your understanding,
             date = res
         };
     }
+}
 }

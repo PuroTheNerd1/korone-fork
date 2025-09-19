@@ -23,7 +23,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // DB
 Roblox.Services.Database.Configure(configuration.GetSection("Postgres").Value!);
-Roblox.Services.Cache.Configure(configuration.GetSection("Redis").Value!);
+Roblox.Services.Cache.Configure(configuration.GetSection("Redis").Value!, configuration.GetSection("RedisAuthentication").Value!);
 
 // Config
 Roblox.Configuration.CdnBaseUrl = configuration.GetSection("CdnBaseUrl").Value!;
