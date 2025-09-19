@@ -51,7 +51,7 @@ public class WebController : ControllerBase
     [HttpGetBypass("auth/discord-login")]
     public IActionResult DiscordLogin()
     {
-        return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Flogincallback&scope=identify+guilds.members.read+guilds.join");
+        return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Flogincallback&scope=identify+guilds.join");
     }
 
     [HttpGetBypass("api/logincallback")]
@@ -105,8 +105,8 @@ public class WebController : ControllerBase
         return Redirect("/home");
     }
 
-    [HttpGetBypass("api/applicationcallback")]
-    public async Task<IActionResult> DiscordOAuthCallback(string code)
+    [HttpGetBypass("api/discordapplicationcallback")]
+    public async Task<IActionResult> ApplicationDiscordCallback(string? code)
     {
         const string key = "PEKORA-DISCORD";
         // Delete any old sessions
@@ -114,7 +114,10 @@ public class WebController : ControllerBase
         {
             HttpContext.Response.Cookies.Delete(key);
         }
-
+        if (code is null)
+        {
+            return Redirect($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={Configuration.DiscordApplicationCallback}&scope=identify+guilds.join");
+        }
         var discordApi = await DiscordApi.CreateFromOAuthCode(code, Configuration.DiscordApplicationCallback);
         if (discordApi == null)
         {
@@ -555,7 +558,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "korone-player",
+            prefix = "pekora-player",
             retroArgs = args
         };
     }
@@ -578,7 +581,7 @@ public class WebController : ControllerBase
         return new
         {
             joinScriptUrl = bootstrapperArgs,
-            prefix = "korone-player",
+            prefix = "pekora-player",
             retroArgs = args
         };
     }
@@ -769,6 +772,7 @@ public class WebController : ControllerBase
         Models.Assets.Type.Video,
         Models.Assets.Type.Mesh,
         //Models.Assets.Type.MeshPart,
+        Models.Assets.Type.Animation,
         Models.Assets.Type.Model,
         Models.Assets.Type.GamePass,
         Models.Assets.Type.Badge
@@ -1149,7 +1153,7 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Bad animation file");
         stream.Position = 0;
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.ReviewApproved);
+            safeUserSession.userId, stream, Models.Assets.Type.Animation, Genre.All, ModerationStatus.ReviewApproved);
         return asset;
     }
 

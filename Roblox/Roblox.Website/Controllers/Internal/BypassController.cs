@@ -255,12 +255,6 @@ namespace Roblox.Website.Controllers
             return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={PEKOSECURITY}");
         }
 
-        [HttpGetBypass("getserverinfo")]
-        public async Task<dynamic> GetServerInfo(string ip)
-        {
-            return await services.games.GetInfoFromIp(ip);
-        }
-
         [HttpGetBypass("joinserver")]
         public async Task<IActionResult> JoinServerFromJobId(string jobId, long placeId)
         {
@@ -276,7 +270,7 @@ namespace Roblox.Website.Controllers
             var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
             if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
             var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{PEKOSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
-            return Redirect($"korone-player{bootstrapperArgs}");
+            return Redirect($"pekora-player{bootstrapperArgs}");
         }
 
         [HttpGetBypass("getrichpresence")]
@@ -1055,39 +1049,25 @@ namespace Roblox.Website.Controllers
         private static int pendingAssetUploads { get; set; } = 0;
         private static readonly Mutex pendingAssetUploadsMux = new();
 
+        [HttpPostBypass("ide/publish/uploadexistinganimation")]
         [HttpPostBypass("ide/publish/UploadFromCloudEdit")]
         [HttpPostBypass("Data/Upload.ashx")]
         public async Task<dynamic> UploadPlaceFromStudio(long? assetId = null)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
             // if assetId is 0 try getting it from the headers
-            long placeId = assetId ?? 0;
-            long userId = 0;
-            if (placeId == 0)
-            {
-                long.TryParse(Request.Headers["roblox-place-id"].ToString(), out placeId);
-            }
+            if (assetId == null && currentPlaceId != 0)
+                assetId = currentPlaceId;
 
-            var info = await services.assets.GetAssetCatalogInfo(placeId);
-            bool canUpload = false;
-            // check if the user can upload if they cant then check if rcc can
-            if (userSession != null)
-            {
-                userId = userSession.userId;
-                canUpload = await services.assets.CanUserModifyItem(placeId, userSession.userId);
-            }
+            var info = await services.assets.GetAssetCatalogInfo(assetId!.Value);
 
-            if (!canUpload)
-            {
-                userId = info.creatorTargetId;
-                canUpload = isRCC;
-            }
+            // Should be secure enough
+            bool isUserAllowedToUpload = (userSession is not null && await services.assets.CanUserModifyItem(assetId!.Value, userSession.userId));
+            if (!isUserAllowedToUpload && !isRCC)
+                throw new ForbiddenException(1, "Not allowed to upload");
 
             if (info.assetType != Type.Place && info.assetType != Type.Animation && info.assetType != Type.Model)
-                canUpload = false;
-
-            if (!canUpload)
-                throw new RobloxException(403, 0, "Unauthorized");
+                throw new BadRequestException(0, "This asset type is not supported");
 
             lock (pendingAssetUploadsMux)
             {
@@ -1097,19 +1077,19 @@ namespace Roblox.Website.Controllers
             }
             try
             {
-                using var placeStream = await GetRequestBodyAsMemoryStream();
+                using var assetStream = await GetRequestBodyAsMemoryStream();
 
-                placeStream.Position = 0;
+                assetStream.Position = 0;
                 using var validationStream = new MemoryStream();
-                await placeStream.CopyToAsync(validationStream);
+                await assetStream.CopyToAsync(validationStream);
                 validationStream.Position = 0;
 
                 if (!await services.assets.ValidateAssetFile(validationStream, info.assetType))
-                    throw new RobloxException(400, 0, "BadRequest");
+                    throw new RobloxException(400, 0, "Invalid asset file");
 
-                placeStream.Position = 0;
+                assetStream.Position = 0;
 
-                await services.assets.CreateAssetVersion(placeId, userId, placeStream);
+                await services.assets.CreateAssetVersion(assetId!.Value, info.creatorTargetId, assetStream);
 
             }
             finally
@@ -1120,6 +1100,9 @@ namespace Roblox.Website.Controllers
                 }
 
             }
+            // hacky fix for updating models/animations so it returns the proper id
+            if ((info.assetType == Type.Animation || info.assetType == Type.Model) && assetId != null)
+                return assetId;
             return new
             {
                 success = true,
@@ -1374,6 +1357,7 @@ namespace Roblox.Website.Controllers
                 return;
             }
             await services.gameServer.SetServerPing(gameId);
+            await services.gameServer.SetFilteringEnabled(gameId, true);
 
         }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]

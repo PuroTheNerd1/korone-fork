@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss"
+import { getTheme, themeType } from "../../services/theme";
 
 const useDropdownStyles = createUseStyles({
   wrapper: {
@@ -31,7 +32,7 @@ const useDropdownStyles = createUseStyles({
   },
   leftMenu: {
     position: 'absolute',
-    background: '#d8d8d8',
+    background: p => p.theme === themeType.dark ? 'var(--white-color)': '#d8d8d8',
     border: '1px solid #565655',
     minWidth: '150px',
     '@media(max-width: 800px)': {
@@ -51,7 +52,7 @@ const useDropdownStyles = createUseStyles({
     width: '100%',
   },
   selected: {
-    backgroundColor: 'var(--text-color-secondary)ccc!important'
+      background: p => p.theme === themeType.dark ? 'var(--white-color-hover)!important': 'var(--text-color-secondary)!important',
   },
 });
 /**
@@ -59,7 +60,7 @@ const useDropdownStyles = createUseStyles({
  * @param {{textClass?: string; selected?: any; title?: JSX.Element; onClick: (e: any, data: any) => void; items: {name: string; clickData: any; children?: {title: string; children?: {name: string; clickData: any;}[]}}[]}} props
  */
 const Dropdown = props => {
-  const s = useDropdownStyles();
+  const s = useDropdownStyles({theme: getTheme()});
   const [leftMenu, setLeftMenu] = useState(null);
   const wrapperRef = useRef(null);
   const leftMenuRef = useRef(null);

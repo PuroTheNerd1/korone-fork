@@ -88,6 +88,21 @@ public class SessionEntry
     public DateTime createdAt { get; set; }
 }
 
+public class RobloxId
+{
+    public long robloxId { get; set; }
+}
+
+public class VerifiedId
+{
+    public string verifiedId { get; set; }
+}
+
+public class DiscordId
+{
+    public string discordId { get; set; }
+}
+
 public class MultiGetRequest
 {
     public IEnumerable<long> userIds { get; set; }
@@ -158,10 +173,12 @@ public class CreateUserApplicationRequest
     public bool isVerified { get; set; }
     public string? verifiedUrl { get; set; }
     public string? verifiedId { get; set; }
+    public string? verifiedUsername { get; set; }
     public string? verificationPhrase { get; set; }
     public string discordId { get; set; }
     public string discordUsername { get; set; }
     public long? refferedBy{ get; set; }
+    public long? robloxId { get; set; }
 }
 
 public class UserApplicationEntry : CreateUserApplicationRequest

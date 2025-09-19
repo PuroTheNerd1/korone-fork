@@ -8,9 +8,18 @@ import SellItem from "./sellItem";
 import Comments from "./comments";
 import Genre from "./genre";
 import UpdateBadge from "./updateBadge";
+import { createUseStyles } from "react-jss";
+import { getTheme, themeType } from "../../../services/theme";
+
+const useStyles = createUseStyles({
+  page: {
+    background: p => p.theme === themeType.obc2019 ? "var(--background-color)" : "",
+  },
+});
 
 const Container = props => {
   const {assetId} = props;
+  const s = useStyles({theme: getTheme()});
   const store = ConfigureItemStore.useContainer();
   useEffect(() => {
     if (!assetId)
@@ -36,7 +45,7 @@ const Container = props => {
   if (!store.assetId || !store.details)
     return null;
 
-  return <div className='row'>
+  return <div className={`row ${s.page}`}>
     <div className='col-12'>
       <ConfigureHeader />
       <ConfigureRow />

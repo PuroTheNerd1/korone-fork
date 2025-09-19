@@ -6,8 +6,17 @@ import Theme2016 from "../../components/theme2016";
 import AvatarPageStore from "../../components/AvatarEditorPage/stores/avatarPageStore";
 import Head from "next/head";
 import Script from "next/script";
+import { createUseStyles } from "react-jss";
+import { getTheme, themeType } from "../../services/theme";
+
+const useStyles = createUseStyles({
+    avPageWrapper: {
+        background: p => p.theme === themeType.obc2019 ? 'var(--background-color)' : 'transparent',
+    },
+});
 
 const AvatarPage = () => {
+    const s = useStyles({theme: getTheme()});
     return <Theme2016>
         <Head>
             <title>Avatar - Korone</title>
@@ -17,7 +26,7 @@ const AvatarPage = () => {
             <script src="/js/3d/three-r137/RobloxOrbitControls.js" />
             <script src="/js/3d/tween.js" />
         </Head>
-        <div className="container flex flex-column ssp">
+        <div className={`${s.avPageWrapper} container flex flex-column ssp`}>
             <AdBanner context="MyCharacterPage"/>
             <AvatarInfoStore.Provider>
                 <AvatarPageStore.Provider>

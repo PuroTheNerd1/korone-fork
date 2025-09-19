@@ -38,6 +38,7 @@ const useStyles = createUseStyles({
         display: 'block',
         width: '100%',
         position: 'relative',
+        aspectRatio: '1 / 1',
         '&:hover': {
             transition: 'box-shadow 200ms ease',
             boxShadow: '0 1px 6px 0 rgba(25,25,25,0.75)'

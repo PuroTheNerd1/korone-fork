@@ -36,6 +36,8 @@ public static class Configuration
     public static string ShortBaseUrl { get; set; }
     public static string HCaptchaPublicKey { get; set; }
     public static string HCaptchaPrivateKey { get; set; }
+    public static string RobloxClientId { get; set; }
+    public static string RobloxClientSecret { get; set; }
     public static string DiscordClientId { get; set; }
     public static string DiscordClientSecret { get; set; }
     public static string DiscordGuildId { get; set; }
@@ -59,6 +61,7 @@ public static class Configuration
     public static string AssetValidationServiceAuthorization { get; set; }
     public static string BotAuthorization { get; set; }
     public static string RccAuthorization { get; set; }
+    public static string RobloxAuthorization { get; set; }
     public static string ArbiterAuthorization { get; set; }
     public static string GameServerIp { get; set; }
     public static string UserAgentBypassSecret { get; set; }

@@ -39,7 +39,7 @@ const useStyles = createUseStyles({
     border: '1px solid #f1e0a5',
   },
   rankText: {
-    color: '#000',
+    color: 'var(--text-color-primary)',
   },
   description: {
     minHeight: '100px',
@@ -47,11 +47,12 @@ const useStyles = createUseStyles({
   },
   groupShoutButton: {
     marginTop: '0',
+      color: '#191919',
   },
   verifiedIcon: {
     position: 'relative',
     bottom: '2.5px',
-    left: '4px', 
+    left: '4px',
   },
 })
 

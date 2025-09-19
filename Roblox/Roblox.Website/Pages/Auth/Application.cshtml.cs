@@ -117,7 +117,7 @@ public class Application : RobloxPageModel
 
         if (discordAccessToken == null)
         {
-            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
+            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={Configuration.DiscordApplicationCallback}&scope=identify+guilds.members.read+guilds.join");
         }
 
         DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
@@ -171,7 +171,7 @@ public class Application : RobloxPageModel
         var apps = new ApplicationWebsiteService(HttpContext);
         if (discordAccessToken == null)
         {
-            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(Configuration.BaseUrl)}%2Fapi%2Fapplicationcallback&scope=identify+guilds.members.read+guilds.join");
+            return new RedirectResult($"https://discord.com/oauth2/authorize?client_id={Configuration.DiscordClientId}&response_type=code&redirect_uri={Configuration.DiscordApplicationCallback}&scope=identify+guilds.members.read+guilds.join");
         }
         
         DiscordApi discordOAuth = new(discordAccessToken, Configuration.DiscordApplicationCallback);
@@ -342,17 +342,14 @@ public class Application : RobloxPageModel
         try
         {
             long? refferedByUserId = null;
-            // Hey this nigger has signed up with a refferal code lets do the work!
             if (!string.IsNullOrEmpty(referralCode))
             {
                 var code = await services.users.GetReferralCode(referralCode);
-                // Fucking black bitch got the code wrong let this nigger try again
                 if (code == null)
                 {
                     errorMessage = "Invalid referral code. Please try again.";
                     return new PageResult();
                 }
-                // Ok so this nigger got the code right lets set the id
                 refferedByUserId = code.userId;
             }
 

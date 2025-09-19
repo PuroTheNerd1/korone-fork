@@ -84,7 +84,7 @@ const MembersRow = props => {
               <Link href={`/users/${v.userId}/profile`}>
                 <a>
                   <PlayerImage id={v.userId} name={v.username} />
-                  <p className='mb-0 text-left font-size-14 text-truncate'>{v.username}</p>
+                  <p className='mb-0 text-left font-size-14 text-truncate link2019'>{v.username}</p>
                 </a>
               </Link>
             </div>

@@ -207,22 +207,16 @@ public class BatchAssetRequest
 
 public class RobloxApi
 {
-    private static HttpClient _client { get; } = new(new HttpClientHandler()
-    {
-        AutomaticDecompression = DecompressionMethods.All,
-    });
     private class RobloxApiHttpClient : HttpClient
     {
         public RobloxApiHttpClient() : base(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
         {
-            DefaultRequestHeaders.Add("Cookie", ".ROBLOSECURITY=" + "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_B98A878CD86A739316DFF0002B47047D8E4E4CD85F5A1B66F638AABC0E61062254A32AD844760474A71608043B11214797473137A6A1211B9DE70226929C97AA9C810BB57238BFF9EA81BD4BDBA5FDF6F53B785F361228DAEB060025C250CE80FB595C2E6E41C92F9C60B540CE23499B405C5A1DDF64562A6AA47F778CFD75CD10AE4A4FB542881ED5936006D00A918D2963F0D1C08708E7CC49EEB842BAF70CAC420F05C33AE0ED7503B637FAA2E6EBAB7110E14C16CEAB5BFF40AC3E21B59E7C297E6190CFC595680F40E7AE25BAAFAFFDDB6098B44F686681A6C933712824432703133A79440AF00CEF08C9338530C347D9A1CBCAF301A1609D2F63A71FE8A634C2CD66879A97F1A53BF4A8E731DE81E1887CC5ED2405DCE88B2658D64D02BA573A5C763F4AFEB60FEC48A822C691C23FF9345E7B7CE51503F591D3E102CB37031F2C826345A59C14517B1B2C011E30279B9457CCFCFCE1D2571E3B6AFD8DC457B0D5767E409CE9A3A43E2C912A2D672AFC6E73B1215B2EF3AFDE32F874BC2FE6B7141A64346F4674748014056AAC0F014D03673A3574DB3CAA75C35DCF6C798F1A0E951E43DEF153B6DFB07F56A719372FECEF63F0E1726DC15355664995978372BF32E64675BBA32A15738BBD5FBA857A4FEB7EAFB423E255CCAE9B7ABDFF869F79C3FA288B40CAB12EF9162D92BC128F9D997125EB61ECDD0A192F5A752D260147C3590FF5F0F5E506F736BF6A209A879166243D92F1F7BEF01427F01C3E83CA91A1C9AD03D04127EF56A9CC1D91C37D0EE1DA1B0785EA20DADA29860708EC741378198EE7AA171762AC9969A0B6371D22B925487660181ACFDE13E5725BD4ACBB8C47F54AA1D90F61268CF12F0D44E86CE02454C2344EC73FD8D1AFCEE09FA4CCC97FF2039B3313563DF502C700D814BF4B62A668FF94155CBECE249ED6076E3D934CF473C30ABDAF9FE72DAEDA8BD439A055CAE8003A80F64F9EB3099C0CBEF18FCB93675A404D0E6B835275EBBFC4638FBC7EF559AA5DD68CDDAEBFDED3F11B056E72CC90ECD28733D80CB0D12633A14065AC3114D5EA98F6B4B03B033F3936AD2F349D38ABCFA74A02C8705098349940C77CF570FFD6BA98817DF18B79531B");
+            DefaultRequestHeaders.Add("Cookie", ".ROBLOSECURITY=" + Configuration.RobloxAuthorization);
             DefaultRequestHeaders.Add("Accept", "*/*");
             DefaultRequestHeaders.Add("User-Agent", "Roblox/WinInet");
             DefaultRequestHeaders.Add("Roblox-Browser-Asset-Request", "false");
         }
     }
-
-
     private static HttpClient robloxApiClient { get; } = new RobloxApiHttpClient();
     public async Task<ProductInfoWithAssetDelivery> GetProductInfoAssetDelivery(long assetId)
     {
@@ -263,7 +257,7 @@ public class RobloxApi
             using var cancel = new CancellationTokenSource();
             cancel.CancelAfter(TimeSpan.FromMilliseconds(maxAttemptsMs));
             var url = $"https://www.roblox.com/catalog/{assetId}/-";
-            var response = await _client.GetAsync(url, cancel.Token);
+            var response = await robloxApiClient.GetAsync(url, cancel.Token);
             if (!response.IsSuccessStatusCode)
             {
                 Writer.Info(LogGroup.RealRobloxApi, "GetProductInfoHtml failed - " + response.StatusCode);
@@ -300,7 +294,7 @@ public class RobloxApi
         using var cancel = new CancellationTokenSource();
         cancel.CancelAfter(TimeSpan.FromSeconds(5));
 
-        var result = await _client.GetAsync("https://users.roblox.com/v1/users/" + userId, cancel.Token);
+        var result = await robloxApiClient.GetAsync("https://users.roblox.com/v1/users/" + userId, cancel.Token);
         if (!result.IsSuccessStatusCode)
         {
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
@@ -321,7 +315,7 @@ public class RobloxApi
             excludeBannedUsers = false,
         };
         request.usernames.Add(userName);
-        var result = await _client.PostAsync("https://users.roblox.com/v1/usernames/users", new StringContent(JsonSerializer.Serialize(request)));
+        var result = await robloxApiClient.PostAsync("https://users.roblox.com/v1/usernames/users", new StringContent(JsonSerializer.Serialize(request)));
         if (result == null)
             throw new Exception("Null response from Roblox");
         if (!result.IsSuccessStatusCode)
@@ -341,7 +335,7 @@ public class RobloxApi
         cancel.CancelAfter(TimeSpan.FromSeconds(5));
 
         var result =
-            await _client.GetAsync(
+            await robloxApiClient.GetAsync(
                 "https://inventory.roblox.com/v1/users/" + userId + "/items/Asset/" + assetId + "/is-owned",
                 cancel.Token);
         if (!result.IsSuccessStatusCode)
@@ -369,7 +363,7 @@ public class RobloxApi
                 using var cancel = new CancellationTokenSource();
                 cancel.CancelAfter(TimeSpan.FromMilliseconds(maxAttemptTimeMs));
                 var url = $"https://economy.roproxy.com/v2/assets/{assetId}/details";
-                var result = await _client.GetAsync(url, cancel.Token);
+                var result = await robloxApiClient.GetAsync(url, cancel.Token);
                 if (result.StatusCode is HttpStatusCode.TooManyRequests)
                 {
                     Writer.Info(LogGroup.RealRobloxApi, "conversion error - got 429 during getproductinfo");
@@ -467,7 +461,7 @@ public class RobloxApi
     {
         while (true)
         {
-            var result = await _client.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
+            var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
             if (result.StatusCode is HttpStatusCode.TooManyRequests)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2));
@@ -482,7 +476,7 @@ public class RobloxApi
             if (string.IsNullOrEmpty(bod.location))
                 throw new Exception("Roblox did not give a URL for this asset content. Is the URL valid?");
 
-            var strResult = await _client.GetAsync(bod.location);
+            var strResult = await robloxApiClient.GetAsync(bod.location);
             return await strResult.Content.ReadAsStreamAsync();
         }
     }
@@ -491,7 +485,7 @@ public class RobloxApi
 
     public async Task<Stream> GetAssetAudioContent(long assetId)
     {
-        var result = await _client.GetAsync($"https://www.roblox.com/library/{assetId}/--");
+        var result = await robloxApiClient.GetAsync($"https://www.roblox.com/library/{assetId}/--");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Asset error: " + result.StatusCode);
         var bod = await result.Content.ReadAsStringAsync();
@@ -504,13 +498,13 @@ public class RobloxApi
 
         var fileUrl = groups[1].Value;
 
-        var strResult = await _client.GetAsync(fileUrl);
+        var strResult = await robloxApiClient.GetAsync(fileUrl);
         return await strResult.Content.ReadAsStreamAsync();
     }
 
     public async Task<AvatarResponse> GetAvatar(long userId)
     {
-        var result = await _client.GetAsync("https://avatar.roblox.com/v1/users/" + userId + "/avatar");
+        var result = await robloxApiClient.GetAsync("https://avatar.roblox.com/v1/users/" + userId + "/avatar");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Avatar error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -535,7 +529,7 @@ public class RobloxApi
             msg.Content = new StringContent(s, Encoding.UTF8, "application/json");
             msg.Headers.Add("x-csrf-token", _csrf);
 
-            var result = await _client.SendAsync(msg);
+            var result = await robloxApiClient.SendAsync(msg);
             if (result.StatusCode == HttpStatusCode.Forbidden && result.Headers.Contains("x-csrf-token"))
             {
                 Writer.Info(LogGroup.RealRobloxApi, "use new csrf {0}", result.Headers.GetValues("x-csrf-token"));
@@ -560,7 +554,7 @@ public class RobloxApi
 
     public async Task<long> CountFollowers(long userId)
     {
-        var result = await _client.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/followers/count");
+        var result = await robloxApiClient.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/followers/count");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Follower count error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -572,7 +566,7 @@ public class RobloxApi
 
     public async Task<long> CountFriends(long userId)
     {
-        var result = await _client.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/friends/count");
+        var result = await robloxApiClient.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/friends/count");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Friends count error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -585,7 +579,7 @@ public class RobloxApi
     public async Task<InventoryResponse> GetInventory(long userId, string? cursor = null)
     {
         var url = "https://inventory.roblox.com/v2/users/"+userId+"/inventory?assetTypes=Hat%2CGear%2CHairAccessory%2CNeckAccessory%2CShoulderAccessory%2CBackAccessory%2CFrontAccessory%2CWaistAccessory&limit=100&sortOrder=Asc&cursor=" + (cursor ?? "");
-        var result = await _client.GetAsync(url);
+        var result = await robloxApiClient.GetAsync(url);
         if (result.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Forbidden)
             throw new InvalidUserException();
 
@@ -600,7 +594,7 @@ public class RobloxApi
 
     public async Task<IEnumerable<BadgeEntry>> GetRobloxBadges(long userId)
     {
-            var result = await _client.GetAsync("https://accountinformation.roblox.com/v1/users/"+userId+"/roblox-badges");
+            var result = await robloxApiClient.GetAsync("https://accountinformation.roblox.com/v1/users/"+userId+"/roblox-badges");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Badges error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -613,7 +607,7 @@ public class RobloxApi
     public async Task<ProfileHeaderResponse> GetProfile(long userId)
     {
         var url = "https://www.roblox.com/users/profile/profileheader-json?userid=" + userId;
-        var result = await _client.GetAsync(url);
+        var result = await robloxApiClient.GetAsync(url);
         if (!result.IsSuccessStatusCode)
             throw new Exception("Premium error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -626,7 +620,7 @@ public class RobloxApi
     public async Task<BundleResponseEntry> GetBundle(long bundleId)
     {
         var url = "https://catalog.roblox.com/v1/bundles/details?bundleIds=" + bundleId; // MultiGetBundlesResponse
-        var result = await _client.GetAsync(url);
+        var result = await robloxApiClient.GetAsync(url);
         if (!result.IsSuccessStatusCode)
             throw new Exception("GetBundle error: " + bundleId + " " + result.StatusCode);
         var json = JsonSerializer.Deserialize<List<BundleResponseEntry>>(await result.Content.ReadAsStringAsync());

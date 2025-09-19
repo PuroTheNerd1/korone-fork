@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import useCardStyles from "../userProfile/styles/card";
 import Link from "../link";
+import { getTheme, themeType } from "../../services/theme";
 
 const useStyles = createUseStyles({
     wrapper: {
@@ -64,6 +65,7 @@ const useStyles = createUseStyles({
         backgroundImage: 'url(/img/generic.svg)',
         backgroundRepeat: 'no-repeat',
         verticalAlign: 'middle',
+        filter: p => p.theme === themeType.dark ? "invert(1)" : "unset",
         '&:hover': {
             backgroundPosition: '-28px -616px',
         }
@@ -153,7 +155,7 @@ const Dropdown2016 = props => {
     const [isOpen, setIsOpen] = useState(false);
     const [firstOpen, setFirstOpen] = useState(false);
     const cardStyles = useCardStyles();
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     
     useEffect(() => {
         const closeOnClick = () => {

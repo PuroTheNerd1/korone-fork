@@ -9,7 +9,7 @@ const useStyles = createUseStyles({
   title: {
     fontSize: '48px',
     fontWeight: 300,
-    color: 'rgb(25,25,25)',
+    color: 'var(--text-color-primary)',
   },
   container: {
     background: 'var(--background-color)',

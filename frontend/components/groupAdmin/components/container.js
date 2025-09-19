@@ -26,9 +26,9 @@ const Container = props => {
 
   }, [props]);
 
-  return <div className='container'>
+  return <div className='container' style={{padding: 0}}>
     <UserAdvertisement type={1} />
-    <div className='card br-none mt-4 border-0'>
+    <div className='card br-none mt-4 border-0' style={{padding: 15, background: 'var(--white-color)'}}>
       <Header />
       <Content />
     </div>

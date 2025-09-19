@@ -14,16 +14,17 @@ import PlayerImage from "../playerImage";
 import dayjs from "../../lib/dayjs";
 import ForumContainer from "../forumContainer";
 import BcOverlay from "../bcOverlay";
+import { getThemeForumHeader } from "../../services/theme";
 
 const useStyles = createUseStyles({
   forumHeader: {
-    background: '#29508d',
+      background: p => p.stylize === 'true' ? "var(--primary-color)" : "#29508d",
   },
   avatarHead: {
     width: '150px',
   },
   postRow: {
-    background: '#f9f9f9',
+    background: 'var(--white-color)',
     borderBottom: '1px solid var(--text-color-quinary)',
   },
   userStat: {
@@ -37,7 +38,7 @@ const useStyles = createUseStyles({
 })
 const limit = 15;
 const ForumThread = props => {
-  const s = useStyles();
+  const s = useStyles({stylize: getThemeForumHeader()});
   const {id} = props;
   const [threadInfo, setThreadInfo] = useState(null);
   const [sub, setSub] = useState(null);

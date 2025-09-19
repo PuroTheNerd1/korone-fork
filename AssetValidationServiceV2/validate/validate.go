@@ -57,7 +57,7 @@ func IsAnimationValid(reader io.Reader) bool {
 
 	for _, kfs := range rootKeyframes {
 		for _, child := range kfs.Children {
-			if child.ClassName != "Keyframe" {
+			if child.ClassName != "Keyframe" && child.ClassName != "Pose" {
 				log.Printf("Invalid animation: unsupported child class %q in KeyframeSequence\n", child.ClassName)
 				return false
 			}
@@ -113,7 +113,7 @@ func IsModelValid(reader io.Reader) bool {
 		}
 
 		switch inst.ClassName {
-		case "Model", "Tool", "Folder":
+		case "Model", "Tool", "Folder", "MeshPart", "Part":
 			rootModels = append(rootModels, inst)
 		case "Script", "LocalScript", "ModuleScript":
 			rootScripts = append(rootScripts, inst)
@@ -129,6 +129,11 @@ func IsModelValid(reader io.Reader) bool {
 
 	if len(rootModels) == 1 && len(rootScripts) == 0 {
 		root := rootModels[0]
+
+		if root.ClassName == "MeshPart" {
+			return true
+		}
+
 		if len(root.Children) == 0 {
 			log.Println("Invalid model: root Model has no children.")
 			return false

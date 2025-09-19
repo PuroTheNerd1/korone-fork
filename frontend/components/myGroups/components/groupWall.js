@@ -108,7 +108,7 @@ const GroupWall = props => {
               <div className='col-7'>
                 <p className={s.wallpost}>{v.body}</p>
                 <p className='mb-0'><span className='lighten-3'>{dayjs(v.created).format('M/D/YYYY h:mm:ss A')}</span> by <CreatorLink type='User' id={v.poster.user.userId} name={v.poster.user.username} /></p>
-                {(canDelete || v.poster.user.userId === auth.userId) && <a href='#' onClick={(e) => {
+                {(canDelete || v.poster.user.userId === auth.userId) && <a className='link2018' href='#' onClick={(e) => {
                   e.preventDefault();
                   deletePost({
                     postId: v.id,

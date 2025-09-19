@@ -1,15 +1,15 @@
 import { createUseStyles } from "react-jss";
 import Link from "../../link";
+import { getTheme, themeType } from "../../../services/theme";
 
 const useStyles = createUseStyles({
   wrapper: {
     width: '100%',
-    color: '#000',
+    color: 'var(--text-color-primary)',
     display: 'block',
     padding: '5px 10px',
     '&:hover': {
-      background: '#efefef',
-      color: '#000',
+      background: p => p.theme === themeType.dark ? 'var(--white-color-hover)' : '#efefef',
     },
   },
   wrapperSelected: {
@@ -17,7 +17,7 @@ const useStyles = createUseStyles({
     borderTop: '1px solid var(--text-color-secondary)',
     borderBottom: '1px solid var(--text-color-secondary)',
 
-    backgroundColor: '#efefef',
+    backgroundColor: 'var(--white-color-hover)',
   },
   wrapperDisabled: {
     opacity: 0.25,
@@ -31,7 +31,7 @@ const useStyles = createUseStyles({
 });
 
 const SelectorOption = props => {
-  const s = useStyles();
+  const s = useStyles({theme: getTheme()});
   const el = <a onClick={props.onClick} className={s.wrapper + (props.selected ? ' ' + s.wrapperSelected : '') + (props.disabled ? ' ' + s.wrapperDisabled : '')}>
     <span className={s.text + (props.selected ? ' ' + s.textSelected : '')}>{props.name}</span>
   </a>

@@ -22,6 +22,7 @@ const useStyles = createUseStyles({
     margin: '0 auto',
     display: 'block',
     width: '100%',
+      aspectRatio: '1 / 1',
   },
   username: {
     whiteSpace: 'nowrap',

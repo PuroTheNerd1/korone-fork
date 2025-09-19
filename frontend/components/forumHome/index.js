@@ -6,6 +6,7 @@ import dayjs from "../../lib/dayjs";
 import ForumHeader from "../forumHeader";
 import Link from "../link";
 import {useEffect, useReducer, useState} from "react";
+import { getThemeForumHeader } from "../../services/theme";
 
 const subReducer = (prev, act) => {
   if (act.type === 'ADD') {
@@ -17,7 +18,7 @@ const subReducer = (prev, act) => {
 }
 
 const ForumHome = props => {
-  const s = useForumStyles();
+  const s = useForumStyles({stylize: getThemeForumHeader()});
   const cats = getCategories();
   const [subMap, dispatchSubMap] = useReducer(subReducer, {});
 

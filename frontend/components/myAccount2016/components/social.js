@@ -13,7 +13,7 @@ import { FeedbackType } from "../../../models/feedback";
 
 const useStyles = createUseStyles({
     label: {
-        color: 'var(--text-color-quinary)',
+        color: 'var(--text-color-tertiary)',
         marginBottom: 0,
         fontSize: '15px',
         "&:not(:first-child)": {
@@ -113,7 +113,7 @@ const Social = () => {
                             <p className={s.label}>{platform.toLowerCase() !== "discord" ? ConvertSocialToHuman(platform) : "Discord (can be user id)"}</p>
                             <input
                                 type="text"
-                                placeholder="e.g. @PEKORA"
+                                placeholder="e.g. @KORONE"
                                 onChange={e => {
                                     if (isSaving) return;
                                     isDefault = false;

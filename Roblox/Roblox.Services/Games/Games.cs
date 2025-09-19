@@ -1012,21 +1012,6 @@ public class GamesService : ServiceBase, IService
         return result;
     }
 
-    // if this src ever gets leaked this is NOT for storing ips, its for matchmaking and for getting the server info
-    public async Task<dynamic> GetInfoFromIp(string ip)
-    {
-        string url = $"http://ip-api.com/json/{ip}";
-        HttpClient httpClient = new HttpClient();
-
-        var response = await httpClient.GetStringAsync(url);
-        var json = JObject.Parse(response);
-        return new
-        {
-            country = json["country"]!.ToString(),
-            countryCode = json["countryCode"]!.ToString(),
-            city = json["city"]!.ToString(),
-        };
-    }
     public dynamic GetJoinScript(PlaceEntry placeInfo, UserInfo userInfo, GameServerDb jobInfo,  string characterAppearanceUrl, string clientTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");

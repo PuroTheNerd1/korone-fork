@@ -10,6 +10,8 @@ import {
     getPendingIcons,
     getPendingReportCount
 } from "../../services/admin";
+import PlayerHeadshot from "../playerHeadshot";
+import Link from "../link";
 
 const useNavSideBarStyles = createUseStyles({
     container: {
@@ -20,7 +22,7 @@ const useNavSideBarStyles = createUseStyles({
     },
     card: {
         width: '175px',
-        background: p => p.theme === themeType.obc2016 ? '#393939' : 'var(--white-color)',
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
         color: 'var(--text-color-primary)',
         height: '100vh',
         paddingLeft: '10px',
@@ -32,18 +34,9 @@ const useNavSideBarStyles = createUseStyles({
             paddingTop: '75px',
         }
     },
-    username: {
-        fontSize: '16px',
-        fontWeight: '500',
-        paddingTop: '8px',
-        paddingBottom: '5px',
-        marginBottom: 0,
-        color: p => p.theme === themeType.obc2016 ? 'var(--white-color)' : 'var(--text-color-primary)',
-        textDecoration: 'none'
-    },
     divider: {
         borderBottom: '1px solid var(--text-color-secondary)',
-        borderColor: p => p.theme === themeType.obc2016 ? 'rgba(255, 255, 255, 0.2)' : 'var(--text-color-secondary)',
+        borderColor: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? 'rgba(255, 255, 255, 0.2)' : 'var(--text-color-secondary)',
         height: '2px',
         width: '100%',
         marginTop: '5px',
@@ -64,6 +57,34 @@ const useNavSideBarStyles = createUseStyles({
             background: 'var(--primary-color-hover)',
         },
     },
+    usernameContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        cursor: 'pointer',
+    },
+    username: {
+        fontSize: '16px',
+        fontWeight: '500',
+        margin: 0,
+        padding: 0,
+        color: p => p.theme === themeType.obc2019 ? 'var(--white-color)' : 'var(--text-color-primary)',
+        textDecoration: 'none'
+    },
+    userIconContainer: {
+        fontSize: "16px",
+        width: "1.4em",
+        borderRadius: "50%",
+        aspectRatio: '1 / 1',
+        backgroundColor: 'var(--text-color-secondary)',
+        overflow: 'hidden',
+        marginRight: 3,
+        boxShadow: "0 1px 4px 0 rgba(25,25,25,0.3)",
+        transition: "box-shadow 200ms ease",
+        "&:hover": {
+            boxShadow: "0 1px 6px 0 rgba(25,25,25,0.75)",
+        }
+    },
+    userIcon: {},
 });
 
 const NavSideBar = props => {
@@ -125,7 +146,16 @@ const NavSideBar = props => {
     
     return <div className={s.container}>
         <div className={s.card}>
-            <a href={'/users/' + authStore.userId + '/profile'} className={s.username}>{authStore.username}</a>
+            <Link href={`/users/${authStore.userId}/profile`}>
+                <a href={`/users/${authStore.userId}/profile`}>
+                    <div className={s.usernameContainer}>
+                        <div className={s.userIconContainer}>
+                            <PlayerHeadshot id={authStore.userId} name={authStore.username} className={s.userIcon}/>
+                        </div>
+                        <a className={s.username}>{authStore.username}</a>
+                    </div>
+                </a>
+            </Link>
             <div className={s.divider}/>
             <LinkEntry theme={getTheme()} name='Home' url='/home' icon='icon-nav-home'/>
             <LinkEntry theme={getTheme()} name='Profile' url={'/users/' + authStore.userId + '/profile'}

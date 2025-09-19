@@ -152,7 +152,7 @@ public class ThumbnailsService : ServiceBase, IService
             }
             else if (c.type == Type.Animation)
             {
-                c.imageUrl = "/img/Animation.png";
+                c.imageUrl = "/img/Animation2.png";
             }
             else if (c.type == Type.Video)
             {

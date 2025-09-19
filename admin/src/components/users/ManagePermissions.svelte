@@ -3,6 +3,7 @@
 
 
     export let userId: string;
+	let quickConfigShouldDelete = false;
     let permissionToAdd: string;
     let permissions = [];
     let permissionsAvailable = [];
@@ -15,28 +16,48 @@
         permissionsAvailable = d.data;
     });
 
-    const quickConfig = (arr) => {
-        let promises = [];
-                for (const perm of arr) {
-                    if (permissions.find(a => a.permission === perm)) continue;
-                    promises.push(client.request({
-                        method: 'POST',
-                        url: '/staff/permissions/?userId=' + userId + "&permission=" + perm,
-                    }));
-                }
-                Promise.all(promises).then(() => {
-                    let newPermissions = [...permissions];
-                    for (const item of arr) {
-                        newPermissions.push({
-                            permission: item,
-                            userId: parseInt(userId, 10),
-                        });
-                    }
-                    permissions = newPermissions;
-                }).catch(e => {
-                    alert(e.message);
-                })
-    }
+	const quickConfig = (arr) => {
+		let promises = [];
+		for (const perm of arr) {
+			if (permissions.find(a => a.permission === perm)) continue;
+			promises.push(client.request({
+				method: 'POST',
+				url: '/staff/permissions/?userId=' + userId + "&permission=" + perm,
+			}));
+		}
+		Promise.all(promises).then(() => {
+			let newPermissions = [...permissions];
+			for (const item of arr) {
+				newPermissions.push({
+					permission: item,
+					userId: parseInt(userId, 10),
+				});
+			}
+			permissions = newPermissions;
+		}).catch(e => {
+			alert(e.message);
+		})
+	}
+
+	const quickConfigDelete = (arr) => {
+		let promises = [];
+		for (const perm of arr) {
+			if (!permissions.find(a => a.permission === perm)) continue;
+			promises.push(client.request({
+				method: 'DELETE',
+				url: '/staff/permissions/?userId=' + userId + "&permission=" + perm,
+			}));
+		}
+		Promise.all(promises).then(() => {
+			let newPermissions = [];
+			for (const item of permissions) {
+				if (!arr.includes(item)) newPermissions.push(item);
+			}
+			permissions = newPermissions;
+		}).catch(e => {
+			alert(e.message);
+		})
+	}
 
 </script>
 
@@ -72,7 +93,7 @@
                     {/each}
             </tbody>
         </table>
-        
+
     </div>
         <div class="col-4">
             <h3>Add Permission</h3>
@@ -98,34 +119,52 @@
                 })
             }}>Add Permission</button>
         </div>
-        <div class="col-12 mt-4">
-            <h3>Quick Config</h3>
-            <button class="btn btn-primary mt-4" on:click={() => {
+	<div class="col-12 mt-4">
+		<h3>Quick Config</h3>
+		<select class="form-control col-12" bind:value={quickConfigShouldDelete}>
+			<option value={false}>Add</option>
+			<option value={true}>Remove</option>
+		</select>
+		<button class="btn btn-primary mt-4" on:click={() => {
                 const permissions = ['GetStats', 'GetPendingGroupIcons', 'GetAssetModerationDetails', 'GetPendingModerationItems', 'GetPendingModerationGameIcons', 'SetGameIconModerationStatus', 'SetAssetModerationStatus', 'SetGroupIconModerationStatus', 'GetDetailsFromThumbnail'];
-
-                quickConfig(permissions);
+                if (quickConfigShouldDelete) {
+					quickConfigDelete(permissions);
+                } else {
+					quickConfig(permissions);
+                }
             }}>Image Mod</button>
-            <button class="btn btn-primary mt-4 ml-2" on:click={() => {
+		<button class="btn btn-primary mt-4 ml-2" on:click={() => {
                 const permissions = ['GetStats', 'GetAllAssetComments', 'DeleteComment', 'GetGroupWall', 'DeleteGroupWallPost', 'GetGroupStatus', 'DeleteGroupStatus', 'GetAllUserStatuses', 'DeleteUserStatus', 'DeleteForumPost'];
-
-                quickConfig(permissions);
+				if (quickConfigShouldDelete) {
+					quickConfigDelete(permissions);
+                } else {
+					quickConfig(permissions);
+                }
             }}>Text Mod</button>
-            <button class="btn btn-primary mt-4 ml-2" on:click={() => {
+		<button class="btn btn-primary mt-4 ml-2" on:click={() => {
                 const permissions = [
                     'ManageApplications',
                     'ClearApplications',
                 ];
-                quickConfig(permissions);
+                if (quickConfigShouldDelete) {
+					quickConfigDelete(permissions);
+                } else {
+					quickConfig(permissions);
+                }
             }}>Application Mod</button>
-            <button class="btn btn-primary mt-4 ml-2" on:click={() => {
+		<button class="btn btn-primary mt-4 ml-2" on:click={() => {
                 const permissions = [
                     'CreateAssetCopiedFromRoblox',
                     'CreateBundleCopiedFromRoblox',
                     'GetProductDetails',
                     'SetAssetProduct',
                 ];
-                quickConfig(permissions);
+                if (quickConfigShouldDelete) {
+					quickConfigDelete(permissions);
+                } else {
+					quickConfig(permissions);
+                }
             }}>Asset Copy (Non Limited)</button>
 
-        </div>
+	</div>
 </div>

@@ -41,6 +41,9 @@ Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value!;
 Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https://www.", "");
 Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value!;
 Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value!;
+// roblox oauth stuff
+Roblox.Configuration.RobloxClientId = configuration.GetSection("Roblox:ClientId").Value!;
+Roblox.Configuration.RobloxClientSecret = configuration.GetSection("Roblox:ClientSecret").Value!;
 // Discord OAuth related Stuff
 Roblox.Configuration.DiscordClientId = configuration.GetSection("Discord:ClientId").Value!;
 Roblox.Configuration.DiscordClientSecret = configuration.GetSection("Discord:ClientSecret").Value!;
@@ -53,6 +56,7 @@ Roblox.Configuration.DiscordLinkCallback = Roblox.Configuration.BaseUrl + config
 Roblox.Configuration.GameServerAuthorization = configuration.GetSection("GameServerAuthorization").Value!;
 Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value!;
 Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value!;
+Roblox.Configuration.RobloxAuthorization = configuration.GetSection("RobloxAuthorization").Value!;
 Roblox.Configuration.ArbiterAuthorization = configuration.GetSection("ArbiterAuthorization").Value!;
 Roblox.Configuration.GameServerIp = configuration.GetSection("GameServerIp").Value!;
 Roblox.Configuration.UserAgentBypassSecret = configuration.GetSection("UserAgentBypassSecret").Value!;
@@ -94,6 +98,7 @@ builder.Services.AddControllers(options =>
     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     o.JsonSerializerOptions.PropertyNamingPolicy = null;
 });
+
 builder.Services.AddSignalR();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

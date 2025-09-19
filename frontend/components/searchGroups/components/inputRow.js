@@ -12,7 +12,7 @@ const useStyles = createUseStyles({
     width: '100%',
   },
   searchButton: {
-    fontSize: '16px',
+    fontSize: '15px',
     paddingLeft: '6px',
     paddingRight: '6px',
   },

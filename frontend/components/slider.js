@@ -37,7 +37,7 @@ const useStyles = createUseStyles({
             width: '100%',
             height: '6px',
             boxShadow: '0 1px 4px 0 rgba(25,25,25,0.3)',
-            background: 'linear-gradient(to right, var(--progress-color) var(--progress), #E3E3E3 var(--progress))',
+            background: 'linear-gradient(to right, var(--progress-color) var(--progress), var(--text-color-quinary) var(--progress))',
             borderRadius: '6px',
             border: '0 solid #000',
             cursor: 'pointer',
@@ -79,7 +79,7 @@ const useStyles = createUseStyles({
         },
         
         'input[type="range"]::-ms-fill-lower': {
-            background: '#00A2FF',
+            background: 'var(--primary-color)',
             border: '0 solid #000',
             borderRadius: '6px',
             boxShadow: '0 1px 4px 0 rgba(25,25,25,0.3)',
@@ -98,7 +98,7 @@ const useStyles = createUseStyles({
         },
         
         'input[type="range"]::-moz-range-progress': {
-            backgroundColor: '#00A2FF',
+            backgroundColor: 'var(--primary-color)',
             height: '6px',
             borderRadius: '6px',
             cursor: 'pointer',
@@ -118,12 +118,12 @@ const useStyles = createUseStyles({
             '-webkit-transition': 'box-shadow 200ms ease',
             '-o-transition': 'box-shadow 200ms ease',
             transition: 'box-shadow 200ms ease',
-            border: '2px solid #00A2FF',
+            border: '2px solid var(--primary-color)',
             height: '24px',
             width: '24px',
             borderRadius: '24px',
             background: '#fff',
-            boxShadow: '0 0 0 0 rgba(0,162,255,0.5),0 1px 4px 0 rgba(25,25,25,0.3)',
+            boxShadow: '0 0 0 0 color-mix(in srgb, var(--primary-color) 50%, transparent),0 1px 4px 0 rgba(25,25,25,0.3)',
             boxSizing: 'border-box',
             cursor: 'pointer',
             '-webkit-appearance': 'none',
@@ -134,12 +134,12 @@ const useStyles = createUseStyles({
             '-webkit-transition': 'box-shadow 200ms ease',
             '-o-transition': 'box-shadow 200ms ease',
             transition: 'box-shadow 200ms ease',
-            border: '2px solid #00A2FF',
+            border: '2px solid var(--primary-color)',
             height: '24px',
             width: '24px',
             borderRadius: '24px',
             background: '#fff',
-            boxShadow: '0 0 0 0 rgba(0,162,255,0.5),0 1px 4px 0 rgba(25,25,25,0.3)',
+            boxShadow: '0 0 0 0 color-mix(in srgb, var(--primary-color) 50%, transparent),0 1px 4px 0 rgba(25,25,25,0.3)',
             boxSizing: 'border-box',
             cursor: 'pointer',
         },
@@ -148,27 +148,27 @@ const useStyles = createUseStyles({
             '-webkit-transition': 'box-shadow 200ms ease',
             '-o-transition': 'box-shadow 200ms ease',
             transition: 'box-shadow 200ms ease',
-            border: '2px solid #00A2FF',
+            border: '2px solid var(--primary-color)',
             height: '24px',
             width: '24px',
             borderRadius: '24px',
             background: '#fff',
-            boxShadow: '0 0 0 0 rgba(0,162,255,0.5),0 1px 4px 0 rgba(25,25,25,0.3)',
+            boxShadow: '0 0 0 0 color-mix(in srgb, var(--primary-color) 50%, transparent),0 1px 4px 0 rgba(25,25,25,0.3)',
             boxSizing: 'border-box',
             cursor: 'pointer',
             marginTop: '-1px',
         },
         
         'input[type="range"]:not(:disabled)::-webkit-slider-thumb:hover': {
-            boxShadow: '0 0 0 6px rgba(0,162,255,0.5),0 1px 4px 0 rgba(25,25,25,0.3)',
+            boxShadow: '0 0 0 6px color-mix(in srgb, var(--primary-color) 50%, transparent),0 1px 4px 0 rgba(25,25,25,0.3)',
         },
         
         'input[type="range"]:not(:disabled)::-moz-range-thumb:hover': {
-            boxShadow: '0 0 0 6px rgba(0,162,255,0.5),0 1px 4px 0 rgba(25,25,25,0.3)',
+            boxShadow: '0 0 0 6px color-mix(in srgb, var(--primary-color) 50%, transparent),0 1px 4px 0 rgba(25,25,25,0.3)',
         },
         
         'input[type="range"]:not(:disabled)::-ms-thumb:hover': {
-            boxShadow: '0 0 0 6px rgba(0,162,255,0.5),0 1px 4px 0 rgba(25,25,25,0.3)',
+            boxShadow: '0 0 0 6px color-mix(in srgb, var(--primary-color) 50%, transparent),0 1px 4px 0 rgba(25,25,25,0.3)',
         },
         
         'input[type="range"]:disabled::-webkit-slider-thumb': {
@@ -198,7 +198,7 @@ function Slider({ className, step, min, max, value, setValue, changeValue, disab
             const updateProgress = () => {
                 const percentage = (100 * (slider.value - slider.min)) / (slider.max - slider.min);
                 slider.style.setProperty('--progress', `${percentage}%`);
-                slider.style.setProperty('--progress-color', disabled ? "#ADADAD" : "#00A2FF");
+                slider.style.setProperty('--progress-color', disabled ? "var(--text-color-secondary)" : "var(--primary-color)");
             };
             slider.addEventListener('input', updateProgress);
             updateProgress();

@@ -1,6 +1,6 @@
 /**
  * @template T
- * @typedef {Object} KoroneCollectionPaginated
+ * @typedef {Object} PekoraCollectionPaginated
  * @property {string|null} nextPageCursor
  * @property {string|null} previousPageCursor
  * @property {T[]} data
@@ -8,7 +8,7 @@
 
 /**
  * @template T
- * @typedef {Object} KoroneCollection
+ * @typedef {Object} PekoraCollection
  * @property {T[]} data
  */
 

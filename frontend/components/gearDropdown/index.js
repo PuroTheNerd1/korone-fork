@@ -41,6 +41,7 @@ const useStyles = createUseStyles({
     right: '1px',
   },
   caret: {
+      color: '#676767'
   },
   boxDropdown: {
     background: 'rgb(224,224,224)',
@@ -68,7 +69,7 @@ const useStyles = createUseStyles({
 /**
  * Basic gear dropdown
  * @param {{options: {url?: string; onClick?: (e: any) => void; name: string}[]; boxDropdownRightAmount?: number}} props
- * @returns 
+ * @returns
  */
 const GearDropdown = props => {
   // const { boxDropdownRightAmount } = props;

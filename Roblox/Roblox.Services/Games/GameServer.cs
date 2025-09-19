@@ -53,6 +53,24 @@ public class GameServerService : ServiceBase
             var result = await this.PostAsync("kill-game-server", content, cancellationToken);
             return result.IsSuccessStatusCode;
         }
+        public async Task<bool> SetFilteringEnabled(SetFilteringEnabledRequest request)
+        {
+            var content = new StringContent(
+                JsonSerializer.Serialize(request),
+                Encoding.UTF8,
+                "application/json");
+
+            var result = await this.PostAsync("set-filtering-enabled", content);
+            return result.IsSuccessStatusCode;
+        }
+        public static SetFilteringEnabledRequest CreateFilteringEnabled(Guid jobId, bool isEnabled)
+        {
+            return new SetFilteringEnabledRequest
+            {
+                jobId = jobId,
+                isEnabled = isEnabled
+            };
+        }
         public static EvictPlayerRequest CreateEvictPlayerRequest(Guid jobId, long userId)
         {
             return new EvictPlayerRequest
@@ -85,6 +103,11 @@ public class GameServerService : ServiceBase
             {
                 jobId = jobId,
             };
+        }
+        public class SetFilteringEnabledRequest
+        {
+            public Guid jobId { get; set; }
+            public bool isEnabled { get; set; }
         }
         public class EvictPlayerRequest
         {
@@ -544,7 +567,10 @@ public class GameServerService : ServiceBase
             id = serverId,
         });
     }
-
+    public async Task SetFilteringEnabled(Guid serverId, bool isEnabled)
+    {
+        await arbiterClient.SetFilteringEnabled(ArbiterHttpClient.CreateFilteringEnabled(serverId, isEnabled));
+    }
     public async Task DeleteGameServer(Guid serverId)
     {
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});

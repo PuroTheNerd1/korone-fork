@@ -31,6 +31,7 @@ const useAvatarStyles = createUseStyles({
         border: 0,
         position: "relative",
         minHeight: 300,
+        backgroundColor: 'var(--white-color)',
     },
     pagination: {
         textAlign: 'center',

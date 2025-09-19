@@ -888,6 +888,55 @@ public class UsersService : ServiceBase, IService
         // Default
         return false;
     }
+    public async Task<long> GetRobloxIdFromApp(string appId)
+    {
+        var res = await db.QuerySingleOrDefaultAsync<string>("SELECT verified_id as verifiedId FROM join_application WHERE join_id = :id AND status = :status", new
+        {
+            id = appId, status = UserApplicationStatus.Approved
+        });
+        res.Replace("RobloxUserId", "");
+        return long.Parse(res.ToString());
+    }
+    public async Task<long?> GetRobloxIdFromAppWithUserId(long userId)
+    {
+        var verified = await db.QuerySingleOrDefaultAsync<VerifiedId?>("SELECT verified_id as verifiedId FROM join_application WHERE user_id = :userId AND status = :status", new
+        {
+            userId, status = UserApplicationStatus.Approved
+        });
+        if (verified == null) return null;
+        if (verified.verifiedId.Contains("RobloxUserId:"))
+        {
+            verified.verifiedId = verified.verifiedId.Replace("RobloxUserId:", "");
+        }
+
+        if (long.TryParse(verified.verifiedId, out long robloxId))
+        {
+            return robloxId;
+        }
+
+        return null;
+    }
+
+    public async Task<DiscordId?> GetDiscordIdFromApp(string appId)
+    {
+        return await db.QuerySingleOrDefaultAsync<DiscordId?>("SELECT discord_id as discordId FROM join_application WHERE join_id = :id AND status = :status", new
+        {
+            id = appId, status = UserApplicationStatus.Approved
+        });
+    }
+    /// <summary>
+    /// Check duplicate ROBLOX id.
+    /// </summary>
+    /// <param name="robloxId"></param>
+    public async Task<bool> CheckDuplicateROBLOX(long robloxId)
+    {
+        var isDuplicate = await db.QuerySingleAsync<long>(
+            "SELECT COUNT(verified_id) FROM join_application WHERE join_application.verified_id = :robloxId AND (join_application.status = :status1 OR join_application.status = :status2 OR join_application.status = :status3)",
+            new { verified_id = $"RobloxUserId:{robloxId}", status1 = UserApplicationStatus.Approved, status2 = UserApplicationStatus.SilentlyRejected, status3 = UserApplicationStatus.Pending }
+        );
+
+        return isDuplicate > 0;
+    }
     /// <summary>
     /// Check duplicate discord id.
     /// </summary>
