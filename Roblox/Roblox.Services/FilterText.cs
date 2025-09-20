@@ -192,11 +192,13 @@ public class FilterService : ServiceBase, IService
     private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
     public string FilterText(string input)
     {
+        /* Stop the fucking annoying ฏ text spamming*/
+        input = CleanText(input);
         if (string.IsNullOrEmpty(input))
         {
             return input;
         }
-        
+
         string cleanedInput = string.Join("", input.ToCharArray()
             .Where(c => !char.IsWhiteSpace(c))
             .Select(char.ToLower)
