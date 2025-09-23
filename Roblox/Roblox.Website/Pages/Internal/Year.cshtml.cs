@@ -9,7 +9,7 @@ public class Year : RobloxPageModel
 {
     [BindProperty]
     public WebsiteYear year { get; set; }
-    private UserSession? session => (UserSession?) HttpContext.Items[".PEKOSECURITY"];
+    private UserSession? session => (UserSession?) HttpContext.Items[".DOGSECURITY"];
     public WebsiteYear currentYear { get; set; }
     
     public string? successMessage { get; set; }

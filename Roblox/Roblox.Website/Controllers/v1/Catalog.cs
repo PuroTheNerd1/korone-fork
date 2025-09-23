@@ -721,7 +721,8 @@ public class CatalogControllerV1 : ControllerBase
 		    include18Plus = false,
 	    };
 	    if (request.limit is > 100 or < 1) request.limit = 10;
-		if (creatorTargetId == null && creatorName != null) {
+		if (creatorTargetId == null && creatorName != null) 
+		{
 			long userId = await services.users.GetUserIdFromUsername(creatorName);
 			// see if group id can be found by name
 			request.creatorTargetId = userId;

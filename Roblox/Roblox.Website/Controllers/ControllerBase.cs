@@ -57,7 +57,7 @@ namespace Roblox.Website.Controllers
             }
         }
 
-        protected string? PEKOSECURITY
+        protected string? DOGSECURITY
         {
             get
             {
