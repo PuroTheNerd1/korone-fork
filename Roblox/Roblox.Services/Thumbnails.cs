@@ -146,33 +146,42 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 c.imageUrl = null;
             }
-            else if (c.type == Type.Audio)
+            else
             {
-                c.imageUrl = "/img/Audio.png";
-            }
-            else if (c.type == Type.Animation)
-            {
-                c.imageUrl = "/img/Animation2.png";
-            }
-            else if (c.type == Type.Video)
-            {
-                c.imageUrl = "/img/Video.png";
-            }
-            else if (c.type == Type.Model)
-            {
-                c.imageUrl = "/img/Model.png";
-            }
-            else if (!string.IsNullOrEmpty(c.imageUrl) && !c.imageUrl.Contains("images/thumbnails"))
-            {
-                c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
+                switch (c.type)
+                {
+                    case Type.Audio:
+                        c.imageUrl = "/img/Audio.png";
+                        break;
+
+                    case Type.Animation:
+                        c.imageUrl = "/img/Animation2.png";
+                        break;
+
+                    case Type.Video:
+                        c.imageUrl = "/img/Video.png";
+                        break;
+
+                    case Type.Model:
+                        c.imageUrl = "/img/Model.png";
+                        break;
+
+                    default:
+                        c.imageUrl = "/img/Default.png";
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(c.imageUrl) && !c.imageUrl.Contains("images/thumbnails"))
+                {
+                    c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
+                }
             }
 
-            if (c.imageUrl != null)
+            if (!string.IsNullOrEmpty(c.imageUrl))
+            {
                 c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
+            }
 
-            //Console.WriteLine(c.moderationStatus);
-            //Console.WriteLine(c.moderationStatus == ModerationStatus.ReviewApproved);
-            
             return new ThumbnailEntry()
             {
                 targetId = c.targetId,
