@@ -1,3 +1,4 @@
+using InfluxDB.Client.Core.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Users;
 using Roblox.Services.Exceptions;
@@ -32,21 +33,12 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("bot/removetwofactor")]
         public async Task<dynamic> RemoveTwoFactor(string discordId, long userId)
         {
-            UserInfo userDiscordInfo;
-            try
-            {
-                userDiscordInfo = await services.users.GetUserByDiscordId(discordId);
-            }
-            // TODO: Make DiscordNotLinkedException
-            catch (RecordNotFoundException)
-            {
-                throw new Exception("not linked");
-            }
-
+            UserInfo userDiscordInfo = await services.users.GetUserByDiscordId(discordId);
+            Console.WriteLine($"Testetstetst: {userDiscordInfo.userId}");
             // First we check if the user who ran the command if he is a owner if they are not, then throw exception
             if (!StaffFilter.IsOwner(userDiscordInfo.userId))
             {
-                throw new Exception("not owner");
+                throw new InternalServerErrorException("not owner");
             }
             await services.users.DeleteTotp(userId);
             return new
@@ -55,41 +47,7 @@ namespace Roblox.Website.Controllers
                 message = "The two-factor authentication has been successfully removed.",
             };
         }
-        [BotAuthorization]
-        [HttpGetBypass("bot/giveboosteritems")]
-        public async Task<dynamic> GiveBoosterItems(string discordId, int robux, long itemId)
-        {
-            UserInfo userInfo;
-            try
-            {
-                userInfo = await services.users.GetUserByDiscordId(discordId);
-            }
-            catch (RecordNotFoundException)
-            {
-                return new
-                {
-                    success = false,
-                    message = "Users account was not linked",
-                };
-            }
-            var doesUserOwnAsset = await services.inventory.IsOwned(userInfo.userId, itemId);
-            if (doesUserOwnAsset)
-            {
-                return new
-                {
-                    success = false,
-                    message = "User already owns booster",
-                };
-            }
-            await services.users.CreateUserAsset(userInfo.userId, itemId);
-            await services.economy.IncrementCurrency(userInfo.userId, Models.Economy.CurrencyType.Robux, robux);
-            return new
-            {
-                success = true,
-                message = $"Successfully given booster item to {userInfo.username} and added {robux} Robux.",
-            };
 
-        }
         [BotAuthorization]
         [HttpGetBypass("bot/resetpassword")]
         public async Task<dynamic> ResetPassword(string discordId, long userId)
