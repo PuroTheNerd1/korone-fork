@@ -165,10 +165,6 @@ public class ThumbnailsService : ServiceBase, IService
                     case Type.Model:
                         c.imageUrl = "/img/Model.png";
                         break;
-
-                    default:
-                        c.imageUrl = "/img/Default.png";
-                        break;
                 }
 
                 if (!string.IsNullOrEmpty(c.imageUrl) && !c.imageUrl.Contains("images/thumbnails"))
