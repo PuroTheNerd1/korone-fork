@@ -167,7 +167,7 @@ public class ThumbnailsService : ServiceBase, IService
                         break;
                 }
 
-                if (!string.IsNullOrEmpty(c.imageUrl) && !c.imageUrl.Contains("images/thumbnails") && !c.imageUrl.Contains("/img/")
+                if (!string.IsNullOrEmpty(c.imageUrl) && !c.imageUrl.Contains("images/thumbnails") && !c.imageUrl.Contains("/img/"))
                 {
                     c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
                 }
