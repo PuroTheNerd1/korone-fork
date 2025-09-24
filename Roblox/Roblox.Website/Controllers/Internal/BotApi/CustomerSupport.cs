@@ -40,21 +40,13 @@ namespace Roblox.Website.Controllers
             // TODO: Make DiscordNotLinkedException
             catch (RecordNotFoundException)
             {
-                return new
-                {
-                    success = false,
-                    message = "Your account is not linked, please use the /linkaccount command to link your account",
-                };
+                throw new Exception("not linked");
             }
 
             // First we check if the user who ran the command if he is a owner if they are not, then throw exception
             if (!StaffFilter.IsOwner(userDiscordInfo.userId))
             {
-                return new
-                {
-                    success = false,
-                    message = "You are not authorized to reset passwords",
-                };
+                throw new Exception("not owner");
             }
             await services.users.DeleteTotp(userId);
             return new
