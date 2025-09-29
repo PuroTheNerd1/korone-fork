@@ -23,44 +23,56 @@ public class GameServerService : ServiceBase
 {
     public class ArbiterHttpClient : HttpClient
     {
-        
+
+        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(100);
+
         public ArbiterHttpClient()
         {
             this.BaseAddress = new Uri($"https://arbiter.{Configuration.ShortBaseUrl}/");
             this.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
         }
-        public async Task<bool> StartGameServer(StartGameServerRequest request)
+
+        // helper wrapper to limit concurrency
+        private async Task<HttpResponseMessage> PostLimitedAsync(string url, HttpContent content, CancellationToken cancellationToken = default)
         {
-            var result = await this.PostAsync("start-game-server", new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+            await _semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                return await base.PostAsync(url, content, cancellationToken);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public async Task<bool> StartGameServer(StartGameServerRequest request, CancellationToken cancellationToken = default)
+        {
+            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            var result = await PostLimitedAsync("start-game-server", content, cancellationToken);
             return result.IsSuccessStatusCode;
         }
-        public async Task<bool> EvictPlayer(EvictPlayerRequest request)
+
+        public async Task<bool> EvictPlayer(EvictPlayerRequest request, CancellationToken cancellationToken = default)
         {
-            /*
-                This is temporary because the JSON doesnt format well
-            */
             var jsonRequest = $"{{ \"gameId\": \"{request.gameId}\", \"userId\": {request.userId}, \"messageVersionId\": {request.messageVersionId} }}";
-            var result = await this.PostAsync("evict-player", new StringContent(jsonRequest, Encoding.UTF8, "application/json"));
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var result = await PostLimitedAsync("evict-player", content, cancellationToken);
             return result.IsSuccessStatusCode;
         }
+
         public async Task<bool> KillGameServer(KillGameServerRequest request, CancellationToken cancellationToken)
         {
-            var content = new StringContent(
-                JsonSerializer.Serialize(request),
-                Encoding.UTF8,
-                "application/json");
-
-            var result = await this.PostAsync("kill-game-server", content, cancellationToken);
+            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            var result = await PostLimitedAsync("kill-game-server", content, cancellationToken);
             return result.IsSuccessStatusCode;
         }
-        public async Task<bool> SetFilteringEnabled(SetFilteringEnabledRequest request)
-        {
-            var content = new StringContent(
-                JsonSerializer.Serialize(request),
-                Encoding.UTF8,
-                "application/json");
 
-            var result = await this.PostAsync("set-filtering-enabled", content);
+        public async Task<bool> SetFilteringEnabled(SetFilteringEnabledRequest request, CancellationToken cancellationToken = default)
+        {
+            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            var result = await PostLimitedAsync("set-filtering-enabled", content, cancellationToken);
             return result.IsSuccessStatusCode;
         }
         public static SetFilteringEnabledRequest CreateFilteringEnabled(Guid jobId, bool isEnabled)
