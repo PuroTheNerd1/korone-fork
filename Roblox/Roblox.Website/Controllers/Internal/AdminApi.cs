@@ -4,13 +4,9 @@
 // Features should be easy to add and easy to remove. All that really matters is ease of writing and security - speed,
 // best practices, etc, do not matter.
 
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Dynamic;
-using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using Dapper;
+using DSharpPlus;
+using InfluxDB.Client.Api.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using Roblox.Cache;
@@ -34,14 +30,20 @@ using Roblox.Models.Sessions;
 using Roblox.Models.Staff;
 using Roblox.Models.Trades;
 using Roblox.Models.Users;
+using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Asset;
-using ServiceProvider = Roblox.Services.ServiceProvider;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.Dynamic;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Exception = System.Exception;
+using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
-using Roblox.Services;
 // just to shut the compiler up
 #pragma warning disable CS8604
 // ReSharper disable InconsistentNaming
@@ -359,7 +361,7 @@ public class AdminApiController : ControllerBase
                 giftId = req.giftId
             }
         );
-
+        var assetInfo = await services.assets.GetAssetCatalogInfo(req.assetId);
         foreach (var owner in giftOwners)
         {
             long? serial = null;
@@ -371,6 +373,13 @@ public class AdminApiController : ControllerBase
                     serial = serial
                 }
             );
+
+            var buyerTransaction = await services.economy.InsertTransaction(new AssetPurchaseTransaction(owner.userId, assetInfo.creatorType,
+                assetInfo.creatorTargetId, CurrencyType.Robux, assetInfo.price ?? 0, assetInfo.id, userAssetId));
+
+            var sellerTransaction = await services.economy.InsertTransaction(new AssetSaleTransaction(owner.userId, assetInfo.creatorType,
+                assetInfo.creatorTargetId, CurrencyType.Robux, assetInfo.price ?? 0, assetInfo.id, userAssetId));
+
             await services.assets.IncrementSaleCount(req.assetId);
         }
         return Ok();
