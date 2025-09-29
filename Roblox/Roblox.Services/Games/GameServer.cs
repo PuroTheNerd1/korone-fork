@@ -483,7 +483,7 @@ public class GameServerService : ServiceBase
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-
+            await DeleteGameServer(serverId);
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
             {
                 await arbiterClient.KillGameServer(
@@ -493,7 +493,6 @@ public class GameServerService : ServiceBase
 
             Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
 
-            await DeleteGameServer(serverId);
         }
         catch (OperationCanceledException)
         {
