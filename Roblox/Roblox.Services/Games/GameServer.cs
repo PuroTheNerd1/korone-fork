@@ -32,7 +32,6 @@ public class GameServerService : ServiceBase
             this.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
         }
 
-        // helper wrapper to limit concurrency
         private async Task<HttpResponseMessage> PostLimitedAsync(string url, HttpContent content, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync(cancellationToken);
@@ -882,19 +881,27 @@ public class GameServerService : ServiceBase
             };
         }
 
-        _ = Task.Run(async () => await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking));
-
-        await db.ExecuteAsync(
-            "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
-        new
+        if (await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking))
         {
-            id = jobId,
-            asset_id = placeInfo.placeId,
-            ip = Configuration.GameServerIp,
-            port = proxyPort,
-            server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
-            type = matchmaking
-        });
+            await db.ExecuteAsync(
+                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
+            new
+            {
+                id = jobId,
+                asset_id = placeInfo.placeId,
+                ip = Configuration.GameServerIp,
+                port = proxyPort,
+                server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
+                type = matchmaking
+            });
+        }
+        else
+        {
+            return new GameServerGetOrCreateResponse()
+            {
+                status = JoinStatus.Error
+            };
+        }
 
         return new GameServerGetOrCreateResponse()
         {
@@ -906,12 +913,11 @@ public class GameServerService : ServiceBase
     }
 
 
-    public async Task<string> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
+    public async Task<bool> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
     {
         Console.WriteLine("Starting Gameserver");
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
-        await arbiterClient.StartGameServer(request);
-        return "OK";
+        return await arbiterClient.StartGameServer(request);
     }
 
     [Obsolete]
