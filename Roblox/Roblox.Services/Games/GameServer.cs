@@ -810,11 +810,14 @@ public class GameServerService : ServiceBase
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId, int? matchmaking = 1)
     {
         var result = await db.QueryAsync<GameServerDb>(
-            "SELECT id, asset_id as assetId, port, updated_at as updatedAt, status, type FROM asset_server WHERE asset_id = :assetid AND type = :type ORDER BY created_at DESC",
+            @"SELECT s.id, s.asset_id AS assetId, s.port, s.updated_at AS updatedAt, s.status, s.type
+          FROM asset_server s
+          WHERE s.asset_id = :assetId AND s.type = :type
+          ORDER BY (SELECT COUNT(*) FROM asset_server_player p WHERE p.server_id = s.id) ASC",
             new
             {
-                assetid = placeId,
-                type = matchmaking,
+                assetId = placeId,
+                type = matchmaking
             });
         if (result == null)
             return new List<GameServerDb>();
@@ -824,21 +827,10 @@ public class GameServerService : ServiceBase
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking)
     {
         var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
-        // TEMP HACK!!!! Until we get the sql for this working
-        GameServerDb? bestServer = null;
-        int lowestPlayerCount = int.MaxValue;
 
         foreach (var server in gameServers)
         {
             var currentPlayerCount = (await GetGameServerPlayers(server.id)).Count();
-            const int miniumPlayerCount = 10;
-            const int loadBalanceThreshold = 2;
-
-            // if the server is full continue the search for a good one
-            if (currentPlayerCount >= placeInfo.maxPlayerCount)
-            {
-                continue;
-            }
 
             // if the server is older than 5 minutes then shutdown the server
             if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
@@ -846,33 +838,20 @@ public class GameServerService : ServiceBase
                 await ShutDownServerAsync(server.id);
                 continue;
             }
-
-            // god i promise this will change soon!!!
-            if (currentPlayerCount < lowestPlayerCount)
-            {
-                lowestPlayerCount = currentPlayerCount;
-                bestServer = server;
-            }
-
-            // every 2 servers we check if we can create a new server for load balancing
-            if (gameServers.Count() % loadBalanceThreshold == 0 &&
-                placeInfo.maxPlayerCount >= miniumPlayerCount &&
+            // every two servers we will load balance
+            if ((gameServers.Count() % 2 == 0 || gameServers.Count() == 1) &&
+                placeInfo.maxPlayerCount >= currentPlayerCount &&
                 currentPlayerCount >= (placeInfo.maxPlayerCount / 2))
             {
-                // create a new server
-                bestServer = null;
                 break;
             }
-        }
 
-        if (bestServer != null)
-        {
             return new GameServerGetOrCreateResponse()
             {
-                job = bestServer.id,
+                job = server.id,
                 ip = Configuration.GameServerIp,
-                port = bestServer.port,
-                status = bestServer.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
+                port = server.port,
+                status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
             };
         }
 
