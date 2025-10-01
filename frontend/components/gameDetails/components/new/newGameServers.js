@@ -267,27 +267,21 @@ const useStyles = createUseStyles({
 
 // should return same thing as /games/getgameinstancesjson but only servers with friends and an 
 function serversWithFriends(servers, friends) {
-  const friendsServers = []
   if (
-      servers === null ||
-      servers === undefined ||
-      friends === null ||
-      friends === undefined ||
-      servers?.Collection === undefined ||
-      servers?.Collection === null ||
-      !Array.isArray(servers?.CurrentPlayers) ||
-      !Array.isArray(friends)
-    ){
+    !servers ||
+    !friends ||
+    !Array.isArray(servers.Collection) ||
+    !Array.isArray(friends)
+  ) {
     return [];
   }
-  servers.Collection.forEach(server => {
-    const friendInServer = server.CurrentPlayers.some(player =>
-      friends.some(p => p.id === player.Id)
+
+  return servers.Collection.filter(server => 
+    Array.isArray(server.CurrentPlayers) &&
+    server.CurrentPlayers.some(player => 
+      friends.some(f => (f.Id || f.id || f.userId) === player.Id)
     )
-    if (friendInServer)
-      friendsServers.push(server);
-  })
-  return friendsServers;
+  );
 }
 
 const GameServers = props => {
@@ -299,33 +293,29 @@ const GameServers = props => {
   var friendServers = serversWithFriends(store.servers, friends) || [];
 
   useEffect(() => {
-    if (store.servers && store.servers.loading || store.servers !== null) {
-      return;
-    }
+    if (store.servers && store.servers.loading) return;
+
     if (!store.servers) {
-      store.setServers({
-        loading: true,
-      });
+      store.setServers({ loading: true });
     }
+
     getServers({
       placeId: store.details.id,
-      offset: store.servers && store.servers.offset || 0,
+      offset: (store.servers && store.servers.offset) || 0,
     }).then(servers => {
       store.setServers({
         ...servers,
         loading: false,
         areMoreAvailable: servers.Collection.length >= 10,
-        offset: (store.servers && store.servers.offset || 0) + 10,
-      })
-    })
+        offset: ((store.servers && store.servers.offset) || 0) + 10,
+      });
+    });
+
     getFriends({ userId: auth.userId }).then(d => {
-      if (d.length > 0) {
-        setFriends(d);
-      } else {
-        setFriends({});
-      }
-    })
-  }, [store.servers])
+      setFriends(Array.isArray(d) ? d : []);
+    });
+  }, [store.servers, auth.userId]);
+
 
   return <div className={`${s.subSectionContainer}`}>
     <div className={s.containerHeader}>
