@@ -824,6 +824,10 @@ public class GameServerService : ServiceBase
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking)
     {
         var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
+        // TEMP HACK!!!! Until we get the sql for this working
+        GameServerDb? bestServer = null;
+        int lowestPlayerCount = int.MaxValue;
+
         foreach (var server in gameServers)
         {
             var currentPlayerCount = (await GetGameServerPlayers(server.id)).Count();
@@ -836,15 +840,6 @@ public class GameServerService : ServiceBase
                 continue;
             }
 
-            // if only 1 server exists and it’s getting near max capacity then create a new server
-            if (gameServers.Count() == eligbleServerCount &&
-                placeInfo.maxPlayerCount >= eligbleMaxPlayerCount &&
-                currentPlayerCount >= (placeInfo.maxPlayerCount / 2)) // roughly half full
-            {
-                // create a new server!
-                break;
-            }
-
             // if the server is older than 5 minutes then shutdown the server
             if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
             {
@@ -852,15 +847,33 @@ public class GameServerService : ServiceBase
                 continue;
             }
 
-            // we found a server to join or.... its loading depending
+            // god i promise this will change soon!!!
+            if (currentPlayerCount < lowestPlayerCount)
+            {
+                lowestPlayerCount = currentPlayerCount;
+                bestServer = server;
+            }
+
+            // if only 1 server exists and it’s roughly half full, create a new one
+            if (gameServers.Count() == eligbleServerCount &&
+                placeInfo.maxPlayerCount >= eligbleMaxPlayerCount &&
+                currentPlayerCount >= (placeInfo.maxPlayerCount / 2))
+            {
+                // create a new server
+                bestServer = null;
+                break;
+            }
+        }
+
+        if (bestServer != null)
+        {
             return new GameServerGetOrCreateResponse()
             {
-                job = server.id,
+                job = bestServer.id,
                 ip = Configuration.GameServerIp,
-                port = server.port,
-                status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
+                port = bestServer.port,
+                status = bestServer.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
             };
-            
         }
 
         int mainRCCPort = RandomComponent.Next(30000, 40000);
