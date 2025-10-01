@@ -831,8 +831,8 @@ public class GameServerService : ServiceBase
         foreach (var server in gameServers)
         {
             var currentPlayerCount = (await GetGameServerPlayers(server.id)).Count();
-            const int eligbleMaxPlayerCount = 10;
-            const int eligbleServerCount = 1;
+            const int miniumPlayerCount = 10;
+            const int loadBalanceThreshold = 2;
 
             // if the server is full continue the search for a good one
             if (currentPlayerCount >= placeInfo.maxPlayerCount)
@@ -854,9 +854,9 @@ public class GameServerService : ServiceBase
                 bestServer = server;
             }
 
-            // if only 1 server exists and it’s roughly half full, create a new one
-            if (gameServers.Count() == eligbleServerCount &&
-                placeInfo.maxPlayerCount >= eligbleMaxPlayerCount &&
+            // every 2 servers we check if we can create a new server for load balancing
+            if (gameServers.Count() % loadBalanceThreshold == 0 &&
+                placeInfo.maxPlayerCount >= miniumPlayerCount &&
                 currentPlayerCount >= (placeInfo.maxPlayerCount / 2))
             {
                 // create a new server
