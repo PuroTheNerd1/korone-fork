@@ -2189,14 +2189,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         var sortedList = resp.data.ToList();
         if (doIdSort)
         {
-            // temporary hack for pinning headless horseman
-            sortedList.Sort((a, b) =>
-            {
-                if (a.id == 14313 && b.id != 14313) return -1; // a first
-                if (b.id == 14313 && a.id != 14313) return 1;  // b first
-
-                return a.id > b.id ? -1 : 1;
-            });
+            sortedList.Sort((a, b) => a.id > b.id ? -1 : 1);
         }
 
         if (sortedList.Count >= request.limit)
