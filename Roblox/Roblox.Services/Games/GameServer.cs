@@ -810,7 +810,7 @@ public class GameServerService : ServiceBase
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId, int? matchmaking = 1)
     {
         var result = await db.QueryAsync<GameServerDb>(
-            "SELECT id, asset_id as assetId, port, updated_at as updatedAt, status, type FROM asset_server WHERE asset_id = :assetid AND type = :type",
+            "SELECT id, asset_id as assetId, port, updated_at as updatedAt, status, type FROM asset_server WHERE asset_id = :assetid AND type = :type ORDER BY created_at DESC",
             new
             {
                 assetid = placeId,
@@ -826,26 +826,31 @@ public class GameServerService : ServiceBase
         var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
         foreach (var server in gameServers)
         {
-            var currentPlayerCount = await GetGameServerPlayers(server.id);
+            var currentPlayerCount = (await GetGameServerPlayers(server.id)).Count();
+            const int eligbleMaxPlayerCount = 10;
+            const int eligbleServerCount = 1;
 
             // if the server is full continue the search for a good one
-            if (currentPlayerCount.Count() >= placeInfo.maxPlayerCount)
+            if (currentPlayerCount >= placeInfo.maxPlayerCount)
             {
                 continue;
             }
+
+            // if only 1 server exists and it’s getting near max capacity then create a new server
+            if (gameServers.Count() == eligbleServerCount &&
+                placeInfo.maxPlayerCount >= eligbleMaxPlayerCount &&
+                currentPlayerCount >= (placeInfo.maxPlayerCount / 2)) // roughly half full
+            {
+                // create a new server!
+                break;
+            }
+
             // if the server is older than 5 minutes then shutdown the server
             if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
             {
                 await ShutDownServerAsync(server.id);
                 continue;
             }
-
-            //dict check!!! if it doesnt contain it lets kill it!
-            //if (!currentGameServerPorts.ContainsKey(jobid))
-            //{
-                //_ = ShutDownServerAsync(jobid);
-                //continue;
-            //}
 
             // we found a server to join or.... its loading depending
             return new GameServerGetOrCreateResponse()
@@ -871,7 +876,7 @@ public class GameServerService : ServiceBase
 
         Guid jobId = Guid.NewGuid();
         // We need to create a lock to prevent multiple requests from creating the same game server
-        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(3));
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(5));
         if (!serverCreationLock.IsAcquired)
         {
             return new GameServerGetOrCreateResponse
