@@ -2153,6 +2153,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     // If the keyword is empty, we are most likely on the front page so we only show non limiteds
                     if (string.IsNullOrEmpty(request.keyword) && request.sortType != "7" && request.sortType != "6")
                     {
+                        doIdSort = false;
                         builder.Where($"(asset.is_limited = false AND asset.is_limited_unique = false AND asset.asset_type != {(int)Models.Assets.Type.Face} OR asset.id = 14313)");
                     }
                     builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
