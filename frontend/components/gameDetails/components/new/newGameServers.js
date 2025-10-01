@@ -293,28 +293,26 @@ const GameServers = props => {
   var friendServers = serversWithFriends(store.servers, friends) || [];
 
   useEffect(() => {
-    if (store.servers && store.servers.loading) return;
-
     if (!store.servers) {
       store.setServers({ loading: true });
-    }
 
-    getServers({
-      placeId: store.details.id,
-      offset: (store.servers && store.servers.offset) || 0,
-    }).then(servers => {
-      store.setServers({
-        ...servers,
-        loading: false,
-        areMoreAvailable: servers.Collection.length >= 10,
-        offset: ((store.servers && store.servers.offset) || 0) + 10,
+      getServers({
+        placeId: store.details.id,
+        offset: 0,
+      }).then(servers => {
+        store.setServers({
+          ...servers,
+          loading: false,
+          areMoreAvailable: servers.Collection.length >= 10,
+          offset: servers.Collection.length, // start fresh
+        });
       });
-    });
+    }
 
     getFriends({ userId: auth.userId }).then(d => {
       setFriends(Array.isArray(d) ? d : []);
     });
-  }, [store.servers, auth.userId]);
+  }, [auth.userId]);
 
 
   return <div className={`${s.subSectionContainer}`}>
