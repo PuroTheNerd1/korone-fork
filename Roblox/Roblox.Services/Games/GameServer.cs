@@ -845,6 +845,10 @@ public class GameServerService : ServiceBase
             //{
             //    break;
             //}
+            if (placeInfo.maxPlayerCount >= currentPlayerCount)
+            {
+                continue;
+            }
 
             return new GameServerGetOrCreateResponse()
             {
