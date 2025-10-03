@@ -838,13 +838,13 @@ public class GameServerService : ServiceBase
                 await ShutDownServerAsync(server.id);
                 continue;
             }
-            // every two servers we will load balance
-            if ((gameServers.Count() % 2 == 0 || gameServers.Count() == 1) &&
-                placeInfo.maxPlayerCount >= currentPlayerCount &&
-                currentPlayerCount >= (placeInfo.maxPlayerCount / 2))
-            {
-                break;
-            }
+            // removal of load balancing because im a retard :P Fuck dude i hate my life I wish i knew math and other shit lol
+            //if ((gameServers.Count() % 2 == 0 || gameServers.Count() == 1) &&
+            //    placeInfo.maxPlayerCount >= currentPlayerCount &&
+            //    currentPlayerCount >= (placeInfo.maxPlayerCount / 2))
+            //{
+            //    break;
+            //}
 
             return new GameServerGetOrCreateResponse()
             {
