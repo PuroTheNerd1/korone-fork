@@ -1349,9 +1349,8 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            var gameServer = await services.gameServer.GetGameServer(gameId);
-
-            if ((clientCount == 0 && gameTime > 50) && gameServer != null)
+                
+            if (clientCount == 0 && gameTime > 50)
             {
                 await services.gameServer.ShutDownServerAsync(gameId);
                 return;
