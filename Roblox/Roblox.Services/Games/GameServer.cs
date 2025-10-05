@@ -473,7 +473,7 @@ public class GameServerService : ServiceBase
 
     public async Task ShutDownServerAsync(Guid serverId)
     {
-        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CloseGameServerV2:{serverId.ToString()}", TimeSpan.FromSeconds(60));
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CloseGameServerV2:{serverId.ToString()}", TimeSpan.FromSeconds(30));
         if (!serverCreationLock.IsAcquired)
         {
             // Silence.
@@ -872,16 +872,6 @@ public class GameServerService : ServiceBase
         } while (true);
 
         Guid jobId = Guid.NewGuid();
-        // Global creation lock
-        using var serverGlobalCreationLock = await Cache.redLock.CreateLockAsync($"GlobalCreateGameServerV1", TimeSpan.FromSeconds(5));
-        if (!serverGlobalCreationLock.IsAcquired)
-        {
-            return new GameServerGetOrCreateResponse
-            {
-                status = JoinStatus.Loading,
-            };
-        }
-
         // We need to create a lock to prevent multiple requests from creating the same game server
         using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(5));
         if (!serverCreationLock.IsAcquired)
