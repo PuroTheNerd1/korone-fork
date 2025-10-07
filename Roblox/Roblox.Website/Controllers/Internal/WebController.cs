@@ -602,7 +602,7 @@ public class WebController : ControllerBase
             throw new BadRequestException(1, "You are creating places too fast, please wait a few seconds before trying again");
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         // Whitelist 677
-        if (!StaffFilter.IsOwner(safeUserSession.userId) && safeUserSession.userId != 677)
+        if (!StaffFilter.IsOwner(safeUserSession.userId) && safeUserSession.userId != 677 && safeUserSession.userId != 41990)
             throw new ForbiddenException(11, "You don't have permissions to create a place in this universe");
         if (await services.games.CountUniversePlaces(universeId) >= 10)
             throw new BadRequestException(1, "You cannot create more than 10 places in a universe");   
