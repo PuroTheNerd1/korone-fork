@@ -484,7 +484,7 @@ public class GameServerService : ServiceBase
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             await DeleteGameServer(serverId);
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120)))
             {
                 await arbiterClient.KillGameServer(
                     ArbiterHttpClient.CreateKillGameServerRequest(serverId),
