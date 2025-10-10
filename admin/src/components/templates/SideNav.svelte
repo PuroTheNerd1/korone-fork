@@ -194,7 +194,7 @@
 				{/if}
 				{#if rank.hasPermission("GiveUserItem")}
 					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/asset/track"><RefreshCcwIcon /> Tack User Assets</a>
+						<a use:link class="nav-link" href="/admin/asset/track"><RefreshCcwIcon /> Track User Assets</a>
 					</li>
 				{/if}
 				{#if rank.hasPermission("RequestAssetReRender")}
