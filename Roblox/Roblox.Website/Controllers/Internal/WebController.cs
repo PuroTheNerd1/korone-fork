@@ -345,9 +345,9 @@ public class WebController : ControllerBase
         };
     }
     [HttpGet("users/{userId:long}")]
-    public async Task<IActionResult> userInfo(long userId)
+    public async Task<IActionResult> GetUserInfo(long userId)
     {
-
+        Console.WriteLine($"Request: {userId}");
         var userInfo = await services.users.GetUserById(userId);
         var data  =  new
         {

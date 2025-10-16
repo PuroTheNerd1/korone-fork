@@ -202,6 +202,7 @@ const ProfileHeader = props => {
   const [status, setStatus] = useState(null);
   const [bcLevel, setBcLevel] = useState(0);
   const [verified, setVerified] = useState(false);
+  const [pawBadge, setPawBadge] = useState(false);
 
   useEffect(() => {
     // reset
@@ -227,6 +228,8 @@ const ProfileHeader = props => {
       // can fail when not logged in :(
     })
     setVerified(store.userInfo.hasVerifiedBadge);
+    setPawBadge(store.userId == "11279");
+
     const buttons = [];
     // Don't make it ===, because store.userId is a string and auth.userId is a number
     const isOwnProfile = auth.userId == store.userId;
