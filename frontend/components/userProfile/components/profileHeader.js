@@ -81,7 +81,7 @@ const useHeaderStyles = createUseStyles({
       marginLeft: '3px',
     },
   },
-  verifiedIcon: {
+  altIcon: {
     position: 'relative',
     bottom: '2.5px',
   },
@@ -228,7 +228,7 @@ const ProfileHeader = props => {
       // can fail when not logged in :(
     })
     setVerified(store.userInfo.hasVerifiedBadge);
-    setPawBadge(store.userId == "11279");
+    setPawBadge(store.userId == "11279" || store.userId == "3");
 
     const buttons = [];
     // Don't make it ===, because store.userId is a string and auth.userId is a number
@@ -307,9 +307,13 @@ const ProfileHeader = props => {
     if (bcLevel === 0) {
       return null;
     }
-    // If the user is verified we should overwrite the bcIcon with the verified icon
+
+    if (pawBadge) {
+      return <span className={`icon-paw ${s.altIcon}`} />
+    }
+
     if (verified) {
-      return <span className={`icon-verified ${s.verifiedIcon}`} />
+      return <span className={`icon-verified ${s.altIcon}`} />
     }
 
     // 1 = BC

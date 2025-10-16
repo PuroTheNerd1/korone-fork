@@ -547,6 +547,16 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	display: inline-block;
 	vertical-align: middle;
 }
+
+.icon-paw {
+	background-image: url(/img/paw.svg);
+	background-repeat: no-repeat;
+	background-size: auto auto;
+	width: 52px;
+	height: 28px;
+	display: inline-block;
+	vertical-align: middle;
+}
 .icon-default-bc,
 .icon-bc,
 .icon-tbc,
