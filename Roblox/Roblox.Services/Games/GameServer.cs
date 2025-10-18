@@ -865,7 +865,7 @@ public class GameServerService : ServiceBase
         do
         {
             Task.Delay(100);
-            proxyPort = RandomComponent.Next(28015, 29100);
+            proxyPort = RandomComponent.Next(7000, 8000);
             if (!await IsPortTaken(proxyPort))
                 break;
             
