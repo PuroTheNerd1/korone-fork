@@ -3,7 +3,7 @@ import { getTheme, themeType } from "../../services/theme";
 
 const footerLinks = {
   '/about-us': 'About Us',
-  'https://discord.gg/austiblox': 'Discord',
+  'https://discord.gg/korone': 'Discord',
   '/internal/robuxexchange': 'Robux Exchange',
   '/internal/tixexchange': 'Tix Exchange',
   '/auth/tos': 'Terms',
