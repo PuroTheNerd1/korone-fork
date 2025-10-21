@@ -83,14 +83,6 @@ public class Asset : ControllerBase
         {
             using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
             var location = await robloxAssetService.GetAssetById(assetId, serverplaceid ?? currentPlaceId);
-            // I don't want this excepting becuase it will flood the logs
-            if (string.IsNullOrEmpty(location))
-            {
-                return new
-                {
-                    msg = "Asset not found",
-                };
-            }
             return Redirect(location);
         }
 

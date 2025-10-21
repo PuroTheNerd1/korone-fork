@@ -392,7 +392,7 @@ namespace Roblox.Website.Controllers
                 throw new ForbiddenException((int)LoginError403.AccountLocked, "Your account has been locked. Please reset your password to unlock your account.");
             }
 
-            if (skip2FA == true)
+            if (skip2FA)
                 return true;
 
             if (await services.users.GetTotpStatus(userId) == TotpStatus.Enabled)
