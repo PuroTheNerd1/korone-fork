@@ -46,14 +46,14 @@ public class Asset : ControllerBase
 
         // TODO: This endpoint needs to be updated to return a URL to the asset, not the asset itself.
         // The reason for this is so that cloudflare can cache assets without caching the response of this endpoint, which might be different depending on the client making the request (e.g. under 18 user, over 18 user, rcc, etc).
-        if(id == 507766388)
+        if (id == 507766388)
         {
             return PhysicalFile(@"C:\korone-revival\services\Roblox\FixJitter\507766388.rbxm", "application/octet-stream");
         }
-        else if(id == 507766666)
+        else if (id == 507766666)
         {
             return PhysicalFile(@"C:\korone-revival\services\Roblox\FixJitter\507766666.rbxm", "application/octet-stream");
-        
+        }
         // If assetversionid isnt null, set id to assetveresionid
         id = assetversionid ?? id;
 
