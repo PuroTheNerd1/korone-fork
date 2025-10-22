@@ -21,6 +21,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
         {
             FeatureCheck();
+            IsRequestValid();
             await RateLimitCheck();
 
             string username = request.cvalue;
@@ -64,6 +65,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LoginV2()
         {
             FeatureCheck();
+            IsRequestValid();
             await RateLimitCheck();
             string requestBody = await GetRequestBody();
             string? username = "";
@@ -183,6 +185,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> TwoStepVerificationEmailLogin([FromRoute] long userId, [FromBody] TwoFactorEmailLogin request)
         {
             FeatureCheck();
+            IsRequestValid();
             await RateLimitCheck();
             LoginTicet ticketInfo = await services.users.GetLoginTicketInfo(request.verificationToken);
 
@@ -203,6 +206,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> TwoStepVerificationEmail([FromRoute] long userId, [FromBody] TwoFactorEmail request)
         {
             FeatureCheck();
+            IsRequestValid();
             await RateLimitCheck();
             TwoFactorTicket info;
             try
@@ -247,6 +251,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> TwoStepVerification([FromBody] TwoFactor request)
         {
             FeatureCheck();
+            IsRequestValid();
             await RateLimitCheck();
             TwoFactorTicket info;
             try
@@ -279,6 +284,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
         {
             FeatureCheck();
+            IsRequestValid();
             await RateLimitCheck();
             TwoFactorTicket info;
             try
@@ -311,6 +317,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
         {
             FeatureCheck();
+            IsRequestValid();
             await RateLimitCheck();
             // Format: {username}|{2facode}
             string[] splittedUsername = request.username.Split('|');
@@ -409,6 +416,14 @@ namespace Roblox.Website.Controllers
 
             return true;
         }
+
+        private void IsRequestValid()
+        {
+            // quick fix i just wanna kill myself honestly 
+            if (isRoblox)
+                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
+        }
+
         private async Task RateLimitCheck()
         {
             var loginKey = "LoginAttemptCountV1:" + GetIP();
