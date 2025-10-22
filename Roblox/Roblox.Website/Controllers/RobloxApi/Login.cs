@@ -22,6 +22,7 @@ namespace Roblox.Website.Controllers
         {
             FeatureCheck();
             await RateLimitCheck();
+
             string username = request.cvalue;
             string password = request.password;
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
@@ -289,10 +290,11 @@ namespace Roblox.Website.Controllers
 
                 if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
                     throw new BadRequestException(6, "2FA is not enabled on this account.");
+
                 TotpInfo totpInfo = await services.users.GetTotp(info.userId);
+
                 if (!services.users.VerifyTotp(totpInfo.secret, request.identificationCode))
                     throw new BadRequestException(6, "Incorrect 2FA code. Please try again.");
-
             }
             catch (RecordNotFoundException)
             {
@@ -379,8 +381,6 @@ namespace Roblox.Website.Controllers
         }
         private async Task<bool> Login(string username, string password, long userId, string? totpCode, bool isPasswordLeaked, bool? skip2FA = false)
         {
-            FeatureCheck();
-            await RateLimitCheck();
             //get totp info
             try
             {
@@ -415,9 +415,7 @@ namespace Roblox.Website.Controllers
             var attemptCount = (await services.cooldown.GetBucketDataForKey(loginKey, TimeSpan.FromMinutes(10))).ToArray();
 
             if (!await services.cooldown.TryIncrementBucketCooldown(loginKey, 15, TimeSpan.FromMinutes(10), attemptCount, true))
-            {
                 throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
-            }
         }
         private void FeatureCheck()
         {
