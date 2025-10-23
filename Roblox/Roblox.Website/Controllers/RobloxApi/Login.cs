@@ -420,7 +420,7 @@ namespace Roblox.Website.Controllers
         private void IsRequestValid()
         {
             // quick fix i just wanna kill myself honestly 
-            if (isRoblox)
+            if (!isRoblox)
                 throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
         }
 
