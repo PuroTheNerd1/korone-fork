@@ -72,7 +72,7 @@ public class AudioService : ServiceBase, IService
                 .FromFileInput(tempInput)
                 .OutputToFile(tempOutput, true, options =>
                     options
-                        .WithCustomArgument("-af volume=-1dB")
+                        .WithCustomArgument("-af loudnorm=I=-16:TP=-2:LRA=11")
                         .WithAudioCodec("libmp3lame")
                         .WithAudioBitrate(AudioQuality.Normal))
                         
