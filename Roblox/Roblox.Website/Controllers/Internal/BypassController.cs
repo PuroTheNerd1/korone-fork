@@ -1001,7 +1001,7 @@ namespace Roblox.Website.Controllers
             List<string> allowedList = new List<string>
             {
                 "abc9d2132ef2c21101804d8e25e0413f", //2017L Prod
-                "fdba296fb6aa5af66f41c973809bf3ee", //2017L Prod New
+                "b4ec3a53ad1e0e03c1bb836c2e2cb382", //2017L Prod New
                 "bba43f967698feff49038f51b391b48e", //2018L Prod
                 "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
                 "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
