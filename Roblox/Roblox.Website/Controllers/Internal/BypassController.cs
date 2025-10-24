@@ -1001,14 +1001,11 @@ namespace Roblox.Website.Controllers
             List<string> allowedList = new List<string>
             {
                 "abc9d2132ef2c21101804d8e25e0413f", //2017L Prod
+                "fdba296fb6aa5af66f41c973809bf3ee", //2017L Prod New
                 "bba43f967698feff49038f51b391b48e", //2018L Prod
-                "4022369076d608d1a99b7b3d250e4de5", //2018L RAGELoader Debug
-                "9d7975454cee0e948e35cdc1fb55f92a", //2019E Prod
-                "15c69e21a90ed1d10e686db71d62c955", //2019M Prod
                 "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
                 "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
                 "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6,
-                //"d262983d5d887e114ba240e32e2d7465", // 2020 goober client
             };
 
             return new { data = allowedList };

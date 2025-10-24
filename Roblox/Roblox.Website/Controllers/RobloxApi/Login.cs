@@ -423,7 +423,7 @@ namespace Roblox.Website.Controllers
             if (!isRoblox)
                 throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
         }
-
+        
         private async Task RateLimitCheck()
         {
             var loginKey = "LoginAttemptCountV1:" + GetIP();
