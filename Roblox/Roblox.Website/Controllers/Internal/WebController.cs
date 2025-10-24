@@ -971,6 +971,9 @@ public class WebController : ControllerBase
         stream.Position = 0;
         var isOk = await Services.AudioService.IsAudioValid(stream);
 
+        if (isOk == MediaValidation.UnsupportedFormat)
+            throw new BadRequestException(0, "OGG uploading is currently disabled, try uploading as an MP3 instead");
+
         if (isOk != MediaValidation.Ok)
             throw new BadRequestException(0, "Bad audio file. Error = " + isOk.ToString());
 

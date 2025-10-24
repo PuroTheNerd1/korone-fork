@@ -72,7 +72,7 @@ public class AudioService : ServiceBase, IService
                 .FromFileInput(tempInput)
                 .OutputToFile(tempOutput, true, options =>
                     options
-                        .WithCustomArgument("-af alimiter=limit=-2.2:level=disabled:attack=5:release=50")
+                        //.WithCustomArgument("-af alimiter=limit=-2.2:level=disabled:attack=5:release=50")
                         .WithAudioCodec("libmp3lame")
                         .WithAudioBitrate(AudioQuality.Normal))
                         
@@ -137,8 +137,8 @@ public class AudioService : ServiceBase, IService
         
         var formatDetails = mediaInfo.Format;
 
-        // our game engine currently supports mp3 and ogg.
-        if (formatDetails.FormatName is "mp3" or "ogg")
+        // our game engine currently supports mp3 and 
+        if (formatDetails.FormatName == "mp3")
         {
             return MediaValidation.Ok;
         }
