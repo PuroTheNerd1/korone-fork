@@ -875,7 +875,9 @@ public class AdminApiController : ControllerBase
             {
                 user_id = userId,
             });
-        if (result == null) throw new StaffException("Invalid user ID");
+        if (result == null) 
+            throw new StaffException("Invalid user ID");
+
         var joinInvite = await services.users.GetUserInvite(userId);
         var joinApp = await services.users.GetApplicationByUserId(userId);
         var membership = await services.users.GetUserMembership(userId);
@@ -1069,6 +1071,7 @@ public class AdminApiController : ControllerBase
             rightLegColorId = 102,
             leftLegColorId = 102,
         }, AvatarType.R6, true, true);
+
         using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
         avatarCache.UnscheduleRender(request.userId);
 

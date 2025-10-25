@@ -20,30 +20,16 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v1/login")]
         public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
         {
-            FeatureCheck();
-            IsRequestValid();
-            await RateLimitCheck();
-
+            await IsRequestValid();
             string username = request.cvalue;
             string password = request.password;
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                throw new BadRequestException((int)LoginError400.UsernamePasswordRequired, "Username or password is missing.");
 
-            // Format: {username}|{2facode}
             string[] splittedUsername = username.Split('|');
 
             username = splittedUsername[0];
             string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
 
-            UserInfo userInfo;
-            try
-            {
-                userInfo = await services.users.GetUserByName(username);
-            }
-            catch (RecordNotFoundException)
-            {
-                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again.");
-            }
+            var userInfo = await services.users.GetUserByName(username);
 
             if (await Login(userInfo.username, request.password, userInfo.userId, totpCode, isPasswordLeaked))
                 await CreateSessionAndSetCookie(userInfo.userId);
@@ -64,9 +50,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/login")]
         public async Task<dynamic> LoginV2()
         {
-            FeatureCheck();
-            IsRequestValid();
-            await RateLimitCheck();
+            await IsRequestValid();
             string requestBody = await GetRequestBody();
             string? username = "";
             string? password = "";
@@ -122,13 +106,7 @@ namespace Roblox.Website.Controllers
             {
                 throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again.");
             }
-            
-            // return new 
-            // {
-            //     mediaType = "Email",
-            //     tl = "a",
-            //     message = "TwoStepVerificationRequired",
-            // };
+
             await Login(username, password, userInfo.userId, totpCode, isPasswordLeaked, true);
 
             if (await services.users.GetTotpStatus(userInfo.userId) == TotpStatus.Enabled)
@@ -184,9 +162,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
         public async Task<dynamic> TwoStepVerificationEmailLogin([FromRoute] long userId, [FromBody] TwoFactorEmailLogin request)
         {
-            FeatureCheck();
-            IsRequestValid();
-            await RateLimitCheck();
+            await IsRequestValid();
             LoginTicet ticketInfo = await services.users.GetLoginTicketInfo(request.verificationToken);
 
             if (ticketInfo.userId != userId || ticketInfo.challengeId != request.challengeId)
@@ -205,9 +181,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
         public async Task<dynamic> TwoStepVerificationEmail([FromRoute] long userId, [FromBody] TwoFactorEmail request)
         {
-            FeatureCheck();
-            IsRequestValid();
-            await RateLimitCheck();
+            await IsRequestValid();
             TwoFactorTicket info;
             try
             {
@@ -250,9 +224,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/twostepverification/verify")]
         public async Task<dynamic> TwoStepVerification([FromBody] TwoFactor request)
         {
-            FeatureCheck();
-            IsRequestValid();
-            await RateLimitCheck();
+            await IsRequestValid();
             TwoFactorTicket info;
             try
             {
@@ -283,9 +255,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("v2/twostepverification/login/verify")]
         public async Task<dynamic> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
         {
-            FeatureCheck();
-            IsRequestValid();
-            await RateLimitCheck();
+            await IsRequestValid();
             TwoFactorTicket info;
             try
             {
@@ -316,9 +286,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("mobileapi/login")]
         public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
         {
-            FeatureCheck();
-            IsRequestValid();
-            await RateLimitCheck();
+            await IsRequestValid();
             // Format: {username}|{2facode}
             string[] splittedUsername = request.username.Split('|');
 
@@ -417,31 +385,20 @@ namespace Roblox.Website.Controllers
             return true;
         }
 
-        private void IsRequestValid()
+        private async Task IsRequestValid()
         {
-            // quick fix i just wanna kill myself honestly 
-            if (!isRoblox)
-                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
-        }
-        
-        private async Task RateLimitCheck()
-        {
+            FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
+
             var loginKey = "LoginAttemptCountV1:" + GetIP();
             var attemptCount = (await services.cooldown.GetBucketDataForKey(loginKey, TimeSpan.FromMinutes(10))).ToArray();
 
             if (!await services.cooldown.TryIncrementBucketCooldown(loginKey, 15, TimeSpan.FromMinutes(10), attemptCount, true))
                 throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
+
+            if (!isRoblox)
+                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
         }
-        private void FeatureCheck()
-        {
-            try
-            {
-                FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-            }
-            catch (RobloxException)
-            {
-                throw new RobloxException(503, (int)LoginError503.ServiceUnavailable, "Login is currently disabled. Please try again later.");
-            }
-        }
+        
+
     }
 }
