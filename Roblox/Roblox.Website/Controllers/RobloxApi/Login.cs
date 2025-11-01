@@ -291,7 +291,16 @@ namespace Roblox.Website.Controllers
                 sessionId = await services.users.CreateSession(userId),
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
-            // will be removed later this is just a hack to get the website to work :sob:
+            
+            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
+            {
+                Domain = $".{Configuration.ShortBaseUrl}",
+                Secure = false,
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(14)),
+                IsEssential = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
+            });
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
             {
                 Domain = $".{Configuration.ShortBaseUrl}",
