@@ -204,7 +204,7 @@ namespace Roblox.Website.Controllers
                 placeId = request.placeId,
                 userId = safeUserSession.userId,
                 username = safeUserSession.username,
-                cookie = DOGSECURITY,
+                cookie = PUPPYSECURITY,
                 special = true
             };
             return await services.placeLauncher.PlaceLauncherAsync(placeLauncherRequest);
@@ -223,7 +223,7 @@ namespace Roblox.Website.Controllers
                     message = "You are not authorized to join"
                 };
             }
-            Placelauncher.cookie = DOGSECURITY;
+            Placelauncher.cookie = PUPPYSECURITY;
             Placelauncher.userId = userSession.userId;
             Placelauncher.username = userSession.username;
             return await services.placeLauncher.PlaceLauncherAsync(Placelauncher);
@@ -252,7 +252,7 @@ namespace Roblox.Website.Controllers
             if (userSession == null)
                 return Unauthorized("User is not authorized.");
             
-            return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={DOGSECURITY}");
+            return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={PUPPYSECURITY}");
         }
 
         [HttpGetBypass("joinserver")]
@@ -269,7 +269,7 @@ namespace Roblox.Website.Controllers
             if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
             var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
             if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-            var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{DOGSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+            var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{PUPPYSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
             return Redirect($"pekora-player{bootstrapperArgs}");
         }
 
@@ -436,7 +436,7 @@ namespace Roblox.Website.Controllers
                 membership = "OutrageousBuildersClub";
             }
             string clientTicket = services.sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, jobId, accountAgeDays, placeId);
-            var joinScript = services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, DOGSECURITY);
+            var joinScript = services.games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, GenerateTeleportJoin, PUPPYSECURITY);
 
             return services.games.SignJoinScript(placeInfo.year, joinScript);
         }

@@ -57,7 +57,7 @@ namespace Roblox.Website.Controllers
             }
         }
 
-        protected string? DOGSECURITY
+        protected string? PUPPYSECURITY
         {
             get
             {

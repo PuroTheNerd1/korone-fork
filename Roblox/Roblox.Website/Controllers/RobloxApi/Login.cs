@@ -345,9 +345,9 @@ namespace Roblox.Website.Controllers
             // will be removed later this is just a hack to get the website to work :sob:
             HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
             {
-                Domain = ".pekora.zip",
+                Domain = $".{Configuration.ShortBaseUrl}",
                 Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
+                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(14)),
                 IsEssential = true,
                 Path = "/",
                 SameSite = SameSiteMode.Lax,
@@ -357,15 +357,8 @@ namespace Roblox.Website.Controllers
         private async Task<bool> Login(string username, string password, long userId, string? totpCode, bool isPasswordLeaked, bool? skip2FA = false)
         {
             //get totp info
-            try
-            {
-                if (!await services.users.VerifyPassword(userId, password))
-                    throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
-            }
-            catch (RecordNotFoundException)
-            {
-                throw new ForbiddenException((int)LoginError403.AccountLocked, "Your account has been locked. Please reset your password to unlock your account.");
-            }
+            if (!await services.users.VerifyPassword(userId, password))
+                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
 
             if ((bool)skip2FA)
                 return true;
