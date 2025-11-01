@@ -51,9 +51,11 @@ public class AuthenticationControllerV2 : ControllerBase
         // Verify password
         var correctPass = await services.users.VerifyPassword(safeUserSession.userId, request.currentPassword);
         if (!correctPass)
-        {
             throw new BadRequestException(8, "Password does not match");
-        }
+
+        if (await services.leakCheck.IsPasswordLeaked(request.newPassword))
+            throw new BadRequestException(0, "This password was previously spotted in a leak, please choose a stronger password.");
+
         // We can update the user's password now
         await services.users.UpdatePassword(safeUserSession.userId, request.newPassword);
     }

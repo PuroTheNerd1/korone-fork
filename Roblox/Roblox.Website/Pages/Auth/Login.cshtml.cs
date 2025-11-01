@@ -218,7 +218,7 @@ public class Login : RobloxPageModel
         if (await services.leakCheck.IsPasswordLeaked(password))
         {
             await services.users.NullifyPassword(userId);
-            await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"{username} has been locked");
+            await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLockChannelId, $"{username} has been locked");
             errorMessage = CompromisedPasswordMessage;
             return new PageResult();
         }

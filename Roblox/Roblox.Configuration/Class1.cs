@@ -43,6 +43,7 @@ public static class Configuration
     public static string DiscordGuildId { get; set; }
     public static string DiscordBotToken { get; set; }
     public static string DiscordLogChannelId { get; set; }
+    public static string DiscordLockChannelId { get; set; }
     public static string LeakCheckApiKey { get; set; }
     public static string DiscordOAuthToken
     {

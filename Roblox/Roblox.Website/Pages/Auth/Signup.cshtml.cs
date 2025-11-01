@@ -221,6 +221,14 @@ public class Signup : RobloxPageModel
             errorMessage = "Too many attempts. Try again in about 5 minutes.";
             return new PageResult();
         }
+
+        if (await services.leakCheck.IsPasswordLeaked(password))
+        {
+            errorMessage = "This password was previously spotted in a leak, please choose a stronger password.";
+            return new PageResult();
+        }
+            
+
         // Now make the account
         UserId createdUser;
         try

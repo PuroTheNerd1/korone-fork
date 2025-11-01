@@ -25,7 +25,9 @@ public class PasswordReset : RobloxPageModel
     private const string Cooldown = "Too many attempts. Try again in a few minutes.";
     private const string InvalidPasswordResetId = "This form is no longer valid. Please refresh the page and try again.";
     private const string InvalidNewPassword = "Your new password is invalid. It must be at least 3 characters.";
-    [BindProperty]
+    private const string LeakedPassword = "This password was previously spotted in a leak, please choose a stronger password.";
+
+        [BindProperty]
     public string? username { get; set; }
     [BindProperty]
     public string? action { get; set; }
@@ -195,6 +197,12 @@ public class PasswordReset : RobloxPageModel
                 data.status != PasswordResetState.Created
             ) {
                 errorMessage = InvalidPasswordResetId;
+                return new PageResult();
+            }
+
+            if (!await services.leakCheck.IsPasswordLeaked(newPassword))
+            {
+                errorMessage = LeakedPassword;
                 return new PageResult();
             }
 
