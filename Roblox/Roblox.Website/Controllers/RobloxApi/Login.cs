@@ -97,15 +97,7 @@ namespace Roblox.Website.Controllers
             username = splittedUsername[0];
             string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
 
-            UserInfo userInfo;
-            try
-            {
-                userInfo = await services.users.GetUserByName(username);
-            }
-            catch (RecordNotFoundException)
-            {
-                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again.");
-            }
+            UserInfo userInfo = await services.users.GetUserByName(username);
 
             await Login(username, password, userInfo.userId, totpCode, isPasswordLeaked, true);
 
@@ -281,49 +273,6 @@ namespace Roblox.Website.Controllers
             return new
             {
                 info.userId,
-            };
-        }
-        [HttpPostBypass("mobileapi/login")]
-        public async Task<dynamic> LegacyLogin([FromBody] LegacyLoginRequest request)
-        {
-            await IsRequestValid();
-            // Format: {username}|{2facode}
-            string[] splittedUsername = request.username.Split('|');
-
-            request.username = splittedUsername[0];
-            
-            string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
-
-            if (string.IsNullOrEmpty(request.username) || string.IsNullOrEmpty(request.password))
-                throw new BadRequestException((int)LoginError400.UsernamePasswordRequired, "Username and Password are required. Please try again.");
-
-            UserInfo userInfo;
-            try
-            {
-                userInfo = await services.users.GetUserByName(request.username);
-            }
-            catch (RecordNotFoundException)
-            {
-                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again.");
-            }
-
-            if(await Login(request.username, request.password, userInfo.userId, totpCode, isPasswordLeaked))
-                await CreateSessionAndSetCookie(userInfo.userId);
-
-            var userBalance = await services.economy.GetUserBalance(userInfo.userId);
-
-            return new
-            {
-                Status = "OK",
-                UserInfo = new
-                {
-                    UserName = request.username,
-                    RobuxBalance = userBalance.robux,
-                    TicketsBalance = userBalance.tickets,
-                    IsAnyBuildersClubMember = true,
-                    ThumbnailUrl = $"{Configuration.BaseUrl}/Thumbs/Avatar.ashx?userId={userInfo.userId}",
-                    UserID = userInfo.userId
-                }
             };
         }
 
