@@ -53,6 +53,8 @@ Roblox.Configuration.DiscordLogChannelId = configuration.GetSection("Discord:Log
 Roblox.Configuration.DiscordApplicationCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:ApplicationCallback").Value;
 Roblox.Configuration.DiscordLoginCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:LoginCallback").Value;
 Roblox.Configuration.DiscordLinkCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:LinkCallback").Value;
+// Leakcheck
+Roblox.Configuration.LeakCheckApiKey = configuration.GetSection("LeakCheckApiKey").Value!;
 Roblox.Configuration.GameServerAuthorization = configuration.GetSection("GameServerAuthorization").Value!;
 Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value!;
 Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value!;

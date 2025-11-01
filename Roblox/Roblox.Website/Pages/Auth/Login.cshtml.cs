@@ -1,16 +1,17 @@
-using System.Diagnostics;
+using DSharpPlus.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Roblox.Dto.Authentication;
 using Roblox.Dto.Users;
 using Roblox.Libraries.Captcha;
 using Roblox.Logging;
 using Roblox.Metrics;
 using Roblox.Models.Users;
 using Roblox.Services;
-using DSharpPlus.Entities;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Controllers;
+using System.Diagnostics;
 using ControllerBase = Microsoft.AspNetCore.Mvc.ControllerBase;
 
 namespace Roblox.Website.Pages.Auth;
@@ -214,12 +215,11 @@ public class Login : RobloxPageModel
             }
         }
         
-        // Time for the a leak check shout out to cloudflare :3
-        if (isPasswordLeaked)
+        if (await services.leakCheck.IsPasswordLeaked(password))
         {
-            errorMessage = CompromisedPasswordMessage;
-            // Nullify the account password so it can't be used anymore
             await services.users.NullifyPassword(userId);
+            await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"{username} has been locked");
+            errorMessage = CompromisedPasswordMessage;
             return new PageResult();
         }
 

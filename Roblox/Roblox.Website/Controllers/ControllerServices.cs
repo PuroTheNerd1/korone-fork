@@ -1,5 +1,6 @@
 using Roblox.Libraries.DiscordApi;
 using Roblox.Libraries.RobloxApi;
+using Roblox.Libraries.LeakCheckApi;
 using Roblox.Services;
 using Roblox.Services.Games;
 using Roblox.Services.PlaceLauncher;
@@ -35,6 +36,7 @@ namespace Roblox.Website.Controllers
         public CooldownService cooldown { get; } = new();
         public FilterService filter { get; } = new();
         public RobloxApi robloxApi { get; } = new();
+        public LeakCheckApi leakCheck { get; } = new(Configuration.LeakCheckApiKey);
         public DiscordBotApi discordBotApi { get; } = new(Configuration.DiscordBotToken);
         public ChatService chat { get; } = new();
     }
