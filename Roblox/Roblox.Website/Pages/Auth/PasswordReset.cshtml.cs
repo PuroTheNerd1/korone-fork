@@ -200,7 +200,7 @@ public class PasswordReset : RobloxPageModel
                 return new PageResult();
             }
 
-            if (!await services.leakCheck.IsPasswordLeaked(newPassword))
+            if (await services.leakCheck.IsPasswordLeaked(newPassword))
             {
                 errorMessage = LeakedPassword;
                 return new PageResult();
