@@ -1038,6 +1038,7 @@ namespace Roblox.Website.Controllers
                 "2.355.0iosapp",
                 "0.395.0pcplayer",
                 "0.450.0pcplayer",
+                "0.451.0pcplayer",
                 "0.463.0pcplayer"
             };
             var jsonString = JsonConvert.SerializeObject(allowedList);
