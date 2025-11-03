@@ -264,12 +264,16 @@ namespace Roblox.Website.Controllers
         public async Task<RobloxCollection<FriendEntry>> GetUserFriends(long userId)
         {
             var result = await services.friends.GetFriends(userId);
+
             var userIds = result.Select(friend => friend.id).ToList();
+
             var statuses = await services.users.MultiGetPresence(userIds);
+
             foreach (var friend in result)
             {
                 var status = statuses.FirstOrDefault(s => s.userId == friend.id);
-                if (status != null)
+
+                if (status != null && status.userPresenceType != null)
                     friend.presenceType = (int)status.userPresenceType;
             }
 

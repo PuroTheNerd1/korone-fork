@@ -12,7 +12,7 @@ public class FriendEntry
     public string displayName { get; set; }
     public string? description { get; set; }
     public DateTime created { get; set; }
-    public int presenceType { get; set; }
+    public int presenceType;
     public string? externalAppDisplayName => null;
     public int friendFrequentRank => 1;
 }
