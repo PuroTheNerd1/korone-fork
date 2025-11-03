@@ -94,7 +94,7 @@ public class LeakCheckApi
             if (result.Found >= 1)
                 return true;
         }
-        catch { }
+        catch (Exception) {}
 
         return false;
     }
