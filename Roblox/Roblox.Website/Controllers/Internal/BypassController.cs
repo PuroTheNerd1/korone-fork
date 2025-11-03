@@ -1000,10 +1000,8 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(400, 0, "BadRequest");
             List<string> allowedList = new List<string>
             {
-                "abc9d2132ef2c21101804d8e25e0413f", //2017L Prod
-                "b4ec3a53ad1e0e03c1bb836c2e2cb382", //2017L Prod New
+                "088e8d2d5d31fd351f66efc7049dab10", //2017L Prod New
                 "bba43f967698feff49038f51b391b48e", //2018L Prod
-                "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
                 "4091ce1193a5430573430411eb20bd44", //2020 New prod
                 "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
                 "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6,
