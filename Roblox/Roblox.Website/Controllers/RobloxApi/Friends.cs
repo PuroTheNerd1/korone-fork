@@ -261,22 +261,12 @@ namespace Roblox.Website.Controllers
         // }
 
         [HttpGetBypass("v1/users/{userId:long}/friends")]
-        public async Task<RobloxCollection<dynamic>> GetUserFriends(long userId)
+        public async Task<RobloxCollection<FriendEntry>> GetUserFriends(long userId)
         {
             var result = await services.friends.GetFriends(userId);
-            List<dynamic> friends = new List<dynamic>();
-            foreach (FriendEntry friend in result)
+            return new RobloxCollection<FriendEntry>()
             {
-                var onlineStatus = (await services.users.MultiGetPresence(new[] { friend.id })).First();
-                friend.presenceType = (int)onlineStatus.userPresenceType;
-                friends.Add(friend);
-                
-
-            }
-
-            return new RobloxCollection<dynamic>()
-            {
-                data = friends,
+                data = result,
             };
         }
 
