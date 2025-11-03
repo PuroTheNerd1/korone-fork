@@ -1004,6 +1004,7 @@ namespace Roblox.Website.Controllers
                 "b4ec3a53ad1e0e03c1bb836c2e2cb382", //2017L Prod New
                 "bba43f967698feff49038f51b391b48e", //2018L Prod
                 "ff693c76d9c15e7e97eb09e133942412", //2020L Prod
+                "e207d38d82bdc2222de479c6ee1dd3d3", //2020 New prod
                 "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
                 "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6,
             };
