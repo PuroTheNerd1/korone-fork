@@ -1,18 +1,18 @@
-using MVC = Microsoft.AspNetCore.Mvc;
 using CsvHelper;
-using System.Xml;
-using Roblox.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using Roblox.Services.App.FeatureFlags;
-using BadRequestException = Roblox.Exceptions.BadRequestException;
-using ServiceProvider = Roblox.Services.ServiceProvider;
-
-using Roblox.Dto.Marketplace;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using Newtonsoft.Json;
-using System.Dynamic;
-using Roblox.Models;
 using Roblox.Dto.Friends;
+using Roblox.Dto.Marketplace;
+using Roblox.Models;
+using Roblox.Services.App.FeatureFlags;
+using Roblox.Services.Exceptions;
+using System.ComponentModel.DataAnnotations;
+using System.Dynamic;
+using System.Xml;
+using BadRequestException = Roblox.Exceptions.BadRequestException;
+using MVC = Microsoft.AspNetCore.Mvc;
+using ServiceProvider = Roblox.Services.ServiceProvider;
 namespace Roblox.Website.Controllers
 {
     public class FollowerRequest
@@ -264,6 +264,15 @@ namespace Roblox.Website.Controllers
         public async Task<RobloxCollection<FriendEntry>> GetUserFriends(long userId)
         {
             var result = await services.friends.GetFriends(userId);
+            var userIds = result.Select(friend => friend.id).ToList();
+            var statuses = await services.users.MultiGetPresence(userIds);
+            foreach (var friend in result)
+            {
+                var status = statuses.FirstOrDefault(s => s.userId == friend.id);
+                if (status != null)
+                    friend.presenceType = (int)status.userPresenceType;
+            }
+
             return new RobloxCollection<FriendEntry>()
             {
                 data = result,
