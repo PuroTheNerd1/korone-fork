@@ -189,6 +189,12 @@ public class PasswordReset : RobloxPageModel
                 return new PageResult();
             }
 
+            if (await services.leakCheck.IsPasswordLeaked(newPassword))
+            {
+                errorMessage = LeakedPassword;
+                return new PageResult();
+            }
+
             await using var redemptionLock = await services.users.GetPasswordResetLock(passwordResetId);
             var data = await services.users.GetPasswordResetEntry(passwordResetId);
             if (data == null ||
@@ -200,11 +206,7 @@ public class PasswordReset : RobloxPageModel
                 return new PageResult();
             }
 
-            if (await services.leakCheck.IsPasswordLeaked(newPassword))
-            {
-                errorMessage = LeakedPassword;
-                return new PageResult();
-            }
+
 
             await services.users.RedeemPasswordReset(passwordResetId, newPassword);
             successMessage = "Your password has been successfully updated.";
