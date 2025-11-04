@@ -2756,6 +2756,7 @@
 		"FFlagPlayerListNewIcons": true,
 		"FFlagPlayerListPerformanceImprovements": true,
 		"FFlagPlayerListPremiumPadding": true,
+		"FFlagPlayerListUseDisplayName": true,
 		"FFlagPlayerListUseDisplayNameChina": true,
 		"FFlagPlayerListUseDisplayNameChina2": true,
 		"FFlagPlayerListUseUIBloxIcons": true,
