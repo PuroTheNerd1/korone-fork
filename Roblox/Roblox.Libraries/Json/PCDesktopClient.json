@@ -1693,7 +1693,7 @@
 		"FFlagDisableDecorationForLeafyGrass": true,
 		"FFlagDisabledLayerCollectorsShouldNotSinkInput": true,
 		"FFlagDisableDrawingStudsInEdit": true,
-		"FFlagDisableFollowInGameMenu": true,
+		"FFlagDisableFollowInGameMenu": false,
 		"FFlagDisableGuiInVFRenderInMainScene": true,
 		"FFlagDisablePlayerOsPropertyReplication": true,
 		"FFlagDisableReconnectAfterPotentialTimeout": true,

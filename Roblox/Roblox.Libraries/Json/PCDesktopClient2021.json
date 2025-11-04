@@ -1719,7 +1719,7 @@
 		"FFlagDisabledLayerCollectorsShouldNotSinkInput": true,
 		"FFlagDisableExportAsObjectInStartPage": true,
 		"FFlagDisableExternalSocialNetworkLoginLink": true,
-		"FFlagDisableFollowInGameMenu": true,
+		"FFlagDisableFollowInGameMenu": false,
 		"FFlagDisableGuiInVFRenderInMainScene": true,
 		"FFlagDisableHangDetectionWhenDebugging": true,
 		"FFlagDisableHangDetectionWhileShowingCrashScreen": true,
