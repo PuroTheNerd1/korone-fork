@@ -2753,7 +2753,7 @@
 		"FFlagPlayerListMorePerfImprovements": false,
 		"FFlagPlayerListMorePerfImprovements2": true,
 		"FFlagPlayerListMorePermissiveLeaderstatsCheck": true,
-		"FFlagPlayerListNewIcons": false,
+		"FFlagPlayerListNewIcons": true,
 		"FFlagPlayerListPerformanceImprovements": true,
 		"FFlagPlayerListPremiumPadding": true,
 		"FFlagPlayerListUseDisplayNameChina": true,
