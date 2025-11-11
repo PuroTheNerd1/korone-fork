@@ -27,7 +27,9 @@ public class AvatarControllerV1 : ControllerBase, IService
     
     private async void AttemptScheduleRender(bool forceRedraw = false)
     {
-        var userId = safeUserSession.userId;
+        if (userSession == null)
+            return;
+        var userId = userSession.userId;
         if (!forceRedraw)
         {
             using (var cache = ServiceProvider.GetOrCreate<AvatarCache>())
