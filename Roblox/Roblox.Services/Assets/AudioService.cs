@@ -98,7 +98,7 @@ public class AudioService : ServiceBase, IService
             File.Delete(tempOutput);
         }
     }
-    public static async Task<MediaValidation> IsAudioValid(Stream content)
+    public static async Task<MediaValidation> IsAudioValid(Stream content, CancellationToken cancellationToken = default)
     {
         if (content.Length > maxAudioFileSizeBytes)
             return MediaValidation.FileTooLarge;
@@ -110,14 +110,23 @@ public class AudioService : ServiceBase, IService
         // streams return an empty duration, so we have to write to disk and then read that...
         // https://github.com/rosenbjerg/FFMpegCore/issues/130#issuecomment-739572946
         var tempFile = Path.GetTempFileName();
+
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+        var linkedToken = linkedCts.Token;
+
         try
         {
             await using (var fs = File.OpenWrite(tempFile))
             {
-                await newStream.CopyToAsync(fs);
+                await newStream.CopyToAsync(fs, linkedToken);
             }
 
-            mediaInfo = await FFProbe.AnalyseAsync(tempFile);
+            mediaInfo = await FFProbe.AnalyseAsync(tempFile, cancellationToken: linkedToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return MediaValidation.UnsupportedFormat;
         }
         catch (Exception e)
         {
@@ -126,15 +135,16 @@ public class AudioService : ServiceBase, IService
         }
         finally
         {
-            File.Delete(tempFile);
+            if (File.Exists(tempFile))
+                File.Delete(tempFile);
         }
 
         if (mediaInfo.Duration > TimeSpan.FromMinutes(7))
             return MediaValidation.TooLong;
-        // If duration is 0, FFProbe probably messed up, and we don't want to risk having users upload infinite duration files
+
         if (mediaInfo.Duration < TimeSpan.FromMilliseconds(10))
             return MediaValidation.TooShort;
-        
+
         var formatDetails = mediaInfo.Format;
 
         // our game engine currently supports mp3 and 
