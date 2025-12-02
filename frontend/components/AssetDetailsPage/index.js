@@ -435,7 +435,7 @@ function AssetDetailsPage({ itemDetails }) {
     useEffect(async () => {
         await store.setDetails(itemDetails);
         await setNew(IsISOWithinDays(itemDetails.createdAt, 3));
-        await wait(500);
+        await wait(0.5);
         if (!store.details || !store.resellers || deb.current) return;
 
         let purchaseInfo = store.getPurchaseInfo();
