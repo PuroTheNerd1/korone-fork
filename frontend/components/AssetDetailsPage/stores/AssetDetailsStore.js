@@ -17,7 +17,7 @@ const assetDetailsStore = createContainer(() => {
     const [owners, setOwners] = useState(/** @type OwnerEntryThumb[] */([]));
     const [ownedCopies, setOwnedCopies] = useState([]);
     const [isCollectioned, setCollectioned] = useState(false);
-    const [isOwned, setOwned] = useState(false);
+    const [isOwned, setOwned] = useState(null);
     // TODO: implement "Wear" button in dropdown
     // const [isEquipped, setEquipped] = useState(false);
     const [resaleData, setResaleData] = useState(null);
@@ -39,8 +39,11 @@ const assetDetailsStore = createContainer(() => {
     useEffect(async () => {
         if (!details) return;
         
+        setOwned(null); // Reset to loading state
+        
         userOwnsItem({ userId: auth.userId, assetId: details.id })
-            .then(setOwned);
+            .then(setOwned)
+            . catch(() => setOwned(false));
         /** @type number[] */
         getCollections({ userId: auth.userId })
             .then(d => setCollectioned(d.map(d => d.Id).includes(details.id)));
