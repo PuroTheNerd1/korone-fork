@@ -37,7 +37,7 @@ public class RbxThumbnails : ControllerBase
                 break;
             case ThumbnailType.PlaceIcon:
                 result = (await services.thumbnails.GetPlaceIcons(new[] { id })).ToList();
-                return new RedirectResult((Configuration.BaseUrl + result.FirstOrDefault()?.imageUrl) ?? "/img/placeholder.png", false);
+                return new RedirectResult((Configuration.BaseUrl + result.FirstOrDefault()?.imageUrl) ?? "/img/placeholder/icon_one.png", false);
         }
 
         var imageUrl = result.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png";
