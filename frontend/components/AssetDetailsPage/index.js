@@ -435,7 +435,9 @@ function AssetDetailsPage({ itemDetails }) {
     useEffect(async () => {
         await store.setDetails(itemDetails);
         await setNew(IsISOWithinDays(itemDetails.createdAt, 3));
-        if (!store.details || !store.resellers || deb.current || store.isOwned === null) return;
+        await wait(500);
+        if (!store.details || !store.resellers || deb.current) return;
+
         let purchaseInfo = store.getPurchaseInfo();
         await setDetailOptions([
             (itemDetails.itemRestrictions.includes("Limited") || itemDetails.itemRestrictions.includes("LimitedUnique")) && !itemDetails.isForSale && store.resellers.length > 0 && (purchaseInfo.sellerId === auth.userId) ? {
