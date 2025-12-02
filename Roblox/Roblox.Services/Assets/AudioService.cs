@@ -105,6 +105,7 @@ public class AudioService : ServiceBase, IService
         if (content.Length == 0)
             return MediaValidation.EmptyStream;
         content.Position = 0;
+        var newStream = new StreamContent(content, 81920);
         IMediaAnalysis mediaInfo;
         // streams return an empty duration, so we have to write to disk and then read that...
         // https://github.com/rosenbjerg/FFMpegCore/issues/130#issuecomment-739572946
@@ -113,8 +114,7 @@ public class AudioService : ServiceBase, IService
         {
             await using (var fs = File.OpenWrite(tempFile))
             {
-                content.Seek(0, SeekOrigin.Begin);
-                await content.CopyToAsync(fs);
+                await newStream.CopyToAsync(fs);
             }
 
             mediaInfo = await FFProbe.AnalyseAsync(tempFile);
