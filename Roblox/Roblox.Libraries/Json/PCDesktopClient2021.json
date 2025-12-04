@@ -1692,7 +1692,7 @@
 		"FFlagDevConsoleFixMicroprofilerSyncIssues": true,
 		"FFlagDevConsoleFixTopBarDragging": true,
 		"FFlagDevConsoleFixTopBarIcons": true,
-		"FFlagDevConsoleIsVeryStickyWhyWillItNotLetGo": false,
+		"FFlagDevConsoleIsVeryStickyWhyWillItNotLetGo": true,
 		"FFlagDevConsoleLogMemoryButton": true,
 		"FFlagDevConsoleLogNewLineFix": false,
 		"FFlagDevConsoleNoDisableAllFilters": true,
