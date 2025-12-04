@@ -1687,7 +1687,7 @@
 		"FFlagDepthOfField": true,
 		"FFlagDepthOfFieldUseNewClipDistance": true,
 		"FFlagDetectR15InCustomImport": false,
-		"FFlagDevConsoleBetterResize": true,
+		"FFlagDevConsoleBetterResize": false,
 		"FFlagDevConsoleFixCommandBarForNonOwners": true,
 		"FFlagDevConsoleFixMicroprofilerSyncIssues": true,
 		"FFlagDevConsoleFixTopBarDragging": true,
