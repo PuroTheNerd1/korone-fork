@@ -3962,7 +3962,7 @@
 		"FFlagUseNewTexturePackGenerator2": true,
 		"FFlagUseOptimizedGetPartsObscuringTarget": true,
 		"FFlagUsePasswordValidationPOSTApi": true,
-		"FFlagUsePolicyServiceForCoreScripts2": true,
+		"FFlagUsePolicyServiceForCoreScripts2": false,
 		"FFlagUserAddChatThrottlingToAllChannels": false,
 		"FFlagUserAgentInBacktraceReports": true,
 		"FFlagUserAllCamerasInLua": true,
