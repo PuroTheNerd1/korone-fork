@@ -116,7 +116,7 @@ const downloadProjexModal = props => {
     const onClick = e => {
         e.preventDefault();
         setOpen(false);
-        window.location.href = "https://github.com/WindowsAPI/Korone-Bootstrapper/releases";
+        window.location.href = "https://github.com/KoroneX/Korone-Bootstrapper/releases";
     }
 
     useEffect(async () => {
