@@ -61,7 +61,7 @@ const Access = (props) => {
               setMaxPlayers(parseInt(v.currentTarget.value, 10));
             }}
           >
-            {[...new Array(99)].map((_, i) => {
+            {[...new Array(100)].map((_, i) => {
               return (
                 <option value={i + 1} key={i}>
                   {i + 1}
