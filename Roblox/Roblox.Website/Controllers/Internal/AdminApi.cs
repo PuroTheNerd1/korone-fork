@@ -2042,7 +2042,7 @@ Thank you for your understanding,
                 throw new StaffException("Flood check reached for asset uploads on your account (day). Try again tomorrow");
 
             var canUploadGlobal =
-                await services.cooldown.TryIncrementBucketCooldown("CopyItemFromRobloxGlobalV1", 50,
+                await services.cooldown.TryIncrementBucketCooldown("CopyItemFromRobloxGlobalV1", 60,
                     TimeSpan.FromHours(12));
             if (!canUploadGlobal)
                 throw new StaffException("Global flood check reached for item uploads");
