@@ -51,6 +51,21 @@ public class AvatarCache : ServiceBase, IService
         await Cache.distributed.StringSetAsync(GetPendingColorsKey(userId),
             JsonSerializer.Serialize(colors), TimeSpan.FromMinutes(1));
     }
+    public async Task DeletePendingAssets(long userId)
+    {
+        await Cache.distributed.KeyDeleteAsync(GetPendingAssetsKey(userId));
+    }
+
+    public async Task DeletePendingColors(long userId)
+    {
+        await Cache.distributed.KeyDeleteAsync(GetPendingColorsKey(userId));
+    }
+
+    public async Task DeleteAvatarCache(long userId)
+    {
+        await DeletePendingAssets(userId);
+        await DeletePendingColors(userId);
+    }
 
     public bool AttemptScheduleRender(long userId)
     {

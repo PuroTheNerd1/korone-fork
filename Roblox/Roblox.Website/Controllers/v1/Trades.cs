@@ -151,8 +151,12 @@ public class TradesControllerV1 : ControllerBase
         await Task.Run(async () =>
         {
             using var avatarService = ServiceProvider.GetOrCreate<AvatarService>();
+            using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
+
             try
             {
+                // I HATE MY FUCKING LIFE I WANNA KMS
+                await Task.WhenAll(avatarCache.DeleteAvatarCache(parties.userIdOne), avatarCache.DeleteAvatarCache(parties.userIdTwo));
                 await Task.WhenAll(avatarService.RedrawAvatar(parties.userIdOne), avatarService.RedrawAvatar(parties.userIdTwo));
             }
             catch (Exception e)
