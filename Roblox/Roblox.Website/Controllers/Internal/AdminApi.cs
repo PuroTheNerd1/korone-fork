@@ -2032,12 +2032,12 @@ Thank you for your understanding,
         if (!StaffFilter.IsOwner(safeUserSession.userId))
         {
             var canUploadLocal = await services.cooldown.TryIncrementBucketCooldown(
-                "CopyItemFromRobloxV1:" + safeUserSession.userId, 10, TimeSpan.FromHours(1));
+                "CopyItemFromRobloxV1:" + safeUserSession.userId, 30, TimeSpan.FromHours(1));
             if (!canUploadLocal)
                 throw new StaffException("Flood check reached for asset uploads on your account (hour). Try again in an hour");
 
             var canUploadLocalDay = await services.cooldown.TryIncrementBucketCooldown(
-                "CopyItemFromRobloxV1:" + safeUserSession.userId, 20, TimeSpan.FromHours(12));
+                "CopyItemFromRobloxV1:" + safeUserSession.userId, 40, TimeSpan.FromHours(12));
             if (!canUploadLocalDay)
                 throw new StaffException("Flood check reached for asset uploads on your account (day). Try again tomorrow");
 
