@@ -1778,7 +1778,7 @@ We have deleted one of your previous usernames, ""{request.username}"". You will
 Thank you for your understanding,
 
 
--The Roblox Team");
+-The Korone Team");
             return 0;
         });
     }
@@ -1860,12 +1860,12 @@ Thank you for your understanding,
         // send messages
         await services.privateMessages.CreateMessage(randomUser.userId, 1, "You Won The Lottery!",
             "Congrats! Your account was chosen as the winner for today's lottery, where a Limited or Limited Unique item is given away after the owner has been offline for 6 months or more.\n\nThe item you won is: " +
-            randomItem.name + ", which has a Recent Average Price of " + randomItem.recentAveragePrice + ". The item has already been added to your account - no action is required to claim it.\nIf you do not want this item, you can sell it on the market or trade it with another user for an item you do want.\n\n-The Roblox team");
+            randomItem.name + ", which has a Recent Average Price of " + randomItem.recentAveragePrice + ". The item has already been added to your account - no action is required to claim it.\nIf you do not want this item, you can sell it on the market or trade it with another user for an item you do want.\n\n-The Korone Team");
         log.Info("sent message to user picked {0}", randomUser.userId);
         await services.privateMessages.CreateMessage(randomItem.userId, 1, "Inactive Account Penalty",
             "Hello\n\nAs part of our efforts to encourage activity and discourage account compromises, we have removed the item " +
             randomItem.name +
-            " from your inventory, and awarded it to a random player who was active at the time of our lottery draw. We understand that you may not have been expecting this to happen, however, it is outlined in our policy that we reserve the right to remove items from accounts once they've been inactive for 6 months or longer. At the time of sending this message, your account has been inactive since " + randomUser.onlineAt.ToString("MMMM dd, yyyy") + "\n\nItems taken from your account for lottery purposes cannot be restored. We hope you understand,\n\n-The Roblox Team");
+            " from your inventory, and awarded it to a random player who was active at the time of our lottery draw. We understand that you may not have been expecting this to happen, however, it is outlined in our policy that we reserve the right to remove items from accounts once they've been inactive for 6 months or longer. At the time of sending this message, your account has been inactive since " + randomUser.onlineAt.ToString("MMMM dd, yyyy") + "\n\nItems taken from your account for lottery purposes cannot be restored. We hope you understand,\n\n-The Korone Team");
         log.Info("sent message to old asset owner {0}", randomItem.userId);
         // await redis.StringSetAsync("lottery_run_v1", "{}", TimeSpan.FromMinutes(30));
         return new
@@ -2648,7 +2648,7 @@ Thank you for your understanding,
         await services.users.ResetUsername(userId, userSession.userId);
         // message
         await services.privateMessages.CreateMessage(userId, 1, "Username Reset",
-            "Hello,\n\nYour username has been reset due to abuse concerns. You can request a new username by contacting a staff member.\n\n-The Roblox Team");
+            "Hello,\n\nYour username has been reset due to abuse concerns. You can request a new username by contacting a staff member.\n\n-The Korone Team");
     }
 
     [HttpPost("users/{userId:long}/verify-user")]
