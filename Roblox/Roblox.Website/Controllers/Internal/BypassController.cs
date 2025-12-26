@@ -694,12 +694,12 @@ namespace Roblox.Website.Controllers
             if (!isRCC || placeId != currentPlaceId || gameId.ToString() != currentGameId)
                 throw new UnauthorizedAccessException();
 
-            if (!await services.playerSecurity.IsPlayerTicketValid(visitorId, gameId))
-            {
-                await services.gameServer.KickPlayer(visitorId, gameId);
-                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
-                throw new ForbiddenException(0, "User does not have a valid placelauncher ticket");
-            }
+            //if (!await services.playerSecurity.IsPlayerTicketValid(visitorId, gameId))
+            //{
+            //    await services.gameServer.KickPlayer(visitorId, gameId);
+            //    await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
+            //    throw new ForbiddenException(0, "User does not have a valid placelauncher ticket");
+            //}
 
             var onlineStatus = (await services.users.MultiGetPresence(new[] {visitorId})).First();
             // RAGESOC will trigger here it's most likely a cheater because why ever would a player not be online when joining a game
