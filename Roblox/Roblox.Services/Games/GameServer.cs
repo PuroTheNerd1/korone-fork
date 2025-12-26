@@ -463,7 +463,7 @@ public class GameServerService : ServiceBase
             Console.WriteLine($"Error getting jobId for user {userId}: {e.Message}");
             return;
         }
-        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId.Value, userId));
+        //await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId.Value, userId));
     }
     // public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
     // {
