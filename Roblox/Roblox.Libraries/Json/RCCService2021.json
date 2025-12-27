@@ -357,7 +357,7 @@
       "DFFlagNewEconomyDeveloperProductUrl":"True",
       "DFFlagNewEconomyDeveloperProductUrlMock":"False",
       "DFFlagNewInstanceItemClientDoNotEchoPlayer":"True",
-      "DFFlagNewJoinStorage":"True",
+      "DFFlagNewJoinStorage":"False",
       "DFFlagNewMemoryLevelCheck":"True",
       "DFFlagNewRejoinMessage_PlaceFilter":"True;1034242130;2528277338",
       "DFFlagNewSortAndFilter":"True",
