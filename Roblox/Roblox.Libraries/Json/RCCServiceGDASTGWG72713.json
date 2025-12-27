@@ -229,7 +229,7 @@
     "DFFlagNetworkOwnershipUnitAPI": true,
     "DFFlagNetworkPacketCacheScopedMutex": true,
     "DFFlagNewInstanceItemClientDoNotEchoPlayer": true,
-    "DFFlagNewJoinStorage": true,
+    "DFFlagNewJoinStorage": false,
     "DFFlagNewMemoryLevelCheck": true,
     "DFFlagNewRejoinMessage_PlaceFilter": "True;1034242130;2528277338",
     "DFFlagNewSortAndFilter": true,
