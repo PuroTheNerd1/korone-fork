@@ -344,9 +344,12 @@ public class AdminApiController : ControllerBase
         // Owner check
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("You are not allowed to do that");
+
+        if (!await services.cooldown.TryIncrementBucketCooldown($"GiftGlobalLimitV3", 100, TimeSpan.FromHours(12)))
+            throw new StaffException("You hit the global rate limit");
         //12 hours
-        if (!await services.cooldown.TryIncrementBucketCooldown("GiftAssetV23Hour", 20, TimeSpan.FromHours(12)))
-            throw new StaffException("Gift rate limit exceeded.");
+        if (!await services.cooldown.TryIncrementBucketCooldown($"SameGiftV2:{req.giftId}", 1, TimeSpan.FromHours(12)))
+            throw new StaffException("You already gifted the same item");
 
         var details = await services.assets.GetAssetCatalogInfo(req.assetId);
         //Do NOT allow limiteds
