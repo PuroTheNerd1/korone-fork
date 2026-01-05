@@ -212,13 +212,9 @@ namespace Roblox.Website.Controllers
 
         [HttpPostBypass("/game/PlaceLauncher.ashx")]
         [HttpGetBypass("/game/PlaceLauncher.ashx")]
-        public async Task<PlaceLaunchResponse> PlaceLaunch([FromQuery] PlaceLaunchRequest request)
+        public async Task<PlaceLaunchResponse> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
-            if (request.placeId == 85292)
-            {
-                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"{safeUserSession.userId} possible abuse dont ban)");
-            }
             if (userSession == null || !isRoblox)
             {
                 return new PlaceLaunchResponse()
@@ -227,10 +223,10 @@ namespace Roblox.Website.Controllers
                     message = "You are not authorized to join"
                 };
             }
-            request.cookie = PUPPYSECURITY;
-            request.userId = userSession.userId;
-            request.username = userSession.username;
-            return await services.placeLauncher.PlaceLauncherAsync(request);
+            Placelauncher.cookie = PUPPYSECURITY;
+            Placelauncher.userId = userSession.userId;
+            Placelauncher.username = userSession.username;
+            return await services.placeLauncher.PlaceLauncherAsync(Placelauncher);
         }
 
         [HttpGetBypass("/asset/status")]
