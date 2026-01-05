@@ -215,6 +215,16 @@ namespace Roblox.Website.Controllers
         public async Task<PlaceLaunchResponse> PlaceLaunch([FromQuery] PlaceLaunchRequest Placelauncher)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled, FeatureFlag.GameJoinEnabled);
+            if (!await services.cooldown.TryIncrementBucketCooldown($"PlaceLauncherIp:{GetIP()}", 5, TimeSpan.FromSeconds(10)) ||
+                !await services.cooldown.TryIncrementBucketCooldown($"PlaceLauncherUser:{safeUserSession.userId}", 5, TimeSpan.FromSeconds(10)))
+            {
+                return new PlaceLaunchResponse()
+                {
+                    status = (int)JoinStatus.Waiting,
+                    message = "Ratelimited"
+                };
+            }
+
             if (userSession == null || !isRoblox)
             {
                 return new PlaceLaunchResponse()
