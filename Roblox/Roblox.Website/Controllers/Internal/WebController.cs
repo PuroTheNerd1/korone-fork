@@ -969,7 +969,7 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Not enough Robux for purchase");
         // validate auto
         stream.Position = 0;
-        var isOk = await Services.AudioService.IsAudioValid(stream);
+        var isOk = await Services.AudioService.IsAudioValid(stream, creatorId);
 
         if (isOk == MediaValidation.UnsupportedFormat)
             throw new BadRequestException(0, "OGG uploading is currently disabled, try uploading as an MP3 instead");

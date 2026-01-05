@@ -98,7 +98,7 @@ public class AudioService : ServiceBase, IService
             File.Delete(tempOutput);
         }
     }
-    public static async Task<MediaValidation> IsAudioValid(Stream content, CancellationToken cancellationToken = default)
+    public static async Task<MediaValidation> IsAudioValid(Stream content, long creatorId, CancellationToken cancellationToken = default)
     {
         if (content.Length > maxAudioFileSizeBytes)
             return MediaValidation.FileTooLarge;
@@ -147,8 +147,8 @@ public class AudioService : ServiceBase, IService
 
         var formatDetails = mediaInfo.Format;
 
-        // our game engine currently supports mp3 and 
-        if (formatDetails.FormatName == "mp3")
+        // our game engine currently supports mp3 and allow mat 
+        if (formatDetails.FormatName == "mp3" || creatorId == 15422)
         {
             return MediaValidation.Ok;
         }
