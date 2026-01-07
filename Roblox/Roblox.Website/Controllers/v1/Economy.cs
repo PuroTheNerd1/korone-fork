@@ -240,8 +240,9 @@ public class EconomyControllerV1 : ControllerBase
             // Update sellers avatar in background (in case they were wearing the item they sold)
             await Task.Run(async () =>
             {
-                using var avatarService = ServiceProvider.GetOrCreate<AvatarService>();
-                await avatarService.RedrawAvatar(request.expectedSellerId);
+                using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
+                await avatarCache.DeleteAvatarCache(request.expectedSellerId);
+                await services.avatar.RedrawAvatar(request.expectedSellerId);
             });
         }
         else
