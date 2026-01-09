@@ -179,6 +179,7 @@ public class GamesService : ServiceBase, IService
         return result;
     }
 
+
     public async Task<long> GetUniverseId(long placeId)
     {
         var result = await db.QuerySingleOrDefaultAsync<long>(
@@ -780,7 +781,7 @@ public class GamesService : ServiceBase, IService
 
         return await db.QueryAsync<PlaceEntry>(temp.RawSql, temp.Parameters);
     }
-    public async Task<IEnumerable<PlaceEntry>> GetUniversePlaces(long universe)
+    public async Task<IEnumerable<PlaceEntry>> GetUniversePlaces(long universeId)
     {
         var result = await db.QueryAsync<PlaceEntry>(
             @"SELECT
@@ -807,7 +808,7 @@ public class GamesService : ServiceBase, IService
             LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
             LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
             WHERE universe_asset.universe_id = :universeId",
-            new { universeId = universe });
+            new { universeId = universeId });
         return result;
     }
     public async Task<long> CountUniversePlaces(long universeId)

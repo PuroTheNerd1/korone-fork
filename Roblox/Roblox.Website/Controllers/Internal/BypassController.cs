@@ -364,12 +364,16 @@ namespace Roblox.Website.Controllers
             return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
         }
 
+        // need to move years fully to universe havent done that yet because im lazy as shit
         [HttpGetBypass("set-year")]
-        public async Task TaskAsync (long universeId, int year)
+        public async Task SetYear(long universeId, int year)
         {
-            var place = await services.games.GetRootPlaceId(universeId);
-            await services.assets.ValidatePermissions(place, safeUserSession.userId);
-            await services.games.SetYear(place, year);
+            await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+            var places = await services.games.GetUniversePlaces(universeId);
+            foreach (var place in places)
+            {
+                await services.games.SetYear(place.placeId, year);
+            }
         }
 
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
