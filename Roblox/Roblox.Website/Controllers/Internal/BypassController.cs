@@ -410,9 +410,8 @@ namespace Roblox.Website.Controllers
             PlaceEntry placeInfo = (await services.games.MultiGetPlaceDetails(new[] { placeId })).First();
             // Check place privacy
             if (!await services.games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
-            {
                 throw new ForbiddenException(1, "You cannot join this game, you do not have permission.");
-            }
+
             string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
