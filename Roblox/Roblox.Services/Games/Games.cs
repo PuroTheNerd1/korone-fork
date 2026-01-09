@@ -1144,7 +1144,7 @@ public class GamesService : ServiceBase, IService
             };
         });
     }
-    public async Task<CreatePlaceInGameResponse> CreatePlaceInGame(long creatorId, string creatorName, CreatorType creatorType, long universeId)
+    public async Task<CreatePlaceInUniverseResponse> CreatePlaceInUniverse(long creatorId, string creatorName, CreatorType creatorType, long universeId)
     {
         return await InTransaction(async _ =>
         {
@@ -1155,7 +1155,7 @@ public class GamesService : ServiceBase, IService
                 asset_id = place.placeId,
                 universe_id = universeId,
             });
-            return new CreatePlaceInGameResponse()
+            return new CreatePlaceInUniverseResponse()
             {
                 placeId = place.placeId
             };

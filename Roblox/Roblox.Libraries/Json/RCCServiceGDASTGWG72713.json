@@ -4525,7 +4525,7 @@
     "FFlagLuauTablePackCheckTailAndReduce": true,
     "FFlagLuauFixInfiniteTypePackUnify": true,
     "FFlagLuauFixVariadicArgumentBounds": true,
-    "FFlagStudioMigrateCreatePlaceInGameRequestToStudioHttpRequest": true,
+    "FFlagStudioMigrateCreatePlaceInUniverseRequestToStudioHttpRequest": true,
     "FFlagLuauLoadStringDefinitionFix": true,
     "FFlagLuaAppLowerExtraCatalogNavClicks": true,
     "FFlagStudioUseInstanceClassDescriptorsInApiDumper": true,

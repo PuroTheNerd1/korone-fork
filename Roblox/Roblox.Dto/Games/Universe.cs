@@ -235,7 +235,7 @@ public class CreateUniverseResponse
     public long universeId { get; set; }
 }
 
-public class CreatePlaceInGameResponse
+public class CreatePlaceInUniverseResponse
 {
     public long placeId { get; set; }
 }
