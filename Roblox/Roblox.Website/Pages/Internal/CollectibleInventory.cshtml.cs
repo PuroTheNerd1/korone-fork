@@ -17,9 +17,10 @@ public class CollectibleInventory : RobloxPageModel
 
     public async Task OnGet()
     {
+        UserInfo info;
         try
         {
-            var info = await services.users.GetUserById(userId);
+            info = await services.users.GetUserById(userId);
             username = info.username;
         }
         catch (RecordNotFoundException)
@@ -27,7 +28,9 @@ public class CollectibleInventory : RobloxPageModel
             errorMessage = "User ID is invalid or does not exist.";
             return;
         }
-        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0) && !await StaffFilter.IsStaff(userSession?.userId ?? 0))
+        // If the user has their inventory privacy setitngs to private or if they are banned, other users can not view their inventory only staff can
+        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0) || 
+            info.IsDeleted() && !await StaffFilter.IsStaff(userSession?.userId ?? 0))
         {
             errorMessage = "You don't have permissions to view the specified user's inventory";
             return;
