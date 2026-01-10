@@ -83,8 +83,10 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("/admin/build-redirect/bundle.js")]
-    public IActionResult GetAdminBuildJs()
+    public async Task<IActionResult> GetAdminBuildJs()
     {
+        if (!await StaffFilter.IsStaff(userSession.userId))
+            throw new StaffException("Not staff");
         return new RedirectResult("/admin/build/" + adminRandomUrlPart + "/bundle.js");
     }
 
@@ -106,6 +108,8 @@ public class AdminApiController : ControllerBase
     [HttpGet("/admin/build-redirect/bundle.css")]
     public IActionResult GetAdminBundleCss()
     {
+        if (!await StaffFilter.IsStaff(userSession.userId))
+            throw new StaffException("Not staff");
         return new RedirectResult("/admin/build/" + adminRandomUrlPart + "/bundle.css");
     }
 
