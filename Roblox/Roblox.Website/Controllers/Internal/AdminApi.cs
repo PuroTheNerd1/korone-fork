@@ -91,12 +91,10 @@ public class AdminApiController : ControllerBase
     [HttpGet("/admin/build/{part}/bundle.js")]
     public async Task<IActionResult> GetAdminBundleJsReal()
     {
-        if (!IsLoggedIn() || !await IsStaff(userSession.userId)) return Redirect("/home");
-#if DEBUG
-        if (true)
-#else
+        if (!await IsStaff(safeUserSession.userId)) 
+            return Redirect("/home");
+
         if (adminBundleJs == null)
-#endif
         {
             adminStaticMux.WaitOne();
             adminBundleJs = System.IO.File.ReadAllText(Configuration.AdminBundleDirectory + "/build/bundle.js");
