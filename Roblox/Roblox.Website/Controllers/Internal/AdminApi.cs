@@ -106,7 +106,7 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("/admin/build-redirect/bundle.css")]
-    public IActionResult GetAdminBundleCss()
+    public async Task<IActionResult> GetAdminBundleCss()
     {
         if (!await StaffFilter.IsStaff(userSession.userId))
             throw new StaffException("Not staff");
