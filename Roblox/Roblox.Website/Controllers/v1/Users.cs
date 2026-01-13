@@ -54,24 +54,26 @@ public class UsersControllerV1 : ControllerBase
         inventory = new ();
         var offset = 0;
         var info = await services.users.GetUserById(result[0].id);
-
-        while (true)
+        var isDeleted = info.IsDeleted();
+        if (!isDeleted)
         {
-            var results = (await services.inventory.GetCollectibleInventory(info.userId, null, "asc", 100, offset)).ToArray();
-            if (results.Length == 0) break;
-            offset += 100;
-            inventory.AddRange(results);
-        }
+            while (true)
+            {
+                var results = (await services.inventory.GetCollectibleInventory(info.userId, null, "asc", 100, offset)).ToArray();
+                if (results.Length == 0) break;
+                offset += 100;
+                inventory.AddRange(results);
+            }
 
-        foreach (var item in inventory)
+            foreach (var item in inventory)
+            {
+                totalRap += item.recentAveragePrice;
+            }
+        }
+        else
         {
-            totalRap += item.recentAveragePrice;
+            totalRap = 0;
         }
-
-        var isBanned =
-            info.accountStatus != AccountStatus.Ok &&
-            info.accountStatus != AccountStatus.MustValidateEmail &&
-            info.accountStatus != AccountStatus.Suppressed;
 
         return new
         {
@@ -80,9 +82,8 @@ public class UsersControllerV1 : ControllerBase
             displayName = info.username,
             info.description,
             info.created,
-            isBanned,
+            isBanned = isDeleted,
             isInventoryPublic = await services.inventory.CanViewInventory(info.userId, 0),
-            isStaff = await StaffFilter.IsStaff(info.userId),
             hasVerifiedBadge = info.isVerified,
             totalPlaceVisits = await services.games.GetTotalVisitsFromUser(info.userId),
             friendshipCount = await services.friends.CountFriends(info.userId),
@@ -106,32 +107,39 @@ public class UsersControllerV1 : ControllerBase
     {
         inventory = new ();
         var offset = 0;
-        while (true)
-        {
-            var results = (await services.inventory.GetCollectibleInventory(userId, null, "asc", 100, offset)).ToArray();
-            if (results.Length == 0) break;
-            offset += 100;
-            inventory.AddRange(results);
-        }
-
-        foreach (var item in inventory)
-        {
-            totalRap += item.recentAveragePrice;
-        }
-
         var info = await services.users.GetUserById(userId);
+        var isDeleted = info.IsDeleted();
+        if (!isDeleted)
+        {
+            while (true)
+            {
+                var results = (await services.inventory.GetCollectibleInventory(info.userId, null, "asc", 100, offset)).ToArray();
+                if (results.Length == 0) break;
+                offset += 100;
+                inventory.AddRange(results);
+            }
+
+            foreach (var item in inventory)
+            {
+                totalRap += item.recentAveragePrice;
+            }
+        }
+        else
+        {
+            totalRap = 0;
+        }
+
 
         return new
         {
             info.description,
             info.created,
-            isBanned = info.IsDeleted(),
+            isBanned = isDeleted,
             hasVerifiedBadge = info.isVerified,
             id = info.userId,
             name = info.username,
             displayName = info.username,
-            isStaff = info.isModerator || info.isAdmin,
-            inventory_rap = totalRap
+            inventoryRap = totalRap
         };
     }
 
