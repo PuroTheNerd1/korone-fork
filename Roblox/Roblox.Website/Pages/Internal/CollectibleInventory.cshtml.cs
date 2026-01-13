@@ -28,9 +28,12 @@ public class CollectibleInventory : RobloxPageModel
             errorMessage = "User ID is invalid or does not exist.";
             return;
         }
-        // If the user has their inventory privacy setitngs to private or if they are banned, other users can not view their inventory only staff can
-        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0) || 
-            info.IsDeleted() && !await StaffFilter.IsStaff(userSession?.userId ?? 0))
+        bool isStaff = await StaffFilter.IsStaff(userSession?.userId ?? 0);
+        bool canViewInventory = await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0);
+
+        bool isAccountOk = info.accountStatus == Models.Users.AccountStatus.Ok;
+
+        if ((!canViewInventory || !isAccountOk) && !isStaff)
         {
             errorMessage = "You don't have permissions to view the specified user's inventory";
             return;
