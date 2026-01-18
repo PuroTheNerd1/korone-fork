@@ -59,3 +59,12 @@ export const getCollectibleOwners = ({ assetId, limit, sort, cursor }) => {
 export const deleteAssetFromInventory = ({ assetId }) => {
   return request('DELETE', getFullUrl('inventory', `/v2/inventory/asset/${assetId}`)).then(d => d);
 }
+
+/**
+ * @param {number} userId
+ * @param {number[]} assetIds
+ * @returns {Promise<{id: number; owned: boolean;}[]>}
+ */
+export const userOwnsItems = ({ userId, assetIds }) => {
+    return request('GET', getFullUrl("inventory", `/v1/users/${userId}/items/asset/owns-assets?assetIds=${assetIds}`)).then(d => d?.data?.data);
+}

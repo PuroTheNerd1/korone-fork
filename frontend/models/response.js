@@ -3,6 +3,7 @@
  * @typedef {Object} PekoraCollectionPaginated
  * @property {string|null} nextPageCursor
  * @property {string|null} previousPageCursor
+ * @property {number|null} _total
  * @property {T[]} data
  */
 

@@ -1,0 +1,161 @@
+import {createUseStyles} from "react-jss";
+import Selector from "../../selector";
+import CatalogPageStore, {
+    CatalogCategory,
+    CatalogSortBy, CatalogSubCategory,
+    EnumToString, FormatCamelCase,
+    SortByToString
+} from "../stores/CatalogPageStore";
+import getFlag from "../../../lib/getFlag";
+import CatalogItemCard from "./CatalogItemCard";
+import {tick, wait} from "../../../lib/utils";
+import {useEffect, useRef, useState} from "react";
+import ActionButton from "../../actionButton";
+import useButtonStyles from "../../../styles/buttonStyles";
+
+const useStyles = createUseStyles({
+    resultsWrapper: {
+    },
+    breadcrumbsContainer: {
+        margin: "6px 0 12px",
+        paddingLeft: 6,
+    },
+    selectorWrapper: {
+        width: 230,
+    },
+    selector: {
+        padding: "5px 12px",
+        lineHeight: "18px",
+    },
+    selectorOption: {
+        // padding: "5px 12px",
+        // lineHeight: "18px",
+    },
+    resultsContainer: {
+        minWidth: 60,
+        gap: 9.6,
+    },
+    paginationContainer: {
+        display: 'flex',
+        width: '100%',
+        justifyContent: 'center',
+        gap: 10,
+        alignItems: 'center',
+        marginTop: 25
+    },
+    paginationBtn: {
+        aspectRatio: '1 / 1',
+        padding: 3,
+        display: 'flex',
+        '& span': {
+            backgroundSize: '48px auto',
+            height: 24,
+            width: 24,
+        }
+    },
+    pages: {
+        wordSpacing: '0.25em',
+    },
+});
+
+function CatalogResults() {
+    const s = useStyles();
+    const buttonStyles = useButtonStyles();
+    // hierarchy iof breadcrumbs: category > subcategory > keyword
+    const store = CatalogPageStore.useContainer();
+    const [selSuccess, setSelSuccess] = useState(false);
+    const deb = useRef(false)
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+
+    useEffect(() => {
+        setCurrentPage(store?.resultMetadata?.page || 1)
+        setTotalPages(store.total !== 0 && store?.resultMetadata?.limit !== 0 ? Math.max(1, Math.ceil(store.total / store.resultMetadata.limit)) : 1)
+    }, [store.total, store.resultMetadata]);
+
+    return <div className={s.resultsWrapper}>
+        <div className={`${s.breadcrumbsContainer} flex flex-column w-100`}>
+            <div style={{ marginBottom: 6, display: 'flex', gap: 5 }}>
+                <span>{FormatCamelCase(EnumToString(store.category, CatalogCategory)) || "N/A"}</span>
+                {`>`}
+                <span>{FormatCamelCase(EnumToString(store.subCategory, CatalogSubCategory)) || "N/A"}</span>
+            </div>
+            <div style={{ color: "#757575", fontSize: 12, fontWeight: 400, }}>
+                <span style={{ marginTop: 2, }}>{currentPage} - {totalPages} of {store.total > 0 ? store.total : store.results.length} Results</span>
+            </div>
+            <div className="w-100 flex justify-content-end">
+                <Selector
+                    options={Object.keys(CatalogSortBy).map(d => ({
+                        name: SortByToString(CatalogSortBy[d]),
+                        value: CatalogSortBy[d] || 0,
+                    }))}
+                    onChange={async newValue => {
+                        if (store.refreshDebounce.current || store.sortBy === newValue.value) return false;
+                        store.RefreshCatalogItems({setSelSuccess}, true, {sortBy: newValue.value});
+                        await tick();
+                        let tries = 0
+                        while (!selSuccess && tries < 100) {
+                            await wait(0.2)
+                            tries++
+                        }
+                        if (selSuccess) {
+                            store.setSortBy(newValue.value);
+                            return true
+                        }
+                        return false
+                    }}
+                    wrapperClass={s.selectorWrapper}
+                    selectorOptionClass={s.selectorOption}
+                    className={s.selector}
+                />
+            </div>
+        </div>
+        <div className={`${s.resultsContainer} flex`}>
+            {
+                store.refreshDebounce.current && store.results.length === 0 ?
+                    <span className="spinner" style={{ backgroundSize: "auto 36px" }}/>
+                    :
+                    store.results.map(item => {
+                        return <CatalogItemCard item={item} key={item.id} />
+                    })
+            }
+        </div>
+        <div className={`${s.paginationContainer}`}>
+            <ActionButton
+                className={s.paginationBtn}
+                buttonStyle={buttonStyles.newCancelButton}
+                onClick={async e => {
+                    e.preventDefault();
+                    if (deb.current || store.refreshDebounce.current || store?.resultMetadata?.prevCursor == null) {
+                        return
+                    }
+                    deb.current = true
+                    await store.RefreshCatalogItems(null, false, {}, store.creatorOption, store.resultMetadata.prevCursor)
+                    deb.current = false
+                }}
+            >
+                <span className={'icon-left'} style={{backgroundPosition:'0 -360px!important'}} />
+            </ActionButton>
+            <span className={s.pages}>
+                {currentPage} / {totalPages}
+            </span>
+            <ActionButton
+                className={s.paginationBtn}
+                buttonStyle={buttonStyles.newCancelButton}
+                onClick={async e => {
+                    e.preventDefault();
+                    if (deb.current || store.refreshDebounce.current || store?.resultMetadata?.nextCursor == null) {
+                        return
+                    }
+                    deb.current = true
+                    await store.RefreshCatalogItems(null, false, {}, store.creatorOption, store.resultMetadata.nextCursor)
+                    deb.current = false
+                }}
+            >
+                <span className={'icon-left'} style={{backgroundPosition:'0 -336px!important'}} />
+            </ActionButton>
+        </div>
+    </div>
+}
+
+export default CatalogResults;

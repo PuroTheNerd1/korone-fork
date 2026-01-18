@@ -11,10 +11,10 @@ const GamePage = ({ name, description, assetId, ...props }) => {
         <Head>
           <title>{name} - Korone</title>
           <meta property="og:title" content={name} />
-          <meta property="og:url" content={`https://pekora.zip/games/${assetId}/--`} />
+          <meta property="og:url" content={`https://goober.top/games/${assetId}/--`} />
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={description} />
-          <meta property="og:image" content={`https://pekora.zip/Thumbs/GameIcon.ashx?assetId=${assetId}`} />
+          <meta property="og:image" content={`https://goober.top/Thumbs/GameIcon.ashx?assetId=${assetId}`} />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="og:site_name" content="Korone" />
           <meta name="theme-color" content="#E2231A" />
