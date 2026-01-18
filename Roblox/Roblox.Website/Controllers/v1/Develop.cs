@@ -440,7 +440,7 @@ public class DevelopControllerV1 : ControllerBase
 
 
         var developerProductCount = await services.games.GetDeveloperProductCount(universeId);
-        if (developerProductCount >= 25) 
+        if (developerProductCount >= 30) 
             throw new BadRequestException(0, "Too many developer products for this universe.");
         
         var asset = await services.assets.GetAssetCatalogInfo(iconImageAssetId);
