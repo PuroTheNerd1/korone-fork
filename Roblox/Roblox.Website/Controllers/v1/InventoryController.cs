@@ -66,5 +66,20 @@ public class InventoryControllerV1 : ControllerBase
         return await services.inventory.IsOwned(userId, assetId);
     }
 
-
+    [HttpGet("users/{userId:long}/items/asset/owns-assets")]
+    [HttpGetBypass("/v1/users/{userId:long}/items/asset/owns-assets")]
+    public async Task<RobloxCollection<IdOwned>> OwnsAssets(long userId, string assetIds)
+    {
+        var canViewInventory = await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0);
+        if (!canViewInventory)
+        {
+            throw new UnauthorizedException(0, "You are not allowed to view the inventory of that user.");
+        }
+        long[] ids = assetIds.Split(",").Select(long.Parse).ToArray();
+        if (ids.Length <= 0)
+            return new RobloxCollection<IdOwned> { data = Array.Empty<IdOwned>() };
+        if (ids.Length > 50)
+            throw new BadRequestException(0, "Too many assets");
+        return new RobloxCollection<IdOwned> { data = await services.inventory.MultiAssetIsOwned(userId, ids) };
+    }
 }

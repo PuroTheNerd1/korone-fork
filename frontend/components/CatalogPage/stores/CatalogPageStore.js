@@ -40,7 +40,9 @@ const CatalogPageStore = createContainer(() => {
     const [searchInput, setSearchInput] = useState("");
     
     const refreshDebounce = useRef(false);
-    
+    const [isLoading, setLoading] = useState(false);
+    const [navVisible, setNavVisible] = useState(false);
+
     /**
      * @typedef CatalogCurrentOptions
      * @property category
@@ -75,6 +77,7 @@ const CatalogPageStore = createContainer(() => {
     async function RefreshCatalogItems(e, reloadPage = false, arr = {}, creatorOptionReq = creatorOption, cursor = "") {
         if (refreshDebounce.current) return false;
         refreshDebounce.current = true;
+        setLoading(true);
         if (e?.preventDefault) e?.preventDefault();
         
         /**
@@ -121,10 +124,11 @@ const CatalogPageStore = createContainer(() => {
             setTotal(searchResultsFlat._total || 0);
             await wait(0.75);
             refreshDebounce.current = false;
+            setLoading(false);
             return true;
         }
         const searchResultsRaw = await getAssetDetailsClean(searchResultsFlat.data);
-        if (!searchResultsRaw) { refreshDebounce.current = false; console.log("nooo"); return false; }
+        if (!searchResultsRaw) { refreshDebounce.current = false; setLoading(false); console.log("nooo"); return false; }
         if (e?.setSelSuccess)
             e.setSelSuccess(true)
         const thumbnails = await multiGetAssetThumbnails({ assetIds: searchResultsRaw.map(d => d.id) });
@@ -148,6 +152,7 @@ const CatalogPageStore = createContainer(() => {
         
         await wait(0.75);
         refreshDebounce.current = false;
+        setLoading(false);
         return true
     }
     
@@ -191,7 +196,9 @@ const CatalogPageStore = createContainer(() => {
         
         categoryNav,
         genreNav,
-        
+
+        isLoading,
+
         category,
         setCategory,
         subCategory,
@@ -216,6 +223,9 @@ const CatalogPageStore = createContainer(() => {
         
         searchInput,
         setSearchInput,
+
+        navVisible,
+        setNavVisible,
     }
 });
 

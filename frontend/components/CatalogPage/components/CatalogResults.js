@@ -6,12 +6,12 @@ import CatalogPageStore, {
     EnumToString, FormatCamelCase,
     SortByToString
 } from "../stores/CatalogPageStore";
-import getFlag from "../../../lib/getFlag";
 import CatalogItemCard from "./CatalogItemCard";
 import {tick, wait} from "../../../lib/utils";
 import {useEffect, useRef, useState} from "react";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
+import {getTheme, themeType} from "../../../services/theme";
 
 const useStyles = createUseStyles({
     resultsWrapper: {
@@ -19,6 +19,16 @@ const useStyles = createUseStyles({
     breadcrumbsContainer: {
         margin: "6px 0 12px",
         paddingLeft: 6,
+        "@media(max-width: 576px)": {
+            "& > div": {
+                display: "flex",
+                justifyContent: "center!important",
+                marginBottom: 6,
+            },
+            "& div:last-child": {
+                marginBottom: 0,
+            }
+        },
     },
     selectorWrapper: {
         width: 230,
@@ -47,11 +57,20 @@ const useStyles = createUseStyles({
         aspectRatio: '1 / 1',
         padding: 3,
         display: 'flex',
+        borderColor: p => p.theme === themeType.dark ? 'var(--text-color-secondary)' : 'transparent!important',
         '& span': {
             backgroundSize: '48px auto',
             height: 24,
             width: 24,
-        }
+            backgroundImage: "url(/img/generic_03112016.svg)",
+            backgroundRepeat: "no-repeat",
+            display: 'inline-block',
+            verticalAlign: 'middle',
+            filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
+        },
+        "&.disabled": {
+            filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
+        },
     },
     pages: {
         wordSpacing: '0.25em',
@@ -59,7 +78,7 @@ const useStyles = createUseStyles({
 });
 
 function CatalogResults() {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     const buttonStyles = useButtonStyles();
     // hierarchy iof breadcrumbs: category > subcategory > keyword
     const store = CatalogPageStore.useContainer();
@@ -69,9 +88,9 @@ function CatalogResults() {
     const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        setCurrentPage(store?.resultMetadata?.page || 1)
-        setTotalPages(store.total !== 0 && store?.resultMetadata?.limit !== 0 ? Math.max(1, Math.ceil(store.total / store.resultMetadata.limit)) : 1)
-    }, [store.total, store.resultMetadata]);
+        setCurrentPage(store?.resultMetadata?.page || 1);
+        setTotalPages(store.total !== 0 && store?.resultMetadata?.limit !== 0 ? Math.max(1, Math.ceil(store.total / store.resultMetadata.limit)) : 1);
+    }, [store.total, store.resultMetadata, store.isLoading]);
 
     return <div className={s.resultsWrapper}>
         <div className={`${s.breadcrumbsContainer} flex flex-column w-100`}>
@@ -90,7 +109,7 @@ function CatalogResults() {
                         value: CatalogSortBy[d] || 0,
                     }))}
                     onChange={async newValue => {
-                        if (store.refreshDebounce.current || store.sortBy === newValue.value) return false;
+                        if (store.isLoading || store.sortBy === newValue.value) return false;
                         store.RefreshCatalogItems({setSelSuccess}, true, {sortBy: newValue.value});
                         await tick();
                         let tries = 0
@@ -112,21 +131,24 @@ function CatalogResults() {
         </div>
         <div className={`${s.resultsContainer} flex`}>
             {
-                store.refreshDebounce.current && store.results.length === 0 ?
+                store.isLoading && store.results.length === 0 ?
                     <span className="spinner" style={{ backgroundSize: "auto 36px" }}/>
                     :
-                    store.results.map(item => {
-                        return <CatalogItemCard item={item} key={item.id} />
-                    })
+                    store.results.length === 0 ?
+                        <div className="section-content-off w-100">No results found</div>
+                        :
+                        store.results.map(item => {
+                            return <CatalogItemCard item={item} key={item.id} />
+                        })
             }
         </div>
         <div className={`${s.paginationContainer}`}>
             <ActionButton
-                className={s.paginationBtn}
-                buttonStyle={buttonStyles.newCancelButton}
+                className={`${s.paginationBtn} ${(store.results.length === 0 || store?.resultMetadata?.prevCursor == null) ? 'disabled' : ''}`}
+                buttonStyle={(store.results.length === 0 || store?.resultMetadata?.prevCursor == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
                 onClick={async e => {
                     e.preventDefault();
-                    if (deb.current || store.refreshDebounce.current || store?.resultMetadata?.prevCursor == null) {
+                    if (deb.current || store.isLoading || store?.resultMetadata?.prevCursor == null) {
                         return
                     }
                     deb.current = true
@@ -134,17 +156,17 @@ function CatalogResults() {
                     deb.current = false
                 }}
             >
-                <span className={'icon-left'} style={{backgroundPosition:'0 -360px!important'}} />
+                <span className={s.icon} style={{backgroundPosition:'0 -360px!important'}} />
             </ActionButton>
             <span className={s.pages}>
                 {currentPage} / {totalPages}
             </span>
             <ActionButton
-                className={s.paginationBtn}
-                buttonStyle={buttonStyles.newCancelButton}
+                className={`${s.paginationBtn} ${(store.results.length === 0 || store?.resultMetadata?.nextCursor == null) ? 'disabled' : ''}`}
+                buttonStyle={(store.results.length === 0 || store?.resultMetadata?.nextCursor == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
                 onClick={async e => {
                     e.preventDefault();
-                    if (deb.current || store.refreshDebounce.current || store?.resultMetadata?.nextCursor == null) {
+                    if (deb.current || store.isLoading || store?.resultMetadata?.nextCursor == null) {
                         return
                     }
                     deb.current = true
@@ -152,7 +174,7 @@ function CatalogResults() {
                     deb.current = false
                 }}
             >
-                <span className={'icon-left'} style={{backgroundPosition:'0 -336px!important'}} />
+                <span className={s.icon} style={{backgroundPosition:'0 -336px!important'}} />
             </ActionButton>
         </div>
     </div>

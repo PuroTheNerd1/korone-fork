@@ -1,12 +1,12 @@
 import {createUseStyles} from "react-jss";
 import Link from "../../link";
 import { ThumbnailFromState } from "../../AvatarEditorPage/components/avatarCardList";
-import CatalogPageStore from "../stores/CatalogPageStore";
 import CreatorLink from "../../creatorLink";
 import { abbreviateNumber } from "../../../lib/numberUtils";
 import {IsNullOrEmpty, IsValidNum} from "../../../lib/utils";
 import React, {useEffect, useState} from "react";
 import {IsISOWithinDays} from "../../AssetDetailsPage";
+import {getTheme, themeType} from "../../../services/theme";
 
 const useStyles = createUseStyles({
     cardWrapper: {
@@ -15,11 +15,17 @@ const useStyles = createUseStyles({
         width: "calc(16.66666667% - 8px)",
         display: "flex",
         flexDirection: "column",
+        "@media(max-width: 991px)": {
+            width: "calc(20% - 8px)",
+        },
         "@media(max-width: 767px)": {
             width: "calc(25% - 8px)",
         },
-        "@media(max-width: 576px)": {
+        "@media(max-width: 616px)": {
             width: "calc(33% - 8px)",
+        },
+        "@media(max-width: 373px)": {
+            width: "calc(50% - 8px)",
         },
     },
     cardContainer: {
@@ -27,15 +33,15 @@ const useStyles = createUseStyles({
         height: "100%",
         flexDirection: "column",
         display: "flex",
-        backgroundColor: "#fff",
+        backgroundColor: "var(--white-color)",
         position: "relative",
-        boxShadow: "0 1px 4px 0 rgba(25,25,25,0.3)",
+        boxShadow: p => p.theme === themeType.dark ? "0 1px 4px 0 rgba(230,230,230,0.3)" : "0 1px 4px 0 rgba(25,25,25,0.3)",
         borderRadius: 3,
         maxWidth: 150,
         transition: "box-shadow 200ms ease",
         "-webkit-transition": "box-shadow 200ms ease",
         "&:hover": {
-            boxShadow: "0 1px 6px 0 rgba(25,25,25,0.75)",
+            boxShadow: p => p.theme === themeType.dark ? "0 1px 6px 0 rgba(230,230,230,0.75)" : "0 1px 6px 0 rgba(25,25,25,0.75)",
         }
     },
     cardImage: {
@@ -59,6 +65,7 @@ const useStyles = createUseStyles({
         lineHeight: "16px",
         width: "100%",
         padding: "0 6px",
+        paddingTop: 6,
         display: "inline-block",
         "& span": {
             height: "20px",
@@ -186,7 +193,7 @@ const useStyles = createUseStyles({
  * @constructor
  */
 function CatalogItemCard({ item }) {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     const [isNew, setNew] = useState(false);
     const [goingOffSale, setGoingOffSale] = useState(false);
     const [longName, setLongName] = useState(true);

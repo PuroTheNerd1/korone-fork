@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import {getTheme, themeType} from "../../services/theme";
 
 const useSelectorStyles = createUseStyles({
     selectorWrapper: {
@@ -20,7 +21,7 @@ const useSelectorStyles = createUseStyles({
         cursor: 'pointer',
         '&:hover': {
             background: 'var(--primary-color)',
-            color: 'var(--white-color)',
+            color: p => p.theme === themeType.dark ? "var(--text-color-primary)" : "var(--white-color)",
         },
         "& *": {
             color: "inherit",
@@ -29,7 +30,7 @@ const useSelectorStyles = createUseStyles({
     selectorOpen: {
         background: 'var(--primary-color)',
         borderColor: 'var(--primary-color)',
-        color: 'var(--white-color)',
+        color: p => p.theme === themeType.dark ? "var(--text-color-primary)" : "var(--white-color)",
     },
     selectorCaret: {
         float: 'right',
@@ -58,7 +59,7 @@ const useSelectorStyles = createUseStyles({
  * @returns
  */
 const Selector = props => {
-    const s = useSelectorStyles();
+    const s = useSelectorStyles({theme: getTheme()});
     const [open, setOpen] = useState(false);
     const [selected, setSelected] = useState(() => {
         if (props.value) {

@@ -12,6 +12,7 @@ import CatalogPageResults from "../catalogPageResults";
 import CatalogPageStore from "../../stores/catalogPage";
 import CatalogPageStore2018 from "../../components/CatalogPage/stores/CatalogPageStore";
 import {createUseStyles} from "react-jss";
+import AdSkyscraper from "../ad/adSkyscraper";
 
 const useStyles = createUseStyles({
     title: {
@@ -27,6 +28,17 @@ const useStyles = createUseStyles({
     bannerClass: {
         marginBottom: 15,
     },
+    adSkyscraper: {
+        marginTop: 115,
+        '@media (max-width: 1532px)': {
+            display: 'none',
+        },
+    },
+    container: {
+        '@media (min-width: 1532px)': {
+            maxWidth: '1154px!important',
+        },
+    },
 })
 
 const AssetPage = () => {
@@ -38,9 +50,15 @@ const AssetPage = () => {
                 <Head>
                     <title>Catalog - Pekora</title>
                 </Head>
-                <div className="container flex flex-column padding-none">
-                    <AdBanner className={s.bannerClass} />
-                    <CatalogPage />
+
+                <div className={s.container + ' container padding-none flex justify-content-between'}>
+                    <div className="container flex flex-column padding-none margin-none">
+                        <AdBanner className={s.bannerClass}/>
+                        <CatalogPage/>
+                    </div>
+                    <div className={`flex padding-none ${s.adSkyscraper}`}>
+                        <AdSkyscraper className={s.bannerClass}/>
+                    </div>
                 </div>
             </Theme2016>
         </CatalogPageStore2018.Provider>

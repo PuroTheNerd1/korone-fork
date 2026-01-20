@@ -151,7 +151,20 @@ public class InventoryService : ServiceBase, IService
         );
         return result > 0;
     }
-    
+
+    public async Task<IEnumerable<IdOwned>> MultiAssetIsOwned(long userId, long[] assetIds)
+    {
+        var q = await db.QueryAsync<Dto.Id>(@"
+                    SELECT 
+                        a.id
+                    FROM user_asset INNER JOIN asset a ON user_asset.asset_id = a.id WHERE user_id = :userId AND a.id = ANY(:assetIds)", new {userId, assetIds});
+        return assetIds.Select(i => new IdOwned
+        {
+            id = i,
+            owned = q != null && q.Any(i2 => i2.id == i),
+        });
+    }
+
     public async Task DeleteUserAssetId(long userId, long assetId)
     {
         await db.QueryAsync("DELETE FROM user_asset WHERE user_id = :userId AND asset_id = :assetId", new

@@ -10,6 +10,9 @@ const useStyles = createUseStyles({
         borderBottom: "1px solid #b8b8b8",
         margin: "0 12px 0 0",
         paddingBottom: 12,
+        "@media(max-width: 576px)": {
+            margin: "0 6px",
+        },
     },
     searchOptionHeader: {
         fontSize: 20,
@@ -48,7 +51,7 @@ const useStyles = createUseStyles({
         fontSize: 12,
         fontWeight: 400,
         lineHeight: "2.4em",
-        color: "#191919",
+        color: "var(--text-color-primary)",
         "&:hover": {
             textDecoration: "underline!important",
         },
