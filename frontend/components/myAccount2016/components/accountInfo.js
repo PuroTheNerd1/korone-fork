@@ -4,10 +4,10 @@ import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
 import {
     getAvPageStyle,
-    getCatalogPageStyle,
+    getCatalogPageStyle, getCatalogStyle,
     getTheme, getThemeColor, getThemeFont,
     setAvPageStyle,
-    setCatalogPageStyle,
+    setCatalogPageStyle, setCatalogStyle,
     setTheme, setThemeColor, setThemeFont, setThemeForumHeader, setThemeRibbon, themeType
 } from "../../../services/theme";
 import AuthenticationStore from "../../../stores/authentication";
@@ -247,6 +247,23 @@ const  AccountInfo = props => {
                     </div>
                     <div className='flex mt-1'>
                         <div className='col pe-0'>
+                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Catalog Style'
+                                   readOnly={true}
+                                   type='text'></input>
+                        </div>
+                        <div className='col ps-0 pe-0'>
+                            <select className={'form-control ' + s.select} value={getCatalogStyle()}
+                                    onChange={ev => {
+                                        setCatalogStyle(ev.currentTarget.value);
+                                        window.location.reload();
+                                    }}>
+                                <option value="Modern">Modern (2017+)</option>
+                                <option value="Legacy">Legacy (2012-2017)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className='flex mt-1'>
+                        <div className='col pe-0'>
                             <input className={'form-control ' + s.select + ' ' + s.disabled} value='Avatar Page Style'
                                    readOnly={true}
                                    type='text'></input>
@@ -264,7 +281,7 @@ const  AccountInfo = props => {
                     </div>
                     <div className='flex mt-1'>
                         <div className='col pe-0'>
-                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Catalog Page Style'
+                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Asset Details Page Style'
                                    readOnly={true}
                                    type='text'></input>
                         </div>

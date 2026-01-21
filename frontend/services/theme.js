@@ -129,7 +129,7 @@ const setAvPageStyle = (themeString) => {
 
 const getCatalogPageStyle = () => {
     if (!isLocalStorageAvailable) return catalogPageStyle["Modern"];
-    
+
     let value = localStorage.getItem('rbx_cat_page_style_v1');
     // validate
     if (typeof value !== 'string' || !Object.getOwnPropertyNames(catalogPageStyle).includes(value)) return catalogPageStyle["Modern"];
@@ -139,6 +139,20 @@ const getCatalogPageStyle = () => {
 const setCatalogPageStyle = (themeString) => {
     if (!isLocalStorageAvailable) return;
     localStorage.setItem('rbx_cat_page_style_v1', themeString);
+}
+
+const getCatalogStyle = () => {
+    if (!isLocalStorageAvailable) return catalogPageStyle["Modern"];
+
+    let value = localStorage.getItem('rbx_cat_style_v1');
+    // validate
+    if (typeof value !== 'string' || !Object.getOwnPropertyNames(catalogPageStyle).includes(value)) return catalogPageStyle["Modern"];
+    return catalogPageStyle[value];
+}
+
+const setCatalogStyle = (themeString) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_cat_style_v1', themeString);
 }
 
 export {
@@ -162,6 +176,9 @@ export {
     
     getCatalogPageStyle,
     setCatalogPageStyle,
+
+    getCatalogStyle,
+    setCatalogStyle,
     
     themeType,
     themeColor,

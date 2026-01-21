@@ -147,8 +147,8 @@ const useButtonStyles = createUseStyles({
     },
     newDisabledContinueButton: {
         background: '#99DAFF',
-        border: '1px solid #99DAFF',
-        borderColor: '#99DAFF!important',
+        border: '1px solid #E3E3E3',
+        borderColor: '#E3E3E3!important',
         borderRadius: '3px',
         fontWeight: '500',
         color: '#fff!important',

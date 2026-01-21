@@ -63,3 +63,9 @@ public class OwnershipEntryDb : OwnershipEntryShared
     public long userId { get; set; }
     public string username { get; set; }
 }
+
+public class IdOwned
+{
+    public long id { get; set; }
+    public bool owned { get; set; }
+}

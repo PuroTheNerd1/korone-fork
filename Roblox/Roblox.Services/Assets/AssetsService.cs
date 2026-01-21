@@ -3260,6 +3260,677 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         //{ "Free For All", 36584 },
         //{ "Team Deathmatch", 36590 }
     };
+
+    public readonly List<GenreClass> CatalogGenres = new List<GenreClass>
+    {
+        new GenreClass
+        {
+            genre = "All",
+            genreId = 0,
+        },
+        new GenreClass
+        {
+            genre = "Building",
+            genreId = 13,
+        },
+        new GenreClass
+        {
+            genre = "Horror",
+            genreId = 5,
+        },
+        new GenreClass
+        {
+            genre = "TownAndCity",
+            genreId = 1,
+            name = "Town And City"
+        },
+        new GenreClass
+        {
+            genre = "Military",
+            genreId = 11,
+        },
+        new GenreClass
+        {
+            genre = "Comedy",
+            genreId = 9,
+        },
+        new GenreClass
+        {
+            genre = "Medieval",
+            genreId = 2,
+        },
+        new GenreClass
+        {
+            genre = "Adventure",
+            genreId = 7,
+        },
+        new GenreClass
+        {
+            genre = "SciFi",
+            genreId = 3,
+            name = "Sci-Fi"
+        },
+        new GenreClass
+        {
+            genre = "Naval",
+            genreId = 6,
+        },
+        new GenreClass
+        {
+            genre = "FPS",
+            genreId = 14,
+        },
+        new GenreClass
+        {
+            genre = "RPG",
+            genreId = 15,
+        },
+        new GenreClass
+        {
+            genre = "Sports",
+            genreId = 8,
+        },
+        new GenreClass
+        {
+            genre = "Fighting",
+            genreId = 4,
+        },
+        new GenreClass
+        {
+            genre = "Western",
+            genreId = 10,
+        },
+    };
+
+    public readonly List<CatalogCategoryData> CatalogNavigation = new List<CatalogCategoryData>
+    {
+        new CatalogCategoryData
+        {
+            category = "All",
+            categoryId = CatalogCategory.All,
+            orderIndex = 1,
+            name = "All Categories",
+            assetTypeIds = new List<long> { 11, 2, 12, 17, 18, 19, 8, 41, 42, 43, 44, 45, 46, 47, 61, 64, 65, 68, 67, 66, 69, 72, 51 },
+            subCategories = new List<CatalogSubCategoryData>()
+        },
+        new CatalogCategoryData
+        {
+            category = "Featured",
+            categoryId = CatalogCategory.Featured,
+            orderIndex = 2,
+            name = "Featured",
+            assetTypeIds = new List<long> { 32 },
+            subCategories = new List<CatalogSubCategoryData>
+            {
+                new CatalogSubCategoryData
+                {
+                    subCategory = "All",
+                    subCategoryId = CatalogSubCategory.All,
+                    name = "All Featured Items",
+                    assetTypeIds = new List<long> { 8, 42, 43, 44, 45, 46, 47, 19, 32, 61, 18, 19, 61 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Accessories",
+                    subCategoryId = CatalogSubCategory.Accessories,
+                    name = "Featured Accessories",
+                    assetTypeIds = new List<long> { 8, 42, 43, 44, 45, 46, 47, 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Animations",
+                    subCategoryId = CatalogSubCategory.Animations,
+                    name = "Featured Animations",
+                    assetTypeIds = new List<long> { 61 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Faces",
+                    subCategoryId = CatalogSubCategory.Faces,
+                    name = "Featured Faces",
+                    assetTypeIds = new List<long> { 18 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Gear",
+                    subCategoryId = CatalogSubCategory.Gear,
+                    name = "Featured Gear",
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Packages",
+                    subCategoryId = CatalogSubCategory.Packages,
+                    name = "Featured Packages",
+                    assetTypeIds = new List<long> { 32 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Emotes",
+                    subCategoryId = CatalogSubCategory.Emotes,
+                    name = "Featured Emotes",
+                    assetTypeIds = new List<long> { 61 }
+                }
+            }
+        },
+        new CatalogCategoryData
+        {
+            category = "Collectibles",
+            categoryId = CatalogCategory.Collectibles,
+            orderIndex = 3,
+            name = "Collectibles",
+            assetTypeIds = new List<long> { 32 },
+            subCategories = new List<CatalogSubCategoryData>
+            {
+                new CatalogSubCategoryData
+                {
+                    subCategory = "All",
+                    subCategoryId = CatalogSubCategory.All,
+                    name = "All Collectibles",
+                    assetTypeIds = new List<long> { 32 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Accessories",
+                    subCategoryId = CatalogSubCategory.Accessories,
+                    name = "Collectible Accessories",
+                    assetTypeIds = new List<long> { 8, 42, 43, 44, 45, 46, 47, 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Faces",
+                    subCategoryId = CatalogSubCategory.Faces,
+                    name = "Collectible Faces",
+                    assetTypeIds = new List<long> { 18 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Gear",
+                    subCategoryId = CatalogSubCategory.Gear,
+                    name = "Collectible Gear",
+                    assetTypeIds = new List<long> { 19 }
+                }
+            }
+        },
+        new CatalogCategoryData
+        {
+            category = "Clothing",
+            categoryId = CatalogCategory.Clothing,
+            orderIndex = 4,
+            name = "Clothing",
+            assetTypeIds = new List<long> { 11, 2, 12 },
+            subCategories = new List<CatalogSubCategoryData>
+            {
+                new CatalogSubCategoryData
+                {
+                    subCategory = "All",
+                    subCategoryId = CatalogSubCategory.All,
+                    name = "All Clothing",
+                    assetTypeIds = new List<long> { 11, 2, 12 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Shirts",
+                    subCategoryId = CatalogSubCategory.Shirts,
+                    name = null,
+                    assetTypeIds = new List<long> { 11 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "TeeShirts",
+                    subCategoryId = CatalogSubCategory.TeeShirts,
+                    name = "T-Shirts",
+                    assetTypeIds = new List<long> { 2 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Pants",
+                    subCategoryId = CatalogSubCategory.Pants,
+                    name = null,
+                    assetTypeIds = new List<long> { 12 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Packages",
+                    subCategoryId = CatalogSubCategory.Packages,
+                    name = null,
+                    assetTypeIds = new List<long> { 32 }
+                }
+            }
+        },
+        new CatalogCategoryData
+        {
+            category = "BodyParts",
+            categoryId = CatalogCategory.BodyParts,
+            orderIndex = 5,
+            name = "Body Parts",
+            assetTypeIds = new List<long> { 41, 17, 18 },
+            subCategories = new List<CatalogSubCategoryData>
+            {
+                new CatalogSubCategoryData
+                {
+                    subCategory = "All",
+                    subCategoryId = CatalogSubCategory.All,
+                    name = "All Body Parts",
+                    assetTypeIds = new List<long> { 41, 17, 18 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Heads",
+                    subCategoryId = CatalogSubCategory.Heads,
+                    name = null,
+                    assetTypeIds = new List<long> { 17 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Faces",
+                    subCategoryId = CatalogSubCategory.Faces,
+                    name = null,
+                    assetTypeIds = new List<long> { 18 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Packages",
+                    subCategoryId = CatalogSubCategory.Packages,
+                    name = null,
+                    assetTypeIds = new List<long> { 32 }
+                }
+            }
+        },
+        new CatalogCategoryData
+        {
+            category = "Gear",
+            categoryId = CatalogCategory.Gears,
+            orderIndex = 6,
+            name = "Gear",
+            assetTypeIds = new List<long> { 19 },
+            subCategories = new List<CatalogSubCategoryData>
+            {
+                new CatalogSubCategoryData
+                {
+                    subCategory = "All",
+                    subCategoryId = CatalogSubCategory.All,
+                    name = "All Gear",
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Building",
+                    subCategoryId = CatalogSubCategory.Building,
+                    name = null,
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Explosive",
+                    subCategoryId = CatalogSubCategory.Explosive,
+                    name = null,
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Melee",
+                    subCategoryId = CatalogSubCategory.Melee,
+                    name = null,
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Musical",
+                    subCategoryId = CatalogSubCategory.Musical,
+                    name = null,
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Navigation",
+                    subCategoryId = CatalogSubCategory.Navigation,
+                    name = null,
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Powerup",
+                    subCategoryId = CatalogSubCategory.Powerup,
+                    name = "Power Up",
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Ranged",
+                    subCategoryId = CatalogSubCategory.Ranged,
+                    name = null,
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Social",
+                    subCategoryId = CatalogSubCategory.Social,
+                    name = null,
+                    assetTypeIds = new List<long> { 19 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Transport",
+                    subCategoryId = CatalogSubCategory.Transport,
+                    name = null,
+                    assetTypeIds = new List<long> { 19 }
+                }
+            }
+        },
+        new CatalogCategoryData
+        {
+            category = "Accessories",
+            categoryId = CatalogCategory.Accessories,
+            orderIndex = 7,
+            name = "Accessories",
+            assetTypeIds = new List<long> { 8, 42, 43, 44, 45, 46, 47 },
+            subCategories = new List<CatalogSubCategoryData>
+            {
+                new CatalogSubCategoryData
+                {
+                    subCategory = "All",
+                    subCategoryId = CatalogSubCategory.All,
+                    name = "All Accessories",
+                    assetTypeIds = new List<long> { 8, 42, 43, 44, 45, 46, 47 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Hats",
+                    subCategoryId = CatalogSubCategory.Hats,
+                    name = null,
+                    assetTypeIds = new List<long> { 8 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Hair",
+                    subCategoryId = CatalogSubCategory.Hair,
+                    name = null,
+                    assetTypeIds = new List<long> { 41 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Face",
+                    subCategoryId = CatalogSubCategory.FaceAccessories,
+                    name = null,
+                    assetTypeIds = new List<long> { 42 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Neck",
+                    subCategoryId = CatalogSubCategory.Neck,
+                    name = null,
+                    assetTypeIds = new List<long> { 43 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Shoulder",
+                    subCategoryId = CatalogSubCategory.Shoulder,
+                    name = null,
+                    assetTypeIds = new List<long> { 44 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Front",
+                    subCategoryId = CatalogSubCategory.Front,
+                    name = null,
+                    assetTypeIds = new List<long> { 45 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Back",
+                    subCategoryId = CatalogSubCategory.Back,
+                    name = null,
+                    assetTypeIds = new List<long> { 46 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Waist",
+                    subCategoryId = CatalogSubCategory.Waist,
+                    name = null,
+                    assetTypeIds = new List<long> { 47 }
+                }
+            }
+        },
+        new CatalogCategoryData
+        {
+            category = "AvatarAnimations",
+            categoryId = CatalogCategory.AvatarAnimations,
+            orderIndex = 8,
+            name = "Avatar Animations",
+            assetTypeIds = new List<long> { 32, 61 },
+            subCategories = new List<CatalogSubCategoryData>
+            {
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Packages",
+                    subCategoryId = CatalogSubCategory.Packages,
+                    name = null,
+                    assetTypeIds = new List<long> { 32 }
+                },
+                new CatalogSubCategoryData
+                {
+                    subCategory = "Emotes",
+                    subCategoryId = CatalogSubCategory.Emotes,
+                    name = null,
+                    assetTypeIds = new List<long> { 61 }
+                }
+            }
+        }
+    };
+    // for the new catalog
+    public async Task<SearchResponse> SearchCatalog2(CatalogSearchRequest2 request)
+    {
+        var resp = new SearchResponse();
+        resp.keyword = request.keyword;
+
+        // Offset
+        var offset = 0;
+        if (!string.IsNullOrEmpty(request.cursor))
+        {
+            offset = int.Parse(request.cursor);
+        }
+
+        var builder = new SqlBuilder();
+        var selectTemplate = builder.AddTemplate(
+            "SELECT id FROM asset /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new
+            {
+                request.limit,
+                offset,
+            });
+        var countTemplate = builder.AddTemplate("SELECT count(*) AS total FROM asset /**where**/");
+
+        // Keyword/Text Search
+        if (!string.IsNullOrEmpty(request.keyword))
+        {
+            builder.Where("asset.name ILIKE :name", new
+            {
+                name = "%" + request.keyword + "%",
+            });
+        }
+
+        if (request.creatorType != null && request.creatorTargetId != null && request.creatorTargetId != 0)
+        {
+            builder.Where("asset.creator_id = :creator_id AND asset.creator_type = :creator_type", new
+            {
+                creator_id = request.creatorTargetId.Value,
+                creator_type = request.creatorType.Value,
+            });
+        }
+
+        // Sort
+        if (request.sortType != null)
+        {
+            var column = "created_at";
+            var mode = "desc";
+            switch (request.sortType)
+            {
+                case 0:
+                    // same as above
+                    break;
+                case 3:
+                    // updated
+                    column = "updated_at";
+                    break;
+                case 4:
+                    // price: low to high
+                    column = "CASE WHEN price_tix IS NOT NULL THEN price_tix / 10 ELSE price_robux END";
+                    mode = "asc";
+                    break;
+                case 5:
+                    // price: high to low
+                    column = "CASE WHEN price_tix IS NOT NULL THEN price_tix / 10 ELSE price_robux END";
+                    break;
+                case 6:
+                    // RAP: low to high
+                    builder.Where("is_limited = TRUE");
+                    column = "CASE WHEN recent_average_price IS NULL THEN 0 ELSE 1 END, recent_average_price";
+                    mode = "asc";
+                    break;
+                case 7:
+                    // RAP: high to low
+                    builder.Where("is_limited = TRUE");
+                    column = "CASE WHEN recent_average_price IS NULL THEN 1 ELSE 0 END, recent_average_price";
+                    mode = "desc";
+                    break;
+                case 100:
+                    // favorite count: high to low
+                    break;
+            }
+
+            builder.OrderBy(column + " " + mode);
+        }
+
+        // end of library seciton
+
+        CatalogCategoryData? cat = request.category.HasValue ? CatalogNavigation.Find(c => c.categoryId == request.category.Value) : null;
+        CatalogSubCategoryData? sub = request.subcategory.HasValue ? cat?.subCategories.Find(c => c.subCategoryId == request.subcategory.Value) : null;
+
+        bool libraryItem = false;
+
+        if (!request.includeNotForSale && libraryItem == false)
+        {
+            builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
+        }
+
+        // TODO: should we force is_for_sale to be true?
+        switch (request.currency)
+        {
+            case CurrencyType.Robux:
+                builder
+                    .Where("is_for_sale = TRUE")
+                    .Where("price_robux != NULL")
+                    ;
+                break;
+            case CurrencyType.Tickets:
+                if (request.priceOption == PriceOption.Free)
+                {
+                    builder
+                        .Where("is_for_sale = TRUE");
+                }
+                else
+                {
+                    builder
+                        .Where("is_for_sale = TRUE")
+                        .Where("(price_tix != NULL OR price_robux = 0)");
+                }
+                break;
+        }
+
+        switch (request.priceOption)
+        {
+            case PriceOption.Free:
+                builder
+                    .Where("is_for_sale = TRUE")
+                    .Where("price_robux = 0 OR price_tix = 0");
+                break;
+            case PriceOption.Range:
+                string priceColumn = request.currency == CurrencyType.Tickets
+                    ? "price_tix"
+                    : "price_robux";
+                string query = request.currency != null
+                    ? $"{priceColumn} >= :minPrice AND {priceColumn} <= :maxPrice"
+                    : "(price_robux >= :minPrice AND price_robux <= :maxPrice) OR (price_tix >= :minPrice AND price_tix <= :maxPrice)";
+                builder
+                    .Where("is_for_sale = TRUE")
+                    .Where(query, new
+                    {
+                        request.minPrice,
+                        request.maxPrice,
+                    });
+                break;
+        }
+
+        // Whether to sort the final results by ID in DESC order, after the function is over
+        var doIdSort = false;
+
+        if (cat != null && (!cat.subCategories.Any() || sub == null || sub.subCategoryId == CatalogSubCategory.All))
+        {
+            switch (cat.categoryId)
+            {
+                case CatalogCategory.Featured:
+                    if (request.sortType != null && request.sortType == 0) {
+                        doIdSort = true;
+                    }
+                    builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
+                    break;
+                case CatalogCategory.Collectibles:
+                    builder.Where("asset.is_limited = true");
+                    break;
+                default:
+                    cat.assetTypeIds.ForEach(d => builder.OrWhere($"(asset.asset_type = {d})"));
+                    break;
+            }
+        }
+        else
+        {
+            sub?.assetTypeIds.ForEach(d => builder.OrWhere($"(asset.asset_type = {d})"));
+        }
+
+        if (request.genres != null)
+        {
+            foreach (var item in request.genres)
+            {
+                builder.Where($"asset.asset_genre = {(int)item}");
+            }
+        }
+        var totalResults =
+            await db.QuerySingleOrDefaultAsync<Total>(countTemplate.RawSql, countTemplate.Parameters);
+        if (totalResults.total != 0)
+        {
+            resp.data =
+                (await db.QueryAsync<CatalogMultiGetEntry>(selectTemplate.RawSql, selectTemplate.Parameters))
+                .Select(
+                    c => new CatalogMultiGetEntry()
+                    {
+                        id = c.id,
+                        itemType = "Asset",
+                    });
+        }
+
+        if (resp.data == null)
+            return new SearchResponse() { keyword = request.keyword };
+
+        var sortedList = resp.data.ToList();
+        if (doIdSort)
+        {
+            sortedList.Sort((a, b) => a.id > b.id ? -1 : 1);
+        }
+
+        if (sortedList.Count >= request.limit)
+        {
+            resp.nextPageCursor = (sortedList.Count + offset).ToString();
+        }
+
+        if (offset != 0)
+        {
+            resp.previousPageCursor = (offset - request.limit).ToString();
+        }
+
+        resp._total = totalResults.total;
+        resp.data = sortedList;
+        return resp;
+    }
     
     public bool IsThreadSafe()
     {

@@ -357,6 +357,17 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	vertical-align: middle;
 }
 
+.icon-plus,
+.icon-minus {
+    background-image: url(/img/generic-2019.svg);
+    background-repeat: no-repeat;
+    background-size: auto auto;
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
 .icon-checkmark-white-hold {
 	background-image: url(/img/generic_light_2025.svg);
 	background-repeat: no-repeat;
@@ -536,6 +547,18 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	height: 16px;
 	display: inline-block;
 	vertical-align: middle;
+}
+
+
+.icon-robux-12x12, .icon-robux-gray-12x12,
+.icon-tix-12x12, .icon-tix-gray-12x12 {
+    background-image: url(/img/branded.svg);
+    background-repeat: no-repeat;
+    background-size: 200% auto;
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .icon-verified {
@@ -1162,6 +1185,10 @@ a:hover .icon-favorite {
 	background-position: 0 -112px;
 }
 
+.icon-robux-12x12 {
+    background-position: 0 -48px;
+}
+
 .icon-robux-16x16 {
 	background-position: 0 -64px;
 }
@@ -1172,6 +1199,10 @@ a:hover .icon-favorite {
 
 .icon-robux-gray {
 	background-position: 0 -168px;
+}
+
+.icon-robux-gray-12x12 {
+    background-position: 0 -72px;
 }
 
 .icon-robux-gray-16x16 {
@@ -1186,6 +1217,10 @@ a:hover .icon-favorite {
 	background-position: 0 -140px;
 }
 
+.icon-tix-12x12 {
+    background-position: 0 -60px;
+}
+
 .icon-tix-16x16 {
 	background-position: 0 -80px;
 }
@@ -1198,6 +1233,12 @@ a:hover .icon-favorite {
 	background-position: 0 -140px;
 	filter: grayscale(1);
 	opacity: .65;
+}
+
+.icon-tix-gray-12x12 {
+    background-position: 0 -60px;
+    filter: grayscale(1);
+    opacity: .65;
 }
 
 .icon-tix-gray-16x16 {
@@ -1844,4 +1885,32 @@ span.game-privacy-symbol.gps-active {
 
 .social-link-icon.tiktok {
 	background-position: 0 calc(-32px * (14 - 1));
+}
+
+.icon-plus {
+    width: 12px;
+    height: 12px;
+    background-size: 24px auto;
+    background-position: 0 -660px;
+}
+
+.icon-minus {
+    width: 12px;
+    height: 12px;
+    background-size: 24px auto;
+    background-position: 0 -672px;
+}
+
+.icon-plus:hover {
+    width: 12px;
+    height: 12px;
+    background-size: 24px auto;
+    background-position: -12px -660px;
+}
+
+.icon-minus:hover {
+    width: 12px;
+    height: 12px;
+    background-size: 24px auto;
+    background-position: -12px -672px;
 }

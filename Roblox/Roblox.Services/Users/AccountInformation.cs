@@ -88,7 +88,7 @@ public class AccountInformationService : ServiceBase, IService
         styleCache.Set(userId, style);
     }
 
-    public async Task<InventoryPrivacy> GetUserInventoryPrivacy(long userId)
+    public async Task<InventoryPrivacy?> GetUserInventoryPrivacy(long userId)
     {
         return (await GetUserSettings(userId)).inventoryPrivacy;
     }

@@ -928,3 +928,7 @@ export function formatNum(x) {
 const PortalComponent = ({ children, target }) => {
     return target ? ReactDOM.createPortal(children, target) : null;
 };
+
+export {
+    IsISOWithinDays,
+}

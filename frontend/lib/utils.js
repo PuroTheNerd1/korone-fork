@@ -17,8 +17,15 @@ export const Random = (min, max) => {
 export const wait = (seconds) =>
     new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
+export const tick = () =>
+    new Promise(resolve => setTimeout(resolve, 0));
+
 export function IsNullOrEmpty(value) {
-  return !value || value.trim().length === 0;
+    return !value || value.trim().length === 0;
+}
+
+export function IsValidNum(value) {
+    return Number.isSafeInteger(value) && Number.isFinite(value);
 }
 
 export class Stopwatch {

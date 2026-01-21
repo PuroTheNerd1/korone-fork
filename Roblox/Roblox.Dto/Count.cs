@@ -5,6 +5,11 @@ public class Total
     public int total { get; set; }
 }
 
+public class Id
+{
+    public long id { get; set; }
+}
+
 public class ExistsType
 {
     public bool exists { get; set; }

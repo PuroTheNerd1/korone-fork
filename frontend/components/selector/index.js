@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import {getTheme, themeType} from "../../services/theme";
 
 const useSelectorStyles = createUseStyles({
     selectorWrapper: {
@@ -20,7 +21,7 @@ const useSelectorStyles = createUseStyles({
         cursor: 'pointer',
         '&:hover': {
             background: 'var(--primary-color)',
-            color: 'var(--text-color-primary)',
+            color: p => p.theme === themeType.dark ? "var(--text-color-primary)" : "var(--white-color)",
         },
         "& *": {
             color: "inherit",
@@ -29,7 +30,7 @@ const useSelectorStyles = createUseStyles({
     selectorOpen: {
         background: 'var(--primary-color)',
         borderColor: 'var(--primary-color)',
-        color: 'var(--white-color)',
+        color: p => p.theme === themeType.dark ? "var(--text-color-primary)" : "var(--white-color)",
     },
     selectorCaret: {
         float: 'right',
@@ -54,11 +55,11 @@ const useSelectorStyles = createUseStyles({
 
 /**
  *
- * @param {{options: {name: string; value: any}[]; onChange: (v: any) => void; value?: any; shadow?: boolean; wrapperClass?: string; className?: string;}} props
+ * @param {{options: {name: string; value: any}[]; onChange: (v: any) => void; value?: any; shadow?: boolean; wrapperClass?: string; selectorOptionClass?: string; className?: string;}} props
  * @returns
  */
 const Selector = props => {
-    const s = useSelectorStyles();
+    const s = useSelectorStyles({theme: getTheme()});
     const [open, setOpen] = useState(false);
     const [selected, setSelected] = useState(() => {
         if (props.value) {
@@ -68,7 +69,7 @@ const Selector = props => {
     });
     const selectorRef = useRef(null);
     
-    return <div className={`${s.selectorWrapper}`}>
+    return <div className={`${s.selectorWrapper} ${props?.wrapperClass ?? ""}`}>
         <div ref={selectorRef} className={s.selectorClosed + ' ' + (open ? s.selectorOpen : '') + ' ' + props.className || ''} onClick={() => {
             setOpen(!open);
         }}>
@@ -80,10 +81,12 @@ const Selector = props => {
             <div className={s.selectorMenuOpen} style={{ width: selectorRef.current.clientWidth + 'px', boxShadow: props.shadow ? "0 1px 4px 0 rgba(25,25,25,.3)" : "none" }}>
                 {
                     props.options.map(v => {
-                        return <p className={s.selectOption} key={v.value} onClick={() => {
+                        return <p className={`${s.selectOption} ${props.selectorOptionClass || ""}`} key={v.value} onClick={async () => {
+                            const change = await props.onChange(v);
+                            // zTODO: add async compat.
+                            if (typeof change == 'boolean' && change === false) return; // you can return false to cancel out the bototm stuff
                             setSelected(v);
                             setOpen(false);
-                            props.onChange(v);
                         }}>{v.name}</p>
                     })
                 }

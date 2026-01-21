@@ -6,7 +6,7 @@ import Head from "next/head";
 const UserInventoryPage = ({ username, userId }) => {
   const router = useRouter();
   const ogTitle = username ? `${username}'s Inventory` : "Korone";
-  const ogUrl = userId ? `https://pekora.zip/users/${userId}/inventory` : '';
+  const ogUrl = userId ? `https://goober.top/users/${userId}/inventory` : '';
 
   return (
     <>
@@ -17,7 +17,7 @@ const UserInventoryPage = ({ username, userId }) => {
           <meta property="og:url" content={ogUrl} />
           <meta property="og:type" content="profile" />
           <meta property="og:description" content={`View ${username}'s inventory`} />
-          <meta property="og:image" content={`https://pekora.zip/thumbs/avatar-headshot.ashx?userId=${userId}`} />
+          <meta property="og:image" content={`https://goober.top/thumbs/avatar-headshot.ashx?userId=${userId}`} />
           <meta name="og:site_name" content="Korone" />
           <meta name="theme-color" content="#E2231A" />
         </Head>
