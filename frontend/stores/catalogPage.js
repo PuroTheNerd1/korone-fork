@@ -126,7 +126,7 @@ const CatalogPageStore = createContainer(() => {
   const router = useRouter();
   const [query, setQuery] = useState(router.query.keyword || '');
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(getFlag('catalogPageLimit', 28));
+  const [limit, setLimit] = useState(getFlag('catalogPageLimit', 30));
   const [category, setCategory] = useState('Featured');
   const [subCategory, setSubCategory] = useState('');
   const [locked, setLocked] = useState(false);

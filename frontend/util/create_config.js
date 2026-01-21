@@ -20,7 +20,7 @@ const main = () => {
         flags: {
           myAccountPage2016Enabled: true,
           catalogGenreFilterSupported: false,
-          catalogPageLimit: 28,
+          catalogPageLimit: 30,
           catalogSaleCountVisibleFromDetailsEndpoint: false,
           catalogDetailsPageResellerLimit: 10,
           avatarPageInventoryLimit: 10,

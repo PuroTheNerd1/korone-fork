@@ -247,3 +247,135 @@ export const getModerationStatus = ({ assetID }) => {
  * @property {string} createdAt - ISO timestamp of when the item was created.
  * @property {string} updatedAt - ISO timestamp of the last update.
  */
+
+/**
+ * @typedef {RawAssetDetails & {
+ *   state: string;
+ *   imageUrl: string;
+ *   owned: boolean;
+ * }} CatalogAssetDetails
+ */
+
+/**
+ * @typedef CatalogResultsMetadata
+ * @property {number} limit
+ * @property {number} page
+ * @property {string|null} cursor
+ * @property {string|null} nextCursor
+ * @property {string|null} prevCursor
+ */
+
+/**
+ * @param {number} category
+ * @param {number|null} subCategory
+ * @param {string|null} query
+ * @param {number[]|null} genres
+ * @param {number} limit
+ * @param {string|null} cursor
+ * @param {number} sort
+ * @param {number|null} creatorType
+ * @param {number|null} creatorId
+ * @param {string|null} creatorName
+ * @param {boolean} includeNotForSale
+ * @param {number} priceOption
+ * @param {[number, number]} priceRange
+ * @param {number} currency
+ * @returns {Promise<PekoraCollectionPaginated<{itemType: string; id: number;}>>}
+ */
+export const searchCatalog2 = ({
+                                   category,
+                                   subCategory = null,
+                                   query = null,
+                                   genres = null,
+                                   limit,
+                                   cursor = null,
+                                   sort,
+                                   creatorType = null,
+                                   creatorId = null,
+                                   creatorName = null,
+                                   includeNotForSale = false,
+                                   priceOption = null,
+                                   priceRange = null,
+                                   currency = null,
+                               }) => {
+    let url = '/v3/search/items?category=' + category + '&limit=' + limit + '&sortType=' + sort;
+    if (cursor) {
+        url += '&cursor=' + encodeURIComponent(cursor);
+    }
+    if (query) {
+        url += '&keyword=' + encodeURIComponent(query);
+    }
+    if (subCategory) {
+        url += '&subcategory=' + encodeURIComponent(subCategory);
+    }
+    if (genres) {
+        url += `&genres=${genres.join(",")}`;
+    }
+    if (creatorType && creatorId) {
+        url += '&creatorTargetId=' + encodeURIComponent(creatorId) + '&creatorType=' + encodeURIComponent(creatorType);
+    }
+    if (!creatorId && creatorName) {
+        url += '&creatorName=' + encodeURIComponent(creatorName) + '&creatorType=1';
+    }
+    if (includeNotForSale === true) {
+        url += '&includeNotForSale=true';
+    }
+    if (priceOption && priceOption !== 0) {
+        url += '&priceOption=' + priceOption;
+    }
+    if (priceRange) {
+        url += `&minPrice=${priceRange[0]}&maxPrice=${priceRange[1]}`;
+    }
+    if (currency) {
+        url += '&currency=' + currency;
+    }
+    return request('GET', getFullUrl('catalog', url)).then(d => d.data);
+}
+
+/**
+ * @param {{id: number; itemType: string;}[]} assetIdArray
+ * @returns {Promise<AssetDetailsEntry[]|null>}
+ */
+export const getAssetDetailsClean = (assetIdArray) => {
+    return request("POST", getFullUrl("catalog", "/v1/catalog/items/details"), {
+        items: assetIdArray,
+    }).then(d => d?.data?.data);
+}
+
+/**
+ * @returns {Promise<CatalogNavigationClass>}
+ */
+export const getNavigationMenuItems = () => {
+    return request('GET', getFullUrl("catalog", "/v3/navigation-menu-items")).then(d => d?.data);
+}
+
+/**
+ * @typedef {Object} CatalogSubCategory
+ * @property {string} subCategory
+ * @property {number} subCategoryId
+ * @property {string|null} name
+ * @property {number[]} assetTypeIds
+ */
+
+/**
+ * @typedef {Object} CatalogCategory
+ * @property {string} category
+ * @property {number} categoryId
+ * @property {string} name
+ * @property {number} orderIndex
+ * @property {CatalogSubCategory[]} subCategories
+ * @property {number[]} assetTypeIds
+ */
+
+/**
+ * @typedef {Object} GenreClass
+ * @property {number} genreId
+ * @property {string|undefined|null} name
+ * @property {string} genre
+ */
+
+/**
+ * @typedef {Object} CatalogNavigationClass
+ * @property {CatalogCategory[]} categories
+ * @property {GenreClass[]} genres
+ */
