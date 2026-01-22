@@ -32,7 +32,7 @@ const CatalogPageStore = createContainer(() => {
     // 0 == any, 1 == price range, 2 == free
     const [priceOption, setPriceOption] = useState(0);
     const [priceRange, setPriceRange] = useState([0, 0]);
-    const [selectedCurrency, setSelectedCurrency] = useState(0);
+    const [selectedCurrency, setSelectedCurrency] = useState(3);
     const [includeOffSale, setIncludeOffSale] = useState(false);
     const [creatorOption, setCreatorOption] = useState(1);
     const [creator, setCreator] = useState(""); // search user first, then group (thats how this works). if its null that means any
@@ -107,7 +107,7 @@ const CatalogPageStore = createContainer(() => {
             sort: options.sortBy,
             creatorName: !IsNullOrEmpty(options.creator) ? options.creator : null,
             priceOption: options.priceOption,
-            priceRange: options.priceOption === 1 ? options.priceRange : null,
+            priceRange: options.priceRange,
             currency: options.selectedCurrency,
         });
         setResults([]);

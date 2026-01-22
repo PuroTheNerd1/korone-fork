@@ -17,7 +17,14 @@ namespace Roblox.Models.Economy
     public enum CurrencyType
     {
         Robux = 1,
-        Tickets = 2
+        Tickets = 2,
+    }
+    public enum CurrencyType2
+    {
+        Robux = 1,
+        Tickets = 2,
+        Any = 3, // added because idk if adding another currency type
+        // would break something
     }
     public enum ConversionType
     {

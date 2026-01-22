@@ -57,7 +57,7 @@ const useStyles = createUseStyles({
         aspectRatio: '1 / 1',
         padding: 3,
         display: 'flex',
-        borderColor: p => p.theme === themeType.dark ? 'var(--text-color-secondary)' : 'transparent!important',
+        borderColor: p => p.theme !== themeType.dark ? 'var(--text-color-secondary)' : 'transparent!important',
         '& span': {
             backgroundSize: '48px auto',
             height: 24,
@@ -74,6 +74,12 @@ const useStyles = createUseStyles({
     },
     pages: {
         wordSpacing: '0.25em',
+    },
+    backIcon: {
+        backgroundPosition:'0 -360px!important',
+    },
+    forwardIcon: {
+        backgroundPosition:'0 -336px!important',
     },
 });
 
@@ -156,7 +162,7 @@ function CatalogResults() {
                     deb.current = false
                 }}
             >
-                <span className={s.icon} style={{backgroundPosition:'0 -360px!important'}} />
+                <span className={s.icon + ' ' + s.backIcon} />
             </ActionButton>
             <span className={s.pages}>
                 {currentPage} / {totalPages}
@@ -174,7 +180,7 @@ function CatalogResults() {
                     deb.current = false
                 }}
             >
-                <span className={s.icon} style={{backgroundPosition:'0 -336px!important'}} />
+                <span className={s.icon + ' ' + s.forwardIcon} />
             </ActionButton>
         </div>
     </div>

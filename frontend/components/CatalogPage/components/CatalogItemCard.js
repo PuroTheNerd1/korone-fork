@@ -184,7 +184,12 @@ const useStyles = createUseStyles({
     noHeight: {
         height: 'auto!important',
         lineHeight: '1.4em',
-    }
+    },
+    remainingContainer: {
+        color: "var(--bad-color)",
+        fontWeight: 500,
+        fontSize: 12,
+    },
 });
 
 /**
@@ -197,16 +202,18 @@ function CatalogItemCard({ item }) {
     const [isNew, setNew] = useState(false);
     const [goingOffSale, setGoingOffSale] = useState(false);
     const [longName, setLongName] = useState(true);
+    const [limited, setLimited] = useState(true);
 
     useEffect(async () => {
         if (item.createdAt)
             await setNew(IsISOWithinDays(item.createdAt, 3));
         if (item.offsaleDeadline)
             await setGoingOffSale(new Date() < new Date(item.offsaleDeadline))
+        setLimited((item.itemRestrictions.includes("Limited") || item.itemRestrictions.includes("LimitedUnique")));
     }, [item]);
 
     useEffect(() => {
-        setLongName((IsNullOrEmpty(item.creatorName) || item.creatorName.toLowerCase() === "roblox" || item.creatorName.toLowerCase() === "ugc") && !IsValidNum(item.lowestPrice))
+        setLongName(!IsValidNum(item.unitsAvailableForConsumption) && (IsNullOrEmpty(item.creatorName) || item.creatorName.toLowerCase() === "roblox" || item.creatorName.toLowerCase() === "ugc") && !IsValidNum(item.lowestPrice))
     }, [item.creatorName, item.lowestPrice]);
 
     return <div className={`${s.cardWrapper}`}>
@@ -235,7 +242,7 @@ function CatalogItemCard({ item }) {
                                 null
                         }
                         {
-                            goingOffSale
+                            goingOffSale || IsValidNum(item.unitsAvailableForConsumption) || (item.isForSale && item.itemRestrictions.includes("Limited"))
                                 ?
                                 <div className={s.itemStatusSale}>
                                     <span className={`${s.itemStatusSaleIcon} icon-clock`}/>
@@ -265,7 +272,7 @@ function CatalogItemCard({ item }) {
                             ? `text-overflow-2 ${s.noHeight}` : 'text-overflow'} title={item.name}>{item.name}</span>
                 </a>
                 {
-                    !longName && <div className={s.specialElementsContainer}>
+                    !longName && <div className={s.specialElementsContainer} style={IsValidNum(item.unitsAvailableForConsumption) ? {alignItems: "center"} : {}}>
                         {
                             !IsNullOrEmpty(item.creatorName) && item.creatorName.toLowerCase() !== "roblox" && item.creatorName.toLowerCase() !== "ugc"
                                 ?
@@ -274,6 +281,10 @@ function CatalogItemCard({ item }) {
                                     <CreatorLink id={item.creatorTargetId} type={item.creatorType}
                                                  name={item.creatorName}/>
                                 </div>
+                                :
+                                IsValidNum(item.unitsAvailableForConsumption)
+                                ?
+                                    <span className={`flex ${s.remainingContainer}`}>{item.unitsAvailableForConsumption} remaining</span>
                                 :
                                 IsValidNum(item.lowestPrice)
                                     ?
@@ -289,7 +300,15 @@ function CatalogItemCard({ item }) {
                 }
                 <div className={`${s.text} flex w-fit-content`} style={{marginBottom: 5,}}>
                     {
-                        item.lowestPrice || item.price
+                        !item.isForSale && !limited
+                        ?
+                        <span className={`${s.currencyText} text-free`}>Offsale</span>
+                        :
+                        !item.isForSale && !item.offsaleDeadline && !IsValidNum(item.unitsAvailableForConsumption) && item.priceStatus && item.priceStatus.toLowerCase().includes("no resellers")
+                        ?
+                        <span className={`${s.currencyText} text-free`}>{item.priceStatus}</span>
+                        :
+                        item.lowestPrice && !limited || item.price
                         ?
                         <>
                             <span className={`${s.currencyIcon} icon-robux-16x16`}/>

@@ -38,7 +38,7 @@ public class CatalogControllerV3 : ControllerBase
         string? _genreFilterCsv = null,
         string? genres = null,
         PriceOption? priceOption = null,
-        CurrencyType? currency = null,
+        CurrencyType2? currency = null,
         long? minPrice = null,
         long? maxPrice = null
         )

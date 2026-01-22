@@ -227,23 +227,23 @@ function CatalogFilters() {
             <div className={s.priceFilters}>
                 <div className={`${s.priceContainer} radio2019`}>
                     <input
-                        id="currency-0"
+                        id="currency-3"
                         type="radio"
                         onClick={async e => {
                             e.preventDefault();
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
-                            store.setSelectedCurrency(0);
+
+                            store.setSelectedCurrency(3);
                             await tick();
-                            store.RefreshCatalogItems(null, true, { selectedCurrency: 0 });
-                            
+                            store.RefreshCatalogItems(null, true, { selectedCurrency: 3 });
+
                             await wait(0.75);
                             locked.current = false;
                         }}
-                        checked={store.selectedCurrency === 0}
+                        checked={store.selectedCurrency === 3}
                     />
-                    <label htmlFor="currency-0">Robux</label>
+                    <label htmlFor="currency-3">Any</label>
                 </div>
                 <div className={`${s.priceContainer} radio2019`}>
                     <input
@@ -263,7 +263,27 @@ function CatalogFilters() {
                         }}
                         checked={store.selectedCurrency === 1}
                     />
-                    <label htmlFor="currency-1">Tickets</label>
+                    <label htmlFor="currency-1">Robux</label>
+                </div>
+                <div className={`${s.priceContainer} radio2019`}>
+                    <input
+                        id="currency-2"
+                        type="radio"
+                        onClick={async e => {
+                            e.preventDefault();
+                            if (locked.current || store.refreshDebounce.current) return;
+                            locked.current = true;
+                            
+                            store.setSelectedCurrency(2);
+                            await tick();
+                            store.RefreshCatalogItems(null, true, { selectedCurrency: 2 });
+                            
+                            await wait(0.75);
+                            locked.current = false;
+                        }}
+                        checked={store.selectedCurrency === 2}
+                    />
+                    <label htmlFor="currency-2">Tickets</label>
                 </div>
             </div>
         </div>

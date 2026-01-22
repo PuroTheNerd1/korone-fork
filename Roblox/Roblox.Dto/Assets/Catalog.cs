@@ -117,7 +117,7 @@ public class CatalogSearchRequest2
     public bool includeNotForSale { get; set; } = false;
     public IEnumerable<Genre>? genres { get; set; }
     public PriceOption? priceOption { get; set; }
-    public CurrencyType? currency { get; set; }
+    public CurrencyType2? currency { get; set; }
     public long? minPrice { get; set; }
     public long? maxPrice { get; set; }
 }

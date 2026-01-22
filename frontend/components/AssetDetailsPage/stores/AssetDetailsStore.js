@@ -8,6 +8,7 @@ import { CurrencyType } from "../../../models/enums";
 import FeedbackStore from "../../../stores/feedback";
 import { addOrRemoveFromCollections } from "../../../services/catalog";
 import { FeedbackType } from "../../../models/feedback";
+import {wait} from "../../../lib/utils";
 
 const assetDetailsStore = createContainer(() => {
     const auth = Authentication.useContainer();
@@ -38,20 +39,23 @@ const assetDetailsStore = createContainer(() => {
     
     useEffect(async () => {
         if (!details) return;
-        
-        userOwnsItem({ userId: auth.userId, assetId: details.id })
-            .then(setOwned)
-            . catch(() => setOwned(false));
-        /** @type number[] */
-        getCollections({ userId: auth.userId })
-            .then(d => setCollectioned(d.map(d => d.Id).includes(details.id)));
-        
-        if (isResellable()) {
-            getResellableCopies({ assetId: details.id, userId: auth.userId })
-                .then(d => setOwnedCopies(d?.data || []));
-        } else {
-            getOwnedCopies({ assetId: details.id, userId: auth.userId })
-                .then(d => setOwnedCopies(d || []));
+        if (auth.isPending) return;
+
+        if (auth.userId) {
+            userOwnsItem({ userId: auth.userId, assetId: details.id })
+                .then(setOwned)
+                . catch(() => setOwned(false));
+            /** @type number[] */
+            getCollections({ userId: auth.userId })
+                .then(d => setCollectioned(d.map(d => d.Id).includes(details.id)));
+
+            if (isResellable()) {
+                getResellableCopies({ assetId: details.id, userId: auth.userId })
+                    .then(d => setOwnedCopies(d?.data || []));
+            } else {
+                getOwnedCopies({ assetId: details.id, userId: auth.userId })
+                    .then(d => setOwnedCopies(d || []));
+            }
         }
         
         if (!isLimited()) return;
@@ -60,7 +64,7 @@ const assetDetailsStore = createContainer(() => {
         if (!isResellable()) return;
         loadResellers();
         loadOwners();
-    }, [details]);
+    }, [details, auth.isPending, auth.userId]);
     
     async function loadResellers() {
         let data = [];

@@ -320,7 +320,7 @@ export const searchCatalog2 = ({
     if (includeNotForSale === true) {
         url += '&includeNotForSale=true';
     }
-    if (priceOption && priceOption !== 0) {
+    if (priceOption) {
         url += '&priceOption=' + priceOption;
     }
     if (priceRange) {

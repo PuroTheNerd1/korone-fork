@@ -1,5 +1,6 @@
 import { createUseStyles } from "react-jss";
 import { getTheme, themeType } from "../../services/theme";
+import getConfig from "next/config";
 
 const footerLinks = {
   '/about-us': 'About Us',
@@ -73,6 +74,7 @@ const useFooterStyles2 = createUseStyles({
 
 const Footer = props => {
   const s = useFooterStyles2({ theme: getTheme() });
+  const { publicRuntimeConfig } = getConfig();
   return <footer className={s.footerContainer}>
     <div className={s.footer}>
       <ul className={s.footerLinks}>
@@ -84,7 +86,7 @@ const Footer = props => {
           })
         }
       </ul>
-      <p className={s.footerNote}>©2025 Korone. Korone is not affliated with Roblox Corporation.</p>
+      <p className={s.footerNote}>©2026 Korone. Korone is not affiliated with Roblox Corporation. v{publicRuntimeConfig.frontendVer}</p>
     </div>
   </footer>
 

@@ -255,7 +255,7 @@ const  AccountInfo = props => {
                             <select className={'form-control ' + s.select} value={getCatalogStyle()}
                                     onChange={ev => {
                                         setCatalogStyle(ev.currentTarget.value);
-                                        window.location.reload();
+                                        window.location.replace(window.location.pathname + '?t=' + new Date().getTime());
                                     }}>
                                 <option value="Modern">Modern (2017+)</option>
                                 <option value="Legacy">Legacy (2012-2017)</option>

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const pkg = require('./package.json');
 const configPath = path.join(__dirname, path.sep + 'config.json');
 if (!fs.existsSync(configPath)) {
   throw new Error('Configuration could not be found at location: ' + configPath);
@@ -9,7 +10,10 @@ const config = JSON.parse(fs.readFileSync(configPath).toString('utf-8'));
 module.exports = {
   reactStrictMode: true,
   serverRuntimeConfig: config.serverRuntimeConfig,
-  publicRuntimeConfig: config.publicRuntimeConfig,
+  publicRuntimeConfig: {
+      ...config.publicRuntimeConfig,
+      frontendVer: pkg.version,
+  },
   async redirects() {
     return [
       {

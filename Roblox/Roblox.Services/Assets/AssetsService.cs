@@ -3813,52 +3813,36 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
         }
 
-        // TODO: should we force is_for_sale to be true?
-        switch (request.currency)
+        if (request.priceOption == PriceOption.Free)
         {
-            case CurrencyType.Robux:
-                builder
-                    .Where("is_for_sale = TRUE")
-                    .Where("price_robux != NULL")
-                    ;
-                break;
-            case CurrencyType.Tickets:
-                if (request.priceOption == PriceOption.Free)
-                {
-                    builder
-                        .Where("is_for_sale = TRUE");
-                }
-                else
-                {
-                    builder
-                        .Where("is_for_sale = TRUE")
-                        .Where("(price_tix != NULL OR price_robux = 0)");
-                }
-                break;
-        }
+            builder
+                //.Where("is_for_sale = TRUE")
+                .Where("price_robux = 0 OR price_tix = 0");
+        } else
+        {
+            if (request.priceOption == PriceOption.Any && request.minPrice == null) request.minPrice = 0;
+            if (request.priceOption == PriceOption.Any && request.maxPrice == null) request.maxPrice = long.MaxValue;
 
-        switch (request.priceOption)
-        {
-            case PriceOption.Free:
-                builder
-                    .Where("is_for_sale = TRUE")
-                    .Where("price_robux = 0 OR price_tix = 0");
-                break;
-            case PriceOption.Range:
-                string priceColumn = request.currency == CurrencyType.Tickets
-                    ? "price_tix"
-                    : "price_robux";
-                string query = request.currency != null
-                    ? $"{priceColumn} >= :minPrice AND {priceColumn} <= :maxPrice"
-                    : "(price_robux >= :minPrice AND price_robux <= :maxPrice) OR (price_tix >= :minPrice AND price_tix <= :maxPrice)";
-                builder
-                    .Where("is_for_sale = TRUE")
-                    .Where(query, new
-                    {
-                        request.minPrice,
-                        request.maxPrice,
-                    });
-                break;
+            // TODO: make it so doing ranged on a limited item uses it's limited price and not its original price
+            string priceColumn = request.currency == CurrencyType2.Tickets
+                ? "price_tix"
+                : "price_robux";
+            string query = $"{priceColumn} >= :minPrice AND {priceColumn} <= :maxPrice AND {priceColumn} != 0";
+
+            if (request.currency == CurrencyType2.Any)
+            {
+                query =
+                    "((price_robux IS NOT NULL AND price_tix IS NULL AND price_robux >= :minPrice AND price_robux <= :maxPrice) " +
+                    "OR (price_tix IS NOT NULL AND price_robux IS NULL AND price_tix >= :minPrice AND price_tix <= :maxPrice))";
+            }
+
+            builder
+                //.Where("is_for_sale = TRUE")
+                .Where(query, new
+                {
+                    request.minPrice,
+                    request.maxPrice,
+                });
         }
 
         // Whether to sort the final results by ID in DESC order, after the function is over
