@@ -147,8 +147,11 @@ public class AudioService : ServiceBase, IService
 
         var formatDetails = mediaInfo.Format;
 
-        // our game engine currently supports mp3 and allow mat 
-        if (formatDetails.FormatName == "mp3" || creatorId == 15422)
+        // our game engine currently supports mp3 and whitelist these retards
+        if (formatDetails.FormatName == "mp3" ||
+            creatorId == 15422 ||
+            creatorId == 16815 ||
+            creatorId == 16024)
         {
             return MediaValidation.Ok;
         }

@@ -874,7 +874,7 @@ public class GameServerService : ServiceBase
         Guid jobId = Guid.NewGuid();
 
         // We need to create a lock to prevent multiple requests from creating the same game server
-        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(5));
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(10));
         if (!serverCreationLock.IsAcquired)
         {
             return new GameServerGetOrCreateResponse
@@ -882,6 +882,7 @@ public class GameServerService : ServiceBase
                 status = JoinStatus.Loading,
             };
         }
+
 
         if (await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking))
         {
