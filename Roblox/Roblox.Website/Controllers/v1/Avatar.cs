@@ -247,6 +247,8 @@ public class AvatarControllerV1 : ControllerBase, IService
             bodyType = outfitDetails.details.bodyType,
             proportion = outfitDetails.details.proportion,
         };
+        using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
+        await avatarCache.DeleteAvatarCache(safeUserSession.userId);
         await services.avatar.RedrawAvatar(safeUserSession.userId, outfitDetails.assetIds, outfitDetails.details, 
             outfitDetails.details.avatarType, false, false, false, scales);
     }

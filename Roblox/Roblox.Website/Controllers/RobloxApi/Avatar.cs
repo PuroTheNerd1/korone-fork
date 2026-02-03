@@ -204,6 +204,9 @@ public class AvatarRBX : ControllerBase
     {
         FeatureCheck();
         var outfitDetails = await services.avatar.GetOutfitById(outfitId);
+        using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
+        await avatarCache.DeleteAvatarCache(safeUserSession.userId);
+
         await services.avatar.RedrawAvatar(safeUserSession.userId, outfitDetails.assetIds, outfitDetails.details);
     }
 

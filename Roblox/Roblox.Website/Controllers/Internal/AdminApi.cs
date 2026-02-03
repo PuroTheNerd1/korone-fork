@@ -1059,6 +1059,8 @@ public class AdminApiController : ControllerBase
     [HttpPost("user/regenerate-avatar"), StaffFilter(Access.RegenerateAvatar)]
     public async Task RegenAvatarRequest([Required, FromBody] UserIdRequest request)
     {
+        using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
+        await avatarCache.DeleteAvatarCache(request.userId);
         await services.avatar.RedrawAvatar(request.userId, default, default, default, true, true);
     }
 
@@ -1067,6 +1069,7 @@ public class AdminApiController : ControllerBase
     {
         if (await IsStaff(request.userId))
             throw new StaffException("Cannot reset avatar for this user");
+
         await services.avatar.RedrawAvatar(request.userId, new List<long>(), new ColorEntry
         {
             headColorId = 194,
@@ -1080,8 +1083,7 @@ public class AdminApiController : ControllerBase
         using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
         avatarCache.UnscheduleRender(request.userId);
 
-        await Services.Cache.distributed.KeyDeleteAsync(avatarCache.GetPendingAssetsKey(request.userId));
-        await Services.Cache.distributed.KeyDeleteAsync(avatarCache.GetPendingColorsKey(request.userId));
+        await avatarCache.DeleteAvatarCache(request.userId);
     }
     [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]
     public async Task<IEnumerable<dynamic>> GetUserBanHistory([Required, FromQuery] long userId)
