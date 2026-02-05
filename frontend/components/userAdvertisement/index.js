@@ -1,5 +1,4 @@
-import { at } from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import request, { getBaseUrl } from "../../lib/request";
 import { adTypes } from "./constants";

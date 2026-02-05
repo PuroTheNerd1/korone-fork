@@ -1,5 +1,5 @@
-import axios from 'axios';
 import config from './config';
+const axios = typeof window !== 'undefined' ? window.axios : require('axios');
 
 let _csrf = '';
 

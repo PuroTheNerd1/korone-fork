@@ -134,8 +134,8 @@ function CatalogInputs() {
         <div className={`flex ${s.sdfaafasfafsaf}`}>
             <Selector
                 onChange={async newValue => {
-                    if (store.refreshDebounce.current || store.category === newValue.value) return false;
-                    store.setCategory(newValue.value);
+                    if (store.refreshDebounce.current || store.options.category === newValue.value) return false;
+                    store.setOptions({...store.options, category: newValue.value});
                     await tick();
                     store.RefreshCatalogItems(null, true, { category: newValue.value });
                 }}

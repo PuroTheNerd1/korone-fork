@@ -24,18 +24,19 @@ const CatalogPageStore = createContainer(() => {
     
     const [categoryNav, setCategoryNav] = useState(/** @type {CatalogCategory[]} */([]));
     const [genreNav, setGenreNav] = useState(/** @type {GenreClass[]} */([]));
-    
-    const [category, setCategory] = useState(CatalogCategory.Featured);
-    const [subCategory, setSubCategory] = useState(CatalogSubCategory.All);
-    const [sortBy, setSortBy] = useState(CatalogSortBy.Relevance);
-    const [genres, setGenres] = useState(new List());
-    // 0 == any, 1 == price range, 2 == free
-    const [priceOption, setPriceOption] = useState(0);
-    const [priceRange, setPriceRange] = useState([0, 0]);
-    const [selectedCurrency, setSelectedCurrency] = useState(3);
-    const [includeOffSale, setIncludeOffSale] = useState(false);
-    const [creatorOption, setCreatorOption] = useState(1);
-    const [creator, setCreator] = useState(""); // search user first, then group (thats how this works). if its null that means any
+
+    const [options, setOptions] = useState({
+        category: CatalogCategory.Featured,
+        subCategory: CatalogSubCategory.All,
+        sortBy: CatalogSortBy.Relevance,
+        genres: new List(),
+        priceOption: 0,// 0 == any, 1 == price range, 2 == free
+        priceRange: [0, 0],
+        selectedCurrency: 3,
+        includeOffSale: false,
+        creatorOption: 1,
+        creator: "",
+    });
 
     const [searchInput, setSearchInput] = useState("");
     
@@ -74,7 +75,7 @@ const CatalogPageStore = createContainer(() => {
         return Math.max(1, Math.floor(nextPageCursor / limit));
     }
 
-    async function RefreshCatalogItems(e, reloadPage = false, arr = {}, creatorOptionReq = creatorOption, cursor = "") {
+    async function RefreshCatalogItems(e, reloadPage = false, arr = {}, creatorOptionReq = options.creatorOption, cursor = "") {
         if (refreshDebounce.current) return false;
         refreshDebounce.current = true;
         setLoading(true);
@@ -83,32 +84,32 @@ const CatalogPageStore = createContainer(() => {
         /**
          * @type {CatalogCurrentOptions}
          */
-        let options = {
-            category: category,
-            subCategory: subCategory,
-            genres: genres,
-            sortBy: sortBy,
-            priceOption: priceOption,
-            priceRange: priceRange,
-            selectedCurrency: selectedCurrency,
-            includeOffSale: includeOffSale,
-            creator: creatorOptionReq === 1 ? null : creatorOptionReq === 2 ? "ROBLOX" : creator,
-            ...arr,
-        };
-        let gen = options.genres.ToArray();
-        const searchResultsFlat = await searchCatalog2({
+        let currentOptions = {
             category: options.category,
             subCategory: options.subCategory,
-            genres: gen.length === 0 || gen.length === 1 && gen[0] === 0 ? null : gen,
-            query: !IsNullOrEmpty(searchInput) ? searchInput : null,
-            includeNotForSale: options.includeOffSale,
-            limit: resultMetadata.limit,
-            cursor: (!IsNullOrEmpty(resultMetadata.cursor) || !IsNullOrEmpty(cursor)) && !reloadPage ? cursor : null,
-            sort: options.sortBy,
-            creatorName: !IsNullOrEmpty(options.creator) ? options.creator : null,
+            genres: options.genres,
+            sortBy: options.sortBy,
             priceOption: options.priceOption,
             priceRange: options.priceRange,
-            currency: options.selectedCurrency,
+            selectedCurrency: options.selectedCurrency,
+            includeOffSale: options.includeOffSale,
+            creator: creatorOptionReq === 1 ? null : creatorOptionReq === 2 ? "ROBLOX" : options.creator,
+            ...arr,
+        };
+        let gen = currentOptions.genres.ToArray();
+        const searchResultsFlat = await searchCatalog2({
+            category: currentOptions.category,
+            subCategory: currentOptions.subCategory,
+            genres: gen.length === 0 || gen.length === 1 && gen[0] === 0 ? null : gen,
+            query: !IsNullOrEmpty(searchInput) ? searchInput : null,
+            includeNotForSale: currentOptions.includeOffSale,
+            limit: resultMetadata.limit,
+            cursor: (!IsNullOrEmpty(resultMetadata.cursor) || !IsNullOrEmpty(cursor)) && !reloadPage ? cursor : null,
+            sort: currentOptions.sortBy,
+            creatorName: !IsNullOrEmpty(currentOptions.creator) ? currentOptions.creator : null,
+            priceOption: currentOptions.priceOption,
+            priceRange: currentOptions.priceRange,
+            currency: currentOptions.selectedCurrency,
         });
         setResults([]);
         if (reloadPage) setTotal(0);
@@ -157,17 +158,17 @@ const CatalogPageStore = createContainer(() => {
     }
     
     function AddGenre(genre) {
-        let clone = genres.Clone();
+        let clone = options.genres.Clone();
         clone.Add(genre);
-        if (clone === genres) return clone;
-        setGenres(clone);
+        if (clone === options.genres) return clone;
+        setOptions({...options, genres: clone});
         return clone;
     }
     function RemoveGenre(genre) {
-        let clone = genres.Clone();
+        let clone = options.genres.Clone();
         clone.Remove(genre);
-        if (clone === genres) return clone;
-        setGenres(clone);
+        if (clone === options.genres) return clone;
+        setOptions({...options, genres: clone});
         return clone;
     }
     
@@ -199,27 +200,7 @@ const CatalogPageStore = createContainer(() => {
 
         isLoading,
 
-        category,
-        setCategory,
-        subCategory,
-        setSubCategory,
-        sortBy,
-        setSortBy,
-        genres,
-        setGenres,
-        includeOffSale,
-        setIncludeOffSale,
-        creator,
-        setCreator,
-        creatorOption,
-        setCreatorOption,
-
-        priceOption,
-        setPriceOption,
-        priceRange,
-        setPriceRange,
-        selectedCurrency,
-        setSelectedCurrency,
+        options, setOptions,
         
         searchInput,
         setSearchInput,

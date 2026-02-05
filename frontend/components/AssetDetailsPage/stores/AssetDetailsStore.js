@@ -1,14 +1,13 @@
 import { createContainer } from "unstated-next";
 import { useEffect, useState } from "react";
 import { getResaleData, getResellableCopies, getResellers } from "../../../services/economy";
-import { multiGetUserHeadshots, multiGetUserHeadshots2, multiGetUserThumbnails } from "../../../services/thumbnails";
+import { multiGetUserHeadshots2 } from "../../../services/thumbnails";
 import { getCollectibleOwners, getCollections, getOwnedCopies, userOwnsItem } from "../../../services/inventory";
 import Authentication from "../../../stores/authentication";
 import { CurrencyType } from "../../../models/enums";
 import FeedbackStore from "../../../stores/feedback";
 import { addOrRemoveFromCollections } from "../../../services/catalog";
 import { FeedbackType } from "../../../models/feedback";
-import {wait} from "../../../lib/utils";
 
 const assetDetailsStore = createContainer(() => {
     const auth = Authentication.useContainer();

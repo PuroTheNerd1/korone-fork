@@ -3,21 +3,18 @@ import { createUseStyles } from "react-jss";
 import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
 import {
-    getAvPageStyle,
-    getCatalogPageStyle, getCatalogStyle,
-    getTheme, getThemeColor, getThemeFont,
-    setAvPageStyle,
-    setCatalogPageStyle, setCatalogStyle,
-    setTheme, setThemeColor, setThemeFont, setThemeForumHeader, setThemeRibbon, themeType
+    getAvPageStyle, getCatalogPageStyle, getCatalogStyle,
+    getTheme, setAvPageStyle, setCatalogPageStyle, setCatalogStyle,
+    setTheme, setThemeColor, setThemeFont, setThemeForumHeader,
+    setThemeRibbon, themeType
 } from "../../../services/theme";
 import AuthenticationStore from "../../../stores/authentication";
 import useCardStyles from "../../userProfile/styles/card";
 import MyAccountStore from "../stores/myAccountStore"
 import useFormStyles from "../styles/forms";
-import GenderSelection from "./genderSelection";
 import Subtitle from "./subtitle";
 import { setAvPageStyleReq } from "../../../services/accountSettings";
-import { ChangeVarsForTheme, ChangeVarsForThemeColor, ChangeVarsForThemeFont } from "../../../pages/_app";
+import { ChangeVarsForThemeColor, ChangeVarsForThemeFont } from "../../../lib/ThemeUtil";
 
 const useEditButtonStyles = createUseStyles({
     editButton: {

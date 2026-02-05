@@ -1,10 +1,7 @@
 import { createUseStyles } from "react-jss";
 import AssetDetailsStore from "../stores/AssetDetailsStore";
 import React, { useEffect, useState } from "react";
-import { formatNum } from "../index";
-import Highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
-import { CurrencySize, CurrencyType } from "../../../models/enums";
+import { CurrencyType } from "../../../models/enums";
 import Currency from "../../Currency";
 
 const useStyles = createUseStyles({

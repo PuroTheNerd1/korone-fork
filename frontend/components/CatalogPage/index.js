@@ -1,11 +1,10 @@
 import {createUseStyles} from "react-jss";
 import Link from "../link";
 import CatalogInputs from "./components/CatalogInputs";
-import CatalogNavigation from "./components/CatalogNavigation";
 import CatalogResults from "./components/CatalogResults";
-import CatalogFilters from "./components/CatalogFilters";
 import CatalogPageStore from "./stores/CatalogPageStore";
 import {getTheme, themeType} from "../../services/theme";
+import dynamic from "next/dynamic";
 
 const useStyles = createUseStyles({
     searchOptionsContainer: {
@@ -66,7 +65,9 @@ const useStyles = createUseStyles({
 function CatalogPage() {
     const s = useStyles({theme: getTheme()});
     const store = CatalogPageStore.useContainer();
-    
+    const CatalogNavigation = dynamic(() => import("./components/CatalogNavigation"), { ssr: false })
+    const CatalogFilters = dynamic(() => import("./components/CatalogFilters"), { ssr: false })
+
     return <div className={`w-100 flex flex-column ${s.catalogPage}`}>
         <div className={`w-100 flex justify-content-between align-items-center ${s.catalogHeader}`}>
             <h1 style={{ fontSize: 36, fontWeight: 800, }}>
