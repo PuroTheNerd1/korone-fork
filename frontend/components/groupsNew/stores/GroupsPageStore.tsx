@@ -1,10 +1,10 @@
 import {createContainer} from "unstated-next";
 import {useState} from "react";
 import {
-    getMembers, getUserGroupsV2,
+    getMembers, getRolesetMembers, getUserGroupsV2,
     getWall,
     GroupPostEntry,
-    GroupRoleEntry,
+    GroupRoleEntry, GroupUserWithRoleIdThumbnail,
     GroupUserWithThumbnail,
     GroupWithShout, UserGroupV2
 } from "../../../services/groups-typed";
@@ -17,8 +17,8 @@ import { getRobuxGroup } from "../../../services/economy";
 
 const GroupsPageStore = createContainer(() => {
     const [group, setGroup] = useState<GroupFull|null>(null);
-    const [posts, setPosts] = useState<GroupPosts|null>(null);
-    const [members, setMembers] = useState<GroupMembers|null>(null);
+    const [posts, setPosts] = useState<GroupPosts>({posts: [], page: 0, nextPage: null, prevPage: null});
+    const [members, setMembers] = useState<GroupMembers>({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
 
     // TODO: should be in the other one, ill setup later
     const [userGroups, setUserGroups] = useState<UserGroupV2|null>(null);
@@ -28,10 +28,17 @@ const GroupsPageStore = createContainer(() => {
 
     const auth = AuthenticationStore.useContainer();
 
-    async function fetchData(group: GroupWithShout) {
+    async function fetchData(group: GroupWithShout, clearData?: boolean) {
         console.log("CHECKING, ", isLoading, auth.isPending);
         if (isLoading || auth.isPending) return;
         await setLoading(true);
+
+        if (clearData) {
+            // reset everything
+            await setGroup(null);
+            await setPosts({posts: [], page: 0, nextPage: null, prevPage: null});
+            await setMembers({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
+        }
 
         let groupIcon: ThumbnailEntry|null = null;
         try {
@@ -54,7 +61,13 @@ const GroupsPageStore = createContainer(() => {
             }
         } catch (e) { console.error(e) }
         try {
-            let req = (await getMembers({ groupId: group.id, sortOrder: 'Desc', limit: 10, cursor: null}));
+            if (!groupRoles || groupRoles.length <= 0 || groupRoles.filter(v=>v.rank!==0).length <= 0) throw new Error("no roles to process group members");
+            let rankId = groupRoles
+                .filter(v => v.rank !== 0)
+                .sort((a, b) => b.rank - a.rank)
+                [0]?.rank;
+            if (rankId === undefined) throw new Error("no default rank found for group members")
+            let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: null}));
             if (req && req.data.length > 0) {
                 console.dir(req);
                 // @ts-ignore
@@ -68,6 +81,7 @@ const GroupsPageStore = createContainer(() => {
                             state: thumb?.state ?? null,
                         }
                     }),
+                    rank: rankId,
                     page: 1,
                     nextPage: req.nextPageCursor,
                     prevPage: req.previousPageCursor,
@@ -132,7 +146,8 @@ export type GroupPosts = {
 }
 
 export type GroupMembers = {
-    members: GroupUserWithThumbnail[];
+    members: GroupUserWithRoleIdThumbnail[];
+    rank: number;
     page: number;
     nextPage: string|null;
     prevPage: string|null;

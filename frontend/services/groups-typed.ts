@@ -33,6 +33,13 @@ export type GroupUserWithThumbnail = GroupUser & {
     state?: ThumbnailState;
 }
 
+export type GroupUserWithRoleId = GroupUser & {roleId: number};
+
+export type GroupUserWithRoleIdThumbnail = GroupUserWithRoleId & {
+    imageUrl?: string;
+    state?: ThumbnailState;
+}
+
 export type ShoutEntry = {
     poster: GroupUser;
     body: string;

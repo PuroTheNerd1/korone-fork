@@ -26,7 +26,7 @@ const GroupPreProcessor = ({group}: {group:GroupWithShout|null}) => {
             router.replace(expectedUrl);
             return;
         }
-        store.fetchData(group);
+        store.fetchData(group, true);
     }, [auth.isPending, group]);
 
     // TODO: if group does not exist, keep us on this page with the sidebar

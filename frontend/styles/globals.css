@@ -226,7 +226,7 @@ a {
     box-shadow: none !important;
 }
 
-.section-content-off {
+.section-content-off, .section-content.disabled {
     background-color: var(--text-color-secondary);
     color: var(--text-color-tertiary);
     padding: 15px;
