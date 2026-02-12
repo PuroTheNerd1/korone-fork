@@ -153,7 +153,7 @@ const AboutTab = ({}: {}) => {
 
     return <div>
         {
-            userPerms && userPerms.permissions.groupPostsPermissions.viewStatus ? <Section header={"Shout"}>
+            userPerms && userPerms.permissions.groupPostsPermissions.viewStatus && group.shout ? <Section header={"Shout"}>
                 <div className={`${s.shoutContainer} section-content noShadow`}>
                     <div className={`${s.shoutInfoContainer} flex`}>
                         <NewLink className={`${s.shoutHeadshotContainer}`} href={'/users/' + group.shout.poster.userId + '/profile'}>

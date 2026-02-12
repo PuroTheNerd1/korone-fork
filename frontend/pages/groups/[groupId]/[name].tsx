@@ -12,6 +12,12 @@ import GroupPageStore from "../../../components/myGroups/stores/groupPageStore";
 import MyGroups from "../../../components/myGroups";
 
 const GamePage = ({ group, groupId }: { group: GroupWithShout|null, groupId: any }) => {
+    if (getGroupPagesStyle() !== 'Modern') return <MyGroupsStore.Provider>
+        <GroupPageStore.Provider>
+            <MyGroups id={groupId}/>
+        </GroupPageStore.Provider>
+    </MyGroupsStore.Provider>;
+
     return (
         <>
             {group !== null && (
@@ -27,17 +33,11 @@ const GamePage = ({ group, groupId }: { group: GroupWithShout|null, groupId: any
                     <meta name="theme-color" content="#E2231A" />
                 </Head>
             )}
-            {
-                getGroupPagesStyle() == 'Modern' ? <Theme2016>
-                    <GroupsPageStore.Provider>
-                        <GroupPreProcessor group={group} />
-                    </GroupsPageStore.Provider>
-                </Theme2016> : <MyGroupsStore.Provider>
-                    <GroupPageStore.Provider>
-                        <MyGroups id={groupId}/>
-                    </GroupPageStore.Provider>
-                </MyGroupsStore.Provider>
-            }
+            <Theme2016>
+                <GroupsPageStore.Provider>
+                    <GroupPreProcessor group={group} />
+                </GroupsPageStore.Provider>
+            </Theme2016>
         </>
     );
 }
