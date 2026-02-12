@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node lib/postbuild.js",
+    "build": "next build && node lib/postbuild.mjs",
     "builda": "ANALYZE=true next build",
     "start": "next start",
     "test": "./node_modules/.bin/jest",
