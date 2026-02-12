@@ -194,7 +194,9 @@ const AboutTab = ({}: {}) => {
                  </>}
         >
             {members.members.length === 0 ? "This role has no members." : <ul>
-                {members.members.map(m => MemberItem({member: m}))}
+                {members.members.map(m => (
+                    <MemberItem key={m.userId} member={m} />
+                ))}
             </ul>}
         </Section>
         {/*<Section header={"Social Links"} contentSectioned={true}>*/}

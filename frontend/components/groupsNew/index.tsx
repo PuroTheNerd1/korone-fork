@@ -240,7 +240,9 @@ const GroupsPage = () => {
                                 }}
                             />
                         </div> : null}
-                        {posts.posts.map(GroupWallPost)}
+                        {posts.posts.map(post => (
+                            <GroupWallPost key={post.id} {...post} />
+                        ))}
                     </div> : <div className={`section-content-off noShadow`}>
                         Nobody has said anything yet...
                     </div>}
