@@ -134,6 +134,34 @@ const useStyles = createUseStyles({
         textRendering: "auto",
         textAlign: 'start',
     },
+    wallPostContainer: {
+        marginBottom: 12,
+    },
+    wallPostBtnContainer: {
+        alignContent: 'end',
+    },
+    wallPostBtn: {
+        padding: '9px 24px',
+        fontSize: 16,
+        marginLeft: 15,
+    },
+    wallPostText: {
+        flexGrow: 1,
+        borderRadius: 3,
+        minHeight: 100,
+        lineHeight: '1.6em',
+        border: '1px solid var(--text-color-secondary)',
+        padding: '5px 12px',
+        fontSize: 16,
+        fontWeight: 400,
+        '-webkit-appearance': 'none',
+        paddingRight: 30,
+        '&:focus': {
+            boxShadow: 'none',
+            borderColor: 'var(--primary-color)',
+            outline: 0,
+        }
+    },
 });
 
 const GroupsPage = () => {
@@ -225,7 +253,7 @@ const GroupsPage = () => {
                 userPerms && userPerms.permissions.groupPostsPermissions.viewWall ? <Section header="Wall">
                     {posts.posts.length > 0 ? <div className={`${s.wallContainer} section-content noShadow`}>
                         {userPerms.permissions.groupPostsPermissions.postToWall ? <div className={s.wallPostContainer}>
-                            <input
+                            <textarea
                                 className={s.wallPostText}
                                 placeholder="Say something..."
                                 maxLength={1000}
@@ -234,6 +262,7 @@ const GroupsPage = () => {
                             <ActionButton
                                 label="Post"
                                 className={s.wallPostBtn}
+                                divClassName={s.wallPostBtnContainer}
                                 buttonStyle={buttonStyles.newContinueButton}
                                 onClick={() => {
                                     console.log("POSTING!!");

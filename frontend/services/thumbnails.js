@@ -1,5 +1,5 @@
 import request, {getBaseUrl, getFullUrl} from "../lib/request"
-import {chunk} from "../lib/utils";
+import {chunk, IsValidNum} from "../lib/utils";
 
 const toCsv = (str) => {
   if (typeof str === 'string') return str;
@@ -87,7 +87,7 @@ export const multiGetUserHeadshots = ({ userIds, size = '420x420', format = 'png
     _multiGetHeadshotsMeta.onFinish = [];
     _multiGetHeadshotsMeta.pending = [];
     _multiGetHeadshotsMeta.timer = 0;
-    request('GET', getFullUrl('thumbnails', `/v1/users/avatar-headshot?userIds=${toCsv(pending)}&size=${size}&format=${format}`)).then(d => d.data.data).then(addBaseUrl).then(finalResults => {
+    request('GET', getFullUrl('thumbnails', `/v1/users/avatar-headshot?userIds=${toCsv(pending.filter(a => IsValidNum(a)))}&size=${size}&format=${format}`)).then(d => d.data.data).then(addBaseUrl).then(finalResults => {
       finalResults = addBaseUrl(finalResults);
       for (const item of finalResults) {
         const imageUrl = item.imageUrl;

@@ -111,11 +111,17 @@ const useStyles = createUseStyles({
         lineHeight: '1.6em',
         resize: 'none',
         borderRadius: 3,
+        border: '1px solid var(--text-color-secondary)',
         padding: '5px 12px',
         fontSize: 16,
         fontWeight: 400,
         '-webkit-appearance': 'none',
         paddingRight: 30,
+        '&:focus': {
+            boxShadow: 'none',
+            borderColor: 'var(--primary-color)',
+            outline: 0,
+        }
     },
     shoutRemainingChar: {
         '& span': {
