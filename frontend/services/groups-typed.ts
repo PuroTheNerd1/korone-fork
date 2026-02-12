@@ -96,8 +96,10 @@ export type GroupPermissionsApiResponse = {
 
 export type GroupPostEntry = {
     id: number;
-    poster: GroupUser;
-    role: GroupRoleEntry;
+    poster: {
+        user: GroupUser;
+        role: GroupRoleEntry;
+    };
     body: string;
     created: Date;
     updated: Date;

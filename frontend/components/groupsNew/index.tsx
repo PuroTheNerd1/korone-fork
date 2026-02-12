@@ -293,23 +293,14 @@ const GroupWallPost = (post: GroupPostEntry) => {
         },
     ]
 
-    console.log("COMIGNIN")
-    console.log("COMIGNIN")
-    console.log("COMIGNIN")
-    console.log("COMIGNIN")
-    console.log(post);
-    console.log("COMIGNIN")
-    console.log("COMIGNIN")
-
-
     return <div className={`${s.postContainer} flex`}>
-        <NewLink className={`${s.postHeadshotContainer}`} href={'/users/' + post?.poster?.userId + '/profile'}>
-            <PlayerHeadshot id={post?.poster?.userId} name={post?.poster?.username}/>
+        <NewLink className={`${s.postHeadshotContainer}`} href={'/users/' + post.poster.user.userId + '/profile'}>
+            <PlayerHeadshot id={post.poster.user.userId} name={post.poster.user.username}/>
         </NewLink>
         <div className={`${s.postInfo} flex flex-column align-items-start`}>
-            <CreatorLink type={2} id={post?.poster.userId} name={post?.poster?.displayName} />
+            <CreatorLink type={2} id={post.poster.user.userId} name={post.poster.user.displayName} />
             <span className={s.postBody}>{post.body}</span>
-            <div>{post.role.name} | {dayjs(post.updated).format('MMM D, YYYY | h:mm A')}</div>
+            <div>{post.poster.role.name} | {dayjs(post.updated).format('MMM D, YYYY | h:mm A')}</div>
         </div>
         <div className={`${s.groupHeaderDropdownContainer} flex align`}>
             <Dropdown2016 options={DropdownOptions} />
