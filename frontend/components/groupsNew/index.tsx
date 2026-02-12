@@ -253,7 +253,7 @@ const GroupsPage = () => {
             {
                 userPerms && userPerms.permissions.groupPostsPermissions.viewWall ? <Section header="Wall">
                     {posts.posts.length > 0 ? <div className={`${s.wallContainer} section-content noShadow`}>
-                        {userPerms.permissions.groupPostsPermissions.postToWall ? <div className={s.wallPostContainer}>
+                        {userPerms.permissions.groupPostsPermissions.postToWall ? <div className={`${s.wallPostContainer} flex`}>
                             <textarea
                                 className={s.wallPostText}
                                 placeholder="Say something..."
@@ -297,18 +297,17 @@ const GroupWallPost = (post: GroupPostEntry) => {
     console.log("COMIGNIN")
     console.log("COMIGNIN")
     console.log("COMIGNIN")
-    console.log(post.poster);
-    console.log("COMIGNIN")
     console.log(post);
+    console.log("COMIGNIN")
     console.log("COMIGNIN")
 
 
     return <div className={`${s.postContainer} flex`}>
-        <NewLink className={`${s.postHeadshotContainer}`} href={'/users/' + post.poster.userId + '/profile'}>
-            <PlayerHeadshot id={post.poster.userId} name={post.poster.username}/>
+        <NewLink className={`${s.postHeadshotContainer}`} href={'/users/' + post?.poster?.userId + '/profile'}>
+            <PlayerHeadshot id={post?.poster?.userId} name={post?.poster?.username}/>
         </NewLink>
         <div className={`${s.postInfo} flex flex-column align-items-start`}>
-            <CreatorLink type={2} id={post.poster.userId} name={post.poster.displayName} />
+            <CreatorLink type={2} id={post?.poster.userId} name={post?.poster?.displayName} />
             <span className={s.postBody}>{post.body}</span>
             <div>{post.role.name} | {dayjs(post.updated).format('MMM D, YYYY | h:mm A')}</div>
         </div>
