@@ -56,6 +56,8 @@ const useStyles = createUseStyles({
     },
     groupStatsContainer: {
         marginTop: 'auto',
+        alignItems: 'center',
+        width: '100%',
     },
     groupStat: {
         padding: '0 12px',
@@ -77,10 +79,12 @@ const useStyles = createUseStyles({
         top: 0,
         right: 6,
     },
+    joinGroupBtnContainer: {
+        marginLeft: 'auto',
+    },
     joinGroupBtn: {
         padding: 9,
         fontWeight: 500,
-        marginBottom: 6,
     },
     tabContainer: {
         marginTop: 15,
@@ -224,18 +228,18 @@ const GroupsPage = () => {
                             <span>Members</span>
                             <h3 title={group.memberCount.toString()}>{abbreviateNumber(group.memberCount)}</h3>
                         </div>
-                        {userPerms && userPerms.role.id !== 1 ? <div className={`${s.groupStat}`}>
+                        {userPerms && userPerms.role.id > 1 ? <div className={`${s.groupStat}`}>
                             <span>Rank</span>
                             <h3 title={userPerms.role.description}>{userPerms.role.name}</h3>
-                        </div> : null}
-                        {!userPerms || userPerms.role.id <= 1 ? <ActionButton
+                        </div> : <ActionButton
                             className={s.joinGroupBtn}
+                            divClassName={s.joinGroupBtnContainer}
                             buttonStyle={buttonStyles.newContinueButton}
                             label='Join Group'
                             onClick={() => {
                                 console.log("joining group!!")
                             }}
-                        /> : null}
+                        />}
                     </div>
                 </div>
                 <div className={`${s.groupHeaderDropdownContainer}`}>

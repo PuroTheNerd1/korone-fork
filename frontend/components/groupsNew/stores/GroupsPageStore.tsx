@@ -19,6 +19,7 @@ const GroupsPageStore = createContainer(() => {
     const [group, setGroup] = useState<GroupFull|null>(null);
     const [posts, setPosts] = useState<GroupPosts>({posts: [], page: 0, nextPage: null, prevPage: null});
     const [members, setMembers] = useState<GroupMembers>({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
+    const [memberCache, setMemberCache] = useState<GroupMembers[]>([]);
 
     // TODO: should be in the other one, ill setup later
     const [userGroups, setUserGroups] = useState<UserGroupV2[]>([]);
@@ -84,7 +85,6 @@ const GroupsPageStore = createContainer(() => {
             if (rankId === undefined) throw new Error("no default rank found for group members")
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: null}));
             if (req && req.data.length > 0) {
-                console.dir(req);
                 // @ts-ignore
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.user.userId)}) ?? [];
                 setMembers({
@@ -129,6 +129,44 @@ const GroupsPageStore = createContainer(() => {
         setLoadingNE(false);
     }
 
+    async function fetchMembers(rank: number, page: number, cursor: string) {
+        try {
+            if (!group.roles || group.roles.length <= 0 || group.roles.filter(v=>v.rank!==0).length <= 0) throw new Error("no roles to process group members");
+            let memberCached = memberCache.find(mc => mc.rank === rank && mc.page === page);
+            if (memberCached) {
+                setMembers(memberCached);
+                return;
+            }
+
+            let rankId = group.roles
+                .filter(v => v.rank !== 0)
+                .sort((a, b) => b.rank - a.rank)
+                [0]?.rank;
+            if (rankId === undefined) throw new Error("no default rank found for group members")
+            let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: cursor}));
+            if (req && req.data.length > 0) {
+                // @ts-ignore
+                let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.user.userId)}) ?? [];
+                let members = {
+                    members: req.data.map(v => {
+                        let thumb = memberThumbs.find(d => d.targetId === v.user.userId);
+                        return {
+                            ...v,
+                            imageUrl: thumb?.imageUrl ?? null,
+                            state: thumb?.state ?? null,
+                        }
+                    }),
+                    rank: rankId,
+                    page: page,
+                    nextPage: req.nextPageCursor,
+                    prevPage: req.previousPageCursor,
+                };
+                setMembers(members);
+                setMemberCache([...memberCache, members]);
+            }
+        } catch (e) { console.error(e) }
+    }
+
     return {
         group, setGroup,
         isLoadingNE, setLoadingNE,
@@ -142,6 +180,7 @@ const GroupsPageStore = createContainer(() => {
         isLoading, setLoading,
 
         fetchData,
+        fetchMembers,
     }
 });
 

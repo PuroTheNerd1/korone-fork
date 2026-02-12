@@ -10,6 +10,9 @@ import dayjs from "../../../lib/dayjs";
 import PlayerHeadshot from "../../playerHeadshot";
 import useButtonStyles from "../../../styles/buttonStyles";
 import ActionButton from "../../actionButton";
+import {getTheme, themeType } from "../../../services/theme";
+import {wait } from "../../../lib/utils";
+import Selector from "../../selector";
 
 const useStyles = createUseStyles({
     description: {
@@ -139,52 +142,108 @@ const useStyles = createUseStyles({
         margin: '0 0 0 12px',
         padding: 9,
     },
+
+    pageControls: {
+        display: 'flex',
+        width: '100%',
+        justifyContent: 'center',
+        gap: 10,
+        alignItems: 'center',
+        marginTop: 25
+    },
+    paginationBtn: {
+        aspectRatio: '1 / 1',
+        padding: 3,
+        display: 'flex',
+        borderColor: p => p.theme !== themeType.dark ? 'var(--text-color-secondary)' : 'transparent!important',
+        '& span': {
+            backgroundSize: '48px auto',
+            height: 24,
+            width: 24,
+            backgroundImage: "url(/img/generic_03112016.svg)",
+            backgroundRepeat: "no-repeat",
+            display: 'inline-block',
+            verticalAlign: 'middle',
+            filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
+        },
+        "&.disabled": {
+            filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
+        },
+    },
+    pages: {
+        wordSpacing: '0.25em',
+    },
+    backIcon: {
+        backgroundPosition:'0 -360px!important',
+    },
+    forwardIcon: {
+        backgroundPosition:'0 -336px!important',
+    },
+
+    roleSelector: {},
+    selectorWrapper: {
+        width: 230,
+    },
+    selector: {
+        padding: "5px 12px",
+        lineHeight: "18px",
+    },
+    selectorOption: {
+        // padding: "5px 12px",
+        // lineHeight: "18px",
+    },
 });
 
 // have: shout, description, games (should have nothing), members, social links
 const AboutTab = ({}: {}) => {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     const buttonStyles = useButtonStyles();
     const store = GroupsPageStore.useContainer();
-    const {group,userPerms, members} = GroupsPageStore.useContainer();
+    const {group, userPerms, members} = GroupsPageStore.useContainer();
+    const deb = useRef(false);
 
     const textAreaRef = useRef(null);
     const [textAreaRemainingChar, setTextAreaRemainingChar] = useState(0);
 
     return <div>
         {
-            userPerms && userPerms.permissions.groupPostsPermissions.viewStatus && group.shout ? <Section header={"Shout"}>
-                <div className={`${s.shoutContainer} section-content noShadow`}>
-                    <div className={`${s.shoutInfoContainer} flex`}>
-                        <NewLink className={`${s.shoutHeadshotContainer}`} href={'/users/' + group.shout.poster.userId + '/profile'}>
-                            <PlayerHeadshot id={group.shout.poster.userId} name={group.shout.poster.username}/>
-                        </NewLink>
-                        <div className={`${s.shoutInfo} flex flex-column align-items-start`}>
-                            <CreatorLink type={'User'} id={group.shout.poster.userId} name={group.shout.poster.displayName} />
-                            <span className={s.shoutBody}>{group.shout.body}</span>
-                            <div>{dayjs(group.shout.updated).format('MMM D, YYYY | h:mm A')}</div>
-                        </div>
-                    </div>
-                    {userPerms && userPerms.permissions.groupPostsPermissions.postToStatus ? <div className={`${s.shoutPostContainer} flex align-items-start`}>
-                        <div className={`${s.shoutInputContainer} flex flex-column align-items-end`}>
-                            <input onChange={() => {
-                                setTextAreaRemainingChar(textAreaRef?.current?.value?.length)
-                            }} className={s.shoutInput} placeholder="Enter your shout!" maxLength={255} ref={textAreaRef} />
-                            <div className={`${s.shoutRemainingChar}`}>
-                                <span>{textAreaRemainingChar}/255</span>
+            userPerms && userPerms.permissions.groupPostsPermissions.viewStatus && group.shout ?
+                <Section header={"Shout"}>
+                    <div className={`${s.shoutContainer} section-content noShadow`}>
+                        <div className={`${s.shoutInfoContainer} flex`}>
+                            <NewLink className={`${s.shoutHeadshotContainer}`}
+                                     href={'/users/' + group.shout.poster.userId + '/profile'}>
+                                <PlayerHeadshot id={group.shout.poster.userId} name={group.shout.poster.username}/>
+                            </NewLink>
+                            <div className={`${s.shoutInfo} flex flex-column align-items-start`}>
+                                <CreatorLink type={'User'} id={group.shout.poster.userId}
+                                             name={group.shout.poster.displayName}/>
+                                <span className={s.shoutBody}>{group.shout.body}</span>
+                                <div>{dayjs(group.shout.updated).format('MMM D, YYYY | h:mm A')}</div>
                             </div>
                         </div>
-                        <ActionButton
-                            label='Group Shout'
-                            buttonStyle={buttonStyles.newContinueButton}
-                            className={s.shoutSubmitBtn}
-                            onClick={() => {
-                                console.log("shouting!")
-                            }}
-                        />
-                    </div> : null}
-                </div>
-            </Section> : null
+                        {userPerms && userPerms.permissions.groupPostsPermissions.postToStatus ?
+                            <div className={`${s.shoutPostContainer} flex align-items-start`}>
+                                <div className={`${s.shoutInputContainer} flex flex-column align-items-end`}>
+                                    <input onChange={() => {
+                                        setTextAreaRemainingChar(textAreaRef?.current?.value?.length)
+                                    }} className={s.shoutInput} placeholder="Enter your shout!" maxLength={255}
+                                           ref={textAreaRef}/>
+                                    <div className={`${s.shoutRemainingChar}`}>
+                                        <span>{textAreaRemainingChar}/255</span>
+                                    </div>
+                                </div>
+                                <ActionButton
+                                    label='Group Shout'
+                                    buttonStyle={buttonStyles.newContinueButton}
+                                    className={s.shoutSubmitBtn}
+                                    onClick={() => {
+                                        console.log("shouting!")
+                                    }}
+                                />
+                            </div> : null}
+                    </div>
+                </Section> : null
         }
         <Section header={"Description"} contentSectioned={true}>
             <pre className={`${s.description} w-100 m-0 overflow-hidden `}>{store.group.description}</pre>
@@ -195,14 +254,68 @@ const AboutTab = ({}: {}) => {
         <Section header={"Members"} contentSectioned={true} className={members.members.length === 0 ? "disabled" : ""}
                  headerChildren={<>
                      {/*take from catlaog page*/}
-                     <div className={`${s.pageControls}`}></div>
+                     <div className={`${s.pageControls}`}>
+                         <ActionButton
+                             className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.prevPage == null) ? 'disabled' : ''}`}
+                             buttonStyle={(members?.members?.length === 0 || members?.prevPage == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
+                             onClick={async e => {
+                                 e.preventDefault();
+                                 if (deb.current || store.isLoading || members?.prevPage == null) {
+                                     return
+                                 }
+                                 deb.current = true
+                                 await store.fetchMembers(members.rank, members.page-1, members.nextPage);
+                                 deb.current = false
+                             }}
+                         >
+                             <span className={s.backIcon}/>
+                         </ActionButton>
+                         <span className={s.pages}>
+                            Page {members?.page || "N/A"}
+                         </span>
+                         <ActionButton
+                             className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.nextPage == null) ? 'disabled' : ''}`}
+                             buttonStyle={(members?.members?.length === 0 || members?.nextPage == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
+                             onClick={async e => {
+                                 e.preventDefault();
+                                 if (deb.current || store.isLoading || members?.nextPage == null) {
+                                     return
+                                 }
+                                 deb.current = true
+                                 await store.fetchMembers(members.rank, members.page+1, members.nextPage);
+                                 deb.current = false
+                             }}
+                         >
+                             <span className={s.forwardIcon}/>
+                         </ActionButton>
+                     </div>
                      {/*just use selector class*/}
-                     <div className={`${s.roleSelector}`}></div>
+                     <div className={`${s.roleSelector}`}>
+                         <Selector
+                             options={group.roles.map(a => ({ name: a.name, value: a.id }))}
+                             onChange={async (rank: {name: string; value: number;}) => {
+                                 if (deb.current || store.isLoading || members.rank === rank.value) return false;
+                                 try {
+                                     deb.current = true;
+                                     await store.fetchMembers(rank.value, 1, null);
+                                     await wait(0.75);
+                                     deb.current = false;
+                                     return true;
+                                 } catch {
+                                     deb.current = false;
+                                     return false;
+                                 }
+                             }}
+                             wrapperClass={s.selectorWrapper}
+                             selectorOptionClass={s.selectorOption}
+                             className={s.selector}
+                         />
+                     </div>
                  </>}
         >
             {members.members.length === 0 ? "This role has no members." : <ul>
                 {members.members.map(m => (
-                    <MemberItem key={m.userId} member={m} />
+                    <MemberItem key={m.userId} member={m}/>
                 ))}
             </ul>}
         </Section>
@@ -224,7 +337,8 @@ const MemberItem = ({member}: { member: GroupUserWithRoleIdThumbnail }) => {
                     src={ThumbnailFromState(member.imageUrl, member.state)}
                 />
             </span>
-            <span className={`${s.userName} link2019 overflow-hidden font-size-12 text-center text-nowrap text-decoration-none`}>{member.displayName}</span>
+            <span
+                className={`${s.userName} link2019 overflow-hidden font-size-12 text-center text-nowrap text-decoration-none`}>{member.displayName}</span>
         </NewLink>
     </li>
 }
