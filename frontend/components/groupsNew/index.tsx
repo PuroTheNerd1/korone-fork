@@ -98,11 +98,13 @@ const useStyles = createUseStyles({
         marginBottom: 0,
     },
     postHeadshotContainer: {
+        display: 'inline-block',
         width: 48,
         height: 48,
         borderRadius: '50%',
         padding: 0,
         boxShadow: 'rgba(25, 25, 25, 0.3) 0px 1px 4px 0px',
+        transition: 'box-shadow 200ms ease-in-out',
         overflow: 'hidden',
         backgroundColor: 'var(--text-color-secondary)',
         '&:hover': {
@@ -168,7 +170,6 @@ const GroupsPage = () => {
     const s = useStyles();
     const buttonStyles = useButtonStyles();
     const store = GroupsPageStore.useContainer();
-    const auth = AuthenticationStore.useContainer();
     const { group,posts,members,userGroups,userPerms } = GroupsPageStore.useContainer();
 
     const textAreaRef = useRef(null);
@@ -247,7 +248,7 @@ const GroupsPage = () => {
                     {name: "Store", element: <StoreTab />},
                     {name: "Affiliates", element: <AffiliatesTab />},
                 ]}
-                parentClass={`${s.tabContainer}`}
+                elementClass={`${s.tabContainer}`}
             />
             {
                 userPerms && userPerms.permissions.groupPostsPermissions.viewWall ? <Section header="Wall">
@@ -292,14 +293,24 @@ const GroupWallPost = (post: GroupPostEntry) => {
         },
     ]
 
-    return <div className={`${s.postContainer}`}>
+    console.log("COMIGNIN")
+    console.log("COMIGNIN")
+    console.log("COMIGNIN")
+    console.log("COMIGNIN")
+    console.log(post.poster);
+    console.log("COMIGNIN")
+    console.log(post);
+    console.log("COMIGNIN")
+
+
+    return <div className={`${s.postContainer} flex`}>
         <NewLink className={`${s.postHeadshotContainer}`} href={'/users/' + post.poster.userId + '/profile'}>
             <PlayerHeadshot id={post.poster.userId} name={post.poster.username}/>
         </NewLink>
         <div className={`${s.postInfo} flex flex-column align-items-start`}>
-            <CreatorLink type={'User'} id={post.poster.userId} name={post.poster.displayName} />
+            <CreatorLink type={2} id={post.poster.userId} name={post.poster.displayName} />
             <span className={s.postBody}>{post.body}</span>
-            <div>{dayjs(post.updated).format('MMM D, YYYY | h:mm A')}</div>
+            <div>{post.role.name} | {dayjs(post.updated).format('MMM D, YYYY | h:mm A')}</div>
         </div>
         <div className={`${s.groupHeaderDropdownContainer} flex align`}>
             <Dropdown2016 options={DropdownOptions} />

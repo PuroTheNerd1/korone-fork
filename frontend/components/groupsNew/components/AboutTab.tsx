@@ -66,6 +66,7 @@ const useStyles = createUseStyles({
         borderRadius: '50%',
         padding: 0,
         boxShadow: 'rgba(25, 25, 25, 0.3) 0px 1px 4px 0px',
+        transition: 'box-shadow 200ms ease-in-out',
         overflow: 'hidden',
         backgroundColor: 'var(--text-color-secondary)',
         '&:hover': {
