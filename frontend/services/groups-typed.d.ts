@@ -1,6 +1,6 @@
 import * as groups from "./groups";
 import {ThumbnailState} from "./thumbnailsT";
-import {GroupBasic, GroupRoleEntry, GroupUserWithRoleId, UserGroupV2} from "./groups-typed";
+import {GroupBasic, GroupPermissionsEntry, GroupRoleEntry, GroupUserWithRoleId, UserGroupV2} from "./groups-typed";
 
 export declare const getInfo: ({groupId: number}) => Promise<GroupWithShout>;
 export declare const getRoles: ({groupId: number}) => Promise<{groupId: number; roles: GroupRoleEntry[];}>;
@@ -11,10 +11,10 @@ export declare const getMembers = groups.getMembers as (
 export declare const getRolesetMembers = groups.getMembers as (
     args: { groupId: number; roleSetId: number; cursor?: string; limit?: number; sortOrder?: string }
 ) => Promise<PekoraCollectionPaginated<GroupUserWithRoleId>>
+export function getPermissionsForRoleset(args: { groupId: number; rolesetId: number }): Promise<GroupPermissionsEntry>;
 
 export function getUserGroupsV2(args: { userId: number }): Promise<UserGroupV2>;
 export function getUserGroups(args: { userId: number }): Promise<any>;
-export function getPermissionsForRoleset(args: { groupId: number; rolesetId: number }): Promise<any>;
 export function joinGroup(args: { groupId: number }): Promise<any>;
 export function leaveGroup(args: { groupId: number; userId: number }): Promise<any>;
 export function setStatus(args: { groupId: number; message: string }): Promise<any>;

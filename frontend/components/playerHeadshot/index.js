@@ -34,15 +34,11 @@ const PlayerHeadshot = (props) => {
     }).then((results) => {
         const u = results.find(v => String(v.targetId) === String(props.id));
         if (!u) {
-        setImage("/img/empty.png");
+        setImage("/img/error.png");
         return;
         }
 
-        if (u.state === "Completed" && u.imageUrl) {
-        setImage(u.imageUrl);
-        } else {
-        setImage("/img/empty.png");
-        }
+        setImage(ThumbnailFromState(u.imageUrl, u.state));
     });
     }, [props.id, size]);
 
@@ -55,7 +51,7 @@ const PlayerHeadshot = (props) => {
             src: image,
         })
         setRetryCount(retryCount + 1);
-        setImage('/img/empty.png');
+        setImage('/img/error.png');
     }}></img>
 }
 

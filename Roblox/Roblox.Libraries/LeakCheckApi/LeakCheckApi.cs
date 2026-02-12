@@ -92,7 +92,7 @@ public class LeakCheckApi
         {
             //var result = await LookupAsync(password, "password");
             //if (result.Found >= 1)
-                return true;
+                return false;
         }
         catch (Exception) {}
 

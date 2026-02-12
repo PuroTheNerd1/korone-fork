@@ -3,8 +3,8 @@ import { createUseStyles } from "react-jss";
 import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
 import {
-    getAvPageStyle, getCatalogPageStyle, getCatalogStyle,
-    getTheme, setAvPageStyle, setCatalogPageStyle, setCatalogStyle,
+    getAvPageStyle, getCatalogPageStyle, getCatalogStyle, getGroupPagesStyle,
+    getTheme, setAvPageStyle, setCatalogPageStyle, setCatalogStyle, setGroupPagesStyle,
     setTheme, setThemeColor, setThemeFont, setThemeForumHeader,
     setThemeRibbon, themeType
 } from "../../../services/theme";
@@ -239,6 +239,23 @@ const  AccountInfo = props => {
                             }}>
                                 <option value='true'>Yes</option>
                                 <option value='false'>No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className='flex mt-1'>
+                        <div className='col pe-0'>
+                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Group Page Style'
+                                   readOnly={true}
+                                   type='text'></input>
+                        </div>
+                        <div className='col ps-0 pe-0'>
+                            <select className={'form-control ' + s.select} value={getGroupPagesStyle()}
+                                    onChange={ev => {
+                                        setGroupPagesStyle(ev.currentTarget.value);
+                                        window.location.replace(window.location.pathname + '?t=' + new Date().getTime());
+                                    }}>
+                                <option value="Modern">Modern (2018-2024)</option>
+                                <option value="Legacy">Legacy (2016-2018)</option>
                             </select>
                         </div>
                     </div>

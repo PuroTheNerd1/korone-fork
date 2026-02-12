@@ -1,11 +1,11 @@
 import {createContainer} from "unstated-next";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {
-    getMembers, getRolesetMembers, getUserGroupsV2,
-    getWall,
+    getPermissionsForRoleset,
+    getRolesetMembers, getUserGroupsV2,
+    getWall, GroupPermissionsEntry,
     GroupPostEntry,
     GroupRoleEntry, GroupUserWithRoleIdThumbnail,
-    GroupUserWithThumbnail,
     GroupWithShout, UserGroupV2
 } from "../../../services/groups-typed";
 import AuthenticationStore from "../../../stores/authentication";
@@ -21,12 +21,27 @@ const GroupsPageStore = createContainer(() => {
     const [members, setMembers] = useState<GroupMembers>({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
 
     // TODO: should be in the other one, ill setup later
-    const [userGroups, setUserGroups] = useState<UserGroupV2|null>(null);
+    const [userGroups, setUserGroups] = useState<UserGroupV2[]>([]);
+    const [userPerms, setUserPerms] = useState<GroupPermissionsEntry|null>(null);
 
     const [isLoading, setLoading] = useState(false);
     const [isLoadingNE, setLoadingNE] = useState(false); // ne = non-essential, like role perms and user stuff
 
     const auth = AuthenticationStore.useContainer();
+
+    useEffect(() => {
+        setUserPerms(null);
+        let roleSetId = 1; // guest by default
+        let userGroup = userGroups.find(g => g.group.id === group?.id);
+        if (userGroup) roleSetId = userGroup.role.id;
+
+        (async () => {
+            try {
+                let req: GroupPermissionsEntry = await getPermissionsForRoleset({ groupId: userGroup.group.id, rolesetId: roleSetId });
+                if (req) setUserPerms(req);
+            } catch (e) { console.error(e) }
+        })()
+    }, [userGroups]);
 
     async function fetchData(group: GroupWithShout, clearData?: boolean) {
         console.log("CHECKING, ", isLoading, auth.isPending);
@@ -106,7 +121,7 @@ const GroupsPageStore = createContainer(() => {
 
         if (auth.isAuthenticated && auth.userId) {
             try {
-                setUserGroups(await getUserGroupsV2({userId: auth.userId}));
+                setUserGroups(await getUserGroupsV2({userId: auth.userId}) || []);
             } catch (e) { console.error(e) }
         }
 
@@ -121,6 +136,8 @@ const GroupsPageStore = createContainer(() => {
         members, setMembers,
 
         userGroups, setUserGroups,
+
+        userPerms, setUserPerms,
 
         isLoading, setLoading,
 

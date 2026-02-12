@@ -14,6 +14,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 module.exports = withBundleAnalyzer({
     reactStrictMode: true,
+    swcMinify: false,
     serverRuntimeConfig: config.serverRuntimeConfig,
     publicRuntimeConfig: {
         ...config.publicRuntimeConfig,
@@ -33,11 +34,18 @@ module.exports = withBundleAnalyzer({
               permanent: false,
             },
              */
-            // {
-            //   source: '/groups/:id/:name',
-            //   destination: '/My/Groups.aspx?gid=:id',
-            //   permanent: false,
-            // },
+            {
+                source: '/My/Groups.aspx',
+                has: [
+                    {
+                        type: 'query',
+                        key: 'gid',
+                        value: '(?<id>.*)',
+                    },
+                ],
+                destination: '/groups/:id/--',
+                permanent: true,
+            },
         ]
     },
     webpack(config, { isServer }) {

@@ -5,8 +5,13 @@ import {GetServerSidePropsContext} from "next";
 import {getInfo} from "../../../services/groups";
 import GroupPreProcessor from "../../../components/groupsNew/GroupPreProcessor";
 import {GroupWithShout} from "../../../services/groups-typed";
+import React from "react";
+import MyGroupsStore from "../../../components/myGroups/stores/myGroupsStore";
+import { getGroupPagesStyle } from "../../../services/theme";
+import GroupPageStore from "../../../components/myGroups/stores/groupPageStore";
+import MyGroups from "../../../components/myGroups";
 
-const GamePage = ({ group }: { group: GroupWithShout|null }) => {
+const GamePage = ({ group, groupId }: { group: GroupWithShout|null, groupId: any }) => {
     return (
         <>
             {group !== null && (
@@ -22,11 +27,17 @@ const GamePage = ({ group }: { group: GroupWithShout|null }) => {
                     <meta name="theme-color" content="#E2231A" />
                 </Head>
             )}
-            <Theme2016>
-                <GroupsPageStore.Provider>
-                    <GroupPreProcessor group={group} />
-                </GroupsPageStore.Provider>
-            </Theme2016>
+            {
+                getGroupPagesStyle() == 'Modern' ? <Theme2016>
+                    <GroupsPageStore.Provider>
+                        <GroupPreProcessor group={group} />
+                    </GroupsPageStore.Provider>
+                </Theme2016> : <MyGroupsStore.Provider>
+                    <GroupPageStore.Provider>
+                        <MyGroups id={groupId}/>
+                    </GroupPageStore.Provider>
+                </MyGroupsStore.Provider>
+            }
         </>
     );
 }
@@ -37,6 +48,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         return {
             props: {
                 group: null,
+                groupId: groupId,
             }
         };
     }
@@ -47,6 +59,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         return {
             props: {
                 group: info,
+                groupId: groupId,
             }
         }
     } catch (error) {
@@ -54,6 +67,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         return {
             props: {
                 group: null,
+                groupId: groupId,
             }
         };
     }
