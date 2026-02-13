@@ -66,7 +66,7 @@ const GroupsPageStore = createContainer(() => {
         try {
             let roles = await getRoles({ groupId: group.id });
             console.log(roles);
-            groupRoles = roles?.roles; // might be null
+            groupRoles = roles; // might be null
         } catch (e) { console.error(e) }
         try {
             let req = (await getWall({ groupId: group.id, sort: 'Desc', limit: 10, cursor: null}));
