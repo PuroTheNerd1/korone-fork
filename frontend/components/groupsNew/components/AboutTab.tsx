@@ -13,6 +13,7 @@ import ActionButton from "../../actionButton";
 import {getTheme, themeType } from "../../../services/theme";
 import {wait } from "../../../lib/utils";
 import Selector from "../../selector";
+import { abbreviateNumber } from "../../../lib/numberUtils";
 
 const useStyles = createUseStyles({
     description: {
@@ -188,9 +189,8 @@ const useStyles = createUseStyles({
         padding: "5px 12px",
         lineHeight: "18px",
     },
-    selectorOption: {
-        // padding: "5px 12px",
-        // lineHeight: "18px",
+    roleCount: {
+        marginLeft: 'auto',
     },
 });
 
@@ -292,7 +292,13 @@ const AboutTab = ({}: {}) => {
                      {/*just use selector class*/}
                      <div className={`${s.roleSelector}`}>
                          <Selector
-                             options={group.roles.map(a => ({ name: a.name, value: a.id }))}
+                             options={group.roles.map(a => ({
+                                 name: <>
+                                     a.name
+                                     <span className={s.roleCount}>{abbreviateNumber(a.memberCount)}</span>
+                                 </>,
+                                 value: a.id
+                             }))}
                              onChange={async (rank: {name: string; value: number;}) => {
                                  if (deb.current || store.isLoading || members.rank === rank.value) return false;
                                  try {

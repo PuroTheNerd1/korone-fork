@@ -40,6 +40,10 @@ const useSelectorStyles = createUseStyles({
         width: '100%',
         background: 'var(--white-color)',
         zIndex: 3,
+        backgroundClip: 'padding-box',
+        overflowX: 'hidden',
+        borderRadius: 4,
+        boxShadow: '0 -5px 20px rgba(25,25,25,.15)',
     },
     selectOption: {
         padding: '10px 15px',
@@ -48,14 +52,15 @@ const useSelectorStyles = createUseStyles({
         userSelect: 'none',
         fontSize: '16px',
         '&:hover': {
-            boxShadow: '4px 0 0 0 var(--primary-color) inset',
+            boxShadow: 'inset 4px 0 0 0 var(--primary-color)',
+            backgroundColor: 'var(--white-color-hover)',
         },
     },
 });
 
 /**
  *
- * @param {{options: {name: string; value: any}[]; onChange: (v: any) => void; value?: any; shadow?: boolean; wrapperClass?: string; selectorOptionClass?: string; className?: string;}} props
+ * @param {{options: {name: string|any; value: any;}[]; onChange: (v: any) => void; value?: any; shadow?: boolean; wrapperClass?: string; selectorOptionClass?: string; className?: string;}} props
  * @returns
  */
 const Selector = props => {
