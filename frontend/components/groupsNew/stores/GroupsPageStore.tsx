@@ -86,7 +86,7 @@ const GroupsPageStore = createContainer(() => {
                 [0]?.id;
             if (rankId === undefined) throw new Error("no default rank found for group members")
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: null}));
-            if (req && req.data.length > 0) {
+            if (req && req.data) {
                 // @ts-ignore
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
                 setMembers({
@@ -141,7 +141,7 @@ const GroupsPageStore = createContainer(() => {
             }
 
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rank, sortOrder: 'Desc', limit: 9, cursor: cursor}));
-            if (req && req.data.length > 0) {
+            if (req && req.data) {
                 // @ts-ignore
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
                 let members = {
@@ -160,6 +160,8 @@ const GroupsPageStore = createContainer(() => {
                 };
                 setMembers(members);
                 setMemberCache([...memberCache, members]);
+            } else {
+                console.error("failed to fetch members for rank " + rank);
             }
         } catch (e) { console.error(e) }
     }
