@@ -80,10 +80,7 @@ const GroupsPageStore = createContainer(() => {
         try {
             console.log(groupRoles);
             if (!groupRoles || groupRoles.length <= 0 || groupRoles.filter(v=>v.id>1).length <= 0) throw new Error("no roles to process group members");
-            let rankId = groupRoles
-                .filter(v => v.id > 1)
-                .sort((a, b) => b.id - a.id)
-                [0]?.id;
+            let rankId = groupRoles.filter(v => v.id > 1)[0]?.id;
             if (rankId === undefined) throw new Error("no default rank found for group members")
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: null}));
             if (req && req.data) {

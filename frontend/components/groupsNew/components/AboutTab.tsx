@@ -32,7 +32,7 @@ const useStyles = createUseStyles({
         float: "left",
         width: "11.1111111%",
         height: "120px",
-        minWidth: "100%",
+        display: 'flex',
         listStyle: "none",
     },
     memberLink: {
@@ -46,6 +46,9 @@ const useStyles = createUseStyles({
         borderRadius: "50%",
         backgroundColor: "#d1d1d1",
         overflow: "hidden",
+        height: '90px',
+        width: '90px',
+        display: 'inline-block',
         "& img": {
             objectFit: "cover",
             background: 'none',
@@ -273,7 +276,7 @@ const AboutTab = ({}: {}) => {
         <Section header={"Games"} contentSectioned={true} className={"disabled"}>
             This group has not created any games yet.
         </Section>
-        <Section header={"Members"} headerContainer={s.memberHeader} contentSectioned={true} className={members.members.length === 0 || group.roles ? "disabled" : ""}
+        <Section header={"Members"} headerContainer={s.memberHeader} contentSectioned={true} className={members.members.length === 0 || !group.roles ? "disabled" : ""}
                  headerChildren={group.roles ? <>
                      {/*take from catlaog page*/}
                      <div className={`${s.pageControls}`}>
@@ -315,7 +318,10 @@ const AboutTab = ({}: {}) => {
                      <div className={`${s.roleSelector}`}>
                          <Selector
                              shadow={true}
-                             options={group.roles.filter(a => a.id !== 1).map(a => ({
+                             options={group.roles
+                                 .filter(a => a.id !== 1)
+                                 .sort((a, b) => a.rank - b.rank)
+                                 .map(a => ({
                                  name: a.name,
                                  value: a.id,
                                  children: <>
@@ -343,7 +349,7 @@ const AboutTab = ({}: {}) => {
                      </div>
                  </> : null}
         >
-            {!group.roles ? "There was an error loading group roles. Try again later." : members.members.length === 0 ? "This role has no members." : <ul>
+            {!group.roles ? "There was an error loading group roles. Try again later." : members.members.length === 0 ? "This role has no members." : <ul className={`flex margin-none padding-none`}>
                 {members.members.map(m => (
                     <MemberItem key={m.userId} member={m}/>
                 ))}
@@ -360,9 +366,9 @@ const MemberItem = ({member}: { member: GroupUserWithRoleIdThumbnail }) => {
     // NOTE: newlink is an example of how to solve jsdoc-ts issues
     return <li className={`${s.memberWrapper}`}>
         <NewLink href={`/users/${member.userId}/profile`} className={s.memberLink}>
-            <span className={`${s.avatarContainer} w-100 border-0 h-100 text-center`}>
+            <span className={`${s.avatarContainer} border-0 text-center`}>
                 <img
-                    className={`rounded-circle`}
+                    className={`rounded-circle w-100 h-100`}
                     alt={`Headshot of ${member.displayName}'s Avatar`}
                     src={ThumbnailFromState(member.imageUrl, member.state)}
                 />
