@@ -251,74 +251,76 @@ const AboutTab = ({}: {}) => {
         <Section header={"Games"} contentSectioned={true} className={"disabled"}>
             This group has not created any games yet.
         </Section>
-        <Section header={"Members"} contentSectioned={true} className={members.members.length === 0 ? "disabled" : ""}
-                 headerChildren={<>
-                     {/*take from catlaog page*/}
-                     <div className={`${s.pageControls}`}>
-                         <ActionButton
-                             className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.prevPage == null) ? 'disabled' : ''}`}
-                             buttonStyle={(members?.members?.length === 0 || members?.prevPage == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
-                             onClick={async e => {
-                                 e.preventDefault();
-                                 if (deb.current || store.isLoading || members?.prevPage == null) {
-                                     return
-                                 }
-                                 deb.current = true
-                                 await store.fetchMembers(members.rank, members.page-1, members.nextPage);
-                                 deb.current = false
-                             }}
-                         >
-                             <span className={s.backIcon}/>
-                         </ActionButton>
-                         <span className={s.pages}>
+        {
+            group.roles ? <Section header={"Members"} contentSectioned={true} className={members.members.length === 0 ? "disabled" : ""}
+                                   headerChildren={<>
+                                       {/*take from catlaog page*/}
+                                       <div className={`${s.pageControls}`}>
+                                           <ActionButton
+                                               className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.prevPage == null) ? 'disabled' : ''}`}
+                                               buttonStyle={(members?.members?.length === 0 || members?.prevPage == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
+                                               onClick={async e => {
+                                                   e.preventDefault();
+                                                   if (deb.current || store.isLoading || members?.prevPage == null) {
+                                                       return
+                                                   }
+                                                   deb.current = true
+                                                   await store.fetchMembers(members.rank, members.page-1, members.nextPage);
+                                                   deb.current = false
+                                               }}
+                                           >
+                                               <span className={s.backIcon}/>
+                                           </ActionButton>
+                                           <span className={s.pages}>
                             Page {members?.page || "N/A"}
                          </span>
-                         <ActionButton
-                             className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.nextPage == null) ? 'disabled' : ''}`}
-                             buttonStyle={(members?.members?.length === 0 || members?.nextPage == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
-                             onClick={async e => {
-                                 e.preventDefault();
-                                 if (deb.current || store.isLoading || members?.nextPage == null) {
-                                     return
-                                 }
-                                 deb.current = true
-                                 await store.fetchMembers(members.rank, members.page+1, members.nextPage);
-                                 deb.current = false
-                             }}
-                         >
-                             <span className={s.forwardIcon}/>
-                         </ActionButton>
-                     </div>
-                     {/*just use selector class*/}
-                     <div className={`${s.roleSelector}`}>
-                         <Selector
-                             options={group.roles.map(a => ({ name: a.name, value: a.id }))}
-                             onChange={async (rank: {name: string; value: number;}) => {
-                                 if (deb.current || store.isLoading || members.rank === rank.value) return false;
-                                 try {
-                                     deb.current = true;
-                                     await store.fetchMembers(rank.value, 1, null);
-                                     await wait(0.75);
-                                     deb.current = false;
-                                     return true;
-                                 } catch {
-                                     deb.current = false;
-                                     return false;
-                                 }
-                             }}
-                             wrapperClass={s.selectorWrapper}
-                             selectorOptionClass={s.selectorOption}
-                             className={s.selector}
-                         />
-                     </div>
-                 </>}
-        >
-            {members.members.length === 0 ? "This role has no members." : <ul>
-                {members.members.map(m => (
-                    <MemberItem key={m.userId} member={m}/>
-                ))}
-            </ul>}
-        </Section>
+                                           <ActionButton
+                                               className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.nextPage == null) ? 'disabled' : ''}`}
+                                               buttonStyle={(members?.members?.length === 0 || members?.nextPage == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
+                                               onClick={async e => {
+                                                   e.preventDefault();
+                                                   if (deb.current || store.isLoading || members?.nextPage == null) {
+                                                       return
+                                                   }
+                                                   deb.current = true
+                                                   await store.fetchMembers(members.rank, members.page+1, members.nextPage);
+                                                   deb.current = false
+                                               }}
+                                           >
+                                               <span className={s.forwardIcon}/>
+                                           </ActionButton>
+                                       </div>
+                                       {/*just use selector class*/}
+                                       <div className={`${s.roleSelector}`}>
+                                           <Selector
+                                               options={group.roles.map(a => ({ name: a.name, value: a.id }))}
+                                               onChange={async (rank: {name: string; value: number;}) => {
+                                                   if (deb.current || store.isLoading || members.rank === rank.value) return false;
+                                                   try {
+                                                       deb.current = true;
+                                                       await store.fetchMembers(rank.value, 1, null);
+                                                       await wait(0.75);
+                                                       deb.current = false;
+                                                       return true;
+                                                   } catch {
+                                                       deb.current = false;
+                                                       return false;
+                                                   }
+                                               }}
+                                               wrapperClass={s.selectorWrapper}
+                                               selectorOptionClass={s.selectorOption}
+                                               className={s.selector}
+                                           />
+                                       </div>
+                                   </>}
+            >
+                {members.members.length === 0 ? "This role has no members." : <ul>
+                    {members.members.map(m => (
+                        <MemberItem key={m.userId} member={m}/>
+                    ))}
+                </ul>}
+            </Section> : null
+        }
         {/*<Section header={"Social Links"} contentSectioned={true}>*/}
         {/*    <pre className={`${s.description} w-100 m-0 overflow-hidden `}>{store.group.description}</pre>*/}
         {/*</Section>*/}

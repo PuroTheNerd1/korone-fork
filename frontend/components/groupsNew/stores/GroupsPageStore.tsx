@@ -31,6 +31,7 @@ const GroupsPageStore = createContainer(() => {
     const auth = AuthenticationStore.useContainer();
 
     useEffect(() => {
+        if (!group) return;
         setUserPerms(null);
         let roleSetId = 1; // guest by default
         let userGroup = userGroups.find(g => g.group.id === group?.id);
@@ -38,11 +39,11 @@ const GroupsPageStore = createContainer(() => {
 
         (async () => {
             try {
-                let req: GroupPermissionsEntry = await getPermissionsForRoleset({ groupId: userGroup.group.id, rolesetId: roleSetId });
+                let req: GroupPermissionsEntry = await getPermissionsForRoleset({ groupId: group.id, rolesetId: roleSetId });
                 if (req) setUserPerms(req);
             } catch (e) { console.error(e) }
         })()
-    }, [userGroups]);
+    }, [userGroups, group]);
 
     async function fetchData(group: GroupWithShout, clearData?: boolean) {
         console.log("CHECKING, ", isLoading, auth.isPending);
