@@ -64,7 +64,9 @@ const GroupsPageStore = createContainer(() => {
         } catch (e) { console.error(e) }
         let groupRoles: GroupRoleEntry[] = [];
         try {
-            groupRoles = (await getRoles({ groupId: group.id })).roles; // might be null
+            let roles = await getRoles({ groupId: group.id });
+            console.log(roles);
+            groupRoles = roles?.roles; // might be null
         } catch (e) { console.error(e) }
         try {
             let req = (await getWall({ groupId: group.id, sort: 'Desc', limit: 10, cursor: null}));
@@ -78,6 +80,7 @@ const GroupsPageStore = createContainer(() => {
             }
         } catch (e) { console.error(e) }
         try {
+            console.log(groupRoles);
             if (!groupRoles || groupRoles.length <= 0 || groupRoles.filter(v=>v.rank!==0).length <= 0) throw new Error("no roles to process group members");
             let rankId = groupRoles
                 .filter(v => v.rank !== 0)
