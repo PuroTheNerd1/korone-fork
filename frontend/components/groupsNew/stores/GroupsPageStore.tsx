@@ -148,6 +148,7 @@ const GroupsPageStore = createContainer(() => {
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: cursor}));
             if (req && req.data.length > 0) {
                 // @ts-ignore
+                console.log(req.data);
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.user.userId)}) ?? [];
                 let members = {
                     members: req.data.map(v => {
