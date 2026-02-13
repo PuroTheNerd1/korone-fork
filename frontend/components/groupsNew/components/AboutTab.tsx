@@ -356,7 +356,7 @@ const AboutTab = ({}: {}) => {
 };
 
 const MemberItem = ({member}: { member: GroupUserWithRoleIdThumbnail }) => {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     // NOTE: newlink is an example of how to solve jsdoc-ts issues
     return <li className={`${s.memberWrapper}`}>
         <NewLink href={`/users/${member.userId}/profile`} className={s.memberLink}>
