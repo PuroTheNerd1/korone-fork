@@ -315,7 +315,7 @@ const AboutTab = ({}: {}) => {
                      <div className={`${s.roleSelector}`}>
                          <Selector
                              shadow={true}
-                             options={group.roles.map(a => ({
+                             options={group.roles.filter(a => a.id !== 1).map(a => ({
                                  name: a.name,
                                  value: a.id,
                                  children: <>

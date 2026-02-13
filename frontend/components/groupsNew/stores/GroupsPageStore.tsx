@@ -79,9 +79,9 @@ const GroupsPageStore = createContainer(() => {
         } catch (e) { console.error(e) }
         try {
             console.log(groupRoles);
-            if (!groupRoles || groupRoles.length <= 0 || groupRoles.filter(v=>v.id!==0).length <= 0) throw new Error("no roles to process group members");
+            if (!groupRoles || groupRoles.length <= 0 || groupRoles.filter(v=>v.id>1).length <= 0) throw new Error("no roles to process group members");
             let rankId = groupRoles
-                .filter(v => v.id !== 0)
+                .filter(v => v.id > 1)
                 .sort((a, b) => b.id - a.id)
                 [0]?.id;
             if (rankId === undefined) throw new Error("no default rank found for group members")
@@ -133,19 +133,14 @@ const GroupsPageStore = createContainer(() => {
 
     async function fetchMembers(rank: number, page: number, cursor: string) {
         try {
-            if (!group.roles || group.roles.length <= 0 || group.roles.filter(v=>v.id!==0).length <= 0) throw new Error("no roles to process group members");
+            if (!group.roles || group.roles.length <= 0 || group.roles.filter(v=>v.id>1).length <= 0) throw new Error("no roles to process group members");
             let memberCached = memberCache.find(mc => mc.rank === rank && mc.page === page);
             if (memberCached) {
                 setMembers(memberCached);
                 return;
             }
 
-            let rankId = group.roles
-                .filter(v => v.id !== 0)
-                .sort((a, b) => b.id - a.id)
-                [0]?.id;
-            if (rankId === undefined) throw new Error("no default rank found for group members")
-            let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: cursor}));
+            let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rank, sortOrder: 'Desc', limit: 9, cursor: cursor}));
             if (req && req.data.length > 0) {
                 // @ts-ignore
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
@@ -158,7 +153,7 @@ const GroupsPageStore = createContainer(() => {
                             state: thumb?.state ?? null,
                         }
                     }),
-                    rank: rankId,
+                    rank: rank,
                     page: page,
                     nextPage: req.nextPageCursor,
                     prevPage: req.previousPageCursor,
