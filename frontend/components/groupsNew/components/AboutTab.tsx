@@ -293,7 +293,7 @@ const AboutTab = ({}: {}) => {
                              <span className={s.backIcon}/>
                          </ActionButton>
                          <span className={s.pages}>
-                            Page {members?.page || "N/A"}
+                            Page {members?.page === undefined || members?.page === null ? "N/A" : members?.page}
                          </span>
                          <ActionButton
                              className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.nextPage == null) ? 'disabled' : ''}`}
@@ -314,6 +314,7 @@ const AboutTab = ({}: {}) => {
                      {/*just use selector class*/}
                      <div className={`${s.roleSelector}`}>
                          <Selector
+                             shadow={true}
                              options={group.roles.map(a => ({
                                  name: a.name,
                                  value: a.id,

@@ -79,11 +79,11 @@ const GroupsPageStore = createContainer(() => {
         } catch (e) { console.error(e) }
         try {
             console.log(groupRoles);
-            if (!groupRoles || groupRoles.length <= 0 || groupRoles.filter(v=>v.rank!==0).length <= 0) throw new Error("no roles to process group members");
+            if (!groupRoles || groupRoles.length <= 0 || groupRoles.filter(v=>v.id!==0).length <= 0) throw new Error("no roles to process group members");
             let rankId = groupRoles
-                .filter(v => v.rank !== 0)
-                .sort((a, b) => b.rank - a.rank)
-                [0]?.rank;
+                .filter(v => v.id !== 0)
+                .sort((a, b) => b.id - a.id)
+                [0]?.id;
             if (rankId === undefined) throw new Error("no default rank found for group members")
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: null}));
             if (req && req.data.length > 0) {
@@ -133,7 +133,7 @@ const GroupsPageStore = createContainer(() => {
 
     async function fetchMembers(rank: number, page: number, cursor: string) {
         try {
-            if (!group.roles || group.roles.length <= 0 || group.roles.filter(v=>v.rank!==0).length <= 0) throw new Error("no roles to process group members");
+            if (!group.roles || group.roles.length <= 0 || group.roles.filter(v=>v.id!==0).length <= 0) throw new Error("no roles to process group members");
             let memberCached = memberCache.find(mc => mc.rank === rank && mc.page === page);
             if (memberCached) {
                 setMembers(memberCached);
@@ -141,9 +141,9 @@ const GroupsPageStore = createContainer(() => {
             }
 
             let rankId = group.roles
-                .filter(v => v.rank !== 0)
-                .sort((a, b) => b.rank - a.rank)
-                [0]?.rank;
+                .filter(v => v.id !== 0)
+                .sort((a, b) => b.id - a.id)
+                [0]?.id;
             if (rankId === undefined) throw new Error("no default rank found for group members")
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: cursor}));
             if (req && req.data.length > 0) {

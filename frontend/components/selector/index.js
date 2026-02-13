@@ -43,7 +43,6 @@ const useSelectorStyles = createUseStyles({
         backgroundClip: 'padding-box',
         overflowX: 'hidden',
         borderRadius: 4,
-        boxShadow: '0 -5px 20px rgba(25,25,25,.15)',
     },
     selectOption: {
         padding: '10px 15px',
@@ -83,7 +82,7 @@ const Selector = props => {
         </div>
         {
             open && selectorRef.current &&
-            <div className={s.selectorMenuOpen} style={{ width: selectorRef.current.clientWidth + 'px', boxShadow: props.shadow ? "0 1px 4px 0 rgba(25,25,25,.3)" : "none" }}>
+            <div className={s.selectorMenuOpen} style={{ width: selectorRef.current.clientWidth + 'px', boxShadow: props.shadow ? "0 -5px 20px rgba(25,25,25,.15)" : "none" }}>
                 {
                     props.options.map(v => {
                         return <p className={`${s.selectOption} ${props.selectorOptionClass || ""}`} key={v.value} onClick={async () => {
@@ -92,7 +91,7 @@ const Selector = props => {
                             if (typeof change == 'boolean' && change === false) return; // you can return false to cancel out the bototm stuff
                             setSelected(v);
                             setOpen(false);
-                        }}>{v?.children || v.name}</p>
+                        }} title={v.value}>{v?.children || v.name}</p>
                     })
                 }
             </div>
