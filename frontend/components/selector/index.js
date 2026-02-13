@@ -60,7 +60,7 @@ const useSelectorStyles = createUseStyles({
 
 /**
  *
- * @param {{options: {name: string|any; value: any;}[]; onChange: (v: any) => void; value?: any; shadow?: boolean; wrapperClass?: string; selectorOptionClass?: string; className?: string;}} props
+ * @param {{options: {name: string; value: any; children?: any;}[]; onChange: (v: any) => void; value?: any; shadow?: boolean; wrapperClass?: string; selectorOptionClass?: string; className?: string;}} props
  * @returns
  */
 const Selector = props => {
@@ -92,7 +92,7 @@ const Selector = props => {
                             if (typeof change == 'boolean' && change === false) return; // you can return false to cancel out the bototm stuff
                             setSelected(v);
                             setOpen(false);
-                        }}>{v.name}</p>
+                        }}>{v?.children || v.name}</p>
                     })
                 }
             </div>

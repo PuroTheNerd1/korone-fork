@@ -1,5 +1,5 @@
 import {createUseStyles} from 'react-jss';
-import {useState, useEffect, useRef} from 'react';
+import {useState, useRef} from 'react';
 import Section from "./Section";
 import GroupsPageStore from "../stores/GroupsPageStore";
 import {GroupUserWithRoleIdThumbnail} from "../../../services/groups-typed";
@@ -146,11 +146,9 @@ const useStyles = createUseStyles({
 
     pageControls: {
         display: 'flex',
-        width: '100%',
         justifyContent: 'center',
         gap: 10,
         alignItems: 'center',
-        marginTop: 25
     },
     paginationBtn: {
         aspectRatio: '1 / 1',
@@ -171,9 +169,7 @@ const useStyles = createUseStyles({
             filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
         },
     },
-    pages: {
-        wordSpacing: '0.25em',
-    },
+    pages: {},
     backIcon: {
         backgroundPosition:'0 -360px!important',
     },
@@ -181,16 +177,41 @@ const useStyles = createUseStyles({
         backgroundPosition:'0 -336px!important',
     },
 
-    roleSelector: {},
+    roleSelector: {
+        marginLeft: 9,
+    },
     selectorWrapper: {
         width: 230,
     },
     selector: {
         padding: "5px 12px",
-        lineHeight: "18px",
+        fontWeight: 500,
+        borderRadius: 3,
+        borderColor: 'var(--text-color-secondary)',
+        lineHeight: 26,
+        fontSize: 16,
+        '& > span': {
+            lineHeight: 26,
+        },
+    },
+    selectorOption: {
+        width: '100%',
+        maxWidth: 'calc(100% - 19px)',
+        display: 'inline-block',
+        fontWeight: 400,
+    },
+    roleName: {
+        maxWidth: 'calc(100% - 75px)',
+        width: '100%',
+        display: 'inline-block',
     },
     roleCount: {
         marginLeft: 'auto',
+    },
+    memberHeader: {
+        '& h3': {
+            marginRight: 'auto',
+        },
     },
 });
 
@@ -251,7 +272,7 @@ const AboutTab = ({}: {}) => {
         <Section header={"Games"} contentSectioned={true} className={"disabled"}>
             This group has not created any games yet.
         </Section>
-        <Section header={"Members"} contentSectioned={true} className={members.members.length === 0 || group.roles ? "disabled" : ""}
+        <Section header={"Members"} headerContainer={s.memberHeader} contentSectioned={true} className={members.members.length === 0 || group.roles ? "disabled" : ""}
                  headerChildren={group.roles ? <>
                      {/*take from catlaog page*/}
                      <div className={`${s.pageControls}`}>
@@ -293,11 +314,12 @@ const AboutTab = ({}: {}) => {
                      <div className={`${s.roleSelector}`}>
                          <Selector
                              options={group.roles.map(a => ({
-                                 name: <>
-                                     a.name
-                                     <span className={s.roleCount}>{abbreviateNumber(a.memberCount)}</span>
+                                 name: a.name,
+                                 value: a.id,
+                                 children: <>
+                                     <span className={`${s.roleName} text-overflow`}>{a.name}</span>
+                                     <span className={s.roleCount}>({abbreviateNumber(a.memberCount)})</span>
                                  </>,
-                                 value: a.id
                              }))}
                              onChange={async (rank: {name: string; value: number;}) => {
                                  if (deb.current || store.isLoading || members.rank === rank.value) return false;

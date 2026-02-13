@@ -28,9 +28,10 @@ interface SectionProps extends PropsWithChildren {
     headerChildren?: ReactNode | undefined;
     className?: string;
     contentSectioned?: boolean;
+    h3Class?: string;
 }
 
-const Section = ({header, sectionClass, className, children, headerContainer, headerChildren, contentSectioned}: SectionProps) => {
+const Section = ({header, sectionClass, className, children, headerContainer, headerChildren, contentSectioned, h3Class}: SectionProps) => {
     const s = useStyles();
 
     return <div className={`${s.sectionContainer} ${sectionClass ? sectionClass : ""}`}>
