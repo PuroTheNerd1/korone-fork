@@ -88,10 +88,10 @@ const GroupsPageStore = createContainer(() => {
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: null}));
             if (req && req.data.length > 0) {
                 // @ts-ignore
-                let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.user.userId)}) ?? [];
+                let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
                 setMembers({
                     members: req.data.map(v => {
-                        let thumb = memberThumbs.find(d => d.targetId === v.user.userId);
+                        let thumb = memberThumbs.find(d => d.targetId === v.userId);
                         return {
                             ...v,
                             imageUrl: thumb?.imageUrl ?? null,
@@ -149,10 +149,10 @@ const GroupsPageStore = createContainer(() => {
             if (req && req.data.length > 0) {
                 // @ts-ignore
                 console.log(req.data);
-                let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.user.userId)}) ?? [];
+                let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
                 let members = {
                     members: req.data.map(v => {
-                        let thumb = memberThumbs.find(d => d.targetId === v.user.userId);
+                        let thumb = memberThumbs.find(d => d.targetId === v.userId);
                         return {
                             ...v,
                             imageUrl: thumb?.imageUrl ?? null,
