@@ -122,9 +122,12 @@ const getDisplayNameForCombination = (cat, subCat) => {
 const CatalogPageResults = props => {
     const s = useResultStyles();
     const store = CatalogPageStore.useContainer();
-    let showTopFour = store.category === 'Featured';
-    
+    let showTopFour = store.category === 'Featured' && !store.query;
+
     const getTitle = () => {
+        if (store.query) {
+            return <h1 className={s.pageTitleAlt}>SEARCH RESULTS FOR "{store.query.toUpperCase()}"</h1>;
+        }
         if (store.category === 'Featured') {
             return <h1 className={s.pageTitle}>Featured Items on Korone</h1>;
         }
