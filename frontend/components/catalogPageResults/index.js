@@ -126,7 +126,7 @@ const CatalogPageResults = props => {
 
     const getTitle = () => {
         if (store.query) {
-            return <h1 className={s.pageTitleAlt}>SEARCH RESULTS FOR "{store.query.toUpperCase()}"</h1>;
+            return <h1 className={s.pageTitleAlt}>Search results for "{store.query}"</h1>;
         }
         if (store.category === 'Featured') {
             return <h1 className={s.pageTitle}>Featured Items on Korone</h1>;
