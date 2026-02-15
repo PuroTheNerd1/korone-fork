@@ -61,6 +61,10 @@ const GlobalAlert = props => {
     return null
   }
 
+  if (typeof window !== 'undefined' && localStorage.getItem('rbx_alerts_disabled_v1') === 'true') {
+    return null;
+  }
+
   return <div className={s.alertBg}>
     <p className={s.alertText}>
       {alert.LinkUrl ? <a className={s.alertLink} href={alert.LinkUrl}>{alert.Text}</a> : alert.Text}
