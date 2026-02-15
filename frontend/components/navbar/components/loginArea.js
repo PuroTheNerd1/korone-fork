@@ -61,15 +61,11 @@ const LoginArea = props => {
           <p className={s.text}>
             <a className={s.link} onClick={(e) => {
               e.preventDefault();
-              if (getFlag('requireLoginThroughCookie', true)) {
-                if (getFlag('clientSideRenderingEnabled', false)) {
-                  Router.push('/login');
-                } else {
-                  window.location.href = '/login';
-                }
-                return;
+              if (getFlag('clientSideRenderingEnabled', false)) {
+                Router.push('/auth/accountlogin');
+              } else {
+                window.location.href = '/auth/accountlogin';
               }
-              loginModalStore.setOpen(!loginModalStore.open);
             }}>
               Login
             </a>
