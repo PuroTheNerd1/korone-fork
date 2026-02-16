@@ -58,7 +58,7 @@
                                 </div>
                                 @if (Model.totalPages > 1)
                                 {
-                                    <div class="d-flex justify-content-center mt-3 gap-1 flex-wrap">
+                                    <div class="d-flex justify-content-center gap-1 flex-wrap" style="position:fixed;bottom:0;left:0;right:0;padding:10px;background:rgba(0,0,0,0.85);z-index:1000">
                                         @{
                                             var windowStart = Math.Max(0, Model.pageIndex - 4);
                                             var windowEnd = Math.Min(Model.totalPages - 1, Model.pageIndex + 4);
