@@ -26,7 +26,7 @@
                             <p class="fw-bolder">Total RAP: @Model.totalRap.ToString("N0")</p>
                         </div>
                         <div class="col-12 col-lg-9">
-                            @if (Model.inventory.Count == 0 && Model.page == 0)
+                            @if (Model.inventory.Count == 0 && Model.pageIndex == 0)
                             {
                                 <p class="text-center mt-4">Player does not have any collectible items.</p>
                             }
@@ -60,35 +60,35 @@
                                 {
                                     <div class="d-flex justify-content-center mt-3 gap-1 flex-wrap">
                                         @{
-                                            var windowStart = Math.Max(0, Model.page - 4);
-                                            var windowEnd = Math.Min(Model.totalPages - 1, Model.page + 4);
+                                            var windowStart = Math.Max(0, Model.pageIndex - 4);
+                                            var windowEnd = Math.Min(Model.totalPages - 1, Model.pageIndex + 4);
                                         }
                                         @if (windowStart > 0)
                                         {
-                                            <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;page=0">1</a>
+                                            <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=0">1</a>
                                             @if (windowStart > 1)
                                             {
-                                                <span class="text-light align-self-center px-1">…</span>
+                                                <span class="text-light align-self-center px-1" style="cursor:default">…</span>
                                             }
                                         }
                                         @for (var i = windowStart; i <= windowEnd; i++)
                                         {
-                                            if (i == Model.page)
+                                            if (i == Model.pageIndex)
                                             {
                                                 <span class="btn btn-primary btn-sm">@(i + 1)</span>
                                             }
                                             else
                                             {
-                                                <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;page=@i">@(i + 1)</a>
+                                                <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=@i">@(i + 1)</a>
                                             }
                                         }
                                         @if (windowEnd < Model.totalPages - 1)
                                         {
                                             @if (windowEnd < Model.totalPages - 2)
                                             {
-                                                <span class="text-light align-self-center px-1">…</span>
+                                                <span class="text-light align-self-center px-1" style="cursor:default">…</span>
                                             }
-                                            <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;page=@(Model.totalPages - 1)">@Model.totalPages</a>
+                                            <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=@(Model.totalPages - 1)">@Model.totalPages</a>
                                         }
                                     </div>
                                 }

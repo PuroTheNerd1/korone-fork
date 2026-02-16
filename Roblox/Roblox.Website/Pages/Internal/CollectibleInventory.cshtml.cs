@@ -11,7 +11,7 @@ public class CollectibleInventory : RobloxPageModel
     [BindProperty(SupportsGet = true)]
     public long userId { get; set; }
     [BindProperty(SupportsGet = true)]
-    public int page { get; set; } = 0;
+    public int pageIndex { get; set; } = 0;
     public List<CollectibleItemEntry> inventory { get; set; }
     public string username { get; set; }
     public string? errorMessage { get; set; }
@@ -65,7 +65,7 @@ public class CollectibleInventory : RobloxPageModel
 
         const int pageSize = 1;
         totalPages = (int)Math.Ceiling((double)inventory.Count / pageSize);
-        page = Math.Max(0, Math.Min(page, totalPages - 1));
-        inventory = inventory.Skip(page * pageSize).Take(pageSize).ToList();
+        pageIndex = Math.Max(0, Math.Min(pageIndex, totalPages - 1));
+        inventory = inventory.Skip(pageIndex * pageSize).Take(pageSize).ToList();
     }
 }
