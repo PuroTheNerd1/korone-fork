@@ -176,6 +176,9 @@
 					quickConfig(permissions);
                 }
             }}>Asset Copy (Non Limited)</button>
+		<button class="btn btn-danger mt-4 ml-2" on:click={() => {
+                quickConfigDelete(permissions.map(p => p.permission));
+            }}>Remove All Permissions</button>
 
 	</div>
 </div>
