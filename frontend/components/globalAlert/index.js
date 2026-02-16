@@ -29,8 +29,10 @@ const useStyles = createUseStyles({
 
 const GlobalAlert = props => {
   const s = useStyles();
+  const alertsDisabled = typeof window !== 'undefined' && localStorage.getItem('rbx_alerts_disabled_v1') === 'true';
   const [alert, setAlert] = useState(null);
   useEffect(() => {
+    if (alertsDisabled) return;
     // Always cache alert for 30 seconds
     const alertStorageKey = 'alert1';
     const existingAlert = sessionStorage.getItem(alertStorageKey);
@@ -56,7 +58,7 @@ const GlobalAlert = props => {
     })
   }, []);
 
-  if (alert === null || !alert.IsVisible) {
+  if (alertsDisabled || alert === null || !alert.IsVisible) {
     //return <div className={s.fakeAlert}></div>;
     return null
   }

@@ -234,9 +234,12 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("crash"), StaffFilter(Access.GetStats)]
-    public void CrashSite()
+    public Task CrashSite()
     {
+        if (!StaffFilter.IsOwner(safeUserSession.userId))
+            throw new UnauthorizedException();
         Environment.Exit(0);
+        return Task.CompletedTask;
     }
 
     [HttpGet("alert"), StaffFilter(Access.GetAlert)]
