@@ -9,8 +9,8 @@
     <div class="row">
         <div class="col-12">
             <div class="card card-body bg-dark text-light">
-                <!-- 
-                Please don't scrape this page. 
+                <!--
+                Please don't scrape this page.
                 Use /apisite/inventory/v1/users/{userId}/assets/collectibles instead.
                 -->
                 @if (Model.errorMessage != null)
@@ -56,42 +56,6 @@
                                         </div>
                                     }
                                 </div>
-                                @if (Model.totalPages > 1)
-                                {
-                                    <div class="d-flex justify-content-center gap-1 flex-wrap" style="position:fixed;bottom:0;left:0;right:0;padding:10px;background:rgba(0,0,0,0.85);z-index:1000">
-                                        @{
-                                            var windowStart = Math.Max(0, Model.pageIndex - 4);
-                                            var windowEnd = Math.Min(Model.totalPages - 1, Model.pageIndex + 4);
-                                        }
-                                        @if (windowStart > 0)
-                                        {
-                                            <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=0">1</a>
-                                            @if (windowStart > 1)
-                                            {
-                                                <span class="text-light align-self-center px-1" style="cursor:default">…</span>
-                                            }
-                                        }
-                                        @for (var i = windowStart; i <= windowEnd; i++)
-                                        {
-                                            if (i == Model.pageIndex)
-                                            {
-                                                <span class="btn btn-primary btn-sm">@(i + 1)</span>
-                                            }
-                                            else
-                                            {
-                                                <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=@i">@(i + 1)</a>
-                                            }
-                                        }
-                                        @if (windowEnd < Model.totalPages - 1)
-                                        {
-                                            @if (windowEnd < Model.totalPages - 2)
-                                            {
-                                                <span class="text-light align-self-center px-1" style="cursor:default">…</span>
-                                            }
-                                            <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=@(Model.totalPages - 1)">@Model.totalPages</a>
-                                        }
-                                    </div>
-                                }
                             }
                         </div>
                     </div>
@@ -100,3 +64,42 @@
         </div>
     </div>
 </div>
+
+@if (Model.totalPages > 1)
+{
+    <div class="container mb-3">
+        <div class="d-flex justify-content-center gap-1 flex-wrap">
+            @{
+                var windowStart = Math.Max(0, Model.pageIndex - 4);
+                var windowEnd = Math.Min(Model.totalPages - 1, Model.pageIndex + 4);
+            }
+            @if (windowStart > 0)
+            {
+                <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=0">1</a>
+                @if (windowStart > 1)
+                {
+                    <span class="text-light align-self-center px-1" style="cursor:default">…</span>
+                }
+            }
+            @for (var i = windowStart; i <= windowEnd; i++)
+            {
+                if (i == Model.pageIndex)
+                {
+                    <span class="btn btn-primary btn-sm">@(i + 1)</span>
+                }
+                else
+                {
+                    <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=@i">@(i + 1)</a>
+                }
+            }
+            @if (windowEnd < Model.totalPages - 1)
+            {
+                @if (windowEnd < Model.totalPages - 2)
+                {
+                    <span class="text-light align-self-center px-1" style="cursor:default">…</span>
+                }
+                <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;pageIndex=@(Model.totalPages - 1)">@Model.totalPages</a>
+            }
+        </div>
+    </div>
+}
