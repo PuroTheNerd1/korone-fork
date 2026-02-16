@@ -33,6 +33,11 @@ module.exports = {
         destination: '/My/Groups.aspx?gid=:id',
         permanent: false,
       },
+      {
+        source: '/internal/create-place',
+        destination: '/places/create',
+        permanent: false,
+      },
     ]
   },
   webpack(config) {
