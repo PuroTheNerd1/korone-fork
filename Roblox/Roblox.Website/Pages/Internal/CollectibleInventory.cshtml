@@ -58,23 +58,37 @@
                                 </div>
                                 @if (Model.totalPages > 1)
                                 {
-                                    <div class="d-flex justify-content-between mt-3">
-                                        @if (Model.page > 0)
-                                        {
-                                            <a class="btn btn-secondary" href="?userId=@Model.userId&page=@(Model.page - 1)">Previous</a>
+                                    <div class="d-flex justify-content-center mt-3 gap-1 flex-wrap">
+                                        @{
+                                            var windowStart = Math.Max(0, Model.page - 4);
+                                            var windowEnd = Math.Min(Model.totalPages - 1, Model.page + 4);
                                         }
-                                        else
+                                        @if (windowStart > 0)
                                         {
-                                            <span></span>
+                                            <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;page=0">1</a>
+                                            @if (windowStart > 1)
+                                            {
+                                                <span class="text-light align-self-center px-1">…</span>
+                                            }
                                         }
-                                        <span class="text-light align-self-center">Page @(Model.page + 1) of @Model.totalPages</span>
-                                        @if (Model.page < Model.totalPages - 1)
+                                        @for (var i = windowStart; i <= windowEnd; i++)
                                         {
-                                            <a class="btn btn-secondary" href="?userId=@Model.userId&page=@(Model.page + 1)">Next</a>
+                                            if (i == Model.page)
+                                            {
+                                                <span class="btn btn-primary btn-sm">@(i + 1)</span>
+                                            }
+                                            else
+                                            {
+                                                <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;page=@i">@(i + 1)</a>
+                                            }
                                         }
-                                        else
+                                        @if (windowEnd < Model.totalPages - 1)
                                         {
-                                            <span></span>
+                                            @if (windowEnd < Model.totalPages - 2)
+                                            {
+                                                <span class="text-light align-self-center px-1">…</span>
+                                            }
+                                            <a class="btn btn-secondary btn-sm" href="/internal/collectibles?userId=@Model.userId&amp;page=@(Model.totalPages - 1)">@Model.totalPages</a>
                                         }
                                     </div>
                                 }
