@@ -26,7 +26,7 @@
                             <p class="fw-bolder">Total RAP: @Model.totalRap.ToString("N0")</p>
                         </div>
                         <div class="col-12 col-lg-9">
-                            @if (Model.inventory.Count == 0)
+                            @if (Model.inventory.Count == 0 && Model.page == 0)
                             {
                                 <p class="text-center mt-4">Player does not have any collectible items.</p>
                             }
@@ -56,6 +56,28 @@
                                         </div>
                                     }
                                 </div>
+                                @if (Model.totalPages > 1)
+                                {
+                                    <div class="d-flex justify-content-between mt-3">
+                                        @if (Model.page > 0)
+                                        {
+                                            <a class="btn btn-secondary" href="?userId=@Model.userId&page=@(Model.page - 1)">Previous</a>
+                                        }
+                                        else
+                                        {
+                                            <span></span>
+                                        }
+                                        <span class="text-light align-self-center">Page @(Model.page + 1) of @Model.totalPages</span>
+                                        @if (Model.page < Model.totalPages - 1)
+                                        {
+                                            <a class="btn btn-secondary" href="?userId=@Model.userId&page=@(Model.page + 1)">Next</a>
+                                        }
+                                        else
+                                        {
+                                            <span></span>
+                                        }
+                                    </div>
+                                }
                             }
                         </div>
                     </div>
