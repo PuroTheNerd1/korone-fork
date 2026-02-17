@@ -354,7 +354,7 @@ public class GroupsService : ServiceBase, IService
         });
     }
 
-    public async Task<IEnumerable<GroupMemberEntry>> GetGroupMembers(long groupId, int limit, int offset, string sortOrder)
+    public async Task<IEnumerable<GroupMemberEntry>> GetGroupMembers(long groupId, int limit, int offset, string sortOrder, string? username = null)
     {
         if (sortOrder != "asc" && sortOrder != "desc") throw new Exception("Bad sort");
         var roles = (await db.QueryAsync<SkinnyRank>(
@@ -371,6 +371,11 @@ public class GroupsService : ServiceBase, IService
         foreach (var id in roles)
         {
             sq.OrWhere("group_role_id = " + id.roleId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            sq.Where("\"user\".username ILIKE :username", new { username = "%" + username + "%" });
         }
 
         sq.OrderBy("group_user.id " + sortOrder);
@@ -1240,6 +1245,84 @@ public class GroupsService : ServiceBase, IService
             gid = groupId,
             description = newDescription,
         });
+    }
+
+    public async Task RenameGroup(long groupId, long userId, string newName)
+    {
+        var nameValidationResult = NameValidationRegex.Match(newName);
+        if (nameValidationResult.Value.Length == 0 || newName.Length > 50 || newName.StartsWith(" ") || newName.EndsWith(" "))
+            throw new ArgumentException("The name is invalid");
+        if (RudimentaryTextFilter.Match(newName).Success)
+            throw new ArgumentException("The name is moderated");
+
+        var currentGroup = await GetGroupById(groupId);
+        var actorRole = await GetUserRoleInGroup(groupId, userId);
+        if (actorRole.rank != 255 || currentGroup.owner == null || currentGroup.owner.userId != userId)
+            throw new RobloxException(401, 0, "Unauthorized");
+
+        if (string.Equals(currentGroup.name, newName, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("The new name is the same as the current name");
+
+        if (await IsGroupNameTaken(newName))
+            throw new ArgumentException("The name has already been taken");
+
+        var cooldownKey = "GroupRename:" + groupId;
+        if (await redis.KeyExistsAsync(cooldownKey))
+            throw new RobloxException(429, 0, "This group has already been renamed in the last 30 days");
+
+        await InTransaction(async _ =>
+        {
+            using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
+            var bal = await ec.GetUserBalance(userId);
+            if (bal.robux < 100)
+                throw new RobloxException(400, 0, "You do not have enough Robux to rename this group");
+
+            await ec.DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, 100);
+            await InsertAsync("user_transaction", new
+            {
+                type = PurchaseType.Purchase,
+                currency_type = CurrencyType.Robux,
+                amount = 100,
+                sub_type = TransactionSubType.GroupCreation,
+                user_id_one = userId,
+                user_id_two = 1,
+            });
+
+            await InsertAsync("group_previous_name", new
+            {
+                group_id = groupId,
+                name = currentGroup.name,
+                created_at = DateTime.UtcNow,
+            });
+
+            await db.ExecuteAsync("UPDATE \"group\" SET name = :name WHERE id = :gid", new
+            {
+                gid = groupId,
+                name = newName,
+            });
+            await UpdateGroup(groupId);
+
+            await InsertAsync("group_audit_log", new
+            {
+                group_id = groupId,
+                user_id = userId,
+                old_name = currentGroup.name,
+                new_name = newName,
+                action = AuditActionType.Rename,
+            });
+
+            return 0;
+        });
+
+        await redis.StringSetAsync(cooldownKey, "1", TimeSpan.FromDays(30));
+    }
+
+    public async Task<IEnumerable<string>> GetPreviousGroupNames(long groupId)
+    {
+        var result = await db.QueryAsync<dynamic>(
+            "SELECT name FROM group_previous_name WHERE group_id = :group_id ORDER BY id DESC",
+            new { group_id = groupId });
+        return result.Select(c => (string)c.name);
     }
 
     public async Task<IEnumerable<WallEntryV2>> GetWall(long groupId, int limit, int offset)
