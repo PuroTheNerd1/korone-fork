@@ -1267,7 +1267,7 @@ public class GroupsService : ServiceBase, IService
             throw new ArgumentException("The name has already been taken");
 
         var cooldownKey = "GroupRename:" + groupId;
-        if (await redis.KeyExistsAsync(cooldownKey))
+        if (await redis.StringGetAsync(cooldownKey) != null)
             throw new RobloxException(429, 0, "This group has already been renamed in the last 30 days");
 
         await InTransaction(async _ =>
@@ -1719,6 +1719,7 @@ public class GroupsService : ServiceBase, IService
             return 0;
         });
     }
+
     private async Task UpdateGroup(long groupId)
     {
         await db.ExecuteAsync("UPDATE \"group\" SET updated_at = NOW() WHERE id = :id", new
