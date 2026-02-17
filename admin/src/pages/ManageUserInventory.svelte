@@ -241,14 +241,12 @@
 						);
 					}
 					for (const item of userAssetsToRemove) {
-						const removePayload: { userId: string; userAssetId: number; transferToUserId?: number } = {
+						const trimmedTransfer = transferToUserId.trim();
+						proms.push(request.post("/removeitem", {
 							userId,
 							userAssetId: item.userAssetId,
-						};
-						if (transferToUserId.trim() !== "") {
-							removePayload.transferToUserId = parseInt(transferToUserId.trim(), 10);
-						}
-						proms.push(request.post("/removeitem", removePayload));
+							...(trimmedTransfer !== "" ? { transferToUserId: parseInt(trimmedTransfer, 10) } : {}),
+						}));
 					}
 					Promise.all(proms)
 						.then(() => {
