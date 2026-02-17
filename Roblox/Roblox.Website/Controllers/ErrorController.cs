@@ -95,11 +95,6 @@ public class ErrorController : ControllerBase
                 code = 0,
             });
         }
-#if DEBUG
-        var firstError = errorList.First();
-        firstError.message = firstError.message + "\n" + exception?.Message + "\n" + exception?.StackTrace;
-#endif
-
         HttpContext.Response.StatusCode = (int)code;
         return new ErrorResponse()
         {
