@@ -197,6 +197,10 @@
 		width: auto;
 		background: none;
 		border: none;
+		color: #e0e0e0;
+	}
+	.nav-link.active {
+		color: #212529;
 	}
 </style>
 

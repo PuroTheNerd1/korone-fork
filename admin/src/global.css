@@ -118,15 +118,18 @@ body {
 
 .mod-card-white {
   background: #fff;
+  color: #212529;
 }
 .mod-card-black {
   background: #000;
+  color: #fff;
 }
 
 .mod-card-default {
   background: repeating-linear-gradient(45deg, #ebebeb, #ebebeb 20px, #fff 20px, #fff 40px);
   background-color: #ebebeb;
   border-radius: 10px;
+  color: #212529;
 }
 
 .mod-card-dark {
