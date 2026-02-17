@@ -62,6 +62,18 @@ const useStyles = createUseStyles({
     color: 'var(--text-color-secondary)',
     marginBottom: 0,
   },
+  pastNameIcon: {
+    backgroundSize: '40px auto',
+    width: '20px',
+    height: '20px',
+    backgroundPosition: '0 -780px',
+    opacity: '.5',
+    display: 'inline-block',
+    '&:hover': {
+      cursor: 'pointer',
+      backgroundPosition: '-20px -780px',
+    },
+  },
   previousNamesToolTip: {
     position: 'absolute',
     display: 'flex',
@@ -91,7 +103,7 @@ const PreviousGroupNames = () => {
 
   return <div>
     <p className={s.previousNamesLabel} onMouseEnter={() => setTooltipOpen(true)} onMouseLeave={() => setTooltipOpen(false)}>
-      Past names
+      <span className={'icon-pastname ' + s.pastNameIcon} /> Past names
     </p>
     <div className={`${s.previousNamesToolTip} ${tooltipOpen ? s.tooltipVisible : ''}`}>
       {store.previousNames.map((v, i) => <p key={i} className={s.previousName}>{v}</p>)}
@@ -181,6 +193,7 @@ const GroupPage = props => {
           }} />
         </div>
       }
+      <PreviousGroupNames />
     </div>
     <div className='col-9 ps-0'>
       <h2>
@@ -193,7 +206,6 @@ const GroupPage = props => {
           />
         )}
       </h2>
-      <PreviousGroupNames />
       <p className={s.description}>{store.info.description}</p>
       {store.permissions['viewStatus'] && store.info.shout && store.info.shout.body && <div className='row'>
         <div className='col-10 mt-4'>
