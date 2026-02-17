@@ -130,8 +130,14 @@ const GroupPage = props => {
       cursor: null,
     }).then(store.setGames);
 
-    getPreviousGroupNames({ groupId: store.groupId }).then(store.setPreviousNames).catch(() => {});
   }, [store.groupId]);
+
+  useEffect(() => {
+    if (!store.groupId || store.previousNames !== null) return;
+    getPreviousGroupNames({ groupId: store.groupId })
+      .then(store.setPreviousNames)
+      .catch(() => store.setPreviousNames([]));
+  }, [store.groupId, store.previousNames]);
 
   useEffect(() => {
     if (!store.groupId) return;
