@@ -361,6 +361,21 @@
 		{#if activeTab === 'reverse'}
 		<div class="col-12">
 			<h4>Reverse a Moderation Decision</h4>
+			<div class="row mb-3">
+				<div class="col-6 col-lg-4">
+					<select class="form-control" bind:value={modMode}>
+						<option value="default">Striped BG</option>
+						<option value="white">White BG</option>
+						<option value="black">Black BG</option>
+					</select>
+				</div>
+				<div class="col-6 col-lg-3">
+					<select class="form-control" bind:value={blur}>
+						<option value="false">Disable Blur</option>
+						<option value="true">Enable Blur</option>
+					</select>
+				</div>
+			</div>
 			<p class="text-muted">Enter an asset ID or URL to look it up and change its moderation status.</p>
 			<div class="row">
 				<div class="col-10 col-lg-4">
@@ -392,7 +407,7 @@
 									<div class="mod-icon">
 										<h3 class="text-left text-info">{reverseAsset.name}</h3>
 										<p class="text-left text-info">By <a use:link href={`/admin/manage-user/${reverseAsset.creatorId}`}>{reverseAsset.creatorName}</a></p>
-										<img class="d-block m-icon-image" src={reverseAsset.content_url} alt={`Asset ${reverseAsset.id}`} />
+										<img class={"d-block m-icon-image" + (blur === "true" ? " mod-blury-image" : "")} src={reverseAsset.content_url} alt={`Asset ${reverseAsset.id}`} />
 									</div>
 								</div>
 								<div class="col-12 col-lg-6">
@@ -437,7 +452,7 @@
 										<div class="mod-icon">
 											<h3 class="text-left text-info">{asset.name}</h3>
 											<p class="text-left text-info">By <a use:link href={`/admin/manage-user/${asset.creatorId}`}>{asset.creatorName}</a></p>
-											<img class="d-block m-icon-image" src={asset.content_url} alt={`Asset ${asset.id}`} />
+											<img class={"d-block m-icon-image" + (blur === "true" ? " mod-blury-image" : "")} src={asset.content_url} alt={`Asset ${asset.id}`} />
 										</div>
 									</div>
 									<div class="col-12 col-lg-6">
