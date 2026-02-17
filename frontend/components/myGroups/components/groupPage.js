@@ -193,7 +193,7 @@ const GroupPage = props => {
           }} />
         </div>
       }
-      <PreviousGroupNames />
+      {store.rank && <div className='mt-2'><PreviousGroupNames /></div>}
     </div>
     <div className='col-9 ps-0'>
       <h2>
