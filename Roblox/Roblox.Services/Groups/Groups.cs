@@ -1481,7 +1481,14 @@ public class GroupsService : ServiceBase, IService
             {
                 n = name,
             });
-        return groupsMatchingName.total != 0;
+        if (groupsMatchingName.total != 0) return true;
+
+        var previousNamesMatching = await db.QuerySingleOrDefaultAsync<Total>(
+            "SELECT COUNT(*) AS total FROM group_previous_name WHERE name ILIKE :n", new
+            {
+                n = name,
+            });
+        return previousNamesMatching.total != 0;
     }
 
     private static readonly Regex NameValidationRegex = new("[a-zA-Z0-9]+");
