@@ -14,17 +14,57 @@
 	let assetIdsToGive: { assetId: number; giveSerial: boolean; copies: number }[] = [];
 	let userAssetsToRemove: { assetId: number; userAssetId: number; name: string }[] = [];
 	let listOpen = false;
+	let transferToUserId: string = "";
+	let itemSearch: string = "";
 
 	let removeItemsListOpen = false;
 	let ownedUserAssets: { asset_id: number; name: string; user_asset_id: number }[] = null;
+	let ownedUserItems: { asset_id: number; name: string; user_asset_id: number }[] = null;
+
 	request.get("/user-collectibles?userId=" + userId).then((userassets) => {
 		ownedUserAssets = userassets.data;
 	});
+	request.get("/user-items?userId=" + userId).then((items) => {
+		ownedUserItems = items.data;
+	});
+
+	function isSelected(userAssetId: number): boolean {
+		return userAssetsToRemove.some((v) => v.userAssetId === userAssetId);
+	}
+
+	function toggleItem(item: { asset_id: number; name: string; user_asset_id: number }) {
+		const uaid = item.user_asset_id;
+		if (isSelected(uaid)) {
+			userAssetsToRemove = userAssetsToRemove.filter((v) => v.userAssetId !== uaid);
+		} else {
+			userAssetsToRemove = [{ userAssetId: uaid, name: item.name, assetId: item.asset_id }, ...userAssetsToRemove];
+		}
+	}
+
+	$: filteredLimiteds = (ownedUserAssets ?? []).filter((item) =>
+		item.name.toLowerCase().includes(itemSearch.toLowerCase())
+	);
+	$: filteredItems = (ownedUserItems ?? []).filter((item) =>
+		item.name.toLowerCase().includes(itemSearch.toLowerCase())
+	);
 </script>
 
 <style>
 	p.err {
 		color: red;
+	}
+	.group-header {
+		text-align: center;
+		font-weight: bold;
+		font-size: 1.1rem;
+		color: #aaa;
+		letter-spacing: 0.1em;
+		padding: 6px 0 4px;
+	}
+	.group-separator {
+		border: none;
+		border-top: 1px solid #444;
+		margin: 10px 0;
 	}
 </style>
 
@@ -53,40 +93,47 @@
 				}}>{removeItemsListOpen ? "Close" : "Add Item to List"}</button
 			>
 			{#if removeItemsListOpen}
-				<div class="mt-2 row" style="max-height: 400px; overflow-y: auto;">
+				<div class="mt-2">
+					<input
+						type="text"
+						class="form-control dark-input mb-2"
+						placeholder="Search items..."
+						bind:value={itemSearch}
+					/>
+				</div>
+				<div class="mt-1 row" style="max-height: 400px; overflow-y: auto;">
 					{#if ownedUserAssets !== null}
-						{#each ownedUserAssets as item}
-							<div
-								class={`col-6 col-md-3 col-lg-2 ${userAssetsToRemove.find((v) => v.userAssetId === item.user_asset_id) ? "border" : ""}`}
-								style="cursor: pointer;"
-								on:click={() => {
-									let name = item.name;
-									let uaid = item.user_asset_id;
-									let exists = userAssetsToRemove.find((v) => {
-										return v.userAssetId === uaid;
-									});
-									if (!exists) {
-										userAssetsToRemove = [
-											{
-												userAssetId: uaid,
-												name: name,
-												assetId: item.asset_id,
-											},
-											...userAssetsToRemove,
-										];
-									} else {
-										userAssetsToRemove = userAssetsToRemove.filter((v) => {
-											return v.userAssetId !== uaid;
-										});
-										userAssetsToRemove = [...userAssetsToRemove];
-									}
-								}}
-							>
-								<img style="width: 100%;" src={`/thumbs/asset.ashx?assetId=${item.asset_id}&width=420&height=420&format=png`} alt="Item" />
-								<p class="text-truncate pb-0 mb-0">{item.name}</p>
-								<p class="text-truncate mt-0">UAID #{item.user_asset_id}</p>
-							</div>
-						{/each}
+						{#if filteredLimiteds.length > 0}
+							<div class="col-12 group-header">LIMITEDS</div>
+							{#each filteredLimiteds as item}
+								<div
+									class={`col-6 col-md-3 col-lg-2 ${isSelected(item.user_asset_id) ? "border" : ""}`}
+									style="cursor: pointer;"
+									on:click={() => toggleItem(item)}
+								>
+									<img style="width: 100%;" src={`/thumbs/asset.ashx?assetId=${item.asset_id}&width=420&height=420&format=png`} alt="Item" />
+									<p class="text-truncate pb-0 mb-0">{item.name}</p>
+									<p class="text-truncate mt-0">UAID #{item.user_asset_id}</p>
+								</div>
+							{/each}
+						{/if}
+						{#if filteredItems.length > 0}
+							<div class="col-12"><hr class="group-separator" /></div>
+							{#each filteredItems as item}
+								<div
+									class={`col-6 col-md-3 col-lg-2 ${isSelected(item.user_asset_id) ? "border" : ""}`}
+									style="cursor: pointer;"
+									on:click={() => toggleItem(item)}
+								>
+									<img style="width: 100%;" src={`/thumbs/asset.ashx?assetId=${item.asset_id}&width=420&height=420&format=png`} alt="Item" />
+									<p class="text-truncate pb-0 mb-0">{item.name}</p>
+									<p class="text-truncate mt-0">UAID #{item.user_asset_id}</p>
+								</div>
+							{/each}
+						{/if}
+						{#if filteredLimiteds.length === 0 && filteredItems.length === 0}
+							<div class="col-12"><p>No items match your search.</p></div>
+						{/if}
 					{/if}
 				</div>
 			{/if}
@@ -159,6 +206,20 @@
 		<div class="col-12">
 			<hr />
 		</div>
+		<div class="col-12 mt-3">
+			<div class="d-flex align-items-center gap-2">
+				<label class="mb-0" for="transfer-to-user-id">Transfer items to</label>
+				<input
+					type="text"
+					class="form-control dark-input"
+					id="transfer-to-user-id"
+					style="max-width: 200px;"
+					placeholder="User ID"
+					bind:value={transferToUserId}
+					{disabled}
+				/>
+			</div>
+		</div>
 		<div class="col-12 mt-4">
 			<button
 				class="btn btn-success"
@@ -180,12 +241,14 @@
 						);
 					}
 					for (const item of userAssetsToRemove) {
-						proms.push(
-							request.post("/removeitem", {
-								userId,
-								userAssetId: item.userAssetId,
-							})
-						);
+						const removePayload: { userId: string; userAssetId: number; transferToUserId?: number } = {
+							userId,
+							userAssetId: item.userAssetId,
+						};
+						if (transferToUserId.trim() !== "") {
+							removePayload.transferToUserId = parseInt(transferToUserId.trim(), 10);
+						}
+						proms.push(request.post("/removeitem", removePayload));
 					}
 					Promise.all(proms)
 						.then(() => {

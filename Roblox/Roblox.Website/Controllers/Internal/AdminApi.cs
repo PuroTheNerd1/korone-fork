@@ -1590,13 +1590,29 @@ public class AdminApiController : ControllerBase
         return result;
     }
 
+    [HttpGet("user-items"), StaffFilter(Access.GetUserCollectibles)]
+    public async Task<dynamic> GetUserItems(long userId)
+    {
+        var result = (await db.QueryAsync("SELECT asset_id, user_asset.id as user_asset_id, asset.name FROM user_asset INNER JOIN asset ON asset.id = user_asset.asset_id WHERE user_asset.user_id = :user_id AND asset.is_limited = false AND asset.is_limited_unique = false",
+            new { user_id = userId })).ToList();
+        return result;
+    }
+
     [HttpPost("removeitem"), StaffFilter(Access.RemoveUserItem)]
     public async Task RemoveItem([Required, FromBody] RemoveItemRequest request)
     {
         // temporary
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Cannot give remove items from this user");
-        var transferTo = await services.users.GetUserIdFromUsername("BadDecisions");
+        long transferTo;
+        if (request.transferToUserId.HasValue)
+        {
+            transferTo = request.transferToUserId.Value;
+        }
+        else
+        {
+            transferTo = await services.users.GetUserIdFromUsername("BadDecisions");
+        }
         var affected = await db.ExecuteAsync(
             "UPDATE user_asset SET price = 0, user_id = :new_user_id, updated_at = now() WHERE user_id = :old_user_id AND user_asset.id = :user_asset_id",
             new
