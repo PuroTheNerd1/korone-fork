@@ -18,6 +18,7 @@ const themeColor = {
     whisper: 'whisper',
     cane: 'cane',
     spice: 'spice',
+    custom: 'custom',
 }
 
 const themeFont = {
@@ -155,6 +156,18 @@ const setCatalogStyle = (themeString) => {
     localStorage.setItem('rbx_cat_style_v1', themeString);
 }
 
+const getThemeCustomColor = () => {
+    if (!isLocalStorageAvailable) return null;
+    let value = localStorage.getItem('rbx_theme_custom_color_v1');
+    if (typeof value !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(value)) return null;
+    return value;
+}
+
+const setThemeCustomColor = (hex) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_theme_custom_color_v1', hex);
+}
+
 export {
     getTheme,
     setTheme,
@@ -179,7 +192,10 @@ export {
 
     getCatalogStyle,
     setCatalogStyle,
-    
+
+    getThemeCustomColor,
+    setThemeCustomColor,
+
     themeType,
     themeColor,
     themeFont,
