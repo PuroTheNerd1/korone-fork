@@ -210,7 +210,6 @@ public class RobloxApi
     private class RobloxApiHttpClient : HttpClient
     {
         private string _token = Configuration.RobloxAuthorization;
-
         public RobloxApiHttpClient() : base(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
         {
             DefaultRequestHeaders.Add("Accept", "*/*");
@@ -239,13 +238,13 @@ public class RobloxApi
         }
     }
 
-    private static HttpClient robloxApiClient { get; } = new RobloxApiHttpClient();
+    private static HttpClient _robloxApiClient { get; } = new RobloxApiHttpClient();
     public async Task<ProductInfoWithAssetDelivery> GetProductInfoAssetDelivery(long assetId)
     {
         // Literally all it gets is the "assetTypeId". Everything else is blank.
         using var cancel = new CancellationTokenSource();
         cancel.CancelAfter(TimeSpan.FromSeconds(30));
-        var response = await robloxApiClient.GetAsync("https://assetdelivery.roblox.com/v2/asset?id=" + assetId, cancel.Token);
+        var response = await _robloxApiClient.GetAsync("https://assetdelivery.roblox.com/v2/asset?id=" + assetId, cancel.Token);
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception("Unexpected status code from AssetDeliveryV2: " + response.StatusCode);
@@ -279,7 +278,7 @@ public class RobloxApi
             using var cancel = new CancellationTokenSource();
             cancel.CancelAfter(TimeSpan.FromMilliseconds(maxAttemptsMs));
             var url = $"https://www.roblox.com/catalog/{assetId}/-";
-            var response = await robloxApiClient.GetAsync(url, cancel.Token);
+            var response = await _robloxApiClient.GetAsync(url, cancel.Token);
             if (!response.IsSuccessStatusCode)
             {
                 Writer.Info(LogGroup.RealRobloxApi, "GetProductInfoHtml failed - " + response.StatusCode);
@@ -316,7 +315,7 @@ public class RobloxApi
         using var cancel = new CancellationTokenSource();
         cancel.CancelAfter(TimeSpan.FromSeconds(5));
 
-        var result = await robloxApiClient.GetAsync("https://users.roblox.com/v1/users/" + userId, cancel.Token);
+        var result = await _robloxApiClient.GetAsync("https://users.roblox.com/v1/users/" + userId, cancel.Token);
         if (!result.IsSuccessStatusCode)
         {
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
@@ -337,7 +336,7 @@ public class RobloxApi
             excludeBannedUsers = false,
         };
         request.usernames.Add(userName);
-        var result = await robloxApiClient.PostAsync("https://users.roblox.com/v1/usernames/users", new StringContent(JsonSerializer.Serialize(request)));
+        var result = await _robloxApiClient.PostAsync("https://users.roblox.com/v1/usernames/users", new StringContent(JsonSerializer.Serialize(request)));
         if (result == null)
             throw new Exception("Null response from Roblox");
         if (!result.IsSuccessStatusCode)
@@ -357,7 +356,7 @@ public class RobloxApi
         cancel.CancelAfter(TimeSpan.FromSeconds(5));
 
         var result =
-            await robloxApiClient.GetAsync(
+            await _robloxApiClient.GetAsync(
                 "https://inventory.roblox.com/v1/users/" + userId + "/items/Asset/" + assetId + "/is-owned",
                 cancel.Token);
         if (!result.IsSuccessStatusCode)
@@ -385,7 +384,7 @@ public class RobloxApi
                 using var cancel = new CancellationTokenSource();
                 cancel.CancelAfter(TimeSpan.FromMilliseconds(maxAttemptTimeMs));
                 var url = $"https://economy.roproxy.com/v2/assets/{assetId}/details";
-                var result = await robloxApiClient.GetAsync(url, cancel.Token);
+                var result = await _robloxApiClient.GetAsync(url, cancel.Token);
                 if (result.StatusCode is HttpStatusCode.TooManyRequests)
                 {
                     Writer.Info(LogGroup.RealRobloxApi, "conversion error - got 429 during getproductinfo");
@@ -415,7 +414,7 @@ public class RobloxApi
 
     public async Task<Stream> GetStreamAsync(string url)
     {
-        var strResult = await robloxApiClient.GetAsync(url);
+        var strResult = await _robloxApiClient.GetAsync(url);
         if (!strResult.IsSuccessStatusCode)
             throw new Exception("Bad response in GetStreamAsync: " + strResult.StatusCode);
         return await strResult.Content.ReadAsStreamAsync();
@@ -430,7 +429,7 @@ public class RobloxApi
         request.Content = new StringContent(JsonSerializer.Serialize(assets), Encoding.UTF8, "application/json");
         request.Headers.Add("Roblox-Place-Id", placeId.ToString());
 
-        var result = await robloxApiClient.SendAsync(request);
+        var result = await _robloxApiClient.SendAsync(request);
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
 
@@ -446,7 +445,7 @@ public class RobloxApi
             HttpMethod.Get,
             $"https://assetdelivery.roblox.com/v1/assetid/{assetId}");
         request.Headers.Add("Roblox-Place-Id", placeId.ToString());
-        var result = await robloxApiClient.SendAsync(request);
+        var result = await _robloxApiClient.SendAsync(request);
 
         if (!result.IsSuccessStatusCode)
             return null;
@@ -460,11 +459,11 @@ public class RobloxApi
         HttpResponseMessage? result = null;
         if (version != null)
         {
-            result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}&version={version}");
+            result = await _robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}&version={version}");
         }
         else
         {
-            result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
+            result = await _robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
         }
         if (!result.IsSuccessStatusCode)
             throw new Exception("Unexpected response from Roblox: " + result.StatusCode);
@@ -475,7 +474,7 @@ public class RobloxApi
     // hacky
     public async Task<string> GetToolbox(string type, string? keyword,string sortType, int? limit = 30)
     {
-        var request = await robloxApiClient.GetAsync($"https://apis.roblox.com/toolbox-service/v1/{type}?keyword={keyword}&sortType={sortType}&limit={limit}");
+        var request = await _robloxApiClient.GetAsync($"https://apis.roblox.com/toolbox-service/v1/{type}?keyword={keyword}&sortType={sortType}&limit={limit}");
         return await request.Content.ReadAsStringAsync();
     }
 
@@ -483,7 +482,7 @@ public class RobloxApi
     {
         while (true)
         {
-            var result = await robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
+            var result = await _robloxApiClient.GetAsync($"https://assetdelivery.roblox.com/v1/asset?id={assetId}");
             if (result.StatusCode is HttpStatusCode.TooManyRequests)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2));
@@ -498,7 +497,7 @@ public class RobloxApi
             if (string.IsNullOrEmpty(bod.location))
                 throw new Exception("Roblox did not give a URL for this asset content. Is the URL valid?");
 
-            var strResult = await robloxApiClient.GetAsync(bod.location);
+            var strResult = await _robloxApiClient.GetAsync(bod.location);
             return await strResult.Content.ReadAsStreamAsync();
         }
     }
@@ -507,7 +506,7 @@ public class RobloxApi
 
     public async Task<Stream> GetAssetAudioContent(long assetId)
     {
-        var result = await robloxApiClient.GetAsync($"https://www.roblox.com/library/{assetId}/--");
+        var result = await _robloxApiClient.GetAsync($"https://www.roblox.com/library/{assetId}/--");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Asset error: " + result.StatusCode);
         var bod = await result.Content.ReadAsStringAsync();
@@ -520,13 +519,13 @@ public class RobloxApi
 
         var fileUrl = groups[1].Value;
 
-        var strResult = await robloxApiClient.GetAsync(fileUrl);
+        var strResult = await _robloxApiClient.GetAsync(fileUrl);
         return await strResult.Content.ReadAsStreamAsync();
     }
 
     public async Task<AvatarResponse> GetAvatar(long userId)
     {
-        var result = await robloxApiClient.GetAsync("https://avatar.roblox.com/v1/users/" + userId + "/avatar");
+        var result = await _robloxApiClient.GetAsync("https://avatar.roblox.com/v1/users/" + userId + "/avatar");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Avatar error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -551,7 +550,7 @@ public class RobloxApi
             msg.Content = new StringContent(s, Encoding.UTF8, "application/json");
             msg.Headers.Add("x-csrf-token", _csrf);
 
-            var result = await robloxApiClient.SendAsync(msg);
+            var result = await _robloxApiClient.SendAsync(msg);
             if (result.StatusCode == HttpStatusCode.Forbidden && result.Headers.Contains("x-csrf-token"))
             {
                 Writer.Info(LogGroup.RealRobloxApi, "use new csrf {0}", result.Headers.GetValues("x-csrf-token"));
@@ -576,7 +575,7 @@ public class RobloxApi
 
     public async Task<long> CountFollowers(long userId)
     {
-        var result = await robloxApiClient.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/followers/count");
+        var result = await _robloxApiClient.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/followers/count");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Follower count error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -588,7 +587,7 @@ public class RobloxApi
 
     public async Task<long> CountFriends(long userId)
     {
-        var result = await robloxApiClient.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/friends/count");
+        var result = await _robloxApiClient.GetAsync("https://friends.roblox.com/v1/users/"+userId+"/friends/count");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Friends count error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -601,7 +600,7 @@ public class RobloxApi
     public async Task<InventoryResponse> GetInventory(long userId, string? cursor = null)
     {
         var url = "https://inventory.roblox.com/v2/users/"+userId+"/inventory?assetTypes=Hat%2CGear%2CHairAccessory%2CNeckAccessory%2CShoulderAccessory%2CBackAccessory%2CFrontAccessory%2CWaistAccessory&limit=100&sortOrder=Asc&cursor=" + (cursor ?? "");
-        var result = await robloxApiClient.GetAsync(url);
+        var result = await _robloxApiClient.GetAsync(url);
         if (result.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Forbidden)
             throw new InvalidUserException();
 
@@ -616,7 +615,7 @@ public class RobloxApi
 
     public async Task<IEnumerable<BadgeEntry>> GetRobloxBadges(long userId)
     {
-            var result = await robloxApiClient.GetAsync("https://accountinformation.roblox.com/v1/users/"+userId+"/roblox-badges");
+            var result = await _robloxApiClient.GetAsync("https://accountinformation.roblox.com/v1/users/"+userId+"/roblox-badges");
         if (!result.IsSuccessStatusCode)
             throw new Exception("Badges error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -629,7 +628,7 @@ public class RobloxApi
     public async Task<ProfileHeaderResponse> GetProfile(long userId)
     {
         var url = "https://www.roblox.com/users/profile/profileheader-json?userid=" + userId;
-        var result = await robloxApiClient.GetAsync(url);
+        var result = await _robloxApiClient.GetAsync(url);
         if (!result.IsSuccessStatusCode)
             throw new Exception("Premium error: " + result.StatusCode);
         var body = await result.Content.ReadAsStringAsync();
@@ -642,7 +641,7 @@ public class RobloxApi
     public async Task<BundleResponseEntry> GetBundle(long bundleId)
     {
         var url = "https://catalog.roblox.com/v1/bundles/details?bundleIds=" + bundleId; // MultiGetBundlesResponse
-        var result = await robloxApiClient.GetAsync(url);
+        var result = await _robloxApiClient.GetAsync(url);
         if (!result.IsSuccessStatusCode)
             throw new Exception("GetBundle error: " + bundleId + " " + result.StatusCode);
         var json = JsonSerializer.Deserialize<List<BundleResponseEntry>>(await result.Content.ReadAsStringAsync());
