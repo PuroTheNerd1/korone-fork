@@ -206,6 +206,10 @@ a:hover .icon-nav-charactercustomizer {
 	color: #02b757;
 }
 
+.hover-icon-nav-shop:hover {
+	color: #00A2FF;
+}
+
 .icon-nav-inventory:hover {
 	background-position: -28px -280px;
 }

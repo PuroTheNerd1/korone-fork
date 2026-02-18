@@ -169,6 +169,7 @@ const NavSideBar = props => {
                        icon='icon-nav-charactercustomizer'/>
             <LinkEntry theme={getTheme()} name='Inventory' url={'/users/' + authStore.userId + '/inventory'}
                        icon='icon-nav-inventory'/>
+            <LinkEntry theme={getTheme()} name='Redeem' url='/internal/promocodes' icon='icon-nav-shop'/>
             <LinkEntry theme={getTheme()} name='Trade' url='/My/Trades.aspx' icon='icon-nav-trade'
                        count={authStore.notificationCount.trades}/>
             <LinkEntry theme={getTheme()} name='Groups' url='/My/Groups.aspx' icon='icon-nav-group'/>
