@@ -54,9 +54,10 @@ public class UsersControllerV1 : ControllerBase
         inventory = new ();
         var offset = 0;
         var info = await services.users.GetUserById(result[0].id);
-        var isDeleted = info.IsDeleted();
-        if (!isDeleted)
-        {
+        var canViewInventory = !info.IsDeleted() && await services.inventory.CanViewInventory(info.userId);
+
+        if (canViewInventory)
+        { 
             while (true)
             {
                 var results = (await services.inventory.GetCollectibleInventory(info.userId, null, "asc", 100, offset)).ToArray();
@@ -82,7 +83,7 @@ public class UsersControllerV1 : ControllerBase
             displayName = info.username,
             info.description,
             info.created,
-            isBanned = isDeleted,
+            isBanned = info.IsDeleted(),
             isInventoryPublic = await services.inventory.CanViewInventory(info.userId, 0),
             hasVerifiedBadge = info.isVerified,
             totalPlaceVisits = await services.games.GetTotalVisitsFromUser(info.userId),
@@ -108,8 +109,9 @@ public class UsersControllerV1 : ControllerBase
         inventory = new ();
         var offset = 0;
         var info = await services.users.GetUserById(userId);
-        var isDeleted = info.IsDeleted();
-        if (!isDeleted)
+        var canViewInventory = !info.IsDeleted() && await services.inventory.CanViewInventory(info.userId);
+
+        if (canViewInventory)
         {
             while (true)
             {
@@ -134,7 +136,7 @@ public class UsersControllerV1 : ControllerBase
         {
             info.description,
             info.created,
-            isBanned = isDeleted,
+            isBanned = info.IsDeleted(),
             hasVerifiedBadge = info.isVerified,
             id = info.userId,
             name = info.username,

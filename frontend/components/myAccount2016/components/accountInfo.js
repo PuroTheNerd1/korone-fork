@@ -4,10 +4,12 @@ import { createUseStyles } from "react-jss";
 import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
 import {
+    getAlertsDisabled,
     getAvPageStyle,
     getCatalogPageStyle, getCatalogStyle,
     getTheme, getThemeColor, getThemeFont,
     getThemeCustomColor, setThemeCustomColor,
+    setAlertsDisabled,
     setAvPageStyle,
     setCatalogPageStyle, setCatalogStyle,
     setTheme, setThemeColor, setThemeFont, setThemeForumHeader, setThemeRibbon, themeType
@@ -346,9 +348,9 @@ const  AccountInfo = props => {
                         </div>
                         <div className='col ps-0 pe-0'>
                             <select className={'form-control ' + s.select}
-                                    value={typeof window !== 'undefined' && localStorage.getItem('rbx_alerts_disabled_v1') === 'true' ? 'disabled' : 'enabled'}
+                                    value={getAlertsDisabled()}
                                     onChange={ev => {
-                                        localStorage.setItem('rbx_alerts_disabled_v1', ev.currentTarget.value === 'disabled' ? 'true' : 'false');
+                                        setAlertsDisabled(ev.currentTarget.value);
                                         window.location.reload();
                                     }}>
                                 <option value='enabled'>Show</option>
