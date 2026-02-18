@@ -166,6 +166,8 @@ const getThemeCustomColor = () => {
 const setThemeCustomColor = (hex) => {
     if (!isLocalStorageAvailable) return;
     localStorage.setItem('rbx_theme_custom_color_v1', hex);
+}
+
 const getAlertsDisabled = () => {
     if (!isLocalStorageAvailable) return 'enabled';
     
