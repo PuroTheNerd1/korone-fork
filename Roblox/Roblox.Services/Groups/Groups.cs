@@ -333,7 +333,7 @@ public class GroupsService : ServiceBase, IService
             });
 
         sq.OrWhere("group_role_id = " + roleSetId);
-        sq.OrderBy("group_user.id " + sortOrder);
+        sq.OrderBy("group_user.id " + (sortOrder == "asc" ? "asc" : "desc"));
 
         var members = await db.QueryAsync<GroupMemberDb>(t.RawSql, t.Parameters);
         return members.Select(c => new GroupMemberEntry
@@ -378,7 +378,7 @@ public class GroupsService : ServiceBase, IService
             sq.Where("\"user\".username ILIKE :username", new { username = "%" + username + "%" });
         }
 
-        sq.OrderBy("group_user.id " + sortOrder);
+        sq.OrderBy("group_user.id " + (sortOrder == "asc" ? "asc" : "desc"));
 
         var members = await db.QueryAsync<GroupMemberDb>(t.RawSql, t.Parameters);
         return members.Select(c => new GroupMemberEntry
