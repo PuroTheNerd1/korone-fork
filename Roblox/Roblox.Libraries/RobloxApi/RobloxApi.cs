@@ -209,14 +209,36 @@ public class RobloxApi
 {
     private class RobloxApiHttpClient : HttpClient
     {
+        private string _token = Configuration.RobloxAuthorization;
+
         public RobloxApiHttpClient() : base(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
         {
-            DefaultRequestHeaders.Add("Cookie", ".ROBLOSECURITY=" + Configuration.RobloxAuthorization);
             DefaultRequestHeaders.Add("Accept", "*/*");
             DefaultRequestHeaders.Add("User-Agent", "Roblox/WinInet");
             DefaultRequestHeaders.Add("Roblox-Browser-Asset-Request", "false");
         }
+
+        public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            request.Headers.Add("Cookie", ".ROBLOSECURITY=" + _token);
+
+            var response = await base.SendAsync(request, cancellationToken);
+
+            if (response.Headers.TryGetValues("Set-Cookie", out var headers))
+            {
+                var jar = new CookieContainer();
+                foreach (var header in headers)
+                    jar.SetCookies(request.RequestUri!, header);
+
+                var cookie = jar.GetCookies(request.RequestUri!)[".ROBLOSECURITY"];
+                if (cookie != null)
+                    _token = cookie.Value;
+            }
+
+            return response;
+        }
     }
+
     private static HttpClient robloxApiClient { get; } = new RobloxApiHttpClient();
     public async Task<ProductInfoWithAssetDelivery> GetProductInfoAssetDelivery(long assetId)
     {
