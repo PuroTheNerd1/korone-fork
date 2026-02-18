@@ -3,9 +3,9 @@ import OldModal from "../../oldModal";
 import MyAccountStore from "../stores/myAccountStore"
 import ModalChangePassword from "./modalChangePassword";
 import ModalChangeUsername from "./modalChangeUsername";
+import ModalTotpCode from "./modalTotpCode";
 
 const ModalHandler = props => {
-  // TODO: once 2016 modal is created, switch this to 2016 modal
   const store = MyAccountStore.useContainer();
   switch (store.modal) {
     case 'MODAL_OK':
@@ -29,6 +29,18 @@ const ModalHandler = props => {
         store.setModal(null);
       }}>
         <ModalChangeUsername></ModalChangeUsername>
+      </OldModal>
+    case 'TOTP_ENABLE':
+      return <OldModal title='Enable Two-Factor Authentication' onClose={() => {
+        store.setModal(null);
+      }}>
+        <ModalTotpCode mode='enable' />
+      </OldModal>
+    case 'TOTP_DISABLE':
+      return <OldModal title='Remove Two-Factor Authentication' onClose={() => {
+        store.setModal(null);
+      }}>
+        <ModalTotpCode mode='disable' />
       </OldModal>
   }
   return null;

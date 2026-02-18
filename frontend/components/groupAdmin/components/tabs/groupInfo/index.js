@@ -5,15 +5,16 @@ import ActionButton from "../../../../actionButton";
 import {setGroupDescription, setGroupIcon, renameGroup} from "../../../../../services/groups";
 import groupAdminStore from "../../../stores/groupAdminStore";
 import authentication from "../../../../../stores/authentication";
+import FeedbackStore from "../../../../../stores/feedback";
+import { FeedbackType } from "../../../../../models/feedback";
 
 const GroupInfo = props => {
   const store = groupAdminStore.useContainer();
   const auth = authentication.useContainer();
+  const feedback = FeedbackStore.useContainer();
   const description = useRef(props.info.description);
   const fileRef = useRef(null);
   const [newName, setNewName] = useState('');
-  const [nameError, setNameError] = useState(null);
-  const [nameSuccess, setNameSuccess] = useState(null);
   const [nameSaving, setNameSaving] = useState(false);
 
   const isOwner = props.info.owner && auth.userId && props.info.owner.userId === auth.userId;
@@ -73,20 +74,16 @@ const GroupInfo = props => {
         />
         <ActionButton label={nameSaving ? 'Saving...' : 'Save Name (100 Robux)'} onClick={() => {
           if (!newName.trim()) return;
-          setNameError(null);
-          setNameSuccess(null);
           setNameSaving(true);
           renameGroup({groupId: props.groupId, name: newName.trim()}).then(() => {
-            setNameSuccess('Group name changed successfully. Reloading...');
+            feedback.addFeedback('Group name changed successfully', FeedbackType.SUCCESS);
             setTimeout(() => window.location.reload(), 1500);
           }).catch(e => {
-            setNameError(e.message || 'Failed to rename group');
+            feedback.addFeedback(e.response?.data?.errors?.[0]?.message || 'Failed to rename group', FeedbackType.ERROR);
             setNameSaving(false);
           });
         }} />
       </div>
-      {nameError && <p className='text-danger mt-2'>{nameError}</p>}
-      {nameSuccess && <p className='text-success mt-2'>{nameSuccess}</p>}
     </div>}
   </div>
 }
