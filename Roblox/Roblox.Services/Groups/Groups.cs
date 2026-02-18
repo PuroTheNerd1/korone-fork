@@ -1252,13 +1252,11 @@ public class GroupsService : ServiceBase, IService
         var nameValidationResult = NameValidationRegex.Match(newName);
         if (nameValidationResult.Value.Length == 0 || newName.Length > 50 || newName.StartsWith(" ") || newName.EndsWith(" "))
             throw new ArgumentException("The name is invalid");
-        if (RudimentaryTextFilter.Match(newName).Success)
-            throw new ArgumentException("The name is moderated");
 
         var currentGroup = await GetGroupById(groupId);
         var actorRole = await GetUserRoleInGroup(groupId, userId);
         if (actorRole.rank != 255 || currentGroup.owner == null || currentGroup.owner.userId != userId)
-            throw new RobloxException(401, 0, "Unauthorized");
+            throw new ArgumentException("Unauthorized");
 
         if (string.Equals(currentGroup.name, newName, StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("The new name is the same as the current name");
@@ -1266,16 +1264,12 @@ public class GroupsService : ServiceBase, IService
         if (await IsGroupNameTaken(newName))
             throw new ArgumentException("The name has already been taken");
 
-        var cooldownKey = "GroupRename:" + groupId;
-        if (await redis.StringGetAsync(cooldownKey) != null)
-            throw new RobloxException(429, 0, "This group has already been renamed in the last 30 days");
-
         await InTransaction(async _ =>
         {
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
             var bal = await ec.GetUserBalance(userId);
             if (bal.robux < 100)
-                throw new RobloxException(400, 0, "You do not have enough Robux to rename this group");
+                throw new ArgumentException("You do not have enough Robux to rename this group");
 
             await ec.DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, 100);
             await InsertAsync("user_transaction", new
@@ -1313,8 +1307,6 @@ public class GroupsService : ServiceBase, IService
 
             return 0;
         });
-
-        await redis.StringSetAsync(cooldownKey, "1", TimeSpan.FromDays(30));
     }
 
     public async Task<IEnumerable<string>> GetPreviousGroupNames(long groupId)

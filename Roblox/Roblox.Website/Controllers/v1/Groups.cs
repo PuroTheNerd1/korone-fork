@@ -526,12 +526,22 @@ public class GroupsControllerV1 : ControllerBase
     {
         FeatureCheck();
         await CheckPermission(groupId, GroupPermission.Owner);
+
+        var filteredName = services.filter.FilterText(request.name);
+        if (filteredName.Length > 0 && filteredName.All(c => c == '#'))
+            throw new BadRequestException(0, "The name is moderated");
+
+        var cooldownKey = "GroupRename:" + groupId;
+        if (!await services.cooldown.TryCooldownCheck(cooldownKey, TimeSpan.FromDays(30)))
+            throw new TooManyRequestsException(0, "This group has already been renamed in the last 30 days");
+
         try
         {
-            await services.groups.RenameGroup(groupId, safeUserSession.userId, request.name);
+            await services.groups.RenameGroup(groupId, safeUserSession.userId, filteredName);
         }
         catch (ArgumentException e)
         {
+            await services.cooldown.ResetCooldown(cooldownKey);
             throw new BadRequestException(0, e.Message);
         }
     }
