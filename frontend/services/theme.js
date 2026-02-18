@@ -159,7 +159,7 @@ const getAlertsDisabled = () => {
     if (!isLocalStorageAvailable) return 'enabled';
     
     let value = localStorage.getItem('rbx_alerts_disabled_v1');
-    // validate
+    // Convert stored 'true' string to 'disabled' state
     if (value === 'true') return 'disabled';
     return 'enabled';
 }
