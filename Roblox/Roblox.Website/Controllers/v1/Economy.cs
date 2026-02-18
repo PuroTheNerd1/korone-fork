@@ -82,8 +82,8 @@ public class EconomyControllerV1 : ControllerBase
         if(request.price != 0)
         {
             // Anti lpp
-            if (rsData.recentAveragePrice != 0 && request.price < (rsData.recentAveragePrice * 0.60)) {
-                throw new BadRequestException(0, "You cannot sell this item for less than 60% of the recent average price");
+            if (rsData.recentAveragePrice != 0 && request.price < (rsData.recentAveragePrice * 0.30)) {
+                throw new BadRequestException(0, "You cannot sell this item for less than 30% of the recent average price");
             }
 
             // Check if the request price is less than OG price
