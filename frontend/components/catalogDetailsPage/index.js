@@ -121,7 +121,8 @@ const CatalogDetails = props => {
   const showGear = hasItemToDeList ||
     hasItemToSell ||
     isCreator ||
-    (store.ownedCopies && store.ownedCopies.length > 0) // Collection stuff
+    (store.ownedCopies && store.ownedCopies.length > 0) || // Collection stuff
+    store.inCollection // removing from collection even without owning the item
 
   if (!store.details) return null;
 
