@@ -240,7 +240,7 @@
 				</div>
 				<ManageTextContent userId={userId} />
 
-				{#if rank.hasPermission("BanUser")}
+				{#if rank.hasPermission("SetPermissions")}
 					<ManagePermissions userId={userId} />
 				{/if}
 			</div>
