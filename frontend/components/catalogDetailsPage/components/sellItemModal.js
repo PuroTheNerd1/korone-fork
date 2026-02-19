@@ -34,6 +34,9 @@ const SellItemModal = props => {
 
   if (!store.ownedCopies || !store.resaleModalOpen) return null;
   const sellableCopies = store.ownedCopies.filter(v => v.price === 0 || v.price === null);
+  const rap = store.resaleData?.recentAveragePrice || 0;
+  const minPrice = rap > 0 ? Math.ceil(rap * 0.3) : 1;
+  const isPriceInvalid = price < minPrice || price > 999999;
 
   return <OldModal title="Sell Your Collectible Item">
     {error && <div className='row'><div className='col-12 text-danger mb-0'>{error}</div></div>}
@@ -47,7 +50,7 @@ const SellItemModal = props => {
         }
         <div className={s.inlineRow}>
           <div className={s.inlineSelect}>
-            <p className='mb-0'>Price (minimum 1): <Robux inline={true}></Robux></p>
+            <p className='mb-0'>Price (minimum {minPrice}): <Robux inline={true}></Robux></p>
           </div>
           <div className={s.inlineSelect}>
             <input disabled={locked} value={price} className={s.priceInput} type='text' onChange={(e) => {
@@ -71,7 +74,7 @@ const SellItemModal = props => {
           <div className='col-8 offset-2'>
             <div className='row'>
               <div className='col-6 pe-0'>
-                <ActionButton disabled={locked} label='Sell Now' className={buttonStyles.buyButton} onClick={(e) => {
+                <ActionButton disabled={locked || isPriceInvalid} label='Sell Now' className={buttonStyles.buyButton} onClick={(e) => {
                   e.preventDefault();
                   setLocked(true);
                   let userAssetId = toSell;
