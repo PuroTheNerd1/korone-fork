@@ -30,7 +30,6 @@
                 }
                 <label>Select a Report Reason</label>
                 <select class="form-control" name="reportReason">
-                    <option value="None">None</option>
                     <option value="@AbuseReportReason.BadPrivateMessage">Private Message</option>
                     <option value="@AbuseReportReason.Bullying">Bullying</option>
                     <option value="@AbuseReportReason.RacismHomophobiaOrDiscrimination">Racism, Homophobia or/and Discrimination</option>
@@ -38,6 +37,7 @@
                     <option value="@AbuseReportReason.Underage">Underage</option>
                     <option value="@AbuseReportReason.BadAsset">Bad Asset</option>
                     <option value="@AbuseReportReason.InappropriateContent">Inappropriate Content</option>
+                    <option value="@AbuseReportReason.Other">Other</option>
                 </select>
                 <label class="mt-4">Enter a report message. Try to include as much detail as possible, such as names of users involved and links to screenshots (if applicable).</label>
                 <textarea name="reportMessage" type="text" class="form-control" placeholder="Roblox Asset ID or Roblox URL" rows="5" maxlength="1000">@(Model.reportMessage ?? "")</textarea>

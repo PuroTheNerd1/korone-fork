@@ -44,6 +44,7 @@ public class ReportAbuse : RobloxPageModel
         AbuseReportReason.Underage,
         AbuseReportReason.BadAsset,
         AbuseReportReason.InappropriateContent,
+        AbuseReportReason.Other,
     };
 
     public async Task OnPost()
@@ -69,7 +70,7 @@ public class ReportAbuse : RobloxPageModel
         // check that it is at least 10 alpha characters
         var reportLen = string.Join("",
             _alphaNumericRegex.Match(reportMessage).Groups.Values.Select(c => c.Value).ToArray());
-        if (reportLen.Length > 10)
+        if (reportLen.Length < 10)
         {
             failureMessage = "Report message be at least 10 characters. Please try again.";
             return;

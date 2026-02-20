@@ -12,6 +12,7 @@ public enum AbuseReportReason
     Underage = 8,
     BadAsset = 9,
     InappropriateContent = 10,
+    Other = 11,
 }
 
 public enum AbuseReportStatus
