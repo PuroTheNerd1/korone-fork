@@ -96,7 +96,7 @@ const NavSideBar = props => {
         width: window.innerWidth
     })
     const s = useNavSideBarStyles({ theme: getTheme() });
-    const [pendingCount, setPendingCount] = useState(69);
+    const [pendingCount, setPendingCount] = useState(0);
     useEffect(() => {
         window.addEventListener('resize', () => {
             setDimensions({
@@ -133,9 +133,6 @@ const NavSideBar = props => {
         }
         setPending().then();
     }, []);
-    useEffect(() => {
-        if (pendingCount === 0) setPendingCount(69);
-    }, [pendingCount]);
     const paddingTop = mainNavBarRef.current && mainNavBarRef.current.clientHeight + 'px' || 0;
     
     if (navStore.isSidebarOpen === false && dimensions.width <= 1324) {
