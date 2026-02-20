@@ -164,8 +164,8 @@ const useStyles = createUseStyles({
     },
     popupIcon: {
         marginRight: '10px',
-        width: '20px',
-        textAlign: 'center',
+        width: '28px',
+        height: '28px',
         flexShrink: 0,
     },
 });
@@ -250,12 +250,12 @@ const FriendEntry = props => {
                 )}
                 <div className={s.popupActions}>
                     <a className={s.popupAction} href='#' onClick={openChat}>
-                        <span className={`${s.popupIcon} avatar-status icon-chat`} />
+                        <span className={`${s.popupIcon} icon-message`} />
                         Chat with {props.name}
                     </a>
                     <Link href={`/users/${props.id}/profile`}>
                         <a className={s.popupAction}>
-                            <span className={`${s.popupIcon} icon-menu-profile`} />
+                            <span className={`${s.popupIcon} icon-profile`} />
                             View Profile
                         </a>
                     </Link>
