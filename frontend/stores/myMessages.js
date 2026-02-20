@@ -57,7 +57,7 @@ const MyMessagesStore = createContainer(() => {
     } else {
       setMessages(null);
     }
-  }, [highlightedMessage, tab, offset]);
+  }, [tab, offset]);
 
   return {
     limit,

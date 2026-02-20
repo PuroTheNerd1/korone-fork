@@ -101,10 +101,11 @@ const LargeMessage = props => {
     if (store.notifications?.collection.some(n => n.id === props.id)) {
       store.markNotificationAsRead(props.id);
     } else if (props.read !== true && props.fromUserId !== auth.userId) {
+      store.setMessages(prev => prev ? prev.map(v => v.id === props.id ? {...v, isRead: true} : v) : prev);
       toggleReadStatus({
         messageIds: [props.id],
         isRead: true,
-      })
+      });
     }
   }, []);
 
