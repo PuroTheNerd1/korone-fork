@@ -164,8 +164,6 @@ const useStyles = createUseStyles({
     },
     popupIcon: {
         marginRight: '10px',
-        width: '28px',
-        height: '28px',
         flexShrink: 0,
     },
 });
@@ -176,6 +174,7 @@ const FriendEntry = props => {
     const onlineStatus = store.friendStatus && store.friendStatus[props.id];
     const s = useStyles();
     const liRef = useRef(null);
+    const hideTimeoutRef = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
     const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
     const [gameThumbnail, setGameThumbnail] = useState(null);
@@ -183,7 +182,17 @@ const FriendEntry = props => {
     const isOnline = onlineStatus && dayjs(onlineStatus.lastOnline).isAfter(dayjs().subtract(5, 'minutes'));
     const isPlaying = onlineStatus?.lastLocation === 'Playing';
 
+    const cancelHide = () => {
+        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    };
+
+    const scheduleHide = () => {
+        cancelHide();
+        hideTimeoutRef.current = setTimeout(() => setIsHovered(false), 150);
+    };
+
     const handleMouseEnter = () => {
+        cancelHide();
         if (liRef.current) {
             const rect = liRef.current.getBoundingClientRect();
             setPopupPos({
@@ -217,7 +226,7 @@ const FriendEntry = props => {
         setIsHovered(false);
     };
 
-    return <li className={s.friendEntry} ref={liRef} onMouseEnter={handleMouseEnter} onMouseLeave={() => setIsHovered(false)}>
+    return <li className={s.friendEntry} ref={liRef} onMouseEnter={handleMouseEnter} onMouseLeave={scheduleHide}>
         <div className={s.friendWrapper}>
             <span>
                 <Link href={`/users/${props.id}/profile`}>
@@ -232,7 +241,10 @@ const FriendEntry = props => {
             </span>
         </div>
         {isHovered && (
-            <div className={s.popup} style={{ top: popupPos.top, left: popupPos.left }}>
+            <div className={s.popup} style={{ top: popupPos.top, left: popupPos.left }}
+                onMouseEnter={cancelHide}
+                onMouseLeave={scheduleHide}
+            >
                 {isPlaying && isOnline && (
                     <div className={s.gameSection}>
                         {gameThumbnail
@@ -250,12 +262,12 @@ const FriendEntry = props => {
                 )}
                 <div className={s.popupActions}>
                     <a className={s.popupAction} href='#' onClick={openChat}>
-                        <span className={`${s.popupIcon} icon-message`} />
+                        <span className={`${s.popupIcon} icon-nav-message`} />
                         Chat with {props.name}
                     </a>
                     <Link href={`/users/${props.id}/profile`}>
                         <a className={s.popupAction}>
-                            <span className={`${s.popupIcon} icon-profile`} />
+                            <span className={`${s.popupIcon} icon-nav-profile`} />
                             View Profile
                         </a>
                     </Link>
