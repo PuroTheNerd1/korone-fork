@@ -98,7 +98,9 @@ const LargeMessage = props => {
   const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
-    if (props.id !== 1 && props.read !== true && props.fromUserId !== auth.userId) {
+    if (store.notifications?.collection.some(n => n.id === props.id)) {
+      store.markNotificationAsRead(props.id);
+    } else if (props.read !== true && props.fromUserId !== auth.userId) {
       toggleReadStatus({
         messageIds: [props.id],
         isRead: true,

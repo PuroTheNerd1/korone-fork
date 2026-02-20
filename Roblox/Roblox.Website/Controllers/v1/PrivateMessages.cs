@@ -27,11 +27,11 @@ public class PrivateMessagesControllerV1 : ControllerBase
                 displayName = "supra",
             },
             subject = "Welcome to Korone!",
-            body = @"Hello, and welcome to Korone! My name is Supra. I started Korone so you and your friends can experience just about anything you could possibly imagine across immersive user-generated 3D worlds, whether you’re sailing across the open seas, exploring the farthest reaches of outer space, or hanging out with your friends in a virtual club. I’m here to make sure your experience stays fun, safe, and creative.
+            body = @"Hello, and welcome to Korone! My name is Supra. I started Korone so you and your friends can experience just about anything you could possibly imagine across immersive user-generated 3D worlds, whether you're sailing across the open seas, exploring the farthest reaches of outer space, or hanging out with your friends in a virtual club. I'm here to make sure your experience stays fun, safe, and creative.
 
-Before you jump in and start playing, here are a few tips. You can [customize your avatar](/My/Avatar) using our massive catalog of clothing and accessory options. Once you’re set, pick something to play by checking out [our most popular games](/games)! Did you know you can also play games with your friends across different devices at the same time, even if you’re on a computer and they’re using their phone or VR headset? Finding friends on Korone is easy! Join or create a group, or invite others to play a game with you by sending them a chat message.
+Before you jump in and start playing, here are a few tips. You can [customize your avatar](/My/Avatar) using our massive catalog of clothing and accessory options. Once you're set, pick something to play by checking out [our most popular games](/games)! Did you know you can also play games with your friends across different devices at the same time, even if you're on a computer and they're using their phone or VR headset? Finding friends on Korone is easy! Join or create a group, or invite others to play a game with you by sending them a chat message.
 
-That’s all there is to it! Now, get ready for an epic adventure. We hope you have a blast!
+That's all there is to it! Now, get ready for an epic adventure. We hope you have a blast!
 
 Sincerely,
 

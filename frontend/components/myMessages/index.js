@@ -42,7 +42,7 @@ const MyMessages = props => {
                 {
                   name: 'Notifications',
                   element: <MessageRow tab='notifications'/>,
-                  count: store.notifications ? store.notifications.collection.length : undefined,
+                  count: store.notifications ? store.notifications.collection.filter(n => !store.readNotificationIds.includes(n.id)).length || undefined : undefined,
                 },
                 {
                   name: 'Archive',
