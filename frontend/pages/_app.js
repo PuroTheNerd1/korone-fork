@@ -17,6 +17,7 @@ import GlobalAlert from '../components/globalAlert';
 import ThumbnailStore from "../stores/thumbnailStore";
 import getFlag from "../lib/getFlag";
 import Chat from "../components/chat";
+import ChatStore from "../components/chat/chatStore";
 import FeedbackStore from "../stores/feedback";
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime.js'
@@ -89,8 +90,10 @@ function RobloxApp({Component, pageProps}) {
                     {getFlag('clientSideRenderingEnabled', false) ?
                         <NextNProgress options={{showSpinner: true}} color='var(--primary-color)' height={4}/> : null}
                     <ThumbnailStore.Provider>
-                        <Component {...pageProps} />
-                        <Chat/>
+                        <ChatStore.Provider>
+                            <Component {...pageProps} />
+                            <Chat/>
+                        </ChatStore.Provider>
                     </ThumbnailStore.Provider>
                 </MainWrapper>
             </FeedbackStore.Provider>

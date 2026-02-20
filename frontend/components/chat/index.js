@@ -1,7 +1,6 @@
 import {useEffect, useState} from "react";
 import ChatContainer from "./container";
 import {getChatSettings} from "../../services/chat";
-import ChatStore from "./chatStore";
 
 const Chat = props => {
   const [enabled, setEnabled] = useState(null);
@@ -18,9 +17,7 @@ const Chat = props => {
   if (!enabled)
     return null;
 
-  return <ChatStore.Provider>
-    <ChatContainer />
-  </ChatStore.Provider>
+  return <ChatContainer />
 }
 
 export default Chat;
