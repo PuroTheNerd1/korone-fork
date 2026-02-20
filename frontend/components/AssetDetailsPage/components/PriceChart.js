@@ -1,15 +1,24 @@
 import { createUseStyles } from "react-jss";
 import AssetDetailsStore from "../stores/AssetDetailsStore";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { formatNum } from "../index";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-import { CurrencySize, CurrencyType } from "../../../models/enums";
+import { CurrencyType } from "../../../models/enums";
 import Currency from "../../Currency";
+
+const TIMELINE_OPTIONS = [
+    { label: "180 Days", value: 180 },
+    { label: "90 Days", value: 90 },
+    { label: "30 Days", value: 30 },
+];
 
 const useStyles = createUseStyles({
     containerHeader: {
         margin: "3px 0 6px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
         "& h3": {
             fontSize: 20,
             fontWeight: 700,
@@ -21,6 +30,9 @@ const useStyles = createUseStyles({
         justifyContent: "space-around",
         alignItems: "center",
         width: "100%",
+        marginTop: 12,
+        paddingTop: 12,
+        borderTop: "1px solid #e3e3e3",
     },
     priceChartStat: {
         display: "flex",
@@ -33,17 +45,20 @@ const useStyles = createUseStyles({
         color: "#b8b8b8",
         fontWeight: 500,
     },
-    priceIcon: {
-        marginRight: 3,
-        width: 20,
-        height: 20,
-        backgroundSize: "40px auto",
-        backgroundPosition: "0 -80px",
+    timelineSelect: {
+        fontSize: 14,
+        padding: "4px 24px 4px 8px",
+        borderRadius: 3,
+        border: "1px solid #e3e3e3",
+        cursor: "pointer",
+        backgroundColor: "#fff",
+        color: "var(--text-color-primary)",
+        appearance: "auto",
     },
-    priceLabel: {
-        lineHeight: "1.4em",
-        fontSize: 16,
-        fontWeight: 500,
+    timelineDropdownContainer: {
+        display: "flex",
+        justifyContent: "flex-end",
+        marginBottom: 6,
     },
 });
 
@@ -60,65 +75,192 @@ function PriceChart({ isLabelHidden = false }) {
         originalPrice: -1,
         averagePrice: -1,
     });
-    const [priceChartData, setPriceChartData] = useState(([]));
-    const [volumeChartData, setVolumeChartData] = useState(([]));
-    const [chartPref, setChartPref] = useState({
-        timeline: 0, // 0 = 180 days, 2 = 90, 3 = 30
-    });
-    
+    const [priceChartData, setPriceChartData] = useState([]);
+    const [volumeChartData, setVolumeChartData] = useState([]);
+    const [timelineDays, setTimelineDays] = useState(180);
+
     useEffect(() => {
         if (!store.resaleData) return;
         setPriceChartData(store.resaleData.priceDataPoints.map(d => [
             new Date(d.date).getTime(),
             d.value,
         ]));
-        setVolumeChartData(store.resaleData.volumeDataPoints);
+        setVolumeChartData(store.resaleData.volumeDataPoints.map(d => [
+            new Date(d.date).getTime(),
+            d.value,
+        ]));
     }, [store.resaleData]);
-    
+
     useEffect(() => {
         if (!store.details || !store.resaleData) return;
-        let currency = store.details?.priceTickets ? CurrencyType.Tickets : CurrencyType.Robux;
-        let originalPrice = store.details?.priceTickets || store.details?.price || 0;
-        let avgPrice = store.resaleData.recentAveragePrice;
+        const currency = store.details?.priceTickets ? CurrencyType.Tickets : CurrencyType.Robux;
+        const originalPrice = store.details?.priceTickets || store.details?.price || 0;
+        const avgPrice = store.resaleData.recentAveragePrice;
         setPrices({
             originalPriceCurrency: currency,
             originalPrice: originalPrice,
             averagePrice: avgPrice,
         });
     }, [store.details, store.resaleData]);
-    
+
+    const filteredPriceData = useMemo(() => {
+        const cutoff = Date.now() - timelineDays * 24 * 60 * 60 * 1000;
+        return priceChartData.filter(([ts]) => ts >= cutoff);
+    }, [priceChartData, timelineDays]);
+
+    const filteredVolumeData = useMemo(() => {
+        const cutoff = Date.now() - timelineDays * 24 * 60 * 60 * 1000;
+        return volumeChartData.filter(([ts]) => ts >= cutoff);
+    }, [volumeChartData, timelineDays]);
+
+    const chartOptions = useMemo(() => ({
+        chart: {
+            style: {
+                fontFamily: "HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif",
+            },
+            height: 200,
+            backgroundColor: "transparent",
+            margin: [20, 20, 40, 55],
+        },
+        title: { text: null },
+        credits: { enabled: false },
+        legend: {
+            enabled: true,
+            align: "left",
+            verticalAlign: "top",
+            itemStyle: {
+                fontWeight: 500,
+                fontSize: 12,
+                color: "#888",
+            },
+            symbolRadius: 0,
+            symbolHeight: 3,
+            y: -12,
+        },
+        xAxis: {
+            type: "datetime",
+            labels: {
+                formatter: function () {
+                    return Highcharts.dateFormat("%m/%d", this.value);
+                },
+                style: { fontSize: 11, color: "#b8b8b8" },
+            },
+            lineColor: "#e3e3e3",
+            tickColor: "#e3e3e3",
+        },
+        yAxis: [
+            {
+                title: { text: null },
+                labels: {
+                    formatter: function () {
+                        if (this.value >= 1000) return (this.value / 1000) + "K";
+                        return this.value;
+                    },
+                    style: { fontSize: 11, color: "#b8b8b8" },
+                },
+                gridLineColor: "#e3e3e3",
+                min: 0,
+            },
+            {
+                title: { text: null },
+                labels: { enabled: false },
+                gridLineWidth: 0,
+                opposite: false,
+                min: 0,
+            },
+        ],
+        tooltip: {
+            formatter: function () {
+                return formatNum(this.y);
+            },
+            backgroundColor: "#444",
+            style: { color: "#fff", fontSize: 14, fontWeight: "600" },
+            borderWidth: 0,
+            borderRadius: 4,
+            shadow: false,
+        },
+        plotOptions: {
+            line: {
+                marker: {
+                    enabled: false,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            radius: 5,
+                            fillColor: "#00a36c",
+                            lineColor: "#fff",
+                            lineWidth: 2,
+                        },
+                    },
+                },
+            },
+            column: {
+                borderWidth: 0,
+                groupPadding: 0.05,
+                pointPadding: 0,
+            },
+        },
+        series: [
+            {
+                name: "Recent Average Price",
+                type: "line",
+                data: filteredPriceData,
+                color: "#00a36c",
+                lineWidth: 2,
+                yAxis: 0,
+            },
+            {
+                name: "Volume",
+                type: "column",
+                data: filteredVolumeData,
+                color: "#c8c8c8",
+                yAxis: 1,
+            },
+        ],
+    }), [filteredPriceData, filteredVolumeData]);
+
     if (!store.resaleData?.sales) {
         return <div>
             {
                 !isLabelHidden ? <div className={`flex ${s.containerHeader}`}>
-                    <h3 style={{ margin: 0, }}>Price Chart</h3>
+                    <h3>Price Chart</h3>
                 </div> : null
             }
-            <div className={`section-content`}>
+            <div className="section-content">
                 <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
             </div>
         </div>
     }
-    
+
     return <div>
         {
             !isLabelHidden ? <div className={`flex ${s.containerHeader}`}>
-                <h3 style={{ margin: 0, }}>Price Chart</h3>
-            </div> : null
+                <h3>Price Chart</h3>
+                <select
+                    className={s.timelineSelect}
+                    value={timelineDays}
+                    onChange={e => setTimelineDays(Number(e.target.value))}
+                >
+                    {TIMELINE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </select>
+            </div> : <div className={s.timelineDropdownContainer}>
+                <select
+                    className={s.timelineSelect}
+                    value={timelineDays}
+                    onChange={e => setTimelineDays(Number(e.target.value))}
+                >
+                    {TIMELINE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </select>
+            </div>
         }
-        <div className={`section-content noShadow`}>
-            {/*<div className={`flex flex-column w-100`}>*/}
-            {/*    <HighchartsReact highcharts={Highcharts} options={{*/}
-            {/*        chart: {*/}
-            {/*            type: "line",*/}
-            {/*            style: {*/}
-            {/*                fontFamily: "HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif",*/}
-            {/*            },*/}
-            {/*        },*/}
-            {/*        xAxis: { type: "datetime" },*/}
-            {/*        series: [{ data: priceChartData }],*/}
-            {/*    }}/>*/}
-            {/*</div>*/}
+        <div className="section-content noShadow">
+            <div className="flex flex-column w-100">
+                <HighchartsReact highcharts={Highcharts} options={chartOptions}/>
+            </div>
             <div className={s.priceChartStatsContainer}>
                 <div className={s.priceChartStat}>
                     <span className={s.priceChartTextLabel}>Quantity Sold</span>
@@ -126,10 +268,7 @@ function PriceChart({ isLabelHidden = false }) {
                 </div>
                 <div className={s.priceChartStat}>
                     <span className={s.priceChartTextLabel}>Original Price</span>
-                    <div className={`${s.priceContainer} flex`}>
-                        {/*<span className={`icon-robux ${s.priceIcon}`}/>*/}
-                        {/*<span className={s.priceLabel}*/}
-                        {/*      style={{ color: "var(--robux-color)" }}>{formatNum(store.details.price)}</span>*/}
+                    <div className={`flex`}>
                         <Currency
                             canBeFree
                             price={prices.originalPrice}
@@ -139,10 +278,7 @@ function PriceChart({ isLabelHidden = false }) {
                 </div>
                 <div className={s.priceChartStat}>
                     <span className={s.priceChartTextLabel}>Average Price</span>
-                    <div className={`${s.priceContainer} flex`}>
-                        {/*<span className={`icon-robux ${s.priceIcon}`}/>*/}
-                        {/*<span className={s.priceLabel}*/}
-                        {/*      style={{ color: "var(--robux-color)" }}>{formatNum(store.resaleData.recentAveragePrice)}</span>*/}
+                    <div className={`flex`}>
                         <Currency
                             price={prices.averagePrice}
                             currencyType={CurrencyType.Robux}
