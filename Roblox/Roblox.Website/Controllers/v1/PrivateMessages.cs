@@ -38,6 +38,7 @@ Sincerely,
 Supra, CEO of Korone",
             created = "2021-01-13T12:00:00.42Z",
             updated = "2021-01-13T12:00:00.42Z",
+            isReplyable = false,
         }
     };
     [HttpGet("announcements/metadata")]
@@ -61,6 +62,7 @@ Supra, CEO of Korone",
             m.body,
             created = userInfo.created,
             updated = userInfo.created,
+            isReplyable = false,
         } : (dynamic)m).ToList();
         return new
         {
@@ -84,6 +86,15 @@ Supra, CEO of Korone",
     public async Task<dynamic> SendMessage([Required,FromBody] SendMessageRequest request)
     {
         FeatureCheck();
+        if (GlobalMessages.Any(m => m.id == request.replyMessageId && m.isReplyable == false))
+        {
+            return new
+            {
+                success = false,
+                shortMessage = "GeneralError",
+                message = "You cannot reply to this message.",
+            };
+        }
         if (await services.privateMessages.IsFloodChecked(safeUserSession.userId))
         {
             return new

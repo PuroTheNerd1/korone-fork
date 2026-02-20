@@ -59,13 +59,33 @@ const useStyles = createUseStyles({
  * @param {{fromUserId: number; fromUserName: string; subject: string; body: string; created: string; id: number; read: boolean;}} props
  * @returns
  */
+const renderBody = (body, fromUserId) => {
+  if (fromUserId !== 443) return body;
+  const parts = [];
+  const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(body)) !== null) {
+    if (match.index > lastIndex) parts.push(body.slice(lastIndex, match.index));
+    const url = match[2];
+    if (url.startsWith('/')) {
+      parts.push(<a key={match.index} href={url} className='link2019'>{match[1]}</a>);
+    } else {
+      parts.push(match[0]);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < body.length) parts.push(body.slice(lastIndex));
+  return parts;
+};
+
 const LargeMessage = props => {
   const s = useStyles();
   const buttonStyles = useButtonStyles();
   const store = MyMessagesStore.useContainer();
   const [reply, setReply] = useState(false);
   const replyInputRef = useRef(null);
-  const showReplyButton = props.fromUserId !== 1;
+  const showReplyButton = props.fromUserId !== 1 && props.isReplyable !== false;
   const auth = AuthenticationStore.useContainer();
   const [feedback, setFeedback] = useState(null);
 
@@ -115,7 +135,7 @@ const LargeMessage = props => {
     </div>
     <div className='col-12'>
       <p className={s.body + ' mt-2'}>
-        {props.body}
+        {renderBody(props.body, props.fromUserId)}
       </p>
     </div>
     {
