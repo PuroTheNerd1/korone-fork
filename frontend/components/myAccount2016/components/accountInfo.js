@@ -220,7 +220,8 @@ const  AccountInfo = props => {
                             {store.theme.customColor ? (
                                 <div
                                     onClick={() => setShowColorPicker(!showColorPicker)}
-                                    style={{display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '6px 8px', border: '1px solid #ccc', borderRadius: '4px', background: 'var(--white-color)'}}
+                                    className={'form-control ' + s.select}
+                                    style={{display: 'flex', alignItems: 'center', cursor: 'pointer'}}
                                 >
                                     <div style={{width: 20, height: 20, background: store.theme.customColor, borderRadius: 3, marginRight: 8, border: '1px solid #aaa', flexShrink: 0}}></div>
                                     <span style={{fontFamily: 'monospace', fontSize: 13}}>{store.theme.customColor}</span>
