@@ -168,19 +168,6 @@ const setThemeCustomColor = (hex) => {
     localStorage.setItem('rbx_theme_custom_color_v1', hex);
 }
 
-const getAlertsDisabled = () => {
-    if (!isLocalStorageAvailable) return 'enabled';
-    
-    let value = localStorage.getItem('rbx_alerts_disabled_v1');
-    // Convert stored 'true' string to 'disabled' state
-    if (value === 'true') return 'disabled';
-    return 'enabled';
-}
-
-const setAlertsDisabled = (value) => {
-    if (!isLocalStorageAvailable) return;
-    localStorage.setItem('rbx_alerts_disabled_v1', value === 'disabled' ? 'true' : 'false');
-}
 
 export {
     getTheme,
@@ -210,9 +197,6 @@ export {
     getThemeCustomColor,
     setThemeCustomColor,
 
-    getAlertsDisabled,
-    setAlertsDisabled,
-    
     themeType,
     themeColor,
     themeFont,
