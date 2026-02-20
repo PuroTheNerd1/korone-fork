@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { useState, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { getGameUrl, multiGetUniverseDetails } from "../../../services/games";
+import { getTheme, themeType } from "../../../services/theme";
 import { multiGetUniverseIcons2 } from "../../../services/thumbnails";
 import Activity from "../../userActivity";
 import ChatStore from "../../chat/chatStore";
@@ -170,6 +171,7 @@ const useStyles = createUseStyles({
     popupIcon: {
         marginRight: '10px',
         flexShrink: 0,
+        filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
     },
 });
 
@@ -177,7 +179,7 @@ const FriendEntry = props => {
     const store = DashboardStore.useContainer();
     const chatStore = ChatStore.useContainer();
     const onlineStatus = store.friendStatus && store.friendStatus[props.id];
-    const s = useStyles();
+    const s = useStyles({ theme: getTheme() });
     const liRef = useRef(null);
     const hideTimeoutRef = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
