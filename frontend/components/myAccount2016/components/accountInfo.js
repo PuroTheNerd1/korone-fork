@@ -1,5 +1,4 @@
-import React, { useRef, useState } from "react";
-import { SketchPicker } from 'react-color';
+import React, { useRef } from "react";
 import { createUseStyles } from "react-jss";
 import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
@@ -38,7 +37,7 @@ const  AccountInfo = props => {
     const store = MyAccountStore.useContainer();
     const auth = AuthenticationStore.useContainer();
     const descRef = useRef(null);
-    const [showColorPicker, setShowColorPicker] = useState(false);
+    const colorInputRef = useRef(null);
     
     const isDebug = false;
     const year = new Date().getFullYear();
@@ -217,36 +216,28 @@ const  AccountInfo = props => {
                                    type='text'></input>
                         </div>
                         <div className='col ps-0 pe-0' style={{position: 'relative'}}>
-                            {store.theme.customColor ? (
-                                <div
-                                    onClick={() => setShowColorPicker(!showColorPicker)}
-                                    className={'form-control ' + s.select}
-                                    style={{display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%'}}
-                                >
-                                    <div style={{width: 20, height: 20, background: store.theme.customColor, borderRadius: 3, marginRight: 8, border: '1px solid #aaa', flexShrink: 0}}></div>
-                                    <span style={{fontFamily: 'monospace', fontSize: 13}}>{store.theme.customColor}</span>
-                                </div>
-                            ) : (
-                                <button className={s.saveButton} onClick={() => setShowColorPicker(!showColorPicker)}>Choose</button>
-                            )}
-                            {showColorPicker && (
-                                <div style={{position: 'absolute', zIndex: 999, top: '100%', left: 0}}>
-                                    <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0}} onClick={() => setShowColorPicker(false)}></div>
-                                    <div style={{position: 'relative', zIndex: 1}}>
-                                        <SketchPicker
-                                            color={store.theme.customColor || '#8A5149'}
-                                            onChangeComplete={(color) => {
-                                                const hex = color.hex;
-                                                setThemeCustomColor(hex);
-                                                store.setTheme({...store.theme, customColor: hex});
-                                                if (store.theme.color === 'custom') {
-                                                    ChangeVarsForThemeColor('custom');
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                            <div
+                                onClick={() => colorInputRef.current.click()}
+                                className={'form-control ' + s.select}
+                                style={{display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%'}}
+                            >
+                                <div style={{width: 20, height: 20, background: store.theme.customColor || '#8A5149', borderRadius: 3, marginRight: 8, border: '1px solid #aaa', flexShrink: 0}}></div>
+                                <span style={{fontFamily: 'monospace', fontSize: 13}}>{store.theme.customColor || '#8A5149'}</span>
+                            </div>
+                            <input
+                                ref={colorInputRef}
+                                type='color'
+                                value={store.theme.customColor || '#8A5149'}
+                                onChange={(e) => {
+                                    const hex = e.target.value;
+                                    setThemeCustomColor(hex);
+                                    store.setTheme({...store.theme, customColor: hex});
+                                    if (store.theme.color === 'custom') {
+                                        ChangeVarsForThemeColor('custom');
+                                    }
+                                }}
+                                style={{position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none'}}
+                            />
                         </div>
                     </div>
                     <div className='flex mt-1'>
