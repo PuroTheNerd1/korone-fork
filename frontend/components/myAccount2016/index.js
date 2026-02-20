@@ -5,6 +5,7 @@ import {getInventoryPrivacy, getTradePrivacy, getTradeValue, getPrivateMessagePr
 import { getUserInfo } from "../../services/users";
 import AuthenticationStore from "../../stores/authentication";
 import AccountInfo from "./components/accountInfo";
+import Customization from "./components/customization";
 import ModalHandler from "./components/modalHandler";
 import PrivacySettings from "./components/privacySettings";
 import Tabs from "./components/tabs";
@@ -17,7 +18,7 @@ const hashToTab = {
   security: 'Security',
   social: 'Social',
   privacy: 'Privacy',
-  billing: 'Billing',
+  customization: 'Customization',
 };
 
 const tabToHash = {
@@ -25,7 +26,7 @@ const tabToHash = {
   'Security': 'security',
   'Social': 'social',
   'Privacy': 'privacy',
-  'Billing': 'billing',
+  'Customization': 'customization',
 };
 
 const useStyles = createUseStyles({
@@ -86,6 +87,7 @@ const MyAccount = props => {
         {store.tab === 'Security' ? <Security /> : null}
         {store.tab === 'Social' ? <Social /> : null}
         {store.tab === 'Privacy' ? <PrivacySettings/> : null}
+        {store.tab === 'Customization' ? <Customization/> : null}
       </div>
     </div>
   </div>
