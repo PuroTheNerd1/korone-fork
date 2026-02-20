@@ -29,6 +29,14 @@ const useStyles = createUseStyles({
   body: {
     whiteSpace: 'break-spaces',
   },
+  bodyLink: {
+    color: 'var(--primary-color)',
+    textDecoration: 'underline',
+    '&:hover': {
+      color: 'var(--primary-color)',
+      textDecoration: 'underline',
+    },
+  },
   backButtonWrapper: {
     width: '80px',
     float: 'left',
@@ -59,7 +67,7 @@ const useStyles = createUseStyles({
  * @param {{fromUserId: number; fromUserName: string; subject: string; body: string; created: string; id: number; read: boolean;}} props
  * @returns
  */
-const renderBody = (body, fromUserId) => {
+const renderBody = (body, fromUserId, linkClassName) => {
   if (fromUserId !== 443) return body;
   const parts = [];
   const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
@@ -69,7 +77,7 @@ const renderBody = (body, fromUserId) => {
     if (match.index > lastIndex) parts.push(body.slice(lastIndex, match.index));
     const url = match[2];
     if (url.startsWith('/')) {
-      parts.push(<a key={match.index} href={url} className='link2019'>{match[1]}</a>);
+      parts.push(<a key={match.index} href={url} className={linkClassName}>{match[1]}</a>);
     } else {
       parts.push(match[0]);
     }
@@ -135,7 +143,7 @@ const LargeMessage = props => {
     </div>
     <div className='col-12'>
       <p className={s.body + ' mt-2'}>
-        {renderBody(props.body, props.fromUserId)}
+        {renderBody(props.body, props.fromUserId, s.bodyLink)}
       </p>
     </div>
     {
