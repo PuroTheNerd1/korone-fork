@@ -294,6 +294,15 @@ const ProfileHeader = props => {
         }
       });
     }
+    if (auth.isStaff) {
+      buttons.push({
+        name: 'Manage User',
+        onClick: (e) => {
+          e.preventDefault();
+          window.open(`/admin/manage-user/${store.userId}`, '_blank');
+        }
+      });
+    }
     setDropdownOptions(buttons);
   }, [auth.userId, auth.isPending, store.isFollowing, editStatus, store.userId]);
   
