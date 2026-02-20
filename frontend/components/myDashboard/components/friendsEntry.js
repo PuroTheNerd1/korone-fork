@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { useState, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { getGameUrl } from "../../../services/games";
+import { getGameUrl, multiGetUniverseDetails } from "../../../services/games";
 import { multiGetUniverseIcons2 } from "../../../services/thumbnails";
 import Activity from "../../userActivity";
 import ChatStore from "../../chat/chatStore";
@@ -76,7 +76,7 @@ const useStyles = createUseStyles({
         zIndex: 9999,
         minWidth: '220px',
         background: 'var(--white-color)',
-        borderRadius: '6px',
+        borderRadius: '2px',
         boxShadow: '0 4px 16px rgba(25,25,25,0.2)',
         overflow: 'hidden',
         border: '1px solid rgba(25,25,25,0.08)',
@@ -127,6 +127,11 @@ const useStyles = createUseStyles({
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
+        marginBottom: '2px',
+    },
+    gameYear: {
+        fontSize: '11px',
+        color: 'var(--text-color-secondary)',
         marginBottom: '8px',
     },
     joinButton: {
@@ -178,6 +183,7 @@ const FriendEntry = props => {
     const [isHovered, setIsHovered] = useState(false);
     const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
     const [gameThumbnail, setGameThumbnail] = useState(null);
+    const [gameYear, setGameYear] = useState(null);
 
     const isOnline = onlineStatus && dayjs(onlineStatus.lastOnline).isAfter(dayjs().subtract(5, 'minutes'));
     const isPlaying = onlineStatus?.lastLocation === 'Playing';
@@ -201,12 +207,19 @@ const FriendEntry = props => {
             });
         }
         setIsHovered(true);
-        if (isPlaying && !gameThumbnail && onlineStatus?.gameId) {
-            multiGetUniverseIcons2({ universeIds: [onlineStatus.gameId] }).then(icons => {
-                if (icons && icons[0]) {
-                    setGameThumbnail(icons[0].imageUrl);
-                }
-            });
+        if (isPlaying && onlineStatus?.gameId) {
+            if (!gameThumbnail) {
+                multiGetUniverseIcons2({ universeIds: [onlineStatus.gameId] }).then(icons => {
+                    if (icons && icons[0]) setGameThumbnail(icons[0].imageUrl);
+                });
+            }
+            if (!gameYear) {
+                multiGetUniverseDetails({ universeIds: [onlineStatus.gameId] }).then(details => {
+                    if (details && details[0]?.created) {
+                        setGameYear(new Date(details[0].created).getFullYear());
+                    }
+                });
+            }
         }
     };
 
@@ -254,6 +267,7 @@ const FriendEntry = props => {
                         <div className={s.gameInfo}>
                             <span className={s.gameLocation}>Playing</span>
                             <span className={s.gameName}>{onlineStatus.lastLocation}</span>
+                            {gameYear && <span className={s.gameYear}>{gameYear}</span>}
                             <Link href={getGameUrl({ placeId: onlineStatus.placeId, name: onlineStatus.lastLocation })}>
                                 <a className={s.joinButton}>Join</a>
                             </Link>
