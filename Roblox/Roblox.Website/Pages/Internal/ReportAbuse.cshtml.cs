@@ -12,18 +12,39 @@ public class ReportAbuse : RobloxPageModel
 {
     public string? failureMessage { get; set; }
     public string? successMessage { get; set; }
-    
+
     [BindProperty]
     public AbuseReportReason reportReason { get; set; }
     [BindProperty]
     public string? reportMessage { get; set; }
-    
+    public long? reportedAssetId { get; set; }
+    public long? reportedUserId { get; set; }
+
     public void OnGet()
     {
-        
+        var id = HttpContext.Request.Query["reportedId"].ToString();
+        var type = HttpContext.Request.Query["reportedType"].ToString();
+        if (!string.IsNullOrEmpty(id) && long.TryParse(id, out var parsedId))
+        {
+            if (type == "user")
+                reportedUserId = parsedId;
+            else
+                reportedAssetId = parsedId;
+        }
     }
 
     private readonly Regex _alphaNumericRegex = new("[a-zA-Z]+", RegexOptions.Compiled);
+
+    private static readonly HashSet<AbuseReportReason> allowedReasons = new()
+    {
+        AbuseReportReason.BadPrivateMessage,
+        AbuseReportReason.Bullying,
+        AbuseReportReason.RacismHomophobiaOrDiscrimination,
+        AbuseReportReason.Dating,
+        AbuseReportReason.Underage,
+        AbuseReportReason.BadAsset,
+        AbuseReportReason.InappropriateContent,
+    };
 
     public async Task OnPost()
     {
@@ -32,8 +53,8 @@ public class ReportAbuse : RobloxPageModel
             failureMessage = "Not logged in.";
             return;
         }
-        
-        if (!Enum.IsDefined(reportReason))
+
+        if (!Enum.IsDefined(reportReason) || !allowedReasons.Contains(reportReason))
         {
             failureMessage = "Invalid report reason.";
             return;
@@ -53,12 +74,14 @@ public class ReportAbuse : RobloxPageModel
             failureMessage = "Report message be at least 10 characters. Please try again.";
             return;
         }
-        // Only report reason thats allowed is BadPrivateMessage
-        if (reportReason != AbuseReportReason.BadPrivateMessage)
-        {
-            failureMessage = "Report message must be less than 1000 characters. Please try again.";
-            return;
-        }
+
+        long? submittedAssetId = null;
+        long? submittedUserId = null;
+        if (long.TryParse(HttpContext.Request.Form["reportedAssetId"].ToString(), out var parsedAssetId))
+            submittedAssetId = parsedAssetId;
+        if (long.TryParse(HttpContext.Request.Form["reportedUserId"].ToString(), out var parsedUserId))
+            submittedUserId = parsedUserId;
+
         using var ar = ServiceProvider.GetOrCreate<AbuseReportService>();
         if (!await services.cooldown.TryCooldownCheck($"AbuseReportV1_Cooldown:{userSession.userId}", TimeSpan.FromMinutes(20)))
         {
@@ -66,9 +89,9 @@ public class ReportAbuse : RobloxPageModel
             return;
         }
 
-        await ar.InsertReport(userSession.userId, reportReason, reportMessage);
+        await ar.InsertReport(userSession.userId, reportReason, reportMessage, submittedAssetId, submittedUserId);
         successMessage = "Your report has been sent successfully.";
-        
+
         reportReason = AbuseReportReason.None;
         reportMessage = null;
     }

@@ -1184,7 +1184,13 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("abusereport/UserProfile"), HttpGetBypass("abusereport/asset"), HttpGetBypass("abusereport/user"), HttpGetBypass("abusereport/users")]
         public MVC.IActionResult ReportAbuseRedirect()
         {
-            return new MVC.RedirectResult("/internal/report-abuse");
+            var path = HttpContext.Request.Path.Value ?? "";
+            var isUserReport = path.Contains("UserProfile") || path.Contains("/user");
+            var type = isUserReport ? "user" : "asset";
+            var query = "";
+            if (long.TryParse(HttpContext.Request.Query["id"].ToString(), out var reportedId))
+                query = $"?reportedId={reportedId}&reportedType={type}";
+            return new MVC.RedirectResult("/internal/report-abuse" + query);
         }
 
         [HttpGetBypass("/info/blog")]
