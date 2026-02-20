@@ -9,7 +9,6 @@
 	import request from "../lib/request";
 
 	let reports;
-	let alert = "";
 
 	let modalBody: string;
 	let modalVisible = false;
@@ -78,15 +77,7 @@
 			<h3>Abuse Reports</h3>
 		</div>
 
-		{#if alert !== ""}
-			<p class="text-center mt-4 mb-4">{alert}</p>
-			<button
-				class="btn btn-outline-warning mt-4"
-				on:click={() => {
-					alert = "";
-				}}>Dismiss</button
-			>
-		{:else if reports && reports.length === 0}
+		{#if reports && reports.length === 0}
 			<div class="col-12">
 				<p class="text-center">There are zero reports pending.</p>
 			</div>

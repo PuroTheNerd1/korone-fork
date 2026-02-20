@@ -3,11 +3,9 @@ import { createUseStyles } from "react-jss";
 import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
 import {
-    getAlertsDisabled,
     getAvPageStyle,
     getCatalogPageStyle, getCatalogStyle,
     getTheme, getThemeColor, getThemeFont,
-    setAlertsDisabled,
     setAvPageStyle,
     setCatalogPageStyle, setCatalogStyle,
     setTheme, setThemeColor, setThemeFont, setThemeForumHeader, setThemeRibbon, themeType
@@ -295,24 +293,6 @@ const  AccountInfo = props => {
                                     }}>
                                 <option value="Modern">Modern (2017+)</option>
                                 <option value="Legacy">Legacy (2012-2017)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div className='flex mt-1'>
-                        <div className='col pe-0'>
-                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Site-wide Alerts'
-                                   readOnly={true}
-                                   type='text'></input>
-                        </div>
-                        <div className='col ps-0 pe-0'>
-                            <select className={'form-control ' + s.select}
-                                    value={getAlertsDisabled()}
-                                    onChange={ev => {
-                                        setAlertsDisabled(ev.currentTarget.value);
-                                        window.location.reload();
-                                    }}>
-                                <option value='enabled'>Show</option>
-                                <option value='disabled'>Hide</option>
                             </select>
                         </div>
                     </div>

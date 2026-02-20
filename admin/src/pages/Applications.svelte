@@ -12,7 +12,6 @@
 	import app from "../main";
 
 	let applications;
-	let alert = "";
 	let limit = 10;
 
 	let modalBody: string;
@@ -217,15 +216,7 @@
 				</div>
 			</div>
 		{/if}
-		{#if alert !== ""}
-			<p class="text-center mt-4 mb-4">{alert}</p>
-			<button
-				class="btn btn-outline-warning mt-4"
-				on:click={() => {
-					alert = "";
-				}}>Dismiss</button
-			>
-		{:else if showStartWorkButton && mode === "Pending"}
+		{#if showStartWorkButton && mode === "Pending"}
 			<div>
 				<button
 					class="btn btn-primary mt-4"
