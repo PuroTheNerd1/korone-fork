@@ -119,7 +119,7 @@ const SaleHistory = props => {
     // @ts-ignore
     if (!window.RobloxItemChartLibrary) {
       const saleChartScript = document.createElement('script');
-      saleChartScript.setAttribute('src', '/js/itemSaleChart.js?refresh=3');
+      saleChartScript.setAttribute('src', '/js/itemSaleChart.js?refresh=4');
       saleChartScript.onload = render;
       document.body.appendChild(saleChartScript);
     } else {

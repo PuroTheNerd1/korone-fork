@@ -67,6 +67,10 @@ window.RobloxItemChartLibrary = (function LoadItemSaleCharts() {
 
         function plotCharts(days) {
           var minTime = new Date().getTime() - (86400 * days * 1000);
+          var now = new Date().getTime();
+
+          // If only one price point, extend line to today so it renders as a line not a dot
+          var d1Plot = d1.length === 1 ? [d1[0], [now, d1[0][1]]] : d1;
 
           // Find volume max for secondary axis scaling
           var volumeMax = 1;
@@ -78,10 +82,10 @@ window.RobloxItemChartLibrary = (function LoadItemSaleCharts() {
 
           $.plot($("#placeholder"), [
             {
-              data: d1,
+              data: d1Plot,
               color: "#008000",
               lines: { lineWidth: 2, fill: false },
-              points: { show: true, radius: 2, fillColor: "#008000" },
+              points: { show: true, radius: 3 },
               yaxis: 1,
               shadowSize: 0
             },
