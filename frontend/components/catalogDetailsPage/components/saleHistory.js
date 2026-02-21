@@ -112,18 +112,18 @@ const SaleHistory = props => {
     }
     const rapData = rapChart.map(v => [dayjs(v.date).unix() * 1000, v.value]);
     const volumeData = volumeChart.map(v => [dayjs(v.date).unix() * 1000, v.value]);
+    const render = () => {
+      // @ts-ignore
+      requestAnimationFrame(() => window.RobloxItemChartLibrary.loadChart(rapData, volumeData));
+    };
     // @ts-ignore
     if (!window.RobloxItemChartLibrary) {
       const saleChartScript = document.createElement('script');
-      saleChartScript.setAttribute('src', '/js/itemSaleChart.js?refresh=1');
-      saleChartScript.onload = function () {
-        // @ts-ignore
-        window.RobloxItemChartLibrary.loadChart(rapData, volumeData);
-      }
+      saleChartScript.setAttribute('src', '/js/itemSaleChart.js?refresh=2');
+      saleChartScript.onload = render;
       document.body.appendChild(saleChartScript);
     } else {
-      // @ts-ignore
-      window.RobloxItemChartLibrary.loadChart(rapData, volumeData);
+      render();
     }
   }, [rapChart, volumeChart]);
 
@@ -155,10 +155,7 @@ const SaleHistory = props => {
         </select>
       </div>
       {hasChart ? (
-        <>
-          <div id='placeholder' style={{ width: '100%', height: '200px' }}></div>
-          <div id='volumegraph' style={{ width: '100%', height: '60px' }}></div>
-        </>
+        <div id='placeholder' style={{ width: '100%', height: '220px' }}></div>
       ) : (
         <p className={s.noData}>No price data available.</p>
       )}
