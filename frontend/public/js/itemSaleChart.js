@@ -68,37 +68,36 @@ window.RobloxItemChartLibrary = (function LoadItemSaleCharts() {
         function plotCharts(days) {
           var minTime = new Date().getTime() - (86400 * days * 1000);
 
-          // Scale volume to fill only the bottom ~20% of the chart height
-          var priceMax = 0, volumeMax = 1;
-          for (var i = 0; i < d1.length; i++) {
-            if (d1[i][1] > priceMax) priceMax = d1[i][1];
-          }
+          // Find volume max for secondary axis scaling
+          var volumeMax = 1;
           for (var i = 0; i < d2.length; i++) {
             if (d2[i][1] > volumeMax) volumeMax = d2[i][1];
           }
-          var scale = priceMax > 0 ? (priceMax * 0.18) / volumeMax : 1;
-          var scaledVolume = [];
-          for (var i = 0; i < d2.length; i++) {
-            scaledVolume.push([d2[i][0], d2[i][1] * scale]);
-          }
+          // Setting yaxis2 max to 5x volumeMax keeps bars in bottom ~20% of chart
+          var volumeAxisMax = volumeMax * 5;
 
           $.plot($("#placeholder"), [
             {
               data: d1,
               color: "#008000",
               lines: { lineWidth: 2, fill: false },
-              points: { show: false },
+              points: { show: true, radius: 2, fillColor: "#008000" },
+              yaxis: 1,
               shadowSize: 0
             },
             {
-              data: scaledVolume,
+              data: d2,
               color: "#A4A4C8",
               bars: { show: true, lineWidth: 0, barWidth: 86400 * 0.7 * 1000 },
+              yaxis: 2,
               shadowSize: 0
             }
           ], {
             xaxis: { mode: 'time', timeformat: "%m/%d", min: minTime },
-            yaxis: { labelWidth: 45, tickFormatter: formatGraphTicks, min: 0 },
+            yaxes: [
+              { labelWidth: 45, tickFormatter: formatGraphTicks, min: 0 },
+              { min: 0, max: volumeAxisMax, show: false }
+            ],
             legend: { show: false },
             grid: {
               borderWidth: 1,
