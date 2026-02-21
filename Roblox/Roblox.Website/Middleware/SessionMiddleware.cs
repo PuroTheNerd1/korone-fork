@@ -121,9 +121,13 @@ public class SessionMiddleware
                         or AccountStatus.Deleted;
                     if (isBanned)
                     {
-                        // allow access to auth pages, the notapproved frontend page, and ban-related API endpoints
+                        // allow access to auth pages, the notapproved frontend page, ban-related API endpoints, and static assets needed to render the page
                         var allowedForBanned = currentPath.StartsWith("/auth/") ||
                                                currentPath == "/notapproved" ||
+                                               currentPath.StartsWith("/_next/") ||
+                                               currentPath.StartsWith("/img/") ||
+                                               currentPath.StartsWith("/css/") ||
+                                               currentPath.StartsWith("/js/") ||
                                                currentPath.StartsWith("/apisite/users/v1/users/authenticated/ban") ||
                                                currentPath.StartsWith("/apisite/auth/v2/logout");
                         if (!allowedForBanned)
