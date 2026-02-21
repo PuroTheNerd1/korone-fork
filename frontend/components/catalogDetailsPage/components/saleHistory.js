@@ -44,14 +44,20 @@ const SaleHistory = props => {
   const [rap, setRap] = useState(null);
   const [rapChart, setRapChart] = useState(null);
   const [volumeChart, setVolumeChart] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const s = useSaleHistoryStyles();
 
   useEffect(() => {
     if (!store.details) return;
+    setDataLoaded(false);
+    setRap(null);
+    setRapChart(null);
+    setVolumeChart(null);
     getResaleData({ assetId: store.details.id }).then(resaleData => {
       setRap(resaleData.recentAveragePrice);
       setRapChart(resaleData.priceDataPoints);
       setVolumeChart(resaleData.volumeDataPoints);
+      setDataLoaded(true);
       if (store.saleCount === 0) {
         store.setSaleCount(resaleData.sales);
       }
@@ -59,22 +65,11 @@ const SaleHistory = props => {
   }, [store.details]);
 
   useEffect(() => {
-    const el = document.getElementById('placeholder');
-    if (!rapChart || !volumeChart) {
+    if (!rapChart || !volumeChart || rapChart.length === 0) {
       return;
     }
-    const rapData = rapChart.map(v => {
-      return [
-        dayjs(v.date).unix() * 1000,
-        v.value,
-      ]
-    });
-    const volumeData = volumeChart.map(v => {
-      return [
-        dayjs(v.date).unix() * 1000,
-        v.value,
-      ]
-    })
+    const rapData = rapChart.map(v => [dayjs(v.date).unix() * 1000, v.value]);
+    const volumeData = volumeChart.map(v => [dayjs(v.date).unix() * 1000, v.value]);
     // @ts-ignore
     if (!window.RobloxItemChartLibrary) {
       const saleChartScript = document.createElement('script');
@@ -90,25 +85,26 @@ const SaleHistory = props => {
     }
   }, [rapChart, volumeChart]);
 
-  if (!rapChart) {
-    return null
+  if (!dataLoaded) {
+    return null;
   }
 
-
   return <div className={`row ${s.row}`}>
-    <div className='col-12 ps-4 pe-4'>
+    {rapChart && rapChart.length > 0 && (
+      <div className='col-12 mt-4 ps-4'>
+        <p className={s.daySelectionText}>
+          <span id="days30" className='pe-1'>30 Days</span>
+          <span>|</span>
+          <span id="days90" className='pe-1'>90 Days</span>
+          <span>|</span>
+          <span id="days180">180 Days</span>
+        </p>
+        <div id='placeholder' style={{ width: '370px', height: '300px' }}></div>
+        <div id='volumegraph' style={{ width: '370px', height: '60px' }}></div>
+      </div>
+    )}
+    <div className='col-12 ps-4 pe-4 mt-2'>
       <p className={s.rapText}>Recent Average Price: <span className={s.rap}>R$ {rap && rap.toLocaleString()}</span></p>
-    </div>
-    <div className='col-12 mt-4 ps-4'>
-      <p className={s.daySelectionText}>
-        <span id="days90" className='pe-1'>30 Days</span>
-        <span>|</span>
-        <span id="days90" className='pe-1'>90 Days</span>
-        <span>|</span>
-        <span id="days180">180 Days</span>
-      </p>
-      <div id='placeholder' style={{ width: '370px', height: '300px' }}></div>
-      <div id='volumegraph' style={{ width: '370x', height: '60px' }}></div>
     </div>
   </div>
 }
