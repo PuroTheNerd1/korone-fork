@@ -4,6 +4,7 @@ import axios from 'axios';
 import AuthenticationStore from '../../stores/authentication';
 import { getMembershipType } from '../../services/users';
 import { getBaseUrl2, getUrlWithProxy } from '../../lib/request';
+import { getTheme, themeType } from '../../services/theme';
 
 const FREE_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABZCAMAAACJ4sOeAAAAA3NCSVQICAjb4U/gAAAAk1BMVEX///+rq6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6v////7+/v5+fn19fXz8/Pv7+/p6enn5+fl5eXj4+Ph4eHf39/c3Nza2trZ2dnX19fV1dXR0dHPz8/MzMzJycnFxcXBwcG/v7+8vLy6urq5ubm3t7e0tLSzs7OwsLCvr6+tra2rq6v9vSmPAAAAMXRSTlMAESIzRFVmd4iZqrvM3e7/////////////////////////////////////////////aIUvegAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNui8sowAAAAVdEVYdENyZWF0aW9uIFRpbWUANy8xNi8xM0TRClMAAAJ9SURBVFiF7ZltW4JQDIYVUUBQkCS1sizBsFf+/69LhBNH4WzjwD7V80Uudbdz53XbYIDLtGzXy4RmrmOZQ4IZppHtZk3ybLMT17BnjdxCc0ebPvEAbhkcSycyE8hhyXW7LXxMAxfwNmCjeeiUYaHH3G4FzjWlRaWlyy0cN+ca5JMslDzRA5/kIGRHm3xaoGDAu5BhdjcyxO5KVrP1R7BS81iaPZCzrGnVG5rz+VrjOhrfQWma18Ldft9Qyb0ij3oj15a8zpak0mVI+ph3lS5mIP1MIcngcvrCbYrTD36pO8KXDbLT8XYvo9Nt/E10G1ktSej7tzJ65/thAtsMSXP6OectZPQ6f9mBRhZlIe4L4LuEvjm/vkBWHmEQ34ICGFfor/IhhewMPB7rkvNYoZPyIYLsLDQe3wIYVeidePoADF10+zgKzKJCiz/iHyDLHA19nqUC469+0SEJbWLnVoUOa78Bo08nmUVE138DRk+xWd2A9mloDxzFJIqWEHoZRcB6BzeQAOIWCtTWQ2iChDg6VFubEPp4f4fo/qiJ7iYcfVDFIv5H/w00dvnVRg/Ri6Q2Gr9Y66I9bL/WR0/x7KhAb54lPQYEtI2djb9eR/vP8o10G1C8NvGEoArIcr19eliFxIAQEqR3VazBy1NxD8EyJMUZBhwCuSzKxT1pRiPxMEgp40sTGb4Di5sqmjOmm8Uld7F6RUxE7thXDi1JpI59J2ByCtZz2ignjox5I2O2y5mjM1YWOOshjFUcztoTZ8WMsc7HWZ3krKlyVoI569ecVXfOXgFnh4OzLzNg7Ca1d7xFD2zA2LnLxdZvPMO5uqS52Hq7Z3F1pEtp9tF/AHc4HlCSyVVHAAAAAElFTkSuQmCC';
 const CLASSIC_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABZCAMAAACJ4sOeAAAAA3NCSVQICAjb4U/gAAAA51BMVEX///8Ao9kAo9kAo9kAo9kAo9kAo9kAo9kAo9kAo9kAo9kAo9kAo9kAo9kAo9n////7/v73/P7y+v3v+f3r+Pzl9vvk9fvh9Pvf8/rb8vrR7vjN7fjA6Pa85/W45fSy4/Sv4vOt4fOr4fKp4PKl3/Kn3/Kh3fGV2e+Q1+6N1u6I1O2F0+2A0ex2zut1zepyzOpwy+pqyellx+hdxedfxedZw+ZVwuZUweZSweVQwOVOv+VJveREvONCu+NAuuM8ueI3t+ExteAutOArs98lsN8frt4drd0ZrN0SqdwPqNsKp9oEpNoAo9n1K2H6AAAATXRSTlMAESIzRFVmd4iZqrvM3e7//////////////////////////////////////////////////////////////////////////////////9pCfIUAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzbovLKMAAAAFXRFWHRDcmVhdGlvbiBUaW1lADcvMTYvMTNE0QpTAAACnElEQVRYhe2ZaV/bMAyH2xCatDFNoTA6oNu4Ch3HYAfHOLp23OT7f541TdykJJZkJ3rF/m+SHnqin+zYllSp4LId1xOB1IJXd+wqwQzTnOsFeRKuXYhruQu53EjNujG9JgBuHBzHJDI1yOGU664ufJ4GjuA6YCt/6JRhocfc1QKHatCioumyhuN204A8loOSa2bgseoIuW5MHr+gYMCLkGF2MTLELkpWs81HMFH+WNolkIMg7623DOfzW81n0aIcctDMhFt/3VDJe0OeK42ceeVNliSVZkNSxrxLNDMD6XsKSRaX0zNuU5ze92P1CH+2qE6/XvZ/pdGj/sUr0W0B/++m4/uf0uhj3+9cwzZV0pw+DXnLafR2ePkGGjmUF/FnBLxPoT9OrqeQlSAM4t1iBDxL0M/RtTWE7Cw8Htsx8GuCvolvupCdg8bjpSU5CfpY3j0Chh66fPyVmHaC3pJ3A8gyREO/B0OJ8T9P0R15dwtZ2ti+laBXMs+A0eOdzCGis8+A0Q1sVuegfRpagKN41d1Yh9BrG90rtTW4gLQhbqS22roKTZBVHL2qtrYh9Givh2hvZIguJhx9q4rF5X/0+0ALLnQVPUgao/GDtSlaYOu1ObqBZ0cTdKt3ktLBEgHtYnvj1Ovuj6f4i2F/ieK1jScEg2kE1nb7h/tfPsiPv2E7QoL0oIo1eHiKziFYhqTYwzqwlUM5uF/no89hK4uUMn5v5ZCPYBtBzBlHO8uz3PbmH8RE5o4CY+tLpo5lJ2DpFKzktDGdODLmjYzZLmeOzlhZ4KyHMFZxOGtPnBUzxjofZ3WSs6bKWQnmrF9zVt05ewWcHQ7OvkyFsZuk77hGD6zC2LkLxdZvnMAFHgqjLmkott7uRFwd6ViGffR/cJtmR2gQLyoAAAAASUVORK5CYII=';
@@ -135,7 +136,7 @@ const useStyles = createUseStyles({
     '& h1': {
       fontSize: 26,
       fontWeight: 700,
-      color: 'var(--text-color-primary)',
+      color: p => (p.theme === themeType.dark || p.theme === themeType.obc2019) ? '#fff' : 'var(--text-color-primary)',
       margin: 0,
     },
   },
@@ -318,7 +319,7 @@ const postMembership = async (membershipType, antiforgeryToken) => {
 };
 
 const PremiumMembership = () => {
-  const s = useStyles();
+  const s = useStyles({ theme: getTheme() });
   const auth = AuthenticationStore.useContainer();
   const [currentMembership, setCurrentMembership] = useState(0);
   const [status, setStatus] = useState(null);
@@ -348,6 +349,8 @@ const PremiumMembership = () => {
     }
   };
 
+  const isDark = getTheme() === themeType.dark;
+
   return (
     <div className={s.page}>
       <div className={s.header}>
@@ -371,7 +374,7 @@ const PremiumMembership = () => {
                     key={tier.id}
                     className={`${s.tierHeader}${currentMembership === tier.membershipValue ? ' ' + s.currentTierCol : ''}`}
                   >
-                    <img src={tier.icon} alt={tier.label} className={s.tierIcon} />
+                    <img src={tier.icon} alt={tier.label} className={s.tierIcon} style={tier.id === 'premium' && isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
                     <h2>{tier.label}</h2>
                   </th>
                 ))}

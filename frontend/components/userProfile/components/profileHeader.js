@@ -4,6 +4,7 @@ import { followUser, unfollowUser } from "../../../services/friends";
 import { multiGetPresence } from "../../../services/presence";
 import { getMembershipType, updateStatus } from "../../../services/users";
 import AuthenticationStore from "../../../stores/authentication";
+import { getTheme, themeType } from "../../../services/theme";
 import Dropdown2016 from "../../dropdown2016";
 import PlayerHeadshot from "../../playerHeadshot";
 import Activity from "../../userActivity";
@@ -15,6 +16,8 @@ import RelationshipStatistics from "./relationshipStatistics";
 import RAPStats from "./RAPStats";
 import ChatButton from "./chatButton";
 import JoinButton from "./joinButton";
+
+const PREMIUM_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NCA0NCI+PHBhdGggZD0iTTQwIDRINHY0MGE0IDQgMCAwMS00LTRWNGE0IDQgMCAwMTQtNGgzNmE0IDQgMCAwMTQgNHYzNmE0IDQgMCAwMS00IDRIMjF2LTRoMTl6bS03IDdIMTF2MzNIN1Y3aDMwdjMwSDIxdi00aDEyem0tNyA3aC04djI2aC00VjE0aDE2djE2aC05di00aDV6IiBmaWxsPSIjMzkzYjNkIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=';
 
 const useHeaderStyles = createUseStyles({
   iconWrapper: {
@@ -76,6 +79,17 @@ const useHeaderStyles = createUseStyles({
   bcIcon: {
     position: 'relative',
     bottom: '4px',
+    '@media(max-width: 767px)': {
+      bottom: '-3px',
+      marginLeft: '3px',
+    },
+  },
+  premiumIcon: {
+    width: '0.75em',
+    height: '0.75em',
+    position: 'relative',
+    bottom: '4px',
+    marginLeft: '2px',
     '@media(max-width: 767px)': {
       bottom: '-3px',
       marginLeft: '3px',
@@ -220,9 +234,6 @@ const ProfileHeader = props => {
       setStatus(d[0]);
     });
     getMembershipType({ userId: store.userId }).then(d => {
-      if (d === 4) {
-        d = 3
-      }
       setBcLevel(d);
     }).catch(e => {
       // can fail when not logged in :(
@@ -330,14 +341,16 @@ const ProfileHeader = props => {
     // 3 = OBC
     // 4 = Premium
     // 0 = None
+    const isDark = getTheme() === themeType.dark;
     switch (bcLevel) {
       case 1:
-      case 4:
         return <span className={`icon-bc ${s.bcIcon}`} />
       case 2:
         return <span className={`icon-tbc ${s.bcIcon}`} />
       case 3:
         return <span className={`icon-obc ${s.bcIcon}`} />
+      case 4:
+        return <img src={PREMIUM_ICON} alt="Premium" className={s.premiumIcon} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
       default:
         return null;
     }
