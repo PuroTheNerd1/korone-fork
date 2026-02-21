@@ -237,6 +237,10 @@ public class EconomyControllerV1 : ControllerBase
         {
             // User is making UAID purchase
             await PurchaseResellableItem(assetId, request);
+            // Keep item in seller's collection so they can still remove it manually
+            _ = services.inventory.AddToCollectionIfEligible(request.expectedSellerId, assetId);
+            // Auto-add limited item to buyer's collection
+            _ = services.inventory.AddToCollectionIfEligible(safeUserSession.userId, assetId);
             // Update sellers avatar in background (in case they were wearing the item they sold)
             await Task.Run(async () =>
             {
