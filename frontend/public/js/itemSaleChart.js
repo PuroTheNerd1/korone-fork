@@ -13,7 +13,7 @@ window.RobloxItemChartLibrary = (function LoadItemSaleCharts() {
   return {
     loadChart: function (rapChart, volumeChart) {
       // @ts-ignore
-      if (window.$) {
+      if (window.$ && window.$.plot) {
         loadCharts();
       } else {
         addScript('/js/jquery-3.6.0.min.js', function () {
@@ -72,49 +72,51 @@ window.RobloxItemChartLibrary = (function LoadItemSaleCharts() {
           // If only one price point, extend line to today so it renders as a line not a dot
           var d1Plot = d1.length === 1 ? [d1[0], [now, d1[0][1]]] : d1;
 
-          // Find volume max for secondary axis scaling
-          var volumeMax = 1;
-          for (var i = 0; i < d2.length; i++) {
-            if (d2[i][1] > volumeMax) volumeMax = d2[i][1];
-          }
-          // Setting yaxis2 max to 5x volumeMax keeps bars in bottom ~20% of chart
-          var volumeAxisMax = volumeMax * 5;
-
+          // RAP line chart - top chart
           $.plot($("#placeholder"), [
             {
               data: d1Plot,
               color: "#008000",
               lines: { lineWidth: 2, fill: false },
-              points: { show: true, radius: 3 },
-              yaxis: 1,
-              shadowSize: 0
-            },
-            {
-              data: d2,
-              color: "#A4A4C8",
-              bars: { show: true, lineWidth: 0, barWidth: 86400 * 0.7 * 1000 },
-              yaxis: 2,
+              points: { show: true, radius: 3, fillColor: "#008000", lineWidth: 1 },
               shadowSize: 0
             }
           ], {
-            xaxis: { mode: 'time', timeformat: "%m/%d", min: minTime },
-            yaxes: [
-              { labelWidth: 45, tickFormatter: formatGraphTicks, min: 0 },
-              { min: 0, max: volumeAxisMax, show: false }
-            ],
+            xaxis: { mode: 'time', min: minTime, ticks: [], tickLength: 0 },
+            yaxis: { labelWidth: 45, tickFormatter: formatGraphTicks, min: 0 },
             legend: { show: false },
             grid: {
               borderWidth: 1,
               borderColor: '#ddd',
               hoverable: true,
-              autoHighlight: true,
+              autoHighlight: false,
             }
           });
+
+          // Volume bar chart - bottom chart
+          if ($("#volumegraph").length > 0 && d2.length > 0) {
+            $.plot($("#volumegraph"), [
+              {
+                data: d2,
+                color: "#A4A4C8",
+                bars: { show: true, lineWidth: 0, barWidth: 86400 * 0.7 * 1000, fillColor: { colors: ["#A4A4C8", "#A4A4C8"] } },
+                shadowSize: 0
+              }
+            ], {
+              xaxis: { mode: 'time', timeformat: "%m/%d", min: minTime },
+              yaxis: { show: false },
+              legend: { show: false },
+              grid: {
+                borderWidth: 1,
+                borderColor: '#ddd',
+              }
+            });
+          }
         }
 
-        // Hover tooltip for the price line (series index 0)
+        // Hover tooltip for the RAP chart
         $("#placeholder").off("plothover").on("plothover", function (event, pos, item) {
-          if (item && item.seriesIndex === 0) {
+          if (item) {
             var val = numberWithCommas(Math.round(item.datapoint[1]));
             $tooltip.html(val).css({ left: item.pageX + 8, top: item.pageY - 28 }).show();
           } else {

@@ -116,15 +116,13 @@ const SaleHistory = props => {
       // @ts-ignore
       requestAnimationFrame(() => window.RobloxItemChartLibrary.loadChart(rapData, volumeData));
     };
+    // Always reload the script so the in-memory cached version is never used
     // @ts-ignore
-    if (!window.RobloxItemChartLibrary) {
-      const saleChartScript = document.createElement('script');
-      saleChartScript.setAttribute('src', '/js/itemSaleChart.js?refresh=4');
-      saleChartScript.onload = render;
-      document.body.appendChild(saleChartScript);
-    } else {
-      render();
-    }
+    window.RobloxItemChartLibrary = null;
+    const saleChartScript = document.createElement('script');
+    saleChartScript.setAttribute('src', '/js/itemSaleChart.js?v=5');
+    saleChartScript.onload = render;
+    document.body.appendChild(saleChartScript);
   }, [rapChart, volumeChart]);
 
   if (!dataLoaded) {
@@ -155,7 +153,10 @@ const SaleHistory = props => {
         </select>
       </div>
       {hasChart ? (
-        <div id='placeholder' style={{ width: '100%', height: '220px' }}></div>
+        <>
+          <div id='placeholder' style={{ width: '100%', height: '175px' }}></div>
+          <div id='volumegraph' style={{ width: '100%', height: '45px' }}></div>
+        </>
       ) : (
         <p className={s.noData}>No price data available.</p>
       )}
