@@ -117,8 +117,9 @@ public class SessionMiddleware
 
                     ctx.Items[CookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
 
-                    if (userInfo.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned
-                        or AccountStatus.Deleted)
+                    var isBanned = userInfo.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned
+                        or AccountStatus.Deleted;
+                    if (isBanned)
                     {
                         // allow access to auth pages, the notapproved frontend page, and ban-related API endpoints
                         var allowedForBanned = currentPath.StartsWith("/auth/") ||
@@ -133,8 +134,8 @@ public class SessionMiddleware
                             return;
                         }
                     }
-                    // Check if user filled out new app
-                    var appStatus = await users.IsUserApproved(userInfo.userId);
+                    // Check if user filled out new app (skip for banned users - they can only access specific paths anyway)
+                    var appStatus = isBanned || await users.IsUserApproved(userInfo.userId);
                     if (!appStatus && !userInfo.isAdmin && !userInfo.isModerator && !StaffFilter.IsOwner(userInfo.userId))
                     {
                         if (!currentPath.StartsWith("/auth/"))

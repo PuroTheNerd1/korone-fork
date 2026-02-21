@@ -87,12 +87,12 @@ export default function NotApprovedPage() {
   const durationText = getBanDurationText(ban);
 
   return (
-    <div style={{ fontFamily: 'Arial, Helvetica, sans-serif', padding: '20px', maxWidth: '700px', margin: '0 auto', color: '#000' }}>
+    <div style={{ fontFamily: 'Arial, Helvetica, sans-serif', padding: '20px', maxWidth: '700px', margin: '0 auto', color: '#000', backgroundColor: '#fff' }}>
       <h1 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '12px' }}>{title}</h1>
 
       {!isPerm ? (
         <p style={{ color: '#004ab3', marginBottom: '8px' }}>
-          Our content monitors have determined that your behavior at Roblox has been in violation of our Terms of Service. We will terminate your account if you do not abide by the rules.
+          Our content monitors have determined that your behavior at Korone has been in violation of our Terms of Service. We will terminate your account if you do not abide by the rules.
         </p>
       ) : (
         <p style={{ color: '#004ab3', marginBottom: '8px' }}>
@@ -110,10 +110,10 @@ export default function NotApprovedPage() {
         <>
           <p style={{ color: '#004ab3', marginBottom: '8px' }}>
             Please abide by the{' '}
-            <a href="/help" style={{ color: '#004ab3' }}>
-              Roblox Community Guidelines
+            <a href="/auth/tos" style={{ color: '#004ab3' }}>
+              Korone Community Guidelines
             </a>{' '}
-            so that Roblox can be fun for users of all ages.
+            so that Roblox can be fun for all users.
           </p>
           {durationText && ban.expiredAt && (
             <p style={{ color: '#004ab3', marginBottom: '8px' }}>
@@ -131,7 +131,7 @@ export default function NotApprovedPage() {
 
       <p style={{ marginBottom: '16px' }}>
         If you wish to appeal, please contact us via the{' '}
-        <a href="/help" style={{ color: '#004ab3' }}>
+        <a href="https://discord.com/channels/1411352883533844603/1412917961647325224" style={{ color: '#004ab3' }}>
           Support Form
         </a>
         .
