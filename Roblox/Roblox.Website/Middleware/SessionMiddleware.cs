@@ -120,12 +120,16 @@ public class SessionMiddleware
                     if (userInfo.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned
                         or AccountStatus.Deleted)
                     {
-                        // allow access to other auth pages, as well as "discord" url
-                        if (!currentPath.StartsWith("/auth/"))
+                        // allow access to auth pages, the notapproved frontend page, and ban-related API endpoints
+                        var allowedForBanned = currentPath.StartsWith("/auth/") ||
+                                               currentPath == "/notapproved" ||
+                                               currentPath.StartsWith("/apisite/users/v1/users/authenticated/ban") ||
+                                               currentPath.StartsWith("/apisite/auth/v2/logout");
+                        if (!allowedForBanned)
                         {
                             authTimer.Stop();
                             ctx.Response.StatusCode = 302;
-                            ctx.Response.Headers.Append("location", "/auth/notapproved");
+                            ctx.Response.Headers.Append("location", "/notapproved");
                             return;
                         }
                     }
