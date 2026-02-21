@@ -51,103 +51,36 @@ window.RobloxItemChartLibrary = (function LoadItemSaleCharts() {
             result = (v / 1000000000).toFixed(axis.tickDecimals) + "B R$";
           } else if (v > 1000000) {
             result = (v / 1000000).toFixed(axis.tickDecimals) + "M R$";
-          }
-          else {
+          } else {
             result = v.toFixed(axis.tickDecimals);
           }
-
           return numberWithCommas(result) + " R$";
         }
 
-        $.plot($("#placeholder"), [
-          { data: d1, label: "Avg Sales Price (R$)", color: "#008000", lines: { lineWidth: 3 } }
-
-        ],
-          {
-            xaxis: { mode: 'time', timeformat: "%m/%d", min: new Date().getTime() - (86400 * 30 * 1000) },
+        function plotCharts(days) {
+          var minTime = new Date().getTime() - (86400 * days * 1000);
+          $.plot($("#placeholder"), [
+            { data: d1, label: "Avg Sales Price (R$)", color: "#008000", lines: { lineWidth: 3 } }
+          ], {
+            xaxis: { mode: 'time', timeformat: "%m/%d", min: minTime },
             legend: { position: 'nw' },
             yaxis: { labelWidth: 40, tickFormatter: formatGraphTicks }
           });
-
-        $.plot($("#volumegraph"), [
-          { data: d2, label: "Volume", yaxis: 1, color: "#A4A4C8", bars: { show: true } }
-        ],
-          {
-            xaxis: { mode: 'time', ticks: [], min: new Date().getTime() - (86400 * 30 * 1000) },
+          $.plot($("#volumegraph"), [
+            { data: d2, label: "Volume", yaxis: 1, color: "#A4A4C8", bars: { show: true } }
+          ], {
+            xaxis: { mode: 'time', ticks: [], min: minTime },
             legend: { position: 'nw' },
             yaxis: { labelWidth: 40, minTickSize: 1, tickDecimals: 0, ticks: [] }
           });
+        }
 
+        // Default to 180 days
+        plotCharts(180);
 
-        $("#days180").click(function (event) {
-          $.plot($("#placeholder"),
-            [{ data: d1, label: "Avg Sales Price (R$)", color: "#008000", lines: { lineWidth: 3 } }],
-            {
-              xaxis: { mode: 'time', timeformat: "%m/%d", min: new Date().getTime() - (86400 * 180 * 1000) },
-              legend: { position: 'nw' },
-              yaxis: { labelWidth: 40, tickFormatter: formatGraphTicks }
-            });
-          $.plot($("#volumegraph"),
-            [{ data: d2, label: "Volume", yaxis: 1, color: "#A4A4C8", bars: { show: true } }],
-            {
-              xaxis: { mode: 'time', ticks: [], min: new Date().getTime() - (86400 * 180 * 1000) },
-              legend: { position: 'nw' },
-              yaxis: { labelWidth: 40, minTickSize: 1, tickDecimals: 0, ticks: [] }
-            });
-
-          $('.Options span,.pricestats span').removeClass('selected-text');
-          $(event.target).addClass('selected-text');
-          $('.pricestats .days180').addClass('selected-text');
-        });
-
-        $("#days30").click(function (event) {
-
-          $.plot($("#placeholder"), [
-            { data: d1, label: "Avg Sales Price (R$)", color: "#008000", lines: { lineWidth: 3 } }
-
-          ],
-            {
-              xaxis: { mode: 'time', timeformat: "%m/%d", min: new Date().getTime() - (86400 * 30 * 1000) },
-              legend: { position: 'nw' },
-              yaxis: { labelWidth: 40, tickFormatter: formatGraphTicks }
-            });
-
-          $.plot($("#volumegraph"), [
-            { data: d2, label: "Volume", yaxis: 1, color: "#A4A4C8", bars: { show: true } }
-          ],
-            {
-              xaxis: { mode: 'time', ticks: [], min: new Date().getTime() - (86400 * 30 * 1000) },
-              legend: { position: 'nw' },
-              yaxis: { labelWidth: 40, minTickSize: 1, tickDecimals: 0, ticks: [] }
-            });
-          $('.Options span,.pricestats span').removeClass('selected-text');
-          $(event.target).addClass('selected-text');
-          $('.pricestats .days30').addClass('selected-text');
-        });
-
-        $("#days90").click(function (event) {
-
-          $.plot($("#placeholder"), [
-            { data: d1, label: "Avg Sales Price (R$)", color: "#008000", lines: { lineWidth: 3 } }
-
-          ],
-            {
-              xaxis: { mode: 'time', timeformat: "%m/%d", min: new Date().getTime() - (86400 * 90 * 1000) },
-              legend: { position: 'nw' },
-              yaxis: { labelWidth: 40, tickFormatter: formatGraphTicks }
-            });
-
-          $.plot($("#volumegraph"), [
-            { data: d2, label: "Volume", yaxis: 1, color: "#A4A4C8", bars: { show: true } }
-          ],
-            {
-              xaxis: { mode: 'time', ticks: [], min: new Date().getTime() - (86400 * 90 * 1000) },
-              legend: { position: 'nw' },
-              yaxis: { labelWidth: 40, minTickSize: 1, tickDecimals: 0, ticks: [] }
-            });
-          $('.Options span,.pricestats span').removeClass('selected-text');
-          $(event.target).addClass('selected-text');
-          $('.pricestats .days90').addClass('selected-text');
+        // Dropdown select handler
+        $("#daysSelect").off("change").on("change", function () {
+          plotCharts(parseInt($(this).val()));
         });
       }
     },
