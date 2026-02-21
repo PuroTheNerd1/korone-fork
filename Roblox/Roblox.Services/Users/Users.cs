@@ -2117,6 +2117,10 @@ public class UsersService : ServiceBase, IService
         var dailyRobux = isStaff ? 85 : metadata.dailyRobux;
         if (dailyRobux == 0)
             return;
+        using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
+        var balance = await ec.GetUserRobux(userId);
+        if (balance >= 10000)
+            return;
 
         var stipendTimespan = TimeSpan.FromHours(23).Add(TimeSpan.FromMinutes(55));
 
