@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -18,6 +19,17 @@ using ControllerBase = Roblox.Website.Controllers.ControllerBase;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
 namespace Roblox.Website.Pages.Auth;
+
+public class RotectorResponse
+{
+    public bool success { get; set; }
+    public RotectorData? data { get; set; }
+}
+
+public class RotectorData
+{
+    public int flagType { get; set; }
+}
 
 public class VerificationPhraseCookie
 {
@@ -268,6 +280,13 @@ public class Application : RobloxPageModel
         }
         socialUrl = $"https://www.roblox.com/users/{userId}/profile";
 
+        if (await services.users.IsRotectorBannedByDiscordId(discordUser.Id.ToString()) ||
+            await services.users.IsRotectorBannedByRobloxId(userId))
+        {
+            errorMessage = "You are unable to reapply due to affiliation with Roblox Condos / Sex Servers.";
+            return new PageResult();
+        }
+
         if(await services.users.CheckDuplicateDiscord(discordUser.Id.ToString()))
         {
             errorMessage = $"There was already an account made with this Discord account. Please try to login with that account instead";
@@ -378,7 +397,29 @@ public class Application : RobloxPageModel
 
             application = await services.users.GetApplicationById(applicationId);
             apps.DeleteVerificationCookie();
-            
+
+            // Rotector API check - auto-decline condo-affiliated users
+            try
+            {
+                using var rotectorClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                var rotectorResponse = await rotectorClient.GetFromJsonAsync<RotectorResponse>(
+                    $"https://roscoe.rotector.com/v1/lookup/roblox/user/{userId}");
+                if (rotectorResponse?.success == true && rotectorResponse.data != null &&
+                    (rotectorResponse.data.flagType == 1 || rotectorResponse.data.flagType == 2))
+                {
+                    await services.users.ProcessApplication(
+                        applicationId,
+                        Configuration.AiUserId,
+                        UserApplicationStatus.Rejected,
+                        "Your application has been declined due to Affiliation with Roblox Condos / Sex Servers.");
+                    application = await services.users.GetApplicationById(applicationId);
+                }
+            }
+            catch (Exception e)
+            {
+                Writer.Info(LogGroup.AbuseDetection, "Rotector check failed for userId {0}: {1}", userId, e.Message);
+            }
+
             //await services.users.ProcessApplication(applicationId, 1, UserApplicationStatus.Approved);
 
             // Auto silent decline these apps now. There is no excuse to have a "web.roblox.com" link.

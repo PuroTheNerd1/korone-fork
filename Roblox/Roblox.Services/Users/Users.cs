@@ -950,6 +950,23 @@ public class UsersService : ServiceBase, IService
 
         return isDuplicate > 0;
     }
+
+    public async Task<bool> IsRotectorBannedByDiscordId(string discordId)
+    {
+        var count = await db.QuerySingleAsync<int>(
+            "SELECT COUNT(*) FROM join_application WHERE discord_id = :discordId AND author_id = :authorId AND reject_reason = :reason",
+            new { discordId, authorId = Configuration.AiUserId, reason = "Your application has been declined due to Affiliation with Roblox Condos / Sex Servers." });
+        return count > 0;
+    }
+
+    public async Task<bool> IsRotectorBannedByRobloxId(long robloxId)
+    {
+        var count = await db.QuerySingleAsync<int>(
+            "SELECT COUNT(*) FROM join_application WHERE verified_id = :robloxId AND author_id = :authorId AND reject_reason = :reason",
+            new { robloxId = $"RobloxUserId:{robloxId}", authorId = Configuration.AiUserId, reason = "Your application has been declined due to Affiliation with Roblox Condos / Sex Servers." });
+        return count > 0;
+    }
+
     public async Task LinkDiscordAccount(string discordId, long userId)
     {
         await db.ExecuteAsync(
