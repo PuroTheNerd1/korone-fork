@@ -73,11 +73,14 @@
                     @if (Model.application.status == UserApplicationStatus.Rejected)
                     {
                         <p>Rejection Reason: @(Model.application.rejectionReason ?? "No reason specified.")</p>
-                        <form method="post">
-                            <input type="hidden" name="deleteCurrentApplicationCookie" value="true"/>
-                            @Html.AntiForgeryToken()
-                            <input type="submit" class="btn btn-outline-primary" value="Create New Application"/>
-                        </form>
+                        @if (Model.application.rejectionReason != "Your application has been declined due to Affiliation with Roblox Condos / Sex Servers.")
+                        {
+                            <form method="post">
+                                <input type="hidden" name="deleteCurrentApplicationCookie" value="true"/>
+                                @Html.AntiForgeryToken()
+                                <input type="submit" class="btn btn-outline-primary" value="Create New Application"/>
+                            </form>
+                        }
                     }
                     <p class="mt-4">Application ID: @Model.application.id</p>
                 }
