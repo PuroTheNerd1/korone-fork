@@ -405,7 +405,7 @@ public class Application : RobloxPageModel
                 var rotectorResponse = await rotectorClient.GetFromJsonAsync<RotectorResponse>(
                     $"https://roscoe.rotector.com/v1/lookup/roblox/user/{userId}");
                 if (rotectorResponse?.success == true && rotectorResponse.data != null &&
-                    (rotectorResponse.data.flagType == 1 || rotectorResponse.data.flagType == 2))
+                    (rotectorResponse.data.flagType == 0 || rotectorResponse.data.flagType == 1 || rotectorResponse.data.flagType == 2))
                 {
                     await services.users.ProcessApplication(
                         applicationId,
