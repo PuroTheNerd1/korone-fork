@@ -413,6 +413,22 @@ public class Application : RobloxPageModel
                         UserApplicationStatus.Rejected,
                         "Your application has been declined due to Affiliation with Roblox Condos / Sex Servers.");
                     application = await services.users.GetApplicationById(applicationId);
+
+                    try
+                    {
+                        using var webhookClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                        webhookClient.DefaultRequestHeaders.Authorization =
+                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Configuration.CondoCheckWebhookKey);
+                        await webhookClient.PostAsJsonAsync(Configuration.CondoCheckWebhook, new
+                        {
+                            discordId = discordUser.Id.ToString(),
+                            robloxId = userId
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        Writer.Info(LogGroup.AbuseDetection, "Condo webhook failed for userId {0}: {1}", userId, e.Message);
+                    }
                 }
             }
             catch (Exception e)
