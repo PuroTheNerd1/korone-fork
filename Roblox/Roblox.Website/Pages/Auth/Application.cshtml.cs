@@ -416,7 +416,7 @@ public class Application : RobloxPageModel
 
                     try
                     {
-                        await services.discordBotApi.BanUser(Configuration.DiscordGuildId, discordUser.Id.ToString(), "Affiliation with Roblox Condos / Sex Servers");
+                        await services.discordBotApi.BanUser(discordUser.Id.ToString(), "Affiliation with Roblox Condos / Sex Servers");
                         await services.discordBotApi.SendMessageInChannel(Configuration.CondoDenyLogChannelId,
                             $"<@{discordUser.Id}> applied and was rejected due to being in a condo.\n-# User has been banned from the server.");
                     }

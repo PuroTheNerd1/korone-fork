@@ -78,8 +78,9 @@ public class DiscordBotApi
             Writer.Info(LogGroup.DiscordApi, "Failed to message {0} to korone status: {1}", channelId, result.StatusCode);
         }
     }
-    public async Task BanUser(string guildId, string discordId, string reason)
+    public async Task BanUser(string discordId, string reason)
     {
+        var guildId = Roblox.Configuration.DiscordGuildId;
         var request = new HttpRequestMessage(HttpMethod.Put, $"guilds/{guildId}/bans/{discordId}");
         request.Headers.Add("X-Audit-Log-Reason", reason);
         request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
