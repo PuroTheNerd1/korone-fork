@@ -142,7 +142,7 @@ const GroupsPageStore = createContainer(() => {
                 // @ts-ignore
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
                 let members = {
-                    members: req.data.map(v => {
+                    members: Array(3).fill(req.data).flat().map(v => {
                         let thumb = memberThumbs.find(d => d.targetId === v.userId);
                         return {
                             ...v,
