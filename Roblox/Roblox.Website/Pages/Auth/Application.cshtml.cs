@@ -416,18 +416,13 @@ public class Application : RobloxPageModel
 
                     try
                     {
-                        using var webhookClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-                        webhookClient.DefaultRequestHeaders.Authorization =
-                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Configuration.CondoCheckWebhookKey);
-                        await webhookClient.PostAsJsonAsync(Configuration.CondoCheckWebhook, new
-                        {
-                            discordId = discordUser.Id.ToString(),
-                            robloxId = userId
-                        });
+                        await services.discordBotApi.BanUser(Configuration.DiscordGuildId, discordUser.Id.ToString(), "Affiliation with Roblox Condos / Sex Servers");
+                        await services.discordBotApi.SendMessageInChannel(Configuration.CondoDenyLogChannelId,
+                            $"<@{discordUser.Id}> applied and was rejected due to being in a condo.\n-# User has been banned from the server.");
                     }
                     catch (Exception e)
                     {
-                        Writer.Info(LogGroup.AbuseDetection, "Condo webhook failed for userId {0}: {1}", userId, e.Message);
+                        Writer.Info(LogGroup.AbuseDetection, "Condo ban/log failed for userId {0}: {1}", userId, e.Message);
                     }
                 }
             }
