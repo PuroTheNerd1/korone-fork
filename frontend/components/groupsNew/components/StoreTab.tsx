@@ -70,7 +70,7 @@ const StoreTab = ({}: {}) => {
         </>}>
             {
                 store.userPerms?.permissions?.groupEconomyPermissions?.createItems || store.userPerms?.permissions?.groupEconomyPermissions?.manageItems ?
-                    <div className={`section-content noShadow ${s.manageGroupItemsContainer}`}>
+                    <div className={`section-content noShadow ${s.manageGroupItemsContainer} flex flex-column text-start`}>
                         <span>Groups have the ability to create and sell official Shirts, Pants, and T-Shirts! All revenue goes to group funds.</span>
                         <NewLink href={`/develop#groupcreations`}>
                             <span className={`link2018`}>Create or manage group items.</span>
@@ -84,7 +84,7 @@ const StoreTab = ({}: {}) => {
                         {
                             storeItems.items.length > 0 ? storeItems.items.map(si => {
                                 return <CatalogItemCard item={si} />
-                            }) : <div className={`section-content-off w-100`}>No results found</div>
+                            }) : <div className={`section-content-off disabled w-100`}>No results found</div>
                         }
                     </ul>
                     <div className={`${s.pageControls}`}>
@@ -122,7 +122,7 @@ const StoreTab = ({}: {}) => {
                             <span className={s.forwardIcon}/>
                         </ActionButton>
                     </div>
-                </div> : storeItems.total === 0 ? <div className={`section-content-off w-100`}>
+                </div> : storeItems.total === 0 ? <div className={`section-content-off disabled w-100`}>
                     <span>No items are for sale in this group.</span>
                 </div> : null
             }
