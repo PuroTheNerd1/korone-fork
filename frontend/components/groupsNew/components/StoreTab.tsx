@@ -69,7 +69,7 @@ const StoreTab = ({}: {}) => {
             </NewLink>
         </>}>
             {
-                store.userPerms.permissions.groupEconomyPermissions.createItems || store.userPerms.permissions.groupEconomyPermissions.manageItems ?
+                store.userPerms?.permissions?.groupEconomyPermissions?.createItems || store.userPerms?.permissions?.groupEconomyPermissions?.manageItems ?
                     <div className={`section-content noShadow ${s.manageGroupItemsContainer}`}>
                         <span>Groups have the ability to create and sell official Shirts, Pants, and T-Shirts! All revenue goes to group funds.</span>
                         <NewLink href={`/develop#groupcreations`}>
