@@ -36,6 +36,7 @@ const CatalogPageStore = createContainer(() => {
         includeOffSale: false,
         creatorOption: 1,
         creator: "",
+        creatorType: 1,
     });
 
     const [searchInput, setSearchInput] = useState("");
@@ -55,6 +56,7 @@ const CatalogPageStore = createContainer(() => {
      * @property selectedCurrency
      * @property includeOffSale
      * @property creator
+     * @property creatorType
      */
 
     function getCurrentPage(total, nextPageCursor, limit) {
@@ -94,6 +96,7 @@ const CatalogPageStore = createContainer(() => {
             selectedCurrency: options.selectedCurrency,
             includeOffSale: options.includeOffSale,
             creator: creatorOptionReq === 1 ? null : creatorOptionReq === 2 ? "ROBLOX" : options.creator,
+            creatorType: options.creatorType,
             ...arr,
         };
         let gen = currentOptions.genres.ToArray();
@@ -107,6 +110,7 @@ const CatalogPageStore = createContainer(() => {
             cursor: (!IsNullOrEmpty(resultMetadata.cursor) || !IsNullOrEmpty(cursor)) && !reloadPage ? cursor : null,
             sort: currentOptions.sortBy,
             creatorName: !IsNullOrEmpty(currentOptions.creator) ? currentOptions.creator : null,
+            creatorType: currentOptions.creatorType,
             priceOption: currentOptions.priceOption,
             priceRange: currentOptions.priceRange,
             currency: currentOptions.selectedCurrency,

@@ -222,6 +222,53 @@ function CatalogFilters() {
                 </div>
             </div>
         </div>
+
+        <div>
+            <h5 className={s.filterHeader}>Creator Type</h5>
+            <div className={s.priceFilters}>
+                <div className={`${s.priceContainer} radio2019`}>
+                    <input
+                        id="creator-type-user"
+                        type="radio"
+                        onClick={async e => {
+                            e.preventDefault();
+                            if (locked.current || store.refreshDebounce.current) return;
+                            locked.current = true;
+
+                            store.setOptions({...store.options, creatorType: 2});
+                            await tick();
+                            store.RefreshCatalogItems(null, true, { creatorType: 2 });
+
+                            await wait(0.75);
+                            locked.current = false;
+                        }}
+                        checked={store.options.creatorType===1}
+                    />
+                    <label htmlFor="creator-type-user">User</label>
+                </div>
+                <div className={`${s.priceContainer} radio2019`}>
+                    <input
+                        id="creator-type-group"
+                        type="radio"
+                        onClick={async e => {
+                            e.preventDefault();
+                            if (locked.current || store.refreshDebounce.current) return;
+                            locked.current = true;
+
+                            store.setOptions({...store.options, creatorType: 2});
+                            await tick();
+                            store.RefreshCatalogItems(null, true, { creatorType: 2 });
+
+                            await wait(0.75);
+                            locked.current = false;
+                        }}
+                        checked={store.options.creatorType===2}
+                    />
+                    <label htmlFor="creator-type-group">Group</label>
+                </div>
+            </div>
+        </div>
+
         <div>
             <h5 className={s.filterHeader}>Currency</h5>
             <div className={s.priceFilters}>
