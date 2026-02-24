@@ -1,25 +1,36 @@
 import {createContainer} from "unstated-next";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {
     getPermissionsForRoleset,
-    getRolesetMembers, getUserGroupsV2,
-    getWall, GroupPermissionsEntry,
+    getRolesetMembers,
+    getUserGroupsV2,
+    getWall,
+    GroupPermissionsEntry,
     GroupPostEntry,
-    GroupRoleEntry, GroupUserWithRoleIdThumbnail,
-    GroupWithShout, UserGroupV2
+    GroupRoleEntry,
+    GroupUserWithRoleIdThumbnail,
+    GroupWithShout,
+    UserGroupV2
 } from "../../../services/groups-typed";
 import AuthenticationStore from "../../../stores/authentication";
-import { wait } from "../../../lib/utils";
-import { getRoles } from "../../../services/groups";
+import {wait} from "../../../lib/utils";
+import {getRoles} from "../../../services/groups";
 import {ThumbnailEntry} from "../../../services/thumbnailsT";
-import { multiGetGroupIcons, multiGetUserHeadshots } from "../../../services/thumbnails";
-import { getRobuxGroup } from "../../../services/economy";
+import {multiGetAssetThumbnails, multiGetGroupIcons, multiGetUserHeadshots} from "../../../services/thumbnails";
+import {getRobuxGroup} from "../../../services/economy";
+import {getAssetDetailsClean, searchCatalog2} from "../../../services/catalog";
+import {CatalogCategory, CatalogSortBy} from "../../CatalogPage/stores/CatalogPageStore";
+import {userOwnsItems} from "../../../services/inventory";
 
 const GroupsPageStore = createContainer(() => {
     const [group, setGroup] = useState<GroupFull|null>(null);
     const [posts, setPosts] = useState<GroupPosts>({posts: [], page: 0, nextPage: null, prevPage: null});
     const [members, setMembers] = useState<GroupMembers>({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
     const [memberCache, setMemberCache] = useState<GroupMembers[]>([]);
+
+    const [storeItems, setStoreItems] = useState<GroupStoreItems>({items: [], page: 0, total: 0, nextPage: null, prevPage: null});
+    const [storeItemsCache, setStoreItemsCache] = useState<GroupStoreItems[]>([]);
+    const sdeb = useRef(false);
 
     // TODO: should be in the other one, ill setup later
     const [userGroups, setUserGroups] = useState<UserGroupV2[]>([]);
@@ -148,7 +159,7 @@ const GroupsPageStore = createContainer(() => {
                 // @ts-ignore
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
                 let members = {
-                    members: req.data.map(v => {
+                    members: req.data.map((v: { userId: number; }) => {
                         let thumb = memberThumbs.find(d => d.targetId === v.userId);
                         return {
                             ...v,
@@ -169,11 +180,83 @@ const GroupsPageStore = createContainer(() => {
         } catch (e) { console.error(e) }
     }
 
+    async function fetchStoreItems(page: number, cursor: string) {
+        try {
+            if (!group?.id || sdeb.current) return;
+            let storeItemsCached = storeItemsCache.find(gsi => gsi.page === page);
+            if (storeItemsCached) {
+                setStoreItems(storeItemsCached);
+                return;
+            }
+
+            try {
+                let success = await loadItems(page, cursor);
+                console.log("loading success: " + success);
+            } catch (e) {
+                console.error("failed to load store items for group " + group.id);
+                throw e;
+            }
+        } catch (e) { console.error(e) }
+    }
+
+    async function loadItems(page: number, cursor: string) {
+        sdeb.current = true;
+        // @ts-ignore
+        const searchResultsFlat = await searchCatalog2({
+            category: CatalogCategory.All,
+            sort: CatalogSortBy.RecentlyUpdated,
+            creatorType: 2,
+            creatorId: group.id,
+            limit: 24,
+            cursor: cursor,
+        });
+        let newResult: GroupStoreItems = {
+            items: [],
+            page: page,
+            total: searchResultsFlat._total,
+            nextPage: searchResultsFlat.nextPageCursor,
+            prevPage: searchResultsFlat.previousPageCursor,
+        }
+        if (searchResultsFlat.data.length === 0) {
+            setStoreItems(newResult);
+            setStoreItemsCache([...storeItemsCache, newResult]);
+            await wait(0.75);
+            sdeb.current = false;
+            return false;
+        }
+
+        const searchResultsRaw = await getAssetDetailsClean(searchResultsFlat.data);
+        if (!searchResultsRaw) { console.dir("Failed to load asset details from search results: " + searchResultsFlat); setStoreItems(newResult); await wait(0.75); sdeb.current = false; return false; }
+
+        const thumbnails = await multiGetAssetThumbnails({ assetIds: searchResultsRaw.map(d => d.id) });
+        // @ts-ignore
+        const ownsAssets: { id: number; owned: boolean; }[] = auth?.isAuthenticated && auth?.userId ? await userOwnsItems({ userId: auth?.userId, assetIds: searchResultsRaw.map(d => d.id) }) : [];
+        // @ts-ignore
+        newResult.items = searchResultsRaw.map(d => {
+            let thumb = thumbnails.find(t => t.targetId === d.id);
+            let ownsAsset = ownsAssets.find(t => t.id === d.id);
+            return {
+                ...d,
+                state: thumb?.state ?? null,
+                imageUrl: thumb?.imageUrl ?? null,
+                owned: ownsAsset?.owned ?? false,
+            }
+        });
+
+        setStoreItems(newResult);
+        setStoreItemsCache([...storeItemsCache, newResult]);
+        await wait(0.75);
+        sdeb.current = false;
+        return true;
+    }
+
     return {
         group, setGroup,
         isLoadingNE, setLoadingNE,
         posts, setPosts,
         members, setMembers,
+
+        storeItems, setStoreItems,
 
         userGroups, setUserGroups,
 
@@ -181,8 +264,11 @@ const GroupsPageStore = createContainer(() => {
 
         isLoading, setLoading,
 
+        sdeb,
+
         fetchData,
         fetchMembers,
+        fetchStoreItems,
     }
 });
 
@@ -209,6 +295,52 @@ export type GroupMembers = {
     page: number;
     nextPage: string|null;
     prevPage: string|null;
+}
+
+export type GroupStoreItems = {
+    items: CatalogAssetDetails[];
+    page: number;
+    total: number;
+    nextPage: string|null;
+    prevPage: string|null;
+}
+
+export type CatalogAssetDetails = {
+    id: number;
+    assetType: number;
+    name: string;
+    description: string;
+    genres: string[];
+    creatorType: "User" | "Group";
+    creatorTargetId: number;
+    creatorName: string;
+    offsaleDeadline: string | null;
+    itemRestrictions: ("Limited" | "LimitedUnique")[];
+    saleCount: number;
+    itemType: "Asset" | string;
+    favoriteCount: number;
+    isForSale: boolean;
+    commentsEnabled: boolean;
+    price: number | null;
+    priceTickets: number | null;
+    lowestPrice: number | null;
+    priceStatus: string | null;
+    lowestSellerData: {
+        userId: number;
+        username: string;
+        userAssetId: number;
+        price: number;
+        assetId: number;
+    } | null;
+    unitsAvailableForConsumption: number | null;
+    serialCount: number;
+    is18Plus: boolean;
+    moderationStatus: "ReviewApproved" | string;
+    createdAt: string;
+    updatedAt: string;
+    state?: string;
+    imageUrl?: string;
+    owned?: boolean;
 }
 
 export default GroupsPageStore;

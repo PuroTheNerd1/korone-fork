@@ -275,10 +275,10 @@ export const getModerationStatus = ({ assetID }) => {
  * @param {number|null} creatorType
  * @param {number|null} creatorId
  * @param {string|null} creatorName
- * @param {boolean} includeNotForSale
- * @param {number} priceOption
- * @param {[number, number]} priceRange
- * @param {number} currency
+ * @param {boolean|null} includeNotForSale
+ * @param {number|null} priceOption
+ * @param {[number, number]|null} priceRange
+ * @param {number|null} currency
  * @returns {Promise<PekoraCollectionPaginated<{itemType: string; id: number;}>>}
  */
 export const searchCatalog2 = ({

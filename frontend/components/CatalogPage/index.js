@@ -97,7 +97,9 @@ function CatalogPage() {
         }
         if (category && IsValidNum(category)) {
             options.category = Number.parseInt(category);
-            options.subCategory = 0;
+            if (Number.parseInt(category) === 1) {
+                options.subCategory = 0;
+            }
         }
     }, [router.query]);
 
