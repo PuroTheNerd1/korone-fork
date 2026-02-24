@@ -1,11 +1,12 @@
 {
   "name": "korone-2019-frontend",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "author": "Zyythy, Yusof, shikataginaii, Floatzel, other people i forgor lal",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build && node lib/postbuild.mjs",
+    "buildc": "next build",
     "builda": "ANALYZE=true next build",
     "start": "next start",
     "test": "./node_modules/.bin/jest",

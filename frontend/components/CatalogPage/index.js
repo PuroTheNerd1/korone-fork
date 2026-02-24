@@ -65,43 +65,12 @@ const useStyles = createUseStyles({
     },
 });
 
+const CatalogNavigation = dynamic(() => import("./components/CatalogNavigation"), { ssr: false })
+const CatalogFilters = dynamic(() => import("./components/CatalogFilters"), { ssr: false })
+
 function CatalogPage() {
     const s = useStyles({theme: getTheme()});
-    const router = useRouter();
     const store = CatalogPageStore.useContainer();
-    const CatalogNavigation = dynamic(() => import("./components/CatalogNavigation"), { ssr: false })
-    const CatalogFilters = dynamic(() => import("./components/CatalogFilters"), { ssr: false })
-
-    useEffect(() => {
-        let creatorName = router.query['CreatorName'] ?? null;
-        let creatorType = router.query['CreatorType'] ?? null;
-        let category = router.query['Category'] ?? null;
-
-        let options = store.options;
-        if (creatorName && typeof creatorType === 'string') options.creator = creatorName;
-        if (creatorType) {
-            if (IsValidNum(creatorType)) {
-                options.creatorOption = Number.parseInt(creatorType);
-            } else if (typeof creatorType === 'string') {
-                switch (creatorType.toLowerCase()) {
-                    case "user": {
-                        options.creatorOption = 1;
-                        break;
-                    }
-                    case "group": {
-                        options.creatorOption = 2;
-                        break;
-                    }
-                }
-            }
-        }
-        if (category && IsValidNum(category)) {
-            options.category = Number.parseInt(category);
-            if (Number.parseInt(category) === 1) {
-                options.subCategory = 0;
-            }
-        }
-    }, [router.query]);
 
     return <div className={`w-100 flex flex-column ${s.catalogPage}`}>
         <div className={`w-100 flex justify-content-between align-items-center ${s.catalogHeader}`}>

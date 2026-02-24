@@ -10,6 +10,7 @@ import MyGroupsStore from "../../../components/myGroups/stores/myGroupsStore";
 import { getGroupPagesStyle } from "../../../services/theme";
 import GroupPageStore from "../../../components/myGroups/stores/groupPageStore";
 import MyGroups from "../../../components/myGroups";
+import UserGroupsStore from "../../../components/groupsNew/stores/UserGroupsStore";
 
 const GamePage = ({ group, groupId }: { group: GroupWithShout|null, groupId: any }) => {
     if (getGroupPagesStyle() !== 'Modern') return <MyGroupsStore.Provider>
@@ -34,9 +35,11 @@ const GamePage = ({ group, groupId }: { group: GroupWithShout|null, groupId: any
                 </Head>
             )}
             <Theme2016>
-                <GroupsPageStore.Provider>
-                    <GroupPreProcessor group={group} />
-                </GroupsPageStore.Provider>
+                <UserGroupsStore.Provider>
+                    <GroupsPageStore.Provider>
+                        <GroupPreProcessor group={group} />
+                    </GroupsPageStore.Provider>
+                </UserGroupsStore.Provider>
             </Theme2016>
         </>
     );

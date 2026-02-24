@@ -99,6 +99,7 @@ const useStyles = createUseStyles({
         overflow: 'hidden',
     },
     creatorContainer: {
+        padding: 0,
         "& *": {
             fontSize: 10,
             fontWeight: 500,

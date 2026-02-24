@@ -48,7 +48,9 @@ const useStyles = createUseStyles({
         backgroundPosition:'0 -336px!important',
     },
 
-    storeItemsContainer: {},
+    storeItemsContainer: {
+        padding: 0,
+    },
 })
 
 const StoreTab = ({}: {}) => {
@@ -72,14 +74,16 @@ const StoreTab = ({}: {}) => {
                 store.userPerms?.permissions?.groupEconomyPermissions?.createItems || store.userPerms?.permissions?.groupEconomyPermissions?.manageItems ?
                     <div className={`section-content noShadow ${s.manageGroupItemsContainer} flex flex-column text-start`}>
                         <span>Groups have the ability to create and sell official Shirts, Pants, and T-Shirts! All revenue goes to group funds.</span>
-                        <NewLink href={`/develop#groupcreations`}>
-                            <span className={`link2018`}>Create or manage group items.</span>
-                        </NewLink>
+                        <div>
+                            <NewLink href={`/develop#groupcreations`}>
+                                <span className={`link2018`}>Create or manage group items.</span>
+                            </NewLink>
+                        </div>
                     </div>
                     : null
             }
             {
-                storeItems.total > 0 ? <div>
+                storeItems.total > 0 ? <div className={`flex flex-column`}>
                     <ul className={`${s.storeItemsContainer} flex flex-wrap w-100`}>
                         {
                             storeItems.items.length > 0 ? storeItems.items.map(si => {

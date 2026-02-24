@@ -3,9 +3,10 @@ import CatalogPageStore, { CatalogCategory, FormatCamelCase } from "../stores/Ca
 import Selector from "../../selector";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
-import {tick, wait} from "../../../lib/utils";
+import {IsValidNum, tick, wait} from "../../../lib/utils";
 import {useEffect, useState} from "react";
 import {getTheme, themeType} from "../../../services/theme";
+import {useRouter} from "next/dist/client/router";
 
 const useStyles = createUseStyles({
     inputStyle: {
@@ -94,12 +95,55 @@ function CatalogInputs() {
     const s = useStyles({theme: getTheme()});
     const store = CatalogPageStore.useContainer();
     const buttonStyles = useButtonStyles();
+    const router = useRouter();
 
     const [deb, setDeb] = useState(false);
 
+    // do we make this useEffect listen to router changes?
     useEffect(async () => {
-        await tick()
-        await store.RefreshCatalogItems(null, true)
+        await tick();
+
+        let creatorName = router.query['CreatorName'] ?? null;
+        let creatorType = router.query['CreatorType'] ?? null;
+        let category = router.query['Category'] ?? null;
+
+        let options = { ...store.options };
+        let creatorOpt = store.creator;
+        let creatorTypeOpt = store.creatorType;
+
+        if (creatorName && typeof creatorName === 'string') creatorOpt = creatorName;
+        if (creatorType) {
+            if (IsValidNum(creatorType)) {
+                creatorTypeOpt = Number.parseInt(creatorType);
+            } else if (typeof creatorType === 'string') {
+                switch (creatorType.toLowerCase()) {
+                    case "user": {
+                        creatorTypeOpt = 1;
+                        break;
+                    }
+                    case "group": {
+                        creatorTypeOpt = 2;
+                        break;
+                    }
+                }
+            }
+        }
+        if (category && IsValidNum(category)) {
+            options.category = Number.parseInt(category);
+            if (Number.parseInt(category) === 1) {
+                options.subCategory = 0;
+            }
+        }
+        await store.setOptions(options);
+        await store.setCreator(creatorOpt);
+        await store.setCreatorType(creatorTypeOpt);
+
+        await store.RefreshCatalogItems(null, true, {
+            category: options.category,
+            subCategory: options.subCategory,
+            creator: creatorOpt,
+            creatorType: creatorTypeOpt
+        });
     }, []);
     
     return <div className={`flex ${s.search}`}>

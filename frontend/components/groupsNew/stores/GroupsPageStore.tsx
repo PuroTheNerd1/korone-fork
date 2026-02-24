@@ -21,20 +21,22 @@ import {getRobuxGroup} from "../../../services/economy";
 import {getAssetDetailsClean, searchCatalog2} from "../../../services/catalog";
 import {CatalogCategory, CatalogSortBy} from "../../CatalogPage/stores/CatalogPageStore";
 import {userOwnsItems} from "../../../services/inventory";
+import UserGroupsStore from "./UserGroupsStore";
 
 const GroupsPageStore = createContainer(() => {
+    const userGroupStore = UserGroupsStore.useContainer();
     const [group, setGroup] = useState<GroupFull|null>(null);
     const [posts, setPosts] = useState<GroupPosts>({posts: [], page: 0, nextPage: null, prevPage: null});
     const [members, setMembers] = useState<GroupMembers>({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
     const [memberCache, setMemberCache] = useState<GroupMembers[]>([]);
+
+    const [userPerms, setUserPerms] = useState<GroupPermissionsEntry|null>(null);
 
     const [storeItems, setStoreItems] = useState<GroupStoreItems>({items: [], page: 0, total: 0, nextPage: null, prevPage: null});
     const [storeItemsCache, setStoreItemsCache] = useState<GroupStoreItems[]>([]);
     const sdeb = useRef(false);
 
     // TODO: should be in the other one, ill setup later
-    const [userGroups, setUserGroups] = useState<UserGroupV2[]>([]);
-    const [userPerms, setUserPerms] = useState<GroupPermissionsEntry|null>(null);
 
     const [isLoading, setLoading] = useState(false);
     const [isLoadingNE, setLoadingNE] = useState(false); // ne = non-essential, like role perms and user stuff
@@ -45,7 +47,7 @@ const GroupsPageStore = createContainer(() => {
         if (!group) return;
         setUserPerms(null);
         let roleSetId = 1; // guest by default
-        let userGroup = userGroups.find(g => g.group.id === group?.id);
+        let userGroup = userGroupStore.userGroups.find(g => g.group.id === group?.id);
         if (userGroup) roleSetId = userGroup.role.id;
 
         (async () => {
@@ -54,7 +56,7 @@ const GroupsPageStore = createContainer(() => {
                 if (req) setUserPerms(req);
             } catch (e) { console.error(e) }
         })()
-    }, [userGroups, group]);
+    }, [userGroupStore.userGroups, group]);
 
     async function fetchData(group: GroupWithShout, clearData?: boolean) {
         console.log("CHECKING, ", isLoading, auth.isPending);
@@ -89,7 +91,6 @@ const GroupsPageStore = createContainer(() => {
             }
         } catch (e) { console.error(e) }
         try {
-            console.log(groupRoles);
             if (!groupRoles || groupRoles.length <= 0 || groupRoles.filter(v=>v.id>1).length <= 0) throw new Error("no roles to process group members");
             let rankId = groupRoles.filter(v => v.id > 1)[0]?.id;
             if (rankId === undefined) throw new Error("no default rank found for group members")
@@ -132,14 +133,10 @@ const GroupsPageStore = createContainer(() => {
             games: []
         });
 
+        await userGroupStore.fetchData();
+
         setTimeout(() => setLoading(false), 1000);
         await setLoadingNE(true);
-
-        if (auth.isAuthenticated && auth.userId) {
-            try {
-                setUserGroups(await getUserGroupsV2({userId: auth.userId}) || []);
-            } catch (e) { console.error(e) }
-        }
 
         await wait(1);
         setLoadingNE(false);
@@ -257,8 +254,6 @@ const GroupsPageStore = createContainer(() => {
         members, setMembers,
 
         storeItems, setStoreItems,
-
-        userGroups, setUserGroups,
 
         userPerms, setUserPerms,
 

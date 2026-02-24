@@ -310,8 +310,11 @@ export const searchCatalog2 = ({
     if (genres) {
         url += `&genres=${genres.join(",")}`;
     }
+    if (creatorType) {
+        url += '&creatorType=' + encodeURIComponent(creatorType);
+    }
     if (creatorType && creatorId) {
-        url += '&creatorTargetId=' + encodeURIComponent(creatorId) + '&creatorType=' + encodeURIComponent(creatorType);
+        url += '&creatorTargetId=' + encodeURIComponent(creatorId);
     }
     if (!creatorId && creatorName) {
         url += '&creatorName=' + encodeURIComponent(creatorName) + '&creatorType=1';

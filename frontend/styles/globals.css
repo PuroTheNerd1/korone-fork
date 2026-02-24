@@ -484,6 +484,10 @@ html div.container.big {
     padding: 15px!important;
 }
 
+.padding-l-5 {
+    padding-left: 5px!important;
+}
+
 .marginStuff {
     margin: 0 0 8px!important;
 }

@@ -158,7 +158,7 @@ function CatalogResults() {
                         return
                     }
                     deb.current = true
-                    await store.RefreshCatalogItems(null, false, {}, store.options.creatorOption, store.resultMetadata.prevCursor)
+                    await store.RefreshCatalogItems(null, false, {}, store.creatorOption, store.resultMetadata.prevCursor)
                     deb.current = false
                 }}
             >
@@ -176,7 +176,7 @@ function CatalogResults() {
                         return
                     }
                     deb.current = true
-                    await store.RefreshCatalogItems(null, false, {}, store.options.creatorOption, store.resultMetadata.nextCursor)
+                    await store.RefreshCatalogItems(null, false, {}, store.creatorOption, store.resultMetadata.nextCursor)
                     deb.current = false
                 }}
             >

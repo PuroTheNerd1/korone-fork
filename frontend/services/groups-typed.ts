@@ -8,7 +8,7 @@ export type GroupBasic = {
     isVerified: boolean;
 }
 
-export type UserGroupV2 = {group: GroupBasic; role: GroupRoleEntry;}
+export type UserGroupV2 = {group: GroupBasic; role: GroupRoleEntry; isPrimary?: boolean; imageUrl?: string; state?: ThumbnailState;}
 
 export type GroupWithShout = {
     id: number;

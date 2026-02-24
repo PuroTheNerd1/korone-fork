@@ -1,5 +1,5 @@
 import { createUseStyles } from 'react-jss';
-import {useState, useEffect, PropsWithChildren, ReactNode} from 'react';
+import {PropsWithChildren, ReactNode} from 'react';
 
 const useStyles = createUseStyles({
     sectionContainer: {
@@ -26,16 +26,17 @@ interface SectionProps extends PropsWithChildren {
     sectionClass?: string;
     headerContainer?: string;
     headerChildren?: ReactNode | undefined;
+    headerCenter?: boolean;
     className?: string;
     contentSectioned?: boolean;
     h3Class?: string;
 }
 
-const Section = ({header, sectionClass, className, children, headerContainer, headerChildren, contentSectioned, h3Class}: SectionProps) => {
+const Section = ({header, sectionClass, className, children, headerContainer, headerChildren, headerCenter, contentSectioned, h3Class}: SectionProps) => {
     const s = useStyles();
 
     return <div className={`${s.sectionContainer} ${sectionClass ? sectionClass : ""}`}>
-        <div className={`${s.headerContainer} ${headerContainer ? headerContainer : ""}`}>
+        <div className={`${s.headerContainer} ${headerContainer ? headerContainer : ""} ${headerCenter ? "align-items-center" : ""}`}>
             <h3>{header}</h3>
             {headerChildren}
         </div>

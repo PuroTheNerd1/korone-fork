@@ -30,14 +30,14 @@ const CatalogPageStore = createContainer(() => {
         subCategory: CatalogSubCategory.All,
         sortBy: CatalogSortBy.Relevance,
         genres: new List(),
-        priceOption: 0,// 0 == any, 1 == price range, 2 == free
-        priceRange: [0, 0],
         selectedCurrency: 3,
         includeOffSale: false,
-        creatorOption: 1,
-        creator: "",
-        creatorType: 1,
     });
+    const [priceOption, setPriceOption] = useState(0); // 0 == any, 1 == price range, 2 == free
+    const [priceRange, setPriceRange] = useState([0, 0]);
+    const [creator, setCreator] = useState("");
+    const [creatorOption, setCreatorOption] = useState(1);
+    const [creatorType, setCreatorType] = useState(1);
 
     const [searchInput, setSearchInput] = useState("");
     
@@ -77,88 +77,97 @@ const CatalogPageStore = createContainer(() => {
         return Math.max(1, Math.floor(nextPageCursor / limit));
     }
 
-    async function RefreshCatalogItems(e, reloadPage = false, arr = {}, creatorOptionReq = options.creatorOption, cursor = "") {
+    async function RefreshCatalogItems(e, reloadPage = false, arr = {}, creatorOptionReq = creatorOption, cursor = "") {
         if (refreshDebounce.current) return false;
         refreshDebounce.current = true;
         setLoading(true);
         if (e?.preventDefault) e?.preventDefault();
-        
-        /**
-         * @type {CatalogCurrentOptions}
-         */
-        let currentOptions = {
-            category: options.category,
-            subCategory: options.subCategory,
-            genres: options.genres,
-            sortBy: options.sortBy,
-            priceOption: options.priceOption,
-            priceRange: options.priceRange,
-            selectedCurrency: options.selectedCurrency,
-            includeOffSale: options.includeOffSale,
-            creator: creatorOptionReq === 1 ? null : creatorOptionReq === 2 ? "ROBLOX" : options.creator,
-            creatorType: options.creatorType,
-            ...arr,
-        };
-        let gen = currentOptions.genres.ToArray();
-        const searchResultsFlat = await searchCatalog2({
-            category: currentOptions.category,
-            subCategory: currentOptions.subCategory,
-            genres: gen.length === 0 || gen.length === 1 && gen[0] === 0 ? null : gen,
-            query: !IsNullOrEmpty(searchInput) ? searchInput : null,
-            includeNotForSale: currentOptions.includeOffSale,
-            limit: resultMetadata.limit,
-            cursor: (!IsNullOrEmpty(resultMetadata.cursor) || !IsNullOrEmpty(cursor)) && !reloadPage ? cursor : null,
-            sort: currentOptions.sortBy,
-            creatorName: !IsNullOrEmpty(currentOptions.creator) ? currentOptions.creator : null,
-            creatorType: currentOptions.creatorType,
-            priceOption: currentOptions.priceOption,
-            priceRange: currentOptions.priceRange,
-            currency: currentOptions.selectedCurrency,
-        });
-        setResults([]);
-        if (reloadPage) setTotal(0);
-        setResultMetadata({
-            nextCursor: searchResultsFlat.nextPageCursor,
-            prevCursor: searchResultsFlat.previousPageCursor,
-            limit: 30,
-            cursor: reloadPage ? null : cursor,
-            page: reloadPage ? 1 : getCurrentPage(searchResultsFlat._total, searchResultsFlat.nextPageCursor, resultMetadata.limit),
-        });
-        if (searchResultsFlat.data.length === 0) {
-            setResults(searchResultsFlat.data);
+
+        try {
+            /**
+             * @type {CatalogCurrentOptions}
+             */
+            let currentOptions = {
+                category: options.category,
+                subCategory: options.subCategory,
+                genres: options.genres,
+                sortBy: options.sortBy,
+                priceOption: priceOption,
+                priceRange: priceRange,
+                selectedCurrency: options.selectedCurrency,
+                includeOffSale: options.includeOffSale,
+                creator: creatorOptionReq === 1 ? null : creatorOptionReq === 2 ? "ROBLOX" : creator,
+                creatorType: creatorType,
+                ...arr,
+            };
+            let gen = currentOptions.genres.ToArray();
+            const searchResultsFlat = await searchCatalog2({
+                category: currentOptions.category,
+                subCategory: currentOptions.subCategory,
+                genres: gen.length === 0 || gen.length === 1 && gen[0] === 0 ? null : gen,
+                query: !IsNullOrEmpty(searchInput) ? searchInput : null,
+                includeNotForSale: currentOptions.includeOffSale,
+                limit: resultMetadata.limit,
+                cursor: (!IsNullOrEmpty(resultMetadata.cursor) || !IsNullOrEmpty(cursor)) && !reloadPage ? cursor : null,
+                sort: currentOptions.sortBy,
+                creatorName: !IsNullOrEmpty(currentOptions.creator) ? currentOptions.creator : null,
+                creatorType: currentOptions.creatorType,
+                priceOption: currentOptions.priceOption,
+                priceRange: currentOptions.priceRange,
+                currency: currentOptions.selectedCurrency,
+            });
+            setResults([]);
+            if (reloadPage) setTotal(0);
+            setResultMetadata({
+                nextCursor: searchResultsFlat.nextPageCursor,
+                prevCursor: searchResultsFlat.previousPageCursor,
+                limit: 30,
+                cursor: reloadPage ? null : cursor,
+                page: reloadPage ? 1 : getCurrentPage(searchResultsFlat._total, searchResultsFlat.nextPageCursor, resultMetadata.limit),
+            });
+            if (searchResultsFlat.data.length === 0) {
+                setResults(searchResultsFlat.data);
+                setTotal(searchResultsFlat._total || 0);
+                await wait(0.75);
+                refreshDebounce.current = false;
+                setLoading(false);
+                return true;
+            }
+            const searchResultsRaw = await getAssetDetailsClean(searchResultsFlat.data);
+            if (!searchResultsRaw) { refreshDebounce.current = false; setLoading(false); console.log("nooo"); return false; }
+            if (e?.setSelSuccess)
+                e.setSelSuccess(true)
+            const thumbnails = await multiGetAssetThumbnails({ assetIds: searchResultsRaw.map(d => d.id) });
+            /** @type {{id: number; owned: boolean;}[]} */
+            const ownsAssets = auth?.userId ? await userOwnsItems({ userId: auth?.userId, assetIds: searchResultsRaw.map(d => d.id) }) : [];
+            /** @type CatalogAssetDetails[] */
+            let searchResults = searchResultsRaw.map(d => {
+                let thumb = thumbnails.find(t => t.targetId === d.id);
+                let ownsAsset = ownsAssets.find(t => t.id === d.id);
+                return {
+                    ...d,
+                    state: thumb?.state ?? null,
+                    imageUrl: thumb?.imageUrl ?? null,
+                    owned: ownsAsset?.owned ?? false,
+                }
+            });
+            setResults(searchResultsFlat.data.map(v => {
+                return searchResults.find(d => v.id === d.id);
+            }));
             setTotal(searchResultsFlat._total || 0);
+
             await wait(0.75);
             refreshDebounce.current = false;
             setLoading(false);
             return true;
+        } catch (e) {
+            console.error("could not refresh catalog items");
+            console.error(e);
+            await wait(0.75);
+            refreshDebounce.current = false;
+            setLoading(false);
+            return false;
         }
-        const searchResultsRaw = await getAssetDetailsClean(searchResultsFlat.data);
-        if (!searchResultsRaw) { refreshDebounce.current = false; setLoading(false); console.log("nooo"); return false; }
-        if (e?.setSelSuccess)
-            e.setSelSuccess(true)
-        const thumbnails = await multiGetAssetThumbnails({ assetIds: searchResultsRaw.map(d => d.id) });
-        /** @type {{id: number; owned: boolean;}[]} */
-        const ownsAssets = auth?.userId ? await userOwnsItems({ userId: auth?.userId, assetIds: searchResultsRaw.map(d => d.id) }) : [];
-        /** @type CatalogAssetDetails[] */
-        let searchResults = searchResultsRaw.map(d => {
-            let thumb = thumbnails.find(t => t.targetId === d.id);
-            let ownsAsset = ownsAssets.find(t => t.id === d.id);
-            return {
-                ...d,
-                state: thumb?.state ?? null,
-                imageUrl: thumb?.imageUrl ?? null,
-                owned: ownsAsset?.owned ?? false,
-            }
-        });
-        setResults(searchResultsFlat.data.map(v => {
-            return searchResults.find(d => v.id === d.id);
-        }));
-        setTotal(searchResultsFlat._total || 0);
-        
-        await wait(0.75);
-        refreshDebounce.current = false;
-        setLoading(false);
-        return true
     }
     
     function AddGenre(genre) {
@@ -205,6 +214,10 @@ const CatalogPageStore = createContainer(() => {
         isLoading,
 
         options, setOptions,
+
+        priceOption, setPriceOption, priceRange, setPriceRange,
+
+        creator, setCreator, creatorOption, setCreatorOption, creatorType, setCreatorType,
         
         searchInput,
         setSearchInput,
