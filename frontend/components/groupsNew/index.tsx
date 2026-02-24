@@ -23,6 +23,7 @@ import UserGroupsStore from "./stores/UserGroupsStore";
 const useStyles = createUseStyles({
     groupDetailWrapper: {
         paddingLeft: 15,
+        width: 'calc(100%-15px-160px)',
     },
     groupHeaderContainer: {
         position: 'relative',
@@ -181,15 +182,26 @@ const useStyles = createUseStyles({
         fontWeight: 500,
         lineHeight: '100%',
         borderRadius: 3,
+        width: '100%',
     },
     groupContainer: {
         padding: '10px 12px',
+        position: 'relative',
         '&:hover': {
             boxShadow: 'inset 4px 0 0 0 var(--primary-color)',
             backgroundColor: 'var(--white-color-hover)',
         },
         '&.current': {
             boxShadow: 'inset 4px 0 0 0 var(--primary-color)',
+        },
+        '& span.primary': {
+            top: 0,
+            right: 0,
+            width: 0,
+            height: 0,
+            position: 'absolute',
+            borderTop: '20px solid var(--primary-color)',
+            borderLeft: '20px solid transparent',
         },
     },
     groupNameContainer: {
@@ -206,6 +218,13 @@ const useStyles = createUseStyles({
         width: 32,
         height: 32,
         display: 'inline-block',
+    },
+    header: {
+        '& h3': {
+            fontSize: 32,
+            fontWeight: 800,
+            lineHeight: '100%',
+        }
     },
 });
 
@@ -251,7 +270,7 @@ const GroupsPage = () => {
     if (group == null) return <div>noo not found</div>
 
     return <div className={`container padding-none`}>
-        <Section header="Groups" headerCenter={true} contentSectioned={false} headerChildren={<>
+        <Section header="Groups" headerContainer={s.header} headerCenter={true} contentSectioned={false} headerChildren={<>
                 <NewLink href={`/search/groups`}>
                     <span className={`link2018 fw-500`}>More Groups</span>
                 </NewLink>
@@ -260,13 +279,18 @@ const GroupsPage = () => {
                 <ul className={`${s.userGroupsContainer} section-content noShadow padding-none flex flex-column flex-nowrap overflow-x-hidden overflow-y-auto w-100`}>
                     {
                         userGroups.map(group => {
-                            return <NewLink className={`${s.groupContainer} flex ${group.group.id === store.group.id ? "current" : ""}`}>
+                            return <NewLink href={`/groups/${group.group.id}/${encodeURIComponent(group.group.name)}`}
+                                            className={`${s.groupContainer} flex ${group.group.id === store.group.id ? "current" : ""}`}
+                            >
                                 <div className={`${s.userGroupImage}`}>
                                     <GroupIcon url={ThumbnailFromState(group?.imageUrl, group?.state)} id={group.group.id} />
                                 </div>
                                 <div className={`${s.groupNameContainer} padding-l-5 overflow-hidden text-start align-content-center`}>
                                     <span className={`text-overflow text-start`}>{group.group.name}</span>
                                 </div>
+                                {
+                                    group?.isPrimary ? <span className='primary' /> : null
+                                }
                             </NewLink>
                         })
                     }
