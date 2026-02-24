@@ -103,7 +103,7 @@ const useStyles = createUseStyles({
         listStyle: 'none',
         display: 'list-item',
         '&:hover': {
-            backgroundColor: 'var(--background-color) !important',
+            backgroundColor: 'var(--white-color-hover) !important',
             boxShadow: 'inset 4px 0 0 0 var(--primary-color)',
             color: 'var(--text-color-primary)'
         }

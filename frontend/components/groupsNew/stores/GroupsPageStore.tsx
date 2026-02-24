@@ -68,6 +68,9 @@ const GroupsPageStore = createContainer(() => {
             await setGroup(null);
             await setPosts({posts: [], page: 0, nextPage: null, prevPage: null});
             await setMembers({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
+            await setStoreItems({items: [], page: 0, total: 0, nextPage: null, prevPage: null});
+            await setMemberCache([]);
+            await setStoreItemsCache([]);
         }
 
         let groupIcon: ThumbnailEntry|null = null;
@@ -240,6 +243,12 @@ const GroupsPageStore = createContainer(() => {
             }
         });
 
+        newResult.items = Array(30).fill(null).map((_, index) => {
+            return {
+                ...newResult.items[0],
+                name: `${newResult.items[0].name} ${index + 1}`
+            };
+        });
         setStoreItems(newResult);
         setStoreItemsCache([...storeItemsCache, newResult]);
         await wait(0.75);

@@ -14,6 +14,7 @@ import {getTheme, themeType } from "../../../services/theme";
 import {wait } from "../../../lib/utils";
 import Selector from "../../selector";
 import { abbreviateNumber } from "../../../lib/numberUtils";
+import Dropdown2016 from "../../dropdown2016";
 
 const useStyles = createUseStyles({
     description: {
@@ -28,15 +29,18 @@ const useStyles = createUseStyles({
         textRendering: "auto",
         textAlign: 'start',
     },
+    memberContainer: {
+        gap: 5,
+    },
     memberWrapper: {
         float: "left",
-        width: "11.1111111%",
+        width: "calc(11.1111111% - 5px)",
         height: "120px",
         display: 'flex',
         listStyle: "none",
     },
     memberLink: {
-        width: "90px",
+        maxWidth: "90px",
         margin: "auto",
         textDecoration: 'none',
     },
@@ -46,8 +50,8 @@ const useStyles = createUseStyles({
         borderRadius: "50%",
         backgroundColor: "#d1d1d1",
         overflow: "hidden",
-        height: '90px',
-        width: '90px',
+        maxHeight: '90px',
+        maxWidth: '90px',
         display: 'inline-block',
         "& img": {
             objectFit: "cover",
@@ -65,7 +69,8 @@ const useStyles = createUseStyles({
         fontWeight: 500,
     },
 
-    shoutContainer: {},
+    shoutContainer: { position: 'relative' },
+    shoutDropdown: { position: 'absolute', top: 0, right: 6, display: 'flex' },
     shoutInfoContainer: {},
     shoutHeadshotContainer: {
         width: 48,
@@ -267,6 +272,14 @@ const AboutTab = ({}: {}) => {
                                     }}
                                 />
                             </div> : null}
+                        <div className={`${s.shoutDropdown}`}>
+                            <Dropdown2016 options={[
+                                {
+                                    name: 'Report Abuse',
+                                    url: '/internal/report-abuse'
+                                }
+                            ]} />
+                        </div>
                     </div>
                 </Section> : null
         }
@@ -275,7 +288,6 @@ const AboutTab = ({}: {}) => {
         </Section>
         <Section header={"Members"} headerContainer={s.memberHeader} contentSectioned={true} className={members.members.length === 0 || !group.roles ? "disabled" : ""}
                  headerChildren={group.roles ? <>
-                     {/*take from catlaog page*/}
                      <div className={`${s.pageControls}`}>
                          <ActionButton
                              className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.prevPage == null) ? 'disabled' : ''}`}
@@ -346,7 +358,7 @@ const AboutTab = ({}: {}) => {
                      </div>
                  </> : null}
         >
-            {!group.roles ? "There was an error loading group roles. Try again later." : members.members.length === 0 ? "This role has no members." : <ul className={`flex margin-none padding-none`}>
+            {!group.roles ? "There was an error loading group roles. Try again later." : members.members.length === 0 ? "This role has no members." : <ul className={`${s.memberContainer} flex margin-none padding-none`}>
                 {members.members.map(m => (
                     <MemberItem key={m.userId} member={m}/>
                 ))}

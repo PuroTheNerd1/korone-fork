@@ -19,11 +19,13 @@ import dayjs from "../../lib/dayjs";
 import PlayerHeadshot from "../playerHeadshot";
 import GamesTab from "./components/GamesTab";
 import UserGroupsStore from "./stores/UserGroupsStore";
+import userGroupsStore from "./stores/UserGroupsStore";
+import AuthenticationStore from "../../stores/authentication";
 
 const useStyles = createUseStyles({
     groupDetailWrapper: {
         paddingLeft: 15,
-        width: 'calc(100%-15px-160px)',
+        width: 'calc(100% - 15px - 160px)',
     },
     groupHeaderContainer: {
         position: 'relative',
@@ -226,10 +228,14 @@ const useStyles = createUseStyles({
             lineHeight: '100%',
         }
     },
+    spinnerContainer: {
+        height: '85vh',
+    },
 });
 
 const GroupsPage = () => {
     const s = useStyles();
+    const auth = AuthenticationStore.useContainer();
     const buttonStyles = useButtonStyles();
     const store = GroupsPageStore.useContainer();
     const { group,posts,members,userPerms } = GroupsPageStore.useContainer();
@@ -275,104 +281,114 @@ const GroupsPage = () => {
                     <span className={`link2018 fw-500`}>More Groups</span>
                 </NewLink>
         </>} className={`flex`}>
-            <div className={`${s.userGroupsWrapper} flex flex-column`}>
-                <ul className={`${s.userGroupsContainer} section-content noShadow padding-none flex flex-column flex-nowrap overflow-x-hidden overflow-y-auto w-100`}>
-                    {
-                        userGroups.map(group => {
-                            return <NewLink href={`/groups/${group.group.id}/${encodeURIComponent(group.group.name)}`}
-                                            className={`${s.groupContainer} flex ${group.group.id === store.group.id ? "current" : ""}`}
-                            >
-                                <div className={`${s.userGroupImage}`}>
-                                    <GroupIcon url={ThumbnailFromState(group?.imageUrl, group?.state)} id={group.group.id} />
-                                </div>
-                                <div className={`${s.groupNameContainer} padding-l-5 overflow-hidden text-start align-content-center`}>
-                                    <span className={`text-overflow text-start`}>{group.group.name}</span>
-                                </div>
-                                {
-                                    group?.isPrimary ? <span className='primary' /> : null
-                                }
-                            </NewLink>
-                        })
-                    }
-                </ul>
-                <ActionButton
-                    label="Create Group"
-                    buttonStyle={buttonStyles.newContinueButton}
-                    className={s.createGroupBtn}
-                />
-            </div>
-            <div className={`${s.groupDetailWrapper} flex flex-column`}>
-                <div className={`${s.groupHeaderContainer} section-content noShadow flex`}>
-                    <div className={`${s.groupImage}`}>
-                        <GroupIcon name={group.name} url={ThumbnailFromState(group.icon.imageUrl, group.icon.state)} />
-                    </div>
-                    <div className={`${s.groupInfoContainer} flex flex-column align-items-start`}>
-                        <h1>{group.name}</h1>
-                        <div className={`${s.groupOwner} flex align-items-center`}>
-                            <span>By</span>
-                            <CreatorLink type={'User'} id={group.owner.userId} name={group.owner.displayName} />
-                        </div>
-                        <div className={`${s.groupStatsContainer} flex`}>
-                            <div className={`${s.groupStat}`}>
-                                <span>Members</span>
-                                <h3 title={group.memberCount.toString()}>{abbreviateNumber(group.memberCount)}</h3>
-                            </div>
-                            {userPerms && userPerms.role.id > 1 ? <div className={`${s.groupStat}`}>
-                                <span>Rank</span>
-                                <h3 title={userPerms.role.description}>{userPerms.role.name}</h3>
-                            </div> : <ActionButton
-                                className={s.joinGroupBtn}
-                                divClassName={s.joinGroupBtnContainer}
+            {
+                !auth.isPending && auth.isAuthenticated ?
+                    <div className={`${s.userGroupsWrapper} flex flex-column`}>
+                        <ul className={`${s.userGroupsContainer} section-content noShadow padding-none flex flex-column flex-nowrap overflow-x-hidden overflow-y-auto w-100`}>
+                            {
+                                userGroups.map(group => {
+                                    return <NewLink href={`/groups/${group.group.id}/${encodeURIComponent(group.group.name)}`}
+                                                    className={`${s.groupContainer} flex ${group.group.id === store.group.id ? "current" : ""}`}
+                                    >
+                                        <div className={`${s.userGroupImage}`}>
+                                            <GroupIcon url={ThumbnailFromState(group?.imageUrl, group?.state)} id={group.group.id} />
+                                        </div>
+                                        <div className={`${s.groupNameContainer} padding-l-5 overflow-hidden text-start align-content-center`}>
+                                            <span className={`text-overflow text-start`}>{group.group.name}</span>
+                                        </div>
+                                        {
+                                            group?.isPrimary ? <span className='primary' /> : null
+                                        }
+                                    </NewLink>
+                                })
+                            }
+                        </ul>
+                        <NewLink href='/My/CreateGroup.aspx'>
+                            <ActionButton
+                                label="Create Group"
                                 buttonStyle={buttonStyles.newContinueButton}
-                                label='Join Group'
-                                onClick={() => {
-                                    console.log("joining group!!")
-                                }}
-                            />}
+                                className={s.createGroupBtn}
+                            />
+                        </NewLink>
+                    </div> : null
+            }
+            {
+                !store.group && store.isLoading ? <div className={`container ${s.spinnerContainer}`}>
+                    <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
+                </div> :
+                    <div className={`${s.groupDetailWrapper} flex flex-column`}>
+                        <div className={`${s.groupHeaderContainer} section-content noShadow flex`}>
+                            <div className={`${s.groupImage}`}>
+                                <GroupIcon name={group.name} url={ThumbnailFromState(group.icon.imageUrl, group.icon.state)} />
+                            </div>
+                            <div className={`${s.groupInfoContainer} flex flex-column align-items-start`}>
+                                <h1>{group.name}</h1>
+                                <div className={`${s.groupOwner} flex align-items-center`}>
+                                    <span>By</span>
+                                    <CreatorLink type={'User'} id={group.owner.userId} name={group.owner.displayName} />
+                                </div>
+                                <div className={`${s.groupStatsContainer} flex`}>
+                                    <div className={`${s.groupStat}`}>
+                                        <span>Members</span>
+                                        <h3 title={group.memberCount.toString()}>{abbreviateNumber(group.memberCount)}</h3>
+                                    </div>
+                                    {userPerms && userPerms.role.id > 1 ? <div className={`${s.groupStat}`}>
+                                        <span>Rank</span>
+                                        <h3 title={userPerms.role.description}>{userPerms.role.name}</h3>
+                                    </div> : <ActionButton
+                                        className={s.joinGroupBtn}
+                                        divClassName={s.joinGroupBtnContainer}
+                                        buttonStyle={buttonStyles.newContinueButton}
+                                        label='Join Group'
+                                        onClick={() => {
+                                            console.log("joining group!!")
+                                        }}
+                                    />}
+                                </div>
+                            </div>
+                            <div className={`${s.groupHeaderDropdownContainer}`}>
+                                <GroupDropdown />
+                            </div>
                         </div>
-                    </div>
-                    <div className={`${s.groupHeaderDropdownContainer}`}>
-                        <GroupDropdown />
-                    </div>
-                </div>
-                <HorizontalTabs
-                    options={[
-                        {name: "About", element: <AboutTab />},
-                        {name: "Games", element: <GamesTab />},
-                        {name: "Store", element: <StoreTab />},
-                        // {name: "Affiliates", element: <AffiliatesTab />},
-                    ]}
-                    elementClass={`${s.tabContainer}`}
-                />
-                {
-                    userPerms && userPerms.permissions.groupPostsPermissions.viewWall ? <Section header="Wall">
-                        {posts.posts.length > 0 ? <div className={`${s.wallContainer} section-content noShadow`}>
-                            {userPerms.permissions.groupPostsPermissions.postToWall ? <div className={`${s.wallPostContainer} flex`}>
+                        <HorizontalTabs
+                            options={[
+                                {name: "About", element: <AboutTab />},
+                                {name: "Games", element: <GamesTab />},
+                                {name: "Store", element: <StoreTab />},
+                                // {name: "Affiliates", element: <AffiliatesTab />},
+                            ]}
+                            elementClass={`${s.tabContainer}`}
+                        />
+                        {
+                            userPerms && userPerms.permissions.groupPostsPermissions.viewWall ? <Section header="Wall">
+                                {posts.posts.length > 0 ? <div className={`${s.wallContainer} section-content noShadow`}>
+                                    {userPerms.permissions.groupPostsPermissions.postToWall ? <div className={`${s.wallPostContainer} flex`}>
                             <textarea
                                 className={s.wallPostText}
                                 placeholder="Say something..."
                                 maxLength={1000}
                                 ref={textAreaRef}
                             />
-                                <ActionButton
-                                    label="Post"
-                                    className={s.wallPostBtn}
-                                    divClassName={s.wallPostBtnContainer}
-                                    buttonStyle={buttonStyles.newContinueButton}
-                                    onClick={() => {
-                                        console.log("POSTING!!");
-                                    }}
-                                />
-                            </div> : null}
-                            {posts.posts.map(post => (
-                                <GroupWallPost key={post.id} {...post} />
-                            ))}
-                        </div> : <div className={`section-content-off noShadow`}>
-                            Nobody has said anything yet...
-                        </div>}
-                    </Section> : null
-                }
-            </div>
+                                        <ActionButton
+                                            label="Post"
+                                            className={s.wallPostBtn}
+                                            divClassName={s.wallPostBtnContainer}
+                                            buttonStyle={buttonStyles.newContinueButton}
+                                            onClick={() => {
+                                                console.log("POSTING!!");
+                                            }}
+                                        />
+                                    </div> : null}
+                                    {posts.posts.map(post => (
+                                        <GroupWallPost key={post.id} {...post} />
+                                    ))}
+                                </div> : <div className={`section-content-off noShadow`}>
+                                    Nobody has said anything yet...
+                                </div>}
+                            </Section> : null
+                        }
+                    </div>
+            }
         </Section>
     </div>
 }

@@ -1,5 +1,4 @@
 import { createUseStyles } from 'react-jss';
-import { useState, useEffect } from 'react';
 import Dropdown2016, { DropdownOption } from "../../dropdown2016";
 
 const useStyles = createUseStyles({

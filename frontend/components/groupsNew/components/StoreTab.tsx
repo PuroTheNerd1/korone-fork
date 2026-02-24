@@ -50,6 +50,7 @@ const useStyles = createUseStyles({
 
     storeItemsContainer: {
         padding: 0,
+        gap: 8,
     },
 })
 
