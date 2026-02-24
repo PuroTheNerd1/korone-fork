@@ -3862,13 +3862,19 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     builder.Where("asset.is_limited = true");
                     break;
                 default:
-                    cat.assetTypeIds.ForEach(d => builder.OrWhere($"(asset.asset_type = {d})"));
+                    if (cat.assetTypeIds.Any())
+                    {
+                        builder.Where($"asset.asset_type IN ({string.Join(",", cat.assetTypeIds)})");
+                    }
                     break;
             }
         }
         else
         {
-            sub?.assetTypeIds.ForEach(d => builder.OrWhere($"(asset.asset_type = {d})"));
+            if (sub.assetTypeIds.Any())
+            {
+                builder.Where($"asset.asset_type IN ({string.Join(",", cat.assetTypeIds)})");
+            }
         }
 
         if (request.genres != null)

@@ -123,7 +123,7 @@ const StoreTab = ({}: {}) => {
                         </ActionButton>
                     </div>
                 </div> : storeItems.total === 0 ? <div className={`section-content-off disabled w-100`}>
-                    <span>No items are for sale in this group.</span>
+                    No items are for sale in this group.
                 </div> : null
             }
         </Section>
