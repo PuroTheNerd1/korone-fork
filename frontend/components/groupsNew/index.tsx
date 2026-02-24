@@ -19,6 +19,7 @@ import Dropdown2016, { DropdownOption } from "../dropdown2016";
 import NewLink from "../NewLink";
 import dayjs from "../../lib/dayjs";
 import PlayerHeadshot from "../playerHeadshot";
+import GamesTab from "./components/GamesTab";
 
 const useStyles = createUseStyles({
     groupDetailWrapper: {},
@@ -249,8 +250,9 @@ const GroupsPage = () => {
             <HorizontalTabs
                 options={[
                     {name: "About", element: <AboutTab />},
+                    {name: "Games", element: <GamesTab />},
                     {name: "Store", element: <StoreTab />},
-                    {name: "Affiliates", element: <AffiliatesTab />},
+                    // {name: "Affiliates", element: <AffiliatesTab />},
                 ]}
                 elementClass={`${s.tabContainer}`}
             />

@@ -86,7 +86,7 @@ const GroupsPageStore = createContainer(() => {
             if (req && req.data) {
                 // @ts-ignore
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
-                setMembers({
+                let members = {
                     members: req.data.map(v => {
                         let thumb = memberThumbs.find(d => d.targetId === v.userId);
                         return {
@@ -99,7 +99,13 @@ const GroupsPageStore = createContainer(() => {
                     page: 1,
                     nextPage: req.nextPageCursor,
                     prevPage: req.previousPageCursor,
-                });
+                };
+                setMembers(members);
+                if (clearData) {
+                    setMemberCache([members]);
+                } else {
+                    setMemberCache([...memberCache, members]);
+                }
             }
         } catch (e) { console.error(e) }
         let funds: {robux: number; tickets: number;} = { robux: 0, tickets: 0 };

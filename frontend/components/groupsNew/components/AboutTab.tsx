@@ -273,9 +273,6 @@ const AboutTab = ({}: {}) => {
         <Section header={"Description"} contentSectioned={true}>
             <pre className={`${s.description} w-100 m-0 overflow-hidden `}>{store.group.description}</pre>
         </Section>
-        <Section header={"Games"} contentSectioned={true} className={"disabled"}>
-            This group has not created any games yet.
-        </Section>
         <Section header={"Members"} headerContainer={s.memberHeader} contentSectioned={true} className={members.members.length === 0 || !group.roles ? "disabled" : ""}
                  headerChildren={group.roles ? <>
                      {/*take from catlaog page*/}
