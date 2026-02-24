@@ -211,7 +211,6 @@ function CatalogFilters() {
                         />
                         <ActionButton className={`${s.goButton} ${s.goButton} ${store.options.creatorOption !== 3 ? "disabled" : ""}`}
                                       buttonStyle={buttonStyles.newContinueButton} label="Go" onClick={async e => {
-                            e.preventDefault();
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
                             store.RefreshCatalogItems(null, true);
@@ -362,7 +361,6 @@ function CatalogFilters() {
                         id="priceOption-1"
                         type="radio"
                         onClick={async e => {
-                            e.preventDefault();
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
 
@@ -397,8 +395,7 @@ function CatalogFilters() {
                             onChange={async e => store.setOptions({...store.options, priceRange: [store.options.priceRange[0], e.target.value]})}
                         />
                         <ActionButton className={`${s.goButton} ${store.options.priceOption !== 1 ? "disabled" : ""}`}
-                                      buttonStyle={buttonStyles.newContinueButton} label="Go" onClick={async e => {
-                            e.preventDefault();
+                                      buttonStyle={buttonStyles.newContinueButton} label="Go" onClick={async () => {
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
                             store.RefreshCatalogItems(null, true);

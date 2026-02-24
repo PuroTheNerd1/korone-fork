@@ -3813,36 +3813,22 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             builder.Where("(asset.is_for_sale = true OR asset.is_limited = true)");
         }
 
-        if (request.priceOption == PriceOption.Free)
+        if (request.priceOption.HasValue)
         {
-            builder
-                //.Where("is_for_sale = TRUE")
-                .Where("price_robux = 0 OR price_tix = 0");
-        } else
-        {
-            if (request.priceOption == PriceOption.Any && request.minPrice == null) request.minPrice = 0;
-            if (request.priceOption == PriceOption.Any && request.maxPrice == null) request.maxPrice = long.MaxValue;
-
-            // TODO: make it so doing ranged on a limited item uses it's limited price and not its original price
-            string priceColumn = request.currency == CurrencyType2.Tickets
-                ? "price_tix"
-                : "price_robux";
-            string query = $"{priceColumn} >= :minPrice AND {priceColumn} <= :maxPrice AND {priceColumn} != 0";
-
-            if (request.currency == CurrencyType2.Any)
+            if (request.priceOption == PriceOption.Free)
             {
-                query =
-                    "((price_robux IS NOT NULL AND price_tix IS NULL AND price_robux >= :minPrice AND price_robux <= :maxPrice) " +
-                    "OR (price_tix IS NOT NULL AND price_robux IS NULL AND price_tix >= :minPrice AND price_tix <= :maxPrice))";
+                builder.Where("(price_robux = 0 OR price_tix = 0)");
             }
+            else if (request.priceOption == PriceOption.Range)
+            {
+                var min = request.minPrice ?? 0;
+                var max = request.maxPrice ?? long.MaxValue;
 
-            builder
-                //.Where("is_for_sale = TRUE")
-                .Where(query, new
-                {
-                    request.minPrice,
-                    request.maxPrice,
-                });
+                string priceColumn =
+                    request.currency == CurrencyType2.Tickets ? "price_tix" : "price_robux";
+
+                builder.Where($"{priceColumn} BETWEEN :min AND :max", new { min, max });
+            }
         }
 
         // Whether to sort the final results by ID in DESC order, after the function is over
