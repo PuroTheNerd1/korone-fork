@@ -296,24 +296,6 @@ const  AccountInfo = props => {
                             </select>
                         </div>
                     </div>
-                    <div className='flex mt-1'>
-                        <div className='col pe-0'>
-                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Site-wide Alerts'
-                                   readOnly={true}
-                                   type='text'></input>
-                        </div>
-                        <div className='col ps-0 pe-0'>
-                            <select className={'form-control ' + s.select}
-                                    value={typeof window !== 'undefined' && localStorage.getItem('rbx_alerts_disabled_v1') === 'true' ? 'disabled' : 'enabled'}
-                                    onChange={ev => {
-                                        localStorage.setItem('rbx_alerts_disabled_v1', ev.currentTarget.value === 'disabled' ? 'true' : 'false');
-                                        window.location.reload();
-                                    }}>
-                                <option value='enabled'>Show</option>
-                                <option value='disabled'>Hide</option>
-                            </select>
-                        </div>
-                    </div>
                 </div>
             </div>
         }
