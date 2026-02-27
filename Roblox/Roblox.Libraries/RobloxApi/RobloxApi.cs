@@ -456,7 +456,7 @@ public class RobloxApi
 
 
 
-
+        Writer.Info(LogGroup.RobloxApi, $"Response was {body}");
         return JsonSerializer.Deserialize<AssetDelivery>(body)!;
     }
     public async Task<Stream> GetAssetContentFromProxy(long assetId, long? version = null)
