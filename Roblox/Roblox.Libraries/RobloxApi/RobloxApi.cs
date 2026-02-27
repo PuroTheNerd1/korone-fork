@@ -446,11 +446,16 @@ public class RobloxApi
             $"https://assetdelivery.roblox.com/v1/assetid/{assetId}");
         request.Headers.Add("Roblox-Place-Id", placeId.ToString());
         var result = await _robloxApiClient.SendAsync(request);
+        var body = await result.Content.ReadAsStringAsync();
 
         if (!result.IsSuccessStatusCode)
+        {
+            Writer.Info(LogGroup.RobloxApi, $"Response was {body}");
             return null;
+        }
 
-        var body = await result.Content.ReadAsStringAsync();
+
+
 
         return JsonSerializer.Deserialize<AssetDelivery>(body)!;
     }
