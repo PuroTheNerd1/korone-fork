@@ -131,6 +131,7 @@ builder.Services.AddMvc(c =>
 
 var app = builder.Build();
 app.UseRouting();
+app.UseExceptionHandler("/error");
 app.UseRateLimiter();
 app.UseSwaggerUI(c =>
 {
@@ -217,7 +218,6 @@ app.UseMiddleware<FrontendProxyMiddleware>();
 //app.UseMiddleware<RobloxLoggingMiddleware>();
 //app.UseRobloxLoggingMiddleware();
 
-app.UseExceptionHandler("/error");
 //await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");
 //CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value); // will be removed soon
 

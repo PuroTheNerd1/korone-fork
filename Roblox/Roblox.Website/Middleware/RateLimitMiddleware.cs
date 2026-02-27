@@ -1,4 +1,5 @@
 using System.Threading.RateLimiting;
+using Roblox.Exceptions;
 using Roblox.Website.Controllers;
 
 namespace Roblox.Website.Middleware;
@@ -23,18 +24,10 @@ public static class RateLimiterExtensions
                 });
             });
 
-            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-            options.OnRejected = async (context, cancellationToken) =>
+            options.OnRejected = (context, _) =>
             {
                 context.HttpContext.Response.Headers.RetryAfter = "60";
-                await context.HttpContext.Response.WriteAsJsonAsync(new
-                {
-                    errors = new[]
-                    {
-                        new { code = 429, message = "Too many requests. Please wait before trying again." }
-                    }
-                }, cancellationToken);
+                throw new TooManyRequestsException(0, "Too many requests");
             };
         });
 
