@@ -91,6 +91,7 @@ List<long> ownerUserIds = ownerUserIdConfig.Get<List<long>>()!;
 Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds!);
 //Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
 
+builder.Services.AddRobloxRateLimiter();
 builder.Services.AddRazorPages();
 builder.Services.AddRequestDecompression();
 builder.Services.AddControllers(options =>
@@ -130,6 +131,7 @@ builder.Services.AddMvc(c =>
 
 var app = builder.Build();
 app.UseRouting();
+app.UseRateLimiter();
 app.UseSwaggerUI(c =>
 {
     c.ShowCommonExtensions();
