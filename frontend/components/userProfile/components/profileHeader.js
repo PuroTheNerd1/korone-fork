@@ -76,28 +76,13 @@ const useHeaderStyles = createUseStyles({
       width: '100%',
     }
   },
-  bcIcon: {
-    position: 'relative',
-    bottom: '4px',
-    '@media(max-width: 767px)': {
-      bottom: '-3px',
-      marginLeft: '3px',
-    },
-  },
-  premiumIcon: {
-    width: '0.75em',
-    height: '0.75em',
-    position: 'relative',
-    bottom: '4px',
-    marginLeft: '2px',
-    '@media(max-width: 767px)': {
-      bottom: '-3px',
-      marginLeft: '3px',
-    },
-  },
-  altIcon: {
+  badgeIcon: {
     position: 'relative',
     bottom: '2.5px',
+    '@media(max-width: 767px)': {
+      bottom: '-3px',
+      marginLeft: '3px',
+    },
   },
   updateStatusButton: {
     cursor: 'pointer',
@@ -217,6 +202,7 @@ const ProfileHeader = props => {
   const [bcLevel, setBcLevel] = useState(0);
   const [verified, setVerified] = useState(false);
   const [pawBadge, setPawBadge] = useState(false);
+  const [isProfileStaff, setIsProfileStaff] = useState(false);
 
   useEffect(() => {
     // reset
@@ -225,6 +211,7 @@ const ProfileHeader = props => {
     setEditStatus(false);
     setDropdownOptions(null);
     setVerified(false);
+    setIsProfileStaff(false);
   }, [store.userId]);
   
   useEffect(() => {
@@ -239,6 +226,7 @@ const ProfileHeader = props => {
       // can fail when not logged in :(
     })
     setVerified(store.userInfo.hasVerifiedBadge);
+    setIsProfileStaff(store.userInfo.isStaff ?? false);
     setPawBadge(store.userId == "11279" || store.userId == "3");
 
     const buttons = [];
@@ -324,36 +312,29 @@ const ProfileHeader = props => {
   const showButtons = auth.userId != store.userId && !auth.isPending;
   
   const BcIcon = () => {
-    if (bcLevel === 0) {
-      return null;
-    }
-
-    if (pawBadge) {
-      return <span className={`icon-paw ${s.altIcon}`} />
-    }
-
-    if (verified) {
-      return <span className={`icon-verified ${s.altIcon}`} />
-    }
-
-    // 1 = BC
-    // 2 = TBC
-    // 3 = OBC
-    // 4 = Premium
-    // 0 = None
     const isDark = getTheme() === themeType.dark;
-    switch (bcLevel) {
-      case 1:
-        return <span className={`icon-bc ${s.bcIcon}`} />
-      case 2:
-        return <span className={`icon-tbc ${s.bcIcon}`} />
-      case 3:
-        return <span className={`icon-obc ${s.bcIcon}`} />
-      case 4:
-        return <img src={PREMIUM_ICON} alt="Premium" className={s.premiumIcon} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
-      default:
-        return null;
-    }
+
+    const membershipBadge = () => {
+      // 1 = BC, 2 = TBC, 3 = OBC, 4 = Premium, 0 = None
+      switch (bcLevel) {
+        case 1:
+          return <span className={`icon-bc ${s.badgeIcon}`} />
+        case 2:
+          return <span className={`icon-tbc ${s.badgeIcon}`} />
+        case 3:
+          return <span className={`icon-obc ${s.badgeIcon}`} />
+        case 4:
+          return <img src={PREMIUM_ICON} alt="Premium" className={s.badgeIcon} style={{ height: '28px', width: 'auto', ...(isDark ? { filter: 'brightness(0) invert(1)' } : {}) }} />
+        default:
+          return null;
+      }
+    };
+
+    return <>
+      {verified && <span className={`icon-verified ${s.badgeIcon}`} />}
+      {bcLevel > 0 && membershipBadge()}
+      {(isProfileStaff || pawBadge) && <span className={`icon-paw ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />}
+    </>;
   }
   
   return <div className={`flex ${s.profileHeaderContainer}`}>

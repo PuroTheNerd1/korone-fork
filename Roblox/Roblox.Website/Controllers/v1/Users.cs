@@ -187,6 +187,7 @@ public class UsersControllerV1 : ControllerBase
             info.created,
             isBanned = info.IsDeleted(),
             hasVerifiedBadge = info.isVerified,
+            isStaff = await StaffFilter.IsStaff(info.userId),
             id = info.userId,
             name = info.username,
             displayName = info.username,
