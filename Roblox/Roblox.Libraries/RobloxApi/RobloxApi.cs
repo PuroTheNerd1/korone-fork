@@ -209,18 +209,20 @@ public class RobloxApi
 {
     private class RobloxApiHttpClient : HttpClient
     {
-        private string _token = Configuration.RobloxAuthorization;
+        private string _token;
+
         public RobloxApiHttpClient() : base(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
         {
+            _token = Configuration.RobloxAuthorization;
+
             DefaultRequestHeaders.Add("Accept", "*/*");
             DefaultRequestHeaders.Add("User-Agent", "Roblox/WinInet");
             DefaultRequestHeaders.Add("Roblox-Browser-Asset-Request", "false");
+            DefaultRequestHeaders.Add("Cookie", ".ROBLOSECURITY=" + _token);
         }
 
         public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            request.Headers.Add("Cookie", ".ROBLOSECURITY=" + _token);
-
             var response = await base.SendAsync(request, cancellationToken);
 
             if (response.Headers.TryGetValues("Set-Cookie", out var headers))
@@ -231,7 +233,12 @@ public class RobloxApi
 
                 var cookie = jar.GetCookies(request.RequestUri!)[".ROBLOSECURITY"];
                 if (cookie != null)
+                {
                     _token = cookie.Value;
+
+                    DefaultRequestHeaders.Remove("Cookie");
+                    DefaultRequestHeaders.Add("Cookie", ".ROBLOSECURITY=" + _token);
+                }
             }
 
             return response;
