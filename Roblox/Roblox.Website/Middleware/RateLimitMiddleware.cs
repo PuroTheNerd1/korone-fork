@@ -1,6 +1,6 @@
 using System.Threading.RateLimiting;
-using Roblox.Exceptions;
 using Roblox.Website.Controllers;
+using Roblox.Website.WebsiteModels;
 
 namespace Roblox.Website.Middleware;
 
@@ -12,8 +12,16 @@ public static class RateLimiterExtensions
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
             {
-                var rawIp = ControllerBase.GetRequesterIpRaw(ctx);
-                var key = ControllerBase.GetIP(rawIp);
+                string key;
+                try
+                {
+                    key = ControllerBase.GetIP(ControllerBase.GetRequesterIpRaw(ctx));
+                }
+                catch
+                {
+                    key = "unknown";
+                }
+
                 return RateLimitPartition.GetSlidingWindowLimiter(key, _ => new SlidingWindowRateLimiterOptions
                 {
                     PermitLimit = 200,
@@ -24,10 +32,14 @@ public static class RateLimiterExtensions
                 });
             });
 
-            options.OnRejected = (context, _) =>
+            options.OnRejected = async (context, cancellationToken) =>
             {
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.HttpContext.Response.Headers.RetryAfter = "60";
-                throw new TooManyRequestsException(0, "Too many requests");
+                await context.HttpContext.Response.WriteAsJsonAsync(new ErrorResponse
+                {
+                    errors = new[] { new ErrorResponseEntry { code = 0, message = "Too many requests" } }
+                }, cancellationToken);
             };
         });
 
