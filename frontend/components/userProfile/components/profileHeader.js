@@ -84,6 +84,12 @@ const useHeaderStyles = createUseStyles({
       marginLeft: '3px',
     },
   },
+  badgeIconWrapper: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    verticalAlign: 'middle',
+  },
   updateStatusButton: {
     cursor: 'pointer',
     marginTop: '2px',
@@ -330,12 +336,12 @@ const ProfileHeader = props => {
       }
     };
 
-    return <>
+    return <div className={s.badgeIconWrapper}>
       {verified && <span className={`icon-verified ${s.badgeIcon}`} />}
       {bcLevel > 0 && membershipBadge()}
       {(isProfileStaff || pawBadge) && <span className={`icon-paw ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />}
       <span className={`icon-roblox ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
-    </>;
+    </div>;
   }
   
   return <div className={`flex ${s.profileHeaderContainer}`}>
