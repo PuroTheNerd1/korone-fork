@@ -587,7 +587,8 @@ a.btn-generic-edit-xs:hover .icon-edit {
 .icon-roblox {
 	background-image: url(/img/robloxicon.svg);
 	background-repeat: no-repeat;
-	background-size: auto auto;
+	background-size: 36px 36px;
+	background-position: center;
 	width: 52px;
 	height: 28px;
 	display: inline-block;
