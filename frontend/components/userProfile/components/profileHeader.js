@@ -334,7 +334,7 @@ const ProfileHeader = props => {
       {verified && <span className={`icon-verified ${s.badgeIcon}`} />}
       {bcLevel > 0 && membershipBadge()}
       {(isProfileStaff || pawBadge) && <span className={`icon-paw ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />}
-      <img src="/img/robloxicon.svg" alt="Roblox" className={s.badgeIcon} style={{ height: '22px', width: 'auto', filter: isDark ? 'brightness(0) invert(1)' : 'brightness(0)' }} />
+      <img src="/img/robloxicon.svg" alt="Roblox" className={s.badgeIcon} style={{ height: '28px', width: 'auto', marginLeft: '4px', filter: isDark ? 'brightness(0) invert(1)' : 'brightness(0)' }} />
     </>;
   }
   
