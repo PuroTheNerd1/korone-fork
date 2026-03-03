@@ -1317,13 +1317,7 @@ namespace Roblox.Website.Controllers
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
             try
             {
-                // Check if the game server exists
-                var gameServer = await services.gameServer.GetGameServer(gameId);
-                if (gameServer == null)
-                {
-                    return "Game server not found";
-                }
-                await services.gameServer.ShutDownServerAsync(gameServer.id);
+                await services.gameServer.ShutDownServerAsync(gameId);
                 return "OK!";
             }
             catch (Exception)
@@ -1359,8 +1353,7 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            var server = await services.gameServer.GetGameServer(gameId);
-            if (clientCount == 0 && gameTime > 50 && server != null)
+            if (clientCount == 0 && gameTime > 50)
             {
                 await services.gameServer.ShutDownServerAsync(gameId);
                 return;
