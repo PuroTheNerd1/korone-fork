@@ -3353,7 +3353,7 @@ Thank you for your understanding,
     public async Task<dynamic> GetPerfPermDate(long userId)
     {
         var res = await db.QuerySingleOrDefaultAsync<DateTime?>(@"
-                SELECT 
+                SELECT
                     MIN(created_at)
                 FROM user_permission
                     WHERE user_id = :userId
@@ -3362,6 +3362,116 @@ Thank you for your understanding,
         {
             date = res
         };
+    }
+
+
+    private static string EconomyFreezeKey(long userId) => $"economy_freeze_v1:{userId}";
+
+    [HttpGet("user/economy-freeze-status"), StaffFilter(Access.EconomyLock)]
+    public async Task<dynamic> GetEconomyFreezeStatus(long userId)
+    {
+        var val = await redis.StringGetAsync(EconomyFreezeKey(userId));
+        return new { frozen = val != null };
+    }
+
+    [HttpPost("user/economy-freeze"), StaffFilter(Access.EconomyLock)]
+    public async Task FreezeEconomy([Required, FromBody] UserIdRequest request)
+    {
+        await redis.StringSetAsync(EconomyFreezeKey(request.userId), "1");
+    }
+
+    [HttpPost("user/economy-unfreeze"), StaffFilter(Access.EconomyLock)]
+    public async Task UnfreezeEconomy([Required, FromBody] UserIdRequest request)
+    {
+        await redis.KeyDeleteAsync(EconomyFreezeKey(request.userId));
+    }
+
+    // ─── Economy Page (owner-only) ────────────────────────────────────────────
+
+    [HttpGet("economy/trade-graph")]
+    public async Task<dynamic> GetTradeGraph(int limit = 200)
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("Forbidden");
+
+        if (limit > 500) limit = 500;
+
+        var rows = (await db.QueryAsync(@"
+            SELECT ut.id, ut.user_id_one, u1.username AS username_one,
+                   ut.user_id_two, u2.username AS username_two,
+                   ut.created_at
+            FROM user_trade ut
+            INNER JOIN ""user"" u1 ON u1.id = ut.user_id_one
+            INNER JOIN ""user"" u2 ON u2.id = ut.user_id_two
+            WHERE ut.status = 2
+            ORDER BY ut.id DESC
+            LIMIT :limit", new { limit })).ToList();
+
+        var nodeMap = new Dictionary<long, string>();
+        foreach (var row in rows)
+        {
+            nodeMap[(long)row.user_id_one] = (string)row.username_one;
+            nodeMap[(long)row.user_id_two] = (string)row.username_two;
+        }
+
+        var nodes = nodeMap.Select(kv => new { id = kv.Key, username = kv.Value });
+        var edges = rows.Select(r => new
+        {
+            from = (long)r.user_id_one,
+            to = (long)r.user_id_two,
+            tradeId = (long)r.id,
+            createdAt = (DateTime)r.created_at,
+        });
+
+        return new { nodes, edges };
+    }
+
+    [HttpGet("economy/mule-suspects")]
+    public async Task<dynamic> GetMuleSuspects()
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("Forbidden");
+
+        return await db.QueryAsync(@"
+            SELECT u.id, u.username, u.created_at, ue.balance_robux, ue.balance_tickets,
+                   COUNT(ua.id) AS limited_item_count
+            FROM ""user"" u
+            INNER JOIN user_economy ue ON ue.user_id = u.id
+            LEFT JOIN user_asset ua ON ua.user_id = u.id
+                AND EXISTS (
+                    SELECT 1 FROM asset a
+                    WHERE a.id = ua.asset_id
+                      AND (a.is_limited = true OR a.is_limited_unique = true)
+                )
+            WHERE u.created_at >= NOW() - INTERVAL '3 days'
+              AND (ue.balance_robux > 1000 OR ue.balance_tickets > 1000)
+            GROUP BY u.id, u.username, u.created_at, ue.balance_robux, ue.balance_tickets
+            ORDER BY ue.balance_robux DESC
+            LIMIT 100");
+    }
+
+    [HttpGet("economy/orphan-items")]
+    public async Task<dynamic> GetOrphanItems()
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("Forbidden");
+
+        return await db.QueryAsync(@"
+            SELECT ua.id AS user_asset_id, ua.user_id, u.username, ua.asset_id,
+                   a.name AS asset_name, ua.created_at
+            FROM user_asset ua
+            INNER JOIN asset a ON a.id = ua.asset_id
+            INNER JOIN ""user"" u ON u.id = ua.user_id
+            WHERE (a.is_limited = true OR a.is_limited_unique = true)
+              AND ua.id NOT IN (
+                  SELECT DISTINCT t.user_asset_id FROM user_transaction t
+                  WHERE t.user_asset_id IS NOT NULL
+              )
+              AND ua.id NOT IN (
+                  SELECT DISTINCT uta.user_asset_id FROM user_trade_asset uta
+              )
+            ORDER BY ua.created_at DESC
+            LIMIT 200");
     }
 }
 

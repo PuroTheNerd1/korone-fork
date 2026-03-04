@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { link } from "svelte-routing";
+	import { onMount } from "svelte";
 	import {
 		RefreshCwIcon,
 		UserIcon,
@@ -53,6 +54,15 @@
 	let modalVisible = false;
 	let modalCb: (arg1: boolean) => void;
 	let errorMessage: string | undefined;
+	let economyFrozen: boolean = false;
+
+	onMount(() => {
+		if (rank.hasPermission("EconomyLock")) {
+			request.get("/user/economy-freeze-status?userId=" + encodeURIComponent(userId)).then((d) => {
+				economyFrozen = d.data.frozen;
+			});
+		}
+	});
 </script>
 
 <style>
@@ -510,6 +520,37 @@
 					<a use:link class="btn-outline-primary btn w-100" href={`/admin/manage-inventory-user/${userId}`}>
 						<ShoppingBagIcon />
 						Manage Inventory</a>
+				{/if}
+				{#if rank.hasPermission("EconomyLock")}
+					{#if economyFrozen}
+						<button
+							class="btn-outline-warning btn w-100"
+							on:click={(e) => {
+								e.preventDefault();
+								request.post("/user/economy-unfreeze", { userId: parseInt(userId, 10) }).then(() => {
+									economyFrozen = false;
+								}).catch((err) => {
+									errorMessage = err.message;
+								});
+							}}
+						>
+							<SlashIcon /> Unfreeze Economy
+						</button>
+					{:else}
+						<button
+							class="btn-outline-danger btn w-100"
+							on:click={(e) => {
+								e.preventDefault();
+								request.post("/user/economy-freeze", { userId: parseInt(userId, 10) }).then(() => {
+									economyFrozen = true;
+								}).catch((err) => {
+									errorMessage = err.message;
+								});
+							}}
+						>
+							<SlashIcon /> Freeze Economy
+						</button>
+					{/if}
 				{/if}
 				<div class="card mb-2 bg-dark">
 					<div class="card-body card-header"><h4 class="mb-0">Misc Actions</h4></div>

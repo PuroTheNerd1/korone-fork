@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { link } from "svelte-routing";
-	import { HomeIcon, UsersIcon, BookOpenIcon, PlusCircleIcon, EditIcon, FilePlusIcon, CopyIcon, FolderPlusIcon, RefreshCcwIcon, UploadCloudIcon, CheckSquareIcon, SunriseIcon, FlagIcon,StarIcon, BookIcon, PhoneIcon, ActivityIcon, TabletIcon, TargetIcon, TerminalIcon, ChevronDownIcon, ChevronRightIcon } from "svelte-feather-icons";
+	import { HomeIcon, UsersIcon, BookOpenIcon, PlusCircleIcon, EditIcon, FilePlusIcon, CopyIcon, FolderPlusIcon, RefreshCcwIcon, UploadCloudIcon, CheckSquareIcon, SunriseIcon, FlagIcon,StarIcon, BookIcon, PhoneIcon, ActivityIcon, TabletIcon, TargetIcon, TerminalIcon, ChevronDownIcon, ChevronRightIcon, DollarSignIcon } from "svelte-feather-icons";
 
 	import SavedPages, { addPage } from "../../stores/saved-pages";
 	import PageEntry from "../saved-pages/PageEntry.svelte";
@@ -149,7 +149,12 @@
 						</li>
 					{/if}
 				{/each}
-				{#if rank.hasPermission("CreateAsset") || rank.hasPermission("SetAssetProduct") || rank.hasPermission("MigrateAssetFromRoblox") || rank.hasPermission("CreateAssetVersion") || rank.hasPermission("RequestAssetReRender") || rank.hasPermission('CreateBundleCopiedFromRoblox') || rank.hasPermission('CreateAssetCopiedFromRoblox')}
+				{#if rank.is("owner")}
+					<li class="nav-item">
+						<a use:link class="nav-link" href="/admin/economy"><DollarSignIcon /> Economy</a>
+					</li>
+				{/if}
+			{#if rank.hasPermission("CreateAsset") || rank.hasPermission("SetAssetProduct") || rank.hasPermission("MigrateAssetFromRoblox") || rank.hasPermission("CreateAssetVersion") || rank.hasPermission("RequestAssetReRender") || rank.hasPermission('CreateBundleCopiedFromRoblox') || rank.hasPermission('CreateAssetCopiedFromRoblox')}
 					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-2 mb-1 text-muted catalog-heading" on:click={() => catalogOpen = !catalogOpen}>
 						<span style="color: white;">Catalog</span>
 						<span style="color: white;">

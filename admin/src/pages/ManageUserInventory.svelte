@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { navigate } from "svelte-routing";
+	import { navigate, link } from "svelte-routing";
 	import Main from "../components/templates/Main.svelte";
 	import request from "../lib/request";
 	export let userId: string;
@@ -220,6 +220,33 @@
 				/>
 			</div>
 		</div>
+		{#if rank.hasPermission("TrackItem")}
+		<div class="col-12">
+			<hr />
+		</div>
+		<div class="col-12">
+			<h1>Item Lineage</h1>
+			<p class="text-muted">Click "View Lineage" on any limited item to see its full chain of custody.</p>
+		</div>
+		<div class="col-12">
+			{#if ownedUserAssets === null}
+				<p>Loading...</p>
+			{:else if ownedUserAssets.length === 0}
+				<p>No limited items.</p>
+			{:else}
+				<div class="row">
+					{#each ownedUserAssets as item}
+						<div class="col-6 col-md-3 col-lg-2 mb-3">
+							<img style="width: 100%;" src={`/thumbs/asset.ashx?assetId=${item.asset_id}&width=420&height=420&format=png`} alt="Item" />
+							<p class="text-truncate pb-0 mb-0">{item.name}</p>
+							<p class="text-truncate mt-0 mb-1">UAID #{item.user_asset_id}</p>
+							<a use:link href={`/admin/asset/track?userAssetId=${item.user_asset_id}`} class="btn btn-sm btn-outline-info w-100">View Lineage</a>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+		{/if}
 		<div class="col-12 mt-4">
 			<button
 				class="btn btn-success"
