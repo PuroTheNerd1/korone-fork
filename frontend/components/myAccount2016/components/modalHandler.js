@@ -4,6 +4,7 @@ import MyAccountStore from "../stores/myAccountStore"
 import ModalChangePassword from "./modalChangePassword";
 import ModalChangeUsername from "./modalChangeUsername";
 import ModalTotpCode from "./modalTotpCode";
+import ModalManageTotp from "./modalManageTotp";
 
 const ModalHandler = props => {
   const store = MyAccountStore.useContainer();
@@ -30,17 +31,11 @@ const ModalHandler = props => {
       }}>
         <ModalChangeUsername></ModalChangeUsername>
       </OldModal>
-    case 'TOTP_ENABLE':
-      return <OldModal title='Enable Two-Factor Authentication' onClose={() => {
+    case 'TOTP_MANAGE':
+      return <OldModal title='Manage 2FA' height={450} onClose={() => {
         store.setModal(null);
       }}>
-        <ModalTotpCode mode='enable' />
-      </OldModal>
-    case 'TOTP_DISABLE':
-      return <OldModal title='Remove Two-Factor Authentication' onClose={() => {
-        store.setModal(null);
-      }}>
-        <ModalTotpCode mode='disable' />
+        <ModalManageTotp />
       </OldModal>
   }
   return null;

@@ -36,30 +36,21 @@ const Security = props => {
     </div>
 
     <div className='col-12 mt-4'>
-      <Subtitle>Two-Factor Authentication</Subtitle>
+      <Subtitle>Two Factor Authentication</Subtitle>
       <div className={cardStyles.card + ' p-3'}>
-        {twoFactorInfo === null ? <p>Loading...</p> : <>
-          <p className='mb-2'>
-            Status: <strong>{twoFactorInfo.enabled ? 'Enabled' : 'Disabled'}</strong>
-          </p>
-          {!twoFactorInfo.enabled && <>
-            <p className='text-muted mb-2' style={{ fontSize: '0.9em' }}>
-              Scan the QR code below with Google Authenticator or any TOTP app, then enter the code to enable 2FA.
-            </p>
-            <img src={twoFactorInfo.qrCodeDataUrl} width={160} height={160} className='d-block mb-2' />
-            <p className='text-muted mb-3' style={{ fontSize: '0.85em', wordBreak: 'break-all' }}>
-              Manual key: {twoFactorInfo.secret}
-            </p>
-            <button className={s.saveButton} onClick={() => {
-              store.setModal('TOTP_ENABLE');
-            }}>Enable 2FA</button>
-          </>}
-          {twoFactorInfo.enabled && <>
-            <button className={s.saveButton} style={{ background: 'var(--danger-color, #d9534f)' }} onClick={() => {
-              store.setModal('TOTP_DISABLE');
-            }}>Remove 2FA</button>
-          </>}
-        </>}
+        <div className='row align-items-center'>
+          <div className='col'>
+            {twoFactorInfo === null
+              ? <span className='text-muted'>Loading...</span>
+              : <span>Status: <strong>{twoFactorInfo.enabled ? 'Enabled' : 'Disabled'}</strong></span>
+            }
+          </div>
+          <div className='col-auto'>
+            <button className={s.saveButton} onClick={() => store.setModal('TOTP_MANAGE')}>
+              Manage
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
