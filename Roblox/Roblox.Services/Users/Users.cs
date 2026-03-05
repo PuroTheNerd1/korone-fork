@@ -777,6 +777,7 @@ public class UsersService : ServiceBase, IService
 
     private static string redisKeyPrefix = "sess:v1:";
     private static string userSessionsSetPrefix = "user_sessions:v1:";
+    private static StackExchange.Redis.IDatabase rawRedis => Roblox.Cache.DistributedCache.redis.GetDatabase(0);
 
     /// <summary>
     /// Create a session for the user. Returns the session id.
@@ -797,7 +798,7 @@ public class UsersService : ServiceBase, IService
         var serialized = JsonSerializer.Serialize(sess);
         var id = Guid.NewGuid().ToString();
         await redis.StringSetAsync(redisKeyPrefix + id, serialized);
-        await redis.SetAddAsync(userSessionsSetPrefix + userId, id);
+        await rawRedis.SetAddAsync(userSessionsSetPrefix + userId, id);
         return id;
     }
 
@@ -811,7 +812,7 @@ public class UsersService : ServiceBase, IService
             {
                 var entry = JsonSerializer.Deserialize<SessionEntry>(result);
                 if (entry != null)
-                    await redis.SetRemoveAsync(userSessionsSetPrefix + entry.userId, sessionId);
+                    await rawRedis.SetRemoveAsync(userSessionsSetPrefix + entry.userId, sessionId);
             }
         }
         catch { /* ignore errors when cleaning up the index */ }
@@ -822,7 +823,7 @@ public class UsersService : ServiceBase, IService
 
     public async Task<IEnumerable<(string sessionId, SessionEntry entry)>> GetSessionsByUserId(long userId)
     {
-        var sessionIds = await redis.SetMembersAsync(userSessionsSetPrefix + userId);
+        var sessionIds = await rawRedis.SetMembersAsync(userSessionsSetPrefix + userId);
         var result = new List<(string, SessionEntry)>();
         var expiredSessionIds = new List<string>();
         var expiration = await GetSessionExpiration(userId);
@@ -830,9 +831,10 @@ public class UsersService : ServiceBase, IService
 
         foreach (var sessionIdRaw in sessionIds)
         {
-            var sessionId = sessionIdRaw.ToString();
+            var sessionId = sessionIdRaw.ToString() ?? string.Empty;
+            if (string.IsNullOrEmpty(sessionId)) continue;
             var raw = await redis.StringGetAsync(redisKeyPrefix + sessionId);
-            if (!raw.HasValue)
+            if (raw == null)
             {
                 expiredSessionIds.Add(sessionId);
                 continue;
@@ -852,11 +854,8 @@ public class UsersService : ServiceBase, IService
         }
 
         // Clean up stale session IDs from the set
-        if (expiredSessionIds.Count > 0)
-        {
-            foreach (var staleId in expiredSessionIds)
-                await redis.SetRemoveAsync(userSessionsSetPrefix + userId, staleId);
-        }
+        foreach (var staleId in expiredSessionIds)
+            await rawRedis.SetRemoveAsync(userSessionsSetPrefix + userId, staleId);
 
         return result;
     }
@@ -868,7 +867,7 @@ public class UsersService : ServiceBase, IService
         {
             if (sessionId == currentSessionId) continue;
             await redis.KeyDeleteAsync(redisKeyPrefix + sessionId);
-            await redis.SetRemoveAsync(userSessionsSetPrefix + userId, sessionId);
+            await rawRedis.SetRemoveAsync(userSessionsSetPrefix + userId, sessionId);
             using var sessCache = ServiceProvider.GetOrCreate<UserSessionsCache>();
             sessCache.Remove(sessionId);
         }
