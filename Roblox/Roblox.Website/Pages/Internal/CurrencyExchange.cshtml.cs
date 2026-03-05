@@ -76,6 +76,10 @@ namespace Roblox.Website.Pages.Internal
                     await services.economy.ChargeForConversion(userSession.userId, amount, finalTix, Roblox.Models.Economy.ConversionType.RobuxToTix);
                     successMessage = $"You have received {finalTix} Tix from {amount} R$.";
                 }
+
+                var newBalance = await services.economy.GetUserBalance(userSession.userId);
+                robuxBalance = newBalance.robux;
+                tixBalance = newBalance.tickets;
             }
             catch (Exception)
             {
