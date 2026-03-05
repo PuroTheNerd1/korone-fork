@@ -395,8 +395,8 @@ public class AdminApiController : ControllerBase
     [HttpGet("asset/moderation-details"), StaffFilter(Access.GetAssetModerationDetails)]
     public async Task<dynamic> GetModerationDetails(long assetId)
     {
-        var item = await db.QuerySingleOrDefaultAsync(
-            "SELECT asset.id, asset.name, asset_thumbnail.content_url FROM asset LEFT JOIN asset_thumbnail ON asset_thumbnail.asset_id = asset.id WHERE asset.id = :id",
+        var item = await db.QueryFirstOrDefaultAsync(
+            "SELECT asset.id, asset.name, (SELECT content_url FROM asset_thumbnail WHERE asset_thumbnail.asset_id = asset.id ORDER BY id DESC LIMIT 1) as content_url FROM asset WHERE asset.id = :id",
             new
             {
                 id = assetId,
@@ -404,6 +404,7 @@ public class AdminApiController : ControllerBase
         var avDetails = await services.assets.GetLatestAssetVersion(assetId);
         var names = await services.users.GetUserById(avDetails.creatorId);
         item.creatorName = names.username;
+        item.creatorId = avDetails.creatorId;
         if (item.content_url != null)
             item.content_url = Configuration.CdnBaseUrl + "/images/thumbnails/" + item.content_url + ".png";
         return item;
