@@ -8,7 +8,7 @@ public class RobloxAssetService : ServiceBase, IService
 {
     private string GetAssetCacheKey(long id)
     {
-        return "chloeassetcache_v7:" + id;
+        return "chloeassetcache_v8:" + id;
     }
     public async Task<string> GetAssetById(long id, long placeId = 0)
     {
