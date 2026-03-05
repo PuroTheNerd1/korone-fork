@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import useCardStyles from "../../userProfile/styles/card";
 import useFormStyles from "../styles/forms";
 import Subtitle from "./subtitle";
-import { logoutFromAllOtherSessions, getSessions } from "../../../services/auth";
+import { logoutFromAllOtherSessions, getSessions, revokeSession } from "../../../services/auth";
 import { getTwoFactorInfo } from "../../../services/accountSettings";
 import MyAccountStore from "../stores/myAccountStore";
 
@@ -15,6 +15,12 @@ const formatLocalDateTime = (isoString) => {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+  });
+};
+
+const refreshSessions = (setSessions) => {
+  getSessions().then(data => {
+    setSessions(data && data.data ? data.data : data);
   });
 };
 
@@ -77,18 +83,27 @@ const Security = props => {
                       <th style={{ fontWeight: 600 }}>Browser</th>
                       <th style={{ fontWeight: 600 }}>Logged in</th>
                       <th style={{ fontWeight: 600 }}>Last seen</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
                     {sessions.map((session, idx) => (
                       <tr key={idx} style={session.isCurrent ? { background: 'var(--background-color-secondary, rgba(0,0,0,0.04))' } : {}}>
-                        <td style={{ paddingLeft: 0 }}>
-                          {session.platform}
-                          {session.isCurrent && <span className='text-muted' style={{ fontSize: '12px', marginLeft: '6px' }}>(this session)</span>}
-                        </td>
+                        <td style={{ paddingLeft: 0 }}>{session.platform}</td>
                         <td>{session.browser}</td>
                         <td>{formatLocalDateTime(session.createdAt)}</td>
                         <td>{formatLocalDateTime(session.lastSeenAt)}</td>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          {session.isCurrent
+                            ? <span className='text-muted' style={{ fontSize: '12px' }}>This session</span>
+                            : <button
+                                className={s.saveButton}
+                                onClick={() => {
+                                  revokeSession(session.sessionId).then(() => refreshSessions(setSessions));
+                                }}
+                              >Sign Out</button>
+                          }
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -109,11 +124,7 @@ const Security = props => {
           </div>
           <div className='col-2 col-lg-6'>
             <button className={s.saveButton + ' float-right'} onClick={() => {
-              logoutFromAllOtherSessions().then(() => {
-                getSessions().then(data => {
-                  setSessions(data && data.data ? data.data : data);
-                });
-              })
+              logoutFromAllOtherSessions().then(() => refreshSessions(setSessions));
             }}>Sign Out</button>
           </div>
         </div>

@@ -144,6 +144,7 @@ public class AuthenticationControllerV2 : ControllerBase
         {
             data = sessions.Select(s => new
             {
+                sessionId = s.sessionId,
                 platform = GetPlatformFromUserAgent(s.entry.userAgent),
                 browser = GetBrowserFromUserAgent(s.entry.userAgent),
                 createdAt = s.entry.createdAt,
@@ -151,6 +152,17 @@ public class AuthenticationControllerV2 : ControllerBase
                 isCurrent = s.sessionId == safeUserSession.sessionId,
             }),
         };
+    }
+
+    [HttpPost("sessions/{sessionId}/revoke")]
+    public async Task RevokeSession(string sessionId)
+    {
+        var session = await services.users.GetSessionById(sessionId);
+        if (session.userId != safeUserSession.userId)
+            throw new RobloxException(401, 0, "Unauthorized");
+        if (sessionId == safeUserSession.sessionId)
+            throw new Roblox.Exceptions.BadRequestException(0, "Cannot revoke the current session");
+        await services.users.DeleteSession(sessionId);
     }
 
     private static string GetPlatformFromUserAgent(string? ua)
