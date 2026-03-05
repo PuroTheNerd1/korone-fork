@@ -188,6 +188,7 @@
 		URL.revokeObjectURL(url);
 	}
 
+	let obsFiltered: ObsUser[] = [];
 	$: obsFiltered = obsRaw.filter((u) => {
 		if (obsFilter === "active") return u.status === 1;
 		if (obsFilter === "banned") return u.status !== 1;
@@ -442,146 +443,135 @@
 			{:else if obsRaw.length === 0 && !obsLoading}
 				<button class="btn btn-outline-secondary btn-sm" on:click={loadObservatory}>Load Data</button>
 			{:else}
-				<div class="obs-terminal">
-					<!-- Header bar -->
-					<div class="obs-header">
-						<span class="obs-title">Pekora Macro-Data Terminal</span>
-						<div class="obs-header-right">
-							<div class="obs-filter-group">
-								<label class:obs-filter-active={obsFilter === "all"}>
-									<input type="radio" bind:group={obsFilter} value="all" /> All
-								</label>
-								<label class:obs-filter-active={obsFilter === "active"}>
-									<input type="radio" bind:group={obsFilter} value="active" /> Active
-								</label>
-								<label class:obs-filter-active={obsFilter === "banned"}>
-									<input type="radio" bind:group={obsFilter} value="banned" /> Banned
-								</label>
+				<!-- Filter + actions -->
+				<div class="row mb-3">
+					<div class="col-12 d-flex align-items-center gap-3">
+						<div class="d-flex gap-3">
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" id="obs-all" bind:group={obsFilter} value="all" />
+								<label class="form-check-label" for="obs-all">All</label>
 							</div>
-							<button class="obs-export-btn" on:click={() => exportCsv(obsFiltered, obsStats)}>CSV ↓</button>
-							<button class="obs-refresh-btn" on:click={loadObservatory}>↺</button>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" id="obs-active" bind:group={obsFilter} value="active" />
+								<label class="form-check-label" for="obs-active">Active</label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" id="obs-banned" bind:group={obsFilter} value="banned" />
+								<label class="form-check-label" for="obs-banned">Banned</label>
+							</div>
+						</div>
+						<button class="btn btn-sm btn-outline-secondary ms-auto" on:click={() => exportCsv(obsFiltered, obsStats)}>Export CSV</button>
+						<button class="btn btn-sm btn-outline-secondary" on:click={loadObservatory}>Refresh</button>
+					</div>
+				</div>
+
+				<div class="row">
+					<!-- Left column: Macro indicators -->
+					<div class="col-12 col-md-4 mb-3">
+						<div class="card">
+							<div class="card-header">Macro Indicators</div>
+							<div class="card-body p-0">
+								<table class="table table-sm mb-0">
+									<tbody>
+										<tr><td class="text-muted">Total RBX</td><td class="text-success fw-bold">R${fmt(obsStats.totalRBX)}</td></tr>
+										<tr><td class="text-muted">Total TIX</td><td class="text-warning fw-bold">T${fmt(obsStats.totalTIX)}</td></tr>
+										<tr><td class="text-muted">Total Net Worth (RBX eq.)</td><td class="fw-bold">R${fmt(obsStats.totalNW)}</td></tr>
+										<tr class="text-muted"><td>Conversion Rate</td><td>1 RBX = 10 TIX</td></tr>
+										<tr title="0 = Perfect Equality, 1 = Maximum Inequality">
+											<td class="text-muted">Gini Coefficient</td>
+											<td class="fw-bold" style="color: {obsStats.gini > 0.6 ? '#dc3545' : obsStats.gini > 0.35 ? '#ffc107' : '#28a745'}">{obsStats.gini?.toFixed(3)}</td>
+										</tr>
+										<tr><td class="text-muted">Mean Net Worth</td><td class="text-success">R${fmt(obsStats.mean)}</td></tr>
+										<tr><td class="text-muted">Median Net Worth</td><td class="text-success">R${fmt(obsStats.median)}</td></tr>
+										<tr>
+											<td class="text-muted">Econ-Pressure</td>
+											<td style="color: {(obsStats.pressure || 0) >= 0 ? '#28a745' : '#dc3545'}">
+												{(obsStats.pressure || 0) >= 0 ? "+" : ""}{((obsStats.pressure || 0) * 100).toFixed(2)}%
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<div class="card mt-3">
+							<div class="card-header">Population</div>
+							<div class="card-body p-0">
+								<table class="table table-sm mb-0">
+									<tbody>
+										<tr><td class="text-muted">Active</td><td class="text-success fw-bold">{obsStats.activeCount}</td></tr>
+										<tr><td class="text-muted">Banned / Other</td><td class="text-danger fw-bold">{obsStats.bannedCount}</td></tr>
+									</tbody>
+								</table>
+							</div>
 						</div>
 					</div>
 
-					<div class="obs-body">
-						<!-- Left column: Macro indicators -->
-						<div class="obs-panel">
-							<div class="obs-section-label">Macro Indicators</div>
+					<!-- Right column: Charts -->
+					<div class="col-12 col-md-8 mb-3">
+						<div class="card mb-3">
+							<div class="card-header">Visual Demographics</div>
+							<div class="card-body">
+								<p class="text-muted small mb-1">Class Distribution — Lower / Mid / Upper</p>
+								<div class="obs-stacked-bar mb-1">
+									<div class="obs-seg obs-seg-low"  style="width:{obsStats.lowPct?.toFixed(1)}%"  title="<100 RBX"></div>
+									<div class="obs-seg obs-seg-mid"  style="width:{obsStats.midPct?.toFixed(1)}%"  title="100–10k RBX"></div>
+									<div class="obs-seg obs-seg-high" style="width:{obsStats.highPct?.toFixed(1)}%" title=">10k RBX"></div>
+								</div>
+								<div class="obs-legend mb-3">
+									<span><i class="obs-dot obs-seg-low"></i> &lt;100 R$</span>
+									<span><i class="obs-dot obs-seg-mid"></i> 100–10k R$</span>
+									<span><i class="obs-dot obs-seg-high"></i> &gt;10k R$</span>
+								</div>
 
-							<div class="obs-row">
-								<span class="obs-label">Total RBX</span>
-								<span class="obs-val obs-green">R${fmt(obsStats.totalRBX)}</span>
-							</div>
-							<div class="obs-row">
-								<span class="obs-label">Total TIX</span>
-								<span class="obs-val obs-yellow">T${fmt(obsStats.totalTIX)}</span>
-							</div>
-							<div class="obs-row">
-								<span class="obs-label">Total Net Worth (RBX eq.)</span>
-								<span class="obs-val">R${fmt(obsStats.totalNW)}</span>
-							</div>
+								<p class="text-muted small mb-1">Currency Composition (Total Value)</p>
+								<div class="obs-stacked-bar mb-1">
+									<div class="obs-seg obs-seg-rbx" style="width:{obsStats.rbxCompPct?.toFixed(1)}%">
+										{(obsStats.rbxCompPct || 0) > 10 ? Math.round(obsStats.rbxCompPct) + "%" : ""}
+									</div>
+									<div class="obs-seg obs-seg-tix" style="width:{obsStats.tixCompPct?.toFixed(1)}%">
+										{(obsStats.tixCompPct || 0) > 10 ? Math.round(obsStats.tixCompPct) + "%" : ""}
+									</div>
+								</div>
+								<div class="obs-legend mb-3">
+									<span><i class="obs-dot obs-seg-rbx"></i> RBX Value</span>
+									<span><i class="obs-dot obs-seg-tix"></i> TIX Value</span>
+								</div>
 
-							<div class="obs-divider"></div>
-
-							<div class="obs-row obs-dim">
-								<span class="obs-label">Conversion Rate</span>
-								<span class="obs-val">1 RBX = 10 TIX</span>
-							</div>
-							<div class="obs-row" title="0 = Perfect Equality, 1 = Maximum Inequality">
-								<span class="obs-label">Gini Coefficient</span>
-								<span class="obs-val" style="color: {obsStats.gini > 0.6 ? '#ff6b6b' : obsStats.gini > 0.35 ? '#f4c430' : '#50c878'}">{obsStats.gini?.toFixed(3)}</span>
-							</div>
-							<div class="obs-row">
-								<span class="obs-label">Mean Net Worth</span>
-								<span class="obs-val obs-green">R${fmt(obsStats.mean)}</span>
-							</div>
-							<div class="obs-row">
-								<span class="obs-label">Median Net Worth</span>
-								<span class="obs-val obs-green">R${fmt(obsStats.median)}</span>
-							</div>
-							<div class="obs-row">
-								<span class="obs-label">Econ-Pressure</span>
-								<span class="obs-val" style="color: {(obsStats.pressure || 0) >= 0 ? '#50c878' : '#ff6b6b'}">
-									{(obsStats.pressure || 0) >= 0 ? "+" : ""}{((obsStats.pressure || 0) * 100).toFixed(2)}%
-								</span>
-							</div>
-
-							<div class="obs-divider"></div>
-							<div class="obs-section-label">Population</div>
-							<div class="obs-row">
-								<span class="obs-label">Active</span>
-								<span class="obs-val obs-green">{obsStats.activeCount}</span>
-							</div>
-							<div class="obs-row">
-								<span class="obs-label">Banned / Other</span>
-								<span class="obs-val obs-red">{obsStats.bannedCount}</span>
+								<p class="text-muted small mb-1">Whale Dominance — Top #1 vs Rest</p>
+								<div class="obs-stacked-bar mb-1">
+									<div class="obs-seg obs-seg-whale" style="width:{obsStats.whalePct?.toFixed(1)}%">
+										{(obsStats.whalePct || 0) > 10 ? Math.round(obsStats.whalePct) + "%" : ""}
+									</div>
+									<div class="obs-seg obs-seg-pleb" style="width:{obsStats.plebPct?.toFixed(1)}%"></div>
+								</div>
+								<div class="obs-legend">
+									<span><i class="obs-dot obs-seg-whale"></i> #1 Richest</span>
+									<span><i class="obs-dot obs-seg-pleb"></i> Everyone Else</span>
+								</div>
 							</div>
 						</div>
 
-						<!-- Right column: Charts -->
-						<div class="obs-panel obs-panel-wide">
-							<div class="obs-section-label">Visual Demographics</div>
-
-							<div class="obs-chart-label">Class Distribution — Lower / Mid / Upper</div>
-							<div class="obs-stacked-bar">
-								<div class="obs-seg obs-seg-low"  style="width:{obsStats.lowPct?.toFixed(1)}%"  title="<100 RBX"></div>
-								<div class="obs-seg obs-seg-mid"  style="width:{obsStats.midPct?.toFixed(1)}%"  title="100–10k RBX"></div>
-								<div class="obs-seg obs-seg-high" style="width:{obsStats.highPct?.toFixed(1)}%" title=">10k RBX"></div>
+						<div class="card">
+							<div class="card-header">Top Wealthiest</div>
+							<div class="card-body">
+								{#if obsFiltered.length === 0}
+									<p class="text-muted">No data for selected filter.</p>
+								{:else}
+									{#each obsFiltered.slice(0, 7) as user, i}
+										{@const maxNW = obsFiltered[0]?.netWorth || 1}
+										{@const pct = (user.netWorth / maxNW) * 100}
+										<div class="mb-2">
+											<div class="d-flex justify-content-between mb-1">
+												<a use:link href={`/admin/manage-user/${user.id}`}>#{i + 1} {user.username}</a>
+												<span class="text-muted small">R${fmt(user.netWorth)}</span>
+											</div>
+											<div class="progress" style="height: 10px;">
+												<div class="progress-bar" style="width:{pct}%; background:{user.status !== 1 ? '#dc3545' : '#28a745'}"></div>
+											</div>
+										</div>
+									{/each}
+								{/if}
 							</div>
-							<div class="obs-legend">
-								<span><i class="obs-dot obs-seg-low"></i> &lt;100 R$</span>
-								<span><i class="obs-dot obs-seg-mid"></i> 100–10k R$</span>
-								<span><i class="obs-dot obs-seg-high"></i> &gt;10k R$</span>
-							</div>
-
-							<div class="obs-chart-label" style="margin-top:14px;">Currency Composition (Total Value)</div>
-							<div class="obs-stacked-bar">
-								<div class="obs-seg obs-seg-rbx" style="width:{obsStats.rbxCompPct?.toFixed(1)}%">
-									{(obsStats.rbxCompPct || 0) > 10 ? Math.round(obsStats.rbxCompPct) + "%" : ""}
-								</div>
-								<div class="obs-seg obs-seg-tix" style="width:{obsStats.tixCompPct?.toFixed(1)}%">
-									{(obsStats.tixCompPct || 0) > 10 ? Math.round(obsStats.tixCompPct) + "%" : ""}
-								</div>
-							</div>
-							<div class="obs-legend">
-								<span><i class="obs-dot obs-seg-rbx"></i> RBX Value</span>
-								<span><i class="obs-dot obs-seg-tix"></i> TIX Value</span>
-							</div>
-
-							<div class="obs-chart-label" style="margin-top:14px;">Whale Dominance — Top #1 vs Rest</div>
-							<div class="obs-stacked-bar">
-								<div class="obs-seg obs-seg-whale" style="width:{obsStats.whalePct?.toFixed(1)}%">
-									{(obsStats.whalePct || 0) > 10 ? Math.round(obsStats.whalePct) + "%" : ""}
-								</div>
-								<div class="obs-seg obs-seg-pleb" style="width:{obsStats.plebPct?.toFixed(1)}%"></div>
-							</div>
-							<div class="obs-legend">
-								<span><i class="obs-dot obs-seg-whale"></i> #1 Richest</span>
-								<span><i class="obs-dot obs-seg-pleb"></i> Everyone Else</span>
-							</div>
-
-							<div class="obs-divider" style="margin-top:18px;"></div>
-							<div class="obs-section-label">Top Wealthiest</div>
-
-							{#each obsFiltered.slice(0, 7) as user, i}
-								{@const maxNW = obsFiltered[0]?.netWorth || 1}
-								{@const pct = (user.netWorth / maxNW) * 100}
-								<div class="obs-bar-row">
-									<div class="obs-bar-label">
-										<a use:link href={`/admin/manage-user/${user.id}`} class="obs-user-link">
-											#{i + 1} {user.username}
-										</a>
-										<span class="obs-bar-nw">R${fmt(user.netWorth)}</span>
-									</div>
-									<div class="obs-bar-track">
-										<div class="obs-bar-fill" style="width:{pct}%; background:{user.status !== 1 ? '#c0392b' : '#1e7e34'}"></div>
-									</div>
-								</div>
-							{/each}
-
-							{#if obsFiltered.length === 0}
-								<p class="obs-empty">No data for selected filter.</p>
-							{/if}
 						</div>
 					</div>
 				</div>
@@ -605,115 +595,7 @@
 		overflow: hidden;
 	}
 
-	.obs-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		background: #161616;
-		border-bottom: 1px solid #2a2a2a;
-		padding: 8px 14px;
-	}
-	.obs-title {
-		font-size: 13px;
-		font-weight: bold;
-		color: #50c878;
-		letter-spacing: 0.05em;
-	}
-	.obs-header-right {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-	.obs-filter-group {
-		display: flex;
-		gap: 10px;
-	}
-	.obs-filter-group label {
-		color: #777;
-		cursor: pointer;
-		user-select: none;
-	}
-	.obs-filter-group label.obs-filter-active {
-		color: #e0e0e0;
-	}
-	.obs-filter-group input[type="radio"] {
-		margin-right: 3px;
-		accent-color: #50c878;
-	}
-	.obs-export-btn, .obs-refresh-btn {
-		background: #1a1a1a;
-		border: 1px solid #333;
-		color: #aaa;
-		border-radius: 4px;
-		padding: 2px 8px;
-		font-size: 11px;
-		cursor: pointer;
-		font-family: inherit;
-	}
-	.obs-export-btn:hover, .obs-refresh-btn:hover {
-		border-color: #50c878;
-		color: #50c878;
-	}
-
-	.obs-body {
-		display: flex;
-		gap: 0;
-	}
-	.obs-panel {
-		padding: 14px 16px;
-		border-right: 1px solid #1e1e1e;
-		min-width: 240px;
-		flex-shrink: 0;
-	}
-	.obs-panel-wide {
-		flex: 1;
-		border-right: none;
-	}
-
-	.obs-section-label {
-		font-size: 10px;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		color: #555;
-		margin-bottom: 8px;
-		margin-top: 2px;
-	}
-	.obs-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		padding: 2px 0;
-		color: #c8c8c8;
-	}
-	.obs-dim {
-		color: #666;
-	}
-	.obs-label {
-		color: #777;
-		flex-shrink: 0;
-		margin-right: 8px;
-	}
-	.obs-val {
-		font-weight: bold;
-		color: #e0e0e0;
-		white-space: nowrap;
-	}
-	.obs-green { color: #50c878; }
-	.obs-yellow { color: #f4c430; }
-	.obs-red { color: #ff6b6b; }
-
-	.obs-divider {
-		border: none;
-		border-top: 1px dotted #2a2a2a;
-		margin: 10px 0;
-	}
-
 	/* Stacked bars */
-	.obs-chart-label {
-		font-size: 10px;
-		color: #666;
-		margin-bottom: 5px;
-	}
 	.obs-stacked-bar {
 		display: flex;
 		height: 18px;
