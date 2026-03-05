@@ -5,7 +5,8 @@
 	import * as rank from "../stores/rank";
 	import moment from "../lib/moment";
 
-	let activeTab: "trade-web" | "mule-suspects" | "orphan-items" = "trade-web";
+	let activeTab: "trade-web" | "mule-suspects" | "orphan-items" | "observatory" = "trade-web";
+
 
 	type Node = { id: number; username: string };
 	type Edge = { from: number; to: number; tradeId: number; createdAt: string };
@@ -15,7 +16,7 @@
 	let tradeLoading = false;
 	let tradeError: string | undefined;
 
-	const HUB_THRESHOLD = 3; // outgoing edge count to flag as hub
+	const HUB_THRESHOLD = 3;
 	const SVG_W = 800;
 	const SVG_H = 600;
 
@@ -32,7 +33,6 @@
 		});
 	}
 
-	// Map node id → {x, y} positions on a circle
 	function layoutNodes(nodes: Node[]): Map<number, { x: number; y: number }> {
 		const positions = new Map<number, { x: number; y: number }>();
 		const cx = SVG_W / 2;
@@ -105,14 +105,144 @@
 	}
 
 
-	function switchTab(tab: typeof activeTab) {
-		activeTab = tab;
-		if (tab === "trade-web" && tradeNodes.length === 0 && !tradeLoading) loadTradeGraph();
-		if (tab === "mule-suspects" && muleSuspects.length === 0 && !muleLoading) loadMuleSuspects();
-		if (tab === "orphan-items" && orphanItems.length === 0 && !orphanLoading) loadOrphanItems();
+	const EXCHANGE_RATE = 10; // 1 RBX = 10 TIX
+
+	type ObsUser = {
+		id: number;
+		username: string;
+		status: number; // 1 = Ok, others = not-ok (banned/deleted/etc)
+		balance_robux: number;
+		balance_tickets: number;
+		netWorth: number;
+	};
+
+	type ObsFilter = "all" | "active" | "banned";
+
+	let obsRaw: ObsUser[] = [];
+	let obsLoading = false;
+	let obsError: string | undefined;
+	let obsFilter: ObsFilter = "all";
+
+	function loadObservatory() {
+		obsLoading = true;
+		obsError = undefined;
+		request.get("/economy/observatory").then((d) => {
+			obsRaw = (d.data as any[]).map((u) => ({
+				...u,
+				netWorth: (u.balance_robux || 0) + (u.balance_tickets || 0) / EXCHANGE_RATE,
+			}));
+		}).catch((e) => {
+			obsError = e.message;
+		}).finally(() => {
+			obsLoading = false;
+		});
 	}
 
-	// Load the first tab on mount
+	function fmt(n: number): string {
+		return Math.round(n).toLocaleString();
+	}
+
+	function calcGini(arr: number[]): number {
+		if (arr.length === 0) return 0;
+		const sorted = [...arr].sort((a, b) => a - b);
+		const n = sorted.length;
+		const sum = sorted.reduce((a, b) => a + b, 0);
+		if (sum === 0) return 0;
+		let sumOfRanks = 0;
+		for (let i = 0; i < n; i++) sumOfRanks += (i + 1) * sorted[i];
+		return Math.max(0, (2 * sumOfRanks) / (n * sum) - (n + 1) / n);
+	}
+
+	function calcMedian(arr: number[]): number {
+		if (arr.length === 0) return 0;
+		const sorted = [...arr].sort((a, b) => a - b);
+		const mid = Math.floor(sorted.length / 2);
+		return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+	}
+
+	function exportCsv(users: ObsUser[], stats: any) {
+		let csv = "PEKORA MACROECONOMIC EXPORT\n";
+		csv += `Date Generated,${new Date().toLocaleString()}\n\n`;
+		csv += "--- MACRO INDICATORS ---\n";
+		csv += `Total Users Scanned,${stats.totalUsers}\n`;
+		csv += `Total RBX,${stats.totalRBX}\n`;
+		csv += `Total TIX,${stats.totalTIX}\n`;
+		csv += `Total Net Worth (RBX),${stats.totalNW.toFixed(2)}\n`;
+		csv += `Gini Coefficient,${stats.gini.toFixed(3)}\n`;
+		csv += `Mean Net Worth,${stats.mean.toFixed(2)}\n`;
+		csv += `Median Net Worth,${stats.median.toFixed(2)}\n`;
+		csv += `Whale Dominance %,${stats.whalePct.toFixed(2)}%\n\n`;
+		csv += "--- RAW USER DATA (Ranked by Net Worth) ---\n";
+		csv += "Rank,Username,Status,RBX,TIX,Net Worth (RBX)\n";
+		users.forEach((u, i) => {
+			const safeName = u.username.replace(/,/g, "");
+			const status = u.status === 1 ? "Active" : "Banned/Other";
+			csv += `${i + 1},${safeName},${status},${u.balance_robux},${u.balance_tickets},${u.netWorth.toFixed(2)}\n`;
+		});
+		const blob = new Blob([csv], { type: "text/csv" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `Pekora_Econ_Export_${Date.now()}.csv`;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	$: obsFiltered = obsRaw.filter((u) => {
+		if (obsFilter === "active") return u.status === 1;
+		if (obsFilter === "banned") return u.status !== 1;
+		return true;
+	}).sort((a, b) => b.netWorth - a.netWorth);
+
+	$: {
+		const nws = obsFiltered.map((u) => u.netWorth);
+		const totalRBX = obsFiltered.reduce((s, u) => s + (u.balance_robux || 0), 0);
+		const totalTIX = obsFiltered.reduce((s, u) => s + (u.balance_tickets || 0), 0);
+		const totalNW = obsFiltered.reduce((s, u) => s + u.netWorth, 0);
+		const whaleNW = obsFiltered.length > 0 ? obsFiltered[0].netWorth : 0;
+		const whalePct = totalNW > 0 ? (whaleNW / totalNW) * 100 : 0;
+		const activeCount = obsFiltered.filter((u) => u.status === 1).length;
+		const bannedCount = obsFiltered.filter((u) => u.status !== 1).length;
+		const totalPop = activeCount + bannedCount;
+		const pressure = totalPop > 0
+			? ((activeCount * 1.0 - bannedCount * 1.5) / totalPop) * 0.05
+			: 0;
+
+		const low = obsFiltered.filter((u) => u.netWorth <= 100).length;
+		const mid = obsFiltered.filter((u) => u.netWorth > 100 && u.netWorth <= 10000).length;
+		const high = obsFiltered.filter((u) => u.netWorth > 10000).length;
+		const lowPct  = totalPop > 0 ? (low / totalPop) * 100 : 33.3;
+		const midPct  = totalPop > 0 ? (mid / totalPop) * 100 : 33.3;
+		const highPct = totalPop > 0 ? (high / totalPop) * 100 : 33.3;
+
+		const tixInRbx = totalTIX / EXCHANGE_RATE;
+		const rbxCompPct = totalNW > 0 ? (totalRBX / totalNW) * 100 : 50;
+		const tixCompPct = totalNW > 0 ? (tixInRbx / totalNW) * 100 : 50;
+		const plebPct = 100 - whalePct;
+
+		obsStats = {
+			totalUsers: totalPop, totalRBX, totalTIX, totalNW,
+			gini: calcGini(nws),
+			mean: totalPop > 0 ? totalNW / totalPop : 0,
+			median: calcMedian(nws),
+			whalePct, plebPct, pressure,
+			lowPct, midPct, highPct,
+			rbxCompPct, tixCompPct,
+			activeCount, bannedCount,
+		};
+	}
+
+	let obsStats: any = {};
+
+
+	function switchTab(tab: typeof activeTab) {
+		activeTab = tab;
+		if (tab === "trade-web"    && tradeNodes.length === 0 && !tradeLoading)   loadTradeGraph();
+		if (tab === "mule-suspects" && muleSuspects.length === 0 && !muleLoading) loadMuleSuspects();
+		if (tab === "orphan-items" && orphanItems.length === 0 && !orphanLoading) loadOrphanItems();
+		if (tab === "observatory"  && obsRaw.length === 0 && !obsLoading)         loadObservatory();
+	}
+
 	loadTradeGraph();
 
 	$: positions = layoutNodes(tradeNodes);
@@ -140,26 +270,22 @@
 			<div class="col-12">
 				<ul class="nav nav-tabs">
 					<li class="nav-item">
-						<button class={`nav-link${activeTab === "trade-web" ? " active" : ""}`} on:click={() => switchTab("trade-web")}>
-							Trade Web
-						</button>
+						<button class={`nav-link${activeTab === "trade-web" ? " active" : ""}`} on:click={() => switchTab("trade-web")}>Trade Web</button>
 					</li>
 					<li class="nav-item">
-						<button class={`nav-link${activeTab === "mule-suspects" ? " active" : ""}`} on:click={() => switchTab("mule-suspects")}>
-							Mule Suspects
-						</button>
+						<button class={`nav-link${activeTab === "mule-suspects" ? " active" : ""}`} on:click={() => switchTab("mule-suspects")}>Mule Suspects</button>
 					</li>
 					<li class="nav-item">
-						<button class={`nav-link${activeTab === "orphan-items" ? " active" : ""}`} on:click={() => switchTab("orphan-items")}>
-							Orphan Items
-						</button>
+						<button class={`nav-link${activeTab === "orphan-items" ? " active" : ""}`} on:click={() => switchTab("orphan-items")}>Orphan Items</button>
+					</li>
+					<li class="nav-item">
+						<button class={`nav-link${activeTab === "observatory" ? " active" : ""}`} on:click={() => switchTab("observatory")}>Observatory</button>
 					</li>
 				</ul>
 			</div>
 		</div>
 
 		{#if activeTab === "trade-web"}
-			<!-- ── Trade Web ─────────────────────────────────────────────── -->
 			<div class="row mb-2">
 				<div class="col-12 d-flex align-items-center gap-2">
 					<h4 class="mb-0">Trade Web Visualization</h4>
@@ -173,7 +299,6 @@
 					</p>
 				</div>
 			</div>
-
 			{#if tradeError}
 				<p class="text-danger">{tradeError}</p>
 			{:else if tradeLoading}
@@ -184,42 +309,25 @@
 				<div class="row">
 					<div class="col-12" style="overflow-x: auto;">
 						<svg width={SVG_W} height={SVG_H} style="background:#1a1a2e; border-radius:8px; display:block; margin:0 auto;">
-							<!-- edges -->
 							{#each tradeEdges as edge}
 								{#if positions.has(edge.from) && positions.has(edge.to)}
 									<line
-										x1={positions.get(edge.from).x}
-										y1={positions.get(edge.from).y}
-										x2={positions.get(edge.to).x}
-										y2={positions.get(edge.to).y}
-										stroke="#555"
-										stroke-width="1"
-										opacity="0.6"
+										x1={positions.get(edge.from).x} y1={positions.get(edge.from).y}
+										x2={positions.get(edge.to).x}   y2={positions.get(edge.to).y}
+										stroke="#555" stroke-width="1" opacity="0.6"
 									/>
 								{/if}
 							{/each}
-							<!-- nodes -->
 							{#each tradeNodes as node}
 								{#if positions.has(node.id)}
 									{@const pos = positions.get(node.id)}
 									{@const isHub = getOutDegree(node.id) >= HUB_THRESHOLD}
 									<a href={`/admin/manage-user/${node.id}`} use:link>
-										<circle
-											cx={pos.x}
-											cy={pos.y}
-											r="14"
+										<circle cx={pos.x} cy={pos.y} r="14"
 											fill={isHub ? "#dc3545" : "#0d6efd"}
-											stroke={isHub ? "#ff6b6b" : "#3d8bfd"}
-											stroke-width="2"
-										/>
-										<text
-											x={pos.x}
-											y={pos.y + 26}
-											text-anchor="middle"
-											fill="white"
-											font-size="10"
-											font-family="monospace"
-										>{node.username}</text>
+											stroke={isHub ? "#ff6b6b" : "#3d8bfd"} stroke-width="2" />
+										<text x={pos.x} y={pos.y + 26} text-anchor="middle"
+											fill="white" font-size="10" font-family="monospace">{node.username}</text>
 									</a>
 								{/if}
 							{/each}
@@ -230,13 +338,7 @@
 					<div class="col-12">
 						<h5>Hub Summary</h5>
 						<table class="table table-dark table-sm table-bordered">
-							<thead>
-								<tr>
-									<th>Username</th>
-									<th>User ID</th>
-									<th>Outgoing Trades</th>
-								</tr>
-							</thead>
+							<thead><tr><th>Username</th><th>User ID</th><th>Outgoing Trades</th></tr></thead>
 							<tbody>
 								{#each tradeNodes.filter(n => getOutDegree(n.id) >= HUB_THRESHOLD).sort((a, b) => getOutDegree(b.id) - getOutDegree(a.id)) as node}
 									<tr>
@@ -254,8 +356,8 @@
 				</div>
 			{/if}
 
+		<!-- ── Mule Suspects ──────────────────────────────────────────────────── -->
 		{:else if activeTab === "mule-suspects"}
-			<!-- ── Mule Suspects ─────────────────────────────────────────── -->
 			<div class="row mb-2">
 				<div class="col-12 d-flex align-items-center gap-2">
 					<h4 class="mb-0">Mule Account Detection</h4>
@@ -264,12 +366,9 @@
 					</button>
 				</div>
 				<div class="col-12">
-					<p class="text-muted mb-1">
-						Accounts less than 3 days old that hold significant wealth or limited items. Typical mule pattern.
-					</p>
+					<p class="text-muted mb-1">Accounts less than 3 days old that hold significant wealth or limited items.</p>
 				</div>
 			</div>
-
 			{#if muleError}
 				<p class="text-danger">{muleError}</p>
 			{:else if muleLoading}
@@ -278,16 +377,7 @@
 				<p>No mule suspects found.</p>
 			{:else}
 				<table class="table table-dark table-sm table-bordered table-hover">
-					<thead>
-						<tr>
-							<th>Username</th>
-							<th>Account Age</th>
-							<th>Robux</th>
-							<th>Tix</th>
-							<th>Limiteds</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
+					<thead><tr><th>Username</th><th>Account Age</th><th>Robux</th><th>Tix</th><th>Limiteds</th><th>Actions</th></tr></thead>
 					<tbody>
 						{#each muleSuspects as suspect}
 							<tr>
@@ -296,17 +386,15 @@
 								<td class="text-success">{suspect.balance_robux.toLocaleString()}</td>
 								<td class="text-warning">{suspect.balance_tickets.toLocaleString()}</td>
 								<td>{suspect.limited_item_count}</td>
-								<td>
-									<a use:link href={`/admin/manage-user/${suspect.id}`} class="btn btn-sm btn-outline-primary">Manage</a>
-								</td>
+								<td><a use:link href={`/admin/manage-user/${suspect.id}`} class="btn btn-sm btn-outline-primary">Manage</a></td>
 							</tr>
 						{/each}
 					</tbody>
 				</table>
 			{/if}
 
+		<!-- ── Orphan Items ───────────────────────────────────────────────────── -->
 		{:else if activeTab === "orphan-items"}
-			<!-- ── Orphan Items ───────────────────────────────────────────── -->
 			<div class="row mb-2">
 				<div class="col-12 d-flex align-items-center gap-2">
 					<h4 class="mb-0">Orphan Item Tracker</h4>
@@ -315,12 +403,9 @@
 					</button>
 				</div>
 				<div class="col-12">
-					<p class="text-muted mb-1">
-						Limited items with no purchase transaction or trade record — they appeared out of nowhere.
-					</p>
+					<p class="text-muted mb-1">Limited items with no purchase transaction or trade record.</p>
 				</div>
 			</div>
-
 			{#if orphanError}
 				<p class="text-danger">{orphanError}</p>
 			{:else if orphanLoading}
@@ -329,16 +414,7 @@
 				<p>No orphan items found.</p>
 			{:else}
 				<table class="table table-dark table-sm table-bordered table-hover">
-					<thead>
-						<tr>
-							<th>Item Name</th>
-							<th>Asset ID</th>
-							<th>User Asset ID</th>
-							<th>Current Owner</th>
-							<th>Created At</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
+					<thead><tr><th>Item Name</th><th>Asset ID</th><th>User Asset ID</th><th>Current Owner</th><th>Created At</th><th>Actions</th></tr></thead>
 					<tbody>
 						{#each orphanItems as item}
 							<tr>
@@ -356,6 +432,160 @@
 					</tbody>
 				</table>
 			{/if}
+
+		<!-- ── Observatory ────────────────────────────────────────────────────── -->
+		{:else if activeTab === "observatory"}
+			{#if obsError}
+				<p class="text-danger">{obsError}</p>
+			{:else if obsLoading}
+				<div class="d-flex justify-content-center"><div class="spinner-border" /></div>
+			{:else if obsRaw.length === 0 && !obsLoading}
+				<button class="btn btn-outline-secondary btn-sm" on:click={loadObservatory}>Load Data</button>
+			{:else}
+				<div class="obs-terminal">
+					<!-- Header bar -->
+					<div class="obs-header">
+						<span class="obs-title">Pekora Macro-Data Terminal</span>
+						<div class="obs-header-right">
+							<div class="obs-filter-group">
+								<label class:obs-filter-active={obsFilter === "all"}>
+									<input type="radio" bind:group={obsFilter} value="all" /> All
+								</label>
+								<label class:obs-filter-active={obsFilter === "active"}>
+									<input type="radio" bind:group={obsFilter} value="active" /> Active
+								</label>
+								<label class:obs-filter-active={obsFilter === "banned"}>
+									<input type="radio" bind:group={obsFilter} value="banned" /> Banned
+								</label>
+							</div>
+							<button class="obs-export-btn" on:click={() => exportCsv(obsFiltered, obsStats)}>CSV ↓</button>
+							<button class="obs-refresh-btn" on:click={loadObservatory}>↺</button>
+						</div>
+					</div>
+
+					<div class="obs-body">
+						<!-- Left column: Macro indicators -->
+						<div class="obs-panel">
+							<div class="obs-section-label">Macro Indicators</div>
+
+							<div class="obs-row">
+								<span class="obs-label">Total RBX</span>
+								<span class="obs-val obs-green">R${fmt(obsStats.totalRBX)}</span>
+							</div>
+							<div class="obs-row">
+								<span class="obs-label">Total TIX</span>
+								<span class="obs-val obs-yellow">T${fmt(obsStats.totalTIX)}</span>
+							</div>
+							<div class="obs-row">
+								<span class="obs-label">Total Net Worth (RBX eq.)</span>
+								<span class="obs-val">R${fmt(obsStats.totalNW)}</span>
+							</div>
+
+							<div class="obs-divider"></div>
+
+							<div class="obs-row obs-dim">
+								<span class="obs-label">Conversion Rate</span>
+								<span class="obs-val">1 RBX = 10 TIX</span>
+							</div>
+							<div class="obs-row" title="0 = Perfect Equality, 1 = Maximum Inequality">
+								<span class="obs-label">Gini Coefficient</span>
+								<span class="obs-val" style="color: {obsStats.gini > 0.6 ? '#ff6b6b' : obsStats.gini > 0.35 ? '#f4c430' : '#50c878'}">{obsStats.gini?.toFixed(3)}</span>
+							</div>
+							<div class="obs-row">
+								<span class="obs-label">Mean Net Worth</span>
+								<span class="obs-val obs-green">R${fmt(obsStats.mean)}</span>
+							</div>
+							<div class="obs-row">
+								<span class="obs-label">Median Net Worth</span>
+								<span class="obs-val obs-green">R${fmt(obsStats.median)}</span>
+							</div>
+							<div class="obs-row">
+								<span class="obs-label">Econ-Pressure</span>
+								<span class="obs-val" style="color: {(obsStats.pressure || 0) >= 0 ? '#50c878' : '#ff6b6b'}">
+									{(obsStats.pressure || 0) >= 0 ? "+" : ""}{((obsStats.pressure || 0) * 100).toFixed(2)}%
+								</span>
+							</div>
+
+							<div class="obs-divider"></div>
+							<div class="obs-section-label">Population</div>
+							<div class="obs-row">
+								<span class="obs-label">Active</span>
+								<span class="obs-val obs-green">{obsStats.activeCount}</span>
+							</div>
+							<div class="obs-row">
+								<span class="obs-label">Banned / Other</span>
+								<span class="obs-val obs-red">{obsStats.bannedCount}</span>
+							</div>
+						</div>
+
+						<!-- Right column: Charts -->
+						<div class="obs-panel obs-panel-wide">
+							<div class="obs-section-label">Visual Demographics</div>
+
+							<div class="obs-chart-label">Class Distribution — Lower / Mid / Upper</div>
+							<div class="obs-stacked-bar">
+								<div class="obs-seg obs-seg-low"  style="width:{obsStats.lowPct?.toFixed(1)}%"  title="<100 RBX"></div>
+								<div class="obs-seg obs-seg-mid"  style="width:{obsStats.midPct?.toFixed(1)}%"  title="100–10k RBX"></div>
+								<div class="obs-seg obs-seg-high" style="width:{obsStats.highPct?.toFixed(1)}%" title=">10k RBX"></div>
+							</div>
+							<div class="obs-legend">
+								<span><i class="obs-dot obs-seg-low"></i> &lt;100 R$</span>
+								<span><i class="obs-dot obs-seg-mid"></i> 100–10k R$</span>
+								<span><i class="obs-dot obs-seg-high"></i> &gt;10k R$</span>
+							</div>
+
+							<div class="obs-chart-label" style="margin-top:14px;">Currency Composition (Total Value)</div>
+							<div class="obs-stacked-bar">
+								<div class="obs-seg obs-seg-rbx" style="width:{obsStats.rbxCompPct?.toFixed(1)}%">
+									{(obsStats.rbxCompPct || 0) > 10 ? Math.round(obsStats.rbxCompPct) + "%" : ""}
+								</div>
+								<div class="obs-seg obs-seg-tix" style="width:{obsStats.tixCompPct?.toFixed(1)}%">
+									{(obsStats.tixCompPct || 0) > 10 ? Math.round(obsStats.tixCompPct) + "%" : ""}
+								</div>
+							</div>
+							<div class="obs-legend">
+								<span><i class="obs-dot obs-seg-rbx"></i> RBX Value</span>
+								<span><i class="obs-dot obs-seg-tix"></i> TIX Value</span>
+							</div>
+
+							<div class="obs-chart-label" style="margin-top:14px;">Whale Dominance — Top #1 vs Rest</div>
+							<div class="obs-stacked-bar">
+								<div class="obs-seg obs-seg-whale" style="width:{obsStats.whalePct?.toFixed(1)}%">
+									{(obsStats.whalePct || 0) > 10 ? Math.round(obsStats.whalePct) + "%" : ""}
+								</div>
+								<div class="obs-seg obs-seg-pleb" style="width:{obsStats.plebPct?.toFixed(1)}%"></div>
+							</div>
+							<div class="obs-legend">
+								<span><i class="obs-dot obs-seg-whale"></i> #1 Richest</span>
+								<span><i class="obs-dot obs-seg-pleb"></i> Everyone Else</span>
+							</div>
+
+							<div class="obs-divider" style="margin-top:18px;"></div>
+							<div class="obs-section-label">Top Wealthiest</div>
+
+							{#each obsFiltered.slice(0, 7) as user, i}
+								{@const maxNW = obsFiltered[0]?.netWorth || 1}
+								{@const pct = (user.netWorth / maxNW) * 100}
+								<div class="obs-bar-row">
+									<div class="obs-bar-label">
+										<a use:link href={`/admin/manage-user/${user.id}`} class="obs-user-link">
+											#{i + 1} {user.username}
+										</a>
+										<span class="obs-bar-nw">R${fmt(user.netWorth)}</span>
+									</div>
+									<div class="obs-bar-track">
+										<div class="obs-bar-fill" style="width:{pct}%; background:{user.status !== 1 ? '#c0392b' : '#1e7e34'}"></div>
+									</div>
+								</div>
+							{/each}
+
+							{#if obsFiltered.length === 0}
+								<p class="obs-empty">No data for selected filter.</p>
+							{/if}
+						</div>
+					</div>
+				</div>
+			{/if}
 		{/if}
 	{/if}
 </Main>
@@ -363,5 +593,213 @@
 <style>
 	svg a {
 		cursor: pointer;
+	}
+
+	/* ── Observatory Terminal ─────────────────────────────────────────────── */
+	.obs-terminal {
+		background: #0d0d0d;
+		border: 1px solid #2a2a2a;
+		border-radius: 6px;
+		font-family: 'Courier New', Courier, monospace;
+		font-size: 12px;
+		overflow: hidden;
+	}
+
+	.obs-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background: #161616;
+		border-bottom: 1px solid #2a2a2a;
+		padding: 8px 14px;
+	}
+	.obs-title {
+		font-size: 13px;
+		font-weight: bold;
+		color: #50c878;
+		letter-spacing: 0.05em;
+	}
+	.obs-header-right {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	.obs-filter-group {
+		display: flex;
+		gap: 10px;
+	}
+	.obs-filter-group label {
+		color: #777;
+		cursor: pointer;
+		user-select: none;
+	}
+	.obs-filter-group label.obs-filter-active {
+		color: #e0e0e0;
+	}
+	.obs-filter-group input[type="radio"] {
+		margin-right: 3px;
+		accent-color: #50c878;
+	}
+	.obs-export-btn, .obs-refresh-btn {
+		background: #1a1a1a;
+		border: 1px solid #333;
+		color: #aaa;
+		border-radius: 4px;
+		padding: 2px 8px;
+		font-size: 11px;
+		cursor: pointer;
+		font-family: inherit;
+	}
+	.obs-export-btn:hover, .obs-refresh-btn:hover {
+		border-color: #50c878;
+		color: #50c878;
+	}
+
+	.obs-body {
+		display: flex;
+		gap: 0;
+	}
+	.obs-panel {
+		padding: 14px 16px;
+		border-right: 1px solid #1e1e1e;
+		min-width: 240px;
+		flex-shrink: 0;
+	}
+	.obs-panel-wide {
+		flex: 1;
+		border-right: none;
+	}
+
+	.obs-section-label {
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: #555;
+		margin-bottom: 8px;
+		margin-top: 2px;
+	}
+	.obs-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		padding: 2px 0;
+		color: #c8c8c8;
+	}
+	.obs-dim {
+		color: #666;
+	}
+	.obs-label {
+		color: #777;
+		flex-shrink: 0;
+		margin-right: 8px;
+	}
+	.obs-val {
+		font-weight: bold;
+		color: #e0e0e0;
+		white-space: nowrap;
+	}
+	.obs-green { color: #50c878; }
+	.obs-yellow { color: #f4c430; }
+	.obs-red { color: #ff6b6b; }
+
+	.obs-divider {
+		border: none;
+		border-top: 1px dotted #2a2a2a;
+		margin: 10px 0;
+	}
+
+	/* Stacked bars */
+	.obs-chart-label {
+		font-size: 10px;
+		color: #666;
+		margin-bottom: 5px;
+	}
+	.obs-stacked-bar {
+		display: flex;
+		height: 18px;
+		border-radius: 3px;
+		overflow: hidden;
+		background: #1a1a1a;
+		border: 1px solid #222;
+	}
+	.obs-seg {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 10px;
+		font-weight: bold;
+		color: rgba(255,255,255,0.7);
+		transition: width 0.4s ease;
+		overflow: hidden;
+	}
+	.obs-seg-low   { background: #2d6a9f; }
+	.obs-seg-mid   { background: #2ecc71; }
+	.obs-seg-high  { background: #e74c3c; }
+	.obs-seg-rbx   { background: #1e7e34; }
+	.obs-seg-tix   { background: #856404; }
+	.obs-seg-whale { background: #8e44ad; }
+	.obs-seg-pleb  { background: #2c3e50; }
+
+	.obs-legend {
+		display: flex;
+		gap: 12px;
+		margin-top: 4px;
+		flex-wrap: wrap;
+	}
+	.obs-legend span {
+		font-size: 10px;
+		color: #666;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+	.obs-dot {
+		display: inline-block;
+		width: 8px;
+		height: 8px;
+		border-radius: 2px;
+		flex-shrink: 0;
+	}
+
+	/* Top users bar chart */
+	.obs-bar-row {
+		margin-bottom: 6px;
+	}
+	.obs-bar-label {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		margin-bottom: 2px;
+	}
+	.obs-user-link {
+		color: #8ab4f8;
+		text-decoration: none;
+		font-size: 11px;
+	}
+	.obs-user-link:hover {
+		text-decoration: underline;
+		color: #a8c7fa;
+	}
+	.obs-bar-nw {
+		color: #50c878;
+		font-size: 10px;
+	}
+	.obs-bar-track {
+		height: 10px;
+		background: #1a1a1a;
+		border-radius: 2px;
+		overflow: hidden;
+	}
+	.obs-bar-fill {
+		height: 100%;
+		border-radius: 2px;
+		transition: width 0.4s ease;
+	}
+	.obs-empty {
+		color: #555;
+		font-size: 11px;
+		text-align: center;
+		padding: 12px 0;
 	}
 </style>

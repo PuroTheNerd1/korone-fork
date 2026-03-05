@@ -3386,7 +3386,21 @@ Thank you for your understanding,
         await redis.KeyDeleteAsync(EconomyFreezeKey(request.userId));
     }
 
-    // ─── Economy Page (owner-only) ────────────────────────────────────────────
+
+    [HttpGet("economy/observatory")]
+    public async Task<dynamic> GetObservatoryData()
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new StaffException("Forbidden");
+
+        return await db.QueryAsync(@"
+            SELECT u.id, u.username, u.status, ue.balance_robux, ue.balance_tickets
+            FROM ""user"" u
+            INNER JOIN user_economy ue ON ue.user_id = u.id
+            WHERE u.status != 6
+            ORDER BY (ue.balance_robux + ue.balance_tickets / 10) DESC
+            LIMIT 5000");
+    }
 
     [HttpGet("economy/trade-graph")]
     public async Task<dynamic> GetTradeGraph(int limit = 200)
