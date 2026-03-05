@@ -364,9 +364,4 @@
 	svg a {
 		cursor: pointer;
 	}
-	.nav-link {
-		background: none;
-		border: none;
-		cursor: pointer;
-	}
 </style>

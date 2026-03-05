@@ -264,3 +264,56 @@ img.avatar-thumb {
   margin: 0 auto;
   max-width: 400px;
 }
+
+/* ── Dark theme overrides ─────────────────────────────────────────────────── */
+
+/* Form controls: dark background, light text */
+.form-control,
+.form-select {
+  background-color: #181a1b;
+  color: #e0e0e0;
+  border-color: #383D3F;
+}
+.form-control:focus,
+.form-select:focus {
+  background-color: #181a1b;
+  color: #e0e0e0;
+  border-color: #555;
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
+}
+.form-control::placeholder {
+  color: #888;
+  opacity: 1;
+}
+/* bare <select> not wrapped in form-select */
+select:not(.form-select) {
+  background-color: #181a1b;
+  color: #e0e0e0;
+  border: 1px solid #383D3F;
+}
+
+/* text-muted is too dark against dark backgrounds */
+.text-muted {
+  color: #9e9e9e !important;
+}
+
+/* nav-tabs dark theme */
+.nav-tabs {
+  border-bottom-color: #383D3F;
+}
+.nav-tabs .nav-link {
+  color: #aaa;
+  border-color: transparent;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.nav-tabs .nav-link:hover {
+  color: #e0e0e0;
+  border-color: transparent;
+}
+.nav-tabs .nav-link.active {
+  color: #e0e0e0;
+  background-color: #1f1f1f;
+  border-color: #383D3F #383D3F #1f1f1f;
+}
