@@ -161,9 +161,9 @@
 	}
 
 	function exportCsv(users: ObsUser[], stats: any) {
-		let csv = "PEKORA MACROECONOMIC EXPORT\n";
+		let csv = "Korone Economy Observatory Export\n";
 		csv += `Date Generated,${new Date().toLocaleString()}\n\n`;
-		csv += "--- MACRO INDICATORS ---\n";
+		csv += "--- Macro Indicators ---\n";
 		csv += `Total Users Scanned,${stats.totalUsers}\n`;
 		csv += `Total RBX,${stats.totalRBX}\n`;
 		csv += `Total TIX,${stats.totalTIX}\n`;
@@ -172,7 +172,7 @@
 		csv += `Mean Net Worth,${stats.mean.toFixed(2)}\n`;
 		csv += `Median Net Worth,${stats.median.toFixed(2)}\n`;
 		csv += `Whale Dominance %,${stats.whalePct.toFixed(2)}%\n\n`;
-		csv += "--- RAW USER DATA (Ranked by Net Worth) ---\n";
+		csv += "--- Raw User Data (Ranked by Net Worth) ---\n";
 		csv += "Rank,Username,Status,RBX,TIX,Net Worth (RBX)\n";
 		users.forEach((u, i) => {
 			const safeName = u.username.replace(/,/g, "");
@@ -183,7 +183,7 @@
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
-		a.download = `Pekora_Econ_Export_${Date.now()}.csv`;
+		a.download = `Korone_Eco_Export_${Date.now()}.csv`;
 		a.click();
 		URL.revokeObjectURL(url);
 	}
@@ -585,14 +585,14 @@
 		cursor: pointer;
 	}
 
-	/* ── Observatory Terminal ─────────────────────────────────────────────── */
-	.obs-terminal {
-		background: #0d0d0d;
-		border: 1px solid #2a2a2a;
-		border-radius: 6px;
-		font-family: 'Courier New', Courier, monospace;
-		font-size: 12px;
-		overflow: hidden;
+	/* Card dark theme */
+	:global(.card) {
+		background-color: #1f1f1f;
+		border-color: #333;
+	}
+	:global(.card-body) {
+		background-color: #1f1f1f;
+		color: #e0e0e0;
 	}
 
 	/* Stacked bars */
