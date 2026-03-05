@@ -231,6 +231,8 @@ _ = Task.Run(async () =>
     await assets.FixAssetImagesWithoutMetadata();
 });
 _ = Task.Run(AvatarService.StartTimerClear3D);
+app.MapGet("/internal/tixexchange", ctx => { ctx.Response.Redirect("/internal/exchange", permanent: true); return Task.CompletedTask; });
+app.MapGet("/internal/robuxexchange", ctx => { ctx.Response.Redirect("/internal/exchange", permanent: true); return Task.CompletedTask; });
 app.MapControllers();
 app.MapRazorPages();
 app.UseWebSockets();

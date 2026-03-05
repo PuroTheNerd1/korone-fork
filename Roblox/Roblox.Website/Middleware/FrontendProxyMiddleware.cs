@@ -57,8 +57,7 @@ public class FrontendProxyMiddleware
         "/internal/migrate-to-application",
         "/internal/collectibles",
         "/internal/contest/first-contest",
-        "/internal/tixexchange",
-        "/internal/robuxexchange",
+        "/internal/exchange",
         "/internal/referral",
         "/auth/notapproved",
         // Admin
