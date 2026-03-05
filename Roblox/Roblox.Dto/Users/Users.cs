@@ -86,6 +86,8 @@ public class SessionEntry
 {
     public long userId { get; set; }
     public DateTime createdAt { get; set; }
+    public string? userAgent { get; set; }
+    public DateTime lastSeenAt { get; set; }
 }
 
 public class RobloxId

@@ -62,7 +62,7 @@ public class Login : RobloxPageModel
 
     private async Task CreateSessionAndSetCookie(long userId)
     {
-        var sess = await services.users.CreateSession(userId);
+        var sess = await services.users.CreateSession(userId, Request.Headers["User-Agent"].ToString());
         var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
         {
             sessionId = sess,

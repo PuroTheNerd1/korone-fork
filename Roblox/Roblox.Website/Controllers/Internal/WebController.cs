@@ -86,7 +86,7 @@ public class WebController : ControllerBase
         }
 
         // create session
-        var sess = await services.users.CreateSession(user.userId);
+        var sess = await services.users.CreateSession(user.userId, Request.Headers["User-Agent"].ToString());
         var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
         {
             sessionId = sess,

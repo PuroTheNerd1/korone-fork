@@ -776,30 +776,102 @@ public class UsersService : ServiceBase, IService
     }
 
     private static string redisKeyPrefix = "sess:v1:";
+    private static string userSessionsSetPrefix = "user_sessions:v1:";
 
     /// <summary>
     /// Create a session for the user. Returns the session id.
     /// </summary>
     /// <param name="userId"></param>
+    /// <param name="userAgent"></param>
     /// <returns></returns>
-    public async Task<string> CreateSession(long userId)
+    public async Task<string> CreateSession(long userId, string? userAgent = null)
     {
+        var now = DateTime.UtcNow;
         var sess = new SessionEntry
         {
             userId = userId,
-            createdAt = DateTime.UtcNow,
+            createdAt = now,
+            userAgent = userAgent,
+            lastSeenAt = now,
         };
         var serialized = JsonSerializer.Serialize(sess);
         var id = Guid.NewGuid().ToString();
         await redis.StringSetAsync(redisKeyPrefix + id, serialized);
+        await redis.SetAddAsync(userSessionsSetPrefix + userId, id);
         return id;
     }
 
     public async Task DeleteSession(string sessionId)
     {
+        // Get userId before deleting so we can remove from the user sessions set
+        try
+        {
+            var result = await redis.StringGetAsync(redisKeyPrefix + sessionId);
+            if (result != null)
+            {
+                var entry = JsonSerializer.Deserialize<SessionEntry>(result);
+                if (entry != null)
+                    await redis.SetRemoveAsync(userSessionsSetPrefix + entry.userId, sessionId);
+            }
+        }
+        catch { /* ignore errors when cleaning up the index */ }
         await redis.KeyDeleteAsync(redisKeyPrefix + sessionId);
         using var sess = ServiceProvider.GetOrCreate<UserSessionsCache>();
         sess.Remove(sessionId);
+    }
+
+    public async Task<IEnumerable<(string sessionId, SessionEntry entry)>> GetSessionsByUserId(long userId)
+    {
+        var sessionIds = await redis.SetMembersAsync(userSessionsSetPrefix + userId);
+        var result = new List<(string, SessionEntry)>();
+        var expiredSessionIds = new List<string>();
+        var expiration = await GetSessionExpiration(userId);
+        var consideredExpiredOnOrAfter = DateTime.UtcNow.Subtract(TimeSpan.FromDays(365));
+
+        foreach (var sessionIdRaw in sessionIds)
+        {
+            var sessionId = sessionIdRaw.ToString();
+            var raw = await redis.StringGetAsync(redisKeyPrefix + sessionId);
+            if (!raw.HasValue)
+            {
+                expiredSessionIds.Add(sessionId);
+                continue;
+            }
+            var entry = JsonSerializer.Deserialize<SessionEntry>(raw);
+            if (entry == null || entry.createdAt <= consideredExpiredOnOrAfter)
+            {
+                expiredSessionIds.Add(sessionId);
+                continue;
+            }
+            if (expiration != null && entry.createdAt < expiration)
+            {
+                expiredSessionIds.Add(sessionId);
+                continue;
+            }
+            result.Add((sessionId, entry));
+        }
+
+        // Clean up stale session IDs from the set
+        if (expiredSessionIds.Count > 0)
+        {
+            foreach (var staleId in expiredSessionIds)
+                await redis.SetRemoveAsync(userSessionsSetPrefix + userId, staleId);
+        }
+
+        return result;
+    }
+
+    public async Task DeleteOtherSessions(long userId, string currentSessionId)
+    {
+        var sessions = await GetSessionsByUserId(userId);
+        foreach (var (sessionId, _) in sessions)
+        {
+            if (sessionId == currentSessionId) continue;
+            await redis.KeyDeleteAsync(redisKeyPrefix + sessionId);
+            await redis.SetRemoveAsync(userSessionsSetPrefix + userId, sessionId);
+            using var sessCache = ServiceProvider.GetOrCreate<UserSessionsCache>();
+            sessCache.Remove(sessionId);
+        }
     }
 
     public async Task<DateTime?> GetSessionExpiration(long userId)
@@ -836,6 +908,12 @@ public class UsersService : ServiceBase, IService
                 throw new RecordNotFoundException();
 
             mySess = JsonSerializer.Deserialize<SessionEntry>(result);
+            // Update lastSeenAt on every cache miss (approximately once per minute)
+            if (mySess != null)
+            {
+                mySess.lastSeenAt = DateTime.UtcNow;
+                await redis.StringSetAsync(redisKeyPrefix + sessionId, JsonSerializer.Serialize(mySess));
+            }
             sessCache.Set(sessionId, mySess);
 
             if (mySess != null)
