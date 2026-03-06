@@ -16,7 +16,7 @@ public class OpenRouterReviewResult
 public class OpenRouterApi
 {
     private readonly HttpClient _client;
-    private const string Model = "stepfun/step-3.5-flash:free";
+    private const string Model = "z-ai/glm-4.5-air:free";
 
     public OpenRouterApi(string apiKey)
     {
