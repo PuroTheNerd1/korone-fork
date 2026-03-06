@@ -73,6 +73,7 @@ Roblox.Configuration.AssetValidationServiceAuthorization =
     configuration.GetSection("AssetValidation:Authorization").Value!;
 GameServerService.Configure(string.Join(Guid.NewGuid().ToString(), new int [16].Select(_ => Guid.NewGuid().ToString()))); // More TODO: If we every load balance, this will break
 Roblox.Configuration.AiUserId = long.Parse(configuration.GetSection("AI:UserId").Value!);
+Roblox.Configuration.OpenRouterApiKey = configuration.GetSection("AI:OpenRouterAPIKey").Value!;
 Roblox.Configuration.CondoDenyLogChannelId = configuration.GetSection("Discord:CondoDenyLogChannelId").Value!;
 Roblox.Configuration.PackageShirtAssetId = long.Parse(configuration.GetSection("PackageShirtAssetId").Value!);
 Roblox.Configuration.PackagePantsAssetId = long.Parse(configuration.GetSection("PackagePantsAssetId").Value!);
@@ -231,6 +232,7 @@ _ = Task.Run(async () =>
     await assets.FixAssetImagesWithoutMetadata();
 });
 _ = Task.Run(AvatarService.StartTimerClear3D);
+_ = Task.Run(AiReportReviewService.StartReviewLoop);
 app.MapControllers();
 app.MapRazorPages();
 app.UseWebSockets();
