@@ -23,7 +23,7 @@ public class OpenRouterApi
         _client = new HttpClient
         {
             BaseAddress = new Uri("https://openrouter.ai/api/v1/"),
-            Timeout = TimeSpan.FromSeconds(30),
+            Timeout = TimeSpan.FromSeconds(120),
         };
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
     }
