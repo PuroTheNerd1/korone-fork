@@ -56,7 +56,7 @@ public static class AiReportReviewService
 
     private static string BuildInternalReason(string? rawReason, string reportId)
     {
-        var url = $" | /admin-api/api/chat-messages/{reportId}";
+        var url = $" | {Configuration.BaseUrl}/admin-api/api/chat-messages/{reportId}";
         var reason = rawReason ?? string.Empty;
         var maxReasonLength = 414 - url.Length;
         if (reason.Length > maxReasonLength)
@@ -240,8 +240,16 @@ public static class AiReportReviewService
                 await Task.Delay(TimeSpan.FromSeconds(60));
 
                 var db = Database.connection;
+
+                var pendingCount = await db.QuerySingleAsync<int>(
+                    "SELECT COUNT(*) FROM abuse_report WHERE report_status = :status AND report_reason = :reason",
+                    new { status = AbuseReportStatus.Pending, reason = AbuseReportReason.BadChatMessagesInGame });
+
+                if (pendingCount < 50)
+                    continue;
+
                 var staleReports = await db.QueryAsync<string>(
-                    "SELECT id FROM abuse_report WHERE report_status = :status AND report_reason = :reason AND created_at <= now() - interval '10 minutes' ORDER BY created_at LIMIT 10",
+                    "SELECT id FROM abuse_report WHERE report_status = :status AND report_reason = :reason AND created_at <= now() - interval '30 minutes' ORDER BY created_at LIMIT 50",
                     new { status = AbuseReportStatus.Pending, reason = AbuseReportReason.BadChatMessagesInGame });
 
                 foreach (var reportId in staleReports)
