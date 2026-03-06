@@ -241,8 +241,8 @@ public static class AiReportReviewService
 
                 var db = Database.connection;
                 var staleReports = await db.QueryAsync<string>(
-                    "SELECT id FROM abuse_report WHERE report_status = :status AND created_at <= now() - interval '10 minutes' ORDER BY created_at LIMIT 10",
-                    new { status = AbuseReportStatus.Pending });
+                    "SELECT id FROM abuse_report WHERE report_status = :status AND report_reason = :reason AND created_at <= now() - interval '10 minutes' ORDER BY created_at LIMIT 10",
+                    new { status = AbuseReportStatus.Pending, reason = AbuseReportReason.BadChatMessagesInGame });
 
                 foreach (var reportId in staleReports)
                 {
