@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text;
+using Dapper;
 
 namespace Roblox.Services;
 
@@ -190,6 +191,53 @@ public class FilterService : ServiceBase, IService
         "retard"
      };
     private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
+    private static HashSet<string> _dynamicWordsCache = new HashSet<string>();
+    private static volatile bool _dynamicWordsCacheLoaded = false;
+    private static readonly object _cacheLock = new object();
+
+    private void RefreshDynamicCache()
+    {
+        var words = db.Query<string>("SELECT word FROM chat_filter_word");
+        lock (_cacheLock)
+        {
+            _dynamicWordsCache = new HashSet<string>(words);
+            _dynamicWordsCacheLoaded = true;
+        }
+    }
+
+    public async Task<IEnumerable<object>> GetAllWords()
+    {
+        var dbWords = await db.QueryAsync<string>("SELECT word FROM chat_filter_word");
+
+        var result = new List<object>();
+        foreach (var w in filteredWords)
+            result.Add(new { word = w.Trim(), isHardcoded = true });
+        foreach (var w in dbWords)
+            if (!_filteredWordsSet.Contains(w))
+                result.Add(new { word = w, isHardcoded = false });
+        return result;
+    }
+
+    public async Task AddWord(string word)
+    {
+        word = word.ToLower().Trim();
+        if (string.IsNullOrWhiteSpace(word) || word.Length > 100) return;
+        await db.ExecuteAsync(
+            "INSERT INTO chat_filter_word (word) VALUES (:word) ON CONFLICT (word) DO NOTHING",
+            new { word }
+        );
+        _dynamicWordsCacheLoaded = false;
+    }
+
+    public async Task DeleteWord(string word)
+    {
+        word = word.ToLower().Trim();
+        if (_filteredWordsSet.Contains(word))
+            throw new Exception("CannotDeleteHardcodedWord");
+        await db.ExecuteAsync("DELETE FROM chat_filter_word WHERE word = :word", new { word });
+        _dynamicWordsCacheLoaded = false;
+    }
+
     public string FilterText(string input)
     {
         /* Stop the fucking annoying ฏ text spamming*/
@@ -221,10 +269,18 @@ public class FilterService : ServiceBase, IService
             .Where(c => c != '\0')
             .ToArray());
 
+        if (!_dynamicWordsCacheLoaded)
+            RefreshDynamicCache();
+
         if (_filteredWordsSet.Any(word => cleanedInput.Contains(word)))
-        {
             return new string('#', input.Length);
+
+        lock (_cacheLock)
+        {
+            if (_dynamicWordsCache.Any(word => cleanedInput.Contains(word)))
+                return new string('#', input.Length);
         }
+
         return input;
     }
     public string CleanText(string input)

@@ -3488,5 +3488,32 @@ Thank you for your understanding,
             ORDER BY ua.created_at DESC
             LIMIT 200");
     }
+
+    [HttpGet("chat-filter"), StaffFilter(Access.ManageChatFilter)]
+    public async Task<IEnumerable<object>> GetChatFilterWords()
+    {
+        using var filter = ServiceProvider.GetOrCreate<FilterService>();
+        return await filter.GetAllWords();
+    }
+
+    [HttpPost("chat-filter"), StaffFilter(Access.ManageChatFilter)]
+    public async Task AddChatFilterWords([Required, FromBody] AddChatFilterRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.words))
+            throw new Exception("BadRequest");
+        using var filter = ServiceProvider.GetOrCreate<FilterService>();
+        var words = request.words.Split(',').Select(w => w.Trim().ToLower()).Where(w => !string.IsNullOrEmpty(w)).Take(50);
+        foreach (var word in words)
+            await filter.AddWord(word);
+    }
+
+    [HttpDelete("chat-filter"), StaffFilter(Access.ManageChatFilter)]
+    public async Task DeleteChatFilterWord([Required, FromQuery] string word)
+    {
+        if (string.IsNullOrWhiteSpace(word))
+            throw new Exception("BadRequest");
+        using var filter = ServiceProvider.GetOrCreate<FilterService>();
+        await filter.DeleteWord(word);
+    }
 }
 
