@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Roblox.Cache;
 
-namespace Roblox.Website.Services;
+namespace Roblox.Website.Lib;
 
 public record NonceClaim(long userId, long assetId, long price, long timestamp);
 public record NonceLock(string nonce, long timestamp, string signature);

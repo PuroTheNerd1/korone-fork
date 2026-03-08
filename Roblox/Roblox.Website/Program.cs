@@ -90,7 +90,7 @@ FeatureFlags.StartUpdateFlagTask();
 var ownerUserIdConfig = configuration.GetSection("OwnerUserId");
 List<long> ownerUserIds = ownerUserIdConfig.Get<List<long>>()!;
 Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds!);
-Roblox.Website.Services.ChallengeLockService.Configure(
+Roblox.Website.Lib.ChallengeLockService.Configure(
     configuration.GetSection("ChallengeLock:SecretKey").Value
     ?? throw new InvalidOperationException("ChallengeLock:SecretKey not configured"));
 //Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();

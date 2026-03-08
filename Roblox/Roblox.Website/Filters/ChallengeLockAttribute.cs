@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Roblox.Dto.Users;
 using Roblox.Models.Sessions;
-using Roblox.Website.Services;
+using Roblox.Website.Lib;
 
 namespace Roblox.Website.Filters;
 
