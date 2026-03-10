@@ -349,7 +349,10 @@
 											applications = applications.filter((v) => v.id !== app.id);
 										}}>Silent Decline</button
 									>
-									{#if mode !== "Pending"}
+									{#if (mode === "Rejected" || mode === "All") && app.discordId && app.rejectionReason && app.rejectionReason.includes("Affiliation with Roblox Condos")}
+									<a href="/admin/applications/analysis/{app.discordId}" class="btn btn-sm btn-outline-info w-100">View Analysis</a>
+								{/if}
+								{#if mode !== "Pending"}
 										<Permission p="ClearApplications">
 											<button
 												class="btn btn-sm btn-outline-danger w-100"

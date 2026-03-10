@@ -30,6 +30,7 @@
 	import FeatureFlags from "./pages/FeatureFlags.svelte";
 	import ManageUserTransactions from "./pages/ManageUserTransactions.svelte";
 	import Applications from "./pages/Applications.svelte";
+	import ApplicationAnalysis from "./pages/ApplicationAnalysis.svelte";
 	import ForumPosts from "./pages/TextModeration.svelte";
 	import Groups from "./pages/Groups.svelte";
 	import GameHistory from "./pages/GameHistory.svelte";
@@ -155,6 +156,9 @@
 		</Route>
 		<Route path="/admin/applications/:id" let:params>
 			<Applications id={params.id} />
+		</Route>
+		<Route path="/admin/applications/analysis/:discordId" let:params>
+			<ApplicationAnalysis discordId={params.discordId} />
 		</Route>
 		<Route path="/admin/text-posts">
 			<ForumPosts />

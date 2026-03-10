@@ -31,6 +31,51 @@ public class RotectorData
     public int flagType { get; set; }
 }
 
+public class TasebotDetail
+{
+    public bool appealing { get; set; }
+    public bool pastOffender { get; set; }
+    public int scoreSum { get; set; }
+    public string? lastSeen { get; set; }
+}
+
+public class TasebotGuildType
+{
+    public string? id { get; set; }
+    public string? name { get; set; }
+    public string? emoji { get; set; }
+    public string? summary { get; set; }
+}
+
+public class TasebotGuildDetail
+{
+    public int messages { get; set; }
+    public int typing { get; set; }
+    public int interaction { get; set; }
+    public int indirect { get; set; }
+    public bool staff { get; set; }
+    public bool booster { get; set; }
+}
+
+public class TasebotGuild
+{
+    public string? id { get; set; }
+    public string? name { get; set; }
+    public int score { get; set; }
+    public string? firstSeen { get; set; }
+    public string? lastSeen { get; set; }
+    public int[]? versions { get; set; }
+    public List<TasebotGuildType>? types { get; set; }
+    public TasebotGuildDetail? detail { get; set; }
+}
+
+public class TasebotResponse
+{
+    public TasebotDetail? detail { get; set; }
+    public string? userId { get; set; }
+    public List<TasebotGuild>? guilds { get; set; }
+}
+
 public class VerificationPhraseCookie
 {
     public string phrase { get; set; }
@@ -429,6 +474,40 @@ public class Application : RobloxPageModel
             catch (Exception e)
             {
                 Writer.Info(LogGroup.AbuseDetection, "Rotector check failed for userId {0}: {1}", userId, e.Message);
+            }
+
+            try
+            {
+                using var tasebotClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                var tasebotResponse = await tasebotClient.GetFromJsonAsync<TasebotResponse>(
+                    $"https://api.tasebot.org/v2/check/{discordUser.Id}");
+                if (tasebotResponse?.detail != null && tasebotResponse.detail.scoreSum >= 10)
+                {
+                    application = await services.users.GetApplicationById(applicationId);
+                    if (application?.status == UserApplicationStatus.Pending)
+                    {
+                        await services.users.ProcessApplication(
+                            applicationId,
+                            Configuration.AiUserId,
+                            UserApplicationStatus.Rejected,
+                            "Your application has been declined due to Affiliation with Roblox Condos / Sex Servers.");
+                        application = await services.users.GetApplicationById(applicationId);
+                        try
+                        {
+                            await services.discordBotApi.BanUser(discordUser.Id.ToString(), "Affiliation with Roblox Condos / Sex Servers");
+                            await services.discordBotApi.SendMessageInChannel(Configuration.CondoDenyLogChannelId,
+                                $"<@{discordUser.Id}> applied and was rejected due to being in a condo (TaseBot score: {tasebotResponse.detail.scoreSum}).\n-# User has been banned from the server.");
+                        }
+                        catch (Exception e)
+                        {
+                            Writer.Info(LogGroup.AbuseDetection, "TaseBot ban/log failed for discordId {0}: {1}", discordUser.Id, e.Message);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Writer.Info(LogGroup.AbuseDetection, "TaseBot check failed for discordId {0}: {1}", discordUser.Id, e.Message);
             }
 
             //await services.users.ProcessApplication(applicationId, 1, UserApplicationStatus.Approved);

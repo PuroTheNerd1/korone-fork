@@ -2726,6 +2726,41 @@ Thank you for your understanding,
         return result;
     }
 
+    [HttpGet("applications/analysis/{discordId}"), StaffFilter(Access.ManageApplications)]
+    public async Task<dynamic> GetApplicationAnalysis(string discordId)
+    {
+        var app = await db.QueryFirstOrDefaultAsync<dynamic>(
+            "SELECT verified_id FROM join_application WHERE discord_id = :discordId ORDER BY created_at DESC LIMIT 1",
+            new { discordId });
+
+        string? robloxUserId = null;
+        if (app != null && app.verified_id != null)
+        {
+            var verifiedId = (string)app.verified_id;
+            if (verifiedId.StartsWith("RobloxUserId:"))
+                robloxUserId = verifiedId.Substring("RobloxUserId:".Length);
+        }
+
+        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+
+        Task<string> rotectorTask = robloxUserId != null
+            ? httpClient.GetStringAsync($"https://roscoe.rotector.com/v1/lookup/roblox/user/{robloxUserId}")
+            : Task.FromResult<string>(null!);
+        var tasebotTask = httpClient.GetStringAsync($"https://api.tasebot.org/v2/check/{discordId}");
+
+        string? rotectorRaw = null;
+        string? tasebotRaw = null;
+        try { rotectorRaw = await rotectorTask; } catch { }
+        try { tasebotRaw = await tasebotTask; } catch { }
+
+        return new
+        {
+            robloxUserId,
+            robloxAnalysis = rotectorRaw != null ? JsonDocument.Parse(rotectorRaw).RootElement : (object?)null,
+            discordAnalysis = tasebotRaw != null ? JsonDocument.Parse(tasebotRaw).RootElement : (object?)null,
+        };
+    }
+
     [HttpGet("applications/pending-num")]
     [StaffFilter(Access.ManageApplications)]
     public async Task<dynamic> GetNumPendingApplications()
