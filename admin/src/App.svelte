@@ -157,8 +157,8 @@
 		<Route path="/admin/applications/:id" let:params>
 			<Applications id={params.id} />
 		</Route>
-		<Route path="/admin/applications/analysis/:discordId" let:params>
-			<ApplicationAnalysis discordId={params.discordId} />
+		<Route path="/admin/applications/:appId/analysis" let:params>
+			<ApplicationAnalysis discordId={params.appId} />
 		</Route>
 		<Route path="/admin/text-posts">
 			<ForumPosts />

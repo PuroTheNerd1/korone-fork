@@ -349,8 +349,8 @@
 											applications = applications.filter((v) => v.id !== app.id);
 										}}>Silent Decline</button
 									>
-									{#if (mode === "Rejected" || mode === "All") && app.discordId && app.rejectionReason && app.rejectionReason.includes("Affiliation with Roblox Condos")}
-									<a href="/admin/applications/analysis/{app.discordId}" class="btn btn-sm btn-outline-info w-100">View Analysis</a>
+									{#if (mode === "Rejected" || mode === "All") && app.discordId && app.rejectionReason && app.rejectionReason.includes("Your application has been declined due to Affiliation with Roblox Condos / Sex Servers.")}
+									<a href="/admin/applications/{app.discordId}/analysis" class="btn btn-sm btn-outline-info w-100">View Analysis</a>
 								{/if}
 								{#if mode !== "Pending"}
 										<Permission p="ClearApplications">

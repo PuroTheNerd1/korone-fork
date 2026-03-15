@@ -20,6 +20,8 @@ public static class AiReportReviewService
         "warn", "1d", "3d", "1w", "2w", "1m", "1y", "permanent"
     };
 
+    private static readonly SemaphoreSlim _reviewLock = new(1, 1);
+
     private static string LoadSystemPromptFromAssembly()
     {
         var assembly = Assembly.GetExecutingAssembly();
@@ -219,6 +221,46 @@ public static class AiReportReviewService
             new { status = reportStatus, author = aiUserId, id = reportId });
 
         Writer.Info(LogGroup.AiReportReview, "Report {0} finalized as {1}", reportId, reportStatus);
+    }
+
+    public static async Task TriggerManualReview()
+    {
+        if (!await _reviewLock.WaitAsync(0))
+            return;
+
+        try
+        {
+            var apiKey = Configuration.OpenRouterApiKey;
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                Writer.Info(LogGroup.AiReportReview, "OpenRouterApiKey is not configured, manual AI review skipped");
+                return;
+            }
+
+            var client = new OpenRouterApi(apiKey);
+            var systemPrompt = _systemPrompt.Value;
+            var db = Database.connection;
+
+            var pendingReports = await db.QueryAsync<string>(
+                "SELECT id FROM abuse_report WHERE report_status = :status AND report_reason = :reason ORDER BY created_at LIMIT 50",
+                new { status = AbuseReportStatus.Pending, reason = AbuseReportReason.BadChatMessagesInGame });
+
+            foreach (var reportId in pendingReports)
+            {
+                try
+                {
+                    await ReviewReport(reportId, client, systemPrompt);
+                }
+                catch (Exception ex)
+                {
+                    Writer.Info(LogGroup.AiReportReview, "Error reviewing report {0}: {1} {2}", reportId, ex.GetType().Name, ex.Message);
+                }
+            }
+        }
+        finally
+        {
+            _reviewLock.Release();
+        }
     }
 
     public static async Task StartReviewLoop()

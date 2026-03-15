@@ -17,6 +17,9 @@
 	};
 
 	loadAnalysis();
+
+	const formatGuildTypes = (types: any[]) =>
+		types ? types.map(t => (t.emoji ?? "") + " " + (t.name ?? "")).join(", ") : "N/A";
 </script>
 
 <Main>
@@ -108,7 +111,7 @@
 										<td>{guild.score ?? 0}</td>
 										<td>{guild.firstSeen ?? "N/A"}</td>
 										<td>{guild.lastSeen ?? "N/A"}</td>
-										<td>{guild.types ? guild.types.map((t: any) => `${t.emoji ?? ""} ${t.name ?? ""}`).join(", ") : "N/A"}</td>
+										<td>{formatGuildTypes(guild.types)}</td>
 										<td>{guild.detail?.messages ?? 0}</td>
 										<td>{guild.detail?.typing ?? 0}</td>
 										<td>{guild.detail?.interaction ?? 0}</td>

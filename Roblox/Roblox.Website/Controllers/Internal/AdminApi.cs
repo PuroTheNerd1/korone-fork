@@ -3216,6 +3216,14 @@ Thank you for your understanding,
         await RewardForReportReview();
     }
 
+    [HttpPost("reports/ai-review"), StaffFilter(Access.ManageReports)]
+    public async Task TriggerAiReview()
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new UnauthorizedException();
+        await AiReportReviewService.TriggerManualReview();
+    }
+
     [HttpGet("assets/{assetId}/owners"), StaffFilter(Access.GetAllAssetOwners)]
     public async Task<IEnumerable<CollectibleUserAssetEntry>> GetLiterallyAllOwnersKindaUnsafe(long assetId)
     {
