@@ -155,20 +155,6 @@ const setCatalogStyle = (themeString) => {
     localStorage.setItem('rbx_cat_style_v1', themeString);
 }
 
-const getAlertsDisabled = () => {
-    if (!isLocalStorageAvailable) return 'enabled';
-    
-    let value = localStorage.getItem('rbx_alerts_disabled_v1');
-    // Convert stored 'true' string to 'disabled' state
-    if (value === 'true') return 'disabled';
-    return 'enabled';
-}
-
-const setAlertsDisabled = (value) => {
-    if (!isLocalStorageAvailable) return;
-    localStorage.setItem('rbx_alerts_disabled_v1', value === 'disabled' ? 'true' : 'false');
-}
-
 export {
     getTheme,
     setTheme,
@@ -193,9 +179,6 @@ export {
 
     getCatalogStyle,
     setCatalogStyle,
-
-    getAlertsDisabled,
-    setAlertsDisabled,
     
     themeType,
     themeColor,

@@ -152,6 +152,55 @@ public class InventoryService : ServiceBase, IService
         return result > 0;
     }
 
+    public async Task<long> GetInventoryRap(long userId, bool forceRefresh = false)
+    {
+        var cacheKey = "InventoryRapV1:" + userId;
+
+        if (!forceRefresh)
+        {
+            var cached = await redis.StringGetAsync(cacheKey);
+            if (cached != null && long.TryParse(cached, out var cachedRap))
+            {
+                return cachedRap;
+            }
+        }
+
+        var inventoryService = ServiceProvider.GetOrCreate<InventoryService>(this);
+        long totalRap = 0;
+        int offset = 0;
+        const int pageSize = 100;
+
+        while (true)
+        {
+            var page = (await inventoryService.GetCollectibleInventory(
+                userId,
+                type: null,
+                sortOrder: "asc",
+                limit: pageSize,
+                offset: offset
+            )).ToArray();
+
+            if (page.Length == 0)
+                break;
+
+            foreach (var item in page)
+            {
+                totalRap += item.recentAveragePrice;
+            }
+
+            offset += pageSize;
+        }
+
+        await redis.StringSetAsync(cacheKey, totalRap.ToString(), TimeSpan.FromMinutes(5));
+
+        return totalRap;
+    }
+
+    public async Task InvalidateInventoryRapCache(long userId)
+    {
+        var cacheKey = "InventoryRapV1:" + userId;
+        await redis.KeyDeleteAsync(cacheKey);
+    }
     public async Task<IEnumerable<IdOwned>> MultiAssetIsOwned(long userId, long[] assetIds)
     {
         var q = await db.QueryAsync<Dto.Id>(@"

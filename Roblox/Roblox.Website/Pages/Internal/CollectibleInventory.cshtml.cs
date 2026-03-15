@@ -57,12 +57,6 @@ public class CollectibleInventory : RobloxPageModel
             totalRap += item.recentAveragePrice;
         }
 
-        inventory.Sort((a, b) =>
-        {
-            return a.recentAveragePrice > b.recentAveragePrice ? -1 :
-                a.recentAveragePrice == b.recentAveragePrice ? 0 : 1;
-        });
-
         const int pageSize = 24;
         totalPages = (int)Math.Ceiling((double)inventory.Count / pageSize);
         pageIndex = Math.Max(0, Math.Min(pageIndex, totalPages - 1));
