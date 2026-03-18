@@ -85,6 +85,5 @@ public enum Access
     RefundAndDeleteFirstPartyAssetSale,
     GetStaffPerformance,
     EconomyLock,
-    ManageChatFilter,
     All, // fake perm
 }

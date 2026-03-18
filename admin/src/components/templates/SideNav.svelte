@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { link } from "svelte-routing";
-	import { HomeIcon, UsersIcon, BookOpenIcon, PlusCircleIcon, EditIcon, FilePlusIcon, CopyIcon, FolderPlusIcon, RefreshCcwIcon, UploadCloudIcon, CheckSquareIcon, SunriseIcon, FlagIcon, StarIcon, BookIcon, PhoneIcon, ActivityIcon, TabletIcon, TargetIcon, TerminalIcon, ChevronDownIcon, ChevronRightIcon, DollarSignIcon, HashIcon } from "svelte-feather-icons";
+	import { HomeIcon, UsersIcon, BookOpenIcon, PlusCircleIcon, EditIcon, FilePlusIcon, CopyIcon, FolderPlusIcon, RefreshCcwIcon, UploadCloudIcon, CheckSquareIcon, SunriseIcon, FlagIcon, StarIcon, BookIcon, PhoneIcon, ActivityIcon, TabletIcon, TargetIcon, TerminalIcon, ChevronDownIcon, ChevronRightIcon, DollarSignIcon } from "svelte-feather-icons";
 
 	import SavedPages, { addPage } from "../../stores/saved-pages";
 	import PageEntry from "../saved-pages/PageEntry.svelte";
@@ -97,12 +97,6 @@
 			link: '/admin/resolve-url',
 			icon: TargetIcon,
 			permission: 'GetDetailsFromThumbnail',
-		},
-		{
-			name: 'Chat Filter',
-			link: '/admin/chat-filter',
-			icon: HashIcon,
-			permission: 'ManageChatFilter',
 		},
 	] as any[];
 

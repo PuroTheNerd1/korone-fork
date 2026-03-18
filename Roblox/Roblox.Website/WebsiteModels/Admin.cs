@@ -226,8 +226,3 @@ public class RefundTransactionEntry
     public long otherUserId { get; set; }
     public long assetId { get; set; }
 }
-
-public class AddChatFilterRequest
-{
-    public string words { get; set; } = string.Empty;
-}

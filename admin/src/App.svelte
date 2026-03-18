@@ -46,7 +46,6 @@
 	import CopyRobloxUgc from "./pages/CopyRobloxUGC.svelte";
 	import StaffStats from "./pages/StaffPerformance.svelte";
 	import Economy from "./pages/Economy.svelte";
-	import ChatFilter from "./pages/ChatFilter.svelte";
 	// import 'bootstrap';
 
 	var pushState = history.pushState;
@@ -183,9 +182,6 @@
 		</Route>
 		<Route path="/admin/staff-performance/:userId" let:params>
 			<StaffStats userId={params.userId} />
-		</Route>
-		<Route path="/admin/chat-filter">
-			<ChatFilter />
 		</Route>
 	{/await}
 </Router>
