@@ -119,10 +119,19 @@ public class AccountSettingsControllerV1 : ControllerBase
     public async Task<dynamic> GetTwoFactorInfo()
     {
         var totpInfo = await services.users.GetOrSetTotp(safeUserSession.userId);
+        if (totpInfo.status == TotpStatus.Enabled)
+        {
+            return new
+            {
+                enabled = true,
+                secret = (string?)null,
+                qrCodeDataUrl = (string?)null,
+            };
+        }
         var qrCodeDataUrl = services.users.GetOtpQrCodeBase64(safeUserSession.userId, totpInfo.secret);
         return new
         {
-            enabled = totpInfo.status == TotpStatus.Enabled,
+            enabled = false,
             secret = totpInfo.secret,
             qrCodeDataUrl,
         };
