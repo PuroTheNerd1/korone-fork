@@ -380,7 +380,7 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPatch("universes/{universeId:long}/set-year")]
     public async Task SetYear(long universeId, [Required, FromBody] SetYearRequest request)
     {
-        await services.games.CanManageUniverse(universeId, safeUserSession.userId);
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         var places = await services.games.GetUniversePlaces(universeId);
         foreach (var place in places)
         {
