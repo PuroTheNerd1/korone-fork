@@ -380,9 +380,14 @@ public class DevelopControllerV1 : ControllerBase
     [HttpPatch("universes/{universeId:long}/set-year")]
     public async Task SetYear(long universeId, [Required, FromBody] SetYearRequest request)
     {
-        var place = await services.games.GetRootPlaceId(universeId);
-        await services.assets.ValidatePermissions(place, safeUserSession.userId);
-        await services.games.SetYear(place, request.year);
+        await services.games.CanManageUniverse(universeId, safeUserSession.userId);
+        var places = await services.games.GetUniversePlaces(universeId);
+        foreach (var place in places)
+        {
+            await services.games.SetYear(place.placeId, request.year);
+        }
+
+
     }
     [HttpPatch("universes/{universeId:long}/max-player-count")]
     public async Task SetMaxPlayerCount(long universeId, [Required, FromBody] SetMaxPlayerCountRequest request)
