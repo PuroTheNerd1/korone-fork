@@ -84,7 +84,7 @@ const ConfirmSellModal = () => {
     };
     
     if (!auth?.userId) {
-        window.location.href = "/auth/application";
+        window.location.href = "/";
         return null;
     }
     

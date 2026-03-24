@@ -7,11 +7,15 @@ using Roblox.Libraries.TwitterApi;
 using Roblox.Logging;
 using Roblox.Services;
 using Dapper;
-using Roblox.Website.Pages.Auth;
-
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
 namespace Roblox.Website.WebsiteServices;
+
+public class VerificationPhraseCookie
+{
+    public string phrase { get; set; }
+    public DateTime createdAt { get; set; }
+}
 
 public class VerificationResult
 {

@@ -145,7 +145,7 @@ public class WebController : ControllerBase
             SameSite = SameSiteMode.Lax,
         });
         
-        return Redirect("/auth/application");
+        return Redirect("/");
     }
     
     // [HttpGetBypass("api/userinfo")]

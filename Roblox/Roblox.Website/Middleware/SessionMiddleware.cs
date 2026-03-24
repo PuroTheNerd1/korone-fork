@@ -137,7 +137,7 @@ public class SessionMiddleware
                         {
                             authTimer.Stop();
                             ctx.Response.StatusCode = 302;
-                            ctx.Response.Headers.Append("location", "/auth/application");
+                            ctx.Response.Headers.Append("location", "/");
                             return;
                         }
                     }
