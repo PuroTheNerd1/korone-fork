@@ -1,7 +1,6 @@
 <script lang="ts">
 	export let id: string | undefined;
 	import dayjs from "dayjs";
-	import { onDestroy } from "svelte";
 	import DropdownButton from "../components/misc/DropdownButton.svelte";
 	import Loader from "../components/misc/Loader.svelte";
 	import Confirm from "../components/modal/Confirm.svelte";
@@ -18,7 +17,7 @@
 	let modalVisible = false;
 	let modalCb: (arg1: boolean) => void;
 
-	let mode = "Pending";
+	let mode = "All";
 	let offset = 0;
 
 	let searchColumn = undefined;
@@ -53,52 +52,17 @@
 	};
 
 	const getApplications = async () => {
-		let url = `/applications/list?${mode === 'All' ? '' : ('status=' + mode +'&')}offset=${offset}&sort=${mode === "Pending" ? "Asc" : "Desc"}`;
+		let url = `/applications/list?${mode === 'All' ? '' : ('status=' + mode +'&')}offset=${offset}&sort=Desc`;
 
-		if (mode !== 'Pending') {
-			if (searchColumn) {
-				url = url + '&searchColumn=' + encodeURIComponent(searchColumn);
-			}
-			if (searchQuery) {
-				url = url + '&searchQuery=' + encodeURIComponent(searchQuery);
-			}
+		if (searchColumn) {
+			url = url + '&searchColumn=' + encodeURIComponent(searchColumn);
+		}
+		if (searchQuery) {
+			url = url + '&searchQuery=' + encodeURIComponent(searchQuery);
 		}
 
 		const result = await request.get(url);
 		return result.data;
-	};
-
-	const lockApplications = async (ids) => {
-		if (ids.length === 0) return;
-		await request.get("/applications/update-lock?ids=" + encodeURIComponent(ids.join(",")));
-	};
-
-	let didConsent = false;
-	let latestInterval = null;
-	let showStartWorkButton = false;
-	onDestroy(() => {
-		if (latestInterval) clearInterval(latestInterval);
-	});
-
-	const startWork = async () => {
-		if (latestInterval) {
-			clearInterval(latestInterval);
-		}
-		applications = null;
-		if (didConsent) {
-			showStartWorkButton = false;
-			applications = await getApplications();
-			if (latestInterval) {
-				clearInterval(latestInterval);
-			}
-			latestInterval = setInterval(() => {
-				if (!applications) return;
-				if (mode !== 'Pending') return;
-				lockApplications(applications.map((v) => v.id));
-			}, 10 * 1000);
-		} else {
-			showStartWorkButton = true;
-		}
 	};
 
 	$: {
@@ -108,23 +72,12 @@
 				applications = [res.data];
 			});
 		} else {
-			if (mode === "Pending") {
-				startWork();
-			} else {
-				getApplications().then((d) => {
-					applications = d;
-				});
-			}
+			getApplications().then((d) => {
+				applications = d;
+			});
 		}
 	}
 	let errorMessage: string | undefined;
-
-	const onAppStatusChange = async () => {
-		if (applications && applications.length === 0 && mode === "Pending") {
-			applications = null;
-			startWork();
-		}
-	};
 
 	const rejectApp = async (app, reason) => {
 		if (reason === null || reason === "" || reason.length < 3 || reason.length > 128) {
@@ -137,18 +90,6 @@
 			})
 			.then(() => {});
 		applications = applications.filter((v) => v.id !== app.id);
-		onAppStatusChange();
-	};
-	const acceptApp = async (app) => {
-		request
-			.request({
-				method: "POST",
-				url: `/applications/${app.id}/approve`,
-			})
-			.then((data) => {
-				applications = applications.filter((v) => v.id !== app.id);
-				onAppStatusChange();
-			});
 	};
 </script>
 
@@ -179,14 +120,12 @@
 								mode = e.currentTarget.value;
 							}}
 						>
-							<option value="Pending">Pending</option>
+							<option value="All">All</option>
 							<option value="Approved">Approved</option>
 							<option value="Rejected">Rejected</option>
 							<option value="SilentlyRejected">Silently Rejected</option>
-							<option value="All">All</option>
 						</select>
 					</div>
-					{#if mode !== "Pending"}
 					<div class="col-6 col-lg-3">
 						<p class="mb-0">Search Column</p>
 						<select
@@ -194,11 +133,11 @@
 							bind:value={searchColumn}
 						>
 							<option value="">All</option>
-							<option value="SocialUrl">Social URL</option>
 							<option value="Name">Name</option>
 							<option value="About">About</option>
 							<option value="Actioner">Actioner</option>
 							<option value="DiscordId">Discord Id</option>
+							<option value="DiscordUsername">Discord Username</option>
 						</select>
 					</div>
 					<div class="col-6 col-lg-3">
@@ -212,21 +151,10 @@
 							});
 						}}>Search</button>
 					</div>
-					{/if}
 				</div>
 			</div>
 		{/if}
-		{#if showStartWorkButton && mode === "Pending"}
-			<div>
-				<button
-					class="btn btn-primary mt-4"
-					on:click={() => {
-						didConsent = true;
-						startWork();
-					}}>Click to start approving applications</button
-				>
-			</div>
-		{:else if applications && applications.length === 0}
+		{#if applications && applications.length === 0}
 			<div class="col-12">
 				{#if searchQuery !== undefined}
 					<p class="text-center">There are zero applications matching your search criteria.</p>
@@ -242,10 +170,8 @@
 						<th>Actioner</th>
 						<th>Submitted</th>
 						<th>About</th>
-						<th>Social</th>
-						{#if mode !== 'Pending'}
-							<th>UserID</th>
-						{/if}
+						<th>Discord</th>
+						<th>UserID</th>
 						{#if mode === "Rejected" || mode === "SilentlyRejected"  || mode === 'All'}
 							<th>Rejection Reason</th>
 						{/if}
@@ -259,39 +185,11 @@
 							<td>{dayjs(app.createdAt).fromNow()}</td>
 							<td>{app.about}</td>
 							<td>
-								{#if app.isVerified}
-									<span class="badge bg-success">Verified: </span>
-									<a rel='nofollow noopener noreferrer' target='_blank' href={app.verifiedUrl}>{app.verifiedUrl}</a>
-									<br />
-									<hr />
-									<span>Discord ID: {app.discordId}</span>
-									<br />
-									<hr />
-									<span>Discord Username: {app.discordUsername}</span>
-								{:else}
-									<span class="badge bg-warning text-dark">Unverified: </span>
-									{#if isGoodPrefix(app.socialPresence)}
-										<a rel='nofollow noopener noreferrer' target='_blank' href={app.socialPresence.split(' ')[0]}>{app.socialPresence}</a>
-									{:else}
-										{app.socialPresence}
-									{/if}
-									<br />
-									<hr />
-									<span>Discord ID: {app.discordId}</span>
-									<br />
-									<hr />
-									<span>Discord Username: {app.discordUsername}</span>
-									<br />
-									<hr />
-									<span>Verification Phrase: {app.verificationPhrase}</span>
-									<br />
-									<hr />
-									<span>Doer: {app.verificationPhrase}</span>
-								{/if}
+								<span>ID: {app.discordId}</span>
+								<br />
+								<span>Username: {app.discordUsername}</span>
 							</td>
-							{#if mode !== 'Pending'}
-								<td>{app.userId}</td>
-							{/if}
+							<td>{app.userId}</td>
 
 							{#if mode === "SilentlyRejected"}
 								<td>Silently rejected.</td>
@@ -300,15 +198,6 @@
 							{/if}
 							<td>
 								<div class="btn-group w-100">
-									{#if mode === "Pending"}
-										<button
-											class="btn btn-sm btn-outline-success w-100"
-											on:click={() => {
-												acceptApp(app);
-											}}>Accept</button
-										>
-									{/if}
-
 									<DropdownButton title='Reject'>
 										<button class="dropdown-item" on:click={() => {
 											rejectApp(app, prompt('Enter the rejection reason, or leave it blank to cancel.', ''));
@@ -337,7 +226,6 @@
 									</DropdownButton>
 
 									<button
-										disabled={app.status !== "Pending"}
 										class="btn btn-sm btn-outline-danger w-100"
 										on:click={() => {
 											request
@@ -352,8 +240,7 @@
 									{#if (mode === "Rejected" || mode === "All") && app.discordId && app.rejectionReason && app.rejectionReason.includes("Your application has been declined due to Affiliation with Roblox Condos / Sex Servers.")}
 									<a href="/admin/applications/{app.discordId}/analysis" class="btn btn-sm btn-outline-info w-100">View Analysis</a>
 								{/if}
-								{#if mode !== "Pending"}
-										<Permission p="ClearApplications">
+									<Permission p="ClearApplications">
 											<button
 												class="btn btn-sm btn-outline-danger w-100"
 												on:click={() => {
@@ -375,8 +262,7 @@
 														});
 												}}>Clear</button
 											>
-										</Permission>
-									{/if}
+									</Permission>
 								</div>
 							</td>
 						</tr>
@@ -386,8 +272,7 @@
 		{:else if !applications}
 			<Loader />
 		{/if}
-		{#if mode !== "Pending"}
-			<div class="col-12">
+		<div class="col-12">
 				<nav>
 					<ul class="pagination">
 						<li class={`page-item${!offset ? " disabled" : ""}`}>
@@ -430,6 +315,5 @@
 					</ul>
 				</nav>
 			</div>
-		{/if}
 	</div>
 </Main>

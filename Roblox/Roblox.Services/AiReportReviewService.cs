@@ -157,6 +157,7 @@ public static class AiReportReviewService
         var reportMessage = (string)(report.report_message ?? string.Empty);
         if (reportMessage.Length > MaxReportMessageLength)
             reportMessage = reportMessage.Substring(0, MaxReportMessageLength);
+        reportMessage = reportMessage.Replace("<", "&lt;").Replace(">", "&gt;");
 
         var userContent = $"<report_id>{report.id}</report_id>\n<reported_user_id>{report.reported_user_id}</reported_user_id>\n<report_reason>{report.report_reason}</report_reason>\n<report_message>{reportMessage}</report_message>";
 
@@ -165,6 +166,7 @@ public static class AiReportReviewService
             var trimmedChat = chatMessagesText.Length > MaxChatMessagesLength
                 ? chatMessagesText.Substring(0, MaxChatMessagesLength)
                 : chatMessagesText;
+            trimmedChat = trimmedChat.Replace("<", "&lt;").Replace(">", "&gt;");
             userContent += $"\n<chat_messages>{trimmedChat}</chat_messages>";
         }
 

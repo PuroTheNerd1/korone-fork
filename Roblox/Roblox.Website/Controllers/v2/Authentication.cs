@@ -132,8 +132,7 @@ public class AuthenticationControllerV2 : ControllerBase
     [HttpPost("logoutfromallsessionsandreauthenticate")]
     public async Task LogoutFromAllSessionsAndReAuthenticate()
     {
-        // Log out all other sessions but keep the current one
-        await services.users.DeleteOtherSessions(safeUserSession.userId, safeUserSession.sessionId);
+        await services.users.ExpireAllSessions(safeUserSession.userId);
     }
 
     [HttpGet("sessions")]
