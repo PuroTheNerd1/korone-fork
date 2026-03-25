@@ -23,6 +23,9 @@ public class Landing : RobloxPageModel
     public bool loginDisabled { get; set; }
     public bool signupDisabled { get; set; }
     public DiscordUser? discordUser { get; set; }
+    public string? discordAvatarUrl => discordUser != null && discordUser.AvatarHash != null
+        ? $"https://cdn.discordapp.com/avatars/{discordUser.Id}/{discordUser.AvatarHash}.png?size=64"
+        : null;
     public string siteKey => Configuration.HCaptchaPublicKey;
 
     [BindProperty]

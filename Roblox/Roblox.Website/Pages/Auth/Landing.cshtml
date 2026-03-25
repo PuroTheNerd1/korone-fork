@@ -276,7 +276,7 @@
 <div class="landing-content">
     <div class="landing-left">
         <img src="/img/korone.png" class="main-logo" alt="Korone">
-        <div class="tagline">Powering Imagination&#8482;</div>
+        <div class="tagline">RePowering Imagination&#8482;</div>
     </div>
 
     <div class="signup-panel">
@@ -284,9 +284,13 @@
 
         @if (Model.discordUser != null)
         {
-            <div class="discord-verified">
-                @@@Model.discordUser.Username
-                <br/>
+            <div class="discord-verified" style="flex-direction: column; align-items: center; text-align: center;">
+                @if (Model.discordAvatarUrl != null)
+                {
+                    <img src="@Model.discordAvatarUrl" alt="Discord Avatar"
+                         style="width: 48px; height: 48px; border-radius: 50%; margin-bottom: 6px;">
+                }
+                <span style="font-weight: 600;">@@@Model.discordUser.Username</span>
                 <span style="font-size: 11px; color: #666;">ID: @Model.discordUser.Id</span>
             </div>
         }
