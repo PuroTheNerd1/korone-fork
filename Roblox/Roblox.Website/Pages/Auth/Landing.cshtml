@@ -231,6 +231,38 @@
             padding: 6px;
             font-size: 13px;
         }
+        .captcha-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .captcha-overlay.active { display: flex; }
+        .captcha-modal {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 320px;
+        }
+        .captcha-modal h3 {
+            margin: 0 0 16px;
+            font-size: 16px;
+            color: #333;
+        }
+        .captcha-modal .captcha-close {
+            margin-top: 12px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .captcha-modal .captcha-close:hover { color: #333; }
 
         @@media (max-width: 900px) {
             .landing-content {
@@ -257,9 +289,10 @@
     <form method="post" class="login-section" id="login-form">
         <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername">
         <input type="password" name="loginPassword" placeholder="Password">
+        <input type="text" name="loginTotpCode" placeholder="2FA Code (leave blank if not set)" autocomplete="one-time-code" style="height:30px;padding:2px 10px;border:1px solid #bbb;border-radius:3px;font-size:13px;width:150px;outline:none;">
         <input type="hidden" name="formAction" value="login">
         @Html.AntiForgeryToken()
-        <button type="submit" class="btn-login">Log In</button>
+        <button type="button" class="btn-login" onclick="openLoginCaptcha()">Log In</button>
     </form>
 </div>
 
@@ -311,13 +344,13 @@
 
             <input type="text" name="signupUsername" placeholder="Username (length 3-20, _ is allowed)"
                    value="@Model.signupUsername"
-                   maxlength="20" minlength="3" @(Model.signupDisabled ? "disabled" : "")>
+                   maxlength="20" @(Model.signupDisabled ? "disabled" : "")>
             <input type="password" name="signupPassword" placeholder="Password (minimum length 8)"
-                   minlength="8" @(Model.signupDisabled ? "disabled" : "")>
+                   @(Model.signupDisabled ? "disabled" : "")>
             <input type="password" name="signupConfirmPassword" placeholder="Confirm Password"
-                   minlength="8" @(Model.signupDisabled ? "disabled" : "")>
+                   @(Model.signupDisabled ? "disabled" : "")>
 
-            <div class="cf-turnstile mt-2 mb-2" data-sitekey="@Model.siteKey" data-theme="light"></div>
+            <div id="signup-turnstile" style="margin: 8px 0;"></div>
 
             @Html.AntiForgeryToken()
             <button type="submit" class="btn-signup @(Model.signupDisabled ? "" : "active")"
@@ -333,7 +366,79 @@
     </div>
 </div>
 
+<div class="captcha-overlay" id="login-captcha-overlay">
+    <div class="captcha-modal">
+        <h3>Please verify you're human</h3>
+        <div id="login-turnstile"></div>
+        <button class="captcha-close" onclick="document.getElementById('login-captcha-overlay').classList.remove('active')">Cancel</button>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" defer></script>
+<script>
+    var SITE_KEY = '@Model.siteKey';
+    var loginWidgetId = null;
+
+    function openLoginCaptcha() {
+        try {
+            var overlay = document.getElementById('login-captcha-overlay');
+            overlay.classList.add('active');
+
+            if (typeof turnstile === 'undefined') {
+                var poll = setInterval(function() {
+                    if (typeof turnstile !== 'undefined') {
+                        clearInterval(poll);
+                        doRenderLogin();
+                    }
+                }, 100);
+                return;
+            }
+            doRenderLogin();
+        } catch(err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
+    function doRenderLogin() {
+        var loginForm = document.getElementById('login-form');
+        var overlay = document.getElementById('login-captcha-overlay');
+
+        if (loginWidgetId === null) {
+            loginWidgetId = turnstile.render(document.getElementById('login-turnstile'), {
+                sitekey: SITE_KEY,
+                theme: 'light',
+                callback: function(token) {
+                    var input = loginForm.querySelector('input[name="cf-turnstile-response"]');
+                    if (!input) {
+                        input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'cf-turnstile-response';
+                        loginForm.appendChild(input);
+                    }
+                    input.value = token;
+                    overlay.classList.remove('active');
+                    loginForm.submit();
+                }
+            });
+        } else {
+            turnstile.reset(loginWidgetId);
+        }
+    }
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileAPIReady" async></script>
+<script>
+    function onTurnstileAPIReady() {
+        var el = document.getElementById('signup-turnstile');
+        if (el) {
+            turnstile.render(el, { sitekey: SITE_KEY, theme: 'light' });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('login-captcha-overlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+    });
+</script>
 </body>
 </html>
