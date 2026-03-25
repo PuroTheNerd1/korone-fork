@@ -336,12 +336,22 @@ const ProfileHeader = props => {
       }
     };
 
-    return <div className={s.badgeIconWrapper}>
-      {verified && <span className={`icon-verified ${s.badgeIcon}`} />}
-      {bcLevel > 0 && membershipBadge()}
-      {(isProfileStaff || pawBadge) && <span className={`icon-paw ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />}
-      <span className={`icon-roblox ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
-    </div>;
+    if (isProfileStaff || pawBadge) {
+      return <div className={s.badgeIconWrapper}>
+        <span className={`icon-paw ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
+      </div>;
+    }
+    if (verified) {
+      return <div className={s.badgeIconWrapper}>
+        <span className={`icon-verified ${s.badgeIcon}`} />
+      </div>;
+    }
+    if (bcLevel > 0) {
+      return <div className={s.badgeIconWrapper}>
+        {membershipBadge()}
+      </div>;
+    }
+    return null;
   }
   
   return <div className={`flex ${s.profileHeaderContainer}`}>
