@@ -285,8 +285,9 @@
         @if (Model.discordUser != null)
         {
             <div class="discord-verified">
-                <i class="bi bi-check-circle-fill"></i>
-                Verified as @@@Model.discordUser.Username
+                @@@Model.discordUser.Username
+                <br/>
+                <span style="font-size: 11px; color: #666;">ID: @Model.discordUser.Id</span>
             </div>
         }
         else
