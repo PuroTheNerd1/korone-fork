@@ -28,7 +28,7 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: url('/UnsecuredContent/dcbdfaf1c08058e71f65c09f7b98ff04.jpg') center center / cover no-repeat;
+            background: url('/UnsecuredContent/ThumbnailSignUp.png') center center / cover no-repeat;
             z-index: 0;
         }
         .landing-navbar {
@@ -73,7 +73,7 @@
             outline: none;
         }
         .landing-navbar .btn-login {
-            background: #02b757;
+            background: #8A5149;
             color: #fff;
             border: none;
             border-radius: 3px;
@@ -83,10 +83,10 @@
             cursor: pointer;
             height: 30px;
         }
-        .landing-navbar .btn-login:hover { background: #029a49; }
+        .landing-navbar .btn-login:hover { background: #9C6A5E; }
         .landing-subbar {
             position: fixed;
-            top: 44px; left: 0; right: 0;
+            top: 42px; left: 0; right: 0;
             z-index: 99;
             background: rgba(0,0,0,0.35);
             padding: 3px 16px;
@@ -206,10 +206,10 @@
             margin-top: 4px;
         }
         .signup-panel .btn-signup.active {
-            background: #02b757;
+            background: #8A5149;
             cursor: pointer;
         }
-        .signup-panel .btn-signup.active:hover { background: #029a49; }
+        .signup-panel .btn-signup.active:hover { background: #9C6A5E; }
         .signup-panel .signup-notice {
             color: #d32f2f;
             font-size: 12px;
@@ -289,7 +289,7 @@
     <form method="post" class="login-section" id="login-form">
         <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername">
         <input type="password" name="loginPassword" placeholder="Password">
-        <input type="text" name="loginTotpCode" placeholder="2FA Code (leave blank if not set)" autocomplete="one-time-code" style="height:30px;padding:2px 10px;border:1px solid #bbb;border-radius:3px;font-size:13px;width:150px;outline:none;">
+        <input type="text" name="loginTotpCode" placeholder="2FA Code (leave blank if not set)" autocomplete="one-time-code" style="height:30px;padding:2px 10px;border:1px solid #bbb;border-radius:3px;font-size:13px;width:260px;outline:none;">
         <input type="hidden" name="formAction" value="login">
         @Html.AntiForgeryToken()
         <button type="button" class="btn-login" onclick="openLoginCaptcha()">Log In</button>
@@ -309,7 +309,7 @@
 <div class="landing-content">
     <div class="landing-left">
         <img src="/img/korone.png" class="main-logo" alt="Korone">
-        <div class="tagline">RePowering Imagination&#8482;</div>
+        <div class="tagline">Repowering Imagination&#8482;</div>
     </div>
 
     <div class="signup-panel">

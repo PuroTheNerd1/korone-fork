@@ -47,6 +47,10 @@ export const getMembershipType = async ({userId}) => {
   })
 }
 
+export const getUserPlaytime = async ({userId}) => {
+  return request('GET', getFullUrl('premiumfeatures', '/v1/users/'+userId+'/playtime')).then(d => d.data);
+}
+
 export const getMyBanData = () => {
   return request('GET', getFullUrl('users', '/v1/users/authenticated/ban')).then(d => d.data)
 }

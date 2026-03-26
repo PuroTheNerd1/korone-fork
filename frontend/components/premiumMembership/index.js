@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import axios from 'axios';
 import AuthenticationStore from '../../stores/authentication';
-import { getMembershipType } from '../../services/users';
+import { getMembershipType, getUserPlaytime } from '../../services/users';
 import { getBaseUrl2, getUrlWithProxy } from '../../lib/request';
 import { getTheme, themeType } from '../../services/theme';
 
@@ -324,15 +324,22 @@ const PremiumMembership = () => {
   const [currentMembership, setCurrentMembership] = useState(0);
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [playtime, setPlaytime] = useState(null);
 
   useEffect(() => {
     if (!auth.userId) return;
     getMembershipType({ userId: auth.userId }).then(setCurrentMembership).catch(() => {});
+    getUserPlaytime({ userId: auth.userId }).then(setPlaytime).catch(() => {});
   }, [auth.userId]);
 
   const handleUpgrade = async (tier) => {
     setLoading(true);
     setStatus(null);
+    if (tier.membershipValue >= 3 && playtime && !playtime.meetsRequirement) {
+      setStatus({ success: false, message: `You need ${playtime.remainingHours} more hour(s) of playtime to get this membership.` });
+      setLoading(false);
+      return;
+    }
     try {
       const token = await getAntiforgeryToken();
       const resp = await postMembership(tier.membershipType, token);
@@ -414,13 +421,20 @@ const PremiumMembership = () => {
                     {currentMembership === tier.membershipValue ? (
                       <span className={s.currentBadge}>Current</span>
                     ) : tier.buttonLabel ? (
-                      <button
-                        className={s.upgradeBtn}
-                        disabled={loading}
-                        onClick={() => handleUpgrade(tier)}
-                      >
-                        {tier.buttonLabel}
-                      </button>
+                      <>
+                        <button
+                          className={s.upgradeBtn}
+                          disabled={loading || (tier.membershipValue >= 3 && playtime && !playtime.meetsRequirement)}
+                          onClick={() => handleUpgrade(tier)}
+                        >
+                          {tier.buttonLabel}
+                        </button>
+                        {tier.membershipValue >= 3 && playtime && !playtime.meetsRequirement && (
+                          <div style={{ fontSize: 11, color: 'var(--bad-color)', marginTop: 4 }}>
+                            Requires 6h playtime ({playtime.remainingHours}h remaining)
+                          </div>
+                        )}
+                      </>
                     ) : null}
                   </td>
                 ))}

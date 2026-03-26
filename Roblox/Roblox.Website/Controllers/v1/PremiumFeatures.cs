@@ -41,4 +41,18 @@ public class PremiumFeaturesControllerV1 : ControllerBase
             return 0;
         return (int) membership.membershipType;
     }
+
+    [HttpGet("users/{userId:long}/playtime")]
+    public async Task<dynamic> GetUserPlaytime(long userId)
+    {
+        var totalSeconds = await services.games.GetTotalPlaytimeSeconds(userId);
+        var totalHours = totalSeconds / 3600.0;
+        return new
+        {
+            totalPlaytimeHours = Math.Round(totalHours, 2),
+            meetsRequirement = totalHours >= 6.0,
+            requiredHours = 6.0,
+            remainingHours = Math.Max(0, Math.Round(6.0 - totalHours, 2)),
+        };
+    }
 }

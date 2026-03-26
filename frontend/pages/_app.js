@@ -75,7 +75,10 @@ function RobloxApp({Component, pageProps}) {
             <title>{pageProps.title || 'Korone'}</title>
             <link rel='icon' type="image/vnd.microsoft.icon" href='/favicon.ico'/>
             <meta name='viewport' content='width=device-width, initial-scale=1'/>
+            {/* Privacy-friendly analytics by Plausible */}
             <script async src="https://influx.korone.one/js/pa-5rtt1_DLHJRTjtc_ir3nW.js"></script>
+            <script dangerouslySetInnerHTML={{__html: `window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+      plausible.init()`}} />
         </Head>
         <AuthenticationStore.Provider>
             {pageProps.disableWebsiteTheming ? null : <>
