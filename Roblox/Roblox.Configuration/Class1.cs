@@ -21,6 +21,10 @@ public class GameServerV2ConfigEntry
 public static class Configuration
 {
     public static string CdnBaseUrl { get; set; }
+    public static string R2AccountId { get; set; }
+    public static string R2AccessKey { get; set; }
+    public static string R2SecretKey { get; set; }
+    public static string R2BucketName { get; set; }
     public static string StorageDirectory { get; set; }
     public static string AssetDirectory { get; set; }
     public static string PublicDirectory { get; set; }

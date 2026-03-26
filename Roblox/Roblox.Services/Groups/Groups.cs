@@ -1363,23 +1363,13 @@ public class GroupsService : ServiceBase, IService
         var sha = SHA256.Create();
         var bits = await sha.ComputeHashAsync(groupIconSafe.finalIconStream);
         var str = Convert.ToHexString(bits).ToLower() + ".png";
-        var fullFilePath = Configuration.GroupIconsDirectory + str;
-        // Lock - mostly to prevent "The process cannot access the file 'image.png' because it is being used by another
-        // process." errors in integration tests
-        await using var groupIconLock =
-            await Cache.redLock.CreateLockAsync("GlobalGroupIconUploadV1", TimeSpan.FromSeconds(10));
-        if (!groupIconLock.IsAcquired)
-            throw new LockNotAcquiredException();
-
-        // only write image file if it doesn't already exist
-        if (!File.Exists(fullFilePath))
-        {
-            groupIconSafe.finalIconStream.Position = 0;
-            await using var fs = File.Create(fullFilePath);
-            groupIconSafe.finalIconStream.Seek(0, SeekOrigin.Begin);
-            await groupIconSafe.finalIconStream.CopyToAsync(fs);
-            fs.Close();
-        }
+        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+        var r2Key = "images/groups/" + str;
+        
+        groupIconSafe.finalIconStream.Position = 0;
+        await r2Service.UploadFileAsync(r2Key, groupIconSafe.finalIconStream, "image/png");
+        
+        
         // upsert image
         await db.ExecuteAsync(
             "INSERT INTO group_icon (name, user_id, group_id) VALUES (:name, :user_id, :group_id) ON CONFLICT (group_id) DO UPDATE SET name = :name, user_id = :user_id, is_approved = 0",
@@ -1556,6 +1546,38 @@ public class GroupsService : ServiceBase, IService
             };
         });
     }
+    
+    private static async Task<string> GetOrMigrateGroupIconUrlAsync(string fileName)
+    {
+        // really shitty work but this accounts for most cases.
+        if(fileName.StartsWith('/'))
+            fileName = fileName[1..];
+        if(fileName.StartsWith("images/"))
+            fileName = fileName[7..];
+        if(fileName.StartsWith("groups/"))
+            fileName = fileName[7..];
+        const string contentType = "image/png";
+        
+        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+        var r2Key = "images/groups/" + fileName;
+        var localPath = Configuration.GroupIconsDirectory + fileName;
+        var markerPath = localPath + ".migrated";
+
+        if (!File.Exists(markerPath))
+        {
+            if (!await r2Service.FileExistsAsync(r2Key))
+            {
+                if (File.Exists(localPath))
+                {
+                    using var file = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read, 0, FileOptions.Asynchronous);
+                    await r2Service.UploadFileAsync(r2Key, file, contentType);
+                }
+            }
+            try { File.Create(markerPath).Close(); } catch { }
+        }
+
+        return R2StorageService.GetPublicUrl(r2Key);
+    }
 
     public async Task<IEnumerable<FeedEntry>> MultiGetGroupStatus(IEnumerable<long> ids, int limit)
     {
@@ -1570,24 +1592,31 @@ public class GroupsService : ServiceBase, IService
                 limit,
             });
         s.OrWhereMulti("group_status.group_id = $1", groupIds);
-        return (await db.QueryAsync<GroupFeedEntryDb>(t.RawSql, t.Parameters)).Select(c => new FeedEntry
+
+        var entries = await db.QueryAsync<GroupFeedEntryDb>(t.RawSql, t.Parameters);
+        var results  = new List<FeedEntry>();
+        foreach (var c in entries)
         {
-            feedId = c.feedId,
-            content = c.content,
-            created = c.createdAt,
-            group = new()
+            results.Add(new FeedEntry
             {
-                id = c.groupId,
-                name = c.groupName,
-                image = Roblox.Configuration.CdnBaseUrl + "/images/groups/" + c.groupImage,
-            },
-            user = new()
-            {
-                id = c.userId,
-                name = c.username,
-            },
-            type = CreatorType.Group,
-        });
+                feedId = c.feedId,
+                content = c.content,
+                created = c.createdAt,
+                group = new FeedCreatorEntry
+                {
+                    id = c.groupId,
+                    name = c.groupName,
+                    image = await GetOrMigrateGroupIconUrlAsync(c.groupImage),
+                },
+                user = new FeedCreatorEntry
+                {
+                    id = c.userId,
+                    name = c.username,
+                },
+                type = CreatorType.Group
+            });
+        }
+        return  results;
     }
 
     public async Task PayoutGroupFunds(long groupId, long actorUserId, long recipientUserId, long amount, CurrencyType currency)

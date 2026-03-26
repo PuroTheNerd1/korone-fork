@@ -41,6 +41,10 @@ Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value!;
 Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https://www.", "");
 Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value!;
 Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value!;
+Roblox.Configuration.R2AccountId = configuration.GetSection("CloudflareR2:AccountId").Value!;
+Roblox.Configuration.R2AccessKey = configuration.GetSection("CloudflareR2:AccessKey").Value!;
+Roblox.Configuration.R2SecretKey = configuration.GetSection("CloudflareR2:SecretKey").Value!;
+Roblox.Configuration.R2BucketName = configuration.GetSection("CloudflareR2:BucketName").Value!;
 // roblox oauth stuff
 Roblox.Configuration.RobloxClientId = configuration.GetSection("Roblox:ClientId").Value!;
 Roblox.Configuration.RobloxClientSecret = configuration.GetSection("Roblox:ClientSecret").Value!;
@@ -125,6 +129,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMvc(c =>
     c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
 );
+
+builder.Services.AddSingleton<Roblox.Services.R2StorageService>();
+builder.Services.AddHostedService<Roblox.Website.R2MigrationWorker>();
 
 var app = builder.Build();
 app.UseRouting();

@@ -161,9 +161,10 @@ public class Asset : ControllerBase
                 throw new ForbiddenException(1, "User is not authorized to access Asset.");
         }
 
-        if (assetVersion.contentUrl is not null)
-            return File(await services.assets.GetAssetContent(assetVersion.contentUrl), "application/binary", assetVersion.contentUrl);
-
+        if (assetVersion.contentUrl is not null) {
+            var downloadUrl = await services.assets.GetAssetDownloadUrlAsync(assetVersion.contentUrl);
+            return Redirect(downloadUrl);
+        }
         // Should never happen
         throw new BadRequestException();
     }
