@@ -191,7 +191,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         }
         try
         {
-            bool isBypassed = bypassUrls.Any(bypassPath => pathLower.Contains(bypassPath, StringComparison.OrdinalIgnoreCase));
+            bool isBypassed = pathLower == "" || bypassUrls.Any(bypassPath => pathLower.Contains(bypassPath, StringComparison.OrdinalIgnoreCase));
 
             if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !pathLower.Contains("v1/router") && !pathLower.Contains("multiget-friend-requests") && !pathLower.Contains("filter-friends") && !pathLower.Contains("abusereport") && !isBypassed && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products") && !pathLower.Contains("teamcreate"))
             {

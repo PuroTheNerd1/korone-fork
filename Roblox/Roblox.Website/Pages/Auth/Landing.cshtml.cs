@@ -17,6 +17,7 @@ namespace Roblox.Website.Pages.Auth;
 
 public class Landing : RobloxPageModel
 {
+
     public string? loginError { get; set; }
     public string? signupError { get; set; }
     public string? signupSuccess { get; set; }
@@ -27,6 +28,7 @@ public class Landing : RobloxPageModel
         ? $"https://cdn.discordapp.com/avatars/{discordUser.Id}/{discordUser.AvatarHash}.png?size=64"
         : null;
     public string siteKey => Configuration.HCaptchaPublicKey;
+    public long onlineCount { get; set; }
 
     [BindProperty]
     public string? loginUsername { get; set; }
@@ -45,6 +47,22 @@ public class Landing : RobloxPageModel
     public string? signupConfirmPassword { get; set; }
     [BindProperty]
     public string? formAction { get; set; }
+
+    private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(3) };
+
+    private static async Task<long> GetOnlineCount()
+    {
+        try
+        {
+            var json = await _httpClient.GetStringAsync(Configuration.BaseUrl + "/bot/status");
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            return doc.RootElement.GetProperty("Online").GetInt64();
+        }
+        catch
+        {
+            return 0;
+        }
+    }
 
     private async Task LoadDiscordUser()
     {
@@ -68,6 +86,8 @@ public class Landing : RobloxPageModel
             return Redirect("/home");
 
         await LoadDiscordUser();
+
+        onlineCount = await GetOnlineCount();
 
         try
         {

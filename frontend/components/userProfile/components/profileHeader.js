@@ -321,12 +321,10 @@ const ProfileHeader = props => {
     const isDark = getTheme() === themeType.dark;
 
     const membershipBadge = () => {
-      // 1 = BC, 2 = TBC, 3 = OBC, 4 = Premium, 0 = None
+      // 1 = BC, 3 = OBC, 4 = Premium, 0 = None
       switch (bcLevel) {
         case 1:
           return <span className={`icon-bc ${s.badgeIcon}`} />
-        case 2:
-          return <span className={`icon-tbc ${s.badgeIcon}`} />
         case 3:
           return <span className={`icon-obc ${s.badgeIcon}`} />
         case 4:

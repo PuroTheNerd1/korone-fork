@@ -25,6 +25,14 @@ public class Membership : RobloxPageModel
         if (!Enum.IsDefined(membershipType) || userSession is null)
             return;
 
+        if (membershipType is MembershipType.TurboBuildersClub)
+        {
+            errorMessage = "Turbo Builders Club is no longer available.";
+            var mem = await services.users.GetUserMembership(userSession.userId);
+            existingMembershipType = mem?.membershipType ?? MembershipType.None;
+            return;
+        }
+
         if (membershipType is MembershipType.OutrageousBuildersClub or MembershipType.Premium)
         {
             var totalPlaytime = await services.games.GetTotalPlaytimeSeconds(userSession.userId);

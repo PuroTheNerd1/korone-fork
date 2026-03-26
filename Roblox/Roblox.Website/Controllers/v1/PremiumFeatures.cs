@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Exceptions;
 
 namespace Roblox.Website.Controllers;
 
@@ -45,6 +46,8 @@ public class PremiumFeaturesControllerV1 : ControllerBase
     [HttpGet("users/{userId:long}/playtime")]
     public async Task<dynamic> GetUserPlaytime(long userId)
     {
+        if (userSession == null || userSession.userId != userId)
+            throw new HttpException(System.Net.HttpStatusCode.Forbidden);
         var totalSeconds = await services.games.GetTotalPlaytimeSeconds(userId);
         var totalHours = totalSeconds / 3600.0;
         return new
