@@ -14,7 +14,11 @@ public class InventoryControllerV1 : ControllerBase
     public async Task<RobloxCollectionPaginated<dynamic>> GetOwnedCopies(long userId, long assetId)
     {
         if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0))
+        {
+            Console.WriteLine($"User: {safeUserSession.userId}");
             throw new UnauthorizedException(0, "You are not allowed to view the inventory of that user.");
+        }
+
 
         // Null cursors are intentional. Roblox ignores pagination params and sends all copies.
         var result = await services.users.GetUserAssets(userId, assetId);
@@ -37,8 +41,15 @@ public class InventoryControllerV1 : ControllerBase
         string? sortOrder = "desc", string? assetType = null)
     {
         var offset = cursor != null ? int.Parse(cursor) : 0;
-        if (limit is > 100 or < 1) limit = 10;
-        if (sortOrder != "desc" && sortOrder != "asc") sortOrder = "asc";
+        if (limit is > 100 or < 1)
+        {
+            limit = 10;
+        }
+        if (sortOrder != "desc" && sortOrder != "asc")
+        {
+            sortOrder = "asc";
+        }
+
         Models.Assets.Type? actualAssetType = null;
         if (assetType is "All" or "0" or null or "" or "null")
         {
