@@ -13,6 +13,13 @@ public class InventoryControllerV1 : ControllerBase
     [HttpGet("users/{userId:long}/items/Asset/{assetId:long}")]
     public async Task<RobloxCollectionPaginated<dynamic>> GetOwnedCopies(long userId, long assetId)
     {
+        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0))
+        {
+            Console.WriteLine($"User: {safeUserSession.userId}");
+            throw new UnauthorizedException(0, "You are not allowed to view the inventory of that user.");
+        }
+
+
         // Null cursors are intentional. Roblox ignores pagination params and sends all copies.
         var result = await services.users.GetUserAssets(userId, assetId);
         return new()
@@ -34,8 +41,15 @@ public class InventoryControllerV1 : ControllerBase
         string? sortOrder = "desc", string? assetType = null)
     {
         var offset = cursor != null ? int.Parse(cursor) : 0;
-        if (limit is > 100 or < 1) limit = 10;
-        if (sortOrder != "desc" && sortOrder != "asc") sortOrder = "asc";
+        if (limit is > 100 or < 1)
+        {
+            limit = 10;
+        }
+        if (sortOrder != "desc" && sortOrder != "asc")
+        {
+            sortOrder = "asc";
+        }
+
         Models.Assets.Type? actualAssetType = null;
         if (assetType is "All" or "0" or null or "" or "null")
         {
@@ -63,6 +77,9 @@ public class InventoryControllerV1 : ControllerBase
     [HttpGetBypass("/v1/users/{userId:long}/items/asset/{assetId:long}/is-owned")]
     public async Task<bool> IsOwned(long userId, long assetId) 
     {
+        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0) && !isRCC)
+            throw new UnauthorizedException(0, "You are not allowed to view the inventory of that user.");
+
         return await services.inventory.IsOwned(userId, assetId);
     }
 
@@ -70,11 +87,9 @@ public class InventoryControllerV1 : ControllerBase
     [HttpGetBypass("/v1/users/{userId:long}/items/asset/owns-assets")]
     public async Task<RobloxCollection<IdOwned>> OwnsAssets(long userId, string assetIds)
     {
-        var canViewInventory = await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0);
-        if (!canViewInventory)
-        {
+        if (!await services.inventory.CanViewInventory(userId, userSession?.userId ?? 0))
             throw new UnauthorizedException(0, "You are not allowed to view the inventory of that user.");
-        }
+
         long[] ids = assetIds.Split(",").Select(long.Parse).ToArray();
         if (ids.Length <= 0)
             return new RobloxCollection<IdOwned> { data = Array.Empty<IdOwned>() };
