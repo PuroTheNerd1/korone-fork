@@ -27,7 +27,6 @@
 		11: "Builders Club",
 		12: "Veteran",
 		14: "Ambassador",
-		15: "Turbo Builders Club",
 		16: "Outrageous Builders Club",
 		17: "Official Model Maker",
 		18: "Welcome To The Club",

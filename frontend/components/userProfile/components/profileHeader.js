@@ -304,8 +304,26 @@ const ProfileHeader = props => {
   const showButtons = auth.userId != store.userId && !auth.isPending;
   
   const BcIcon = () => {
-    if (bcLevel === 0) {
-      return null;
+    const isDark = getTheme() === themeType.dark;
+
+    const membershipBadge = () => {
+      // 1 = BC, 3 = OBC, 4 = Premium, 0 = None
+      switch (bcLevel) {
+        case 1:
+          return <span className={`icon-bc ${s.badgeIcon}`} />
+        case 3:
+          return <span className={`icon-obc ${s.badgeIcon}`} />
+        case 4:
+          return <img src={PREMIUM_ICON} alt="Premium" className={s.badgeIcon} style={{ height: '28px', width: 'auto', ...(isDark ? { filter: 'brightness(0) invert(1)' } : {}) }} />
+        default:
+          return null;
+      }
+    };
+
+    if (isProfileStaff || pawBadge) {
+      return <div className={s.badgeIconWrapper}>
+        <span className={`icon-paw ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
+      </div>;
     }
 
     if (pawBadge) {
