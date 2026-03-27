@@ -362,12 +362,14 @@ public class ThumbnailsService : ServiceBase, IService
         return results;
     }
 
-    private static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName)
+    private static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName, bool isThumbnails = true)
     {
         // really shitty work but this accounts for most cases.
         if(fileName.StartsWith('/'))
             fileName = fileName[1..];
         if(fileName.StartsWith("images/"))
+            fileName = fileName[7..];
+        if(fileName.StartsWith("groups/"))
             fileName = fileName[7..];
         if(fileName.StartsWith("thumbnails/"))
             fileName = fileName[11..];
@@ -378,8 +380,8 @@ public class ThumbnailsService : ServiceBase, IService
             fileName += ".png";
         
         var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
-        var r2Key = "images/thumbnails/" + fileName;
-        var localPath = Configuration.ThumbnailsDirectory + fileName;
+        var r2Key = (isThumbnails ? "images/thumbnails/" : "images/groups/") + fileName;
+        var localPath = (isThumbnails ? Configuration.ThumbnailsDirectory : Configuration.GroupIconsDirectory) + fileName;
         var markerPath = localPath + ".migrated";
 
         if (!File.Exists(markerPath))
