@@ -59,6 +59,27 @@ public class R2StorageService : ServiceBase, IService
             return null;
         }
     }
+    
+    public async Task<IEnumerable<string>> ListFilesAsync(string prefix)
+    {
+        var keys = new List<string>();
+        string? continuationToken = null;
+ 
+        do
+        {
+            var request = new ListObjectsV2Request
+            {
+                BucketName = Configuration.R2BucketName,
+                Prefix = prefix,
+                ContinuationToken = continuationToken,
+            };
+            var response = await _client.ListObjectsV2Async(request);
+            keys.AddRange(response.S3Objects.Select(o => o.Key));
+            continuationToken = response.IsTruncated == true ? response.NextContinuationToken : null;
+        } while (continuationToken is not null);
+ 
+        return keys;
+    }
 
     public async Task DeleteFileAsync(string key)
     {
