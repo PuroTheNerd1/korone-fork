@@ -362,7 +362,7 @@ public class ThumbnailsService : ServiceBase, IService
         return results;
     }
 
-    public static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName)
+    private static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName)
     {
         // really shitty work but this accounts for most cases.
         if(fileName.StartsWith('/'))
