@@ -225,8 +225,8 @@ public class ThumbnailsControllerV1 : ControllerBase
             requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
             targetId = c.targetId,
             state = "Completed",
-            imageUrl = Configuration.BaseUrl + c.imageUrl,
-            Url = Configuration.BaseUrl + c.imageUrl,
+            imageUrl = c.imageUrl,
+            Url = c.imageUrl,
             version = "1" 
         });
     }
@@ -259,7 +259,7 @@ public class ThumbnailsControllerV1 : ControllerBase
             data = result.Where(c => c.imageUrl != null).Select(c => new ThumbnailEntry
             {
                 targetId = c.targetId,
-                imageUrl = Configuration.BaseUrl + c.imageUrl,
+                imageUrl = c.imageUrl,
                 state = c.state,
                 version = c.version
             }).ToList()
@@ -277,7 +277,7 @@ public class ThumbnailsControllerV1 : ControllerBase
             data = result.Where(c => c.imageUrl != null).Select(c => new ThumbnailEntry
             {
                 targetId = c.targetId,
-                imageUrl = Configuration.BaseUrl + c.imageUrl,
+                imageUrl = c.imageUrl,
                 state = c.state,
                 version = c.version
             }).ToList()

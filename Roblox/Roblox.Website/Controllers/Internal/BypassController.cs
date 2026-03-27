@@ -1241,7 +1241,7 @@ namespace Roblox.Website.Controllers
             {
                 Id = userInfo.userId,
                 Username = username,
-                AvatarUri = Configuration.BaseUrl + result?.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png",
+                AvatarUri = result?.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png",
                 AvatarFinal = true,
                 IsOnline = onlineStatus.userPresenceType == PresenceType.Online,
             };
