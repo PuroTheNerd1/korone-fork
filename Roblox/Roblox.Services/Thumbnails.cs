@@ -374,6 +374,8 @@ public class ThumbnailsService : ServiceBase, IService
         var contentType = "image/png";
         if(fileName.EndsWith(".json"))
             contentType = "application/json";
+        else if(!fileName.EndsWith(".png"))
+            fileName += ".png";
         
         var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
         var r2Key = "images/thumbnails/" + fileName;
