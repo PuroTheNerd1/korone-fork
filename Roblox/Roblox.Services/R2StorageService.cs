@@ -1,6 +1,8 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Roblox.Services;
 
@@ -92,6 +94,84 @@ public class R2StorageService : ServiceBase, IService
         {
             return false;
         }
+    }
+    
+    // ── Signed URL generation (replaces GetPresignedUrl for /assets/*) ────────
+    //
+    // Produces:  https://{CdnBaseUrl}/{key}?expires={unix}&sig={hex-hmac}
+    //
+    // The Cloudflare Worker validates:
+    //   HMAC-SHA256( key=HMAC_SECRET, msg="/{key}:{expires}" )  == sig
+    //
+    // Use this for anything under assets/. For public paths (images/) keep
+    // using GetPublicUrl() — no signing needed there.
+
+    public string GenerateSignedUrl(string key, TimeSpan expiresIn)
+    {
+        var expires = DateTimeOffset.UtcNow.Add(expiresIn).ToUnixTimeSeconds();
+
+        // Must match the message the Worker verifies: "{pathname}:{expires}"
+        // pathname = "/" + key  (Worker does url.pathname which includes the leading slash)
+        var message = $"/{key}:{expires}";
+        var sig = ComputeHmacSha256Hex(message, Configuration.HmacSecret);
+
+        var baseUrl = Configuration.CdnBaseUrl.TrimEnd('/');
+        return $"{baseUrl}/{key}?expires={expires}&sig={sig}";
+    }
+    
+    /// <summary>
+    /// Builds the full asset key from a local directory + filename, then signs it.
+    /// Mirrors how UploadFileAsync callers typically construct keys.
+    /// </summary>
+    public string GenerateSignedUrlForFile(string? directory, string filename, TimeSpan expiresIn)
+    {
+        var prefix = GetPrefixFromLocalDirectory(directory);
+        var key = $"{prefix}{filename}";
+        return GenerateSignedUrl(key, expiresIn);
+    }
+
+    // ── Static helper (also usable for offline verification / tests) ──────────
+
+    public static string ComputeHmacSha256Hex(string message, string secret)
+    {
+        var keyBytes = Encoding.UTF8.GetBytes(secret);
+        var msgBytes = Encoding.UTF8.GetBytes(message);
+        var hash = HMACSHA256.HashData(keyBytes, msgBytes);
+        // Lower-case hex — Worker uses parseInt(hex, 16) which is case-insensitive,
+        // but keeping it consistent avoids any future surprises.
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Validates a signed URL locally (useful in tests or middleware).
+    /// Returns false if the URL is malformed, expired, or the signature is wrong.
+    /// </summary>
+    public static bool ValidateSignedUrl(string signedUrl, string secret)
+    {
+        if (!Uri.TryCreate(signedUrl, UriKind.Absolute, out var uri))
+            return false;
+
+        var qs = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var expiresStr = qs["expires"];
+        var sig = qs["sig"];
+
+        if (string.IsNullOrEmpty(expiresStr) || string.IsNullOrEmpty(sig))
+            return false;
+
+        if (!long.TryParse(expiresStr, out var expires))
+            return false;
+
+        if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expires)
+            return false;
+
+        var message = $"{uri.AbsolutePath}:{expires}";
+        var expected = ComputeHmacSha256Hex(message, secret);
+
+        // Constant-time comparison to prevent timing attacks
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(expected),
+            Encoding.UTF8.GetBytes(sig)
+        );
     }
 
     public string GetPresignedUrl(string key, TimeSpan expiresIn)

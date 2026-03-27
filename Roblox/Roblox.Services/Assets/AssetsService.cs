@@ -239,7 +239,7 @@ public class AssetsService : ServiceBase, IService
         }
         
         // TODO: make signed urls
-        return R2StorageService.GetPublicUrl(r2Key);
+        return r2Service.GenerateSignedUrl(r2Key, TimeSpan.FromHours(1));
     }
 
     public async Task<Stream> GetAssetContent(string key)

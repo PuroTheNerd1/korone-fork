@@ -41,6 +41,7 @@ Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value!;
 Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https://www.", "");
 Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value!;
 Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value!;
+Roblox.Configuration.HmacSecret = configuration.GetSection("HmacSecret").Value!;
 Roblox.Configuration.R2AccountId = configuration.GetSection("CloudflareR2:AccountId").Value!;
 Roblox.Configuration.R2AccessKey = configuration.GetSection("CloudflareR2:AccessKey").Value!;
 Roblox.Configuration.R2SecretKey = configuration.GetSection("CloudflareR2:SecretKey").Value!;
