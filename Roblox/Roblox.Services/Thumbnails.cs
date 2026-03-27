@@ -238,7 +238,7 @@ public class ThumbnailsService : ServiceBase, IService
                 c.imageUrl = "/images/groups/" + c.imageUrl;
             }
             if (c.imageUrl != null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl, false);
             results.Add(c);
         }
 
