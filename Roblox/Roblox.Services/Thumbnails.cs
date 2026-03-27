@@ -253,7 +253,9 @@ public class ThumbnailsService : ServiceBase, IService
             "SELECT universe_id as targetId, content_url as imageUrl, moderation_status as moderationStatus FROM universe_asset INNER JOIN asset_icon ai ON ai.asset_id = universe_asset.asset_id /**where**/");
         query.OrWhereMulti("universe_id = $1", ids);
 
-        return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntryRBX>();
+        foreach (var c in entries)
         {
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
             {
@@ -263,24 +265,26 @@ public class ThumbnailsService : ServiceBase, IService
 
             //if (universeIds.Count() == 1)
             //{
-                //why? if studio requests only 1 game icon it will keep looping and never getting the gameicon
-               // throw new RobloxException(401, 1, "Not authorized");
+            //why? if studio requests only 1 game icon it will keep looping and never getting the gameicon
+            // throw new RobloxException(401, 1, "Not authorized");
             //}
             if (c.moderationStatus == ModerationStatus.Declined)
             {
                 c.imageUrl = "/img/blocked.png";
             }
             if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.BaseUrl + c.imageUrl;
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
 
-            return new ThumbnailEntryRBX()
+            results.Add(new ThumbnailEntryRBX()
             {
                 //targetId = c.targetId,
                 TargetId = c.targetId,
                 Url = c.imageUrl,
                 State = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
-            };
-        });
+            });
+        }
+
+        return results;
     }
     public async Task<IEnumerable<ThumbnailEntry>> GetUniverseIcons(IEnumerable<long> universeIds)
     {
@@ -358,7 +362,7 @@ public class ThumbnailsService : ServiceBase, IService
         return results;
     }
 
-    private static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName)
+    public static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName)
     {
         // really shitty work but this accounts for most cases.
         if(fileName.StartsWith('/'))
