@@ -910,10 +910,6 @@ public class AvatarService : ServiceBase, IService {
         var thumbnailKey   = $"images/thumbnails/{avatarHash}_thumbnail.png";
         var thumbnail3DKey = $"images/thumbnails/{avatarHash}_thumbnail3d.json";
 
-        var headshotUrl    = R2StorageService.GetPublicUrl(headshotKey);
-        var thumbnailUrl   = R2StorageService.GetPublicUrl(thumbnailKey);
-        var thumbnail3DUrl = R2StorageService.GetPublicUrl(thumbnail3DKey);
-
         if (!forceRedraw)
         {
             // Check if all three files already exist in R2 — if so, skip rendering.
@@ -922,7 +918,7 @@ public class AvatarService : ServiceBase, IService {
                 await r2.FileExistsAsync(thumbnail3DKey))
             {
                 // Files already present — update URLs and touch 3D assets so they aren't cleaned up.
-                await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
+                await UpdateUserAvatarImages(userId, headshotKey, thumbnailKey, thumbnail3DKey);
                 // We must mark the 3D render as used (so it doesn't get deleted on 3D render cleanup)
                 await Update3DRenderModified(userId, avatarHash);
                 return;
@@ -962,12 +958,12 @@ public class AvatarService : ServiceBase, IService {
         catch (Exception ex)
         {
             Writer.Info(LogGroup.AvatarService, "Failed to upload headshot or thumbnail for user {0}: {1}", userId, ex.Message);
-            await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, null);
+            await UpdateUserAvatarImages(userId, headshotKey, thumbnailKey, null);
             return;
         }
 
         // Update the avatar thumbnail, excluding 3D
-        await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, null);
+        await UpdateUserAvatarImages(userId, headshotKey, thumbnailKey, null);
 
         var thumbnail3DResult = await RenderingHandler.RequestPlayerThumbnail3D(userId);
         // Now thumbnail 3D, these have a unique format in JSON
@@ -1057,7 +1053,7 @@ public class AvatarService : ServiceBase, IService {
                 await r2.UploadFileAsync(thumbnail3DKey, jsonMs, "application/json");
 
             // Finally, update the avatar thumbnail (including 3D version)
-            await UpdateUserAvatarImages(userId, headshotUrl, thumbnailUrl, thumbnail3DUrl);
+            await UpdateUserAvatarImages(userId, headshotKey, thumbnailKey, thumbnail3DKey);
         }
         catch (Exception e)
         {
