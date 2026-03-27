@@ -109,7 +109,7 @@ export class Thumbnail3DHandler {
         this.scene.add(this.directionalLight);
         
         let mtlLoader = new THREE.MTLLoader();
-        mtlLoader.load(thumbJson.mtl, (materials) => {
+        mtlLoader.load("https://cdn.pekora.zip/" + thumbJson.mtl, (materials) => {
             // Set the textures to the textures in the JSON
             if (thumbJson.textures.length > 0) {
                 const texArr = thumbJson.textures;
@@ -120,7 +120,7 @@ export class Thumbnail3DHandler {
                         if (key.startsWith('map_')) {
                             info[key] = (() => {
                                 const texId = materialName.match(/Player\d+/)?.[0];
-                                return texArr.find(tex => tex.includes(`${texId}Tex`))
+                                return "https://cdn.pekora.zip/" + texArr.find(tex => tex.includes(`${texId}Tex`))
                             })() || "";
                         }
                     }
@@ -131,7 +131,7 @@ export class Thumbnail3DHandler {
             // Now load in the meshes
             let objLoader = new THREE.OBJLoader();
             objLoader.setMaterials(materials);
-            objLoader.load(thumbJson.obj, (object) => {
+            objLoader.load("https://cdn.pekora.zip/" + thumbJson.obj, (object) => {
                 object.scale.set(1, 1, 1);
                 this.scene.add(object);
                 
