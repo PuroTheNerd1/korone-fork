@@ -847,7 +847,7 @@ public class AvatarService : ServiceBase, IService {
             if (!string.IsNullOrEmpty(thumbJson.mtl))
                 Touch3DKey(UriPathToR2Key(thumbJson.mtl));
 
-            if (thumbJson.textures.Length > 0)
+            if (thumbJson.textures?.Length > 0)
                 foreach (var tex in thumbJson.textures)
                     Touch3DKey(UriPathToR2Key(tex));
         }
@@ -1094,6 +1094,17 @@ public class AvatarService : ServiceBase, IService {
                 {
                     var lastUsed = _3dLastUsed.GetValueOrDefault(key, DateTime.MinValue);
                     if (lastUsed >= fiveDaysAgo) continue;
+                    
+                    // Not in dict (e.g. after restart) — check actual R2 metadata before deleting
+                    if (!_3dLastUsed.ContainsKey(key))
+                    {
+                        var meta = await r2.GetFileMetadataAsync(key); 
+                        if (meta != null && meta.LastModified.ToUniversalTime() >= fiveDaysAgo) 
+                        {
+                            _3dLastUsed[key] = meta.LastModified; // prime the dict
+                            continue;
+                        }
+                    }
 
                     Writer.Info(LogGroup.ClearThumbnail3DFolder,
                         $"Deleting stale 3D thumbnail {key}, last used: {lastUsed:u}");
