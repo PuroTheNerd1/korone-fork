@@ -8,6 +8,8 @@ namespace Roblox.Services;
 
 public class R2StorageService : ServiceBase, IService
 {
+    public record R2ObjectMetadata(string Key, DateTime LastModified, long ContentLength, string? ContentType);
+    
     private readonly AmazonS3Client _client;
 
     public R2StorageService()
@@ -114,6 +116,29 @@ public class R2StorageService : ServiceBase, IService
         catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return false;
+        }
+    }
+    
+    public async Task<R2ObjectMetadata?> GetFileMetadataAsync(string key)
+    {
+        try
+        {
+            var request = new GetObjectMetadataRequest
+            {
+                BucketName = Configuration.R2BucketName,
+                Key = key
+            };
+            var response = await _client.GetObjectMetadataAsync(request);
+            return new R2ObjectMetadata(
+                Key:           key,
+                LastModified:  response.LastModified ?? DateTime.MinValue,
+                ContentLength: response.ContentLength,
+                ContentType:   response.Headers.ContentType
+            );
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
         }
     }
     
