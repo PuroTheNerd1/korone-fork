@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { link } from "svelte-routing";
-	import { HomeIcon, UsersIcon, BookOpenIcon, PlusCircleIcon, EditIcon, FilePlusIcon, CopyIcon, FolderPlusIcon, RefreshCcwIcon, UploadCloudIcon, CheckSquareIcon, SunriseIcon, FlagIcon,StarIcon, BookIcon, PhoneIcon, ActivityIcon, TabletIcon, TargetIcon, TerminalIcon } from "svelte-feather-icons";
+	import { HomeIcon, UsersIcon, BookOpenIcon, PlusCircleIcon, EditIcon, FilePlusIcon, CopyIcon, FolderPlusIcon, RefreshCcwIcon, UploadCloudIcon, CheckSquareIcon, SunriseIcon, FlagIcon, StarIcon, BookIcon, PhoneIcon, ActivityIcon, TabletIcon, TargetIcon, TerminalIcon, ChevronDownIcon, ChevronRightIcon, DollarSignIcon } from "svelte-feather-icons";
 
 	import SavedPages, { addPage } from "../../stores/saved-pages";
 	import PageEntry from "../saved-pages/PageEntry.svelte";
@@ -101,6 +101,7 @@
 	] as any[];
 
 	let active: string = "/";
+	let catalogOpen: boolean = true;
 </script>
 
 <div class="row">
@@ -148,59 +149,68 @@
 						</li>
 					{/if}
 				{/each}
-				{#if rank.hasPermission("CreateAsset") || rank.hasPermission("SetAssetProduct") || rank.hasPermission("MigrateAssetFromRoblox") || rank.hasPermission("CreateAssetVersion") || rank.hasPermission("RequestAssetReRender") || rank.hasPermission('CreateBundleCopiedFromRoblox') || rank.hasPermission('CreateAssetCopiedFromRoblox')}
-					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-2 mb-1 text-muted">
+				{#if rank.is("owner")}
+					<li class="nav-item">
+						<a use:link class="nav-link" href="/admin/economy"><DollarSignIcon /> Economy</a>
+					</li>
+				{/if}
+			{#if rank.hasPermission("CreateAsset") || rank.hasPermission("SetAssetProduct") || rank.hasPermission("MigrateAssetFromRoblox") || rank.hasPermission("CreateAssetVersion") || rank.hasPermission("RequestAssetReRender") || rank.hasPermission('CreateBundleCopiedFromRoblox') || rank.hasPermission('CreateAssetCopiedFromRoblox')}
+					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-2 mb-1 text-muted catalog-heading" on:click={() => catalogOpen = !catalogOpen}>
 						<span style="color: white;">Catalog</span>
+						<span style="color: white;">
+							{#if catalogOpen}<ChevronDownIcon size="14" />{:else}<ChevronRightIcon size="14" />{/if}
+						</span>
 					</h6>
 				{/if}
-				{#if rank.hasPermission("CreateAsset")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/asset/create"><FilePlusIcon /> Create Item</a>
-					</li>
-				{/if}
-				{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/asset/copy"><CopyIcon /> Copy Asset</a>
-					</li>
-				{/if}
-				{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/asset/ugccopy"><CopyIcon /> Copy UGC</a>
-					</li>
-				{/if}
-				{#if rank.hasPermission("CreateBundleCopiedFromRoblox")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/bundle/copy"><CopyIcon /> Copy Bundle</a>
-					</li>
-				{/if}
-				{#if rank.hasPermission("SetAssetProduct")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/product/update"><EditIcon /> Update Item Product</a>
-					</li>
-				{/if}
-
-				{#if rank.hasPermission("MigrateAssetFromRoblox")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/asset/create-for-item"><FolderPlusIcon /> Create Item Asset</a>
-					</li>
-				{/if}
-				{#if rank.hasPermission("CreateAssetVersion")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/asset/version/create"><UploadCloudIcon /> Update Item RBXM</a>
-					</li>
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/giftallusers"><FolderPlusIcon /> Gift All Users</a>
-					</li>
-				{/if}
-				{#if rank.hasPermission("GiveUserItem")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/asset/track"><RefreshCcwIcon /> Track User Assets</a>
-					</li>
-				{/if}
-				{#if rank.hasPermission("RequestAssetReRender")}
-					<li class="nav-item ml-4">
-						<a use:link class="nav-link" href="/admin/asset/re-render"><RefreshCcwIcon /> Force Item Re-Render</a>
-					</li>
+				{#if catalogOpen}
+					{#if rank.hasPermission("CreateAsset")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/asset/create"><FilePlusIcon /> Create Item</a>
+						</li>
+					{/if}
+					{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/asset/copy"><CopyIcon /> Copy Asset</a>
+						</li>
+					{/if}
+					{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/asset/ugccopy"><CopyIcon /> Copy UGC</a>
+						</li>
+					{/if}
+					{#if rank.hasPermission("CreateBundleCopiedFromRoblox")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/bundle/copy"><CopyIcon /> Copy Bundle</a>
+						</li>
+					{/if}
+					{#if rank.hasPermission("SetAssetProduct")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/product/update"><EditIcon /> Update Item Product</a>
+						</li>
+					{/if}
+					{#if rank.hasPermission("MigrateAssetFromRoblox")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/asset/create-for-item"><FolderPlusIcon /> Create Item Asset</a>
+						</li>
+					{/if}
+					{#if rank.hasPermission("CreateAssetVersion")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/asset/version/create"><UploadCloudIcon /> Update Item RBXM</a>
+						</li>
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/giftallusers"><FolderPlusIcon /> Gift All Users</a>
+						</li>
+					{/if}
+					{#if rank.hasPermission("GiveUserItem")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/asset/track"><RefreshCcwIcon /> Track User Assets</a>
+						</li>
+					{/if}
+					{#if rank.hasPermission("RequestAssetReRender")}
+						<li class="nav-item ml-4">
+							<a use:link class="nav-link" href="/admin/asset/re-render"><RefreshCcwIcon /> Force Item Re-Render</a>
+						</li>
+					{/if}
 				{/if}
 				<li class="nav-item mt-2 d-md-none d-block">
 					<a class="nav-link" href="/">Back to Korone</a>
@@ -213,5 +223,9 @@
 <style>
 	nav#sidebarMenu.sidebar {
 		top: 0 !important;
+	}
+	.catalog-heading {
+		cursor: pointer;
+		user-select: none;
 	}
 </style>

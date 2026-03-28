@@ -84,7 +84,7 @@ const BuyModal = () => {
     const closeModal = () => modals.setBuyModalOpen(false);
     
     if (!auth?.userId) {
-        window.location.href = "/auth/application";
+        window.location.href = "/";
         return null;
     }
     

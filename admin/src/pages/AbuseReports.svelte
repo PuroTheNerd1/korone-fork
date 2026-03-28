@@ -7,9 +7,9 @@
 
 	import Main from "../components/templates/Main.svelte";
 	import request from "../lib/request";
+	import * as rank from "../stores/rank";
 
 	let reports;
-
 	let modalBody: string;
 	let modalVisible = false;
 	let modalCb: (arg1: boolean) => void;
@@ -48,6 +48,18 @@
             reports = reports.filter((v) => v.id !== app.id);
 		onAppStatusChange();
 	};
+	let aiReviewRunning = false;
+	const startAiReview = async () => {
+		aiReviewRunning = true;
+		try {
+			await request.request({ method: "POST", url: "/reports/ai-review" });
+		} finally {
+			aiReviewRunning = false;
+			reports = null;
+			getReports().then(d => { reports = d; });
+		}
+	};
+
 	const acceptApp = async (app) => {
 		request
 			.request({
@@ -73,8 +85,13 @@
 		/>
 	{/if}
 	<div class="row">
-		<div class="col-12">
+		<div class="col-12 d-flex align-items-center justify-content-between">
 			<h3>Abuse Reports</h3>
+			{#if rank.is('owner')}
+				<button class="btn btn-warning" on:click={startAiReview} disabled={aiReviewRunning}>
+					{aiReviewRunning ? "Running..." : "Start AI Review"}
+				</button>
+			{/if}
 		</div>
 
 		{#if reports && reports.length === 0}

@@ -56,7 +56,6 @@ Roblox/.editorconfig
 /RCCService2020
 /2016-roblox-main.old
 /22
-/api/public/img/setup
 /game-arbiter
 /Roblox.Goob
 /RCCService2020
@@ -83,13 +82,14 @@ game-renderer/eslint.config.js.old
 /admin/.idea
 /Roblox/.idea
 /api/public/images/Groups
+/api/public/img/setup
 /api/public/images/Thumbnails
 
-# testing stuff i need
+# need this for testing - ignore
 /api/publiccss
-/api/publicjs
-/api/publicfonts
-/api/publicadmin
 /api/publicimg
+/api/publicfonts
+/api/publicjs
+/api/publicadmin
 /api/publicimages
 /api/publicUnsecuredContent

@@ -11,12 +11,13 @@ import NextNProgress from "nextjs-progressbar";
 import LoginModalStore from '../stores/loginModal';
 import AuthenticationStore from '../stores/authentication';
 import NavigationStore from '../stores/navigation';
-import { getTheme, getThemeColor, getThemeFont, themeColor, themeFont, themeType } from '../services/theme';
+import { getTheme, getThemeColor, getThemeFont, getThemeCustomColor, themeColor, themeFont, themeType } from '../services/theme';
 import MainWrapper from '../components/mainWrapper';
 import GlobalAlert from '../components/globalAlert';
 import ThumbnailStore from "../stores/thumbnailStore";
 import getFlag from "../lib/getFlag";
 import Chat from "../components/chat";
+import ChatStore from "../components/chat/chatStore";
 import FeedbackStore from "../stores/feedback";
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime.js'
@@ -74,6 +75,7 @@ function RobloxApp({Component, pageProps}) {
             <title>{pageProps.title || 'Korone'}</title>
             <link rel='icon' type="image/vnd.microsoft.icon" href='/favicon.ico'/>
             <meta name='viewport' content='width=device-width, initial-scale=1'/>
+
         </Head>
         <AuthenticationStore.Provider>
             {pageProps.disableWebsiteTheming ? null : <>
@@ -89,8 +91,10 @@ function RobloxApp({Component, pageProps}) {
                     {getFlag('clientSideRenderingEnabled', false) ?
                         <NextNProgress options={{showSpinner: true}} color='var(--primary-color)' height={4}/> : null}
                     <ThumbnailStore.Provider>
-                        <Component {...pageProps} />
-                        <Chat/>
+                        <ChatStore.Provider>
+                            <Component {...pageProps} />
+                            <Chat/>
+                        </ChatStore.Provider>
                     </ThumbnailStore.Provider>
                 </MainWrapper>
             </FeedbackStore.Provider>
@@ -116,6 +120,13 @@ function ChangeVarsForTheme(theme) {
         default:
             break;
     }
+}
+
+function adjustHexBrightness(hex, factor) {
+    const r = Math.min(255, Math.round(parseInt(hex.slice(1, 3), 16) * factor));
+    const g = Math.min(255, Math.round(parseInt(hex.slice(3, 5), 16) * factor));
+    const b = Math.min(255, Math.round(parseInt(hex.slice(5, 7), 16) * factor));
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
 }
 
 function ChangeVarsForThemeColor(theme) {
@@ -186,6 +197,16 @@ function ChangeVarsForThemeColor(theme) {
             document.documentElement.style.setProperty('--primary-color-hover', '#d20057');
             document.documentElement.style.setProperty('--secondary-color', '#960033');
             break;
+        case themeColor.custom: {
+            const customHex = getThemeCustomColor();
+            if (customHex) {
+                document.documentElement.style.setProperty('--primary-color', customHex);
+                document.documentElement.style.setProperty('--primary-color-2', customHex);
+                document.documentElement.style.setProperty('--primary-color-hover', adjustHexBrightness(customHex, 1.15));
+                document.documentElement.style.setProperty('--secondary-color', adjustHexBrightness(customHex, 0.80));
+            }
+            break;
+        }
         default:
             break;
     }

@@ -4,6 +4,7 @@ import { followUser, unfollowUser } from "../../../services/friends";
 import { multiGetPresence } from "../../../services/presence";
 import { getMembershipType, updateStatus } from "../../../services/users";
 import AuthenticationStore from "../../../stores/authentication";
+import { getTheme, themeType } from "../../../services/theme";
 import Dropdown2016 from "../../dropdown2016";
 import PlayerHeadshot from "../../playerHeadshot";
 import Activity from "../../userActivity";
@@ -15,6 +16,8 @@ import RelationshipStatistics from "./relationshipStatistics";
 import RAPStats from "./RAPStats";
 import ChatButton from "./chatButton";
 import JoinButton from "./joinButton";
+
+const PREMIUM_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NCA0NCI+PHBhdGggZD0iTTQwIDRINHY0MGE0IDQgMCAwMS00LTRWNGE0IDQgMCAwMTQtNGgzNmE0IDQgMCAwMTQgNHYzNmE0IDQgMCAwMS00IDRIMjF2LTRoMTl6bS03IDdIMTF2MzNIN1Y3aDMwdjMwSDIxdi00aDEyem0tNyA3aC04djI2aC00VjE0aDE2djE2aC05di00aDV6IiBmaWxsPSIjMzkzYjNkIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=';
 
 const useHeaderStyles = createUseStyles({
   iconWrapper: {
@@ -73,17 +76,19 @@ const useHeaderStyles = createUseStyles({
       width: '100%',
     }
   },
-  bcIcon: {
+  badgeIcon: {
     position: 'relative',
-    bottom: '4px',
+    bottom: '2.5px',
     '@media(max-width: 767px)': {
       bottom: '-3px',
       marginLeft: '3px',
     },
   },
-  altIcon: {
-    position: 'relative',
-    bottom: '2.5px',
+  badgeIconWrapper: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    verticalAlign: 'middle',
   },
   updateStatusButton: {
     cursor: 'pointer',
@@ -203,6 +208,7 @@ const ProfileHeader = props => {
   const [bcLevel, setBcLevel] = useState(0);
   const [verified, setVerified] = useState(false);
   const [pawBadge, setPawBadge] = useState(false);
+  const [isProfileStaff, setIsProfileStaff] = useState(false);
 
   useEffect(() => {
     // reset
@@ -211,6 +217,7 @@ const ProfileHeader = props => {
     setEditStatus(false);
     setDropdownOptions(null);
     setVerified(false);
+    setIsProfileStaff(false);
   }, [store.userId]);
   
   useEffect(() => {
@@ -220,14 +227,12 @@ const ProfileHeader = props => {
       setStatus(d[0]);
     });
     getMembershipType({ userId: store.userId }).then(d => {
-      if (d === 4) {
-        d = 3
-      }
       setBcLevel(d);
     }).catch(e => {
       // can fail when not logged in :(
     })
     setVerified(store.userInfo.hasVerifiedBadge);
+    setIsProfileStaff(store.userInfo.isStaff ?? false);
     setPawBadge(store.userId == "11279" || store.userId == "3");
 
     const buttons = [];
@@ -294,6 +299,15 @@ const ProfileHeader = props => {
         }
       });
     }
+    if (auth.isStaff) {
+      buttons.push({
+        name: 'Manage User',
+        onClick: (e) => {
+          e.preventDefault();
+          window.open(`/admin/manage-user/${store.userId}`, '_blank');
+        }
+      });
+    }
     setDropdownOptions(buttons);
   }, [auth.userId, auth.isPending, store.isFollowing, editStatus, store.userId]);
   
@@ -304,34 +318,38 @@ const ProfileHeader = props => {
   const showButtons = auth.userId != store.userId && !auth.isPending;
   
   const BcIcon = () => {
-    if (bcLevel === 0) {
-      return null;
-    }
+    const isDark = getTheme() === themeType.dark;
 
-    if (pawBadge) {
-      return <span className={`icon-paw ${s.altIcon}`} />
-    }
+    const membershipBadge = () => {
+      // 1 = BC, 3 = OBC, 4 = Premium, 0 = None
+      switch (bcLevel) {
+        case 1:
+          return <span className={`icon-bc ${s.badgeIcon}`} />
+        case 3:
+          return <span className={`icon-obc ${s.badgeIcon}`} />
+        case 4:
+          return <img src={PREMIUM_ICON} alt="Premium" className={s.badgeIcon} style={{ height: '28px', width: 'auto', ...(isDark ? { filter: 'brightness(0) invert(1)' } : {}) }} />
+        default:
+          return null;
+      }
+    };
 
+    if (isProfileStaff || pawBadge) {
+      return <div className={s.badgeIconWrapper}>
+        <span className={`icon-paw ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
+      </div>;
+    }
     if (verified) {
-      return <span className={`icon-verified ${s.altIcon}`} />
+      return <div className={s.badgeIconWrapper}>
+        <span className={`icon-verified ${s.badgeIcon}`} />
+      </div>;
     }
-
-    // 1 = BC
-    // 2 = TBC
-    // 3 = OBC
-    // 4 = Premium
-    // 0 = None
-    switch (bcLevel) {
-      case 1:
-      case 4:
-        return <span className={`icon-bc ${s.bcIcon}`} />
-      case 2:
-        return <span className={`icon-tbc ${s.bcIcon}`} />
-      case 3:
-        return <span className={`icon-obc ${s.bcIcon}`} />
-      default:
-        return null;
+    if (bcLevel > 0) {
+      return <div className={s.badgeIconWrapper}>
+        {membershipBadge()}
+      </div>;
     }
+    return null;
   }
   
   return <div className={`flex ${s.profileHeaderContainer}`}>

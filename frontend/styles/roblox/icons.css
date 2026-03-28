@@ -206,6 +206,10 @@ a:hover .icon-nav-charactercustomizer {
 	color: #02b757;
 }
 
+.hover-icon-nav-shop:hover {
+	color: #00A2FF;
+}
+
 .icon-nav-inventory:hover {
 	background-position: -28px -280px;
 }
@@ -575,6 +579,16 @@ a.btn-generic-edit-xs:hover .icon-edit {
 	background-image: url(/img/paw.svg);
 	background-repeat: no-repeat;
 	background-size: auto auto;
+	width: 52px;
+	height: 28px;
+	display: inline-block;
+	vertical-align: middle;
+}
+.icon-roblox {
+	background-image: url(/img/robloxicon.svg);
+	background-repeat: no-repeat;
+	background-size: 36px 36px;
+	background-position: center;
 	width: 52px;
 	height: 28px;
 	display: inline-block;

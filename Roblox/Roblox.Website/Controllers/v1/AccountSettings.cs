@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Dto.Users;
+using Roblox.Exceptions;
 using Roblox.Website.WebsiteModels;
 
 namespace Roblox.Website.Controllers;
@@ -112,4 +114,50 @@ public class AccountSettingsControllerV1 : ControllerBase
     {
         await services.accountInformation.SetUserPrivateMessagePrivacy(safeUserSession.userId, request.privateMessagePrivacy);
     }
+
+    [HttpGet("2fa")]
+    public async Task<dynamic> GetTwoFactorInfo()
+    {
+        var totpInfo = await services.users.GetOrSetTotp(safeUserSession.userId);
+        if (totpInfo.status == TotpStatus.Enabled)
+        {
+            return new
+            {
+                enabled = true,
+                secret = (string?)null,
+                qrCodeDataUrl = (string?)null,
+            };
+        }
+        var qrCodeDataUrl = services.users.GetOtpQrCodeBase64(safeUserSession.userId, totpInfo.secret);
+        return new
+        {
+            enabled = false,
+            secret = totpInfo.secret,
+            qrCodeDataUrl,
+        };
+    }
+
+    [HttpPost("2fa/enable")]
+    public async Task EnableTwoFactor([Required, FromBody] TotpCodeRequest request)
+    {
+        var totpInfo = await services.users.GetOrSetTotp(safeUserSession.userId);
+        if (!services.users.VerifyTotp(totpInfo.secret, request.code))
+            throw new BadRequestException(0, "Invalid code");
+        await services.users.UpdateTotpStatus(safeUserSession.userId, TotpStatus.Enabled);
+    }
+
+    [HttpPost("2fa/disable")]
+    public async Task DisableTwoFactor([Required, FromBody] TotpCodeRequest request)
+    {
+        var totpInfo = await services.users.GetOrSetTotp(safeUserSession.userId);
+        if (!services.users.VerifyTotp(totpInfo.secret, request.code))
+            throw new BadRequestException(0, "Invalid code");
+        await services.users.DeleteTotp(safeUserSession.userId);
+    }
+}
+
+public class TotpCodeRequest
+{
+    [Required]
+    public string code { get; set; }
 }

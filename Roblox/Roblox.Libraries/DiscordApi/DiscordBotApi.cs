@@ -78,6 +78,23 @@ public class DiscordBotApi
             Writer.Info(LogGroup.DiscordApi, "Failed to message {0} to korone status: {1}", channelId, result.StatusCode);
         }
     }
+    public async Task BanUser(string discordId, string reason)
+    {
+        var guildId = Roblox.Configuration.DiscordGuildId;
+        var request = new HttpRequestMessage(HttpMethod.Put, $"guilds/{guildId}/bans/{discordId}");
+        request.Headers.Add("X-Audit-Log-Reason", reason);
+        request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+        var result = await discordClient.SendAsync(request);
+        if (result.IsSuccessStatusCode)
+        {
+            Writer.Info(LogGroup.DiscordApi, "Successfully banned {0} from guild {1}", discordId, guildId);
+        }
+        else
+        {
+            Writer.Info(LogGroup.DiscordApi, "Failed to ban {0} from guild {1} status: {2} with response: {3}", discordId, guildId, result.StatusCode, await result.Content.ReadAsStringAsync());
+        }
+    }
+
     private async Task<DiscordDmChannel?> GetDMChannel(string discordId)
     {
         var data = new Dictionary<string,string>

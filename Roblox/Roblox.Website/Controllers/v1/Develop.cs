@@ -397,6 +397,13 @@ public class DevelopControllerV1 : ControllerBase
         await services.games.SetMaxPlayerCount(place, request.maxPlayers);
     }
 
+    [HttpPatch("places/{placeId:long}/set-year")]
+    public async Task SetPlaceYear(long placeId, [Required, FromBody] SetYearRequest request)
+    {
+        await services.assets.ValidatePermissions(placeId, safeUserSession.userId);
+        await services.games.SetYear(placeId, request.year);
+    }
+
     [HttpPatch("places/{placeId}/roblox-place-id")]
     public async Task UpdateRobloxPlaceId(long placeId, [Required, FromBody] SetRobloxPlaceIdRequest request)
     {

@@ -16,7 +16,7 @@ import Theme2016 from "../theme2016";
 import FavouriteButton from "./components/FavouriteButton";
 import Countdown from "./components/Countdown";
 import AssetDropdown from "./components/Dropdown";
-import PriceChart from "./components/PriceChart";
+// import PriceChart from "./components/PriceChart";
 import Resellers from "./components/Resellers";
 import BuyModal from "./modals/BuyModal";
 import { avPageStyleType, getAvPageStyle, getTheme, themeType } from "../../services/theme";
@@ -752,16 +752,17 @@ function AssetDetailsPage({ itemDetails }) {
         </div>
         {
             !isWindow767 && store.isResellable() ? <>
-                <PriceChart/>
+                {/* <PriceChart/> */}
                 <Resellers/>
                 <Owners/>
             </> : store.isResellable() ? <>
                 <HorizontalTabs
                     options={[
-                        {
-                            name: "Price Chart",
-                            element: <PriceChart isLabelHidden />,
-                        },
+                        // the price chart is ass and isn't done, i just commented it, will continue it when i want to idk
+                        // {
+                        //     name: "Price Chart",
+                        //     element: <PriceChart isLabelHidden />,
+                        // },
                         {
                             name: "Resellers",
                             element: <Resellers isLabelHidden />,

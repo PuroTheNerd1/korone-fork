@@ -16,7 +16,5 @@ Click on (this link)[/internal/membership] to change your membership for free!
 * Playing games will give tickets, depending on how long you play them
     * Do remember that Tix Farming is against the rules! Do not AFK in-game to get tickets, you **will be banned** if caught!
 
-You can exchange your Robux for Tickets, or vice versa, at a rate of 10 Tickets per 1 Robuck:
-> [Robux → Tickets](/internal/robuxexchange)
-
-> [Tickets → Robux](/internal/tixexchange)
+You can exchange your Robux for Tickets, or vice versa, at a rate of 10 Tickets per 1 Robux:
+> [Exchange Currency](/internal/exchange)

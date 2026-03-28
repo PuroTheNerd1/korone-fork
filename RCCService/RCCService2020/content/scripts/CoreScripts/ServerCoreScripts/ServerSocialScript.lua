@@ -27,7 +27,7 @@ local PlayerToRelationshipMap = {}
 local SPECIAL_GROUPS = {
 	Admin = {GroupId = 1200769},
 	Intern = {GroupId = 2868472, GroupRank = 100},
-	Star = {GroupId = 4199740},
+	Star = {GroupId = 2611, GroupRank = 253},
 	SpanishLocalizationExpert = {GroupId = 4265462, GroupRank = 252},
 	BrazilianLocalizationExpert = {GroupId = 4265456, GroupRank = 252},
 	FrenchLocalizationExpert = {GroupId = 4265443, GroupRank = 252},

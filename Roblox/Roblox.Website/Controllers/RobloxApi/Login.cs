@@ -288,7 +288,7 @@ namespace Roblox.Website.Controllers
         {
             var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
             {
-                sessionId = await services.users.CreateSession(userId),
+                sessionId = await services.users.CreateSession(userId, UserAgent),
                 createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
             });
             

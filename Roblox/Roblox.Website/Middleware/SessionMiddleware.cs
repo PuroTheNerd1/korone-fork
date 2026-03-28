@@ -117,27 +117,36 @@ public class SessionMiddleware
 
                     ctx.Items[CookieName] = new UserSession(userInfo.userId, userInfo.username, userInfo.created, userInfo.accountStatus, 0, false, decodedResult.sessionId);
 
-                    if (userInfo.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned
-                        or AccountStatus.Deleted)
+                    var isBanned = userInfo.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned
+                        or AccountStatus.Deleted;
+                    if (isBanned)
                     {
-                        // allow access to other auth pages, as well as "discord" url
-                        if (!currentPath.StartsWith("/auth/"))
+                        // allow access to auth pages, the notapproved frontend page, ban-related API endpoints, and static assets needed to render the page
+                        var allowedForBanned = currentPath.StartsWith("/auth/") ||
+                                               currentPath == "/notapproved" ||
+                                               currentPath.StartsWith("/_next/") ||
+                                               currentPath.StartsWith("/img/") ||
+                                               currentPath.StartsWith("/css/") ||
+                                               currentPath.StartsWith("/js/") ||
+                                               currentPath.StartsWith("/apisite/users/v1/users/authenticated/ban") ||
+                                               currentPath.StartsWith("/apisite/auth/v2/logout");
+                        if (!allowedForBanned)
                         {
                             authTimer.Stop();
                             ctx.Response.StatusCode = 302;
-                            ctx.Response.Headers.Append("location", "/auth/notapproved");
+                            ctx.Response.Headers.Append("location", "/notapproved");
                             return;
                         }
                     }
-                    // Check if user filled out new app
-                    var appStatus = await users.IsUserApproved(userInfo.userId);
+                    // Check if user filled out new app (skip for banned users - they can only access specific paths anyway)
+                    var appStatus = isBanned || await users.IsUserApproved(userInfo.userId);
                     if (!appStatus && !userInfo.isAdmin && !userInfo.isModerator && !StaffFilter.IsOwner(userInfo.userId))
                     {
                         if (!currentPath.StartsWith("/auth/"))
                         {
                             authTimer.Stop();
                             ctx.Response.StatusCode = 302;
-                            ctx.Response.Headers.Append("location", "/auth/application");
+                            ctx.Response.Headers.Append("location", "/");
                             return;
                         }
                     }

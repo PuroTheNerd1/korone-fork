@@ -244,6 +244,26 @@ public class InventoryService : ServiceBase, IService
         await redis.StringSetAsync("user_collections_json_v2:" + userId, str);
     }
 
+    public async Task AddToCollectionIfEligible(long userId, long assetId)
+    {
+        using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
+        var assetInfo = (await assets.MultiGetInfoById(new[] { assetId })).FirstOrDefault();
+        if (assetInfo == null || !CanAddTypeToCollections(assetInfo.assetType))
+            return;
+
+        var redisKey = $"user_collections_json_v2:{userId}";
+        var result = await redis.StringGetAsync(redisKey);
+        var currentIds = string.IsNullOrEmpty(result)
+            ? new List<long>()
+            : (JsonSerializer.Deserialize<IEnumerable<long>>(result) ?? Array.Empty<long>()).ToList();
+
+        if (currentIds.Contains(assetId))
+            return;
+
+        var newIds = currentIds.Prepend(assetId).Distinct().Take(64).ToList();
+        await redis.StringSetAsync(redisKey, JsonSerializer.Serialize(newIds));
+    }
+
     public async Task<IEnumerable<OwnershipEntry>> GetOwners(long assetId, string sortOrder, int offset, int limit)
     {
         var result = await db.QueryAsync<OwnershipEntryDb>(

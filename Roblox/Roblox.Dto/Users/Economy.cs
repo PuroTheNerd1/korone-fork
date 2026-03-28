@@ -34,6 +34,9 @@ public class PurchaseRequest
     public long expectedSellerId { get; set; }
     public long? userAssetId { get; set; }
     public CurrencyType expectedCurrency { get; set; }
+    public string nonce { get; set; } = string.Empty;
+    public long timestamp { get; set; }
+    public string signature { get; set; } = string.Empty;
 }
 
 public class TransactionEntryDb

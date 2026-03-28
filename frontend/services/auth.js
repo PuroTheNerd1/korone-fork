@@ -34,3 +34,10 @@ export const changeUsername = ({ username, password }) => {
 export const logoutFromAllOtherSessions = () => {
   return request('POST', getFullUrl('auth', '/v2/logoutfromallsessionsandreauthenticate'))
 }
+export const getSessions = () => {
+  return request('GET', getFullUrl('auth', '/v2/sessions')).then(d => d.data)
+}
+
+export const revokeSession = (sessionId) => {
+  return request('POST', getFullUrl('auth', `/v2/sessions/${encodeURIComponent(sessionId)}/revoke`))
+}

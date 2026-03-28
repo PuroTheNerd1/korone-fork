@@ -37,7 +37,13 @@ const useStyles = createUseStyles({
 const Tabs2016 = props => {
   const s = useStyles();
   const cardStyles = useCardStyles();
-  const [tab, setTab] = useState(props.options[0]);
+  const [tab, setTab] = useState(props.activeTab || props.options[0]);
+
+  useEffect(() => {
+    if (props.activeTab) {
+      setTab(props.activeTab);
+    }
+  }, [props.activeTab]);
 
   return <div className='row mt-4'>
     <div className='col-12'>

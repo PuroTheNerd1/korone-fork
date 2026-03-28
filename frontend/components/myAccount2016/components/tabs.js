@@ -13,7 +13,7 @@ const Tabs = props => {
       'Security',
       'Social',
       'Privacy',
-      'Billing',
+      'Customization',
     ]}></Tabs2016>
 }
 

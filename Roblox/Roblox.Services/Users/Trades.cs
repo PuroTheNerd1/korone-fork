@@ -882,6 +882,11 @@ public class TradesService : ServiceBase, IService
                     user_id = requestUserId,
                     id = item.userAssetId,
                 });
+                using var invA = ServiceProvider.GetOrCreate<InventoryService>(this);
+                // Keep item in sender's collection so they can still remove it manually
+                await invA.AddToCollectionIfEligible(offerUserId, item.assetId);
+                // Add item to receiver's collection
+                await invA.AddToCollectionIfEligible(requestUserId, item.assetId);
             }
             // Give request items to offerer
             foreach (var item in requestedAssets)
@@ -892,6 +897,11 @@ public class TradesService : ServiceBase, IService
                     user_id = offerUserId,
                     id = item.userAssetId,
                 });
+                using var invB = ServiceProvider.GetOrCreate<InventoryService>(this);
+                // Keep item in sender's collection so they can still remove it manually
+                await invB.AddToCollectionIfEligible(requestUserId, item.assetId);
+                // Add item to receiver's collection
+                await invB.AddToCollectionIfEligible(offerUserId, item.assetId);
             }
 
             if (requestRobux != null)

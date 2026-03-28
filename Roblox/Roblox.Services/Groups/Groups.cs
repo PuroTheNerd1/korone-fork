@@ -333,7 +333,7 @@ public class GroupsService : ServiceBase, IService
             });
 
         sq.OrWhere("group_role_id = " + roleSetId);
-        sq.OrderBy("group_user.id " + sortOrder);
+        sq.OrderBy("group_user.id " + (sortOrder == "asc" ? "asc" : "desc"));
 
         var members = await db.QueryAsync<GroupMemberDb>(t.RawSql, t.Parameters);
         return members.Select(c => new GroupMemberEntry
@@ -354,7 +354,7 @@ public class GroupsService : ServiceBase, IService
         });
     }
 
-    public async Task<IEnumerable<GroupMemberEntry>> GetGroupMembers(long groupId, int limit, int offset, string sortOrder)
+    public async Task<IEnumerable<GroupMemberEntry>> GetGroupMembers(long groupId, int limit, int offset, string sortOrder, string? username = null)
     {
         if (sortOrder != "asc" && sortOrder != "desc") throw new Exception("Bad sort");
         var roles = (await db.QueryAsync<SkinnyRank>(
@@ -373,7 +373,12 @@ public class GroupsService : ServiceBase, IService
             sq.OrWhere("group_role_id = " + id.roleId);
         }
 
-        sq.OrderBy("group_user.id " + sortOrder);
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            sq.Where("\"user\".username ILIKE :username", new { username = "%" + username + "%" });
+        }
+
+        sq.OrderBy("group_user.id " + (sortOrder == "asc" ? "asc" : "desc"));
 
         var members = await db.QueryAsync<GroupMemberDb>(t.RawSql, t.Parameters);
         return members.Select(c => new GroupMemberEntry
@@ -1242,6 +1247,76 @@ public class GroupsService : ServiceBase, IService
         });
     }
 
+    public async Task RenameGroup(long groupId, long userId, string newName)
+    {
+        var nameValidationResult = NameValidationRegex.Match(newName);
+        if (nameValidationResult.Value.Length == 0 || newName.Length > 50 || newName.StartsWith(" ") || newName.EndsWith(" "))
+            throw new ArgumentException("The name is invalid");
+
+        var currentGroup = await GetGroupById(groupId);
+        var actorRole = await GetUserRoleInGroup(groupId, userId);
+        if (actorRole.rank != 255 || currentGroup.owner == null || currentGroup.owner.userId != userId)
+            throw new ArgumentException("Unauthorized");
+
+        if (string.Equals(currentGroup.name, newName, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("The new name is the same as the current name");
+
+        if (await IsGroupNameTaken(newName))
+            throw new ArgumentException("The name has already been taken");
+
+        await InTransaction(async _ =>
+        {
+            using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
+            var bal = await ec.GetUserBalance(userId);
+            if (bal.robux < 100)
+                throw new ArgumentException("You do not have enough Robux to rename this group");
+
+            await ec.DecrementCurrency(CreatorType.User, userId, CurrencyType.Robux, 100);
+            await InsertAsync("user_transaction", new
+            {
+                type = PurchaseType.Purchase,
+                currency_type = CurrencyType.Robux,
+                amount = 100,
+                sub_type = TransactionSubType.GroupCreation,
+                user_id_one = userId,
+                user_id_two = 1,
+            });
+
+            await InsertAsync("group_previous_name", new
+            {
+                group_id = groupId,
+                name = currentGroup.name,
+                created_at = DateTime.UtcNow,
+            });
+
+            await db.ExecuteAsync("UPDATE \"group\" SET name = :name WHERE id = :gid", new
+            {
+                gid = groupId,
+                name = newName,
+            });
+            await UpdateGroup(groupId);
+
+            await InsertAsync("group_audit_log", new
+            {
+                group_id = groupId,
+                user_id = userId,
+                old_name = currentGroup.name,
+                new_name = newName,
+                action = AuditActionType.Rename,
+            });
+
+            return 0;
+        });
+    }
+
+    public async Task<IEnumerable<string>> GetPreviousGroupNames(long groupId)
+    {
+        var result = await db.QueryAsync<dynamic>(
+            "SELECT name FROM group_previous_name WHERE group_id = :group_id ORDER BY id DESC",
+            new { group_id = groupId });
+        return result.Select(c => (string)c.name);
+    }
+
     public async Task<IEnumerable<WallEntryV2>> GetWall(long groupId, int limit, int offset)
     {
         var results = (await db.QueryAsync(
@@ -1388,7 +1463,14 @@ public class GroupsService : ServiceBase, IService
             {
                 n = name,
             });
-        return groupsMatchingName.total != 0;
+        if (groupsMatchingName.total != 0) return true;
+
+        var previousNamesMatching = await db.QuerySingleOrDefaultAsync<Total>(
+            "SELECT COUNT(*) AS total FROM group_previous_name WHERE name ILIKE :n", new
+            {
+                n = name,
+            });
+        return previousNamesMatching.total != 0;
     }
 
     private static readonly Regex NameValidationRegex = new("[a-zA-Z0-9]+");
@@ -1665,6 +1747,7 @@ public class GroupsService : ServiceBase, IService
             return 0;
         });
     }
+
     private async Task UpdateGroup(long groupId)
     {
         await db.ExecuteAsync("UPDATE \"group\" SET updated_at = NOW() WHERE id = :id", new

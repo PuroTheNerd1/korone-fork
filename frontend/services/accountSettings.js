@@ -57,3 +57,15 @@ export const setAvPageStyleReq = ({ newAvatarPageStyle }) => {
     avatarPageStyle: newAvatarPageStyle,
   });
 }
+
+export const getTwoFactorInfo = () => {
+  return request('GET', getFullUrl('accountsettings', '/v1/2fa')).then(d => d.data);
+}
+
+export const enableTwoFactor = ({ code }) => {
+  return request('POST', getFullUrl('accountsettings', '/v1/2fa/enable'), { code });
+}
+
+export const disableTwoFactor = ({ code }) => {
+  return request('POST', getFullUrl('accountsettings', '/v1/2fa/disable'), { code });
+}
