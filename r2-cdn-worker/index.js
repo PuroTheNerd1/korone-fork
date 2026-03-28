@@ -23,13 +23,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // ── Strip query params for cache key on assets ────────────────────────────
     const isAsset = url.pathname.startsWith(ASSET_PREFIX);
-    const cacheKey = isAsset
-      ? new Request(new URL(url.pathname, url.origin).toString())
-      : new Request(url.toString());
-
-    const cache = caches.default;
 
     // ── HMAC validation (assets only) ─────────────────────────────────────────
     if (isAsset) {
@@ -42,6 +36,12 @@ export default {
       }
     }
 
+    // ── Strip query params for cache key on assets ────────────────────────────
+    const cacheKey = isAsset
+      ? new Request(new URL(url.pathname, url.origin).toString(), request)
+      : request;
+
+    const cache = caches.default;
     // ── Cache lookup ──────────────────────────────────────────────────────────
     const cached = await cache.match(cacheKey);
     if (cached) {
@@ -59,47 +59,67 @@ export default {
 
     // ── Fetch from R2 ─────────────────────────────────────────────────────────
     const key = url.pathname.slice(1); // strip leading "/"
-    const object = await env.R2_BUCKET.get(key, {
-      onlyIf: {
-        etagMatches: request.headers.get("If-None-Match") ?? undefined,
-        uploadedAfter: request.headers.get("If-Modified-Since")
-          ? new Date(request.headers.get("If-Modified-Since"))
-          : undefined,
-      },
-    });
-
+    const object = await env.R2_BUCKET.get(key);
+ 
     if (object === null) {
       return new Response("Not Found", { status: 404 });
     }
-
-    // 304 Not Modified
-    if (!(object instanceof Object && object.body !== undefined) || !object.body) {
-      return new Response(null, {
-        status: 304,
-        headers: { ETag: object.httpEtag },
-      });
-    }
-
+ 
     const headers = buildHeaders(object, isAsset);
 
-    const response = new Response(object.body, { status: 200, headers });
-
-    // ── Store in edge cache ───────────────────────────────────────────────────
-    // For assets: cache key has no query params so all valid signed URLs share one entry.
-    // We store with a public Cache-Control so Cloudflare's cache accepts it,
-    // but we rewrite it to `private` when serving to the client (see HIT branch above).
+    // ── Prime the edge cache before responding ────────────────────────────────
     if (isAsset) {
+      // Store with public Cache-Control so Cloudflare's cache accepts it;
+      // rewrite to private when actually serving to clients (see HIT branch and below).
       const storeHeaders = new Headers(headers);
       storeHeaders.set("Cache-Control", `public, max-age=${CACHE_TTL_ASSETS}`);
-      ctx.waitUntil(cache.put(cacheKey, new Response(response.clone().body, { status: 200, headers: storeHeaders })));
-      // Return with private header to actual client
-      headers.set("Cache-Control", `private, max-age=${CACHE_TTL_ASSETS}`);
+      ctx.waitUntil(
+        cache.put(cacheKey, new Response(object.body, { status: 200, headers: storeHeaders }))
+      );
     } else {
-      ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      ctx.waitUntil(
+        cache.put(cacheKey, new Response(object.body, { status: 200, headers }))
+      );
     }
 
+    // ── Synthesize 304 if client's cached copy is still fresh ─────────────────
+    const clientEtag = request.headers.get("If-None-Match");
+    const clientIms  = request.headers.get("If-Modified-Since");
+ 
+    const etagMatch = clientEtag && clientEtag === object.httpEtag;
+    const imsMatch  = clientIms  && object.uploaded <= new Date(clientIms);
+ 
+    if (etagMatch || imsMatch) {
+      const notModifiedHeaders = new Headers();
+      notModifiedHeaders.set("ETag", object.httpEtag);
+      notModifiedHeaders.set("Last-Modified", object.uploaded.toUTCString());
+      notModifiedHeaders.set("Cache-Control", headers.get("Cache-Control"));
+      const vary = headers.get("Vary");
+      if (vary) notModifiedHeaders.set("Vary", vary);
+ 
+      return new Response(null, { status: 304, headers: notModifiedHeaders });
+    }
+
+    // ── Full 200 response ─────────────────────────────────────────────────────
+    if (isAsset) {
+      headers.set("Cache-Control", `private, max-age=${CACHE_TTL_ASSETS}`);
+    }
     headers.set("X-Cache", "MISS");
-    return new Response(response.body, { status: 200, headers });
+ 
+    const cacheResponse = await cache.match(cacheKey);
+    if (cacheResponse) {
+      // Serve from the entry we just stored; rewrite headers for the client.
+      const h = new Headers(cacheResponse.headers);
+      if (isAsset) h.set("Cache-Control", `private, max-age=${CACHE_TTL_ASSETS}`);
+      h.set("X-Cache", "MISS");
+      return new Response(cacheResponse.body, { status: 200, headers: h });
+    }
+ 
+    // Fallback: cache.put is async via waitUntil and may not be visible yet.
+    // Re-fetch from R2 as a last resort (rare, but safe).
+    const fallback = await env.R2_BUCKET.get(key);
+    if (!fallback) return new Response("Not Found", { status: 404 });
+    return new Response(fallback.body, { status: 200, headers });
   },
 };
 
@@ -161,21 +181,19 @@ function buildHeaders(object, isAsset) {
   headers.set("ETag", object.httpEtag);
   headers.set("Last-Modified", object.uploaded.toUTCString());
   headers.set("Accept-Ranges", "bytes");
-
+ 
   if (isAsset) {
-    headers.set("Cache-Control", `private, max-age=${CACHE_TTL_ASSETS}`);
+    // Set public here as a neutral default; callers rewrite to private before
+    // sending to clients (we need public so Cloudflare's cache will store it).
+    headers.set("Cache-Control", `public, max-age=${CACHE_TTL_ASSETS}`);
+    headers.set("X-Content-Type-Options", "nosniff");
+    headers.set("X-Frame-Options", "DENY");
   } else {
     headers.set(
       "Cache-Control",
       `public, max-age=${CACHE_TTL_IMAGES}, stale-while-revalidate=86400`
     );
   }
-
-  // Prevent embedding of private assets
-  if (isAsset) {
-    headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("X-Frame-Options", "DENY");
-  }
-
+ 
   return headers;
 }
