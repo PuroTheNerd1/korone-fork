@@ -227,7 +227,7 @@ public class AssetsService : ServiceBase, IService
         // is it in r2????
         if (await r2Service.FileExistsAsync(r2Key))
         {
-            try { File.Create(fullPath + ".migrated"); } catch {}
+            try { await File.WriteAllBytesAsync(fullPath + ".migrated", Array.Empty<byte>()); } catch {}
             return r2Service.GenerateSignedUrl(r2Key, TimeSpan.FromHours(1));
         }
         
@@ -236,7 +236,7 @@ public class AssetsService : ServiceBase, IService
         {
             using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 0, FileOptions.Asynchronous);
             await r2Service.UploadFileAsync(r2Key, file);
-            try { File.Create(fullPath + ".migrated"); } catch {}
+            try { await File.WriteAllBytesAsync(fullPath + ".migrated", Array.Empty<byte>()); } catch {}
         }
         else
         {
@@ -308,7 +308,13 @@ public class AssetsService : ServiceBase, IService
         var r2Key = prefix + hash;
         
         content.Seek(0, SeekOrigin.Begin);
-        await r2Service.UploadFileAsync(r2Key, content);
+        var contentType = extension switch {
+            "png"  => "image/png",
+            "jpg"  => "image/jpeg",
+            "jpeg" => "image/jpeg",
+            _      => "application/octet-stream"
+        };
+        await r2Service.UploadFileAsync(r2Key, content, contentType);
         // Done
         
         return plainHash;
@@ -2996,7 +3002,11 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 Stream data;
                 try
                 {
-                    data = await GetAssetContent(version.contentUrl);
+                    var rawStream = await GetAssetContent(version.contentUrl);
+                    data = new MemoryStream();
+                    await rawStream.CopyToAsync(data);
+                    data.Position = 0;
+                    // now safe to read Length, seek, etc.
                     info = await Imager.ReadAsync(data);
                 }
                 catch (Exception e)
