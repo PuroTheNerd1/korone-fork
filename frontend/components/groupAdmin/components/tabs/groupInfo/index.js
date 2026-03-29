@@ -1,23 +1,14 @@
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import GroupIcon from "../../../../groupIcon";
 import Description from "./description";
 import ActionButton from "../../../../actionButton";
-import {setGroupDescription, setGroupIcon, renameGroup} from "../../../../../services/groups";
+import {setGroupDescription, setGroupIcon} from "../../../../../services/groups";
 import groupAdminStore from "../../../stores/groupAdminStore";
-import authentication from "../../../../../stores/authentication";
-import FeedbackStore from "../../../../../stores/feedback";
-import { FeedbackType } from "../../../../../models/feedback";
 
 const GroupInfo = props => {
   const store = groupAdminStore.useContainer();
-  const auth = authentication.useContainer();
-  const feedback = FeedbackStore.useContainer();
   const description = useRef(props.info.description);
   const fileRef = useRef(null);
-  const [newName, setNewName] = useState('');
-  const [nameSaving, setNameSaving] = useState(false);
-
-  const isOwner = props.info.owner && auth.userId && props.info.owner.userId === auth.userId;
 
   return <div className='row mt-4'>
     <div className='col-12'>
@@ -57,34 +48,6 @@ const GroupInfo = props => {
         })
       }} />
     </div>
-
-    {isOwner && <div className='col-12 mt-4'>
-      <hr />
-      <h4>Change Group Name</h4>
-      <p className='text-muted mb-1'>Current name: <strong>{props.info.name}</strong></p>
-      <p className='text-muted mb-2' style={{fontSize: '0.85em'}}>Costs 100 Robux. Maximum 1 change per month.</p>
-      <div className='d-flex align-items-center gap-2'>
-        <input
-          type='text'
-          maxLength={50}
-          placeholder='New group name'
-          value={newName}
-          onChange={e => setNewName(e.currentTarget.value)}
-          style={{width: 250}}
-        />
-        <ActionButton label={nameSaving ? 'Saving...' : 'Save Name (100 Robux)'} onClick={() => {
-          if (!newName.trim()) return;
-          setNameSaving(true);
-          renameGroup({groupId: props.groupId, name: newName.trim()}).then(() => {
-            feedback.addFeedback('Group name changed successfully', FeedbackType.SUCCESS);
-            setTimeout(() => window.location.reload(), 1500);
-          }).catch(e => {
-            feedback.addFeedback(e.response?.data?.errors?.[0]?.message || 'Failed to rename group', FeedbackType.ERROR);
-            setNameSaving(false);
-          });
-        }} />
-      </div>
-    </div>}
   </div>
 }
 

@@ -30,7 +30,6 @@
 	import FeatureFlags from "./pages/FeatureFlags.svelte";
 	import ManageUserTransactions from "./pages/ManageUserTransactions.svelte";
 	import Applications from "./pages/Applications.svelte";
-	import ApplicationAnalysis from "./pages/ApplicationAnalysis.svelte";
 	import ForumPosts from "./pages/TextModeration.svelte";
 	import Groups from "./pages/Groups.svelte";
 	import GameHistory from "./pages/GameHistory.svelte";
@@ -45,7 +44,6 @@
 	import GiftAllUsers from "./pages/GiftAllUsers.svelte";
 	import CopyRobloxUgc from "./pages/CopyRobloxUGC.svelte";
 	import StaffStats from "./pages/StaffPerformance.svelte";
-	import Economy from "./pages/Economy.svelte";
 	// import 'bootstrap';
 
 	var pushState = history.pushState;
@@ -156,9 +154,6 @@
 		<Route path="/admin/applications/:id" let:params>
 			<Applications id={params.id} />
 		</Route>
-		<Route path="/admin/applications/:appId/analysis" let:params>
-			<ApplicationAnalysis discordId={params.appId} />
-		</Route>
 		<Route path="/admin/text-posts">
 			<ForumPosts />
 		</Route>
@@ -176,9 +171,6 @@
 		</Route>
 		<Route path="/admin/reports">
 			<AbuseReports />
-		</Route>
-		<Route path="/admin/economy">
-		<Economy />
 		</Route>
 		<Route path="/admin/staff-performance/:userId" let:params>
 			<StaffStats userId={params.userId} />

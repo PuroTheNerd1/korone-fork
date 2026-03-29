@@ -44,8 +44,7 @@ public enum LogGroup
     FixAssetImageMetadata,
     AdminApi,
     ClearThumbnail3DFolder,
-    DataStoreService,
-    AiReportReview
+    DataStoreService
 }
 
 public class Writer
@@ -101,7 +100,6 @@ public class Writer
         {LogGroup.AdminApi, 100},
         {LogGroup.ClearThumbnail3DFolder, 100},
         {LogGroup.DataStoreService, 100},
-        {LogGroup.AiReportReview, 1},
     };
 
     private static List<Func<string,int>> onLogCallbacks { get; set; } = new();

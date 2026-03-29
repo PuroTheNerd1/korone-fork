@@ -255,7 +255,7 @@ public class Signup : RobloxPageModel
             Roblox.Metrics.UserMetrics.ReportUserSignUpFromInvite();
         }
 
-        var sess = await services.users.CreateSession(createdUser.userId, Request.Headers["User-Agent"].ToString());
+        var sess = await services.users.CreateSession(createdUser.userId);
         var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
         {
             sessionId = sess,

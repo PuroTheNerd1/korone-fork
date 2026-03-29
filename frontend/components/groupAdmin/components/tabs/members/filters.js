@@ -30,15 +30,13 @@ const MemberFilters = props => {
     </div>
     <div className='d-inline-block ms-2'>
       <button className={buttonStyles.legacyButton} onClick={() => {
-        props.setUsernameFilter(query);
+
       }}>Search</button>
     </div>
     <div className='d-inline-block ms-2'>
       <button className={buttonStyles.legacyButton} onClick={() => {
         setRankFilter('Filter By Rank');
-        setQuery('');
         props.setRoleFilter(null);
-        props.setUsernameFilter('');
       }}>Show All Members</button>
     </div>
   </div>

@@ -101,7 +101,7 @@ const SellItemModal = () => {
     };
     
     if (!auth?.userId) {
-        window.location.href = "/";
+        window.location.href = "/auth/application";
         return null;
     }
     

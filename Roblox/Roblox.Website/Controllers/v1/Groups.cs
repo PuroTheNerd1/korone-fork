@@ -143,13 +143,13 @@ public class GroupsControllerV1 : ControllerBase
     }
 
     [HttpGet("groups/{groupId:long}/users")]
-    public async Task<RobloxCollectionPaginated<GroupMemberEntry>> GetGroupMembers(long groupId, int limit = 10, string sortOrder = "asc", string? cursor = null, string? username = null)
+    public async Task<RobloxCollectionPaginated<GroupMemberEntry>> GetGroupMembers(long groupId, int limit = 10, string sortOrder = "asc", string? cursor = null)
     {
         FeatureCheck();
         int offset = int.Parse(cursor ?? "0");
         if (limit is > 100 or < 0) limit = 10;
         if (sortOrder != "asc" && sortOrder != "desc") sortOrder = "asc";
-        var members = (await services.groups.GetGroupMembers(groupId, limit, offset, sortOrder, username)).ToList();
+        var members = (await services.groups.GetGroupMembers(groupId, limit, offset, sortOrder)).ToList();
         return new()
         {
             nextPageCursor = members.Count >= limit ? (members.Count + offset).ToString() : null,
@@ -521,31 +521,6 @@ public class GroupsControllerV1 : ControllerBase
         await services.groups.SetGroupDescription(groupId, services.filter.FilterText(request.description));
     }
 
-    [HttpPatch("groups/{groupId:long}/name")]
-    public async Task RenameGroup(long groupId, [Required, FromBody] SetNameRequest request)
-    {
-        FeatureCheck();
-        await CheckPermission(groupId, GroupPermission.Owner);
-
-        var filteredName = services.filter.FilterText(request.name);
-        if (filteredName.Length > 0 && filteredName.All(c => c == '#'))
-            throw new BadRequestException(0, "The name is moderated");
-
-        var cooldownKey = "GroupRename:" + groupId;
-        if (!await services.cooldown.TryCooldownCheck(cooldownKey, TimeSpan.FromDays(30)))
-            throw new TooManyRequestsException(0, "This group has already been renamed in the last 30 days");
-
-        try
-        {
-            await services.groups.RenameGroup(groupId, safeUserSession.userId, filteredName);
-        }
-        catch (ArgumentException e)
-        {
-            await services.cooldown.ResetCooldown(cooldownKey);
-            throw new BadRequestException(0, e.Message);
-        }
-    }
-
     [HttpDelete("groups/{groupId:long}/wall/posts/{postId:long}")]
     public async Task DeleteGroupWallPost(long groupId, long postId)
     {
@@ -577,17 +552,6 @@ public class GroupsControllerV1 : ControllerBase
         await CheckPermission(groupId, GroupPermission.Owner);
         
         await services.groups.SetGroupIconFromStream(groupId, file.OpenReadStream(), safeUserSession.userId);
-    }
-
-    [HttpGet("groups/{groupId:long}/name-history")]
-    public async Task<dynamic> GetGroupNameHistory(long groupId)
-    {
-        FeatureCheck();
-        var names = await services.groups.GetPreviousGroupNames(groupId);
-        return new
-        {
-            data = names.Select(n => new { name = n }),
-        };
     }
 
     [HttpGet("groups/{groupId:long}")]

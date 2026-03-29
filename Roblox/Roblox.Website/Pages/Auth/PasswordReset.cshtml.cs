@@ -50,7 +50,7 @@ public class PasswordReset : RobloxPageModel
     public IActionResult OnGet()
     {
         if (!IsEnabled())
-            return new RedirectResult("/");
+            return new RedirectResult("/auth/accountlogin");
 
         return new PageResult();
     }
@@ -77,7 +77,7 @@ public class PasswordReset : RobloxPageModel
     public async Task<IActionResult> OnPost()
     {
         if (!IsEnabled())
-            return new RedirectResult("/");
+            return new RedirectResult("/auth/accountlogin");
 
         if (string.IsNullOrWhiteSpace(username))
         {

@@ -433,8 +433,8 @@ public class AdminApiController : ControllerBase
     [HttpGet("asset/moderation-details"), StaffFilter(Access.GetAssetModerationDetails)]
     public async Task<dynamic> GetModerationDetails(long assetId)
     {
-        var item = await db.QueryFirstOrDefaultAsync(
-            "SELECT asset.id, asset.name, (SELECT content_url FROM asset_thumbnail WHERE asset_thumbnail.asset_id = asset.id ORDER BY id DESC LIMIT 1) as content_url FROM asset WHERE asset.id = :id",
+        var item = await db.QuerySingleOrDefaultAsync(
+            "SELECT asset.id, asset.name, asset_thumbnail.content_url FROM asset LEFT JOIN asset_thumbnail ON asset_thumbnail.asset_id = asset.id WHERE asset.id = :id",
             new
             {
                 id = assetId,
@@ -442,7 +442,6 @@ public class AdminApiController : ControllerBase
         var avDetails = await services.assets.GetLatestAssetVersion(assetId);
         var names = await services.users.GetUserById(avDetails.creatorId);
         item.creatorName = names.username;
-        item.creatorId = avDetails.creatorId;
         if (item.content_url != null)
             item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
         return item;
@@ -1629,29 +1628,13 @@ public class AdminApiController : ControllerBase
         return result;
     }
 
-    [HttpGet("user-items"), StaffFilter(Access.GetUserCollectibles)]
-    public async Task<dynamic> GetUserItems(long userId)
-    {
-        var result = (await db.QueryAsync("SELECT asset_id, user_asset.id as user_asset_id, asset.name FROM user_asset INNER JOIN asset ON asset.id = user_asset.asset_id WHERE user_asset.user_id = :user_id AND asset.is_limited = false AND asset.is_limited_unique = false",
-            new { user_id = userId })).ToList();
-        return result;
-    }
-
     [HttpPost("removeitem"), StaffFilter(Access.RemoveUserItem)]
     public async Task RemoveItem([Required, FromBody] RemoveItemRequest request)
     {
         // temporary
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("Cannot give remove items from this user");
-        long transferTo;
-        if (request.transferToUserId.HasValue)
-        {
-            transferTo = request.transferToUserId.Value;
-        }
-        else
-        {
-            transferTo = await services.users.GetUserIdFromUsername("BadDecisions");
-        }
+        var transferTo = await services.users.GetUserIdFromUsername("BadDecisions");
         var affected = await db.ExecuteAsync(
             "UPDATE user_asset SET price = 0, user_id = :new_user_id, updated_at = now() WHERE user_id = :old_user_id AND user_asset.id = :user_asset_id",
             new
@@ -2764,41 +2747,6 @@ Thank you for your understanding,
         return result;
     }
 
-    [HttpGet("applications/analysis/{discordId}"), StaffFilter(Access.ManageApplications)]
-    public async Task<dynamic> GetApplicationAnalysis(string discordId)
-    {
-        var app = await db.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT verified_id FROM join_application WHERE discord_id = :discordId ORDER BY created_at DESC LIMIT 1",
-            new { discordId });
-
-        string? robloxUserId = null;
-        if (app != null && app.verified_id != null)
-        {
-            var verifiedId = (string)app.verified_id;
-            if (verifiedId.StartsWith("RobloxUserId:"))
-                robloxUserId = verifiedId.Substring("RobloxUserId:".Length);
-        }
-
-        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-
-        Task<string> rotectorTask = robloxUserId != null
-            ? httpClient.GetStringAsync($"https://roscoe.rotector.com/v1/lookup/roblox/user/{robloxUserId}")
-            : Task.FromResult<string>(null!);
-        var tasebotTask = httpClient.GetStringAsync($"https://api.tasebot.org/v2/check/{discordId}");
-
-        string? rotectorRaw = null;
-        string? tasebotRaw = null;
-        try { rotectorRaw = await rotectorTask; } catch { }
-        try { tasebotRaw = await tasebotTask; } catch { }
-
-        return new
-        {
-            robloxUserId,
-            robloxAnalysis = rotectorRaw != null ? JsonDocument.Parse(rotectorRaw).RootElement : (object?)null,
-            discordAnalysis = tasebotRaw != null ? JsonDocument.Parse(tasebotRaw).RootElement : (object?)null,
-        };
-    }
-
     [HttpGet("applications/pending-num")]
     [StaffFilter(Access.ManageApplications)]
     public async Task<dynamic> GetNumPendingApplications()
@@ -3254,14 +3202,6 @@ Thank you for your understanding,
         await RewardForReportReview();
     }
 
-    [HttpPost("reports/ai-review"), StaffFilter(Access.ManageReports)]
-    public async Task TriggerAiReview()
-    {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new UnauthorizedException();
-        await AiReportReviewService.TriggerManualReview();
-    }
-
     [HttpGet("assets/{assetId}/owners"), StaffFilter(Access.GetAllAssetOwners)]
     public async Task<IEnumerable<CollectibleUserAssetEntry>> GetLiterallyAllOwnersKindaUnsafe(long assetId)
     {
@@ -3435,7 +3375,7 @@ Thank you for your understanding,
     public async Task<dynamic> GetPerfPermDate(long userId)
     {
         var res = await db.QuerySingleOrDefaultAsync<DateTime?>(@"
-                SELECT
+                SELECT 
                     MIN(created_at)
                 FROM user_permission
                     WHERE user_id = :userId
@@ -3445,130 +3385,5 @@ Thank you for your understanding,
             date = res
         };
     }
-
-
-    private static string EconomyFreezeKey(long userId) => $"economy_freeze_v1:{userId}";
-
-    [HttpGet("user/economy-freeze-status"), StaffFilter(Access.EconomyLock)]
-    public async Task<dynamic> GetEconomyFreezeStatus(long userId)
-    {
-        var val = await redis.StringGetAsync(EconomyFreezeKey(userId));
-        return new { frozen = val != null };
-    }
-
-    [HttpPost("user/economy-freeze"), StaffFilter(Access.EconomyLock)]
-    public async Task FreezeEconomy([Required, FromBody] UserIdRequest request)
-    {
-        await redis.StringSetAsync(EconomyFreezeKey(request.userId), "1");
-    }
-
-    [HttpPost("user/economy-unfreeze"), StaffFilter(Access.EconomyLock)]
-    public async Task UnfreezeEconomy([Required, FromBody] UserIdRequest request)
-    {
-        await redis.KeyDeleteAsync(EconomyFreezeKey(request.userId));
-    }
-
-
-    [HttpGet("economy/observatory")]
-    public async Task<dynamic> GetObservatoryData()
-    {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Forbidden");
-
-        return await db.QueryAsync(@"
-            SELECT u.id, u.username, u.status, ue.balance_robux, ue.balance_tickets
-            FROM ""user"" u
-            INNER JOIN user_economy ue ON ue.user_id = u.id
-            WHERE u.status != 6
-            ORDER BY (ue.balance_robux + ue.balance_tickets / 10) DESC
-            LIMIT 5000");
-    }
-
-    [HttpGet("economy/trade-graph")]
-    public async Task<dynamic> GetTradeGraph(int limit = 200)
-    {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Forbidden");
-
-        if (limit > 500) limit = 500;
-
-        var rows = (await db.QueryAsync(@"
-            SELECT ut.id, ut.user_id_one, u1.username AS username_one,
-                   ut.user_id_two, u2.username AS username_two,
-                   ut.created_at
-            FROM user_trade ut
-            INNER JOIN ""user"" u1 ON u1.id = ut.user_id_one
-            INNER JOIN ""user"" u2 ON u2.id = ut.user_id_two
-            WHERE ut.status = 2
-            ORDER BY ut.id DESC
-            LIMIT :limit", new { limit })).ToList();
-
-        var nodeMap = new Dictionary<long, string>();
-        foreach (var row in rows)
-        {
-            nodeMap[(long)row.user_id_one] = (string)row.username_one;
-            nodeMap[(long)row.user_id_two] = (string)row.username_two;
-        }
-
-        var nodes = nodeMap.Select(kv => new { id = kv.Key, username = kv.Value });
-        var edges = rows.Select(r => new
-        {
-            from = (long)r.user_id_one,
-            to = (long)r.user_id_two,
-            tradeId = (long)r.id,
-            createdAt = (DateTime)r.created_at,
-        });
-
-        return new { nodes, edges };
-    }
-
-    [HttpGet("economy/mule-suspects")]
-    public async Task<dynamic> GetMuleSuspects()
-    {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Forbidden");
-
-        return await db.QueryAsync(@"
-            SELECT u.id, u.username, u.created_at, ue.balance_robux, ue.balance_tickets,
-                   COUNT(ua.id) AS limited_item_count
-            FROM ""user"" u
-            INNER JOIN user_economy ue ON ue.user_id = u.id
-            LEFT JOIN user_asset ua ON ua.user_id = u.id
-                AND EXISTS (
-                    SELECT 1 FROM asset a
-                    WHERE a.id = ua.asset_id
-                      AND (a.is_limited = true OR a.is_limited_unique = true)
-                )
-            WHERE u.created_at >= NOW() - INTERVAL '3 days'
-              AND (ue.balance_robux > 1000 OR ue.balance_tickets > 1000)
-            GROUP BY u.id, u.username, u.created_at, ue.balance_robux, ue.balance_tickets
-            ORDER BY ue.balance_robux DESC
-            LIMIT 100");
-    }
-
-    [HttpGet("economy/orphan-items")]
-    public async Task<dynamic> GetOrphanItems()
-    {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Forbidden");
-
-        return await db.QueryAsync(@"
-            SELECT ua.id AS user_asset_id, ua.user_id, u.username, ua.asset_id,
-                   a.name AS asset_name, ua.created_at
-            FROM user_asset ua
-            INNER JOIN asset a ON a.id = ua.asset_id
-            INNER JOIN ""user"" u ON u.id = ua.user_id
-            WHERE (a.is_limited = true OR a.is_limited_unique = true)
-              AND ua.id NOT IN (
-                  SELECT DISTINCT t.user_asset_id FROM user_transaction t
-                  WHERE t.user_asset_id IS NOT NULL
-              )
-              AND ua.id NOT IN (
-                  SELECT DISTINCT uta.user_asset_id FROM user_trade_asset uta
-              )
-            ORDER BY ua.created_at DESC
-            LIMIT 200");
-    }
-
 }
 

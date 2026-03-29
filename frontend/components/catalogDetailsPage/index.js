@@ -19,7 +19,6 @@ import CatalogDetailsPage from "./stores/catalogDetailsPage";
 import AdBanner from "../ad/adBanner";
 import AdSkyscraper from "../ad/adSkyscraper";
 import { addOrRemoveFromCollections } from "../../services/catalog";
-import { getResaleData } from "../../services/economy";
 import { getCollections } from "../../services/inventory";
 import getFlag from "../../lib/getFlag";
 import Owners from "./components/owners";
@@ -98,7 +97,6 @@ const CatalogDetails = props => {
     store.loadOwnedCopies(authStore.userId);
     if (store.isResellable) {
       store.loadResellers();
-      getResaleData({ assetId: details.id }).then(store.setResaleData);
     }
     getCollections({
       userId: authStore.userId,
@@ -123,8 +121,7 @@ const CatalogDetails = props => {
   const showGear = hasItemToDeList ||
     hasItemToSell ||
     isCreator ||
-    (store.ownedCopies && store.ownedCopies.length > 0) || // Collection stuff
-    store.inCollection // removing from collection even without owning the item
+    (store.ownedCopies && store.ownedCopies.length > 0) // Collection stuff
 
   if (!store.details) return null;
 

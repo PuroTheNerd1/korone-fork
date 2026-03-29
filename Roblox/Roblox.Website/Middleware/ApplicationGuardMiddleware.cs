@@ -23,16 +23,18 @@ public class ApplicationGuardMiddleware
 
     public static List<string> allowedUrls { get; } = new()
     {
-        "/",
         "/auth/captcha",
         "/auth/discord",
         "/auth/submit",
+        "/auth/home",
         "/auth/2fa",
         "/auth/privacy",
         "/auth/tos",
+        "/auth/accountlogin",
         "/auth/password-reset",
         "/auth/contact",
         "/auth/account-deletion",
+        "/auth/application",
         "/auth/signup",
         "/auth/ticket",
         "/auth/application-check",
@@ -242,7 +244,7 @@ public class ApplicationGuardMiddleware
     private readonly string[] allowedPathsForBlockUserAgents = new[]
     {
         "/version",
-        "/",
+        "/auth/home",
         "/auth/2fa",
         "/auth/captcha",
     };
@@ -250,7 +252,7 @@ public class ApplicationGuardMiddleware
     private async Task Redirect(HttpContext ctx, string dest)
     {
         ctx.Response.StatusCode = 302;
-        ctx.Response.Headers.Location = "/";
+        ctx.Response.Headers.Location = "/auth/home";
         await ctx.Response.WriteAsync("Object moved to <a href=\""+dest+"\">here</a>.");
     }
 
@@ -259,7 +261,7 @@ public class ApplicationGuardMiddleware
         var appGuardTimer = new MiddlewareTimer(ctx, "AppGuard");
 
         var normalizedPath = ctx.Request.Path.Value?.ToLower() ?? "";
-        if (normalizedPath.Length > 1 && normalizedPath.EndsWith("/"))
+        if (normalizedPath.EndsWith("/"))
         {
             normalizedPath = normalizedPath.Substring(0, normalizedPath.Length - 1);
         }
@@ -379,13 +381,13 @@ public class ApplicationGuardMiddleware
             // If not blocked
             if (FeatureFlags.IsDisabled(FeatureFlag.AllowAccessToAllRequests) && !ua.ToLower().Contains("roblox") && ua != Configuration.UserAgentBypassSecret && !ua.ToLower().Contains("discordbot"))
             {
-                await Redirect(ctx, "/");
+                await Redirect(ctx, "/auth/home");
                 return;
             }
             // Otherwise, allow (almost) all
             if (normalizedPath == "")
             {
-                await Redirect(ctx, "/");
+                await Redirect(ctx, "/auth/home");
                 return;
             }
             appGuardTimer.Stop();

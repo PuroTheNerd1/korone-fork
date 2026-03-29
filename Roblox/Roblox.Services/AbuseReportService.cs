@@ -10,7 +10,7 @@ public class AbuseReportService : ServiceBase, IService
     public async Task<IEnumerable<AbuseReportEntry>> GetReports(AbuseReportStatus status)
     {
         return await db.QueryAsync<AbuseReportEntry>(
-            "SELECT id, user_id as userId, report_reason as reportReason, report_status as reportStatus, created_at as createdAt, updated_at as updatedAt, report_message as reportMessage, reported_asset_id as reportedAssetId, reported_user_id as reportedUserId FROM abuse_report WHERE report_status = :s ORDER BY created_at LIMIT :limit OFFSET :offset",
+            "SELECT id, user_id as userId, report_reason as reportReason, report_status as reportStatus, created_at as createdAt, updated_at as updatedAt, report_message as reportMessage FROM abuse_report WHERE report_status = :s ORDER BY created_at LIMIT :limit OFFSET :offset",
             new
             {
                 s = status,
@@ -39,7 +39,7 @@ public class AbuseReportService : ServiceBase, IService
     public async Task<AbuseReportEntry> GetReportById(string reportId)
     {
         return await db.QuerySingleOrDefaultAsync<AbuseReportEntry>(
-            "SELECT id, user_id as userId, report_reason as reportReason, report_status as reportStatus, created_at as createdAt, updated_at as updatedAt, report_message as reportMessage, reported_asset_id as reportedAssetId, reported_user_id as reportedUserId FROM abuse_report WHERE id = :id LIMIT 1",
+            "SELECT id, user_id as userId, report_reason as reportReason, report_status as reportStatus, created_at as createdAt, updated_at as updatedAt, report_message as reportMessage FROM abuse_report WHERE id = :id LIMIT 1",
             new
             {
                 id = reportId,
@@ -70,12 +70,12 @@ public class AbuseReportService : ServiceBase, IService
             });
     }
 
-    public async Task<string> InsertReport(long contextUserId, AbuseReportReason reason, string message, long? reportedAssetId = null, long? reportedUserId = null)
+    public async Task<string> InsertReport(long contextUserId, AbuseReportReason reason, string message)
     {
         FeatureFlags.IsDisabled(FeatureFlag.AbuseReportsEnabled);
         string abuseReportId = Guid.NewGuid().ToString();
         await db.ExecuteAsync(
-            "INSERT INTO abuse_report (id, user_id, report_reason, report_status, report_message, reported_asset_id, reported_user_id) VALUES (:id, :user_id, :reason, :status, :message, :reportedAssetId, :reportedUserId)",
+            "INSERT INTO abuse_report (id, user_id, report_reason, report_status, report_message) VALUES (:id, :user_id, :reason, :status, :message)",
             new
             {
                 id = abuseReportId,
@@ -83,8 +83,6 @@ public class AbuseReportService : ServiceBase, IService
                 reason,
                 status = AbuseReportStatus.Pending,
                 message = message,
-                reportedAssetId,
-                reportedUserId,
             });
         return abuseReportId;
     }

@@ -38,55 +38,6 @@ public class UsersControllerV1 : ControllerBase
         };
     }
 
-    [HttpGet("users/authenticated/ban")]
-    public async Task<dynamic> GetMyBanData()
-    {
-        if (userSession is null) throw new UnauthorizedException();
-        try
-        {
-            var ban = await services.users.GetBanData(userSession.userId);
-            return new
-            {
-                reason = ban.reason,
-                createdAt = ban.createdAt,
-                expiredAt = ban.expiredAt,
-                canUnlock = ban.canUnlock,
-            };
-        }
-        catch (RecordNotFoundException)
-        {
-            var userInfo = await services.users.GetUserById(userSession.userId);
-            if (userInfo.accountStatus == AccountStatus.Ok)
-                throw new NotFoundException(0, "User is not banned");
-            return new
-            {
-                reason = "Reason was not specified. Please contact us via our contact page.",
-                createdAt = DateTime.UtcNow,
-                expiredAt = (DateTime?)null,
-                canUnlock = false,
-            };
-        }
-    }
-
-    [HttpPost("users/authenticated/ban/unlock")]
-    public async Task<dynamic> UnlockMyAccount()
-    {
-        if (userSession is null) throw new UnauthorizedException();
-        UserBanEntry ban;
-        try
-        {
-            ban = await services.users.GetBanData(userSession.userId);
-        }
-        catch (RecordNotFoundException)
-        {
-            throw new BadRequestException(0, "No active ban found");
-        }
-        if (!ban.canUnlock)
-            throw new BadRequestException(0, "Ban has not expired yet");
-        await services.users.DeleteBan(userSession.userId);
-        return new { success = true };
-    }
-
     [HttpPost("users/{username}/details")]
     [HttpGet("users/{username}/details")]
     [SwaggerOperation(
@@ -161,7 +112,6 @@ public class UsersControllerV1 : ControllerBase
             info.created,
             isBanned = info.IsDeleted(),
             hasVerifiedBadge = info.isVerified,
-            isStaff = await StaffFilter.IsStaff(info.userId),
             id = info.userId,
             name = info.username,
             displayName = info.username,

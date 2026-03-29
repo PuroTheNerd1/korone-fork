@@ -10,8 +10,6 @@ using Roblox.Models.Groups;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
-using Roblox.Website.Filters;
-using Roblox.Website.Lib;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
@@ -84,8 +82,8 @@ public class EconomyControllerV1 : ControllerBase
         if(request.price != 0)
         {
             // Anti lpp
-            if (rsData.recentAveragePrice != 0 && request.price < (rsData.recentAveragePrice * 0.30)) {
-                throw new BadRequestException(0, "You cannot sell this item for less than 30% of the recent average price");
+            if (rsData.recentAveragePrice != 0 && request.price < (rsData.recentAveragePrice * 0.60)) {
+                throw new BadRequestException(0, "You cannot sell this item for less than 60% of the recent average price");
             }
 
             // Check if the request price is less than OG price
@@ -223,15 +221,6 @@ public class EconomyControllerV1 : ControllerBase
     /// <remarks>
     /// Note that we use assetId instead of productId in url, however, all our endpoints return an assetId instead of a productId for the productId param, so you are unlikely to need to code workarounds unless you hard-coded any productIds from Roblox.
     /// </remarks>
-    [HttpGet("purchases/lock")]
-    public async Task<dynamic> GetPurchaseLock([FromQuery] long assetId, [FromQuery] long price)
-    {
-        FeatureCheck();
-        var issuedLock = await ChallengeLockService.IssueNonce(safeUserSession.userId, assetId, price);
-        return new { nonce = issuedLock.nonce, timestamp = issuedLock.timestamp, signature = issuedLock.signature };
-    }
-
-    [ChallengeLock]
     [HttpPost("purchases/products/{assetId:long}")]
     public async Task<dynamic> PurchaseAsset(long assetId, PurchaseRequest request)
     {
@@ -248,10 +237,6 @@ public class EconomyControllerV1 : ControllerBase
         {
             // User is making UAID purchase
             await PurchaseResellableItem(assetId, request);
-            // Keep item in seller's collection so they can still remove it manually
-            _ = services.inventory.AddToCollectionIfEligible(request.expectedSellerId, assetId);
-            // Auto-add limited item to buyer's collection
-            _ = services.inventory.AddToCollectionIfEligible(safeUserSession.userId, assetId);
             // Update sellers avatar in background (in case they were wearing the item they sold)
             await Task.Run(async () =>
             {

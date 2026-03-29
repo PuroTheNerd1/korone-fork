@@ -9,12 +9,6 @@ public class SetDescriptionRequest
     public string description { get; set; }
 }
 
-public class SetNameRequest
-{
-    [MinLength(1), MaxLength(50)]
-    public string name { get; set; }
-}
-
 public class SetPrimaryGroupRequest
 {
     public long groupId { get; set; }

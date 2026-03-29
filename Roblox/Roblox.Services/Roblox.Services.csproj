@@ -22,10 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="AiInstructions.md" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Roblox.Cache\Roblox.Cache.csproj" />
       <ProjectReference Include="..\Roblox.Configuration\Roblox.Configuration.csproj" />
       <ProjectReference Include="..\Roblox.Dto\Roblox.Dto.csproj" />

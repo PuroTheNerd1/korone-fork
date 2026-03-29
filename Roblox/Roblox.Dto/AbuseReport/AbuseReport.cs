@@ -11,8 +11,6 @@ public class AbuseReportEntry
     public AbuseReportReason reportReason { get; set; }
     public AbuseReportStatus reportStatus { get; set; }
     public string reportMessage { get; set; }
-    public long? reportedAssetId { get; set; }
-    public long? reportedUserId { get; set; }
     public DateTime createdAt { get; set; }
     public DateTime updatedAt { get; set; }
 }

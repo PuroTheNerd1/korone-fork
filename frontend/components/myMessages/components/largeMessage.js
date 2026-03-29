@@ -29,14 +29,6 @@ const useStyles = createUseStyles({
   body: {
     whiteSpace: 'break-spaces',
   },
-  bodyLink: {
-    color: 'var(--primary-color)',
-    textDecoration: 'underline',
-    '&:hover': {
-      color: 'var(--primary-color)',
-      textDecoration: 'underline',
-    },
-  },
   backButtonWrapper: {
     width: '80px',
     float: 'left',
@@ -67,45 +59,22 @@ const useStyles = createUseStyles({
  * @param {{fromUserId: number; fromUserName: string; subject: string; body: string; created: string; id: number; read: boolean;}} props
  * @returns
  */
-const renderBody = (body, fromUserId, linkClassName) => {
-  if (fromUserId !== 443) return body;
-  const parts = [];
-  const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
-  let lastIndex = 0;
-  let match;
-  while ((match = regex.exec(body)) !== null) {
-    if (match.index > lastIndex) parts.push(body.slice(lastIndex, match.index));
-    const url = match[2];
-    if (url.startsWith('/')) {
-      parts.push(<a key={match.index} href={url} className={linkClassName}>{match[1]}</a>);
-    } else {
-      parts.push(match[0]);
-    }
-    lastIndex = regex.lastIndex;
-  }
-  if (lastIndex < body.length) parts.push(body.slice(lastIndex));
-  return parts;
-};
-
 const LargeMessage = props => {
   const s = useStyles();
   const buttonStyles = useButtonStyles();
   const store = MyMessagesStore.useContainer();
   const [reply, setReply] = useState(false);
   const replyInputRef = useRef(null);
-  const showReplyButton = props.fromUserId !== 1 && props.isReplyable !== false;
+  const showReplyButton = props.fromUserId !== 1;
   const auth = AuthenticationStore.useContainer();
   const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
-    if (store.notifications?.collection.some(n => n.id === props.id)) {
-      store.markNotificationAsRead(props.id);
-    } else if (props.read !== true && props.fromUserId !== auth.userId) {
-      store.setMessages(prev => prev ? prev.map(v => v.id === props.id ? {...v, isRead: true} : v) : prev);
+    if (props.id !== 1 && props.read !== true && props.fromUserId !== auth.userId) {
       toggleReadStatus({
         messageIds: [props.id],
         isRead: true,
-      });
+      })
     }
   }, []);
 
@@ -146,7 +115,7 @@ const LargeMessage = props => {
     </div>
     <div className='col-12'>
       <p className={s.body + ' mt-2'}>
-        {renderBody(props.body, props.fromUserId, s.bodyLink)}
+        {props.body}
       </p>
     </div>
     {

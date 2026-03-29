@@ -96,7 +96,7 @@ const NavSideBar = props => {
         width: window.innerWidth
     })
     const s = useNavSideBarStyles({ theme: getTheme() });
-    const [pendingCount, setPendingCount] = useState(0);
+    const [pendingCount, setPendingCount] = useState(69);
     useEffect(() => {
         window.addEventListener('resize', () => {
             setDimensions({
@@ -133,6 +133,9 @@ const NavSideBar = props => {
         }
         setPending().then();
     }, []);
+    useEffect(() => {
+        if (pendingCount === 0) setPendingCount(69);
+    }, [pendingCount]);
     const paddingTop = mainNavBarRef.current && mainNavBarRef.current.clientHeight + 'px' || 0;
     
     if (navStore.isSidebarOpen === false && dimensions.width <= 1324) {
@@ -166,7 +169,6 @@ const NavSideBar = props => {
                        icon='icon-nav-charactercustomizer'/>
             <LinkEntry theme={getTheme()} name='Inventory' url={'/users/' + authStore.userId + '/inventory'}
                        icon='icon-nav-inventory'/>
-            <LinkEntry theme={getTheme()} name='Redeem' url='/internal/promocodes' icon='icon-nav-shop'/>
             <LinkEntry theme={getTheme()} name='Trade' url='/My/Trades.aspx' icon='icon-nav-trade'
                        count={authStore.notificationCount.trades}/>
             <LinkEntry theme={getTheme()} name='Groups' url='/My/Groups.aspx' icon='icon-nav-group'/>
@@ -174,7 +176,7 @@ const NavSideBar = props => {
             {isStaff ? (
                 <LinkEntry theme={getTheme()} name='Panel' url='/admin' icon='icon-edit' count={pendingCount}/>
             ) : null}
-            <a href='/premium/membership'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
+            <a href='/BuildersClub/Upgrade.ashx'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
         </div>
     </div>
 }

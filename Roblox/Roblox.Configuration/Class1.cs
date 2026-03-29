@@ -101,7 +101,4 @@ public static class Configuration
     }
 
     public static string GameServerDomain => "pekora.zip"; // set to your game server's domain
-    public static long AiUserId { get; set; }
-    public static string OpenRouterApiKey { get; set; }
-    public static string CondoDenyLogChannelId { get; set; }
 }

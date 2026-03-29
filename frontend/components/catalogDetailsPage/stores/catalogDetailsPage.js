@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
-import { getResellableCopies, getResellers, getResaleData } from "../../../services/economy";
+import { getResellableCopies, getResellers } from "../../../services/economy";
 import { getOwnedCopies } from "../../../services/inventory";
 
 const subCatIdToName = id => {
@@ -78,7 +78,6 @@ const CatalogDetailsPage = createContainer(() => {
   const [removeItemModalOpen, setRemoveItemModalOpen] = useState(false);
   const [inCollection, setInCollection] = useState(false);
   const [offsaleDeadline, setOffsaleDeadline] = useState(null);
-  const [resaleData, setResaleData] = useState(null);
 
   const getPurchaseDetails = (specificUaid = undefined) => {
     if (isResellable(details)) {
@@ -134,9 +133,6 @@ const CatalogDetailsPage = createContainer(() => {
 
     inCollection,
     setInCollection,
-
-    resaleData,
-    setResaleData,
 
     isResellable: details && isResellable(details) || false,
     getPurchaseDetails,

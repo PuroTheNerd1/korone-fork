@@ -110,7 +110,6 @@ public class RemoveItemRequest
 {
     public long userId { get; set; }
     public long userAssetId { get; set; }
-    public long? transferToUserId { get; set; }
 }
 
 public class GiveItemRequest

@@ -127,7 +127,6 @@ const MessageRow = props => {
             read={reverseSender ? true : v.isRead} // prevent "is read" request from being sent, which will always fail
             archived={store.tab === 'archive'}
             id={v.id}
-            isReplyable={v.isReplyable}
           ></MessageEntry>
         })
       }

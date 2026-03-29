@@ -140,6 +140,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/auth",
         "/auth/signup",
         "/auth/discord",
+        "/auth/application",
         "/auth/application-check",
         "/internal/year",
         "/internal/clothingstealer",
@@ -150,10 +151,12 @@ public class CsrfMiddleware : ControllerServicesExtended
         "/internal/place-update",
         "/internal/migrate-to-application",
         "/internal/contest/first-contest",
-        "/internal/exchange",
+        "/internal/tixexchange",
+        "/internal/robuxexchange",
         "/internal/referral",
         "/auth/account-deletion",
         "/auth/2fa",
+        "/auth/accountlogin",
         "/auth/password-reset",
         "/auth/ticket",
         "/auth/captcha",
@@ -191,7 +194,7 @@ public class CsrfMiddleware : ControllerServicesExtended
         }
         try
         {
-            bool isBypassed = pathLower == "" || bypassUrls.Any(bypassPath => pathLower.Contains(bypassPath, StringComparison.OrdinalIgnoreCase));
+            bool isBypassed = bypassUrls.Any(bypassPath => pathLower.Contains(bypassPath, StringComparison.OrdinalIgnoreCase));
 
             if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !pathLower.Contains("v1/router") && !pathLower.Contains("multiget-friend-requests") && !pathLower.Contains("filter-friends") && !pathLower.Contains("abusereport") && !isBypassed && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products") && !pathLower.Contains("teamcreate"))
             {

@@ -34,7 +34,7 @@ const AssetDetailsModalStore = createContainer(() => {
     useEffect(() => {
         if (!store.resaleData?.recentAveragePrice) return;
         // some padding for min resale price
-        setMinSalePrice(store.resaleData.recentAveragePrice * 0.3);
+        setMinSalePrice(store.resaleData.recentAveragePrice * 0.6);
     }, [store.resaleData]);
     
     useEffect(() => {

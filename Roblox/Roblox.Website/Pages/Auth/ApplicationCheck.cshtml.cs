@@ -45,6 +45,6 @@ public class ApplicationCheck : RobloxPageModel
             MaxAge = TimeSpan.FromDays(30),
             Secure = true,
         });
-        return new RedirectResult("/");
+        return new RedirectResult("/auth/application");
     }
 }

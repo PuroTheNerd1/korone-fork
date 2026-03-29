@@ -13,7 +13,7 @@ const useStyles = createUseStyles({
 
 const iconsMap = {
   1: `/img/overlay_bcOnly.png`,
-  2: `/img/overlay_bcOnly.png`,
+  2: `/img/overlay_tbcOnly.png`,
   3: `/img/overlay_obcOnly.png`,
   4: `/img/overlay_bcOnly.png`,
 };

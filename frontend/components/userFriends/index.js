@@ -77,20 +77,6 @@ const useStyles = createUseStyles({
   },
 })
 
-const HASH_TO_TAB = {
-  '#!friends': 'Friends',
-  '#!followers': 'Followers',
-  '#!requests': 'Friend Requests',
-  '#!followings': 'Followings',
-};
-
-const TAB_TO_HASH = {
-  'Friends': '#!friends',
-  'Followers': '#!followers',
-  'Friend Requests': '#!requests',
-  'Followings': '#!followings',
-};
-
 const UserFriends = props => {
   const store = UserFriendsStore.useContainer();
   const auth = AuthenticationStore.useContainer();
@@ -98,29 +84,7 @@ const UserFriends = props => {
   const [name, setName] = useState(null);
   const [tab, setTab] = useState(null);
   useEffect(() => {
-    if (store.userId === null) return;
-    const hashTab = typeof window !== 'undefined' ? HASH_TO_TAB[window.location.hash] : null;
-    const isOwnProfile = store.userId === auth.userId;
-    const defaultTab = isOwnProfile ? 'Friend Requests' : 'Friends';
-    const isValidHash = hashTab && (hashTab !== 'Friend Requests' || isOwnProfile);
-    setTab(isValidHash ? hashTab : defaultTab);
-  }, [store.userId, auth.userId]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const isOwnProfile = store.userId === auth.userId;
-    const handleHashChange = () => {
-      const hashTab = HASH_TO_TAB[window.location.hash];
-      if (!hashTab) return;
-      if (hashTab === 'Friend Requests' && !isOwnProfile) return;
-      setTab(hashTab);
-      setFollowCount(null);
-      setFollowEntries(null);
-      setPage(1);
-      setCursor('');
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    setTab(store.userId === auth.userId ? 'Friend Requests'  : 'Friends');
   }, [store.userId, auth.userId]);
 
   const [friends, setFriends] = useState(null);
@@ -222,10 +186,7 @@ const UserFriends = props => {
     </div>
     <div className='row mt-4'>
       <div className='col-12'>
-        <Tabs2016 options={options} activeTab={tab} onChange={e => {
-          if (typeof window !== 'undefined') {
-            window.location.hash = TAB_TO_HASH[e];
-          }
+        <Tabs2016 options={options} onChange={e => {
           setTab(e);
           setFollowCount(null);
           setFollowEntries(null);

@@ -47,18 +47,6 @@ export const getMembershipType = async ({userId}) => {
   })
 }
 
-export const getUserPlaytime = async ({userId}) => {
-  return request('GET', getFullUrl('premiumfeatures', '/v1/users/'+userId+'/playtime')).then(d => d.data);
-}
-
-export const getMyBanData = () => {
-  return request('GET', getFullUrl('users', '/v1/users/authenticated/ban')).then(d => d.data)
-}
-
-export const unlockMyBan = () => {
-  return request('POST', getFullUrl('users', '/v1/users/authenticated/ban/unlock'), {}).then(d => d.data)
-}
-
 export const getUserIdByUsername = async (username) => {
   let result = await request('POST', getFullUrl('users', `/v1/usernames/users`), {
     usernames: [username],

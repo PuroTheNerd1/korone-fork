@@ -1,10 +1,6 @@
 import request from "../lib/request"
 import { getFullUrl } from "../lib/request";
 
-const fetchLock = ({ assetId, price }) => {
-  return request('GET', getFullUrl('economy', `/v1/purchases/lock?assetId=${assetId}&price=${price}`)).then(d => d.data);
-};
-
 
 export const getResellers = ({ assetId, cursor, limit }) => {
   const url = getFullUrl('economy', '/v1/assets/' + assetId + '/resellers?limit=' + limit + '&cursor=' + encodeURIComponent(cursor || ''));
@@ -65,17 +61,13 @@ export const getResellableCopies = ({ assetId, userId }) => {
  * @param {number} expectedCurrency
  * @returns {Promise<PurchaseDetailRequestModel>}
  */
-export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
-  const lock = await fetchLock({ assetId: productId, price });
+export const purchaseItem = ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
   return request('POST', getFullUrl('economy', `/v1/purchases/products/${productId}`), {
     assetId,
     expectedPrice: price,
     expectedSellerId: sellerId,
     userAssetId,
     expectedCurrency,
-    nonce: lock.nonce,
-    timestamp: lock.timestamp,
-    signature: lock.signature,
   }).then(d => d.data);
 }
 

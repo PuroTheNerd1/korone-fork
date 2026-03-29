@@ -34,9 +34,8 @@ export const getRoles = ({ groupId }) => {
   return request('GET', getFullUrl('groups', `/v1/groups/${groupId}/roles`)).then(d => d.data.roles);
 }
 
-export const getMembers = ({groupId, cursor, limit = 10, sortOrder, username}) => {
-  const usernameParam = username ? `&username=${encodeURIComponent(username)}` : '';
-  return request('GET', getFullUrl('groups', `/v1/groups/${groupId}/users?cursor=${encodeURIComponent(cursor || '')}&limit=${limit}&sortOrder=${sortOrder}${usernameParam}`)).then(d => d.data);
+export const getMembers = ({groupId, cursor, limit = 10, sortOrder}) => {
+  return request('GET', getFullUrl('groups', `/v1/groups/${groupId}/users?cursor=${encodeURIComponent(cursor || '')}&limit=${limit}&sortOrder=${sortOrder}`)).then(d => d.data);
 }
 
 export const getRolesetMembers = ({ groupId, roleSetId, cursor, limit = 10, sortOrder }) => {
@@ -158,13 +157,4 @@ export const getGroupAuditLog = ({ groupId, cursor, userId, action }) => {
 
 export const searchGroups = async ({keyword, limit, offset}) => {
   return await request('GET', getFullUrl('groups', '/v1/groups/search?keyword=' + (keyword||'') + '&maxRows='+limit+'&startIndex='+offset)).then(d => d.data);
-}
-
-export const renameGroup = ({groupId, name}) => {
-  return request('PATCH', getFullUrl('groups', `/v1/groups/${groupId}/name`), { name });
-}
-
-export const getPreviousGroupNames = ({ groupId }) => {
-  return request('GET', getFullUrl('groups', `/v1/groups/${groupId}/name-history`))
-    .then(d => d.data.data.map(v => v.name));
 }

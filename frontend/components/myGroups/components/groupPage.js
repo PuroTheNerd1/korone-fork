@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { getGroupGames } from "../../../services/games";
-import { claimGroupOwnership, getPermissionsForRoleset, getPreviousGroupNames, getPrimaryGroup, joinGroup, setStatus } from "../../../services/groups";
+import { claimGroupOwnership, getPermissionsForRoleset, getPrimaryGroup, joinGroup, setStatus } from "../../../services/groups";
 import { multiGetGroupIcons } from "../../../services/thumbnails";
 import AuthenticationStore from "../../../stores/authentication";
 import ActionButton from "../../actionButton";
@@ -54,62 +54,7 @@ const useStyles = createUseStyles({
     bottom: '2.5px',
     left: '4px',
   },
-  previousNamesLabel: {
-    fontSize: '12px',
-    fontWeight: 500,
-    cursor: 'pointer',
-    userSelect: 'none',
-    color: 'var(--text-color-secondary)',
-    marginBottom: 0,
-  },
-  pastNameIcon: {
-    backgroundSize: '40px auto',
-    width: '20px',
-    height: '20px',
-    backgroundPosition: '0 -780px',
-    opacity: '.5',
-    display: 'inline-block',
-    '&:hover': {
-      cursor: 'pointer',
-      backgroundPosition: '-20px -780px',
-    },
-  },
-  previousNamesToolTip: {
-    position: 'absolute',
-    display: 'flex',
-    flexDirection: 'column',
-    width: '150px',
-    padding: '4px 8px',
-    background: 'rgba(0,0,0,0.65)',
-    zIndex: 99,
-    transition: 'opacity .15s linear',
-    opacity: 0,
-  },
-  tooltipVisible: {
-    opacity: 1,
-  },
-  previousName: {
-    color: '#fff',
-    marginBottom: 0,
-  },
 })
-
-const PreviousGroupNames = () => {
-  const store = GroupPageStore.useContainer();
-  const [tooltipOpen, setTooltipOpen] = useState(false);
-  const s = useStyles();
-
-  if (!store.previousNames || store.previousNames.length === 0) return null;
-
-  return <div>
-    <p className={s.previousNamesLabel} onMouseEnter={() => setTooltipOpen(true)} onMouseLeave={() => setTooltipOpen(false)}>
-      <span className={'icon-pastname ' + s.pastNameIcon} /> Past names
-    </p>
-    <div className={`${s.previousNamesToolTip} ${tooltipOpen ? s.tooltipVisible : ''}`}>
-      {store.previousNames.map((v, i) => <p key={i} className={s.previousName}>{v}</p>)}
-    </div>
-  </div>
-}
 
 const GroupPage = props => {
   const store = GroupPageStore.useContainer();
@@ -129,15 +74,7 @@ const GroupPage = props => {
       groupId: store.groupId,
       cursor: null,
     }).then(store.setGames);
-
   }, [store.groupId]);
-
-  useEffect(() => {
-    if (!store.groupId || store.previousNames !== null) return;
-    getPreviousGroupNames({ groupId: store.groupId })
-      .then(store.setPreviousNames)
-      .catch(() => store.setPreviousNames([]));
-  }, [store.groupId, store.previousNames]);
 
   useEffect(() => {
     if (!store.groupId) return;
@@ -199,7 +136,6 @@ const GroupPage = props => {
           }} />
         </div>
       }
-      {store.rank && <div className='mt-2'><PreviousGroupNames /></div>}
     </div>
     <div className='col-9 ps-0'>
       <h2>

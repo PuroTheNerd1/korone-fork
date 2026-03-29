@@ -2,7 +2,7 @@ import updatePlaceStore from "../stores/updatePlaceStore";
 import { useEffect, useState } from "react";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
-import { setUniverseMaxPlayers, setPlaceYear, setPlaceRobloxPlaceId } from "../../../services/develop";
+import { setUniverseMaxPlayers, setUniverseYear, setPlaceRobloxPlaceId } from "../../../services/develop";
 
 const Access = (props) => {
   const s = useButtonStyles();
@@ -22,8 +22,8 @@ const Access = (props) => {
   const save = () => {
     store.setLocked(true);
     setFeedback(null);
-    setPlaceYear({
-      placeId: store.details.placeId,
+    setUniverseYear({
+      universeId: store.details.universeId,
       year: year,
     });
     setPlaceRobloxPlaceId({

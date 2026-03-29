@@ -78,6 +78,12 @@ const MembershipBadges = [
         iconTwo: 0,
     },
     {
+        name: 'Turbo Builders Club Badge',
+        desc: 'Members of the exclusive Turbo Builders Club are some of the most dedicated Pekorians. The Turbo Builders Club is a paid premium service. Members receive many of the benefits received in the regular Builders Club, in addition to a few more exclusive upgrades: they earn a daily income of 35 Robux, they can sell their creations to others in the Korone Catalog, they get the ability to browse the web site without external ads, they receive the exclusive Turbo Builders Club red site managers hat, and they receive an exclusive gear item.',
+        iconOne: 6, // had to remove 1
+        iconTwo: 1, // had to add 1
+    },
+    {
         name: ' Outrageous Builders Club Badge',
         desc: 'Members of Outrageous Builders Club are VIP Pekorians. They are the cream of the crop. The Outrageous Builders Club is a paid premium service. Members receive 100 groups, 85 Robux per day, and many other benefits.',
         iconOne: 7, // had to remove 1

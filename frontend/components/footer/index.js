@@ -5,7 +5,8 @@ import getConfig from "next/config";
 const footerLinks = {
   '/about-us': 'About Us',
   'https://discord.gg/korone': 'Discord',
-  '/internal/exchange': 'Exchange Currency',
+  '/internal/robuxexchange': 'Robux Exchange',
+  '/internal/tixexchange': 'Tix Exchange',
   '/auth/tos': 'Terms',
   '/auth/privacy': 'Privacy',
 };

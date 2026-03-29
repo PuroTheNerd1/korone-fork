@@ -22,23 +22,14 @@ public class PrivateMessagesControllerV1 : ControllerBase
             id = 1,
             sender = new
             {
-                id = 443,
-                name = "supra",
-                displayName = "supra",
+                id = 1,
+                name = "ROBLOX",
+                displayName = "ROBLOX",
             },
-            subject = "Welcome to Korone!",
-            body = @"Hello, and welcome to Korone! My name is Supra. I started Korone so you and your friends can experience just about anything you could possibly imagine across immersive user-generated 3D worlds, whether you're sailing across the open seas, exploring the farthest reaches of outer space, or hanging out with your friends in a virtual club. I'm here to make sure your experience stays fun, safe, and creative.
-
-Before you jump in and start playing, here are a few tips. You can [customize your avatar](/My/Avatar) using our massive catalog of clothing and accessory options. Once you're set, pick something to play by checking out [our most popular games](/games)! Did you know you can also play games with your friends across different devices at the same time, even if you're on a computer and they're using their phone or VR headset? Finding friends on Korone is easy! Join or create a group, or invite others to play a game with you by sending them a chat message.
-
-That's all there is to it! Now, get ready for an epic adventure. We hope you have a blast!
-
-Sincerely,
-
-Supra, CEO of Korone",
+            subject = "Welcome to Korone",
+            body = "",
             created = "2021-01-13T12:00:00.42Z",
             updated = "2021-01-13T12:00:00.42Z",
-            isReplyable = false,
         }
     };
     [HttpGet("announcements/metadata")]
@@ -51,23 +42,12 @@ Supra, CEO of Korone",
     }
 
     [HttpGet("announcements")]
-    public async Task<dynamic> GetAnnouncements()
+    public dynamic GetAnnouncements()
     {
-        var userInfo = await services.users.GetUserById(safeUserSession.userId);
-        var collection = GlobalMessages.Select(m => m.subject == "Welcome to Korone!" ? new
-        {
-            m.id,
-            m.sender,
-            m.subject,
-            m.body,
-            created = userInfo.created,
-            updated = userInfo.created,
-            isReplyable = false,
-        } : (dynamic)m).ToList();
         return new
         {
-            collection,
-            totalCollectionSize = collection.Count,
+            collection = GlobalMessages,
+            totalCollectionSize = GlobalMessages.Count,
         };
     }
 
@@ -86,15 +66,6 @@ Supra, CEO of Korone",
     public async Task<dynamic> SendMessage([Required,FromBody] SendMessageRequest request)
     {
         FeatureCheck();
-        if (GlobalMessages.Any(m => m.id == request.replyMessageId && m.isReplyable == false))
-        {
-            return new
-            {
-                success = false,
-                shortMessage = "GeneralError",
-                message = "You cannot reply to this message.",
-            };
-        }
         if (await services.privateMessages.IsFloodChecked(safeUserSession.userId))
         {
             return new

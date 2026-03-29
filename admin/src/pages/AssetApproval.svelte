@@ -94,26 +94,15 @@
 		console.log('blur',blur);
 
 	}
-
-
 </script>
 
 
 <style>
-	.btn-group button {
+	button {
 		width: 100%;
 	}
 	input {
 		width: 100%;
-	}
-	.nav-link {
-		width: auto;
-		background: none;
-		border: none;
-		color: #e0e0e0;
-	}
-	.nav-link.active {
-		color: #212529;
 	}
 </style>
 
@@ -126,9 +115,6 @@
 	<div class="row">
 		<div class="col-12">
 			<h1>Asset Approval</h1>
-		</div>
-
-		<div class="col-12">
 			<div class="row">
 				<div class="col-6 col-lg-4">
 					<select class="form-control" bind:value={modMode}>
@@ -260,6 +246,5 @@
 				</div>
 			{/if}
 		</div>
-
 	</div>
 </Main>

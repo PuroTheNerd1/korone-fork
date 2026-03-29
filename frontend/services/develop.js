@@ -139,12 +139,6 @@ export const setUniverseYear = async ({ universeId, year, verbose = false }) => 
     }, verbose);
 }
 
-export const setPlaceYear = async ({ placeId, year, verbose = false }) => {
-    return await request('PATCH', getFullUrl('develop', `/v1/places/${placeId}/set-year`), {
-        year,
-    }, verbose);
-}
-
 export const setUniverseMaxPlayers = async ({ universeId, maxPlayers, verbose = false }) => {
     return await request('PATCH', getFullUrl('develop', `/v1/universes/${universeId}/max-player-count`), {
         maxPlayers,

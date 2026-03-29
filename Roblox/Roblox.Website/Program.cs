@@ -77,9 +77,6 @@ Roblox.Configuration.AssetValidationServiceUrl =
 Roblox.Configuration.AssetValidationServiceAuthorization =
     configuration.GetSection("AssetValidation:Authorization").Value!;
 GameServerService.Configure(string.Join(Guid.NewGuid().ToString(), new int [16].Select(_ => Guid.NewGuid().ToString()))); // More TODO: If we every load balance, this will break
-Roblox.Configuration.AiUserId = long.Parse(configuration.GetSection("AI:UserId").Value!);
-Roblox.Configuration.OpenRouterApiKey = configuration.GetSection("AI:OpenRouterAPIKey").Value!;
-Roblox.Configuration.CondoDenyLogChannelId = configuration.GetSection("Discord:CondoDenyLogChannelId").Value!;
 Roblox.Configuration.PackageShirtAssetId = long.Parse(configuration.GetSection("PackageShirtAssetId").Value!);
 Roblox.Configuration.PackagePantsAssetId = long.Parse(configuration.GetSection("PackagePantsAssetId").Value!);
 Roblox.Libraries.TwitterApi.TwitterApi.Configure(configuration.GetSection("Twitter:Bearer").Value!);
@@ -95,12 +92,8 @@ FeatureFlags.StartUpdateFlagTask();
 var ownerUserIdConfig = configuration.GetSection("OwnerUserId");
 List<long> ownerUserIds = ownerUserIdConfig.Get<List<long>>()!;
 Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds!);
-Roblox.Website.Lib.ChallengeLockService.Configure(
-    configuration.GetSection("ChallengeLock:SecretKey").Value
-    ?? throw new InvalidOperationException("ChallengeLock:SecretKey not configured"));
 //Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
 
-builder.Services.AddRobloxRateLimiter();
 builder.Services.AddRazorPages();
 builder.Services.AddRequestDecompression();
 builder.Services.AddControllers(options =>
@@ -143,8 +136,6 @@ builder.Services.AddHostedService<Roblox.Website.R2MigrationWorker>();
 
 var app = builder.Build();
 app.UseRouting();
-app.UseExceptionHandler("/error");
-app.UseRateLimiter();
 app.UseSwaggerUI(c =>
 {
     c.ShowCommonExtensions();
@@ -230,6 +221,7 @@ app.UseMiddleware<FrontendProxyMiddleware>();
 //app.UseMiddleware<RobloxLoggingMiddleware>();
 //app.UseRobloxLoggingMiddleware();
 
+app.UseExceptionHandler("/error");
 //await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");
 //CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value); // will be removed soon
 
@@ -243,7 +235,6 @@ _ = Task.Run(async () =>
     await assets.FixAssetImagesWithoutMetadata();
 });
 _ = Task.Run(AvatarService.StartTimerClear3D);
-_ = Task.Run(AiReportReviewService.StartReviewLoop);
 app.MapControllers();
 app.MapRazorPages();
 app.UseWebSockets();

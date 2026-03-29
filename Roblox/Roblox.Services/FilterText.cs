@@ -190,7 +190,6 @@ public class FilterService : ServiceBase, IService
         "retard"
      };
     private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
-
     public string FilterText(string input)
     {
         /* Stop the fucking annoying ฏ text spamming*/
@@ -223,8 +222,9 @@ public class FilterService : ServiceBase, IService
             .ToArray());
 
         if (_filteredWordsSet.Any(word => cleanedInput.Contains(word)))
+        {
             return new string('#', input.Length);
-
+        }
         return input;
     }
     public string CleanText(string input)

@@ -415,16 +415,6 @@ public class GamesService : ServiceBase, IService
         return oldest;
     }
 
-    public async Task<long> GetTotalPlaytimeSeconds(long userId)
-    {
-        var result = await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COALESCE(FLOOR(SUM(EXTRACT(EPOCH FROM (COALESCE(ended_at, NOW()) - created_at)))), 0)::bigint AS total FROM asset_play_history WHERE user_id = :user_id", new
-            {
-                user_id = userId,
-            });
-        return result?.total ?? 0;
-    }
-
     public async Task<IEnumerable<PlayEntry>> GetRecentGamePlays(long userId, TimeSpan period)
     {
         var date = DateTime.UtcNow.Subtract(period);

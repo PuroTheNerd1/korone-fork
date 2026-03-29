@@ -86,7 +86,7 @@ public class WebController : ControllerBase
         }
 
         // create session
-        var sess = await services.users.CreateSession(user.userId, Request.Headers["User-Agent"].ToString());
+        var sess = await services.users.CreateSession(user.userId);
         var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
         {
             sessionId = sess,
@@ -145,7 +145,7 @@ public class WebController : ControllerBase
             SameSite = SameSiteMode.Lax,
         });
         
-        return Redirect("/");
+        return Redirect("/auth/application");
     }
     
     // [HttpGetBypass("api/userinfo")]

@@ -1,11 +1,7 @@
 import dayjs from "dayjs";
-import { useState, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { getGameUrl, multiGetUniverseDetails } from "../../../services/games";
-import { getTheme, themeType } from "../../../services/theme";
-import { multiGetUniverseIcons2 } from "../../../services/thumbnails";
+import { getGameUrl } from "../../../services/games";
 import Activity from "../../userActivity";
-import ChatStore from "../../chat/chatStore";
 import DashboardStore from "../stores/dashboardStore";
 import Link from "../../link";
 import PlayerHeadshot from "../../playerHeadshot";
@@ -34,7 +30,9 @@ const useStyles = createUseStyles({
     thumbnailWrapper: {
         maxWidth: '90px',
         borderRadius: '100%',
+        //border: '1px solid var(--text-color-quinary)',
         border: 'none',
+        //overflow: 'hidden',
         boxShadow: '0 1px 4px 0 rgba(25,25,25,0.3)',
         margin: '0 auto',
         display: 'block',
@@ -64,6 +62,7 @@ const useStyles = createUseStyles({
     },
     activityWrapper: {
         float: 'right',
+        //marginTop: '-26px',
         zIndex: 2,
         position: 'absolute',
         right: 0,
@@ -72,176 +71,12 @@ const useStyles = createUseStyles({
     img: {
         borderRadius: '100%',
     },
-    popup: {
-        position: 'fixed',
-        zIndex: 9999,
-        minWidth: '220px',
-        background: 'var(--white-color)',
-        borderRadius: '2px',
-        boxShadow: '0 4px 16px rgba(25,25,25,0.2)',
-        overflow: 'hidden',
-        border: '1px solid rgba(25,25,25,0.08)',
-    },
-    gameSection: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: '10px 12px',
-        borderBottom: '1px solid rgba(25,25,25,0.08)',
-    },
-    gameThumbnailImg: {
-        width: '72px',
-        height: '72px',
-        objectFit: 'cover',
-        borderRadius: '4px',
-        flexShrink: 0,
-        background: '#e3e3e3',
-    },
-    gameThumbnailPlaceholder: {
-        width: '72px',
-        height: '72px',
-        borderRadius: '4px',
-        flexShrink: 0,
-        background: '#e3e3e3',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    gameInfo: {
-        display: 'flex',
-        flexDirection: 'column',
-        paddingLeft: '10px',
-        justifyContent: 'center',
-        flex: 1,
-        overflow: 'hidden',
-    },
-    gameLocation: {
-        fontSize: '11px',
-        color: 'var(--text-color-secondary)',
-        marginBottom: '2px',
-        fontWeight: 400,
-    },
-    gameName: {
-        fontWeight: 600,
-        fontSize: '13px',
-        color: 'var(--text-color-primary)',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        marginBottom: '2px',
-    },
-    gameYear: {
-        fontSize: '11px',
-        color: 'var(--text-color-secondary)',
-        marginBottom: '8px',
-    },
-    joinButton: {
-        display: 'inline-block',
-        background: '#00b06f',
-        color: '#fff',
-        borderRadius: '4px',
-        padding: '4px 14px',
-        fontWeight: 600,
-        fontSize: '13px',
-        textDecoration: 'none',
-        '&:hover': {
-            background: '#009960',
-            color: '#fff',
-            textDecoration: 'none',
-        }
-    },
-    popupActions: {
-        padding: '4px 0',
-    },
-    popupAction: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: '8px 12px',
-        color: 'var(--text-color-primary)',
-        fontSize: '13px',
-        cursor: 'pointer',
-        textDecoration: 'none',
-        '&:hover': {
-            background: 'rgba(25,25,25,0.05)',
-            textDecoration: 'none',
-            color: 'var(--text-color-primary)',
-        }
-    },
-    popupIcon: {
-        marginRight: '10px',
-        flexShrink: 0,
-        filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
-    },
 });
-
 const FriendEntry = props => {
     const store = DashboardStore.useContainer();
-    const chatStore = ChatStore.useContainer();
     const onlineStatus = store.friendStatus && store.friendStatus[props.id];
-    const s = useStyles({ theme: getTheme() });
-    const liRef = useRef(null);
-    const hideTimeoutRef = useRef(null);
-    const [isHovered, setIsHovered] = useState(false);
-    const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
-    const [gameThumbnail, setGameThumbnail] = useState(null);
-    const [gameYear, setGameYear] = useState(null);
-
-    const isOnline = onlineStatus && dayjs(onlineStatus.lastOnline).isAfter(dayjs().subtract(5, 'minutes'));
-    const isPlaying = onlineStatus?.lastLocation === 'Playing';
-
-    const cancelHide = () => {
-        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    };
-
-    const scheduleHide = () => {
-        cancelHide();
-        hideTimeoutRef.current = setTimeout(() => setIsHovered(false), 150);
-    };
-
-    const handleMouseEnter = () => {
-        cancelHide();
-        if (liRef.current) {
-            const rect = liRef.current.getBoundingClientRect();
-            setPopupPos({
-                top: rect.bottom + 8,
-                left: rect.left,
-            });
-        }
-        setIsHovered(true);
-        if (isPlaying && onlineStatus?.gameId) {
-            if (!gameThumbnail) {
-                multiGetUniverseIcons2({ universeIds: [onlineStatus.gameId] }).then(icons => {
-                    if (icons && icons[0]) setGameThumbnail(icons[0].imageUrl);
-                });
-            }
-            if (!gameYear) {
-                multiGetUniverseDetails({ universeIds: [onlineStatus.gameId] }).then(details => {
-                    if (details && details[0]?.created) {
-                        setGameYear(new Date(details[0].created).getFullYear());
-                    }
-                });
-            }
-        }
-    };
-
-    const openChat = (e) => {
-        e.preventDefault();
-        let existing = [...chatStore.selectedConversation.filter(v => {
-            if (v.conversationId === null) {
-                return v.user.id !== props.id;
-            }
-            return true;
-        })];
-        if (existing.length >= 3) {
-            existing = existing.slice(0, 2);
-        }
-        existing.unshift({ user: { id: props.id, username: props.name, isTyping: false }, conversationId: null, latestMessage: null });
-        chatStore.setSelectedConversation(existing);
-        setIsHovered(false);
-    };
-
-    return <li className={s.friendEntry} ref={liRef} onMouseEnter={handleMouseEnter} onMouseLeave={scheduleHide}>
+    const s = useStyles();
+    return <li className={s.friendEntry}>
         <div className={s.friendWrapper}>
             <span>
                 <Link href={`/users/${props.id}/profile`}>
@@ -255,41 +90,6 @@ const FriendEntry = props => {
                 </Link>
             </span>
         </div>
-        {isHovered && (
-            <div className={s.popup} style={{ top: popupPos.top, left: popupPos.left }}
-                onMouseEnter={cancelHide}
-                onMouseLeave={scheduleHide}
-            >
-                {isPlaying && isOnline && (
-                    <div className={s.gameSection}>
-                        {gameThumbnail
-                            ? <img className={s.gameThumbnailImg} src={gameThumbnail} alt={onlineStatus.lastLocation} />
-                            : <div className={s.gameThumbnailPlaceholder}><span className='icon-game' /></div>
-                        }
-                        <div className={s.gameInfo}>
-                            <span className={s.gameLocation}>Playing</span>
-                            <span className={s.gameName}>{onlineStatus.lastLocation}</span>
-                            {gameYear && <span className={s.gameYear}>{gameYear}</span>}
-                            <Link href={getGameUrl({ placeId: onlineStatus.placeId, name: onlineStatus.lastLocation })}>
-                                <a className={s.joinButton}>Join</a>
-                            </Link>
-                        </div>
-                    </div>
-                )}
-                <div className={s.popupActions}>
-                    <a className={s.popupAction} href='#' onClick={openChat}>
-                        <span className={`${s.popupIcon} icon-nav-message`} />
-                        Chat with {props.name}
-                    </a>
-                    <Link href={`/users/${props.id}/profile`}>
-                        <a className={s.popupAction}>
-                            <span className={`${s.popupIcon} icon-nav-profile`} />
-                            View Profile
-                        </a>
-                    </Link>
-                </div>
-            </div>
-        )}
     </li>
 }
 
