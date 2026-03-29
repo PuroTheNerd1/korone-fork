@@ -91,11 +91,13 @@ const UserProfileStore = createContainer(() => {
             userId,
         }).then(setIsFollowing);
         getUserConnections({ userId, returnUrls: true }).then(setUserConns);
-        GetUserThumb3D(userId);
+        if (getFlag('3DRendersEnabled', false)) {
+            GetUserThumb3D(userId);
+        }
     }, [userId]);
-    
+
     useEffect(() => {
-        if (userAv3D === null) {
+        if (userAv3D === null && getFlag('3DRendersEnabled', false)) {
             GetUserThumb3D(userId);
         }
     }, [userAv3D]);
