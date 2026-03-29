@@ -227,17 +227,19 @@ app.UseExceptionHandler("/error");
 
 RenderingHandler.Configure();
 SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value!);
-app.UseTimerMiddleware(); // Must always be last
 Roblox.Services.Signer.SignService.Setup();
-//_ = Task.Run(async () =>
-//{
-//    using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
-//    await assets.FixAssetImagesWithoutMetadata();
-//});
-_ = Task.Run(AvatarService.StartTimerClear3D);
+app.UseTimerMiddleware(); // Must always be last
 app.MapControllers();
 app.MapRazorPages();
 app.UseWebSockets();
 app.UseRequestDecompression();
 app.MapHub<MessageRouterHub>("/v1/router/signalr");
 app.Run();
+
+
+//_ = Task.Run(async () =>
+//{
+//    using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
+//    await assets.FixAssetImagesWithoutMetadata();
+//});
+_ = Task.Run(AvatarService.StartTimerClear3D);
