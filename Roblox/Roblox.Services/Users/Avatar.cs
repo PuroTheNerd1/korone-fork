@@ -628,7 +628,7 @@ public class AvatarService : ServiceBase, IService {
 
     private async Task<bool> ConfirmAssetSelectionIsOkForRender(IEnumerable<long> unknownAssetIds)
     {
-        var assets = new AssetsService();
+        using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
         var assetIds = unknownAssetIds.ToList();
         if (assetIds.Count == 0) return true;
         var details = await assets.MultiGetInfoById(assetIds);
@@ -1082,44 +1082,48 @@ public class AvatarService : ServiceBase, IService {
     {
         _timer = new Timer(async void (_) =>
         {
-            Writer.Info(LogGroup.ClearThumbnail3DFolder, "Clearing stale 3D thumbnails from R2 (older than 5 days)...");
-            try
+            await Clear3DStaleFiles();
+        }, null, TimeSpan.FromSeconds(3), TimeSpan.FromHours(6));
+    }
+
+    private static async Task Clear3DStaleFiles()
+    {
+        Writer.Info(LogGroup.ClearThumbnail3DFolder, "Clearing stale 3D thumbnails from R2 (older than 5 days)...");
+        try
+        {
+            var r2 = ServiceProvider.GetOrCreate<R2StorageService>();
+            var keys = await r2.ListFilesAsync("images/thumbnails/3d/");
+            var fiveDaysAgo = DateTime.UtcNow.Subtract(TimeSpan.FromDays(5));
+            var deleted = 0;
+
+            foreach (var key in keys)
             {
-                var r2 = ServiceProvider.GetOrCreate<R2StorageService>();
-                var keys = await r2.ListFilesAsync("images/thumbnails/3d/");
-                var fiveDaysAgo = DateTime.UtcNow.Subtract(TimeSpan.FromDays(5));
-                var deleted = 0;
+                var lastUsed = _3dLastUsed.GetValueOrDefault(key, DateTime.MinValue);
+                if (lastUsed >= fiveDaysAgo) continue;
 
-                foreach (var key in keys)
+                if (!_3dLastUsed.ContainsKey(key))
                 {
-                    var lastUsed = _3dLastUsed.GetValueOrDefault(key, DateTime.MinValue);
-                    if (lastUsed >= fiveDaysAgo) continue;
-                    
-                    // Not in dict (e.g. after restart) — check actual R2 metadata before deleting
-                    if (!_3dLastUsed.ContainsKey(key))
+                    var meta = await r2.GetFileMetadataAsync(key);
+                    if (meta != null && meta.LastModified.ToUniversalTime() >= fiveDaysAgo)
                     {
-                        var meta = await r2.GetFileMetadataAsync(key); 
-                        if (meta != null && meta.LastModified.ToUniversalTime() >= fiveDaysAgo) 
-                        {
-                            _3dLastUsed[key] = meta.LastModified; // prime the dict
-                            continue;
-                        }
+                        _3dLastUsed[key] = meta.LastModified;
+                        continue;
                     }
-
-                    Writer.Info(LogGroup.ClearThumbnail3DFolder,
-                        $"Deleting stale 3D thumbnail {key}, last used: {lastUsed:u}");
-                    await r2.DeleteFileAsync(key);
-                    _3dLastUsed.TryRemove(key, out var _);
-                    deleted++;
                 }
 
                 Writer.Info(LogGroup.ClearThumbnail3DFolder,
-                    $"Successfully cleared {deleted} stale 3D thumbnails from R2.");
+                    $"Deleting stale 3D thumbnail {key}, last used: {lastUsed:u}");
+                await r2.DeleteFileAsync(key);
+                _3dLastUsed.TryRemove(key, out var _);
+                deleted++;
             }
-            catch (Exception ex)
-            {
-                Writer.Info(LogGroup.ClearThumbnail3DFolder, $"Error during 3D thumbnail cleanup: {ex.Message}");
-            }
-        }, null, TimeSpan.FromSeconds(3), TimeSpan.FromHours(3));
+
+            Writer.Info(LogGroup.ClearThumbnail3DFolder,
+                $"Successfully cleared {deleted} stale 3D thumbnails from R2.");
+        }
+        catch (Exception ex)
+        {
+            Writer.Info(LogGroup.ClearThumbnail3DFolder, $"Error during 3D thumbnail cleanup: {ex.Message}");
+        }
     }
 }

@@ -242,4 +242,7 @@ app.Run();
 //    using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
 //    await assets.FixAssetImagesWithoutMetadata();
 //});
-//_ = Task.Run(AvatarService.StartTimerClear3D);
+_ = Task.Run(async () =>
+{
+    AvatarService.StartTimerClear3D();
+});

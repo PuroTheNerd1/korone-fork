@@ -457,13 +457,9 @@ public class RobloxApi
 
         if (!result.IsSuccessStatusCode)
         {
-            Console.WriteLine($"Response was {body}");
             return null;
         }
 
-
-
-        Console.WriteLine($"Response was {body}");
         return JsonSerializer.Deserialize<AssetDelivery>(body)!;
     }
     public async Task<Stream> GetAssetContentFromProxy(long assetId, long? version = null)
