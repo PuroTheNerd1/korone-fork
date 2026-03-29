@@ -10,7 +10,6 @@
 	let usersInGame: {user_id: number; username: string; asset_id: number; asset_name: string;}[] | undefined;
 	let numPendingAssets: number|undefined;
 //	let numPendingText: number|undefined; -- not in use, no clue what it's even for - shady
-	let numPendingApplications: number|undefined;
 	let numPendingAbuseReports: number|undefined;
 
 	Promise.all([
@@ -26,9 +25,6 @@
 	})
 
 	let showInGame = false;
-	request.get("/applications/pending-num").then((data) => {
-		numPendingApplications = data.data.count;
-	});
 	request.get("/reports/pending-count").then((data) => {
 		numPendingAbuseReports = data.data.count;
 	});
@@ -76,11 +72,6 @@ import { now } from 'svelte/internal';
 				showInGame = !showInGame;
 			}} key={((typeof usersOnline === "number" && usersOnline.toLocaleString()) || "-") + '/' + ((usersInGame && usersInGame.length.toLocaleString()) || "-")} value="Users Online and In-Game" cardClasses="bg-primary bg-gradient pointer" />
 		</Permission>
-		{#if numPendingApplications != undefined}
-			<DashStatCard onClick={() => {
-				navigate('/admin/applications');
-			}} value='Pending Applications Count' key={numPendingApplications.toString()} cardClasses="bg-primary bg-gradient pointer" />
-		{/if}
 		{#if numPendingAbuseReports != undefined}
 			<DashStatCard onClick={() => {
 				navigate('/admin/reports');

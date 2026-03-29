@@ -100,5 +100,6 @@ public static class Configuration
         }
     }
 
+    public static long AiUserId { get; set; } = 1;
     public static string GameServerDomain => "pekora.zip"; // set to your game server's domain
 }

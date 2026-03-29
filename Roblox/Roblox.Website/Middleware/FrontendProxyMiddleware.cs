@@ -192,7 +192,8 @@ public class FrontendProxyMiddleware
         string requestUrl = ctx.Request.GetEncodedPathAndQuery();
         string requestFullUrl = ctx.Request.GetEncodedUrl();
 
-        if (requestUrl.Contains("/canmanage/") ||
+        if (requestUrl == "/" ||
+            requestUrl.Contains("/canmanage/") ||
             requestUrl.Contains("filter-friends") ||
             requestUrl.Contains("multiget-friend-requests") ||
             requestUrl.Contains("AbuseReport") ||
