@@ -10,507 +10,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Korone</title>
     <meta name="description" content="Experience nostalgia once again with Korone."/>
-    <meta property="og:title" content="Korone" />
-    <meta property="og:description" content="Experience nostalgia once again with Korone." />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    <link href="https://www.pekora.zip/fonts/gotham1.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="/img/korone-icon-square.png">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'HCo Gotham SSm', 'Gotham SSm', 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-        .landing-bg {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: url('/UnsecuredContent/ThumbnailSignUp.png') center center / cover no-repeat;
-            z-index: 0;
-        }
-        .landing-navbar {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 100;
-            background: rgba(0,0,0,0.55);
-            padding: 6px 16px;
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-        .landing-navbar .nav-logo {
-            width: 30px; height: 30px;
-            object-fit: contain;
-        }
-        .landing-navbar .nav-link-play {
-            color: #fff;
-            font-weight: 600;
-            font-size: 15px;
-            text-decoration: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-        }
-        .landing-navbar .nav-link-play:hover {
-            background: rgba(255,255,255,0.12);
-        }
-        .landing-navbar .login-section {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .landing-navbar .login-section input[type="text"],
-        .landing-navbar .login-section input[type="password"] {
-            height: 30px;
-            padding: 2px 10px;
-            border: 1px solid #bbb;
-            border-radius: 3px;
-            font-size: 13px;
-            width: 150px;
-            outline: none;
-        }
-        .landing-navbar .btn-login {
-            background: #8A5149;
-            color: #fff;
-            border: none;
-            border-radius: 3px;
-            padding: 4px 16px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            height: 30px;
-        }
-        .landing-navbar .btn-login:hover { background: #9C6A5E; }
-        .landing-subbar {
-            position: fixed;
-            top: 42px; left: 0; right: 0;
-            z-index: 99;
-            background: rgba(0,0,0,0.35);
-            padding: 3px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 14px;
-            font-size: 12px;
-        }
-        .landing-subbar a {
-            color: #ddd;
-            text-decoration: none;
-        }
-        .landing-subbar a:hover { color: #fff; text-decoration: underline; }
-
-        .landing-content {
-            position: relative;
-            z-index: 10;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding-top: 70px;
-        }
-        .landing-video-col {
-            flex: 0 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-            padding: 40px 20px 40px 32px;
-        }
-        .promo-video-wrap {
-            position: relative;
-            display: inline-block;
-        }
-        .join-label {
-            color: #fff;
-            font-size: 28px;
-            font-weight: 800;
-            text-align: center;
-            width: 100%;
-            margin: 0 0 2px 0;
-            text-shadow: 2px 3px 10px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.7);
-            letter-spacing: 1px;
-            line-height: 1.2;
-        }
-        .promo-video {
-            display: block;
-            width: 520px;
-            max-width: 90vw;
-            border-radius: 8px;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.6);
-        }
-        .video-btn {
-            position: absolute;
-            bottom: 10px;
-            background: rgba(0,0,0,0.55);
-            border: none;
-            border-radius: 50%;
-            width: 34px;
-            height: 34px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 16px;
-            transition: background 0.2s;
-        }
-        .video-btn:hover { background: rgba(0,0,0,0.8); }
-        .mute-btn { right: 10px; }
-        .fullscreen-btn { right: 52px; }
-        .landing-center {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-        .landing-center .main-logo {
-            max-width: 420px;
-            width: 100%;
-            filter: drop-shadow(2px 2px 10px rgba(0,0,0,0.8));
-        }
-        .landing-center .tagline {
-            font-size: 28px;
-            color: #fff;
-            text-shadow: 1px 2px 6px rgba(0,0,0,0.8);
-            margin-top: 12px;
-            font-weight: 400;
-            background: rgba(0,0,0,0.4);
-            padding: 6px 24px;
-            text-align: center;
-        }
-
-        .signup-panel {
-            background: rgba(230,230,230,0.92);
-            padding: 28px 32px;
-            border-radius: 6px;
-            width: 380px;
-            max-width: 95vw;
-            margin: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-        .signup-panel h2 {
-            font-size: 20px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 16px;
-            color: #333;
-        }
-        .signup-panel .btn-discord-verify {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: #5865f2;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            text-decoration: none;
-            margin-bottom: 14px;
-        }
-        .signup-panel .btn-discord-verify:hover { background: #4752c4; color: #fff; }
-        .signup-panel .discord-verified {
-            background: #e8f5e9;
-            border: 1px solid #66bb6a;
-            border-radius: 4px;
-            padding: 8px 12px;
-            margin-bottom: 14px;
-            font-size: 13px;
-            color: #2e7d32;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .signup-panel input[type="text"],
-        .signup-panel input[type="password"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #aaa;
-            border-radius: 4px;
-            font-size: 14px;
-            margin-bottom: 10px;
-            outline: none;
-            background: #fff;
-        }
-        .signup-panel input:focus {
-            border-color: #5865f2;
-        }
-        .signup-panel .btn-signup {
-            width: 100%;
-            background: #999;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-        .signup-panel .btn-signup.active {
-            background: #8A5149;
-            cursor: pointer;
-        }
-        .signup-panel .btn-signup.active:hover { background: #9C6A5E; }
-        .signup-panel .signup-notice {
-            color: #d32f2f;
-            font-size: 12px;
-            text-align: center;
-            margin-top: 8px;
-        }
-        .signup-panel .text-danger {
-            color: #d32f2f;
-            font-size: 13px;
-            margin-bottom: 8px;
-        }
-        .login-error-bar {
-            position: fixed;
-            top: 66px; left: 0; right: 0;
-            z-index: 98;
-            background: #f44336;
-            color: #fff;
-            text-align: center;
-            padding: 6px;
-            font-size: 13px;
-        }
-
-        @@media (max-width: 1300px) {
-            .landing-video-col { display: none; }
-        }
-        @@media (max-width: 900px) {
-            .landing-content {
-                flex-direction: column;
-                padding-top: 80px;
-            }
-            .landing-center { padding: 20px; }
-            .landing-center .main-logo { max-width: 280px; }
-            .landing-center .tagline { font-size: 20px; }
-            .signup-panel { margin: 10px; width: 95vw; }
-            .landing-navbar .login-section input { width: 110px; }
-        }
-        @@media (max-width: 600px) {
-            .landing-navbar .login-section { display: none; }
-            .landing-subbar { justify-content: center; }
-        }
+        body { font-family: 'Source Sans Pro', sans-serif; overflow-x: hidden; min-height: 100vh; margin: 0; }
+        .landing-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('/UnsecuredContent/ThumbnailSignUp.png') center/cover; z-index: 0; }
+        .landing-navbar { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.55); padding: 8px 16px; display: flex; align-items: center; gap: 15px; }
+        .login-section { margin-left: auto; display: flex; gap: 8px; }
+        .login-section input { height: 30px; padding: 2px 10px; border-radius: 3px; border: 1px solid #bbb; font-size: 13px; outline: none; }
+        .btn-login { background: #8A5149; color: #fff; border: none; border-radius: 3px; padding: 0 16px; font-weight: 700; cursor: pointer; }
+        .landing-subbar { position: fixed; top: 46px; width: 100%; z-index: 99; background: rgba(0,0,0,0.35); padding: 4px 16px; display: flex; justify-content: flex-end; gap: 14px; font-size: 12px; }
+        .landing-subbar a { color: #ddd; text-decoration: none; }
+        .landing-content { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding-top: 60px; }
+        .promo-video { width: 520px; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.6); }
+        .signup-panel { background: rgba(230,230,230,0.95); padding: 25px; border-radius: 6px; width: 380px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 20px; }
+        .btn-discord-verify { background: #5865f2; color: #fff; width: 100%; padding: 10px; border-radius: 4px; text-decoration: none; display: block; text-align: center; margin-bottom: 15px; font-weight: 600; }
+        .btn-signup { width: 100%; padding: 10px; border: none; border-radius: 4px; font-weight: 700; background: #999; color: #fff; }
+        .btn-signup.active { background: #8A5149; cursor: pointer; }
+        @media (max-width: 900px) { .landing-content { flex-direction: column; } .landing-video-col { display: none; } }
     </style>
 </head>
 <body>
-<div class="landing-bg"></div>
+    <div class="landing-bg"></div>
 
-<div class="landing-navbar">
-    <a href="/"><img src="/img/korone-icon-square.png" class="nav-logo" alt="Korone"></a>
-    <form method="post" class="login-section" id="login-form">
-        <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername">
-        <input type="password" name="loginPassword" placeholder="Password">
-        <input type="text" name="loginTotpCode" placeholder="2FA Code (leave blank if not set)" autocomplete="one-time-code" style="height:30px;padding:2px 10px;border:1px solid #bbb;border-radius:3px;font-size:13px;width:260px;outline:none;">
-        <input type="hidden" name="formAction" value="login">
-        @Html.AntiForgeryToken()
-        <button type="submit" class="btn-login">Log In</button>
-    </form>
-</div>
+    <nav class="landing-navbar">
+        <a href="/"><img src="/img/korone-icon-square.png" height="30" alt="Logo"></a>
+        <form method="post" class="login-section">
+            <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername">
+            <input type="password" name="loginPassword" placeholder="Password">
+            <input type="hidden" name="formAction" value="login">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn-login">Log In</button>
+        </form>
+    </nav>
 
-<div class="landing-subbar">
-    <a href="/auth/password-reset">Forgot Password?</a>
-    <a href="/auth/discord-login">Login with Discord</a>
-</div>
+    <div class="landing-subbar">
+        <a href="/auth/password-reset">Forgot Password?</a>
+        <a href="/auth/discord-login">Login with Discord</a>
+    </div>
 
-@if (Model.loginError != null)
-{
-    <div class="login-error-bar">@Model.loginError</div>
-}
-
-<div class="landing-content">
-    <div class="landing-video-col">
-        <p class="join-label">JOIN OVER 70,000 USERS TODAY</p>
-        <div class="promo-video-wrap">
-            <video class="promo-video" id="promoVideo" autoplay muted loop playsinline>
+    <div class="landing-content">
+        <div class="landing-video-col px-4">
+            <h2 class="text-white fw-bold mb-2" style="text-shadow: 2px 2px 8px #000;">JOIN OVER 70,000 USERS</h2>
+            <video id="promoVideo" class="promo-video" autoplay muted loop playsinline>
                 <source src="/UnsecuredContent/KoronePromotionalVideo.mp4" type="video/mp4">
             </video>
-            <button class="video-btn fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">
-                <i class="bi bi-fullscreen" id="fullscreenIcon"></i>
-            </button>
-            <button class="video-btn mute-btn" id="muteBtn" onclick="toggleMute()" title="Unmute">
-                <i class="bi bi-volume-mute-fill" id="muteIcon"></i>
-            </button>
+        </div>
+
+        <div class="landing-center text-center px-4">
+            <img src="/img/korone.png" width="350" alt="Korone">
+            <div class="bg-dark bg-opacity-50 text-white p-2 mt-3 fs-4">Repowering Imagination&#8482;</div>
+        </div>
+
+        <div class="signup-panel">
+            <h2 class="fs-5 fw-bold text-center mb-3">SIGN UP NOW</h2>
+            
+            @if (Model.discordUser == null) {
+                <a href="/api/discordapplicationcallback" class="btn-discord-verify">
+                    <i class="bi bi-discord"></i> Verify with Discord
+                </a>
+            } else {
+                <div class="alert alert-success text-center py-2">
+                    <strong>@@@Model.discordUser.Username</strong> verified
+                </div>
+            }
+
+            <form method="post">
+                <input type="hidden" name="formAction" value="signup">
+                @if (Model.signupError != null) { <p class="text-danger small">@Model.signupError</p> }
+                
+                <input type="text" name="signupUsername" class="form-control mb-2" placeholder="Username" required @(Model.signupDisabled ? "disabled" : "")>
+                <input type="password" name="signupPassword" class="form-control mb-2" placeholder="Password" required @(Model.signupDisabled ? "disabled" : "")>
+                <input type="password" name="signupConfirmPassword" class="form-control mb-3" placeholder="Confirm Password" required @(Model.signupDisabled ? "disabled" : "")>
+
+                <div class="cf-turnstile mb-3" data-sitekey="@Model.siteKey"></div>
+
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-signup @(Model.signupDisabled ? "" : "active")" @(Model.signupDisabled ? "disabled" : "")>
+                    Sign Up
+                </button>
+            </form>
         </div>
     </div>
 
-    <div class="landing-center">
-        <img src="/img/korone.png" class="main-logo" alt="Korone">
-        <div class="tagline">Repowering Imagination&#8482;</div>
-    </div>
+    <footer style="position:fixed; bottom:0; width:100%; background:rgba(0,0,0,0.5); color:#ccc; font-size:10px; text-align:center; padding:5px;">
+        &copy; 2026 Korone. Not affiliated with Roblox Corporation.
+    </footer>
 
-    <div class="signup-panel">
-        <h2>SIGN UP AND START HAVING FUN!</h2>
-
-        @if (Model.discordUser != null)
-        {
-            <div class="discord-verified" style="flex-direction: column; align-items: center; text-align: center;">
-                @if (Model.discordAvatarUrl != null)
-                {
-                    <img src="@Model.discordAvatarUrl" alt="Discord Avatar"
-                         style="width: 48px; height: 48px; border-radius: 50%; margin-bottom: 6px;">
-                }
-                <span style="font-weight: 600;">@@@Model.discordUser.Username</span>
-                <span style="font-size: 11px; color: #666;">ID: @Model.discordUser.Id</span>
-            </div>
-        }
-        else
-        {
-            <a href="/api/discordapplicationcallback" class="btn-discord-verify">
-                <i class="bi bi-discord"></i> Verify with Discord
-            </a>
-        }
-
-        <form method="post" id="signup-form">
-            <input type="hidden" name="formAction" value="signup">
-
-            @if (Model.signupError != null)
-            {
-                <p class="text-danger">@Model.signupError</p>
-            }
-
-            <input type="text" name="signupUsername" placeholder="Username (length 3-20, _ is allowed)"
-                   value="@Model.signupUsername"
-                   maxlength="20" minlength="3" @(Model.signupDisabled ? "disabled" : "")>
-            <input type="password" name="signupPassword" placeholder="Password (minimum length 8)"
-                   minlength="8" @(Model.signupDisabled ? "disabled" : "")>
-            <input type="password" name="signupConfirmPassword" placeholder="Confirm Password"
-                   minlength="8" @(Model.signupDisabled ? "disabled" : "")>
-
-            <div class="cf-turnstile mt-2 mb-2" data-sitekey="@Model.siteKey" data-theme="light"></div>
-
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn-signup @(Model.signupDisabled ? "" : "active")"
-                    @(Model.signupDisabled ? "disabled" : "")>
-                Sign Up
-            </button>
-        </form>
-
-        @if (Model.discordUser == null)
-        {
-            <p class="signup-notice">Please verify your Discord account to sign up</p>
-        }
-    </div>
-</div>
-
-<div style="position:fixed;bottom:0;left:0;right:0;z-index:50;text-align:center;padding:6px;font-size:11px;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.35);">
-    &copy;2026 Korone. Korone is not affiliated with Roblox Corporation.
-</div>
-
-<div class="captcha-overlay" id="login-captcha-overlay">
-    <div class="captcha-modal">
-        <h3>Please verify you're human</h3>
-        <div id="login-turnstile"></div>
-        <button class="captcha-close" onclick="document.getElementById('login-captcha-overlay').classList.remove('active')">Cancel</button>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-<script>
-    var SITE_KEY = '@Model.siteKey';
-    var loginWidgetId = null;
-
-    function openLoginCaptcha() {
-        try {
-            var overlay = document.getElementById('login-captcha-overlay');
-            overlay.classList.add('active');
-
-            if (typeof turnstile === 'undefined') {
-                var poll = setInterval(function() {
-                    if (typeof turnstile !== 'undefined') {
-                        clearInterval(poll);
-                        doRenderLogin();
-                    }
-                }, 100);
-                return;
-            }
-            doRenderLogin();
-        } catch(err) {
-            alert('Error: ' + err.message);
-        }
-    }
-
-    function doRenderLogin() {
-        var loginForm = document.getElementById('login-form');
-        var overlay = document.getElementById('login-captcha-overlay');
-
-        if (loginWidgetId === null) {
-            loginWidgetId = turnstile.render(document.getElementById('login-turnstile'), {
-                sitekey: SITE_KEY,
-                theme: 'light',
-                callback: function(token) {
-                    var input = loginForm.querySelector('input[name="cf-turnstile-response"]');
-                    if (!input) {
-                        input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'cf-turnstile-response';
-                        loginForm.appendChild(input);
-                    }
-                    input.value = token;
-                    overlay.classList.remove('active');
-                    loginForm.submit();
-                }
-            });
-        } else {
-            turnstile.reset(loginWidgetId);
-        }
-    }
-</script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileAPIReady" async></script>
-<script>
-    function onTurnstileAPIReady() {
-        var el = document.getElementById('signup-turnstile');
-        if (el) {
-            turnstile.render(el, { sitekey: SITE_KEY, theme: 'light' });
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('login-captcha-overlay').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('active');
-        });
-    });
-
-    function toggleFullscreen() {
-        var video = document.getElementById('promoVideo');
-        var icon = document.getElementById('fullscreenIcon');
-        if (!document.fullscreenElement) {
-            video.requestFullscreen();
-        } else {
-            document.exitFullscreen();
-        }
-    }
-
-    document.addEventListener('fullscreenchange', function() {
-        var icon = document.getElementById('fullscreenIcon');
-        if (icon) {
-            icon.className = document.fullscreenElement ? 'bi bi-fullscreen-exit' : 'bi bi-fullscreen';
-        }
-    });
-
-    function toggleMute() {
-        var video = document.getElementById('promoVideo');
-        var icon = document.getElementById('muteIcon');
-        var btn = document.getElementById('muteBtn');
-        if (video.muted) {
-            video.muted = false;
-            icon.className = 'bi bi-volume-up-fill';
-            btn.title = 'Mute';
-        } else {
-            video.muted = true;
-            icon.className = 'bi bi-volume-mute-fill';
-            btn.title = 'Unmute';
-        }
-    }
-</script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>
