@@ -24,6 +24,28 @@ public class Membership : RobloxPageModel
     {
         if (!Enum.IsDefined(membershipType) || userSession is null)
             return;
+
+        if (membershipType is MembershipType.TurboBuildersClub)
+        {
+            errorMessage = "Turbo Builders Club is no longer available.";
+            var mem = await services.users.GetUserMembership(userSession.userId);
+            existingMembershipType = mem?.membershipType ?? MembershipType.None;
+            return;
+        }
+
+        if (membershipType is MembershipType.OutrageousBuildersClub or MembershipType.Premium)
+        {
+            var totalPlaytime = await services.games.GetTotalPlaytimeSeconds(userSession.userId);
+            if (totalPlaytime < 21600)
+            {
+                var remainingHours = Math.Ceiling((21600 - totalPlaytime) / 3600.0);
+                errorMessage = $"You need at least 6 hours of total playtime. You still need {remainingHours} more hours";
+                var mem = await services.users.GetUserMembership(userSession.userId);
+                existingMembershipType = mem?.membershipType ?? MembershipType.None;
+                return;
+            }
+        }
+
         await services.users.InsertOrUpdateMembership(userSession.userId, membershipType);
         var metadata = MembershipMetadata.GetMetadata(membershipType);
         successMessage = "Membership successfully changed to " + metadata.displayName + ". You will now receive "  + metadata.dailyRobux + " Robux each day.";

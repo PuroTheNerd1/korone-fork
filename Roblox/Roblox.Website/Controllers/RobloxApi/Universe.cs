@@ -896,7 +896,7 @@ public class UniverseV1 : ControllerBase
         };
     }
     
-    public async Task<PlaceCreationFailureReason> CanCreatePlace(long userId)
+    private async Task<PlaceCreationFailureReason> CanCreatePlace(long userId)
     {
         var log = Writer.CreateWithId(LogGroup.AbuseDetection);
         log.Info("start CanCreatePlace with userId={0}",userId);
