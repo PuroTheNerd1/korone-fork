@@ -347,10 +347,8 @@ public class WebController : ControllerBase
     [HttpGet("users/{userId:long}")]
     public async Task<IActionResult> GetUserInfo(long userId)
     {
-        Console.WriteLine($"Request: {userId}");
-        Console.WriteLine($"Session: {safeUserSession.userId}");
         var userInfo = await services.users.GetUserById(userId);
-        var data  =  new
+        var data = new
         {
             Id = userId,
             Username = userInfo.username,

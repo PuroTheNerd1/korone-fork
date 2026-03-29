@@ -1,9 +1,8 @@
 using Microsoft.Extensions.Hosting;
 using Roblox.Services;
+using System.Collections.Concurrent;
 
 namespace Roblox.Website;
-
-// TODO: deprecate dis shit once its 5alas, we not deleting file so i make a no-content file with .migrated
 
 public class R2MigrationWorker : BackgroundService
 {
@@ -29,32 +28,39 @@ public class R2MigrationWorker : BackgroundService
         {
             if (!Directory.Exists(mapping.Key)) continue;
 
-            var files = Directory.GetFiles(mapping.Key);
-            foreach (var file in files)
+            var tasks = new List<Task>();
+            foreach (var file in Directory.GetFiles(mapping.Key).Where(f => !f.EndsWith(".migrated")))
             {
                 if (stoppingToken.IsCancellationRequested) return;
-                
-                if (file.EndsWith(".migrated")) continue;
+
+                var markerPath = file + ".migrated";
+                if (File.Exists(markerPath)) continue;
 
                 var fileName = Path.GetFileName(file);
-                var markerPath = file + ".migrated";
                 var r2Key = mapping.Value + fileName;
 
-                try
+                tasks.Add(Task.Run(async () =>
                 {
-                    if (File.Exists(markerPath)) continue;
-                    
-                    using var fs = File.OpenRead(file);
-                    await r2Service.UploadFileAsync(r2Key, fs);
-                    fs.Close();
-                    
-                    File.Create(markerPath).Close();
-                }
-                catch (Exception ex)
+                    try
+                    {
+                        using var fs = File.OpenRead(file);
+                        await r2Service.UploadFileAsync(r2Key, fs);
+                        File.Create(markerPath).Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[R2-MIGRATION] Failed to migrate {file}: {ex.Message}");
+                    }
+                }, stoppingToken));
+
+                if (tasks.Count >= 5)
                 {
-                    Console.WriteLine($"[R2-MIRGATION] Failed to migrate {file}: {ex.Message}");
+                    await Task.WhenAny(tasks);
+                    tasks.RemoveAll(t => t.IsCompleted);
                 }
             }
+
+            await Task.WhenAll(tasks);
         }
     }
 }
