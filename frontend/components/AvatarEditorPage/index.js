@@ -15,6 +15,7 @@ import OutfitsTab from "./components/outfitsTab";
 import BodyColorsTab from "./components/bodyColorsTab";
 import { useRouter } from "next/router";
 import { Thumbnail3DHandler } from "../thumbnail3D";
+import getFlag from "../../lib/getFlag";
 import { getTheme, themeType } from "../../services/theme";
 
 const useStyles = createUseStyles({
@@ -191,6 +192,7 @@ function AvatarEditor() {
     const { activeTab, setActiveTab } = page;
     const listItemMetadata = useRef(page.listItemMetadata);
     const debounce = useRef(false);
+    const is3DEnabled = getFlag('3DRendersEnabled', false);
     const [avThumb, setAvThumb] = useState(null);
     const [isRendering, setIsRendering] = useState(false);
     const [is3DReady, set3DReady] = useState(false);
@@ -313,14 +315,14 @@ function AvatarEditor() {
                                 "R15"
                             ]} selected={store?.bodyRigType} setSelected={store?.setModifiedRigType}/>
                         </div>
-                        <div className={s.thumbnail3DButtonContainer}>
+                        {is3DEnabled && <div className={s.thumbnail3DButtonContainer}>
                             <ActionButton
                                 label={page.thumbnailType === 1 ? "2D" : "3D"}
                                 buttonStyle={buttonStyles.newCancelButton}
                                 className={s.thumbnail3DButton}
                                 onClick={() => page.LoadNewThumbnailType(page.thumbnailType === 1 ? 0 : 1)}
                             />
-                        </div>
+                        </div>}
                     </div>
                     <div className={`${s.scalingContainer} ${s.scalingContainerDesktop}`}>
                         <div className={s.scalingHeaderContainer}>
