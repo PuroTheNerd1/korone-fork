@@ -132,62 +132,6 @@ public class AuthenticationControllerV2 : ControllerBase
     [HttpPost("logoutfromallsessionsandreauthenticate")]
     public async Task LogoutFromAllSessionsAndReAuthenticate()
     {
-        // We don't actually re authenticate (for security).
         await services.users.ExpireAllSessions(safeUserSession.userId);
-        // remove current session immediately
-        using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
-        sessCache.Remove(safeUserSession.sessionId);
-    }
-
-    [HttpGet("sessions")]
-    public async Task<dynamic> GetSessions()
-    {
-        var sessions = await services.users.GetSessionsByUserId(safeUserSession.userId);
-        return new
-        {
-            data = sessions.Select(s => new
-            {
-                sessionId = s.sessionId,
-                platform = GetPlatformFromUserAgent(s.entry.userAgent),
-                browser = GetBrowserFromUserAgent(s.entry.userAgent),
-                createdAt = s.entry.createdAt,
-                lastSeenAt = s.entry.lastSeenAt,
-                isCurrent = s.sessionId == safeUserSession.sessionId,
-            }),
-        };
-    }
-
-    [HttpPost("sessions/{sessionId}/revoke")]
-    public async Task RevokeSession(string sessionId)
-    {
-        var session = await services.users.GetSessionById(sessionId);
-        if (session.userId != safeUserSession.userId)
-            throw new RobloxException(401, 0, "Unauthorized");
-        if (sessionId == safeUserSession.sessionId)
-            throw new Roblox.Exceptions.BadRequestException(0, "Cannot revoke the current session");
-        await services.users.DeleteSession(sessionId);
-    }
-
-    private static string GetPlatformFromUserAgent(string? ua)
-    {
-        if (string.IsNullOrEmpty(ua)) return "Unknown";
-        if (ua.Contains("iPhone") || ua.Contains("iPad") || ua.Contains("iPod")) return "iOS";
-        if (ua.Contains("Android")) return "Android";
-        if (ua.Contains("Windows")) return "Windows";
-        if (ua.Contains("Mac OS X") || ua.Contains("Macintosh")) return "macOS";
-        if (ua.Contains("Linux")) return "Linux";
-        if (ua.Contains("Mobile") || ua.Contains("mobile")) return "Mobile";
-        return "Unknown";
-    }
-
-    private static string GetBrowserFromUserAgent(string? ua)
-    {
-        if (string.IsNullOrEmpty(ua)) return "Unknown";
-        if (ua.Contains("Edg/") || ua.Contains("Edge/")) return "Edge";
-        if (ua.Contains("OPR/") || ua.Contains("Opera/")) return "Opera";
-        if (ua.Contains("Chrome/")) return "Chrome";
-        if (ua.Contains("Firefox/")) return "Firefox";
-        if (ua.Contains("Safari/")) return "Safari";
-        return "Unknown";
     }
 }

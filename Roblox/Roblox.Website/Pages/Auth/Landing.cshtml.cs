@@ -113,7 +113,7 @@ public class Landing : RobloxPageModel
 
     private async Task CreateSessionAndSetCookie(long userId)
     {
-        var sess = await services.users.CreateSession(userId, Request.Headers["User-Agent"].ToString());
+        var sess = await services.users.CreateSession(userId);
         var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
         {
             sessionId = sess,
