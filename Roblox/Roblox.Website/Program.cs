@@ -229,11 +229,11 @@ RenderingHandler.Configure();
 SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value!);
 app.UseTimerMiddleware(); // Must always be last
 Roblox.Services.Signer.SignService.Setup();
-_ = Task.Run(async () =>
-{
-    using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
-    await assets.FixAssetImagesWithoutMetadata();
-});
+//_ = Task.Run(async () =>
+//{
+//    using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
+//    await assets.FixAssetImagesWithoutMetadata();
+//});
 _ = Task.Run(AvatarService.StartTimerClear3D);
 app.MapControllers();
 app.MapRazorPages();
