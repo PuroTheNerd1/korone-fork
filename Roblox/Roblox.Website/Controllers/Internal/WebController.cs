@@ -1003,7 +1003,7 @@ public class WebController : ControllerBase
     }
     private async Task<CreateResponse> UploadAssetBadge(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        if (request.universeId is null) 
+        if (request.universeId is null)
             throw new BadRequestException(0, "Universe ID is required");
 
         long universeId = (long)request.universeId;
@@ -1014,23 +1014,23 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Invalid image file");
 
         var badgeCount = await services.games.GetUniverseBadgeCount(universeId);
-        if (badgeCount >= 500) 
+        if (badgeCount >= 500)
             throw new BadRequestException(0, "This universe has too many badges");
-        
-        
+
         stream.Position = 0;
-        // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
         var cleanImage = await services.assets.CleanImage(stream);
         cleanImage.Position = 0;
+
+        var imageLength = (int)cleanImage.Length;
+        var imageHash = await services.assets.GenerateImageHash(cleanImage);
+
         var badgeAsset = await services.assets.CreateAsset(request.name, request.description,
             safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Badge,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-        // TODO: this might cause issues with image resolution? (having it set to 420x420)
-        
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, (int)cleanImage.Length,
-            420, 420, imageData.imageFormat,
-            await services.assets.GenerateImageHash(cleanImage));
+
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, imageLength,
+            420, 420, imageData.imageFormat, imageHash);
         await services.assets.CreateBadgeAsset(badgeAsset.assetId, request.universeId);
         await services.assets.UpdateAssetMarketInfo(badgeAsset.assetId, false, false, false, null, null);
 
