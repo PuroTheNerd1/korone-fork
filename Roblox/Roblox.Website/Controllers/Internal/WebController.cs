@@ -1021,12 +1021,13 @@ public class WebController : ControllerBase
         stream.Position = 0;
         // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
         var cleanImage = await services.assets.CleanImage(stream);
-        
+        cleanImage.Position = 0;
         var badgeAsset = await services.assets.CreateAsset(request.name, request.description,
             safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Badge,
             Genre.All,
             ModerationStatus.AwaitingApproval);
         // TODO: this might cause issues with image resolution? (having it set to 420x420)
+        
         await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, (int)cleanImage.Length,
             420, 420, imageData.imageFormat,
             await services.assets.GenerateImageHash(cleanImage));
