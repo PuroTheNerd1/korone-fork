@@ -74,6 +74,15 @@ public class Asset : ControllerBase
         {
             using var robloxAssetService = ServiceProvider.GetOrCreate<RobloxAssetService>();
             var location = await robloxAssetService.GetAssetById(assetId, serverplaceid ?? currentPlaceId);
+            if (string.IsNullOrEmpty(location))
+            {
+                HttpContext.Response.StatusCode = 500;
+                // to remove the spamming asset error
+                return new
+                {
+                    message = "Couldn't get asset from rbx, what a bummer!"
+                };
+            }
             return Redirect(location);
         }
 
