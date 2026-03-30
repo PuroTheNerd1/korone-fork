@@ -47,8 +47,6 @@ public class Landing : RobloxPageModel
     [BindProperty]
     public string? formAction { get; set; }
 
-    private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(3) };
-
     private async Task LoadDiscordUser()
     {
         if (discordAccessToken == null) return;
