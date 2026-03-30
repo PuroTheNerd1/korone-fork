@@ -21,20 +21,18 @@
         .login-section { margin-left: auto; display: flex; align-items: center; gap: 8px; position: relative; }
         .login-section input { height: 40px; padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; font-size: 13px; outline: none; width: 140px; }
         
-        .login-captcha-container { 
-            width: 300px; 
+        .login-btn-submit {
+            background: #8A5149;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
             height: 40px;
-            position: relative;
-            display: flex;
-            align-items: center;
         }
-        .login-captcha-container .cf-turnstile { 
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            transform-origin: top left;
-        }
+        .login-btn-submit:hover { background: #9C6A5E; }
 
         .login-error-msg {
             position: absolute;
@@ -57,6 +55,53 @@
         .custom-btn-primary { background-color: #8A5149; border-color: #8A5149; color: white; }
         .custom-btn-primary:hover { background-color: #6d3f39; border-color: #6d3f39; color: white; }
         
+        .captcha-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .captcha-overlay.active {
+            display: flex;
+        }
+        .captcha-modal {
+            background: #fff;
+            border-radius: 8px;
+            padding: 32px;
+            width: 380px;
+            max-width: 90vw;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .captcha-modal h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+        #login-turnstile {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .captcha-close {
+            background: #ccc;
+            color: #333;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .captcha-close:hover { background: #999; }
+        
         @@media (max-width: 1200px) { 
             .login-section { flex-wrap: wrap; justify-content: flex-end; } 
         }
@@ -69,15 +114,6 @@
                 justify-content: flex-end; 
                 width: 100%;
                 order: 2;
-            }
-            .login-captcha-container { 
-                width: 100%; 
-                height: 40px;
-                order: 3;
-                margin-top: 8px;
-            } 
-            .login-captcha-container .cf-turnstile { 
-                transform: translateY(-50%);
             }
             .login-error-msg { 
                 top: auto; 
@@ -93,19 +129,16 @@
 
     <nav class="landing-navbar">
         <a href="/"><img src="/img/korone-icon-square.png" height="30" alt="Logo"></a>
-        <form method="post" class="login-section">
+        <form method="post" class="login-section" id="login-form">
             @if (Model.loginError != null) {
                 <div class="login-error-msg">@Model.loginError</div>
             }
             <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername">
             <input type="password" name="loginPassword" placeholder="Password">
             <input type="text" name="loginTotpCode" placeholder="2FA Code (Optional)">
-            <div class="login-captcha-container">
-                <div class="cf-turnstile" data-sitekey="@Model.siteKey" data-theme="dark"></div>
-            </div>
             <input type="hidden" name="formAction" value="login">
             @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-sm custom-btn-primary fw-bold">Log In</button>
+            <button type="button" class="login-btn-submit" onclick="openLoginCaptcha()">Log In</button>
         </form>
     </nav>
 
@@ -162,6 +195,71 @@
         &copy; 2026 Korone. Not affiliated with Roblox Corporation.
     </footer>
 
+    <div class="captcha-overlay" id="login-captcha-overlay">
+        <div class="captcha-modal">
+            <h3>Verify you're human</h3>
+            <div id="login-turnstile"></div>
+            <button class="captcha-close" onclick="closeLoginCaptcha()">Cancel</button>
+        </div>
+    </div>
+
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script>
+        var SITE_KEY = '@Model.siteKey';
+        var loginWidgetId = null;
+
+        function openLoginCaptcha() {
+            var overlay = document.getElementById('login-captcha-overlay');
+            overlay.classList.add('active');
+
+            if (typeof turnstile === 'undefined') {
+                var poll = setInterval(function() {
+                    if (typeof turnstile !== 'undefined') {
+                        clearInterval(poll);
+                        renderLoginCaptcha();
+                    }
+                }, 100);
+                return;
+            }
+            renderLoginCaptcha();
+        }
+
+        function renderLoginCaptcha() {
+            if (loginWidgetId === null) {
+                loginWidgetId = turnstile.render(document.getElementById('login-turnstile'), {
+                    sitekey: SITE_KEY,
+                    theme: 'light',
+                    callback: function(token) {
+                        var loginForm = document.getElementById('login-form');
+                        var input = loginForm.querySelector('input[name="cf-turnstile-response"]');
+                        if (!input) {
+                            input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'cf-turnstile-response';
+                            loginForm.appendChild(input);
+                        }
+                        input.value = token;
+                        loginForm.submit();
+                    }
+                });
+            } else {
+                turnstile.reset(loginWidgetId);
+            }
+        }
+
+        function closeLoginCaptcha() {
+            var overlay = document.getElementById('login-captcha-overlay');
+            overlay.classList.remove('active');
+            if (loginWidgetId !== null) {
+                turnstile.reset(loginWidgetId);
+            }
+        }
+
+        document.getElementById('login-captcha-overlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLoginCaptcha();
+            }
+        });
+    </script>
 </body>
 </html>
