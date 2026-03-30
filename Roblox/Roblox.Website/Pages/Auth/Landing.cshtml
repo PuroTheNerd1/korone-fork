@@ -17,18 +17,16 @@
     <style>
         body { font-family: 'Source Sans Pro', sans-serif; overflow-x: hidden; min-height: 100vh; margin: 0; }
         .landing-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('/UnsecuredContent/ThumbnailSignUp.png') center/cover; z-index: 0; }
-        .landing-navbar { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.55); padding: 8px 16px; display: flex; align-items: center; gap: 15px; }
+        .landing-navbar { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.65); padding: 8px 16px; display: flex; align-items: center; gap: 15px; }
         .login-section { margin-left: auto; display: flex; gap: 8px; }
-        .login-section input { height: 30px; padding: 2px 10px; border-radius: 3px; border: 1px solid #bbb; font-size: 13px; outline: none; }
-        .btn-login { background: #8A5149; color: #fff; border: none; border-radius: 3px; padding: 0 16px; font-weight: 700; cursor: pointer; }
-        .landing-subbar { position: fixed; top: 46px; width: 100%; z-index: 99; background: rgba(0,0,0,0.35); padding: 4px 16px; display: flex; justify-content: flex-end; gap: 14px; font-size: 12px; }
+        .login-section input { height: 32px; padding: 2px 10px; border-radius: 4px; border: 1px solid #bbb; font-size: 13px; outline: none; }
+        .landing-subbar { position: fixed; top: 48px; width: 100%; z-index: 99; background: rgba(0,0,0,0.45); padding: 4px 16px; display: flex; justify-content: flex-end; gap: 14px; font-size: 12px; }
         .landing-subbar a { color: #ddd; text-decoration: none; }
         .landing-content { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding-top: 60px; }
         .promo-video { width: 520px; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.6); }
-        .signup-panel { background: rgba(230,230,230,0.95); padding: 25px; border-radius: 6px; width: 380px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 20px; }
-        .btn-discord-verify { background: #5865f2; color: #fff; width: 100%; padding: 10px; border-radius: 4px; text-decoration: none; display: block; text-align: center; margin-bottom: 15px; font-weight: 600; }
-        .btn-signup { width: 100%; padding: 10px; border: none; border-radius: 4px; font-weight: 700; background: #999; color: #fff; }
-        .btn-signup.active { background: #8A5149; cursor: pointer; }
+        .signup-panel { background: rgba(245,245,245,0.95); padding: 25px; border-radius: 6px; width: 380px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 20px; }
+        .custom-btn-primary { background-color: #8A5149; border-color: #8A5149; color: white; }
+        .custom-btn-primary:hover { background-color: #6d3f39; border-color: #6d3f39; color: white; }
         @@media (max-width: 900px) { .landing-content { flex-direction: column; } .landing-video-col { display: none; } }
     </style>
 </head>
@@ -42,7 +40,7 @@
             <input type="password" name="loginPassword" placeholder="Password">
             <input type="hidden" name="formAction" value="login">
             @Html.AntiForgeryToken()
-            <button type="submit" class="btn-login">Log In</button>
+            <button type="submit" class="btn btn-sm custom-btn-primary fw-bold">Log In</button>
         </form>
     </nav>
 
@@ -54,6 +52,9 @@
     <div class="landing-content">
         <div class="landing-video-col px-4">
             <h2 class="text-white fw-bold mb-2" style="text-shadow: 2px 2px 8px #000;">JOIN OVER 70,000 USERS</h2>
+            <video id="promoVideo" class="promo-video" autoplay muted loop playsinline>
+                <source src="/UnsecuredContent/KoronePromotionalVideo.mp4" type="video/mp4">
+            </video>
         </div>
 
         <div class="landing-center text-center px-4">
@@ -62,10 +63,10 @@
         </div>
 
         <div class="signup-panel">
-            <h2 class="fs-5 fw-bold text-center mb-3">SIGN UP NOW</h2>
+            <h2 class="fs-5 fw-bold text-center mb-3 text-dark">SIGN UP NOW</h2>
             
             @if (Model.discordUser == null) {
-                <a href="/api/discordapplicationcallback" class="btn-discord-verify">
+                <a href="/api/discordapplicationcallback" class="btn btn-primary w-100 mb-3 fw-bold" style="background-color: #5865f2; border: none;">
                     <i class="bi bi-discord"></i> Verify with Discord
                 </a>
             } else {
@@ -85,7 +86,7 @@
                 <div class="cf-turnstile mb-3" data-sitekey="@Model.siteKey"></div>
 
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn-signup @(Model.signupDisabled ? "" : "active")" @(Model.signupDisabled ? "disabled" : "")>
+                <button type="submit" class="btn w-100 fw-bold @(Model.signupDisabled ? "btn-secondary disabled" : "custom-btn-primary")" @(Model.signupDisabled ? "disabled" : "")>
                     Sign Up
                 </button>
             </form>
