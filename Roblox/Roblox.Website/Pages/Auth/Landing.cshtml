@@ -20,6 +20,20 @@
         .landing-navbar { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.65); padding: 8px 16px; display: flex; align-items: center; gap: 15px; }
         .login-section { margin-left: auto; display: flex; align-items: center; gap: 8px; }
         .login-section input { height: 32px; padding: 2px 10px; border-radius: 4px; border: 1px solid #bbb; font-size: 13px; outline: none; }
+        
+        .login-captcha-container { 
+            height: 32px; 
+            width: 130px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            overflow: hidden;
+        }
+        .login-captcha-container .cf-turnstile { 
+            transform: scale(0.7); 
+            transform-origin: center;
+        }
+
         .landing-subbar { position: fixed; top: 48px; width: 100%; z-index: 99; background: rgba(0,0,0,0.45); padding: 4px 16px; display: flex; justify-content: flex-end; gap: 14px; font-size: 12px; }
         .landing-subbar a { color: #ddd; text-decoration: none; }
         .landing-content { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding-top: 60px; }
@@ -27,6 +41,7 @@
         .signup-panel { background: rgba(245,245,245,0.95); padding: 25px; border-radius: 6px; width: 380px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 20px; }
         .custom-btn-primary { background-color: #8A5149; border-color: #8A5149; color: white; }
         .custom-btn-primary:hover { background-color: #6d3f39; border-color: #6d3f39; color: white; }
+        @@media (max-width: 1100px) { .login-captcha-container { display: none; } }
         @@media (max-width: 900px) { .landing-content { flex-direction: column; } .landing-video-col { display: none; } .login-section { flex-wrap: wrap; justify-content: flex-end; } }
     </style>
 </head>
@@ -39,7 +54,9 @@
             <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername">
             <input type="password" name="loginPassword" placeholder="Password">
             <input type="text" name="loginTotpCode" placeholder="2FA Code (leave empty if none)">
-            <div class="cf-turnstile" data-sitekey="@Model.siteKey" data-size="compact" data-theme="white"></div>
+            <div class="login-captcha-container">
+                <div class="cf-turnstile" data-sitekey="@Model.siteKey" data-size="compact" data-theme="dark"></div>
+            </div>
             <input type="hidden" name="formAction" value="login">
             @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-sm custom-btn-primary fw-bold">Log In</button>
