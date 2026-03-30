@@ -20,33 +20,9 @@
         .landing-navbar { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.65); padding: 12px 16px; display: flex; align-items: center; gap: 15px; min-height: 70px; }
         .login-section { margin-left: auto; display: flex; align-items: center; gap: 8px; position: relative; }
         .login-section input { height: 40px; padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; font-size: 13px; outline: none; width: 140px; }
-        
-        .login-btn-submit {
-            background: #8A5149;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            height: 40px;
-        }
+        .login-btn-submit { background: #8A5149; color: #fff; border: none; border-radius: 4px; padding: 8px 16px; font-weight: 700; font-size: 14px; cursor: pointer; height: 40px; }
         .login-btn-submit:hover { background: #9C6A5E; }
-
-        .login-error-msg {
-            position: absolute;
-            top: 72px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #ffb3b3;
-            font-size: 11px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px #000;
-            white-space: nowrap;
-            z-index: 101;
-        }
-
+        .login-error-msg { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); color: #ffb3b3; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px #000; white-space: nowrap; z-index: 101; }
         .landing-subbar { position: fixed; top: 70px; width: 100%; z-index: 99; background: rgba(0,0,0,0.45); padding: 4px 16px; display: flex; justify-content: flex-end; gap: 14px; font-size: 12px; }
         .landing-subbar a { color: #ddd; text-decoration: none; }
         .landing-content { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding-top: 130px; }
@@ -54,86 +30,22 @@
         .signup-panel { background: rgba(245,245,245,0.95); padding: 25px; border-radius: 6px; width: 380px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 20px; }
         .custom-btn-primary { background-color: #8A5149; border-color: #8A5149; color: white; }
         .custom-btn-primary:hover { background-color: #6d3f39; border-color: #6d3f39; color: white; }
-        
-        .captcha-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-        .captcha-overlay.active {
-            display: flex;
-        }
-        .captcha-modal {
-            background: #fff;
-            border-radius: 8px;
-            padding: 32px;
-            width: 380px;
-            max-width: 90vw;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            text-align: center;
-        }
-        .captcha-modal h3 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #333;
-            font-weight: 600;
-        }
-        #login-turnstile-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            min-height: 65px;
-        }
-        .captcha-close {
-            background: #ccc;
-            color: #333;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 20px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-        }
+        .captcha-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .captcha-overlay.active { display: flex; }
+        .captcha-modal { background: #fff; border-radius: 8px; padding: 32px; width: 380px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); text-align: center; }
+        .captcha-modal h3 { font-size: 18px; margin-bottom: 20px; color: #333; font-weight: 600; }
+        #login-turnstile-container { display: flex; justify-content: center; margin-bottom: 20px; min-height: 65px; }
+        .captcha-close { background: #ccc; color: #333; border: none; border-radius: 4px; padding: 8px 20px; cursor: pointer; font-weight: 600; font-size: 13px; }
         .captcha-close:hover { background: #999; }
-        
-        @@media (max-width: 1200px) { 
-            .login-section { flex-wrap: wrap; justify-content: flex-end; } 
-        }
-        @@media (max-width: 900px) { 
-            .landing-navbar { min-height: 60px; flex-wrap: wrap; }
-            .landing-content { flex-direction: column; padding-top: 200px; } 
-            .landing-video-col { display: none; } 
-            .login-section { 
-                flex-wrap: wrap; 
-                justify-content: flex-end; 
-                width: 100%;
-                order: 2;
-            }
-            .login-error-msg { 
-                top: auto; 
-                bottom: -20px; 
-                left: 50%; 
-                transform: translateX(-50%); 
-            } 
-        }
     </style>
 </head>
-<body data-sitekey="@Model.siteKey">
+<body>
     <div class="landing-bg"></div>
 
     <nav class="landing-navbar">
         <a href="/"><img src="/img/korone-icon-square.png" height="30" alt="Logo"></a>
         <form method="post" class="login-section" id="login-form">
-            @if (Model.loginError != null) {
-                <div class="login-error-msg">@Model.loginError</div>
-            }
+            @if (Model.loginError != null) { <div class="login-error-msg">@Model.loginError</div> }
             <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername">
             <input type="password" name="loginPassword" placeholder="Password">
             <input type="text" name="loginTotpCode" placeholder="2FA Code (Optional)">
@@ -163,7 +75,6 @@
 
         <div class="signup-panel">
             <h2 class="fs-5 fw-bold text-center mb-3 text-dark">SIGN UP NOW</h2>
-            
             @if (Model.discordUser == null) {
                 <a href="/api/discordapplicationcallback" class="btn btn-primary w-100 mb-3 fw-bold" style="background-color: #5865f2; border: none;">
                     <i class="bi bi-discord"></i> Verify with Discord
@@ -173,33 +84,26 @@
                     <strong>@@@Model.discordUser.Username</strong> verified
                 </div>
             }
-
             <form method="post" id="signup-form">
                 <input type="hidden" name="formAction" value="signup">
                 @if (Model.signupError != null) { <p class="text-danger small">@Model.signupError</p> }
-                
                 <input type="text" name="signupUsername" class="form-control mb-2" placeholder="Username" required @(Model.signupDisabled ? "disabled" : "")>
                 <input type="password" name="signupPassword" class="form-control mb-2" placeholder="Password" required @(Model.signupDisabled ? "disabled" : "")>
                 <input type="password" name="signupConfirmPassword" class="form-control mb-3" placeholder="Confirm Password" required @(Model.signupDisabled ? "disabled" : "")>
-
                 <div class="cf-turnstile mb-3" data-sitekey="@Model.siteKey"></div>
-
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn w-100 fw-bold @(Model.signupDisabled ? "btn-secondary disabled" : "custom-btn-primary")" @(Model.signupDisabled ? "disabled" : "")>
-                    Sign Up
-                </button>
+                <button type="submit" class="btn w-100 fw-bold @(Model.signupDisabled ? "btn-secondary disabled" : "custom-btn-primary")" @(Model.signupDisabled ? "disabled" : "")>Sign Up</button>
             </form>
         </div>
     </div>
 
-    <footer style="position:fixed; bottom:0; width:100%; background:rgba(0,0,0,0.5); color:#ccc; font-size:10px; text-align:center; padding:5px; z-index: 50;">
-        &copy; 2026 Korone. Not affiliated with Roblox Corporation.
-    </footer>
-
     <div class="captcha-overlay" id="login-captcha-overlay">
         <div class="captcha-modal">
             <h3>Verify you're human</h3>
-            <div id="login-turnstile-container"></div>
+            <div id="login-turnstile-container" 
+                 class="cf-turnstile" 
+                 data-sitekey="@Model.siteKey" 
+                 data-callback="onLoginCaptchaSuccess"></div>
             <button type="button" class="captcha-close" id="captchaCloseBtn">Cancel</button>
         </div>
     </div>
