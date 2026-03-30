@@ -1304,13 +1304,13 @@ public class UsersService : ServiceBase, IService
             {
                 user_id = userId,
                 balance_tickets = 0,
-                balance_robux = 100,
+                balance_robux = 1,
             });
 
             // First transaction
             await InsertAsync("user_transaction", new
             {
-                amount = 100,
+                amount = 1,
                 type = PurchaseType.BuildersClubStipend,
                 currency_type = 1,
                 user_id_one = userId,
