@@ -155,7 +155,7 @@ public class BadgesControllerV1 : ControllerBase
         if ((await services.users.GetUserAssets(userId, badgeId)).Any())
             throw new BadRequestException(0, "User already owns the badge");
         // TODO: put proper error code here from apidocs sixteensrc 
-        await services.users.CreateUserAsset(badgeInfo.assetId, 519360);
+        await services.users.CreateUserAsset(userId, badgeInfo.assetId);
         await services.assets.IncrementSaleCount(badgeId);
         // TODO: Temporary make this a dict soon
         // April event
