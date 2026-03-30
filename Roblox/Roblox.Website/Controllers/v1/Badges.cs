@@ -112,9 +112,11 @@ public class BadgesControllerV1 : ControllerBase
             throw new PermissionException(badgeId, safeUserSession.userId);
         }
 
-        if (placeId is null) {
+        if (placeId is null) 
+        {
             var robloxPlaceId = Request.Headers["Roblox-Place-Id"].ToString();
-            if (!long.TryParse(robloxPlaceId, out _)) {
+            if (!long.TryParse(robloxPlaceId, out _)) 
+            {
                 throw new BadRequestException(0, "Missing Roblox-Place-Id Header");
             }
             placeId = long.Parse(robloxPlaceId);
@@ -155,13 +157,23 @@ public class BadgesControllerV1 : ControllerBase
         // TODO: put proper error code here from apidocs sixteensrc 
         
         await services.assets.IncrementSaleCount(badgeId);
-        await services.users.CreateUserAsset(userId, badgeId);
+
         // await services.assets.IncrementAssetSales(badgeId);
         
         if (Request.Path == "/assets/award-badge") 
         {
             var badgeProd = await services.assets.GetAssetCatalogInfo(badgeId);
-            return $"{user.username} won {badgeProd.creatorName}'s {badgeProd.name} award! :3";
+            return $"{user.username} won {badgeProd.creatorName}'s {badgeProd.name} award!";
+        }
+        // TODO: Temporary make this a dict soon
+        // April event
+        if (badgeId == 519726)
+        {
+            await services.users.CreateUserAsset(userId, 519360);
+        }
+        else if (badgeId == 523123)
+        {
+            await services.users.CreateUserAsset(userId, 523432);
         }
         
         return new 
