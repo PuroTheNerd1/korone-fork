@@ -155,16 +155,8 @@ public class BadgesControllerV1 : ControllerBase
         if ((await services.users.GetUserAssets(userId, badgeId)).Any())
             throw new BadRequestException(0, "User already owns the badge");
         // TODO: put proper error code here from apidocs sixteensrc 
-        
+        await services.users.CreateUserAsset(badgeInfo.assetId, 519360);
         await services.assets.IncrementSaleCount(badgeId);
-
-        // await services.assets.IncrementAssetSales(badgeId);
-        
-        if (Request.Path == "/assets/award-badge") 
-        {
-            var badgeProd = await services.assets.GetAssetCatalogInfo(badgeId);
-            return $"{user.username} won {badgeProd.creatorName}'s {badgeProd.name} award!";
-        }
         // TODO: Temporary make this a dict soon
         // April event
         if (badgeId == 519726)
@@ -175,6 +167,13 @@ public class BadgesControllerV1 : ControllerBase
         {
             await services.users.CreateUserAsset(userId, 523432);
         }
+
+        if (Request.Path == "/assets/award-badge") 
+        {
+            var badgeProd = await services.assets.GetAssetCatalogInfo(badgeId);
+            return $"{user.username} won {badgeProd.creatorName}'s {badgeProd.name} award!";
+        }
+
         
         return new 
         {
