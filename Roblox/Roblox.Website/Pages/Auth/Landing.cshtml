@@ -36,7 +36,8 @@
         .login-error-msg {
             position: absolute;
             top: 38px;
-            right: 0;
+            left: 50%;
+            transform: translateX(-50%);
             color: #ffb3b3;
             font-size: 11px;
             font-weight: bold;
@@ -54,7 +55,7 @@
         .custom-btn-primary:hover { background-color: #6d3f39; border-color: #6d3f39; color: white; }
         
         @@media (max-width: 1200px) { .login-captcha-container { width: 40px; overflow: hidden; } .login-captcha-container .cf-turnstile { transform: scale(0.25); transform-origin: left center; } }
-        @@media (max-width: 900px) { .landing-content { flex-direction: column; } .landing-video-col { display: none; } .login-section { flex-wrap: wrap; justify-content: flex-end; } .login-error-msg { top: auto; bottom: -15px; } }
+        @@media (max-width: 900px) { .landing-content { flex-direction: column; } .landing-video-col { display: none; } .login-section { flex-wrap: wrap; justify-content: flex-end; } .login-error-msg { top: auto; bottom: -20px; left: 50%; transform: translateX(-50%); } }
     </style>
 </head>
 <body>
