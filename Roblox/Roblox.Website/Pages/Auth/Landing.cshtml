@@ -65,7 +65,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 200;
+            z-index: 2000;
         }
         .captcha-overlay.active {
             display: flex;
@@ -85,10 +85,11 @@
             color: #333;
             font-weight: 600;
         }
-        #login-turnstile {
+        #login-turnstile-container {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+            min-height: 65px;
         }
         .captcha-close {
             background: #ccc;
@@ -173,7 +174,7 @@
                 </div>
             }
 
-            <form method="post">
+            <form method="post" id="signup-form">
                 <input type="hidden" name="formAction" value="signup">
                 @if (Model.signupError != null) { <p class="text-danger small">@Model.signupError</p> }
                 
@@ -191,14 +192,14 @@
         </div>
     </div>
 
-    <footer style="position:fixed; bottom:0; width:100%; background:rgba(0,0,0,0.5); color:#ccc; font-size:10px; text-align:center; padding:5px;">
+    <footer style="position:fixed; bottom:0; width:100%; background:rgba(0,0,0,0.5); color:#ccc; font-size:10px; text-align:center; padding:5px; z-index: 50;">
         &copy; 2026 Korone. Not affiliated with Roblox Corporation.
     </footer>
 
     <div class="captcha-overlay" id="login-captcha-overlay">
         <div class="captcha-modal">
             <h3>Verify you're human</h3>
-            <div id="login-turnstile"></div>
+            <div id="login-turnstile-container"></div>
             <button type="button" class="captcha-close" id="captchaCloseBtn">Cancel</button>
         </div>
     </div>
@@ -208,49 +209,7 @@
         var SITE_KEY = '@Model.siteKey';
         var loginWidgetId = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('loginBtn').addEventListener('click', function() {
-                document.getElementById('login-captcha-overlay').classList.add('active');
-                if (typeof turnstile !== 'undefined') {
-                    if (loginWidgetId === null) {
-                        loginWidgetId = turnstile.render(document.getElementById('login-turnstile'), {
-                            sitekey: SITE_KEY,
-                            theme: 'light',
-                            callback: onCaptchaSuccess
-                        });
-                    } else {
-                        turnstile.reset(loginWidgetId);
-                    }
-                } else {
-                    var checkTurnstile = setInterval(function() {
-                        if (typeof turnstile !== 'undefined') {
-                            clearInterval(checkTurnstile);
-                            if (loginWidgetId === null) {
-                                loginWidgetId = turnstile.render(document.getElementById('login-turnstile'), {
-                                    sitekey: SITE_KEY,
-                                    theme: 'light',
-                                    callback: onCaptchaSuccess
-                                });
-                            } else {
-                                turnstile.reset(loginWidgetId);
-                            }
-                        }
-                    }, 100);
-                }
-            });
-
-            document.getElementById('captchaCloseBtn').addEventListener('click', function() {
-                document.getElementById('login-captcha-overlay').classList.remove('active');
-            });
-
-            document.getElementById('login-captcha-overlay').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-        });
-
-        function onCaptchaSuccess(token) {
+        window.onLoginCaptchaSuccess = function(token) {
             var loginForm = document.getElementById('login-form');
             var input = loginForm.querySelector('input[name="cf-turnstile-response"]');
             if (!input) {
@@ -262,7 +221,40 @@
             input.value = token;
             document.getElementById('login-captcha-overlay').classList.remove('active');
             loginForm.submit();
-        }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var loginBtn = document.getElementById('loginBtn');
+            var overlay = document.getElementById('login-captcha-overlay');
+            var closeBtn = document.getElementById('captchaCloseBtn');
+
+            loginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                overlay.classList.add('active');
+
+                if (typeof turnstile !== 'undefined') {
+                    if (loginWidgetId === null) {
+                        loginWidgetId = turnstile.render('#login-turnstile-container', {
+                            sitekey: SITE_KEY,
+                            theme: 'light',
+                            callback: 'onLoginCaptchaSuccess'
+                        });
+                    } else {
+                        turnstile.reset(loginWidgetId);
+                    }
+                }
+            });
+
+            closeBtn.addEventListener('click', function() {
+                overlay.classList.remove('active');
+            });
+
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
     </script>
 </body>
 </html>
