@@ -1,154 +1,104 @@
 @page "/"
 @model Roblox.Website.Pages.Auth.Landing
 @{
-Layout = null;
+    Layout = null;
 }
 <!doctype html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Korone</title>
-<meta name="description" content="Experience nostalgia once again with Korone."/>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-<link rel="icon" type="image/x-icon" href="/img/korone-icon-square.png">
-<style>
-body { font-family: 'Source Sans Pro', sans-serif; overflow-x: hidden; min-height: 100vh; margin: 0; }
-.landing-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('/UnsecuredContent/ThumbnailSignUp.png') center/cover; z-index: 0; }
-.landing-navbar { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.65); padding: 8px 16px; display: flex; align-items: center; gap: 15px; }
-.login-section { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.login-section input { height: 32px; padding: 2px 10px; border-radius: 4px; border: 1px solid #bbb; font-size: 13px; outline: none; }
-.landing-subbar { position: fixed; top: 48px; width: 100%; z-index: 99; background: rgba(0,0,0,0.45); padding: 4px 16px; display: flex; justify-content: flex-end; gap: 14px; font-size: 12px; }
-.landing-subbar a { color: #ddd; text-decoration: none; }
-.landing-content { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding-top: 60px; }
-.promo-video { width: 520px; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.6); }
-.signup-panel { background: rgba(245,245,245,0.95); padding: 25px; border-radius: 6px; width: 380px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 20px; }
-.custom-btn-primary { background-color: #8A5149; border-color: #8A5149; color: white; }
-.custom-btn-primary:hover { background-color: #6d3f39; border-color: #6d3f39; color: white; }
-
-    .captcha-overlay {
-        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;
-    }
-    .captcha-overlay.active { display: flex; }
-    .captcha-modal { background: #fff; padding: 20px; border-radius: 8px; text-align: center; }
-
-    @@media (max-width: 1200px) { .login-section input[name="loginTotpCode"] { display: none; } }
-    @@media (max-width: 900px) { .landing-content { flex-direction: column; } .landing-video-col { display: none; } }
-</style>
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Korone</title>
+    <meta name="description" content="Experience nostalgia once again with Korone."/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/img/korone-icon-square.png">
+    <style>
+        body { font-family: 'Source Sans Pro', sans-serif; overflow-x: hidden; min-height: 100vh; margin: 0; }
+        .landing-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('/UnsecuredContent/ThumbnailSignUp.png') center/cover; z-index: 0; }
+        .landing-navbar { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(0,0,0,0.65); padding: 8px 16px; display: flex; align-items: center; gap: 15px; }
+        .login-section { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+        .login-section input { height: 32px; padding: 2px 10px; border-radius: 4px; border: 1px solid #bbb; font-size: 13px; outline: none; }
+        .landing-subbar { position: fixed; top: 48px; width: 100%; z-index: 99; background: rgba(0,0,0,0.45); padding: 4px 16px; display: flex; justify-content: flex-end; gap: 14px; font-size: 12px; }
+        .landing-subbar a { color: #ddd; text-decoration: none; }
+        .landing-content { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding-top: 60px; }
+        .promo-video { width: 520px; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.6); }
+        .signup-panel { background: rgba(245,245,245,0.95); padding: 25px; border-radius: 6px; width: 380px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 20px; }
+        .custom-btn-primary { background-color: #8A5149; border-color: #8A5149; color: white; }
+        .custom-btn-primary:hover { background-color: #6d3f39; border-color: #6d3f39; color: white; }
+        @@media (max-width: 900px) { .landing-content { flex-direction: column; } .landing-video-col { display: none; } .login-section { flex-wrap: wrap; justify-content: flex-end; } }
+    </style>
 </head>
 <body>
-<div class="landing-bg"></div>
+    <div class="landing-bg"></div>
 
-<nav class="landing-navbar">
-    <a href="/"><img src="/img/korone-icon-square.png" height="30" alt="Logo"></a>
-    <form method="post" class="login-section" id="login-form">
-        <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername" required>
-        <input type="password" name="loginPassword" placeholder="Password" required>
-        <input type="text" name="loginTotpCode" placeholder="2FA Code" autocomplete="one-time-code" style="width: 100px;">
-        <input type="hidden" name="formAction" value="login">
-        @Html.AntiForgeryToken()
-        <button type="button" class="btn btn-sm custom-btn-primary fw-bold" onclick="openLoginCaptcha()">Log In</button>
-    </form>
-</nav>
-
-<div class="landing-subbar">
-    <a href="/auth/password-reset">Forgot Password?</a>
-    <a href="/auth/discord-login">Login with Discord</a>
-</div>
-
-@if (Model.loginError != null) {
-    <div style="position:fixed; top:75px; width:100%; background:#f44336; color:white; text-align:center; padding:5px; z-index:1000;">@Model.loginError</div>
-}
-
-<div class="landing-content">
-    <div class="landing-video-col px-4">
-        <h2 class="text-white fw-bold mb-2" style="text-shadow: 2px 2px 8px #000;">JOIN OVER 70,000 USERS</h2>
-        <video id="promoVideo" class="promo-video" autoplay muted loop playsinline>
-            <source src="/UnsecuredContent/KoronePromotionalVideo.mp4" type="video/mp4">
-        </video>
-    </div>
-
-    <div class="landing-center text-center px-4">
-        <img src="/img/korone.png" width="350" alt="Korone">
-        <div class="bg-dark bg-opacity-50 text-white p-2 mt-3 fs-4">Repowering Imagination&#8482;</div>
-    </div>
-
-    <div class="signup-panel">
-        <h2 class="fs-5 fw-bold text-center mb-3 text-dark">SIGN UP NOW</h2>
-        
-        @if (Model.discordUser == null) {
-            <a href="/api/discordapplicationcallback" class="btn btn-primary w-100 mb-3 fw-bold" style="background-color: #5865f2; border: none;">
-                <i class="bi bi-discord"></i> Verify with Discord
-            </a>
-        } else {
-            <div class="alert alert-success text-center py-2">
-                <strong>@@@Model.discordUser.Username</strong> verified
-            </div>
-        }
-
-        <form method="post" id="signup-form">
-            <input type="hidden" name="formAction" value="signup">
-            @if (Model.signupError != null) { <p class="text-danger small">@Model.signupError</p> }
-            
-            <input type="text" name="signupUsername" class="form-control mb-2" placeholder="Username" required @(Model.signupDisabled ? "disabled" : "")>
-            <input type="password" name="signupPassword" class="form-control mb-2" placeholder="Password" required @(Model.signupDisabled ? "disabled" : "")>
-            <input type="password" name="signupConfirmPassword" class="form-control mb-3" placeholder="Confirm Password" required @(Model.signupDisabled ? "disabled" : "")>
-
-            <div class="cf-turnstile mb-3" data-sitekey="@Model.siteKey"></div>
-
+    <nav class="landing-navbar">
+        <a href="/"><img src="/img/korone-icon-square.png" height="30" alt="Logo"></a>
+        <form method="post" class="login-section">
+            <input type="text" name="loginUsername" placeholder="Username" value="@Model.loginUsername">
+            <input type="password" name="loginPassword" placeholder="Password">
+            <input type="text" name="loginTotpCode" placeholder="2FA Code (leave empty if none)">
+            <div class="cf-turnstile" data-sitekey="@Model.siteKey" data-size="compact" data-theme="white"></div>
+            <input type="hidden" name="formAction" value="login">
             @Html.AntiForgeryToken()
-            <button type="submit" class="btn w-100 fw-bold @(Model.signupDisabled ? "btn-secondary disabled" : "custom-btn-primary")" @(Model.signupDisabled ? "disabled" : "")>
-                Sign Up
-            </button>
+            <button type="submit" class="btn btn-sm custom-btn-primary fw-bold">Log In</button>
         </form>
+    </nav>
+
+    <div class="landing-subbar">
+        <a href="/auth/password-reset">Forgot Password?</a>
+        <a href="/auth/discord-login">Login with Discord</a>
     </div>
-</div>
 
-<div class="captcha-overlay" id="login-captcha-overlay">
-    <div class="captcha-modal">
-        <h5 class="mb-3">Security Check</h5>
-        <div id="login-turnstile"></div>
-        <button class="btn btn-sm btn-secondary mt-3" onclick="document.getElementById('login-captcha-overlay').classList.remove('active')">Cancel</button>
+    <div class="landing-content">
+        <div class="landing-video-col px-4">
+            <h2 class="text-white fw-bold mb-2" style="text-shadow: 2px 2px 8px #000;">JOIN OVER 70,000 USERS</h2>
+            <video id="promoVideo" class="promo-video" autoplay muted loop playsinline>
+                <source src="/UnsecuredContent/KoronePromotionalVideo.mp4" type="video/mp4">
+            </video>
+        </div>
+
+        <div class="landing-center text-center px-4">
+            <img src="/img/korone.png" width="350" alt="Korone">
+            <div class="bg-dark bg-opacity-50 text-white p-2 mt-3 fs-4">Repowering Imagination&#8482;</div>
+        </div>
+
+        <div class="signup-panel">
+            <h2 class="fs-5 fw-bold text-center mb-3 text-dark">SIGN UP NOW</h2>
+            
+            @if (Model.discordUser == null) {
+                <a href="/api/discordapplicationcallback" class="btn btn-primary w-100 mb-3 fw-bold" style="background-color: #5865f2; border: none;">
+                    <i class="bi bi-discord"></i> Verify with Discord
+                </a>
+            } else {
+                <div class="alert alert-success text-center py-2">
+                    <strong>@@@Model.discordUser.Username</strong> verified
+                </div>
+            }
+
+            <form method="post">
+                <input type="hidden" name="formAction" value="signup">
+                @if (Model.signupError != null) { <p class="text-danger small">@Model.signupError</p> }
+                
+                <input type="text" name="signupUsername" class="form-control mb-2" placeholder="Username" required @(Model.signupDisabled ? "disabled" : "")>
+                <input type="password" name="signupPassword" class="form-control mb-2" placeholder="Password" required @(Model.signupDisabled ? "disabled" : "")>
+                <input type="password" name="signupConfirmPassword" class="form-control mb-3" placeholder="Confirm Password" required @(Model.signupDisabled ? "disabled" : "")>
+
+                <div class="cf-turnstile mb-3" data-sitekey="@Model.siteKey"></div>
+
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn w-100 fw-bold @(Model.signupDisabled ? "btn-secondary disabled" : "custom-btn-primary")" @(Model.signupDisabled ? "disabled" : "")>
+                    Sign Up
+                </button>
+            </form>
+        </div>
     </div>
-</div>
 
-<footer style="position:fixed; bottom:0; width:100%; background:rgba(0,0,0,0.5); color:#ccc; font-size:10px; text-align:center; padding:5px;">
-    &copy; 2026 Korone. Not affiliated with Roblox Corporation.
-</footer>
+    <footer style="position:fixed; bottom:0; width:100%; background:rgba(0,0,0,0.5); color:#ccc; font-size:10px; text-align:center; padding:5px;">
+        &copy; 2026 Korone. Not affiliated with Roblox Corporation.
+    </footer>
 
-<script src="[https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit](https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit)" async defer></script>
-<script>
-    var SITE_KEY = '@Model.siteKey';
-    var loginWidgetId = null;
-
-    function openLoginCaptcha() {
-        var overlay = document.getElementById('login-captcha-overlay');
-        overlay.classList.add('active');
-        
-        if (loginWidgetId === null) {
-            loginWidgetId = turnstile.render('#login-turnstile', {
-                sitekey: SITE_KEY,
-                callback: function(token) {
-                    var form = document.getElementById('login-form');
-                    var input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'cf-turnstile-response';
-                    input.value = token;
-                    form.appendChild(input);
-                    overlay.classList.remove('active');
-                    form.submit();
-                }
-            });
-        } else {
-            turnstile.reset(loginWidgetId);
-        }
-    }
-</script>
-
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>
