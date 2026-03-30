@@ -8,7 +8,6 @@ import Subtitle from "./subtitle"
 import Link from "../../link";
 import { getAssetRestrictions } from "../../../services/develop";
 import { Thumbnail3DHandler } from "../../thumbnail3D";
-import getFlag from "../../../lib/getFlag";
 import UserProfileStore from "../stores/UserProfileStore";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
@@ -92,13 +91,12 @@ const Avatar = props => {
     const store = UserProfileStore.useContainer();
     const feedback = FeedbackStore.useContainer();
     
-    const is3DEnabled = getFlag('3DRendersEnabled', false);
     const [thumbType, setThumbType] = useState(0);
     const [is3DReady, set3DReady] = useState(false);
     /** @type RefObject<HTMLElement> */
     const canvasParentRef = useRef(null);
     const [thumb3D, setThumb3D] = useState(new Thumbnail3DHandler());
-
+    
     useEffect(async () => {
         let avatar = await getAvatar({ userId });
         let assetIds = avatar.assets.map(d => d.id);
@@ -120,6 +118,7 @@ const Avatar = props => {
     useEffect(async () => {
         if (thumbType === 1 && !store?.userAv3D?.camera) {
             await thumb3D.Stop();
+            feedback.addFeedback("3D Render not available, please try again later", FeedbackType.ERROR);
             setThumbType(0);
             return;
         }
@@ -158,14 +157,14 @@ const Avatar = props => {
                         : null
                     }
                 </div>
-                {is3DEnabled && <div className={s.thumbnail3DButtonContainer}>
+                <div className={s.thumbnail3DButtonContainer}>
                     <ActionButton
                         label={thumbType === 1 ? "2D" : "3D"}
                         buttonStyle={buttonStyles.newCancelButton}
                         className={s.thumbnail3DButton}
                         onClick={() => setThumbType(thumbType === 1 ? 0 : 1)}
                     />
-                </div>}
+                </div>
             </div>
         </div>
         <div className='col-12 col-lg-6 ps-0'>
