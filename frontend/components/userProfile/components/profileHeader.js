@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { followUser, unfollowUser } from "../../../services/friends";
 import { multiGetPresence } from "../../../services/presence";
+import { getTheme } from "../../../services/theme";
 import { getMembershipType, updateStatus } from "../../../services/users";
 import AuthenticationStore from "../../../stores/authentication";
 import Dropdown2016 from "../../dropdown2016";
