@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { followUser, unfollowUser } from "../../../services/friends";
 import { multiGetPresence } from "../../../services/presence";
-import { getTheme, themeType } from "../../../services/theme";
 import { getMembershipType, updateStatus } from "../../../services/users";
 import AuthenticationStore from "../../../stores/authentication";
 import Dropdown2016 from "../../dropdown2016";
@@ -305,26 +304,8 @@ const ProfileHeader = props => {
   const showButtons = auth.userId != store.userId && !auth.isPending;
   
   const BcIcon = () => {
-    const isDark = getTheme() === themeType.dark;
-
-    const membershipBadge = () => {
-      // 1 = BC, 3 = OBC, 4 = Premium, 0 = None
-      switch (bcLevel) {
-        case 1:
-          return <span className={`icon-bc ${s.badgeIcon}`} />
-        case 3:
-          return <span className={`icon-obc ${s.badgeIcon}`} />
-        case 4:
-          return <img src={PREMIUM_ICON} alt="Premium" className={s.badgeIcon} style={{ height: '28px', width: 'auto', ...(isDark ? { filter: 'brightness(0) invert(1)' } : {}) }} />
-        default:
-          return null;
-      }
-    };
-
-    if (isProfileStaff || pawBadge) {
-      return <div className={s.badgeIconWrapper}>
-        <span className={`icon-paw ${s.badgeIcon}`} style={isDark ? { filter: 'brightness(0) invert(1)' } : {}} />
-      </div>;
+    if (bcLevel === 0) {
+      return null;
     }
 
     if (pawBadge) {
