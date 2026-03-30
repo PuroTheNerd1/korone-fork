@@ -1300,22 +1300,22 @@ public class UsersService : ServiceBase, IService
                 trade_privacy = GeneralPrivacy.All,
             });
             //// Balance
-            //await InsertAsync("user_economy", "user_id", new
-            //{
-            //    user_id = userId,
-            //    balance_tickets = 0,
-            //    balance_robux = 100,
-            //});
+            await InsertAsync("user_economy", "user_id", new
+            {
+                user_id = userId,
+                balance_tickets = 0,
+                balance_robux = 100,
+            });
 
-            //// First transaction
-            //await InsertAsync("user_transaction", new
-            //{
-            //    amount = 100,
-            //    type = PurchaseType.BuildersClubStipend,
-            //    currency_type = 1,
-            //    user_id_one = userId,
-            //    user_id_two = 1,
-            //});
+            // First transaction
+            await InsertAsync("user_transaction", new
+            {
+                amount = 100,
+                type = PurchaseType.BuildersClubStipend,
+                currency_type = 1,
+                user_id_one = userId,
+                user_id_two = 1,
+            });
 
             // Default avatar
             await InsertAsync("user_avatar", "user_id", new
