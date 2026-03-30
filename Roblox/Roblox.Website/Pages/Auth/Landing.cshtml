@@ -125,7 +125,7 @@
         }
     </style>
 </head>
-<body>
+<body data-sitekey="@Model.siteKey">
     <div class="landing-bg"></div>
 
     <nav class="landing-navbar">
@@ -205,56 +205,6 @@
     </div>
 
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script>
-        var SITE_KEY = '@Model.siteKey';
-        var loginWidgetId = null;
-
-        window.onLoginCaptchaSuccess = function(token) {
-            var loginForm = document.getElementById('login-form');
-            var input = loginForm.querySelector('input[name="cf-turnstile-response"]');
-            if (!input) {
-                input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'cf-turnstile-response';
-                loginForm.appendChild(input);
-            }
-            input.value = token;
-            document.getElementById('login-captcha-overlay').classList.remove('active');
-            loginForm.submit();
-        };
-
-        document.addEventListener('DOMContentLoaded', function() {
-            var loginBtn = document.getElementById('loginBtn');
-            var overlay = document.getElementById('login-captcha-overlay');
-            var closeBtn = document.getElementById('captchaCloseBtn');
-
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                overlay.classList.add('active');
-
-                if (typeof turnstile !== 'undefined') {
-                    if (loginWidgetId === null) {
-                        loginWidgetId = turnstile.render('#login-turnstile-container', {
-                            sitekey: SITE_KEY,
-                            theme: 'light',
-                            callback: 'onLoginCaptchaSuccess'
-                        });
-                    } else {
-                        turnstile.reset(loginWidgetId);
-                    }
-                }
-            });
-
-            closeBtn.addEventListener('click', function() {
-                overlay.classList.remove('active');
-            });
-
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-        });
-    </script>
+    <script src="/js/landing.js"></script>
 </body>
 </html>
