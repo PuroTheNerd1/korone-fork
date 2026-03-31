@@ -893,16 +893,60 @@ public class WebController : ControllerBase
     private async Task<CreateResponse> UploadClothing(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
-        if (pictureData == null) throw new BadRequestException(0, "Invalid image file");
+        if (pictureData == null)
+            throw new BadRequestException(0, "Invalid image file");
+
         stream.Position = 0;
         using var cleanImage = await services.assets.CleanImage(stream);
+
+        var cleanImageMemory = new MemoryStream();
         cleanImage.Position = 0;
-        var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
-        cleanImage.Position = 0;
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)cleanImage.Length, pictureData.width, pictureData.height, pictureData.imageFormat, await services.assets.GenerateImageHash(cleanImage));
-        cleanImage.Position = 0;
-        var clothingAsset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default, default, default, default, imageAsset.assetId);
+        await cleanImage.CopyToAsync(cleanImageMemory);
+        cleanImageMemory.Position = 0;
+
+        var imageLength = (int)cleanImageMemory.Length;
+        var imageHash = await services.assets.GenerateImageHash(cleanImageMemory);
+        cleanImageMemory.Position = 0;
+
+        var imageAsset = await services.assets.CreateAsset(
+            request.file.FileName,
+            request.assetType + " Image",
+            safeUserSession.userId,
+            creatorType,
+            creatorId,
+            cleanImageMemory,
+            Models.Assets.Type.Image,
+            Genre.All,
+            ModerationStatus.AwaitingApproval);
+
+        cleanImageMemory.Position = 0;
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(
+            imageAsset.assetVersionId,
+            (int)cleanImageMemory.Length,
+            pictureData.width,
+            pictureData.height,
+            pictureData.imageFormat,
+            imageHash);
+
+        var clothingAsset = await services.assets.CreateAsset(
+            request.name,
+            null,
+            safeUserSession.userId,
+            creatorType,
+            creatorId,
+            null,
+            request.assetType,
+            Genre.All,
+            imageAsset.moderationStatus,
+            default,
+            default,
+            default,
+            default,
+            imageAsset.assetId);
+
         await services.users.CreateUserAsset(safeUserSession.userId, clothingAsset.assetId);
+
+        cleanImageMemory.Dispose();
 
         return clothingAsset;
     }
