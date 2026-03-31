@@ -519,6 +519,7 @@ public class AssetsService : ServiceBase, IService
         if (content.CanSeek)
             content.Seek(0, SeekOrigin.Begin);
 
+
         return imageData;
     }
 
