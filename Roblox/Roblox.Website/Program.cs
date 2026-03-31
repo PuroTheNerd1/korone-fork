@@ -132,7 +132,7 @@ builder.Services.AddMvc(c =>
 );
 
 builder.Services.AddSingleton<Roblox.Services.R2StorageService>();
-//builder.Services.AddHostedService<Roblox.Website.R2MigrationWorker>();
+builder.Services.AddHostedService<Roblox.Website.R2MigrationWorker>();
 
 var app = builder.Build();
 app.UseRouting();
