@@ -899,14 +899,16 @@ public class WebController : ControllerBase
         stream.Position = 0;
         using var cleanImage = await services.assets.CleanImage(stream);
 
-        var cleanImageMemory = new MemoryStream();
+        // Read cleaned image into a byte array
         cleanImage.Position = 0;
-        await cleanImage.CopyToAsync(cleanImageMemory);
-        cleanImageMemory.Position = 0;
+        byte[] imageBytes = new byte[cleanImage.Length];
+        await cleanImage.ReadExactlyAsync(imageBytes, 0, imageBytes.Length);
 
-        var imageLength = (int)cleanImageMemory.Length;
-        var imageHash = await services.assets.GenerateImageHash(cleanImageMemory);
-        cleanImageMemory.Position = 0;
+        // Create separate streams for each operation
+        var hashStream = new MemoryStream(imageBytes);
+        var createAssetStream = new MemoryStream(imageBytes);
+
+        var imageHash = await services.assets.GenerateImageHash(hashStream);
 
         var imageAsset = await services.assets.CreateAsset(
             request.file.FileName,
@@ -914,15 +916,18 @@ public class WebController : ControllerBase
             safeUserSession.userId,
             creatorType,
             creatorId,
-            cleanImageMemory,
+            createAssetStream,
             Models.Assets.Type.Image,
             Genre.All,
             ModerationStatus.AwaitingApproval);
 
-        cleanImageMemory.Position = 0;
+        // Clean up hash stream after use
+        hashStream.Dispose();
+        createAssetStream.Dispose();
+
         await services.assets.InsertOrUpdateAssetVersionMetadataImage(
             imageAsset.assetVersionId,
-            (int)cleanImageMemory.Length,
+            imageBytes.Length,
             pictureData.width,
             pictureData.height,
             pictureData.imageFormat,
@@ -945,8 +950,6 @@ public class WebController : ControllerBase
             imageAsset.assetId);
 
         await services.users.CreateUserAsset(safeUserSession.userId, clothingAsset.assetId);
-
-        cleanImageMemory.Dispose();
 
         return clothingAsset;
     }
