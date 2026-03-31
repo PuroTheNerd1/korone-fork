@@ -498,8 +498,10 @@ public class AssetsService : ServiceBase, IService
         var originalImage = await Image.LoadAsync<Rgba32>(image);
         var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
         newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
+
         var memoryStream = new MemoryStream();
-        newImage.Save(memoryStream, new PngEncoder());
+        await newImage.SaveAsPngAsync(memoryStream);
+
         memoryStream.Seek(0, SeekOrigin.Begin);
         return memoryStream;
     }
@@ -513,6 +515,9 @@ public class AssetsService : ServiceBase, IService
 
         if (imageData.imageFormat != ImagerFormat.PNG && imageData.imageFormat != ImagerFormat.JPEG)
             return null;
+
+        if (content.CanSeek)
+            content.Seek(0, SeekOrigin.Begin);
 
         return imageData;
     }
