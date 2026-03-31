@@ -890,6 +890,19 @@ public class WebController : ControllerBase
         }
     }
 
+    private async Task<byte[]> ReadStreamToByteArray(Stream stream)
+    {
+        stream.Position = 0;
+        byte[] buffer = new byte[stream.Length];
+        await stream.ReadExactlyAsync(buffer, 0, buffer.Length);
+        return buffer;
+    }
+
+    private MemoryStream CreateStreamFromBytes(byte[] data)
+    {
+        return new MemoryStream(data);
+    }
+
     private async Task<CreateResponse> UploadClothing(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
@@ -898,18 +911,13 @@ public class WebController : ControllerBase
 
         stream.Position = 0;
         using var cleanImage = await services.assets.CleanImage(stream);
+        byte[] imageBytes = await ReadStreamToByteArray(cleanImage);
 
-        // Read cleaned image into a byte array
-        cleanImage.Position = 0;
-        byte[] imageBytes = new byte[cleanImage.Length];
-        await cleanImage.ReadExactlyAsync(imageBytes, 0, imageBytes.Length);
-
-        // Create separate streams for each operation
-        var hashStream = new MemoryStream(imageBytes);
-        var createAssetStream = new MemoryStream(imageBytes);
-
+        var hashStream = CreateStreamFromBytes(imageBytes);
         var imageHash = await services.assets.GenerateImageHash(hashStream);
+        hashStream.Dispose();
 
+        var createAssetStream = CreateStreamFromBytes(imageBytes);
         var imageAsset = await services.assets.CreateAsset(
             request.file.FileName,
             request.assetType + " Image",
@@ -920,9 +928,6 @@ public class WebController : ControllerBase
             Models.Assets.Type.Image,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-
-        // Clean up hash stream after use
-        hashStream.Dispose();
         createAssetStream.Dispose();
 
         await services.assets.InsertOrUpdateAssetVersionMetadataImage(
@@ -961,8 +966,12 @@ public class WebController : ControllerBase
         var balance = await services.economy.GetBalance(creatorType, creatorId);
         if (balance.robux < 20)
             throw new BadRequestException(0, "Not enough Robux for purchase");
-        stream.Position = 0;
-        var isOk = await Services.AudioService.IsAudioValid(stream, creatorId);
+
+        byte[] audioBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(audioBytes);
+        var isOk = await Services.AudioService.IsAudioValid(validationStream, creatorId);
+        validationStream.Dispose();
 
         if (isOk == MediaValidation.UnsupportedFormat)
             throw new BadRequestException(0, "OGG uploading is currently disabled, try uploading as an MP3 instead");
@@ -970,11 +979,12 @@ public class WebController : ControllerBase
         if (isOk != MediaValidation.Ok)
             throw new BadRequestException(0, "Bad audio file. Error = " + isOk.ToString());
 
-        stream.Position = 0;
-
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
+        var createStream = CreateStreamFromBytes(audioBytes);
         var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
-            safeUserSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
 
@@ -983,16 +993,24 @@ public class WebController : ControllerBase
         var imageData = await services.assets.ValidateImage(stream);
         if (imageData == null)
             throw new BadRequestException(0, "Invalid image file");
+
         stream.Position = 0;
         using var cleanImage = await services.assets.CleanImage(stream);
+        byte[] imageBytes = await ReadStreamToByteArray(cleanImage);
 
+        var hashStream = CreateStreamFromBytes(imageBytes);
+        var imageHash = await services.assets.GenerateImageHash(hashStream);
+        hashStream.Dispose();
+
+        var createAssetStream = CreateStreamFromBytes(imageBytes);
         var imageAsset = await services.assets.CreateAsset(request.name, "Image",
-            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Image,
+            safeUserSession.userId, creatorType, creatorId, createAssetStream, Models.Assets.Type.Image,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)cleanImage.Length,
-            imageData.width, imageData.height, imageData.imageFormat,
-            await services.assets.GenerateImageHash(cleanImage));
+        createAssetStream.Dispose();
+
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, imageBytes.Length,
+            imageData.width, imageData.height, imageData.imageFormat, imageHash);
 
         return imageAsset;
     }
@@ -1015,17 +1033,20 @@ public class WebController : ControllerBase
 
         stream.Position = 0;
         using var cleanImage = await services.assets.CleanImage(stream);
-        cleanImage.Position = 0;
+        byte[] imageBytes = await ReadStreamToByteArray(cleanImage);
 
-        var imageLength = (int)cleanImage.Length;
-        var imageHash = await services.assets.GenerateImageHash(cleanImage);
+        var hashStream = CreateStreamFromBytes(imageBytes);
+        var imageHash = await services.assets.GenerateImageHash(hashStream);
+        hashStream.Dispose();
 
+        var createAssetStream = CreateStreamFromBytes(imageBytes);
         var badgeAsset = await services.assets.CreateAsset(request.name, request.description,
-            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Badge,
+            safeUserSession.userId, creatorType, creatorId, createAssetStream, Models.Assets.Type.Badge,
             Genre.All,
             ModerationStatus.AwaitingApproval);
+        createAssetStream.Dispose();
 
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, imageLength,
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, imageBytes.Length,
             420, 420, imageData.imageFormat, imageHash);
         await services.assets.CreateBadgeAsset(badgeAsset.assetId, request.universeId);
         await services.assets.UpdateAssetMarketInfo(badgeAsset.assetId, false, false, false, null, null);
@@ -1056,14 +1077,21 @@ public class WebController : ControllerBase
 
         stream.Position = 0;
         using var cleanImage = await services.assets.CleanImage(stream);
+        byte[] imageBytes = await ReadStreamToByteArray(cleanImage);
 
+        var hashStream = CreateStreamFromBytes(imageBytes);
+        var imageHash = await services.assets.GenerateImageHash(hashStream);
+        hashStream.Dispose();
+
+        var createAssetStream = CreateStreamFromBytes(imageBytes);
         var gamepassAsset = await services.assets.CreateAsset(request.name, request.description,
-            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.GamePass,
+            safeUserSession.userId, creatorType, creatorId, createAssetStream, Models.Assets.Type.GamePass,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(gamepassAsset.assetVersionId, (int)cleanImage.Length,
-            imageData.width, imageData.height, imageData.imageFormat,
-            await services.assets.GenerateImageHash(cleanImage));
+        createAssetStream.Dispose();
+
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(gamepassAsset.assetVersionId, imageBytes.Length,
+            imageData.width, imageData.height, imageData.imageFormat, imageHash);
         await services.assets.CreateGamePassAsset(gamepassAsset.assetId, universe.id);
         await services.assets.UpdateAssetMarketInfo(gamepassAsset.assetId, request.isForSale == true, false, false, null, null);
         await services.assets.SetItemPrice(gamepassAsset.assetId, request.priceInRobux, request.priceInTickets);
@@ -1076,72 +1104,102 @@ public class WebController : ControllerBase
         var balance = await services.economy.GetBalance(creatorType, creatorId);
         if (balance.robux < 100)
             throw new BadRequestException(0, "Not enough Robux for purchase");
-        stream.Position = 0;
-        var isOk = await services.assets.IsVideoValid(stream);
+
+        byte[] videoBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(videoBytes);
+        var isOk = await services.assets.IsVideoValid(validationStream);
+        validationStream.Dispose();
+
         if (isOk != MediaValidation.Ok)
-        {
             throw new BadRequestException(0, "Bad video file. Error = " + isOk.ToString());
-        }
 
         await services.economy.ChargeForVideoUpload(creatorType, creatorId);
+        var createStream = CreateStreamFromBytes(videoBytes);
         var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
-            safeUserSession.userId, stream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
 
     private async Task<CreateResponse> UploadMesh(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        stream.Position = 0;
-        if (!await services.assets.IsMeshValid(stream))
+        byte[] meshBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(meshBytes);
+        if (!await services.assets.IsMeshValid(validationStream))
         {
+            validationStream.Dispose();
             throw new BadRequestException(0, "Bad mesh file");
         }
-        stream.Position = 0;
+        validationStream.Dispose();
+
+        var createStream = CreateStreamFromBytes(meshBytes);
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Mesh, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.Mesh, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
 
     private async Task<CreateResponse> UploadMeshPart(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        stream.Position = 0;
-        if (!await services.assets.RobloxFileValidation(stream))
+        byte[] meshBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(meshBytes);
+        if (!await services.assets.RobloxFileValidation(validationStream))
         {
+            validationStream.Dispose();
             throw new BadRequestException(0, "Bad mesh file");
         }
-        stream.Position = 0;
+        validationStream.Dispose();
+
+        var createStream = CreateStreamFromBytes(meshBytes);
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.MeshPart, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.MeshPart, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
 
     private async Task<CreateResponse> UploadModel(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        stream.Position = 0;
-        using var validationStream = new MemoryStream();
-        await stream.CopyToAsync(validationStream);
-        validationStream.Position = 0;
+        byte[] modelBytes = await ReadStreamToByteArray(stream);
 
+        var validationStream = CreateStreamFromBytes(modelBytes);
         if (!await services.assets.ValidateAssetFile(validationStream, Models.Assets.Type.Model))
+        {
+            validationStream.Dispose();
             throw new BadRequestException(0, "Bad model file");
+        }
+        validationStream.Dispose();
 
-        stream.Position = 0;
+        var createStream = CreateStreamFromBytes(modelBytes);
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.Model, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
 
     private async Task<CreateResponse> UploadAnimation(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        stream.Position = 0;
-        using var validationStream = new MemoryStream();
-        await stream.CopyToAsync(validationStream);
-        validationStream.Position = 0;
+        byte[] animationBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(animationBytes);
         if (!await services.assets.ValidateAssetFile(validationStream, Models.Assets.Type.Animation))
+        {
+            validationStream.Dispose();
             throw new BadRequestException(0, "Bad animation file");
-        stream.Position = 0;
+        }
+        validationStream.Dispose();
+
+        var createStream = CreateStreamFromBytes(animationBytes);
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Animation, Genre.All, ModerationStatus.ReviewApproved);
+            safeUserSession.userId, createStream, Models.Assets.Type.Animation, Genre.All, ModerationStatus.ReviewApproved);
+        createStream.Dispose();
+
         return asset;
     }
 }
