@@ -119,6 +119,7 @@ const AvatarInfoStore = createContainer(() => {
         stopwatch.Start();
         let attempts = 0;
         while (avThumb == null && attempts <= 10) {
+            await wait(0.2);
             let thumbnail = await multiGetUserThumbnails({userIds: [auth.userId]})
                 .then(result => result[0]);
             if (thumbnail.state === "Completed" && typeof thumbnail.imageUrl === "string") {
@@ -128,7 +129,7 @@ const AvatarInfoStore = createContainer(() => {
                 console.warn("User thumbnail has not completed rendering yet.");
             }
             attempts++;
-            await wait(1);
+
         }
         stopwatch.Stop();
         if (attempts > 10 && avThumb == null)
