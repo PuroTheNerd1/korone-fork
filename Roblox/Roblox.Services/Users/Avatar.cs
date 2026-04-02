@@ -1021,14 +1021,13 @@ public class AvatarService : ServiceBase, IService {
         }
     }
 
-    // Helper method to keep the main function clean
     private async Task ProcessAndUploadImageAsync(R2StorageService r2, string imageResult, int size, string key)
     {
         using var stream = await RenderingHandler.ResizeImage<MemoryStream, string>(imageResult, size, size);
         stream.Position = 0;
         await r2.UploadFileAsync(key, stream, "image/png");
     }
-    }
+    
 
     // public async Task TryAsset(long userId, long assetId)
     // {
