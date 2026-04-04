@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -90,7 +91,8 @@ public class LeakCheckApi
     {
         try
         {
-            var result = await LookupAsync(password, "password");
+            string phash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(password)))[..24];
+            var result = await LookupAsync(phash, "phash");
             if (result.Found >= 1)
                 return true;
         }
@@ -102,11 +104,6 @@ public class LeakCheckApi
     {
         _httpClient?.Dispose();
     }
-
-    // ---------------------------------------------------------
-    // Nested Response Models
-    // ---------------------------------------------------------
-
     public class LeakCheckResponse
     {
         [JsonPropertyName("success")]

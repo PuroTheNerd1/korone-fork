@@ -463,9 +463,11 @@ public class UsersService : ServiceBase, IService
         }
         // check for invalid characters
         var normalizedNameArray = UsernameValidationRegex.Match(nameToCheck);
-        if (!normalizedNameArray.Success) return false;
+        if (!normalizedNameArray.Success) 
+            return false;
         var normalizedName = normalizedNameArray.Value;
-        if (normalizedName != nameToCheck) return false;
+        if (normalizedName != nameToCheck) 
+            return false;
 
         // check for duplicate whitespace
         for (var i = 1; i < normalizedName.Length; i++)
@@ -499,8 +501,10 @@ public class UsersService : ServiceBase, IService
 
     public bool IsPasswordValid(string passwordToValidate)
     {
-        if (string.IsNullOrEmpty(passwordToValidate) || string.IsNullOrWhiteSpace(passwordToValidate)) return false;
-        if (passwordToValidate.Length < 3) return false;
+        if (string.IsNullOrEmpty(passwordToValidate) || string.IsNullOrWhiteSpace(passwordToValidate)) 
+            return false;
+        if (passwordToValidate.Length < 3) 
+            return false;
         return true;
     }
 
