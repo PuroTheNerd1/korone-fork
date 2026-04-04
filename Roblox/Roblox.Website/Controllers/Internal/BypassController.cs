@@ -1,52 +1,27 @@
-using System.ComponentModel.DataAnnotations;
-using System.Dynamic;
-using System.Security.Cryptography;
-using System.Text;
-using System.Web;
-using System.Xml.Linq;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Net.Http.Headers;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Roblox.Dto.AbuseReport;
 using Roblox.Dto.Games;
-using Roblox.Dto.Persistence;
-using Roblox.Dto.Users;
-using MVC = Microsoft.AspNetCore.Mvc;
-using Roblox.Libraries.Assets;
-using Roblox.Libraries.FastFlag;
-using Roblox.Libraries.RobloxApi;
-using Roblox.Logging;
-using Roblox.Services.Exceptions;
-using BadRequestException = Roblox.Exceptions.BadRequestException;
+using Roblox.Exceptions;
+using Roblox.Models;
+using Roblox.Models.AbuseReport;
 using Roblox.Models.Assets;
+using Roblox.Models.Games;
 using Roblox.Models.GameServer;
 using Roblox.Models.Users;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
-using Roblox.Website.Middleware;
 using Roblox.Website.WebsiteModels.Asset;
-using Roblox.Website.WebsiteModels.Games;
-using HttpGet = Roblox.Website.Controllers.HttpGetBypassAttribute;
-using JsonSerializer = System.Text.Json.JsonSerializer;
-using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
+using System.ComponentModel.DataAnnotations;
+using System.Xml.Linq;
+using BadRequestException = Roblox.Exceptions.BadRequestException;
+using ForbiddenException = Roblox.Exceptions.ForbiddenException;
+using MVC = Microsoft.AspNetCore.Mvc;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
-using Microsoft.AspNetCore.Mvc;
-using Roblox.Website.WebsiteModels.Authentication;
-using System.Text.RegularExpressions;
-using InfluxDB.Client.Core.Exceptions;
-using Roblox.Exceptions;
-using Roblox.Website.Pages;
-using System.IO.Compression;
-using Roblox.Models;
-using Roblox.Dto.Assets;
-using Roblox.Models.AbuseReport;
-using Roblox.Dto.AbuseReport;
-using Roblox.Models.Games;
-using System.Diagnostics.CodeAnalysis;
-using ForbiddenException = Roblox.Exceptions.ForbiddenException;
-using System.IO;
 
 namespace Roblox.Website.Controllers
 {
@@ -59,8 +34,6 @@ namespace Roblox.Website.Controllers
         {
             throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
         }
-
-
 
         [HttpGetBypass("Game/GamePass/GamePassHandler.ashx")]
         public async Task<string> GamePassHandler(string Action, long UserID, long PassID)
@@ -1056,67 +1029,58 @@ namespace Roblox.Website.Controllers
             return new { data = jsonString };
         }
 
-        private static int pendingAssetUploads { get; set; } = 0;
-        private static readonly Mutex pendingAssetUploadsMux = new();
 
-        [HttpPostBypass("ide/publish/uploadexistinganimation")]
+
         [HttpPostBypass("ide/publish/UploadFromCloudEdit")]
-        [HttpPostBypass("Data/Upload.ashx")]
-        public async Task<dynamic> UploadPlaceFromStudio(long? assetId = null)
+        public async Task<dynamic> UploadFromCloudEdit()
         {
             FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
-            // if assetId is 0 try getting it from the headers
-            if (assetId == null && currentPlaceId != 0)
-                assetId = currentPlaceId;
+            if (!isRCC)
+                throw new ForbiddenException();
+            var server = await services.gameServer.GetGameServer(Guid.Parse(currentGameId));
+            // Paranoia check
+            if (server.assetId != currentPlaceId)
+                throw new BadRequestException();
 
-            var info = await services.assets.GetAssetCatalogInfo(assetId!.Value);
-
-            // Should be secure enough
-            bool isUserAllowedToUpload = (userSession is not null && await services.assets.CanUserModifyItem(assetId!.Value, userSession.userId));
-            if (!isUserAllowedToUpload && !isRCC)
-                throw new ForbiddenException(1, "Not allowed to upload");
-
-            if (info.assetType != Type.Place && info.assetType != Type.Animation && info.assetType != Type.Model)
-                throw new BadRequestException(0, "This asset type is not supported");
-
-            lock (pendingAssetUploadsMux)
+            var assetInfo = await services.assets.GetAssetCatalogInfo(currentPlaceId);
+            using (var assetStream = await GetRequestBodyAsMemoryStream())
             {
-                if (pendingAssetUploads >= 2)
-                    throw new RobloxException(429, 0, "TooManyRequests");
-                pendingAssetUploads++;
-            }
-            try
-            {
-                using var assetStream = await GetRequestBodyAsMemoryStream();
-
                 assetStream.Position = 0;
-                using var validationStream = new MemoryStream();
-                await assetStream.CopyToAsync(validationStream);
-                validationStream.Position = 0;
-
-                if (!await services.assets.ValidateAssetFile(validationStream, info.assetType))
-                    throw new RobloxException(400, 0, "Invalid asset file");
-
-                assetStream.Position = 0;
-
-                await services.assets.CreateAssetVersion(assetId!.Value, info.creatorTargetId, assetStream);
-
+                await services.assets.CreateAssetVersion(assetInfo.id, assetInfo.creatorTargetId, assetStream);
             }
-            finally
-            {
-                lock (pendingAssetUploadsMux)
-                {
-                    pendingAssetUploads--;
-                }
 
-            }
-            // hacky fix for updating models/animations so it returns the proper id
-            if ((info.assetType == Type.Animation || info.assetType == Type.Model) && assetId != null)
-                return assetId;
             return new
             {
                 success = true,
             };
+        }
+        [HttpPostBypass("ide/publish/uploadexistinganimation")]
+        [HttpPostBypass("Data/Upload.ashx")]
+        public async Task<long> UploadPlaceFromStudio(long assetId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
+            // Should be secure enough
+            if (!await services.assets.CanUserModifyItem(assetId, safeUserSession.userId))
+                throw new ForbiddenException(1, "Not allowed to upload");
+
+            var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
+
+            if (assetInfo.assetType != Type.Place && assetInfo.assetType != Type.Animation && assetInfo.assetType != Type.Model)
+                throw new BadRequestException(0, "This asset type is not supported");
+
+            using (var assetStream = await GetRequestBodyAsMemoryStream())
+            using (var validationStream = new MemoryStream())
+            {
+                assetStream.Position = 0;
+                await assetStream.CopyToAsync(validationStream);
+                validationStream.Position = 0;
+
+                if (!await services.assets.ValidateAssetFile(validationStream, assetInfo.assetType))
+                    throw new BadRequestException(0, "Invalid asset file");
+                await services.assets.CreateAssetVersion(assetId, assetInfo.creatorTargetId, assetStream);
+            }
+
+            return assetId;
         }
 
         [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
@@ -1140,12 +1104,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/user/{userId:long}/is-admin-developer-console-enabled")]
         public async Task<dynamic> NewCanManage(long userId)
         {
-            long placeId = long.Parse(Request.Headers["roblox-place-id"].ToString());
-            bool canManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
-            bool isOwner =  StaffFilter.IsOwner(userId);
+            bool canManagePlace = await services.assets.CanUserModifyItem(currentPlaceId, userId);
             return new
             {
-                isAdminDeveloperConsoleEnabled = (canManagePlace || isOwner)
+                isAdminDeveloperConsoleEnabled = (canManagePlace || StaffFilter.IsOwner(userId))
             };
         }
 
@@ -1275,15 +1237,13 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("game/load-place-info")]
         public async Task<dynamic> LoadPlaceInfo()
         {
-            var placeId = Request.Headers["roblox-place-id"];
-            long.TryParse(placeId, out long assetId);
-            var details = await services.assets.GetAssetCatalogInfo(assetId);
+            var details = await services.assets.GetAssetCatalogInfo(currentPlaceId);
             return new
             {
                 CreatorId =  details.creatorTargetId,
                 CreatorType = "User",
                 PlaceVersion = details.id,
-                GameId = assetId,
+                GameId = currentPlaceId,
                 IsRobloxPlace = details.creatorTargetId == 1
             };
         }
@@ -1324,7 +1284,7 @@ namespace Roblox.Website.Controllers
             {
                 // lets just delete the gameserver if we couldnt close the gameserver
                 await services.gameServer.DeleteGameServer(gameId);
-                return "Catch an error";
+                return "Error";
             }
         }
         
@@ -1352,7 +1312,7 @@ namespace Roblox.Website.Controllers
         public async Task RefreshGameInstance(Guid gameId, long clientCount, Decimal gameTime)
         {
             if (!isRCC)
-                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
+                throw new UnauthorizedException();
             if (clientCount == 0 && gameTime > 50)
             {
                 await services.gameServer.ShutDownServerAsync(gameId);

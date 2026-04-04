@@ -20,7 +20,7 @@ namespace Roblox.Website.Controllers;
 public class Asset : ControllerBase
 {
     // TODO: add flood check, make sure if loading asset from roblox, that its not above 50mb or something
-    [HttpGetBypass("v1/asset")]
+    [HttpGetBypass("sv1/asset")]
     [HttpPostBypass("v1/asset")]
     [HttpGetBypass("asset")]
     [HttpPostBypass("asset")]
@@ -170,7 +170,8 @@ public class Asset : ControllerBase
                 throw new ForbiddenException(1, "User is not authorized to access Asset.");
         }
 
-        if (assetVersion.contentUrl is not null) {
+        if (assetVersion.contentUrl is not null) 
+        {
             var downloadUrl = await services.assets.GetAssetDownloadUrlAsync(assetVersion.contentUrl);
             return Redirect(downloadUrl);
         }
