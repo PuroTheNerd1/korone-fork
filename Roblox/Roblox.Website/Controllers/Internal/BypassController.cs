@@ -60,6 +60,7 @@ namespace Roblox.Website.Controllers
                 bool isInGroup = false;
                 try
                 {
+                    // 1200769 is the roblox admin group gc
                     if (groupid == 1200769 && await StaffFilter.IsStaff(playerid ?? 0))
                         isInGroup = true;
                     var group = await services.groups.GetUserRoleInGroup((long)groupid, (long?)playerid ?? (long)0);
@@ -220,9 +221,9 @@ namespace Roblox.Website.Controllers
         {
             // make sure user is logged in
             var userId = safeUserSession.userId;
-            if (assetId < 1) {
+            if (assetId < 1) 
                 throw new BadRequestException(0, $"Asset {assetId} does not exist.");
-            }
+            
             return new
             {
                 moderationStatus = await services.assets.GetAssetModerationStatus(assetId)
@@ -259,51 +260,6 @@ namespace Roblox.Website.Controllers
             return Redirect($"pekora-player{bootstrapperArgs}");
         }
 
-        [HttpGetBypass("getrichpresence")]
-        public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId, Guid jobId)
-        {
-            string username = "";
-            int playerCount = 0;
-            bool IsFurry = false;
-            long fluffyHat = 18306;
-            int[] furryUsers = { 1049 };
-            try
-            {
-                if (userId != 0)
-                {
-                    var currentPlayerCount = await services.gameServer.GetGameServerPlayers(jobId);
-                    playerCount = currentPlayerCount.Count();
-                }
-            }
-            catch (Exception)
-            {
-                playerCount = 0;
-            }
-            if (userSession != null)
-            {
-                username = userSession.username;
-            }
-            // check if the user owns fluffy ha
-            var owned = await services.users.GetUserAssets(userId, fluffyHat);
-            if (owned.Any() || Array.Exists(furryUsers, id => id == userId))
-                IsFurry = true;
-            long maxplayers = await services.games.GetMaxPlayerCount(placeId);
-            var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
-            long year = await services.games.GetYear(placeId);
-
-            return new
-            {
-                Creator = placeInfo.creatorName,
-                Name = placeInfo.name,
-                Username = username ?? "",
-                Year = year,
-                IsFurry,
-                MaxPlayers = maxplayers,
-                PartyId = Guid.NewGuid().ToString(),
-                CurrentPlayers = playerCount,
-            };
-
-        }
         [HttpGetBypass("My/Places.aspx")]
         public ActionResult<dynamic?> MyPlaces()
         {
