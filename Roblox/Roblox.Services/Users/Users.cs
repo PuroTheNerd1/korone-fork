@@ -474,26 +474,18 @@ public class UsersService : ServiceBase, IService
 
         // world filter, removing spaces and other words
         var lowerName = string.Join("", nameToCheck.ToLower().Split(" "));
-        if (lowerName.Contains("nigg") || lowerName.Contains("n1gg") || lowerName.Contains("niigg") || lowerName.Contains("n11gg") || lowerName.Contains("gga") || lowerName.Contains("gger"))
-            return false;
-        if (lowerName.Contains("porn") || lowerName.Contains("p0rn"))
-            return false;
-        if (lowerName.Contains("kike") || lowerName.Contains("goy"))
-            return false;
-        if (lowerName.Contains("bitch") || lowerName.Contains("b1tch"))
-            return false;        
-        if (lowerName.Contains("dick") || lowerName.Contains("d1ck"))
-            return false;
-        if (lowerName.Contains("fuck") || lowerName.Contains("f1ck"))
-            return false;
-        if (lowerName.Contains("tranny") || lowerName.Contains("fag") || lowerName.Contains("goblina") || lowerName.Contains("dyke") || lowerName.Contains("dick") || lowerName.Contains("cock") || lowerName.Contains("c0ck") || lowerName.Contains("d1ck") || lowerName.Contains("hitler") || lowerName.Contains("hitier"))
-            return false;
+
 
 
         // mod blocked && special char block
         if (await IsBadUsername(nameToCheck) || !IsAsciiUsername(nameToCheck))
             return false;
 
+        using (var filter = ServiceProvider.GetOrCreate<FilterService>(this))
+        {
+            if (filter.IsTextFiltered(lowerName))
+                return false;
+        }
 
         return true;
     }

@@ -190,13 +190,13 @@ public class FilterService : ServiceBase, IService
         "retard"
      };
     private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
-    public string FilterText(string input)
+    public bool IsTextFiltered(string input)
     {
-        /* Stop the fucking annoying ฏ text spamming*/
+        // Stop the fucking annoying ฏ text spamming
         input = CleanText(input);
         if (string.IsNullOrEmpty(input))
         {
-            return input;
+            return false;
         }
 
         string cleanedInput = string.Join("", input.ToCharArray()
@@ -204,29 +204,35 @@ public class FilterService : ServiceBase, IService
             .Select(char.ToLower)
             .Select(c =>
             {
-            /* This will prevent words like n!igga, n!gg@ etc */
-            switch (c)
-            {
-                case '#': return '\0';
-                case '.': return '\0';
-                case '$': return 's';
-                case '@': return 'a';
-                case '!': return 'i';
-                case '0': return 'o';
-                case '*': return '\0';
-                case 'я': return 'r';
-                default: return c;
-            }
+                // This will prevent words like n!igga, n!gg@ etc
+                switch (c)
+                {
+                    case '#': return '\0';
+                    case '.': return '\0';
+                    case '$': return 's';
+                    case '@': return 'a';
+                    case '!': return 'i';
+                    case '0': return 'o';
+                    case '*': return '\0';
+                    case 'я': return 'r';
+                    default: return c;
+                }
             })
             .Where(c => c != '\0')
             .ToArray());
 
-        if (_filteredWordsSet.Any(word => cleanedInput.Contains(word)))
+        return _filteredWordsSet.Any(word => cleanedInput.Contains(word));
+    }
+
+    public string FilterText(string input)
+    {
+        if (IsTextFiltered(input))
         {
             return new string('#', input.Length);
         }
         return input;
     }
+
     public string CleanText(string input)
     {
         StringBuilder sb = new StringBuilder();
