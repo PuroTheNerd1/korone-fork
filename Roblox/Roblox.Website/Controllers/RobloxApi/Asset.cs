@@ -20,7 +20,7 @@ namespace Roblox.Website.Controllers;
 public class Asset : ControllerBase
 {
     // TODO: add flood check, make sure if loading asset from roblox, that its not above 50mb or something
-    [HttpGetBypass("sv1/asset")]
+    [HttpGetBypass("v1/asset")]
     [HttpPostBypass("v1/asset")]
     [HttpGetBypass("asset")]
     [HttpPostBypass("asset")]
