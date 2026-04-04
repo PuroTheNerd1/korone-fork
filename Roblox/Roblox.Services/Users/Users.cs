@@ -449,17 +449,14 @@ public class UsersService : ServiceBase, IService
     public async Task<bool> IsUsernameValid(string nameToCheck)
     {
         // check for null/empty/whitespace
-        if (string.IsNullOrEmpty(nameToCheck) || string.IsNullOrWhiteSpace(nameToCheck)) 
-            return false;
+        if (string.IsNullOrEmpty(nameToCheck) || string.IsNullOrWhiteSpace(nameToCheck)) return false;
         // check length
-        var isInvalidValidLength = nameToCheck.Length >= 50 || nameToCheck.Length < 3;
-        if (isInvalidValidLength) 
-            return false;
+        var isInvalidValidLength = nameToCheck.Length >= 21 || nameToCheck.Length < 3;
+        if (isInvalidValidLength) return false;
         // check start/end
         foreach (var badCharacter in UsernameCannotStartOrEndWith)
         {
-            if (nameToCheck.StartsWith(badCharacter) || nameToCheck.EndsWith(badCharacter)) 
-                return false;
+            if (nameToCheck.StartsWith(badCharacter) || nameToCheck.EndsWith(badCharacter)) return false;
         }
         // check for invalid characters
         var normalizedNameArray = UsernameValidationRegex.Match(nameToCheck);
@@ -472,15 +469,15 @@ public class UsersService : ServiceBase, IService
         // check for duplicate whitespace
         for (var i = 1; i < normalizedName.Length; i++)
         {
-            if (normalizedName[i-1] == ' ' && normalizedName[i] == ' ') 
-                return false;
+            if (normalizedName[i-1] == ' ' && normalizedName[i] == ' ') return false;
         }
         // only one _ allowed
-        if (nameToCheck.Count(c => c == '_') > 1) 
-            return false;
+        if (nameToCheck.Count(c => c == '_') > 1) return false;
 
         // world filter, removing spaces and other words
         var lowerName = string.Join("", nameToCheck.ToLower().Split(" "));
+
+
 
         // mod blocked && special char block
         if (await IsBadUsername(nameToCheck) || !IsAsciiUsername(nameToCheck))
