@@ -36,12 +36,15 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("Game/GamePass/GamePassHandler.ashx")]
-        public async Task<string> GamePassHandler(string Action, long UserID, long PassID)
+        public async Task<string> GamePassHandler(string action, long userId, long passId)
         {
-            if (Action == "HasPass")
+            var assetInfo = await services.assets.GetAssetCatalogInfo(passId);
+            if (assetInfo.assetType != Type.GamePass)
+                throw new BadRequestException();
+            if (action == "HasPass")
             {
-                var has = await services.users.GetUserAssets(UserID, PassID);
-                return has.Any() ? "True" : "False";
+                var ownsPass = await services.inventory.IsOwned(userId, passId);
+                return ownsPass ? "True" : "False";
             }
 
             throw new NotImplementedException();
