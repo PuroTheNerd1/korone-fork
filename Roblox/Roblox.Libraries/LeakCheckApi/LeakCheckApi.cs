@@ -91,7 +91,7 @@ public class LeakCheckApi
     {
         try
         {
-            string phash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(password)))[..24];
+            string phash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(password)))[..24].ToLowerInvariant();
             var result = await LookupAsync(phash, "phash");
             if (result.Found >= 1)
                 return true;
