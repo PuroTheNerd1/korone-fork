@@ -12,6 +12,7 @@ public class FilterService : ServiceBase, IService
         "anally",
         "anus",
         "ballsac",
+        "pussy",
         "ballsack",
         "beastiality",
         "beastility",
@@ -65,6 +66,7 @@ public class FilterService : ServiceBase, IService
         "fagging",
         "faggit",
         "faggot",
+        "fagot",
         "faggots",
         "faggs",
         "fagit",
@@ -190,9 +192,9 @@ public class FilterService : ServiceBase, IService
         "retard"
      };
     private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
+
     public bool IsTextFiltered(string input)
     {
-        // Stop the fucking annoying ฏ text spamming
         input = CleanText(input);
         if (string.IsNullOrEmpty(input))
         {
@@ -204,7 +206,6 @@ public class FilterService : ServiceBase, IService
             .Select(char.ToLower)
             .Select(c =>
             {
-                // This will prevent words like n!igga, n!gg@ etc
                 switch (c)
                 {
                     case '#': return '\0';
@@ -230,17 +231,48 @@ public class FilterService : ServiceBase, IService
         {
             return new string('#', input.Length);
         }
-        return input;
+
+
+        return CleanText(input);
     }
 
     public string CleanText(string input)
     {
-        StringBuilder sb = new StringBuilder();
-        foreach (char c in input.Normalize(NormalizationForm.FormC))
+        if (string.IsNullOrEmpty(input)) return input;
+
+        string normalized = input.Normalize(NormalizationForm.FormKC);
+        StringBuilder sb = new StringBuilder(normalized.Length);
+
+        foreach (char c in normalized)
         {
-            if (char.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+            if (char.IsSurrogate(c))
+            {
                 sb.Append(c);
+                continue;
+            }
+
+            var category = char.GetUnicodeCategory(c);
+            if (category == UnicodeCategory.NonSpacingMark ||
+                category == UnicodeCategory.Format ||
+                category == UnicodeCategory.Control ||
+                category == UnicodeCategory.PrivateUse)
+            {
+                continue;
+            }
+
+            bool isAscii = c <= 0x007F; // English, numbers
+            bool isLatinExtended = c >= 0x0080 && c <= 0x024F; // Covers Turkish French, German, etc.
+            bool isCyrillic = c >= 0x0400 && c <= 0x052F; // Russian
+            bool isJapanese = c >= 0x3040 && c <= 0x30FF; // Japanese
+            bool isChinese = c >= 0x4E00 && c <= 0x9FFF; // Chinese 
+            bool isPunctuationOrSymbol = c >= 0x2000 && c <= 0x2BFF; // Emojis, bullets etc
+
+            if (isAscii || isLatinExtended || isCyrillic || isJapanese || isChinese || isPunctuationOrSymbol)
+            {
+                sb.Append(c);
+            }
         }
+
         return sb.ToString();
     }
 
