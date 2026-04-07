@@ -1,12 +1,13 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Economy;
-using Roblox.Services.Exceptions;
-using Roblox.Models;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
+using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
+using Roblox.Services.Exceptions;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Roblox.Website.Controllers;
 
@@ -101,6 +102,50 @@ public class BadgesControllerV1 : ControllerBase
             data = await services.badges.GetUserBadgeAwardedDates(userId, ids),
         };
     }
+
+    private Dictionary<long, long> badgeRewards = new Dictionary<long, long>
+    {
+            { 558057, 531032 }, // KET Egg
+            { 558048, 531033 }, // Egg of Tick Tock
+            { 558056, 531034 }, // Eggmin
+            { 558052, 531037 }, // Chickegg
+            { 558049, 531041 }, // TIX Egg
+            { 557815, 531042 }, // Knight Egg
+            { 557823, 531043 }, // Yolkist
+            { 557917, 531046 }, // Basic Egg
+            { 558080, 531056 }, // Sorcus Egg
+            { 557831, 555367 }, // Bellegg
+            { 557848, 555369 }, // Egg of Friendship
+            { 557860, 555370 }, // Egg of the Hill
+            { 557868, 555371 }, // Eggfection
+            { 557874, 555380 }, // Doggo Egg
+            { 557881, 555389 }, // Builderman Egg
+            { 557883, 555393 }, // Royal Fabergé Egg
+            { 557893, 555619 }, // Hipster Egg of Retro
+            { 557896, 555620 }, // Top of the World Egg
+            { 557903, 555621 }, // Inkwell Egg
+            { 557908, 555623 }, // The Eggtopus
+            { 557914, 555626 }, // Seal Egg
+            { 557921, 555631 }, // Billy The Egg
+            { 557927, 555644 }, // Eggcano
+            { 557935, 555646 }, // The Amber Egg
+            { 557951, 557460 }, // The Obsidian Egg
+            { 557961, 557463 }, // Pompeiian Egg
+            { 557966, 557466 }, // Mad Scientist Egg
+            { 557973, 557467 }, // Molten Meteoric Core Egg
+            { 557989, 557469 }, // Egg of the Phoenix
+            { 557993, 557471 }, // Eggmageddon
+            { 558006, 557474 }, // Preggstoric Fossil
+            { 558015, 557481 }, // Egg of Luck
+            { 558023, 557493 }, // Egg of Life
+            { 558033, 557502 }, // S.S. Egg - The Mighty Dirigible
+            { 558038, 557515 }, // Eggsplorer
+            { 558039, 557523 }, // Black Iron Fabergé Egg
+            { 558018, 558798 }, // Arborist's Verdant Egg of Leafyness
+            { 558041, 558793 }, // Insanely Valuable Crystal Egg
+            { 558062, 562740 }, // The Final Fabergégg
+            { 558010, 562746 }, // The Pirate Egg
+    };
     
     // Award a badge to a user.
     [HttpPost("users/{userId:long}/badges/{badgeId:long}/award-badge")]
@@ -157,15 +202,11 @@ public class BadgesControllerV1 : ControllerBase
         // TODO: put proper error code here from apidocs sixteensrc 
         await services.users.CreateUserAsset(userId, badgeInfo.assetId);
         await services.assets.IncrementSaleCount(badgeId);
-        // TODO: Temporary make this a dict soon
-        // April event
-        if (badgeId == 519726)
+
+
+        if (badgeRewards.TryGetValue(badgeId, out var hatId))
         {
-            await services.users.CreateUserAsset(userId, 519360);
-        }
-        else if (badgeId == 523123)
-        {
-            await services.users.CreateUserAsset(userId, 523432);
+            await services.users.CreateUserAsset(userId, hatId);
         }
 
         if (Request.Path == "/assets/award-badge") 
