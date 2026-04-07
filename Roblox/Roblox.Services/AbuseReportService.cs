@@ -10,7 +10,7 @@ public class AbuseReportService : ServiceBase, IService
     public async Task<IEnumerable<AbuseReportEntry>> GetReports(AbuseReportStatus status)
     {
         return await db.QueryAsync<AbuseReportEntry>(
-            "SELECT id, user_id as userId, report_reason as reportReason, report_status as reportStatus, created_at as createdAt, updated_at as updatedAt, report_message as reportMessage FROM abuse_report WHERE report_status = :s ORDER BY created_at LIMIT :limit OFFSET :offset",
+            "SELECT id, user_id as userId, report_reason as reportReason, report_status as reportStatus, created_at as createdAt, updated_at as updatedAt, report_message as reportMessage FROM abuse_report WHERE report_status = :s ORDER BY created_at DESC LIMIT :limit OFFSET :offset",
             new
             {
                 s = status,

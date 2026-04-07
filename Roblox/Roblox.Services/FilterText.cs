@@ -238,7 +238,8 @@ public class FilterService : ServiceBase, IService
 
     public string CleanText(string input)
     {
-        if (string.IsNullOrEmpty(input)) return input;
+        if (string.IsNullOrEmpty(input)) 
+            return input;
 
         string normalized = input.Normalize(NormalizationForm.FormKC);
         StringBuilder sb = new StringBuilder(normalized.Length);
