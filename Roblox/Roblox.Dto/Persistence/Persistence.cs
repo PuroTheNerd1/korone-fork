@@ -18,15 +18,7 @@ public class QueuedKeysRequest
     // &qkeys[%u].scope=%s&qkeys[%u].target=&qkeys[%u].key=%s
 }
 
-public class GetKeyEntry
-{
-    public dynamic Value { get; set; }
-    public string Scope { get; set; }
-    public string Key { get; set; }
-    public string Target { get; set; }
-}
-
-public class GetKeyEntrySorted
+public class KeyEntry
 {
     public dynamic Value { get; set; }
     public string Scope { get; set; }
