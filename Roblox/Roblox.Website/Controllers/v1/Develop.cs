@@ -129,11 +129,10 @@ public class DevelopControllerV1 : ControllerBase
         };
     }
 
-    [HttpGetBypass("/v1/universes/{universeId}/places")]
-    [HttpGet("universes/{universeId}/places")]
+    [HttpGetBypass("/v1/universes/{universeId:long}/places")]
+    [HttpGet("universes/{universeId:long}/places")]
     public async Task<dynamic> GetUniversePlaces(long universeId)
     {
-        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
         var places = await services.games.GetUniversePlaces(universeId);
         return new
         {
