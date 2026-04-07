@@ -213,6 +213,7 @@ public class FilterService : ServiceBase, IService
                     case '$': return 's';
                     case '@': return 'a';
                     case '!': return 'i';
+                    case '1': return 'i';
                     case '0': return 'o';
                     case '*': return '\0';
                     case 'я': return 'r';
