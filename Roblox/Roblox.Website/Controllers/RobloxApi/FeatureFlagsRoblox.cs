@@ -3,17 +3,26 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Exceptions;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.Caching.Memory;
+
 namespace Roblox.Website.Controllers
 {
-
     [MVC.ApiController]
     [MVC.Route("/")]
-    public class FeatureFlagsRoblox: ControllerBase
+    public class FeatureFlagsRoblox : ControllerBase
     {
+        private readonly IMemoryCache _cache;
+
+        public FeatureFlagsRoblox(IMemoryCache cache)
+        {
+            _cache = cache;
+        }
+
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
+        [ResponseCache(Duration = 300)]
         public MVC.ActionResult<dynamic> GetApplicationSettingsLegacy(string type, string apiKey)
         {
             return Content(GetFeatureFlags(type, apiKey), "application/json");
@@ -23,6 +32,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2/settings/application")]
         [HttpPostBypass("v1/settings/application")]
         [HttpGetBypass("v1/settings/application")]
+        [ResponseCache(Duration = 300)]
         public MVC.ActionResult<dynamic> GetApplicationSettingsModern(string applicationName)
         {
             return Content(GetFeatureFlags(applicationName), "application/json");
@@ -45,6 +55,7 @@ namespace Roblox.Website.Controllers
             "AndroidApp",
             "iOSApp"
         };
+
         // For legacy clients
         private string GetTypeForApiKey(string type, string apiKey)
         {
@@ -55,7 +66,7 @@ namespace Roblox.Website.Controllers
                     break;
                 case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79":
                 case "08BF6621-8100-4484-B14C-87497E372160": //2017L Studio + Client
-                    if(type == "StudioAppSettings")
+                    if (type == "StudioAppSettings")
                         break;
                     type = "ClientAppSettings2017";
                     break;
@@ -71,6 +82,7 @@ namespace Roblox.Website.Controllers
             }
             return type;
         }
+
         private string GetFeatureFlags(string type, string? apiKey = null)
         {
             /*
@@ -82,19 +94,25 @@ namespace Roblox.Website.Controllers
                 type = GetTypeForApiKey(type, apiKey);
             else if (!applicationNames.Contains(type))
                 throw new BadRequestException(1, $"Invalid application name: {type}");
+
             if (type == "PCStudio221")
                 type = "PCDesktopClient2021";
+
             // temp
             if (type == "RCCServiceGDASTGWG72713")
                 type = "RCCService2021";
 
-            string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
-            
-            // Also should never happen, but just in case
-            if (!System.IO.File.Exists(featureFlags))
-                throw new BadRequestException(0, $"Feature flags not found for {type}");
+            return _cache.GetOrCreate(type, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
 
-            return System.IO.File.ReadAllText(featureFlags);
+                // Also should never happen, but just in case
+                if (!System.IO.File.Exists(featureFlags))
+                    throw new BadRequestException(0, $"Feature flags not found for {type}");
+
+                return System.IO.File.ReadAllText(featureFlags);
+            });
         }
     }
 }
