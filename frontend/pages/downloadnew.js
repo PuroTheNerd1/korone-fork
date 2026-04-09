@@ -4,7 +4,6 @@ import Theme2016 from "../components/theme2016";
 
 const DownloadPage = () => {
     if (!getFlag('downloadPageEnabled', false)) return null;
-    return null;
     return <Theme2016>
         <Download></Download>
     </Theme2016>
