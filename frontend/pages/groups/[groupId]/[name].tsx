@@ -25,10 +25,10 @@ const GamePage = ({ group, groupId }: { group: GroupWithShout|null, groupId: any
                 <Head>
                     <title>{group.name} - Korone</title>
                     <meta property="og:title" content={group.name} />
-                    <meta property="og:url" content={`https://pekora.zip/games/${group.id}/--`} />
+                    <meta property="og:url" content={`https://goober.top/games/${group.id}/--`} />
                     <meta property="og:type" content="profile" />
                     <meta property="og:description" content={group.description} />
-                    <meta property="og:image" content={`https://pekora.zip/Thumbs/GameIcon.ashx?assetId=${group.id}`} />
+                    <meta property="og:image" content={`https://goober.top/Thumbs/GameIcon.ashx?assetId=${group.id}`} />
                     <meta name="twitter:card" content="summary_large_image" />
                     <meta name="og:site_name" content="Korone" />
                     <meta name="theme-color" content="#E2231A" />

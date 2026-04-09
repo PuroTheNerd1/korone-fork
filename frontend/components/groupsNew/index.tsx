@@ -19,8 +19,8 @@ import dayjs from "../../lib/dayjs";
 import PlayerHeadshot from "../playerHeadshot";
 import GamesTab from "./components/GamesTab";
 import UserGroupsStore from "./stores/UserGroupsStore";
-import userGroupsStore from "./stores/UserGroupsStore";
 import AuthenticationStore from "../../stores/authentication";
+import AdBanner from "../ad/adBanner";
 
 const useStyles = createUseStyles({
     groupDetailWrapper: {
@@ -231,6 +231,9 @@ const useStyles = createUseStyles({
     spinnerContainer: {
         height: '85vh',
     },
+    banner: {
+        marginBottom: 18,
+    },
 });
 
 const GroupsPage = () => {
@@ -276,6 +279,7 @@ const GroupsPage = () => {
     if (group == null) return <div>noo not found</div>
 
     return <div className={`container padding-none`}>
+        <AdBanner className={s.banner} />
         <Section header="Groups" headerContainer={s.header} headerCenter={true} contentSectioned={false} headerChildren={<>
                 <NewLink href={`/search/groups`}>
                     <span className={`link2018 fw-500`}>More Groups</span>

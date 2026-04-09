@@ -31,34 +31,34 @@
         "userProfileUserStatusEnabled": true,
         "downloadGameClients": [
           {
-            "imageUrl": "https://www.pekora.zip/img/player.png",
+            "imageUrl": "https://www.goober.top/img/player.png",
             "title": "Download the Korone Client for Windows",
             "url": "https://github.com/shikataganaii/Korone-Bootstrapper/releases"
           },
 		  {
-            "imageUrl": "https://www.pekora.zip/img/Korone.png",
+            "imageUrl": "https://www.goober.top/img/Korone.png",
             "title": "Mobile clients",
-            "url": "https://www.pekora.zip/download2"
+            "url": "https://www.goober.top/download2"
           },
           {
-            "imageUrl": "https://www.pekora.zip/img/studio.png",
+            "imageUrl": "https://www.goober.top/img/studio.png",
             "title": "Download the Korone 2017 Studio for Windows (Unstable, 2018 recommended)",
-            "url": "https://setup.pekora.zip/KoroneStudio2017.zip"
+            "url": "https://setup.goober.top/KoroneStudio2017.zip"
           },
           {
-            "imageUrl": "https://www.pekora.zip/img/studio.png",
+            "imageUrl": "https://www.goober.top/img/studio.png",
             "title": "Download the Korone 2018 Studio for Windows",
-            "url": "https://setup.pekora.zip/KoroneStudio2018.zip"
+            "url": "https://setup.goober.top/KoroneStudio2018.zip"
           },
           {
-            "imageUrl": "https://www.pekora.zip/img/studio.png",
+            "imageUrl": "https://www.goober.top/img/studio.png",
             "title": "Download the Korone 2020 Studio for Windows",
-            "url": "https://setup.pekora.zip/KoroneStudio2020.zip"
+            "url": "https://setup.goober.top/KoroneStudio2020.zip"
           },
           {
-            "imageUrl": "https://www.pekora.zip/img/studio.png",
+            "imageUrl": "https://www.goober.top/img/studio.png",
             "title": "Download the Korone 2021 Studio for Windows",
-            "url": "https://setup.pekora.zip/KoroneStudio2021.zip"
+            "url": "https://setup.goober.top/KoroneStudio2021.zip"
           }
         ]
       },

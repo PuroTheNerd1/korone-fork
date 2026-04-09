@@ -235,8 +235,6 @@ const AboutTab = ({}: {}) => {
     const textAreaRef = useRef(null);
     const [textAreaRemainingChar, setTextAreaRemainingChar] = useState(0);
 
-    console.log(group.shout.updated);
-
     return <div>
         {
             userPerms && userPerms.permissions.groupPostsPermissions.viewStatus && group.shout ?

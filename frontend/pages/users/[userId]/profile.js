@@ -7,7 +7,7 @@ import { getUserInfo } from "../../../services/users";
 
 const UserProfilePage = ({ username, userId, description, ...props }) => {
     const ogTitle = username + "'s Profile" || "Korone";
-    const ogUrl = userId ? `https://pekora.zip/users/${userId}/profile` : '';
+    const ogUrl = userId ? `https://goober.top/users/${userId}/profile` : '';
     const ogDesc = description || 'Join Korone and explore together!';
     
     return (
@@ -20,7 +20,7 @@ const UserProfilePage = ({ username, userId, description, ...props }) => {
                     <meta property="og:type" content="profile"/>
                     <meta property="og:description" content={ogDesc}/>
                     <meta property="og:image"
-                          content={`https://pekora.zip/thumbs/avatar-headshot.ashx?userId=${userId}`}/>
+                          content={`https://goober.top/thumbs/avatar-headshot.ashx?userId=${userId}`}/>
                     <meta name="og:site_name" content="Korone"/>
                     <meta name="theme-color" content="#E2231A"/>
                     <script src="/js/3d/three-r137/three.js"/>
