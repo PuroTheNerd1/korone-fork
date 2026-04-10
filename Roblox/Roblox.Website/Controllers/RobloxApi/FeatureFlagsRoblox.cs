@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Exceptions;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Roblox.Website.Controllers
 {
@@ -11,18 +10,10 @@ namespace Roblox.Website.Controllers
     [MVC.Route("/")]
     public class FeatureFlagsRoblox : ControllerBase
     {
-        private readonly IMemoryCache _cache;
-
-        public FeatureFlagsRoblox(IMemoryCache cache)
-        {
-            _cache = cache;
-        }
-
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
-        [ResponseCache(Duration = 300)]
         public MVC.ActionResult<dynamic> GetApplicationSettingsLegacy(string type, string apiKey)
         {
             return Content(GetFeatureFlags(type, apiKey), "application/json");
@@ -32,7 +23,6 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2/settings/application")]
         [HttpPostBypass("v1/settings/application")]
         [HttpGetBypass("v1/settings/application")]
-        [ResponseCache(Duration = 300)]
         public MVC.ActionResult<dynamic> GetApplicationSettingsModern(string applicationName)
         {
             return Content(GetFeatureFlags(applicationName), "application/json");
@@ -102,17 +92,13 @@ namespace Roblox.Website.Controllers
             if (type == "RCCServiceGDASTGWG72713")
                 type = "RCCService2021";
 
-            return _cache.GetOrCreate(type, entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-                string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
+            string featureFlags = Path.Join(Configuration.JsonDataDirectory, $"{type}.json");
+            
+            // Also should never happen, but just in case
+            if (!System.IO.File.Exists(featureFlags))
+                throw new BadRequestException(0, $"Feature flags not found for {type}");
 
-                // Also should never happen, but just in case
-                if (!System.IO.File.Exists(featureFlags))
-                    throw new BadRequestException(0, $"Feature flags not found for {type}");
-
-                return System.IO.File.ReadAllText(featureFlags);
-            });
+            return System.IO.File.ReadAllText(featureFlags);
         }
     }
 }
