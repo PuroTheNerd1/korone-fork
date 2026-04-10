@@ -30,9 +30,11 @@ namespace Roblox.Services
         {
             if (transactionConnection != null)
             {
+                // Nested transaction.
                 return await cb(null!);
             }
 
+            // Wrapped in mutex to fix "already executing query" bug
             Database.AcquireConnectionMutex("InTransaction<T>");
             NpgsqlConnection con;
             NpgsqlTransaction trx;
@@ -40,8 +42,8 @@ namespace Roblox.Services
             {
                 con = Database.unsafeConnection;
                 transactionConnection = con;
-                await con.OpenAsync();
-                trx = await con.BeginTransactionAsync();
+                con.Open();
+                trx = con.BeginTransaction();
             }
             finally
             {
@@ -51,6 +53,7 @@ namespace Roblox.Services
             try
             {
                 var result = await cb(trx);
+                // If we commit before setting to null, we may break stuff
                 await trx.CommitAsync();
                 return result;
             }
