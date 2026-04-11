@@ -1914,3 +1914,19 @@ span.game-privacy-symbol.gps-active {
     background-size: 24px auto;
     background-position: -12px -672px;
 }
+
+.icon-nav-egg {
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	vertical-align: middle;
+	background-image: url('/egghunt2026/egg-icon-dark.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.hover-icon-nav-egg:hover .icon-nav-egg {
+	background-image: url('/egghunt2026/egg-icon-light.png');
+	filter: none !important;
+}

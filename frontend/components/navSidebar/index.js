@@ -173,6 +173,7 @@ const NavSideBar = props => {
                        count={authStore.notificationCount.trades}/>
             <LinkEntry theme={getTheme()} name='Groups' url='/My/Groups.aspx' icon='icon-nav-group'/>
             <LinkEntry theme={getTheme()} name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum'/>
+            <LinkEntry theme={getTheme()} name='Egg Hunt' url='/EggHunt2026' icon='icon-nav-egg'/>
             {isStaff ? (
                 <LinkEntry theme={getTheme()} name='Panel' url='/admin' icon='icon-edit' count={pendingCount}/>
             ) : null}
