@@ -57,6 +57,16 @@ const useNavSideBarStyles = createUseStyles({
             background: 'var(--primary-color-hover)',
         },
     },
+    egghuntlogo: {
+        display: 'block',
+        marginTop: '10px',
+        width: '100%',
+        cursor: 'pointer',
+        '& img': {
+            width: '100%',
+            borderRadius: '4px',
+        },
+    },
     usernameContainer: {
         display: 'flex',
         alignItems: 'center',
@@ -178,6 +188,11 @@ const NavSideBar = props => {
                 <LinkEntry theme={getTheme()} name='Panel' url='/admin' icon='icon-edit' count={pendingCount}/>
             ) : null}
             <a href='/BuildersClub/Upgrade.ashx'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
+            <Link href='/EggHunt2026'>
+                <a href='/EggHunt2026' className={s.egghuntlogo}>
+                    <img src='/egghunt2026/secondarylogo.png' alt='Egg Hunt 2026'/>
+                </a>
+            </Link>
         </div>
     </div>
 }
