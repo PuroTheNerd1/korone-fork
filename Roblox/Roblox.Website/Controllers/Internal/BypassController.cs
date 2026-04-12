@@ -1229,17 +1229,8 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            try
-            {
-                await services.gameServer.ShutDownServerAsync(gameId);
-                return "OK!";
-            }
-            catch (Exception)
-            {
-                // lets just delete the gameserver if we couldnt close the gameserver
-                await services.gameServer.DeleteGameServer(gameId);
-                return "Error";
-            }
+            await services.gameServer.ShutDownServerAsync(gameId);
+            return "OK";
         }
         
         [HttpPostBypass("v2/CreateOrUpdate")]

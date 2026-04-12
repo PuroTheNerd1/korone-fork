@@ -480,13 +480,14 @@ public class GameServerService : ServiceBase
             var gameServer = await GetGameServer(serverId);
             if (gameServer == null)
                 return;
-            await DeleteGameServer(serverId);
+
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             {
                 await arbiterClient.KillGameServer(
                     ArbiterHttpClient.CreateKillGameServerRequest(serverId),
                     cts.Token);
             }
+            await DeleteGameServer(serverId);
 
             Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
 
