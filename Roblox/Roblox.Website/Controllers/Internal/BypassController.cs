@@ -625,11 +625,6 @@ namespace Roblox.Website.Controllers
                 universeAvatarAssetOverrides = new List<object>(),
             };
         }
-        [HttpGetBypass("hor")]
-        public async Task<IActionResult> HallOfRetards()
-        {
-            return Content(await System.IO.File.ReadAllTextAsync("hor.txt"), "text/plan");
-        }
 
         //this is for the newer years that dont have a custom monitoring script
         [HttpPostBypass("presence/register-game-presence")]
