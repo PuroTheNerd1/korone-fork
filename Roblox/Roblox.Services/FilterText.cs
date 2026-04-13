@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 
 namespace Roblox.Services;
@@ -37,46 +35,33 @@ public class FilterService : ServiceBase, IService
         "jerkingoff", "jerkoff", "kys", "killyourself", "killurself", "retard", "nigg"
     };
 
-    private static readonly string[] canonicalFilteredWords;
+    private static readonly HashSet<string> canonicalFilteredWords;
 
     static FilterService()
     {
-        var canonicalSet = new HashSet<string>();
+        canonicalFilteredWords = new HashSet<string>();
         foreach (var word in baseFilteredWords)
         {
-            string canonicalWord = GetCanonicalText(word);
-            if (!string.IsNullOrEmpty(canonicalWord))
-            {
-                canonicalSet.Add(canonicalWord);
-            }
+            string canonical = GetCanonicalText(word, true);
+            if (!string.IsNullOrEmpty(canonical)) canonicalFilteredWords.Add(canonical);
         }
-        canonicalFilteredWords = canonicalSet.ToArray();
-        System.Array.Sort(canonicalFilteredWords);
     }
 
     public bool IsTextFiltered(string input)
     {
-        if (string.IsNullOrEmpty(input)) return false;
+        if (string.IsNullOrWhiteSpace(input)) return false;
 
-        char[] buffer = input.ToCharArray();
-        for (int i = 0; i < buffer.Length; i++)
-        {
-            if (char.IsWhiteSpace(buffer[i]) || char.IsPunctuation(buffer[i]) ||
-                char.IsSeparator(buffer[i]) || char.IsSymbol(buffer[i]))
-            {
-                buffer[i] = ' ';
-            }
-        }
-
-        var words = new string(buffer).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
+        var words = input.Split(new[] { ' ', '.', ',', '!', '?', '_', '-', '/' }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var word in words)
         {
-            string canonicalWord = GetCanonicalText(word);
+            string canonicalWord = GetCanonicalText(word, true);
+            if (canonicalFilteredWords.Contains(canonicalWord)) return true;
+        }
 
-            if (string.IsNullOrEmpty(canonicalWord)) continue;
-
-            if (System.Array.BinarySearch(canonicalFilteredWords, canonicalWord) >= 0)
+        string condensedInput = GetCanonicalText(input, true);
+        foreach (var badWord in canonicalFilteredWords)
+        {
+            if (badWord.Length > 3 && condensedInput.Contains(badWord))
             {
                 return true;
             }
@@ -87,17 +72,20 @@ public class FilterService : ServiceBase, IService
 
     public string FilterText(string input)
     {
+        input = CleanText(input);
         if (IsTextFiltered(input))
         {
             return new string('#', input.Length);
         }
 
-        return CleanText(input);
+        return input;
     }
 
-    private static string GetCanonicalText(string input)
+    private static string GetCanonicalText(string input, bool collapseDuplicates)
     {
-        string normalized = CleanText(input).ToLowerInvariant();
+        if (string.IsNullOrEmpty(input)) return "";
+
+        string normalized = input.Normalize(NormalizationForm.FormKC).ToLowerInvariant();
         StringBuilder sb = new StringBuilder(normalized.Length);
         char lastChar = '\0';
 
@@ -108,26 +96,30 @@ public class FilterService : ServiceBase, IService
                 continue;
             }
 
-            char mappedChar = c;
-
-            switch (c)
+            char mappedChar = c switch
             {
-                case '$': case '5': case 'z': mappedChar = 's'; break;
-                case '@': case '4': mappedChar = 'a'; break;
-                case '!': case '1': case 'l': case '|': mappedChar = 'i'; break;
-                case '0': mappedChar = 'o'; break;
-                case '3': mappedChar = 'e'; break;
-                case '7': mappedChar = 't'; break;
-                case '8': mappedChar = 'b'; break;
-                case 'я': mappedChar = 'r'; break;
-                case 'v': mappedChar = 'u'; break;
-                case 'k': mappedChar = 'c'; break;
-            }
+                '$' or '5' => 's',
+                '@' or '4' => 'a',
+                '!' or '1' or '|' => 'i',
+                '0' => 'o',
+                '3' => 'e',
+                '7' => 't',
+                '8' => 'b',
+                'v' => 'u',
+                _ => c
+            };
 
-            if (mappedChar != lastChar)
+            if (collapseDuplicates)
+            {
+                if (mappedChar != lastChar)
+                {
+                    sb.Append(mappedChar);
+                    lastChar = mappedChar;
+                }
+            }
+            else
             {
                 sb.Append(mappedChar);
-                lastChar = mappedChar;
             }
         }
 
@@ -136,8 +128,7 @@ public class FilterService : ServiceBase, IService
 
     public static string CleanText(string input)
     {
-        if (string.IsNullOrEmpty(input))
-            return input;
+        if (string.IsNullOrEmpty(input)) return input;
 
         string normalized = input.Normalize(NormalizationForm.FormKC);
         StringBuilder sb = new StringBuilder(normalized.Length);
@@ -160,29 +151,12 @@ public class FilterService : ServiceBase, IService
                 continue;
             }
 
-            bool isAscii = c <= 0x007F;
-            bool isLatinExtended = c >= 0x0080 && c <= 0x024F;
-            bool isCyrillic = c >= 0x0400 && c <= 0x052F;
-            bool isJapanese = c >= 0x3040 && c <= 0x30FF;
-            bool isChinese = c >= 0x4E00 && c <= 0x9FFF;
-            bool isPunctuationOrSymbol = c >= 0x2000 && c <= 0x2BFF;
-
-            if (isAscii || isLatinExtended || isCyrillic || isJapanese || isChinese || isPunctuationOrSymbol)
-            {
-                sb.Append(c);
-            }
+            sb.Append(c);
         }
 
         return sb.ToString();
     }
 
-    public bool IsReusable()
-    {
-        return true;
-    }
-
-    public bool IsThreadSafe()
-    {
-        return true;
-    }
+    public bool IsReusable() => true;
+    public bool IsThreadSafe() => true;
 }
