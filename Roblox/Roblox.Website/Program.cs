@@ -1,16 +1,17 @@
-using Roblox.Rendering;
-using Roblox.Website.Middleware;
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using Roblox;
+using Roblox.Rendering;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Hubs;
+using Roblox.Website.Middleware;
 using System.Reflection;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Mvc.Formatters;
+using System.Text.Json.Serialization;
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
@@ -105,6 +106,12 @@ builder.Services.AddControllers(options =>
 {
     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     o.JsonSerializerOptions.PropertyNamingPolicy = null;
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = long.MaxValue;
 });
 
 builder.Services.AddSignalR();
