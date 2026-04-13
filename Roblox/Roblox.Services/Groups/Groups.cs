@@ -469,8 +469,7 @@ public class GroupsService : ServiceBase, IService
         if (postCount >= 1)
             throw new CooldownException();
         // Hopefully this cleans the text
-        using var filter = ServiceProvider.GetOrCreate<FilterService>(this);
-        body = filter.CleanText(body);
+        body = FilterService.CleanText(body);
         var createdAt = DateTime.UtcNow;
         var id = await InsertAsync("group_wall", new
         {

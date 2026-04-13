@@ -747,8 +747,7 @@ public class UsersService : ServiceBase, IService
             if (newStatus.Length > 255) throw new StatusTooLongException();
             if (newStatus.Length <= 3) throw new StatusTooLongException();
 
-            using var filter = ServiceProvider.GetOrCreate<FilterService>(this);
-            newStatus = filter.CleanText(newStatus);
+            newStatus = FilterService.CleanText(newStatus);
         }
 
         await InsertAsync("user_status", new
