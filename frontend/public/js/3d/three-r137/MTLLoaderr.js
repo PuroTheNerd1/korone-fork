@@ -27,7 +27,6 @@
         hash = hash.replace('https:/', 'https://');
       }
       if (hash.includes('https://cdn.pekora.zip/')) {
-        console.log(`pekora cdn`);
         return hash;
       }
       if (hash.includes('www.pekora.zip')) {
@@ -46,7 +45,7 @@
         st ^= hash[ii].charCodeAt(0);
       }
       // return `https://t${(st % 8).toString()}.rbxcdn.com/${hash}`;
-      return hash;
+      return `${hash.at(0) === '/' ? hash : '/' + hash}`;
     }
 
     load(hash, onLoad, onProgress, onError) {
@@ -54,7 +53,14 @@
       const loader = new THREE.FileLoader(this.manager);
       const url = this.getHashUrl(hash);
 
-      loader.setPath(this.path);
+      const originalPath = this.path;
+      
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        loader.setPath('');
+      } else {
+        loader.setPath(this.path);
+      }
+
       loader.setRequestHeader(this.requestHeader);
       loader.setWithCredentials(this.withCredentials);
       loader.load(
