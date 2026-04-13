@@ -22,12 +22,21 @@
      */
 
     getHashUrl(hash) {
+      
+      if (hash.startsWith('https:/') && !hash.startsWith('https://')) {
+        hash = hash.replace('https:/', 'https://');
+      }
       if (hash.includes('mats-thumbnails.roblox.com')) {
         return hash;
       }
       if (hash.includes('www.pekora.zip')) {
         return hash;
       }
+
+      if (hash.includes('www.pekora.zip') || hash.includes('cdn.pekora.zip')) {
+        return hash;
+      }
+
       if (hash.includes('https://pekora.zip/')) {
         hash = hash.substring(str.indexOf('/', 8) + 1);
       }
