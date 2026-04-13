@@ -22,7 +22,7 @@
      */
 
     getHashUrl(hash) {
-      
+      console.log(`3d hash: ${hash}`)
       if (hash.startsWith('https:/') && !hash.startsWith('https://')) {
         hash = hash.replace('https:/', 'https://');
       }
