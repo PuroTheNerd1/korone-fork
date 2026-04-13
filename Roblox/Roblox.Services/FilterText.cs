@@ -72,13 +72,12 @@ public class FilterService : ServiceBase, IService
 
     public string FilterText(string input)
     {
-        input = CleanText(input);
         if (IsTextFiltered(input))
         {
             return new string('#', input.Length);
         }
 
-        return input;
+        return CleanText(input);
     }
 
     private static string GetCanonicalText(string input, bool collapseDuplicates)
