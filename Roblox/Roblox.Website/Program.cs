@@ -107,7 +107,7 @@ builder.Services.AddControllers(options =>
     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     o.JsonSerializerOptions.PropertyNamingPolicy = null;
 });
-
+// needed for datastores, values can be over 2048
 builder.Services.Configure<FormOptions>(options =>
 {
     options.ValueLengthLimit = int.MaxValue;
