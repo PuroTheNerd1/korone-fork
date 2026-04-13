@@ -58,12 +58,25 @@ public class FilterService : ServiceBase, IService
     {
         if (string.IsNullOrEmpty(input)) return false;
 
-        string canonicalInput = GetCanonicalText(input);
-        var words = canonicalInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        char[] buffer = input.ToCharArray();
+        for (int i = 0; i < buffer.Length; i++)
+        {
+            if (char.IsWhiteSpace(buffer[i]) || char.IsPunctuation(buffer[i]) ||
+                char.IsSeparator(buffer[i]) || char.IsSymbol(buffer[i]))
+            {
+                buffer[i] = ' ';
+            }
+        }
+
+        var words = new string(buffer).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
         foreach (var word in words)
         {
-            if (System.Array.BinarySearch(canonicalFilteredWords, word) >= 0)
+            string canonicalWord = GetCanonicalText(word);
+
+            if (string.IsNullOrEmpty(canonicalWord)) continue;
+
+            if (System.Array.BinarySearch(canonicalFilteredWords, canonicalWord) >= 0)
             {
                 return true;
             }
