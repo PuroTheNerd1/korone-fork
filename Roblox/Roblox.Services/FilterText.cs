@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace Roblox.Services;
@@ -24,7 +26,7 @@ public class FilterService : ServiceBase, IService
         "jerkxoff", "kidsinasanbox", "kkk", "masterbait", "masterbate", "masturbate",
         "molest", "mycock", "nazi", "nazis", "niger", "nigger", "niigger", "niggers",
         "niiggers", "ngga", "negger", "neckhurt", "nigga", "n0gga", "nhigga", "n8ggas",
-        "niigga", "niga", "nude", "nudism", "nudist", "orgasim", "orgasims", "orgasm",
+        "niigba", "niga", "nude", "nudism", "nudist", "orgasim", "orgasims", "orgasm",
         "orgasms", "pern", "pecker", "pedo", "pedobear", "penis", "phonesex", "porn",
         "pron", "porno", "pornography", "goon", "pornos", "pren", "prostitute",
         "paygorn", "raip", "raiping", "rape", "raped", "raper", "raping", "rapist",
@@ -39,7 +41,6 @@ public class FilterService : ServiceBase, IService
 
     static FilterService()
     {
-        // pre-process words once at startup
         var canonicalSet = new HashSet<string>();
         foreach (var word in baseFilteredWords)
         {
@@ -50,6 +51,7 @@ public class FilterService : ServiceBase, IService
             }
         }
         canonicalFilteredWords = canonicalSet.ToArray();
+        System.Array.Sort(canonicalFilteredWords);
     }
 
     public bool IsTextFiltered(string input)
@@ -57,10 +59,11 @@ public class FilterService : ServiceBase, IService
         if (string.IsNullOrEmpty(input)) return false;
 
         string canonicalInput = GetCanonicalText(input);
+        var words = canonicalInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-        for (int i = 0; i < canonicalFilteredWords.Length; i++)
+        foreach (var word in words)
         {
-            if (canonicalInput.Contains(canonicalFilteredWords[i], StringComparison.Ordinal))
+            if (System.Array.BinarySearch(canonicalFilteredWords, word) >= 0)
             {
                 return true;
             }
@@ -94,7 +97,6 @@ public class FilterService : ServiceBase, IService
 
             char mappedChar = c;
 
-            // basic leetspeak & homoglyph mapping
             switch (c)
             {
                 case '$': case '5': case 'z': mappedChar = 's'; break;
@@ -109,7 +111,6 @@ public class FilterService : ServiceBase, IService
                 case 'k': mappedChar = 'c'; break;
             }
 
-            // remove dupes (e.g. fuuuck -> fuck)
             if (mappedChar != lastChar)
             {
                 sb.Append(mappedChar);
@@ -138,7 +139,6 @@ public class FilterService : ServiceBase, IService
 
             var category = char.GetUnicodeCategory(c);
 
-            // strip invisible/formatting chars
             if (category == UnicodeCategory.NonSpacingMark ||
                 category == UnicodeCategory.Format ||
                 category == UnicodeCategory.Control ||
@@ -168,7 +168,7 @@ public class FilterService : ServiceBase, IService
         return true;
     }
 
-    public bool IsThreadSafe() 
+    public bool IsThreadSafe()
     {
         return true;
     }
