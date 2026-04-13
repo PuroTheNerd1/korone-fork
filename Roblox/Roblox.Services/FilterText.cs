@@ -34,7 +34,7 @@ public class FilterService : ServiceBase, IService
         "sluts", "sperm", "strip", "stripper", "stripperpole", "strippers", "swastika",
         "thong", "titties", "titty", "urcock", "vaggina", "vagina", "vegina",
         "vibrator", "wanker", "whore", "whorehouse", "yourcock", "femb", "fembx",
-        "jerkingoff", "jerkoff", "kys", "killyourself", "killurself", "retard"
+        "jerkingoff", "jerkoff", "kys", "killyourself", "killurself", "retard", "nigg"
     };
 
     private static readonly string[] canonicalFilteredWords;
