@@ -26,7 +26,7 @@
       if (hash.startsWith('https:/') && !hash.startsWith('https://')) {
         hash = hash.replace('https:/', 'https://');
       }
-      if (hash.includes('mats-thumbnails.roblox.com')) {
+      if (hash.includes('https://cdn.pekora.zip/')) {
         return hash;
       }
       if (hash.includes('www.pekora.zip')) {
