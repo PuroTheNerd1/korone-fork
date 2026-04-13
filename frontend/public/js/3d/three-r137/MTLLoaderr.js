@@ -286,7 +286,7 @@
           st ^= url[ii].charCodeAt(0);
         }
         // return `https://t${(st % 8).toString()}.rbxcdn.com/${url}`;
-        return `https://www.pekora.zip/${url}`;
+        return `${url}`;
       }
 
       function setMapForType(mapType, value) {
