@@ -1,11 +1,12 @@
 import Download from "../components/download2"
-import getFlag from "../lib/getFlag";
 import Theme2016 from "../components/theme2016";
+import DownloadStore from "../components/download2/stores/DownloadStore";
 
 const DownloadPage = () => {
-    if (!getFlag('downloadPageEnabled', false)) return null;
     return <Theme2016>
-        <Download></Download>
+        <DownloadStore.Provider>
+            <Download></Download>
+        </DownloadStore.Provider>
     </Theme2016>
 }
 
