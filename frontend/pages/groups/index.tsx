@@ -21,7 +21,7 @@ const GamePage = ({}: {}) => {
             <Head>
                 <title>Korone Groups</title>
                 <meta property="og:title" content='Korone Groups' />
-                <meta property="og:url" content={`https://goober.top/groups`} />
+                <meta property="og:url" content={`https://pekora.zip/groups`} />
                 <meta property="og:type" content="profile" />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="og:site_name" content="Korone" />
