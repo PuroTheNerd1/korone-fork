@@ -16,11 +16,7 @@ import NextLink from 'next/link';
  */
 const NewLink = ({className, onClick, children, href, style}) => {
     return <NextLink href={href || "#"} passHref>
-        <a className={className} onClick={(e) => {
-            console.log('href:', href);
-            console.log('default prevented:', e.defaultPrevented);
-            onClick?.(e);
-        }} style={style}>
+        <a className={className} onClick={onClick} style={style}>
             {children}
         </a>
     </NextLink>
