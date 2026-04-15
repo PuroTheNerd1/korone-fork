@@ -25,7 +25,7 @@ const GroupsPageStore = createContainer(() => {
                     groups = groups.map(g => g.group.id === primaryGroup.group.id ? {...g, isPrimary: true} : g)
                 }
                 if (groups) {
-                    groups.toSorted((a, b) =>
+                    groups = groups.toSorted((a, b) =>
                         (Number(b?.isPrimary) - Number(a?.isPrimary)) ||
                         (Number(b.role.rank === 255) - Number(a.role.rank === 255)) ||
                         a.group.name.localeCompare(b.group.name)
