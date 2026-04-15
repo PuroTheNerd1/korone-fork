@@ -49,6 +49,7 @@ public class GroupsControllerV2 : ControllerBase
                     id = groupDetails.id,
                     name = groupDetails.name,
                     memberCount = groupDetails.memberCount,
+                    isVerified = groupDetails.isVerified,
                 },
                 role = role,
             });

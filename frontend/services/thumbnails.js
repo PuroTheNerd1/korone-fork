@@ -1,5 +1,5 @@
-import {chunk} from "lodash";
 import request, {getBaseUrl, getFullUrl} from "../lib/request"
+import {chunk, IsValidNum} from "../lib/utils";
 
 const toCsv = (str) => {
   if (typeof str === 'string') return str;
@@ -27,8 +27,8 @@ export const multiGetUserThumbnails = ({ userIds, size = '420x420', format = 'pn
 
 /**
  * @param {number[]} userIds
- * @param {string} size
- * @param {string} format
+ * @param {string?} size
+ * @param {string?} format
  * @returns {Promise<ThumbnailEntry[]>}
  */
 export const multiGetUserHeadshots2 = ({ userIds, size = '420x420', format = 'png' }) => {
@@ -48,6 +48,12 @@ let _multiGetHeadshotsMeta = {
   timer: 0,
 }
 
+/**
+ * @param {number[]} userIds
+ * @param {string?} size
+ * @param {string?} format
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
 export const multiGetUserHeadshots = ({ userIds, size = '420x420', format = 'png' }) => {
   userIds = [... new Set(userIds)];
   let results = [];
@@ -81,7 +87,7 @@ export const multiGetUserHeadshots = ({ userIds, size = '420x420', format = 'png
     _multiGetHeadshotsMeta.onFinish = [];
     _multiGetHeadshotsMeta.pending = [];
     _multiGetHeadshotsMeta.timer = 0;
-    request('GET', getFullUrl('thumbnails', `/v1/users/avatar-headshot?userIds=${toCsv(pending)}&size=${size}&format=${format}`)).then(d => d.data.data).then(addBaseUrl).then(finalResults => {
+    request('GET', getFullUrl('thumbnails', `/v1/users/avatar-headshot?userIds=${toCsv(pending.filter(a => IsValidNum(a)))}&size=${size}&format=${format}`)).then(d => d.data.data).then(addBaseUrl).then(finalResults => {
       finalResults = addBaseUrl(finalResults);
       for (const item of finalResults) {
         const imageUrl = item.imageUrl;
@@ -110,6 +116,10 @@ export const multiGetOutfitThumbnails = ({ userOutfitIds, size = '420x420', form
   return request('GET', getFullUrl('thumbnails', `/v1/users/outfits?userOutfitIds=${toCsv(userOutfitIds)}&size=${size}&format=${format}`)).then(d => d.data.data);
 }
 
+/**
+ * @param {number[]} groupIds
+ * @returns {Promise<ThumbnailEntry[]>}
+ */
 export const multiGetGroupIcons = ({ groupIds }) => {
   return request('get', getFullUrl('thumbnails', `/v1/groups/icons?groupIds=${toCsv(groupIds)}&format=png&size=420x420`)).then(d => d.data.data).then(addBaseUrl);
 }

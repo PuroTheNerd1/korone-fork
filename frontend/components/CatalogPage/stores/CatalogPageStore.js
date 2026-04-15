@@ -24,18 +24,20 @@ const CatalogPageStore = createContainer(() => {
     
     const [categoryNav, setCategoryNav] = useState(/** @type {CatalogCategory[]} */([]));
     const [genreNav, setGenreNav] = useState(/** @type {GenreClass[]} */([]));
-    
-    const [category, setCategory] = useState(CatalogCategory.Featured);
-    const [subCategory, setSubCategory] = useState(CatalogSubCategory.All);
-    const [sortBy, setSortBy] = useState(CatalogSortBy.Relevance);
-    const [genres, setGenres] = useState(new List());
-    // 0 == any, 1 == price range, 2 == free
-    const [priceOption, setPriceOption] = useState(0);
+
+    const [options, setOptions] = useState({
+        category: CatalogCategory.Featured,
+        subCategory: CatalogSubCategory.All,
+        sortBy: CatalogSortBy.Relevance,
+        genres: new List(),
+        selectedCurrency: 3,
+        includeOffSale: false,
+    });
+    const [priceOption, setPriceOption] = useState(0); // 0 == any, 1 == price range, 2 == free
     const [priceRange, setPriceRange] = useState([0, 0]);
-    const [selectedCurrency, setSelectedCurrency] = useState(3);
-    const [includeOffSale, setIncludeOffSale] = useState(false);
+    const [creator, setCreator] = useState("");
     const [creatorOption, setCreatorOption] = useState(1);
-    const [creator, setCreator] = useState(""); // search user first, then group (thats how this works). if its null that means any
+    const [creatorType, setCreatorType] = useState(1);
 
     const [searchInput, setSearchInput] = useState("");
     
@@ -54,6 +56,7 @@ const CatalogPageStore = createContainer(() => {
      * @property selectedCurrency
      * @property includeOffSale
      * @property creator
+     * @property creatorType
      */
 
     function getCurrentPage(total, nextPageCursor, limit) {
@@ -79,95 +82,106 @@ const CatalogPageStore = createContainer(() => {
         refreshDebounce.current = true;
         setLoading(true);
         if (e?.preventDefault) e?.preventDefault();
-        
-        /**
-         * @type {CatalogCurrentOptions}
-         */
-        let options = {
-            category: category,
-            subCategory: subCategory,
-            genres: genres,
-            sortBy: sortBy,
-            priceOption: priceOption,
-            priceRange: priceRange,
-            selectedCurrency: selectedCurrency,
-            includeOffSale: includeOffSale,
-            creator: creatorOptionReq === 1 ? null : creatorOptionReq === 2 ? "ROBLOX" : creator,
-            ...arr,
-        };
-        let gen = options.genres.ToArray();
-        const searchResultsFlat = await searchCatalog2({
-            category: options.category,
-            subCategory: options.subCategory,
-            genres: gen.length === 0 || gen.length === 1 && gen[0] === 0 ? null : gen,
-            query: !IsNullOrEmpty(searchInput) ? searchInput : null,
-            includeNotForSale: options.includeOffSale,
-            limit: resultMetadata.limit,
-            cursor: (!IsNullOrEmpty(resultMetadata.cursor) || !IsNullOrEmpty(cursor)) && !reloadPage ? cursor : null,
-            sort: options.sortBy,
-            creatorName: !IsNullOrEmpty(options.creator) ? options.creator : null,
-            priceOption: options.priceOption,
-            priceRange: options.priceRange,
-            currency: options.selectedCurrency,
-        });
-        setResults([]);
-        if (reloadPage) setTotal(0);
-        setResultMetadata({
-            nextCursor: searchResultsFlat.nextPageCursor,
-            prevCursor: searchResultsFlat.previousPageCursor,
-            limit: 30,
-            cursor: reloadPage ? null : cursor,
-            page: reloadPage ? 1 : getCurrentPage(searchResultsFlat._total, searchResultsFlat.nextPageCursor, resultMetadata.limit),
-        });
-        if (searchResultsFlat.data.length === 0) {
-            setResults(searchResultsFlat.data);
+
+        try {
+            /**
+             * @type {CatalogCurrentOptions}
+             */
+            let currentOptions = {
+                category: options.category,
+                subCategory: options.subCategory,
+                genres: options.genres,
+                sortBy: options.sortBy,
+                priceOption: priceOption,
+                priceRange: priceRange,
+                selectedCurrency: options.selectedCurrency,
+                includeOffSale: options.includeOffSale,
+                creator: creatorOptionReq === 1 ? null : creatorOptionReq === 2 ? "ROBLOX" : creator,
+                creatorType: creatorType,
+                ...arr,
+            };
+            let gen = currentOptions.genres.ToArray();
+            const searchResultsFlat = await searchCatalog2({
+                category: currentOptions.category,
+                subCategory: currentOptions.subCategory,
+                genres: gen.length === 0 || gen.length === 1 && gen[0] === 0 ? null : gen,
+                query: !IsNullOrEmpty(searchInput) ? searchInput : null,
+                includeNotForSale: currentOptions.includeOffSale,
+                limit: resultMetadata.limit,
+                cursor: (!IsNullOrEmpty(resultMetadata.cursor) || !IsNullOrEmpty(cursor)) && !reloadPage ? cursor : null,
+                sort: currentOptions.sortBy,
+                creatorName: !IsNullOrEmpty(currentOptions.creator) ? currentOptions.creator : null,
+                creatorType: currentOptions.creatorType,
+                priceOption: currentOptions.priceOption,
+                priceRange: currentOptions.priceRange,
+                currency: currentOptions.selectedCurrency,
+            });
+            setResults([]);
+            if (reloadPage) setTotal(0);
+            setResultMetadata({
+                nextCursor: searchResultsFlat.nextPageCursor,
+                prevCursor: searchResultsFlat.previousPageCursor,
+                limit: 30,
+                cursor: reloadPage ? null : cursor,
+                page: reloadPage ? 1 : getCurrentPage(searchResultsFlat._total, searchResultsFlat.nextPageCursor, resultMetadata.limit),
+            });
+            if (searchResultsFlat.data.length === 0) {
+                setResults(searchResultsFlat.data);
+                setTotal(searchResultsFlat._total || 0);
+                await wait(0.75);
+                refreshDebounce.current = false;
+                setLoading(false);
+                return true;
+            }
+            const searchResultsRaw = await getAssetDetailsClean(searchResultsFlat.data);
+            if (!searchResultsRaw) { refreshDebounce.current = false; setLoading(false); console.log("nooo"); return false; }
+            if (e?.setSelSuccess)
+                e.setSelSuccess(true)
+            const thumbnails = await multiGetAssetThumbnails({ assetIds: searchResultsRaw.map(d => d.id) });
+            /** @type {{id: number; owned: boolean;}[]} */
+            const ownsAssets = auth?.userId ? await userOwnsItems({ userId: auth?.userId, assetIds: searchResultsRaw.map(d => d.id) }) : [];
+            /** @type CatalogAssetDetails[] */
+            let searchResults = searchResultsRaw.map(d => {
+                let thumb = thumbnails.find(t => t.targetId === d.id);
+                let ownsAsset = ownsAssets.find(t => t.id === d.id);
+                return {
+                    ...d,
+                    state: thumb?.state ?? null,
+                    imageUrl: thumb?.imageUrl ?? null,
+                    owned: ownsAsset?.owned ?? false,
+                }
+            });
+            setResults(searchResultsFlat.data.map(v => {
+                return searchResults.find(d => v.id === d.id);
+            }));
             setTotal(searchResultsFlat._total || 0);
+
             await wait(0.75);
             refreshDebounce.current = false;
             setLoading(false);
             return true;
+        } catch (e) {
+            console.error("could not refresh catalog items");
+            console.error(e);
+            await wait(0.75);
+            refreshDebounce.current = false;
+            setLoading(false);
+            return false;
         }
-        const searchResultsRaw = await getAssetDetailsClean(searchResultsFlat.data);
-        if (!searchResultsRaw) { refreshDebounce.current = false; setLoading(false); console.log("nooo"); return false; }
-        if (e?.setSelSuccess)
-            e.setSelSuccess(true)
-        const thumbnails = await multiGetAssetThumbnails({ assetIds: searchResultsRaw.map(d => d.id) });
-        /** @type {{id: number; owned: boolean;}[]} */
-        const ownsAssets = auth?.userId ? await userOwnsItems({ userId: auth?.userId, assetIds: searchResultsRaw.map(d => d.id) }) : [];
-        /** @type CatalogAssetDetails[] */
-        let searchResults = searchResultsRaw.map(d => {
-            let thumb = thumbnails.find(t => t.targetId === d.id);
-            let ownsAsset = ownsAssets.find(t => t.id === d.id);
-            return {
-                ...d,
-                state: thumb?.state ?? null,
-                imageUrl: thumb?.imageUrl ?? null,
-                owned: ownsAsset?.owned ?? false,
-            }
-        });
-        setResults(searchResultsFlat.data.map(v => {
-            return searchResults.find(d => v.id === d.id);
-        }));
-        setTotal(searchResultsFlat._total || 0);
-        
-        await wait(0.75);
-        refreshDebounce.current = false;
-        setLoading(false);
-        return true
     }
     
     function AddGenre(genre) {
-        let clone = genres.Clone();
+        let clone = options.genres.Clone();
         clone.Add(genre);
-        if (clone === genres) return clone;
-        setGenres(clone);
+        if (clone === options.genres) return clone;
+        setOptions({...options, genres: clone});
         return clone;
     }
     function RemoveGenre(genre) {
-        let clone = genres.Clone();
+        let clone = options.genres.Clone();
         clone.Remove(genre);
-        if (clone === genres) return clone;
-        setGenres(clone);
+        if (clone === options.genres) return clone;
+        setOptions({...options, genres: clone});
         return clone;
     }
     
@@ -199,27 +213,11 @@ const CatalogPageStore = createContainer(() => {
 
         isLoading,
 
-        category,
-        setCategory,
-        subCategory,
-        setSubCategory,
-        sortBy,
-        setSortBy,
-        genres,
-        setGenres,
-        includeOffSale,
-        setIncludeOffSale,
-        creator,
-        setCreator,
-        creatorOption,
-        setCreatorOption,
+        options, setOptions,
 
-        priceOption,
-        setPriceOption,
-        priceRange,
-        setPriceRange,
-        selectedCurrency,
-        setSelectedCurrency,
+        priceOption, setPriceOption, priceRange, setPriceRange,
+
+        creator, setCreator, creatorOption, setCreatorOption, creatorType, setCreatorType,
         
         searchInput,
         setSearchInput,

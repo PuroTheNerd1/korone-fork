@@ -40,6 +40,9 @@ const useSelectorStyles = createUseStyles({
         width: '100%',
         background: 'var(--white-color)',
         zIndex: 3,
+        backgroundClip: 'padding-box',
+        overflowX: 'hidden',
+        borderRadius: 4,
     },
     selectOption: {
         padding: '10px 15px',
@@ -48,14 +51,15 @@ const useSelectorStyles = createUseStyles({
         userSelect: 'none',
         fontSize: '16px',
         '&:hover': {
-            boxShadow: '4px 0 0 0 var(--primary-color) inset',
+            boxShadow: 'inset 4px 0 0 0 var(--primary-color)',
+            backgroundColor: 'var(--white-color-hover)',
         },
     },
 });
 
 /**
  *
- * @param {{options: {name: string; value: any}[]; onChange: (v: any) => void; value?: any; shadow?: boolean; wrapperClass?: string; selectorOptionClass?: string; className?: string;}} props
+ * @param {{options: {name: string; value: any; children?: any;}[]; onChange: (v: any) => void; value?: any; shadow?: boolean; wrapperClass?: string; selectorOptionClass?: string; className?: string;}} props
  * @returns
  */
 const Selector = props => {
@@ -78,7 +82,7 @@ const Selector = props => {
         </div>
         {
             open && selectorRef.current &&
-            <div className={s.selectorMenuOpen} style={{ width: selectorRef.current.clientWidth + 'px', boxShadow: props.shadow ? "0 1px 4px 0 rgba(25,25,25,.3)" : "none" }}>
+            <div className={s.selectorMenuOpen} style={{ width: selectorRef.current.clientWidth + 'px', boxShadow: props.shadow ? "0 -5px 20px rgba(25,25,25,.15)" : "none" }}>
                 {
                     props.options.map(v => {
                         return <p className={`${s.selectOption} ${props.selectorOptionClass || ""}`} key={v.value} onClick={async () => {
@@ -87,7 +91,7 @@ const Selector = props => {
                             if (typeof change == 'boolean' && change === false) return; // you can return false to cancel out the bototm stuff
                             setSelected(v);
                             setOpen(false);
-                        }}>{v.name}</p>
+                        }} title={v.value}>{v?.children || v.name}</p>
                     })
                 }
             </div>

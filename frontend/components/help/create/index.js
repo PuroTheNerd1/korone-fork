@@ -2,9 +2,9 @@ import { createUseStyles } from "react-jss";
 import FakeNavBar from '../fakenavbar'
 import { useState } from "react";
 import HelpSelector from '../helpselector'
-import MarkdownContent from "../subpages/markdownContent";
 import Footer from "../../footer";
 import Link from "../../link";
+import dynamic from "next/dynamic";
 
 const useStyles = createUseStyles({
     container: {
@@ -62,6 +62,7 @@ const useStyles = createUseStyles({
 
 const InstallHelpPage = props => {
     const s = useStyles();
+    const MarkdownContent = dynamic(() => import("../subpages/markdownContent"), { ssr: false })
 
     const subpages = [
         {

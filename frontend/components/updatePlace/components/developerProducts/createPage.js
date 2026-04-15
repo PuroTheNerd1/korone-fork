@@ -4,7 +4,6 @@ import FeedbackStore from "../../../../stores/feedback";
 import {useRef, useState} from "react";
 import useButtonStyles from "../../../../styles/buttonStyles";
 import devProductsStore from "../../stores/devProductsStore";
-import {parseInt} from "lodash";
 import ActionButton from "../../../actionButton";
 import {createDeveloperProduct, uploadAsset} from "../../../../services/develop";
 import ItemImage from "../../../itemImage";

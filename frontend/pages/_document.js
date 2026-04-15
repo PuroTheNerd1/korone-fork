@@ -26,7 +26,11 @@ export default class JssDocument extends Document {
                     <link
                         href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&amp;display=swap"
                         rel="stylesheet"/>
-                    <link href="https://www.pekora.zip/fonts/gotham1.css" rel="stylesheet"/>
+
+                    <link href="/fonts/gotham1.css" rel="stylesheet"/>
+                    <link href="/js/bootstrap.min.css" rel="stylesheet" />
+                    <link href="/js/roblox/icons.css" rel="stylesheet" />
+                    <script src="/js/axios.min.js"></script>
                     <style id="server-side-styles">{registry.toString()}</style>
                 </>
             ),

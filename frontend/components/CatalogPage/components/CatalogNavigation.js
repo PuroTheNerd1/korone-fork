@@ -135,21 +135,21 @@ function CatalogNavigation() {
                 categoryNav?.map(cat => {
                     return <div className={`${s.categoryContainer} flex flex-column`} id={cat.categoryId.toString()}>
                         <div className={s.subCategoryWrapper}>
-                            <NewLink className={getTheme() === themeType.dark ? 'link2019' : 'link2019-gray'} style={store.category === cat.categoryId || openedCategory === cat.categoryId ? {color: "var(--primary-color)!important"} : {}} onClick={async e => {
+                            <NewLink className={getTheme() === themeType.dark ? 'link2019' : 'link2019-gray'} style={store.options.category === cat.categoryId || openedCategory === cat.categoryId ? {color: "var(--primary-color)!important"} : {}} onClick={async e => {
                                 e.preventDefault();
-                                if (locked.current || store.refreshDebounce.current || store.category === cat.categoryId) return;
+                                if (locked.current || store.refreshDebounce.current || store.options.category === cat.categoryId) return;
                                 locked.current = true;
                                 if (cat.subCategories.length === 0) {
-                                    store.setCategory(cat.categoryId);
-                                    store.setSubCategory(null);
+                                    store.setOptions({...store.options, category: cat.categoryId});
+                                    store.setOptions({...store.options, subCategory: null});
                                     store.RefreshCatalogItems(null, true, {category: cat.categoryId});
                                     await wait(1);
                                     locked.current = false;
                                     return;
                                 }
                                 
-                                let oldOpenCat = openedCategory === cat.categoryId && store.category !== cat.categoryId ? openedCategory : null;
-                                setOpenCategory(openedCategory === cat.categoryId && store.category !== cat.categoryId ? null : cat.categoryId);
+                                let oldOpenCat = openedCategory === cat.categoryId && store.options.category !== cat.categoryId ? openedCategory : null;
+                                setOpenCategory(openedCategory === cat.categoryId && store.options.category !== cat.categoryId ? null : cat.categoryId);
                                 setClosingCategory(oldOpenCat);
                                 setTransition(true);
                                 await wait(0.375);
@@ -158,14 +158,14 @@ function CatalogNavigation() {
                             }}>
                                 <span className="inherit-color inherit-font-size">{cat.name}</span>
                                 <span
-                                    className={`${cat.subCategories.length === 0 ? "display-none" : ""} inherit-color inherit-font-size ${(openedCategory === cat.categoryId || store.category === cat.categoryId) && getTheme() === themeType.dark && "invert-color"} ${openedCategory === cat.categoryId || store.category === cat.categoryId ? "icon-minus" : "icon-plus"}`}/>
+                                    className={`${cat.subCategories.length === 0 ? "display-none" : ""} inherit-color inherit-font-size ${(openedCategory === cat.categoryId || store.options.category === cat.categoryId) && getTheme() === themeType.dark && "invert-color"} ${openedCategory === cat.categoryId || store.options.category === cat.categoryId ? "icon-minus" : "icon-plus"}`}/>
                             </NewLink>
                         </div>
                         
                         <div className={`
                         ${s.subCategoryContainer}
                         ${s.collapse}
-                        ${openedCategory === cat.categoryId || store.category === cat.categoryId ? "in" : ""}
+                        ${openedCategory === cat.categoryId || store.options.category === cat.categoryId ? "in" : ""}
                         ${transition && closingCategory === cat.categoryId ? "out" : ""}
                         ${cat.subCategories.length === 0 ? "display-none" : ""}
                         `}
@@ -174,14 +174,13 @@ function CatalogNavigation() {
                             {
                                 cat.subCategories.map(sub => {
                                     return <div className={s.subCategoryWrapper}>
-                                        <NewLink className={`link2019-gray`} style={store.category === cat.categoryId && store.subCategory === sub.subCategoryId ? {color: "var(--primary-color)!important"} : {}} onClick={async e => {
+                                        <NewLink className={`link2019-gray`} style={store.options.category === cat.categoryId && store.options.subCategory === sub.subCategoryId ? {color: "var(--primary-color)!important"} : {}} onClick={async e => {
                                             e.preventDefault();
-                                            if (locked.current || store.refreshDebounce.current || store.subCategory === sub.subCategoryId) return;
+                                            if (locked.current || store.refreshDebounce.current || store.options.subCategory === sub.subCategoryId) return;
                                             locked.current = true;
-                                            
-                                            setOpenCategory(cat.categoryId);
-                                            store.setCategory(cat.categoryId);
-                                            store.setSubCategory(sub.subCategoryId);
+
+                                            store.setOptions({...store.options, subCategory: sub.subCategoryId});
+                                            store.setOptions({...store.options, category: cat.categoryId});
                                             await store.RefreshCatalogItems(null, true, {
                                                 category: cat.categoryId,
                                                 subCategory: sub.subCategoryId
