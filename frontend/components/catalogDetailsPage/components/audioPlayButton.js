@@ -45,6 +45,7 @@ const useStyles = createUseStyles({
 
 const PlayButton = props => {
     const s = useStyles();
+    const router = useRouter();
     const [audio, setAudio] = useState(null);
     const [playing, setPlaying] = useState(false);
     const [audioUrl, setAudioUrl] = useState(null);
@@ -79,11 +80,11 @@ const PlayButton = props => {
                 setPlaying(false);
             }
         };
-        useRouter().events.on('routeChangeStart', handleLocationChange);
+        router.events.on('routeChangeStart', handleLocationChange);
         return () => {
-            useRouter().events.off('routeChangeStart', handleLocationChange);
+            router.events.off('routeChangeStart', handleLocationChange);
         };
-    }, [useRouter()]);
+    }, [router]);
 
     const handlePlayPause = (e) => {
         e.preventDefault();
