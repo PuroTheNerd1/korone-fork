@@ -17,12 +17,13 @@ public class RbxThumbnails : ControllerBase
         UserHeadshot = 1,
         UserAvatar,
         Asset,
-        PlaceIcon
+        PlaceIcon,
+        GroupIcon
     }
     private async Task<RedirectResult> GetThumbnailUrl(long id, ThumbnailType type)
     {
         List<ThumbnailEntry> result = new List<ThumbnailEntry>();
-        
+
         switch (type)
         {
 
@@ -34,6 +35,9 @@ public class RbxThumbnails : ControllerBase
                 break;
             case ThumbnailType.Asset:
                 result = (await services.thumbnails.GetAssetThumbnails(new[] { id })).ToList();
+                break;
+            case ThumbnailType.GroupIcon:
+                result = (await services.thumbnails.GetGroupIcons(new[] { id })).ToList();
                 break;
             case ThumbnailType.PlaceIcon:
                 result = (await services.thumbnails.GetPlaceIcons(new[] { id })).ToList();
@@ -76,6 +80,12 @@ public class RbxThumbnails : ControllerBase
     {
         return await GetThumbnailUrl(assetId, ThumbnailType.PlaceIcon);
     }
+    // group icon
+    [HttpGetBypass("Thumbs/GroupIcon.ashx")]
+    public async Task<RedirectResult> GetGroupIcon(long assetId)
+    {
+        return await GetThumbnailUrl(assetId, ThumbnailType.GroupIcon);
+    }
     //asset icon stuff
     [HttpGet("asset-thumbnail/image")]
     [HttpGetBypass("icons/asset.ashx")]
@@ -99,9 +109,9 @@ public class RbxThumbnails : ControllerBase
             SubstitutionType = 0
         };
     }
-    
+
     [HttpGetBypass("avatar-thumbnail-3d/json")]
-    public async Task<dynamic> GetAvatarThumbnail3DJson([Required] long userId) 
+    public async Task<dynamic> GetAvatarThumbnail3DJson([Required] long userId)
     {
         // if (userId == 62022330) userId = 3; avatar page testing
         var result = (await services.thumbnails.GetUserThumbnails3D(new[] {userId})).ToList();

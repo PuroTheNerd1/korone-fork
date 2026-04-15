@@ -336,6 +336,12 @@ html div.container.big {
     max-width: 1154px!important;
 }
 
+@media (max-width: 1532px) {
+    html div.container.big {
+        max-width: 970px!important;
+    }
+}
+
 @media (max-width: 767px) {
     html div.container.noPad767 {
         padding: 0!important;

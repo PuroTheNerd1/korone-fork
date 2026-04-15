@@ -55,9 +55,17 @@ const request = async (method, url, data, verbose = false) => {
             const authHeaderValue = config.serverRuntimeConfig.backend.authorization;
             if (typeof authHeaderValue === 'string')
                 headers[config.serverRuntimeConfig.backend.authorizationHeader || 'authorization'] = authHeaderValue;
+
             // Custom user agent
             headers['user-agent'] = 'Roblox2016/1.0';
         }
+        const cfClientId = config.publicRuntimeConfig.backend.cfClientId;
+        const cfClientSecret = config.publicRuntimeConfig.backend.cfClientSecret;
+        if (typeof cfClientId === 'string' && typeof cfClientSecret === 'string') {
+            headers['CF-Access-Client-Id'] = cfClientId;
+            headers['CF-Access-Client-Secret'] = cfClientSecret;
+        }
+
         return await axios.request({
             method,
             url: getUrlWithProxy(url),

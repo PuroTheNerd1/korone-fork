@@ -16,6 +16,7 @@ export type GroupWithShout = {
     description: string | null;
     memberCount: number;
     isVerified: boolean;
+    isLocked: boolean;
     owner: GroupUser | null;
     shout: ShoutEntry | null;
 }

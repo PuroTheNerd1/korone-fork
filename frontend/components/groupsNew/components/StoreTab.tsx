@@ -40,7 +40,9 @@ const useStyles = createUseStyles({
             filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
         },
     },
-    pages: {},
+    pages: {
+        color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)"
+    },
     backIcon: {
         backgroundPosition:'0 -360px!important',
     },
@@ -52,6 +54,12 @@ const useStyles = createUseStyles({
         padding: 0,
         gap: 8,
     },
+    headerContainerThemed: {
+        "& h3": {
+            color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)"
+        },
+    },
+    spinnerContainer: {},
 })
 
 const StoreTab = ({}: {}) => {
@@ -66,7 +74,7 @@ const StoreTab = ({}: {}) => {
     }, []);
 
     return <div>
-        <Section header="Store" contentSectioned={false} headerChildren={<>
+        <Section header="Store" contentSectioned={false} headerContainer={s.headerContainerThemed} headerChildren={<>
             <NewLink href={`/catalog?Category=1&CreatorName=${store.group.name}&CreatorType=Group`}>
                 <span className={`link2018 fw-500`}>See All</span>
             </NewLink>
@@ -108,7 +116,7 @@ const StoreTab = ({}: {}) => {
                         >
                             <span className={s.backIcon}/>
                         </ActionButton>
-                        <span className={s.pages}>
+                        <span className={`${s.pages}`}>
                             Page {storeItems?.page === undefined || storeItems?.page === null ? "N/A" : storeItems?.page}
                          </span>
                         <ActionButton
@@ -127,6 +135,8 @@ const StoreTab = ({}: {}) => {
                             <span className={s.forwardIcon}/>
                         </ActionButton>
                     </div>
+                </div> : deb.current || store.isLoading ? <div className={`${s.spinnerContainer}`}>
+                    <span className="spinner" style={{backgroundSize: "auto 36px"}}/>
                 </div> : storeItems.total === 0 ? <div className={`section-content-off disabled w-100`}>
                     No items are for sale in this group.
                 </div> : null

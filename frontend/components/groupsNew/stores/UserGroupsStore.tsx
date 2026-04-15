@@ -32,14 +32,22 @@ const GroupsPageStore = createContainer(() => {
                     );
                 }
                 setUserGroups(groups || []);
+                return groups || [];
             } catch (e) { console.error(e) }
         }
+        return null;
+    }
+
+    const GetPrimaryGroup = () => {
+        if (!userGroups || userGroups.length === 0) return null;
+        return userGroups.find(g => g.isPrimary);
     }
 
     return {
         userGroups, setUserGroups,
 
         fetchData,
+        GetPrimaryGroup,
     }
 });
 

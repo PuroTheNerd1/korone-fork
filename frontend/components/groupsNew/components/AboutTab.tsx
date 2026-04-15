@@ -2,7 +2,7 @@ import {createUseStyles} from 'react-jss';
 import {useState, useRef} from 'react';
 import Section from "./Section";
 import GroupsPageStore from "../stores/GroupsPageStore";
-import {GroupUserWithRoleIdThumbnail} from "../../../services/groups-typed";
+import {GroupUserWithRoleIdThumbnail, setStatus} from "../../../services/groups-typed";
 import NewLink from "../../NewLink";
 import {ThumbnailFromState} from "../../AvatarEditorPage/components/avatarCardList";
 import CreatorLink from "../../creatorLink";
@@ -14,7 +14,9 @@ import {getTheme, themeType } from "../../../services/theme";
 import {wait } from "../../../lib/utils";
 import Selector from "../../selector";
 import { abbreviateNumber } from "../../../lib/numberUtils";
-import Dropdown2016 from "../../dropdown2016";
+import Dropdown2016, { DropdownOption } from "../../dropdown2016";
+import FeedbackStore from "../../../stores/feedback";
+import { FeedbackType } from "../../../models/feedback";
 
 const useStyles = createUseStyles({
     description: {
@@ -31,6 +33,10 @@ const useStyles = createUseStyles({
     },
     memberContainer: {
         gap: 5,
+        flexWrap: 'wrap',
+        "@media (max-width: 767px)": {
+            flexWrap: 'nowrap',
+        },
     },
     memberWrapper: {
         float: "left",
@@ -38,6 +44,9 @@ const useStyles = createUseStyles({
         height: "120px",
         display: 'flex',
         listStyle: "none",
+        "@media (max-width: 767px)": {
+            minWidth: 95,
+        },
     },
     memberLink: {
         maxWidth: "90px",
@@ -53,6 +62,7 @@ const useStyles = createUseStyles({
         maxHeight: '90px',
         maxWidth: '90px',
         display: 'inline-block',
+        aspectRatio: '1 / 1',
         "& img": {
             objectFit: "cover",
             background: 'none',
@@ -87,6 +97,7 @@ const useStyles = createUseStyles({
     },
     shoutInfo: {
         marginLeft: 12,
+        width: 'calc(100% - 48px - 12px)',
         '& div': {
             marginTop: 12,
             width: '100%',
@@ -109,14 +120,21 @@ const useStyles = createUseStyles({
         whiteSpace: "pre-wrap",
         textRendering: "auto",
         textAlign: 'start',
+        width: '100%',
     },
     shoutPostContainer: {
         marginTop: 12,
         width: '100%',
+        "@media (max-width: 545px)": {
+            flexDirection: 'column',
+        }
     },
     shoutInputContainer: {
         marginBottom: 0,
         flexGrow: 1,
+        "@media (max-width: 545px)": {
+            width: '100%',
+        }
     },
     shoutInput: {
         width: '100%',
@@ -144,14 +162,27 @@ const useStyles = createUseStyles({
             lineHeight: '1.5em',
         },
     },
+    shoutSubmitBtnCnt: {
+        "@media (max-width: 545px)": {
+            width: '100%',
+        }
+    },
     shoutSubmitBtn: {
         fontSize: 18,
         fontWeight: 500,
         lineHeight: '100%',
         margin: '0 0 0 12px',
         padding: 9,
+        "@media (max-width: 545px)": {
+            margin: '0 auto',
+            width: '100%',
+        }
     },
 
+    controlContainer: {
+        display: 'flex',
+        "@media (max-width: 545px)": {},
+    },
     pageControls: {
         display: 'flex',
         justifyContent: 'center',
@@ -177,7 +208,9 @@ const useStyles = createUseStyles({
             filter: p => p.theme === themeType.dark ? 'invert(1)' : 'none',
         },
     },
-    pages: {},
+    pages: {
+        color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)"
+    },
     backIcon: {
         backgroundPosition:'0 -360px!important',
     },
@@ -187,9 +220,15 @@ const useStyles = createUseStyles({
 
     roleSelector: {
         marginLeft: 9,
+        "@media (max-width: 545px)": {
+            marginLeft: 'auto',
+        },
     },
     selectorWrapper: {
         width: 230,
+        "@media (max-width: 545px)": {
+            width: 'auto',
+        },
     },
     selector: {
         padding: "5px 12px",
@@ -213,6 +252,9 @@ const useStyles = createUseStyles({
         maxWidth: 'calc(100% - 70px)',
         width: '100%',
         display: 'inline-block',
+        "@media (max-width: 767px)": {
+            minWidth: 70,
+        }
     },
     roleCount: {
         marginLeft: 'auto',
@@ -220,8 +262,26 @@ const useStyles = createUseStyles({
     memberHeader: {
         '& h3': {
             marginRight: 'auto',
+            color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)",
+            "@media (max-width: 545px)": {
+                margin: 0,
+            },
+        },
+        "@media (max-width: 545px)": {
+            flexDirection: 'column',
         },
     },
+    memberSection: {
+        "@media (max-width: 767px)": {
+            overflowX: 'auto',
+        }
+    },
+    headerContainerThemed: {
+        "& h3": {
+            color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)"
+        },
+    },
+    spinnerContainer: {},
 });
 
 // have: shout, description, games (should have nothing), members, social links
@@ -230,15 +290,23 @@ const AboutTab = ({}: {}) => {
     const buttonStyles = useButtonStyles();
     const store = GroupsPageStore.useContainer();
     const {group, userPerms, members} = GroupsPageStore.useContainer();
+    const feedback = FeedbackStore.useContainer();
     const deb = useRef(false);
 
     const textAreaRef = useRef(null);
     const [textAreaRemainingChar, setTextAreaRemainingChar] = useState(0);
 
+    const DropdownOptions: DropdownOption[] = [
+        {
+            name: 'Report Abuse',
+            url: '/internal/report-abuse',
+        },
+    ]
+
     return <div>
         {
             userPerms && userPerms.permissions.groupPostsPermissions.viewStatus && group.shout ?
-                <Section header={"Shout"}>
+                <Section header={"Shout"} headerContainer={s.headerContainerThemed}>
                     <div className={`${s.shoutContainer} section-content noShadow`}>
                         <div className={`${s.shoutInfoContainer} flex`}>
                             <NewLink className={`${s.shoutHeadshotContainer}`}
@@ -267,27 +335,31 @@ const AboutTab = ({}: {}) => {
                                     label='Group Shout'
                                     buttonStyle={buttonStyles.newContinueButton}
                                     className={s.shoutSubmitBtn}
-                                    onClick={() => {
-                                        console.log("shouting!")
+                                    divClassName={s.shoutSubmitBtnCnt}
+                                    onClick={async () => {
+                                        try {
+                                            await setStatus({ groupId: store.group?.id, message: textAreaRef?.current?.value });
+                                            feedback.addFeedback(`Success`, FeedbackType.SUCCESS, true);
+                                            await wait(3);
+                                            window.location.reload();
+                                        } catch (e) {
+                                            console.error(e);
+                                            feedback.addFeedback(`Could not set shout: ${e?.message}`, FeedbackType.ERROR, true);
+                                        }
                                     }}
                                 />
                             </div> : null}
                         <div className={`${s.shoutDropdown}`}>
-                            <Dropdown2016 options={[
-                                {
-                                    name: 'Report Abuse',
-                                    url: '/internal/report-abuse'
-                                }
-                            ]} />
+                            <Dropdown2016 options={DropdownOptions} />
                         </div>
                     </div>
                 </Section> : null
         }
-        <Section header={"Description"} contentSectioned={true}>
+        <Section header={"Description"} headerContainer={s.headerContainerThemed} contentSectioned={true}>
             <pre className={`${s.description} w-100 m-0 overflow-hidden `}>{store.group.description}</pre>
         </Section>
-        <Section header={"Members"} headerContainer={s.memberHeader} contentSectioned={true} className={members.members.length === 0 || !group.roles ? "disabled" : ""}
-                 headerChildren={group.roles ? <>
+        <Section header={"Members"} headerContainer={s.memberHeader} contentSectioned={true} className={`${members.members.length === 0 || !group.roles && !store.memberDeb.current ? "disabled" : ""} ${s.memberSection}`}
+                 headerChildren={group.roles ? <div className={s.controlContainer}>
                      <div className={`${s.pageControls}`}>
                          <ActionButton
                              className={`${s.paginationBtn} ${(members?.members?.length === 0 || members?.prevPage == null) ? 'disabled' : ''}`}
@@ -328,7 +400,7 @@ const AboutTab = ({}: {}) => {
                          <Selector
                              shadow={true}
                              options={group.roles
-                                 .filter(a => a.id !== 1)
+                                 .filter(a => a.rank !== 0)
                                  .sort((a, b) => a.rank - b.rank)
                                  .map(a => ({
                                  name: a.name,
@@ -339,26 +411,32 @@ const AboutTab = ({}: {}) => {
                                  </>,
                              }))}
                              onChange={async (rank: {name: string; value: number;}) => {
-                                 if (deb.current || store.isLoading || members.rank === rank.value) return false;
-                                 try {
-                                     deb.current = true;
-                                     await store.fetchMembers(rank.value, 1, null);
-                                     await wait(0.75);
-                                     deb.current = false;
-                                     return true;
-                                 } catch {
-                                     deb.current = false;
-                                     return false;
-                                 }
+                                 if (store.memberDeb.current || store.isLoading || members.rank === rank.value) return false;
+                                 store.fetchMembers(rank.value, 1, null);
+                                 // try {
+                                 //     deb.current = true;
+                                 //     await store.fetchMembers(rank.value, 1, null);
+                                 //     //await wait(0.75);
+                                 //     deb.current = false;
+                                 //     return true;
+                                 // } catch {
+                                 //     deb.current = false;
+                                 //     return false;
+                                 // }
                              }}
                              wrapperClass={s.selectorWrapper}
                              selectorOptionClass={s.selectorOption}
                              className={s.selector}
                          />
                      </div>
-                 </> : null}
+                 </div> : null}
         >
-            {!group.roles ? "There was an error loading group roles. Try again later." : members.members.length === 0 ? "This role has no members." : <ul className={`${s.memberContainer} flex margin-none padding-none`}>
+            {!group.roles ? "There was an error loading group roles. Try again later." :
+                store.memberDeb.current ? <div className={`${s.spinnerContainer}`}>
+                        <span className="spinner" style={{backgroundSize: "auto 36px"}}/>
+                    </div> :
+                members.members.length === 0 ? "This role has no members." :
+                    <ul className={`${s.memberContainer} flex margin-none padding-none`}>
                 {members.members.map(m => (
                     <MemberItem key={m.userId} member={m}/>
                 ))}

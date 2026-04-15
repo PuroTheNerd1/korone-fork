@@ -3,14 +3,12 @@ import {useEffect, useRef, useState} from "react";
 import {
     getPermissionsForRoleset,
     getRolesetMembers,
-    getUserGroupsV2,
     getWall,
     GroupPermissionsEntry,
     GroupPostEntry,
     GroupRoleEntry,
     GroupUserWithRoleIdThumbnail,
-    GroupWithShout,
-    UserGroupV2
+    GroupWithShout
 } from "../../../services/groups-typed";
 import AuthenticationStore from "../../../stores/authentication";
 import {wait} from "../../../lib/utils";
@@ -29,6 +27,7 @@ const GroupsPageStore = createContainer(() => {
     const [posts, setPosts] = useState<GroupPosts>({posts: [], page: 0, nextPage: null, prevPage: null});
     const [members, setMembers] = useState<GroupMembers>({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
     const [memberCache, setMemberCache] = useState<GroupMembers[]>([]);
+    const [postCache, setPostCache] = useState<GroupPosts[]>([]);
 
     const [userPerms, setUserPerms] = useState<GroupPermissionsEntry|null>(null);
 
@@ -47,7 +46,7 @@ const GroupsPageStore = createContainer(() => {
         if (!group) return;
         setUserPerms(null);
         let roleSetId = 1; // guest by default
-        let userGroup = userGroupStore.userGroups.find(g => g.group.id === group?.id);
+        let userGroup = userGroupStore?.userGroups?.find(g => g.group.id === group?.id);
         if (userGroup) roleSetId = userGroup.role.id;
 
         (async () => {
@@ -56,10 +55,9 @@ const GroupsPageStore = createContainer(() => {
                 if (req) setUserPerms(req);
             } catch (e) { console.error(e) }
         })()
-    }, [userGroupStore.userGroups, group]);
+    }, [userGroupStore?.userGroups, group]);
 
     async function fetchData(group: GroupWithShout, clearData?: boolean) {
-        console.log("CHECKING, ", isLoading, auth.isPending);
         if (isLoading || auth.isPending) return;
         await setLoading(true);
 
@@ -71,6 +69,23 @@ const GroupsPageStore = createContainer(() => {
             await setStoreItems({items: [], page: 0, total: 0, nextPage: null, prevPage: null});
             await setMemberCache([]);
             await setStoreItemsCache([]);
+            await setPostCache([]);
+        }
+
+        if (group.isLocked) {
+            setTimeout(() => setLoading(false), 1000);
+            await setLoadingNE(true);
+
+            await wait(1);
+            setLoadingNE(false);
+            setGroup({
+                ...group,
+                icon: null,
+                roles: null,
+                funds: null,
+                games: []
+            });
+            return;
         }
 
         let groupIcon: ThumbnailEntry|null = null;
@@ -85,12 +100,18 @@ const GroupsPageStore = createContainer(() => {
         try {
             let req = (await getWall({ groupId: group.id, sort: 'Desc', limit: 10, cursor: null}));
             if (req) {
-                setPosts({
+                let post = {
                     posts: req.data,
                     page: 1,
                     nextPage: req.nextPageCursor,
                     prevPage: req.previousPageCursor,
-                });
+                };
+                setPosts(post);
+                if (clearData) {
+                    setPostCache([post]);
+                } else {
+                    setPostCache([...postCache, post]);
+                }
             }
         } catch (e) { console.error(e) }
         try {
@@ -136,8 +157,6 @@ const GroupsPageStore = createContainer(() => {
             games: []
         });
 
-        await userGroupStore.fetchData();
-
         setTimeout(() => setLoading(false), 1000);
         await setLoadingNE(true);
 
@@ -145,7 +164,12 @@ const GroupsPageStore = createContainer(() => {
         setLoadingNE(false);
     }
 
+    const memberDeb = useRef(false);
+
     async function fetchMembers(rank: number, page: number, cursor: string) {
+        if (memberDeb.current) return;
+        memberDeb.current = true;
+        await setMembers({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
         try {
             if (!group.roles || group.roles.length <= 0 || group.roles.filter(v=>v.id>1).length <= 0) throw new Error("no roles to process group members");
             let memberCached = memberCache.find(mc => mc.rank === rank && mc.page === page);
@@ -177,6 +201,35 @@ const GroupsPageStore = createContainer(() => {
             } else {
                 console.error("failed to fetch members for rank " + rank);
             }
+        } catch (e) { console.error(e) } finally {
+            memberDeb.current = false;
+        }
+    }
+
+    async function fetchPosts(page: number, cursor: string) {
+        try {
+            let postCached = postCache.find(ps => ps.page === page);
+            if (postCached) {
+                setPosts(postCached);
+                return;
+            }
+
+            let req = (await getWall({ groupId: group.id, sort: 'Desc', limit: 10, cursor: cursor}));
+            if (req && req.data) {
+                // @ts-ignore
+                console.log('hi');
+                console.dir(req.data);
+                let currentPost = {
+                    posts: req.data,
+                    page: page,
+                    nextPage: req.nextPageCursor,
+                    prevPage: req.previousPageCursor,
+                };
+                setPosts(currentPost);
+                setPostCache([...postCache, currentPost]);
+            } else {
+                console.error("failed to fetch posts for group " + group.id + " page " + page + " cursor " + cursor);
+            }
         } catch (e) { console.error(e) }
     }
 
@@ -200,6 +253,7 @@ const GroupsPageStore = createContainer(() => {
     }
 
     async function loadItems(page: number, cursor: string) {
+        if (sdeb.current) return false;
         sdeb.current = true;
         // @ts-ignore
         const searchResultsFlat = await searchCatalog2({
@@ -251,7 +305,6 @@ const GroupsPageStore = createContainer(() => {
         });
         setStoreItems(newResult);
         setStoreItemsCache([...storeItemsCache, newResult]);
-        await wait(0.75);
         sdeb.current = false;
         return true;
     }
@@ -268,11 +321,12 @@ const GroupsPageStore = createContainer(() => {
 
         isLoading, setLoading,
 
-        sdeb,
+        sdeb, memberDeb,
 
         fetchData,
         fetchMembers,
         fetchStoreItems,
+        fetchPosts,
     }
 });
 

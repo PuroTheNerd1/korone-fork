@@ -2,18 +2,18 @@ import {createUseStyles} from "react-jss";
 import GroupsPageStore from "./stores/GroupsPageStore";
 import {useEffect, useRef} from "react";
 import GroupIcon from "../groupIcon";
-import { ThumbnailFromState } from "../AvatarEditorPage/components/avatarCardList";
+import {ThumbnailFromState} from "../AvatarEditorPage/components/avatarCardList";
 import CreatorLink from "../creatorLink";
 import HorizontalTabs from "../horizontalTabs";
 import AboutTab from "./components/AboutTab";
 import StoreTab from "./components/StoreTab";
-import { abbreviateNumber } from "../../lib/numberUtils";
+import {abbreviateNumber} from "../../lib/numberUtils";
 import GroupDropdown from "./components/GroupDropdown";
 import ActionButton from "../actionButton";
 import useButtonStyles from "../../styles/buttonStyles";
 import Section from "./components/Section";
-import {GroupPostEntry} from "../../services/groups-typed";
-import Dropdown2016, { DropdownOption } from "../dropdown2016";
+import {deletePost, GroupPostEntry, joinGroup, postToWall} from "../../services/groups-typed";
+import Dropdown2016, {DropdownOption} from "../dropdown2016";
 import NewLink from "../NewLink";
 import dayjs from "../../lib/dayjs";
 import PlayerHeadshot from "../playerHeadshot";
@@ -21,33 +21,50 @@ import GamesTab from "./components/GamesTab";
 import UserGroupsStore from "./stores/UserGroupsStore";
 import AuthenticationStore from "../../stores/authentication";
 import AdBanner from "../ad/adBanner";
+import {wait} from "../../lib/utils";
+import {FeedbackType} from "../../models/feedback";
+import FeedbackStore from "../../stores/feedback";
+import {getTheme, themeType } from "../../services/theme";
 
 const useStyles = createUseStyles({
     groupDetailWrapper: {
         paddingLeft: 15,
         width: 'calc(100% - 15px - 160px)',
+        "& > div": {
+            width: '100%'
+        },
+        "@media (max-width: 767px)": {
+            width: '100%',
+            paddingLeft: 10,
+            "& > div": {
+                width: '100%',
+            },
+        }
     },
     groupHeaderContainer: {
         position: 'relative',
+        "@media (max-width: 545px)": {
+            flexDirection: 'column',
+        }
     },
     groupImage: {
         width: 128,
         aspectRatio: '1 / 1',
         marginRight: 12,
+        "@media (max-width: 767px)": {
+            width: 90,
+        },
+        "@media (max-width: 545px)": {
+            width: 128,
+            margin: '0 auto',
+            marginBottom: 12,
+        },
     },
     groupInfoContainer: {
         width: 'calc(100% - 140px)',
-        '& h1': {
-            fontWeight: 800,
-            lineHeight: '1em',
-            fontSize: 32,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            maxWidth: '100%',
-            padding: '5px 0',
-            margin: 0,
-        },
+        "@media (max-width: 545px)": {
+            width: '100%',
+        }
     },
     groupOwner: {
         margin: '5px 0',
@@ -63,6 +80,9 @@ const useStyles = createUseStyles({
         marginTop: 'auto',
         alignItems: 'center',
         width: '100%',
+        "@media (max-width: 545px)": {
+            justifyContent: 'center',
+        }
     },
     groupStat: {
         padding: '0 12px',
@@ -147,14 +167,27 @@ const useStyles = createUseStyles({
     },
     wallPostContainer: {
         marginBottom: 12,
+        "@media (max-width: 545px)": {
+            flexDirection: 'column',
+        }
     },
     wallPostBtnContainer: {
         alignContent: 'end',
+        "@media (max-width: 545px)": {
+            margin: '0 auto',
+            marginTop: 8,
+            width: '100%',
+        }
     },
     wallPostBtn: {
         padding: '9px 24px',
         fontSize: 16,
+        fontWeight: 500,
         marginLeft: 15,
+        "@media (max-width: 545px)": {
+            width: '100%',
+            margin: '0 auto',
+        },
     },
     wallPostText: {
         flexGrow: 1,
@@ -175,9 +208,18 @@ const useStyles = createUseStyles({
     },
 
     userGroupsWrapper: {
-        width: 160,
+        flexDirection: 'column',
+        "@media (max-width: 767px)": {
+            width: '100%',
+            paddingLeft: 10,
+            flexDirection: 'column-reverse',
+        }
     },
-    userGroupsContainer: {},
+    userGroupsContainer: {
+        "@media (max-width: 767px)": {
+            maxHeight: 'calc(5 * 52px)',
+        }
+    },
     createGroupBtn: {
         padding: 9,
         fontSize: 18,
@@ -185,6 +227,10 @@ const useStyles = createUseStyles({
         lineHeight: '100%',
         borderRadius: 3,
         width: '100%',
+        "@media (max-width: 767px)": {
+            margin: '0 auto',
+            marginBottom: 12,
+        }
     },
     groupContainer: {
         padding: '10px 12px',
@@ -216,6 +262,33 @@ const useStyles = createUseStyles({
             display: 'inline-block',
         },
     },
+    groupName: {
+        display: 'flex',
+        flexWrap: 'nowrap',
+        alignItems: 'center',
+        gap: 8,
+        width: '100%',
+        '& h1': {
+            fontWeight: 800,
+            lineHeight: '1em',
+            fontSize: 32,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: 'calc(100% - 40px)',
+            padding: '5px 0',
+            margin: 0,
+            "@media (max-width: 545px)": {
+                maxWidth: '100%',
+            }
+        },
+        "@media (max-width: 545px)": {
+            flexDirection: 'column',
+        },
+    },
+    groupVerified: {
+        width: 28,
+    },
     userGroupImage: {
         width: 32,
         height: 32,
@@ -226,6 +299,10 @@ const useStyles = createUseStyles({
             fontSize: 32,
             fontWeight: 800,
             lineHeight: '100%',
+            color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)"
+        },
+        "@media (max-width: 767px)": {
+            paddingLeft: 10,
         }
     },
     spinnerContainer: {
@@ -234,78 +311,107 @@ const useStyles = createUseStyles({
     banner: {
         marginBottom: 18,
     },
+
+    contentContaining: {
+        "@media (max-width: 767px)": {
+            flexDirection: 'column',
+        }
+    },
+    headerContainerThemed: {
+        "& h3": {
+            color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)"
+        },
+    },
+    textThemed: {
+        color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)"
+    },
+
+    pageControls: {
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 10,
+        alignItems: 'center',
+        paddingTop: 10,
+    },
+    paginationBtn: {
+        aspectRatio: '1 / 1',
+        padding: 3,
+        display: 'flex',
+        borderColor: p => p?.theme !== themeType.dark ? 'var(--text-color-secondary)' : 'transparent!important',
+        '& span': {
+            backgroundSize: '48px auto',
+            height: 24,
+            width: 24,
+            backgroundImage: "url(/img/generic_03112016.svg)",
+            backgroundRepeat: "no-repeat",
+            display: 'inline-block',
+            verticalAlign: 'middle',
+            filter: p => p?.theme === themeType.dark ? 'invert(1)' : 'none',
+        },
+        "&.disabled": {
+            filter: p => p?.theme === themeType.dark ? 'invert(1)' : 'none',
+        },
+    },
+    pages: {
+        color: p => p?.theme === themeType?.obc2019 ? "var(--white-color)" : "var(--text-color-primary)"
+    },
+    backIcon: {
+        backgroundPosition:'0 -360px!important',
+    },
+    forwardIcon: {
+        backgroundPosition:'0 -336px!important',
+    },
 });
 
 const GroupsPage = () => {
-    const s = useStyles();
+    const s = useStyles({theme: getTheme()});
     const auth = AuthenticationStore.useContainer();
     const buttonStyles = useButtonStyles();
     const store = GroupsPageStore.useContainer();
-    const { group,posts,members,userPerms } = GroupsPageStore.useContainer();
-    const { userGroups } = UserGroupsStore.useContainer();
+    const {group, posts, userPerms} = GroupsPageStore.useContainer();
+    const {userGroups} = UserGroupsStore.useContainer();
+
+    const feedback = FeedbackStore.useContainer();
 
     const textAreaRef = useRef(null);
+    const postDeb = useRef(false);
+    const pageDeb = useRef(false);
 
-    useEffect(() => {
-        console.log("GROUP HAS CHANGED:")
-        console.dir(group);
-        console.log(" ")
-    }, [group]);
-
-    useEffect(() => {
-        console.log("POSTS HAVE CHANGED:")
-        console.dir(posts);
-        console.log(" ")
-    }, [posts]);
-
-    useEffect(() => {
-        console.log("MEMBERS HAVE CHANGED:")
-        console.dir(members);
-        console.log(" ")
-    }, [members]);
-
-    useEffect(() => {
-        console.log("ISLOADING HAS CHANGED:")
-        console.dir(store.isLoading);
-        console.log(" ")
-    }, [store.isLoading]);
-
-    useEffect(() => {
-        console.log("USER GROUPS HAVE CHANGED:")
-        console.dir(userGroups);
-        console.log(" ")
-    }, [userGroups]);
-
-    if (group == null) return <div>noo not found</div>
-
-    return <div className={`container padding-none`}>
-        <AdBanner className={s.banner} />
-        <Section header="Groups" headerContainer={s.header} headerCenter={true} contentSectioned={false} headerChildren={<>
-                <NewLink href={`/search/groups`}>
-                    <span className={`link2018 fw-500`}>More Groups</span>
-                </NewLink>
-        </>} className={`flex`}>
+    return <div className={`container big padding-none`}>
+        <AdBanner className={s.banner}/>
+        <Section header="Groups" headerContainer={s.header} headerCenter={true} contentSectioned={false}
+                 headerChildren={<>
+                     <NewLink href={`/search/groups`}>
+                         <span className={`link2018 fw-500`}>More Groups</span>
+                     </NewLink>
+                 </>} className={`flex ${s.contentContaining}`}>
             {
                 !auth.isPending && auth.isAuthenticated ?
-                    <div className={`${s.userGroupsWrapper} flex flex-column`}>
-                        <ul className={`${s.userGroupsContainer} section-content noShadow padding-none flex flex-column flex-nowrap overflow-x-hidden overflow-y-auto w-100`}>
+                    <div className={`${s.userGroupsWrapper} flex`}>
+                        <ul className={`${s.userGroupsContainer} ${userGroups?.length === 0 ? "margin-none" : ""} section-content noShadow padding-none flex flex-column flex-nowrap overflow-x-hidden overflow-y-auto w-100`}>
                             {
-                                userGroups.map(group => {
-                                    return <NewLink href={`/groups/${group.group.id}/${encodeURIComponent(group.group.name)}`}
-                                                    className={`${s.groupContainer} flex ${group.group.id === store.group.id ? "current" : ""}`}
+                                userGroups?.map(ug => {
+                                    if (!ug) return null;
+                                    return <NewLink href={`/groups/${ug.group.id}/${encodeURIComponent(ug.group.name)}`}
+                                                    className={`${s.groupContainer} flex ${ug.group.id === store?.group?.id ? "current" : ""}`}
                                     >
                                         <div className={`${s.userGroupImage}`}>
-                                            <GroupIcon url={ThumbnailFromState(group?.imageUrl, group?.state)} id={group.group.id} />
+                                            <GroupIcon url={ThumbnailFromState(ug?.imageUrl, ug?.state)}
+                                                       id={ug.group.id}/>
                                         </div>
-                                        <div className={`${s.groupNameContainer} padding-l-5 overflow-hidden text-start align-content-center`}>
-                                            <span className={`text-overflow text-start`}>{group.group.name}</span>
+                                        <div
+                                            className={`${s.groupNameContainer} padding-l-5 overflow-hidden text-start align-content-center`}>
+                                            <span className={`text-overflow text-start`}>{ug.group.name}</span>
                                         </div>
                                         {
-                                            group?.isPrimary ? <span className='primary' /> : null
+                                            ug?.isPrimary ? <span className='primary'/> : null
                                         }
                                     </NewLink>
                                 })
                             }
+                            {/*{*/}
+                            {/*    userGroups.length === 0 ? <div className={`section-content-off noShadow`}></div> : null*/}
+                            {/*}*/}
                         </ul>
                         <NewLink href='/My/CreateGroup.aspx'>
                             <ActionButton
@@ -318,18 +424,29 @@ const GroupsPage = () => {
             }
             {
                 !store.group && store.isLoading ? <div className={`container ${s.spinnerContainer}`}>
-                    <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
-                </div> :
-                    <div className={`${s.groupDetailWrapper} flex flex-column`}>
+                    <span className="spinner" style={{backgroundSize: "auto 36px"}}/>
+                </div> : group === null ?
+                    <div className={s.textThemed} style={{marginLeft: 12, fontSize: 16, fontWeight: 500,}}>
+                        This group does not exist.
+                    </div> : group?.isLocked ?
+                        <div className={s.textThemed} style={{marginLeft: 12, fontSize: 16, fontWeight: 500,}}>
+                            This group is locked.
+                        </div> :
+                    <div
+                        className={`${s.groupDetailWrapper} ${!auth.isPending && auth.isAuthenticated ? "" : "padding-none"} flex flex-column`}>
                         <div className={`${s.groupHeaderContainer} section-content noShadow flex`}>
                             <div className={`${s.groupImage}`}>
-                                <GroupIcon name={group.name} url={ThumbnailFromState(group.icon.imageUrl, group.icon.state)} />
+                                <GroupIcon name={group.name}
+                                           url={ThumbnailFromState(group.icon.imageUrl, group.icon.state)}/>
                             </div>
                             <div className={`${s.groupInfoContainer} flex flex-column align-items-start`}>
-                                <h1>{group.name}</h1>
+                                <div className={`${s.groupName}`}>
+                                    <h1>{group.name}</h1>
+                                    {group.isVerified && <span className={`${s.groupVerified} icon-verified`} />}
+                                </div>
                                 <div className={`${s.groupOwner} flex align-items-center`}>
                                     <span>By</span>
-                                    <CreatorLink type={'User'} id={group.owner.userId} name={group.owner.displayName} />
+                                    <CreatorLink type={'User'} id={group.owner.userId} name={group.owner.displayName}/>
                                 </div>
                                 <div className={`${s.groupStatsContainer} flex`}>
                                     <div className={`${s.groupStat}`}>
@@ -344,51 +461,126 @@ const GroupsPage = () => {
                                         divClassName={s.joinGroupBtnContainer}
                                         buttonStyle={buttonStyles.newContinueButton}
                                         label='Join Group'
-                                        onClick={() => {
-                                            console.log("joining group!!")
+                                        onClick={async () => {
+                                            try {
+                                                await joinGroup({groupId: store.group?.id});
+                                                feedback.addFeedback(`Joined ${store.group?.name}`, FeedbackType.SUCCESS, true);
+                                                await wait(3);
+                                                window.location.reload();
+                                            } catch (e) {
+                                                console.error(e);
+                                                feedback.addFeedback(`Could not join group: ${e?.message}`, FeedbackType.ERROR, true);
+                                            }
                                         }}
                                     />}
                                 </div>
                             </div>
                             <div className={`${s.groupHeaderDropdownContainer}`}>
-                                <GroupDropdown />
+                                <GroupDropdown/>
                             </div>
                         </div>
                         <HorizontalTabs
                             options={[
-                                {name: "About", element: <AboutTab />},
-                                {name: "Games", element: <GamesTab />},
-                                {name: "Store", element: <StoreTab />},
+                                {name: "About", element: <AboutTab/>},
+                                {name: "Games", element: <GamesTab/>},
+                                {name: "Store", element: <StoreTab/>},
                                 // {name: "Affiliates", element: <AffiliatesTab />},
                             ]}
                             elementClass={`${s.tabContainer}`}
                         />
                         {
-                            userPerms && userPerms.permissions.groupPostsPermissions.viewWall ? <Section header="Wall">
-                                {posts.posts.length > 0 ? <div className={`${s.wallContainer} section-content noShadow`}>
-                                    {userPerms.permissions.groupPostsPermissions.postToWall ? <div className={`${s.wallPostContainer} flex`}>
+                            userPerms && userPerms.permissions.groupPostsPermissions.viewWall ? <Section header="Wall" headerContainer={s.headerContainerThemed}>
+                                <div className={`${s.wallContainer} section-content noShadow`}>
+                                    {userPerms.permissions.groupPostsPermissions.postToWall ?
+                                        <div className={`${s.wallPostContainer} flex`}>
                             <textarea
                                 className={s.wallPostText}
                                 placeholder="Say something..."
                                 maxLength={1000}
                                 ref={textAreaRef}
                             />
+                                            <ActionButton
+                                                label="Post"
+                                                className={s.wallPostBtn}
+                                                divClassName={s.wallPostBtnContainer}
+                                                buttonStyle={buttonStyles.newContinueButton}
+                                                onClick={async () => {
+                                                    if (postDeb.current) return;
+                                                    postDeb.current = true;
+                                                    try {
+                                                        // TODO: make this just add to wall and not reload that can be annoying
+                                                        const ptw = await postToWall({
+                                                            groupId: store.group?.id,
+                                                            content: textAreaRef?.current?.value
+                                                        });
+                                                        feedback.addFeedback(`Success`, FeedbackType.SUCCESS, true);
+                                                        if (!ptw?.data) {
+                                                            await wait(3);
+                                                            window.location.reload();
+                                                        }
+                                                        store.setPosts(prevState => {
+                                                            prevState.posts = [{
+                                                                body: ptw?.data?.body,
+                                                                id: ptw?.data?.id,
+                                                                poster: {
+                                                                    role: store?.userPerms?.role ?? null,
+                                                                    user: ptw?.data?.poster,
+                                                                },
+                                                                created: ptw?.data?.created,
+                                                                updated: ptw?.data?.updated,
+                                                            }, ...prevState.posts];
+                                                            return prevState;
+                                                        })
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                        feedback.addFeedback(`Could not post to wall: ${e?.message}`, FeedbackType.ERROR, true);
+                                                    }
+                                                    await wait(3);
+                                                    postDeb.current = false;
+                                                }}
+                                            />
+                                        </div> : null}
+                                    {posts.posts.length > 0 ? <div className={`${s.postsContainer}`}>
+                                        {posts.posts.map(post => <GroupWallPost key={post.id} {...post} />)}
+                                    </div> : <div className={`section-content-off noShadow`}>
+                                        Nobody has said anything yet...
+                                    </div>}
+                                    <div className={`${s.pageControls}`}>
                                         <ActionButton
-                                            label="Post"
-                                            className={s.wallPostBtn}
-                                            divClassName={s.wallPostBtnContainer}
-                                            buttonStyle={buttonStyles.newContinueButton}
-                                            onClick={() => {
-                                                console.log("POSTING!!");
+                                            className={`${s.paginationBtn} ${(posts?.posts?.length === 0 || posts?.prevPage == null) ? 'disabled' : ''}`}
+                                            buttonStyle={(posts?.posts?.length === 0 || posts?.prevPage == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
+                                            onClick={async e => {
+                                                e.preventDefault();
+                                                if (pageDeb.current || store.isLoading || posts?.prevPage == null) {
+                                                    return
+                                                }
+                                                pageDeb.current = true
+                                                await store.fetchPosts((posts.page ?? 0)-1, posts.nextPage);
+                                                pageDeb.current = false
                                             }}
-                                        />
-                                    </div> : null}
-                                    {posts.posts.map(post => (
-                                        <GroupWallPost key={post.id} {...post} />
-                                    ))}
-                                </div> : <div className={`section-content-off noShadow`}>
-                                    Nobody has said anything yet...
-                                </div>}
+                                        >
+                                            <span className={s.backIcon}/>
+                                        </ActionButton>
+                                        <span className={s.pages}>
+                                            Page {posts?.page === undefined || posts?.page === null ? "N/A" : posts?.page}
+                                        </span>
+                                        <ActionButton
+                                            className={`${s.paginationBtn} ${(posts?.posts?.length === 0 || posts?.nextPage == null) ? 'disabled' : ''}`}
+                                            buttonStyle={(posts?.posts?.length === 0 || posts?.nextPage == null) ? buttonStyles.newDisabledCancelButton : buttonStyles.newCancelButton}
+                                            onClick={async e => {
+                                                e.preventDefault();
+                                                if (pageDeb.current || store.isLoading || posts?.nextPage == null) {
+                                                    return
+                                                }
+                                                pageDeb.current = true
+                                                await store.fetchPosts((posts?.page ?? 0)+1, posts?.nextPage);
+                                                pageDeb.current = false
+                                            }}
+                                        >
+                                            <span className={s.forwardIcon}/>
+                                        </ActionButton>
+                                    </div>
+                                </div>
                             </Section> : null
                         }
                     </div>
@@ -399,10 +591,25 @@ const GroupsPage = () => {
 
 const GroupWallPost = (post: GroupPostEntry) => {
     const s = useStyles();
+    const auth = AuthenticationStore.useContainer();
     const store = GroupsPageStore.useContainer();
-    // TODO: add dropdown stuff
+    const feedback = FeedbackStore.useContainer();
 
     const DropdownOptions: DropdownOption[] = [
+        store?.group && store.userPerms?.permissions?.groupPostsPermissions?.deleteFromWall || post.poster.user.userId === auth.userId ? {
+            name: 'Delete',
+            onClick: async () => {
+                try {
+                    await deletePost({groupId: store.group.id, postId: post.id});
+                    feedback.addFeedback("Successfully deleted post!", FeedbackType.SUCCESS, true);
+                    await wait(3);
+                    window.location.reload();
+                } catch (e) {
+                    console.error(e);
+                    feedback.addFeedback(`Could not delete post: ${e?.message}`, FeedbackType.ERROR, true);
+                }
+            },
+        } : null,
         {
             name: 'Report Abuse',
             url: '/internal/report-abuse',
@@ -414,12 +621,13 @@ const GroupWallPost = (post: GroupPostEntry) => {
             <PlayerHeadshot id={post.poster.user.userId} name={post.poster.user.username}/>
         </NewLink>
         <div className={`${s.postInfo} flex flex-column align-items-start`}>
-            <CreatorLink type={2} id={post.poster.user.userId} name={post.poster.user.displayName} />
+            <CreatorLink type={2} id={post.poster.user.userId}
+                         name={post?.poster?.user?.displayName ?? post?.poster?.user?.username}/>
             <span className={s.postBody}>{post.body}</span>
             <div>{post.poster.role.name} | {dayjs(post.updated).format('MMM D, YYYY | h:mm A')}</div>
         </div>
         <div className={`${s.groupHeaderDropdownContainer} flex align`}>
-            <Dropdown2016 options={DropdownOptions} />
+            <Dropdown2016 options={DropdownOptions}/>
         </div>
     </div>
 }
