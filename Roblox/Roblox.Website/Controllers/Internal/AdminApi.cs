@@ -234,9 +234,12 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("crash"), StaffFilter(Access.GetStats)]
-    public void CrashSite()
+    public Task CrashSite()
     {
+        if (!StaffFilter.IsOwner(safeUserSession.userId))
+            throw new UnauthorizedException();
         Environment.Exit(0);
+        return Task.CompletedTask;
     }
 
     [HttpGet("alert"), StaffFilter(Access.GetAlert)]
@@ -328,6 +331,44 @@ public class AdminApiController : ControllerBase
 
         return "Join application added to user";
     }
+    
+    private static async Task<string> GetOrMigrateImageUrlAsync(string fileName, bool isThumbnails = true)
+    {
+        // really shitty work but this accounts for most cases.
+        if(fileName.StartsWith('/'))
+            fileName = fileName[1..];
+        if(fileName.StartsWith("images/"))
+            fileName = fileName[7..];
+        if (fileName.StartsWith("groups/"))
+        {
+            isThumbnails = false;
+            fileName = fileName[7..];
+        }
+        if(fileName.StartsWith("thumbnails/"))
+            fileName = fileName[11..];
+        const string contentType = "image/png";
+        
+        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+        var r2Key = (isThumbnails ? "images/thumbnails/" : "images/groups/") + fileName;
+        var localPath = (isThumbnails ? Configuration.ThumbnailsDirectory : Configuration.GroupIconsDirectory) + fileName;
+        var markerPath = localPath + ".migrated";
+
+        if (!System.IO.File.Exists(markerPath))
+        {
+            if (!await r2Service.FileExistsAsync(r2Key))
+            {
+                if (System.IO.File.Exists(localPath))
+                {
+                    using var file = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read, 0, FileOptions.Asynchronous);
+                    await r2Service.UploadFileAsync(r2Key, file, contentType);
+                }
+            }
+            try { System.IO.File.Create(markerPath).Close(); } catch { }
+        }
+
+        return R2StorageService.GetPublicUrl(r2Key);
+    }
+    
     [HttpGet("groups/pending-icons"), StaffFilter(Access.GetPendingGroupIcons)]
     public async Task<dynamic> GetPendingIcons()
     {
@@ -335,7 +376,7 @@ public class AdminApiController : ControllerBase
         
         foreach (var item in result)
         {
-            item.name = Configuration.CdnBaseUrl + "/images/groups/" + item.name;
+            item.name = await GetOrMigrateImageUrlAsync("/images/groups/" + item.name, false);
         }
 
         return result;
@@ -402,7 +443,7 @@ public class AdminApiController : ControllerBase
         var names = await services.users.GetUserById(avDetails.creatorId);
         item.creatorName = names.username;
         if (item.content_url != null)
-            item.content_url = Configuration.CdnBaseUrl + "/images/thumbnails/" + item.content_url + ".png";
+            item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
         return item;
     }
 
@@ -483,7 +524,7 @@ public class AdminApiController : ControllerBase
                 }
 
                 if (item.content_url != null)
-                    item.content_url = Configuration.CdnBaseUrl + "/images/thumbnails/" + item.content_url + ".png";
+                    item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
                 result.Add(item);
             }
         }
@@ -643,7 +684,7 @@ public class AdminApiController : ControllerBase
                 item.creatorId = (object) latest.creatorId;
                 var userInfo = await services.users.GetUserById(latest.creatorId);
                 item.creatorName = (object) userInfo.username;
-                item.content_url = Configuration.CdnBaseUrl + "/images/thumbnails/" + item.content_url + ".png";
+                item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
             }
             catch (Exception)
             {
@@ -779,7 +820,7 @@ public class AdminApiController : ControllerBase
         {
             gid = groupId,
         });
-        icon.name = Configuration.CdnBaseUrl + "/images/groups/" + icon.name;
+        icon.name = await GetOrMigrateImageUrlAsync("/images/groups/" + icon.name, false);
 
         return new
         {
@@ -889,7 +930,7 @@ public class AdminApiController : ControllerBase
         var year = await services.users.GetYear(userId);
 
         if (result.thumbnail_url != null)
-            result.thumbnail_url = Configuration.CdnBaseUrl + result.thumbnail_url;
+            result.thumbnail_url = await GetOrMigrateImageUrlAsync(result.thumbnail_url);
         result.theme = ((ThemeTypes) result.theme).ToString();
         result.status = ((AccountStatus)result.status).ToString();
         result.trade_filter = ((TradeQualityFilter)result.trade_filter).ToString();

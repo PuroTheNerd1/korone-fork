@@ -7,6 +7,15 @@
     let permissionToAdd: string;
     let permissions = [];
     let permissionsAvailable = [];
+    let permissionSearch = '';
+    let addPermissionSearch = '';
+
+    $: filteredPermissions = permissions.filter(p =>
+        p.permission.toLowerCase().includes(permissionSearch.toLowerCase())
+    );
+    $: filteredPermissionsAvailable = permissionsAvailable.filter(p =>
+        p.toLowerCase().includes(addPermissionSearch.toLowerCase())
+    );
 
     client.get('/staff/permissions?userId=' + userId).then(d => {
         permissions = d.data;
@@ -64,6 +73,7 @@
 <div class="row mt-4">
     <div class="col-12">
         <h3>Permissions</h3>
+        <input class="form-control mb-2" type="text" placeholder="Search permissions..." bind:value={permissionSearch} />
         <table class="table">
             <thead>
                 <tr>
@@ -72,7 +82,7 @@
                 </tr>
             </thead>
             <tbody>
-                    {#each permissions as permission}
+                    {#each filteredPermissions as permission}
                         <tr>
                             <td>
                                 <p class="mb-0 mt-2">{permission.permission}</p>
@@ -97,8 +107,9 @@
     </div>
         <div class="col-4">
             <h3>Add Permission</h3>
+            <input class="form-control mb-2" type="text" placeholder="Search..." bind:value={addPermissionSearch} />
             <select class="form-control" bind:value={permissionToAdd}>
-                {#each permissionsAvailable as permission}
+                {#each filteredPermissionsAvailable as permission}
                     <option value={permission}>{permission}</option>
                 {/each}
             </select>
@@ -165,6 +176,9 @@
 					quickConfig(permissions);
                 }
             }}>Asset Copy (Non Limited)</button>
+		<button class="btn btn-danger mt-4 ml-2" on:click={() => {
+                quickConfigDelete(permissions.map(p => p.permission));
+            }}>Remove All Permissions</button>
 
 	</div>
 </div>

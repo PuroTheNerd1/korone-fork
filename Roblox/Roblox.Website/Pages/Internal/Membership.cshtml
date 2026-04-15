@@ -20,12 +20,15 @@
                 {
                     <p class="text-success">@Model.successMessage</p>
                 }
+                @if (Model.errorMessage != null)
+                {
+                    <p class="text-danger">@Model.errorMessage</p>
+                }
                 <form method="post" autocomplete="off">
                     <div>
                         <select class="form-control" name="membershipType">
                             <option value="@MembershipType.None">None</option>
                             <option value="@MembershipType.BuildersClub">BC</option>
-                            <option value="@MembershipType.TurboBuildersClub">TBC</option>
                             <option value="@MembershipType.OutrageousBuildersClub">OBC</option>
                             <option value="@MembershipType.Premium">Premium</option>
                         </select>

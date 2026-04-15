@@ -30,7 +30,6 @@ public class WebController : ControllerBase
     private static ControllerServices staticServices { get; } = new();
     static WebController()
     {
-        // Init server close tasks
         Task.Run(async () =>
         {
             while (true)
@@ -41,7 +40,7 @@ public class WebController : ControllerBase
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("[info] KillOldservers task failed: {0}\n{1}",e.Message,e.StackTrace);
+                    Console.WriteLine("[info] KillOldservers task failed: {0}\n{1}", e.Message, e.StackTrace);
                 }
                 await Task.Delay(TimeSpan.FromSeconds(30));
             }
@@ -57,7 +56,6 @@ public class WebController : ControllerBase
     [HttpGetBypass("api/logincallback")]
     public async Task<IActionResult> DiscordLoginCallBack(string code)
     {
-        // If we already have a session lets redirect
         if (userSession != null)
             return Redirect("/home");
 
@@ -67,7 +65,6 @@ public class WebController : ControllerBase
             return Content("Login via discord has failed, please try logging in normally");
         }
         var userInfo = await discordApi.GetUserInfo();
-        // Failed to login or no user info
         if (userInfo == null)
         {
             return Content("Login via discord has failed, please try logging in normally");
@@ -78,14 +75,12 @@ public class WebController : ControllerBase
         {
             user = await services.users.GetUserByDiscordId(userInfo.Id.ToString());
         }
-        // there is no account tied to the discord id this can either mean they havent linked their account or there is no account made
         catch (RecordNotFoundException)
         {
             await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordApi.AccessToken);
             return Content("We couldn't find a korone account relating to this account, we have automatically joined the Korone discord server for you so you can register an account or link it!");
         }
 
-        // create session
         var sess = await services.users.CreateSession(user.userId);
         var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
         {
@@ -101,7 +96,6 @@ public class WebController : ControllerBase
             Path = "/",
             SameSite = SameSiteMode.Lax,
         });
-        // We have logged in time to redirect
         return Redirect("/home");
     }
 
@@ -109,7 +103,6 @@ public class WebController : ControllerBase
     public async Task<IActionResult> ApplicationDiscordCallback(string? code)
     {
         const string key = "PEKORA-DISCORD";
-        // Delete any old sessions
         if (discordAccessToken != null)
         {
             HttpContext.Response.Cookies.Delete(key);
@@ -131,10 +124,8 @@ public class WebController : ControllerBase
         }
 
         await services.discordBotApi.AddGuildMember(Configuration.DiscordGuildId, userInfo.Id.ToString(), discordApi.AccessToken);
-        // We store the access token as base64 in a cookie so we can use it later to get the user info
-        // This shouldnt be a problem :D
         string base64AccessToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(discordApi.AccessToken));
-        
+
         HttpContext.Response.Cookies.Append(key, base64AccessToken, new CookieOptions
         {
             IsEssential = true,
@@ -144,32 +135,17 @@ public class WebController : ControllerBase
             Expires = DateTimeOffset.Now.Add(TimeSpan.FromSeconds(604800)),
             SameSite = SameSiteMode.Lax,
         });
-        
-        return Redirect("/auth/application");
+
+        return Redirect("/");
     }
-    
-    // [HttpGetBypass("api/userinfo")]
-    // public async Task<dynamic?> UserInfo()
-    // {
-    //     DiscordApi discordOAuth = new(discordSession, true);
-    //     var userInfo = await discordOAuth.GetUserInfo();
-    //     return new
-    //     {
-    //         username = userInfo.Username,
-    //         avatarUrl = userInfo.AvatarUrl,
-    //         id = userInfo.Id
-    //     };
-    // }
+
     [HttpGet("userads/redirect")]
     public async Task<IActionResult> AdRedirect(string data)
     {
-        // please ignore the "url" half of data string, it is legacy and should not be trusted
         var decoded = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data));
         var arr = decoded.Split("|");
         var adId = long.Parse(arr[0]);
         var ad = await services.assets.GetAdvertisementById(adId);
-        // if the ad isn't running, don't report it as a click.
-        // maybe someone clicked after leaving their computer online overnight or something?
         if (ad.isRunning)
         {
             await services.assets.IncrementAdvertisementClick(ad.id);
@@ -194,7 +170,6 @@ public class WebController : ControllerBase
         if (pageNumber < 1) pageNumber = 1;
         if (itemsPerPage < 1 || itemsPerPage > 100) itemsPerPage = 10;
 
-        // /users/favorites/list-json?assetTypeId=9&itemsPerPage=100&pageNumber=1&userId=3081467602
         var favs = await services.assets.GetFavoritesOfType(userId, assetTypeId, itemsPerPage,
             (itemsPerPage * pageNumber) - itemsPerPage);
         var details = (await services.assets.MultiGetInfoById(favs.Select(c => c.assetId))).ToList();
@@ -227,16 +202,16 @@ public class WebController : ControllerBase
                             UniverseId = details?.universeId,
                             Name = c.name,
                             AbsoluteUrl = "/catalog/" + c.id + "/--",
-                            AssetType = (int) c.assetType,
+                            AssetType = (int)c.assetType,
                             AssetCategory = 0,
                             CurrentVersionId = 0,
-                            LastUpdated = (string?) null,
+                            LastUpdated = (string?)null,
                         },
                         Creator = new
                         {
                             Id = c.creatorTargetId,
                             Name = c.creatorName,
-                            Type = (int) c.creatorType,
+                            Type = (int)c.creatorType,
                             CreatorProfileLink = c.creatorType == CreatorType.Group
                                 ? "/My/Groups.aspx?gid=" + c.creatorTargetId
                                 : "/users/" + c.creatorTargetId + "/profile",
@@ -301,7 +276,7 @@ public class WebController : ControllerBase
                 TotalItems = count,
                 Start = 0,
                 End = -1,
-                Page = ((int) (offset / limit))+1,
+                Page = ((int)(offset / limit)) + 1,
                 nextPageCursor = moreAvailable ? (offset + limit).ToString() : null,
                 previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
                 ItemsPerPage = limit,
@@ -317,16 +292,16 @@ public class WebController : ControllerBase
                         Item = new
                         {
                             AssetId = c.assetId,
-                            UniverseId = (long?) null,
+                            UniverseId = (long?)null,
                             Name = c.name,
                             AbsoluteUrl = "/item-item?id=" + c.assetId,
-                            AssetType = (int) c.assetTypeId,
+                            AssetType = (int)c.assetTypeId,
                         },
                         Creator = new
                         {
                             Id = c.creatorId,
                             Name = c.creatorName,
-                            Type = (int) c.creatorType,
+                            Type = (int)c.creatorType,
                             CreatorProfileLink = c.creatorType == CreatorType.User
                                 ? $"/users/{c.creatorId}/profile"
                                 : $"/My/Groups.aspx?gid={c.creatorId}",
@@ -336,7 +311,7 @@ public class WebController : ControllerBase
                             PriceInRobux = c.originalPrice ?? 0,
                             SerialNumber = c.serialNumber,
                         },
-                        PrivateSeller = (object?) null,
+                        PrivateSeller = (object?)null,
                         Thumbnail = new { },
                         UserItem = new { },
                     };
@@ -344,13 +319,12 @@ public class WebController : ControllerBase
             },
         };
     }
+
     [HttpGet("users/{userId:long}")]
     public async Task<IActionResult> GetUserInfo(long userId)
     {
-        Console.WriteLine($"Request: {userId}");
-        Console.WriteLine($"Session: {safeUserSession.userId}");
         var userInfo = await services.users.GetUserById(userId);
-        var data  =  new
+        var data = new
         {
             Id = userId,
             Username = userInfo.username,
@@ -358,6 +332,7 @@ public class WebController : ControllerBase
 
         return Content(JsonConvert.SerializeObject(data), "application/json");
     }
+
     [HttpGet("users/{userId:long}/canmanage/{placeId:long}")]
     public async Task<dynamic> CanManage(long userId, long placeId)
     {
@@ -449,7 +424,7 @@ public class WebController : ControllerBase
                     Id = c.id,
                     AssetSeoUrl = $"/item-item?id=" + c.id,
                     Name = c.name,
-                    FormatName = (string?) null,
+                    FormatName = (string?)null,
                     Thumbnail = new
                     {
                         Final = true,
@@ -458,7 +433,7 @@ public class WebController : ControllerBase
                     },
                     AssetRestrictionIcon = new
                     {
-                        TooltipText = (string?) null,
+                        TooltipText = (string?)null,
                         CssTag = c.itemRestrictions.Contains("Limited") ? "limited" :
                             c.itemRestrictions.Contains("LimitedUnique") ? "limited-unique" : null,
                         LoadAssetRestrictionIconCss = false,
@@ -473,19 +448,6 @@ public class WebController : ControllerBase
     public async Task<dynamic> GetAssetComments(long assetId, int startIndex)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.AssetCommentsEnabled);
-        /*
-        var details = (await services.assets.MultiGetAssetDeveloperDetails(new []{assetId})).First();
-        if (!details.enableComments)
-        {
-            return new
-            {
-                IsUserModerator = false,
-                Comments = new List<dynamic>(),
-                MaxRows = 10,
-                AreCommentsDisabled = true,
-            };
-        }
-        */
         var com = await services.assets.GetComments(assetId, startIndex, 10);
         var isModerator = userSession != null && (await services.users.GetStaffPermissions(userSession.userId))
             .Any(a => a.permission == Access.DeleteComment);
@@ -509,7 +471,7 @@ public class WebController : ControllerBase
                     AuthorThumbnail = new
                     {
                         AssetId = 0,
-                        AssetHash = (string?) null,
+                        AssetHash = (string?)null,
                         AssetTypeId = 0,
                         Url = t.imageUrl ?? "/img/blocked.png",
                         IsFinal = true,
@@ -544,12 +506,11 @@ public class WebController : ControllerBase
     public async Task<dynamic> GetJoinScript(long placeId)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
-        // TODO: Rate limit, or caching, or something
         string clientVer;
         long year = await services.games.GetYear(placeId);
         clientVer = services.games.clientVersionMap.TryGetValue(year, out var ver) ? ver : throw new BadRequestException();
-        var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
-        if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved || assetInfo.typeId != (int)Models.Assets.Type.Place) 
+        var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] { placeId })).First();
+        if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved || assetInfo.typeId != (int)Models.Assets.Type.Place)
             throw new BadRequestException(1, "Place is not active");
         var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{PUPPYSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
@@ -574,7 +535,7 @@ public class WebController : ControllerBase
 
         var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
-        var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] {placeId})).First();
+        var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] { placeId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
         var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{PUPPYSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
@@ -604,7 +565,7 @@ public class WebController : ControllerBase
         await services.games.CanManageUniverse(safeUserSession.userId, universeId);
 
         if (await services.games.CountUniversePlaces(universeId) >= 10)
-            throw new BadRequestException(1, "You cannot create more than 10 places in a universe");   
+            throw new BadRequestException(1, "You cannot create more than 10 places in a universe");
         var place = await services.games.CreatePlaceInUniverse(safeUserSession.userId, safeUserSession.username, CreatorType.User, universeId);
         return new
         {
@@ -634,13 +595,13 @@ public class WebController : ControllerBase
                 Ping = ping,
                 Fps = 60,
                 ShowSlowGameMessage = ping > 200,
-                UserCanJoin = true, // todo: false if vip server
+                UserCanJoin = true,
                 ShowShutdownButton = details.builderId == safeUserSession.userId,
                 jobId = server.id,
                 FriendsMouseover = "",
                 FriendsDescription = "",
                 PlayersCapacity = $"{players.Count} of {details.maxPlayerCount}",
-                RobloxAppJoinScript = "", // todo
+                RobloxAppJoinScript = "",
                 CurrentPlayers = players.Select(c => new
                 {
                     Id = c.userId,
@@ -661,7 +622,7 @@ public class WebController : ControllerBase
             TotalCollectionSize = servers.Count,
         };
     }
-    // Gonna clean this up later when im home
+
     [HttpGet("search/users/results")]
     public async Task<dynamic> SearchUsersJson(string? keyword = null, int offset = 0, int limit = 10)
     {
@@ -669,7 +630,6 @@ public class WebController : ControllerBase
             limit = 10;
         if ((offset / limit) > 1000)
             offset = 0;
-        // Exact matching
         bool exactMatch = false;
         string exactName = string.Empty;
         if (!string.IsNullOrWhiteSpace(keyword) && keyword.StartsWith("@") && keyword.EndsWith("@") && keyword.Length > 2)
@@ -679,7 +639,6 @@ public class WebController : ControllerBase
         }
         if (exactMatch)
         {
-            // If the user is searching for an exact match, we can just return the user if they exist
             var user = await services.users.GetUserByName(exactName);
             if (user == null)
             {
@@ -730,7 +689,6 @@ public class WebController : ControllerBase
                 TotalResults = 0,
                 UserSearchResults = Array.Empty<int>(),
             };
-        // No DB pagination yet, it's just too expensive to be worth it right now
         var userInfo = await services.users.MultiGetUsersById(result.Skip(offset).Take(limit).Select(c => c.userId));
         var userPresence = await services.users.MultiGetPresence(userInfo.Select(c => c.id).ToList());
 
@@ -770,7 +728,6 @@ public class WebController : ControllerBase
         Models.Assets.Type.Image,
         Models.Assets.Type.Video,
         Models.Assets.Type.Mesh,
-        //Models.Assets.Type.MeshPart,
         Models.Assets.Type.Animation,
         Models.Assets.Type.Model,
         Models.Assets.Type.GamePass,
@@ -787,7 +744,6 @@ public class WebController : ControllerBase
         var info = await services.assets.GetAssetCatalogInfo(request.assetId);
         var canUpload = await services.assets.CanUserModifyItem(info.id, safeUserSession.userId);
 
-        // You can only upload place files right now
         if (info.assetType != Models.Assets.Type.Place)
             canUpload = false;
 
@@ -808,12 +764,10 @@ public class WebController : ControllerBase
 
         try
         {
-            // idk atp
-            var fs = request.file.OpenReadStream();
+            using var fs = request.file.OpenReadStream();
             fs.Position = 0;
-            var validationStream = new MemoryStream();
-            var placeStream = new MemoryStream();
-            // copy to validation stream
+            using var validationStream = new MemoryStream();
+            using var placeStream = new MemoryStream();
             await fs.CopyToAsync(validationStream);
             validationStream.Position = 0;
             await validationStream.CopyToAsync(placeStream);
@@ -823,11 +777,6 @@ public class WebController : ControllerBase
                 throw new RobloxException(400, 0, "The asset file doesn't look correct. Please try again.");
             placeStream.Position = 0;
             await services.assets.CreateAssetVersion(request.assetId, safeUserSession.userId, placeStream);
-
-            // Render in the background
-            //if (info.assetType != Models.Assets.Type.Place) {
-            //    services.assets.RenderAsset(request.assetId, info.assetType);
-            //}
         }
         finally
         {
@@ -895,7 +844,7 @@ public class WebController : ControllerBase
             pendingAssetUploadsMux.Release();
         }
 
-        var stream = request.file.OpenReadStream();
+        using var stream = request.file.OpenReadStream();
 
         try
         {
@@ -941,33 +890,88 @@ public class WebController : ControllerBase
         }
     }
 
-    // helper functions ugh
+    private async Task<byte[]> ReadStreamToByteArray(Stream stream)
+    {
+        stream.Position = 0;
+        byte[] buffer = new byte[stream.Length];
+        await stream.ReadExactlyAsync(buffer, 0, buffer.Length);
+        return buffer;
+    }
+
+    private MemoryStream CreateStreamFromBytes(byte[] data)
+    {
+        return new MemoryStream(data);
+    }
+
     private async Task<CreateResponse> UploadClothing(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         var pictureData = await services.assets.ValidateClothing(stream, request.assetType);
-        if (pictureData == null) throw new BadRequestException(0, "Invalid image file");
+        if (pictureData == null)
+            throw new BadRequestException(0, "Invalid image file");
+
         stream.Position = 0;
-        var cleanImage = await services.assets.CleanImage(stream);
-        cleanImage.Position = 0;
-        var imageAsset = await services.assets.CreateAsset(request.file.FileName, request.assetType + " Image", safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
+        using var cleanImage = await services.assets.CleanImage(stream);
+        byte[] imageBytes = await ReadStreamToByteArray(cleanImage);
 
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)cleanImage.Length, pictureData.width, pictureData.height, pictureData.imageFormat, await services.assets.GenerateImageHash(cleanImage));
+        var hashStream = CreateStreamFromBytes(imageBytes);
+        var imageHash = await services.assets.GenerateImageHash(hashStream);
+        hashStream.Dispose();
 
-        var clothingAsset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, creatorType, creatorId, null, request.assetType, Genre.All, imageAsset.moderationStatus, default, default, default, default, imageAsset.assetId);
+        var createAssetStream = CreateStreamFromBytes(imageBytes);
+        var imageAsset = await services.assets.CreateAsset(
+            request.file.FileName,
+            request.assetType + " Image",
+            safeUserSession.userId,
+            creatorType,
+            creatorId,
+            createAssetStream,
+            Models.Assets.Type.Image,
+            Genre.All,
+            ModerationStatus.AwaitingApproval);
+        createAssetStream.Dispose();
+
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(
+            imageAsset.assetVersionId,
+            imageBytes.Length,
+            pictureData.width,
+            pictureData.height,
+            pictureData.imageFormat,
+            imageHash);
+
+        var clothingAsset = await services.assets.CreateAsset(
+            request.name,
+            null,
+            safeUserSession.userId,
+            creatorType,
+            creatorId,
+            null,
+            request.assetType,
+            Genre.All,
+            imageAsset.moderationStatus,
+            default,
+            default,
+            default,
+            default,
+            imageAsset.assetId);
+
         await services.users.CreateUserAsset(safeUserSession.userId, clothingAsset.assetId);
 
         return clothingAsset;
     }
+
     private const float maxDecibel = -2f;
+
     private async Task<CreateResponse> UploadAudio(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         var balance = await services.economy.GetBalance(creatorType, creatorId);
-        // check if has enough
         if (balance.robux < 20)
             throw new BadRequestException(0, "Not enough Robux for purchase");
-        // validate auto
-        stream.Position = 0;
-        var isOk = await Services.AudioService.IsAudioValid(stream, creatorId);
+
+        byte[] audioBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(audioBytes);
+        var isOk = await Services.AudioService.IsAudioValid(validationStream, creatorId);
+        validationStream.Dispose();
 
         if (isOk == MediaValidation.UnsupportedFormat)
             throw new BadRequestException(0, "OGG uploading is currently disabled, try uploading as an MP3 instead");
@@ -975,37 +979,45 @@ public class WebController : ControllerBase
         if (isOk != MediaValidation.Ok)
             throw new BadRequestException(0, "Bad audio file. Error = " + isOk.ToString());
 
-        stream.Position = 0;
-
-        // charge
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
-        // create item
+        var createStream = CreateStreamFromBytes(audioBytes);
         var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
-            safeUserSession.userId, stream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.Audio, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
+
     private async Task<CreateResponse> UploadImage(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         var imageData = await services.assets.ValidateImage(stream);
         if (imageData == null)
             throw new BadRequestException(0, "Invalid image file");
-        stream.Position = 0;
-        // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
-        var cleanImage = await services.assets.CleanImage(stream);
 
+        stream.Position = 0;
+        using var cleanImage = await services.assets.CleanImage(stream);
+        byte[] imageBytes = await ReadStreamToByteArray(cleanImage);
+
+        var hashStream = CreateStreamFromBytes(imageBytes);
+        var imageHash = await services.assets.GenerateImageHash(hashStream);
+        hashStream.Dispose();
+
+        var createAssetStream = CreateStreamFromBytes(imageBytes);
         var imageAsset = await services.assets.CreateAsset(request.name, "Image",
-            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Image,
+            safeUserSession.userId, creatorType, creatorId, createAssetStream, Models.Assets.Type.Image,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, (int)cleanImage.Length,
-            imageData.width, imageData.height, imageData.imageFormat,
-            await services.assets.GenerateImageHash(cleanImage));
+        createAssetStream.Dispose();
+
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(imageAsset.assetVersionId, imageBytes.Length,
+            imageData.width, imageData.height, imageData.imageFormat, imageHash);
 
         return imageAsset;
     }
+
     private async Task<CreateResponse> UploadAssetBadge(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        if (request.universeId is null) 
+        if (request.universeId is null)
             throw new BadRequestException(0, "Universe ID is required");
 
         long universeId = (long)request.universeId;
@@ -1016,142 +1028,178 @@ public class WebController : ControllerBase
             throw new BadRequestException(0, "Invalid image file");
 
         var badgeCount = await services.games.GetUniverseBadgeCount(universeId);
-        if (badgeCount >= 500) 
+        if (badgeCount >= 500)
             throw new BadRequestException(0, "This universe has too many badges");
-        
-        
+
         stream.Position = 0;
-        // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
-        var cleanImage = await services.assets.CleanImage(stream);
-        
+        using var cleanImage = await services.assets.CleanImage(stream);
+        byte[] imageBytes = await ReadStreamToByteArray(cleanImage);
+
+        var hashStream = CreateStreamFromBytes(imageBytes);
+        var imageHash = await services.assets.GenerateImageHash(hashStream);
+        hashStream.Dispose();
+
+        var createAssetStream = CreateStreamFromBytes(imageBytes);
         var badgeAsset = await services.assets.CreateAsset(request.name, request.description,
-            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.Badge,
+            safeUserSession.userId, creatorType, creatorId, createAssetStream, Models.Assets.Type.Badge,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-        // TODO: this might cause issues with image resolution? (having it set to 420x420)
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, (int)cleanImage.Length,
-            420, 420, imageData.imageFormat,
-            await services.assets.GenerateImageHash(cleanImage));
+        createAssetStream.Dispose();
+
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(badgeAsset.assetVersionId, imageBytes.Length,
+            420, 420, imageData.imageFormat, imageHash);
         await services.assets.CreateBadgeAsset(badgeAsset.assetId, request.universeId);
         await services.assets.UpdateAssetMarketInfo(badgeAsset.assetId, false, false, false, null, null);
 
         return badgeAsset;
     }
+
     private async Task<CreateResponse> UploadGamePass(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        if (request.universeId is null) 
+        if (request.universeId is null)
             throw new BadRequestException(0, "Universe ID is required");
-        
+
         if (request.priceInRobux is null && request.priceInTickets is null && request.isForSale == true)
             throw new BadRequestException(0, "A price is required");
-        
+
         var imageData = await services.assets.ValidateImage(stream);
         if (imageData == null)
             throw new BadRequestException(0, "Invalid image file");
 
         long universeId = (long)request.universeId;
-        
+
         var universe = await services.games.SafeGetUniverseInfo(safeUserSession.userId, universeId);
         await services.assets.ValidatePermissions(universe.rootPlaceId, safeUserSession.userId);
-        
+
         var gamePassCount = await services.games.GetUniverseGamePassCount(universeId);
-        if (gamePassCount >= 15) 
+        if (gamePassCount >= 15)
             throw new BadRequestException(0, "This universe has too many gamepasses");
-        
+
         stream.Position = 0;
-        // Redraw the image so we can prevent the fucking audio method (setting an mp3 in the png metadata)
-        var cleanImage = await services.assets.CleanImage(stream);
-        
+        using var cleanImage = await services.assets.CleanImage(stream);
+        byte[] imageBytes = await ReadStreamToByteArray(cleanImage);
+
+        var hashStream = CreateStreamFromBytes(imageBytes);
+        var imageHash = await services.assets.GenerateImageHash(hashStream);
+        hashStream.Dispose();
+
+        var createAssetStream = CreateStreamFromBytes(imageBytes);
         var gamepassAsset = await services.assets.CreateAsset(request.name, request.description,
-            safeUserSession.userId, creatorType, creatorId, cleanImage, Models.Assets.Type.GamePass,
+            safeUserSession.userId, creatorType, creatorId, createAssetStream, Models.Assets.Type.GamePass,
             Genre.All,
             ModerationStatus.AwaitingApproval);
-        await services.assets.InsertOrUpdateAssetVersionMetadataImage(gamepassAsset.assetVersionId, (int)cleanImage.Length,
-            imageData.width, imageData.height, imageData.imageFormat,
-            await services.assets.GenerateImageHash(cleanImage));
-        // gamepass specific stuff
+        createAssetStream.Dispose();
+
+        await services.assets.InsertOrUpdateAssetVersionMetadataImage(gamepassAsset.assetVersionId, imageBytes.Length,
+            imageData.width, imageData.height, imageData.imageFormat, imageHash);
         await services.assets.CreateGamePassAsset(gamepassAsset.assetId, universe.id);
         await services.assets.UpdateAssetMarketInfo(gamepassAsset.assetId, request.isForSale == true, false, false, null, null);
         await services.assets.SetItemPrice(gamepassAsset.assetId, request.priceInRobux, request.priceInTickets);
 
         return gamepassAsset;
     }
+
     private async Task<CreateResponse> UploadVideo(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         var balance = await services.economy.GetBalance(creatorType, creatorId);
-        // check if has enough
         if (balance.robux < 100)
             throw new BadRequestException(0, "Not enough Robux for purchase");
-        // validate auto
-        stream.Position = 0;
-        var isOk = await services.assets.IsVideoValid(stream);
+
+        byte[] videoBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(videoBytes);
+        var isOk = await services.assets.IsVideoValid(validationStream);
+        validationStream.Dispose();
+
         if (isOk != MediaValidation.Ok)
-        {
             throw new BadRequestException(0, "Bad video file. Error = " + isOk.ToString());
-        }
-        
-        // charge
+
         await services.economy.ChargeForVideoUpload(creatorType, creatorId);
-        // create item
+        var createStream = CreateStreamFromBytes(videoBytes);
         var asset = await services.assets.CreateAsset(request.name, null, safeUserSession.userId, CreatorType.User,
-            safeUserSession.userId, stream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.Video, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
+
     private async Task<CreateResponse> UploadMesh(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        stream.Position = 0;
-        if (!await services.assets.IsMeshValid(stream))
+        byte[] meshBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(meshBytes);
+        if (!await services.assets.IsMeshValid(validationStream))
         {
+            validationStream.Dispose();
             throw new BadRequestException(0, "Bad mesh file");
         }
-        stream.Position = 0;
-        // create item
+        validationStream.Dispose();
+
+        var createStream = CreateStreamFromBytes(meshBytes);
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Mesh, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.Mesh, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
+
     private async Task<CreateResponse> UploadMeshPart(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        stream.Position = 0;
-        if (!await services.assets.RobloxFileValidation(stream))
+        byte[] meshBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(meshBytes);
+        if (!await services.assets.RobloxFileValidation(validationStream))
         {
+            validationStream.Dispose();
             throw new BadRequestException(0, "Bad mesh file");
         }
-        stream.Position = 0;
-        // create item
+        validationStream.Dispose();
+
+        var createStream = CreateStreamFromBytes(meshBytes);
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.MeshPart, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.MeshPart, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
+
     private async Task<CreateResponse> UploadModel(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        stream.Position = 0;
-        using var validationStream = new MemoryStream();
-        await stream.CopyToAsync(validationStream);
-        validationStream.Position = 0;
+        byte[] modelBytes = await ReadStreamToByteArray(stream);
 
+        var validationStream = CreateStreamFromBytes(modelBytes);
         if (!await services.assets.ValidateAssetFile(validationStream, Models.Assets.Type.Model))
+        {
+            validationStream.Dispose();
             throw new BadRequestException(0, "Bad model file");
-        
-        stream.Position = 0;
-        // create item
+        }
+        validationStream.Dispose();
+
+        var createStream = CreateStreamFromBytes(modelBytes);
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Model, Genre.All, ModerationStatus.AwaitingApproval);
+            safeUserSession.userId, createStream, Models.Assets.Type.Model, Genre.All, ModerationStatus.AwaitingApproval);
+        createStream.Dispose();
+
         return asset;
     }
 
     private async Task<CreateResponse> UploadAnimation(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
-        stream.Position = 0;
-        using var validationStream = new MemoryStream();
-        await stream.CopyToAsync(validationStream);
-        validationStream.Position = 0;
+        byte[] animationBytes = await ReadStreamToByteArray(stream);
+
+        var validationStream = CreateStreamFromBytes(animationBytes);
         if (!await services.assets.ValidateAssetFile(validationStream, Models.Assets.Type.Animation))
+        {
+            validationStream.Dispose();
             throw new BadRequestException(0, "Bad animation file");
-        stream.Position = 0;
+        }
+        validationStream.Dispose();
+
+        var createStream = CreateStreamFromBytes(animationBytes);
         var asset = await services.assets.CreateAsset(request.name, null, creatorId, creatorType,
-            safeUserSession.userId, stream, Models.Assets.Type.Animation, Genre.All, ModerationStatus.ReviewApproved);
+            safeUserSession.userId, createStream, Models.Assets.Type.Animation, Genre.All, ModerationStatus.ReviewApproved);
+        createStream.Dispose();
+
         return asset;
     }
-
 }

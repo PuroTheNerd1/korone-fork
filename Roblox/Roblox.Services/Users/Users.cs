@@ -460,9 +460,11 @@ public class UsersService : ServiceBase, IService
         }
         // check for invalid characters
         var normalizedNameArray = UsernameValidationRegex.Match(nameToCheck);
-        if (!normalizedNameArray.Success) return false;
+        if (!normalizedNameArray.Success) 
+            return false;
         var normalizedName = normalizedNameArray.Value;
-        if (normalizedName != nameToCheck) return false;
+        if (normalizedName != nameToCheck) 
+            return false;
 
         // check for duplicate whitespace
         for (var i = 1; i < normalizedName.Length; i++)
@@ -474,26 +476,18 @@ public class UsersService : ServiceBase, IService
 
         // world filter, removing spaces and other words
         var lowerName = string.Join("", nameToCheck.ToLower().Split(" "));
-        if (lowerName.Contains("nigg") || lowerName.Contains("n1gg") || lowerName.Contains("niigg") || lowerName.Contains("n11gg") || lowerName.Contains("gga") || lowerName.Contains("gger"))
-            return false;
-        if (lowerName.Contains("porn") || lowerName.Contains("p0rn"))
-            return false;
-        if (lowerName.Contains("kike") || lowerName.Contains("goy"))
-            return false;
-        if (lowerName.Contains("bitch") || lowerName.Contains("b1tch"))
-            return false;        
-        if (lowerName.Contains("dick") || lowerName.Contains("d1ck"))
-            return false;
-        if (lowerName.Contains("fuck") || lowerName.Contains("f1ck"))
-            return false;
-        if (lowerName.Contains("tranny") || lowerName.Contains("fag") || lowerName.Contains("goblina") || lowerName.Contains("dyke") || lowerName.Contains("dick") || lowerName.Contains("cock") || lowerName.Contains("c0ck") || lowerName.Contains("d1ck") || lowerName.Contains("hitler") || lowerName.Contains("hitier"))
-            return false;
+
 
 
         // mod blocked && special char block
         if (await IsBadUsername(nameToCheck) || !IsAsciiUsername(nameToCheck))
             return false;
 
+        using (var filter = ServiceProvider.GetOrCreate<FilterService>(this))
+        {
+            if (filter.IsTextFiltered(lowerName))
+                return false;
+        }
 
         return true;
     }
@@ -504,8 +498,10 @@ public class UsersService : ServiceBase, IService
 
     public bool IsPasswordValid(string passwordToValidate)
     {
-        if (string.IsNullOrEmpty(passwordToValidate) || string.IsNullOrWhiteSpace(passwordToValidate)) return false;
-        if (passwordToValidate.Length < 3) return false;
+        if (string.IsNullOrEmpty(passwordToValidate) || string.IsNullOrWhiteSpace(passwordToValidate)) 
+            return false;
+        if (passwordToValidate.Length < 3) 
+            return false;
         return true;
     }
 
@@ -751,8 +747,7 @@ public class UsersService : ServiceBase, IService
             if (newStatus.Length > 255) throw new StatusTooLongException();
             if (newStatus.Length <= 3) throw new StatusTooLongException();
 
-            using var filter = ServiceProvider.GetOrCreate<FilterService>(this);
-            newStatus = filter.CleanText(newStatus);
+            newStatus = FilterService.CleanText(newStatus);
         }
 
         await InsertAsync("user_status", new
@@ -1299,18 +1294,18 @@ public class UsersService : ServiceBase, IService
                 inventory_privacy = InventoryPrivacy.AllUsers,
                 trade_privacy = GeneralPrivacy.All,
             });
-            // Balance
+            //// Balance
             await InsertAsync("user_economy", "user_id", new
             {
                 user_id = userId,
                 balance_tickets = 0,
-                balance_robux = 100,
+                balance_robux = 10,
             });
 
             // First transaction
             await InsertAsync("user_transaction", new
             {
-                amount = 100,
+                amount = 10,
                 type = PurchaseType.BuildersClubStipend,
                 currency_type = 1,
                 user_id_one = userId,

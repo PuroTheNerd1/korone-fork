@@ -109,13 +109,14 @@ export class Thumbnail3DHandler {
         this.scene.add(this.directionalLight);
         
         let mtlLoader = new THREE.MTLLoader();
+        // easy fix, just removed the cdn url, so now it will use the direct cdn url, not the hardcoded cdn.pekora.zip
         mtlLoader.load(thumbJson.mtl, (materials) => {
             // Set the textures to the textures in the JSON
             if (thumbJson.textures.length > 0) {
                 const texArr = thumbJson.textures;
                 for (const materialName in materials.materialsInfo) {
                     const info = materials.materialsInfo[materialName];
-                    
+
                     for (const key in info) {
                         if (key.startsWith('map_')) {
                             info[key] = (() => {
@@ -127,7 +128,7 @@ export class Thumbnail3DHandler {
                 }
             }
             materials.preload();
-            
+
             // Now load in the meshes
             let objLoader = new THREE.OBJLoader();
             objLoader.setMaterials(materials);

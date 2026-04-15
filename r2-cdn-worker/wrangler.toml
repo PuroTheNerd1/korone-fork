@@ -1,0 +1,11 @@
+name = "r2-cdn-worker"
+main = "index.js"
+compatibility_date = "2025-03-01"
+
+routes = [
+  { pattern = "cdn.pekora.zip/*", zone_name = "pekora.zip" }
+]
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "pekora-cdn"   

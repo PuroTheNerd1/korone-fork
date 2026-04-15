@@ -156,21 +156,9 @@ public class ThumbnailsControllerV1 : ControllerBase
     public async Task<RobloxCollection<ThumbnailEntry>> GetUserThumbnails3D(string userIds)
     {
         var parsed = userIds.Split(",").Select(long.Parse).Distinct().ToList();
-        if (parsed.Count is > 200 or < 0) throw new BadRequestException();
+        if (parsed.Count is > 200 or < 0) 
+            throw new BadRequestException();
         var result = (await services.thumbnails.GetUserThumbnails3D(parsed)).ToList();
-        _ = Task.WhenAll(result
-            .Where(v => v.imageUrl != null)
-            .Select(async v =>
-                await services.avatar.Update3DRenderModified(v.targetId,
-                    Path.GetFileNameWithoutExtension(v.imageUrl!).Replace("_thumbnail3d", "")
-                    ))
-        );
-        foreach (var v in parsed.Except(result.Select(e => e.targetId)).ToList())
-        {
-            _ = Task.Run(async () => {
-                await services.avatar.RedrawAvatar(v);
-            });
-        }
         return new()
         {
             data = result
@@ -225,8 +213,8 @@ public class ThumbnailsControllerV1 : ControllerBase
             requestId = thumbs.Find(v => v.targetId == c.targetId && v.type == type)?.requestId ?? string.Empty,
             targetId = c.targetId,
             state = "Completed",
-            imageUrl = Configuration.BaseUrl + c.imageUrl,
-            Url = Configuration.BaseUrl + c.imageUrl,
+            imageUrl = c.imageUrl,
+            Url = c.imageUrl,
             version = "1" 
         });
     }
@@ -259,7 +247,7 @@ public class ThumbnailsControllerV1 : ControllerBase
             data = result.Where(c => c.imageUrl != null).Select(c => new ThumbnailEntry
             {
                 targetId = c.targetId,
-                imageUrl = Configuration.BaseUrl + c.imageUrl,
+                imageUrl = c.imageUrl,
                 state = c.state,
                 version = c.version
             }).ToList()
@@ -277,7 +265,7 @@ public class ThumbnailsControllerV1 : ControllerBase
             data = result.Where(c => c.imageUrl != null).Select(c => new ThumbnailEntry
             {
                 targetId = c.targetId,
-                imageUrl = Configuration.BaseUrl + c.imageUrl,
+                imageUrl = c.imageUrl,
                 state = c.state,
                 version = c.version
             }).ToList()

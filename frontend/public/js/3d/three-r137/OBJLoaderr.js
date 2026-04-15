@@ -303,6 +303,9 @@
       if (hash.includes('mats-thumbnails.roblox.com')) {
         return hash;
       }
+      if (hash.includes('https://cdn.pekora.zip/')) {
+        return hash;
+      }
       if (hash.includes('www.pekora.zip')) {
         return hash;
       }

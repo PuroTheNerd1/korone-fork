@@ -212,6 +212,40 @@ public class AssetsService : ServiceBase, IService
 
         return;
     }
+    
+    public async Task<string> GetAssetDownloadUrlAsync(string key)
+    {
+        if (key.Contains('/', StringComparison.Ordinal))
+            throw new ArgumentException("GetAssetDownloadUrlAsync error");
+
+        var fullPath = Configuration.AssetDirectory + key;
+        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+        var r2Key = "assets/" + key;
+
+        if (File.Exists(fullPath + ".migrated")) return r2Service.GenerateSignedUrl(r2Key, TimeSpan.FromHours(1));
+
+        // is it in r2????
+        if (await r2Service.FileExistsAsync(r2Key))
+        {
+            try { await File.WriteAllBytesAsync(fullPath + ".migrated", Array.Empty<byte>()); } catch {}
+            return r2Service.GenerateSignedUrl(r2Key, TimeSpan.FromHours(1));
+        }
+        
+        // is it in local disk maybe??????????
+        if (File.Exists(fullPath))
+        {
+            using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 0, FileOptions.Asynchronous);
+            await r2Service.UploadFileAsync(r2Key, file);
+            try { await File.WriteAllBytesAsync(fullPath + ".migrated", Array.Empty<byte>()); } catch {}
+        }
+        else
+        {
+            // nigga wtf???
+            throw new FileNotFoundException("Asset not found locally or in R2: " + key);
+        }
+
+        return r2Service.GenerateSignedUrl(r2Key, TimeSpan.FromHours(1));
+    }
 
     public async Task<Stream> GetAssetContent(string key)
     {
@@ -220,24 +254,24 @@ public class AssetsService : ServiceBase, IService
             Metrics.SecurityMetrics.ReportBadCharacterFoundInAssetContentName(key, "/", "GetAssetContent");
             throw new ArgumentException("GetAssetContent error 1");
         }
+        
+        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+        var r2Key = "assets/" + key; 
+        
+        var r2Stream = await r2Service.GetFileAsync(r2Key);
+        if (r2Stream != null)
+            return r2Stream;
 
         var fullPath = Configuration.AssetDirectory + key;
-        for (var i = 0; i < 10; i++)
+        if (File.Exists(fullPath))
         {
-            try
-            {
-                var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, default,
-                    FileOptions.Asynchronous);
-                return file;
-            }
-            catch (Exception e) when (e is IOException)
-            {
-                Writer.Info(LogGroup.AssetDelivery, "GetAssetContent IO exception. Message = {0}\n{1}", e.Message, e.StackTrace);
-                if (e.Message.Contains("Could not find file"))
-                    throw;
-
-                await Task.Delay(TimeSpan.FromMilliseconds(100 * (i + 1)));
-            }
+            using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, default, FileOptions.Asynchronous);
+            var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            ms.Position = 0;
+            await r2Service.UploadFileAsync(r2Key, ms);
+            ms.Position = 0;
+            return ms;
         }
 
         throw new Exception("Maximum retry attempts reached for GetAssetContent(" + key + ")");
@@ -269,23 +303,23 @@ public class AssetsService : ServiceBase, IService
             hash += "." + extension;
         }
 
-        var outPath = directory + hash;
-        // We got our hash now. Check if the file already exists.
-        if (File.Exists(outPath))
-        {
-            // File already exists!
-            return plainHash;
-        }
-
-        // Insert the file
-        await using var file = File.Create(outPath);
+        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+        var prefix = r2Service.GetPrefixFromLocalDirectory(directory);
+        var r2Key = prefix + hash;
+        
         content.Seek(0, SeekOrigin.Begin);
-        await content.CopyToAsync(file);
+        var contentType = extension switch {
+            "png"  => "image/png",
+            "jpg"  => "image/jpeg",
+            "jpeg" => "image/jpeg",
+            _      => "application/octet-stream"
+        };
+        await r2Service.UploadFileAsync(r2Key, content, contentType);
         // Done
-        //await content.DisposeAsync();
+        
         return plainHash;
     }
-    public Task DeleteAssetContent(string key, string? directory = null)
+    public async Task DeleteAssetContent(string key, string? directory = null)
     {
         if (key.Contains('/', StringComparison.Ordinal))
         {
@@ -294,9 +328,14 @@ public class AssetsService : ServiceBase, IService
         }
 
         directory ??= Configuration.AssetDirectory;
+        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+        var prefix = r2Service.GetPrefixFromLocalDirectory(directory);
+        
+        await r2Service.DeleteFileAsync(prefix + Path.GetFileName(key));
 
+        // shikaniga shall remove this after dis shit is goood good 
         var fullPath = directory + Path.GetFileName(key);
-        while (true)
+        while (File.Exists(fullPath))
         {
             try
             {
@@ -315,8 +354,6 @@ public class AssetsService : ServiceBase, IService
                 throw;
             }
         }
-
-        return Task.CompletedTask;
     }
 
     public async Task InsertOrReplaceThumbnail(long assetId, long assetVersionId, string newThumbnailKey,
@@ -461,8 +498,10 @@ public class AssetsService : ServiceBase, IService
         var originalImage = await Image.LoadAsync<Rgba32>(image);
         var newImage = new Image<Rgba32>(originalImage.Width, originalImage.Height);
         newImage.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 1f));
+
         var memoryStream = new MemoryStream();
-        newImage.Save(memoryStream, new PngEncoder());
+        await newImage.SaveAsPngAsync(memoryStream);
+
         memoryStream.Seek(0, SeekOrigin.Begin);
         return memoryStream;
     }
@@ -476,6 +515,10 @@ public class AssetsService : ServiceBase, IService
 
         if (imageData.imageFormat != ImagerFormat.PNG && imageData.imageFormat != ImagerFormat.JPEG)
             return null;
+
+        if (content.CanSeek)
+            content.Seek(0, SeekOrigin.Begin);
+
 
         return imageData;
     }
@@ -2965,7 +3008,11 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 Stream data;
                 try
                 {
-                    data = await GetAssetContent(version.contentUrl);
+                    var rawStream = await GetAssetContent(version.contentUrl);
+                    data = new MemoryStream();
+                    await rawStream.CopyToAsync(data);
+                    data.Position = 0;
+                    // now safe to read Length, seek, etc.
                     info = await Imager.ReadAsync(data);
                 }
                 catch (Exception e)

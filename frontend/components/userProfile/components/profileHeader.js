@@ -375,7 +375,7 @@ const ProfileHeader = props => {
                   <RelationshipStatistics id='friends' label='Friends' value={store.friends?.length} userId={store.userId} />
                   <RelationshipStatistics id='followers' label='Followers' value={store.followersCount} userId={store.userId} />
                   <RelationshipStatistics id='followings' label='Following' value={store.followingsCount} userId={store.userId} />
-                  <RelationshipStatistics id='rap' label='RAP' value={store.userInfo.inventory_rap} userId={store.userId} />
+                  <RelationshipStatistics id='rap' label='RAP' value={store.userInfo.inventoryRap} userId={store.userId} />
                 </ul>
                 {/*
                   showButtons && <>

@@ -1,16 +1,17 @@
-using Roblox.Rendering;
-using Roblox.Website.Middleware;
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using Roblox;
+using Roblox.Rendering;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Website.Hubs;
+using Roblox.Website.Middleware;
 using System.Reflection;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Mvc.Formatters;
+using System.Text.Json.Serialization;
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
@@ -41,6 +42,11 @@ Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value!;
 Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https://www.", "");
 Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value!;
 Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value!;
+Roblox.Configuration.HmacSecret = configuration.GetSection("HmacSecret").Value!;
+Roblox.Configuration.R2AccountId = configuration.GetSection("CloudflareR2:AccountId").Value!;
+Roblox.Configuration.R2AccessKey = configuration.GetSection("CloudflareR2:AccessKey").Value!;
+Roblox.Configuration.R2SecretKey = configuration.GetSection("CloudflareR2:SecretKey").Value!;
+Roblox.Configuration.R2BucketName = configuration.GetSection("CloudflareR2:BucketName").Value!;
 // roblox oauth stuff
 Roblox.Configuration.RobloxClientId = configuration.GetSection("Roblox:ClientId").Value!;
 Roblox.Configuration.RobloxClientSecret = configuration.GetSection("Roblox:ClientSecret").Value!;
@@ -102,6 +108,12 @@ builder.Services.AddControllers(options =>
     o.JsonSerializerOptions.PropertyNamingPolicy = null;
 });
 
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = long.MaxValue;
+});
+
 builder.Services.AddSignalR();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -125,6 +137,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMvc(c =>
     c.Conventions.Add(new ApiExplorerGetsOnlyConvention())
 );
+
+builder.Services.AddSingleton<Roblox.Services.R2StorageService>();
+//builder.Services.AddHostedService<Roblox.Website.R2MigrationWorker>();
 
 var app = builder.Build();
 app.UseRouting();
@@ -197,7 +212,7 @@ app.UseStaticFiles(new StaticFileOptions
 #endif
 
 app.UseRobloxSessionMiddleware();
-app.UseMiddleware<ThumbnailMiddleware>(Roblox.Configuration.ThumbnailsDirectory);
+//app.UseMiddleware<ThumbnailMiddleware>(Roblox.Configuration.ThumbnailsDirectory);
 app.UseMiddleware<RobloxLoggingMiddleware>();
 app.UseRobloxPlayerCorsMiddleware(); // cors varies depending on authentication status, so it must be after session middleware
 
@@ -219,17 +234,22 @@ app.UseExceptionHandler("/error");
 
 RenderingHandler.Configure();
 SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value!);
-app.UseTimerMiddleware(); // Must always be last
 Roblox.Services.Signer.SignService.Setup();
-_ = Task.Run(async () =>
-{
-    using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
-    await assets.FixAssetImagesWithoutMetadata();
-});
-_ = Task.Run(AvatarService.StartTimerClear3D);
+app.UseTimerMiddleware(); // Must always be last
 app.MapControllers();
 app.MapRazorPages();
 app.UseWebSockets();
 app.UseRequestDecompression();
 app.MapHub<MessageRouterHub>("/v1/router/signalr");
 app.Run();
+
+
+//_ = Task.Run(async () =>
+//{
+//    using var assets = Roblox.Services.ServiceProvider.GetOrCreate<AssetsService>();
+//    await assets.FixAssetImagesWithoutMetadata();
+//});
+_ = Task.Run(async () =>
+{
+   AvatarService.StartTimerClear3D();
+});

@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Exceptions;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Formatters;
+
 namespace Roblox.Website.Controllers
 {
-
     [MVC.ApiController]
     [MVC.Route("/")]
-    public class FeatureFlagsRoblox: ControllerBase
+    public class FeatureFlagsRoblox : ControllerBase
     {
         [HttpPostBypass("Setting/Get/{type}")]
         [HttpPostBypass("Setting/QuietGet/{type}")]
@@ -45,6 +45,7 @@ namespace Roblox.Website.Controllers
             "AndroidApp",
             "iOSApp"
         };
+
         // For legacy clients
         private string GetTypeForApiKey(string type, string apiKey)
         {
@@ -55,7 +56,7 @@ namespace Roblox.Website.Controllers
                     break;
                 case "D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79":
                 case "08BF6621-8100-4484-B14C-87497E372160": //2017L Studio + Client
-                    if(type == "StudioAppSettings")
+                    if (type == "StudioAppSettings")
                         break;
                     type = "ClientAppSettings2017";
                     break;
@@ -71,6 +72,7 @@ namespace Roblox.Website.Controllers
             }
             return type;
         }
+
         private string GetFeatureFlags(string type, string? apiKey = null)
         {
             /*
@@ -82,8 +84,10 @@ namespace Roblox.Website.Controllers
                 type = GetTypeForApiKey(type, apiKey);
             else if (!applicationNames.Contains(type))
                 throw new BadRequestException(1, $"Invalid application name: {type}");
+
             if (type == "PCStudio221")
                 type = "PCDesktopClient2021";
+
             // temp
             if (type == "RCCServiceGDASTGWG72713")
                 type = "RCCService2021";

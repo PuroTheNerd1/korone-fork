@@ -51,24 +51,12 @@ public class UsersControllerV1 : ControllerBase
     public async Task<dynamic> GetUserByUsername(string username)
     {
         var result = (await services.users.MultiGetUsersByUsername(new[] { username })).ToList();
-        inventory = new ();
-        var offset = 0;
         var info = await services.users.GetUserById(result[0].id);
-        var isDeleted = info.IsDeleted();
-        if (!isDeleted)
-        {
-            while (true)
-            {
-                var results = (await services.inventory.GetCollectibleInventory(info.userId, null, "asc", 100, offset)).ToArray();
-                if (results.Length == 0) break;
-                offset += 100;
-                inventory.AddRange(results);
-            }
+        var canViewInventory = !info.IsDeleted() && await services.inventory.CanViewInventory(info.userId);
 
-            foreach (var item in inventory)
-            {
-                totalRap += item.recentAveragePrice;
-            }
+        if (canViewInventory)
+        {
+            totalRap = await services.inventory.GetInventoryRap(info.userId);
         }
         else
         {
@@ -80,10 +68,10 @@ public class UsersControllerV1 : ControllerBase
             id = info.userId,
             name = info.username,
             displayName = info.username,
-            info.description,
-            info.created,
-            isBanned = isDeleted,
-            isInventoryPublic = await services.inventory.CanViewInventory(info.userId, 0),
+            description = info.description,
+            created = info.created,
+            isBanned = info.IsDeleted(),
+            isInventoryPublic = canViewInventory,
             hasVerifiedBadge = info.isVerified,
             totalPlaceVisits = await services.games.GetTotalVisitsFromUser(info.userId),
             friendshipCount = await services.friends.CountFriends(info.userId),
@@ -105,24 +93,12 @@ public class UsersControllerV1 : ControllerBase
     [SwaggerResponse(404, "If the user is not found")]
     public async Task<dynamic> GetUserById(long userId)
     {
-        inventory = new ();
-        var offset = 0;
         var info = await services.users.GetUserById(userId);
-        var isDeleted = info.IsDeleted();
-        if (!isDeleted)
-        {
-            while (true)
-            {
-                var results = (await services.inventory.GetCollectibleInventory(info.userId, null, "asc", 100, offset)).ToArray();
-                if (results.Length == 0) break;
-                offset += 100;
-                inventory.AddRange(results);
-            }
+        var canViewInventory = !info.IsDeleted() && await services.inventory.CanViewInventory(info.userId);
 
-            foreach (var item in inventory)
-            {
-                totalRap += item.recentAveragePrice;
-            }
+        if (canViewInventory)
+        {
+            totalRap = await services.inventory.GetInventoryRap(info.userId);
         }
         else
         {
@@ -134,7 +110,7 @@ public class UsersControllerV1 : ControllerBase
         {
             info.description,
             info.created,
-            isBanned = isDeleted,
+            isBanned = info.IsDeleted(),
             hasVerifiedBadge = info.isVerified,
             id = info.userId,
             name = info.username,

@@ -473,23 +473,21 @@ public class GameServerService : ServiceBase
 
     public async Task ShutDownServerAsync(Guid serverId)
     {
-        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CloseGameServerV2:{serverId.ToString()}", TimeSpan.FromSeconds(2));
-        if (!serverCreationLock.IsAcquired)
-        {
-            // Silence.
-            return;
-        }
         try
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            await DeleteGameServer(serverId);
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120)))
+            var gameServer = await GetGameServer(serverId);
+            if (gameServer == null)
+                return;
+
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             {
                 await arbiterClient.KillGameServer(
                     ArbiterHttpClient.CreateKillGameServerRequest(serverId),
                     cts.Token);
             }
+            await DeleteGameServer(serverId);
 
             Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
 

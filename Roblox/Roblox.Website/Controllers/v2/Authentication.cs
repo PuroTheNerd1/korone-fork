@@ -132,10 +132,6 @@ public class AuthenticationControllerV2 : ControllerBase
     [HttpPost("logoutfromallsessionsandreauthenticate")]
     public async Task LogoutFromAllSessionsAndReAuthenticate()
     {
-        // We don't actually re authenticate (for security).
         await services.users.ExpireAllSessions(safeUserSession.userId);
-        // remove current session immediately
-        using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
-        sessCache.Remove(safeUserSession.sessionId);
     }
 }

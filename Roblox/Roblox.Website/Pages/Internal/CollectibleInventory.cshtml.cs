@@ -10,10 +10,13 @@ public class CollectibleInventory : RobloxPageModel
 {
     [BindProperty(SupportsGet = true)]
     public long userId { get; set; }
+    [BindProperty(SupportsGet = true)]
+    public int pageIndex { get; set; } = 0;
     public List<CollectibleItemEntry> inventory { get; set; }
     public string username { get; set; }
     public string? errorMessage { get; set; }
     public long totalRap { get; set; }
+    public int totalPages { get; set; }
 
     public async Task OnGet()
     {
@@ -54,10 +57,9 @@ public class CollectibleInventory : RobloxPageModel
             totalRap += item.recentAveragePrice;
         }
 
-        inventory.Sort((a, b) =>
-        {
-            return a.recentAveragePrice > b.recentAveragePrice ? -1 :
-                a.recentAveragePrice == b.recentAveragePrice ? 0 : 1;
-        });
+        const int pageSize = 24;
+        totalPages = (int)Math.Ceiling((double)inventory.Count / pageSize);
+        pageIndex = Math.Max(0, Math.Min(pageIndex, totalPages - 1));
+        inventory = inventory.Skip(pageIndex * pageSize).Take(pageSize).ToList();
     }
 }

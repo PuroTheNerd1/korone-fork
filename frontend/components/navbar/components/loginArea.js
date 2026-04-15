@@ -61,15 +61,11 @@ const LoginArea = props => {
           <p className={s.text}>
             <a className={s.link} onClick={(e) => {
               e.preventDefault();
-              if (getFlag('requireLoginThroughCookie', true)) {
-                if (getFlag('clientSideRenderingEnabled', false)) {
-                  Router.push('/login');
-                } else {
-                  window.location.href = '/login';
-                }
-                return;
+              if (getFlag('clientSideRenderingEnabled', false)) {
+                Router.push('/');
+              } else {
+                window.location.href = '/';
               }
-              loginModalStore.setOpen(!loginModalStore.open);
             }}>
               Login
             </a>
@@ -78,7 +74,7 @@ const LoginArea = props => {
         </div>
         <div className='col-6'>
           <p className={s.text}>
-            <a className={`${s.link} ${s.signupLink}`} href='/auth/application'>
+            <a className={`${s.link} ${s.signupLink}`} href='/'>
               Sign Up
             </a>
           </p>

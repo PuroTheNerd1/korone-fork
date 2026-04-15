@@ -19,6 +19,7 @@ namespace Roblox.Website.Controllers
             if (!isRCC)
                 throw new RobloxException(400, 0, "BadRequest");
             var ds = ServiceProvider.GetOrCreate<DataStoreService>();
+            placeId = await services.games.GetRootPlaceId(await services.games.GetUniverseId(placeId));
             if (value == null)
                 value = int.Parse(Request.Form["value"][0]!);
             var result = await ds.Get(placeId, key, type, scope, target);
@@ -52,7 +53,7 @@ namespace Roblox.Website.Controllers
                 // Check if the type is valid
                 long.Parse(value);
             }
-
+            placeId = await services.games.GetRootPlaceId(await services.games.GetUniverseId(placeId));
             await ServiceProvider.GetOrCreate<DataStoreService>()
                 .Set(placeId, key, type, scope, target, valueLength, value);
             return new
@@ -72,6 +73,7 @@ namespace Roblox.Website.Controllers
             // persistence/getSortedValues?placeId=0&type=sorted&scope=global&key=Level%5FHighscores20&pageSize=10&ascending=False"
             // persistence/set?placeId=124921244&key=BF2%5Fds%5Ftest&&type=standard&scope=global&target=BF2%5Fds%5Fkey%5Ftmp&valueLength=31
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
+            placeId = await services.games.GetRootPlaceId(await services.games.GetUniverseId(placeId));
             if (!isRCC)
                 throw new RobloxException(403, 0, "BadRequest");
             if (pageSize > 100)
@@ -91,7 +93,7 @@ namespace Roblox.Website.Controllers
             {
                 data = new
                 {
-                    Entries = result.Select(c => new GetKeyEntrySorted
+                    Entries = result.Select(c => new KeyEntry
                     {
                         Target = c.name,
                         Value = c.value,
@@ -109,11 +111,12 @@ namespace Roblox.Website.Controllers
                 throw new RobloxException(403, 0, "Unauthorized");
             
             using var ds = ServiceProvider.GetOrCreate<DataStoreService>();
+            placeId = await services.games.GetRootPlaceId(await services.games.GetUniverseId(placeId));
 
             var result = await ds.MultiGetDataStores(placeId, type, scope, request.qkeys);
             return new
             {
-                data = result.Select(c => new GetKeyEntry
+                data = result.Select(c => new KeyEntry
                 {
                     Key = c.key,
                     Scope = c.scope,
@@ -121,54 +124,6 @@ namespace Roblox.Website.Controllers
                     Value = type != "standard" ? Convert.ToInt64(c.value) : c.value!
                 })
             };
-
-            //dynamic result = new List<GetKeyEntry>();
-            //bool isEmpty = false;
-            //string qKeyscope;
-            //string qKeyTarget;
-            //string qKeyKey;
-            //while (true)
-            //{
-            //    qKeyscope = Request.Form[$"qkeys[{countRequest}].scope"]!;
-            //    qKeyTarget = Request.Form[$"qkeys[{countRequest}].target"]!;
-            //    qKeyKey = Request.Form[$"qkeys[{countRequest}].key"]!;
-
-            //    if (qKeyscope == null || qKeyTarget == null || qKeyKey == null)
-            //        break;
-
-            //    var entry = await ds.GetAllEntries(placeId, qKeyKey, scope, qKeyTarget);
-            //    if (entry == null)
-            //    {
-            //        countRequest++;
-            //        continue;
-            //    }
-            //    foreach (DataStoreEntry item in entry)
-            //    {
-            //        //should never be null
-            //        if (String.IsNullOrEmpty(item.value))
-            //        {
-            //            isEmpty = true;
-            //            break;
-            //        }
-            //        result.Add(new GetKeyEntry()
-            //        {
-            //            Key = qKeyKey,
-            //            Scope = qKeyscope,
-            //            Target = qKeyTarget,
-            //            Value = item.value
-            //        });
-            //    }
-            //    countRequest++;
-            //}
-            //if (isEmpty)
-            //    result = new List<string>();
-            //GetKeysRequest
-            //            var finalData = new { data = result};
-            //string jsonString = JsonConvert.SerializeObject(finalData);
-            //return new
-            //{
-
-            //}
         }
     }
 }

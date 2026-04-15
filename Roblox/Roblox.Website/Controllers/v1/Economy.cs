@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Users;
@@ -10,6 +8,9 @@ using Roblox.Models.Groups;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
+using StackExchange.Redis;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
@@ -149,8 +150,11 @@ public class EconomyControllerV1 : ControllerBase
         var ownedCopies = (await services.users.GetUserAssets(safeUserSession.userId, assetId)).ToList();
         if (ownedCopies.Count != 0)
             throw new BadRequestException(0, "Asset is already owned");
-        if (await services.users.HasUserPurchasedAssetBefore(safeUserSession.userId, assetId))
+        // If supra redrops for the 1 millionth time, we can use a one day lock to prevent hoarding
+        var isUserHoardLocked = await Roblox.Services.Cache.distributed.StringGetAsync($"HoardLockV1:{safeUserSession.userId}:{assetId}") != null;
+        if (await services.users.HasUserPurchasedAssetBefore(safeUserSession.userId, assetId) && isUserHoardLocked)
             throw new BadRequestException(0, "Asset has already been purchased");
+
         // Get the item data
         var details = await services.assets.GetAssetCatalogInfo(assetId);
         // Confirm it is for sale
@@ -210,7 +214,9 @@ public class EconomyControllerV1 : ControllerBase
                 throw new BadRequestException(0, "Item is no longer for sale");
             }
         }
-        
+        // Set the lock here
+        await Services.Cache.distributed.StringSetAsync($"HoardLockV1:{safeUserSession.userId}:{assetId}", "{}", TimeSpan.FromDays(1));
+
         // Everything seems ok now, so purchase the item
         await services.users.PurchaseNormalItem(safeUserSession.userId, assetId, request.expectedCurrency);
     }

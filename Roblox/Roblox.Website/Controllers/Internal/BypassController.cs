@@ -1,52 +1,27 @@
-using System.ComponentModel.DataAnnotations;
-using System.Dynamic;
-using System.Security.Cryptography;
-using System.Text;
-using System.Web;
-using System.Xml.Linq;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Net.Http.Headers;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Roblox.Dto.AbuseReport;
 using Roblox.Dto.Games;
-using Roblox.Dto.Persistence;
-using Roblox.Dto.Users;
-using MVC = Microsoft.AspNetCore.Mvc;
-using Roblox.Libraries.Assets;
-using Roblox.Libraries.FastFlag;
-using Roblox.Libraries.RobloxApi;
-using Roblox.Logging;
-using Roblox.Services.Exceptions;
-using BadRequestException = Roblox.Exceptions.BadRequestException;
+using Roblox.Exceptions;
+using Roblox.Models;
+using Roblox.Models.AbuseReport;
 using Roblox.Models.Assets;
+using Roblox.Models.Games;
 using Roblox.Models.GameServer;
 using Roblox.Models.Users;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
-using Roblox.Website.Middleware;
 using Roblox.Website.WebsiteModels.Asset;
-using Roblox.Website.WebsiteModels.Games;
-using HttpGet = Roblox.Website.Controllers.HttpGetBypassAttribute;
-using JsonSerializer = System.Text.Json.JsonSerializer;
-using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
+using System.ComponentModel.DataAnnotations;
+using System.Xml.Linq;
+using BadRequestException = Roblox.Exceptions.BadRequestException;
+using ForbiddenException = Roblox.Exceptions.ForbiddenException;
+using MVC = Microsoft.AspNetCore.Mvc;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
-using Microsoft.AspNetCore.Mvc;
-using Roblox.Website.WebsiteModels.Authentication;
-using System.Text.RegularExpressions;
-using InfluxDB.Client.Core.Exceptions;
-using Roblox.Exceptions;
-using Roblox.Website.Pages;
-using System.IO.Compression;
-using Roblox.Models;
-using Roblox.Dto.Assets;
-using Roblox.Models.AbuseReport;
-using Roblox.Dto.AbuseReport;
-using Roblox.Models.Games;
-using System.Diagnostics.CodeAnalysis;
-using ForbiddenException = Roblox.Exceptions.ForbiddenException;
-using System.IO;
 
 namespace Roblox.Website.Controllers
 {
@@ -60,15 +35,16 @@ namespace Roblox.Website.Controllers
             throw new RobloxException(RobloxException.BadRequest, 0, "BadRequest");
         }
 
-
-
         [HttpGetBypass("Game/GamePass/GamePassHandler.ashx")]
-        public async Task<string> GamePassHandler(string Action, long UserID, long PassID)
+        public async Task<string> GamePassHandler(string action, long userId, long passId)
         {
-            if (Action == "HasPass")
+            var assetInfo = await services.assets.GetAssetCatalogInfo(passId);
+            if (assetInfo.assetType != Type.GamePass)
+                throw new BadRequestException();
+            if (action == "HasPass")
             {
-                var has = await services.users.GetUserAssets(UserID, PassID);
-                return has.Any() ? "True" : "False";
+                var ownsPass = await services.inventory.IsOwned(userId, passId);
+                return ownsPass ? "True" : "False";
             }
 
             throw new NotImplementedException();
@@ -84,6 +60,7 @@ namespace Roblox.Website.Controllers
                 bool isInGroup = false;
                 try
                 {
+                    // 1200769 is the roblox admin group gc
                     if (groupid == 1200769 && await StaffFilter.IsStaff(playerid ?? 0))
                         isInGroup = true;
                     var group = await services.groups.GetUserRoleInGroup((long)groupid, (long?)playerid ?? (long)0);
@@ -244,9 +221,9 @@ namespace Roblox.Website.Controllers
         {
             // make sure user is logged in
             var userId = safeUserSession.userId;
-            if (assetId < 1) {
+            if (assetId < 1) 
                 throw new BadRequestException(0, $"Asset {assetId} does not exist.");
-            }
+            
             return new
             {
                 moderationStatus = await services.assets.GetAssetModerationStatus(assetId)
@@ -283,51 +260,6 @@ namespace Roblox.Website.Controllers
             return Redirect($"pekora-player{bootstrapperArgs}");
         }
 
-        [HttpGetBypass("getrichpresence")]
-        public async Task<dynamic> GetRichPresenceInfo(long userId, long placeId, Guid jobId)
-        {
-            string username = "";
-            int playerCount = 0;
-            bool IsFurry = false;
-            long fluffyHat = 18306;
-            int[] furryUsers = { 1049 };
-            try
-            {
-                if (userId != 0)
-                {
-                    var currentPlayerCount = await services.gameServer.GetGameServerPlayers(jobId);
-                    playerCount = currentPlayerCount.Count();
-                }
-            }
-            catch (Exception)
-            {
-                playerCount = 0;
-            }
-            if (userSession != null)
-            {
-                username = userSession.username;
-            }
-            // check if the user owns fluffy ha
-            var owned = await services.users.GetUserAssets(userId, fluffyHat);
-            if (owned.Any() || Array.Exists(furryUsers, id => id == userId))
-                IsFurry = true;
-            long maxplayers = await services.games.GetMaxPlayerCount(placeId);
-            var placeInfo = await services.assets.GetAssetCatalogInfo(placeId);
-            long year = await services.games.GetYear(placeId);
-
-            return new
-            {
-                Creator = placeInfo.creatorName,
-                Name = placeInfo.name,
-                Username = username ?? "",
-                Year = year,
-                IsFurry,
-                MaxPlayers = maxplayers,
-                PartyId = Guid.NewGuid().ToString(),
-                CurrentPlayers = playerCount,
-            };
-
-        }
         [HttpGetBypass("My/Places.aspx")]
         public ActionResult<dynamic?> MyPlaces()
         {
@@ -359,7 +291,7 @@ namespace Roblox.Website.Controllers
         {
             //do this for anti reporting shit
             if(userSession == null)
-                return Redirect("/auth/home");
+                return Redirect("/");
 
             return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
         }
@@ -692,11 +624,6 @@ namespace Roblox.Website.Controllers
                 },
                 universeAvatarAssetOverrides = new List<object>(),
             };
-        }
-        [HttpGetBypass("hor")]
-        public async Task<IActionResult> HallOfRetards()
-        {
-            return Content(await System.IO.File.ReadAllTextAsync("hor.txt"), "text/plan");
         }
 
         //this is for the newer years that dont have a custom monitoring script
@@ -1056,67 +983,58 @@ namespace Roblox.Website.Controllers
             return new { data = jsonString };
         }
 
-        private static int pendingAssetUploads { get; set; } = 0;
-        private static readonly Mutex pendingAssetUploadsMux = new();
 
-        [HttpPostBypass("ide/publish/uploadexistinganimation")]
+
         [HttpPostBypass("ide/publish/UploadFromCloudEdit")]
-        [HttpPostBypass("Data/Upload.ashx")]
-        public async Task<dynamic> UploadPlaceFromStudio(long? assetId = null)
+        public async Task<dynamic> UploadFromCloudEdit()
         {
             FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
-            // if assetId is 0 try getting it from the headers
-            if (assetId == null && currentPlaceId != 0)
-                assetId = currentPlaceId;
+            if (!isRCC)
+                throw new ForbiddenException();
+            var server = await services.gameServer.GetGameServer(Guid.Parse(currentGameId));
+            // Paranoia check
+            if (server.assetId != currentPlaceId)
+                throw new BadRequestException();
 
-            var info = await services.assets.GetAssetCatalogInfo(assetId!.Value);
-
-            // Should be secure enough
-            bool isUserAllowedToUpload = (userSession is not null && await services.assets.CanUserModifyItem(assetId!.Value, userSession.userId));
-            if (!isUserAllowedToUpload && !isRCC)
-                throw new ForbiddenException(1, "Not allowed to upload");
-
-            if (info.assetType != Type.Place && info.assetType != Type.Animation && info.assetType != Type.Model)
-                throw new BadRequestException(0, "This asset type is not supported");
-
-            lock (pendingAssetUploadsMux)
+            var assetInfo = await services.assets.GetAssetCatalogInfo(currentPlaceId);
+            using (var assetStream = await GetRequestBodyAsMemoryStream())
             {
-                if (pendingAssetUploads >= 2)
-                    throw new RobloxException(429, 0, "TooManyRequests");
-                pendingAssetUploads++;
-            }
-            try
-            {
-                using var assetStream = await GetRequestBodyAsMemoryStream();
-
                 assetStream.Position = 0;
-                using var validationStream = new MemoryStream();
-                await assetStream.CopyToAsync(validationStream);
-                validationStream.Position = 0;
-
-                if (!await services.assets.ValidateAssetFile(validationStream, info.assetType))
-                    throw new RobloxException(400, 0, "Invalid asset file");
-
-                assetStream.Position = 0;
-
-                await services.assets.CreateAssetVersion(assetId!.Value, info.creatorTargetId, assetStream);
-
+                await services.assets.CreateAssetVersion(assetInfo.id, assetInfo.creatorTargetId, assetStream);
             }
-            finally
-            {
-                lock (pendingAssetUploadsMux)
-                {
-                    pendingAssetUploads--;
-                }
 
-            }
-            // hacky fix for updating models/animations so it returns the proper id
-            if ((info.assetType == Type.Animation || info.assetType == Type.Model) && assetId != null)
-                return assetId;
             return new
             {
                 success = true,
             };
+        }
+        [HttpPostBypass("ide/publish/uploadexistinganimation")]
+        [HttpPostBypass("Data/Upload.ashx")]
+        public async Task<long> UploadPlaceFromStudio(long assetId)
+        {
+            FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
+            // Should be secure enough
+            if (!await services.assets.CanUserModifyItem(assetId, safeUserSession.userId))
+                throw new ForbiddenException(1, "Not allowed to upload");
+
+            var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
+
+            if (assetInfo.assetType != Type.Place && assetInfo.assetType != Type.Animation && assetInfo.assetType != Type.Model)
+                throw new BadRequestException(0, "This asset type is not supported");
+
+            using (var assetStream = await GetRequestBodyAsMemoryStream())
+            using (var validationStream = new MemoryStream())
+            {
+                assetStream.Position = 0;
+                await assetStream.CopyToAsync(validationStream);
+                validationStream.Position = 0;
+
+                if (!await services.assets.ValidateAssetFile(validationStream, assetInfo.assetType))
+                    throw new BadRequestException(0, "Invalid asset file");
+                await services.assets.CreateAssetVersion(assetId, assetInfo.creatorTargetId, assetStream);
+            }
+
+            return assetId;
         }
 
         [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
@@ -1140,12 +1058,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/user/{userId:long}/is-admin-developer-console-enabled")]
         public async Task<dynamic> NewCanManage(long userId)
         {
-            long placeId = long.Parse(Request.Headers["roblox-place-id"].ToString());
-            bool canManagePlace = await services.assets.CanUserModifyItem(placeId, userId);
-            bool isOwner =  StaffFilter.IsOwner(userId);
+            bool canManagePlace = await services.assets.CanUserModifyItem(currentPlaceId, userId);
             return new
             {
-                isAdminDeveloperConsoleEnabled = (canManagePlace || isOwner)
+                isAdminDeveloperConsoleEnabled = (canManagePlace || StaffFilter.IsOwner(userId))
             };
         }
 
@@ -1241,7 +1157,7 @@ namespace Roblox.Website.Controllers
             {
                 Id = userInfo.userId,
                 Username = username,
-                AvatarUri = Configuration.BaseUrl + result?.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png",
+                AvatarUri = result?.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png",
                 AvatarFinal = true,
                 IsOnline = onlineStatus.userPresenceType == PresenceType.Online,
             };
@@ -1275,15 +1191,13 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("game/load-place-info")]
         public async Task<dynamic> LoadPlaceInfo()
         {
-            var placeId = Request.Headers["roblox-place-id"];
-            long.TryParse(placeId, out long assetId);
-            var details = await services.assets.GetAssetCatalogInfo(assetId);
+            var details = await services.assets.GetAssetCatalogInfo(currentPlaceId);
             return new
             {
                 CreatorId =  details.creatorTargetId,
                 CreatorType = "User",
                 PlaceVersion = details.id,
-                GameId = assetId,
+                GameId = currentPlaceId,
                 IsRobloxPlace = details.creatorTargetId == 1
             };
         }
@@ -1315,23 +1229,8 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            try
-            {
-                // Check if the game server exists
-                var gameServer = await services.gameServer.GetGameServer(gameId);
-                if (gameServer == null)
-                {
-                    return "Game server not found";
-                }
-                await services.gameServer.ShutDownServerAsync(gameServer.id);
-                return "OK!";
-            }
-            catch (Exception)
-            {
-                // lets just delete the gameserver if we couldnt close the gameserver
-                await services.gameServer.DeleteGameServer(gameId);
-                return "Catch an error";
-            }
+            await services.gameServer.ShutDownServerAsync(gameId);
+            return "OK";
         }
         
         [HttpPostBypass("v2/CreateOrUpdate")]
@@ -1358,9 +1257,8 @@ namespace Roblox.Website.Controllers
         public async Task RefreshGameInstance(Guid gameId, long clientCount, Decimal gameTime)
         {
             if (!isRCC)
-                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            var server = await services.gameServer.GetGameServer(gameId);
-            if (clientCount == 0 && gameTime > 50 && server != null)
+                throw new UnauthorizedException();
+            if (clientCount == 0 && gameTime > 50)
             {
                 await services.gameServer.ShutDownServerAsync(gameId);
                 return;

@@ -3,248 +3,159 @@ using System.Text;
 
 namespace Roblox.Services;
 
-
 public class FilterService : ServiceBase, IService
 {
-    private static readonly string[] filteredWords =
+    private static readonly string[] baseFilteredWords =
     {
-        "anal",
-        "anally",
-        "anus",
-        "ballsac",
-        "ballsack",
-        "beastiality",
-        "beastility",
-        "bestiality",
-        "blowjob",
-        "blowjobs",
-        "boner",
-        "bitch",
-        "boob",
-        "boobies",
-        "boobs",
-        "breast",
-        "breasts",
-        "buttfuck",
-        "buttfucker",
-        "cock",
-        "cockride",
-        "cocks",
-        "cocksuck",
-        "cocksucked",
-        "cocksucker",
-        "cocksucking",
-        "cocksucks",
-        "condom",
-        "condoms",
-        "condo",
-        "cum",
-        "cummer ",
-        "cumming",
-        "cums",
-        "cumshot",
-        "cunilingus",
-        "cunillingus",
-        "cunnilingus",
-        "dick",
-        "dicks",
-        "dildo",
-        "dildos",
-        "dildos",
-        "digga",
-        "ejaculate ",
-        "ejaculated ",
-        "ejaculates",
-        "ejaculating",
-        "ejaculatings",
-        "ejaculation",
-        "faget",
-        "fagg",
-        "fag",
-        "fagget",
-        "fagging",
-        "faggit",
-        "faggot",
-        "faggots",
-        "faggs",
-        "fagit",
-        "fagot",
-        "fagots",
-        "fingerfuck",
-        "fingerfucked",
-        "fingerfucker",
-        "fingerfuckers",
-        "fingerfucking",
-        "fingerfucks",
-        "fistfuck",
-        "fistfucked",
-        "fistfucker",
-        "fistfuckers",
-        "fistfucking",
-        "fistfuckings",
-        "fistfucks",
-        "gangbang",
-        "gangbanged",
-        "gangbangs",
-        "gangbangs",
-        "gaysex",
-        "hardcoresex",
-        "hitler",
-        "horniest",
-        "horny",
-        "hotsex",
-        "jackingoff",
-        "jackoff",
-        "jackxoff",
-        "jerkxoff",
-        "kidsinasanbox",
-        "kkk",
-        "masterbait",
-        "masterbate",
-        "masturbate",
-        "molest",
-        "mycock",
-        "nazi",
-        "nazis",
-        "niger",
-        "nigger",
-        "niigger",
-        "niggers",
-        "niiggers",
-        "ngga",
-        "negger",
-        "neckhurt",
-        "nigga",
-        "n0gga",
-        "nhigga",
-        "n8ggas",
-        "niigga",
-        "niga",
-        "ni$$a",
-        "ni$$as",
-        "nude",
-        "nudism",
-        "nudist",
-        "orgasim",
-        "orgasims",
-        "orgasm",
-        "orgasms",
-        "pern",
-        "pecker",
-        "pedo",
-        "pedobear",
-        "penis",
-        "phonesex",
-        "porn",
-        "pron",
-        "porno",
-        "pornography",
-        "goon",
-        "pornos",
-        "pren",
-        "prostitute",
-        "paygorn",
-        "raip",
-        "raiping",
-        "rape",
-        "raped",
-        "raper",
-        "raping",
-        "rapist",
-        "schlong",
-        "sex",
-        "sexx",
-        "sexxx",
-        "sexxy",
-        "sexytiem",
-        "sexytime",
-        "slut",
-        "sluts ",
-        "sperm",
-        "strip",
-        "stripper",
-        "stripperpole",
-        "strippers",
-        "swastika",
-        "thong",
-        "titties",
-        "titty",
-        "urcock",
-        "vaggina",
-        "vagina",
-        "vegina",
-        "vibrator",
-        "wanker",
-        "whore",
-        "whorehouse",
-        "yourcock",
-        "femb",
-        "fembx",
-        "jerkingoff",
-        "jerkoff",
-        "jackoff",
-        "jackingoff",
-        "kys",
-        "killyourself",
-        "killurself",
-        "retard"
-     };
-    private static readonly HashSet<string> _filteredWordsSet = new HashSet<string>(filteredWords);
-    public string FilterText(string input)
+        "anal", "anally", "anus", "ballsac", "pussy", "ballsack", "beastiality",
+        "beastility", "bestiality", "blowjob", "blowjobs", "boner", "bitch",
+        "boob", "boobies", "boobs", "breast", "breasts", "buttfuck",
+        "buttfucker", "cock", "cockride", "cocks", "cocksuck", "cocksucked",
+        "cocksucker", "cocksucking", "cocksucks", "condom", "condoms", "condo",
+        "cum", "cummer", "cumming", "cums", "cumshot", "cunilingus", "cunillingus",
+        "cunnilingus", "dick", "dicks", "dildo", "dildos", "digga", "ejaculate",
+        "ejaculated", "ejaculates", "ejaculating", "ejaculatings", "ejaculation",
+        "faget", "fagg", "fag", "fagget", "fagging", "faggit", "faggot", "fagot",
+        "faggots", "faggs", "fagit", "fagots", "fingerfuck", "fingerfucked",
+        "fingerfucker", "fingerfuckers", "fingerfucking", "fingerfucks", "fistfuck",
+        "fistfucked", "fistfucker", "fistfuckers", "fistfucking", "fistfuckings",
+        "fistfucks", "gangbang", "gangbanged", "gangbangs", "gaysex", "hardcoresex",
+        "hitler", "horniest", "horny", "hotsex", "jackingoff", "jackoff", "jackxoff",
+        "jerkxoff", "kidsinasanbox", "kkk", "masterbait", "masterbate", "masturbate",
+        "molest", "mycock", "nazi", "nazis", "niger", "nigger", "niigger", "niggers",
+        "niiggers", "ngga", "negger", "neckhurt", "nigga", "n0gga", "nhigga", "n8ggas",
+        "niigba", "niga", "nude", "nudism", "nudist", "orgasim", "orgasims", "orgasm",
+        "orgasms", "pern", "pecker", "pedo", "pedobear", "penis", "phonesex", "porn",
+        "pron", "porno", "pornography", "goon", "pornos", "pren", "prostitute",
+        "paygorn", "raip", "raiping", "rape", "raped", "raper", "raping", "rapist",
+        "schlong", "sex", "sexx", "sexxx", "sexxy", "sexytiem", "sexytime", "slut",
+        "sluts", "sperm", "strip", "stripper", "stripperpole", "strippers", "swastika",
+        "thong", "titties", "titty", "urcock", "vaggina", "vagina", "vegina",
+        "vibrator", "wanker", "whore", "whorehouse", "yourcock", "femb", "fembx",
+        "jerkingoff", "jerkoff", "kys", "killyourself", "killurself", "retard", "nigg"
+    };
+
+    private static readonly HashSet<string> canonicalFilteredWords;
+
+    static FilterService()
     {
-        /* Stop the fucking annoying ฏ text spamming*/
-        input = CleanText(input);
-        if (string.IsNullOrEmpty(input))
+        canonicalFilteredWords = new HashSet<string>();
+        foreach (var word in baseFilteredWords)
         {
-            return input;
+            string canonical = GetCanonicalText(word, true);
+            if (!string.IsNullOrEmpty(canonical)) canonicalFilteredWords.Add(canonical);
+        }
+    }
+
+    public bool IsTextFiltered(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return false;
+
+        var words = input.Split(new[] { ' ', '.', ',', '!', '?', '_', '-', '/' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var word in words)
+        {
+            string canonicalWord = GetCanonicalText(word, true);
+            if (canonicalFilteredWords.Contains(canonicalWord)) return true;
         }
 
-        string cleanedInput = string.Join("", input.ToCharArray()
-            .Where(c => !char.IsWhiteSpace(c))
-            .Select(char.ToLower)
-            .Select(c =>
+        string condensedInput = GetCanonicalText(input, true);
+        foreach (var badWord in canonicalFilteredWords)
+        {
+            if (badWord.Length > 3 && condensedInput.Contains(badWord))
             {
-            /* This will prevent words like n!igga, n!gg@ etc */
-            switch (c)
-            {
-                case '#': return '\0';
-                case '.': return '\0';
-                case '$': return 's';
-                case '@': return 'a';
-                case '!': return 'i';
-                case '0': return 'o';
-                case '*': return '\0';
-                case 'я': return 'r';
-                default: return c;
+                return true;
             }
-            })
-            .Where(c => c != '\0')
-            .ToArray());
+        }
 
-        if (_filteredWordsSet.Any(word => cleanedInput.Contains(word)))
+        return false;
+    }
+
+    public string FilterText(string input)
+    {
+        if (IsTextFiltered(input))
         {
             return new string('#', input.Length);
         }
-        return input;
+
+        return CleanText(input);
     }
-    public string CleanText(string input)
+
+    private static string GetCanonicalText(string input, bool collapseDuplicates)
     {
-        StringBuilder sb = new StringBuilder();
-        foreach (char c in input.Normalize(NormalizationForm.FormC))
+        if (string.IsNullOrEmpty(input)) return "";
+
+        string normalized = input.Normalize(NormalizationForm.FormKC).ToLowerInvariant();
+        StringBuilder sb = new StringBuilder(normalized.Length);
+        char lastChar = '\0';
+
+        foreach (char c in normalized)
         {
-            if (char.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-                sb.Append(c);
+            if (char.IsWhiteSpace(c) || char.IsPunctuation(c) || char.IsSymbol(c) || char.IsSeparator(c))
+            {
+                continue;
+            }
+
+            char mappedChar = c switch
+            {
+                '$' or '5' => 's',
+                '@' or '4' => 'a',
+                '!' or '1' or '|' => 'i',
+                '0' => 'o',
+                '3' => 'e',
+                '7' => 't',
+                '8' => 'b',
+                'v' => 'u',
+                _ => c
+            };
+
+            if (collapseDuplicates)
+            {
+                if (mappedChar != lastChar)
+                {
+                    sb.Append(mappedChar);
+                    lastChar = mappedChar;
+                }
+            }
+            else
+            {
+                sb.Append(mappedChar);
+            }
         }
+
         return sb.ToString();
     }
 
-    public bool IsReusable()
+    public static string CleanText(string input)
     {
-        return true;
+        if (string.IsNullOrEmpty(input)) return input;
+
+        string normalized = input.Normalize(NormalizationForm.FormKC);
+        StringBuilder sb = new StringBuilder(normalized.Length);
+
+        foreach (char c in normalized)
+        {
+            if (char.IsSurrogate(c))
+            {
+                sb.Append(c);
+                continue;
+            }
+
+            var category = char.GetUnicodeCategory(c);
+
+            if (category == UnicodeCategory.NonSpacingMark ||
+                category == UnicodeCategory.Format ||
+                category == UnicodeCategory.Control ||
+                category == UnicodeCategory.PrivateUse)
+            {
+                continue;
+            }
+
+            sb.Append(c);
+        }
+
+        return sb.ToString();
     }
 
-    public bool IsThreadSafe()
-    {
-        return true;
-    }
+    public bool IsReusable() => true;
+    public bool IsThreadSafe() => true;
 }

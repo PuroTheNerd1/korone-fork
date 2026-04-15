@@ -41,7 +41,7 @@ public class RbxThumbnails : ControllerBase
                 break;
             case ThumbnailType.PlaceIcon:
                 result = (await services.thumbnails.GetPlaceIcons(new[] { id })).ToList();
-                return new RedirectResult((Configuration.BaseUrl + result.FirstOrDefault()?.imageUrl) ?? "/img/placeholder/icon_one.png", false);
+                return new RedirectResult(result.FirstOrDefault()?.imageUrl ?? "/img/placeholder/icon_one.png", false);
         }
 
         var imageUrl = result.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png";
@@ -104,7 +104,7 @@ public class RbxThumbnails : ControllerBase
         var result = (await services.thumbnails.GetUserThumbnails(new[] {userId})).ToList();
         return new
         {
-            Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
+            Url = result[0].imageUrl,
             Final = true,
             SubstitutionType = 0
         };
@@ -123,7 +123,7 @@ public class RbxThumbnails : ControllerBase
 
         return new
         {
-            Url = imageUrl != null ? $"{Configuration.BaseUrl}{imageUrl}" : null,
+            Url = imageUrl,
             Final = true,
             SubstitutionType = 0
         };
@@ -136,7 +136,7 @@ public class RbxThumbnails : ControllerBase
         return new
         {
             Final = true,
-            Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
+            Url = result[0].imageUrl,
         };
     }
 
@@ -146,7 +146,7 @@ public class RbxThumbnails : ControllerBase
         var result = (await services.thumbnails.GetAssetThumbnails(new[] {assetId})).ToList();
         return new
         {
-            Url = $"{Configuration.BaseUrl}{result[0].imageUrl}",
+            Url = result[0].imageUrl,
             Final = true,
             SubstitutionType = 0
         };
@@ -175,7 +175,7 @@ public class RbxThumbnails : ControllerBase
             new ThumbnailEntry
             {
                 targetId = thumbnail.targetId,
-                imageUrl = Configuration.BaseUrl + thumbnail.imageUrl,
+                imageUrl = thumbnail.imageUrl,
                 state = ThumbnailState.Completed,
             }).ToList();
         return new()
@@ -189,13 +189,7 @@ public class RbxThumbnails : ControllerBase
         var parsed = userIds.Split(",").Select(long.Parse).Distinct().ToList();
         if (parsed.Count is > 200 or < 0) throw new BadRequestException();
         var result = (await services.thumbnails.GetUserHeadshots(parsed)).ToList();
-
-        foreach (var item in result)
-        {
-            if (item.imageUrl is null) continue;
-
-            item.imageUrl = Configuration.BaseUrl + item.imageUrl;
-        }
+        
         var result2 = result.ToList();
         return new()
         {
@@ -222,7 +216,7 @@ public class RbxThumbnails : ControllerBase
                     errorMessage = string.Empty,
                     targetId = c.targetId,
                     state = c.state,
-                    imageUrl = Configuration.BaseUrl + c.imageUrl,
+                    imageUrl = c.imageUrl,
                     version = c.version
                 });
             }

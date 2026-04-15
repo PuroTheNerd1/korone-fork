@@ -30,22 +30,24 @@ public class AvatarControllerV1 : ControllerBase, IService
         if (userSession == null)
             return;
         var userId = userSession.userId;
+        var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         if (!forceRedraw)
         {
-            using (var cache = ServiceProvider.GetOrCreate<AvatarCache>())
+            if (!cache.AttemptScheduleRender(userId))
             {
-                if (!cache.AttemptScheduleRender(userId))
-                {
-                    Writer.Info(LogGroup.AvatarService, "Render already scheduled for user {0}", userId);
-                    return;
-                };
-            }
-        }        
-        
+                Writer.Info(LogGroup.AvatarService, "Render already scheduled for user {0}", userId);
+                return;
+            };
+        }
+        else
+        {
+            await cache.DeleteAvatarCache(userId);
+        }
+
         await Task.Run(async () =>
         {
             //await Task.Delay(TimeSpan.FromSeconds(2));
-            Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarType(userId);
+            AvatarType? rigType = (AvatarType?)await services.avatar.GetAvatarType(userId);
             using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
             try
             {
@@ -72,8 +74,7 @@ public class AvatarControllerV1 : ControllerBase, IService
     public void RequestRedrawAvatar()
     {
         FeatureCheck();
-        const bool forceRedraw = true;
-        AttemptScheduleRender(forceRedraw);
+        AttemptScheduleRender(true);
     }
 
     [HttpPost("avatar/set-wearing-assets")]

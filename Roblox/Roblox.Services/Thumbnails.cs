@@ -76,13 +76,16 @@ public class ThumbnailsService : ServiceBase, IService
             "SELECT user_id as targetId, headshot_thumbnail_url as imageUrl FROM user_avatar /**where**/");
         query.OrWhereMulti("user_id = $1", ids);
 
-        return (await db.QueryAsync<ThumbnailEntry>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<ThumbnailEntry>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntry>();
+        foreach (var c in entries)
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
-            return c;
-        });
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+            results.Add(c);
+        }
+        return results;
     }
 
     public async Task<IEnumerable<ThumbnailEntry>> GetUserThumbnails(IEnumerable<long> userIds)
@@ -94,13 +97,17 @@ public class ThumbnailsService : ServiceBase, IService
             "SELECT user_id as targetId, thumbnail_url as imageUrl FROM user_avatar /**where**/");
         query.OrWhereMulti("user_id = $1", ids);
 
-        return (await db.QueryAsync<ThumbnailEntry>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<ThumbnailEntry>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntry>();
+        foreach (var c in entries)
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
-            return c;
-        });
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+            results.Add(c);
+        }
+
+        return results;
     }
     
     public async Task<IEnumerable<ThumbnailEntry>> GetUserThumbnails3D(IEnumerable<long> userIds)
@@ -118,13 +125,16 @@ public class ThumbnailsService : ServiceBase, IService
                 FROM user_avatar WHERE user_id = ANY(:userIds)
             ", new { userIds = ids.ToList() });
 
-        return q.Select(c =>
+        var results = new List<ThumbnailEntry>();
+        foreach (var c in q)
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
-            return c;
-        });
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+            results.Add(c);
+        }
+
+        return results;
     }
 
     public async Task<IEnumerable<ThumbnailEntry>> GetAssetThumbnails(IEnumerable<long> userIds)
@@ -136,9 +146,11 @@ public class ThumbnailsService : ServiceBase, IService
             "SELECT asset.id as targetId, asset.asset_type as type, at.content_url as imageUrl, asset.moderation_status as moderationStatus FROM asset LEFT JOIN asset_thumbnail at ON at.asset_id = asset.id /**where**/");
         query.OrWhereMulti("asset.id = $1", ids);
 
-        return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntry>();
+        foreach (var c in entries)
         {
-            if (c.moderationStatus == ModerationStatus.Declined)
+             if (c.moderationStatus == ModerationStatus.Declined)
             {
                 c.imageUrl = "/img/blocked.png";
             }
@@ -171,16 +183,18 @@ public class ThumbnailsService : ServiceBase, IService
 
             if (!string.IsNullOrEmpty(c.imageUrl))
             {
-                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
             }
 
-            return new ThumbnailEntry()
+            results.Add(new ThumbnailEntry
             {
                 targetId = c.targetId,
                 imageUrl = c.imageUrl,
                 state = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
-            };
-        });
+            });
+        }
+
+        return results;
     }
 
     public async Task<IEnumerable<ThumbnailEntry>> GetUserOutfitThumbnails(IEnumerable<long> outfitIds)
@@ -192,13 +206,17 @@ public class ThumbnailsService : ServiceBase, IService
             "SELECT id as targetId, thumbnail_url as imageUrl FROM user_outfit /**where**/");
         query.OrWhereMulti("id = $1", ids);
 
-        return (await db.QueryAsync<ThumbnailEntry>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<ThumbnailEntry>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntry>();
+        foreach (var c in entries)
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
-            return c;
-        });
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+            results.Add(c);
+        }
+
+        return results;
     }
 
     public async Task<IEnumerable<ThumbnailEntry>> GetGroupIcons(IEnumerable<long> groupIds)
@@ -210,7 +228,9 @@ public class ThumbnailsService : ServiceBase, IService
             "SELECT group_id as targetId, CASE WHEN is_approved = 1 THEN name END imageUrl FROM group_icon /**where**/");
         query.OrWhereMulti("group_id = $1", ids);
 
-        return (await db.QueryAsync<ThumbnailEntry>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<ThumbnailEntry>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntry>();
+        foreach (var c in entries)
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (!string.IsNullOrEmpty(c.imageUrl))
@@ -218,9 +238,11 @@ public class ThumbnailsService : ServiceBase, IService
                 c.imageUrl = "/images/groups/" + c.imageUrl;
             }
             if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.CdnBaseUrl + c.imageUrl;
-            return c;
-        });
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl, false);
+            results.Add(c);
+        }
+
+        return results;
     }
     public async Task<IEnumerable<ThumbnailEntryRBX>> GetGameIconsRBX(IEnumerable<long> universeIds)
     {
@@ -231,7 +253,9 @@ public class ThumbnailsService : ServiceBase, IService
             "SELECT universe_id as targetId, content_url as imageUrl, moderation_status as moderationStatus FROM universe_asset INNER JOIN asset_icon ai ON ai.asset_id = universe_asset.asset_id /**where**/");
         query.OrWhereMulti("universe_id = $1", ids);
 
-        return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntryRBX>();
+        foreach (var c in entries)
         {
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
             {
@@ -241,24 +265,26 @@ public class ThumbnailsService : ServiceBase, IService
 
             //if (universeIds.Count() == 1)
             //{
-                //why? if studio requests only 1 game icon it will keep looping and never getting the gameicon
-               // throw new RobloxException(401, 1, "Not authorized");
+            //why? if studio requests only 1 game icon it will keep looping and never getting the gameicon
+            // throw new RobloxException(401, 1, "Not authorized");
             //}
             if (c.moderationStatus == ModerationStatus.Declined)
             {
                 c.imageUrl = "/img/blocked.png";
             }
             if (c.imageUrl != null)
-                c.imageUrl = Roblox.Configuration.BaseUrl + c.imageUrl;
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
 
-            return new ThumbnailEntryRBX()
+            results.Add(new ThumbnailEntryRBX()
             {
                 //targetId = c.targetId,
                 TargetId = c.targetId,
                 Url = c.imageUrl,
                 State = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
-            };
-        });
+            });
+        }
+
+        return results;
     }
     public async Task<IEnumerable<ThumbnailEntry>> GetUniverseIcons(IEnumerable<long> universeIds)
     {
@@ -276,11 +302,12 @@ public class ThumbnailsService : ServiceBase, IService
         );
         query.OrWhereMulti("u.id = $1", ids);
 
-        return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntry>();
+        foreach (var c in entries)
         {
             if (c.imageUrl is not null)
-                c.imageUrl = "/images/thumbnails/" + c.imageUrl + ".png";
-
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
 
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
@@ -288,13 +315,14 @@ public class ThumbnailsService : ServiceBase, IService
             if (c.moderationStatus == ModerationStatus.Declined)
                 c.imageUrl = "/img/blocked.png";
 
-            return new ThumbnailEntry()
+            results.Add(new ThumbnailEntry()
             {
                 targetId = c.targetId,
                 imageUrl = c.imageUrl,
                 state = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
-            };
-        });
+            });
+        }
+        return results;
     }    
     public async Task<IEnumerable<ThumbnailEntry>> GetPlaceIcons(IEnumerable<long> placeIds)
     {
@@ -311,11 +339,12 @@ public class ThumbnailsService : ServiceBase, IService
         ");
         query.OrWhereMulti("asset_id = $1", ids);
 
-        return (await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters)).Select(c =>
+        var entries = await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters);
+        var results = new List<ThumbnailEntry>();
+        foreach (var c in entries)
         {
             if (c.imageUrl is not null)
-                c.imageUrl = "/images/thumbnails/" + c.imageUrl;
-            
+                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
 
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
@@ -323,13 +352,52 @@ public class ThumbnailsService : ServiceBase, IService
             if (c.moderationStatus == ModerationStatus.Declined)
                 c.imageUrl = "/img/blocked.png";
 
-            return new ThumbnailEntry()
+            results.Add(new ThumbnailEntry()
             {
                 targetId = c.targetId,
                 imageUrl = c.imageUrl,
                 state = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
-            };
-        });
+            });
+        }
+        return results;
+    }
+
+    private static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName, bool isThumbnails = true)
+    {
+        // really shitty work but this accounts for most cases.
+        if(fileName.StartsWith('/'))
+            fileName = fileName[1..];
+        if(fileName.StartsWith("images/"))
+            fileName = fileName[7..];
+        if(fileName.StartsWith("groups/"))
+            fileName = fileName[7..];
+        if(fileName.StartsWith("thumbnails/"))
+            fileName = fileName[11..];
+        var contentType = "image/png";
+        if(fileName.EndsWith(".json"))
+            contentType = "application/json";
+        else if(!fileName.EndsWith(".png"))
+            fileName += ".png";
+        
+        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+        var r2Key = (isThumbnails ? "images/thumbnails/" : "images/groups/") + fileName;
+        var localPath = (isThumbnails ? Configuration.ThumbnailsDirectory : Configuration.GroupIconsDirectory) + fileName;
+        var markerPath = localPath + ".migrated";
+
+        if (!File.Exists(markerPath))
+        {
+            if (!await r2Service.FileExistsAsync(r2Key))
+            {
+                if (File.Exists(localPath))
+                {
+                    using var file = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read, 0, FileOptions.Asynchronous);
+                    await r2Service.UploadFileAsync(r2Key, file, contentType);
+                }
+            }
+            try { File.Create(markerPath).Close(); } catch { }
+        }
+
+        return R2StorageService.GetPublicUrl(r2Key);
     }
 
     public bool IsThreadSafe()
