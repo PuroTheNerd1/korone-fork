@@ -52,7 +52,7 @@ const GroupControls = props => {
           window.location.reload();
         })
       }}>Leave Group</Button>
-      {canViewAuditLog && <Button href={'/Groups/Audit.aspx?groupid=' + store.groupId} className={s.button}>Audit Log</Button>}
+      {canViewAuditLog && <Button href={'/groups/Audit.aspx?groupid=' + store.groupId} className={s.button}>Audit Log</Button>}
     </div>
   </OldCard>
 }

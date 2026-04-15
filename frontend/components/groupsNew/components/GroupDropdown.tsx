@@ -40,7 +40,7 @@ const GroupDropdown = ({}: {}) => {
         } : null,
         store.group && store.userPerms?.permissions?.groupManagementPermissions?.viewAuditLogs ? {
             name: 'Audit Logs',
-            url: `/Groups/Audit.aspx?groupid=${store.group?.id}`,
+            url: `/groups/Audit.aspx?groupid=${store.group?.id}`,
         } : null,
         store.group && store.userPerms != null && primaryGroup?.group?.id !== store.group?.id ? {
             name: 'Make Primary',
