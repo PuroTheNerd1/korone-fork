@@ -8,13 +8,14 @@ if (!fs.existsSync(configPath)) {
 const config = JSON.parse(fs.readFileSync(configPath).toString('utf-8'));
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
-    enabled: process.env.ANALYZE === 'true',
+    enabled: false,
+    //enabled: process.env.ANALYZE === 'true',
     //analyzerMode: 'json', openAnalyzer: false,
 });
 
 module.exports = withBundleAnalyzer({
     reactStrictMode: true,
-    swcMinify: false,
+    //swcMinify: false,
     serverRuntimeConfig: config.serverRuntimeConfig,
     publicRuntimeConfig: {
         ...config.publicRuntimeConfig,
@@ -44,6 +45,11 @@ module.exports = withBundleAnalyzer({
                     },
                 ],
                 destination: '/groups/:id/--',
+                permanent: true,
+            },
+            {
+                source: '/internal/create-place',
+                destination: '/places/create',
                 permanent: true,
             },
         ]
