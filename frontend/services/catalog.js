@@ -1,4 +1,4 @@
-import request, { getBaseUrl, getFullUrl } from "../lib/request"
+import request, {getBaseUrl, getFullUrl} from "../lib/request"
 import getFlag from "../lib/getFlag";
 
 export const itemNameToEncodedName = (str) => {
@@ -6,11 +6,10 @@ export const itemNameToEncodedName = (str) => {
         str = '';
     }
     // https://stackoverflow.com/questions/987105/asp-net-mvc-routing-vs-reserved-filenames-in-windows
-    var seoName = str.replace(/'/g, "")
+    return str.replace(/'/g, "")
         .replace(/[^a-zA-Z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "")
         .replace(/^(COM\d|LPT\d|AUX|PRT|NUL|CON|BIN)$/i, "") || "unnamed";
-    return seoName;
 }
 
 const itemPageLate2016Enabled = getFlag('itemPageLate2016Enabled', false);
@@ -276,10 +275,10 @@ export const getModerationStatus = ({ assetID }) => {
  * @param {number|null} creatorType
  * @param {number|null} creatorId
  * @param {string|null} creatorName
- * @param {boolean} includeNotForSale
- * @param {number} priceOption
- * @param {[number, number]} priceRange
- * @param {number} currency
+ * @param {boolean|null} includeNotForSale
+ * @param {number|null} priceOption
+ * @param {[number, number]|null} priceRange
+ * @param {number|null} currency
  * @returns {Promise<PekoraCollectionPaginated<{itemType: string; id: number;}>>}
  */
 export const searchCatalog2 = ({
@@ -311,8 +310,11 @@ export const searchCatalog2 = ({
     if (genres) {
         url += `&genres=${genres.join(",")}`;
     }
+    if (creatorType) {
+        url += '&creatorType=' + encodeURIComponent(creatorType);
+    }
     if (creatorType && creatorId) {
-        url += '&creatorTargetId=' + encodeURIComponent(creatorId) + '&creatorType=' + encodeURIComponent(creatorType);
+        url += '&creatorTargetId=' + encodeURIComponent(creatorId);
     }
     if (!creatorId && creatorName) {
         url += '&creatorName=' + encodeURIComponent(creatorName) + '&creatorType=1';

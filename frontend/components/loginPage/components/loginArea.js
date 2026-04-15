@@ -6,7 +6,7 @@ import ActionButton from "../../actionButton";
 import getFlag from "../../../lib/getFlag";
 import GetCookie from "./getCookie";
 const loginThroughCookieRequired = getFlag('requireLoginThroughCookie', true);
-import axios from 'axios';
+const axios = typeof window !== 'undefined' ? window.axios : require('axios');
 
 const useStyles = createUseStyles({
     header: {

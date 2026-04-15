@@ -35,6 +35,11 @@ const catalogPageStyle = {
     Legacy: 'Legacy',
 }
 
+const groupPagesStyle = {
+    Modern: 'Modern',
+    Legacy: 'Legacy',
+}
+
 const isLocalStorageAvailable = (() => {
     // @ts-ignore
     if (!process.browser) return false;
@@ -155,6 +160,20 @@ const setCatalogStyle = (themeString) => {
     localStorage.setItem('rbx_cat_style_v1', themeString);
 }
 
+const getGroupPagesStyle = () => {
+    if (!isLocalStorageAvailable) return groupPagesStyle["Modern"];
+
+    let value = localStorage.getItem('rbx_group_style_v1');
+    // validate
+    if (typeof value !== 'string' || !Object.getOwnPropertyNames(groupPagesStyle).includes(value)) return groupPagesStyle["Modern"];
+    return groupPagesStyle[value];
+}
+
+const setGroupPagesStyle = (themeString) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_group_style_v1', themeString);
+}
+
 export {
     getTheme,
     setTheme,
@@ -179,6 +198,9 @@ export {
 
     getCatalogStyle,
     setCatalogStyle,
+
+    getGroupPagesStyle,
+    setGroupPagesStyle,
     
     themeType,
     themeColor,

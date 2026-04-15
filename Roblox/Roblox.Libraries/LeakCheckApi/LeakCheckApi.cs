@@ -19,20 +19,20 @@ public class LeakCheckApi
     {
         _apiKey = Environment.GetEnvironmentVariable("LEAKCHECK_APIKEY") ?? apiKey ?? string.Empty;
         var proxy = Environment.GetEnvironmentVariable("LEAKCHECK_PROXY");
-
+        
         if (string.IsNullOrEmpty(_apiKey) || _apiKey.Length < 40)
             throw new ArgumentException("API key is missing, empty, or invalid (must be at least 40 characters long).");
-
+        
         _baseUrl = baseUrl;
-
+        
         var handler = new HttpClientHandler();
-
+        
         if (!string.IsNullOrEmpty(proxy))
         {
             handler.Proxy = new WebProxy(proxy);
             handler.UseProxy = true;
         }
-
+        
         _httpClient = new HttpClient(handler);
         _httpClient.DefaultRequestHeaders.Add("X-API-Key", _apiKey);
         _httpClient.DefaultRequestHeaders.Add("User-Agent",
@@ -94,7 +94,7 @@ public class LeakCheckApi
             string phash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(password)))[..24].ToLowerInvariant();
             var result = await LookupAsync(phash, "phash");
             if (result.Found >= 1)
-                return true;
+                return false;
         }
         catch (Exception) {}
 

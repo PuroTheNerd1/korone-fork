@@ -1,7 +1,7 @@
 import { createUseStyles } from "react-jss"
 import { useEffect, useState } from "react";
 import { getAudioURL } from "../../../services/catalog";
-import Router from "next/router";
+import { useRouter } from "next/router";
 
 const useStyles = createUseStyles({
     wrapper: {
@@ -79,11 +79,11 @@ const PlayButton = props => {
                 setPlaying(false);
             }
         };
-        Router.events.on('routeChangeStart', handleLocationChange);
+        useRouter().events.on('routeChangeStart', handleLocationChange);
         return () => {
-            Router.events.off('routeChangeStart', handleLocationChange);
+            useRouter().events.off('routeChangeStart', handleLocationChange);
         };
-    }, [Router]);
+    }, [useRouter()]);
 
     const handlePlayPause = (e) => {
         e.preventDefault();

@@ -147,6 +147,7 @@ public class GroupsService : ServiceBase, IService
             description = dbResult.description,
             memberCount = mem,
             isVerified = dbResult.isVerified,
+            isLocked = dbResult.isLocked,
             owner = dbResult.ownerUserId != null
                 ? new()
                 {

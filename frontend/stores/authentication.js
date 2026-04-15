@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
-import request from "../lib/request";
 import { getRobux } from "../services/economy";
 import { getFriendRequestCount } from "../services/friends";
 import { getUnreadMessageCount } from "../services/privateMessages";

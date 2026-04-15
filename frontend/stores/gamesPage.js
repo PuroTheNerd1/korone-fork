@@ -1,9 +1,9 @@
-import { chunk } from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { createContainer } from "unstated-next";
 import getFlag from "../lib/getFlag";
 import { getGameList, getGameSorts } from "../services/games";
 import { multiGetUniverseIcons } from "../services/thumbnails";
+import {chunk} from "../lib/utils";
 
 const selectorSorts = [
   { name: 'All', value: 'all', id: 0 },

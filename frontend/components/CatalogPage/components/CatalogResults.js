@@ -101,9 +101,9 @@ function CatalogResults() {
     return <div className={s.resultsWrapper}>
         <div className={`${s.breadcrumbsContainer} flex flex-column w-100`}>
             <div style={{ marginBottom: 6, display: 'flex', gap: 5 }}>
-                <span>{FormatCamelCase(EnumToString(store.category, CatalogCategory)) || "N/A"}</span>
+                <span>{FormatCamelCase(EnumToString(store.options.category, CatalogCategory)) || "N/A"}</span>
                 {`>`}
-                <span>{FormatCamelCase(EnumToString(store.subCategory, CatalogSubCategory)) || "N/A"}</span>
+                <span>{FormatCamelCase(EnumToString(store.options.subCategory, CatalogSubCategory)) || "N/A"}</span>
             </div>
             <div style={{ color: "#757575", fontSize: 12, fontWeight: 400, }}>
                 <span style={{ marginTop: 2, }}>{currentPage} - {totalPages} of {store.total > 0 ? store.total : store.results.length} Results</span>
@@ -115,7 +115,7 @@ function CatalogResults() {
                         value: CatalogSortBy[d] || 0,
                     }))}
                     onChange={async newValue => {
-                        if (store.isLoading || store.sortBy === newValue.value) return false;
+                        if (store.isLoading || store.options.sortBy === newValue.value) return false;
                         store.RefreshCatalogItems({setSelSuccess}, true, {sortBy: newValue.value});
                         await tick();
                         let tries = 0
@@ -124,7 +124,7 @@ function CatalogResults() {
                             tries++
                         }
                         if (selSuccess) {
-                            store.setSortBy(newValue.value);
+                            store.setOptions({...store.options, sortBy: newValue.value});
                             return true
                         }
                         return false

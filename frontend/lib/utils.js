@@ -25,7 +25,23 @@ export function IsNullOrEmpty(value) {
 }
 
 export function IsValidNum(value) {
-    return Number.isSafeInteger(value) && Number.isFinite(value);
+    if (typeof value === "number") {
+        return Number.isSafeInteger(value) && Number.isFinite(value);
+    }
+
+    if (typeof value !== "string") return false;
+    if (!/^-?\d+$/.test(value.trim())) return false;
+
+    const num = Number(value);
+    return Number.isSafeInteger(num) && Number.isFinite(num);
+}
+
+export function chunk(arr, size) {
+    const out = [];
+    for (let i = 0; i < arr.length; i += size) {
+        out.push(arr.slice(i, i + size));
+    }
+    return out;
 }
 
 export class Stopwatch {

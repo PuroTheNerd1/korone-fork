@@ -4,11 +4,9 @@ import ActionButton from "../../../actionButton";
 import useButtonStyles from "../../../../styles/buttonStyles";
 import NewModal from "../../../newModal";
 import Link from "next/link";
-import { launchGame } from "../../../../services/games";
 import GameDetailsStore from "../../stores/gameDetailsStore";
 import { joinGame } from "../newPlayButton";
 import AuthenticationStore from "../../../../stores/authentication";
-import { forEach } from "lodash";
 
 const useStyles = createUseStyles({
     buttonRow: {

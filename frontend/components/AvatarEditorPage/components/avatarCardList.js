@@ -4,8 +4,6 @@ import AvatarPageStore from "../stores/avatarPageStore";
 import AvatarInfoStore from "../stores/avatarInfoStore";
 import ActionButton from "../../actionButton";
 import React, {useEffect, useRef, useState} from "react";
-import {wait} from "../../../lib/utils";
-import buttonStyles from "../../../styles/buttonStyles";
 import useButtonStyles from "../../../styles/buttonStyles";
 
 const useAvCardStyles = createUseStyles({

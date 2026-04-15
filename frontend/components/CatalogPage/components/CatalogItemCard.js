@@ -99,6 +99,7 @@ const useStyles = createUseStyles({
         overflow: 'hidden',
     },
     creatorContainer: {
+        padding: '0!important',
         "& *": {
             fontSize: 10,
             fontWeight: 500,
@@ -193,11 +194,11 @@ const useStyles = createUseStyles({
 });
 
 /**
- * @param {CatalogAssetDetails} item
- * @returns {JSX.Element}
- * @constructor
+ * @param {{item: CatalogAssetDetails;}} props
+ * @returns
  */
-function CatalogItemCard({ item }) {
+function CatalogItemCard(props) {
+    const { item } = props;
     const s = useStyles({theme: getTheme()});
     const [isNew, setNew] = useState(false);
     const [goingOffSale, setGoingOffSale] = useState(false);
