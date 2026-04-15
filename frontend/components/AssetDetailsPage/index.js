@@ -16,7 +16,7 @@ import Theme2016 from "../theme2016";
 import FavouriteButton from "./components/FavouriteButton";
 import Countdown from "./components/Countdown";
 import AssetDropdown from "./components/Dropdown";
-import PriceChart from "./components/PriceChart";
+import ResalePriceChart from "./components/ResalePriceChart";
 import Resellers from "./components/Resellers";
 import BuyModal from "./modals/BuyModal";
 import { avPageStyleType, getAvPageStyle, getTheme, themeType } from "../../services/theme";
@@ -752,7 +752,7 @@ function AssetDetailsPage({ itemDetails }) {
         </div>
         {
             !isWindow767 && store.isResellable() ? <>
-                <PriceChart/>
+                <ResalePriceChart/>
                 <Resellers/>
                 <Owners/>
             </> : store.isResellable() ? <>
@@ -760,7 +760,7 @@ function AssetDetailsPage({ itemDetails }) {
                     options={[
                         {
                             name: "Price Chart",
-                            element: <PriceChart isLabelHidden />,
+                            element: <ResalePriceChart isLabelHidden />,
                         },
                         {
                             name: "Resellers",
