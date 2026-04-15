@@ -5,6 +5,7 @@ import HighchartsReact from "highcharts-react-official";
 import AssetDetailsStore from "../stores/AssetDetailsStore";
 import { CurrencyType } from "../../../models/enums";
 import Currency from "../../Currency";
+import { getTheme, themeType } from "../../../services/theme";
 
 const timelines = [
     { label: "30 Days", days: 30 },
@@ -13,25 +14,17 @@ const timelines = [
 ];
 
 const useStyles = createUseStyles({
-    wrapper: {
-        marginBottom: 15,
-        background: "#fff",
-        borderRadius: 4,
-        overflow: "hidden",
-        boxShadow: "0 1px 2px rgba(25,25,25,0.08)",
-    },
-    header: {
-        background: "#e3e3e3",
-        padding: "10px 15px",
+    containerHeader: {
+        margin: "3px 0 6px",
         "& h3": {
-            margin: 0,
             fontSize: 20,
             fontWeight: 700,
-            color: "#191919",
+            margin: 0,
         },
     },
     body: {
-        padding: "12px 15px 6px",
+        display: "flex",
+        flexDirection: "column",
     },
     topRow: {
         display: "flex",
@@ -54,10 +47,10 @@ const useStyles = createUseStyles({
         userSelect: "none",
         fontSize: 14,
         fontWeight: 500,
-        color: "#191919",
+        color: "var(--text-color-primary)",
     },
     legendItemOff: {
-        color: "#b8b8b8",
+        color: "var(--text-color-tertiary)",
     },
     dash: {
         display: "inline-block",
@@ -79,20 +72,20 @@ const useStyles = createUseStyles({
         width: "100%",
         padding: "6px 12px",
         height: 32,
-        border: "1px solid #c3c3c3",
+        border: "1px solid var(--text-color-quinary)",
         borderRadius: 4,
-        background: "#fff",
-        color: "#191919",
+        background: "var(--white-color)",
+        color: "var(--text-color-primary)",
         fontSize: 14,
         fontWeight: 500,
         cursor: "pointer",
-        "&:hover": { borderColor: "#898989" },
+        "&:hover": { borderColor: "var(--text-color-tertiary)" },
     },
     dropdownButtonOpen: {
-        background: "#0161ac",
-        borderColor: "#0161ac",
+        background: "var(--primary-color)",
+        borderColor: "var(--primary-color)",
         color: "#fff",
-        "&:hover": { borderColor: "#0161ac" },
+        "&:hover": { borderColor: "var(--primary-color)" },
     },
     caret: {
         width: 0,
@@ -107,10 +100,10 @@ const useStyles = createUseStyles({
         top: "calc(100% + 2px)",
         left: 0,
         right: 0,
-        background: "#fff",
-        border: "1px solid #c3c3c3",
+        background: "var(--white-color)",
+        border: "1px solid var(--text-color-quinary)",
         borderRadius: 4,
-        boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
         zIndex: 5,
         overflow: "hidden",
     },
@@ -118,13 +111,14 @@ const useStyles = createUseStyles({
         padding: "8px 12px",
         fontSize: 14,
         fontWeight: 500,
-        color: "#191919",
+        color: "var(--text-color-primary)",
         cursor: "pointer",
-        "&:hover": { background: "#f1f1f1" },
+        textAlign: "left",
+        "&:hover": { background: "var(--white-color-hover)" },
     },
     divider: {
         height: 1,
-        background: "#e3e3e3",
+        background: "var(--text-color-quinary)",
         margin: "8px 0 12px",
     },
     stats: {
@@ -140,12 +134,12 @@ const useStyles = createUseStyles({
         gap: 8,
     },
     statLabel: {
-        color: "#b8b8b8",
+        color: "var(--text-color-tertiary)",
         fontSize: 14,
         fontWeight: 500,
     },
     statValue: {
-        color: "#191919",
+        color: "var(--text-color-primary)",
         fontSize: 16,
         fontWeight: 500,
     },
@@ -155,9 +149,20 @@ const useStyles = createUseStyles({
         alignItems: "center",
         justifyContent: "center",
     },
+    empty: {
+        minHeight: 340,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--text-color-tertiary)",
+        fontSize: 14,
+    },
 });
 
-function getChartOptions(priceData, volumeData, showPrice, showVolume) {
+function getChartOptions(priceData, volumeData, showPrice, showVolume, isDark) {
+    const axisText = isDark ? "#c3c3c3" : "#193a5e";
+    const gridColor = isDark ? "rgba(255,255,255,0.08)" : "#ededed";
+    const axisLine = isDark ? "rgba(255,255,255,0.15)" : "#e3e3e3";
     return {
         chart: {
             height: 340,
@@ -172,12 +177,16 @@ function getChartOptions(priceData, volumeData, showPrice, showVolume) {
         legend: { enabled: false },
         xAxis: {
             type: "datetime",
-            lineColor: "#e3e3e3",
-            tickColor: "#e3e3e3",
+            lineColor: axisLine,
+            tickColor: axisLine,
             tickLength: 4,
+            dateTimeLabelFormats: {
+                day: "%m/%d",
+                week: "%m/%d",
+                month: "%m/%d",
+            },
             labels: {
-                style: { color: "#193a5e", fontSize: "11px", fontWeight: "500" },
-                format: "{value:%m/%d}",
+                style: { color: axisText, fontSize: "11px", fontWeight: "500" },
             },
             crosshair: {
                 width: 1,
@@ -187,14 +196,14 @@ function getChartOptions(priceData, volumeData, showPrice, showVolume) {
         yAxis: [
             {
                 title: { text: null },
-                gridLineColor: "#ededed",
+                gridLineColor: gridColor,
                 tickAmount: 3,
                 top: "0%",
                 height: "72%",
                 offset: 0,
                 lineWidth: 0,
                 labels: {
-                    style: { color: "#193a5e", fontSize: "11px", fontWeight: "500" },
+                    style: { color: axisText, fontSize: "11px", fontWeight: "500" },
                     x: -4,
                     formatter: function () {
                         return this.value >= 1000 ? (this.value / 1000) + "K" : this.value;
@@ -213,6 +222,11 @@ function getChartOptions(priceData, volumeData, showPrice, showVolume) {
         ],
         tooltip: {
             useHTML: true,
+            shared: true,
+            split: false,
+            followPointer: false,
+            hideDelay: 0,
+            snap: 1000,
             backgroundColor: "#4a4a4a",
             borderColor: "#4a4a4a",
             borderRadius: 4,
@@ -221,18 +235,24 @@ function getChartOptions(priceData, volumeData, showPrice, showVolume) {
             padding: 0,
             style: { color: "#fff" },
             formatter: function () {
-                return `<div style="padding:6px 10px;color:#fff;font-weight:500;font-size:13px;">${Math.round(this.y).toLocaleString()}</div>`;
+                const pricePoint = this.points?.find(p => p.series.name === "Recent Average Price");
+                const y = pricePoint ? pricePoint.y : this.y;
+                return `<div style="padding:6px 10px;color:#fff;font-weight:500;font-size:13px;">${Math.round(y).toLocaleString()}</div>`;
             },
         },
         plotOptions: {
             series: {
                 animation: { duration: 400 },
+                stickyTracking: true,
                 states: {
                     hover: { lineWidthPlus: 0, halo: { size: 0 } },
                     inactive: { opacity: 1 },
                 },
                 marker: {
-                    enabled: false,
+                    enabled: true,
+                    radius: 3,
+                    lineWidth: 0,
+                    symbol: "circle",
                     states: {
                         hover: { enabled: true, radius: 5, lineWidth: 2, lineColor: "#fff" },
                     },
@@ -240,8 +260,9 @@ function getChartOptions(priceData, volumeData, showPrice, showVolume) {
             },
             column: {
                 borderWidth: 0,
-                pointPadding: 0.05,
-                groupPadding: 0.05,
+                pointPadding: 0,
+                groupPadding: 0,
+                pointWidth: 1,
                 enableMouseTracking: false,
             },
             line: { lineWidth: 2 },
@@ -260,7 +281,7 @@ function getChartOptions(priceData, volumeData, showPrice, showVolume) {
                 type: "column",
                 name: "Volume",
                 data: volumeData,
-                color: "#b8b8b8",
+                color: isDark ? "#888" : "#b8b8b8",
                 visible: showVolume,
                 yAxis: 1,
                 zIndex: 1,
@@ -276,7 +297,13 @@ function ResalePriceChart({ isLabelHidden = false }) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [showPrice, setShowPrice] = useState(true);
     const [showVolume, setShowVolume] = useState(true);
+    const [isDark, setIsDark] = useState(false);
     const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        setIsDark(getTheme() === themeType.dark);
+    }, []);
 
     useEffect(() => {
         if (!dropdownOpen) return;
@@ -292,19 +319,21 @@ function ResalePriceChart({ isLabelHidden = false }) {
     const resale = store.resaleData;
 
     const { priceData, volumeData } = useMemo(() => {
-        if (!resale) return { priceData: [], volumeData: [] };
-        const cutoff = Date.now() - timelines[timelineIdx].days * 86400000;
+        if (!resale?.priceDataPoints?.length) return { priceData: [], volumeData: [] };
+        const cutoff = Date.now() - timelines[timelineIdx].days * 24 * 60 * 60 * 1000;
         const toPoint = d => [new Date(d.date).getTime(), d.value];
-        const byTime = (a, b) => a[0] - b[0];
+        const inRange = p => p[0] >= cutoff;
         return {
-            priceData: (resale.priceDataPoints || []).map(toPoint).sort(byTime).filter(p => p[0] >= cutoff),
-            volumeData: (resale.volumeDataPoints || []).map(toPoint).sort(byTime).filter(p => p[0] >= cutoff),
+            priceData: resale.priceDataPoints.map(toPoint).filter(inRange).sort((a, b) => a[0] - b[0]),
+            volumeData: resale.volumeDataPoints.map(toPoint).filter(inRange).sort((a, b) => a[0] - b[0]),
         };
     }, [resale, timelineIdx]);
 
+    const hasData = priceData.length > 0 || volumeData.length > 0;
+
     const options = useMemo(
-        () => getChartOptions(priceData, volumeData, showPrice, showVolume),
-        [priceData, volumeData, showPrice, showVolume],
+        () => getChartOptions(priceData, volumeData, showPrice, showVolume, isDark),
+        [priceData, volumeData, showPrice, showVolume, isDark],
     );
 
     const originalCurrency = store.details?.priceTickets ? CurrencyType.Tickets : CurrencyType.Robux;
@@ -313,26 +342,28 @@ function ResalePriceChart({ isLabelHidden = false }) {
     const quantitySold = resale?.sales ?? 0;
 
     const header = !isLabelHidden ? (
-        <div className={s.header}>
+        <div className={`flex ${s.containerHeader}`}>
             <h3>Price Chart</h3>
         </div>
     ) : null;
 
     if (!resale) {
         return (
-            <div className={s.wrapper}>
+            <div>
                 {header}
-                <div className={s.spinnerWrap}>
-                    <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
+                <div className="section-content noShadow">
+                    <div className={s.spinnerWrap}>
+                        <span className="spinner" style={{ height: "100%", backgroundSize: "auto 36px" }}/>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className={s.wrapper}>
+        <div>
             {header}
-            <div className={s.body}>
+            <div className={`section-content noShadow ${s.body}`}>
                 <div className={s.topRow}>
                     <div className={s.legend}>
                         <div
@@ -376,7 +407,11 @@ function ResalePriceChart({ isLabelHidden = false }) {
                         )}
                     </div>
                 </div>
-                <HighchartsReact highcharts={Highcharts} options={options}/>
+                {hasData ? (
+                    <HighchartsReact highcharts={Highcharts} options={options}/>
+                ) : (
+                    <div className={s.empty}>No sales recorded in this period.</div>
+                )}
                 <div className={s.divider}/>
                 <div className={s.stats}>
                     <div className={s.stat}>
