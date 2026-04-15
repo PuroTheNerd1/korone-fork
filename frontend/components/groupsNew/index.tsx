@@ -209,10 +209,12 @@ const useStyles = createUseStyles({
 
     userGroupsWrapper: {
         flexDirection: 'column',
+        maxWidth: 175,
         "@media (max-width: 767px)": {
             width: '100%',
             paddingLeft: 10,
             flexDirection: 'column-reverse',
+            maxWidth: '100%',
         }
     },
     userGroupsContainer: {

@@ -170,7 +170,7 @@ const PermissionsModal = props => {
 
             <Permissions tab='Miscellaneous' openTab={tab} setOpenTab={setTab} options={[
               {
-                name: 'View audit log',
+                name: 'View audit logs',
                 get: () => permissions.groupManagementPermissions.viewAuditLogs,
                 set: (v) => {
                   permissions.groupManagementPermissions.viewAuditLogs = v;
