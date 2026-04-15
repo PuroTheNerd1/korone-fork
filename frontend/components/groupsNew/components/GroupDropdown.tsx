@@ -42,6 +42,10 @@ const GroupDropdown = ({}: {}) => {
             name: 'Audit Logs',
             url: `/groups/Audit.aspx?groupid=${store.group?.id}`,
         } : null,
+        store.group && store.userPerms?.permissions?.groupEconomyPermissions?.advertiseGroup ? {
+            name: 'Advertise Group',
+            url: `/My/CreateUserAd.aspx?targetId=${store.group?.id}&targetType=group`,
+        } : null,
         store.group && store.userPerms != null && primaryGroup?.group?.id !== store.group?.id ? {
             name: 'Make Primary',
             onClick: async () => {
