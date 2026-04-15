@@ -297,12 +297,12 @@ const GroupsPageStore = createContainer(() => {
             }
         });
 
-        newResult.items = Array(30).fill(null).map((_, index) => {
-            return {
-                ...newResult.items[0],
-                name: `${newResult.items[0].name} ${index + 1}`
-            };
-        });
+        // newResult.items = Array(30).fill(null).map((_, index) => {
+        //     return {
+        //         ...newResult.items[0],
+        //         name: `${newResult.items[0].name} ${index + 1}`
+        //     };
+        // });
         setStoreItems(newResult);
         setStoreItemsCache([...storeItemsCache, newResult]);
         sdeb.current = false;
