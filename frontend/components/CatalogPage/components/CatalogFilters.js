@@ -81,21 +81,21 @@ function CatalogFilters() {
     const buttonStyles = useButtonStyles();
     
     const locked = useRef(false);
-    const { genreNav } = store;
+    const { genreNav, options } = store;
     
     return <div className={s.searchOptionWrapper}>
         <h3 className={s.searchOptionHeader}>Filters</h3>
         <div>
             <h5 className={s.filterHeader}>Genre</h5>
             <a className={s.allGenres} onClick={async e => {
-                e.preventDefault();
+                
                 if (locked.current || store.refreshDebounce.current) return;
                 locked.current = true;
                 
-                let clone = store.genres.Clone();
+                let clone = options.genres.Clone();
                 clone.Clear();
                 // clone.Add(genreNav.find(g => g.genre.toLowerCase() === "all").genreId);
-                store.setGenres(clone);
+                store.setOptions({...options, genres: clone});
                 await tick();
                 store.RefreshCatalogItems(null, true, { genres: clone });
                 
@@ -108,21 +108,21 @@ function CatalogFilters() {
                         if (genre.genre.toLowerCase() === "all") return null;
                         return <div className={`${s.genreCheckbox} checkbox2019`} key={genre.genreId.toString()}>
                             <input
-                                checked={store.genres.Contains(genre.genreId)}
+                                checked={options.genres.Contains(genre.genreId)}
                                 type="checkbox"
                                 id={`genre-${genre.genreId}`}
                                 onClick={async e => {
-                                    e.preventDefault();
+                                    
                                     if (locked.current || store.refreshDebounce.current) return;
                                     locked.current = true;
                                     
                                     let genres;
-                                    if (!store.genres.Contains(genre.genreId)) { // add
+                                    if (!options.genres.Contains(genre.genreId)) { // add
                                         genres = store.AddGenre(genre.genreId);
                                     } else { // remove
                                         genres = store.RemoveGenre(genre.genreId);
                                     }
-                                    store.setGenres(genres);
+                                    store.setOptions({...options, genres: genres});
                                     await tick();
                                     store.RefreshCatalogItems(null, true, { genres: genres });
                                     
@@ -144,11 +144,11 @@ function CatalogFilters() {
                     <input
                         id="creator-1"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
+
                             store.setCreatorOption(1);
                             await tick();
                             store.RefreshCatalogItems(null, true, {}, 1);
@@ -164,11 +164,11 @@ function CatalogFilters() {
                     <input
                         id="creator-2"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
+
                             store.setCreatorOption(2);
                             await tick();
                             store.RefreshCatalogItems(null, true, {}, 2);
@@ -184,11 +184,11 @@ function CatalogFilters() {
                     <input
                         id="creator-3"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
+
                             store.setCreatorOption(3);
                             await tick();
                             store.RefreshCatalogItems(null, true, {}, 3);
@@ -205,13 +205,14 @@ function CatalogFilters() {
                             placeholder="Username"
                             pattern="^[a-zA-Z0-9_ ]{0,100}$"
                             name="creatorName"
-                            maxLength={20}
-                            onSelect={_ => store.setCreatorOption(3)}
+                            maxLength={100}
+                            onSelect={_ => {
+                                if (store.creatorOption!==3) store.setCreatorOption(3);
+                            }}
                             onChange={e => store.setCreator(e.target.value)}
                         />
                         <ActionButton className={`${s.goButton} ${s.goButton} ${store.creatorOption !== 3 ? "disabled" : ""}`}
                                       buttonStyle={buttonStyles.newContinueButton} label="Go" onClick={async e => {
-                            e.preventDefault();
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
                             store.RefreshCatalogItems(null, true);
@@ -222,6 +223,53 @@ function CatalogFilters() {
                 </div>
             </div>
         </div>
+
+        <div>
+            <h5 className={s.filterHeader}>Creator Type</h5>
+            <div className={s.priceFilters}>
+                <div className={`${s.priceContainer} radio2019`}>
+                    <input
+                        id="creator-type-user"
+                        type="radio"
+                        onChange={async e => {
+                            
+                            if (locked.current || store.refreshDebounce.current) return;
+                            locked.current = true;
+
+                            store.setCreatorType(1);
+                            await tick();
+                            store.RefreshCatalogItems(null, true, { creatorType: 1 });
+
+                            await wait(0.75);
+                            locked.current = false;
+                        }}
+                        checked={store.creatorType===1}
+                    />
+                    <label htmlFor="creator-type-user">User</label>
+                </div>
+                <div className={`${s.priceContainer} radio2019`}>
+                    <input
+                        id="creator-type-group"
+                        type="radio"
+                        onChange={async e => {
+                            
+                            if (locked.current || store.refreshDebounce.current) return;
+                            locked.current = true;
+
+                            store.setCreatorType(2);
+                            await tick();
+                            store.RefreshCatalogItems(null, true, { creatorType: 2 });
+
+                            await wait(0.75);
+                            locked.current = false;
+                        }}
+                        checked={store.creatorType===2}
+                    />
+                    <label htmlFor="creator-type-group">Group</label>
+                </div>
+            </div>
+        </div>
+
         <div>
             <h5 className={s.filterHeader}>Currency</h5>
             <div className={s.priceFilters}>
@@ -229,19 +277,19 @@ function CatalogFilters() {
                     <input
                         id="currency-3"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
 
-                            store.setSelectedCurrency(3);
+                            store.setOptions({...options, selectedCurrency: 3});
                             await tick();
                             store.RefreshCatalogItems(null, true, { selectedCurrency: 3 });
 
                             await wait(0.75);
                             locked.current = false;
                         }}
-                        checked={store.selectedCurrency === 3}
+                        checked={options.selectedCurrency === 3}
                     />
                     <label htmlFor="currency-3">Any</label>
                 </div>
@@ -249,19 +297,19 @@ function CatalogFilters() {
                     <input
                         id="currency-1"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
-                            store.setSelectedCurrency(1);
+
+                            store.setOptions({...options, selectedCurrency: 1});
                             await tick();
                             store.RefreshCatalogItems(null, true, { selectedCurrency: 1 });
                             
                             await wait(0.75);
                             locked.current = false;
                         }}
-                        checked={store.selectedCurrency === 1}
+                        checked={options.selectedCurrency === 1}
                     />
                     <label htmlFor="currency-1">Robux</label>
                 </div>
@@ -269,19 +317,19 @@ function CatalogFilters() {
                     <input
                         id="currency-2"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
-                            store.setSelectedCurrency(2);
+
+                            store.setOptions({...options, selectedCurrency: 2});
                             await tick();
                             store.RefreshCatalogItems(null, true, { selectedCurrency: 2 });
                             
                             await wait(0.75);
                             locked.current = false;
                         }}
-                        checked={store.selectedCurrency === 2}
+                        checked={options.selectedCurrency === 2}
                     />
                     <label htmlFor="currency-2">Tickets</label>
                 </div>
@@ -294,11 +342,11 @@ function CatalogFilters() {
                     <input
                         id="priceOption-0"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
+
                             store.setPriceOption(0);
                             await tick();
                             store.RefreshCatalogItems(null, true, { priceOption: 0 });
@@ -314,11 +362,10 @@ function CatalogFilters() {
                     <input
                         id="priceOption-1"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
+
                             store.setPriceOption(1);
                             await tick();
                             store.RefreshCatalogItems(null, true, { priceOption: 1 });
@@ -336,7 +383,9 @@ function CatalogFilters() {
                             pattern="[0-9]*"
                             name="minPrice"
                             maxLength={18}
-                            onSelect={() => store.setPriceOption(1)}
+                            onSelect={() => {
+                                if (store.priceOption!==1) store.setPriceOption(1);
+                            }}
                             onChange={async e => store.setPriceRange([e.target.value, store.priceRange[1]])}
                         />
                         <input
@@ -346,12 +395,13 @@ function CatalogFilters() {
                             pattern="[0-9]*"
                             name="maxPrice"
                             maxLength={18}
-                            onSelect={() => store.setPriceOption(1)}
-                            onChange={e => store.setPriceRange([store.priceRange[0], e.target.value])}
+                            onSelect={() => {
+                                if (store.priceOption!==1) store.setPriceOption(1);
+                            }}
+                            onChange={async e => store.setPriceRange([store.priceRange[0], e.target.value])}
                         />
                         <ActionButton className={`${s.goButton} ${store.priceOption !== 1 ? "disabled" : ""}`}
-                                      buttonStyle={buttonStyles.newContinueButton} label="Go" onClick={async e => {
-                            e.preventDefault();
+                                      buttonStyle={buttonStyles.newContinueButton} label="Go" onClick={async () => {
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
                             store.RefreshCatalogItems(null, true);
@@ -364,12 +414,12 @@ function CatalogFilters() {
                     <input
                         id="priceOption-2"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
-                            store.setPriceOption(2);
+
+                            store.setPriceOption(2)
                             await tick();
                             store.RefreshCatalogItems(null, true, { priceOption: 2 });
                             
@@ -389,19 +439,19 @@ function CatalogFilters() {
                     <input
                         id="unavailable-items-false"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
-                            store.setIncludeOffSale(false);
+
+                            store.setOptions({...options, includeOffSale: false});
                             await tick();
                             store.RefreshCatalogItems(null, true, { includeOffSale: false });
                             
                             await wait(0.75);
                             locked.current = false;
                         }}
-                        checked={!store.includeOffSale}
+                        checked={!options.includeOffSale}
                     />
                     <label htmlFor="unavailable-items-false">Hide</label>
                 </div>
@@ -409,19 +459,19 @@ function CatalogFilters() {
                     <input
                         id="unavailable-items-true"
                         type="radio"
-                        onClick={async e => {
-                            e.preventDefault();
+                        onChange={async e => {
+                            
                             if (locked.current || store.refreshDebounce.current) return;
                             locked.current = true;
-                            
-                            store.setIncludeOffSale(true);
+
+                            store.setOptions({...options, includeOffSale: true});
                             await tick();
                             store.RefreshCatalogItems(null, true, { includeOffSale: true });
                             
                             await wait(0.75);
                             locked.current = false;
                         }}
-                        checked={store.includeOffSale}
+                        checked={options.includeOffSale}
                     />
                     <label htmlFor="unavailable-items-true">Show</label>
                 </div>

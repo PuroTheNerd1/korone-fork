@@ -3,7 +3,7 @@
 ```
 components/
   {componentName}/
-    index.js        - The component itself
+    index.tsx        - The component itself
     components/     - Optional, components only used by this component
     stores/         - Optional, the containers/stores for the page
     styles/         - Optional, folder for JSS styles shared by components

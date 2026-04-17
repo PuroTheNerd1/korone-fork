@@ -1,7 +1,8 @@
-import axios from 'axios';
 import getConfig from 'next/config';
 import { fromUrl, parseDomain, ParseResultType } from 'parse-domain';
 import { getBaseUrl } from '../../lib/request';
+const axios = typeof window !== 'undefined' ? window.axios : require('axios');
+
 const UrlUtilities = (() => {
   const getDomainFromUrl = (url) => {
     const baseDomainParsed = parseDomain(fromUrl(url));

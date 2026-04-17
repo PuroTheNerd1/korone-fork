@@ -18,6 +18,7 @@ public class GroupWithShout
     public string? description { get; set; }
     public long memberCount { get; set; }
     public bool isVerified { get; set; }
+    public bool isLocked { get; set; }
     public GroupUser? owner { get; set; }
     public StatusEntry? shout { get; set; }
 }

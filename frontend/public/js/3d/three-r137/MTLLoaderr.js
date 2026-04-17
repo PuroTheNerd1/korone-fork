@@ -22,12 +22,21 @@
      */
 
     getHashUrl(hash) {
-      if (hash.includes('mats-thumbnails.roblox.com')) {
+      console.log(`3d hash: ${hash}`)
+      if (hash.startsWith('https:/') && !hash.startsWith('https://')) {
+        hash = hash.replace('https:/', 'https://');
+      }
+      if (hash.includes('https://cdn.pekora.zip/')) {
         return hash;
       }
       if (hash.includes('www.pekora.zip')) {
         return hash;
       }
+
+      if (hash.includes('www.pekora.zip') || hash.includes('cdn.pekora.zip')) {
+        return hash;
+      }
+
       if (hash.includes('https://pekora.zip/')) {
         hash = hash.substring(str.indexOf('/', 8) + 1);
       }
@@ -36,7 +45,7 @@
         st ^= hash[ii].charCodeAt(0);
       }
       // return `https://t${(st % 8).toString()}.rbxcdn.com/${hash}`;
-      return `https://www.pekora.zip${hash.at(0) === '/' ? hash : '/' + hash}`;
+      return `${hash.at(0) === '/' ? hash : '/' + hash}`;
     }
 
     load(hash, onLoad, onProgress, onError) {
@@ -44,7 +53,14 @@
       const loader = new THREE.FileLoader(this.manager);
       const url = this.getHashUrl(hash);
 
-      loader.setPath(this.path);
+      const originalPath = this.path;
+      
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        loader.setPath('');
+      } else {
+        loader.setPath(this.path);
+      }
+
       loader.setRequestHeader(this.requestHeader);
       loader.setWithCredentials(this.withCredentials);
       loader.load(
@@ -286,7 +302,7 @@
           st ^= url[ii].charCodeAt(0);
         }
         // return `https://t${(st % 8).toString()}.rbxcdn.com/${url}`;
-        return `https://www.pekora.zip/${url}`;
+        return `${url}`;
       }
 
       function setMapForType(mapType, value) {

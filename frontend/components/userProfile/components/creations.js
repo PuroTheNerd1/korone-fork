@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { multiGetUniverseIcons } from "../../../services/thumbnails";
-import SmallGameCard from "../../smallGameCard";
 import UserProfileStore from "../stores/UserProfileStore";
 import Subtitle from "./subtitle";
 import NewGameCard from "../../newGameCard";

@@ -1,11 +1,13 @@
 {
   "name": "korone-2019-frontend",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "author": "Zyythy, Yusof, shikataginaii, Floatzel, other people i forgor lal",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node lib/postbuild.mjs",
+    "buildc": "next build",
+    "builda": "ANALYZE=true next build",
     "start": "next start",
     "test": "./node_modules/.bin/jest",
     "lint": "next lint"
@@ -36,7 +38,6 @@
     "highcharts-react-official": "^3.2.2",
     "jsonwebtoken": "9.0.0",
     "jss": "^10.7.1",
-    "lodash": "^4.17.21",
     "next": "^12.3.5",
     "nextjs-progressbar": "^0.0.14",
     "parse-domain": "^7.0.0",
@@ -56,6 +57,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.16.8",
     "@babel/preset-env": "^7.16.11",
     "@babel/register": "^7.16.9",
+    "@next/bundle-analyzer": "^16.1.6",
     "@types/jest": "^27.4.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.6.6",
     "babel": "^6.23.0",

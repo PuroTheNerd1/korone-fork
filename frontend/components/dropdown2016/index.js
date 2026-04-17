@@ -103,7 +103,7 @@ const useStyles = createUseStyles({
         listStyle: 'none',
         display: 'list-item',
         '&:hover': {
-            backgroundColor: 'var(--background-color) !important',
+            backgroundColor: 'var(--white-color-hover) !important',
             boxShadow: 'inset 4px 0 0 0 var(--primary-color)',
             color: 'var(--text-color-primary)'
         }
@@ -190,15 +190,15 @@ const Dropdown2016 = props => {
             isOpen || props.onlyDropdown ? <ul
                 className={`${s.dropdownNew} ${cardStyles.card} ${props.centered ? s.centered : ''} ${props.dropdownClass}`}>
                 {
-                    props.options.map(v => {
+                    props.options.filter(v => v !== null && v !== undefined).map(v => {
                         /*return <a href={v.url || '#'} onClick={v.onClick}>
                           <div className={s.dropdownEntry} key={v.name}>
                             <p className={s.dropdownText}>{v.name}</p>
                           </div>
                         </a>*/
                         return <li className={s.dropdownItem} key={v.name}>
-                            <Link href={v.url || '#'} onClick={v.onClick}>
-                                <a className={s.dropdownItemLink} onClick={v.onClick} href={v.url || '#'}>{v.name}</a>
+                            <Link href={v?.url || '#'} onClick={v?.onClick}>
+                                <a className={s.dropdownItemLink} onClick={v?.onClick} href={v?.url || '#'}>{v.name}</a>
                             </Link>
                         </li>
                     })

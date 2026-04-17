@@ -70,7 +70,7 @@ const useStyles = createUseStyles({
 
 /**
  * Vertical tabs in new style
- * @param {{options: {name: string; element: JSX.Element; onClick?: any; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string; elementClass?: string;}} props
+ * @param {{options: {name: string; element: JSX.Element; onClick?: any; count?: number}[]; onChange?: (arg: {name: string; element: JSX.Element; count?: number;}) => void; default?: string; parentClass?: string; elementClass?: string;}} props
  */
 const horizontalTabs = props => {
   const s = useStyles();
@@ -92,7 +92,7 @@ const horizontalTabs = props => {
           : options[0]
     );
   }, [props.default, options]);
-  return <div>
+  return <div className={`${props.parentClass ? props.parentClass : ''}`}>
     <div className={`${s.buttonCol} col-12`}>
       {
         options.map(v => {

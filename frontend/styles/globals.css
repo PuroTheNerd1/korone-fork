@@ -226,7 +226,7 @@ a {
     box-shadow: none !important;
 }
 
-.section-content-off {
+.section-content-off, .section-content.disabled {
     background-color: var(--text-color-secondary);
     color: var(--text-color-tertiary);
     padding: 15px;
@@ -334,6 +334,12 @@ html div.container {
 
 html div.container.big {
     max-width: 1154px!important;
+}
+
+@media (max-width: 1532px) {
+    html div.container.big {
+        max-width: 970px!important;
+    }
 }
 
 @media (max-width: 767px) {
@@ -482,6 +488,10 @@ html div.container.big {
 
 .padding-15 {
     padding: 15px!important;
+}
+
+.padding-l-5 {
+    padding-left: 5px!important;
 }
 
 .marginStuff {
