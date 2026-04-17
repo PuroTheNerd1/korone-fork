@@ -30,7 +30,7 @@ public class SignService : ServiceBase
         }
         catch (Exception ex)
         {
-            throw new Exception("Error setting up SignatureController: " + ex.Message);
+            throw new Exception("Error setting up SignatureService: " + ex.Message);
         }
     }
 

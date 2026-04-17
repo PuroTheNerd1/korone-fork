@@ -229,7 +229,8 @@ app.UseMiddleware<FrontendProxyMiddleware>();
 //app.UseRobloxLoggingMiddleware();
 
 app.UseExceptionHandler("/error");
-//await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");
+// unhardcode later
+CommandHandler.Configure("ws://localhost:3189", "VestiaZeta");
 //CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value); // will be removed soon
 
 RenderingHandler.Configure();
