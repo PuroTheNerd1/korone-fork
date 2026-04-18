@@ -212,8 +212,7 @@ app.UseStaticFiles(new StaticFileOptions
 #endif
 
 app.UseRobloxSessionMiddleware();
-//app.UseMiddleware<ThumbnailMiddleware>(Roblox.Configuration.ThumbnailsDirectory);
-app.UseMiddleware<RobloxLoggingMiddleware>();
+//app.UseMiddleware<RobloxLoggingMiddleware>();
 app.UseRobloxPlayerCorsMiddleware(); // cors varies depending on authentication status, so it must be after session middleware
 
 app.UseRobloxCsrfMiddleware();
