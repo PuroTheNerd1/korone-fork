@@ -144,13 +144,13 @@ const useStyles = createUseStyles({
         fontWeight: 500,
     },
     spinnerWrap: {
-        minHeight: 360,
+        minHeight: 220,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
     },
     empty: {
-        minHeight: 340,
+        minHeight: 200,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -165,7 +165,7 @@ function getChartOptions(priceData, volumeData, showPrice, showVolume, isDark) {
     const axisLine = isDark ? "rgba(255,255,255,0.15)" : "#e3e3e3";
     return {
         chart: {
-            height: 340,
+            height: 200,
             spacing: [10, 0, 0, 0],
             backgroundColor: "transparent",
             style: {
