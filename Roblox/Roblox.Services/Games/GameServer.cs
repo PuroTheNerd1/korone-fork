@@ -477,9 +477,6 @@ public class GameServerService : ServiceBase
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            var gameServer = await GetGameServer(serverId);
-            if (gameServer == null)
-                return;
 
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             {
