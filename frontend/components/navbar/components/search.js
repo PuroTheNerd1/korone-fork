@@ -19,9 +19,9 @@ const useSearchIconStyles = createUseStyles({
     },
 })
 
-const SearchIcon = () => {
+const SearchIcon = ({onClick}) => {
     const s = useSearchIconStyles();
-    return <div className={s.searchIconContainer}>
+    return <div className={s.searchIconContainer} onClick={onClick ? onClick : null}>
         <span className={`col-2 ${s.icon} icon-nav-search`}></span>
     </div>
 }

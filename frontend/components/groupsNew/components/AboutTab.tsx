@@ -52,6 +52,11 @@ const useStyles = createUseStyles({
         maxWidth: "90px",
         margin: "auto",
         textDecoration: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        flexWrap: 'nowrap',
+        width: '100%',
+        gap: 3,
     },
     avatarContainer: {
         boxShadow: '0 1px 4px 0 rgba(25,25,25,0.3)',

@@ -40,6 +40,11 @@ const groupPagesStyle = {
     Legacy: 'Legacy',
 }
 
+const trueFalseStyle = {
+    Yes: 'Yes',
+    No: 'No',
+}
+
 const isLocalStorageAvailable = (() => {
     // @ts-ignore
     if (!process.browser) return false;
@@ -174,6 +179,20 @@ const setGroupPagesStyle = (themeString) => {
     localStorage.setItem('rbx_group_style_v1', themeString);
 }
 
+const getHideRE = () => {
+    if (!isLocalStorageAvailable) return trueFalseStyle["No"];
+
+    let value = localStorage.getItem('rbx_fuck_re_v1');
+    // validate
+    if (typeof value !== 'string' || !Object.getOwnPropertyNames(trueFalseStyle).includes(value)) return trueFalseStyle["No"];
+    return trueFalseStyle[value];
+}
+
+const setHideRE = (themeString) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_fuck_re_v1', themeString);
+}
+
 export {
     getTheme,
     setTheme,
@@ -201,6 +220,9 @@ export {
 
     getGroupPagesStyle,
     setGroupPagesStyle,
+
+    getHideRE,
+    setHideRE,
     
     themeType,
     themeColor,

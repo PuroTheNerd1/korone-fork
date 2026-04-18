@@ -5,9 +5,6 @@ import CatalogResults from "./components/CatalogResults";
 import CatalogPageStore from "./stores/CatalogPageStore";
 import {getTheme, themeType} from "../../services/theme";
 import dynamic from "next/dynamic";
-import {useEffect} from "react";
-import {useRouter} from "next/dist/client/router";
-import {IsValidNum} from "../../lib/utils";
 
 const useStyles = createUseStyles({
     searchOptionsContainer: {

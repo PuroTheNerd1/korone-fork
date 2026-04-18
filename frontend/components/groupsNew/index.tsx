@@ -394,7 +394,7 @@ const GroupsPage = () => {
                             {
                                 userGroups?.map(ug => {
                                     if (!ug) return null;
-                                    return <NewLink href={`/groups/${ug.group.id}/${encodeURIComponent(ug.group.name)}`}
+                                    return <NewLink key={ug.group.id} href={`/groups/${ug.group.id}/${encodeURIComponent(ug.group.name)}`}
                                                     className={`${s.groupContainer} flex ${ug.group.id === store?.group?.id ? "current" : ""}`}
                                     >
                                         <div className={`${s.userGroupImage}`}>

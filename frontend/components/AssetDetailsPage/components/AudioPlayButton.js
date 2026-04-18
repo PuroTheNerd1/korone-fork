@@ -36,7 +36,7 @@ const useStyles = createUseStyles({
         cursor: 'pointer'
     },
 });
-// TODO: fix and use lat r
+
 /**
  * @param {number} audioId
  * @param {boolean} [small]
@@ -48,14 +48,26 @@ function AudioPlayButton({ audioId, small = false }) {
     const [audioElm, setAudioElm] = useState(/** @type {HTMLAudioElement|null} */(null));
     const [isPlaying, setPlaying] = useState(false);
     const router = useRouter();
-    
-    useEffect(async () => {
-        let audioUrl = await getAudioURL({ audioId });
-        let audio = new Audio(audioUrl);
-        document.body.appendChild(audio);
-        setAudioElm(audio);
-        
-        return () => setAudioElm(null);
+
+    useEffect(() => {
+        let audio = null;
+        let cancelled = false;
+
+        getAudioURL({ audioId }).then(audioUrl => {
+            if (cancelled) return;
+            audio = new Audio(audioUrl);
+            document.body.appendChild(audio);
+            setAudioElm(audio);
+        });
+
+        return () => {
+            cancelled = true;
+            if (audio) {
+                audio.pause();
+                document.body.removeChild(audio);
+            }
+            setAudioElm(null);
+        };
     }, [audioId]);
     
     useEffect(() => {

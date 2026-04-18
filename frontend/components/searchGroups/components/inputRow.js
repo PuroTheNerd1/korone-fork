@@ -60,10 +60,15 @@ const InputRow = () => {
     const store = searchUsersStore.useContainer();
     const s = useStyles();
     const [query, setQuery] = useState('');
+
     useEffect(() => {
         if (store.keyword === query && query !== '') return;
         setQuery(store.keyword);
     }, [store.keyword]);
+
+    const onClick = () => {
+        store.setKeyword(query);
+    }
 
     return <div className={`flex flex-column`}>
         <div className='col-12 col-lg-12'>
@@ -73,8 +78,12 @@ const InputRow = () => {
             <div className={`col-8 col-lg-9 ${s.wrapper}`}>
                 <input disabled={store.locked} value={query} onChange={(e) => {
                     setQuery(e.currentTarget.value);
+                }} onKeyPress={e => {
+                    if (e.key === 'Enter') {
+                        onClick(e);
+                    }
                 }} className={s.searchInput} type='text' placeholder='Search All Groups'/>
-                <SearchIcon />
+                <SearchIcon onClick={onClick} />
             </div>
         </div>
     </div>

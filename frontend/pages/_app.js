@@ -33,6 +33,11 @@ if (typeof window !== 'undefined') {
      Keep your account safe! Do not paste any text here.`);
 }
 
+const Chat = dynamic(() => import('../components/chat'), { ssr: false });
+const Footer = dynamic(() => import('../components/footer'), { ssr: false });
+const Navbar = dynamic(() => import('../components/navbar'), { ssr: false });
+const GlobalAlert = dynamic(() => import('../components/globalAlert'), { ssr: false });
+
 function RobloxApp({Component, pageProps}) {
     // set theme:
     // jss globals apparently don't support parameters/props, so the only way to do a dynamic global style is to either append a <style> element, use setAttribute(), or append a css file.
@@ -67,11 +72,6 @@ function RobloxApp({Component, pageProps}) {
             ChangeVarsForThemeFont(themeFont);
         })();
     }, [pageProps]);
-
-    const Chat = dynamic(() => import('../components/chat'), { ssr: false });
-    const Footer = dynamic(() => import('../components/footer'), { ssr: false });
-    const Navbar = dynamic(() => import('../components/navbar'), { ssr: false });
-    const GlobalAlert = dynamic(() => import('../components/globalAlert'), { ssr: false });
 
     return <div style={pageProps.disableWebsiteTheming ? {minHeight: '100vh'} : null}>
         <Head>
