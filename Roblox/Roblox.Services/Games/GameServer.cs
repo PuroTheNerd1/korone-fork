@@ -32,12 +32,12 @@ public class GameServerService : ServiceBase
             this.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
         }
 
-        private async Task<HttpResponseMessage> PostLimitedAsync(string url, HttpContent content, CancellationToken cancellationToken = default)
+        private async Task<HttpResponseMessage> PostLimitedAsync(string url, HttpContent content)
         {
-            await _semaphore.WaitAsync(cancellationToken);
+            await _semaphore.WaitAsync();
             try
             {
-                return await base.PostAsync(url, content, cancellationToken);
+                return await base.PostAsync(url, content);
             }
             finally
             {
@@ -45,33 +45,33 @@ public class GameServerService : ServiceBase
             }
         }
 
-        public async Task<bool> StartGameServer(StartGameServerRequest request, CancellationToken cancellationToken = default)
+        public async Task<bool> StartGameServer(StartGameServerRequest request)
         {
             var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-            var result = await PostLimitedAsync("start-game-server", content, cancellationToken);
+            var result = await PostLimitedAsync("start-game-server", content);
             return result.IsSuccessStatusCode;
         }
 
-        public async Task<bool> EvictPlayer(EvictPlayerRequest request, CancellationToken cancellationToken = default)
+        public async Task<bool> EvictPlayer(EvictPlayerRequest request)
         {
             var jsonRequest = $"{{ \"gameId\": \"{request.gameId}\", \"userId\": {request.userId}, \"messageVersionId\": {request.messageVersionId} }}";
             var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
 
-            var result = await PostLimitedAsync("evict-player", content, cancellationToken);
+            var result = await PostLimitedAsync("evict-player", content);
             return result.IsSuccessStatusCode;
         }
 
-        public async Task<bool> KillGameServer(KillGameServerRequest request, CancellationToken cancellationToken)
+        public async Task<bool> KillGameServer(KillGameServerRequest request)
         {
             var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-            var result = await PostLimitedAsync("kill-game-server", content, cancellationToken);
+            var result = await PostLimitedAsync("kill-game-server", content);
             return result.IsSuccessStatusCode;
         }
 
-        public async Task<bool> SetFilteringEnabled(SetFilteringEnabledRequest request, CancellationToken cancellationToken = default)
+        public async Task<bool> SetFilteringEnabled(SetFilteringEnabledRequest request)
         {
             var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-            var result = await PostLimitedAsync("set-filtering-enabled", content, cancellationToken);
+            var result = await PostLimitedAsync("set-filtering-enabled", content);
             return result.IsSuccessStatusCode;
         }
         public static SetFilteringEnabledRequest CreateFilteringEnabled(Guid jobId, bool isEnabled)
@@ -147,106 +147,21 @@ public class GameServerService : ServiceBase
         }
     }
 
-    private const string ClientJoinTicketType = "GameJoinTicketV1.1";
-    private const string ServerJoinTicketType = "GameServerTicketV2";
     private static ArbiterHttpClient arbiterClient = new ArbiterHttpClient();
     private static GamesService games = new GamesService();
     private static string jwtKey { get; set; } = string.Empty;
     private static EasyJwt jwt { get; } = new();
-    private static Random RandomComponent = new Random();
-    private static PasswordHasher hasher { get; } = new();
-    private static Dictionary<long, long> gamePlayerCounts = new Dictionary<long, long>(); // placeid, playercount
-    private static Dictionary<string, Process> jobRccs = new Dictionary<string, Process>(); // jobid, rcc process
-    public static Dictionary<string, int> currentGameServerPorts = new Dictionary<string, int>() {}; // networkserver ports, jobid, port
-    private static Dictionary<long, string> currentPlaceIdsInUse = new Dictionary<long, string>(); // placeid, jobid
-    public static ConcurrentDictionary<long, long> CurrentPlayersInGame = new ConcurrentDictionary<long, long>() { }; // userid, placeid
-    public static Dictionary<Process, int> mainRCCPortsInUse = new Dictionary<Process, int>(); // Process, main RCC soap port
-    public static Dictionary<string, int> unreadyGameServers = new Dictionary<string, int>(); // Process, network server port
+    private static Random random = new Random();
+
+    public static ConcurrentDictionary<long, long> currentPlayersInGame = new ConcurrentDictionary<long, long>() { }; // userid, placeid
     public static void Configure(string newJwtKey)
     {
-        jwtKey = "hello world 12345";
-    }
-
-    private string HashIpAddress(string hashedIpAddress)
-    {
-        return hasher.Hash(hashedIpAddress);
-    }
-
-    private bool VerifyIpAddress(string hashedIpAddress, string providedIpAddress)
-    {
-        return hasher.Verify(hashedIpAddress, providedIpAddress);
-    }
-
-    /// <summary>
-    /// Create a ticket for joining a game
-    /// </summary>
-    /// <param name="userId">The ID of the user</param>
-    /// <param name="placeId">The ID of the place</param>
-    /// <param name="ipHash">The IP Address from ControllerBase.GetIP()</param>
-    /// <returns></returns>
-    public string CreateTicket(long userId, long placeId, string ipHash)
-    {
-        var entry = new GameServerJwt
-        {
-            t = ClientJoinTicketType,
-            userId = userId,
-            placeId = placeId,
-            ip = HashIpAddress(ipHash),
-            iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        };
-        return jwt.CreateJwt(entry, jwtKey);
-    }
-
-    public bool IsExpired(long issuedAt)
-    {
-        var createdAt = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(issuedAt);
-        var notExpired = createdAt.Add(TimeSpan.FromMinutes(5)) > DateTime.UtcNow;
-        if (!notExpired)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    public GameServerJwt DecodeTicket(string ticket)
-    {
-        var value = jwt.DecodeJwt<GameServerJwt>(ticket, jwtKey);
-        if (value.t != ClientJoinTicketType) throw new ArgumentException("Invalid ticket");
-        if (IsExpired(value.iat))
-        {
-            throw new ArgumentException("Invalid ticket");
-        }
-        return value;
-    }
-
-    public string CreateGameServerTicket(long placeId, string domain)
-    {
-        var ticket = new GameServerTicketJwt
-        {
-            t = ServerJoinTicketType,
-            placeId = placeId,
-            domain = domain,
-            iat = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        };
-        return jwt.CreateJwt(ticket, jwtKey);
-    }
-
-    public GameServerTicketJwt DecodeGameServerTicket(string ticket)
-    {
-        var value = jwt.DecodeJwt<GameServerTicketJwt>(ticket, jwtKey);
-        if (value.t != ServerJoinTicketType) throw new ArgumentException("Invalid ticket");
-        if (IsExpired(value.iat))
-        {
-            throw new ArgumentException("Invalid ticket");
-        }
-
-        return value;
+        jwtKey = newJwtKey;
     }
 
     public async Task OnPlayerJoin(long userId, long placeId, Guid serverId)
     {
-        CurrentPlayersInGame.AddOrUpdate(userId, placeId, (key, oldValue) => placeId);
+        currentPlayersInGame.AddOrUpdate(userId, placeId, (key, oldValue) => placeId);
         await db.ExecuteAsync(
             "INSERT INTO asset_server_player (asset_id, user_id, server_id) VALUES (:asset_id, :user_id, :server_id::uuid)",
             new
@@ -274,37 +189,8 @@ public class GameServerService : ServiceBase
             // Per 100 users there is a 1 day cooldown to earn tickets from visits
             if (await cooldown.TryIncrementBucketCooldown("TicketCreatorPlaceVisit:" + placeId, 100, TimeSpan.FromDays(1)))
             {
-                if (placeDetails.creatorType == CreatorType.Group)
+                if (placeDetails.creatorType == CreatorType.User)
                 {
-                    await InsertAsync("user_transaction", new
-                    {
-                        amount = 10,
-                        currency_type = CurrencyType.Tickets,
-                        user_id_one = (long?)null,
-                        user_id_two = userId,
-                        group_id_one = placeDetails.creatorTargetId,
-                        type = PurchaseType.PlaceVisit,
-                        // store id of the game as well
-                        asset_id = placeId,
-                    });
-                }
-                else
-                {
-                    if (placeDetails.creatorTargetId == userId)
-                    {
-                        return 0;
-                    }
-                    await ec.IncrementCurrency(CreatorType.User, placeDetails.creatorTargetId, CurrencyType.Tickets, 10);
-                    await InsertAsync("user_transaction", new
-                    {
-                        amount = 10,
-                        currency_type = CurrencyType.Tickets,
-                        user_id_one = placeDetails.creatorTargetId,
-                        user_id_two = userId,
-                        type = PurchaseType.PlaceVisit,
-                        // store id of the game as well
-                        asset_id = placeId,
-                    });
                     /* 
                         Homestead = 6
                         Bricksmith = 7
@@ -348,7 +234,7 @@ public class GameServerService : ServiceBase
 
     public async Task OnPlayerLeave(long userId, long placeId, Guid serverId)
     {
-        CurrentPlayersInGame.TryRemove(userId, out _);
+        currentPlayersInGame.TryRemove(userId, out _);
 
         await db.ExecuteAsync(
             "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
@@ -405,93 +291,22 @@ public class GameServerService : ServiceBase
             });
         }
     }
-
-    // private async Task<T> PostToGameServer<T>(string ipAddress, string port, string methodName, List<dynamic>? args = null, CancellationToken? cancelToken = null)
-    // {
-    //     var jsonRequest = new
-    //     {
-    //         method = methodName,
-    //         arguments = args ?? new List<dynamic>(),
-    //     };
-    //     var content = new StringContent(JsonSerializer.Serialize(jsonRequest));
-    //     content.Headers.Add("roblox-server-authorization", Configuration.GameServerAuthorization);
-    //     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-    //     if (cancelToken == null)
-    //     {
-    //         var source = new CancellationTokenSource();
-    //         source.CancelAfter(TimeSpan.FromSeconds(30));
-    //         cancelToken = source.Token;
-    //     }
-
-    //     var result = await client.PostAsync("http://" + ipAddress + ":" + port + "/api/public-method/", content,
-    //         cancelToken.Value);
-    //     if (!result.IsSuccessStatusCode) throw new Exception("Unexpected statusCode: " + result.StatusCode + "\nIP = " + ipAddress + "\nPort = " + port);
-    //     var response = JsonSerializer.Deserialize<T>(await result.Content.ReadAsStringAsync(cancelToken.Value));
-    //     if (response == null)
-    //     {
-    //         throw new Exception("Null response from PostToGameServer");
-    //     }
-    //     return response;
-    // }
-
-    // public async Task<GameServerInfoResponse?> GetGameServerInfo(string ipAddress, string port)
-    // {
-    //     try
-    //     {
-    //         using var cancelToken = new CancellationTokenSource();
-    //         cancelToken.CancelAfter(TimeSpan.FromSeconds(5));
-    //         return await PostToGameServer<GameServerInfoResponse>(ipAddress, port, "getStatus", default, cancelToken.Token);
-    //     }
-    //     catch (Exception e) when (e is TaskCanceledException or TimeoutException or HttpRequestException)
-    //     {
-    //         return null;
-    //     }
-    // }
-    public async Task KickPlayer(long userId, Guid? jobId = null)
+    public async Task KickPlayer(long userId)
     {
-        try
-        {
-            if (jobId == null)
-            {
-                jobId = await GetJobIdByUserId(userId);
-            }
-
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Error getting jobId for user {userId}: {e.Message}");
-            return;
-        }
-        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId.Value, userId));
+        Guid jobId = await GetJobIdByUserId(userId);
+        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
     }
-    // public async Task StartGame(string ipAddress, string port, long placeId, string gameServerId, int gameServerPort)
-    // {
-    //     await PostToGameServer<GameServerEmptyResponse>(ipAddress, port, "startGame",
-    //         new List<dynamic> {placeId, gameServerId, gameServerPort});
-    // }
+    public async Task KickPlayer(long userId, Guid jobId)
+    {
+        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
+    }
 
     public async Task ShutDownServerAsync(Guid serverId)
     {
         try
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-            {
-                await arbiterClient.KillGameServer(
-                    ArbiterHttpClient.CreateKillGameServerRequest(serverId),
-                    cts.Token);
-            }
+            await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
             await DeleteGameServer(serverId);
-
-            Console.WriteLine($"Gameserver {serverId} was successfully closed in {stopwatch.ElapsedMilliseconds}ms!");
-
-        }
-        catch (OperationCanceledException)
-        {
-            Console.Error.WriteLine($"KillGameServer timed out after 15 seconds for server {serverId}.");
         }
         catch (Exception ex)
         {
@@ -502,44 +317,31 @@ public class GameServerService : ServiceBase
 
     public static void RemoveAllPlayersFromPlaceId(long placeId)
     {
-        List<long> playersToRemove = CurrentPlayersInGame.Where(kvp => kvp.Value == placeId).Select(kvp => kvp.Key).ToList();
+        List<long> playersToRemove = currentPlayersInGame.Where(kvp => kvp.Value == placeId).Select(kvp => kvp.Key).ToList();
 
         foreach (var userId in playersToRemove)
         {
-            CurrentPlayersInGame.TryRemove(userId, out _);
+            currentPlayersInGame.TryRemove(userId, out _);
         }
     }
 
     public static long GetUserPlaceId(long userId) // get user game is in
     {
-        bool isInGame = CurrentPlayersInGame.ContainsKey(userId);
+        bool isInGame = currentPlayersInGame.ContainsKey(userId);
         if (!isInGame)
             return 0;
 
-        return CurrentPlayersInGame[userId];
-    }
-
-    public static long GetPlaceIdByJobId(string jobId)
-    {
-        foreach (var kvp in currentPlaceIdsInUse)
-        {
-            if (kvp.Value == jobId)
-            {
-                return kvp.Key;
-            }
-        }
-
-        return 0; // we never throw exceptions. EVER.
+        return currentPlayersInGame[userId];
     }
 
     public async Task<DateTime> GetLastServerPing(string serverId)
     {
-        var result = await db.QuerySingleOrDefaultAsync("SELECT updated_at FROM asset_server WHERE id = :id::uuid", new
+        var result = await db.QuerySingleOrDefaultAsync<DateTime>("SELECT updated_at FROM asset_server WHERE id = :id::uuid", new
         {
             id = serverId,
         });
 
-        return (DateTime) result.updated_at;
+        return result;
     }
     public async Task<long> GetServerStat(Guid serverId)
     {
@@ -572,207 +374,15 @@ public class GameServerService : ServiceBase
             id = serverId,
         });
     }
-    public async Task SetFilteringEnabled(Guid serverId, bool isEnabled)
-    {
-        await arbiterClient.SetFilteringEnabled(ArbiterHttpClient.CreateFilteringEnabled(serverId, isEnabled));
-    }
+
     public async Task DeleteGameServer(Guid serverId)
     {
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
     }
 
-    private static readonly IEnumerable<int> GameServerPorts = new []
-    {
-        // this must always stay in sync with nginx config file
-        53640, // es1-1
-        53641, // es1-2, etc
-        53642, // 3
-        53643, // 4
-        53644, // 5
-        53645, // 6
-        53646, // 7
-        53647, // 8
-        53648, // 9
-        53649, // 10
-#if false
-        53650,
-        53651,
-        53652,
-        53653,
-        53654,
-        53655,
-#endif
-    };
 
-    private GameServerPort GetPreferredPortForGameServer(IEnumerable<GameServerMultiRunEntry> runningGames)
-    {
-        var games = runningGames.ToList();
-        var ports = GameServerPorts.ToArray();
-        // Find a port that's not in use
-        int port = 0;
-        int id = 0;
-        for (var i = 0; i < ports.Length; i++)
-        {
-            var portOk = games.Find(c => c.port == ports[i]) == null;
-            if (portOk)
-            {
-                port = ports[i];
-                id = i + 1;
-                break;
-            }
-        }
-
-        if (port == 0)
-        {
-            throw new Exception("Cannot find a free port for game server");
-        }
-
-        return new GameServerPort(port, id);
-    }
-
-    private GameServerPort GetPortByPortNumber(int port)
-    {
-        var ports = GameServerPorts.ToArray();
-        for (int i = 0; i < ports.Length; i++)
-        {
-            if (ports[i] == port)
-            {
-                return new GameServerPort(ports[i], i + 1);
-            }
-        }
-
-        throw new ArgumentOutOfRangeException();
-    }
-
-    // public async Task<List<Tuple<GameServerInfoResponse,GameServerConfigEntry>>> GetAllGameServers()
-    // {
-    //     var getServerDataTasks = new List<Task<GameServerInfoResponse?>>();
-    //     foreach (var entry in Configuration.GameServerIpAddresses)
-    //     {
-    //         var data = entry.ip.Split(":");
-    //         var ip = data[0];
-    //         var port = data[1];
-    //         getServerDataTasks.Add(GetGameServerInfo(ip, port));
-    //     }
-
-    //     var getServerDataResults = await Task.WhenAll(getServerDataTasks);
-
-    //     var serverData =getServerDataResults.Select((c, idx) =>
-    //             new Tuple<GameServerInfoResponse?, GameServerConfigEntry>(c, Configuration.GameServerIpAddresses.ToArray()[idx]))
-    //         .Where(v => v.Item1 != null)
-    //         .ToList();
-    //     return serverData!;
-    // }
-/*
-    public async Task<GameServerGetOrCreateResponse> GetServerForPlaceV2(long placeId, long year)
-    {
-        await using var serverCreationLock = await Cache.redLock.CreateLockAsync("CreateGameServerV1", TimeSpan.FromSeconds(30));
-        if (!serverCreationLock.IsAcquired)
-            return new GameServerGetOrCreateResponse
-            {
-                status = JoinStatus.Waiting,
-            };
-
-        var serverData = await GetAllGameServers();
-
-        long maxPlayerCount;
-        using (var gs = ServiceProvider.GetOrCreate<GamesService>())
-        {
-            maxPlayerCount = await gs.GetMaxPlayerCount(placeId);
-        }
-        // First, try to see if this game is already running. If it is, we should make the player join that.
-        foreach (var (serverInfo, entry) in serverData)
-        {
-            var runningGames = serverInfo!.data.ToList();
-            var runningPlaces = runningGames.ToArray();
-            if (runningPlaces.Length == 0) continue;
-            foreach (var runningPlace in runningPlaces)
-            {
-                // check if this is the right place
-                if (runningPlace.placeId != placeId)
-                    continue;
-                // check if server has too many players
-                var currentPlayerCount = await GetGameServerPlayers(runningPlace.id);
-                if (currentPlayerCount.Count() >= maxPlayerCount)
-                    continue;
-                // We found a good place! Tell them to join...
-                var joinUrl = GetPortByPortNumber(runningPlace.port).ApplyIdToUrl(entry.domain);
-                Writer.Info(LogGroup.GameServerJoin, "Found a good place! placeId = {0} port = {1} url = {2}", placeId, runningPlace.port, joinUrl);
-                return new()
-                {
-                    status = JoinStatus.Joining,
-                    job = CreateGameServerTicket(placeId, joinUrl),
-                };
-            }
-        }
-        // Sort by least loaded
-        serverData = serverData.Where(a => a.Item1 != null && a.Item1.data != null).ToList();
-        serverData.Sort((a, b) =>
-        {
-            var cOne = a.Item1!.data.Count();
-            var cTwo = b.Item1!.data.Count();
-            return cOne > cTwo ? 1 : cOne == cTwo ? 0 : -1;
-        });
-        Writer.Info(LogGroup.GameServerJoin, "Least loaded server is {0} with {1} games running", serverData[0].Item2.ip, serverData[0].Item1!.data.Count());
-        foreach (var (serverInfo, entry) in serverData)
-        {
-
-            string ip = "85.125.186.154";
-
-            int mainRCCPort = RandomComponent.Next(30000, 40000);
-            int networkServerPort = RandomComponent.Next(50000, 60000);
-            var runningCount = serverInfo!.data.Count();
-            if (runningCount >= entry.maxServerCount)
-            {
-                Writer.Info(LogGroup.GameServerJoin, "cannot start server on {0} since it has too many games running ({1} vs {2})", entry.ip, runningCount, entry.maxServerCount);
-                continue;
-            }
-            // Create the server
-            var id = Guid.NewGuid().ToString();
-            var gamePort = GetPreferredPortForGameServer(serverInfo.data);
-            await db.ExecuteAsync(
-                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection)",
-                new
-                {
-                    id,
-                    asset_id = placeId,
-                    ip,
-                    networkServerPort,
-                    server_connection = $"{ip}:{networkServerPort}", // ip:port
-                });
-            try
-            {
-                var watch = new Stopwatch();
-                watch.Start();
-                await StartGameServer(placeId, mainRCCPort, networkServerPort, id, year, 43200);
-                //await StartGame(ip, port, placeId, id, gamePort.port);
-                watch.Stop();
-                //GameMetrics.ReportTimeToStartGameServer(ip, mainRCCPort, watch.ElapsedMilliseconds);
-            }
-            catch (Exception e)
-            {
-                await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id});
-                throw new Exception("Cannot start game server", e);
-            }
-
-            Writer.Info(LogGroup.GameServerJoin, "Created server for {0} at {1}:{2}. Join url = {3}", placeId, entry.domain, gamePort.port, gamePort.ApplyIdToUrl(entry.domain));
-
-            return new()
-            {
-                status = JoinStatus.Joining,
-                job = CreateGameServerTicket(placeId, gamePort.ApplyIdToUrl(entry.domain)),
-            };
-        }
-
-        // Default
-        return new()
-        {
-            status = JoinStatus.Waiting,
-        };
-    }
-*/
-
+   
     public async Task<Guid> GetJobIdByUserId(long userId)
     {
         var result = await db.QueryFirstOrDefaultAsync<Guid?>("SELECT server_id FROM asset_server_player WHERE user_id = :userId", new
@@ -780,7 +390,7 @@ public class GameServerService : ServiceBase
             userId
         });
 
-        return result ?? throw new RecordNotFoundException();
+        return result ?? throw new RecordNotFoundException("User not found in a job");
     }
     public async Task<GameServerDb> GetGameServer(Guid jobId)
     {
@@ -833,13 +443,7 @@ public class GameServerService : ServiceBase
                 await ShutDownServerAsync(server.id);
                 continue;
             }
-            // removal of load balancing because im a retard :P Fuck dude i hate my life I wish i knew math and other shit lol
-            //if ((gameServers.Count() % 2 == 0 || gameServers.Count() == 1) &&
-            //    placeInfo.maxPlayerCount >= currentPlayerCount &&
-            //    currentPlayerCount >= (placeInfo.maxPlayerCount / 2))
-            //{
-            //    break;
-            //}
+
             if (currentPlayerCount >= placeInfo.maxPlayerCount)
             {
                 continue;
@@ -854,13 +458,13 @@ public class GameServerService : ServiceBase
             };
         }
 
-        int mainRCCPort = RandomComponent.Next(30000, 40000);
-        int networkServerPort =  RandomComponent.Next(50000, 60000);;
+        int mainRCCPort = random.Next(30000, 40000);
+        int networkServerPort =  random.Next(50000, 60000);;
         int proxyPort = 0;
         do
         {
             await Task.Delay(100);
-            proxyPort = RandomComponent.Next(7000, 8000);
+            proxyPort = random.Next(7000, 8000);
             if (!await IsPortTaken(proxyPort))
                 break;
             
@@ -913,52 +517,8 @@ public class GameServerService : ServiceBase
 
     public async Task<bool> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
     {
-        Console.WriteLine("Starting Gameserver");
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
         return await arbiterClient.StartGameServer(request);
-    }
-
-    [Obsolete]
-    public async Task DeleteOldGameServers()
-    {
-        // first part, do game servers
-        var serversToDelete = (await db.QueryAsync<GameServerEntry>("SELECT id::uuid, asset_id as assetId FROM asset_server WHERE updated_at <= :t", new
-        {
-            t = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(2)),
-        })).ToList();
-        Console.WriteLine("[info] there are {0} bad servers", serversToDelete.Count);
-        foreach (var server in serversToDelete)
-        {
-            var players = await GetGameServerPlayers(server.id);
-            foreach (var player in players)
-            {
-                await OnPlayerLeave(player.userId, server.assetId, server.id);
-            }
-            Console.WriteLine("[info] deleting server {0}", server.id);
-            await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new
-            {
-                id = server.id,
-            });
-            //Console.WriteLine("deleted from db line 706 deleteoldgameservers");
-            await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new
-            {
-                id = server.id,
-            });
-        }
-        // second part, do game server players
-        // this is so ugly jeez
-        var orphanedPlayers =
-            await db.QueryAsync(
-                "SELECT s.id, p.server_id FROM asset_server_player p LEFT JOIN asset_server s ON s.id = p.server_id WHERE s.id IS NULL");
-        foreach (var deadbeatDad in orphanedPlayers.Select(c => ((Guid) c.server_id).ToString()).Distinct())
-        {
-            Console.WriteLine("[info] deleting all orphans for serverId = {0}",deadbeatDad);
-            await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new
-            {
-                id = deadbeatDad,
-            });
-            Console.WriteLine("deleted from db line 724 DeleteOldGameServers");
-        }
     }
 
     public async Task<IEnumerable<GameServerPlayer>> GetGameServerPlayers(Guid serverId)
@@ -987,35 +547,5 @@ public class GameServerService : ServiceBase
         return result;
     }
 
-    static Task WaitForPort(int RCCPort)
-    {
-        while (true)
-        {
-            try
-            {
-                using (TcpClient client = new TcpClient())
-                {
-                    client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
-                    //Console.WriteLine("did not find port");
-                    break;
-                }
-            }
-            catch (SocketException)
-            {
-                Thread.Sleep(0);
-            }
-        }
-        //Console.WriteLine($"found port: {RCCPort}");
-        return Task.CompletedTask;
-    }
-    public async Task<IEnumerable<GameServerEntry>> GetGamesUserIsPlaying(long userId)
-    {
-       return await db.QueryAsync<GameServerEntry>(
-            "SELECT s.id::uuid, s.asset_id as assetId FROM asset_server_player p INNER JOIN asset_server s ON s.id = p.server_id WHERE p.user_id = :id",
-            new
-            {
-                id = userId,
-            });
-    }
 
 }
