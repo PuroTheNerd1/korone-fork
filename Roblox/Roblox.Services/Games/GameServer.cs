@@ -417,12 +417,12 @@ public class GameServerService : ServiceBase
 
     public async Task<DateTime> GetLastServerPing(string serverId)
     {
-        var result = await db.QuerySingleOrDefaultAsync("SELECT updated_at FROM asset_server WHERE id = :id::uuid", new
+        var result = await db.QuerySingleOrDefaultAsync<DateTime>("SELECT updated_at FROM asset_server WHERE id = :id::uuid", new
         {
             id = serverId,
         });
 
-        return (DateTime) result.updated_at;
+        return result;
     }
     public async Task<long> GetServerStat(Guid serverId)
     {
