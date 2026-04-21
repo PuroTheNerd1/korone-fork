@@ -152,12 +152,11 @@ public class GameServerService : ServiceBase
     private static string jwtKey { get; set; } = string.Empty;
     private static EasyJwt jwt { get; } = new();
     private static Random random = new Random();
-    private static PasswordHasher hasher { get; } = new();
 
     public static ConcurrentDictionary<long, long> currentPlayersInGame = new ConcurrentDictionary<long, long>() { }; // userid, placeid
     public static void Configure(string newJwtKey)
     {
-        jwtKey = "hello world 12345";
+        jwtKey = newJwtKey;
     }
 
     public async Task OnPlayerJoin(long userId, long placeId, Guid serverId)
@@ -455,10 +454,7 @@ public class GameServerService : ServiceBase
             id = serverId,
         });
     }
-    public async Task SetFilteringEnabled(Guid serverId, bool isEnabled)
-    {
-        await arbiterClient.SetFilteringEnabled(ArbiterHttpClient.CreateFilteringEnabled(serverId, isEnabled));
-    }
+
     public async Task DeleteGameServer(Guid serverId)
     {
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
