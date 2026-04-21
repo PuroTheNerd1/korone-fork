@@ -189,7 +189,6 @@ public class GameServerService : ServiceBase
             // Per 100 users there is a 1 day cooldown to earn tickets from visits
             if (await cooldown.TryIncrementBucketCooldown("TicketCreatorPlaceVisit:" + placeId, 100, TimeSpan.FromDays(1)))
             {
-
                 if (placeDetails.creatorType == CreatorType.User)
                 {
                     /* 
@@ -292,65 +291,14 @@ public class GameServerService : ServiceBase
             });
         }
     }
-
-    // private async Task<T> PostToGameServer<T>(string ipAddress, string port, string methodName, List<dynamic>? args = null, CancellationToken? cancelToken = null)
-    // {
-    //     var jsonRequest = new
-    //     {
-    //         method = methodName,
-    //         arguments = args ?? new List<dynamic>(),
-    //     };
-    //     var content = new StringContent(JsonSerializer.Serialize(jsonRequest));
-    //     content.Headers.Add("roblox-server-authorization", Configuration.GameServerAuthorization);
-    //     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-    //     if (cancelToken == null)
-    //     {
-    //         var source = new CancellationTokenSource();
-    //         source.CancelAfter(TimeSpan.FromSeconds(30));
-    //         cancelToken = source.Token;
-    //     }
-
-    //     var result = await client.PostAsync("http://" + ipAddress + ":" + port + "/api/public-method/", content,
-    //         cancelToken.Value);
-    //     if (!result.IsSuccessStatusCode) throw new Exception("Unexpected statusCode: " + result.StatusCode + "\nIP = " + ipAddress + "\nPort = " + port);
-    //     var response = JsonSerializer.Deserialize<T>(await result.Content.ReadAsStringAsync(cancelToken.Value));
-    //     if (response == null)
-    //     {
-    //         throw new Exception("Null response from PostToGameServer");
-    //     }
-    //     return response;
-    // }
-
-    // public async Task<GameServerInfoResponse?> GetGameServerInfo(string ipAddress, string port)
-    // {
-    //     try
-    //     {
-    //         using var cancelToken = new CancellationTokenSource();
-    //         cancelToken.CancelAfter(TimeSpan.FromSeconds(5));
-    //         return await PostToGameServer<GameServerInfoResponse>(ipAddress, port, "getStatus", default, cancelToken.Token);
-    //     }
-    //     catch (Exception e) when (e is TaskCanceledException or TimeoutException or HttpRequestException)
-    //     {
-    //         return null;
-    //     }
-    // }
-    public async Task KickPlayer(long userId, Guid? jobId = null)
+    public async Task KickPlayer(long userId)
     {
-        try
-        {
-            if (jobId == null)
-            {
-                jobId = await GetJobIdByUserId(userId);
-            }
-
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Error getting jobId for user {userId}: {e.Message}");
-            return;
-        }
-        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId.Value, userId));
+        Guid jobId = await GetJobIdByUserId(userId);
+        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
+    }
+    public async Task KickPlayer(long userId, Guid jobId)
+    {
+        await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
     }
 
     public async Task ShutDownServerAsync(Guid serverId)
@@ -490,7 +438,7 @@ public class GameServerService : ServiceBase
             userId
         });
 
-        return result ?? throw new RecordNotFoundException();
+        return result ?? throw new RecordNotFoundException("User not found in a job");
     }
     public async Task<GameServerDb> GetGameServer(Guid jobId)
     {
