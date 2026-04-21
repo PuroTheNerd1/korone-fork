@@ -466,28 +466,6 @@ public class GamesService : ServiceBase, IService
         return result.Select(c => (long) c.asset_id).Distinct().Take(limit);
     }
 
-    public static int GetPlayerCount(long placeId)
-    {
-        /*var query = await db.QuerySingleOrDefaultAsync<Total>(
-            "select count(*) as total FROM asset_server_player WHERE asset_server_player.asset_id = :id", new
-            {
-                id = placeId,
-            });
-            */
-        //return query.total;
-        // new code
-        int count = 0;
-        foreach (var kvp in GameServerService.CurrentPlayersInGame)
-        {
-            if (kvp.Value == placeId)
-            {
-                count = count + 1;
-            }
-        }
-
-        return count;
-    }
-
     public async Task<int> GetVisitCount(long placeId)
     {
         var query = await db.QuerySingleOrDefaultAsync<Total>(
