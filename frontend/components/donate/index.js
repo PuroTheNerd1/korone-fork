@@ -13,25 +13,22 @@ const DONATION_TIERS = [
 
 const PAYMENT_METHODS = [
     {
-        name: 'Ko-Fi',
-        value: 'ko-fi.com/oldroblox',
-        url: 'https://ko-fi.com/oldroblox',
+        name: 'Stripe',
+        value: 'donate.stripe.com',
+        url: 'https://donate.stripe.com/8x2bJ1dVY117bf24UU9EI03',
         note: null,
-        supportsMonthly: true,
     },
     {
         name: 'CashApp',
         value: '$strainn0001',
         url: 'https://cash.app/$strainn0001',
         note: null,
-        supportsMonthly: false,
     },
     {
         name: 'PayPal',
         value: '@koronezip',
         url: 'https://paypal.me/koronezip',
-        note: 'Friends & Family Only — open a support ticket to use this.',
-        supportsMonthly: false,
+        note: 'Friends & Family Only',
     },
 ];
 
@@ -56,35 +53,6 @@ const useStyles = createUseStyles({
         maxWidth: '640px',
         margin: '0 auto',
         lineHeight: 1.5,
-    },
-    toggleWrap: {
-        display: 'flex',
-        justifyContent: 'center',
-        marginBottom: '28px',
-    },
-    toggleGroup: {
-        display: 'inline-flex',
-        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#2a2a2a' : '#e5e5e5',
-        borderRadius: '999px',
-        padding: '4px',
-    },
-    toggleButton: {
-        border: 'none',
-        background: 'transparent',
-        padding: '6px 22px',
-        fontSize: '14px',
-        fontWeight: 500,
-        borderRadius: '999px',
-        cursor: 'pointer',
-        color: 'var(--text-color-primary)',
-        transition: 'background 150ms ease, color 150ms ease',
-    },
-    toggleButtonActive: {
-        background: 'var(--primary-color)',
-        color: 'white',
-        '&:hover': {
-            background: 'var(--primary-color-hover)',
-        },
     },
     grid: {
         display: 'grid',
@@ -345,7 +313,6 @@ const getTimeUntilNextMonth = () => {
 };
 
 const Donate = () => {
-    const [cadence, setCadence] = useState('onetime');
     const [thumbs, setThumbs] = useState({});
     const [countdown, setCountdown] = useState(getTimeUntilNextMonth);
     const s = useStyles({ theme: getTheme() });
@@ -370,9 +337,6 @@ const Donate = () => {
             })
             .catch(() => {});
     }, []);
-
-    const cadenceLabel = cadence === 'monthly' ? '/ month' : 'one-time';
-    const roleName = cadence === 'monthly' ? 'Monthly Donator' : 'Donator';
 
     return <div className={`container ${s.wrapper}`}>
         <div className={s.hero}>
@@ -410,25 +374,6 @@ const Donate = () => {
             </div>
         </div>
 
-        <div className={s.toggleWrap}>
-            <div className={s.toggleGroup}>
-                <button
-                    type='button'
-                    className={`${s.toggleButton} ${cadence === 'onetime' ? s.toggleButtonActive : ''}`}
-                    onClick={() => setCadence('onetime')}
-                >
-                    One-Time
-                </button>
-                <button
-                    type='button'
-                    className={`${s.toggleButton} ${cadence === 'monthly' ? s.toggleButtonActive : ''}`}
-                    onClick={() => setCadence('monthly')}
-                >
-                    Monthly
-                </button>
-            </div>
-        </div>
-
         <div className={s.grid}>
             {DONATION_TIERS.map(tier => {
                 const thumb = thumbs[tier.assetId] || '/img/placeholder.png';
@@ -448,7 +393,6 @@ const Donate = () => {
                         <img src={thumb} alt={`$${tier.amount} donation item`} className={s.thumb}/>
                     </div>
                     <p className={s.amount}>${tier.amount}</p>
-                    <p className={s.cadence}>{cadenceLabel}</p>
                     <div className={s.ctaRow}>Donate ${tier.amount}</div>
                 </a>;
             })}
@@ -464,8 +408,7 @@ const Donate = () => {
                 <div className={s.perkItem}>
                     <span className={s.perkBadge}>Discord</span>
                     <p className={s.perkText}>
-                        Get the <strong>{roleName}</strong> role in the Korone Discord server
-                        {cadence === 'monthly' ? ' for as long as your monthly donation is active.' : ' permanently.'}
+                        Get the <strong>Donator</strong> role in the Korone Discord server permanently.
                     </p>
                 </div>
             </div>
@@ -474,7 +417,7 @@ const Donate = () => {
         <div className={s.section}>
             <h2 className={s.sectionTitle}>Payment Methods</h2>
             <div className={s.paymentGrid}>
-                {PAYMENT_METHODS.filter(m => cadence === 'onetime' || m.supportsMonthly).map(method => (
+                {PAYMENT_METHODS.map(method => (
                     <div key={method.name} className={s.paymentCard}>
                         <p className={s.paymentName}>{method.name}</p>
                         <a
