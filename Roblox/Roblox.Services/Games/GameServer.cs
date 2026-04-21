@@ -189,37 +189,9 @@ public class GameServerService : ServiceBase
             // Per 100 users there is a 1 day cooldown to earn tickets from visits
             if (await cooldown.TryIncrementBucketCooldown("TicketCreatorPlaceVisit:" + placeId, 100, TimeSpan.FromDays(1)))
             {
-                if (placeDetails.creatorType == CreatorType.Group)
+
+                if (placeDetails.creatorType == CreatorType.User)
                 {
-                    await InsertAsync("user_transaction", new
-                    {
-                        amount = 10,
-                        currency_type = CurrencyType.Tickets,
-                        user_id_one = (long?)null,
-                        user_id_two = userId,
-                        group_id_one = placeDetails.creatorTargetId,
-                        type = PurchaseType.PlaceVisit,
-                        // store id of the game as well
-                        asset_id = placeId,
-                    });
-                }
-                else
-                {
-                    if (placeDetails.creatorTargetId == userId)
-                    {
-                        return 0;
-                    }
-                    await ec.IncrementCurrency(CreatorType.User, placeDetails.creatorTargetId, CurrencyType.Tickets, 10);
-                    await InsertAsync("user_transaction", new
-                    {
-                        amount = 10,
-                        currency_type = CurrencyType.Tickets,
-                        user_id_one = placeDetails.creatorTargetId,
-                        user_id_two = userId,
-                        type = PurchaseType.PlaceVisit,
-                        // store id of the game as well
-                        asset_id = placeId,
-                    });
                     /* 
                         Homestead = 6
                         Bricksmith = 7
