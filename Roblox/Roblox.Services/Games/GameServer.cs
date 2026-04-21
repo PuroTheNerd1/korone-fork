@@ -381,54 +381,6 @@ public class GameServerService : ServiceBase
         await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
     }
 
-    private static readonly IEnumerable<int> GameServerPorts = new []
-    {
-        // this must always stay in sync with nginx config file
-        53640, // es1-1
-        53641, // es1-2, etc
-        53642, // 3
-        53643, // 4
-        53644, // 5
-        53645, // 6
-        53646, // 7
-        53647, // 8
-        53648, // 9
-        53649, // 10
-#if false
-        53650,
-        53651,
-        53652,
-        53653,
-        53654,
-        53655,
-#endif
-    };
-
-    private GameServerPort GetPreferredPortForGameServer(IEnumerable<GameServerMultiRunEntry> runningGames)
-    {
-        var games = runningGames.ToList();
-        var ports = GameServerPorts.ToArray();
-        // Find a port that's not in use
-        int port = 0;
-        int id = 0;
-        for (var i = 0; i < ports.Length; i++)
-        {
-            var portOk = games.Find(c => c.port == ports[i]) == null;
-            if (portOk)
-            {
-                port = ports[i];
-                id = i + 1;
-                break;
-            }
-        }
-
-        if (port == 0)
-        {
-            throw new Exception("Cannot find a free port for game server");
-        }
-
-        return new GameServerPort(port, id);
-    }
 
    
     public async Task<Guid> GetJobIdByUserId(long userId)
@@ -491,13 +443,7 @@ public class GameServerService : ServiceBase
                 await ShutDownServerAsync(server.id);
                 continue;
             }
-            // removal of load balancing because im a retard :P Fuck dude i hate my life I wish i knew math and other shit lol
-            //if ((gameServers.Count() % 2 == 0 || gameServers.Count() == 1) &&
-            //    placeInfo.maxPlayerCount >= currentPlayerCount &&
-            //    currentPlayerCount >= (placeInfo.maxPlayerCount / 2))
-            //{
-            //    break;
-            //}
+
             if (currentPlayerCount >= placeInfo.maxPlayerCount)
             {
                 continue;
@@ -571,52 +517,8 @@ public class GameServerService : ServiceBase
 
     public async Task<bool> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
     {
-        Console.WriteLine("Starting Gameserver");
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
         return await arbiterClient.StartGameServer(request);
-    }
-
-    [Obsolete]
-    public async Task DeleteOldGameServers()
-    {
-        // first part, do game servers
-        var serversToDelete = (await db.QueryAsync<GameServerEntry>("SELECT id::uuid, asset_id as assetId FROM asset_server WHERE updated_at <= :t", new
-        {
-            t = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(2)),
-        })).ToList();
-        Console.WriteLine("[info] there are {0} bad servers", serversToDelete.Count);
-        foreach (var server in serversToDelete)
-        {
-            var players = await GetGameServerPlayers(server.id);
-            foreach (var player in players)
-            {
-                await OnPlayerLeave(player.userId, server.assetId, server.id);
-            }
-            Console.WriteLine("[info] deleting server {0}", server.id);
-            await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new
-            {
-                id = server.id,
-            });
-            //Console.WriteLine("deleted from db line 706 deleteoldgameservers");
-            await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new
-            {
-                id = server.id,
-            });
-        }
-        // second part, do game server players
-        // this is so ugly jeez
-        var orphanedPlayers =
-            await db.QueryAsync(
-                "SELECT s.id, p.server_id FROM asset_server_player p LEFT JOIN asset_server s ON s.id = p.server_id WHERE s.id IS NULL");
-        foreach (var deadbeatDad in orphanedPlayers.Select(c => ((Guid) c.server_id).ToString()).Distinct())
-        {
-            Console.WriteLine("[info] deleting all orphans for serverId = {0}",deadbeatDad);
-            await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new
-            {
-                id = deadbeatDad,
-            });
-            Console.WriteLine("deleted from db line 724 DeleteOldGameServers");
-        }
     }
 
     public async Task<IEnumerable<GameServerPlayer>> GetGameServerPlayers(Guid serverId)
@@ -645,35 +547,5 @@ public class GameServerService : ServiceBase
         return result;
     }
 
-    static Task WaitForPort(int RCCPort)
-    {
-        while (true)
-        {
-            try
-            {
-                using (TcpClient client = new TcpClient())
-                {
-                    client.Connect(IPAddress.Parse("127.0.0.1"), RCCPort);
-                    //Console.WriteLine("did not find port");
-                    break;
-                }
-            }
-            catch (SocketException)
-            {
-                Thread.Sleep(0);
-            }
-        }
-        //Console.WriteLine($"found port: {RCCPort}");
-        return Task.CompletedTask;
-    }
-    public async Task<IEnumerable<GameServerEntry>> GetGamesUserIsPlaying(long userId)
-    {
-       return await db.QueryAsync<GameServerEntry>(
-            "SELECT s.id::uuid, s.asset_id as assetId FROM asset_server_player p INNER JOIN asset_server s ON s.id = p.server_id WHERE p.user_id = :id",
-            new
-            {
-                id = userId,
-            });
-    }
 
 }
