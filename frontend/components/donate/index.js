@@ -4,24 +4,18 @@ import { getTheme, themeType } from "../../services/theme";
 
 const BASE_URL = 'https://www.pekora.zip';
 
-const DONATION_TIERS = [
+const tiers = [
     { amount: 5, assetId: 518724 },
     { amount: 25, assetId: 518780 },
     { amount: 50, assetId: 518806 },
     { amount: 100, assetId: 518744 },
 ];
 
-const PAYMENT_METHODS = [
+const paymentMethods = [
     {
         name: 'Stripe',
-        value: 'donate.stripe.com',
-        url: 'https://donate.stripe.com/8x2bJ1dVY117bf24UU9EI03',
-        note: null,
-    },
-    {
-        name: 'CashApp',
-        value: '$strainn0001',
-        url: 'https://cash.app/$strainn0001',
+        value: null,
+        url: '/donate/stripe',
         note: null,
     },
     {
@@ -29,6 +23,29 @@ const PAYMENT_METHODS = [
         value: '@koronezip',
         url: 'https://paypal.me/koronezip',
         note: 'Friends & Family Only',
+    },
+];
+
+const cryptoMethods = [
+    {
+        name: 'Ethereum',
+        ticker: 'ETH',
+        address: '0xE4283B453182E4514b1e7Cf1de12d71cc726b3F8',
+    },
+    {
+        name: 'Bitcoin',
+        ticker: 'BTC',
+        address: 'bc1qpwkvukjucw4j488d228pc3yhephfjp9l47q5ju',
+    },
+    {
+        name: 'Litecoin',
+        ticker: 'LTC',
+        address: 'LgkgqhFd1zLHAe7kymV472RssjXWy1tYgg',
+    },
+    {
+        name: 'Solana',
+        ticker: 'SOL',
+        address: '1EjmdfgcjNgD7sNv4mQ6SKvX51iBw2z8wJLpDgPmf9P',
     },
 ];
 
@@ -239,6 +256,66 @@ const useStyles = createUseStyles({
         fontStyle: 'italic',
         lineHeight: 1.4,
     },
+    cryptoGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '14px',
+        '@media(max-width: 767px)': {
+            gridTemplateColumns: '1fr',
+        },
+    },
+    cryptoCard: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
+        borderRadius: '6px',
+        boxShadow: '0 1px 3px rgba(25, 25, 25, 0.15)',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    cryptoName: {
+        fontSize: '16px',
+        fontWeight: 700,
+        color: 'var(--text-color-primary)',
+        margin: 0,
+        marginBottom: '8px',
+    },
+    cryptoTicker: {
+        color: 'var(--text-color-secondary)',
+        fontWeight: 400,
+        fontSize: '13px',
+        marginLeft: '6px',
+    },
+    cryptoAddress: {
+        fontFamily: 'monospace',
+        fontSize: '13px',
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#2a2a2a' : '#f4f4f4',
+        color: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#e0e0e0' : '#222',
+        borderRadius: '4px',
+        padding: '8px 12px',
+        wordBreak: 'break-all',
+        cursor: 'pointer',
+        border: '1px solid transparent',
+        transition: 'border-color 150ms ease, background 150ms ease',
+        userSelect: 'none',
+        '&:hover': {
+            borderColor: 'var(--primary-color)',
+        },
+    },
+    cryptoAddressCopied: {
+        fontFamily: 'monospace',
+        fontSize: '13px',
+        background: 'var(--primary-color)',
+        color: 'white',
+        borderRadius: '4px',
+        padding: '8px 12px',
+        wordBreak: 'break-all',
+        cursor: 'pointer',
+        border: '1px solid transparent',
+        transition: 'border-color 150ms ease, background 150ms ease',
+        userSelect: 'none',
+        textAlign: 'center',
+        fontStyle: 'italic',
+    },
     disclaimer: {
         textAlign: 'center',
         marginTop: '28px',
@@ -312,6 +389,27 @@ const getTimeUntilNextMonth = () => {
     return { days, hours, minutes, seconds };
 };
 
+const CryptoAddress = ({ address, styles }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleClick = () => {
+        navigator.clipboard.writeText(address).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1000);
+        });
+    };
+
+    return (
+        <div
+            className={copied ? styles.cryptoAddressCopied : styles.cryptoAddress}
+            onClick={handleClick}
+            title="Click to copy"
+        >
+            {copied ? 'Copied to clipboard!' : address}
+        </div>
+    );
+};
+
 const Donate = () => {
     const [thumbs, setThumbs] = useState({});
     const [countdown, setCountdown] = useState(getTimeUntilNextMonth);
@@ -323,7 +421,7 @@ const Donate = () => {
     }, []);
 
     useEffect(() => {
-        const ids = DONATION_TIERS.map(t => t.assetId).join(',');
+        const ids = tiers.map(t => t.assetId).join(',');
         fetch(`${BASE_URL}/apisite/thumbnails/v1/assets?assetIds=${ids}`)
             .then(r => r.json())
             .then(json => {
@@ -360,7 +458,7 @@ const Donate = () => {
                     <p className={s.countdownUnitLabel}>Days</p>
                 </div>
                 <div className={s.countdownUnit}>
-                    <p className={s.countdownValue}>{String(countdown.hours).padStart(2, '0')}</p>
+                    <p className={s.countdownValue}>{String(countdown.hours).padStart(2, '00')}</p>
                     <p className={s.countdownUnitLabel}>Hours</p>
                 </div>
                 <div className={s.countdownUnit}>
@@ -375,7 +473,7 @@ const Donate = () => {
         </div>
 
         <div className={s.grid}>
-            {DONATION_TIERS.map(tier => {
+            {tiers.map(tier => {
                 const thumb = thumbs[tier.assetId] || '/img/placeholder.png';
                 const itemUrl = `${BASE_URL}/catalog/${tier.assetId}/--`;
                 return <a
@@ -417,18 +515,47 @@ const Donate = () => {
         <div className={s.section}>
             <h2 className={s.sectionTitle}>Payment Methods</h2>
             <div className={s.paymentGrid}>
-                {PAYMENT_METHODS.map(method => (
+                {paymentMethods.map(method => (
                     <div key={method.name} className={s.paymentCard}>
-                        <p className={s.paymentName}>{method.name}</p>
-                        <a
-                            href={method.url}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className={s.paymentLink}
-                        >
-                            {method.value}
-                        </a>
+                        {method.value === null ? (
+                            <a
+                                href={method.url}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className={s.paymentName}
+                                style={{ textDecoration: 'none', cursor: 'pointer' }}
+                            >
+                                {method.name}
+                            </a>
+                        ) : (
+                            <>
+                                <p className={s.paymentName}>{method.name}</p>
+                                <a
+                                    href={method.url}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    className={s.paymentLink}
+                                >
+                                    {method.value}
+                                </a>
+                            </>
+                        )}
                         {method.note && <p className={s.paymentNote}>{method.note}</p>}
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        <div className={s.section}>
+            <h2 className={s.sectionTitle}>Cryptocurrency</h2>
+            <div className={s.cryptoGrid}>
+                {cryptoMethods.map(coin => (
+                    <div key={coin.ticker} className={s.cryptoCard}>
+                        <p className={s.cryptoName}>
+                            {coin.name}
+                            <span className={s.cryptoTicker}>{coin.ticker}</span>
+                        </p>
+                        <CryptoAddress address={coin.address} styles={s} />
                     </div>
                 ))}
             </div>
