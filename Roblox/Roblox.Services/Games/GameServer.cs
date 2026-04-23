@@ -458,20 +458,6 @@ public class GameServerService : ServiceBase
             };
         }
 
-        int mainRCCPort = random.Next(30000, 40000);
-        int networkServerPort =  random.Next(50000, 60000);;
-        int proxyPort = 0;
-        do
-        {
-            await Task.Delay(100);
-            proxyPort = random.Next(7000, 8000);
-            if (!await IsPortTaken(proxyPort))
-                break;
-            
-        } while (true);
-
-        Guid jobId = Guid.NewGuid();
-
         // We need to create a lock to prevent multiple requests from creating the same game server
         using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(10));
         if (!serverCreationLock.IsAcquired)
@@ -481,6 +467,22 @@ public class GameServerService : ServiceBase
                 status = JoinStatus.Loading,
             };
         }
+
+        int mainRCCPort = random.Next(30000, 40000);
+        int networkServerPort = random.Next(20000, 30000); 
+        int proxyPort = 0;
+        do
+        {
+            await Task.Delay(100);
+            proxyPort = random.Next(50000, 60000);
+            if (!await IsPortTaken(proxyPort))
+                break;
+            
+        } while (true);
+
+        Guid jobId = Guid.NewGuid();
+
+
 
 
         if (await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking))
