@@ -1936,22 +1936,16 @@ span.game-privacy-symbol.gps-active {
 	width: 20px;
 	height: 20px;
 	vertical-align: middle;
-	-webkit-mask-image: url('/img/icons/download.svg');
-	        mask-image: url('/img/icons/download.svg');
-	-webkit-mask-size: contain;
-	        mask-size: contain;
-	-webkit-mask-repeat: no-repeat;
-	        mask-repeat: no-repeat;
-	-webkit-mask-position: center;
-	        mask-position: center;
-	background-color: var(--text-color-primary);
-	filter: none !important;
+	background-image: url('/img/icons/download.svg');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
 }
 
 .hover-icon-nav-download:hover .icon-nav-download,
 a:hover .icon-nav-download,
 button:hover .icon-nav-download {
-	background-color: #f68802;
+	filter: invert(53%) sepia(98%) saturate(400%) hue-rotate(1deg) brightness(105%) contrast(95%);
 }
 
 .hover-icon-nav-download:hover {

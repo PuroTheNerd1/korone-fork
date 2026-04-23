@@ -172,6 +172,30 @@ const useStyles = createUseStyles({
         fontSize: '14px',
         padding: '7px 0',
         borderRadius: '4px',
+        border: 'none',
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        '&:hover': {
+            opacity: 0.9,
+        },
+    },
+    stripeBtn: {
+        display: 'block',
+        width: '100%',
+        textAlign: 'center',
+        background: 'var(--primary-color)',
+        color: 'white',
+        fontWeight: 500,
+        fontSize: '14px',
+        padding: '7px 0',
+        borderRadius: '4px',
+        marginTop: '10px',
+        textDecoration: 'none',
+        '&:hover': {
+            opacity: 0.9,
+            textDecoration: 'none',
+            color: 'white',
+        },
     },
     section: {
         marginTop: '44px',
@@ -476,12 +500,14 @@ const Donate = () => {
             {tiers.map(tier => {
                 const thumb = thumbs[tier.assetId] || '/img/placeholder.png';
                 const itemUrl = `${BASE_URL}/catalog/${tier.assetId}/--`;
-                return <a
-                    key={tier.assetId}
-                    href={itemUrl}
-                    className={s.card}
-                >
-                    <div className={s.thumbWrap}>
+                return <div key={tier.assetId} className={s.card}>
+                    <a
+                        href={itemUrl}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className={s.thumbWrap}
+                        style={{ display: 'flex' }}
+                    >
                         <div className={s.badgeContainer}>
                             <span className={s.badge}>New</span>
                             <span className={s.badge}>
@@ -489,10 +515,13 @@ const Donate = () => {
                             </span>
                         </div>
                         <img src={thumb} alt={`$${tier.amount} donation item`} className={s.thumb}/>
-                    </div>
+                    </a>
                     <p className={s.amount}>${tier.amount}</p>
-                    <div className={s.ctaRow}>Donate ${tier.amount}</div>
-                </a>;
+                    <button
+                        className={s.ctaRow}
+                        onClick={() => document.getElementById('payment-methods').scrollIntoView({ behavior: 'smooth' })}
+                    >Donate ${tier.amount}</button>
+                </div>;
             })}
         </div>
 
@@ -512,35 +541,33 @@ const Donate = () => {
             </div>
         </div>
 
-        <div className={s.section}>
+        <div className={s.section} id="payment-methods">
             <h2 className={s.sectionTitle}>Payment Methods</h2>
             <div className={s.paymentGrid}>
                 {paymentMethods.map(method => (
                     <div key={method.name} className={s.paymentCard}>
-                        {method.value === null ? (
+                        <p className={s.paymentName}>{method.name}</p>
+                        {method.value !== null && (
                             <a
                                 href={method.url}
                                 target='_blank'
                                 rel='noopener noreferrer'
-                                className={s.paymentName}
-                                style={{ textDecoration: 'none', cursor: 'pointer' }}
+                                className={s.paymentLink}
                             >
-                                {method.name}
+                                {method.value}
                             </a>
-                        ) : (
-                            <>
-                                <p className={s.paymentName}>{method.name}</p>
-                                <a
-                                    href={method.url}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    className={s.paymentLink}
-                                >
-                                    {method.value}
-                                </a>
-                            </>
                         )}
                         {method.note && <p className={s.paymentNote}>{method.note}</p>}
+                        {method.value === null && (
+                            <a
+                                href={method.url}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className={s.stripeBtn}
+                            >
+                                Donate
+                            </a>
+                        )}
                     </div>
                 ))}
             </div>
