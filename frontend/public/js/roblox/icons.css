@@ -1930,3 +1930,24 @@ span.game-privacy-symbol.gps-active {
 	background-image: url('/egghunt2026/egg-icon-light.png');
 	filter: none !important;
 }
+
+.icon-nav-download {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: middle;
+	background-image: url('/img/icons/download.svg');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.hover-icon-nav-download:hover .icon-nav-download,
+a:hover .icon-nav-download,
+button:hover .icon-nav-download {
+	filter: invert(53%) sepia(98%) saturate(400%) hue-rotate(1deg) brightness(105%) contrast(95%);
+}
+
+.hover-icon-nav-download:hover {
+	color: #f68802;
+}

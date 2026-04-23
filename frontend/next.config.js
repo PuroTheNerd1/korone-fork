@@ -52,6 +52,11 @@ module.exports = withBundleAnalyzer({
                 destination: '/places/create',
                 permanent: true,
             },
+            {
+                source: '/donate/stripe',
+                destination: 'https://donate.stripe.com/8x2bJ1dVY117bf24UU9EI03',
+                permanent: false,
+            },
         ]
     },
     webpack(config, { isServer }) {
