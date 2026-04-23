@@ -105,7 +105,7 @@ const NavigationLinks = props => {
         <LinkEntry url='games'>Games</LinkEntry>
         <LinkEntry url='catalog'>Catalog</LinkEntry>
         <LinkEntry url='develop'>Create</LinkEntry>
-        <LinkEntry url='download'>Download</LinkEntry>
+        <LinkEntry url='donate'>Donate</LinkEntry>
       </div>
     </div>
   </div>
