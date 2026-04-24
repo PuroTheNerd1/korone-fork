@@ -459,12 +459,12 @@ public class GameServerService : ServiceBase
         }
 
         int mainRCCPort = random.Next(30000, 40000);
-        int networkServerPort = random.Next(20000, 30000); 
+        int networkServerPort = random.Next(50000, 60000);
         int proxyPort = 0;
         do
         {
             await Task.Delay(100);
-            proxyPort = random.Next(50000, 60000);
+            proxyPort = random.Next(7000, 8000);
             if (!await IsPortTaken(proxyPort))
                 break;
             
