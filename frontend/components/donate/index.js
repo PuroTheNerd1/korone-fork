@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { getTheme, themeType } from "../../services/theme";
 
-const BASE_URL = 'https://www.pekora.zip';
-
 const tiers = [
-    { amount: 5, assetId: 518724 },
-    { amount: 25, assetId: 518780 },
-    { amount: 50, assetId: 518806 },
-    { amount: 100, assetId: 518744 },
+    { amount: 5, gif: '/img/DonatorItems/Coffee.gif', assetId: '673140' },
+    { amount: 10, gif: '/img/DonatorItems/Shaggy.gif', assetId: '673108' },
+    { amount: 25, gif: '/img/DonatorItems/Skater.gif', assetId: '673098' },
+    { amount: 50, gif: '/img/DonatorItems/BrownSTF.gif', assetId: '673144' },
 ];
 
 const paymentMethods = [
@@ -110,19 +108,12 @@ const useStyles = createUseStyles({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: '12px',
-        perspective: '800px',
         position: 'relative',
-    },
-    '@keyframes donateSpin3d': {
-        '0%': { transform: 'rotateY(0deg)' },
-        '100%': { transform: 'rotateY(360deg)' },
     },
     thumb: {
         width: '100%',
         height: '100%',
         objectFit: 'contain',
-        transformStyle: 'preserve-3d',
-        animation: '$donateSpin3d 4s linear infinite',
     },
     badgeContainer: {
         position: 'absolute',
@@ -400,12 +391,41 @@ const useStyles = createUseStyles({
         marginTop: '4px',
         opacity: 0.9,
     },
+    showcaseBox: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
+        borderRadius: '6px',
+        boxShadow: '0 1px 3px rgba(25, 25, 25, 0.15)',
+        padding: '18px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '12px',
+    },
+    showcaseVideo: {
+        width: '100%',
+        maxWidth: '520px',
+        borderRadius: '6px',
+        background: '#000',
+        display: 'block',
+    },
+    bundleTag: {
+        background: 'var(--primary-color)',
+        color: 'white',
+        fontSize: '11px',
+        fontWeight: 700,
+        padding: '3px 8px',
+        borderRadius: '4px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px',
+        marginBottom: '6px',
+        alignSelf: 'center',
+    },
 });
 
-const getTimeUntilNextMonth = () => {
-    const now = new Date();
-    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
-    let diff = Math.max(0, next.getTime() - now.getTime());
+const TARGET_DATE = new Date(2026, 5, 1, 0, 0, 0, 0);
+
+const getTimeUntilTarget = () => {
+    let diff = Math.max(0, TARGET_DATE.getTime() - Date.now());
     const days = Math.floor(diff / 86400000); diff -= days * 86400000;
     const hours = Math.floor(diff / 3600000); diff -= hours * 3600000;
     const minutes = Math.floor(diff / 60000); diff -= minutes * 60000;
@@ -435,29 +455,12 @@ const CryptoAddress = ({ address, styles }) => {
 };
 
 const Donate = () => {
-    const [thumbs, setThumbs] = useState({});
-    const [countdown, setCountdown] = useState(getTimeUntilNextMonth);
     const s = useStyles({ theme: getTheme() });
+    const [countdown, setCountdown] = useState(getTimeUntilTarget);
 
     useEffect(() => {
-        const id = setInterval(() => setCountdown(getTimeUntilNextMonth()), 1000);
+        const id = setInterval(() => setCountdown(getTimeUntilTarget()), 1000);
         return () => clearInterval(id);
-    }, []);
-
-    useEffect(() => {
-        const ids = tiers.map(t => t.assetId).join(',');
-        fetch(`${BASE_URL}/apisite/thumbnails/v1/assets?assetIds=${ids}`)
-            .then(r => r.json())
-            .then(json => {
-                const map = {};
-                (json.data || []).forEach(entry => {
-                    if (entry.state === 'Completed' && entry.imageUrl) {
-                        map[entry.targetId] = entry.imageUrl;
-                    }
-                });
-                setThumbs(map);
-            })
-            .catch(() => {});
     }, []);
 
     return <div className={`container ${s.wrapper}`}>
@@ -475,14 +478,14 @@ const Donate = () => {
 
         <div className={s.countdownBanner}>
             <p className={s.countdownLabel}>Leaving Soon</p>
-            <p className={s.countdownTitle}>These donation items disappear at the end of the month</p>
+            <p className={s.countdownTitle}>These donation items disappear on June 1, 2026</p>
             <div className={s.countdownGrid}>
                 <div className={s.countdownUnit}>
                     <p className={s.countdownValue}>{String(countdown.days).padStart(2, '0')}</p>
                     <p className={s.countdownUnitLabel}>Days</p>
                 </div>
                 <div className={s.countdownUnit}>
-                    <p className={s.countdownValue}>{String(countdown.hours).padStart(2, '00')}</p>
+                    <p className={s.countdownValue}>{String(countdown.hours).padStart(2, '0')}</p>
                     <p className={s.countdownUnitLabel}>Hours</p>
                 </div>
                 <div className={s.countdownUnit}>
@@ -498,24 +501,35 @@ const Donate = () => {
 
         <div className={s.grid}>
             {tiers.map(tier => {
-                const thumb = thumbs[tier.assetId] || '/img/placeholder.png';
-                const itemUrl = `${BASE_URL}/catalog/${tier.assetId}/--`;
-                return <div key={tier.assetId} className={s.card}>
-                    <a
-                        href={itemUrl}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className={s.thumbWrap}
-                        style={{ display: 'flex' }}
-                    >
+                const itemUrl = tier.assetId ? `https://www.pekora.zip/catalog/${tier.assetId}/Donate` : null;
+                const thumbInner = (
+                    <>
                         <div className={s.badgeContainer}>
                             <span className={s.badge}>New</span>
                             <span className={s.badge}>
                                 <span className={`${s.badgeClockIcon} icon-clock`}/>
                             </span>
                         </div>
-                        <img src={thumb} alt={`$${tier.amount} donation item`} className={s.thumb}/>
-                    </a>
+                        <img src={tier.gif} alt={`$${tier.amount} donation item`} className={s.thumb}/>
+                    </>
+                );
+                return <div key={tier.amount} className={s.card}>
+                    {itemUrl ? (
+                        <a
+                            href={itemUrl}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className={s.thumbWrap}
+                            style={{ display: 'flex' }}
+                        >
+                            {thumbInner}
+                        </a>
+                    ) : (
+                        <div className={s.thumbWrap}>{thumbInner}</div>
+                    )}
+                    {tier.amount === 50 && (
+                        <span className={s.bundleTag}>+ all items</span>
+                    )}
                     <p className={s.amount}>${tier.amount}</p>
                     <button
                         className={s.ctaRow}
@@ -523,6 +537,20 @@ const Donate = () => {
                     >Donate ${tier.amount}</button>
                 </div>;
             })}
+        </div>
+
+        <div className={s.section}>
+            <h2 className={s.sectionTitle}>Showcase</h2>
+            <div className={s.showcaseBox}>
+                <video
+                    className={s.showcaseVideo}
+                    src='/img/DonatorItems/preview.mp4'
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                />
+            </div>
         </div>
 
         <div className={s.section}>
