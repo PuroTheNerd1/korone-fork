@@ -3,10 +3,10 @@ import { createUseStyles } from "react-jss";
 import { getTheme, themeType } from "../../services/theme";
 
 const tiers = [
-    { amount: 5, gif: '/img/DonatorItems/Coffee.gif', assetId: '673140' },
-    { amount: 10, gif: '/img/DonatorItems/Shaggy.gif', assetId: '673108' },
-    { amount: 25, gif: '/img/DonatorItems/Skater.gif', assetId: '673098' },
-    { amount: 50, gif: '/img/DonatorItems/BrownSTF.gif', assetId: '673144' },
+    { amount: 5, gif: '/img/DonatorItems/Coffee.gif', assetId: '673140', robux: 550 },
+    { amount: 10, gif: '/img/DonatorItems/Shaggy.gif', assetId: '673108', robux: 800 },
+    { amount: 25, gif: '/img/DonatorItems/Skater.gif', assetId: '673098', robux: 1500 },
+    { amount: 50, gif: '/img/DonatorItems/BrownSTF.gif', assetId: '673144', robux: 5500 },
 ];
 
 const paymentMethods = [
@@ -153,6 +153,21 @@ const useStyles = createUseStyles({
         fontSize: '13px',
         margin: 0,
         marginBottom: '10px',
+    },
+    robuxRow: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        color: 'var(--text-color-secondary)',
+        fontSize: '14px',
+        fontWeight: 600,
+        margin: 0,
+        marginBottom: '10px',
+    },
+    robuxIcon: {
+        height: '12px',
+        width: 'auto',
+        verticalAlign: 'middle',
     },
     ctaRow: {
         width: '100%',
@@ -531,6 +546,10 @@ const Donate = () => {
                         <span className={s.bundleTag}>+ all items</span>
                     )}
                     <p className={s.amount}>${tier.amount}</p>
+                    <p className={s.robuxRow}>
+                        +{tier.robux.toLocaleString()}
+                        <img src='/img/img-robux.png' alt='Robux' className={s.robuxIcon} />
+                    </p>
                     <button
                         className={s.ctaRow}
                         onClick={() => document.getElementById('payment-methods').scrollIntoView({ behavior: 'smooth' })}
