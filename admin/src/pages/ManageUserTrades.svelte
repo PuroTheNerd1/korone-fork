@@ -45,6 +45,25 @@
             })
             console.log('state change for',type)
         }
+
+        let rollingBack: Record<number, boolean> = {};
+
+        async function rollbackTrade(tradeId: number) {
+            if (!confirm('Roll back trade #' + tradeId + '? Items will be returned to their original owners and the trade will be marked Expired. This cannot be undone.')) {
+                return;
+            }
+            rollingBack = { ...rollingBack, [tradeId]: true };
+            try {
+                await request.post('/trades/' + tradeId + '/rollback');
+                let url = '/users/' + userId + '/trades?type='+type+'&offset=' + offset + '&limit=' + limit;
+                const d = await request.get(url);
+                transactions = d.data;
+            } catch (e: any) {
+                alert('Rollback failed: ' + (e?.message || 'idk'));
+            } finally {
+                rollingBack = { ...rollingBack, [tradeId]: false };
+            }
+        }
     </script>
     
     <Main>
@@ -69,6 +88,7 @@
                             <th>Robux</th>
                             <th>Player's Items</th>
                             <th>Other Player's Items</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,6 +135,17 @@
                                             {/if}
                                         </p>
                                     {/each}
+                                </td>
+                                <td>
+                                    {#if item.trade.status === 'Completed'}
+                                        <button
+                                            class="btn btn-sm btn-danger"
+                                            disabled={rollingBack[item.trade.id]}
+                                            on:click={() => rollbackTrade(item.trade.id)}
+                                        >
+                                            {rollingBack[item.trade.id] ? 'Rolling back...' : 'Rollback'}
+                                        </button>
+                                    {/if}
                                 </td>
                             </tr>
                         {/each}

@@ -84,5 +84,6 @@ public enum Access
     GetSaleHistoryForAsset,
     RefundAndDeleteFirstPartyAssetSale,
     GetStaffPerformance,
+    RollbackTrade,
     All, // fake perm
 }

@@ -931,6 +931,50 @@ public class TradesService : ServiceBase, IService
         });
     }
 
+    public async Task RollbackTrade(long tradeId)
+    {
+        var log = Writer.CreateWithId(LogGroup.TradeAccept);
+        log.Info("RollbackTrade starting. tradeId = {0}", tradeId);
+        await using var tradeLock = await GetLockForTrade(tradeId);
+        if (!tradeLock.IsAcquired) throw new LockNotAcquiredException();
+
+        await InTransaction(async _ =>
+        {
+            var info = await GetTradeById(tradeId);
+            if (info.status != TradeStatus.Completed)
+                throw new ArgumentException("Only completed trades can be rolled back");
+
+            var assets = (await GetTradeItems(tradeId)).ToList();
+            var userAssetIds = assets.Select(c => c.userAssetId).Distinct().ToList();
+            if (userAssetIds.Count != assets.Count)
+                throw new ArgumentException("Cannot rollback this trade - duplicate userAssetIds");
+
+            using var us = ServiceProvider.GetOrCreate<UsersService>(this);
+            await using var userAssetsLock = await us.MultiAcquireUserAssetLock(userAssetIds);
+
+            // Return each item to its original owner stored in user_trade_asset.user_id
+            foreach (var item in assets)
+            {
+                log.Info("rolling back item {0} to original owner {1}", item.userAssetId, item.userId);
+                await db.ExecuteAsync(
+                    "UPDATE user_asset SET user_id = :user_id, updated_at = now() WHERE id = :id", new
+                    {
+                        user_id = item.userId,
+                        id = item.userAssetId,
+                    });
+            }
+
+            await db.ExecuteAsync("UPDATE user_trade SET status = :status, updated_at = now() WHERE id = :id", new
+            {
+                id = tradeId,
+                status = TradeStatus.Expired,
+            });
+
+            log.Info("rollback complete for trade {0}", tradeId);
+            return 0;
+        });
+    }
+
     public async Task DeclineTrade(long tradeId, long contextUserId)
     {
         await using var tradeLock = await GetLockForTrade(tradeId);
