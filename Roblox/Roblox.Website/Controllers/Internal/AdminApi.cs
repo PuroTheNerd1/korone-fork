@@ -2659,6 +2659,12 @@ Thank you for your understanding,
         return response;
     }
 
+    [HttpPost("trades/{tradeId:long}/rollback"), StaffFilter(Access.RollbackTrade)]
+    public async Task RollbackTrade(long tradeId)
+    {
+        await services.trades.RollbackTrade(tradeId);
+    }
+
     [HttpPost("users/{userId:long}/reset-description"), StaffFilter(Access.ResetDescription)]
     public async Task ResetDescription(long userId)
     {
