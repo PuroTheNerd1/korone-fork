@@ -33,8 +33,6 @@ const useStyles = createUseStyles({
   pageText: {
     fontSize: '14px',
     color: '#191919',
-    margin: '0 12px',
-    minWidth: '60px',
     textAlign: 'center',
   },
 });
