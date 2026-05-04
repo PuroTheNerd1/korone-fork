@@ -1,7 +1,7 @@
 import { createUseStyles } from "react-jss";
 import { useEffect, useState } from "react";
 import Link from "../../link";
-import PlayerHeadshot from "../../playerHeadshot";
+import PlayerImage from "../../playerImage";
 import AuthenticationStore from "../../../stores/authentication";
 import { getFriendStatus, sendFriendRequest, unfriendUser, acceptFriendRequest } from "../../../services/friends";
 
@@ -20,7 +20,6 @@ const useStyles = createUseStyles({
   },
   cardContent: {
     cursor: 'pointer',
-    padding: '12px',
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -68,8 +67,8 @@ const useStyles = createUseStyles({
     padding: '12px 0',
   },
   avatarName: {
-    fontSize: '18px',
-    fontWeight: 400,
+    fontSize: '16px',
+    fontWeight: 300,
     color: '#191919',
     margin: 0,
     overflow: 'hidden',
@@ -217,7 +216,7 @@ const UserCard = ({ user, presence, primaryGroup }) => {
         <a className={s.cardContent}>
           <div className={s.headshotWrap}>
             <div className={s.headshot}>
-              <PlayerHeadshot id={user.UserId} name={user.Name} className={s.headshotImg} />
+              <PlayerImage id={user.UserId} name={user.Name} className={s.headshotImg} />
             </div>
             {statusDotClass && <span className={`${s.statusDot} ${statusDotClass}`} />}
           </div>
