@@ -26,8 +26,8 @@ const useStyles = createUseStyles({
       background: '#f2f2f2',
     },
     '&:disabled': {
-      color: '#c3c3c3',
       cursor: 'default',
+      opacity: 0.35,
     },
   },
   pageText: {
@@ -48,11 +48,19 @@ const PaginationBar = ({ page, totalPages, onChange }) => {
   const atLast = page >= totalPages;
 
   return <div className={s.bar}>
-    <button className={s.btn} disabled={atFirst} onClick={() => onChange(1)} aria-label='First page'>{'|<'}</button>
-    <button className={s.btn} disabled={atFirst} onClick={() => onChange(page - 1)} aria-label='Previous page'>{'<'}</button>
+    <button className={s.btn} disabled={atFirst} onClick={() => onChange(1)} aria-label='First page'>
+      <span className='icon-first-page' aria-hidden='true' />
+    </button>
+    <button className={s.btn} disabled={atFirst} onClick={() => onChange(page - 1)} aria-label='Previous page'>
+      <span className='icon-previous-page' aria-hidden='true' />
+    </button>
     <span className={s.pageText}>{page} / {totalPages}</span>
-    <button className={s.btn} disabled={atLast} onClick={() => onChange(page + 1)} aria-label='Next page'>{'>'}</button>
-    <button className={s.btn} disabled={atLast} onClick={() => onChange(totalPages)} aria-label='Last page'>{'>|'}</button>
+    <button className={s.btn} disabled={atLast} onClick={() => onChange(page + 1)} aria-label='Next page'>
+      <span className='icon-next-page' aria-hidden='true' />
+    </button>
+    <button className={s.btn} disabled={atLast} onClick={() => onChange(totalPages)} aria-label='Last page'>
+      <span className='icon-last-page' aria-hidden='true' />
+    </button>
   </div>;
 };
 

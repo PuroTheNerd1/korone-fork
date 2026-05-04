@@ -316,6 +316,10 @@ a:hover .icon-nav-shop {
 .icon-down,
 .icon-next,
 .icon-back,
+.icon-first-page,
+.icon-previous-page,
+.icon-next-page,
+.icon-last-page,
 .icon-checkmark,
 .icon-checkmark-on,
 .icon-close,
@@ -857,6 +861,22 @@ a:hover .icon-left {
 
 .icon-back {
 	background-position: 0 -532px;
+}
+
+.icon-first-page {
+	background-position: 0 -1148px;
+}
+
+.icon-previous-page {
+	background-position: 0 -420px;
+}
+
+.icon-next-page {
+	background-position: 0 -392px;
+}
+
+.icon-last-page {
+	background-position: 0 -1120px;
 }
 
 .icon-checkmark {

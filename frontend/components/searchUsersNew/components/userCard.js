@@ -109,7 +109,7 @@ const useStyles = createUseStyles({
   cardBtns: {
     background: '#f2f2f2',
     borderTop: '1px solid #e3e3e3',
-    padding: '12px',
+    padding: '8px',
   },
   cardBtn: {
     width: '100%',
@@ -118,10 +118,10 @@ const useStyles = createUseStyles({
     color: '#191919',
     border: '1px solid #b8b8b8',
     fontSize: '18px',
-    fontWeight: 400,
+    fontWeight: 380,
     cursor: 'pointer',
     textAlign: 'center',
-    padding: '9px 9px',
+    padding: '8px 8px',
     borderRadius: '3px',
     lineHeight: '100%',
     '&:hover': {
