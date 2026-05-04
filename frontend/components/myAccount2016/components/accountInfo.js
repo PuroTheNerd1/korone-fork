@@ -4,7 +4,8 @@ import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
 import {
     getAvPageStyle, getCatalogPageStyle, getCatalogStyle, getGroupPagesStyle, getHideRE,
-    getTheme, setAvPageStyle, setCatalogPageStyle, setCatalogStyle, setGroupPagesStyle, setHideRE,
+    getSearchUserPageStyle, getTheme, setAvPageStyle, setCatalogPageStyle, setCatalogStyle,
+    setGroupPagesStyle, setHideRE, setSearchUserPageStyle,
     setTheme, setThemeColor, setThemeFont, setThemeForumHeader,
     setThemeRibbon, themeType
 } from "../../../services/theme";
@@ -256,6 +257,23 @@ const  AccountInfo = props => {
                                     }}>
                                 <option value="Modern">Modern (2018-2024)</option>
                                 <option value="Legacy">Legacy (2016-2018)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className='flex mt-1'>
+                        <div className='col pe-0'>
+                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Search Player Page'
+                                   readOnly={true}
+                                   type='text'></input>
+                        </div>
+                        <div className='col ps-0 pe-0'>
+                            <select className={'form-control ' + s.select} value={getSearchUserPageStyle()}
+                                    onChange={ev => {
+                                        setSearchUserPageStyle(ev.currentTarget.value);
+                                        window.location.replace(window.location.pathname + '?t=' + new Date().getTime());
+                                    }}>
+                                <option value="Modern">Modern (2018+)</option>
+                                <option value="Legacy">Legacy (2017)</option>
                             </select>
                         </div>
                     </div>

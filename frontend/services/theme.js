@@ -40,6 +40,11 @@ const groupPagesStyle = {
     Legacy: 'Legacy',
 }
 
+const searchUserPageStyle = {
+    Modern: 'Modern',
+    Legacy: 'Legacy',
+}
+
 const trueFalseStyle = {
     Yes: 'Yes',
     No: 'No',
@@ -179,6 +184,20 @@ const setGroupPagesStyle = (themeString) => {
     localStorage.setItem('rbx_group_style_v1', themeString);
 }
 
+const getSearchUserPageStyle = () => {
+    if (!isLocalStorageAvailable) return searchUserPageStyle["Modern"];
+
+    let value = localStorage.getItem('rbx_search_user_page_style_v1');
+    // validate
+    if (typeof value !== 'string' || !Object.getOwnPropertyNames(searchUserPageStyle).includes(value)) return searchUserPageStyle["Modern"];
+    return searchUserPageStyle[value];
+}
+
+const setSearchUserPageStyle = (themeString) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_search_user_page_style_v1', themeString);
+}
+
 const getHideRE = () => {
     if (!isLocalStorageAvailable) return trueFalseStyle["No"];
 
@@ -221,12 +240,16 @@ export {
     getGroupPagesStyle,
     setGroupPagesStyle,
 
+    getSearchUserPageStyle,
+    setSearchUserPageStyle,
+
     getHideRE,
     setHideRE,
-    
+
     themeType,
     themeColor,
     themeFont,
     avPageStyleType,
     catalogPageStyle,
+    searchUserPageStyle,
 }
