@@ -29,6 +29,7 @@ const useStyles = createUseStyles({
   },
   headshotWrap: {
     position: 'relative',
+    margin: 12px,
     width: '92px',
     height: '92px',
     minWidth: '92px',
