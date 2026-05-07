@@ -1939,6 +1939,7 @@ span.game-privacy-symbol.gps-active {
 	display: inline-block;
 	width: 20px;
 	height: 20px;
+	margin: 4px;
 	vertical-align: middle;
 	background-image: url('/img/icons/download.svg');
 	background-size: contain;
