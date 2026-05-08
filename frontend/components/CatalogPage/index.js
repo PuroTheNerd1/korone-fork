@@ -3,7 +3,7 @@ import Link from "../link";
 import CatalogInputs from "./components/CatalogInputs";
 import CatalogResults from "./components/CatalogResults";
 import CatalogPageStore from "./stores/CatalogPageStore";
-import {getTheme, themeType} from "../../services/theme";
+import {catalogPageStyle, getCatalogStyle, getTheme, themeType} from "../../services/theme";
 import dynamic from "next/dynamic";
 
 const useStyles = createUseStyles({
@@ -69,11 +69,13 @@ function CatalogPage() {
     const s = useStyles({theme: getTheme()});
     const store = CatalogPageStore.useContainer();
 
+    const catalogLink = getCatalogStyle() === catalogPageStyle.Legacy ? '/Catalog.aspx' : '/catalog';
+
     return <div className={`w-100 flex flex-column ${s.catalogPage}`}>
         <div className={`w-100 flex justify-content-between align-items-center ${s.catalogHeader}`}>
             <h1 style={{ fontSize: 36, fontWeight: 800, }}>
-                <Link href="/catalog">
-                    <a href="/catalog" className="inherit-color inherit-font-size">Catalog</a>
+                <Link href={catalogLink}>
+                    <a href={catalogLink} className="inherit-color inherit-font-size">Catalog</a>
                 </Link>
             </h1>
             <CatalogInputs />

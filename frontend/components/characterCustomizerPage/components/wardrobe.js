@@ -11,6 +11,7 @@ import OldVerticalTabs from "../../oldVerticalTabs";
 import assetTypes from "../assetTypes";
 import WardrobeEntry from "./wardrobeEntry";
 import Link from "../../link";
+import { catalogPageStyle, getCatalogStyle } from "../../../services/theme";
 
 const creatableAssets = [
   2, // T-Shirt
@@ -244,7 +245,7 @@ const Wardrobe = props => {
           </p>
         })}
         <p className={s.categoryEntry}>
-          <Link href='/catalog'>
+          <Link href={getCatalogStyle() === catalogPageStyle.Legacy ? '/Catalog.aspx' : '/catalog'}>
             <a>Shop</a>
           </Link>
           {creatableAssets.includes(category.id) && <span> || <Link href='/develop'><a>Create</a></Link></span>}

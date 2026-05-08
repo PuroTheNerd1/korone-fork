@@ -15,7 +15,7 @@ import OutfitsTab from "./components/outfitsTab";
 import BodyColorsTab from "./components/bodyColorsTab";
 import { useRouter } from "next/router";
 import { Thumbnail3DHandler } from "../thumbnail3D";
-import { getTheme, themeType } from "../../services/theme";
+import { catalogPageStyle, getCatalogStyle, getTheme, themeType } from "../../services/theme";
 
 const useStyles = createUseStyles({
     sliderInput: {
@@ -289,7 +289,7 @@ function AvatarEditor() {
                 <ActionButton label="Get More" className={s.moreBut} buttonStyle={buttonStyles.newBuyButton}
                               onClick={() => {
                                   const router = useRouter();
-                                  router.push("/catalog").then();
+                                  router.push(getCatalogStyle() === catalogPageStyle.Legacy ? '/Catalog.aspx' : '/catalog').then();
                               }}/>
             </div>
         </div>

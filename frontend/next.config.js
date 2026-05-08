@@ -23,11 +23,11 @@ module.exports = withBundleAnalyzer({
     },
     async redirects() {
         return [
-            {
+            /*{
                 source: '/catalog.aspx',
                 destination: '/catalog',
                 permanent: true,
-            },
+            },*/
             /*
             {
               source: '/catalog/:id/:name',

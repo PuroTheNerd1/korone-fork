@@ -2,6 +2,7 @@ import { createUseStyles } from "react-jss";
 import Link from "../../link";
 import { useEffect } from "react";
 import { useRouter } from 'next/router';
+import { catalogPageStyle, getCatalogStyle } from "../../../services/theme";
 const useStyles = createUseStyles({
   container: {
     marginTop: '0',
@@ -103,7 +104,7 @@ const NavigationLinks = props => {
     <div className={s.container}>
       <div className={`${s.row} row`}>
         <LinkEntry url='games'>Games</LinkEntry>
-        <LinkEntry url='catalog'>Catalog</LinkEntry>
+        <LinkEntry url={getCatalogStyle() === catalogPageStyle.Legacy ? 'Catalog.aspx' : 'catalog'}>Catalog</LinkEntry>
         <LinkEntry url='develop'>Create</LinkEntry>
         <LinkEntry url='donate'>Donate</LinkEntry>
       </div>

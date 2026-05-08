@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {createUseStyles} from "react-jss";
+import { catalogPageStyle, getCatalogStyle } from "../../../services/theme";
 
 const useSearchIconStyles = createUseStyles({
     icon: {
@@ -78,7 +79,7 @@ const SearchSuggestionContainer = props => {
     }, [input.clientWidth]);
     const s = useSuggestionStyles();
     return <div className={s.container} style={{width: input.clientWidth + 'px'}}>
-        <SearchSuggestionEntry mode='Catalog' url='/catalog' query={props.query}/>
+        <SearchSuggestionEntry mode='Catalog' url={getCatalogStyle() === catalogPageStyle.Legacy ? '/Catalog.aspx' : '/catalog'} query={props.query}/>
         <SearchSuggestionEntry mode='People' url='/search/users' query={props.query}/>
         <SearchSuggestionEntry mode='Games' url='/games' query={props.query}/>
         <SearchSuggestionEntry mode='Groups' url='/search/groups' query={props.query}/>
