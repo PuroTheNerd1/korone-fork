@@ -2110,7 +2110,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         var builder = new SqlBuilder();
         var selectTemplate = builder.AddTemplate(
-            "SELECT id FROM asset /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new
+            "SELECT id, is_on_sale as isOnSale FROM asset /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new
             {
                 request.limit,
                 offset,
@@ -2390,6 +2390,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     {
                         id = c.id,
                         itemType = "Asset",
+                        isOnSale = c.isOnSale,
                     });
         }
 
@@ -2399,7 +2400,16 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         var sortedList = resp.data.ToList();
         if (doIdSort)
         {
-            sortedList.Sort((a, b) => a.id > b.id ? -1 : 1);
+            sortedList.Sort((a, b) =>
+            {
+                if (a.isOnSale != b.isOnSale)
+                    return a.isOnSale ? -1 : 1;
+                return a.id > b.id ? -1 : 1;
+            });
+        }
+        else
+        {
+            sortedList = sortedList.OrderByDescending(c => c.isOnSale).ToList();
         }
 
         if (sortedList.Count >= request.limit)
@@ -3946,7 +3956,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         var builder = new SqlBuilder();
         var selectTemplate = builder.AddTemplate(
-            "SELECT id FROM asset /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new
+            "SELECT id, is_on_sale as isOnSale FROM asset /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new
             {
                 request.limit,
                 offset,
@@ -4011,7 +4021,11 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     break;
             }
 
-            builder.OrderBy(column + " " + mode);
+            builder.OrderBy("is_on_sale DESC, " + column + " " + mode);
+        }
+        else
+        {
+            builder.OrderBy("is_on_sale DESC, created_at DESC");
         }
 
         // end of library seciton
@@ -4104,6 +4118,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     {
                         id = c.id,
                         itemType = "Asset",
+                        isOnSale = c.isOnSale,
                     });
         }
 
@@ -4113,7 +4128,16 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         var sortedList = resp.data.ToList();
         if (doIdSort)
         {
-            sortedList.Sort((a, b) => a.id > b.id ? -1 : 1);
+            sortedList.Sort((a, b) =>
+            {
+                if (a.isOnSale != b.isOnSale)
+                    return a.isOnSale ? -1 : 1;
+                return a.id > b.id ? -1 : 1;
+            });
+        }
+        else
+        {
+            sortedList = sortedList.OrderByDescending(c => c.isOnSale).ToList();
         }
 
         if (sortedList.Count >= request.limit)
