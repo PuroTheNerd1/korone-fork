@@ -13,6 +13,7 @@ namespace Roblox.Rendering
     public class RenderingHandler
     {
         private static readonly HttpClient client = new HttpClient();
+        private static string _host = "127.0.0.1";
         private static Random RandomComponent = new Random();
         // TODO: REWRITE RENDERING HANDLER
         private enum RenderType
@@ -41,9 +42,9 @@ namespace Roblox.Rendering
             public string? message { get; set; }
             public string? data { get; set; }
         }
-        public static void Configure()
+        public static void Configure(string host)
         {
-
+            _host = host;
         }
         public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>();
         private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false, string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null)
@@ -130,7 +131,7 @@ namespace Roblox.Rendering
             // i will add error handling to this later
             var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
             // hard coded for now 
-            HttpResponseMessage response = await client.PostAsync("http://127.0.0.1:3043/" + url, content);
+            HttpResponseMessage response = await client.PostAsync($"http://{_host}:3043/" + url, content);
             sw.Stop();
             var request = await response.Content.ReadFromJsonAsync<RenderResponse>();
             Console.WriteLine($"[RenderingHandler] Request took {sw.ElapsedMilliseconds}ms");

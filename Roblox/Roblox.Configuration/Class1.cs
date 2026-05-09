@@ -20,6 +20,7 @@ public class GameServerV2ConfigEntry
 
 public static class Configuration
 {
+    public static bool IsCdnEnabled { get; set; } = false;
     public static string CdnBaseUrl { get; set; }
     public static string HmacSecret { get; set; }
     public static string R2AccountId { get; set; }

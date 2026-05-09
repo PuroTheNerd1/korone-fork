@@ -5,6 +5,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Roblox;
+using Roblox.Dto.Users;
 using Roblox.Rendering;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
@@ -17,7 +18,8 @@ var domain = AppDomain.CurrentDomain;
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
 
 IConfiguration configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddEnvironmentVariables()
     .Build();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,9 +41,10 @@ Roblox.Configuration.ScriptDirectory = configuration.GetSection("Directories:Scr
 Roblox.Configuration.AdminBundleDirectory = configuration.GetSection("Directories:AdminBundle").Value!;
 Roblox.Configuration.EconomyChatBundleDirectory = configuration.GetSection("Directories:EconomyChatBundle").Value!;
 Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value!;
-Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https://www.", "");
+Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https", "http").Replace("http://www.", "");
 Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value!;
 Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value!;
+Roblox.Configuration.IsCdnEnabled = bool.Parse(configuration.GetSection("IsCdnEnabled").Value ?? "false");
 Roblox.Configuration.HmacSecret = configuration.GetSection("HmacSecret").Value!;
 Roblox.Configuration.R2AccountId = configuration.GetSection("CloudflareR2:AccountId").Value!;
 Roblox.Configuration.R2AccessKey = configuration.GetSection("CloudflareR2:AccessKey").Value!;
@@ -71,8 +74,11 @@ Roblox.Configuration.GameServerIp = configuration.GetSection("GameServerIp").Val
 Roblox.Configuration.UserAgentBypassSecret = configuration.GetSection("UserAgentBypassSecret").Value!;
 Roblox.Configuration.VerificationSecret = configuration.GetSection("VerificationSecret").Value!;
 Roblox.Configuration.LuaScriptsDirectory = configuration.GetSection("Directories:RCCLuaScripts").Value!;
-IConfiguration gameServerConfig = new ConfigurationBuilder().AddJsonFile("game-servers.json").Build();
-Roblox.Configuration.GameServerIpAddresses = gameServerConfig.GetSection("GameServers").Get<IEnumerable<GameServerConfigEntry>>()!;
+IConfiguration gameServerConfig = new ConfigurationBuilder()
+    .AddJsonFile("game-servers.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
+Roblox.Configuration.GameServerIpAddresses = gameServerConfig.GetSection("GameServers").Get<IEnumerable<GameServerConfigEntry>>() ?? Enumerable.Empty<GameServerConfigEntry>();
 Roblox.Configuration.AssetValidationServiceUrl =
     configuration.GetSection("AssetValidation:BaseUrl").Value!;
 Roblox.Configuration.AssetValidationServiceAuthorization =
@@ -139,7 +145,8 @@ builder.Services.AddMvc(c =>
 );
 
 builder.Services.AddSingleton<Roblox.Services.R2StorageService>();
-//builder.Services.AddHostedService<Roblox.Website.R2MigrationWorker>();
+//if (Configuration.IsCdnEnabled)
+//  builder.Services.AddHostedService<Roblox.Website.R2MigrationWorker>();
 
 var app = builder.Build();
 app.UseRouting();
@@ -212,6 +219,8 @@ app.UseStaticFiles(new StaticFileOptions
 #endif
 
 app.UseRobloxSessionMiddleware();
+if(!Configuration.IsCdnEnabled)
+    app.UseMiddleware<ThumbnailMiddleware>(Roblox.Configuration.ThumbnailsDirectory);
 //app.UseMiddleware<RobloxLoggingMiddleware>();
 app.UseRobloxPlayerCorsMiddleware(); // cors varies depending on authentication status, so it must be after session middleware
 
@@ -228,11 +237,52 @@ app.UseMiddleware<FrontendProxyMiddleware>();
 //app.UseRobloxLoggingMiddleware();
 
 app.UseExceptionHandler("/error");
-// unhardcode later
-CommandHandler.Configure("ws://localhost:3189", "VestiaZeta");
-//CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value); // will be removed soon
+// neva - unhardcoded for docker suppport
+CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value); // will be removed soon
 
-RenderingHandler.Configure();
+#if DEBUG
+if(app.Environment.IsDevelopment())
+{
+    var usersService = new Roblox.Services.UsersService();
+    if(await usersService.CountCreatedUsers(null) == 0)
+    {
+        const string username = "ROBLOX";
+        const string password = "roblox_dev_pass";
+        string applicationId;
+        string? joinId;
+        try
+        {
+            applicationId = await usersService.CreateApplication(new CreateUserApplicationRequest
+            {
+                about = "Signed up",
+                socialPresence = "",
+                discordId = "95672431410151424",
+                discordUsername = "bruteforcing",
+                isVerified = true,
+                verifiedUrl = null,
+                verifiedId = null,
+                verificationPhrase = "",
+                createdAt = DateTime.UtcNow,
+                updatedAt = DateTime.UtcNow,
+            });
+
+            joinId = await usersService.ProcessApplication(applicationId, Configuration.AiUserId, UserApplicationStatus.Approved);
+        }
+        catch(Exception)
+        {
+            joinId = Guid.NewGuid().ToString();
+        }
+        var result = await usersService.CreateUser(username, password, Roblox.Models.Users.Gender.Male);
+        await usersService.SetApplicationUserIdByJoinId(joinId!, result.userId);
+        await usersService.InsertOrUpdateMembership(result.userId, Roblox.Models.Users.MembershipType.Premium);   
+        Console.WriteLine("Created dev account: {0}:{1}", username, password);
+    }
+}
+RenderingHandler.Configure("game-renderer");
+#else
+RenderingHandler.Configure("127.0.0.1");
+#endif
+
 SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value!);
 Roblox.Services.Signer.SignService.Setup();
 app.UseTimerMiddleware(); // Must always be last

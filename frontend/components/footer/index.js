@@ -80,9 +80,9 @@ const Footer = props => {
       <ul className={s.footerLinks}>
         {
           Object.getOwnPropertyNames(footerLinks).map(v => {
-            return <li className={s.footerLink}>
-            <a href={v}> {footerLinks[v]} </a>
-          </li>
+            return <li key={v} className={s.footerLink}>
+                    <a href={v}> {footerLinks[v]} </a>
+                   </li>
           })
         }
       </ul>

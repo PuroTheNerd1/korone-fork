@@ -364,6 +364,8 @@ public class ThumbnailsService : ServiceBase, IService
 
     private static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName, bool isThumbnails = true)
     {
+        if (!Configuration.IsCdnEnabled) 
+            return Configuration.CdnBaseUrl + fileName;
         // really shitty work but this accounts for most cases.
         if(fileName.StartsWith('/'))
             fileName = fileName[1..];

@@ -110,6 +110,8 @@ export class Thumbnail3DHandler {
         
         let mtlLoader = new THREE.MTLLoader();
         // easy fix, just removed the cdn url, so now it will use the direct cdn url, not the hardcoded cdn.pekora.zip
+
+        // sorry david - neva
         mtlLoader.load(thumbJson.mtl, (materials) => {
             // Set the textures to the textures in the JSON
             if (thumbJson.textures.length > 0) {

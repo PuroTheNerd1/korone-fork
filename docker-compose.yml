@@ -1,0 +1,229 @@
+# requires docker 24+ with Compose v2
+
+name: korone-dev
+
+volumes:
+  postgres_data:
+  redis_data:
+  dotnet_cache: # ~/.nuget / build artifacts for roblox-website
+  go_pkg_cache: # GOPATH/pkg/mod for asset-validation
+  frontend_nm: # node_modules for frontend
+  admin_nm: # node_modules for admin
+  game-renderer_nm: # node_modules for game-renderer
+  game-server_nm: # node_modules for game-server
+networks:
+  economy:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: roblox
+      POSTGRES_PASSWORD: roblox_dev_pass
+      POSTGRES_DB: economy
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # expose so you can connect from a GUI like DBeaver
+    networks:
+      - economy
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U roblox -d economy" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - economy
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  db-migrate:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./api:/app
+    command: sh -c "npm install && npx knex migrate:latest"
+    networks:
+      - economy
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: roblox
+      DB_PASS: roblox_dev_pass
+      DB_NAME: economy
+    restart: "no"
+
+  roblox-website:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /srv/app/Roblox/Roblox.Website
+    volumes:
+      # Mount the whole repo root so that the "Directories.Base" path in
+      # appsettings.json can point to /srv/app and resolve sub-paths correctly.
+      - .:/srv/app
+      - dotnet_cache:/root/.nuget
+    command: dotnet watch run --urls http://0.0.0.0:5000
+    ports:
+      - "5000:5000"
+    networks:
+      - economy
+    environment:
+      # these override appsettings.json values: useful for secretsssssss very secret secrets super secret stuff like very secret and secret stuff u can hide everything here in secrets btw its all secret shhhhhhhhh shush secret
+      ASPNETCORE_ENVIRONMENT: Development
+      Postgres: "Host=postgres;Port=5432;Database=economy;Username=roblox;Password=roblox_dev_pass"
+      Redis: "redis:6379"
+      RedisAuthentication: ""
+      BaseUrl: "http://localhost:5000"
+      CdnBaseUrl: "http://localhost:5000"
+      IsCdnEnabled: "false"
+      OwnerUserId__0: "1"
+      PackageShirtAssetId: "0" # fucking retarded
+      PackagePantsAssetId: "0" # fucking retarded
+      LeakCheckApiKey: "5a635535d335f02410f11719885127b6c946c0fc" # fucking retarded
+      Twitter__Bearer: "0" # fucking retarded
+      HCaptcha__Public: "1x00000000000000000000AA"
+      HCaptcha__Private: "1x0000000000000000000000000000000AA"
+      Directories__Public: "/srv/app/api/public/"
+      Directories__Asset: "/srv/app/api/asset/"
+      Directories__Storage: "/srv/app/api/storage/"
+      Directories__Thumbnails: "/srv/app/api/public/images/Thumbnails/"
+      Directories__GroupIcons: "/srv/app/api/public/images/Groups/"    
+      Directories__XmlTemplates: "/srv/app/Roblox/Roblox.Libraries/Templates/" 
+      Directories__JsonData: "/srv/app/Roblox/Roblox.Libraries/Json/"     
+      Directories__ScriptsData: "/srv/app/Roblox/Roblox.Libraries/StudioScripts/" 
+      Directories__AdminBundle: "/srv/app/admin/public/" 
+      Directories__EconomyChatBundle: "/srv/app/economy-chat/build/" 
+      Directories__RCCLuaScripts: "/srv/app/Roblox/Roblox.Rendering/internalscripts/"
+      Directories__RCCService: "/srv/app/RCCService/" 
+      Directories__RCCServiceGames: "/srv/app/RCCService/" 
+      Jwt__Sessions: "KoroneSessions-dev-secret"
+      BotAuthorization: "KoroneBot-dev-secret"
+      Render__BaseUrl: "ws://game-server:3189"
+      Render__Authorization: "KoroneRender-dev-secret"
+      AssetValidation__BaseUrl: "http://asset-validation:8080"
+      AssetValidation__Authorization: "KoroneAssetValidation-dev-secret"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  game-renderer:
+    build:
+      context: ./game-renderer
+      dockerfile: Dockerfile
+    pull_policy: never
+    ports:
+      - "16612:16612"
+    volumes:
+      - ./RCCService:/app/RCCService
+    environment:
+      WINEPREFIX: /root/.wine
+      WINEARCH: win64
+      DISPLAY: ":99"          # Xvfb display
+      BASE_URL: "http://roblox-website:5000/"
+      RCC_URL: "http://localhost"
+      DEBUG: "true"
+      PORT_PROCESS: "3043"
+      PORT_RCC_PLAYER: "1621,5621,8621,8622,8624,8629,9000,9002,10000,11000,12000"
+      PORT_RCC_IMAGE: "2621,2622,4853,5121,5231"
+      PORT_RCC_PLACE: "3621,3622,8495,9400,9500"
+      PORT_RCC_CATALOG: "4621,7621,9621,4324,5421"
+      PATH_RCC_SERVICE: "./RCCService/RCCService.exe"
+    networks:
+      - economy
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  game-server:
+    build:
+      context: ./game-server
+      dockerfile: Dockerfile
+    pull_policy: never
+    ports:
+      - "3189:3189"
+    volumes:
+      - ./RCCService:/app/RCCService
+    environment:
+      WINEPREFIX: /root/.wine
+      WINEARCH: win64
+      DISPLAY: ":99"          # Xvfb display
+      AUTHORIZATION: "KoroneRender-dev-secret"
+      BASE_URL: "http://roblox-website:5000"
+      RCC_PORT: "1234"
+      PORT: "5800"
+      THUMBNAIL_WEBSOCKET_PORT: "3189"
+      WEBSITE_BOT_AUTH: "KoroneBot-dev-secret"
+      #RCC: ""
+      #CONTENT: ""
+      DOCKER_DISABLED: "false"
+    networks:
+      - economy
+    restart: unless-stopped
+
+  asset-validation:
+    image: golang:1.21-alpine
+    working_dir: /app
+    volumes:
+      - ./AssetValidationServiceV2:/app
+      - go_pkg_cache:/go/pkg/mod
+    command: sh -c "go install github.com/air-verse/air@latest 2>/dev/null; which air && air || go run main.go"
+    ports:
+      - "4300:4300"
+    networks:
+      - economy
+    restart: unless-stopped
+
+  admin:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./admin:/app
+      - admin_nm:/app/node_modules # keep node_modules in a named vol
+    command: >
+      sh -c "npm install && npm run dev"
+    ports:
+      - "5173:5173"
+    networks:
+      - economy
+    environment:
+      # admin 2 main backend
+      VITE_API_BASE: http://localhost:5000
+    restart: unless-stopped
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend_nm:/app/node_modules # keep node_modules in a named vol
+    command: >
+      sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    networks:
+      - economy
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    restart: unless-stopped

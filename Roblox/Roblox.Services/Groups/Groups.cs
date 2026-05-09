@@ -1363,11 +1363,31 @@ public class GroupsService : ServiceBase, IService
         var sha = SHA256.Create();
         var bits = await sha.ComputeHashAsync(groupIconSafe.finalIconStream);
         var str = Convert.ToHexString(bits).ToLower() + ".png";
-        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
-        var r2Key = "images/groups/" + str;
-        
-        groupIconSafe.finalIconStream.Position = 0;
-        await r2Service.UploadFileAsync(r2Key, groupIconSafe.finalIconStream, "image/png");
+        if (Configuration.IsCdnEnabled) {
+            var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+            var r2Key = "images/groups/" + str;
+            
+            groupIconSafe.finalIconStream.Position = 0;
+            await r2Service.UploadFileAsync(r2Key, groupIconSafe.finalIconStream, "image/png");
+        } else {
+            var fullFilePath = Configuration.GroupIconsDirectory + str;
+            // Lock - mostly to prevent "The process cannot access the file 'image.png' because it is being used by another
+            // process." errors in integration tests
+            await using var groupIconLock =
+                await Cache.redLock.CreateLockAsync("GlobalGroupIconUploadV1", TimeSpan.FromSeconds(10));
+            if (!groupIconLock.IsAcquired)
+                throw new LockNotAcquiredException();
+
+            // only write image file if it doesn't already exist
+            if (!File.Exists(fullFilePath))
+            {
+                groupIconSafe.finalIconStream.Position = 0;
+                await using var fs = File.Create(fullFilePath);
+                groupIconSafe.finalIconStream.Seek(0, SeekOrigin.Begin);
+                await groupIconSafe.finalIconStream.CopyToAsync(fs);
+                fs.Close();
+            }
+        }
         
         
         // upsert image
@@ -1549,6 +1569,8 @@ public class GroupsService : ServiceBase, IService
     
     private static async Task<string> GetOrMigrateGroupIconUrlAsync(string fileName)
     {
+        if (!Configuration.IsCdnEnabled)
+            return Configuration.CdnBaseUrl + fileName;
         // really shitty work but this accounts for most cases.
         if(fileName.StartsWith('/'))
             fileName = fileName[1..];

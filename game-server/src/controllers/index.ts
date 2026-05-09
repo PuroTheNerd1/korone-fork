@@ -211,11 +211,20 @@ export default class CommandHandler extends StdExceptions {
 				cwd: rccPath,
 				stdio: 'pipe',
 			});
-		}else{
-			try {
-				fs.unlinkSync(dockerPidFileLocation);
-			}catch(e) {}
-			rcc = cp.spawn('/usr/bin/sudo', [path.join(__dirname, '../../start-rcc.sh'), portToRunOn.toString()]);
+		} else {
+			const rccPath = conf.rcc || path.join(__dirname, '/app/RCCService/');
+			const rccExecutable = rccPath + 'RCCService.exe';
+			if(os.platform() === 'win32') {
+				rcc = cp.spawn(rccExecutable, ['-Console', '-Port', portToRunOn.toString()], {
+					cwd: rccPath,
+					stdio: 'pipe',
+				});
+			} else {
+				rcc = cp.spawn("wine", [rccExecutable, '-Console', '-Port', portToRunOn.toString()], {
+					cwd: rccPath,
+					stdio: 'pipe',
+				});
+			}
 		}
 		game.rccClosed = false;
 		rcc.on('message', (msg) => {
@@ -265,7 +274,7 @@ export default class CommandHandler extends StdExceptions {
 					rcc.kill('SIGINT');
 					game.rccReference = null;
 				} catch (e) { }
-				if (dockerEnabled) {
+				/*if (dockerEnabled) {
 					// ID is passed to docker, do regex to prevent arbitrary command execution
 					let match = fs.readFileSync(dockerPidFileLocation).toString('utf-8').trim().match(/[a-z0-9]+/g);
 					if (!match) {
@@ -293,7 +302,7 @@ export default class CommandHandler extends StdExceptions {
 							console.error('[error] could not kill rcc container',e);
 						}
 					}
-				}
+				}*/
 			}
 		};
 
@@ -934,47 +943,35 @@ export default class CommandHandler extends StdExceptions {
 		if (mode !== "convertgame" && mode !== "converthat")
 			throw new Error("Bad mode");
 
+		// TODO - neva: reduce duplicate code and make the cmd variable dynamic based on docker enabled or not
 		if (dockerEnabled) {
-			const scriptPath = path.join(__dirname, '../../start-place-convert.sh');
-			// const mode = 'convertgame';
-			const dirPath = path.join(__dirname, '../../place-conversion-data');
-			if (!fs.existsSync(dirPath)) {
-				await fs.promises.mkdir(dirPath);
-			}
-			// remove anything leftover
-			for (const file of await fs.promises.readdir(dirPath)) {
-				fs.rmSync(dirPath + '/' + file);
-			}
-			// write in file
-			const inLocation = path.join(dirPath, './in.rbxl');
-			const outLocation = path.join(dirPath, './out.rbxl');
-
-			await fs.promises.writeFile(inLocation, Buffer.from(base64EncodedFile, 'base64'));
-			// now exec script
+			// write to disk
+			const p = path.join(__dirname, '../../tmp_place_file.rbxl');
+			const out = path.join(__dirname, '../../tmp_place_file_out.rbxl');
+			// delete if exists
+			try {
+				fs.unlinkSync(p);
+			} catch (e) { }
+			try {
+				fs.unlinkSync(out);
+			} catch (e) { }
+			// Write the base64 place to disk for placeconverter to read...
+			await fs.promises.writeFile(p, Buffer.from(base64EncodedFile, 'base64'));
+			// confusing argument order: first is output, second is input
+			const cmd = `wine ./RobloxPlaceConverter.exe ${mode === "convertgame" ? "game" : "hat"} "${out}" "${p}"`;
 			return new Promise((res, rej) => {
-				let exec = cp.spawn('/usr/bin/sudo', [scriptPath, mode], {
-					stdio: 'inherit',
-				});
-				exec.on('message', (msg) => {
-					console.log('[PlaceConvert]',msg);
-				})
-
-				exec.on('exit', (code) => {
-					if (code === 0) {
-						// read the output
-						fs.readFile(outLocation, (err, data) => {
-							if (err) {
-								return rej(err);
-							}
-							// delete files
-							fs.rmSync(inLocation);
-							fs.rmSync(outLocation);
-							// return the place as a base64 string
-							res(data.toString('base64'));
-						});
-					}else{
-						rej(new Error('Failed with exit code ' + code))
+				cp.exec(cmd, (err) => {
+					if (err) {
+						return rej(err);
 					}
+					// read the output
+					fs.readFile(out, (err, data) => {
+						if (err) {
+							return rej(err);
+						}
+						// return the place as a base64 string
+						res(data.toString('base64'));
+					});
 				})
 			});
 		} else {

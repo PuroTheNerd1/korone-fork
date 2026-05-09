@@ -113,9 +113,13 @@ public class FrontendProxyMiddleware
         AllowAutoRedirect = false,
     });
 
+    private static bool _isDevelopment { get; } = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+
+    private static string _host { get; } = _isDevelopment ? "frontend" : "localhost";
+
     private async Task<HttpResponseMessage> ProxyRequestAsync(HttpContext ctx, string url)
     {
-        var fullUrl = "http://localhost:3000" + url;
+        var fullUrl = $"http://{_host}:3000" + url;
         /* Emi Honey Pot
         if(url.Contains("users/484")){
             if(ctx.Request.Cookies[".ROBLOSECURITY"].ToString() != null)
@@ -128,7 +132,7 @@ public class FrontendProxyMiddleware
         var safeUrl = new Uri(fullUrl);
         if (safeUrl.Port != 3000)
             throw new ArgumentException("Unsafe Url: " + fullUrl);
-        if (safeUrl.Host != "localhost")
+        if (safeUrl.Host != _host)
             throw new ArgumentException("Unsafe Url: " + fullUrl);
 
         var result = await _httpClient.GetAsync(safeUrl);

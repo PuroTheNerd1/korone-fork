@@ -172,8 +172,11 @@ public class Asset : ControllerBase
 
         if (assetVersion.contentUrl is not null) 
         {
-            var downloadUrl = await services.assets.GetAssetDownloadUrlAsync(assetVersion.contentUrl);
-            return Redirect(downloadUrl);
+            if (Configuration.IsCdnEnabled) {
+                var downloadUrl = await services.assets.GetAssetDownloadUrlAsync(assetVersion.contentUrl);
+                return Redirect(downloadUrl);
+            }
+            return File(await services.assets.GetAssetContent(assetVersion.contentUrl), "application/binary", assetVersion.contentUrl);
         }
         // Should never happen
         throw new BadRequestException();

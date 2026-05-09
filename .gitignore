@@ -84,6 +84,8 @@ game-renderer/eslint.config.js.old
 /Roblox/.idea
 /api/public/images/Groups
 /api/public/images/Thumbnails
+/api/storage
+/api/asset
 
 # testing stuff i need
 /api/publiccss

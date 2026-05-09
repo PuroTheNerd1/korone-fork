@@ -156,7 +156,7 @@ public class AccountInformationControllerV1 : ControllerBase
     [HttpGetBypass("/v1/users/{userId:long}/promotion-channels")]
     public async Task<dynamic> GetPromotionChannelsFromUserId(long userId, bool alwaysReturnUrls = false) {
         var _ = safeUserSession.userId; // confirm user is logged in
-        var conn = await services.accountInformation.GetUserConnections(userId);
+        var conn = await services.accountInformation.GetUserConnections(userId) ?? new UserConnections();
         var discordUrl = alwaysReturnUrls && conn.discord != null && IsDigits(conn.discord)
             ? "https://discord.com/users/" + conn.discord
             : conn.discord != null ? "@" + conn.discord : null;

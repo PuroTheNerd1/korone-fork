@@ -254,25 +254,47 @@ public class AssetsService : ServiceBase, IService
             Metrics.SecurityMetrics.ReportBadCharacterFoundInAssetContentName(key, "/", "GetAssetContent");
             throw new ArgumentException("GetAssetContent error 1");
         }
-        
-        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
-        var r2Key = "assets/" + key; 
-        
-        var r2Stream = await r2Service.GetFileAsync(r2Key);
-        if (r2Stream != null)
-            return r2Stream;
 
-        var fullPath = Configuration.AssetDirectory + key;
-        if (File.Exists(fullPath))
-        {
-            using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, default, FileOptions.Asynchronous);
-            var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
-            ms.Position = 0;
-            await r2Service.UploadFileAsync(r2Key, ms);
-            ms.Position = 0;
-            return ms;
+
+        if(Configuration.IsCdnEnabled) {    
+            var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+            var r2Key = "assets/" + key; 
+            
+            var r2Stream = await r2Service.GetFileAsync(r2Key);
+            if (r2Stream != null)
+                return r2Stream;
+
+            var fullPath = Configuration.AssetDirectory + key;
+            if (File.Exists(fullPath))
+            {
+                using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, default, FileOptions.Asynchronous);
+                var ms = new MemoryStream();
+                await file.CopyToAsync(ms);
+                ms.Position = 0;
+                await r2Service.UploadFileAsync(r2Key, ms);
+                ms.Position = 0;
+                return ms;
+            }
+        } else {
+            for (var i = 0; i < 10; i++) {
+                try
+                {
+                    var file = new FileStream(Configuration.AssetDirectory + key, FileMode.Open, FileAccess.Read, FileShare.Read, default,
+                        FileOptions.Asynchronous);
+                    return file;
+                }
+                catch (Exception e) when (e is IOException)
+                {
+                    Writer.Info(LogGroup.AssetDelivery, "GetAssetContent IO exception. Message = {0}\n{1}", e.Message, e.StackTrace);
+                    if (e.Message.Contains("Could not find file"))
+                        throw;
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(100 * (i + 1)));
+                }
+            }
         }
+
+        
 
         throw new Exception("Maximum retry attempts reached for GetAssetContent(" + key + ")");
     }
@@ -303,18 +325,32 @@ public class AssetsService : ServiceBase, IService
             hash += "." + extension;
         }
 
-        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
-        var prefix = r2Service.GetPrefixFromLocalDirectory(directory);
-        var r2Key = prefix + hash;
-        
-        content.Seek(0, SeekOrigin.Begin);
-        var contentType = extension switch {
-            "png"  => "image/png",
-            "jpg"  => "image/jpeg",
-            "jpeg" => "image/jpeg",
-            _      => "application/octet-stream"
-        };
-        await r2Service.UploadFileAsync(r2Key, content, contentType);
+        if(Configuration.IsCdnEnabled) {
+            var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+            var prefix = r2Service.GetPrefixFromLocalDirectory(directory);
+            var r2Key = prefix + hash;
+            
+            content.Seek(0, SeekOrigin.Begin);
+            var contentType = extension switch {
+                "png"  => "image/png",
+                "jpg"  => "image/jpeg",
+                "jpeg" => "image/jpeg",
+                _      => "application/octet-stream"
+            };
+            await r2Service.UploadFileAsync(r2Key, content, contentType);
+        } else {
+            var outPath = directory + hash;
+            // We got our hash now. Check if the file already exists.
+            if (File.Exists(outPath))
+            {
+                // File already exists!
+                return plainHash;
+            }
+
+            // Insert the file
+            await using var file = File.Create(outPath);
+            content.Seek(0, SeekOrigin.Begin);
+        }
         // Done
         
         return plainHash;
@@ -328,10 +364,12 @@ public class AssetsService : ServiceBase, IService
         }
 
         directory ??= Configuration.AssetDirectory;
-        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
-        var prefix = r2Service.GetPrefixFromLocalDirectory(directory);
-        
-        await r2Service.DeleteFileAsync(prefix + Path.GetFileName(key));
+        if(Configuration.IsCdnEnabled) {
+            var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
+            var prefix = r2Service.GetPrefixFromLocalDirectory(directory);
+            
+            await r2Service.DeleteFileAsync(prefix + Path.GetFileName(key));
+        }
 
         // shikaniga shall remove this after dis shit is goood good 
         var fullPath = directory + Path.GetFileName(key);

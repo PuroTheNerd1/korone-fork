@@ -334,6 +334,8 @@ public class AdminApiController : ControllerBase
     
     private static async Task<string> GetOrMigrateImageUrlAsync(string fileName, bool isThumbnails = true)
     {
+        if (!Configuration.IsCdnEnabled)
+            return Configuration.CdnBaseUrl + fileName;
         // really shitty work but this accounts for most cases.
         if(fileName.StartsWith('/'))
             fileName = fileName[1..];

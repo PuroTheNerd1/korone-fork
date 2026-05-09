@@ -29,12 +29,9 @@ public class RobloxPlayerCorsMiddleware
         var styleSrc = "";
 
 #if DEBUG
-        if (Configuration.BaseUrl.Contains("goober.top"))
-        {
-            styleSrc = " https://www.goober.top/fonts/gotham1.css";
-            fontSrc += " https://www.goober.top/fonts/GothamSSmBold.woff2 https://www.goober.top/fonts/GothamSSmMedium.woff2 https://www.goober.top/fonts/GothamSSmBook.woff2 https://www.goober.top/fonts/GothamSSmLight.woff2 https://www.goober.top/fonts/GothamSSmBlack.woff2";
-            imgSrc += " https://*.pekora.zip";
-        }
+        styleSrc = $" {Configuration.BaseUrl}/fonts/gotham1.css {Configuration.BaseUrl}/fonts/gotham1.css";
+        fontSrc += $" {Configuration.BaseUrl}/fonts/GothamSSmBold.woff2 {Configuration.BaseUrl}/fonts/GothamSSmMedium.woff2 {Configuration.BaseUrl}/fonts/GothamSSmBook.woff2 {Configuration.BaseUrl}/fonts/GothamSSmLight.woff2 {Configuration.BaseUrl}/fonts/GothamSSmBlack.woff2";
+        imgSrc += " https://*.pekora.zip";
 #endif
 
         styleSrc += " https://cdn.jsdelivr.net/npm/cryptocoins-icons@2.9.0/webfont/cryptocoins.min.css";
