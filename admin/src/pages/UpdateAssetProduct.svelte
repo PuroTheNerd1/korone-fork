@@ -2,11 +2,15 @@
 	import dayjs from "dayjs";
 	import Permission from "../components/Permission.svelte";
 	import Main from "../components/templates/Main.svelte";
-	import { hasPermission } from "../stores/rank";
+	import { hasPermission, is } from "../stores/rank";
 	import { getElementById } from "../lib/dom";
 	import request from "../lib/request";
 	let disabled = false;
 	let errorMessage: string | undefined;
+	let saleErrorMessage: string | undefined;
+	let saleType: 'pct' | 'flat' = 'pct';
+	let saleAmount: string = '';
+	let saleUnits: string = '';
 	import * as rank from "../stores/rank";
 	import SaleHistory from "../components/SaleHistory.svelte";
 	import ProductHistory from "../components/ProductHistory.svelte";
@@ -23,6 +27,11 @@
 		priceTickets: number|null;
 		serialCount: number | null;
 		offsaleAt: string | null;
+		isOnSale: boolean;
+		saleUnitsTotal: number | null;
+		saleUnitsRemaining: number | null;
+		salePriceRobux: number | null;
+		salePriceTix: number | null;
 //		hidden: boolean;   [[ will implement at later date - shady ]]
 	}
 	let assetDetails: Partial<IDetailsResponse> = {};
@@ -51,6 +60,59 @@
 						disabled = false;
 					});
 			}, 1);
+		}
+	}
+
+	const refreshAssetDetails = () => {
+		return request.get("/product/details?assetId=" + assetId).then(d => {
+			assetDetails = d.data;
+		});
+	}
+
+	const startSale = async () => {
+		saleErrorMessage = undefined;
+		const units = parseInt(saleUnits, 10);
+		const amount = parseInt(saleAmount, 10);
+		if (!Number.isSafeInteger(units) || units <= 0) {
+			saleErrorMessage = "Enter a positive sales unit count.";
+			return;
+		}
+		if (!Number.isSafeInteger(amount) || amount <= 0) {
+			saleErrorMessage = saleType === 'pct' ? "Enter a percent between 1 and 99." : "Enter a positive sale price.";
+			return;
+		}
+		const body: { assetId: number; salesUnits: number; pctOff?: number; flatRobux?: number; flatTix?: number; } = {
+			assetId,
+			salesUnits: units,
+		};
+		if (saleType === 'pct') {
+			body.pctOff = amount;
+		} else {
+			body.flatRobux = amount;
+		}
+		disabled = true;
+		try {
+			await request.post("/asset/start-sale", body);
+			saleAmount = '';
+			saleUnits = '';
+			await refreshAssetDetails();
+		} catch (e) {
+			saleErrorMessage = e.message;
+		} finally {
+			disabled = false;
+		}
+	}
+
+	const endSale = async () => {
+		saleErrorMessage = undefined;
+		disabled = true;
+		try {
+			await request.post("/asset/end-sale", { assetId });
+			await refreshAssetDetails();
+		} catch (e) {
+			saleErrorMessage = e.message;
+		} finally {
+			disabled = false;
 		}
 	}
 </script>
@@ -232,6 +294,44 @@
 				}}>Update Product</button
 			>
 		</div>
+		{#if assetDetails && assetDetails.name && is('owner')}
+			<div class="col-12 mt-4">
+				<hr />
+				<h3>Start Sale</h3>
+				{#if saleErrorMessage}
+					<p class="err">{saleErrorMessage}</p>
+				{/if}
+				{#if assetDetails.isOnSale}
+					<p>
+						Sale active &mdash; {assetDetails.saleUnitsRemaining} of {assetDetails.saleUnitsTotal} units remaining.
+						{#if assetDetails.salePriceRobux != null}<br />Sale price: R$ {assetDetails.salePriceRobux}{/if}
+						{#if assetDetails.salePriceTix != null}<br />Sale price: TX$ {assetDetails.salePriceTix}{/if}
+					</p>
+					<button class="btn btn-warning" {disabled} on:click={endSale}>End Sale</button>
+				{:else}
+					<div class="row">
+						<div class="col-3">
+							<label for="sale-type">Discount Type</label>
+							<select id="sale-type" class="form-control" bind:value={saleType}>
+								<option value="pct">Percent Off</option>
+								<option value="flat">Flat R$ Price</option>
+							</select>
+						</div>
+						<div class="col-3">
+							<label for="sale-amount">{saleType === 'pct' ? 'Percent Off' : 'Sale R$ Price'}</label>
+							<input id="sale-amount" type="number" class="form-control dark-input" bind:value={saleAmount} />
+						</div>
+						<div class="col-3">
+							<label for="sale-units">Sales (units allowed)</label>
+							<input id="sale-units" type="number" class="form-control dark-input" bind:value={saleUnits} />
+						</div>
+						<div class="col-3 mt-4">
+							<button class="btn btn-success" {disabled} on:click={startSale}>Start Sale</button>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
 		{#if assetDetails}
 			<div class="col-12">
 				<hr />
