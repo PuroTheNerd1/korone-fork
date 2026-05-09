@@ -2075,6 +2075,22 @@ Thank you for your understanding,
         await services.assets.SetItemPrice(request.assetId, request.priceRobux, request.priceTickets);
     }
 
+    [HttpPost("asset/start-sale"), StaffFilter(Access.SetAssetProduct)]
+    public async Task StartAssetSale([Required, FromBody] StartSaleRequest request)
+    {
+        if (!StaffFilter.IsOwner(safeUserSession.userId))
+            throw new StaffException("Only the owner can start sales");
+        await services.assets.StartSale(request.assetId, request.pctOff, request.flatRobux, request.flatTix, request.salesUnits);
+    }
+
+    [HttpPost("asset/end-sale"), StaffFilter(Access.SetAssetProduct)]
+    public async Task EndAssetSale([Required, FromBody] EndSaleRequest request)
+    {
+        if (!StaffFilter.IsOwner(safeUserSession.userId))
+            throw new StaffException("Only the owner can end sales");
+        await services.assets.EndSale(request.assetId);
+    }
+
     private async Task CopyItemFloodCheck()
     {
         if (!StaffFilter.IsOwner(safeUserSession.userId))

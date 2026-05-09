@@ -1621,7 +1621,7 @@ public class AssetsService : ServiceBase, IService
     public async Task<ProductEntry> GetProductForAsset(long assetId)
     {
         var result = await db.QuerySingleOrDefaultAsync<ProductEntry>(
-            "SELECT name, description as description, is_for_sale as isForSale, is_limited as isLimited, is_limited_unique as isLimitedUnique, price_robux as priceRobux, price_tix as priceTickets, serial_count as serialCount, offsale_at as offsaleAt FROM asset WHERE id = :id",
+            "SELECT name, description as description, is_for_sale as isForSale, is_limited as isLimited, is_limited_unique as isLimitedUnique, price_robux as priceRobux, price_tix as priceTickets, serial_count as serialCount, offsale_at as offsaleAt, is_on_sale as isOnSale, sale_units_total as saleUnitsTotal, sale_units_remaining as saleUnitsRemaining, sale_price_robux as salePriceRobux, sale_price_tix as salePriceTix FROM asset WHERE id = :id",
             new
             {
                 id = assetId,
@@ -1722,6 +1722,130 @@ public class AssetsService : ServiceBase, IService
         return entry[0];
     }
 
+    public async Task StartSale(long assetId, int? pctOff, int? flatRobux, int? flatTix, long unitsTotal)
+    {
+        if (unitsTotal <= 0)
+            throw new ArgumentException("salesUnits must be greater than zero");
+
+        var current = await db.QuerySingleOrDefaultAsync<SaleSnapshotRow>(
+            "SELECT is_on_sale as isOnSale, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTix FROM asset WHERE id = :id",
+            new { id = assetId });
+        if (current == null)
+            throw new RecordNotFoundException();
+        if (current.isOnSale)
+            throw new ArgumentException("Item is already on sale");
+
+        long? saleRobux = null;
+        long? saleTix = null;
+
+        if (pctOff.HasValue)
+        {
+            if (pctOff.Value <= 0 || pctOff.Value >= 100)
+                throw new ArgumentException("pctOff must be between 1 and 99");
+            if (current.priceRobux is > 0)
+                saleRobux = (long)Math.Floor(current.priceRobux.Value * (100 - pctOff.Value) / 100m);
+            if (current.priceTix is > 0)
+                saleTix = (long)Math.Floor(current.priceTix.Value * (100 - pctOff.Value) / 100m);
+        }
+        else
+        {
+            if (flatRobux.HasValue)
+            {
+                if (flatRobux.Value < 0)
+                    throw new ArgumentException("flatRobux cannot be negative");
+                if (current.priceRobux == null || flatRobux.Value >= current.priceRobux.Value)
+                    throw new ArgumentException("Sale price must be lower than the current Robux price");
+                saleRobux = flatRobux.Value;
+            }
+            if (flatTix.HasValue)
+            {
+                if (flatTix.Value < 0)
+                    throw new ArgumentException("flatTix cannot be negative");
+                if (current.priceTix == null || flatTix.Value >= current.priceTix.Value)
+                    throw new ArgumentException("Sale price must be lower than the current Tickets price");
+                saleTix = flatTix.Value;
+            }
+        }
+
+        if (saleRobux == null && saleTix == null)
+            throw new ArgumentException("Provide a percent off or a flat sale price");
+
+        await db.ExecuteAsync(@"UPDATE asset SET
+            is_on_sale = TRUE,
+            is_for_sale = TRUE,
+            sale_pre_for_sale = :preForSale,
+            sale_pre_robux = :preRobux,
+            sale_pre_tix = :preTix,
+            sale_price_robux = :saleRobux,
+            sale_price_tix = :saleTix,
+            sale_units_total = :units,
+            sale_units_remaining = :units,
+            sale_started_at = now(),
+            price_robux = COALESCE(:saleRobux, price_robux),
+            price_tix = COALESCE(:saleTix, price_tix),
+            updated_at = now()
+            WHERE id = :id", new
+        {
+            id = assetId,
+            preForSale = current.isForSale,
+            preRobux = current.priceRobux,
+            preTix = current.priceTix,
+            saleRobux,
+            saleTix,
+            units = unitsTotal,
+        });
+    }
+
+    public async Task EndSale(long assetId)
+    {
+        var snap = await db.QuerySingleOrDefaultAsync<SaleSnapshotRow>(
+            "SELECT is_on_sale as isOnSale, sale_pre_for_sale as isForSale, sale_pre_robux as priceRobux, sale_pre_tix as priceTix FROM asset WHERE id = :id",
+            new { id = assetId });
+        if (snap == null)
+            throw new RecordNotFoundException();
+        if (!snap.isOnSale)
+            return;
+
+        await db.ExecuteAsync(@"UPDATE asset SET
+            is_on_sale = FALSE,
+            is_for_sale = COALESCE(:preForSale, is_for_sale),
+            price_robux = :preRobux,
+            price_tix = :preTix,
+            sale_pre_for_sale = NULL,
+            sale_pre_robux = NULL,
+            sale_pre_tix = NULL,
+            sale_price_robux = NULL,
+            sale_price_tix = NULL,
+            sale_units_total = NULL,
+            sale_units_remaining = NULL,
+            sale_started_at = NULL,
+            updated_at = now()
+            WHERE id = :id", new
+        {
+            id = assetId,
+            preForSale = snap.isForSale,
+            preRobux = snap.priceRobux,
+            preTix = snap.priceTix,
+        });
+    }
+
+    public async Task DecrementSaleUnits(long assetId)
+    {
+        var remaining = await db.QuerySingleOrDefaultAsync<long?>(
+            "UPDATE asset SET sale_units_remaining = sale_units_remaining - 1 WHERE id = :id AND is_on_sale = TRUE AND sale_units_remaining > 0 RETURNING sale_units_remaining",
+            new { id = assetId });
+        if (remaining is 0)
+            await EndSale(assetId);
+    }
+
+    private class SaleSnapshotRow
+    {
+        public bool isOnSale { get; set; }
+        public bool? isForSale { get; set; }
+        public long? priceRobux { get; set; }
+        public long? priceTix { get; set; }
+    }
+
     private static Dictionary<long, Tuple<DateTime, long>> saleCounts { get; } = new();
     private static Object saleCountsLock { get; } = new();
 
@@ -1806,7 +1930,7 @@ public class AssetsService : ServiceBase, IService
         watch.Start();
         var query = new SqlBuilder();
         var t = query.AddTemplate(
-            "SELECT asset.id as id, asset_type as assetType, asset.name, asset.description, asset_genre as genre, creator_type as creatorType, creator_id as creatorTargetId, offsale_at as offsaleDeadline, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTickets, is_limited as isLimited, is_limited_unique as isLimitedUnique, comments_enabled as commentsEnabled, serial_count as serialCount, \"group\".name as groupName, \"user\".username as username, asset.created_at as createdAt, asset.updated_at as updatedAt, asset.is_18_plus, asset.moderation_status FROM asset LEFT JOIN \"user\" ON \"user\".id = asset.creator_id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id /**where**/ LIMIT 200", new
+            "SELECT asset.id as id, asset_type as assetType, asset.name, asset.description, asset_genre as genre, creator_type as creatorType, creator_id as creatorTargetId, offsale_at as offsaleDeadline, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTickets, is_limited as isLimited, is_limited_unique as isLimitedUnique, comments_enabled as commentsEnabled, serial_count as serialCount, \"group\".name as groupName, \"user\".username as username, asset.created_at as createdAt, asset.updated_at as updatedAt, asset.is_18_plus, asset.moderation_status, asset.is_on_sale as isOnSale, asset.sale_units_total as saleUnitsTotal, asset.sale_units_remaining as saleUnitsRemaining, asset.sale_price_robux as salePriceRobux, asset.sale_price_tix as salePriceTix FROM asset LEFT JOIN \"user\" ON \"user\".id = asset.creator_id LEFT JOIN \"group\" ON \"group\".id = asset.creator_id /**where**/ LIMIT 200", new
             {
                 sale_type = PurchaseType.Purchase,
                 sub_sale_type = TransactionSubType.ItemPurchase,
@@ -1998,7 +2122,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     mode = "asc";
                     break;
                 case "5":
-                    // price: high to low 
+                    // price: high to low
                     column = "CASE WHEN price_tix IS NOT NULL THEN price_tix / 10 ELSE price_robux END";
                     break;
                 case "6":
@@ -2015,7 +2139,11 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     break;
             }
 
-            builder.OrderBy(column + " " + mode);
+            builder.OrderBy("is_on_sale DESC, " + column + " " + mode);
+        }
+        else
+        {
+            builder.OrderBy("is_on_sale DESC, created_at DESC");
         }
 
         // If community creations, exclude system account
