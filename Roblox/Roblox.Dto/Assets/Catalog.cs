@@ -24,6 +24,9 @@ public class CatalogMultiGetEntry
 {
     public string itemType { get; set; }
     public long id { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool isOnSale { get; set; }
 }
 
 public class SearchResponse : RobloxCollectionPaginated<CatalogMultiGetEntry>
