@@ -155,6 +155,28 @@ const useStyles = createUseStyles({
         marginLeft: 2,
         color: "#fff",
     },
+    itemStatusSaleBadge: {
+        backgroundColor: "#E2231A",
+        padding: "4px 7px",
+        fontSize: 11,
+        fontWeight: 600,
+        color: "#fff",
+        borderRadius: 3,
+        lineHeight: "1em",
+    },
+    salesCounter: {
+        fontWeight: 500,
+        fontSize: 12,
+        color: "#757575",
+        marginRight: 6,
+        lineHeight: "16px",
+    },
+    salesCounterValue: {
+        fontWeight: 500,
+        fontSize: 14,
+        color: "var(--text-color-primary)",
+        lineHeight: "16px",
+    },
     saleClockContainer: {
         fontSize: 14,
         color: "var(--text-color-primary)",
@@ -223,6 +245,13 @@ function CatalogItemCard(props) {
                 <div className={s.cardImage}>
                     <img src={ThumbnailFromState(item.imageUrl, item.state)} alt={item.name}/>
                     <div className={s.itemStatusContainer}>
+                        {
+                            item.isOnSale
+                                ?
+                                <div className={s.itemStatusSaleBadge}>Sale</div>
+                                :
+                                null
+                        }
                         {
                             isNew && !goingOffSale
                                 ?
@@ -301,6 +330,13 @@ function CatalogItemCard(props) {
                 }
                 <div className={`${s.text} flex w-fit-content`} style={{marginBottom: 5,}}>
                     {
+                        item.isOnSale
+                        ?
+                        <div style={{display: 'flex', alignItems: 'baseline'}}>
+                            <span className={s.salesCounter}>Sales</span>
+                            <span className={s.salesCounterValue}>{abbreviateNumber(item.saleCount || 0)}</span>
+                        </div>
+                        :
                         !item.isForSale && !limited
                         ?
                         <span className={`${s.currencyText} text-free`}>Offsale</span>

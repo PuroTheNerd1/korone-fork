@@ -1752,6 +1752,7 @@ public class UsersService : ServiceBase, IService
             // Increment sales count. Reliability isn't super important here since this is just used for cache.
             using var assetsService = ServiceProvider.GetOrCreate<AssetsService>(this);
             await assetsService.IncrementSaleCount(assetId);
+            await assetsService.DecrementSaleUnits(assetId);
             log.Info("PurchaseItem success");
             // Finally, metrics
             if (assetDetails.priceRobux > 0)

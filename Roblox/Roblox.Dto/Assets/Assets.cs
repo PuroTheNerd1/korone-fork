@@ -37,6 +37,11 @@ namespace Roblox.Dto.Assets
         public int? priceTickets { get; set; }
         public int? serialCount { get; set; }
         public DateTime? offsaleAt { get; set; }
+        public bool isOnSale { get; set; }
+        public long? saleUnitsTotal { get; set; }
+        public long? saleUnitsRemaining { get; set; }
+        public long? salePriceRobux { get; set; }
+        public long? salePriceTix { get; set; }
     }
 
     public class MultiGetEntryLowestSeller
@@ -76,6 +81,11 @@ namespace Roblox.Dto.Assets
         public DateTime updatedAt { get; set; }
         public ModerationStatus moderationStatus { get; set; }
         public MultiGetEntryLowestSeller? lowestSellerData { get; set; }
+        public bool isOnSale { get; set; }
+        public long? saleUnitsTotal { get; set; }
+        public long? saleUnitsRemaining { get; set; }
+        public long? salePriceRobux { get; set; }
+        public long? salePriceTix { get; set; }
     }
 
     public class MultiGetEntry
@@ -112,6 +122,11 @@ namespace Roblox.Dto.Assets
             isForSale = internalEntry.isForSale && (internalEntry.priceRobux != null || internalEntry.priceTickets != null);
             price = internalEntry.priceRobux;
             priceTickets = internalEntry.priceTickets;
+            isOnSale = internalEntry.isOnSale;
+            saleUnitsTotal = internalEntry.saleUnitsTotal;
+            saleUnitsRemaining = internalEntry.saleUnitsRemaining;
+            salePriceRobux = internalEntry.salePriceRobux;
+            salePriceTix = internalEntry.salePriceTix;
             createdAt = internalEntry.createdAt;
             updatedAt = internalEntry.updatedAt;
             lowestSellerData = internalEntry.lowestSellerData;
@@ -189,8 +204,13 @@ namespace Roblox.Dto.Assets
         public ModerationStatus moderationStatus { get; set; }
         public DateTime createdAt { get; set; }
         public DateTime updatedAt { get; set; }
+        public bool isOnSale { get; set; }
+        public long? saleUnitsTotal { get; set; }
+        public long? saleUnitsRemaining { get; set; }
+        public long? salePriceRobux { get; set; }
+        public long? salePriceTix { get; set; }
     }
-    
+
     public class RecommendedItemEntry
     {
         public long assetId { get; set; }

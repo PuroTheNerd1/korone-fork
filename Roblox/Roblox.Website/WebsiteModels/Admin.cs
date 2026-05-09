@@ -150,6 +150,20 @@ public class UpdateProductRequest
     public DateTime? offsaleDeadline { get; set; }
 }
 
+public class StartSaleRequest
+{
+    public long assetId { get; set; }
+    public int? pctOff { get; set; }
+    public int? flatRobux { get; set; }
+    public int? flatTix { get; set; }
+    public long salesUnits { get; set; }
+}
+
+public class EndSaleRequest
+{
+    public long assetId { get; set; }
+}
+
 
 public class CreateAssetRequest
 {

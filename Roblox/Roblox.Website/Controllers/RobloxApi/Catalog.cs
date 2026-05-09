@@ -645,10 +645,13 @@ public class Catalog : ControllerBase
     [HttpPostBypass("v1/catalog/items/details")]
     public async Task<RobloxCollection<MultiGetEntry>> MultiGetItemDetails([Required, FromBody] WebsiteModels.Catalog.MultiGetRequest request)
     {
-	    var result = await services.assets.MultiGetInfoById(request.items.Select(c => c.id));
+	    var requestedIds = request.items.Select(c => c.id).ToList();
+	    var result = (await services.assets.MultiGetInfoById(requestedIds)).ToList();
+	    var orderIndex = requestedIds.Select((id, idx) => new { id, idx }).ToDictionary(x => x.id, x => x.idx);
+	    var ordered = result.OrderBy(c => orderIndex.TryGetValue(c.id, out var i) ? i : int.MaxValue).ToList();
 	    return new RobloxCollection<MultiGetEntry>()
 	    {
-		    data = result
+		    data = ordered
 	    };
     }
 
