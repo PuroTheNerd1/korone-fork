@@ -696,8 +696,10 @@ public class CatalogControllerV1 : ControllerBase
     {
 	    var requestedIds = request.items.Select(c => c.id).ToList();
 	    var result = (await services.assets.MultiGetInfoById(requestedIds)).ToList();
-	    var orderIndex = requestedIds.Select((id, idx) => new { id, idx }).ToDictionary(x => x.id, x => x.idx);
-	    var ordered = result.OrderBy(c => orderIndex.TryGetValue(c.id, out var i) ? i : int.MaxValue).ToList();
+	    var orderIndex = new Dictionary<long, int>();
+	    for (var i = 0; i < requestedIds.Count; i++)
+		    if (!orderIndex.ContainsKey(requestedIds[i])) orderIndex[requestedIds[i]] = i;
+	    var ordered = result.OrderBy(c => orderIndex.TryGetValue(c.id, out var idx) ? idx : int.MaxValue).ToList();
 	    return new RobloxCollection<MultiGetEntry>()
 	    {
 		    data = ordered,
