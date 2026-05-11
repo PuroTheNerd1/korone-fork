@@ -38,6 +38,7 @@ using Roblox.Website.WebsiteModels.Asset;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Dynamic;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -2675,6 +2676,14 @@ Thank you for your understanding,
             });
         }
         return response;
+    }
+
+    [HttpGet("users/{userId:long}/mac-addresses"), StaffFilter(Access.ViewMacAddresses)]
+    public async Task<IEnumerable<PhysicalAddress>> GetMacAddresses(long userId)
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new NotFoundException();
+        return await services.users.GetMacAddresses(userId);
     }
 
     [HttpPost("trades/{tradeId:long}/rollback"), StaffFilter(Access.RollbackTrade)]

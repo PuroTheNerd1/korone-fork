@@ -85,5 +85,6 @@ public enum Access
     RefundAndDeleteFirstPartyAssetSale,
     GetStaffPerformance,
     RollbackTrade,
+    ViewMacAddresses,
     All, // fake perm
 }
