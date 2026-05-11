@@ -25,6 +25,7 @@ using TwoFactorAuthNet;
 using TwoFactorAuthNet.Providers.Qr;
 using MultiGetEntry = Roblox.Dto.Users.MultiGetEntry;
 using Type = Roblox.Models.Assets.Type;
+using System.Net.NetworkInformation;
 
 namespace Roblox.Services;
 
@@ -607,8 +608,6 @@ public class UsersService : ServiceBase, IService
             throw new RecordNotFoundException();
         return res;
     }
-
-
 
     public async Task<UserInfo> GetUserById(long userId)
     {
@@ -2439,6 +2438,27 @@ public class UsersService : ServiceBase, IService
             user_id = userId,
             id = inviteId,
         });
+    }
+
+    public async Task<IEnumerable<PhysicalAddress>> GetMacAddresses(long userId)
+    {
+        const string sql = "SELECT mac_address FROM user_mac_address WHERE user_id = @userId";
+        var result = await db.QueryAsync<string>(sql, new { userId });
+        return result.Select(s => PhysicalAddress.Parse(s.ToUpper()));
+    }
+
+    public async Task SetMacAddress(long userId, PhysicalAddress mac)
+    {
+        await db.ExecuteAsync(
+            @"INSERT INTO user_mac_address (user_id, mac_address, first_used, last_used)
+            VALUES (@userId, @mac::macaddr, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, mac_address) 
+            DO UPDATE SET last_used = EXCLUDED.last_used",
+            new { 
+                userId, 
+                mac = mac.ToString()
+            }
+        );
     }
 
     public async Task<UserMembershipEntry?> GetUserMembership(long userId)

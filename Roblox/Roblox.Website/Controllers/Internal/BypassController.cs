@@ -15,6 +15,7 @@ using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Asset;
 using System.ComponentModel.DataAnnotations;
+using System.Net.NetworkInformation;
 using System.Xml.Linq;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using ForbiddenException = Roblox.Exceptions.ForbiddenException;
@@ -320,6 +321,36 @@ namespace Roblox.Website.Controllers
                 Path = "/",
                 SameSite = SameSiteMode.Lax,
             });
+        }
+
+        [HttpPostBypass("game/validate-machine")]
+        public async Task<IActionResult> ValidateMachine([FromForm] List<string> macAddresses)
+        {
+            try {
+                if (userSession == null)
+                    return NotFound(null);
+            } catch(Exception) {
+                return NotFound(null);
+            }
+
+            if (macAddresses == null || macAddresses.Count == 0)
+                return NotFound(null);
+
+            long userId = userSession.userId;
+
+            foreach (var macString in macAddresses) 
+                try {
+                    var physicalMac = PhysicalAddress.Parse(macString.ToUpper());
+                    await services.users.SetMacAddress(userId, physicalMac);
+                } catch(FormatException) {}
+            
+            try {
+                var userInfo = await services.users.GetUserById(userId);
+                if (userInfo.accountStatus != AccountStatus.Ok) 
+                    return Ok(new { success = false });
+            } catch(Exception) {}
+
+            return NotFound(null);
         }
 
         [HttpPostBypass("game/join.ashx")]
