@@ -2679,11 +2679,12 @@ Thank you for your understanding,
     }
 
     [HttpGet("users/{userId:long}/mac-addresses"), StaffFilter(Access.ViewMacAddresses)]
-    public async Task<IEnumerable<PhysicalAddress>> GetMacAddresses(long userId)
+    public async Task<dynamic> GetMacAddresses(long userId)
     {
         if (!StaffFilter.IsOwner(userSession.userId))
             throw new NotFoundException();
-        return await services.users.GetMacAddresses(userId);
+        var result = await services.users.GetMacAddresses(userId);
+        return result.Select(mac => BitConverter.ToString(mac.GetAddressBytes()).Replace("-", ":"));
     }
 
     [HttpPost("trades/{tradeId:long}/rollback"), StaffFilter(Access.RollbackTrade)]

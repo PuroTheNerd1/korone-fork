@@ -2442,9 +2442,9 @@ public class UsersService : ServiceBase, IService
 
     public async Task<IEnumerable<PhysicalAddress>> GetMacAddresses(long userId)
     {
-        const string sql = "SELECT mac_address FROM user_mac_address WHERE user_id = @userId";
+        const string sql = "SELECT mac_address::text FROM user_mac_address WHERE user_id = @userId";
         var result = await db.QueryAsync<string>(sql, new { userId });
-        return result.Select(s => PhysicalAddress.Parse(s.ToUpper()));
+        return result.Select(s => PhysicalAddress.Parse(s.ToUpper().Replace(":", "")));
     }
 
     public async Task SetMacAddress(long userId, PhysicalAddress mac)
