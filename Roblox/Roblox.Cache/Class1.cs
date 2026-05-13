@@ -171,14 +171,17 @@ public class DistributedCache
         await redis.GetDatabase(0).KeyDeleteAsync(key);
     }
 
+    private const string GetDeleteLua = "local v = redis.call('GET', KEYS[1]); if v then redis.call('DEL', KEYS[1]) end; return v";
+
     public async Task<string?> StringGetDeleteAsync(string key)
     {
         mutex.WaitOne();
         if (cache.ContainsKey(key))
             cache.Remove(key);
         mutex.ReleaseMutex();
-        var value = await redis.GetDatabase(0).StringGetDeleteAsync(key);
-        return value.HasValue ? (string?)value : null;
+        var result = await redis.GetDatabase(0).ScriptEvaluateAsync(GetDeleteLua, new RedisKey[] { key });
+        if (result.IsNull) return null;
+        return (string?)result;
     }
 
     public async Task PublishAsync(string channel, string message)
