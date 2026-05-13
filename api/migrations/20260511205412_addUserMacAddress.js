@@ -8,8 +8,8 @@ exports.up = function(knex) {
     
     table.specificType('mac_address', 'macaddr').notNullable();
     
-    table.timestamp('first_used', { useTz: true }).defaultTo(knex.fn.now());
-    table.timestamp('last_used', { useTz: true }).defaultTo(knex.fn.now());
+    table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now());
+    table.timestamp('updated_at', { useTz: true }).defaultTo(knex.fn.now());
 
     // Composite Primary Key (user_id + mac_address)
     // This ensures a user can't have duplicate MAC entries and speeds up lookups
