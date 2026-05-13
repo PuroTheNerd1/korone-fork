@@ -1601,7 +1601,6 @@ public class UsersService : ServiceBase, IService
 
         await InTransaction(async _ =>
         {
-            // Double check that user still doesn't own item yet
             var ownedCopies = (await GetUserAssets(userIdBuyer, assetId)).ToList();
             if (ownedCopies.Count != 0)
             {
@@ -1609,8 +1608,7 @@ public class UsersService : ServiceBase, IService
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.UserAlreadyOwnsBeforePurchase);
             }
             log.Info("owned copies len = {0}", ownedCopies.Count);
-            // This is ugly but I can't think of another way
-            var assetDetails = await db.QuerySingleOrDefaultAsync<MinimalCatalogEntry>("SELECT id as assetId, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTickets, is_limited as isLimited, is_limited_unique as isLimitedUnique, sale_count as saleCount, serial_count as serialCount, creator_id as creatorId, creator_type as creatorType, offsale_at as offsaleAt, asset_type as assetType FROM asset WHERE id = :id", new
+            var assetDetails = await db.QuerySingleOrDefaultAsync<MinimalCatalogEntry>("SELECT id as assetId, is_for_sale as isForSale, price_robux as priceRobux, price_tix as priceTickets, is_limited as isLimited, is_limited_unique as isLimitedUnique, sale_count as saleCount, serial_count as serialCount, creator_id as creatorId, creator_type as creatorType, offsale_at as offsaleAt, asset_type as assetType FROM asset WHERE id = :id FOR UPDATE", new
             {
                 id = assetId,
             });
@@ -1630,9 +1628,12 @@ public class UsersService : ServiceBase, IService
 
             using var ec = ServiceProvider.GetOrCreate<EconomyService>(this);
             await using var buyerLock = await ec.AcquireEconomyLock(CreatorType.User, userIdBuyer);
-            // Check balance
-            var userBalance = await ec.GetUserBalance(userIdBuyer);
-            var balance = expectedCurrency == CurrencyType.Robux ? userBalance.robux : userBalance.tickets;
+            var lockedBalance = await db.QuerySingleOrDefaultAsync<UserEconomy>(
+                "SELECT balance_robux As robux, balance_tickets as tickets FROM user_economy WHERE user_id = :user_id FOR UPDATE",
+                new { user_id = userIdBuyer });
+            if (lockedBalance == null)
+                throw new Exception("User does not have an economy entry");
+            var balance = expectedCurrency == CurrencyType.Robux ? lockedBalance.robux : lockedBalance.tickets;
             var realPrice = expectedCurrency == CurrencyType.Robux
                 ? assetDetails.priceRobux
                 : assetDetails.priceTickets;

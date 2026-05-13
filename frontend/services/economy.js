@@ -1,5 +1,6 @@
 import request from "../lib/request"
 import { getFullUrl } from "../lib/request";
+import { forgeCheckoutSeal } from "../util/checkout_seal";
 
 
 export const getResellers = ({ assetId, cursor, limit }) => {
@@ -61,14 +62,22 @@ export const getResellableCopies = ({ assetId, userId }) => {
  * @param {number} expectedCurrency
  * @returns {Promise<PurchaseDetailRequestModel>}
  */
-export const purchaseItem = ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
+export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
+  const handshakeResp = await request('POST', getFullUrl('economy', `/v1/purchases/products/${productId}/handshake`));
+  const { token, material } = handshakeResp.data;
+  const seal = await forgeCheckoutSeal({
+    assetId: productId,
+    expectedPrice: price,
+    ticketId: token,
+    keyMaterial: material,
+  });
   return request('POST', getFullUrl('economy', `/v1/purchases/products/${productId}`), {
     assetId,
     expectedPrice: price,
     expectedSellerId: sellerId,
     userAssetId,
     expectedCurrency,
-  }).then(d => d.data);
+  }, false, { 'X-Korone-Seal': seal }).then(d => d.data);
 }
 
 export const setResellableAssetPrice = ({ assetId, userAssetId, price }) => {

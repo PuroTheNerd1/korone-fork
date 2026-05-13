@@ -171,6 +171,16 @@ public class DistributedCache
         await redis.GetDatabase(0).KeyDeleteAsync(key);
     }
 
+    public async Task<string?> StringGetDeleteAsync(string key)
+    {
+        mutex.WaitOne();
+        if (cache.ContainsKey(key))
+            cache.Remove(key);
+        mutex.ReleaseMutex();
+        var value = await redis.GetDatabase(0).StringGetDeleteAsync(key);
+        return value.HasValue ? (string?)value : null;
+    }
+
     public async Task PublishAsync(string channel, string message)
     {
         await redis.GetDatabase(0).PublishAsync(channel, message);

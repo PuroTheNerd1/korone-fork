@@ -42,9 +42,10 @@ export const getUrlWithProxy = (url) => {
  * @param {string} url
  * @param {any?} data
  * @param {boolean?} verbose
+ * @param {Record<string,string>?} extraHeaders
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-const request = async (method, url, data, verbose = false) => {
+const request = async (method, url, data, verbose = false, extraHeaders) => {
     const isBrowser = typeof window !== 'undefined';
     try {
         let headers = {
@@ -65,6 +66,11 @@ const request = async (method, url, data, verbose = false) => {
             headers['CF-Access-Client-Id'] = cfClientId;
             headers['CF-Access-Client-Secret'] = cfClientSecret;
         }
+        if (extraHeaders && typeof extraHeaders === 'object') {
+            for (const k of Object.keys(extraHeaders)) {
+                headers[k] = extraHeaders[k];
+            }
+        }
 
         return await axios.request({
             method,
@@ -79,7 +85,7 @@ const request = async (method, url, data, verbose = false) => {
             console.log(resp.headers)
             if (resp.status === 403 && resp.headers['x-csrf-token']) {
                 _csrf = resp.headers['x-csrf-token'];
-                return request(method, url, data);
+                return request(method, url, data, verbose, extraHeaders);
             }
         }
         if (isBrowser) {
