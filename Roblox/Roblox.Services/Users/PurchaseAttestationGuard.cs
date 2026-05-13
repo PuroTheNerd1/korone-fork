@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using Roblox.Services.Exceptions;
 
 namespace Roblox.Services;
@@ -77,13 +78,12 @@ public static class PurchaseAttestationGuard
         }
 
         var canonical = Canonicalize(assetId, expectedPrice, parsed.TicketId, parsed.TimestampMs);
-        var expected = R2StorageService.ComputeHmacSha256Hex(canonical, consumed.keyMaterial);
 
-        byte[] expectedBytes;
+        byte[] keyRaw;
         byte[] actualBytes;
         try
         {
-            expectedBytes = Convert.FromHexString(expected);
+            keyRaw = Convert.FromBase64String(consumed.keyMaterial);
             actualBytes = Convert.FromHexString(parsed.SignatureHex);
         }
         catch
@@ -91,6 +91,8 @@ public static class PurchaseAttestationGuard
             _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeBadSignature, expectedPrice);
             throw new RobloxException(400, 0, "Invalid checkout seal");
         }
+
+        var expectedBytes = HMACSHA256.HashData(keyRaw, Encoding.UTF8.GetBytes(canonical));
 
         if (!CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes))
         {
