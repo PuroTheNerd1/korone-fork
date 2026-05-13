@@ -221,13 +221,45 @@ public class EconomyControllerV1 : ControllerBase
         await services.users.PurchaseNormalItem(safeUserSession.userId, assetId, request.expectedCurrency);
     }
 
+    public class CheckoutPageTokenRequest
+    {
+        public long? assetId { get; set; }
+    }
+
+    public class CheckoutHandshakeRequest
+    {
+        public string? pageToken { get; set; }
+        public int behaviorScore { get; set; }
+    }
+
+    [HttpPost("checkout-page-token")]
+    public async Task<dynamic> MintCheckoutPageToken([FromBody] CheckoutPageTokenRequest request)
+    {
+        FeatureCheck();
+        var bypassSecret = Roblox.Configuration.UserAgentBypassSecret;
+        if (string.IsNullOrEmpty(bypassSecret) || UserAgent != bypassSecret)
+            throw new RobloxException(403, 0, "Forbidden");
+        if (request?.assetId is null or <= 0)
+            throw new RobloxException(400, 0, "Missing assetId");
+        var minted = await services.purchaseAttestation.MintPageToken(safeUserSession.userId, request.assetId.Value);
+        return new
+        {
+            pageToken = minted.pageToken,
+            expiresAt = minted.expiresAtMs,
+        };
+    }
+
     [HttpPost("purchases/products/{assetId:long}/handshake")]
-    public async Task<dynamic> InitiateCheckout(long assetId)
+    public async Task<dynamic> InitiateCheckout(long assetId, [FromBody] CheckoutHandshakeRequest? body)
     {
         FeatureCheck();
         var userId = safeUserSession.userId;
         await services.purchaseAttestation.EnforceIssuanceRateLimit(userId);
         await using var burstLock = await services.purchaseAttestation.AcquireIssuanceBurstLock(userId);
+        if (body == null)
+            throw new RobloxException(400, 0, "Missing checkout handshake body");
+        await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, userId, assetId);
+        services.purchaseAttestation.EnforceBehaviorScore(body.behaviorScore);
         var ipHash = GetIP();
         var ua = UserAgent;
         var issued = await services.purchaseAttestation.Issue(userId, assetId, ipHash, ua);

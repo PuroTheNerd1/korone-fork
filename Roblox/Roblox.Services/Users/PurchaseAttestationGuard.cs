@@ -77,6 +77,13 @@ public static class PurchaseAttestationGuard
             throw new RobloxException(400, 0, "Checkout seal does not match asset");
         }
 
+        var ageMs = now - consumed.issuedAtMs;
+        if (ageMs < PurchaseAttestationService.TicketMinAgeMs)
+        {
+            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeMinAgeViolation, expectedPrice);
+            throw new RobloxException(429, 0, "Slow down");
+        }
+
         var canonical = Canonicalize(assetId, expectedPrice, parsed.TicketId, parsed.TimestampMs);
 
         byte[] keyRaw;

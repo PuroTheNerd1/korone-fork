@@ -9,10 +9,14 @@ public class PurchaseAttestationService : ServiceBase, IService
 {
     private const int KeyByteLen = 32;
     private const int TicketByteLen = 16;
+    private const int PageTokenByteLen = 24;
     private static readonly TimeSpan AttestationTtl = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan PageTokenTtl = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan HandshakeBurstWindow = TimeSpan.FromMilliseconds(750);
     private static readonly TimeSpan HandshakeSlidingWindow = TimeSpan.FromMinutes(1);
     private const int HandshakeMaxPerWindow = 30;
+    private const int BehaviorScoreMinimum = 3;
+    public const long TicketMinAgeMs = 1_500;
 
     public const short OutcomeIssued = 0;
     public const short OutcomeConsumedOk = 1;
@@ -20,9 +24,11 @@ public class PurchaseAttestationService : ServiceBase, IService
     public const short OutcomeMissingOrReplayed = 3;
     public const short OutcomeStaleTimestamp = 4;
     public const short OutcomeAssetMismatch = 5;
+    public const short OutcomeMinAgeViolation = 6;
 
     public sealed record IssuedAttestation(string ticketId, string keyMaterial, long expiresAtMs);
-    public sealed record ConsumedAttestation(long assetId, string keyMaterial);
+    public sealed record ConsumedAttestation(long assetId, long issuedAtMs, string keyMaterial);
+    public sealed record IssuedPageToken(string pageToken, long expiresAtMs);
 
     public async Task EnforceIssuanceRateLimit(long userId)
     {
@@ -48,6 +54,44 @@ public class PurchaseAttestationService : ServiceBase, IService
         return redLock;
     }
 
+    public async Task<IssuedPageToken> MintPageToken(long userId, long assetId)
+    {
+        var tokenBytes = new byte[PageTokenByteLen];
+        RandomNumberGenerator.Fill(tokenBytes);
+        var pageToken = Convert.ToHexString(tokenBytes).ToLowerInvariant();
+        var value = $"{userId}:{assetId}";
+        await redis.StringSetAsync(PageTokenKey(pageToken), value, PageTokenTtl);
+        var expiresAt = DateTimeOffset.UtcNow.Add(PageTokenTtl).ToUnixTimeMilliseconds();
+        return new IssuedPageToken(pageToken, expiresAt);
+    }
+
+    public async Task EnforcePageTokenAsync(string? pageToken, long userId, long assetId)
+    {
+        if (string.IsNullOrWhiteSpace(pageToken) || pageToken.Length != PageTokenByteLen * 2)
+            throw new RobloxException(400, 0, "Missing or invalid checkout page token");
+        foreach (var c in pageToken)
+        {
+            if (!(c is >= '0' and <= '9' or >= 'a' and <= 'f'))
+                throw new RobloxException(400, 0, "Missing or invalid checkout page token");
+        }
+        var raw = await redis.StringGetDeleteAsync(PageTokenKey(pageToken));
+        if (raw == null)
+            throw new RobloxException(400, 0, "Checkout page token expired or already consumed");
+        var sep = raw.IndexOf(':');
+        if (sep <= 0
+            || !long.TryParse(raw.Substring(0, sep), out var storedUserId)
+            || !long.TryParse(raw.Substring(sep + 1), out var storedAssetId))
+            throw new RobloxException(400, 0, "Corrupt checkout page token");
+        if (storedUserId != userId || storedAssetId != assetId)
+            throw new RobloxException(400, 0, "Checkout page token does not match request");
+    }
+
+    public void EnforceBehaviorScore(int score)
+    {
+        if (score < BehaviorScoreMinimum)
+            throw new RobloxException(400, 0, "Suspicious client behavior");
+    }
+
     public async Task<IssuedAttestation> Issue(long userId, long assetId, string? clientIpHash, string? userAgent)
     {
         var ticketBytes = new byte[TicketByteLen];
@@ -57,7 +101,8 @@ public class PurchaseAttestationService : ServiceBase, IService
 
         var ticketId = Convert.ToHexString(ticketBytes).ToLowerInvariant();
         var keyMaterial = Convert.ToBase64String(keyBytes);
-        var storedValue = $"{assetId}:{keyMaterial}";
+        var issuedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var storedValue = $"{assetId}:{issuedAtMs}:{keyMaterial}";
 
         await redis.StringSetAsync(RedisKey(userId, ticketId), storedValue, AttestationTtl);
 
@@ -74,7 +119,7 @@ public class PurchaseAttestationService : ServiceBase, IService
                 ua = userAgent == null ? null : Truncate(userAgent, 512),
             });
 
-        var expiresAt = DateTimeOffset.UtcNow.Add(AttestationTtl).ToUnixTimeMilliseconds();
+        var expiresAt = issuedAtMs + (long)AttestationTtl.TotalMilliseconds;
         return new IssuedAttestation(ticketId, keyMaterial, expiresAt);
     }
 
@@ -82,12 +127,15 @@ public class PurchaseAttestationService : ServiceBase, IService
     {
         var raw = await redis.StringGetDeleteAsync(RedisKey(userId, ticketId));
         if (raw == null) return null;
-        var sep = raw.IndexOf(':');
-        if (sep <= 0) return null;
-        if (!long.TryParse(raw.Substring(0, sep), out var aid)) return null;
-        var key = raw.Substring(sep + 1);
+        var firstSep = raw.IndexOf(':');
+        if (firstSep <= 0) return null;
+        var secondSep = raw.IndexOf(':', firstSep + 1);
+        if (secondSep <= firstSep) return null;
+        if (!long.TryParse(raw.Substring(0, firstSep), out var aid)) return null;
+        if (!long.TryParse(raw.Substring(firstSep + 1, secondSep - firstSep - 1), out var issuedAtMs)) return null;
+        var key = raw.Substring(secondSep + 1);
         if (key.Length == 0) return null;
-        return new ConsumedAttestation(aid, key);
+        return new ConsumedAttestation(aid, issuedAtMs, key);
     }
 
     public Task MarkOutcome(long userId, string ticketId, short outcome, long? expectedPrice) =>
@@ -105,6 +153,9 @@ public class PurchaseAttestationService : ServiceBase, IService
 
     private static string RedisKey(long userId, string ticketId) =>
         $"econ:attest:v1:{userId}:{ticketId}";
+
+    private static string PageTokenKey(string pageToken) =>
+        $"econ:page:v1:{pageToken}";
 
     private static string Truncate(string s, int max) =>
         s.Length <= max ? s : s.Substring(0, max);
