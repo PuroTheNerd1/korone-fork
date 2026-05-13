@@ -1154,6 +1154,50 @@ public class AdminApiController : ControllerBase
         return result;
     }
 
+    [HttpGet("alt-accounts/by-mac"), StaffFilter(Access.ViewMacAddresses)]
+    public async Task<dynamic> GetAltAccountsByMac(int limit = 50, int offset = 0)
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new NotFoundException();
+        if (limit is > 200 or < 1) limit = 50;
+        if (offset < 0) offset = 0;
+
+        var macs = (await db.QueryAsync(
+            @"SELECT mac_address::text AS ""macAddress"", COUNT(DISTINCT user_id) AS ""userCount""
+              FROM user_mac_address
+              GROUP BY mac_address
+              HAVING COUNT(DISTINCT user_id) > 1
+              ORDER BY COUNT(DISTINCT user_id) DESC, mac_address ASC
+              LIMIT @limit OFFSET @offset", new { limit, offset })).ToList();
+
+        var result = new List<dynamic>();
+        foreach (var m in macs)
+        {
+            string rawMac = (string)m.macAddress;
+            var users = await db.QueryAsync(
+                @"SELECT DISTINCT u.id, u.username, u.status
+                  FROM user_mac_address ma
+                  JOIN ""user"" u ON u.id = ma.user_id
+                  WHERE ma.mac_address = @mac::macaddr
+                  ORDER BY u.id ASC", new { mac = rawMac });
+
+            var formattedMac = BitConverter.ToString(PhysicalAddress.Parse(rawMac.ToUpper().Replace(":", "")).GetAddressBytes()).Replace("-", ":");
+            result.Add(new
+            {
+                macAddress = formattedMac,
+                userCount = (long)m.userCount,
+                users = users.Select(u => new
+                {
+                    id = (long)u.id,
+                    username = (string)u.username,
+                    status = ((AccountStatus)u.status).ToString(),
+                }).ToList(),
+            });
+        }
+
+        return result;
+    }
+
     [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]
     public async Task<IEnumerable<dynamic>> GetUserBanHistory([Required, FromQuery] long userId)
     {

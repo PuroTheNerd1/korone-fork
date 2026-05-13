@@ -93,6 +93,12 @@
 			permission: 'ManageReports',
 		},
 		{
+			name: 'Alt Accounts',
+			link: '/admin/alts',
+			icon: UsersIcon,
+			permission: 'ViewMacAddresses',
+		},
+		{
 			name: 'Resolve URL',
 			link: '/admin/resolve-url',
 			icon: TargetIcon,

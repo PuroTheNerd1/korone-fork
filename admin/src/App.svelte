@@ -44,6 +44,7 @@
 	import GiftAllUsers from "./pages/GiftAllUsers.svelte";
 	import CopyRobloxUgc from "./pages/CopyRobloxUGC.svelte";
 	import StaffStats from "./pages/StaffPerformance.svelte";
+	import Alts from "./pages/Alts.svelte";
 	// import 'bootstrap';
 
 	var pushState = history.pushState;
@@ -174,6 +175,9 @@
 		</Route>
 		<Route path="/admin/staff-performance/:userId" let:params>
 			<StaffStats userId={params.userId} />
+		</Route>
+		<Route path="/admin/alts">
+			<Alts />
 		</Route>
 	{/await}
 </Router>
