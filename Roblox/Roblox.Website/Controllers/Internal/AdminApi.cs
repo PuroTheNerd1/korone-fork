@@ -1129,6 +1129,31 @@ public class AdminApiController : ControllerBase
 
         await avatarCache.DeleteAvatarCache(request.userId);
     }
+    
+    [HttpGet("user/mac-address-history"), StaffFilter(Access.ViewMacAddresses)]
+    public async Task<dynamic> GetMacAddressHistory([Required, FromQuery] long userId)
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new NotFoundException();
+        var rawData = await services.users.GetMacAddresses(userId);
+
+        var result = new List<dynamic>();
+        foreach (var item in rawData)
+        {
+            if(item == null)
+                continue;
+            result.Add(new
+            {
+                userId,
+                macAddress = BitConverter.ToString(PhysicalAddress.Parse(item.macAddress.ToUpper().Replace(":", "")).GetAddressBytes()).Replace("-", ":"),
+                item.createdAt,
+                item.updatedAt,
+            });
+        }
+        
+        return result;
+    }
+
     [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]
     public async Task<IEnumerable<dynamic>> GetUserBanHistory([Required, FromQuery] long userId)
     {
@@ -2676,15 +2701,6 @@ Thank you for your understanding,
             });
         }
         return response;
-    }
-
-    [HttpGet("users/{userId:long}/mac-addresses"), StaffFilter(Access.ViewMacAddresses)]
-    public async Task<dynamic> GetMacAddresses(long userId)
-    {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new NotFoundException();
-        var result = await services.users.GetMacAddresses(userId);
-        return result.Select(mac => BitConverter.ToString(mac.GetAddressBytes()).Replace("-", ":"));
     }
 
     [HttpPost("trades/{tradeId:long}/rollback"), StaffFilter(Access.RollbackTrade)]

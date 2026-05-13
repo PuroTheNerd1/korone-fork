@@ -2440,20 +2440,32 @@ public class UsersService : ServiceBase, IService
         });
     }
 
-    public async Task<IEnumerable<PhysicalAddress>> GetMacAddresses(long userId)
+    public async Task<IEnumerable<UserMacAddressEntry?>> GetMacAddresses(long userId)
     {
-        const string sql = "SELECT mac_address::text FROM user_mac_address WHERE user_id = @userId";
-        var result = await db.QueryAsync<string>(sql, new { userId });
-        return result.Select(s => PhysicalAddress.Parse(s.ToUpper().Replace(":", "")));
+        var results = await db.QueryAsync<UserMacAddressEntry?>(
+            "SELECT mac_address::text as macAddress, created_at as createdAt, updated_at as updatedAt FROM user_mac_address WHERE user_id = @userId", new 
+            { 
+                userId,
+            });
+
+        foreach (var entry in results)
+        {
+            if (!string.IsNullOrEmpty(entry.macAddress))
+            {
+                entry.macAddress = entry.macAddress.ToUpper().Replace(":", "");
+            }
+        }
+
+        return results;
     }
 
     public async Task SetMacAddress(long userId, PhysicalAddress mac)
     {
         await db.ExecuteAsync(
-            @"INSERT INTO user_mac_address (user_id, mac_address, first_used, last_used)
+            @"INSERT INTO user_mac_address (user_id, mac_address, created_at, updated_at)
             VALUES (@userId, @mac::macaddr, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             ON CONFLICT (user_id, mac_address) 
-            DO UPDATE SET last_used = EXCLUDED.last_used",
+            DO UPDATE SET updated_at = EXCLUDED.updated_at",
             new { 
                 userId, 
                 mac = mac.ToString()

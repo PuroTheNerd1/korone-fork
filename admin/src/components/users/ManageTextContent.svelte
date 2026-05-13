@@ -3,6 +3,7 @@
     import moment from 'dayjs';
     import request from '../../lib/request';
     import Confirm from '../modal/Confirm.svelte';
+    import * as rank from "../../stores/rank";
 
     export let userId: string|number;
     let textView: string = 'Status';
@@ -27,6 +28,9 @@
             case 'Bans':
                 endpoint = `/user/ban-history?userId=${userId}`;
                 break;
+            case 'MACs':
+                endpoint = `/user/mac-address-history?userId=${userId}`
+                break;    
             default:
                 endpoint = `/user/status-history?userId=${userId}`;
         }
@@ -87,6 +91,15 @@
                     Performance
                 </a></button>
             </Permission>
+
+            {#if rank.is('owner')}
+                <Permission p="ViewMacAddresses">
+                <button
+                    class={textView === "MACs" ? "btn btn-primary" : "btn btn-outline-primary"}
+                    on:click={(e) => { e.preventDefault(); textView = 'MACs'; }}
+                >MAC Addresses</button>
+                </Permission>
+            {/if}
         </div>
     </div>
 
@@ -100,6 +113,11 @@
                         </p>
                     {/if}
 
+                    {#if textView === 'MACs'}
+                        <p class="mb-0">{item.macAddress}</p>
+                        <p class="mb-0">Created at: {moment(item.created_at || item.createdAt).format("MMM DD YYYY, h:mm A")}</p>
+                        <p class="mb-0">Last used at: {moment(item.updated_at || item.updatedAt).format("MMM DD YYYY, h:mm A")}</p>
+                    {/if}
 
                     {#if textView === 'Bans'}
                         <p class="mb-0">
@@ -126,14 +144,13 @@
                             <span class="fw-bold">Expires:</span>
                             {item.expired_at ? moment(item.expired_at).format("MMM DD YYYY, h:mm A") : 'Never'}
                         </p>
-                    {:else}
+                    {/if}
+
+                    {#if textView === 'Status' || textView === 'Comments'}
                         <p class="mb-0">{item.status || item.comment}</p>
                         <p class="mb-0">
                             {moment(item.created_at || item.createdAt).format("MMM DD YYYY, h:mm A")}
                         </p>
-                    {/if}
-
-                    {#if textView === 'Status' || textView === 'Comments'}
                         <div class="row">
                             <div class="col-6 col-lg-3">
                                 <button
