@@ -33,6 +33,7 @@ namespace Roblox.Website.Controllers
         public CurrencyExchangeService currencyExchange { get; } = new();
         public AbuseReportService abuseReport { get; } = new();
         public EconomyService economy { get; } = new();
+        public PurchaseAttestationService purchaseAttestation { get; } = new();
         public CooldownService cooldown { get; } = new();
         public FilterService filter { get; } = new();
         public RobloxApi robloxApi { get; } = new();

@@ -221,23 +221,42 @@ public class EconomyControllerV1 : ControllerBase
         await services.users.PurchaseNormalItem(safeUserSession.userId, assetId, request.expectedCurrency);
     }
 
-    /// <summary>
-    /// Purchase an asset.
-    /// </summary>
-    /// <remarks>
-    /// Note that we use assetId instead of productId in url, however, all our endpoints return an assetId instead of a productId for the productId param, so you are unlikely to need to code workarounds unless you hard-coded any productIds from Roblox.
-    /// </remarks>
+    [HttpPost("purchases/products/{assetId:long}/handshake")]
+    public async Task<dynamic> InitiateCheckout(long assetId)
+    {
+        FeatureCheck();
+        var userId = safeUserSession.userId;
+        await services.purchaseAttestation.EnforceIssuanceRateLimit(userId);
+        await using var burstLock = await services.purchaseAttestation.AcquireIssuanceBurstLock(userId);
+        var ipHash = GetIP();
+        var ua = UserAgent;
+        var issued = await services.purchaseAttestation.Issue(userId, assetId, ipHash, ua);
+        return new
+        {
+            token = issued.ticketId,
+            material = issued.keyMaterial,
+            expiresAt = issued.expiresAtMs,
+        };
+    }
+
     [HttpPost("purchases/products/{assetId:long}")]
     public async Task<dynamic> PurchaseAsset(long assetId, PurchaseRequest request)
     {
         FeatureCheck();
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        // some sanity checks
         if (request.expectedSellerId == safeUserSession.userId)
             throw new RobloxException(400, 0, "Bad userId");
         if (request.userAssetId is 0 or < 0)
             request.userAssetId = null;
+
+        var sealHeader = Request.Headers["X-Korone-Seal"].ToString();
+        await PurchaseAttestationGuard.EnforceAsync(
+            services.purchaseAttestation,
+            safeUserSession.userId,
+            assetId,
+            request.expectedPrice,
+            sealHeader);
         
         if (request.userAssetId != null)
         {
