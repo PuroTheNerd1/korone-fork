@@ -1,5 +1,6 @@
 import request from "../lib/request"
 import { getFullUrl } from "../lib/request";
+import config from "../lib/config";
 import { forgeCheckoutSeal } from "../util/checkout_seal";
 import { getBehaviorScore } from "../util/checkout_input_tracker";
 
@@ -14,16 +15,17 @@ const readCheckoutPageToken = () => {
 };
 
 export const mintCheckoutPageTokenSsr = async ({ assetId, cookie }) => {
-  let internalUa = null;
-  try {
-    const cfg = (await import('next/config')).default();
-    internalUa = cfg?.serverRuntimeConfig?.backend?.internalUserAgent || null;
-  } catch (e) {
-    internalUa = null;
-  }
+  const cfg = config?.serverRuntimeConfig?.backend || {};
+  const internalUa = cfg.internalUserAgent || null;
   const extra = {};
   if (cookie) extra['Cookie'] = cookie;
   if (internalUa) extra['user-agent'] = internalUa;
+  if (process.env.NEXT_PHASE !== 'phase-production-build') {
+    console.log('[checkout-page-token-ssr]',
+      'hasInternalUa=', !!internalUa,
+      'hasCookie=', !!cookie,
+      'extraKeys=', Object.keys(extra));
+  }
   const resp = await request(
     'POST',
     getFullUrl('economy', '/v1/checkout-page-token'),

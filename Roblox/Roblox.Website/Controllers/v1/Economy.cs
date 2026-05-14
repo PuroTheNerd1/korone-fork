@@ -241,7 +241,7 @@ public class EconomyControllerV1 : ControllerBase
             throw new RobloxException(403, 0, "Forbidden");
         if (request?.assetId is null or <= 0)
             throw new RobloxException(400, 0, "Missing assetId");
-        var minted = await services.purchaseAttestation.MintPageToken(safeUserSession.userId, request.assetId.Value);
+        var minted = await services.purchaseAttestation.MintPageToken(request.assetId.Value);
         return new
         {
             pageToken = minted.pageToken,
@@ -258,7 +258,7 @@ public class EconomyControllerV1 : ControllerBase
         await using var burstLock = await services.purchaseAttestation.AcquireIssuanceBurstLock(userId);
         if (body == null)
             throw new RobloxException(400, 0, "Missing checkout handshake body");
-        await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, userId, assetId);
+        await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId);
         services.purchaseAttestation.EnforceBehaviorScore(body.behaviorScore);
         var ipHash = GetIP();
         var ua = UserAgent;

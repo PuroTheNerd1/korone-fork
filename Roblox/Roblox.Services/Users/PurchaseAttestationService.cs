@@ -54,18 +54,17 @@ public class PurchaseAttestationService : ServiceBase, IService
         return redLock;
     }
 
-    public async Task<IssuedPageToken> MintPageToken(long userId, long assetId)
+    public async Task<IssuedPageToken> MintPageToken(long assetId)
     {
         var tokenBytes = new byte[PageTokenByteLen];
         RandomNumberGenerator.Fill(tokenBytes);
         var pageToken = Convert.ToHexString(tokenBytes).ToLowerInvariant();
-        var value = $"{userId}:{assetId}";
-        await redis.StringSetAsync(PageTokenKey(pageToken), value, PageTokenTtl);
+        await redis.StringSetAsync(PageTokenKey(pageToken), assetId.ToString(), PageTokenTtl);
         var expiresAt = DateTimeOffset.UtcNow.Add(PageTokenTtl).ToUnixTimeMilliseconds();
         return new IssuedPageToken(pageToken, expiresAt);
     }
 
-    public async Task EnforcePageTokenAsync(string? pageToken, long userId, long assetId)
+    public async Task EnforcePageTokenAsync(string? pageToken, long assetId)
     {
         if (string.IsNullOrWhiteSpace(pageToken) || pageToken.Length != PageTokenByteLen * 2)
             throw new RobloxException(400, 0, "Missing or invalid checkout page token");
@@ -77,12 +76,9 @@ public class PurchaseAttestationService : ServiceBase, IService
         var raw = await redis.StringGetDeleteAsync(PageTokenKey(pageToken));
         if (raw == null)
             throw new RobloxException(400, 0, "Checkout page token expired or already consumed");
-        var sep = raw.IndexOf(':');
-        if (sep <= 0
-            || !long.TryParse(raw.Substring(0, sep), out var storedUserId)
-            || !long.TryParse(raw.Substring(sep + 1), out var storedAssetId))
+        if (!long.TryParse(raw, out var storedAssetId))
             throw new RobloxException(400, 0, "Corrupt checkout page token");
-        if (storedUserId != userId || storedAssetId != assetId)
+        if (storedAssetId != assetId)
             throw new RobloxException(400, 0, "Checkout page token does not match request");
     }
 
