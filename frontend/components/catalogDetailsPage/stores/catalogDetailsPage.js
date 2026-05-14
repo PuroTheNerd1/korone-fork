@@ -81,7 +81,6 @@ const CatalogDetailsPage = createContainer(() => {
 
   const getPurchaseDetails = (specificUaid = undefined) => {
     if (isResellable(details)) {
-      // Get lowest seller
       const seller = specificUaid ? resellers.find(v => v.userAssetId === specificUaid) : resellers && resellers[0];
       if (!seller) return null;
       return {
@@ -93,6 +92,7 @@ const CatalogDetailsPage = createContainer(() => {
         userAssetId: seller.userAssetId,
         productId: details.productId || details.id,
         currency: details.currency || 1,
+        isLimited: isLimited(details),
       }
     } else if (details.isForSale) {
       return {
@@ -104,6 +104,7 @@ const CatalogDetailsPage = createContainer(() => {
         userAssetId: null,
         productId: details.productId || details.id,
         currency: details.currency || 1,
+        isLimited: isLimited(details),
       }
     }
     return null;

@@ -282,14 +282,32 @@ public class EconomyControllerV1 : ControllerBase
         if (request.userAssetId is 0 or < 0)
             request.userAssetId = null;
 
-        var sealHeader = Request.Headers["X-Korone-Seal"].ToString();
-        await PurchaseAttestationGuard.EnforceAsync(
-            services.purchaseAttestation,
-            safeUserSession.userId,
-            assetId,
-            request.expectedPrice,
-            sealHeader);
-        
+        var requiresSeal = request.userAssetId != null;
+        if (!requiresSeal)
+        {
+            try
+            {
+                var details = await services.assets.GetAssetCatalogInfo(assetId);
+                requiresSeal = details.itemRestrictions != null
+                    && (details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"));
+            }
+            catch
+            {
+                requiresSeal = true;
+            }
+        }
+
+        if (requiresSeal)
+        {
+            var sealHeader = Request.Headers["X-Korone-Seal"].ToString();
+            await PurchaseAttestationGuard.EnforceAsync(
+                services.purchaseAttestation,
+                safeUserSession.userId,
+                assetId,
+                request.expectedPrice,
+                sealHeader);
+        }
+
         if (request.userAssetId != null)
         {
             // User is making UAID purchase

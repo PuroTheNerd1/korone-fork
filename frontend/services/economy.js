@@ -96,7 +96,23 @@ export const getResellableCopies = ({ assetId, userId }) => {
  * @param {number} expectedCurrency
  * @returns {Promise<PurchaseDetailRequestModel>}
  */
-export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
+export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency, isLimited }) => {
+  const requiresSeal = !!isLimited || (userAssetId !== null && userAssetId !== undefined && userAssetId !== 0);
+
+  if (!requiresSeal) {
+    return request(
+      'POST',
+      getFullUrl('economy', `/v1/purchases/products/${productId}`),
+      {
+        assetId,
+        expectedPrice: price,
+        expectedSellerId: sellerId,
+        userAssetId,
+        expectedCurrency,
+      },
+    ).then((d) => d.data);
+  }
+
   const pageToken = readCheckoutPageToken();
   if (!pageToken) {
     throw new Error('Checkout page token unavailable. Reload the item page and try again.');

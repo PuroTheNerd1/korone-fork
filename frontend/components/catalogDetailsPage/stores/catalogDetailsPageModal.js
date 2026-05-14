@@ -53,6 +53,7 @@ const CatalogDetailsPageModal = createContainer(() => {
           userAssetId: purchaseDetails.userAssetId,
           price: currency === 1 ? purchaseDetails.price : purchaseDetails.priceTickets,
           expectedCurrency: currency,
+          isLimited: purchaseDetails.isLimited,
         });
         const success = result.purchased;
         if (!success) {

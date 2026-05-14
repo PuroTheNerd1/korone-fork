@@ -162,6 +162,7 @@ const assetDetailsStore = createContainer(() => {
                 productId: details.productId || details.id,
                 currency: getCurrency(),
                 expectedPrice: seller.price,
+                isLimited: !!isLimited(),
             };
         } else if (details.isForSale) {
             return {
@@ -174,6 +175,7 @@ const assetDetailsStore = createContainer(() => {
                 productId: details.productId || details.id,
                 currency: getCurrency(),
                 expectedPrice: getCurrency() === CurrencyType.Tickets ? details.priceTickets : details.price,
+                isLimited: !!isLimited(),
             }
         }
         return null;

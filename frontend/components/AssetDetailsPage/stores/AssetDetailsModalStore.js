@@ -87,6 +87,7 @@ const AssetDetailsModalStore = createContainer(() => {
             userAssetId: purchaseInfo.userAssetId,
             price: purchaseInfo.expectedPrice,
             expectedCurrency: purchaseInfo.currency,
+            isLimited: purchaseInfo.isLimited,
         });
         if (!res?.purchased) {
             // const err = new PurchaseError("PURCHASE_ERROR");
