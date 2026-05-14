@@ -1,6 +1,40 @@
 import request from "../lib/request"
 import { getFullUrl } from "../lib/request";
+import config from "../lib/config";
 import { forgeCheckoutSeal } from "../util/checkout_seal";
+import { getBehaviorScore } from "../util/checkout_input_tracker";
+
+const CHECKOUT_MIN_WAIT_MS = 1700;
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const readCheckoutPageToken = () => {
+  if (typeof document === 'undefined') return null;
+  const el = document.querySelector('meta[name="x-checkout-page-token"]');
+  return el ? el.getAttribute('content') : null;
+};
+
+export const mintCheckoutPageTokenSsr = async ({ assetId, cookie }) => {
+  const cfg = config?.serverRuntimeConfig?.backend || {};
+  const internalUa = cfg.internalUserAgent || null;
+  const extra = {};
+  if (cookie) extra['Cookie'] = cookie;
+  if (internalUa) extra['user-agent'] = internalUa;
+  if (process.env.NEXT_PHASE !== 'phase-production-build') {
+    console.log('[checkout-page-token-ssr]',
+      'hasInternalUa=', !!internalUa,
+      'hasCookie=', !!cookie,
+      'extraKeys=', Object.keys(extra));
+  }
+  const resp = await request(
+    'POST',
+    getFullUrl('economy', '/v1/checkout-page-token'),
+    { assetId },
+    false,
+    extra,
+  );
+  return resp?.data?.pageToken || null;
+};
 
 
 export const getResellers = ({ assetId, cursor, limit }) => {
@@ -63,21 +97,45 @@ export const getResellableCopies = ({ assetId, userId }) => {
  * @returns {Promise<PurchaseDetailRequestModel>}
  */
 export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
-  const handshakeResp = await request('POST', getFullUrl('economy', `/v1/purchases/products/${productId}/handshake`));
+  const pageToken = readCheckoutPageToken();
+  if (!pageToken) {
+    throw new Error('Checkout page token unavailable. Reload the item page and try again.');
+  }
+  const behaviorScore = getBehaviorScore();
+
+  const handshakeResp = await request(
+    'POST',
+    getFullUrl('economy', `/v1/purchases/products/${productId}/handshake`),
+    { pageToken, behaviorScore },
+  );
+  const handshakeReceivedAt = Date.now();
   const { token, material } = handshakeResp.data;
+
   const seal = await forgeCheckoutSeal({
     assetId: productId,
     expectedPrice: price,
     ticketId: token,
     keyMaterial: material,
   });
-  return request('POST', getFullUrl('economy', `/v1/purchases/products/${productId}`), {
-    assetId,
-    expectedPrice: price,
-    expectedSellerId: sellerId,
-    userAssetId,
-    expectedCurrency,
-  }, false, { 'X-Korone-Seal': seal }).then(d => d.data);
+
+  const elapsed = Date.now() - handshakeReceivedAt;
+  if (elapsed < CHECKOUT_MIN_WAIT_MS) {
+    await sleep(CHECKOUT_MIN_WAIT_MS - elapsed);
+  }
+
+  return request(
+    'POST',
+    getFullUrl('economy', `/v1/purchases/products/${productId}`),
+    {
+      assetId,
+      expectedPrice: price,
+      expectedSellerId: sellerId,
+      userAssetId,
+      expectedCurrency,
+    },
+    false,
+    { 'X-Korone-Seal': seal },
+  ).then((d) => d.data);
 }
 
 export const setResellableAssetPrice = ({ assetId, userAssetId, price }) => {
