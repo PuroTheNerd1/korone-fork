@@ -12,12 +12,6 @@ public class PurchaseAttestationService : ServiceBase, IService
     private const int PageTokenByteLen = 24;
     private static readonly TimeSpan AttestationTtl = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PageTokenTtl = TimeSpan.FromMinutes(10);
-    private static readonly TimeSpan HandshakeBurstWindow = TimeSpan.FromMilliseconds(750);
-    private static readonly TimeSpan HandshakeSlidingWindow = TimeSpan.FromMinutes(1);
-    private const int HandshakeMaxPerWindow = 30;
-    private const int BehaviorScoreMinimum = 20;
-    public const long TicketMinAgeMs = 1_500;
-    public const long PageTokenMinDwellMs = 3_000;
 
     public const short OutcomeIssued = 0;
     public const short OutcomeConsumedOk = 1;
@@ -25,50 +19,22 @@ public class PurchaseAttestationService : ServiceBase, IService
     public const short OutcomeMissingOrReplayed = 3;
     public const short OutcomeStaleTimestamp = 4;
     public const short OutcomeAssetMismatch = 5;
-    public const short OutcomeMinAgeViolation = 6;
 
     public sealed record IssuedAttestation(string ticketId, string keyMaterial, long expiresAtMs);
-    public sealed record ConsumedAttestation(long assetId, long issuedAtMs, string keyMaterial);
+    public sealed record ConsumedAttestation(long assetId, string keyMaterial);
     public sealed record IssuedPageToken(string pageToken, long expiresAtMs);
 
-    public async Task EnforceIssuanceRateLimit(long userId)
-    {
-        var bucket = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / (long)HandshakeSlidingWindow.TotalSeconds;
-        var counterKey = $"econ:attest:rl:{userId}:{bucket}";
-        var redisDb = DistributedCache.redis.GetDatabase(0);
-        var count = await redisDb.StringIncrementAsync(counterKey);
-        if (count == 1)
-            await redisDb.KeyExpireAsync(counterKey, HandshakeSlidingWindow + TimeSpan.FromSeconds(5));
-        if (count > HandshakeMaxPerWindow)
-            throw new RobloxException(429, 0, "Purchase failed (E3017)");
-    }
-
-    public async Task<IAsyncDisposable> AcquireIssuanceBurstLock(long userId)
-    {
-        var redLock = await Cache.redLock.CreateLockAsync(
-            $"CheckoutHandshake:{userId}", HandshakeBurstWindow);
-        if (!redLock.IsAcquired)
-        {
-            await redLock.DisposeAsync();
-            throw new RobloxException(429, 0, "Purchase failed (E2916)");
-        }
-        return redLock;
-    }
-
-    public async Task<IssuedPageToken> MintPageToken(long assetId, string clientIpHash)
+    public async Task<IssuedPageToken> MintPageToken(long assetId)
     {
         var tokenBytes = new byte[PageTokenByteLen];
         RandomNumberGenerator.Fill(tokenBytes);
         var pageToken = Convert.ToHexString(tokenBytes).ToLowerInvariant();
-        var mintedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var ipEscaped = (clientIpHash ?? "").Replace("|", "");
-        var value = $"{assetId}|{mintedAtMs}|{ipEscaped}";
-        await redis.StringSetAsync(PageTokenKey(pageToken), value, PageTokenTtl);
-        var expiresAt = mintedAtMs + (long)PageTokenTtl.TotalMilliseconds;
+        await redis.StringSetAsync(PageTokenKey(pageToken), assetId.ToString(), PageTokenTtl);
+        var expiresAt = DateTimeOffset.UtcNow.Add(PageTokenTtl).ToUnixTimeMilliseconds();
         return new IssuedPageToken(pageToken, expiresAt);
     }
 
-    public async Task EnforcePageTokenAsync(string? pageToken, long assetId, string callerIpHash)
+    public async Task EnforcePageTokenAsync(string? pageToken, long assetId)
     {
         if (string.IsNullOrWhiteSpace(pageToken) || pageToken.Length != PageTokenByteLen * 2)
             throw new RobloxException(400, 0, "Purchase failed (E1042)");
@@ -80,19 +46,10 @@ public class PurchaseAttestationService : ServiceBase, IService
         var raw = await redis.StringGetAsync(PageTokenKey(pageToken));
         if (raw == null)
             throw new RobloxException(400, 0, "Purchase failed (E1207)");
-        var parts = raw.Split('|');
-        if (parts.Length < 3
-            || !long.TryParse(parts[0], out var storedAssetId)
-            || !long.TryParse(parts[1], out _))
+        if (!long.TryParse(raw, out var storedAssetId))
             throw new RobloxException(400, 0, "Purchase failed (E1334)");
         if (storedAssetId != assetId)
             throw new RobloxException(400, 0, "Purchase failed (E1455)");
-    }
-
-    public void EnforceBehaviorScore(int score)
-    {
-        if (score < BehaviorScoreMinimum)
-            throw new RobloxException(400, 0, "Purchase failed (E1763)");
     }
 
     public async Task<IssuedAttestation> Issue(long userId, long assetId, string? clientIpHash, string? userAgent)
@@ -104,8 +61,7 @@ public class PurchaseAttestationService : ServiceBase, IService
 
         var ticketId = Convert.ToHexString(ticketBytes).ToLowerInvariant();
         var keyMaterial = Convert.ToBase64String(keyBytes);
-        var issuedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var storedValue = $"{assetId}:{issuedAtMs}:{keyMaterial}";
+        var storedValue = $"{assetId}:{keyMaterial}";
 
         await redis.StringSetAsync(RedisKey(userId, ticketId), storedValue, AttestationTtl);
 
@@ -122,7 +78,7 @@ public class PurchaseAttestationService : ServiceBase, IService
                 ua = userAgent == null ? null : Truncate(userAgent, 512),
             });
 
-        var expiresAt = issuedAtMs + (long)AttestationTtl.TotalMilliseconds;
+        var expiresAt = DateTimeOffset.UtcNow.Add(AttestationTtl).ToUnixTimeMilliseconds();
         return new IssuedAttestation(ticketId, keyMaterial, expiresAt);
     }
 
@@ -130,15 +86,12 @@ public class PurchaseAttestationService : ServiceBase, IService
     {
         var raw = await redis.StringGetDeleteAsync(RedisKey(userId, ticketId));
         if (raw == null) return null;
-        var firstSep = raw.IndexOf(':');
-        if (firstSep <= 0) return null;
-        var secondSep = raw.IndexOf(':', firstSep + 1);
-        if (secondSep <= firstSep) return null;
-        if (!long.TryParse(raw.Substring(0, firstSep), out var aid)) return null;
-        if (!long.TryParse(raw.Substring(firstSep + 1, secondSep - firstSep - 1), out var issuedAtMs)) return null;
-        var key = raw.Substring(secondSep + 1);
+        var sep = raw.IndexOf(':');
+        if (sep <= 0) return null;
+        if (!long.TryParse(raw.Substring(0, sep), out var aid)) return null;
+        var key = raw.Substring(sep + 1);
         if (key.Length == 0) return null;
-        return new ConsumedAttestation(aid, issuedAtMs, key);
+        return new ConsumedAttestation(aid, key);
     }
 
     public Task MarkOutcome(long userId, string ticketId, short outcome, long? expectedPrice) =>

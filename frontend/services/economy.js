@@ -2,11 +2,6 @@ import request from "../lib/request"
 import { getFullUrl } from "../lib/request";
 import config from "../lib/config";
 import { forgeCheckoutSeal } from "../util/checkout_seal";
-import { getBehaviorScore } from "../util/checkout_input_tracker";
-
-const CHECKOUT_MIN_WAIT_MS = 1700;
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const readCheckoutPageToken = () => {
   if (typeof document === 'undefined') return null;
@@ -14,13 +9,12 @@ const readCheckoutPageToken = () => {
   return el ? el.getAttribute('content') : null;
 };
 
-export const mintCheckoutPageTokenSsr = async ({ assetId, cookie, clientIp }) => {
+export const mintCheckoutPageTokenSsr = async ({ assetId, cookie }) => {
   const cfg = config?.serverRuntimeConfig?.backend || {};
   const internalUa = cfg.internalUserAgent || null;
   const extra = {};
   if (cookie) extra['Cookie'] = cookie;
   if (internalUa) extra['user-agent'] = internalUa;
-  if (clientIp) extra['X-Forwarded-Client-Ip'] = clientIp;
   const resp = await request(
     'POST',
     getFullUrl('economy', '/v1/checkout-page-token'),
@@ -112,14 +106,12 @@ export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, 
   if (!pageToken) {
     throw new Error('Purchase failed (E1010)');
   }
-  const behaviorScore = getBehaviorScore();
 
   const handshakeResp = await request(
     'POST',
     getFullUrl('economy', `/v1/purchases/products/${productId}/handshake`),
-    { pageToken, behaviorScore },
+    { pageToken },
   );
-  const handshakeReceivedAt = Date.now();
   const { token, material } = handshakeResp.data;
 
   const seal = await forgeCheckoutSeal({
@@ -128,11 +120,6 @@ export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, 
     ticketId: token,
     keyMaterial: material,
   });
-
-  const elapsed = Date.now() - handshakeReceivedAt;
-  if (elapsed < CHECKOUT_MIN_WAIT_MS) {
-    await sleep(CHECKOUT_MIN_WAIT_MS - elapsed);
-  }
 
   return request(
     'POST',

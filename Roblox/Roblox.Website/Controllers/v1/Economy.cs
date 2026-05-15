@@ -241,9 +241,7 @@ public class EconomyControllerV1 : ControllerBase
             throw new RobloxException(404, 0, "Purchase failed (E2715)");
         if (request?.assetId is null or <= 0)
             throw new RobloxException(400, 0, "Purchase failed (E2843)");
-        var rawClientIp = Request.Headers["X-Forwarded-Client-Ip"].ToString();
-        var ipHash = string.IsNullOrEmpty(rawClientIp) ? GetIP() : GetIP(rawClientIp, salt: null);
-        var minted = await services.purchaseAttestation.MintPageToken(request.assetId.Value, ipHash);
+        var minted = await services.purchaseAttestation.MintPageToken(request.assetId.Value);
         return new
         {
             pageToken = minted.pageToken,
@@ -256,15 +254,12 @@ public class EconomyControllerV1 : ControllerBase
     {
         FeatureCheck();
         var userId = safeUserSession.userId;
-        var callerIpHash = GetIP();
-        await services.purchaseAttestation.EnforceIssuanceRateLimit(userId);
-        await using var burstLock = await services.purchaseAttestation.AcquireIssuanceBurstLock(userId);
         if (body == null)
             throw new RobloxException(400, 0, "Purchase failed (E1842)");
-        await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId, callerIpHash);
-        services.purchaseAttestation.EnforceBehaviorScore(body.behaviorScore);
+        await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId);
+        var ipHash = GetIP();
         var ua = UserAgent;
-        var issued = await services.purchaseAttestation.Issue(userId, assetId, callerIpHash, ua);
+        var issued = await services.purchaseAttestation.Issue(userId, assetId, ipHash, ua);
         return new
         {
             token = issued.ticketId,

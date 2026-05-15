@@ -77,13 +77,6 @@ public static class PurchaseAttestationGuard
             throw new RobloxException(400, 0, "Purchase failed (E2367)");
         }
 
-        var ageMs = now - consumed.issuedAtMs;
-        if (ageMs < PurchaseAttestationService.TicketMinAgeMs)
-        {
-            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeMinAgeViolation, expectedPrice);
-            throw new RobloxException(400, 0, "Purchase failed (E2418)");
-        }
-
         var canonical = Canonicalize(assetId, expectedPrice, parsed.TicketId, parsed.TimestampMs);
 
         byte[] keyRaw;
