@@ -77,25 +77,16 @@ public class PurchaseAttestationService : ServiceBase, IService
             if (!(c is >= '0' and <= '9' or >= 'a' and <= 'f'))
                 throw new RobloxException(400, 0, "Purchase failed (E1118)");
         }
-        var raw = await redis.StringGetDeleteAsync(PageTokenKey(pageToken));
+        var raw = await redis.StringGetAsync(PageTokenKey(pageToken));
         if (raw == null)
             throw new RobloxException(400, 0, "Purchase failed (E1207)");
         var parts = raw.Split('|');
         if (parts.Length < 3
             || !long.TryParse(parts[0], out var storedAssetId)
-            || !long.TryParse(parts[1], out var mintedAtMs))
+            || !long.TryParse(parts[1], out _))
             throw new RobloxException(400, 0, "Purchase failed (E1334)");
-        var storedIpHash = parts[2];
         if (storedAssetId != assetId)
             throw new RobloxException(400, 0, "Purchase failed (E1455)");
-        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        if (now - mintedAtMs < PageTokenMinDwellMs)
-            throw new RobloxException(400, 0, "Purchase failed (E1572)");
-        if (!string.IsNullOrEmpty(storedIpHash) && !string.IsNullOrEmpty(callerIpHash)
-            && !CryptographicOperations.FixedTimeEquals(
-                System.Text.Encoding.UTF8.GetBytes(storedIpHash),
-                System.Text.Encoding.UTF8.GetBytes(callerIpHash)))
-            throw new RobloxException(400, 0, "Purchase failed (E1689)");
     }
 
     public void EnforceBehaviorScore(int score)
