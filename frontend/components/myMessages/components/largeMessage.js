@@ -9,6 +9,7 @@ import ActionButton from "../../actionButton";
 import Header from "../../header";
 import PlayerImage from "../../playerImage"
 import Link from "../../link";
+import VerifiedBadge from "../../verifiedBadge";
 
 const useStyles = createUseStyles({
   username: {
@@ -110,6 +111,7 @@ const LargeMessage = props => {
             {props.fromUserName}
           </a>
         </Link>
+        <VerifiedBadge userId={props.fromUserId}/>
       </p>
       <p className={s.created}>{dayjs(props.created).format('MMM DD, YYYY | h:mm A')}</p>
     </div>

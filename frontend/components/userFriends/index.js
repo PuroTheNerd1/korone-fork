@@ -21,6 +21,7 @@ import Paging from "../pagination2016";
 import Link from "../link";
 import Dropdown2016 from "../dropdown2016";
 import PlayerHeadshot from "../playerHeadshot";
+import VerifiedBadge from "../verifiedBadge";
 
 const useStyles = createUseStyles({
   title: {
@@ -233,6 +234,7 @@ const UserFriends = props => {
                                 {v.name}
                               </a>
                             </Link>
+                            <VerifiedBadge userId={v.id}/>
                           </p>
                         </div>
                         {

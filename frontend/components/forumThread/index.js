@@ -15,6 +15,7 @@ import dayjs from "../../lib/dayjs";
 import ForumContainer from "../forumContainer";
 import BcOverlay from "../bcOverlay";
 import { getThemeForumHeader } from "../../services/theme";
+import VerifiedBadge from "../verifiedBadge";
 
 const useStyles = createUseStyles({
   forumHeader: {
@@ -115,6 +116,7 @@ const ForumThread = props => {
                       {post.username}
                     </a>
                   </Link>
+                  <VerifiedBadge userId={post.userId}/>
                   <PlayerImage id={post.userId} />
                   <BcOverlay id={post.userId} />
                   <p className={s.userStat}>

@@ -12,6 +12,7 @@ import {
 } from "../../services/admin";
 import PlayerHeadshot from "../playerHeadshot";
 import Link from "../link";
+import VerifiedBadge from "../verifiedBadge";
 
 const useNavSideBarStyles = createUseStyles({
     container: {
@@ -152,7 +153,7 @@ const NavSideBar = props => {
                         <div className={s.userIconContainer}>
                             <PlayerHeadshot id={authStore.userId} name={authStore.username} className={s.userIcon}/>
                         </div>
-                        <a className={s.username}>{authStore.username}</a>
+                        <a className={s.username}>{authStore.username}<VerifiedBadge userId={authStore.userId}/></a>
                     </div>
                 </a>
             </Link>

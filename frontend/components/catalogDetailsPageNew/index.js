@@ -11,6 +11,7 @@ import { getCollections } from "../../services/inventory";
 import Thumbnail from './components/thumbnail';
 import ItemDetails from './components/itemDetails';
 import Favorite from '../gameDetails/components/new/favorite';
+import VerifiedBadge from "../verifiedBadge";
 
 const filterTextForEmpty = (str, assetType) => {
   if (!str) return assetType;
@@ -143,7 +144,7 @@ const CatalogDetails = (props) => {
         <div className={s.itemDetailsContainer}>
           <div className={s.itemNameContainer}>
             <h2>{details.name}</h2>
-            <span className={s.textSpan}>By <a href={url} className={s.textName}>{details.creatorName}</a></span>
+            <span className={s.textSpan}>By <a href={url} className={s.textName}>{details.creatorName}</a>{details.creatorType === 'User' ? <VerifiedBadge userId={details.creatorTargetId}/> : null}</span>
           </div>
           <ItemDetails details={details} />
         </div>

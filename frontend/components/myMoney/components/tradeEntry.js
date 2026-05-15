@@ -4,6 +4,7 @@ import { getStatusText } from "../lib/getStatusText";
 import PlayerHeadshot from "../../playerHeadshot";
 import TradeStore from "../stores/tradeStore";
 import AuthenticationStore from "../../../stores/authentication";
+import VerifiedBadge from "../../verifiedBadge";
 
 const useStyles = createUseStyles({
   row: {},
@@ -56,7 +57,7 @@ const TradeEntry = props => {
         </div>
       </div>
       <div className={s.block}>
-        <p className={s.senderName}>{sender.name}</p>
+        <p className={s.senderName}>{sender.name}<VerifiedBadge userId={sender.id}/></p>
       </div>
     </td>
     <td className={s.td}>

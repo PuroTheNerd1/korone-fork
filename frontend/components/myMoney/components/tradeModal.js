@@ -9,20 +9,21 @@ import TradeStore from "../stores/tradeStore";
 import TradeButtons from "./tradeButtons";
 import TradeOfferEntry from "./tradeOfferEntry";
 import BcOverlay from "../../bcOverlay";
+import VerifiedBadge from "../../verifiedBadge";
 
 const TradeBelowNameText = props => {
   const state = props.status;
   switch (state) {
     case 'Countered':
       return <div>
-        <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/> was countered.</span>
+        <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/> was countered.</span>
         <br/>
         <br/>
         <span className='font-size-12 fw-700 lighten-3 mb-0'>Expires {dayjs(props.expiration).fromNow()}</span>
       </div>
     case 'Open':
       return <div>
-        <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/> has been opened.</span>
+        <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/> has been opened.</span>
         <br/>
         <br/>
         <span className='font-size-12 fw-700 lighten-3 mb-0'>Expires {dayjs(props.expiration).fromNow()}</span>
@@ -30,9 +31,9 @@ const TradeBelowNameText = props => {
     case 'Pending':
     case 'Expired':
     case 'Finished':
-      return <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/> is {state}</span>
+      return <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/> is {state}</span>
     default:
-      return <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/> was {state}!</span>
+      return <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/> was {state}!</span>
 
   }
 }

@@ -7,6 +7,7 @@ import PlayerImage from "../../playerImage";
 import GroupIcon from "../../groupIcon";
 import {getGameUrl} from "../../../services/games";
 import Link from "../../link";
+import VerifiedBadge from "../../verifiedBadge";
 
 const useStatEntryStyles = createUseStyles({
     text: {
@@ -56,7 +57,10 @@ const CreatorDetails = props => {
         </div>
         <div className='col-8 ps-0'>
             <StatEntry name="Creator" value={
-                <CreatorLink id={props.id} name={props.name} type={props.type}/>
+                <>
+                    <CreatorLink id={props.id} name={props.name} type={props.type}/>
+                    {props.type === 'User' || props.type === 0 ? <VerifiedBadge userId={props.id}/> : null}
+                </>
             }/>
             <StatEntry name="Created" value={dayjs(props.createdAt).format('M/D/YYYY')}/>
             <StatEntry name="Updated" value={dayjs(props.updatedAt).format('M/D/YYYY')}/>

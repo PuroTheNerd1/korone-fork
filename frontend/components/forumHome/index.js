@@ -7,6 +7,7 @@ import ForumHeader from "../forumHeader";
 import Link from "../link";
 import {useEffect, useReducer, useState} from "react";
 import { getThemeForumHeader } from "../../services/theme";
+import VerifiedBadge from "../verifiedBadge";
 
 const subReducer = (prev, act) => {
   if (act.type === 'ADD') {
@@ -79,7 +80,7 @@ const ForumHome = props => {
                       <Link href={`/Forum/ShowPost.aspx?PostID=${lastPost.threadId || lastPost.postId}`}>
                         <a className='normal'>
                           <p className='fw-bold mb-0 text-center'>{dayjs(lastPost.createdAt).fromNow()}</p>
-                          <p className='mb-0 text-center'>{lastPost.username}</p>
+                          <p className='mb-0 text-center'>{lastPost.username}<VerifiedBadge userId={lastPost.userId}/></p>
                         </a>
                       </Link>
                     </div> : null}

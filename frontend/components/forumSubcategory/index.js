@@ -7,6 +7,7 @@ import ForumContainer from "../forumContainer";
 import useForumStyles from "../forumHome/forumStyles";
 import getFlag from "../../lib/getFlag";
 import { getThemeForumHeader } from "../../services/theme";
+import VerifiedBadge from "../verifiedBadge";
 
 const limit = 15;
 const ForumSubcategory = (props) => {
@@ -109,7 +110,7 @@ const ForumSubcategory = (props) => {
                         </a>
                       </Link>
                     </td>
-                    <td>{v.username}</td>
+                    <td>{v.username}<VerifiedBadge userId={v.userId}/></td>
                     <td className='text-center'>{replyCount.toLocaleString()}</td>
                     <td className='text-center'>-</td>
                     <td>
@@ -120,6 +121,7 @@ const ForumSubcategory = (props) => {
                             {v.username}
                           </a>
                         </Link>
+                        <VerifiedBadge userId={v.userId}/>
                       </p>
                     </td>
                   </tr>

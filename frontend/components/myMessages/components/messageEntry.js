@@ -3,6 +3,7 @@ import MyMessages from "..";
 import MyMessagesStore from "../../../stores/myMessages";
 import PlayerImage from "../../playerImage"
 import PlayerHeadshot from "../../playerHeadshot";
+import VerifiedBadge from "../../verifiedBadge";
 
 const useStyles = createUseStyles({
     username: {
@@ -101,7 +102,7 @@ const MessageEntry = props => {
             </div>
         </div>
         <div className={s.subjectAndContent}>
-            <p className={s.username}>{props.fromUserName}</p>
+            <p className={s.username}>{props.fromUserName}<VerifiedBadge userId={props.fromUserId}/></p>
             <p className={s.subjectBodyParagraph}><span
                 className={s.subject + ' ' + (props.read ? '' : s.subjectUnread)}>{props.subject}</span> - <span
                 className={s.body}>{props.body}</span></p>

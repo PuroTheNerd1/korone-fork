@@ -6,6 +6,7 @@ import Link from "../link";
 import dayjs from "../../lib/dayjs";
 import {useRouter} from "next/dist/client/router";
 import ForumContainer from "../forumContainer";
+import VerifiedBadge from "../verifiedBadge";
 
 const useStyles = createUseStyles({
   subheaderCard: {
@@ -52,7 +53,7 @@ const ForumPostReply = props => {
             <a>
               {details.username}
             </a>
-          </Link> on {dayjs(details.createdAt).format('MM-DD-YY hh:mm A')}</p>
+          </Link><VerifiedBadge userId={details.userId}/> on {dayjs(details.createdAt).format('MM-DD-YY hh:mm A')}</p>
           <p className={s.postText}>{details.post}</p>
         </p>
 
