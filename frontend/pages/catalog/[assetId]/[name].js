@@ -33,9 +33,15 @@ export async function getServerSideProps(context) {
     const info = await getProductInfoLegacy(assetId);
     let checkoutPageToken = null;
     try {
+        const fwd = context.req?.headers?.['x-forwarded-for'];
+        const clientIp = (typeof fwd === 'string' ? fwd.split(',')[0].trim() : '')
+            || context.req?.socket?.remoteAddress
+            || context.req?.connection?.remoteAddress
+            || '';
         checkoutPageToken = await mintCheckoutPageTokenSsr({
             assetId: Number(assetId),
             cookie: context.req?.headers?.cookie || '',
+            clientIp,
         });
     } catch (e) {
         checkoutPageToken = null;

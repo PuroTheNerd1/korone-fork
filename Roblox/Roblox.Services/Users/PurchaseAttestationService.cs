@@ -15,8 +15,9 @@ public class PurchaseAttestationService : ServiceBase, IService
     private static readonly TimeSpan HandshakeBurstWindow = TimeSpan.FromMilliseconds(750);
     private static readonly TimeSpan HandshakeSlidingWindow = TimeSpan.FromMinutes(1);
     private const int HandshakeMaxPerWindow = 30;
-    private const int BehaviorScoreMinimum = 3;
+    private const int BehaviorScoreMinimum = 20;
     public const long TicketMinAgeMs = 1_500;
+    public const long PageTokenMinDwellMs = 3_000;
 
     public const short OutcomeIssued = 0;
     public const short OutcomeConsumedOk = 1;
@@ -54,17 +55,20 @@ public class PurchaseAttestationService : ServiceBase, IService
         return redLock;
     }
 
-    public async Task<IssuedPageToken> MintPageToken(long assetId)
+    public async Task<IssuedPageToken> MintPageToken(long assetId, string clientIpHash)
     {
         var tokenBytes = new byte[PageTokenByteLen];
         RandomNumberGenerator.Fill(tokenBytes);
         var pageToken = Convert.ToHexString(tokenBytes).ToLowerInvariant();
-        await redis.StringSetAsync(PageTokenKey(pageToken), assetId.ToString(), PageTokenTtl);
-        var expiresAt = DateTimeOffset.UtcNow.Add(PageTokenTtl).ToUnixTimeMilliseconds();
+        var mintedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var ipEscaped = (clientIpHash ?? "").Replace("|", "");
+        var value = $"{assetId}|{mintedAtMs}|{ipEscaped}";
+        await redis.StringSetAsync(PageTokenKey(pageToken), value, PageTokenTtl);
+        var expiresAt = mintedAtMs + (long)PageTokenTtl.TotalMilliseconds;
         return new IssuedPageToken(pageToken, expiresAt);
     }
 
-    public async Task EnforcePageTokenAsync(string? pageToken, long assetId)
+    public async Task EnforcePageTokenAsync(string? pageToken, long assetId, string callerIpHash)
     {
         if (string.IsNullOrWhiteSpace(pageToken) || pageToken.Length != PageTokenByteLen * 2)
             throw new RobloxException(400, 0, "Missing or invalid checkout page token");
@@ -76,10 +80,22 @@ public class PurchaseAttestationService : ServiceBase, IService
         var raw = await redis.StringGetDeleteAsync(PageTokenKey(pageToken));
         if (raw == null)
             throw new RobloxException(400, 0, "Checkout page token expired or already consumed");
-        if (!long.TryParse(raw, out var storedAssetId))
+        var parts = raw.Split('|');
+        if (parts.Length < 3
+            || !long.TryParse(parts[0], out var storedAssetId)
+            || !long.TryParse(parts[1], out var mintedAtMs))
             throw new RobloxException(400, 0, "Corrupt checkout page token");
+        var storedIpHash = parts[2];
         if (storedAssetId != assetId)
             throw new RobloxException(400, 0, "Checkout page token does not match request");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        if (now - mintedAtMs < PageTokenMinDwellMs)
+            throw new RobloxException(425, 0, "Slow down");
+        if (!string.IsNullOrEmpty(storedIpHash) && !string.IsNullOrEmpty(callerIpHash)
+            && !CryptographicOperations.FixedTimeEquals(
+                System.Text.Encoding.UTF8.GetBytes(storedIpHash),
+                System.Text.Encoding.UTF8.GetBytes(callerIpHash)))
+            throw new RobloxException(403, 0, "Checkout session mismatch");
     }
 
     public void EnforceBehaviorScore(int score)

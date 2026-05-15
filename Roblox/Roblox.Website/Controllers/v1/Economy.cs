@@ -241,7 +241,9 @@ public class EconomyControllerV1 : ControllerBase
             throw new RobloxException(403, 0, "Forbidden");
         if (request?.assetId is null or <= 0)
             throw new RobloxException(400, 0, "Missing assetId");
-        var minted = await services.purchaseAttestation.MintPageToken(request.assetId.Value);
+        var rawClientIp = Request.Headers["X-Forwarded-Client-Ip"].ToString();
+        var ipHash = string.IsNullOrEmpty(rawClientIp) ? GetIP() : GetIP(rawClientIp, salt: null);
+        var minted = await services.purchaseAttestation.MintPageToken(request.assetId.Value, ipHash);
         return new
         {
             pageToken = minted.pageToken,
@@ -254,15 +256,15 @@ public class EconomyControllerV1 : ControllerBase
     {
         FeatureCheck();
         var userId = safeUserSession.userId;
+        var callerIpHash = GetIP();
         await services.purchaseAttestation.EnforceIssuanceRateLimit(userId);
         await using var burstLock = await services.purchaseAttestation.AcquireIssuanceBurstLock(userId);
         if (body == null)
             throw new RobloxException(400, 0, "Missing checkout handshake body");
-        await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId);
+        await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId, callerIpHash);
         services.purchaseAttestation.EnforceBehaviorScore(body.behaviorScore);
-        var ipHash = GetIP();
         var ua = UserAgent;
-        var issued = await services.purchaseAttestation.Issue(userId, assetId, ipHash, ua);
+        var issued = await services.purchaseAttestation.Issue(userId, assetId, callerIpHash, ua);
         return new
         {
             token = issued.ticketId,

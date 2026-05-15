@@ -14,18 +14,13 @@ const readCheckoutPageToken = () => {
   return el ? el.getAttribute('content') : null;
 };
 
-export const mintCheckoutPageTokenSsr = async ({ assetId, cookie }) => {
+export const mintCheckoutPageTokenSsr = async ({ assetId, cookie, clientIp }) => {
   const cfg = config?.serverRuntimeConfig?.backend || {};
   const internalUa = cfg.internalUserAgent || null;
   const extra = {};
   if (cookie) extra['Cookie'] = cookie;
   if (internalUa) extra['user-agent'] = internalUa;
-  if (process.env.NEXT_PHASE !== 'phase-production-build') {
-    console.log('[checkout-page-token-ssr]',
-      'hasInternalUa=', !!internalUa,
-      'hasCookie=', !!cookie,
-      'extraKeys=', Object.keys(extra));
-  }
+  if (clientIp) extra['X-Forwarded-Client-Ip'] = clientIp;
   const resp = await request(
     'POST',
     getFullUrl('economy', '/v1/checkout-page-token'),
