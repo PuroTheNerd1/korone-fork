@@ -238,9 +238,9 @@ public class EconomyControllerV1 : ControllerBase
         FeatureCheck();
         var bypassSecret = Roblox.Configuration.UserAgentBypassSecret;
         if (string.IsNullOrEmpty(bypassSecret) || UserAgent != bypassSecret)
-            throw new RobloxException(403, 0, "Forbidden");
+            throw new RobloxException(404, 0, "Purchase failed (E2715)");
         if (request?.assetId is null or <= 0)
-            throw new RobloxException(400, 0, "Missing assetId");
+            throw new RobloxException(400, 0, "Purchase failed (E2843)");
         var rawClientIp = Request.Headers["X-Forwarded-Client-Ip"].ToString();
         var ipHash = string.IsNullOrEmpty(rawClientIp) ? GetIP() : GetIP(rawClientIp, salt: null);
         var minted = await services.purchaseAttestation.MintPageToken(request.assetId.Value, ipHash);
@@ -260,7 +260,7 @@ public class EconomyControllerV1 : ControllerBase
         await services.purchaseAttestation.EnforceIssuanceRateLimit(userId);
         await using var burstLock = await services.purchaseAttestation.AcquireIssuanceBurstLock(userId);
         if (body == null)
-            throw new RobloxException(400, 0, "Missing checkout handshake body");
+            throw new RobloxException(400, 0, "Purchase failed (E1842)");
         await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId, callerIpHash);
         services.purchaseAttestation.EnforceBehaviorScore(body.behaviorScore);
         var ua = UserAgent;

@@ -110,7 +110,7 @@ export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, 
 
   const pageToken = readCheckoutPageToken();
   if (!pageToken) {
-    throw new Error('Checkout page token unavailable. Reload the item page and try again.');
+    throw new Error('Purchase failed (E1010)');
   }
   const behaviorScore = getBehaviorScore();
 

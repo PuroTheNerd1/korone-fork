@@ -40,7 +40,7 @@ public class PurchaseAttestationService : ServiceBase, IService
         if (count == 1)
             await redisDb.KeyExpireAsync(counterKey, HandshakeSlidingWindow + TimeSpan.FromSeconds(5));
         if (count > HandshakeMaxPerWindow)
-            throw new RobloxException(429, 0, "TooManyRequests");
+            throw new RobloxException(429, 0, "Purchase failed (E3017)");
     }
 
     public async Task<IAsyncDisposable> AcquireIssuanceBurstLock(long userId)
@@ -50,7 +50,7 @@ public class PurchaseAttestationService : ServiceBase, IService
         if (!redLock.IsAcquired)
         {
             await redLock.DisposeAsync();
-            throw new RobloxException(429, 0, "TooManyRequests");
+            throw new RobloxException(429, 0, "Purchase failed (E2916)");
         }
         return redLock;
     }
@@ -71,37 +71,37 @@ public class PurchaseAttestationService : ServiceBase, IService
     public async Task EnforcePageTokenAsync(string? pageToken, long assetId, string callerIpHash)
     {
         if (string.IsNullOrWhiteSpace(pageToken) || pageToken.Length != PageTokenByteLen * 2)
-            throw new RobloxException(400, 0, "Missing or invalid checkout page token");
+            throw new RobloxException(400, 0, "Purchase failed (E1042)");
         foreach (var c in pageToken)
         {
             if (!(c is >= '0' and <= '9' or >= 'a' and <= 'f'))
-                throw new RobloxException(400, 0, "Missing or invalid checkout page token");
+                throw new RobloxException(400, 0, "Purchase failed (E1118)");
         }
         var raw = await redis.StringGetDeleteAsync(PageTokenKey(pageToken));
         if (raw == null)
-            throw new RobloxException(400, 0, "Checkout page token expired or already consumed");
+            throw new RobloxException(400, 0, "Purchase failed (E1207)");
         var parts = raw.Split('|');
         if (parts.Length < 3
             || !long.TryParse(parts[0], out var storedAssetId)
             || !long.TryParse(parts[1], out var mintedAtMs))
-            throw new RobloxException(400, 0, "Corrupt checkout page token");
+            throw new RobloxException(400, 0, "Purchase failed (E1334)");
         var storedIpHash = parts[2];
         if (storedAssetId != assetId)
-            throw new RobloxException(400, 0, "Checkout page token does not match request");
+            throw new RobloxException(400, 0, "Purchase failed (E1455)");
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         if (now - mintedAtMs < PageTokenMinDwellMs)
-            throw new RobloxException(425, 0, "Slow down");
+            throw new RobloxException(400, 0, "Purchase failed (E1572)");
         if (!string.IsNullOrEmpty(storedIpHash) && !string.IsNullOrEmpty(callerIpHash)
             && !CryptographicOperations.FixedTimeEquals(
                 System.Text.Encoding.UTF8.GetBytes(storedIpHash),
                 System.Text.Encoding.UTF8.GetBytes(callerIpHash)))
-            throw new RobloxException(403, 0, "Checkout session mismatch");
+            throw new RobloxException(400, 0, "Purchase failed (E1689)");
     }
 
     public void EnforceBehaviorScore(int score)
     {
         if (score < BehaviorScoreMinimum)
-            throw new RobloxException(400, 0, "Suspicious client behavior");
+            throw new RobloxException(400, 0, "Purchase failed (E1763)");
     }
 
     public async Task<IssuedAttestation> Issue(long userId, long assetId, string? clientIpHash, string? userAgent)
