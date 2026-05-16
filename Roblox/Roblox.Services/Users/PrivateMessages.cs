@@ -68,7 +68,7 @@ public class PrivateMessagesService : ServiceBase, IService
                 dt = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)),
             });
         // local limit
-        if (sentMessages.total > 20)
+        if (sentMessages.total > 2000)
         {
             UserMetrics.ReportMessageFloodCheckReached(senderUserId, sentMessages.total);
             return true;
@@ -80,7 +80,7 @@ public class PrivateMessagesService : ServiceBase, IService
                 dt = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1)),
             });
         // temporary global limit
-        if (allSiteMessages.total > 100)
+        if (allSiteMessages.total > 10000)
         {
             UserMetrics.ReportGlobalMessageFloodCheckReached(senderUserId, sentMessages.total);
             return true;
