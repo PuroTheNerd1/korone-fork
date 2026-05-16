@@ -9,6 +9,7 @@ import Link from "../../link";
 import SmallTextLink from "./smallTextLink";
 import useButtonWrapperStyle from '../styles/buttonWrapper'
 import PlayerImage from "../../playerImage";
+import VerifiedBadge from "../../verifiedBadge";
 
 const useFriendStyles = createUseStyles({
   friendCol: {
@@ -132,7 +133,7 @@ const Friends = props => {
                       <span className={s.avatarWrapper}>
                         <PlayerImage className={s.image} id={v.id} name={s.username} />
                       </span>
-                      <span className={`${s.playerName} link2019`}>{v.name}</span>
+                      <span className={`${s.playerName} link2019`}>{v.name}<VerifiedBadge userId={v.id}/></span>
                     </a>
                   </Link>
                 </div>

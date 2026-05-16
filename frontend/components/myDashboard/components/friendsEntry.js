@@ -5,6 +5,7 @@ import Activity from "../../userActivity";
 import DashboardStore from "../stores/dashboardStore";
 import Link from "../../link";
 import PlayerHeadshot from "../../playerHeadshot";
+import VerifiedBadge from "../../verifiedBadge";
 
 const useStyles = createUseStyles({
     friendEntry: {
@@ -85,7 +86,7 @@ const FriendEntry = props => {
                             <PlayerHeadshot className={s.img} id={props.id} name={props.name} />
                             {onlineStatus && <div className={s.activityWrapper}><Activity {...onlineStatus} /></div>}
                         </div>
-                        <p className={s.username}>{props.name}</p>
+                        <p className={s.username}>{props.name}<VerifiedBadge userId={props.id}/></p>
                     </a>
                 </Link>
             </span>
