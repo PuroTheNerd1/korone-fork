@@ -6,20 +6,16 @@ namespace Roblox.Services;
 
 public static class PurchaseAttestationGuard
 {
-    private const long ClockSkewToleranceMs = 5_000;
-    private const long MaxAgeMs = 30_000;
+    public static string Canonicalize(long assetId, long expectedPrice, string ticketId) =>
+        $"{assetId}|{expectedPrice}|{ticketId}";
 
-    public static string Canonicalize(long assetId, long expectedPrice, string ticketId, long timestampMs) =>
-        $"{assetId}|{expectedPrice}|{ticketId}|{timestampMs}";
-
-    public readonly record struct ParsedSeal(string TicketId, long TimestampMs, string SignatureHex);
+    public readonly record struct ParsedSeal(string TicketId, string SignatureHex);
 
     public static ParsedSeal ParseSealHeader(string header)
     {
         if (string.IsNullOrWhiteSpace(header))
             throw new RobloxException(400, 0, "Purchase failed (E1951)");
 
-        string? tStr = null;
         string? kStr = null;
         string? vStr = null;
         foreach (var part in header.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -30,22 +26,19 @@ public static class PurchaseAttestationGuard
             var value = part.Substring(eq + 1);
             switch (name)
             {
-                case "t": tStr = value; break;
                 case "k": kStr = value; break;
                 case "v": vStr = value; break;
             }
         }
 
-        if (tStr == null || kStr == null || vStr == null)
+        if (kStr == null || vStr == null)
             throw new RobloxException(400, 0, "Purchase failed (E2089)");
-        if (!long.TryParse(tStr, out var ts))
-            throw new RobloxException(400, 0, "Purchase failed (E2113)");
         if (kStr.Length is < 8 or > 64)
             throw new RobloxException(400, 0, "Purchase failed (E2128)");
         if (vStr.Length != 64)
             throw new RobloxException(400, 0, "Purchase failed (E2147)");
 
-        return new ParsedSeal(kStr, ts, vStr);
+        return new ParsedSeal(kStr, vStr);
     }
 
     public static async Task EnforceAsync(
@@ -56,28 +49,21 @@ public static class PurchaseAttestationGuard
         string sealHeader)
     {
         var parsed = ParseSealHeader(sealHeader);
-        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        if (parsed.TimestampMs > now + ClockSkewToleranceMs ||
-            parsed.TimestampMs < now - MaxAgeMs)
-        {
-            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeStaleTimestamp, expectedPrice);
-            throw new RobloxException(400, 0, "Purchase failed (E2156)");
-        }
 
         var consumed = await svc.Consume(userId, parsed.TicketId);
         if (consumed == null)
         {
-            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeMissingOrReplayed, expectedPrice);
+            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeMissingOrReplayed);
             throw new RobloxException(400, 0, "Purchase failed (E2233)");
         }
 
         if (consumed.assetId != assetId)
         {
-            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeAssetMismatch, expectedPrice);
+            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeAssetMismatch);
             throw new RobloxException(400, 0, "Purchase failed (E2367)");
         }
 
-        var canonical = Canonicalize(assetId, expectedPrice, parsed.TicketId, parsed.TimestampMs);
+        var canonical = Canonicalize(assetId, expectedPrice, parsed.TicketId);
 
         byte[] keyRaw;
         byte[] actualBytes;
@@ -88,7 +74,7 @@ public static class PurchaseAttestationGuard
         }
         catch
         {
-            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeBadSignature, expectedPrice);
+            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeBadSignature);
             throw new RobloxException(400, 0, "Purchase failed (E2541)");
         }
 
@@ -96,10 +82,10 @@ public static class PurchaseAttestationGuard
 
         if (!CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes))
         {
-            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeBadSignature, expectedPrice);
+            _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeBadSignature);
             throw new RobloxException(400, 0, "Purchase failed (E2638)");
         }
 
-        _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeConsumedOk, expectedPrice);
+        _ = svc.MarkOutcome(userId, parsed.TicketId, PurchaseAttestationService.OutcomeConsumedOk);
     }
 }

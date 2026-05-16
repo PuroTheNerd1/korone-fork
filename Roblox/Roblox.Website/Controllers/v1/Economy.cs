@@ -229,8 +229,7 @@ public class EconomyControllerV1 : ControllerBase
     public class CheckoutHandshakeRequest
     {
         public string? pageToken { get; set; }
-        public int behaviorScore { get; set; }
-        public string? turnstileToken { get; set; }
+        public string? tToken { get; set; }
     }
 
     [HttpPost("checkout-page-token")]
@@ -256,13 +255,11 @@ public class EconomyControllerV1 : ControllerBase
         FeatureCheck();
         var userId = safeUserSession.userId;
         if (body == null)
-            throw new RobloxException(400, 0, "Purchase failed (E1842)");
+            throw new RobloxException(400, 0, "Could not verify purchase");
         var rawIp = ControllerBase.GetRequesterIpRaw(HttpContext);
-        await services.purchaseAttestation.EnforceTurnstileAsync(body.turnstileToken, rawIp);
+        await services.purchaseAttestation.EnforceTurnstileAsync(body.tToken, rawIp);
         await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId);
-        var ipHash = GetIP();
-        var ua = UserAgent;
-        var issued = await services.purchaseAttestation.Issue(userId, assetId, ipHash, ua);
+        var issued = await services.purchaseAttestation.Issue(userId, assetId);
         return new
         {
             token = issued.ticketId,

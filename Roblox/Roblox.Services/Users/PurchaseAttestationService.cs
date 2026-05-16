@@ -13,14 +13,13 @@ public class PurchaseAttestationService : ServiceBase, IService
     private const int KeyByteLen = 32;
     private const int TicketByteLen = 16;
     private const int PageTokenByteLen = 24;
-    private static readonly TimeSpan AttestationTtl = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan PageTokenTtl = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan AttestationTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan PageTokenTtl = TimeSpan.FromMinutes(30);
 
     public const short OutcomeIssued = 0;
     public const short OutcomeConsumedOk = 1;
     public const short OutcomeBadSignature = 2;
     public const short OutcomeMissingOrReplayed = 3;
-    public const short OutcomeStaleTimestamp = 4;
     public const short OutcomeAssetMismatch = 5;
 
     public sealed record IssuedAttestation(string ticketId, string keyMaterial, long expiresAtMs);
@@ -105,7 +104,7 @@ public class PurchaseAttestationService : ServiceBase, IService
             throw new RobloxException(400, 0, "Purchase failed (E1455)");
     }
 
-    public async Task<IssuedAttestation> Issue(long userId, long assetId, string? clientIpHash, string? userAgent)
+    public async Task<IssuedAttestation> Issue(long userId, long assetId)
     {
         var ticketBytes = new byte[TicketByteLen];
         var keyBytes = new byte[KeyByteLen];
@@ -118,18 +117,20 @@ public class PurchaseAttestationService : ServiceBase, IService
 
         await redis.StringSetAsync(RedisKey(userId, ticketId), storedValue, AttestationTtl);
 
-        await db.ExecuteAsync(
-            @"INSERT INTO purchase_attestation_log (user_id, ticket_id, asset_id, outcome, client_ip_hash, user_agent)
-              VALUES (:uid, :tid, :aid, :oc, :ip, :ua)",
-            new
-            {
-                uid = userId,
-                tid = ticketId,
-                aid = assetId,
-                oc = OutcomeIssued,
-                ip = clientIpHash,
-                ua = userAgent == null ? null : Truncate(userAgent, 512),
-            });
+        try
+        {
+            await db.ExecuteAsync(
+                @"INSERT INTO purchase_attestation_log (user_id, ticket_id, asset_id, outcome)
+                  VALUES (:uid, :tid, :aid, :oc)",
+                new
+                {
+                    uid = userId,
+                    tid = ticketId,
+                    aid = assetId,
+                    oc = OutcomeIssued,
+                });
+        }
+        catch { }
 
         var expiresAt = DateTimeOffset.UtcNow.Add(AttestationTtl).ToUnixTimeMilliseconds();
         return new IssuedAttestation(ticketId, keyMaterial, expiresAt);
@@ -147,15 +148,14 @@ public class PurchaseAttestationService : ServiceBase, IService
         return new ConsumedAttestation(aid, key);
     }
 
-    public Task MarkOutcome(long userId, string ticketId, short outcome, long? expectedPrice) =>
+    public Task MarkOutcome(long userId, string ticketId, short outcome) =>
         db.ExecuteAsync(
             @"UPDATE purchase_attestation_log
-              SET outcome = :oc, consumed_at = now(), expected_price = :px
+              SET outcome = :oc, consumed_at = now()
               WHERE user_id = :uid AND ticket_id = :tid",
             new
             {
                 oc = outcome,
-                px = expectedPrice,
                 uid = userId,
                 tid = ticketId,
             });
@@ -165,9 +165,6 @@ public class PurchaseAttestationService : ServiceBase, IService
 
     private static string PageTokenKey(string pageToken) =>
         $"econ:page:v1:{pageToken}";
-
-    private static string Truncate(string s, int max) =>
-        s.Length <= max ? s : s.Substring(0, max);
 
     public bool IsThreadSafe() => true;
     public bool IsReusable() => false;

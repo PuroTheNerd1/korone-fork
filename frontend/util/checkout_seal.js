@@ -1,5 +1,5 @@
-const canonical = (assetId, expectedPrice, ticketId, ts) =>
-  `${assetId}|${expectedPrice}|${ticketId}|${ts}`;
+const canonical = (assetId, expectedPrice, ticketId) =>
+  `${assetId}|${expectedPrice}|${ticketId}`;
 
 const toHex = (buf) =>
   Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
@@ -12,7 +12,6 @@ const decodeBase64Key = (b64) => {
 };
 
 export const forgeCheckoutSeal = async ({ assetId, expectedPrice, ticketId, keyMaterial }) => {
-  const ts = Date.now();
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
     decodeBase64Key(keyMaterial),
@@ -23,9 +22,9 @@ export const forgeCheckoutSeal = async ({ assetId, expectedPrice, ticketId, keyM
   const sig = await crypto.subtle.sign(
     'HMAC',
     cryptoKey,
-    new TextEncoder().encode(canonical(assetId, expectedPrice, ticketId, ts)),
+    new TextEncoder().encode(canonical(assetId, expectedPrice, ticketId)),
   );
-  return `t=${ts};k=${ticketId};v=${toHex(sig)}`;
+  return `k=${ticketId};v=${toHex(sig)}`;
 };
 
 export default forgeCheckoutSeal;

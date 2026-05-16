@@ -110,9 +110,9 @@ export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, 
   }
 
   const siteKey = getTurnstileSiteKey();
-  let turnstileToken;
+  let tToken;
   try {
-    turnstileToken = await getInvisibleTurnstileToken(siteKey);
+    tToken = await getInvisibleTurnstileToken(siteKey);
   } catch (e) {
     throw new Error('Could not verify purchase');
   }
@@ -120,7 +120,7 @@ export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, 
   const handshakeResp = await request(
     'POST',
     getFullUrl('economy', `/v1/purchases/products/${productId}/handshake`),
-    { pageToken, turnstileToken },
+    { pageToken, tToken },
   );
   const { token, material } = handshakeResp.data;
 
