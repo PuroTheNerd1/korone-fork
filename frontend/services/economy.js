@@ -2,6 +2,24 @@ import request from "../lib/request"
 import { getFullUrl } from "../lib/request";
 import config from "../lib/config";
 import { forgeCheckoutSeal } from "../util/checkout_seal";
+import { getInvisibleTurnstileToken, prefetchTurnstileToken, prewarmTurnstile } from "../util/checkout_turnstile";
+
+const getTurnstileSiteKey = () =>
+  config?.publicRuntimeConfig?.backend?.invisibleTurnstileSiteKey
+  || config?.publicRuntimeConfig?.invisibleTurnstileSiteKey
+  || null;
+
+export const prewarmCheckoutTurnstile = () => {
+  const k = getTurnstileSiteKey();
+  if (!k) return;
+  prewarmTurnstile(k);
+};
+
+export const prefetchCheckoutTurnstile = () => {
+  const k = getTurnstileSiteKey();
+  if (!k) return Promise.resolve(null);
+  return prefetchTurnstileToken(k);
+};
 
 const readCheckoutPageToken = () => {
   if (typeof document === 'undefined') return null;
@@ -85,32 +103,24 @@ export const getResellableCopies = ({ assetId, userId }) => {
  * @param {number} expectedCurrency
  * @returns {Promise<PurchaseDetailRequestModel>}
  */
-export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency, isLimited }) => {
-  const requiresSeal = !!isLimited || (userAssetId !== null && userAssetId !== undefined && userAssetId !== 0);
-
-  if (!requiresSeal) {
-    return request(
-      'POST',
-      getFullUrl('economy', `/v1/purchases/products/${productId}`),
-      {
-        assetId,
-        expectedPrice: price,
-        expectedSellerId: sellerId,
-        userAssetId,
-        expectedCurrency,
-      },
-    ).then((d) => d.data);
-  }
-
+export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
   const pageToken = readCheckoutPageToken();
   if (!pageToken) {
     throw new Error('Purchase failed (E1010)');
   }
 
+  const siteKey = getTurnstileSiteKey();
+  let turnstileToken;
+  try {
+    turnstileToken = await getInvisibleTurnstileToken(siteKey);
+  } catch (e) {
+    throw new Error('Could not verify purchase');
+  }
+
   const handshakeResp = await request(
     'POST',
     getFullUrl('economy', `/v1/purchases/products/${productId}/handshake`),
-    { pageToken },
+    { pageToken, turnstileToken },
   );
   const { token, material } = handshakeResp.data;
 

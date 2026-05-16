@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createContainer } from "unstated-next";
-import { purchaseItem } from "../../../services/economy";
+import { purchaseItem, prefetchCheckoutTurnstile } from "../../../services/economy";
 import PurchaseError from "../purchaseError";
 
 const CatalogDetailsPageModal = createContainer(() => {
@@ -34,6 +34,8 @@ const CatalogDetailsPageModal = createContainer(() => {
       } else {
         setPurchaseState('PURCHASE');
       }
+
+      try { prefetchCheckoutTurnstile(); } catch (e) {}
     },
     closePurchaseModal: () => {
       if (isPurchasing) return;

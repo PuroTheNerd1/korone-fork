@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import AssetDetailsStore from "./AssetDetailsStore";
 import Authentication from "../../../stores/authentication";
 import { CurrencyType } from "../../../models/enums";
-import { purchaseItem, takeResellableAssetOffSale } from "../../../services/economy";
+import { purchaseItem, takeResellableAssetOffSale, prefetchCheckoutTurnstile } from "../../../services/economy";
 import PurchaseError from "../../catalogDetailsPage/purchaseError";
 import Feedback from "../../../stores/feedback";
 import { wait } from "../../../lib/utils";
@@ -56,6 +56,8 @@ const AssetDetailsModalStore = createContainer(() => {
         setPurchaseInfo(purchInfo);
         setNewBalance((purchInfo.currency === CurrencyType.Tickets ? auth.tix : auth.robux) - purchInfo.expectedPrice);
         setPurchaseState(newBalance < 0 ? PurchaseState.InsufficientFunds : PurchaseState.Purchasable);
+
+        try { prefetchCheckoutTurnstile(); } catch (e) {}
     }, [isBuyModalOpen, buyingUIAD]);
     
     useEffect(async () => {

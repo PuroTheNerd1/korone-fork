@@ -30,6 +30,9 @@ export default class JssDocument extends Document {
                     <link href="/fonts/gotham1.css" rel="stylesheet"/>
                     <link href="/js/bootstrap.min.css" rel="stylesheet" />
                     <link href="/js/roblox/icons.css" rel="stylesheet" />
+                    <link rel="preconnect" href="https://challenges.cloudflare.com" crossOrigin="anonymous"/>
+                    <link rel="dns-prefetch" href="https://challenges.cloudflare.com"/>
+                    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer/>
                     <script src="/js/axios.min.js"></script>
                     <style id="server-side-styles">{registry.toString()}</style>
                 </>

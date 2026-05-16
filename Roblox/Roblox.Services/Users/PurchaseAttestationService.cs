@@ -1,4 +1,7 @@
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
+using System.Text.Json.Serialization;
 using Dapper;
 using Roblox.Cache;
 using Roblox.Services.Exceptions;
@@ -23,6 +26,56 @@ public class PurchaseAttestationService : ServiceBase, IService
     public sealed record IssuedAttestation(string ticketId, string keyMaterial, long expiresAtMs);
     public sealed record ConsumedAttestation(long assetId, string keyMaterial);
     public sealed record IssuedPageToken(string pageToken, long expiresAtMs);
+
+    private static readonly HttpClient TurnstileHttp = new HttpClient
+    {
+        Timeout = TimeSpan.FromSeconds(5),
+    };
+
+    private sealed class TurnstileResponse
+    {
+        [JsonPropertyName("success")] public bool Success { get; set; }
+        [JsonPropertyName("error-codes")] public string[]? ErrorCodes { get; set; }
+        [JsonPropertyName("challenge_ts")] public string? ChallengeTs { get; set; }
+        [JsonPropertyName("hostname")] public string? Hostname { get; set; }
+    }
+
+    public async Task EnforceTurnstileAsync(string? token, string? remoteIp)
+    {
+        var secret = Roblox.Configuration.InvisibleTurnstileSecretKey;
+        if (string.IsNullOrEmpty(secret))
+            throw new RobloxException(503, 0, "Could not verify purchase");
+        if (string.IsNullOrWhiteSpace(token))
+            throw new RobloxException(400, 0, "Could not verify purchase");
+
+        var form = new List<KeyValuePair<string, string>>
+        {
+            new("secret", secret),
+            new("response", token),
+        };
+        if (!string.IsNullOrEmpty(remoteIp))
+            form.Add(new("remoteip", remoteIp));
+
+        try
+        {
+            using var content = new FormUrlEncodedContent(form);
+            using var resp = await TurnstileHttp.PostAsync(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify", content);
+            if (!resp.IsSuccessStatusCode)
+                throw new RobloxException(400, 0, "Could not verify purchase");
+            var parsed = await resp.Content.ReadFromJsonAsync<TurnstileResponse>();
+            if (parsed == null || !parsed.Success)
+                throw new RobloxException(400, 0, "Could not verify purchase");
+        }
+        catch (RobloxException)
+        {
+            throw;
+        }
+        catch
+        {
+            throw new RobloxException(400, 0, "Could not verify purchase");
+        }
+    }
 
     public async Task<IssuedPageToken> MintPageToken(long assetId)
     {

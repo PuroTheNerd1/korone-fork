@@ -230,6 +230,7 @@ public class EconomyControllerV1 : ControllerBase
     {
         public string? pageToken { get; set; }
         public int behaviorScore { get; set; }
+        public string? turnstileToken { get; set; }
     }
 
     [HttpPost("checkout-page-token")]
@@ -256,6 +257,8 @@ public class EconomyControllerV1 : ControllerBase
         var userId = safeUserSession.userId;
         if (body == null)
             throw new RobloxException(400, 0, "Purchase failed (E1842)");
+        var rawIp = ControllerBase.GetRequesterIpRaw(HttpContext);
+        await services.purchaseAttestation.EnforceTurnstileAsync(body.turnstileToken, rawIp);
         await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId);
         var ipHash = GetIP();
         var ua = UserAgent;
@@ -279,31 +282,13 @@ public class EconomyControllerV1 : ControllerBase
         if (request.userAssetId is 0 or < 0)
             request.userAssetId = null;
 
-        var requiresSeal = request.userAssetId != null;
-        if (!requiresSeal)
-        {
-            try
-            {
-                var details = await services.assets.GetAssetCatalogInfo(assetId);
-                requiresSeal = details.itemRestrictions != null
-                    && (details.itemRestrictions.Contains("Limited") || details.itemRestrictions.Contains("LimitedUnique"));
-            }
-            catch
-            {
-                requiresSeal = true;
-            }
-        }
-
-        if (requiresSeal)
-        {
-            var sealHeader = Request.Headers["X-Korone-Seal"].ToString();
-            await PurchaseAttestationGuard.EnforceAsync(
-                services.purchaseAttestation,
-                safeUserSession.userId,
-                assetId,
-                request.expectedPrice,
-                sealHeader);
-        }
+        var sealHeader = Request.Headers["X-Korone-Seal"].ToString();
+        await PurchaseAttestationGuard.EnforceAsync(
+            services.purchaseAttestation,
+            safeUserSession.userId,
+            assetId,
+            request.expectedPrice,
+            sealHeader);
 
         if (request.userAssetId != null)
         {
