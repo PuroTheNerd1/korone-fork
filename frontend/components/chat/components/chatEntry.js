@@ -1,6 +1,7 @@
 import styles from './chatEntry.module.css';
 import PlayerHeadshot from "../../playerHeadshot";
 import chatStore from "../chatStore";
+import VerifiedBadge from "../../verifiedBadge";
 
 const ChatEntry = props => {
   const store = chatStore.useContainer();
@@ -31,7 +32,7 @@ const ChatEntry = props => {
       </div>
     </div>
     <div className={styles.chatLatestMessage}>
-      <p className={styles.chatUsername}>{user.username}</p>
+      <p className={styles.chatUsername}>{user.username}<VerifiedBadge userId={user.id}/></p>
       <p className={styles.chatMessage + ' text-truncate ' + (isUnread ? styles.chatMessageUnread : '')}>
         {
           user.isTyping ? <span className='fst-italic'>Typing...</span> : (

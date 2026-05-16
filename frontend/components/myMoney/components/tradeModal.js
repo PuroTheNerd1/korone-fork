@@ -16,14 +16,14 @@ const TradeBelowNameText = props => {
   switch (state) {
     case 'Countered':
       return <div>
-        <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/> was countered.</span>
+        <span>Trade with <span style={{whiteSpace: 'nowrap'}}><CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/></span> was countered.</span>
         <br/>
         <br/>
         <span className='font-size-12 fw-700 lighten-3 mb-0'>Expires {dayjs(props.expiration).fromNow()}</span>
       </div>
     case 'Open':
       return <div>
-        <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/> has been opened.</span>
+        <span>Trade with <span style={{whiteSpace: 'nowrap'}}><CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/></span> has been opened.</span>
         <br/>
         <br/>
         <span className='font-size-12 fw-700 lighten-3 mb-0'>Expires {dayjs(props.expiration).fromNow()}</span>
@@ -31,9 +31,9 @@ const TradeBelowNameText = props => {
     case 'Pending':
     case 'Expired':
     case 'Finished':
-      return <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/> is {state}</span>
+      return <span>Trade with <span style={{whiteSpace: 'nowrap'}}><CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/></span> is {state}</span>
     default:
-      return <span>Trade with <CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/> was {state}!</span>
+      return <span>Trade with <span style={{whiteSpace: 'nowrap'}}><CreatorLink id={props.user.id} name={props.user.name} type='User'/><VerifiedBadge userId={props.user.id}/></span> was {state}!</span>
 
   }
 }

@@ -92,6 +92,7 @@ import entryStyles from './chatEntry.module.css';
 import PlayerHeadshot from "../../playerHeadshot";
 import getFlag from "../../../lib/getFlag";
 import ChatInput from "./chatInput";
+import VerifiedBadge from "../../verifiedBadge";
 const ChatHistory = props => {
   const auth = authentication.useContainer();
   if (props.messageLayout) {
@@ -286,7 +287,7 @@ const Conversation = props => {
   return <div className={styles.chatMenu} style={{right: 30 + ((myIndex+1) * 260)}}>
     <div className={styles.chatMenuHeader}>
       <div className='d-inline-block'>
-        <p className={styles.chatLabel}>{user.username}</p>
+        <p className={styles.chatLabel}>{user.username}<VerifiedBadge userId={user.id}/></p>
       </div>
       <div className={styles.chatClose} onClick={e => {
         e.preventDefault();
