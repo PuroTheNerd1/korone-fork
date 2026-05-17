@@ -12,7 +12,7 @@ import FeedbackStore from "../../../stores/feedback";
 import AuthenticationStore from "../../../stores/authentication";
 import { FeedbackType } from "../../../models/feedback";
 import useButtonStyles from "../../../styles/buttonStyles";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const useStyles = createUseStyles({
     footerClass: {
@@ -80,8 +80,9 @@ const BuyModal = () => {
     const store = AssetDetailsStore.useContainer();
     const modals = AssetDetailsModalStore.useContainer();
     const { newBalance, purchaseInfo } = modals;
-    
-    const closeModal = () => modals.setBuyModalOpen(false);
+    const [isVerifying, setIsVerifying] = useState(false);
+
+    const closeModal = () => { if (!isVerifying) modals.setBuyModalOpen(false); };
     
     if (!auth?.userId) {
         window.location.href = "/";
@@ -170,29 +171,33 @@ const BuyModal = () => {
         footerElements={<>
             <div className="flex">
                 <ActionButton
-                    label={`${purchaseInfo.expectedPrice === 0 ? "Get" : "Buy"} Now`}
+                    label={isVerifying ? "Verifying..." : `${purchaseInfo.expectedPrice === 0 ? "Get" : "Buy"} Now`}
+                    disabled={isVerifying}
                     buttonStyle={`${btnStyles.newBuyButton} ${purchaseInfo.currency === 2 ? "tix" : ""}`}
                     onClick={async () => {
-                        closeModal();
-                        let feedbacked = false
+                        if (isVerifying) return;
+                        setIsVerifying(true);
+                        let feedbacked = false;
                         let purchase;
                         try {
-                            purchase = await modals.PurchaseAsset()
+                            purchase = await modals.PurchaseAsset();
                         } catch (e) {
                             console.error("Purchase request failed due to the following error");
                             console.dir(e);
-                            if (e.message.toLowerCase().includes("already owned")) {
+                            if (e.message && e.message.toLowerCase().includes("already owned")) {
                                 feedbacked = true;
                                 feedback.addFeedback(e.message, FeedbackType.ERROR, true);
                             }
                         }
                         if (purchase) {
+                            modals.setBuyModalOpen(false);
                             feedback.addFeedback("Purchase completed", FeedbackType.SUCCESS, true);
+                            await wait(2);
+                            window.location.reload();
                         } else {
                             if (!feedbacked) feedback.addFeedback("Purchase failed. You have not been charged", FeedbackType.ERROR, true);
+                            setIsVerifying(false);
                         }
-                        await wait(3);
-                        window.location.reload();
                     }}
                     className={s.modalBtn}
                 />

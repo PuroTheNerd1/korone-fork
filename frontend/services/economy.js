@@ -104,11 +104,6 @@ export const getResellableCopies = ({ assetId, userId }) => {
  * @returns {Promise<PurchaseDetailRequestModel>}
  */
 export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, price, expectedCurrency }) => {
-  const pageToken = readCheckoutPageToken();
-  if (!pageToken) {
-    throw new Error('Purchase failed (E1010)');
-  }
-
   const siteKey = getTurnstileSiteKey();
   let tToken;
   try {
@@ -120,16 +115,9 @@ export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, 
   const handshakeResp = await request(
     'POST',
     getFullUrl('economy', `/v1/purchases/products/${productId}/handshake`),
-    { pageToken, tToken },
+    { tToken },
   );
-  const { token, material } = handshakeResp.data;
-
-  const seal = await forgeCheckoutSeal({
-    assetId: productId,
-    expectedPrice: price,
-    ticketId: token,
-    keyMaterial: material,
-  });
+  const ticketId = handshakeResp.data.token;
 
   return request(
     'POST',
@@ -142,7 +130,7 @@ export const purchaseItem = async ({ productId, assetId, sellerId, userAssetId, 
       expectedCurrency,
     },
     false,
-    { 'X-Korone-Seal': seal },
+    { 'X-Korone-Ticket': ticketId },
   ).then((d) => d.data);
 }
 

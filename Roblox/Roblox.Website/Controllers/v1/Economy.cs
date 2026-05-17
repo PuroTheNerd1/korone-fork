@@ -221,32 +221,9 @@ public class EconomyControllerV1 : ControllerBase
         await services.users.PurchaseNormalItem(safeUserSession.userId, assetId, request.expectedCurrency);
     }
 
-    public class CheckoutPageTokenRequest
-    {
-        public long? assetId { get; set; }
-    }
-
     public class CheckoutHandshakeRequest
     {
-        public string? pageToken { get; set; }
         public string? tToken { get; set; }
-    }
-
-    [HttpPost("checkout-page-token")]
-    public async Task<dynamic> MintCheckoutPageToken([FromBody] CheckoutPageTokenRequest request)
-    {
-        FeatureCheck();
-        var bypassSecret = Roblox.Configuration.UserAgentBypassSecret;
-        if (string.IsNullOrEmpty(bypassSecret) || UserAgent != bypassSecret)
-            throw new RobloxException(404, 0, "Purchase failed (E2715)");
-        if (request?.assetId is null or <= 0)
-            throw new RobloxException(400, 0, "Purchase failed (E2843)");
-        var minted = await services.purchaseAttestation.MintPageToken(request.assetId.Value);
-        return new
-        {
-            pageToken = minted.pageToken,
-            expiresAt = minted.expiresAtMs,
-        };
     }
 
     [HttpPost("purchases/products/{assetId:long}/handshake")]
@@ -258,12 +235,10 @@ public class EconomyControllerV1 : ControllerBase
             throw new RobloxException(400, 0, "Could not verify purchase");
         var rawIp = ControllerBase.GetRequesterIpRaw(HttpContext);
         await services.purchaseAttestation.EnforceTurnstileAsync(body.tToken, rawIp);
-        await services.purchaseAttestation.EnforcePageTokenAsync(body.pageToken, assetId);
         var issued = await services.purchaseAttestation.Issue(userId, assetId);
         return new
         {
             token = issued.ticketId,
-            material = issued.keyMaterial,
             expiresAt = issued.expiresAtMs,
         };
     }
@@ -279,13 +254,8 @@ public class EconomyControllerV1 : ControllerBase
         if (request.userAssetId is 0 or < 0)
             request.userAssetId = null;
 
-        var sealHeader = Request.Headers["X-Korone-Seal"].ToString();
-        await PurchaseAttestationGuard.EnforceAsync(
-            services.purchaseAttestation,
-            safeUserSession.userId,
-            assetId,
-            request.expectedPrice,
-            sealHeader);
+        var ticketHeader = Request.Headers["X-Korone-Ticket"].ToString();
+        await services.purchaseAttestation.ConsumeOrThrow(safeUserSession.userId, ticketHeader, assetId);
 
         if (request.userAssetId != null)
         {

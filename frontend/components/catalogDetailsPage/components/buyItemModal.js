@@ -75,8 +75,9 @@ const ModalButtons = props => {
         <div className='col-8 offset-2'>
           <div className='row'>
             <div className='col-6'>
-              <ActionButton disabled={modalStore.purchaseState === 'PURCHASE_PENDING'} label={sellerDetails.price === 0 ? 'Take' : 'Buy Now'} className={s.buyButton} onClick={(e) => {
+              <ActionButton disabled={modalStore.purchaseState === 'PURCHASE_PENDING'} label={modalStore.purchaseState === 'PURCHASE_PENDING' ? 'Verifying...' : (sellerDetails.price === 0 ? 'Take' : 'Buy Now')} className={s.buyButton} onClick={(e) => {
                 e.preventDefault();
+                if (modalStore.purchaseState === 'PURCHASE_PENDING') return;
                 modalStore.setPurchaseState('PURCHASE_PENDING');
                 modalStore.purchaseItem().then(() => {
                   modalStore.setPurchaseState('PURCHASE_OK');
@@ -213,6 +214,16 @@ const BuyItemModal = props => {
   const store = CatalogDetailsPage.useContainer();
   const modalStore = CatalogDetailsPageModal.useContainer();
   const authStore = AuthenticationStore.useContainer();
+
+  useEffect(() => {
+    if (modalStore.purchaseState === 'PURCHASE_OK') {
+      const t = setTimeout(() => {
+        modalStore.closePurchaseModal();
+        window.location.reload();
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [modalStore.purchaseState]);
 
   if (modalStore.isPurchasePromptOpen === false) {
     return null;
