@@ -18,7 +18,10 @@ const themeColor = {
     whisper: 'whisper',
     cane: 'cane',
     spice: 'spice',
+    custom: 'custom',
 }
+
+const hexColorRe = /^#[0-9a-fA-F]{6}$/;
 
 const themeFont = {
     gotham: 'gotham',
@@ -88,7 +91,7 @@ const setThemeRibbon = (themeString) => {
 
 const getThemeColor = () => {
     if (!isLocalStorageAvailable) return themeColor.coffee;
-    
+
     let value = localStorage.getItem('rbx_theme_color_v1');
     // validate
     if (typeof value !== 'string' || !Object.getOwnPropertyNames(themeColor).includes(value)) return themeColor.coffee;
@@ -98,6 +101,19 @@ const getThemeColor = () => {
 const setThemeColor = (themeString) => {
     if (!isLocalStorageAvailable) return;
     localStorage.setItem('rbx_theme_color_v1', themeString);
+}
+
+const getThemeCustomColor = () => {
+    if (!isLocalStorageAvailable) return null;
+    const value = localStorage.getItem('rbx_theme_custom_color_v1');
+    if (typeof value !== 'string' || !hexColorRe.test(value)) return null;
+    return value.toLowerCase();
+}
+
+const setThemeCustomColor = (hexColor) => {
+    if (!isLocalStorageAvailable) return;
+    if (typeof hexColor !== 'string' || !hexColorRe.test(hexColor)) return;
+    localStorage.setItem('rbx_theme_custom_color_v1', hexColor.toLowerCase());
 }
 
 const getThemeFont = () => {
@@ -221,6 +237,9 @@ export {
     
     getThemeColor,
     setThemeColor,
+
+    getThemeCustomColor,
+    setThemeCustomColor,
     
     getThemeForumHeader,
     setThemeForumHeader,

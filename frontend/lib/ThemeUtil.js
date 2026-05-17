@@ -1,4 +1,59 @@
-import {themeColor, themeFont, themeType} from "../services/theme";
+import {getThemeCustomColor, themeColor, themeFont, themeType} from "../services/theme";
+
+function hexToRgb(hexColor) {
+    const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hexColor);
+    if (!m) return null;
+    return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
+}
+
+function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return { h, s, l };
+}
+
+function hslToHex(h, s, l) {
+    let r, g, b;
+    if (s === 0) {
+        r = g = b = l;
+    } else {
+        const hue2rgb = (p, q, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1/6) return p + (q - p) * 6 * t;
+            if (t < 1/2) return q;
+            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+    const toHex = (x) => Math.round(x * 255).toString(16).padStart(2, '0');
+    return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+
+function shiftLightness(hexColor, delta) {
+    const rgb = hexToRgb(hexColor);
+    if (!rgb) return hexColor;
+    const { h, s, l } = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const newL = Math.max(0, Math.min(1, l + delta));
+    return hslToHex(h, s, newL);
+}
 
 function ChangeVarsForTheme(theme) {
     switch (theme) {
@@ -19,7 +74,19 @@ function ChangeVarsForTheme(theme) {
     }
 }
 
-function ChangeVarsForThemeColor(theme) {
+function ChangeVarsForThemeColor(theme, customHex) {
+    if (theme === themeColor.custom) {
+        const hexColor = (typeof customHex === 'string' ? customHex : getThemeCustomColor());
+        if (!hexColor) return;
+        const primaryColor = hexColor;
+        const primaryColorHover = shiftLightness(hexColor, 0.08);
+        const secondaryColor = shiftLightness(hexColor, -0.08);
+        document.documentElement.style.setProperty('--primary-color', primaryColor);
+        document.documentElement.style.setProperty('--primary-color-2', primaryColor);
+        document.documentElement.style.setProperty('--primary-color-hover', primaryColorHover);
+        document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+        return;
+    }
     switch (theme) {
         case themeColor.coffee:
             document.documentElement.style.setProperty('--primary-color', '#8A5149');

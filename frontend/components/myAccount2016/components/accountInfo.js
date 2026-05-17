@@ -6,7 +6,7 @@ import {
     getAvPageStyle, getCatalogPageStyle, getCatalogStyle, getGroupPagesStyle, getHideRE,
     getSearchUserPageStyle, getTheme, setAvPageStyle, setCatalogPageStyle, setCatalogStyle,
     setGroupPagesStyle, setHideRE, setSearchUserPageStyle,
-    setTheme, setThemeColor, setThemeFont, setThemeForumHeader,
+    setTheme, setThemeColor, setThemeCustomColor, setThemeFont, setThemeForumHeader,
     setThemeRibbon, themeType
 } from "../../../services/theme";
 import AuthenticationStore from "../../../stores/authentication";
@@ -201,9 +201,36 @@ const  AccountInfo = props => {
                                 <option value='harmony'>Harmony</option>
                                 <option value='witness'>Witness</option>
                                 <option value='whisper'>Velvet Whisper</option>
+                                <option value='custom'>Custom</option>
                             </select>
                         </div>
                     </div>
+                    {store.theme.color === 'custom' &&
+                        <div className='flex mt-1'>
+                            <div className='col pe-0'>
+                                <input className={'form-control ' + s.select + ' ' + s.disabled} value='Custom Website Color'
+                                       readOnly={true}
+                                       type='text'></input>
+                            </div>
+                            <div className='col ps-0 pe-0'>
+                                <label className={'form-control ' + s.select + ' ' + s.disabled + ' ' + s.customColorRow}>
+                                    <input type='color'
+                                           className={s.customColorSwatch}
+                                           value={store.theme.customColor || '#000000'}
+                                           onChange={(ev) => {
+                                               const hexColor = ev.currentTarget.value;
+                                               setThemeCustomColor(hexColor);
+                                               ChangeVarsForThemeColor('custom', hexColor);
+                                               store.setTheme({
+                                                   ...store.theme,
+                                                   customColor: hexColor,
+                                               });
+                                           }}/>
+                                    <span className={s.customColorHex}>{store.theme.customColor || 'Pick a color'}</span>
+                                </label>
+                            </div>
+                        </div>
+                    }
                     <div className='flex mt-1'>
                         <div className='col pe-0'>
                             <input className={'form-control ' + s.select + ' ' + s.disabled} value='Website Font'

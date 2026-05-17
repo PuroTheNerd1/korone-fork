@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import { getMyEmail, getMySettingsJson } from "../../../services/accountSettings";
-import { getTheme, getThemeColor, getThemeFont, getThemeForumHeader, getThemeRibbon } from "../../../services/theme";
+import { getTheme, getThemeColor, getThemeCustomColor, getThemeFont, getThemeForumHeader, getThemeRibbon } from "../../../services/theme";
 
 /**
  * @type {null | 'CHANGE_EMAIL' | 'CHANGE_PASSWORD' | 'CHANGE_USERNAME' | 'MODAL_OK'}
@@ -21,6 +21,7 @@ const MyAccountStore = createContainer(() => {
     const [theme, setTheme] = useState({
         theme: getTheme(),
         color: getThemeColor(),
+        customColor: getThemeCustomColor(),
         font: getThemeFont(),
         stylizeForumHeader: getThemeForumHeader(),
         themeRibbon: getThemeRibbon()

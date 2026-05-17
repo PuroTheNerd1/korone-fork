@@ -48,6 +48,29 @@ const useFormStyles = createUseStyles({
         color: 'var(--text-color-quinary)',
         cursor: 'pointer',
     },
+    customColorRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        cursor: 'pointer',
+    },
+    customColorSwatch: {
+        width: '20px',
+        height: '20px',
+        padding: 0,
+        border: '1px solid var(--text-color-quinary)',
+        borderRadius: '2px',
+        background: 'none',
+        cursor: 'pointer',
+        '&::-webkit-color-swatch-wrapper': { padding: 0 },
+        '&::-webkit-color-swatch': { border: 'none' },
+        '&::-moz-color-swatch': { border: 'none' },
+    },
+    customColorHex: {
+        fontSize: '16px',
+        color: 'var(--text-color-secondary)',
+        fontFamily: 'inherit',
+    },
 });
 
 export default useFormStyles;
