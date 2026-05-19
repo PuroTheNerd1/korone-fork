@@ -29,12 +29,17 @@ public class UsersControllerV1 : ControllerBase
     public async Task<dynamic> GetMySession()
     {
         if (userSession is null) throw new UnauthorizedException();
+        var isOwner = StaffFilter.IsOwner(userSession.userId);
+        var permissions = isOwner
+            ? Enum.GetValues<Roblox.Models.Staff.Access>().ToList()
+            : (await StaffFilter.GetPermissions(userSession.userId)).ToList();
         return new
         {
             id = userSession.userId,
             name = userSession.username,
             displayName = userSession.username,
-            isStaff = await StaffFilter.IsStaff(userSession.userId)
+            isStaff = isOwner || permissions.Any(),
+            permissions = permissions.Select(p => p.ToString()).ToList(),
         };
     }
 
