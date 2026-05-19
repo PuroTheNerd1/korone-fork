@@ -236,6 +236,19 @@ public class GameServerService : ServiceBase
     {
         currentPlayersInGame.TryRemove(userId, out _);
 
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var rec = ServiceProvider.GetOrCreate<Roblox.Services.Games.GameRecommendationService>();
+                await rec.TryRecomputeWithCooldownAsync(userId);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[warn] recommendation recompute failed for user {0}: {1}", userId, e.Message);
+            }
+        });
+
         await db.ExecuteAsync(
             "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
             {
