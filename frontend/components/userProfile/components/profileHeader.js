@@ -294,8 +294,14 @@ const ProfileHeader = props => {
         }
       });
     }
+    if (auth.permissions?.includes('GetUserDetailed')) {
+      buttons.push({
+        name: 'Manage User',
+        url: `/admin/manage-user/${store.userId}`,
+      });
+    }
     setDropdownOptions(buttons);
-  }, [auth.userId, auth.isPending, store.isFollowing, editStatus, store.userId]);
+  }, [auth.userId, auth.isPending, auth.permissions, store.isFollowing, editStatus, store.userId]);
   
   const s = useHeaderStyles();
   const cardStyles = useCardStyles();
