@@ -16,9 +16,11 @@ public class GameRecommendationService : ServiceBase, IService
     private const int MaxProfileEntryLength = 280;
     private const int MaxCandidateNameLength = 100;
     private const int MaxCandidateTopicLength = 280;
+    private const int MaxConcurrentRecomputes = 2;
     private static readonly TimeSpan CooldownTtl = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan PeriodicInterval = TimeSpan.FromHours(12);
     private static readonly TimeSpan CacheTtl = TimeSpan.FromHours(13);
+    private static readonly SemaphoreSlim RecomputeSemaphore = new(MaxConcurrentRecomputes, MaxConcurrentRecomputes);
 
     private static string CacheKey(long userId) => $"rec:list:{userId}";
     private static string HasKey(long userId) => $"rec:has:{userId}";
@@ -37,41 +39,59 @@ public class GameRecommendationService : ServiceBase, IService
 
     public async Task<bool> HasRecommendationsAsync(long userId)
     {
-        var cached = await redis.StringGetAsync(HasKey(userId));
-        if (cached == "1") return true;
-        if (cached == "0") return false;
+        try
+        {
+            string? cached = null;
+            try { cached = await redis.StringGetAsync(HasKey(userId)); } catch { }
+            if (cached == "1") return true;
+            if (cached == "0") return false;
 
-        var exists = await db.QuerySingleOrDefaultAsync<long?>(
-            "SELECT 1 FROM user_game_recommendation WHERE user_id = :id LIMIT 1",
-            new { id = userId });
-        var has = exists.HasValue;
-        await redis.StringSetAsync(HasKey(userId), has ? "1" : "0", TimeSpan.FromMinutes(15));
-        return has;
+            var exists = await db.QuerySingleOrDefaultAsync<long?>(
+                "SELECT 1 FROM user_game_recommendation WHERE user_id = :id LIMIT 1",
+                new { id = userId });
+            var has = exists.HasValue;
+            try { await redis.StringSetAsync(HasKey(userId), has ? "1" : "0", TimeSpan.FromMinutes(15)); } catch { }
+            return has;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("[warn] HasRecommendationsAsync failed for {0}: {1}", userId, e.Message);
+            return false;
+        }
     }
 
     public async Task<IEnumerable<long>> GetTopAsync(long userId, int limit)
     {
-        var cached = await redis.StringGetAsync(CacheKey(userId));
-        if (!string.IsNullOrEmpty(cached))
+        try
         {
-            var parsed = cached
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => long.TryParse(s, out var v) ? v : 0L)
-                .Where(v => v > 0)
-                .Take(limit)
-                .ToList();
-            if (parsed.Count > 0) return parsed;
+            string? cached = null;
+            try { cached = await redis.StringGetAsync(CacheKey(userId)); } catch { }
+            if (!string.IsNullOrEmpty(cached))
+            {
+                var parsed = cached
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => long.TryParse(s, out var v) ? v : 0L)
+                    .Where(v => v > 0)
+                    .Take(limit)
+                    .ToList();
+                if (parsed.Count > 0) return parsed;
+            }
+
+            var rows = (await db.QueryAsync<long>(
+                "SELECT asset_id FROM user_game_recommendation WHERE user_id = :id ORDER BY position ASC LIMIT :limit",
+                new { id = userId, limit })).ToList();
+
+            if (rows.Count > 0)
+            {
+                try { await redis.StringSetAsync(CacheKey(userId), string.Join(',', rows), CacheTtl); } catch { }
+            }
+            return rows;
         }
-
-        var rows = (await db.QueryAsync<long>(
-            "SELECT asset_id FROM user_game_recommendation WHERE user_id = :id ORDER BY position ASC LIMIT :limit",
-            new { id = userId, limit })).ToList();
-
-        if (rows.Count > 0)
+        catch (Exception e)
         {
-            await redis.StringSetAsync(CacheKey(userId), string.Join(',', rows), CacheTtl);
+            Console.WriteLine("[warn] GetTopAsync failed for {0}: {1}", userId, e.Message);
+            return Enumerable.Empty<long>();
         }
-        return rows;
     }
 
     private async Task InvalidateCacheAsync(long userId)
@@ -89,13 +109,32 @@ public class GameRecommendationService : ServiceBase, IService
 
     public async Task<bool> TryRecomputeWithCooldownAsync(long userId)
     {
-        var key = $"rec:cooldown:{userId}";
-        var acquired = await Roblox.Cache.DistributedCache.redis.GetDatabase(0)
-            .StringSetAsync(key, "1", CooldownTtl, when: When.NotExists);
+        bool acquired;
+        try
+        {
+            var key = $"rec:cooldown:{userId}";
+            acquired = await Roblox.Cache.DistributedCache.redis.GetDatabase(0)
+                .StringSetAsync(key, "1", CooldownTtl, when: When.NotExists);
+        }
+        catch
+        {
+            return false;
+        }
         if (!acquired) return false;
 
-        await RecomputeAsync(userId);
-        return true;
+        if (!await RecomputeSemaphore.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            return false;
+        }
+        try
+        {
+            await RecomputeAsync(userId);
+            return true;
+        }
+        finally
+        {
+            RecomputeSemaphore.Release();
+        }
     }
 
     public async Task RecomputeAsync(long userId)

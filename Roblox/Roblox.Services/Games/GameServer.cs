@@ -179,6 +179,14 @@ public class GameServerService : ServiceBase
         {
             id = placeId,
         });
+
+        try
+        {
+            using var topic = ServiceProvider.GetOrCreate<Roblox.Services.Games.GameTopicService>();
+            topic.FireAndForgetLazyExtractFromPlaceId(placeId);
+        }
+        catch { }
+
         // give ticket to creator
         await InTransaction(async _ =>
         {

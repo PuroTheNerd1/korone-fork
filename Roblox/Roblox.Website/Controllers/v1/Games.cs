@@ -104,7 +104,14 @@ public class GamesControllerV1 : ControllerBase
         bool hasRecommendations = false;
         if (userSession != null)
         {
-            hasRecommendations = await services.gameRecommendation.HasRecommendationsAsync(userSession.userId);
+            try
+            {
+                hasRecommendations = await services.gameRecommendation.HasRecommendationsAsync(userSession.userId);
+            }
+            catch
+            {
+                hasRecommendations = false;
+            }
         }
         if (gameSortsContext != null && gameSortsContext is "HomeSorts" or "UnifiedHomeSorts")
         {

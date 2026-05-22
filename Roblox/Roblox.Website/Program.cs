@@ -100,6 +100,7 @@ Roblox.Configuration.RobloxAppPrefix = "rbxeconsimdev:";
 #endif
 FeatureFlags.StartUpdateFlagTask();
 Roblox.Services.Games.GameRecommendationService.StartPeriodicLoop();
+Roblox.Services.Games.GameTopicService.StartBackfillLoop();
 var ownerUserIdConfig = configuration.GetSection("OwnerUserId");
 List<long> ownerUserIds = ownerUserIdConfig.Get<List<long>>()!;
 Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds!);
