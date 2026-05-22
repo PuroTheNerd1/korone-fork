@@ -40,5 +40,8 @@ namespace Roblox.Website.Controllers
         public LeakCheckApi leakCheck { get; } = new(Configuration.LeakCheckApiKey);
         public DiscordBotApi discordBotApi { get; } = new(Configuration.DiscordBotToken);
         public ChatService chat { get; } = new();
+        public Roblox.Services.AI.OpenRouterService openRouter { get; } = new();
+        public GameTopicService gameTopic { get; } = new();
+        public GameRecommendationService gameRecommendation { get; } = new();
     }
 }

@@ -567,6 +567,22 @@ public class GamesService : ServiceBase, IService
         var sortRequired = true;
         switch (sortToken?.ToLower())
         {
+            case "recommended":
+                if (contextUserId is 0 or null)
+                    throw new RobloxException(401, 0, "Unauthorized");
+                using (var rec = ServiceProvider.GetOrCreate<Roblox.Services.Games.GameRecommendationService>(this))
+                {
+                    sortOrder = (await rec.GetTopAsync(contextUserId.Value, maxRows)).ToList();
+                }
+                if (sortOrder.Count == 0)
+                {
+                    return Enumerable.Empty<GameListEntry>();
+                }
+                foreach (var item in sortOrder)
+                {
+                    query.OrWhere("asset.id = " + item);
+                }
+                break;
             case "recent":
                 if (contextUserId is 0 or null)
                     throw new RobloxException(401, 0, "Unauthorized");
@@ -1108,7 +1124,7 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<CreateUniverseResponse> CreateUniverse(long rootPlaceId)
     {
-        return await InTransaction(async _ =>
+        var result = await InTransaction(async _ =>
         {
             var creatorInfo =
                 await db.QuerySingleOrDefaultAsync("SELECT creator_id, creator_type FROM asset WHERE id = :id",
@@ -1131,6 +1147,15 @@ public class GamesService : ServiceBase, IService
                 universeId = uni,
             };
         });
+
+        try
+        {
+            using var topic = ServiceProvider.GetOrCreate<Roblox.Services.Games.GameTopicService>();
+            topic.FireAndForgetExtract(result.universeId);
+        }
+        catch { }
+
+        return result;
     }
     public async Task<CreatePlaceInUniverseResponse> CreatePlaceInUniverse(long creatorId, string creatorName, CreatorType creatorType, long universeId)
     {

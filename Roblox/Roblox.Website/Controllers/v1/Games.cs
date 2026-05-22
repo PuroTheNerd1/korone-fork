@@ -33,6 +33,16 @@ public class GamesControllerV1 : ControllerBase
         var sorts = new Dictionary<string, dynamic>()
         {
             {
+                "recommended", new
+                {
+                    token = "recommended",
+                    name = "Recommended",
+                    displayName = "Recommended for you",
+                    gameSetTypeId = 5,
+                    gameSetTargetId = 94
+                }
+            },
+            {
                 "popular", new
                 {
                     token = "popular",
@@ -91,6 +101,11 @@ public class GamesControllerV1 : ControllerBase
         };
 
         var results = new List<dynamic>();
+        bool hasRecommendations = false;
+        if (userSession != null)
+        {
+            hasRecommendations = await services.gameRecommendation.HasRecommendationsAsync(userSession.userId);
+        }
         if (gameSortsContext != null && gameSortsContext is "HomeSorts" or "UnifiedHomeSorts")
         {
             if (userSession == null)
@@ -99,6 +114,7 @@ public class GamesControllerV1 : ControllerBase
             var recent = await services.games.GetRecentGames(userSession.userId, 1);
             if (recent.Any())
             {
+                if (hasRecommendations) results.Add(sorts["recommended"]);
                 results.Add(sorts["recent"]);
                 //results.Add(sorts["roulette"]);
                 results.Add(sorts["popular"]);
@@ -107,6 +123,7 @@ public class GamesControllerV1 : ControllerBase
         }
         else
         {
+            if (hasRecommendations) results.Add(sorts["recommended"]);
             results.Add(sorts["popular"]);
             results.Add(sorts["classics"]);
             //results.Add(sorts["roulette"]);

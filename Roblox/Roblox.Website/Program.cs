@@ -74,6 +74,7 @@ Roblox.Configuration.GameServerIp = configuration.GetSection("GameServerIp").Val
 Roblox.Configuration.UserAgentBypassSecret = configuration.GetSection("UserAgentBypassSecret").Value!;
 Roblox.Configuration.InvisibleTurnstileSiteKey = configuration.GetSection("InvisibleTurnstile:SiteKey").Value ?? "";
 Roblox.Configuration.InvisibleTurnstileSecretKey = configuration.GetSection("InvisibleTurnstile:SecretKey").Value ?? "";
+Roblox.Configuration.OpenRouterApiKey = configuration.GetSection("AI:OpenRouterAPIKey").Value ?? "";
 Roblox.Configuration.VerificationSecret = configuration.GetSection("VerificationSecret").Value!;
 Roblox.Configuration.LuaScriptsDirectory = configuration.GetSection("Directories:RCCLuaScripts").Value!;
 IConfiguration gameServerConfig = new ConfigurationBuilder()
@@ -98,6 +99,7 @@ Roblox.Configuration.SignupAvatarAssetIds =
 Roblox.Configuration.RobloxAppPrefix = "rbxeconsimdev:";
 #endif
 FeatureFlags.StartUpdateFlagTask();
+Roblox.Services.Games.GameRecommendationService.StartPeriodicLoop();
 var ownerUserIdConfig = configuration.GetSection("OwnerUserId");
 List<long> ownerUserIds = ownerUserIdConfig.Get<List<long>>()!;
 Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds!);
