@@ -176,11 +176,10 @@ function CatalogNavigation() {
                                     return <div className={s.subCategoryWrapper}>
                                         <NewLink className={`link2019-gray`} style={store.options.category === cat.categoryId && store.options.subCategory === sub.subCategoryId ? {color: "var(--primary-color)!important"} : {}} onClick={async e => {
                                             e.preventDefault();
-                                            if (locked.current || store.refreshDebounce.current || store.options.subCategory === sub.subCategoryId) return;
+                                            if (locked.current || store.refreshDebounce.current || (store.options.category === cat.categoryId && store.options.subCategory === sub.subCategoryId)) return;
                                             locked.current = true;
 
-                                            store.setOptions({...store.options, subCategory: sub.subCategoryId});
-                                            store.setOptions({...store.options, category: cat.categoryId});
+                                            store.setOptions({...store.options, category: cat.categoryId, subCategory: sub.subCategoryId});
                                             await store.RefreshCatalogItems(null, true, {
                                                 category: cat.categoryId,
                                                 subCategory: sub.subCategoryId

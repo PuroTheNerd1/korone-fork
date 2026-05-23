@@ -101,11 +101,12 @@ const CatalogPageStore = createContainer(() => {
                 ...arr,
             };
             let gen = currentOptions.genres.ToArray();
+            let effectiveQuery = arr && Object.prototype.hasOwnProperty.call(arr, 'query') ? arr.query : searchInput;
             const searchResultsFlat = await searchCatalog2({
                 category: currentOptions.category,
                 subCategory: currentOptions.subCategory,
                 genres: gen.length === 0 || gen.length === 1 && gen[0] === 0 ? null : gen,
-                query: !IsNullOrEmpty(searchInput) ? searchInput : null,
+                query: !IsNullOrEmpty(effectiveQuery) ? effectiveQuery : null,
                 includeNotForSale: currentOptions.includeOffSale,
                 limit: resultMetadata.limit,
                 cursor: (!IsNullOrEmpty(resultMetadata.cursor) || !IsNullOrEmpty(cursor)) && !reloadPage ? cursor : null,

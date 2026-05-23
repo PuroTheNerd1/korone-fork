@@ -106,10 +106,12 @@ function CatalogInputs() {
         let creatorName = router.query['CreatorName'] ?? null;
         let creatorType = router.query['CreatorType'] ?? null;
         let category = router.query['Category'] ?? null;
+        let keyword = router.query['keyword'] ?? router.query['Keyword'] ?? null;
 
         let options = { ...store.options };
         let creatorOpt = store.creator;
         let creatorTypeOpt = store.creatorType;
+        let queryOpt = null;
 
         if (creatorName && typeof creatorName === 'string') creatorOpt = creatorName;
         if (creatorType) {
@@ -134,6 +136,10 @@ function CatalogInputs() {
                 options.subCategory = 0;
             }
         }
+        if (keyword && typeof keyword === 'string' && keyword.trim().length > 0) {
+            queryOpt = keyword;
+            store.setSearchInput(keyword);
+        }
         await store.setOptions(options);
         await store.setCreator(creatorOpt);
         await store.setCreatorType(creatorTypeOpt);
@@ -142,7 +148,8 @@ function CatalogInputs() {
             category: options.category,
             subCategory: options.subCategory,
             creator: creatorOpt,
-            creatorType: creatorTypeOpt
+            creatorType: creatorTypeOpt,
+            query: queryOpt,
         });
     }, []);
     
@@ -166,6 +173,7 @@ function CatalogInputs() {
             <input
                 type="text"
                 placeholder="Search"
+                value={store.searchInput || ""}
                 onChange={e => store.setSearchInput(e.target.value)}
                 className={`inputTextStyle ${store.searchInvalid ? "hasError" : ""} ${s.inputStyle}`}
                 maxLength={100}

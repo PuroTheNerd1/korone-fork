@@ -2374,9 +2374,10 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
         if (request.genres != null)
         {
-            foreach (var item in request.genres)
+            var genreList = request.genres.ToList();
+            if (genreList.Any())
             {
-                builder.Where($"asset.asset_genre = {(int)item}");
+                builder.Where($"asset.asset_genre IN ({string.Join(",", genreList.Select(g => (int)g))})");
             }
         }
         var totalResults =
@@ -4082,7 +4083,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                     builder.Where("asset.creator_id = 1").Where("asset.creator_type = 1");
                     break;
                 case CatalogCategory.Collectibles:
-                    builder.Where("asset.is_limited = true");
+                    builder.Where("(asset.is_limited = true OR asset.is_limited_unique = true)");
                     break;
                 default:
                     if (cat.assetTypeIds.Any())
@@ -4094,17 +4095,22 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         }
         else
         {
+            if (cat.categoryId == CatalogCategory.Collectibles)
+            {
+                builder.Where("(asset.is_limited = true OR asset.is_limited_unique = true)");
+            }
             if (sub.assetTypeIds.Any())
             {
-                builder.Where($"asset.asset_type IN ({string.Join(",", cat.assetTypeIds)})");
+                builder.Where($"asset.asset_type IN ({string.Join(",", sub.assetTypeIds)})");
             }
         }
 
         if (request.genres != null)
         {
-            foreach (var item in request.genres)
+            var genreList = request.genres.ToList();
+            if (genreList.Any())
             {
-                builder.Where($"asset.asset_genre = {(int)item}");
+                builder.Where($"asset.asset_genre IN ({string.Join(",", genreList.Select(g => (int)g))})");
             }
         }
         var totalResults =

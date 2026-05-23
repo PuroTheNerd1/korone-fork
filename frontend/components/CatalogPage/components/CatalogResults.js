@@ -7,7 +7,6 @@ import CatalogPageStore, {
     SortByToString
 } from "../stores/CatalogPageStore";
 import CatalogItemCard from "./CatalogItemCard";
-import {tick, wait} from "../../../lib/utils";
 import {useEffect, useRef, useState} from "react";
 import ActionButton from "../../actionButton";
 import useButtonStyles from "../../../styles/buttonStyles";
@@ -88,7 +87,6 @@ function CatalogResults() {
     const buttonStyles = useButtonStyles();
     // hierarchy iof breadcrumbs: category > subcategory > keyword
     const store = CatalogPageStore.useContainer();
-    const [selSuccess, setSelSuccess] = useState(false);
     const deb = useRef(false)
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -116,18 +114,12 @@ function CatalogResults() {
                     }))}
                     onChange={async newValue => {
                         if (store.isLoading || store.options.sortBy === newValue.value) return false;
-                        store.RefreshCatalogItems({setSelSuccess}, true, {sortBy: newValue.value});
-                        await tick();
-                        let tries = 0
-                        while (!selSuccess && tries < 100) {
-                            await wait(0.2)
-                            tries++
-                        }
-                        if (selSuccess) {
+                        const ok = await store.RefreshCatalogItems(null, true, {sortBy: newValue.value});
+                        if (ok) {
                             store.setOptions({...store.options, sortBy: newValue.value});
-                            return true
+                            return true;
                         }
-                        return false
+                        return false;
                     }}
                     wrapperClass={s.selectorWrapper}
                     selectorOptionClass={s.selectorOption}
