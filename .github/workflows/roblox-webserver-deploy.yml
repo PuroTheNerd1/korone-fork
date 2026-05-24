@@ -89,12 +89,14 @@ jobs:
           tar -czf roblox-webserver-deploy-bundle.tar.gz -C deploy_bundle .
 
       - name: Create remote staging directory
-        run: >
-          ssh -i ~/.ssh/korone_deploy_key
-          -o StrictHostKeyChecking=no
-          -p "${{ env.WEB_SERVER_PORT }}"
-          "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}"
-          "powershell -NoLogo -NoProfile -Command \"`$stagingRoot = Join-Path `$env:USERPROFILE '${{ env.STAGING_ROOT }}\\${{ github.run_id }}'; New-Item -ItemType Directory -Force -Path `$stagingRoot | Out-Null\""
+        run: |
+          remote_script=$(cat <<'EOF'
+          $stagingRoot = Join-Path $env:USERPROFILE '${{ env.STAGING_ROOT }}\${{ github.run_id }}'
+          New-Item -ItemType Directory -Force -Path $stagingRoot | Out-Null
+          EOF
+          )
+          encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
+          ssh -i ~/.ssh/korone_deploy_key -o StrictHostKeyChecking=no -p "${{ env.WEB_SERVER_PORT }}" "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}" "powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -EncodedCommand $encoded"
 
       - name: Upload deploy bundle
         run: >
@@ -106,19 +108,17 @@ jobs:
           "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}:${{ env.STAGING_ROOT }}/${{ github.run_id }}/roblox-webserver-deploy-bundle.tar.gz"
 
       - name: Deploy and restart services
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.WEB_SERVER_HOST }}
-          username: ${{ secrets.WEB_SERVER_USER }}
-          key: ${{ secrets.WEB_SERVER_SSH_KEY }}
-          port: ${{ env.WEB_SERVER_PORT }}
-          script: >
-            powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command
-            "`$stagingRoot = Join-Path `$env:USERPROFILE '${{ env.STAGING_ROOT }}\${{ github.run_id }}';
-            tar -xf (Join-Path $stagingRoot 'roblox-webserver-deploy-bundle.tar.gz') -C $stagingRoot;
-            & (Join-Path $stagingRoot 'scripts\windows\Deploy-Roblox-WebServices.ps1')
-            -SourceRoot $stagingRoot
-            -DeployRoot '${{ env.DEPLOY_ROOT }}'
-            -ApiProxyServiceName '${{ env.APIPROXY_SERVICE }}'
-            -WebsiteServiceName '${{ env.WEBSITE_SERVICE }}'
-            -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}'"
+        run: |
+          remote_script=$(cat <<'EOF'
+          $stagingRoot = Join-Path $env:USERPROFILE '${{ env.STAGING_ROOT }}\${{ github.run_id }}'
+          tar -xf (Join-Path $stagingRoot 'roblox-webserver-deploy-bundle.tar.gz') -C $stagingRoot
+          & (Join-Path $stagingRoot 'scripts\windows\Deploy-Roblox-WebServices.ps1') `
+            -SourceRoot $stagingRoot `
+            -DeployRoot '${{ env.DEPLOY_ROOT }}' `
+            -ApiProxyServiceName '${{ env.APIPROXY_SERVICE }}' `
+            -WebsiteServiceName '${{ env.WEBSITE_SERVICE }}' `
+            -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}'
+          EOF
+          )
+          encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
+          ssh -i ~/.ssh/korone_deploy_key -o StrictHostKeyChecking=no -p "${{ env.WEB_SERVER_PORT }}" "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}" "powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -EncodedCommand $encoded"
