@@ -70,6 +70,7 @@ function Sync-Directory {
         "/NP"
         "/XF"
         "appsettings*.json"
+        "game-servers.json"
     )
 
     & robocopy @robocopyArgs | Tee-Object -FilePath $logPath | Out-Null

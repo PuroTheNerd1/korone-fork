@@ -18,6 +18,16 @@
     <Folder Include="Public" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Keys\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="download.html;oauth.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Roblox.AbuseDetection\Roblox.AbuseDetection.csproj" />
     <ProjectReference Include="..\Roblox.Configuration\Roblox.Configuration.csproj" />
     <ProjectReference Include="..\Roblox.Dto\Roblox.Dto.csproj" />

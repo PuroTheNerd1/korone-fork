@@ -294,7 +294,8 @@ namespace Roblox.Website.Controllers
             if(userSession == null)
                 return Redirect("/");
 
-            return Content(await System.IO.File.ReadAllTextAsync("download.html"), "text/html");
+            var downloadPagePath = Path.Combine(AppContext.BaseDirectory, "download.html");
+            return Content(await System.IO.File.ReadAllTextAsync(downloadPagePath), "text/html");
         }
 
         // need to move years fully to universe havent done that yet because im lazy as shit

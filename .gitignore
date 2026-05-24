@@ -100,3 +100,5 @@ game-renderer/eslint.config.js.old
 /api/publicimg
 /api/publicimages
 /api/publicUnsecuredContent
+
+_publishcheck/
