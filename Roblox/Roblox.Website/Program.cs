@@ -13,6 +13,8 @@ using Roblox.Website.Hubs;
 using Roblox.Website.Middleware;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using Roblox.Website.ExceptionHandlers;
+
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
@@ -150,6 +152,9 @@ builder.Services.AddMvc(c =>
 );
 
 builder.Services.AddSingleton<Roblox.Services.R2StorageService>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails(); // required for the middleware pipeline
+
 //if (Configuration.IsCdnEnabled)
 //  builder.Services.AddHostedService<Roblox.Website.R2MigrationWorker>();
 
@@ -241,7 +246,9 @@ app.UseMiddleware<FrontendProxyMiddleware>();
 //app.UseMiddleware<RobloxLoggingMiddleware>();
 //app.UseRobloxLoggingMiddleware();
 
-app.UseExceptionHandler("/error");
+//app.UseExceptionHandler("/error");
+app.UseExceptionHandler();
+
 // neva - unhardcoded for docker suppport
 CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value); // will be removed soon
 
