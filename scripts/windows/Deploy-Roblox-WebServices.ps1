@@ -9,6 +9,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
 
 function Write-Section {
     param([string]$Message)
@@ -58,6 +59,15 @@ function Sync-Directory {
 
     New-Item -ItemType Directory -Force -Path $To | Out-Null
 
+    $probeFile = Join-Path $To (".deploy-write-test-" + [System.Guid]::NewGuid().ToString("N") + ".tmp")
+    try {
+        Set-Content -LiteralPath $probeFile -Value "ok" -Encoding ascii
+        Remove-Item -LiteralPath $probeFile -Force
+    }
+    catch {
+        throw "Write access check failed for '$To'. Ensure the deploy user can modify this folder and its files. $($_.Exception.Message)"
+    }
+
     $logPath = Join-Path ([System.IO.Path]::GetTempPath()) ("robocopy-" + [System.Guid]::NewGuid().ToString("N") + ".log")
     $robocopyArgs = @(
         $From
@@ -73,13 +83,14 @@ function Sync-Directory {
         "game-servers.json"
     )
 
-    & robocopy @robocopyArgs | Tee-Object -FilePath $logPath | Out-Null
+    & robocopy @robocopyArgs *> $logPath
     $exitCode = $LASTEXITCODE
     if ($exitCode -gt 7) {
         $log = Get-Content -LiteralPath $logPath -Raw
         throw "robocopy failed from '$From' to '$To' with exit code $exitCode.`n$log"
     }
 
+    Write-Host "robocopy exit code: $exitCode"
     Remove-Item -LiteralPath $logPath -Force -ErrorAction SilentlyContinue
 }
 
