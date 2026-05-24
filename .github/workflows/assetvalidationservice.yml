@@ -8,12 +8,6 @@ on:
       - "AssetValidationServiceV2/**"
       - ".github/workflows/assetvalidationservice.yml"
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
 jobs:
   build:
     runs-on: ubuntu-latest
