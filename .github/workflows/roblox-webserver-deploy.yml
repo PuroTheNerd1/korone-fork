@@ -94,7 +94,7 @@ jobs:
           -o StrictHostKeyChecking=no
           -p "${{ env.WEB_SERVER_PORT }}"
           "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}"
-          "powershell -NoLogo -NoProfile -Command \"New-Item -ItemType Directory -Force -Path '$env:USERPROFILE\\${{ env.STAGING_ROOT }}\\${{ github.run_id }}' | Out-Null\""
+          "powershell -NoLogo -NoProfile -Command \"New-Item -ItemType Directory -Force -Path '\$env:USERPROFILE\\${{ env.STAGING_ROOT }}\\${{ github.run_id }}' | Out-Null\""
 
       - name: Upload deploy bundle
         run: >
@@ -114,7 +114,7 @@ jobs:
           port: ${{ env.WEB_SERVER_PORT }}
           script: >
             powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command
-            "$stagingRoot = Join-Path $env:USERPROFILE '${{ env.STAGING_ROOT }}\${{ github.run_id }}';
+            "`$stagingRoot = Join-Path `$env:USERPROFILE '${{ env.STAGING_ROOT }}\${{ github.run_id }}';
             tar -xf (Join-Path $stagingRoot 'roblox-webserver-deploy-bundle.tar.gz') -C $stagingRoot;
             & (Join-Path $stagingRoot 'scripts\windows\Deploy-Roblox-WebServices.ps1')
             -SourceRoot $stagingRoot
