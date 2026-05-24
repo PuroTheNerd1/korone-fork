@@ -94,7 +94,7 @@ jobs:
           -o StrictHostKeyChecking=no
           -p "${{ env.WEB_SERVER_PORT }}"
           "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}"
-          "powershell -NoLogo -NoProfile -Command \"New-Item -ItemType Directory -Force -Path '\$env:USERPROFILE\\${{ env.STAGING_ROOT }}\\${{ github.run_id }}' | Out-Null\""
+          "powershell -NoLogo -NoProfile -Command \"`$stagingRoot = Join-Path `$env:USERPROFILE '${{ env.STAGING_ROOT }}\\${{ github.run_id }}'; New-Item -ItemType Directory -Force -Path `$stagingRoot | Out-Null\""
 
       - name: Upload deploy bundle
         run: >
