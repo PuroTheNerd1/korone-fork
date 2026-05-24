@@ -67,7 +67,7 @@ jobs:
     env:
       WEB_SERVER_PORT: ${{ secrets.WEB_SERVER_PORT || '22' }}
       DEPLOY_ROOT: ${{ vars.WEB_DEPLOY_ROOT || 'C:\KoroneServices' }}
-      STAGING_ROOT: ${{ vars.WEB_STAGING_ROOT || 'C:\KoroneDeployTemp' }}
+      STAGING_ROOT: ${{ vars.WEB_STAGING_ROOT || 'korone-deploy' }}
       APIPROXY_SERVICE: ${{ vars.WEB_APIPROXY_SERVICE || 'Roblox.ApiProxy' }}
       WEBSITE_SERVICE: ${{ vars.WEB_WEBSITE_SERVICE || 'Roblox.Website' }}
       DATASTORE_SERVICE: ${{ vars.WEB_DATASTORE_SERVICE || 'Roblox.Services.DataStore' }}
@@ -78,17 +78,32 @@ jobs:
           name: roblox-webserver-deploy-bundle
           path: deploy_bundle
 
-      - name: Copy deploy bundle to Windows server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.WEB_SERVER_HOST }}
-          username: ${{ secrets.WEB_SERVER_USER }}
-          key: ${{ secrets.WEB_SERVER_SSH_KEY }}
-          port: ${{ env.WEB_SERVER_PORT }}
-          source: "deploy_bundle/*"
-          target: "/C:/KoroneDeployTemp/${{ github.run_id }}"
-          overwrite: true
-          strip_components: 1
+      - name: Prepare SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' '${{ secrets.WEB_SERVER_SSH_KEY }}' > ~/.ssh/korone_deploy_key
+          chmod 600 ~/.ssh/korone_deploy_key
+
+      - name: Archive deploy bundle
+        run: |
+          tar -czf roblox-webserver-deploy-bundle.tar.gz -C deploy_bundle .
+
+      - name: Create remote staging directory
+        run: >
+          ssh -i ~/.ssh/korone_deploy_key
+          -o StrictHostKeyChecking=no
+          -p "${{ env.WEB_SERVER_PORT }}"
+          "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}"
+          "powershell -NoLogo -NoProfile -Command \"New-Item -ItemType Directory -Force -Path '$env:USERPROFILE\\${{ env.STAGING_ROOT }}\\${{ github.run_id }}' | Out-Null\""
+
+      - name: Upload deploy bundle
+        run: >
+          scp -i ~/.ssh/korone_deploy_key
+          -O
+          -o StrictHostKeyChecking=no
+          -P "${{ env.WEB_SERVER_PORT }}"
+          roblox-webserver-deploy-bundle.tar.gz
+          "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}:${{ env.STAGING_ROOT }}/${{ github.run_id }}/roblox-webserver-deploy-bundle.tar.gz"
 
       - name: Deploy and restart services
         uses: appleboy/ssh-action@v1.2.0
@@ -98,10 +113,12 @@ jobs:
           key: ${{ secrets.WEB_SERVER_SSH_KEY }}
           port: ${{ env.WEB_SERVER_PORT }}
           script: >
-            cmd.exe /c powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File
-            "${{ env.STAGING_ROOT }}\${{ github.run_id }}\scripts\windows\Deploy-Roblox-WebServices.ps1"
-            -SourceRoot "${{ env.STAGING_ROOT }}\${{ github.run_id }}"
-            -DeployRoot "${{ env.DEPLOY_ROOT }}"
-            -ApiProxyServiceName "${{ env.APIPROXY_SERVICE }}"
-            -WebsiteServiceName "${{ env.WEBSITE_SERVICE }}"
-            -DataStoreServiceName "${{ env.DATASTORE_SERVICE }}"
+            powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command
+            "$stagingRoot = Join-Path $env:USERPROFILE '${{ env.STAGING_ROOT }}\${{ github.run_id }}';
+            tar -xf (Join-Path $stagingRoot 'roblox-webserver-deploy-bundle.tar.gz') -C $stagingRoot;
+            & (Join-Path $stagingRoot 'scripts\windows\Deploy-Roblox-WebServices.ps1')
+            -SourceRoot $stagingRoot
+            -DeployRoot '${{ env.DEPLOY_ROOT }}'
+            -ApiProxyServiceName '${{ env.APIPROXY_SERVICE }}'
+            -WebsiteServiceName '${{ env.WEBSITE_SERVICE }}'
+            -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}'"
