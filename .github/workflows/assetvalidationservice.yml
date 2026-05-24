@@ -1,6 +1,14 @@
 name: AssetValidationService
 
 on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "AssetValidationServiceV2/**"
+      - ".github/workflows/assetvalidationservice.yml"
+
+on:
   push:
     branches: [ "main" ]
   pull_request:
