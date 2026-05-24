@@ -11,6 +11,8 @@ public class ModerationController : RobloxControllerBase
 {
     [HttpPost("moderation/v2/filtertext/")]
     [HttpPost("moderation/filtertext/")]
+    [AllowRobloxAnonymous]
+    [BrowserFacingEndpoint]
     public dynamic FilterText()
     {
         var text = services.filter.FilterText(HttpContext.Request.Form["text"].ToString());
