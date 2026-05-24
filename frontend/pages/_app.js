@@ -33,7 +33,7 @@ if (typeof window !== 'undefined') {
      Keep your account safe! Do not paste any text here.`);
 }
 
-const Chat = dynamic(() => import('../components/chat'), { ssr: false });
+/*const Chat = dynamic(() => import('../components/chat'), { ssr: false });*/
 const Footer = dynamic(() => import('../components/footer'), { ssr: false });
 const Navbar = dynamic(() => import('../components/navbar'), { ssr: false });
 const GlobalAlert = dynamic(() => import('../components/globalAlert'), { ssr: false });
@@ -94,7 +94,7 @@ function RobloxApp({Component, pageProps}) {
                 <MainWrapper mainFlex={pageProps.disableWebsiteTheming}>
                     <ThumbnailStore.Provider>
                         <Component {...pageProps} />
-                        <Chat/>
+                        {/*<Chat/>*/}
                     </ThumbnailStore.Provider>
                 </MainWrapper>
             </FeedbackStore.Provider>
