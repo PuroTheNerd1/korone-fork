@@ -106,22 +106,19 @@ $services = @(
     @{ Name = $DataStoreServiceName; Folder = "Roblox.Services.DataStore" }
 )
 
-Write-Section "Stopping services"
 foreach ($entry in $services) {
-    Stop-ServiceIfExists -Name $entry.Name
-}
-
-Write-Section "Syncing published output"
-foreach ($entry in $services) {
+    Write-Section "Deploying $($entry.Name)"
     $from = Join-Path $SourceRoot $entry.Folder
     $to = Join-Path $DeployRoot $entry.Folder
-    Write-Host "Syncing '$from' -> '$to'"
-    Sync-Directory -From $from -To $to
-}
-
-Write-Section "Starting services"
-foreach ($entry in $services) {
-    Start-ServiceIfExists -Name $entry.Name
+    try {
+        Stop-ServiceIfExists -Name $entry.Name
+        Write-Host "Syncing '$from' -> '$to'"
+        Sync-Directory -From $from -To $to
+        Start-ServiceIfExists -Name $entry.Name
+    }
+    catch {
+        throw "Failed while deploying service '$($entry.Name)' from '$from' to '$to'. $($_.Exception.Message)"
+    }
 }
 
 Write-Section "Cleanup"

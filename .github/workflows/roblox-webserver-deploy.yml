@@ -96,7 +96,7 @@ jobs:
           EOF
           )
           encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
-          ssh -i ~/.ssh/korone_deploy_key -o StrictHostKeyChecking=no -p "${{ env.WEB_SERVER_PORT }}" "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}" "powershell -NoLogo -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -EncodedCommand $encoded"
+          ssh -i ~/.ssh/korone_deploy_key -o StrictHostKeyChecking=no -p "${{ env.WEB_SERVER_PORT }}" "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}" "cmd /c powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encoded"
 
       - name: Upload deploy bundle
         run: >
@@ -121,4 +121,4 @@ jobs:
           EOF
           )
           encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
-          ssh -i ~/.ssh/korone_deploy_key -o StrictHostKeyChecking=no -p "${{ env.WEB_SERVER_PORT }}" "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}" "powershell -NoLogo -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -EncodedCommand $encoded"
+          ssh -i ~/.ssh/korone_deploy_key -o StrictHostKeyChecking=no -p "${{ env.WEB_SERVER_PORT }}" "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}" "cmd /c powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encoded"
