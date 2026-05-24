@@ -2443,6 +2443,102 @@ Thank you for your understanding,
         };
     }
 
+    [HttpGet("ugc-requests/pending"), StaffFilter(Access.PendingUGCItems)]
+    public async Task<IEnumerable<dynamic>> GetPendingUgcRequests()
+    {
+        var rows = await db.QueryAsync<PendingUgcRequestEntry>(
+            "SELECT ur.id, ur.user_id as userId, ur.roblox_asset_id as robloxAssetId, ur.roblox_url as robloxUrl, ur.item_name as itemName, ur.created_at as createdAt, u.username as creatorName " +
+            "FROM ugc_request ur INNER JOIN \"user\" u ON u.id = ur.user_id " +
+            "WHERE ur.status = :status ORDER BY ur.id ASC LIMIT 50",
+            new { status = (short)Roblox.Models.UgcRequest.UgcRequestStatus.Pending });
+        return rows;
+    }
+
+    [HttpPost("ugc-request/moderate"), StaffFilter(Access.PendingUGCItems)]
+    public async Task<dynamic> ModerateUgcRequest([Required, FromBody] ModerateUgcRequestBody request)
+    {
+        var newStatus = request.isApproved
+            ? (short)Roblox.Models.UgcRequest.UgcRequestStatus.Approved
+            : (short)Roblox.Models.UgcRequest.UgcRequestStatus.Declined;
+
+        // Atomically claim the pending row. If another staff already claimed it, claimed == null.
+        var row = await db.QuerySingleOrDefaultAsync<PendingUgcRequestEntry>(
+            "UPDATE ugc_request SET status = :newStatus, decided_at = NOW(), decided_by = :by " +
+            "WHERE id = :id AND status = :pending " +
+            "RETURNING id, user_id as userId, roblox_asset_id as robloxAssetId, roblox_url as robloxUrl, item_name as itemName, status",
+            new
+            {
+                newStatus,
+                by = safeUserSession.userId,
+                id = request.id,
+                pending = (short)Roblox.Models.UgcRequest.UgcRequestStatus.Pending,
+            });
+        if (row == null)
+            throw new StaffException("Request not found or already decided");
+
+        if (request.isApproved)
+        {
+            long createdAssetId;
+            string itemName = row.itemName ?? "your item";
+            try
+            {
+                var copyResult = await CopyAssetFromRoblox(new CopyAssetRequest
+                {
+                    assetId = row.robloxAssetId,
+                    force = false,
+                });
+                createdAssetId = (long)copyResult.assetId;
+            }
+            catch (Exception e)
+            {
+                // Revert the claim so another staff can retry.
+                await db.ExecuteAsync(
+                    "UPDATE ugc_request SET status = :pending, decided_at = NULL, decided_by = NULL WHERE id = :id",
+                    new { pending = (short)Roblox.Models.UgcRequest.UgcRequestStatus.Pending, id = row.id });
+                if (e is StaffException) throw;
+                throw new StaffException("Failed to copy item: " + e.Message);
+            }
+
+            await db.ExecuteAsync(
+                "UPDATE ugc_request SET created_asset_id = :assetId WHERE id = :id",
+                new { assetId = createdAssetId, id = row.id });
+
+            var body = $"Good news! Your UGC item request was approved.\n\n" +
+                       $"Item: {itemName}\n" +
+                       $"Original URL: {row.robloxUrl}\n" +
+                       $"View on Korone: /catalog/{createdAssetId}/--\n\n" +
+                       $"Thanks for contributing!";
+            await services.privateMessages.CreateMessage(row.userId, 1, "Your UGC item request was approved", body);
+        }
+        else
+        {
+            var body = $"Your UGC item request was declined.\n\n" +
+                       $"Item URL: {row.robloxUrl}\n\n" +
+                       $"You may submit a different item if you'd like.";
+            await services.privateMessages.CreateMessage(row.userId, 1, "Your UGC item request was declined", body);
+        }
+
+        return new { success = true };
+    }
+
+    public class ModerateUgcRequestBody
+    {
+        public long id { get; set; }
+        public bool isApproved { get; set; }
+    }
+
+    public class PendingUgcRequestEntry
+    {
+        public long id { get; set; }
+        public long userId { get; set; }
+        public long robloxAssetId { get; set; }
+        public string robloxUrl { get; set; } = string.Empty;
+        public string? itemName { get; set; }
+        public DateTime createdAt { get; set; }
+        public string? creatorName { get; set; }
+        public short status { get; set; }
+    }
+
     [HttpPost("asset/create"), StaffFilter(Access.CreateAsset)]
     public async Task<dynamic> CreateAsset([Required, FromForm] CreateAssetRequest request)
     {

@@ -86,5 +86,6 @@ public enum Access
     GetStaffPerformance,
     RollbackTrade,
     ViewMacAddresses,
+    PendingUGCItems,
     All, // fake perm
 }

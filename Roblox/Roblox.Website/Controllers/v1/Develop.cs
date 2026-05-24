@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Games;
 using Roblox.Exceptions;
@@ -10,6 +12,7 @@ using Roblox.Libraries.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
+using Roblox.Models.UgcRequest;
 using Roblox.Services.Exceptions;
 using Roblox.Website.WebsiteModels.Catalog;
 using Type = Roblox.Models.Assets.Type;
@@ -405,6 +408,84 @@ public class DevelopControllerV1 : ControllerBase
         var place = await services.games.GetRootPlaceId(universeId);
         await services.assets.ValidatePermissions(place, safeUserSession.userId);
         await services.games.SetMaxPlayerCount(place, request.maxPlayers);
+    }
+
+    [HttpPost("ugc-request/submit")]
+    public async Task<dynamic> RequestUgcItem([Required, FromBody] RequestUgcItemRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.url))
+            throw new BadRequestException(0, "URL is required");
+        if (request.url.Length > 512)
+            throw new BadRequestException(0, "URL is too long");
+
+        if (!Uri.TryCreate(request.url, UriKind.Absolute, out var parsedUri)
+            || (parsedUri.Scheme != Uri.UriSchemeHttp && parsedUri.Scheme != Uri.UriSchemeHttps)
+            || !(parsedUri.Host.Equals("www.roblox.com", StringComparison.OrdinalIgnoreCase)
+                 || parsedUri.Host.Equals("roblox.com", StringComparison.OrdinalIgnoreCase)))
+            throw new BadRequestException(0, "URL must be a www.roblox.com link");
+
+        long robloxAssetId = ParseRobloxAssetId(parsedUri.AbsoluteUri);
+        if (robloxAssetId <= 0)
+            throw new BadRequestException(0, "Invalid Roblox catalog URL");
+
+        var canonicalUrl = $"https://www.roblox.com/catalog/{robloxAssetId}";
+
+        // 2 requests / 12h per user
+        if (!await services.cooldown.TryIncrementBucketCooldown(
+                $"UgcRequest:User:{safeUserSession.userId}", 2, TimeSpan.FromHours(12)))
+            throw new TooManyRequestsException(0, "You can only request 2 items every 12 hours. Try again later.");
+
+        var db = services.assets.db;
+        var existingPending = await db.QuerySingleOrDefaultAsync<long?>(
+            "SELECT id FROM ugc_request WHERE user_id = :uid AND roblox_asset_id = :aid AND status = :status LIMIT 1",
+            new
+            {
+                uid = safeUserSession.userId,
+                aid = robloxAssetId,
+                status = (short)UgcRequestStatus.Pending,
+            });
+        if (existingPending != null)
+            throw new BadRequestException(0, "You already have a pending request for this item.");
+
+        string? itemName = null;
+        try
+        {
+            var details = await services.robloxApi.GetProductInfo(robloxAssetId, true);
+            itemName = details.Name;
+        }
+        catch (Exception)
+        {
+            throw new BadRequestException(0, "Could not look up that item on Roblox. Make sure the URL is correct.");
+        }
+
+        await db.ExecuteAsync(
+            "INSERT INTO ugc_request (user_id, roblox_asset_id, roblox_url, item_name, status) VALUES (:uid, :aid, :url, :name, :status)",
+            new
+            {
+                uid = safeUserSession.userId,
+                aid = robloxAssetId,
+                url = canonicalUrl,
+                name = itemName,
+                status = (short)UgcRequestStatus.Pending,
+            });
+
+        return new { success = true };
+    }
+
+    private static readonly Regex robloxAssetIdRegex =
+        new(@"roblox\.com/(?:catalog|library|bundles)/(\d+)", RegexOptions.IgnoreCase);
+
+    private static long ParseRobloxAssetId(string url)
+    {
+        var m = robloxAssetIdRegex.Match(url);
+        if (m.Success && long.TryParse(m.Groups[1].Value, out var id) && id > 0)
+            return id;
+        return 0;
+    }
+
+    public class RequestUgcItemRequest
+    {
+        public string url { get; set; } = string.Empty;
     }
 
     [HttpPatch("places/{placeId}/roblox-place-id")]

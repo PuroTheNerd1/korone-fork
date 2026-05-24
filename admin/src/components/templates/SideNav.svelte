@@ -63,6 +63,12 @@
 			permission: "GetPendingModerationItems",
 		},
 		{
+			name: "Pending UGC Items",
+			link: "/admin/pending-ugc-items",
+			icon: CheckSquareIcon,
+			permission: "PendingUGCItems",
+		},
+		{
 			name: "Lottery",
 			link: "/admin/lottery",
 			icon: SunriseIcon,

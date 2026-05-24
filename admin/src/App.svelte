@@ -45,6 +45,7 @@
 	import CopyRobloxUgc from "./pages/CopyRobloxUGC.svelte";
 	import StaffStats from "./pages/StaffPerformance.svelte";
 	import Alts from "./pages/Alts.svelte";
+	import PendingUgcItems from "./pages/PendingUgcItems.svelte";
 	// import 'bootstrap';
 
 	var pushState = history.pushState;
@@ -178,6 +179,9 @@
 		</Route>
 		<Route path="/admin/alts">
 			<Alts />
+		</Route>
+		<Route path="/admin/pending-ugc-items">
+			<PendingUgcItems />
 		</Route>
 	{/await}
 </Router>

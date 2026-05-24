@@ -5,6 +5,7 @@ import OldVerticalTabs from "../oldVerticalTabs2";
 import CreationsTab from './components/creationsTab';
 import NotAvailable from "./components/notAvailable";
 import Library from "./components/library"
+import RequestItem from "./components/requestItem";
 import authentication from "../../stores/authentication";
 import {getPermissionsForRoleset, getUserGroups} from "../../services/groups";
 
@@ -82,6 +83,11 @@ const Develop = props => {
         name: 'Library',
         displayName: 'Library',
         element: <Library />,
+      },
+      {
+        name: 'RequestItem',
+        displayName: 'Request Item',
+        element: <RequestItem />,
       },
       /*{
         name: 'Developer Exchange',

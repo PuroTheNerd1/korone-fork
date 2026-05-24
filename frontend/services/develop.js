@@ -207,6 +207,10 @@ export const deleteGameThumbnail = async ({ universeId, thumbnailId }) => {
     return request('POST', getFullUrl('develop', `/v1/universes/${universeId}/thumbnails/${thumbnailId}`))
 };
 
+export const requestUgcItem = async ({ url }) => {
+    return request('POST', getFullUrl('develop', '/v1/ugc-request/submit'), { url });
+}
+
 // dev products
 
 export const getDeveloperProducts = async ({ universeId }) => {
