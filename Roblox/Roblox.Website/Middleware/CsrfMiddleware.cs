@@ -7,6 +7,7 @@ using JWT.Serializers;
 using Microsoft.AspNetCore.Http.Extensions;
 using Roblox.Exceptions;
 using Roblox.Models.Sessions;
+using Roblox.Web.Infrastructure.Metadata;
 using Roblox.Website.Controllers;
 using Roblox.Website.Lib;
 
@@ -188,6 +189,11 @@ public class CsrfMiddleware : ControllerServicesExtended
         #endif
         var pathLower = ctx.Request.Path.ToString().ToLower();
         var fullUrl = ctx.Request.GetEncodedUrl().ToLower();
+        if (ctx.GetEndpoint().ShouldSkipRobloxCsrf())
+        {
+            await _next(ctx);
+            return;
+        }
         if (pathLower.EndsWith("/"))
         {
             pathLower = pathLower.Substring(0, pathLower.Length - 1);

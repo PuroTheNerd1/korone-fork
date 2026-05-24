@@ -8,12 +8,14 @@ using Roblox.Models.Assets;
 using Roblox.Models.Db;
 using Roblox.Services.Exceptions;
 using Roblox.Services.Signer;
+using Roblox.Services.Caching;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
 
 public class GamesService : ServiceBase, IService
 {
+    private static string UniverseInfoCacheKey(long universeId) => $"games:universe:v1:{universeId}";
     private GameServerService gameServer = new();
     private SignService sign = new();
     //ugh
@@ -347,9 +349,15 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<Universe> GetUniverseInfo(long universeId)
     {
-        var build = new SqlBuilder();
-        var template = build.AddTemplate(
-            @"SELECT
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        var result = await cache.GetOrCreateAsync(
+            UniverseInfoCacheKey(universeId),
+            TimeSpan.FromSeconds(15),
+            async () =>
+            {
+                var build = new SqlBuilder();
+                var template = build.AddTemplate(
+                    @"SELECT
                 u.id,
                 u.root_asset_id AS rootPlaceId,
                 u.is_public AS isPublic,
@@ -378,14 +386,18 @@ public class GamesService : ServiceBase, IService
             /**where**/
             LIMIT 1");
 
-        build.Where("u.id = :universeId", new { universeId = universeId });
+                build.Where("u.id = :universeId", new { universeId = universeId });
 
-        var result = (await db.QueryAsync<MultiGetUniverseEntry>(template.RawSql, template.Parameters)).FirstOrDefault();
+                var inner = (await db.QueryAsync<MultiGetUniverseEntry>(template.RawSql, template.Parameters)).FirstOrDefault();
+                if (inner == null)
+                    return null;
+
+                using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
+                inner.favoritedCount = await assets.CountFavorites(inner.rootPlaceId);
+                return inner;
+            });
         if (result == null)
             throw new RecordNotFoundException("Universe does not exist.");
-
-        using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
-        result.favoritedCount = await assets.CountFavorites(result.rootPlaceId);
         return result;
     }
 

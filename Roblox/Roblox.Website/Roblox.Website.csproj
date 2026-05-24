@@ -25,6 +25,7 @@
     <ProjectReference Include="..\Roblox.Libraries\Roblox.Libraries.csproj" />
     <ProjectReference Include="..\Roblox.Models\Roblox.Models.csproj" />
     <ProjectReference Include="..\Roblox.Services\Roblox.Services.csproj" />
+    <ProjectReference Include="..\Roblox.Web.Infrastructure\Roblox.Web.Infrastructure.csproj" />
     <ProjectReference Include="..\Roblox.Exceptions\Roblox.Exceptions.csproj" />
   </ItemGroup>
   <ItemGroup>

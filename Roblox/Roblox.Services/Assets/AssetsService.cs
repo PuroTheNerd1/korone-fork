@@ -23,6 +23,7 @@ using Roblox.Rendering;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.DbModels;
 using Roblox.Services.Exceptions;
+using Roblox.Services.Caching;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -130,6 +131,7 @@ public struct ByteReader
 
 public class AssetsService : ServiceBase, IService
 {
+    private static string FavoriteCountCacheKey(long assetId) => $"assets:favorites:v1:{assetId}";
     private readonly Roblox.Services.RobloxAssetService robloxAssetService = new();
     private static void assert(bool Bool, String Message)
     {
@@ -3393,11 +3395,19 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
     public async Task<long> CountFavorites(long assetId)
     {
-        var result = await db.QuerySingleOrDefaultAsync<Dto.Total>("SELECT COUNT(*) AS total FROM asset_favorite WHERE asset_id = :id", new
-        {
-            id = assetId
-        });
-        return result.total;
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        var result = await cache.GetOrCreateAsync(
+            FavoriteCountCacheKey(assetId),
+            TimeSpan.FromSeconds(30),
+            async () =>
+            {
+                var total = await db.QuerySingleOrDefaultAsync<Dto.Total>("SELECT COUNT(*) AS total FROM asset_favorite WHERE asset_id = :id", new
+                {
+                    id = assetId
+                });
+                return total.total;
+            });
+        return result;
     }
 
     public async Task<FavoriteEntry?> GetFavoriteStatus(long userId, long assetId)
@@ -3441,6 +3451,8 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 user_id = userId,
                 asset_id = assetId,
             });
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        await cache.RemoveAsync(FavoriteCountCacheKey(assetId));
     }
 
     public async Task DeleteFavorite(long userId, long assetId)
@@ -3450,6 +3462,8 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             user_id = userId,
             asset_id = assetId,
         });
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        await cache.RemoveAsync(FavoriteCountCacheKey(assetId));
     }
 
     public async Task InsertAssetModerationLog(long assetId, long actorId, ModerationStatus newStatus)

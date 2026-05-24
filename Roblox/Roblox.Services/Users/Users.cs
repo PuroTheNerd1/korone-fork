@@ -21,6 +21,7 @@ using Roblox.Models.Staff;
 using Roblox.Models.Users;
 using Roblox.Services.DbModels;
 using Roblox.Services.Exceptions;
+using Roblox.Services.Caching;
 using TwoFactorAuthNet;
 using TwoFactorAuthNet.Providers.Qr;
 using MultiGetEntry = Roblox.Dto.Users.MultiGetEntry;
@@ -32,6 +33,7 @@ namespace Roblox.Services;
 public class UsersService : ServiceBase, IService
 {
     private static TwoFactorAuth tfa = new TwoFactorAuth("Korone");
+    private static string UserByIdCacheKey(long userId) => $"users:info:v1:{userId}";
     public async Task<bool> IsNameAvailableForNameChange(long contextUserId, string username)
     {
         var escapedUsername = username
@@ -611,14 +613,14 @@ public class UsersService : ServiceBase, IService
 
     public async Task<UserInfo> GetUserById(long userId)
     {
-        using var userInfoCache = ServiceProvider.GetOrCreate<GetUserByIdCache>();
-        var (exists, cached) = userInfoCache.Get(userId);
-        if (exists && cached != null)
-            return cached;
-
-        var res = await db.QuerySingleOrDefaultAsync<UserInfo>("SELECT id as userId, username, status as accountStatus, created_at as created, description, verified as isVerified FROM \"user\" WHERE id = :id", new { id = userId });
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        var res = await cache.GetOrCreateAsync(
+            UserByIdCacheKey(userId),
+            TimeSpan.FromSeconds(15),
+            () => db.QuerySingleOrDefaultAsync<UserInfo>(
+                "SELECT id as userId, username, status as accountStatus, created_at as created, description, verified as isVerified FROM \"user\" WHERE id = :id",
+                new { id = userId }));
         if (res == null) throw new RecordNotFoundException();
-        userInfoCache.Set(userId, res);
         return res;
     }
     public async Task<UserInfo> GetUserByDiscordId(string discordId)

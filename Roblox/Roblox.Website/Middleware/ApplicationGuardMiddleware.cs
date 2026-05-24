@@ -10,6 +10,8 @@ using Roblox.Logging;
 using Roblox.Models.Sessions;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Web.Infrastructure.Http;
+using Roblox.Web.Infrastructure.Metadata;
 using Roblox.Website.Controllers;
 using Roblox.Website.Lib;
 
@@ -73,17 +75,17 @@ public class ApplicationGuardMiddleware
         _next = next;
     }
 
-    private bool IsAuthorized(HttpContext ctx)
+    private bool IsAuthorized(HttpContext ctx, RobloxRequestContext requestContext)
     {
         if (ctx.Request.Headers.ContainsKey(AuthorizationHeaderName))
         {
             return ctx.Request.Headers[AuthorizationHeaderName].ToArray()[0] == authorization;
         }
 
-        if (ctx.Request.Headers["User-Agent"].ToString().ToLower().Contains("roblox"))
+        if (requestContext.IsRobloxClient || requestContext.IsTrustedInternalRequest)
             return true;
 
-        if (ctx.Items.ContainsKey(SessionMiddleware.CookieName))
+        if (requestContext.IsAuthenticated)
             return true;
 
         return false;
@@ -257,6 +259,7 @@ public class ApplicationGuardMiddleware
     public async Task InvokeAsync(HttpContext ctx)
     {
         var appGuardTimer = new MiddlewareTimer(ctx, "AppGuard");
+        var requestContext = ctx.GetRobloxRequestContext() ?? RobloxRequestContextFactory.CreateAnonymous(ctx);
 
         var normalizedPath = ctx.Request.Path.Value?.ToLower() ?? "";
         if (normalizedPath.Length > 1 && normalizedPath.EndsWith("/"))
@@ -366,10 +369,11 @@ public class ApplicationGuardMiddleware
             Roblox.Metrics.ApplicationGuardMetrics.ReportAllowedUserAgent(ua);
 
         var authTimer = new MiddlewareTimer(ctx, "a");
-        var isAuthorized = IsAuthorized(ctx);
+        var endpoint = ctx.GetEndpoint();
+        var isAuthorized = IsAuthorized(ctx, requestContext);
         authTimer.Stop();
 
-        if (isAuthorized || allowedUrls.Contains(normalizedPath))
+        if (isAuthorized || endpoint.AllowsRobloxAnonymous() || endpoint.IsBrowserFacingEndpoint() || allowedUrls.Contains(normalizedPath))
             {
                 appGuardTimer.Stop();
                 await _next(ctx);

@@ -1,3 +1,5 @@
+using Roblox.Web.Infrastructure.Http;
+
 namespace Roblox.Website.Middleware;
 
 public class RobloxPlayerCorsMiddleware
@@ -41,7 +43,7 @@ public class RobloxPlayerCorsMiddleware
 
     public async Task InvokeAsync(HttpContext ctx)
     {
-        var isAuthenticated = ctx.Items.ContainsKey(SessionMiddleware.CookieName);
+        var isAuthenticated = (ctx.GetRobloxRequestContext() ?? RobloxRequestContextFactory.CreateAnonymous(ctx)).IsAuthenticated;
         ctx.Response.Headers["Cross-Origin-Opener-Policy"] = "same-origin";
         ctx.Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
         ctx.Response.Headers["Access-Control-Allow-Origin"] = "*";

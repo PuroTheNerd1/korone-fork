@@ -4,6 +4,7 @@ using InfluxDB.Client.Api.Domain;
 using Microsoft.VisualBasic;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Persistence;
+using Roblox.Services.Caching;
 
 namespace Roblox.Services;
 
@@ -15,6 +16,9 @@ public enum KeyType
 
 public class DataStoreService : ServiceBase, IService
 {
+    private static string DataStoreValueKey(long placeId, string type, string scope, string key, string target) =>
+        $"datastore:value:v1:{placeId}:{type}:{scope}:{key}:{target}";
+
     private KeyType ParseType(string? type)
     {
         if (type == "sorted")
@@ -159,6 +163,9 @@ public class DataStoreService : ServiceBase, IService
             name = target,
             value = value,
         });
+
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        await cache.SetAsync(DataStoreValueKey(placeId, type, scope, key, target), value, TimeSpan.FromSeconds(15));
     }
     public async Task Increment(long placeId, string key, string type, string scope, string target, long value)
     {
@@ -170,6 +177,9 @@ public class DataStoreService : ServiceBase, IService
             name = target,
             value
         });
+
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        await cache.RemoveAsync(DataStoreValueKey(placeId, type, scope, key, target));
     }
 
     public async Task<string?> Get(long placeId, string type, string scope, string key, string target)
@@ -183,12 +193,15 @@ public class DataStoreService : ServiceBase, IService
 
         // Type can be "standard" or "sorted"
         // long placeId, string type, string scope
-        var ent = await GetAllEntries(placeId, key, scope, target);
-        if (ent.Any())
-        {
-            return ent.FirstOrDefault()?.value;
-        }
-        return null;
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        return await cache.GetOrCreateAsync(
+            DataStoreValueKey(placeId, type, scope, key, target),
+            TimeSpan.FromSeconds(15),
+            async () =>
+            {
+                var ent = await GetAllEntries(placeId, key, scope, target);
+                return ent.FirstOrDefault()?.value;
+            });
     }
 
     public bool IsThreadSafe()

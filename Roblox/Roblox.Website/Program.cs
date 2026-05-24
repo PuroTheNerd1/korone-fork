@@ -9,6 +9,7 @@ using Roblox.Dto.Users;
 using Roblox.Rendering;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Web.Infrastructure.Extensions;
 using Roblox.Website.Hubs;
 using Roblox.Website.Middleware;
 using System.Reflection;
@@ -109,6 +110,7 @@ Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds!);
 //Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
 
 builder.Services.AddRazorPages();
+builder.Services.AddRobloxWebInfrastructure(configuration);
 builder.Services.AddRequestDecompression();
 builder.Services.AddControllers(options =>
 {
