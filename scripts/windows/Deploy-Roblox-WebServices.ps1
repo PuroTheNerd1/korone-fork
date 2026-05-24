@@ -17,18 +17,40 @@ function Write-Section {
     Write-Host "== $Message =="
 }
 
+function Resolve-ServiceEntry {
+    param([string]$Name)
+
+    $service = Get-Service | Where-Object { $_.Name -ieq $Name -or $_.DisplayName -ieq $Name } | Select-Object -First 1
+    if ($null -ne $service) {
+        return $service
+    }
+
+    $closeMatches = Get-Service | Where-Object {
+        $_.Name -like "*$Name*" -or $_.DisplayName -like "*$Name*"
+    } | Select-Object -First 5
+
+    if ($closeMatches.Count -gt 0) {
+        $matchSummary = $closeMatches | ForEach-Object { "'$($_.Name)' (DisplayName: '$($_.DisplayName)')" }
+        Write-Warning "Service '$Name' was not found. Close matches: $($matchSummary -join ', ')"
+    }
+    else {
+        Write-Warning "Service '$Name' was not found. No close matches were found."
+    }
+
+    return $null
+}
+
 function Stop-ServiceIfExists {
     param([string]$Name)
 
-    $service = Get-Service -Name $Name -ErrorAction SilentlyContinue
+    $service = Resolve-ServiceEntry -Name $Name
     if ($null -eq $service) {
-        Write-Warning "Service '$Name' was not found. Skipping stop."
         return
     }
 
     if ($service.Status -ne "Stopped") {
-        Write-Host "Stopping service '$Name'..."
-        Stop-Service -Name $Name -Force
+        Write-Host "Stopping service '$($service.Name)'..."
+        Stop-Service -Name $service.Name -Force
         $service.WaitForStatus("Stopped", [TimeSpan]::FromSeconds(45))
     }
 }
@@ -36,14 +58,13 @@ function Stop-ServiceIfExists {
 function Start-ServiceIfExists {
     param([string]$Name)
 
-    $service = Get-Service -Name $Name -ErrorAction SilentlyContinue
+    $service = Resolve-ServiceEntry -Name $Name
     if ($null -eq $service) {
-        Write-Warning "Service '$Name' was not found. Skipping start."
         return
     }
 
-    Write-Host "Starting service '$Name'..."
-    Start-Service -Name $Name
+    Write-Host "Starting service '$($service.Name)'..."
+    Start-Service -Name $service.Name
     $service.WaitForStatus("Running", [TimeSpan]::FromSeconds(45))
 }
 
