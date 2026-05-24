@@ -66,7 +66,7 @@
 			name: "Pending UGC Items",
 			link: "/admin/pending-ugc-items",
 			icon: CheckSquareIcon,
-			permission: "PendingUGCItems",
+			permission: "PendingUgcItems",
 		},
 		{
 			name: "Lottery",

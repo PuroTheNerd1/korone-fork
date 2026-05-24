@@ -2443,7 +2443,7 @@ Thank you for your understanding,
         };
     }
 
-    [HttpGet("ugc-requests/pending"), StaffFilter(Access.PendingUGCItems)]
+    [HttpGet("ugc-requests/pending"), StaffFilter(Access.PendingUgcItems)]
     public async Task<IEnumerable<dynamic>> GetPendingUgcRequests()
     {
         var rows = await db.QueryAsync<PendingUgcRequestEntry>(
@@ -2454,7 +2454,7 @@ Thank you for your understanding,
         return rows;
     }
 
-    [HttpPost("ugc-request/moderate"), StaffFilter(Access.PendingUGCItems)]
+    [HttpPost("ugc-request/moderate"), StaffFilter(Access.PendingUgcItems)]
     public async Task<dynamic> ModerateUgcRequest([Required, FromBody] ModerateUgcRequestBody request)
     {
         var newStatus = request.isApproved
