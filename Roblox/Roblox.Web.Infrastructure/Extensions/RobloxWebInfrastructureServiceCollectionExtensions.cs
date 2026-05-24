@@ -18,6 +18,7 @@ public static class RobloxWebInfrastructureServiceCollectionExtensions
             options.RccAuthorization = configuration["RccAuthorization"];
             options.SessionJwtKey = configuration["Jwt:Sessions"];
             options.InternalServiceHosts = configuration.GetSection("InternalServiceHosts").Get<List<string>>() ?? new List<string>();
+            options.InternalServiceRoutes = configuration.GetSection("InternalServiceRoutes").Get<List<RobloxInternalServiceRoute>>() ?? new List<RobloxInternalServiceRoute>();
         });
 
         var rccAuthorization = configuration["RccAuthorization"];

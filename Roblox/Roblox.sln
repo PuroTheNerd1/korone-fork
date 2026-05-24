@@ -43,6 +43,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{DC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.DataStore", "Services\Roblox.Services.DataStore\Roblox.Services.DataStore.csproj", "{B8A40F80-1EE2-49E8-AFEF-92032D5BC72C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Moderation", "Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj", "{D10B5A3F-93C5-472D-8E82-C180EFC18D58}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.ServiceDefaults", "Services\Roblox.ServiceDefaults\Roblox.ServiceDefaults.csproj", "{52C45D80-DA73-43AA-A847-B24456E0A209}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Web.Infrastructure", "Roblox.Web.Infrastructure\Roblox.Web.Infrastructure.csproj", "{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B}"
@@ -129,6 +131,10 @@ Global
 		{B8A40F80-1EE2-49E8-AFEF-92032D5BC72C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8A40F80-1EE2-49E8-AFEF-92032D5BC72C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8A40F80-1EE2-49E8-AFEF-92032D5BC72C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D10B5A3F-93C5-472D-8E82-C180EFC18D58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D10B5A3F-93C5-472D-8E82-C180EFC18D58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D10B5A3F-93C5-472D-8E82-C180EFC18D58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D10B5A3F-93C5-472D-8E82-C180EFC18D58}.Release|Any CPU.Build.0 = Release|Any CPU
 		{52C45D80-DA73-43AA-A847-B24456E0A209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{52C45D80-DA73-43AA-A847-B24456E0A209}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52C45D80-DA73-43AA-A847-B24456E0A209}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -144,6 +150,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{52C45D80-DA73-43AA-A847-B24456E0A209} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{B8A40F80-1EE2-49E8-AFEF-92032D5BC72C} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
+		{D10B5A3F-93C5-472D-8E82-C180EFC18D58} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 	EndGlobalSection
 EndGlobal

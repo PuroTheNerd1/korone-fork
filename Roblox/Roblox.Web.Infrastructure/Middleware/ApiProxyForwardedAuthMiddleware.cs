@@ -19,7 +19,7 @@ public class ApiProxyForwardedAuthMiddleware
 
     public async Task InvokeAsync(HttpContext context, IRobloxRequestContextAccessor requestContextAccessor)
     {
-        if (!ShouldDecorateRequest(context.Request.Host.Host))
+        if (!ShouldDecorateRequest(context.Request.Host.Host, context.Request.Path))
         {
             await _next(context);
             return;
@@ -59,8 +59,29 @@ public class ApiProxyForwardedAuthMiddleware
         await _next(context);
     }
 
-    private bool ShouldDecorateRequest(string host)
+    private bool ShouldDecorateRequest(string host, PathString path)
     {
+        if (_options.InternalServiceRoutes.Any(route => RouteMatches(route, host, path)))
+        {
+            return true;
+        }
+
         return _options.InternalServiceHosts.Any(candidate => string.Equals(candidate, host, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool RouteMatches(RobloxInternalServiceRoute route, string host, PathString path)
+    {
+        var hostMatches = route.Hosts.Count == 0 || route.Hosts.Any(candidate => string.Equals(candidate, host, StringComparison.OrdinalIgnoreCase));
+        if (!hostMatches)
+        {
+            return false;
+        }
+
+        if (route.PathPrefixes.Count == 0)
+        {
+            return true;
+        }
+
+        return route.PathPrefixes.Any(prefix => path.StartsWithSegments(prefix, StringComparison.OrdinalIgnoreCase));
     }
 }
