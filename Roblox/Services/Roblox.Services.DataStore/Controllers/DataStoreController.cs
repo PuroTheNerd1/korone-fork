@@ -71,7 +71,7 @@ public class DataStoreController : RobloxControllerBase
             value = int.Parse(Request.Form["value"][0]!);
         }
 
-        var current = await ds.Get(placeId, type, scope, key, target);
+        var current = await ds.Get(placeId, key, type, scope, target);
         if (current is null)
         {
             throw new RobloxException(404, 0, "KeyNotFound");
@@ -79,7 +79,7 @@ public class DataStoreController : RobloxControllerBase
 
         var oldValue = long.Parse(current);
         await ds.Increment(placeId, key, type, scope, target, value.Value);
-        var updated = await ds.Get(placeId, type, scope, key, target);
+        var updated = await ds.Get(placeId, key, type, scope, target);
         var newValue = long.Parse(updated!);
 
         Writer.Info(LogGroup.DataStoreService, $"Incremented {key} from {oldValue} to {newValue} for placeId {placeId}, scope {scope}, target {target}");
