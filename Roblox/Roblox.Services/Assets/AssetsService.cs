@@ -789,7 +789,7 @@ public class AssetsService : ServiceBase, IService
 
         using (var imageStream = await RenderingHandler.ResizeImage<MemoryStream, Stream>(thumbnailToUse, 640, 360))
         {
-            var thumbnailAsset = await CreateAsset(TrimTo255(modInfo.name + "_Image"), "Custom :3c -- zyth", modInfo.creatorTargetId, modInfo.creatorType, modInfo.creatorTargetId, imageStream, Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
+            var thumbnailAsset = await CreateAsset(TrimTo255(modInfo.name + "_Image"), "Image", modInfo.creatorTargetId, modInfo.creatorType, modInfo.creatorTargetId, imageStream, Type.Image, Genre.All, ModerationStatus.AwaitingApproval);
             await InsertOrReplaceGameMedia(assetId, thumbnailAsset.assetId, Type.Image);
         }
     }
