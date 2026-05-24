@@ -8,7 +8,7 @@ namespace Roblox.Web.Infrastructure.Http;
 
 public static class RobloxRequestContextFactory
 {
-    public static RobloxRequestContext CreateAnonymous(HttpContext httpContext)
+    public static RobloxRequestContext CreateAnonymous(HttpContext httpContext, string? rccAuthorization = null)
     {
         var rawIp = TryGetRawIp(httpContext);
         var hashedIp = httpContext.Request.Headers.TryGetValue(RobloxWebContextConstants.ClientIpHashHeaderName, out var forwardedIpHash)
@@ -24,7 +24,7 @@ public static class RobloxRequestContextFactory
             Session = httpContext.GetLegacyRobloxSession(),
             IsAuthenticated = httpContext.GetLegacyRobloxSession() != null,
             IsRobloxClient = IsRobloxClient(userAgent, httpContext),
-            IsRcc = IsRccRequest(httpContext),
+            IsRcc = IsRccRequest(httpContext, rccAuthorization),
             SessionCookie = RobloxSessionResolver.GetCookieValue(httpContext),
             DiscordAccessToken = TryGetDiscordAccessToken(httpContext),
             RobloxAccessToken = TryGetRobloxAccessToken(httpContext),
@@ -37,17 +37,17 @@ public static class RobloxRequestContextFactory
         };
     }
 
-    public static RobloxRequestContext CreateWithSession(HttpContext httpContext, UserSession session)
+    public static RobloxRequestContext CreateWithSession(HttpContext httpContext, UserSession session, string? rccAuthorization = null)
     {
-        var context = CreateAnonymous(httpContext);
+        var context = CreateAnonymous(httpContext, rccAuthorization);
         context.Session = session;
         context.IsAuthenticated = true;
         return context;
     }
 
-    public static RobloxRequestContext CreateFromForwardedHeaders(HttpContext httpContext, bool isTrustedInternalRequest)
+    public static RobloxRequestContext CreateFromForwardedHeaders(HttpContext httpContext, bool isTrustedInternalRequest, string? rccAuthorization = null)
     {
-        var context = CreateAnonymous(httpContext);
+        var context = CreateAnonymous(httpContext, rccAuthorization);
         context.IsTrustedInternalRequest = isTrustedInternalRequest;
 
         if (httpContext.Request.Headers.TryGetValue(RobloxWebContextConstants.AuthTypeHeaderName, out var authType))
@@ -147,12 +147,15 @@ public static class RobloxRequestContextFactory
         return false;
     }
 
-    private static bool IsRccRequest(HttpContext httpContext)
+    private static bool IsRccRequest(HttpContext httpContext, string? rccAuthorization)
     {
         var accessKey = httpContext.Request.Headers.ContainsKey("accesskey")
             ? httpContext.Request.Headers["accesskey"].ToString()
             : null;
-        return accessKey == Roblox.Configuration.RccAuthorization;
+        var expectedAuthorization = !string.IsNullOrWhiteSpace(rccAuthorization)
+            ? rccAuthorization
+            : Roblox.Configuration.RccAuthorization;
+        return !string.IsNullOrWhiteSpace(expectedAuthorization) && accessKey == expectedAuthorization;
     }
 
     private static string? TryGetDiscordAccessToken(HttpContext httpContext)

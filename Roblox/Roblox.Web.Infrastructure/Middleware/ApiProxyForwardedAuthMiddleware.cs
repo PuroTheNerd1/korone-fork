@@ -25,11 +25,11 @@ public class ApiProxyForwardedAuthMiddleware
             return;
         }
 
-        var requestContext = RobloxRequestContextFactory.CreateAnonymous(context);
+        var requestContext = RobloxRequestContextFactory.CreateAnonymous(context, _options.RccAuthorization);
         var resolvedSession = await RobloxSessionResolver.TryResolveFromCookie(context);
         if (resolvedSession != null)
         {
-            requestContext = RobloxRequestContextFactory.CreateWithSession(context, resolvedSession.Session);
+            requestContext = RobloxRequestContextFactory.CreateWithSession(context, resolvedSession.Session, _options.RccAuthorization);
         }
 
         requestContext.IsTrustedInternalRequest = true;

@@ -15,9 +15,16 @@ public static class RobloxWebInfrastructureServiceCollectionExtensions
         services.AddOptions<RobloxWebInfrastructureOptions>().Configure(options =>
         {
             options.Authorization = configuration["Authorization"];
+            options.RccAuthorization = configuration["RccAuthorization"];
             options.SessionJwtKey = configuration["Jwt:Sessions"];
             options.InternalServiceHosts = configuration.GetSection("InternalServiceHosts").Get<List<string>>() ?? new List<string>();
         });
+
+        var rccAuthorization = configuration["RccAuthorization"];
+        if (!string.IsNullOrWhiteSpace(rccAuthorization))
+        {
+            Roblox.Configuration.RccAuthorization = rccAuthorization;
+        }
 
         var sessionJwtKey = configuration["Jwt:Sessions"];
         if (!string.IsNullOrWhiteSpace(sessionJwtKey))

@@ -37,7 +37,7 @@ public class ProxyForwardedAuthMiddleware
             return;
         }
 
-        var requestContext = RobloxRequestContextFactory.CreateFromForwardedHeaders(context, isAuthorized);
+        var requestContext = RobloxRequestContextFactory.CreateFromForwardedHeaders(context, isAuthorized, _options.RccAuthorization);
         requestContextAccessor.SetCurrent(requestContext);
 
         if (requiresSession && !requestContext.IsAuthenticated)
