@@ -1,5 +1,6 @@
 <script lang="ts">
     import client from "../../lib/request";
+    import { hasPermission } from "../../stores/rank";
 
 
     export let userId: string;
@@ -9,6 +10,92 @@
     let permissionsAvailable = [];
     let permissionSearch = '';
     let addPermissionSearch = '';
+    const canSetPermissions = hasPermission('SetPermissions');
+    const presets = [
+        {
+            label: 'Asset Moderator & Support Team',
+            permissions: [
+                'GetAssetModerationDetails',
+                'SetGameIconModerationStatus',
+                'GetPendingModerationItems',
+                'GetPendingGroupIcons',
+                'GetStats',
+                'GetPendingModerationGameIcons',
+                'SetAssetModerationStatus',
+                'SetGroupIconModerationStatus',
+                'GetDetailsFromThumbnail',
+            ],
+        },
+        {
+            label: 'Junior moderator',
+            permissions: [
+                'SetGameIconModerationStatus',
+                'GetAllAssetComments',
+                'GetPendingModerationGameIcons',
+                'GetGroupStatus',
+                'GetAllAssetOwners',
+                'GetUserStatusHistory',
+                'GetStats',
+                'DeleteItem',
+                'DeleteGroupWallPost',
+                'GetPendingGroupIcons',
+                'DeleteUsername',
+                'SetAssetModerationStatus',
+                'LockAndUnlockGroup',
+                'GetPendingModerationItems',
+                'ManageInvites',
+                'GetAssetModerationDetails',
+                'GetGroupWall',
+                'DeleteComment',
+            ],
+        },
+        {
+            label: 'Administrator',
+            permissions: [
+                'DeleteUserBadge',
+                'SetPermissions',
+                'GiveUserRobux',
+                'GetGroupManageInfo',
+                'LockAccount',
+                'TrackItem',
+                'GetPendingModerationItems',
+                'GetAllAssetOwners',
+                'DeleteItem',
+                'GetPendingModerationGameIcons',
+                'GetAssetModerationDetails',
+                'GetPendingGroupIcons',
+                'SetAssetModerationStatus',
+                'GetStats',
+                'SetGameIconModerationStatus',
+                'DeleteGroupWallPost',
+                'DeleteUsername',
+                'ManageInvites',
+                'GetGroupStatus',
+                'LockAndUnlockGroup',
+                'DeleteComment',
+                'GetAllAssetComments',
+                'GetGroupWall',
+                'GetUserStatusHistory',
+                'ResetDescription',
+                'ManageApplications',
+                'GetUserJoinCount',
+                'GetUsersList',
+                'GetUserDetailed',
+                'UnbanUser',
+                'ResetAvatar',
+                'RegenerateAvatar',
+                'RunLottery',
+                'DeleteUserStatus',
+                'GetUserTransactions',
+                'ResetUsername',
+                'LockForumThread',
+                'RefundAndDeleteFirstPartyAssetSale',
+                'GetUsersOnline',
+                'ManageFeatureFlags',
+                'GetUsersInGame',
+            ],
+        },
+    ];
 
     $: filteredPermissions = permissions.filter(p =>
         p.permission.toLowerCase().includes(permissionSearch.toLowerCase())
@@ -17,15 +104,17 @@
         p.toLowerCase().includes(addPermissionSearch.toLowerCase())
     );
 
-    client.get('/staff/permissions?userId=' + userId).then(d => {
-        permissions = d.data;
-    });
+    if (canSetPermissions) {
+        client.get('/staff/permissions?userId=' + userId).then(d => {
+            permissions = d.data;
+        });
 
-    client.get('/staff/permissions/list').then(d => {
-        permissionsAvailable = d.data;
-    });
+        client.get('/staff/permissions/list').then(d => {
+            permissionsAvailable = d.data;
+        });
+    }
 
-	const quickConfig = (arr) => {
+	const quickConfig = (arr: string[]) => {
 		let promises = [];
 		for (const perm of arr) {
 			if (permissions.find(a => a.permission === perm)) continue;
@@ -48,7 +137,7 @@
 		})
 	}
 
-	const quickConfigDelete = (arr) => {
+	const quickConfigDelete = (arr: string[]) => {
 		let promises = [];
 		for (const perm of arr) {
 			if (!permissions.find(a => a.permission === perm)) continue;
@@ -58,11 +147,7 @@
 			}));
 		}
 		Promise.all(promises).then(() => {
-			let newPermissions = [];
-			for (const item of permissions) {
-				if (!arr.includes(item)) newPermissions.push(item);
-			}
-			permissions = newPermissions;
+			permissions = permissions.filter(item => !arr.includes(item.permission));
 		}).catch(e => {
 			alert(e.message);
 		})
@@ -70,6 +155,7 @@
 
 </script>
 
+{#if canSetPermissions}
 <div class="row mt-4">
     <div class="col-12">
         <h3>Permissions</h3>
@@ -136,49 +222,19 @@
 			<option value={false}>Add</option>
 			<option value={true}>Remove</option>
 		</select>
-		<button class="btn btn-primary mt-4" on:click={() => {
-                const permissions = ['GetStats', 'GetPendingGroupIcons', 'GetAssetModerationDetails', 'GetPendingModerationItems', 'GetPendingModerationGameIcons', 'SetGameIconModerationStatus', 'SetAssetModerationStatus', 'SetGroupIconModerationStatus', 'GetDetailsFromThumbnail'];
-                if (quickConfigShouldDelete) {
-					quickConfigDelete(permissions);
-                } else {
-					quickConfig(permissions);
-                }
-            }}>Image Mod</button>
+        {#each presets as preset}
 		<button class="btn btn-primary mt-4 ml-2" on:click={() => {
-                const permissions = ['GetStats', 'GetAllAssetComments', 'DeleteComment', 'GetGroupWall', 'DeleteGroupWallPost', 'GetGroupStatus', 'DeleteGroupStatus', 'GetAllUserStatuses', 'DeleteUserStatus', 'DeleteForumPost'];
-				if (quickConfigShouldDelete) {
-					quickConfigDelete(permissions);
-                } else {
-					quickConfig(permissions);
-                }
-            }}>Text Mod</button>
-		<button class="btn btn-primary mt-4 ml-2" on:click={() => {
-                const permissions = [
-                    'ManageApplications',
-                    'ClearApplications',
-                ];
                 if (quickConfigShouldDelete) {
-					quickConfigDelete(permissions);
+					quickConfigDelete(preset.permissions);
                 } else {
-					quickConfig(permissions);
+					quickConfig(preset.permissions);
                 }
-            }}>Application Mod</button>
-		<button class="btn btn-primary mt-4 ml-2" on:click={() => {
-                const permissions = [
-                    'CreateAssetCopiedFromRoblox',
-                    'CreateBundleCopiedFromRoblox',
-                    'GetProductDetails',
-                    'SetAssetProduct',
-                ];
-                if (quickConfigShouldDelete) {
-					quickConfigDelete(permissions);
-                } else {
-					quickConfig(permissions);
-                }
-            }}>Asset Copy (Non Limited)</button>
+            }}>{preset.label}</button>
+        {/each}
 		<button class="btn btn-danger mt-4 ml-2" on:click={() => {
                 quickConfigDelete(permissions.map(p => p.permission));
             }}>Remove All Permissions</button>
 
 	</div>
 </div>
+{/if}
