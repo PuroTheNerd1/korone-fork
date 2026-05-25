@@ -18,6 +18,7 @@ public static class RobloxWebsiteBuilderExtensions
     public static void InitializeLegacyConfiguration(this WebApplicationBuilder builder)
     {
         var configuration = builder.Configuration;
+        builder.Logging.AddFilter("Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware", LogLevel.None);
 
         Roblox.Services.Database.Configure(configuration.GetSection("Postgres").Value!);
         Roblox.Services.Cache.Configure(configuration.GetSection("Redis").Value!, configuration.GetSection("RedisAuthentication").Value!);
