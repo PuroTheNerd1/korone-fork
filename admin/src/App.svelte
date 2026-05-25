@@ -174,6 +174,9 @@
 		<Route path="/admin/reports">
 			<AbuseReports />
 		</Route>
+		<Route path="/admin/resolve-url">
+			<ResolveAsset />
+		</Route>
 		<Route path="/admin/staff-performance/:userId" let:params>
 			<StaffStats userId={params.userId} />
 		</Route>
@@ -185,4 +188,3 @@
 		</Route>
 	{/await}
 </Router>
-
