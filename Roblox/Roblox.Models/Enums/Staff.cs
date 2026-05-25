@@ -13,7 +13,6 @@ public enum Access
     GetPendingModerationGameIcons,
     SetGameIconModerationStatus,
     SetAssetModerationStatus,
-    DeleteItem, // deleting a owner's asset
     SetGroupIconModerationStatus,
     GetGroupManageInfo,
     GetUserJoinCount,
@@ -88,5 +87,6 @@ public enum Access
     RollbackTrade,
     ViewMacAddresses,
     PendingUgcItems,
+    DeleteItem, // deleting a owner's asset
     All, // fake perm
 }
