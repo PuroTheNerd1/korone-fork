@@ -641,6 +641,11 @@ public class AdminApiController : ControllerBase
     [HttpPost("asset/moderate-and-delete"), StaffFilter(Access.SetAssetModerationStatus)]
     public async Task ModerateAndDeleteItem([Required, FromBody] ModerateAssetRequest request)
     {
+        var permissions = StaffFilter.IsOwner(safeUserSession.userId)
+            ? Array.Empty<Access>()
+            : (await services.users.GetStaffPermissions(safeUserSession.userId)).Select(c => c.permission).ToArray();
+        var canDeleteItem = StaffFilter.IsOwner(safeUserSession.userId) || permissions.Contains(Access.DeleteItem);
+
         if (!StaffFilter.IsOwner(safeUserSession.userId))
         {
             // 250 deletions/hour
@@ -656,17 +661,27 @@ public class AdminApiController : ControllerBase
                 throw new StaffException("Asset deletion rate limit exceeded (global). Contact an administrator.");
         }
 
-        await ModerateAsset(request);
-
         if (!request.isApproved)
         {
             var details = await services.assets.GetAssetCatalogInfo(request.assetId);
             var minCreationTime = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
-            if (details.createdAt < minCreationTime && !StaffFilter.IsOwner(userSession.userId))
+            var isOwnerCreatedAsset = details.creatorType == CreatorType.User && StaffFilter.IsOwner(details.creatorTargetId);
+
+            if (isOwnerCreatedAsset && !canDeleteItem)
+            {
+                throw new StaffException("You do not have permission to delete items created by an owner");
+            }
+
+            if (details.createdAt < minCreationTime && !canDeleteItem)
             {
                 throw new StaffException("This asset cannot be deleted since it was created too long ago");
             }
-            // Delete the asset
+        }
+
+        await ModerateAsset(request);
+
+        if (!request.isApproved)
+        {
             await services.assets.DeleteAsset(request.assetId);
         }
     }
@@ -3579,4 +3594,3 @@ Thank you for your understanding,
         };
     }
 }
-

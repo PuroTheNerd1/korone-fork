@@ -13,6 +13,7 @@ public enum Access
     GetPendingModerationGameIcons,
     SetGameIconModerationStatus,
     SetAssetModerationStatus,
+    DeleteItem, // deleting a owner's asset
     SetGroupIconModerationStatus,
     GetGroupManageInfo,
     GetUserJoinCount,
