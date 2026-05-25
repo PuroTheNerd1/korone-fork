@@ -35,6 +35,8 @@ public class PendingAssetEntry
     public long creatorId { get; set; }
     public string creatorName { get; set; } = string.Empty;
     public Type assetType { get; set; }
+    public bool requiresDeleteItemPermission { get; set; }
+    public bool isPastDeleteWindow { get; set; }
 }
 
 public class ModerateAssetRequest

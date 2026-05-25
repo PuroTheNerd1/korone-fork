@@ -3,6 +3,7 @@
 	import Main from "../components/templates/Main.svelte";
 	import request from "../lib/request";
 	import { link } from "svelte-routing";
+	import { hasPermission } from "../stores/rank";
 	let blur = 'false';
 	let manuallyInsertUrl = '';
 
@@ -44,6 +45,9 @@
 
 	function onClick(approve, is18Plus, del, asset) {
 		return (e) => {
+			if (isDeclineLocked(asset) && !approve) {
+				return;
+			}
 			assetsToApprove = assetsToApprove.filter((v) => v !== asset);
 			if (assetsToApprove.length === 0) {
 				loadAllTypes();
@@ -88,6 +92,23 @@
 				console.error('invalid mode',asset.mode,asset);
 			}
 		};
+	}
+
+	function isDeclineLocked(asset) {
+		if (asset.mode !== 'asset') return false;
+		if (hasPermission('DeleteItem')) return false;
+		return asset.requiresDeleteItemPermission || asset.isPastDeleteWindow;
+	}
+
+	function getDeclineLockReason(asset) {
+		if (asset.mode !== 'asset' || hasPermission('DeleteItem')) return '';
+		if (asset.requiresDeleteItemPermission) {
+			return 'DeleteItem permission is required for owner-created items.';
+		}
+		if (asset.isPastDeleteWindow) {
+			return 'DeleteItem permission is required after the 24-hour delete window.';
+		}
+		return '';
 	}
 
 	$:{
@@ -219,11 +240,11 @@
 											</div>
 											<div class="col-12 mt-4">
 												<div class="btn-group w-100">
-													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, false, asset)}>
+													<button class="btn btn-danger border border-dark" disabled={isDeclineLocked(asset)} title={getDeclineLockReason(asset)} on:click={onClick(false, true, false, asset)}>
 														BAD
 													</button>
 												
-													<button class="btn btn-danger border border-dark" on:click={onClick(false, true, true, asset)}>
+													<button class="btn btn-danger border border-dark" disabled={isDeclineLocked(asset)} title={getDeclineLockReason(asset)} on:click={onClick(false, true, true, asset)}>
 														BAD + DELETE
 													</button>
 												</div>

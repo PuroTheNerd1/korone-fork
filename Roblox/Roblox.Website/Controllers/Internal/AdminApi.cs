@@ -443,8 +443,11 @@ public class AdminApiController : ControllerBase
                 id = assetId,
             });
         var avDetails = await services.assets.GetLatestAssetVersion(assetId);
+        var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
         var names = await services.users.GetUserById(avDetails.creatorId);
         item.creatorName = names.username;
+        item.requiresDeleteItemPermission = assetInfo.creatorType == CreatorType.User && StaffFilter.IsOwner(assetInfo.creatorTargetId);
+        item.isPastDeleteWindow = assetInfo.createdAt < DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
         if (item.content_url != null)
             item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
         return item;
@@ -514,11 +517,14 @@ public class AdminApiController : ControllerBase
             foreach (var item in firstPass)
             {
                 var latest = await services.assets.GetLatestAssetVersion(item.id);
+                var details = await services.assets.GetAssetCatalogInfo(item.id);
                 item.creatorId = latest.creatorId;
                 if (item.creatorId == userSession.userId && !StaffFilter.IsOwner(userSession.userId))
                     continue;
                 var userInfo = await services.users.GetUserById(latest.creatorId);
                 item.creatorName = userInfo.username;
+                item.requiresDeleteItemPermission = details.creatorType == CreatorType.User && StaffFilter.IsOwner(details.creatorTargetId);
+                item.isPastDeleteWindow = details.createdAt < DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
 
                 if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
                 {
@@ -538,6 +544,10 @@ public class AdminApiController : ControllerBase
     [HttpPost("asset/moderate"), StaffFilter(Access.SetAssetModerationStatus)]
     public async Task ModerateAsset([Required, FromBody] ModerateAssetRequest request)
     {
+        var permissions = StaffFilter.IsOwner(safeUserSession.userId)
+            ? Array.Empty<Access>()
+            : (await services.users.GetStaffPermissions(safeUserSession.userId)).Select(c => c.permission).ToArray();
+        var canDeleteItem = StaffFilter.IsOwner(safeUserSession.userId) || permissions.Contains(Access.DeleteItem);
         var details = await db.QuerySingleOrDefaultAsync<AssetModerationStatus>(
             "SELECT moderation_status as moderationStatus, roblox_asset_id as robloxAssetId FROM asset WHERE asset.id = :id", new { id = request.assetId });
 
@@ -567,6 +577,16 @@ public class AdminApiController : ControllerBase
 
         var latest = await services.assets.GetLatestAssetVersion(request.assetId);
         var assetInfo = await services.assets.GetAssetCatalogInfo(request.assetId);
+
+        if (!request.isApproved)
+        {
+            var isOwnerCreatedAsset = assetInfo.creatorType == CreatorType.User && StaffFilter.IsOwner(assetInfo.creatorTargetId);
+            var minCreationTime = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
+            if (isOwnerCreatedAsset && !canDeleteItem)
+                throw new StaffException("You do not have permission to delete items created by an owner");
+            if (assetInfo.createdAt < minCreationTime && !canDeleteItem)
+                throw new StaffException("This asset cannot be deleted since it was created too long ago");
+        }
 
         if (latest.creatorId == userSession.userId && !StaffFilter.IsOwner(userSession.userId))
             throw new StaffException("You cannot moderate your own assets");
@@ -641,11 +661,6 @@ public class AdminApiController : ControllerBase
     [HttpPost("asset/moderate-and-delete"), StaffFilter(Access.SetAssetModerationStatus)]
     public async Task ModerateAndDeleteItem([Required, FromBody] ModerateAssetRequest request)
     {
-        var permissions = StaffFilter.IsOwner(safeUserSession.userId)
-            ? Array.Empty<Access>()
-            : (await services.users.GetStaffPermissions(safeUserSession.userId)).Select(c => c.permission).ToArray();
-        var canDeleteItem = StaffFilter.IsOwner(safeUserSession.userId) || permissions.Contains(Access.DeleteItem);
-
         if (!StaffFilter.IsOwner(safeUserSession.userId))
         {
             // 250 deletions/hour
@@ -659,23 +674,6 @@ public class AdminApiController : ControllerBase
             // 5000 globally
             if (!await services.cooldown.TryIncrementBucketCooldown("DeleteAssetV1_Global", 5000, TimeSpan.FromDays(1)))
                 throw new StaffException("Asset deletion rate limit exceeded (global). Contact an administrator.");
-        }
-
-        if (!request.isApproved)
-        {
-            var details = await services.assets.GetAssetCatalogInfo(request.assetId);
-            var minCreationTime = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
-            var isOwnerCreatedAsset = details.creatorType == CreatorType.User && StaffFilter.IsOwner(details.creatorTargetId);
-
-            if (isOwnerCreatedAsset && !canDeleteItem)
-            {
-                throw new StaffException("You do not have permission to delete items created by an owner");
-            }
-
-            if (details.createdAt < minCreationTime && !canDeleteItem)
-            {
-                throw new StaffException("This asset cannot be deleted since it was created too long ago");
-            }
         }
 
         await ModerateAsset(request);
