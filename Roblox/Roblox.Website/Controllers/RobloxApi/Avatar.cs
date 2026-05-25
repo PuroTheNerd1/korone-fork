@@ -23,9 +23,14 @@ public class AvatarRBX : ControllerBase
         FeatureFlags.FeatureCheck(FeatureFlag.AvatarsEnabled);
     }
 
-    private async void AttemptScheduleRender(bool forceRedraw = false)
+    private void AttemptScheduleRender(bool forceRedraw = false)
     { 
         var userId = safeUserSession.userId;
+        _ = AttemptScheduleRenderAsync(userId, forceRedraw);
+    }
+
+    private static async Task AttemptScheduleRenderAsync(long userId, bool forceRedraw)
+    {
         if (!forceRedraw)
         {
             using (var cache = ServiceProvider.GetOrCreate<AvatarCache>())
@@ -39,27 +44,23 @@ public class AvatarRBX : ControllerBase
             }
         }
 
-        await Task.Run(async () =>
+        var pendingCache = ServiceProvider.GetOrCreate<AvatarCache>();
+        try
         {
-            //await Task.Delay(TimeSpan.FromSeconds(2));
-            Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await services.avatar.GetAvatarType(userId);
-            using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
-            try
-            {
-                using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
-                var assetIds = await cache.GetPendingAssets(userId);
-                var newColors = await cache.GetColors(userId);
-                await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Background render failed: {0}\n{1}", e.Message, e.StackTrace);
-            }
-            finally
-            {
-                cache.UnscheduleRender(userId);
-            }
-        });
+            using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
+            Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await avatarService.GetAvatarType(userId);
+            var assetIds = await pendingCache.GetPendingAssets(userId);
+            var newColors = await pendingCache.GetColors(userId);
+            await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Background render failed: {0}\n{1}", e.Message, e.StackTrace);
+        }
+        finally
+        {
+            pendingCache.UnscheduleRender(userId);
+        }
     }
     [HttpGetBypass("/v1/avatar-fetch")]
     [HttpGetBypass("/v1.1/avatar-fetch")]

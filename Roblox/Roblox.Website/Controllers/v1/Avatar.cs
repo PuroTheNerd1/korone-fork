@@ -25,11 +25,17 @@ public class AvatarControllerV1 : ControllerBase, IService
         FeatureFlags.FeatureCheck(FeatureFlag.AvatarsEnabled);
     }
     
-    private async void AttemptScheduleRender(bool forceRedraw = false)
+    private void AttemptScheduleRender(bool forceRedraw = false)
     {
-        if (userSession == null)
+        var currentSession = userSession;
+        if (currentSession == null)
             return;
-        var userId = userSession.userId;
+
+        _ = AttemptScheduleRenderAsync(currentSession.userId, forceRedraw);
+    }
+
+    private static async Task AttemptScheduleRenderAsync(long userId, bool forceRedraw)
+    {
         var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         if (!forceRedraw)
         {
@@ -44,29 +50,24 @@ public class AvatarControllerV1 : ControllerBase, IService
             await cache.DeleteAvatarCache(userId);
         }
 
-        await Task.Run(async () =>
+        try
         {
-            //await Task.Delay(TimeSpan.FromSeconds(2));
-            AvatarType? rigType = (AvatarType?)await services.avatar.GetAvatarType(userId);
-            using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
-            try
-            {
-                using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
-                var assetIds = await cache.GetPendingAssets(userId);
-                var newColors = await cache.GetColors(userId);
-                const bool skipRender = false;
-                const bool skipLock = false;
-                await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw, skipLock, skipRender);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Background render failed: {0}\n{1}", e.Message, e.StackTrace);
-            }
-            finally
-            {
-                cache.UnscheduleRender(userId);
-            }
-        });
+            using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
+            AvatarType? rigType = (AvatarType?)await avatarService.GetAvatarType(userId);
+            var assetIds = await cache.GetPendingAssets(userId);
+            var newColors = await cache.GetColors(userId);
+            const bool skipRender = false;
+            const bool skipLock = false;
+            await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw, skipLock, skipRender);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Background render failed: {0}\n{1}", e.Message, e.StackTrace);
+        }
+        finally
+        {
+            cache.UnscheduleRender(userId);
+        }
     }
 
     
