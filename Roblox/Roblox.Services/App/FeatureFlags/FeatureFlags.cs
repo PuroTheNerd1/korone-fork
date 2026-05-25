@@ -60,37 +60,10 @@ public static class FeatureFlags
 {
     private static Dictionary<FeatureFlag, bool>? featureFlags { get; set; }
 
-    public static void StartUpdateFlagTask()
+    public static async Task RefreshOnceAsync()
     {
-        Task.Run(async () =>
-        {
-            var failureCount = 0;
-            featureFlags = new();
-            while (true)
-            {
-                try
-                {
-                    await UpdateFlagsAsync();
-                    failureCount = 0;
-                }
-                catch (Exception e)
-                {
-                    failureCount++;
-                    Writer.Info(LogGroup.FeatureFlags,
-                        "Error updating flags. Process will crash after 5 failures. Error = {0}", e.Message);
-                }
-
-                if (failureCount >= 5)
-                {
-                    // Log in a few areas just to be safe!
-                    Writer.Info(LogGroup.FeatureFlags, "Killing process due to FF failures");
-                    Console.WriteLine("Killing process due to FF failures.");
-                    Process.GetCurrentProcess().Kill(true);
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(30));
-            }
-        });
+        featureFlags ??= new();
+        await UpdateFlagsAsync();
     }
 
     private static void ProcessRedisFlagResponse(string? flags)

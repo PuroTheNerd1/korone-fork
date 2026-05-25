@@ -1043,14 +1043,12 @@ public class AvatarService : ServiceBase, IService {
         return false;
     }
 
-    private static Timer _timer;
+    public static TimeSpan CleanupStartupDelay => TimeSpan.FromSeconds(3);
+    public static TimeSpan CleanupInterval => TimeSpan.FromHours(6);
 
-    public static void StartTimerClear3D()
+    public static Task ClearStale3DThumbnailsAsync()
     {
-        _timer = new Timer(async void (_) =>
-        {
-            await Clear3DStaleFiles();
-        }, null, TimeSpan.FromSeconds(3), TimeSpan.FromHours(6));
+        return Clear3DStaleFiles();
     }
 
     private static async Task Clear3DStaleFiles()

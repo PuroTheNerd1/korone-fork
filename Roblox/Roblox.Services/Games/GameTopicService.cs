@@ -150,27 +150,15 @@ public class GameTopicService : ServiceBase, IService
         });
     }
 
-    public static void StartBackfillLoop()
+    public static TimeSpan BackfillStartupDelay => TimeSpan.FromMinutes(3);
+    public static TimeSpan BackfillIntervalTime => BackfillInterval;
+
+    public static Task RunBackfillCycleAsync()
     {
-        Task.Run(async () =>
-        {
-            await Task.Delay(TimeSpan.FromMinutes(3));
-            while (true)
-            {
-                try
-                {
-                    await RunBackfillCycleAsync();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("[warn] topic backfill cycle failed: {0}", e.Message);
-                }
-                await Task.Delay(BackfillInterval);
-            }
-        });
+        return RunBackfillCycleAsyncCore();
     }
 
-    private static async Task RunBackfillCycleAsync()
+    private static async Task RunBackfillCycleAsyncCore()
     {
         using var svc = ServiceProvider.GetOrCreate<GameTopicService>();
         var ids = (await svc.db.QueryAsync<long>(@"

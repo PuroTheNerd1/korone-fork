@@ -396,24 +396,12 @@ public class GameRecommendationService : ServiceBase, IService
         }
     }
 
-    public static void StartPeriodicLoop()
+    public static TimeSpan StartupDelay => TimeSpan.FromMinutes(2);
+    public static TimeSpan RefreshInterval => PeriodicInterval;
+
+    public static Task RunPeriodicCycleAsync()
     {
-        Task.Run(async () =>
-        {
-            await Task.Delay(TimeSpan.FromMinutes(2));
-            while (true)
-            {
-                try
-                {
-                    await RunOneCycleAsync();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("[warn] recommendation cron cycle failed: {0}", e.Message);
-                }
-                await Task.Delay(PeriodicInterval);
-            }
-        });
+        return RunOneCycleAsync();
     }
 
     private static async Task RunOneCycleAsync()
