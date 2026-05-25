@@ -1766,6 +1766,57 @@ public class UsersService : ServiceBase, IService
     
     public async Task<Guid> PurchaseDeveloperProduct(long userIdBuyer, long productId)
     {
+        return await PurchaseDeveloperProduct(userIdBuyer, productId, null);
+    }
+
+    private static string GetDeveloperProductPurchaseRequestCacheKey(long userIdBuyer, long productId, string requestId)
+    {
+        return $"PurchaseDeveloperProductRequest:V1:{userIdBuyer}:{productId}:{requestId}";
+    }
+
+    public async Task<Guid?> GetCachedDeveloperProductPurchaseReceipt(long userIdBuyer, long productId, string? requestId)
+    {
+        if (string.IsNullOrWhiteSpace(requestId))
+            return null;
+
+        var cached = await redis.StringGetAsync(GetDeveloperProductPurchaseRequestCacheKey(userIdBuyer, productId, requestId.Trim()));
+        if (string.IsNullOrWhiteSpace(cached))
+            return null;
+
+        return Guid.TryParse(cached, out var receiptId) ? receiptId : null;
+    }
+
+    public async Task<Guid> PurchaseDeveloperProduct(long userIdBuyer, long productId, string? requestId)
+    {
+        var normalizedRequestId = string.IsNullOrWhiteSpace(requestId) ? null : requestId.Trim();
+        if (normalizedRequestId != null)
+        {
+            var cachedReceipt = await GetCachedDeveloperProductPurchaseReceipt(userIdBuyer, productId, normalizedRequestId);
+            if (cachedReceipt.HasValue)
+                return cachedReceipt.Value;
+        }
+
+        string? requestCacheKey = null;
+        await using var requestLock = normalizedRequestId == null
+            ? null
+            : await Cache.redLock.CreateLockAsync(GetDeveloperProductPurchaseRequestCacheKey(userIdBuyer, productId, normalizedRequestId) + ":lock", TimeSpan.FromSeconds(15));
+        if (requestLock != null && !requestLock.IsAcquired)
+        {
+            var cachedReceipt = await GetCachedDeveloperProductPurchaseReceipt(userIdBuyer, productId, normalizedRequestId);
+            if (cachedReceipt.HasValue)
+                return cachedReceipt.Value;
+
+            throw new RobloxException(429, 0, "TooManyRequests");
+        }
+
+        if (normalizedRequestId != null)
+        {
+            requestCacheKey = GetDeveloperProductPurchaseRequestCacheKey(userIdBuyer, productId, normalizedRequestId);
+            var cachedReceipt = await GetCachedDeveloperProductPurchaseReceipt(userIdBuyer, productId, normalizedRequestId);
+            if (cachedReceipt.HasValue)
+                return cachedReceipt.Value;
+        }
+
         using var log = Writer.CreateWithId(LogGroup.ItemPurchase);
         log.Info($"PurchaseDeveloperProduct start. buyer={userIdBuyer} productId={productId}");
 
@@ -1848,6 +1899,11 @@ public class UsersService : ServiceBase, IService
             await games.IncrementDevProdSales(productId);
             await games.CreateProductReceipt(transactionId, userIdBuyer, productId, realPrice);
             log.Info("PurchaseDeveloperProduct success");
+
+            if (requestCacheKey != null)
+            {
+                await redis.StringSetAsync(requestCacheKey, transactionId.ToString(), TimeSpan.FromDays(7));
+            }
 
             return transactionId;
         });

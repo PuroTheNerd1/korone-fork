@@ -1328,12 +1328,16 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task ProcessProductReceipt(Guid id)
+    public async Task<bool> ProcessProductReceipt(Guid id)
     {
-        await db.QueryAsync("UPDATE product_receipt SET processed = TRUE, processed_at = CURRENT_TIMESTAMP WHERE id = :receiptId", new
+        var rowsAffected = await db.ExecuteAsync(
+            "UPDATE product_receipt SET processed = TRUE, processed_at = COALESCE(processed_at, CURRENT_TIMESTAMP) WHERE id = :receiptId AND processed = FALSE",
+            new
         {
             receiptId = id
         });
+
+        return rowsAffected > 0;
     }
     
     public async Task<IEnumerable<ProductReceipt>?> GetPendingProductReceipts(long userId, long universeId)

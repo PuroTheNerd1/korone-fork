@@ -124,6 +124,19 @@ namespace Roblox.Website.Controllers
             FeatureFlags.FeatureCheck(FeatureFlag.EconomyEnabled);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
+
+            var cachedReceipt = await services.users.GetCachedDeveloperProductPurchaseReceipt(userId, purchaseRequest.productId, purchaseRequest.requestId);
+            if (cachedReceipt.HasValue)
+            {
+                stopwatch.Stop();
+                return new
+                {
+                    success = true,
+                    status = "Bought",
+                    receipt = cachedReceipt.Value
+                };
+            }
+
             // some sanity checks
 
             var productInfo = await services.games.GetDeveloperProductInfoFull(purchaseRequest.productId);
@@ -138,7 +151,7 @@ namespace Roblox.Website.Controllers
             if (productInfo.price != purchaseRequest.expectedUnitPrice)
                 throw new BadRequestException(0, "Expected price is not the actual price");
 
-            var receiptId = await services.users.PurchaseDeveloperProduct(userId, purchaseRequest.productId);
+            var receiptId = await services.users.PurchaseDeveloperProduct(userId, purchaseRequest.productId, purchaseRequest.requestId);
             stopwatch.Stop();
             Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
                 false);
@@ -360,15 +373,40 @@ namespace Roblox.Website.Controllers
         {
             if (!isRCC)
                 throw new UnauthorizedException();
-            string[] body = (await GetRequestBody()).Split("=");
-            Guid receiptId = Guid.Parse(body[1]);
+
+            string? receiptValue = null;
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync();
+                receiptValue = form["receipt"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrWhiteSpace(receiptValue))
+            {
+                var requestBody = await GetRequestBody();
+                if (!string.IsNullOrWhiteSpace(requestBody))
+                {
+                    var parsed = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(requestBody);
+                    receiptValue = parsed.TryGetValue("receipt", out var receiptValues)
+                        ? receiptValues.FirstOrDefault()
+                        : null;
+                }
+            }
+
+            if (!Guid.TryParse(receiptValue, out var receiptId))
+                throw new BadRequestException(0, "Receipt is invalid or does not exist.");
 
             var receipt = await services.games.GetProductReceipt(receiptId);
 
             if (receipt == null)
                 throw new BadRequestException(0, "Receipt is invalid or does not exist.");
             if (receipt.processed)
-                throw new BadRequestException(0, "Receipt has already been processed.");
+            {
+                return new
+                {
+                    success = true
+                };
+            }
 
             await services.games.ProcessProductReceipt(receiptId);
 

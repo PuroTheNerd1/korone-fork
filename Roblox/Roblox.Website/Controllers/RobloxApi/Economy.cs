@@ -39,6 +39,19 @@ public class Economy : ControllerBase
     {
         FeatureCheck();
 
+        var cachedReceipt = await services.users.GetCachedDeveloperProductPurchaseReceipt(safeUserSession.userId, productId, request.requestId);
+        if (cachedReceipt.HasValue)
+        {
+            return new
+            {
+                purchased = true,
+                price = request.expectedPrice,
+                receipt = cachedReceipt.Value,
+                success = true,
+                productId = productId,
+            };
+        }
+
         var productInfo = await services.games.GetDeveloperProductInfoFull(productId);
         if (!productInfo.isForSale)
             throw new BadRequestException(0, "Developer Product is not for sale");
@@ -47,7 +60,7 @@ public class Economy : ControllerBase
             throw new BadRequestException(0, "Developer Product is not approved");
         if (productInfo.price != request.expectedPrice)
             throw new BadRequestException(0, "Expected price is not the actual price");
-        var receiptId = await services.users.PurchaseDeveloperProduct(safeUserSession.userId, productId);
+        var receiptId = await services.users.PurchaseDeveloperProduct(safeUserSession.userId, productId, request.requestId);
         return new
         {
             purchased = true,
