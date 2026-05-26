@@ -3,6 +3,7 @@ using Roblox.Libraries.DiscordApi;
 using Roblox.Libraries.LeakCheckApi;
 using Roblox.Libraries.RobloxApi;
 using Roblox.Services;
+using Roblox.Services.AdminApi;
 using Roblox.Services.AI;
 using Roblox.Services.Games;
 using Roblox.Services.PlaceLauncher;
@@ -44,6 +45,7 @@ public class RobloxServiceAccessor : IDisposable
     private OpenRouterService? _openRouter;
     private GameTopicService? _gameTopic;
     private GameRecommendationService? _gameRecommendation;
+    private AdminApiService? _adminApi;
     private DataStoreService? _dataStore;
     private R2StorageService? _r2Storage;
     private RobloxApi? _robloxApi;
@@ -89,6 +91,7 @@ public class RobloxServiceAccessor : IDisposable
     public OpenRouterService openRouter => GetService(ref _openRouter);
     public GameTopicService gameTopic => GetService(ref _gameTopic);
     public GameRecommendationService gameRecommendation => GetService(ref _gameRecommendation);
+    public AdminApiService adminApi => GetService(ref _adminApi);
     public DataStoreService dataStore => GetService(ref _dataStore);
     public R2StorageService r2Storage => GetService(ref _r2Storage);
     public RobloxApi robloxApi => _robloxApi ??= new RobloxApi();
