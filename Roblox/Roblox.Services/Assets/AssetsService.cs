@@ -1287,7 +1287,7 @@ public class AssetsService : ServiceBase, IService
     public async Task<long> BackportAccessory(long assetId)
     {
         var robloxApi = new RobloxApi();
-        var assetsService = new AssetsService();
+        using var assetsService = ServiceProvider.GetOrCreate<AssetsService>(this);
         var accessoryAsset = await robloxApi.GetProductInfo(assetId);
         var allowedTypes = new List<Models.Assets.Type>()
         {
@@ -2987,7 +2987,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             }
             else if (details.targetType == UserAdvertisementTargetType.Group)
             {
-                var gs = new GroupsService();
+                using var gs = ServiceProvider.GetOrCreate<GroupsService>(this);
                 var perms = await gs.GetUserRoleInGroup(details.targetId, contextUserId);
                 if (!perms.HasPermission(GroupPermission.AdvertiseGroup))
                 {
@@ -3075,7 +3075,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         }
         else if (targetType == UserAdvertisementTargetType.Group)
         {
-            var gs = new GroupsService();
+            using var gs = ServiceProvider.GetOrCreate<GroupsService>(this);
             var perms = await gs.GetUserRoleInGroup(targetId, contextUserId);
             if (!perms.HasPermission(GroupPermission.AdvertiseGroup))
             {

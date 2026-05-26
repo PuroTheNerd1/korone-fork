@@ -1,8 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Roblox.Web.Infrastructure.Auth;
 using Roblox.Web.Infrastructure.Configuration;
 using Roblox.Web.Infrastructure.Http;
+using Roblox.Web.Infrastructure.Services;
+using Roblox.Services.DependencyInjection;
 
 namespace Roblox.Web.Infrastructure.Extensions;
 
@@ -10,7 +13,10 @@ public static class RobloxWebInfrastructureServiceCollectionExtensions
 {
     public static IServiceCollection AddRobloxWebInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddRobloxServiceLayer();
         services.AddHttpContextAccessor();
+        services.TryAddSingleton<FileContentCache>();
+        services.TryAddScoped<RobloxServiceAccessor>();
         services.AddSingleton<IRobloxRequestContextAccessor, RobloxRequestContextAccessor>();
         services.AddOptions<RobloxWebInfrastructureOptions>().Configure(options =>
         {

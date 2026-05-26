@@ -17,8 +17,7 @@ public class Year : RobloxPageModel
     public async Task<IActionResult> OnGet()
     {
         if (session == null) return Redirect("/login");
-        var usersService = new UsersService();
-        currentYear = await usersService.GetYear(session.userId);
+        currentYear = await services.users.GetYear(session.userId);
 
         return Page();
     }
@@ -26,8 +25,7 @@ public class Year : RobloxPageModel
     public async Task OnPost()
     {
         if (session == null) return;
-        var usersService = new UsersService();
-        await usersService.SetYear(session.userId, year);
+        await services.users.SetYear(session.userId, year);
         currentYear = year;
         successMessage = "Year updated.";
     }

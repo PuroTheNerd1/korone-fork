@@ -24,6 +24,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Roblox.Services\Roblox.Services.csproj" />
+      <ProjectReference Include="..\Roblox.Web.Infrastructure\Roblox.Web.Infrastructure.csproj" />
+      <ProjectReference Include="..\Roblox.Website\Roblox.Website.csproj" />
     </ItemGroup>
 
 </Project>

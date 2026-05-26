@@ -10,10 +10,16 @@ namespace Roblox.Web.Infrastructure.Controllers;
 
 public class RobloxControllerBase : ControllerBase, IDisposable
 {
-    protected RobloxServiceAccessor services { get; } = new();
+    [FromServices]
+    public RobloxServiceAccessor ServicesAccessor { get; set; } = null!;
 
     [FromServices]
     public IRobloxRequestContextAccessor RequestContextAccessor { get; set; } = null!;
+
+    [FromServices]
+    public FileContentCache FileContentCache { get; set; } = null!;
+
+    protected RobloxServiceAccessor services => ServicesAccessor;
 
 #if DEBUG
     public UserSession? userSessionForTests { get; set; }
@@ -112,6 +118,6 @@ public class RobloxControllerBase : ControllerBase, IDisposable
 
     public void Dispose()
     {
-        services.Dispose();
+        ServicesAccessor?.Dispose();
     }
 }

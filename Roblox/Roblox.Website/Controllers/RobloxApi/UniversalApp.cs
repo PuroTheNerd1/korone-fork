@@ -24,7 +24,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("universal-app-configuration/v1/behaviors/app-policy/content")]
         public dynamic AppPolicy()
         {
-            string policyContent = System.IO.File.ReadAllText(Configuration.JsonDataDirectory + "AppPolicy.json");
+            var policyContent = FileContentCache.ReadText(Path.Combine(Configuration.JsonDataDirectory, "AppPolicy.json"));
             dynamic? policyJson = JsonConvert.DeserializeObject<ExpandoObject>(policyContent);
             return policyJson ?? "";
         }

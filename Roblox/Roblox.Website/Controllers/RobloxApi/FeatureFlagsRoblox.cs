@@ -98,7 +98,7 @@ namespace Roblox.Website.Controllers
             if (!System.IO.File.Exists(featureFlags))
                 throw new BadRequestException(0, $"Feature flags not found for {type}");
 
-            return System.IO.File.ReadAllText(featureFlags);
+            return FileContentCache.ReadText(featureFlags);
         }
     }
 }

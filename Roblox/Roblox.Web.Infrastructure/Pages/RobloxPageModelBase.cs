@@ -8,10 +8,13 @@ namespace Roblox.Web.Infrastructure.Pages;
 
 public class RobloxPageModelBase : PageModel, IDisposable
 {
-    protected RobloxServiceAccessor services { get; } = new();
+    [FromServices]
+    public RobloxServiceAccessor ServicesAccessor { get; set; } = null!;
 
     [FromServices]
     public IRobloxRequestContextAccessor RequestContextAccessor { get; set; } = null!;
+
+    protected RobloxServiceAccessor services => ServicesAccessor;
 
     protected RobloxRequestContext RequestContext => RequestContextAccessor.Current;
     public UserSession? userSession => RequestContext.Session;
@@ -35,6 +38,6 @@ public class RobloxPageModelBase : PageModel, IDisposable
 
     public virtual void Dispose()
     {
-        services.Dispose();
+        ServicesAccessor?.Dispose();
     }
 }

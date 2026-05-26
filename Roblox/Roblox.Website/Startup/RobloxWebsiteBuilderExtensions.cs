@@ -18,56 +18,58 @@ public static class RobloxWebsiteBuilderExtensions
     public static void InitializeLegacyConfiguration(this WebApplicationBuilder builder)
     {
         var configuration = builder.Configuration;
+        var options = configuration.Get<RobloxWebsiteOptions>() ?? new RobloxWebsiteOptions();
         builder.Logging.AddFilter("Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware", LogLevel.None);
+        builder.Services.Configure<RobloxWebsiteOptions>(configuration);
 
-        Roblox.Services.Database.Configure(configuration.GetSection("Postgres").Value!);
-        Roblox.Services.Cache.Configure(configuration.GetSection("Redis").Value!, configuration.GetSection("RedisAuthentication").Value!);
+        Roblox.Services.Database.Configure(options.Postgres);
+        Roblox.Services.Cache.Configure(options.Redis, options.RedisAuthentication);
 
-        Roblox.Configuration.CdnBaseUrl = configuration.GetSection("CdnBaseUrl").Value!;
-        Roblox.Configuration.AssetDirectory = configuration.GetSection("Directories:Asset").Value!;
-        Roblox.Configuration.StorageDirectory = configuration.GetSection("Directories:Storage").Value!;
-        Roblox.Configuration.ThumbnailsDirectory = configuration.GetSection("Directories:Thumbnails").Value!;
-        Roblox.Configuration.GroupIconsDirectory = configuration.GetSection("Directories:GroupIcons").Value!;
-        Roblox.Configuration.PublicDirectory = configuration.GetSection("Directories:Public").Value!;
-        Roblox.Configuration.XmlTemplatesDirectory = configuration.GetSection("Directories:XmlTemplates").Value!;
-        Roblox.Configuration.JsonDataDirectory = configuration.GetSection("Directories:JsonData").Value!;
-        Roblox.Configuration.ScriptDirectory = configuration.GetSection("Directories:ScriptsData").Value!;
-        Roblox.Configuration.AdminBundleDirectory = configuration.GetSection("Directories:AdminBundle").Value!;
-        Roblox.Configuration.EconomyChatBundleDirectory = configuration.GetSection("Directories:EconomyChatBundle").Value!;
-        Roblox.Configuration.BaseUrl = configuration.GetSection("BaseUrl").Value!;
-        Roblox.Configuration.ShortBaseUrl = Roblox.Configuration.BaseUrl!.Replace("https", "http").Replace("http://www.", "");
-        Roblox.Configuration.HCaptchaPublicKey = configuration.GetSection("HCaptcha:Public").Value!;
-        Roblox.Configuration.HCaptchaPrivateKey = configuration.GetSection("HCaptcha:Private").Value!;
-        Roblox.Configuration.IsCdnEnabled = bool.Parse(configuration.GetSection("IsCdnEnabled").Value ?? "false");
-        Roblox.Configuration.HmacSecret = configuration.GetSection("HmacSecret").Value!;
-        Roblox.Configuration.R2AccountId = configuration.GetSection("CloudflareR2:AccountId").Value!;
-        Roblox.Configuration.R2AccessKey = configuration.GetSection("CloudflareR2:AccessKey").Value!;
-        Roblox.Configuration.R2SecretKey = configuration.GetSection("CloudflareR2:SecretKey").Value!;
-        Roblox.Configuration.R2BucketName = configuration.GetSection("CloudflareR2:BucketName").Value!;
-        Roblox.Configuration.RobloxClientId = configuration.GetSection("Roblox:ClientId").Value!;
-        Roblox.Configuration.RobloxClientSecret = configuration.GetSection("Roblox:ClientSecret").Value!;
-        Roblox.Configuration.DiscordClientId = configuration.GetSection("Discord:ClientId").Value!;
-        Roblox.Configuration.DiscordClientSecret = configuration.GetSection("Discord:ClientSecret").Value!;
-        Roblox.Configuration.DiscordGuildId = configuration.GetSection("Discord:GuildId").Value!;
-        Roblox.Configuration.DiscordBotToken = configuration.GetSection("Discord:BotToken").Value!;
-        Roblox.Configuration.DiscordLogChannelId = configuration.GetSection("Discord:LogChannelId").Value!;
-        Roblox.Configuration.DiscordLockChannelId = configuration.GetSection("Discord:LockChannelId").Value!;
-        Roblox.Configuration.DiscordApplicationCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:ApplicationCallback").Value;
-        Roblox.Configuration.DiscordLoginCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:LoginCallback").Value;
-        Roblox.Configuration.DiscordLinkCallback = Roblox.Configuration.BaseUrl + configuration.GetSection("Discord:LinkCallback").Value;
-        Roblox.Configuration.LeakCheckApiKey = configuration.GetSection("LeakCheckApiKey").Value!;
-        Roblox.Configuration.GameServerAuthorization = configuration.GetSection("GameServerAuthorization").Value!;
-        Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value!;
-        Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value!;
-        Roblox.Configuration.RobloxAuthorization = configuration.GetSection("RobloxAuthorization").Value!;
-        Roblox.Configuration.ArbiterAuthorization = configuration.GetSection("ArbiterAuthorization").Value!;
-        Roblox.Configuration.GameServerIp = configuration.GetSection("GameServerIp").Value!;
-        Roblox.Configuration.UserAgentBypassSecret = configuration.GetSection("UserAgentBypassSecret").Value!;
-        Roblox.Configuration.InvisibleTurnstileSiteKey = configuration.GetSection("InvisibleTurnstile:SiteKey").Value ?? "";
-        Roblox.Configuration.InvisibleTurnstileSecretKey = configuration.GetSection("InvisibleTurnstile:SecretKey").Value ?? "";
-        Roblox.Configuration.OpenRouterApiKey = configuration.GetSection("AI:OpenRouterAPIKey").Value ?? "";
-        Roblox.Configuration.VerificationSecret = configuration.GetSection("VerificationSecret").Value!;
-        Roblox.Configuration.LuaScriptsDirectory = configuration.GetSection("Directories:RCCLuaScripts").Value!;
+        Roblox.Configuration.CdnBaseUrl = options.CdnBaseUrl;
+        Roblox.Configuration.AssetDirectory = options.Directories.Asset;
+        Roblox.Configuration.StorageDirectory = options.Directories.Storage;
+        Roblox.Configuration.ThumbnailsDirectory = options.Directories.Thumbnails;
+        Roblox.Configuration.GroupIconsDirectory = options.Directories.GroupIcons;
+        Roblox.Configuration.PublicDirectory = options.Directories.Public;
+        Roblox.Configuration.XmlTemplatesDirectory = options.Directories.XmlTemplates;
+        Roblox.Configuration.JsonDataDirectory = options.Directories.JsonData;
+        Roblox.Configuration.ScriptDirectory = options.Directories.ScriptsData;
+        Roblox.Configuration.AdminBundleDirectory = options.Directories.AdminBundle;
+        Roblox.Configuration.EconomyChatBundleDirectory = options.Directories.EconomyChatBundle;
+        Roblox.Configuration.BaseUrl = options.BaseUrl;
+        Roblox.Configuration.ShortBaseUrl = options.BaseUrl.Replace("https", "http").Replace("http://www.", "");
+        Roblox.Configuration.HCaptchaPublicKey = options.HCaptcha.Public;
+        Roblox.Configuration.HCaptchaPrivateKey = options.HCaptcha.Private;
+        Roblox.Configuration.IsCdnEnabled = options.IsCdnEnabled;
+        Roblox.Configuration.HmacSecret = options.HmacSecret;
+        Roblox.Configuration.R2AccountId = options.CloudflareR2.AccountId;
+        Roblox.Configuration.R2AccessKey = options.CloudflareR2.AccessKey;
+        Roblox.Configuration.R2SecretKey = options.CloudflareR2.SecretKey;
+        Roblox.Configuration.R2BucketName = options.CloudflareR2.BucketName;
+        Roblox.Configuration.RobloxClientId = options.Roblox.ClientId;
+        Roblox.Configuration.RobloxClientSecret = options.Roblox.ClientSecret;
+        Roblox.Configuration.DiscordClientId = options.Discord.ClientId;
+        Roblox.Configuration.DiscordClientSecret = options.Discord.ClientSecret;
+        Roblox.Configuration.DiscordGuildId = options.Discord.GuildId;
+        Roblox.Configuration.DiscordBotToken = options.Discord.BotToken;
+        Roblox.Configuration.DiscordLogChannelId = options.Discord.LogChannelId;
+        Roblox.Configuration.DiscordLockChannelId = options.Discord.LockChannelId;
+        Roblox.Configuration.DiscordApplicationCallback = options.BaseUrl + options.Discord.ApplicationCallback;
+        Roblox.Configuration.DiscordLoginCallback = options.BaseUrl + options.Discord.LoginCallback;
+        Roblox.Configuration.DiscordLinkCallback = options.BaseUrl + options.Discord.LinkCallback;
+        Roblox.Configuration.LeakCheckApiKey = options.LeakCheckApiKey;
+        Roblox.Configuration.GameServerAuthorization = options.GameServerAuthorization;
+        Roblox.Configuration.BotAuthorization = options.BotAuthorization;
+        Roblox.Configuration.RccAuthorization = options.RccAuthorization;
+        Roblox.Configuration.RobloxAuthorization = options.RobloxAuthorization;
+        Roblox.Configuration.ArbiterAuthorization = options.ArbiterAuthorization;
+        Roblox.Configuration.GameServerIp = options.GameServerIp;
+        Roblox.Configuration.UserAgentBypassSecret = options.UserAgentBypassSecret;
+        Roblox.Configuration.InvisibleTurnstileSiteKey = options.InvisibleTurnstile.SiteKey;
+        Roblox.Configuration.InvisibleTurnstileSecretKey = options.InvisibleTurnstile.SecretKey;
+        Roblox.Configuration.OpenRouterApiKey = options.AI.OpenRouterAPIKey;
+        Roblox.Configuration.VerificationSecret = options.VerificationSecret;
+        Roblox.Configuration.LuaScriptsDirectory = options.Directories.RCCLuaScripts;
 
         var gameServerConfig = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
@@ -76,26 +78,25 @@ public static class RobloxWebsiteBuilderExtensions
             .Build();
         Roblox.Configuration.GameServerIpAddresses = gameServerConfig.GetSection("GameServers").Get<IEnumerable<GameServerConfigEntry>>() ?? Enumerable.Empty<GameServerConfigEntry>();
 
-        Roblox.Configuration.AssetValidationServiceUrl = configuration.GetSection("AssetValidation:BaseUrl").Value!;
-        Roblox.Configuration.AssetValidationServiceAuthorization = configuration.GetSection("AssetValidation:Authorization").Value!;
+        Roblox.Configuration.AssetValidationServiceUrl = options.AssetValidation.BaseUrl;
+        Roblox.Configuration.AssetValidationServiceAuthorization = options.AssetValidation.Authorization;
         GameServerService.Configure(string.Join(Guid.NewGuid().ToString(), new int[16].Select(_ => Guid.NewGuid().ToString())));
-        Roblox.Configuration.PackageShirtAssetId = long.Parse(configuration.GetSection("PackageShirtAssetId").Value!);
-        Roblox.Configuration.PackagePantsAssetId = long.Parse(configuration.GetSection("PackagePantsAssetId").Value!);
-        Roblox.Libraries.TwitterApi.TwitterApi.Configure(configuration.GetSection("Twitter:Bearer").Value!);
-        Roblox.Configuration.SignupAssetIds = configuration.GetSection("SignupAssetIds").GetChildren().Select(assetIdStr => long.Parse(assetIdStr.Value!));
-        Roblox.Configuration.SignupAvatarAssetIds = configuration.GetSection("SignupAvatarAssetIds").GetChildren().Select(c => long.Parse(c.Value!));
+        Roblox.Configuration.PackageShirtAssetId = options.PackageShirtAssetId;
+        Roblox.Configuration.PackagePantsAssetId = options.PackagePantsAssetId;
+        Roblox.Libraries.TwitterApi.TwitterApi.Configure(options.Twitter.Bearer);
+        Roblox.Configuration.SignupAssetIds = options.SignupAssetIds;
+        Roblox.Configuration.SignupAvatarAssetIds = options.SignupAvatarAssetIds;
 
 #if DEBUG
         Roblox.Configuration.RobloxAppPrefix = "rbxeconsimdev:";
 #endif
 
-        var ownerUserIds = configuration.GetSection("OwnerUserId").Get<List<long>>()!;
-        Roblox.Website.Filters.StaffFilter.Configure(ownerUserIds);
+        Roblox.Website.Filters.StaffFilter.Configure(options.OwnerUserId);
 
-        ApplicationGuardMiddleware.Configure(configuration.GetSection("Authorization").Value!);
+        ApplicationGuardMiddleware.Configure(options.Authorization);
         CsrfMiddleware.Configure(Guid.NewGuid() + Guid.NewGuid().ToString() + Guid.NewGuid());
-        SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value!);
-        CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value);
+        SessionMiddleware.Configure(options.Jwt.Sessions);
+        CommandHandler.Configure(options.Render.BaseUrl, options.Render.Authorization);
         Roblox.Services.Signer.SignService.Setup();
 
 #if DEBUG
@@ -109,6 +110,7 @@ public static class RobloxWebsiteBuilderExtensions
     {
         services.AddRazorPages();
         services.AddRobloxWebInfrastructure(configuration);
+        services.AddSingleton<Roblox.EconomyChat.ChatService>();
         services.AddRequestDecompression();
         services.AddControllers(options =>
             {
@@ -148,7 +150,6 @@ public static class RobloxWebsiteBuilderExtensions
         });
         services.AddMvc(c => c.Conventions.Add(new ApiExplorerGetsOnlyConvention()));
 
-        services.AddSingleton<R2StorageService>();
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
 

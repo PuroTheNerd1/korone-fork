@@ -243,7 +243,7 @@ namespace Roblox.Services
             var itemsList = items.ToList();
             foreach (var item in columnsList)
             {
-                if (!columnsList.Contains(item))
+                if (!tableData.Contains(item))
                 {
                     throw new Exception("Column " + item + " does not exist in table " + tableName);
                 }

@@ -12,9 +12,9 @@ public class EconomyChat : ControllerBase
 {
     private ChatService chatService { get; }
 
-    public EconomyChat()
+    public EconomyChat(ChatService chatService)
     {
-        chatService = new ChatService();
+        this.chatService = chatService;
     }
 
     [HttpGet("metadata")]

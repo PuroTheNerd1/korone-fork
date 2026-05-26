@@ -62,10 +62,6 @@ public class AdminApiController : ControllerBase
     private DistributedCache redis => Roblox.Services.Cache.distributed;
     private static readonly long startTime = DateTimeOffset.Now.ToUnixTimeSeconds();
 
-    private static string? adminBundleJs { get; set; }
-    private static string? adminBundleCss { get; set; }
-    private static string? adminBundleHtml { get; set; }
-    private static readonly Mutex adminStaticMux = new();
     private static readonly string adminRandomUrlPart = Guid.NewGuid().ToString();
 
     private bool IsLoggedIn()
@@ -96,14 +92,7 @@ public class AdminApiController : ControllerBase
     {
         if (!await IsStaff(safeUserSession.userId)) 
             return Redirect("/home");
-
-        if (adminBundleJs == null)
-        {
-            adminStaticMux.WaitOne();
-            adminBundleJs = System.IO.File.ReadAllText(Configuration.AdminBundleDirectory + "/build/bundle.js");
-            adminStaticMux.ReleaseMutex();
-        }
-        return Content(adminBundleJs, "application/javascript");
+        return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "build", "bundle.js")), "application/javascript");
     }
 
     [HttpGet("/admin/build-redirect/bundle.css")]
@@ -118,17 +107,7 @@ public class AdminApiController : ControllerBase
     public async Task<IActionResult> GetAdminBundleCssReal()
     {
         if (!IsLoggedIn() || !await IsStaff(userSession.userId)) return Redirect("/home");
-#if DEBUG
-        if (true)
-#else
-        if (adminBundleCss == null)
-#endif
-        {
-            adminStaticMux.WaitOne();
-            adminBundleCss = System.IO.File.ReadAllText(Configuration.AdminBundleDirectory + "/build/bundle.css");
-            adminStaticMux.ReleaseMutex();
-        }
-        return Content(adminBundleCss, "text/css");
+        return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "build", "bundle.css")), "text/css");
     }
 
     // Wildcards are not easily supported... https://stackoverflow.com/questions/51973631/wildcard-in-route-attribute-for-webapi?rq=1
@@ -136,17 +115,7 @@ public class AdminApiController : ControllerBase
     public async Task<IActionResult> GetAdminView()
     {
         if (!IsLoggedIn() || !await IsStaff(userSession.userId)) return Redirect("/home");
-#if DEBUG
-        if (true)
-#else
-        if (adminBundleHtml == null)
-#endif
-        {
-            adminStaticMux.WaitOne();
-            adminBundleHtml = System.IO.File.ReadAllText(Configuration.AdminBundleDirectory + "/index.html");
-            adminStaticMux.ReleaseMutex();
-        }
-        return Content(adminBundleHtml, "text/html");
+        return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "index.html")), "text/html");
     }
 
     [HttpGet("permissions")]

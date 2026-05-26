@@ -1,38 +1,78 @@
-using System.Diagnostics;
+using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Roblox.Services;
 
 public static class ServiceProvider
 {
-    private static Dictionary<string, IService> cachedServices { get; set; } = new();
-    private static Mutex servicesMux { get; set; } = new();
-    
-    public static T GetOrCreate<T>(ServiceBase? parent = null) where T : ServiceBase, IDisposable, IService, new()
+    private static readonly AsyncLocal<IServiceProvider?> CurrentProvider = new();
+    private static IServiceProvider? _rootProvider;
+
+    public static void Initialize(IServiceProvider serviceProvider)
     {
-        var serviceName = typeof(T).FullName ?? typeof(T).Name;
-        if (parent == null)
+        _rootProvider = serviceProvider;
+    }
+
+    public static IDisposable BeginScope(IServiceProvider serviceProvider)
+    {
+        return new RequestScopeCookie(serviceProvider);
+    }
+
+    public static T GetOrCreate<T>(ServiceBase? parent = null) where T : ServiceBase, IDisposable
+    {
+        var provider = CurrentProvider.Value ?? _rootProvider;
+        if (provider != null)
         {
-            servicesMux.WaitOne();
-            if (cachedServices.TryGetValue(serviceName, out var cService))
+            var service = parent == null
+                ? ResolveOrCreate<T>(provider)
+                : ActivatorUtilities.CreateInstance<T>(provider);
+            if (parent != null)
             {
-                servicesMux.ReleaseMutex();
-                return (T)cService;
+                service.transactionConnection = parent.transactionConnection;
             }
-        }
-        var service = new T();
-        if (parent != null)
-        {
-            service.transactionConnection = parent.transactionConnection;
-        }
-        else if (service.IsReusable() && service.IsThreadSafe())
-        {
-            cachedServices.Add(serviceName, service);
+
+            return service;
         }
 
-        if (parent == null)
+        var fallback = Activator.CreateInstance<T>();
+        if (parent != null)
         {
-            servicesMux.ReleaseMutex();
+            fallback.transactionConnection = parent.transactionConnection;
         }
-        return service;
+
+        return fallback;
+    }
+
+    private static T ResolveOrCreate<T>(IServiceProvider provider) where T : ServiceBase, IDisposable
+    {
+        if (provider.GetService<T>() is T registered)
+        {
+            return registered;
+        }
+
+        return ActivatorUtilities.CreateInstance<T>(provider);
+    }
+
+    private sealed class RequestScopeCookie : IDisposable
+    {
+        private readonly IServiceProvider? _previous;
+        private bool _disposed;
+
+        public RequestScopeCookie(IServiceProvider serviceProvider)
+        {
+            _previous = CurrentProvider.Value;
+            CurrentProvider.Value = serviceProvider;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            CurrentProvider.Value = _previous;
+        }
     }
 }

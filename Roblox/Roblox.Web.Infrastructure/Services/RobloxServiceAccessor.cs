@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Roblox.Libraries.DiscordApi;
 using Roblox.Libraries.LeakCheckApi;
 using Roblox.Libraries.RobloxApi;
@@ -11,8 +12,7 @@ namespace Roblox.Web.Infrastructure.Services;
 
 public class RobloxServiceAccessor : IDisposable
 {
-    private readonly List<IDisposable> _ownedServices = new();
-    private bool _disposed;
+    private readonly IServiceProvider? _serviceProvider;
 
     private AssetsService? _assets;
     private PromocodesService? _promocodes;
@@ -50,6 +50,15 @@ public class RobloxServiceAccessor : IDisposable
     private LeakCheckApi? _leakCheck;
     private DiscordBotApi? _discordBotApi;
 
+    public RobloxServiceAccessor()
+    {
+    }
+
+    public RobloxServiceAccessor(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
     public AssetsService assets => GetService(ref _assets);
     public PromocodesService promocodes => GetService(ref _promocodes);
     public RobloxAssetService robloxAssetCache => GetService(ref _robloxAssetCache);
@@ -65,11 +74,11 @@ public class RobloxServiceAccessor : IDisposable
     public PrivateMessagesService privateMessages => GetService(ref _privateMessages);
     public ThumbnailsService thumbnails => GetService(ref _thumbnails);
     public TradesService trades => GetService(ref _trades);
-    public GameServerService gameServer => GetOwned(ref _gameServer, static () => new GameServerService());
-    public SetsService sets => GetOwned(ref _sets, static () => new SetsService());
-    public PlaceLauncherService placeLauncher => GetOwned(ref _placeLauncher, static () => new PlaceLauncherService());
-    public SignService sign => GetOwned(ref _sign, static () => new SignService());
-    public ForumsService forums => GetOwned(ref _forums, static () => new ForumsService());
+    public GameServerService gameServer => GetService(ref _gameServer);
+    public SetsService sets => GetService(ref _sets);
+    public PlaceLauncherService placeLauncher => GetService(ref _placeLauncher);
+    public SignService sign => GetService(ref _sign);
+    public ForumsService forums => GetService(ref _forums);
     public CurrencyExchangeService currencyExchange => GetService(ref _currencyExchange);
     public AbuseReportService abuseReport => GetService(ref _abuseReport);
     public EconomyService economy => GetService(ref _economy);
@@ -86,51 +95,24 @@ public class RobloxServiceAccessor : IDisposable
     public LeakCheckApi leakCheck => _leakCheck ??= new LeakCheckApi(Roblox.Configuration.LeakCheckApiKey);
     public DiscordBotApi discordBotApi => _discordBotApi ??= new DiscordBotApi(Roblox.Configuration.DiscordBotToken);
 
-    private T GetService<T>(ref T? field) where T : ServiceBase, IDisposable, IService, new()
+    private T GetService<T>(ref T? field) where T : ServiceBase, IDisposable
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_serviceProvider == null)
+        {
+            return Roblox.Services.ServiceProvider.GetOrCreate<T>();
+        }
 
         if (field != null)
         {
             return field;
         }
 
-        field = ServiceProvider.GetOrCreate<T>();
-        if (!field.IsReusable() || !field.IsThreadSafe())
-        {
-            _ownedServices.Add(field);
-        }
-
-        return field;
-    }
-
-    private T GetOwned<T>(ref T? field, Func<T> factory) where T : class, IDisposable
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        if (field != null)
-        {
-            return field;
-        }
-
-        field = factory();
-        _ownedServices.Add(field);
+        field = _serviceProvider.GetRequiredService<T>();
         return field;
     }
 
     public void Dispose()
     {
-        if (_disposed)
-        {
-            return;
-        }
-
-        _disposed = true;
-        foreach (var service in _ownedServices.Distinct())
-        {
-            service.Dispose();
-        }
-
-        _ownedServices.Clear();
+        _leakCheck?.Dispose();
     }
 }

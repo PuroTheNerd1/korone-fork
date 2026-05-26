@@ -880,10 +880,10 @@ public class AvatarService : ServiceBase, IService {
 
         await Task.WhenAll(tAvatarType, tScales, tColors, tAssets);
 
-        avatarType = tAvatarType.Result;
-        scales = tScales.Result;
-        colors = tColors.Result;
-        var assetIds = tAssets.Result.ToList();
+        avatarType = await tAvatarType;
+        scales = await tScales;
+        colors = await tColors;
+        var assetIds = (await tAssets).ToList();
 
         if (!AreColorsOk(colors))
             throw new RobloxException(400, 0, "Colors are invalid");
@@ -936,11 +936,13 @@ public class AvatarService : ServiceBase, IService {
         try
         {
             await Task.WhenAll(headshotTask, thumbnailTask);
+            var headshot = await headshotTask;
+            var thumbnail = await thumbnailTask;
 
             var upload2DTasks = new List<Task>
         {
-            ProcessAndUploadImageAsync(r2, headshotTask.Result, 150, headshotKey),
-            ProcessAndUploadImageAsync(r2, thumbnailTask.Result, 352, thumbnailKey)
+            ProcessAndUploadImageAsync(r2, headshot, 150, headshotKey),
+            ProcessAndUploadImageAsync(r2, thumbnail, 352, thumbnailKey)
         };
             await Task.WhenAll(upload2DTasks);
         }

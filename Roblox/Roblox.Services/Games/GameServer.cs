@@ -148,7 +148,6 @@ public class GameServerService : ServiceBase
     }
 
     private static ArbiterHttpClient arbiterClient = new ArbiterHttpClient();
-    private static GamesService games = new GamesService();
     private static string jwtKey { get; set; } = string.Empty;
     private static EasyJwt jwt { get; } = new();
     private static Random random = new Random();
@@ -205,6 +204,7 @@ public class GameServerService : ServiceBase
                     */
                     using var accountService = ServiceProvider.GetOrCreate<AccountInformationService>(this);
                     var badges = await accountService.GetUserBadges(placeDetails.creatorTargetId);
+                    using var games = ServiceProvider.GetOrCreate<GamesService>(this);
                     switch (await games.GetTotalVisitsFromUser(placeDetails.creatorTargetId))
                     {
                         case 100:

@@ -28,10 +28,9 @@ public class UserSponsorship : RobloxPageModel
         ad = await services.assets.GetAdvertisementForIFrame(userAdType, userSession?.userId);
         if (ad == null) return;
         await services.assets.IncrementAdvertisementImpressions(ad.id);
-        var thumbs = new ThumbnailsService();
         // TODO: This should be using getLatestAssetVersion() instead of a thumbnail... the thumbnail is too low quality
         // var image = await assetService.GetLatestAssetVersion(ad.advertisementAssetId);
-        var image = (await thumbs.GetAssetThumbnails(new[] {ad.advertisementAssetId})).First();
+        var image = (await services.thumbnails.GetAssetThumbnails(new[] {ad.advertisementAssetId})).First();
         imageUrl = image.imageUrl;
         // imageUrl = "/img/public/" + image.contentUrl + ".png";
         switch (ad.targetType)

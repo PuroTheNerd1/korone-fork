@@ -48,7 +48,6 @@ public class AccountDeletion : RobloxPageModel
 
     public async Task<IActionResult> OnPost()
     {
-        var services = new ControllerServices();
         var rlKey = ControllerBase.GetIP(ControllerBase.GetRequesterIpRaw(HttpContext)) + "_" + DateTime.UtcNow.ToString("d");
         var tries = attempts.ContainsKey(rlKey) ? attempts[rlKey] : 0;
         if (tries >= 10)

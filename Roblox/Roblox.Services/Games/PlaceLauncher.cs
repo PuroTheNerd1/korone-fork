@@ -11,11 +11,6 @@ using Roblox.Services.Signer;
 namespace Roblox.Services.PlaceLauncher;
 public class PlaceLauncherService : ServiceBase
 {
-
-    private static GamesService games = new GamesService();
-    private static GameServerService gameServer = new GameServerService();
-    private static UsersService users = new UsersService();
-    private static SignService sign = new SignService();
     public enum MatchmakingContextId
     {
         Default = 1,
@@ -51,6 +46,8 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<PlaceLaunchResponse> RequestGameJob(long userId, Guid gameId, long placeId)
     {
+        using var gameServer = ServiceProvider.GetOrCreate<GameServerService>(this);
+        using var games = ServiceProvider.GetOrCreate<GamesService>(this);
         var server = await gameServer.GetGameServer(gameId);
         if (server == null)
         {
@@ -86,6 +83,10 @@ public class PlaceLauncherService : ServiceBase
 
     public async Task<PlaceLaunchResponse> RequestGame(long placeId, long userId, string cookie, bool? Special = false, string? username = null)
     {
+        using var games = ServiceProvider.GetOrCreate<GamesService>(this);
+        using var gameServer = ServiceProvider.GetOrCreate<GameServerService>(this);
+        using var users = ServiceProvider.GetOrCreate<UsersService>(this);
+        using var sign = ServiceProvider.GetOrCreate<SignService>(this);
         dynamic? joinScript = null;
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved || placeInfo.year == 2016)
@@ -143,6 +144,10 @@ public class PlaceLauncherService : ServiceBase
     }
     public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
     {
+        using var games = ServiceProvider.GetOrCreate<GamesService>(this);
+        using var gameServer = ServiceProvider.GetOrCreate<GameServerService>(this);
+        using var users = ServiceProvider.GetOrCreate<UsersService>(this);
+        using var sign = ServiceProvider.GetOrCreate<SignService>(this);
         string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         // Block 2017 due to authentication issues

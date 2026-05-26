@@ -12,14 +12,14 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v1/locales")]
         public dynamic GetLocales()
         {
-            string localesRaw = System.IO.File.ReadAllText(Configuration.JsonDataDirectory + "Local.json");
+            var localesRaw = FileContentCache.ReadText(Path.Combine(Configuration.JsonDataDirectory, "Local.json"));
             dynamic? local = JsonConvert.DeserializeObject<ExpandoObject>(localesRaw);
             return local ?? "";
         }
         [HttpGetBypass("v1/locales/user-localization-locus-supported-locales")]
         public dynamic GetLocalesOther()
         {
-            string localesRaw = System.IO.File.ReadAllText(Configuration.JsonDataDirectory + "Supportedlocales.json");
+            var localesRaw = FileContentCache.ReadText(Path.Combine(Configuration.JsonDataDirectory, "Supportedlocales.json"));
             dynamic? local = JsonConvert.DeserializeObject<ExpandoObject>(localesRaw);
             return local ?? "";
         }

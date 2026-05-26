@@ -42,7 +42,9 @@ public static class RobloxServiceDefaultsExtensions
 
     public static WebApplication UseRobloxServiceDefaults(this WebApplication app, ServiceExposure exposure)
     {
+        Roblox.Services.ServiceProvider.Initialize(app.Services);
         app.UseRouting();
+        app.UseRobloxRequestServicesScope();
         app.UseExceptionHandler();
 
         if (exposure == ServiceExposure.InternalService)

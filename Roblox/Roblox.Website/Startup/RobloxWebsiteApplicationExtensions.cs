@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using Roblox;
 using Roblox.Services;
+using Roblox.Web.Infrastructure.Middleware;
 using Roblox.Website.Hubs;
 using Roblox.Website.Middleware;
 
@@ -18,7 +20,8 @@ public static class RobloxWebsiteApplicationExtensions
             return;
         }
 
-        var usersService = new UsersService();
+        using var scope = app.Services.CreateScope();
+        var usersService = scope.ServiceProvider.GetRequiredService<UsersService>();
         if (await usersService.CountCreatedUsers(null) != 0)
         {
             return;
@@ -44,7 +47,7 @@ public static class RobloxWebsiteApplicationExtensions
                 updatedAt = DateTime.UtcNow,
             });
 
-            joinId = await usersService.ProcessApplication(applicationId, Configuration.AiUserId, Roblox.Models.Users.UserApplicationStatus.Approved);
+            joinId = await usersService.ProcessApplication(applicationId, Configuration.AiUserId, Roblox.Dto.Users.UserApplicationStatus.Approved);
         }
         catch (Exception)
         {
@@ -60,7 +63,9 @@ public static class RobloxWebsiteApplicationExtensions
 
     public static void UseRobloxWebsitePipeline(this WebApplication app)
     {
+        Roblox.Services.ServiceProvider.Initialize(app.Services);
         app.UseRouting();
+        app.UseRobloxRequestServicesScope();
 
         var prepareResponseForCache = (StaticFileResponseContext ctx) =>
         {

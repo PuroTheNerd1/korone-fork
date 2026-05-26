@@ -14,6 +14,8 @@ public class TimerMiddleware
     
     public async Task InvokeAsync(HttpContext ctx)
     {
+        await _next(ctx);
+
         if (ctx.Items.ContainsKey(MiddlewareTimer.MiddlewareTimerKey))
         {
             if (ctx.Items[MiddlewareTimer.MiddlewareTimerKey] is List<MiddlewareTimerResult> results)
@@ -25,11 +27,12 @@ public class TimerMiddleware
                 }
 
                 strs.Reverse();
-                ctx.Response.Headers.Append("x-timing", string.Join(",", strs));
+                if (!ctx.Response.HasStarted)
+                {
+                    ctx.Response.Headers.Append("x-timing", string.Join(",", strs));
+                }
             }
         }
-
-        await _next(ctx);
     }
 }
 

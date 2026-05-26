@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -174,19 +175,14 @@ public class FrontendProxyMiddleware
         frontendTimer.Stop();
     }
 
-    private static Dictionary<string, Tuple<string?,string,string?,int>> pageCache { get; set; } = new();
-    private static Mutex pageCacheMux { get; set; } = new();
+    private static ConcurrentDictionary<string, Tuple<string?, string, string?, int>> pageCache { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     private Tuple<string?,string,string?,int>? GetPageFromCache(string url)
     {
-        pageCacheMux.WaitOne();
-        if (pageCache.ContainsKey(url))
+        if (pageCache.TryGetValue(url, out var value))
         {
-            var value = pageCache[url];
-            pageCacheMux.ReleaseMutex();
             return value;
         }
-        pageCacheMux.ReleaseMutex();
 
         return null;
     }
@@ -257,21 +253,13 @@ public class FrontendProxyMiddleware
 
         if (isCacheable)
         {
-            pageCacheMux.WaitOne();
-            try
+            if (pageCache.Count < 1000 || pageCache.ContainsKey(requestUrl))
             {
-                if (pageCache.Count < 1000)
-                {
-                    pageCache[requestUrl] = new(contentType, cacheStr, locationHeader, (int)result.StatusCode);
-                }
-                else
-                {
-                    Writer.Info(LogGroup.PerformanceDebugging, "2016 frontend page cache is full, not saving {0}", requestUrl);
-                }
+                pageCache[requestUrl] = new(contentType, cacheStr, locationHeader, (int)result.StatusCode);
             }
-            finally
+            else
             {
-                pageCacheMux.ReleaseMutex();
+                Writer.Info(LogGroup.PerformanceDebugging, "2016 frontend page cache is full, not saving {0}", requestUrl);
             }
         }
 
