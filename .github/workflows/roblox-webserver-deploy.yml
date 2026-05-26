@@ -8,7 +8,6 @@ on:
       - "Roblox/**"
       - ".github/workflows/roblox-webserver-deploy.yml"
       - "scripts/windows/**"
-      - "docs/windows-webserver-github-actions.md"
 
 concurrency:
   group: roblox-webserver-deploy
