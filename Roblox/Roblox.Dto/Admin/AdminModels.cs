@@ -1,9 +1,11 @@
 // ReSharper disable InconsistentNaming
 
+using Microsoft.AspNetCore.Http;
+using Roblox.Models.Assets;
 using Roblox.Models.Economy;
+using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Dto.Admin;
-using Roblox.Models.Assets;
 
 public class SetAlertRequest
 {
@@ -17,16 +19,19 @@ public class CreateUserRequest
     public string? password { get; set; }
     public string? userId { get; set; }
 }
+
 public class GiftUsersRequest
 {
     public long giftId { get; set; }
     public long assetId { get; set; }
 }
+
 public class ForceApplicationReq
 {
     public long userId { get; set; }
     public string? socialURL { get; set; }
 }
+
 public class PendingAssetEntry
 {
     public long id { get; set; }
@@ -101,7 +106,6 @@ public class GiveUserTicketsRequest
     public long tickets { get; set; }
 }
 
-
 public class GiveUserRobuxRequest
 {
     public long userId { get; set; }
@@ -141,8 +145,8 @@ public class ReRenderRequest
 public class UpdateProductRequest
 {
     public long assetId { get; set; }
-    public string description { get; set; }
-    public string assetName { get; set; }
+    public string description { get; set; } = string.Empty;
+    public string assetName { get; set; } = string.Empty;
     public bool isForSale { get; set; }
     public bool isLimited { get; set; }
     public bool isLimitedUnique { get; set; }
@@ -165,7 +169,6 @@ public class EndSaleRequest
 {
     public long assetId { get; set; }
 }
-
 
 public class CreateAssetRequest
 {
