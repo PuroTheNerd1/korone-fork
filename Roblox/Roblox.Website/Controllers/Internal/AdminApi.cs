@@ -412,11 +412,19 @@ public class AdminApiController : ControllerBase
                 id = assetId,
             });
         var avDetails = await services.assets.GetLatestAssetVersion(assetId);
-        var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
         var names = await services.users.GetUserById(avDetails.creatorId);
         item.creatorName = names.username;
-        item.requiresDeleteItemPermission = assetInfo.creatorType == CreatorType.User && StaffFilter.IsOwner(assetInfo.creatorTargetId);
-        item.isPastDeleteWindow = assetInfo.createdAt < DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
+        // TODO: this causes 500
+        // {
+        //var assetInfo = await services.assets.GetAssetCatalogInfo(assetId);
+        //item.requiresDeleteItemPermission = assetInfo.creatorType == CreatorType.User && StaffFilter.IsOwner(assetInfo.creatorTargetId);
+        //item.isPastDeleteWindow = assetInfo.createdAt < DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
+        // }
+        // TEMPORARY HACK
+        // {
+        item.requiresDeleteItemPermission = false;
+        item.isPastDeleteWindow = false;
+        // }
         if (item.content_url != null)
             item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
         return item;
