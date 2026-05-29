@@ -54,8 +54,8 @@ public class AvatarControllerV1 : ControllerBase, IService
         {
             using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
             AvatarType? rigType = (AvatarType?)await avatarService.GetAvatarType(userId);
-            var assetIds = await cache.GetPendingAssets(userId);
-            var newColors = await cache.GetColors(userId);
+            var assetIds = await cache.GetAndClearPendingAssets(userId);
+            var newColors = await cache.GetAndClearColors(userId);
             const bool skipRender = false;
             const bool skipLock = false;
             await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw, skipLock, skipRender);
@@ -67,6 +67,11 @@ public class AvatarControllerV1 : ControllerBase, IService
         finally
         {
             cache.UnscheduleRender(userId);
+        }
+
+        if (!forceRedraw && await cache.HasPendingAvatarChanges(userId))
+        {
+            await AttemptScheduleRenderAsync(userId, false);
         }
     }
 

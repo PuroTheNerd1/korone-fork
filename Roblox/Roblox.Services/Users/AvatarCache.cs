@@ -22,6 +22,14 @@ public class AvatarCache : ServiceBase, IService
         return JsonSerializer.Deserialize<AvatarCacheAsset>(result)?.assetIds;
     }
 
+    public async Task<IEnumerable<long>?> GetAndClearPendingAssets(long userId)
+    {
+        var key = GetPendingAssetsKey(userId);
+        var result = await Cache.distributed.StringGetDeleteAsync(key);
+        if (result == null) return null;
+        return JsonSerializer.Deserialize<AvatarCacheAsset>(result)?.assetIds;
+    }
+
     public async Task SetPendingAssets(long userId, IEnumerable<long> assetIds)
     {
         await Cache.distributed.StringSetAsync(GetPendingAssetsKey(userId),
@@ -45,6 +53,14 @@ public class AvatarCache : ServiceBase, IService
         if (result == null) return null;
         return JsonSerializer.Deserialize<ColorEntry>(result);
     }
+
+    public async Task<ColorEntry?> GetAndClearColors(long userId)
+    {
+        var key = GetPendingColorsKey(userId);
+        var result = await Cache.distributed.StringGetDeleteAsync(key);
+        if (result == null) return null;
+        return JsonSerializer.Deserialize<ColorEntry>(result);
+    }
     
     public async Task SetColors(long userId, ColorEntry colors)
     {
@@ -65,6 +81,15 @@ public class AvatarCache : ServiceBase, IService
     {
         await DeletePendingAssets(userId);
         await DeletePendingColors(userId);
+    }
+
+    public async Task<bool> HasPendingAvatarChanges(long userId)
+    {
+        var pendingAssets = await GetPendingAssets(userId);
+        if (pendingAssets != null) return true;
+
+        var pendingColors = await GetColors(userId);
+        return pendingColors != null;
     }
 
     public bool AttemptScheduleRender(long userId)
