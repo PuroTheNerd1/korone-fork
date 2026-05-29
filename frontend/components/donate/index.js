@@ -10,12 +10,12 @@ const tiers = [
 ];
 
 const paymentMethods = [
-    {
-        name: 'Stripe',
-        value: null,
-        url: '/donate/stripe',
-        note: null,
-    },
+    // {
+    //     name: 'Stripe',
+    //     value: null,
+    //     url: '/donate/stripe',
+    //     note: null,
+    // },
     {
         name: 'PayPal',
         value: '@AdirMaimun',
