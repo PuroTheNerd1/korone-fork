@@ -282,7 +282,6 @@ const useStyles = createUseStyles({
         },
     },
     paymentNote: {
-        color: 'var(--text-color-secondary)',
         fontSize: '12px',
         marginTop: '6px',
         marginBottom: 0,
