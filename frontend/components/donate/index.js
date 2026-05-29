@@ -18,7 +18,7 @@ const paymentMethods = [
     },
     {
         name: 'PayPal',
-        value: '@koronezip',
+        value: '@AdirMaimun',
         url: 'https://paypal.me/AdirMaimun',
         note: 'Friends & Family Only',
     },
