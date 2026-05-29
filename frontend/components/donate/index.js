@@ -69,7 +69,6 @@ const useStyles = createUseStyles({
         marginBottom: '8px',
     },
     subTitle: {
-        color: 'var(--text-color-tertiary)',
         fontSize: '15px',
         maxWidth: '640px',
         margin: '0 auto',
@@ -155,7 +154,6 @@ const useStyles = createUseStyles({
         marginBottom: '2px',
     },
     cadence: {
-        color: 'var(--text-color-secondary)',
         fontSize: '13px',
         margin: 0,
         marginBottom: '10px',
@@ -164,7 +162,6 @@ const useStyles = createUseStyles({
         display: 'inline-flex',
         alignItems: 'center',
         gap: '4px',
-        color: 'var(--text-color-secondary)',
         fontSize: '14px',
         fontWeight: 600,
         margin: 0,
@@ -269,7 +266,7 @@ const useStyles = createUseStyles({
     },
     paymentName: {
         fontSize: '16px',
-        fontWeight: 700,
+        fontWeight: 500,
         color: 'var(--text-color-primary)',
         margin: 0,
         marginBottom: '4px',
@@ -310,13 +307,12 @@ const useStyles = createUseStyles({
     },
     cryptoName: {
         fontSize: '16px',
-        fontWeight: 700,
+        fontWeight: 500,
         color: 'var(--text-color-primary)',
         margin: 0,
         marginBottom: '8px',
     },
     cryptoTicker: {
-        color: 'var(--text-color-secondary)',
         fontWeight: 400,
         fontSize: '13px',
         marginLeft: '6px',
@@ -355,12 +351,9 @@ const useStyles = createUseStyles({
     disclaimer: {
         textAlign: 'center',
         marginTop: '28px',
-        color: 'var(--text-color-secondary)',
-        fontSize: '16px',
-    },
-    disclaimerNonRefundable: {
-        fontWeight: 700,
         color: '#F23515',
+        fontSize: '16px',
+        fontWeight: 700,
     },
     countdownBanner: {
         background: '#F23515',
@@ -645,10 +638,9 @@ const Donate = () => {
             </div>
         </div>
 
-        <p className={s.disclaimer}>
-            <span className={s.disclaimerNonRefundable}>Donations are non-refundable.</span>
-            <span>After donating, open a support ticket in our Discord with your receipt to claim your role and item.</span>
-        </p>
+        <p className={s.disclaimer}>Donations are non-refundable.</p>
+        <p>After donating, open a support ticket in our Discord with your receipt to claim your role and item.</p>
+        <p>Either way can take up to 24 hours.</p>
     </div>;
 };
 
