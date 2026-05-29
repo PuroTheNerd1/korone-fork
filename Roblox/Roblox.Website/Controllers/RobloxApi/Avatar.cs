@@ -26,7 +26,21 @@ public class AvatarRBX : ControllerBase
     private void AttemptScheduleRender(bool forceRedraw = false)
     { 
         var userId = safeUserSession.userId;
-        _ = AttemptScheduleRenderAsync(userId, forceRedraw);
+        QueueAvatarRender(userId, forceRedraw);
+    }
+
+    private static void QueueAvatarRender(long userId, bool forceRedraw)
+    {
+        if (ExecutionContext.IsFlowSuppressed())
+        {
+            _ = Task.Run(() => AttemptScheduleRenderAsync(userId, forceRedraw));
+            return;
+        }
+
+        using (ExecutionContext.SuppressFlow())
+        {
+            _ = Task.Run(() => AttemptScheduleRenderAsync(userId, forceRedraw));
+        }
     }
 
     private static async Task AttemptScheduleRenderAsync(long userId, bool forceRedraw)

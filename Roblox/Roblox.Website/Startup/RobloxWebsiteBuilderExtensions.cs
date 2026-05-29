@@ -99,11 +99,16 @@ public static class RobloxWebsiteBuilderExtensions
         CommandHandler.Configure(options.Render.BaseUrl, options.Render.Authorization);
         Roblox.Services.Signer.SignService.Setup();
 
+        var rendererBaseUrl = options.Render.RendererBaseUrl;
+        if (string.IsNullOrWhiteSpace(rendererBaseUrl))
+        {
 #if DEBUG
-        RenderingHandler.Configure("game-renderer");
+            rendererBaseUrl = "http://game-renderer:3043";
 #else
-        RenderingHandler.Configure("127.0.0.1");
+            rendererBaseUrl = "http://127.0.0.1:3043";
 #endif
+        }
+        RenderingHandler.Configure(rendererBaseUrl);
     }
 
     public static IServiceCollection AddRobloxWebsiteServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)

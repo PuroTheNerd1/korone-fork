@@ -32,7 +32,21 @@ public class AvatarControllerV1 : ControllerBase, IService
         if (currentSession == null)
             return;
 
-        _ = Task.Run(() => AttemptScheduleRenderAsync(currentSession.userId, forceRedraw));
+        QueueAvatarRender(currentSession.userId, forceRedraw);
+    }
+
+    private static void QueueAvatarRender(long userId, bool forceRedraw)
+    {
+        if (ExecutionContext.IsFlowSuppressed())
+        {
+            _ = Task.Run(() => AttemptScheduleRenderAsync(userId, forceRedraw));
+            return;
+        }
+
+        using (ExecutionContext.SuppressFlow())
+        {
+            _ = Task.Run(() => AttemptScheduleRenderAsync(userId, forceRedraw));
+        }
     }
 
     private static async Task AttemptScheduleRenderAsync(long userId, bool forceRedraw, int attempt = 0)

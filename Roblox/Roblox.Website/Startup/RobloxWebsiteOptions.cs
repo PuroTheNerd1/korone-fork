@@ -111,6 +111,7 @@ public sealed class RobloxRenderOptions
 {
     public string BaseUrl { get; set; } = string.Empty;
     public string Authorization { get; set; } = string.Empty;
+    public string RendererBaseUrl { get; set; } = string.Empty;
 }
 
 public sealed class RobloxTwitterOptions

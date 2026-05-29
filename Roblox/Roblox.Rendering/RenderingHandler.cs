@@ -13,7 +13,7 @@ namespace Roblox.Rendering
     public class RenderingHandler
     {
         private static readonly HttpClient client = new HttpClient();
-        private static string _host = "127.0.0.1";
+        private static string _baseUrl = "http://127.0.0.1:3043";
         private static Random RandomComponent = new Random();
         // TODO: REWRITE RENDERING HANDLER
         private enum RenderType
@@ -42,9 +42,9 @@ namespace Roblox.Rendering
             public string? message { get; set; }
             public string? data { get; set; }
         }
-        public static void Configure(string host)
+        public static void Configure(string baseUrl)
         {
-            _host = host;
+            _baseUrl = baseUrl.TrimEnd('/');
         }
         public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>();
         private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false, string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null, CancellationToken? cancellationToken = null)
@@ -130,12 +130,24 @@ namespace Roblox.Rendering
             }
             // i will add error handling to this later
             var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
-            // hard coded for now 
-            HttpResponseMessage response = await client.PostAsync($"http://{_host}:3043/" + url, content, cancellationToken ?? CancellationToken.None);
+            var requestUrl = $"{_baseUrl}/{url}";
+            Console.WriteLine($"[RenderingHandler] POST {requestUrl}");
+            HttpResponseMessage response = await client.PostAsync(requestUrl, content, cancellationToken ?? CancellationToken.None);
             sw.Stop();
+            Console.WriteLine($"[RenderingHandler] {requestUrl} returned {(int)response.StatusCode} in {sw.ElapsedMilliseconds}ms");
+            response.EnsureSuccessStatusCode();
             var request = await response.Content.ReadFromJsonAsync<RenderResponse>(cancellationToken: cancellationToken ?? CancellationToken.None);
-            Console.WriteLine($"[RenderingHandler] Request took {sw.ElapsedMilliseconds}ms");
-            return request?.data ?? "FAILURE";
+            if (request is null)
+            {
+                throw new Exception($"Renderer returned an empty response for {url}");
+            }
+
+            if (!request.success || string.IsNullOrWhiteSpace(request.data))
+            {
+                throw new Exception($"Renderer failed {url}: {request.message}");
+            }
+
+            return request.data;
         }
 
         public static async Task<string> RequestHatThumbnail(long assetId)
