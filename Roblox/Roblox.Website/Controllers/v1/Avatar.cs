@@ -118,6 +118,7 @@ public class AvatarControllerV1 : ControllerBase, IService
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, currentlyWorn);
         await services.avatar.UpdateLastUpdated(safeUserSession.userId, assetId);
+        await services.avatar.UpdateUserAvatarImages(safeUserSession.userId, null, null, null);
         
         AttemptScheduleRender();
     }
@@ -139,6 +140,7 @@ public class AvatarControllerV1 : ControllerBase, IService
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetPendingAssets(safeUserSession.userId, currentlyWorn);
         await services.avatar.UpdateLastUpdated(safeUserSession.userId, assetId);
+        await services.avatar.UpdateUserAvatarImages(safeUserSession.userId, null, null, null);
         
         AttemptScheduleRender();
     }
@@ -151,6 +153,7 @@ public class AvatarControllerV1 : ControllerBase, IService
             throw new BadRequestException(0, "One or more scales are out of bounds.");
         
         await services.avatar.UpdateBodyScales(request, safeUserSession.userId);
+        await services.avatar.UpdateUserAvatarImages(safeUserSession.userId, null, null, null);
         AttemptScheduleRender();
     }
     
@@ -161,6 +164,7 @@ public class AvatarControllerV1 : ControllerBase, IService
         if (!Enum.IsDefined(typeof(AvatarType), request.playerAvatarType))
             throw new BadRequestException(0, "Invalid player avatar type");
         await services.avatar.UpdateRigType(request.playerAvatarType, safeUserSession.userId);
+        await services.avatar.UpdateUserAvatarImages(safeUserSession.userId, null, null, null);
         AttemptScheduleRender();
     }
 
@@ -189,6 +193,7 @@ public class AvatarControllerV1 : ControllerBase, IService
         
         using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         await cache.SetColors(userId, colors);
+        await services.avatar.UpdateUserAvatarImages(userId, null, null, null);
         
         AttemptScheduleRender();
     }

@@ -430,6 +430,7 @@ public class AvatarService : ServiceBase, IService {
             throw new RobloxException(400, 0, "One or more assets are invalid");
 
         await UpdateUserAvatar(userId, colors, filteredAssetIds, scales, avatarType);
+        await UpdateUserAvatarImages(userId, null, null, null);
     }
 
     /// <summary>
@@ -997,7 +998,7 @@ public class AvatarService : ServiceBase, IService {
         catch (Exception ex)
         {
             Writer.Info(LogGroup.AvatarService, "Failed to upload headshot or thumbnail for user {0}: {1}", userId, ex.Message);
-            await UpdateUserAvatarImages(userId, headshotKey, thumbnailKey, null);
+            await UpdateUserAvatarImages(userId, null, null, null);
             return;
         }
 
