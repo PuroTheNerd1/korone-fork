@@ -17,11 +17,17 @@ const paymentMethods = [
     //     note: null,
     // },
     {
-        name: 'PayPal',
-        value: '@AdirMaimun',
-        url: 'https://paypal.me/AdirMaimun',
-        note: 'Friends & Family Only',
+        name: 'Ko-fi',
+        value: null,
+        url: '/donate/ko-fi',
+        note: null,
     },
+    // {
+    //     name: 'PayPal',
+    //     value: '@AdirMaimun',
+    //     url: 'https://paypal.me/AdirMaimun',
+    //     note: 'Friends & Family Only',
+    // },
 ];
 
 const cryptoMethods = [
@@ -63,7 +69,7 @@ const useStyles = createUseStyles({
         marginBottom: '8px',
     },
     subTitle: {
-        color: 'var(--text-color-secondary)',
+        color: 'var(--text-color-tertiary)',
         fontSize: '15px',
         maxWidth: '640px',
         margin: '0 auto',
@@ -350,7 +356,11 @@ const useStyles = createUseStyles({
         textAlign: 'center',
         marginTop: '28px',
         color: 'var(--text-color-secondary)',
-        fontSize: '13px',
+        fontSize: '16px',
+    },
+    disclaimerNonRefundable: {
+        fontWeight: 700,
+        color: '#F23515',
     },
     countdownBanner: {
         background: '#F23515',
@@ -636,7 +646,8 @@ const Donate = () => {
         </div>
 
         <p className={s.disclaimer}>
-            Donations are non-refundable. After donating, open a support ticket in our Discord with your receipt to claim your role and item.
+            <span className={s.disclaimerNonRefundable}>Donations are non-refundable.</span>
+            <span>After donating, open a support ticket in our Discord with your receipt to claim your role and item.</span>
         </p>
     </div>;
 };
