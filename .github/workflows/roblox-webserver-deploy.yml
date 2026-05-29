@@ -123,7 +123,7 @@ jobs:
             -ApiProxyServiceName '${{ env.APIPROXY_SERVICE }}' `
             -WebsiteServiceName '${{ env.WEBSITE_SERVICE }}' `
             -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}' `
-            -ModerationServiceName '${{ env.MODERATION_SERVICE }}'
+            -ModerationServiceName '${{ env.MODERATION_SERVICE }}' `
             -StripeServiceName '${{ env.STRIPE_SERVICE }}'
           EOF
           )
