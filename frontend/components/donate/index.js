@@ -638,9 +638,9 @@ const Donate = () => {
             </div>
         </div>
 
-        <p className={s.disclaimer}>Donations are non-refundable.</p>
-        <p>After donating, open a support ticket in our Discord with your receipt to claim your role and item.</p>
-        <p>Either way can take up to 24 hours.</p>
+        <p className={s.disclaimer}>Donations are final and non-refundable.</p>
+        <p>After donating, message @bruteforcing on Discord or open a support ticket with your receipt to claim your role and item.</p>
+        <p>Claims are usually processed sooner, but please allow up to 24 hours.</p>
     </div>;
 };
 
