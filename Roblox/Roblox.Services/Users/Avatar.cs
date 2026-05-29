@@ -53,9 +53,15 @@ public class AvatarService : ServiceBase, IService {
         // useless inner join is intentional:
         // it's so that we filter out items the user no longer owns.
         return (await db.QueryAsync<AssetId>(
-            "SELECT distinct(ua.asset_id) as assetId FROM user_avatar_asset av INNER JOIN user_asset ua ON ua.user_id = av.user_id AND ua.asset_id = av.asset_id WHERE av.user_id = :user_id", new
+            @"SELECT distinct(av.asset_id) as assetId
+                FROM user_avatar_asset av
+                INNER JOIN asset a ON a.id = av.asset_id
+                LEFT JOIN user_asset ua ON ua.user_id = av.user_id AND ua.asset_id = av.asset_id
+                WHERE av.user_id = :user_id
+                    AND (ua.asset_id IS NOT NULL OR (a.creator_type = :creator_type AND a.creator_id = :user_id))", new
             {
                 user_id = userId,
+                creator_type = (int)CreatorType.User,
             })).Select(c => c.assetId);
     }
 
@@ -327,11 +333,19 @@ public class AvatarService : ServiceBase, IService {
             foreach (var id in assetIds)
             {
                 var ownResult = await db.QuerySingleOrDefaultAsync<UserAssetEntry>(
-                    "SELECT asset_id as assetId, user_id as userId from user_asset WHERE user_id = :user_id AND asset_id = :asset_id LIMIT 1",
+                    @"SELECT asset_id as assetId, user_id as userId
+                        FROM user_asset
+                        WHERE user_id = :user_id AND asset_id = :asset_id
+                        UNION
+                        SELECT id as assetId, creator_id as userId
+                        FROM asset
+                        WHERE creator_type = :creator_type AND creator_id = :user_id AND id = :asset_id
+                        LIMIT 1",
                     new
                     {
                         user_id = userId,
                         asset_id = id,
+                        creator_type = (int)CreatorType.User,
                     });
                 if (ownResult != null)
                 {
@@ -382,6 +396,40 @@ public class AvatarService : ServiceBase, IService {
             ids.Add(latest.assetVersionId);
         }
         return ids.Distinct();
+    }
+
+    public async Task SetWearingAssets(long userId, IEnumerable<long> assetIds)
+    {
+        var requestedAssetIds = assetIds.Distinct().ToList();
+
+        var tAvatarType = GetAvatarType(userId);
+        var tScales = GetAvatarScales(userId);
+        var tColors = GetAvatarColors(userId);
+        var tFilteredAssets = FilterAssetsForRender(userId, requestedAssetIds);
+
+        await Task.WhenAll(tAvatarType, tScales, tColors, tFilteredAssets);
+
+        var avatarType = await tAvatarType;
+        var scales = await tScales;
+        var colors = await tColors;
+        var filteredAssetIds = (await tFilteredAssets).Distinct().ToList();
+
+        var filteredAssetSet = filteredAssetIds.ToHashSet();
+        if (requestedAssetIds.Any(assetId => !filteredAssetSet.Contains(assetId)))
+        {
+            throw new RobloxException(400, 0, "One or more assets are invalid, moderated, or not owned.");
+        }
+
+        if (!AreColorsOk(colors))
+            throw new RobloxException(400, 0, "Colors are invalid");
+        if (!AreScalesValid(scales) && userId is not (68 or 3))
+            throw new RobloxException(400, 0, "Scales are invalid");
+
+        var assetsOk = await ConfirmAssetSelectionIsOkForRender(filteredAssetIds);
+        if (!assetsOk)
+            throw new RobloxException(400, 0, "One or more assets are invalid");
+
+        await UpdateUserAvatar(userId, colors, filteredAssetIds, scales, avatarType);
     }
 
     /// <summary>

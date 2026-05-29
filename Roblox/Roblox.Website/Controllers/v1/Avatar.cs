@@ -93,11 +93,10 @@ public class AvatarControllerV1 : ControllerBase, IService
         Writer.Info(LogGroup.AvatarService, "SetWornAssets current = {0} new = {1}", JsonSerializer.Serialize(currentlyWorn), JsonSerializer.Serialize(newAssetIds));
         var changedAssetIds = currentlyWorn.Except(newAssetIds).Concat(newAssetIds.Except(currentlyWorn)).ToList();
         Writer.Info(LogGroup.AvatarService, "Changed assets = {0}", JsonSerializer.Serialize(changedAssetIds));
-        
-        using var cache = ServiceProvider.GetOrCreate<AvatarCache>();
-        await cache.SetPendingAssets(safeUserSession.userId, request.assetIds);
-        
-        AttemptScheduleRender();
+
+        await services.avatar.SetWearingAssets(safeUserSession.userId, newAssetIds);
+        AttemptScheduleRender(true);
+
         foreach (long assetId in changedAssetIds)
         {
             Console.WriteLine("Updating last updated for {0}", assetId);
