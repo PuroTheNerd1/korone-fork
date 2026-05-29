@@ -20,6 +20,7 @@ public class StripeWebhookController(IHttpClientFactory httpClientFactory, IConf
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
 
     [HttpPost]
+    [AllowRobloxAnonymous]
     [BrowserFacingEndpoint]
     public async Task<IActionResult> HandleWebhook()
     {
@@ -37,7 +38,7 @@ public class StripeWebhookController(IHttpClientFactory httpClientFactory, IConf
                 var session = stripeEvent.Data.Object as StripeCheckout.Session;
 
                 string? userIdStr = null;
-                var userIdField = session?.CustomFields?.FirstOrDefault(f => f.Key == "Korone User ID");
+                var userIdField = session?.CustomFields?.FirstOrDefault(f => f.Label.Custom == "Korone User ID");
                 if (userIdField != null)
                 {
                     userIdStr = userIdField.Text.Value;
