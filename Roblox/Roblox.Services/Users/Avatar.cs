@@ -919,7 +919,7 @@ public class AvatarService : ServiceBase, IService {
         using var assets = ServiceProvider.GetOrCreate<AssetsService>();
         var r2 = ServiceProvider.GetOrCreate<R2StorageService>();
 
-        await using var redLock = await Cache.redLock.CreateLockAsync(GetAvatarRedLockKey(userId), TimeSpan.FromSeconds(5));
+        await using var redLock = await Cache.redLock.CreateLockAsync(GetAvatarRedLockKey(userId), TimeSpan.FromMinutes(2));
         if (!redLock.IsAcquired && !ignoreLock) throw new LockNotAcquiredException();
 
         var tAvatarType = avatarType == null ? GetAvatarType(userId) : Task.FromResult(avatarType.Value);
@@ -978,9 +978,9 @@ public class AvatarService : ServiceBase, IService {
         using var cancellation = new CancellationTokenSource();
         cancellation.CancelAfter(TimeSpan.FromMinutes(2));
 
-        var headshotTask = RenderingHandler.RequestHeadshotThumbnail(userId);
-        var thumbnailTask = RenderingHandler.RequestPlayerThumbnail(userId);
-        var thumbnail3DTask = RenderingHandler.RequestPlayerThumbnail3D(userId); // Start 3D render early
+        var headshotTask = RenderingHandler.RequestHeadshotThumbnail(userId, cancellation.Token);
+        var thumbnailTask = RenderingHandler.RequestPlayerThumbnail(userId, cancellation.Token);
+        var thumbnail3DTask = RenderingHandler.RequestPlayerThumbnail3D(userId, cancellation.Token); // Start 3D render early
 
         try
         {

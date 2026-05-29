@@ -47,7 +47,7 @@ namespace Roblox.Rendering
             _host = host;
         }
         public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>();
-        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false, string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null)
+        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false, string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null, CancellationToken? cancellationToken = null)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -131,9 +131,9 @@ namespace Roblox.Rendering
             // i will add error handling to this later
             var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
             // hard coded for now 
-            HttpResponseMessage response = await client.PostAsync($"http://{_host}:3043/" + url, content);
+            HttpResponseMessage response = await client.PostAsync($"http://{_host}:3043/" + url, content, cancellationToken ?? CancellationToken.None);
             sw.Stop();
-            var request = await response.Content.ReadFromJsonAsync<RenderResponse>();
+            var request = await response.Content.ReadFromJsonAsync<RenderResponse>(cancellationToken: cancellationToken ?? CancellationToken.None);
             Console.WriteLine($"[RenderingHandler] Request took {sw.ElapsedMilliseconds}ms");
             return request?.data ?? "FAILURE";
         }
@@ -199,17 +199,17 @@ namespace Roblox.Rendering
         {
             return await SendRenderRequest(0, RenderType.BodyPart, assetUrl: assetUrl);
         }
-        public static async Task<string> RequestPlayerThumbnail(long userId)
+        public static async Task<string> RequestPlayerThumbnail(long userId, CancellationToken? cancellationToken = null)
         {
-            return await SendRenderRequest(userId, RenderType.Avatar);
+            return await SendRenderRequest(userId, RenderType.Avatar, cancellationToken: cancellationToken);
         }
-        public static async Task<string> RequestPlayerThumbnail3D(long userId)
+        public static async Task<string> RequestPlayerThumbnail3D(long userId, CancellationToken? cancellationToken = null)
         {
-            return await SendRenderRequest(userId, RenderType.Avatar3D);
+            return await SendRenderRequest(userId, RenderType.Avatar3D, cancellationToken: cancellationToken);
         }
-        public static async Task<string> RequestHeadshotThumbnail(long userId)
+        public static async Task<string> RequestHeadshotThumbnail(long userId, CancellationToken? cancellationToken = null)
         {
-            return await SendRenderRequest(userId, RenderType.Headshot);
+            return await SendRenderRequest(userId, RenderType.Headshot, cancellationToken: cancellationToken);
         }
 
         /// <summary>

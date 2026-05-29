@@ -8,6 +8,7 @@ using Roblox.Models.Avatar;
 using Roblox.Rendering;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Services.Exceptions;
 using Roblox.Website.WebsiteModels;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Dapper;
@@ -31,10 +32,10 @@ public class AvatarControllerV1 : ControllerBase, IService
         if (currentSession == null)
             return;
 
-        _ = AttemptScheduleRenderAsync(currentSession.userId, forceRedraw);
+        _ = Task.Run(() => AttemptScheduleRenderAsync(currentSession.userId, forceRedraw));
     }
 
-    private static async Task AttemptScheduleRenderAsync(long userId, bool forceRedraw)
+    private static async Task AttemptScheduleRenderAsync(long userId, bool forceRedraw, int attempt = 0)
     {
         var cache = ServiceProvider.GetOrCreate<AvatarCache>();
         if (!forceRedraw)
@@ -59,6 +60,13 @@ public class AvatarControllerV1 : ControllerBase, IService
             const bool skipRender = false;
             const bool skipLock = false;
             await avatarService.RedrawAvatar(userId, assetIds, newColors, rigType, forceRedraw, skipLock, skipRender);
+        }
+        catch (LockNotAcquiredException) when (attempt < 5)
+        {
+            Writer.Info(LogGroup.AvatarService, "Avatar render lock busy for user {0}, retry attempt {1}", userId, attempt + 1);
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            await AttemptScheduleRenderAsync(userId, forceRedraw, attempt + 1);
+            return;
         }
         catch (Exception e)
         {
