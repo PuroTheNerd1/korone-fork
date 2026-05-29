@@ -154,8 +154,6 @@ public static class RobloxWebsiteBuilderExtensions
         services.AddProblemDetails();
 
         services.AddHostedService<FeatureFlagRefreshHostedService>();
-        services.AddHostedService<GameRecommendationHostedService>();
-        services.AddHostedService<GameTopicBackfillHostedService>();
         services.AddHostedService<AvatarThumbnailCleanupHostedService>();
 
         return services;

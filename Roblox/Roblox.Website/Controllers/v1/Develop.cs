@@ -364,17 +364,6 @@ public class DevelopControllerV1 : ControllerBase
 
         await services.assets.UpdateAsset(assetId, request.description, services.filter.FilterText(request.name), request.genres.First(),
             request.isCopyingAllowed, request.enableComments, request.isForSale);
-
-        try
-        {
-            var info = await services.assets.GetAssetCatalogInfo(assetId);
-            if (info.assetType == Models.Assets.Type.Place)
-            {
-                var universeId = await services.games.GetUniverseId(assetId);
-                services.gameTopic.FireAndForgetExtract(universeId);
-            }
-        }
-        catch { }
     }
 
     [HttpPatch("assets/update-gamepass/{assetId:long}")]

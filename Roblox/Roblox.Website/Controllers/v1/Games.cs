@@ -33,16 +33,6 @@ public class GamesControllerV1 : ControllerBase
         var sorts = new Dictionary<string, dynamic>()
         {
             {
-                "recommended", new
-                {
-                    token = "recommended",
-                    name = "Recommended",
-                    displayName = "Recommended for you",
-                    gameSetTypeId = 5,
-                    gameSetTargetId = 94
-                }
-            },
-            {
                 "popular", new
                 {
                     token = "popular",
@@ -101,18 +91,6 @@ public class GamesControllerV1 : ControllerBase
         };
 
         var results = new List<dynamic>();
-        bool hasRecommendations = false;
-        if (userSession != null)
-        {
-            try
-            {
-                hasRecommendations = await services.gameRecommendation.HasRecommendationsAsync(userSession.userId);
-            }
-            catch
-            {
-                hasRecommendations = false;
-            }
-        }
         if (gameSortsContext != null && gameSortsContext is "HomeSorts" or "UnifiedHomeSorts")
         {
             if (userSession == null)
@@ -121,7 +99,6 @@ public class GamesControllerV1 : ControllerBase
             var recent = await services.games.GetRecentGames(userSession.userId, 1);
             if (recent.Any())
             {
-                if (hasRecommendations) results.Add(sorts["recommended"]);
                 results.Add(sorts["recent"]);
                 //results.Add(sorts["roulette"]);
                 results.Add(sorts["popular"]);
@@ -130,7 +107,6 @@ public class GamesControllerV1 : ControllerBase
         }
         else
         {
-            if (hasRecommendations) results.Add(sorts["recommended"]);
             results.Add(sorts["popular"]);
             results.Add(sorts["classics"]);
             //results.Add(sorts["roulette"]);
@@ -215,7 +191,7 @@ public class GamesControllerV1 : ControllerBase
     }
 
     private static Regex numberRegex { get; } = new("([0-9]+)");
-    
+
     [HttpGet("games/multiget-playability-status")]
     public dynamic MultiGetPlayabilityStatus()
     {
@@ -300,14 +276,14 @@ public class GamesControllerV1 : ControllerBase
             Writer.Info(LogGroup.AbuseDetection, "GetPlaceCount API could not acquire placeCuntLock");
             throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
         }
-        
+
         var uniCount = await services.games.GetUserPlaceCount(userId);
         return new
         {
             universeCount = uniCount,
         };
     }
-    
+
     [HttpGet("games/{universeId:long}/game-passes")]
     public async Task<RobloxCollectionPaginated<UniverseGamePassEntry>> GetUniverseGamePasses(long universeId, long? unfiltered = 0, SortOrder? sortOrder = SortOrder.Asc, int? limit = 10, string? cursor = null)
     {
@@ -317,12 +293,12 @@ public class GamesControllerV1 : ControllerBase
 
         return new RobloxCollectionPaginated<UniverseGamePassEntry>()
         {
-            nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
-            previousPageCursor = offset >= limit ? (offset-limit).ToString() : null,
+            nextPageCursor = result.Count >= limit ? (offset + limit).ToString() : null,
+            previousPageCursor = offset >= limit ? (offset - limit).ToString() : null,
             data = result,
         };
     }
-    
+
     [HttpGet("games/game-passes/{assetId:long}")]
     public async Task<GamePassDetails> GetGamePassInfo(long assetId)
     {

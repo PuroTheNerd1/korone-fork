@@ -4,7 +4,6 @@ using Roblox.Libraries.LeakCheckApi;
 using Roblox.Libraries.RobloxApi;
 using Roblox.Services;
 using Roblox.Services.AdminApi;
-using Roblox.Services.AI;
 using Roblox.Services.Games;
 using Roblox.Services.PlaceLauncher;
 using Roblox.Services.Signer;
@@ -42,9 +41,6 @@ public class RobloxServiceAccessor : IDisposable
     private CooldownService? _cooldown;
     private FilterService? _filter;
     private ChatService? _chat;
-    private OpenRouterService? _openRouter;
-    private GameTopicService? _gameTopic;
-    private GameRecommendationService? _gameRecommendation;
     private AdminApiService? _adminApi;
     private DataStoreService? _dataStore;
     private R2StorageService? _r2Storage;
@@ -88,9 +84,6 @@ public class RobloxServiceAccessor : IDisposable
     public CooldownService cooldown => GetService(ref _cooldown);
     public FilterService filter => GetService(ref _filter);
     public ChatService chat => GetService(ref _chat);
-    public OpenRouterService openRouter => GetService(ref _openRouter);
-    public GameTopicService gameTopic => GetService(ref _gameTopic);
-    public GameRecommendationService gameRecommendation => GetService(ref _gameRecommendation);
     public AdminApiService adminApi => GetService(ref _adminApi);
     public DataStoreService dataStore => GetService(ref _dataStore);
     public R2StorageService r2Storage => GetService(ref _r2Storage);

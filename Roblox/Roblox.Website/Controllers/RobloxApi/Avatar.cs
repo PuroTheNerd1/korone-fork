@@ -60,6 +60,8 @@ public class AvatarRBX : ControllerBase
         }
         finally
         {
+
+            using var pendingCache = ServiceProvider.GetOrCreate<AvatarCache>();
             pendingCache.UnscheduleRender(userId);
         }
     }

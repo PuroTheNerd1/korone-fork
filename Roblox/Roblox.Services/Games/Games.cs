@@ -8,14 +8,12 @@ using Roblox.Models.Assets;
 using Roblox.Models.Db;
 using Roblox.Services.Exceptions;
 using Roblox.Services.Signer;
-using Roblox.Services.Caching;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
 
 public class GamesService : ServiceBase, IService
 {
-    private static string UniverseInfoCacheKey(long universeId) => $"games:universe:v1:{universeId}";
     private GameServerService gameServer = new();
     private SignService sign = new();
     //ugh
@@ -68,7 +66,7 @@ public class GamesService : ServiceBase, IService
         var universe = await GetUniverseInfo(universeId);
 
         bool canPlay = await CanPlayUniverse(userId, universeId);
-        
+
         if (universe.privacyType == PrivacyType.Private && !canPlay)
         {
             return false;
@@ -78,7 +76,7 @@ public class GamesService : ServiceBase, IService
         {
             var friendsService = ServiceProvider.GetOrCreate<FriendsService>(this);
             bool isFriend = await friendsService.AreAlreadyFriends(userId, creatorId);
-            
+
             if (!isFriend)
             {
                 return false;
@@ -146,7 +144,7 @@ public class GamesService : ServiceBase, IService
             });
         return result;
     }
-    
+
     public async Task<Universe> SafeGetUniverseInfo(long userId, long universeId)
     {
         var universe = (await MultiGetUniverseInfo(new[] { universeId })).First();
@@ -349,15 +347,9 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<Universe> GetUniverseInfo(long universeId)
     {
-        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
-        var result = await cache.GetOrCreateAsync(
-            UniverseInfoCacheKey(universeId),
-            TimeSpan.FromSeconds(15),
-            async () =>
-            {
-                var build = new SqlBuilder();
-                var template = build.AddTemplate(
-                    @"SELECT
+        var build = new SqlBuilder();
+        var template = build.AddTemplate(
+            @"SELECT
                 u.id,
                 u.root_asset_id AS rootPlaceId,
                 u.is_public AS isPublic,
@@ -386,18 +378,14 @@ public class GamesService : ServiceBase, IService
             /**where**/
             LIMIT 1");
 
-                build.Where("u.id = :universeId", new { universeId = universeId });
+        build.Where("u.id = :universeId", new { universeId = universeId });
 
-                var inner = (await db.QueryAsync<MultiGetUniverseEntry>(template.RawSql, template.Parameters)).FirstOrDefault();
-                if (inner == null)
-                    return null;
-
-                using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
-                inner.favoritedCount = await assets.CountFavorites(inner.rootPlaceId);
-                return inner;
-            });
+        var result = (await db.QueryAsync<MultiGetUniverseEntry>(template.RawSql, template.Parameters)).FirstOrDefault();
         if (result == null)
             throw new RecordNotFoundException("Universe does not exist.");
+
+        using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
+        result.favoritedCount = await assets.CountFavorites(result.rootPlaceId);
         return result;
     }
 
@@ -457,10 +445,11 @@ public class GamesService : ServiceBase, IService
                 mod_status = ModerationStatus.ReviewApproved,
             });
 
-        return result.Select(c => (long) c.asset_id).Distinct().Take(limit);
+        return result.Select(c => (long)c.asset_id).Distinct().Take(limit);
     }
 
-    public async Task<IEnumerable<long>> GetFavouritedGames(long userId, int limit) {
+    public async Task<IEnumerable<long>> GetFavouritedGames(long userId, int limit)
+    {
         var result = await db.QueryAsync(
             @"SELECT asset_favorite.id, asset_id 
                 FROM asset_favorite 
@@ -475,7 +464,7 @@ public class GamesService : ServiceBase, IService
                 assetType = Type.Place
             });
 
-        return result.Select(c => (long) c.asset_id).Distinct().Take(limit);
+        return result.Select(c => (long)c.asset_id).Distinct().Take(limit);
     }
 
     public async Task<int> GetVisitCount(long placeId)
@@ -557,7 +546,7 @@ public class GamesService : ServiceBase, IService
         query.Where("asset.moderation_status = :mod_status", new
         {
             mod_status = ModerationStatus.ReviewApproved,
-        });        
+        });
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -571,7 +560,7 @@ public class GamesService : ServiceBase, IService
         {
             query.Where("asset.asset_genre = :genre", new
             {
-                genre = (int) genre,
+                genre = (int)genre,
             });
         }
 
@@ -579,22 +568,6 @@ public class GamesService : ServiceBase, IService
         var sortRequired = true;
         switch (sortToken?.ToLower())
         {
-            case "recommended":
-                if (contextUserId is 0 or null)
-                    throw new RobloxException(401, 0, "Unauthorized");
-                using (var rec = ServiceProvider.GetOrCreate<Roblox.Services.Games.GameRecommendationService>(this))
-                {
-                    sortOrder = (await rec.GetTopAsync(contextUserId.Value, maxRows)).ToList();
-                }
-                if (sortOrder.Count == 0)
-                {
-                    return Enumerable.Empty<GameListEntry>();
-                }
-                foreach (var item in sortOrder)
-                {
-                    query.OrWhere("asset.id = " + item);
-                }
-                break;
             case "recent":
                 if (contextUserId is 0 or null)
                     throw new RobloxException(401, 0, "Unauthorized");
@@ -692,11 +665,11 @@ public class GamesService : ServiceBase, IService
 
     public async Task SetPlacePrivacyType(long universeId, PrivacyType privacyType)
     {
-        var isVisible = (privacyType == PrivacyType.Public || privacyType == PrivacyType.FriendsOnly);  
+        var isVisible = (privacyType == PrivacyType.Public || privacyType == PrivacyType.FriendsOnly);
         await db.ExecuteAsync("UPDATE universe SET is_public = :visible, privacy_type = :privacy WHERE id = :id", new
         {
             visible = isVisible,
-            privacy = (int) privacyType,
+            privacy = (int)privacyType,
             id = universeId,
         });
     }
@@ -792,7 +765,7 @@ public class GamesService : ServiceBase, IService
 
         foreach (var id in ids)
         {
-            query.OrWhere("(asset.asset_type = " + (int) Type.Place + " AND asset.id = " + id + ")");
+            query.OrWhere("(asset.asset_type = " + (int)Type.Place + " AND asset.id = " + id + ")");
         }
 
         return await db.QueryAsync<PlaceEntry>(temp.RawSql, temp.Parameters);
@@ -867,7 +840,7 @@ public class GamesService : ServiceBase, IService
             rootPlaceId = c.rootAssetId,
             isActive = c.isPublic,
             privacyType = c.isPublic ? PrivacyType.Public : PrivacyType.Private,
-            creatorType = (int) creatorType,
+            creatorType = (int)creatorType,
             creatorTargetId = creatorId,
             creatorName = username,
             created = c.created,
@@ -956,7 +929,7 @@ public class GamesService : ServiceBase, IService
         });
         return result;
     }
-    
+
     public async Task SetStudioData(long userId, string clientKey, string value)
     {
         await db.ExecuteAsync(@"INSERT INTO studio_data (user_id, ""key"", value) VALUES (:userId, :clientKey, :value) ON CONFLICT (user_id, ""key"") DO UPDATE SET value = EXCLUDED.value",
@@ -981,7 +954,7 @@ public class GamesService : ServiceBase, IService
 
         return gamePass;
     }
-    
+
     public async Task<int> GetUserPlaceCount(long userId)
     {
         var result = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM asset WHERE creator_id = :userId AND asset_type = :assetType", new
@@ -991,7 +964,7 @@ public class GamesService : ServiceBase, IService
         });
         return result;
     }
-    
+
     public async Task<int> GetUserUniverseCount(long creatorId)
     {
         var result = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM universe AS uni WHERE uni.creator_id = :userId", new
@@ -1029,7 +1002,7 @@ public class GamesService : ServiceBase, IService
         return result;
     }
 
-    public dynamic GetJoinScript(PlaceEntry placeInfo, UserInfo userInfo, GameServerDb jobInfo,  string characterAppearanceUrl, string clientTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
+    public dynamic GetJoinScript(PlaceEntry placeInfo, UserInfo userInfo, GameServerDb jobInfo, string characterAppearanceUrl, string clientTicket, string membership, int accountAgeDays, bool generateTeleportJoin, string? cookie)
     {
         var formattedDateTime = DateTime.UtcNow.ToString("M/d/yyyy h:mm:ss tt");
         string chatStyle = "ClassicAndBubble";
@@ -1115,7 +1088,7 @@ public class GamesService : ServiceBase, IService
     {
         return await db.QueryAsync<GameMediaEntry>(
             "SELECT asset_id as assetId, asset_type as assetType, media_asset_id as imageId, media_video_hash as videoHash, media_video_title as videoTitle, is_approved as approved FROM asset_media WHERE asset_id = :id",
-            new {id = placeId});
+            new { id = placeId });
     }
     public async Task<GameMediaEntry> GetSpecificGameMedia(long mediaAssetId)
     {
@@ -1136,16 +1109,16 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<CreateUniverseResponse> CreateUniverse(long rootPlaceId)
     {
-        var result = await InTransaction(async _ =>
+        return await InTransaction(async _ =>
         {
             var creatorInfo =
                 await db.QuerySingleOrDefaultAsync("SELECT creator_id, creator_type FROM asset WHERE id = :id",
-                    new {id = rootPlaceId});
+                    new { id = rootPlaceId });
             var uni = await InsertAsync("universe", new
             {
                 root_asset_id = rootPlaceId,
-                creator_id = (long) creatorInfo.creator_id,
-                creator_type = (int) creatorInfo.creator_type,
+                creator_id = (long)creatorInfo.creator_id,
+                creator_type = (int)creatorInfo.creator_type,
             });
 
             await InsertAsync("universe_asset", new
@@ -1153,21 +1126,12 @@ public class GamesService : ServiceBase, IService
                 asset_id = rootPlaceId,
                 universe_id = uni,
             });
-            var uni2 = (await MultiGetUniverseInfo(new[] {uni})).FirstOrDefault();
+            var uni2 = (await MultiGetUniverseInfo(new[] { uni })).FirstOrDefault();
             return new CreateUniverseResponse()
             {
                 universeId = uni,
             };
         });
-
-        try
-        {
-            using var topic = ServiceProvider.GetOrCreate<Roblox.Services.Games.GameTopicService>();
-            topic.FireAndForgetExtract(result.universeId);
-        }
-        catch { }
-
-        return result;
     }
     public async Task<CreatePlaceInUniverseResponse> CreatePlaceInUniverse(long creatorId, string creatorName, CreatorType creatorType, long universeId)
     {
@@ -1205,7 +1169,7 @@ public class GamesService : ServiceBase, IService
             });
         return qu ?? throw new RecordNotFoundException("Developer product not found");
     }
-    
+
     public async Task<IEnumerable<DeveloperProductDb>> GetDeveloperProductsFull(long universeId, long limit, long offset)
     {
         var qu = await db.QueryAsync<DeveloperProductDb>(
@@ -1228,7 +1192,7 @@ public class GamesService : ServiceBase, IService
             });
         return qu;
     }
-    
+
     public async Task<IEnumerable<DeveloperProducts>> GetDeveloperProducts(long universeId, long limit, long offset)
     {
         return await db.QueryAsync<DeveloperProducts>(
@@ -1247,9 +1211,9 @@ public class GamesService : ServiceBase, IService
                 offset,
             });
     }
-    
-    
-    public async Task<int> GetDeveloperProductCount(long universeId) 
+
+
+    public async Task<int> GetDeveloperProductCount(long universeId)
     {
         // universe id is the shop id because idfk what shop id even is
         var qu = await db.QuerySingleOrDefaultAsync<int>(
@@ -1262,7 +1226,7 @@ public class GamesService : ServiceBase, IService
             });
         return qu;
     }
-    
+
     public async Task<long> CreateDeveloperProduct(long userId, long universeId, string name, string description, long priceInRobux, long iconImageAssetId)
     {
         if (string.IsNullOrEmpty(name))
@@ -1271,7 +1235,7 @@ public class GamesService : ServiceBase, IService
             throw new AssetNameTooLongException();
         if (description is { Length: > Rules.DescriptionMaxLength })
             throw new AssetDescriptionTooLongException();
-        
+
         return await InsertAsync("developer_product", new
         {
             name,
@@ -1280,11 +1244,11 @@ public class GamesService : ServiceBase, IService
             price = priceInRobux,
             is_for_sale = priceInRobux > 0,
             universe_id = universeId,
-            creator_type = (int) CreatorType.User,
+            creator_type = (int)CreatorType.User,
             creator_id = userId
         });
     }
-    
+
     public async Task UpdateDeveloperProduct(long productId, string name, string description, long priceInRobux, long iconImageAssetId)
     {
         if (string.IsNullOrEmpty(name)) throw new AssetNameTooShortException();
@@ -1292,7 +1256,7 @@ public class GamesService : ServiceBase, IService
             throw new AssetNameTooLongException();
         if (description is { Length: > Rules.DescriptionMaxLength })
             throw new AssetDescriptionTooLongException();
-        
+
         await db.ExecuteAsync(@"UPDATE developer_product SET 
                    name = :name, 
                    description = :description, 
@@ -1309,8 +1273,9 @@ public class GamesService : ServiceBase, IService
             isForSale = priceInRobux > 0
         });
     }
-    
-    public async Task IncrementDevProdSales(long productId) {
+
+    public async Task IncrementDevProdSales(long productId)
+    {
         await db.ExecuteAsync("UPDATE developer_product SET sales = sales + 1 WHERE id = :productId", new
         {
             productId
@@ -1328,18 +1293,14 @@ public class GamesService : ServiceBase, IService
         });
     }
 
-    public async Task<bool> ProcessProductReceipt(Guid id)
+    public async Task ProcessProductReceipt(Guid id)
     {
-        var rowsAffected = await db.ExecuteAsync(
-            "UPDATE product_receipt SET processed = TRUE, processed_at = COALESCE(processed_at, CURRENT_TIMESTAMP) WHERE id = :receiptId AND processed = FALSE",
-            new
+        await db.QueryAsync("UPDATE product_receipt SET processed = TRUE, processed_at = CURRENT_TIMESTAMP WHERE id = :receiptId", new
         {
             receiptId = id
         });
-
-        return rowsAffected > 0;
     }
-    
+
     public async Task<IEnumerable<ProductReceipt>?> GetPendingProductReceipts(long userId, long universeId)
     {
         return await db.QueryAsync<ProductReceipt>(
@@ -1357,7 +1318,7 @@ public class GamesService : ServiceBase, IService
                 universeId
             });
     }
-    
+
     public async Task<ProductReceipt?> GetSingleProcessingProductReceipt(long userId, long universeId)
     {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
@@ -1375,7 +1336,7 @@ public class GamesService : ServiceBase, IService
                 universeId
             });
     }
-    
+
     public async Task<ProductReceipt?> GetProductReceipt(Guid receiptId)
     {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(
@@ -1391,7 +1352,7 @@ public class GamesService : ServiceBase, IService
                 receiptId
             });
     }
-    
+
     public async Task<ProductReceipt?> GetProductReceiptSecure(long userId, Guid receiptId)
     {
         return await db.QuerySingleOrDefaultAsync<ProductReceipt>(

@@ -179,13 +179,6 @@ public class GameServerService : ServiceBase
             id = placeId,
         });
 
-        try
-        {
-            using var topic = ServiceProvider.GetOrCreate<Roblox.Services.Games.GameTopicService>();
-            topic.FireAndForgetLazyExtractFromPlaceId(placeId);
-        }
-        catch { }
-
         // give ticket to creator
         await InTransaction(async _ =>
         {
@@ -243,19 +236,6 @@ public class GameServerService : ServiceBase
     public async Task OnPlayerLeave(long userId, long placeId, Guid serverId)
     {
         currentPlayersInGame.TryRemove(userId, out _);
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                using var rec = ServiceProvider.GetOrCreate<Roblox.Services.Games.GameRecommendationService>();
-                await rec.TryRecomputeWithCooldownAsync(userId);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("[warn] recommendation recompute failed for user {0}: {1}", userId, e.Message);
-            }
-        });
 
         await db.ExecuteAsync(
             "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
