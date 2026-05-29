@@ -20,7 +20,7 @@ const paymentMethods = [
         name: 'Ko-fi',
         value: null,
         url: '/donate/ko-fi',
-        note: null,
+        note: 'Put your Korone username and Discord username on the donation message',
     },
     // {
     //     name: 'PayPal',
