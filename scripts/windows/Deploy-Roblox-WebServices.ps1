@@ -6,7 +6,8 @@ param(
     [string]$ApiProxyServiceName = "Roblox.ApiProxy",
     [string]$WebsiteServiceName = "Roblox.Website",
     [string]$DataStoreServiceName = "Roblox.Services.DataStore",
-    [string]$ModerationServiceName = "Roblox.Services.Moderation"
+    [string]$ModerationServiceName = "Roblox.Services.Moderation",
+    [string]$StripeServiceName = "Roblox.Services.Stripe"
 )
 
 $ErrorActionPreference = "Stop"
@@ -127,6 +128,7 @@ $services = @(
     @{ Name = $WebsiteServiceName; Folder = "Roblox.Website" }
     @{ Name = $DataStoreServiceName; Folder = "Roblox.Services.DataStore" }
     @{ Name = $ModerationServiceName; Folder = "Roblox.Services.Moderation" }
+    @{ Name = $StripeServiceName; Folder = "Roblox.Services.Stripe" }
 )
 
 foreach ($entry in $services) {

@@ -49,6 +49,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.ServiceDefaults", "S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Web.Infrastructure", "Roblox.Web.Infrastructure\Roblox.Web.Infrastructure.csproj", "{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Stripe", "Services\Roblox.Services.Stripe\Roblox.Services.Stripe.csproj", "{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -143,6 +145,10 @@ Global
 		{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -152,5 +158,6 @@ Global
 		{B8A40F80-1EE2-49E8-AFEF-92032D5BC72C} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{D10B5A3F-93C5-472D-8E82-C180EFC18D58} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
+		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 	EndGlobalSection
 EndGlobal
