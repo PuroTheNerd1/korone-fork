@@ -44,9 +44,10 @@ public class AvatarRBX : ControllerBase
             }
         }
 
-        var pendingCache = ServiceProvider.GetOrCreate<AvatarCache>();
+
         try
         {
+            using var pendingCache = ServiceProvider.GetOrCreate<AvatarCache>();
             using var avatarService = Roblox.Services.ServiceProvider.GetOrCreate<AvatarService>();
             Roblox.Models.Avatar.AvatarType? rigType = (Roblox.Models.Avatar.AvatarType?)await avatarService.GetAvatarType(userId);
             var assetIds = await pendingCache.GetPendingAssets(userId);
