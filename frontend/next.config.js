@@ -57,11 +57,11 @@ module.exports = withBundleAnalyzer({
             //     destination: 'https://buy.stripe.com/3cI6oI9dobzAeVlbLw2Ji04',
             //     permanent: false,
             // },
-            {
-                source: '/donate/ko-fi',
-                destination: 'https://ko-fi.com/oldroblox',
-                permanent: false,
-            },
+            // {
+            //     source: '/donate/ko-fi',
+            //     destination: 'https://ko-fi.com/oldroblox',
+            //     permanent: false,
+            // },
         ]
     },
     webpack(config, { isServer }) {
