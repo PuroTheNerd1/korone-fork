@@ -144,8 +144,6 @@ public class AdminApiService : ServiceBase
         var (creatorId, creatorName) = await ResolveCreatorAsync(assetInfo, latestVersion);
         item.creatorId = creatorId;
         item.creatorName = creatorName;
-        item.requiresDeleteItemPermission = assetInfo.creatorType == CreatorType.User && isOwnerUserId(assetInfo.creatorTargetId);
-        item.isPastDeleteWindow = assetInfo.createdAt < DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
 
         if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
         {
@@ -223,8 +221,6 @@ public class AdminApiService : ServiceBase
                     continue;
 
                 item.creatorName = creatorName;
-                item.requiresDeleteItemPermission = details.creatorType == CreatorType.User && isOwnerUserId(details.creatorTargetId);
-                item.isPastDeleteWindow = details.createdAt < DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
 
                 if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
                 {
@@ -244,7 +240,7 @@ public class AdminApiService : ServiceBase
         return result;
     }
 
-    public async Task ModerateAssetAsync(ModerateAssetRequest request, long actorUserId, bool actorIsOwner, bool canDeleteItem, Func<long, bool> isOwnerUserId)
+    public async Task ModerateAssetAsync(ModerateAssetRequest request, long actorUserId, bool actorIsOwner, Func<long, bool> isOwnerUserId)
     {
         var details = await db.QuerySingleOrDefaultAsync<AssetModerationStatus>(
             "SELECT moderation_status as moderationStatus, roblox_asset_id as robloxAssetId FROM asset WHERE asset.id = :id",
@@ -281,9 +277,9 @@ public class AdminApiService : ServiceBase
         {
             var isOwnerCreatedAsset = assetInfo.creatorType == CreatorType.User && isOwnerUserId(assetInfo.creatorTargetId);
             var minCreationTime = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
-            if (isOwnerCreatedAsset && !canDeleteItem)
+            if (isOwnerCreatedAsset)
                 throw new StaffException("You do not have permission to delete items created by an owner");
-            if (assetInfo.createdAt < minCreationTime && !canDeleteItem)
+            if (assetInfo.createdAt < minCreationTime)
                 throw new StaffException("This asset cannot be deleted since it was created too long ago");
         }
 
@@ -363,7 +359,7 @@ public class AdminApiService : ServiceBase
         }
     }
 
-    public async Task ModerateAndDeleteItemAsync(ModerateAssetRequest request, long actorUserId, bool actorIsOwner, bool canDeleteItem, Func<long, bool> isOwnerUserId)
+    public async Task ModerateAndDeleteItemAsync(ModerateAssetRequest request, long actorUserId, bool actorIsOwner, Func<long, bool> isOwnerUserId)
     {
         if (!actorIsOwner)
         {
@@ -375,7 +371,7 @@ public class AdminApiService : ServiceBase
                 throw new StaffException("Asset deletion rate limit exceeded (global). Contact an administrator.");
         }
 
-        await ModerateAssetAsync(request, actorUserId, actorIsOwner, canDeleteItem, isOwnerUserId);
+        await ModerateAssetAsync(request, actorUserId, actorIsOwner, isOwnerUserId);
         if (!request.isApproved)
         {
             await assets.DeleteAsset(request.assetId);

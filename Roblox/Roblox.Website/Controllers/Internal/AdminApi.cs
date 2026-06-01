@@ -302,18 +302,6 @@ public class AdminApiController : ControllerBase
         return "Join application added to user";
     }
     
-    private async Task<(bool isOwner, bool canDeleteItem)> GetAssetModerationPermissionsAsync()
-    {
-        var isOwner = StaffFilter.IsOwner(safeUserSession.userId);
-        if (isOwner)
-            return (true, true);
-
-        var permissions = (await services.users.GetStaffPermissions(safeUserSession.userId))
-            .Select(c => c.permission)
-            .ToArray();
-        return (false, permissions.Contains(Access.DeleteItem));
-    }
-    
     [HttpGet("groups/pending-icons"), StaffFilter(Access.GetPendingGroupIcons)]
     public async Task<IEnumerable<PendingGroupIconEntry>> GetPendingIcons()
     {
@@ -349,15 +337,13 @@ public class AdminApiController : ControllerBase
     [HttpPost("asset/moderate"), StaffFilter(Access.SetAssetModerationStatus)]
     public async Task ModerateAsset([Required, FromBody] ModerateAssetRequest request)
     {
-        var permissions = await GetAssetModerationPermissionsAsync();
-        await services.adminApi.ModerateAssetAsync(request, safeUserSession.userId, permissions.isOwner, permissions.canDeleteItem, StaffFilter.IsOwner);
+        await services.adminApi.ModerateAssetAsync(request, safeUserSession.userId, StaffFilter.IsOwner(safeUserSession.userId), StaffFilter.IsOwner);
     }
 
     [HttpPost("asset/moderate-and-delete"), StaffFilter(Access.SetAssetModerationStatus)]
     public async Task ModerateAndDeleteItem([Required, FromBody] ModerateAssetRequest request)
     {
-        var permissions = await GetAssetModerationPermissionsAsync();
-        await services.adminApi.ModerateAndDeleteItemAsync(request, safeUserSession.userId, permissions.isOwner, permissions.canDeleteItem, StaffFilter.IsOwner);
+        await services.adminApi.ModerateAndDeleteItemAsync(request, safeUserSession.userId, StaffFilter.IsOwner(safeUserSession.userId), StaffFilter.IsOwner);
     }
 
     [HttpGet("icons/pending-assets"), StaffFilter(Access.GetPendingModerationGameIcons)]
