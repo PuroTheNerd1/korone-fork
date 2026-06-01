@@ -276,11 +276,8 @@ public class AdminApiService : ServiceBase
         if (!request.isApproved)
         {
             var isOwnerCreatedAsset = assetInfo.creatorType == CreatorType.User && isOwnerUserId(assetInfo.creatorTargetId);
-            var minCreationTime = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
             if (isOwnerCreatedAsset)
                 throw new StaffException("You do not have permission to delete items created by an owner");
-            if (assetInfo.createdAt < minCreationTime)
-                throw new StaffException("This asset cannot be deleted since it was created too long ago");
         }
 
         if (latest.creatorId == actorUserId && !actorIsOwner)
