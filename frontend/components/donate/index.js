@@ -3,10 +3,11 @@ import { createUseStyles } from "react-jss";
 import { getTheme, themeType } from "../../services/theme";
 
 const tiers = [
-    { amount: 5, gif: '/img/DonatorItems/Coffee.gif', assetId: '673140', robux: 550 },
-    { amount: 10, gif: '/img/DonatorItems/Shaggy.gif', assetId: '673108', robux: 800 },
-    { amount: 25, gif: '/img/DonatorItems/Skater.gif', assetId: '673098', robux: 1500 },
-    { amount: 50, gif: '/img/DonatorItems/BrownSTF.gif', assetId: '673144', robux: 5500 },
+    { amount: 5, img: '/img/DonatorItems/SaturnsRing.png', assetId: '764757', robux: 500 },
+    { amount: 10, img: '/img/DonatorItems/AsteroidsBelt.png', assetId: '764499', robux: 1100 },
+    { amount: 15, img: '/img/DonatorItems/MDW.png', assetId: '764520', robux: 1750 },
+    { amount: 25, img: '/img/DonatorItems/HOTN.png', assetId: '764657', robux: 3100 },
+    { amount: 50, img: '/img/DonatorItems/SolarSystem.png', assetId: '764477', robux: 6000 },
 ];
 
 const paymentMethods = [
@@ -439,7 +440,7 @@ const useStyles = createUseStyles({
     },
 });
 
-const TARGET_DATE = new Date(2026, 5, 1, 0, 0, 0, 0);
+const TARGET_DATE = new Date(2026, 6, 1, 0, 0, 0, 0);
 
 const getTimeUntilTarget = () => {
     let diff = Math.max(0, TARGET_DATE.getTime() - Date.now());
@@ -527,7 +528,7 @@ const Donate = () => {
                                 <span className={`${s.badgeClockIcon} icon-clock`}/>
                             </span>
                         </div>
-                        <img src={tier.gif} alt={`$${tier.amount} donation item`} className={s.thumb}/>
+                        <img src={tier.img} alt={`$${tier.amount} donation item`} className={s.thumb}/>
                     </>
                 );
                 return <div key={tier.amount} className={s.card}>

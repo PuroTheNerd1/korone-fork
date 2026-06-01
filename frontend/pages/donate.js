@@ -3,7 +3,7 @@ import Theme2016 from "../components/theme2016";
 
 const DonatePage = () => {
     return <Theme2016>
-        { /* <Donate/> */ }
+        <Donate/> 
     </Theme2016>;
 };
 
