@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { getTheme, themeType } from "../../services/theme";
 
 const tiers = [
-    { amount: 5, img: '/img/DonatorItems/SaturnsRing.png', assetId: '764757', robux: 500 },
-    { amount: 10, img: '/img/DonatorItems/AsteroidsBelt.png', assetId: '764499', robux: 1100 },
-    { amount: 15, img: '/img/DonatorItems/MDW.png', assetId: '764520', robux: 1750 },
-    { amount: 25, img: '/img/DonatorItems/HOTN.png', assetId: '764657', robux: 3100 },
-    { amount: 50, img: '/img/DonatorItems/SolarSystem.png', assetId: '764477', robux: 6000 },
+    { amount: 5, name: "Saturn's Ring", img: '/img/DonatorItems/SaturnsRing.png', assetId: '764757', robux: 500 },
+    { amount: 10, name: 'Asteroids Belt', img: '/img/DonatorItems/AsteroidsBelt.png', assetId: '764499', robux: 1100 },
+    { amount: 15, name: 'Molten Dragon Wings', img: '/img/DonatorItems/MDW.png', assetId: '764520', robux: 1750 },
+    { amount: 25, name: 'Horns of the Nebula', img: '/img/DonatorItems/HOTN.png', assetId: '764657', robux: 3100, popular: true },
+    { amount: 50, name: 'Solar System', img: '/img/DonatorItems/SolarSystem.png', assetId: '764477', robux: 6000, bundle: true },
 ];
 
 const paymentMethods = [
@@ -21,7 +21,7 @@ const paymentMethods = [
         name: 'Ko-fi',
         value: null,
         url: '/donate/ko-fi',
-        note: 'Put your Korone username and Discord username on the donation message',
+        note: 'Include your Korone username and Discord username in the donation message.',
     },
     // {
     //     name: 'PayPal',
@@ -60,6 +60,13 @@ const useStyles = createUseStyles({
         paddingBottom: '40px',
     },
     hero: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019
+            ? 'linear-gradient(135deg, #3d2c2c 0%, #252525 100%)'
+            : 'linear-gradient(135deg, #fff7f2 0%, #ffffff 100%)',
+        border: '1px solid rgba(138, 81, 73, 0.2)',
+        borderRadius: '10px',
+        boxShadow: '0 4px 16px rgba(25, 25, 25, 0.1)',
+        padding: '26px 22px 22px',
         textAlign: 'center',
         marginBottom: '24px',
     },
@@ -75,13 +82,25 @@ const useStyles = createUseStyles({
         margin: '0 auto',
         lineHeight: 1.5,
     },
+    heroHighlights: {
+        display: 'flex',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+        gap: '8px',
+        marginTop: '18px',
+    },
+    heroHighlight: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#2a2a2a' : '#f6e9e5',
+        color: 'var(--text-color-primary)',
+        borderRadius: '20px',
+        fontSize: '12px',
+        fontWeight: 600,
+        padding: '6px 11px',
+    },
     grid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
         gap: '18px',
-        '@media(max-width: 991px)': {
-            gridTemplateColumns: 'repeat(2, 1fr)',
-        },
         '@media(max-width: 500px)': {
             gridTemplateColumns: '1fr',
         },
@@ -103,6 +122,11 @@ const useStyles = createUseStyles({
             textDecoration: 'none',
             color: 'inherit',
         },
+    },
+    selectedCard: {
+        border: '2px solid var(--primary-color)',
+        padding: '14px',
+        boxShadow: '0 5px 16px rgba(138, 81, 73, 0.3)',
     },
     thumbWrap: {
         width: '100%',
@@ -141,6 +165,9 @@ const useStyles = createUseStyles({
         lineHeight: '1em',
         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
     },
+    popularBadge: {
+        backgroundColor: 'var(--primary-color)',
+    },
     badgeClockIcon: {
         backgroundPosition: '-16px -576px!important',
         width: 16,
@@ -153,6 +180,14 @@ const useStyles = createUseStyles({
         fontWeight: 700,
         margin: 0,
         marginBottom: '2px',
+    },
+    itemName: {
+        color: 'var(--text-color-primary)',
+        fontSize: '14px',
+        fontWeight: 600,
+        margin: '0 0 6px',
+        minHeight: '20px',
+        textAlign: 'center',
     },
     cadence: {
         fontSize: '13px',
@@ -188,6 +223,9 @@ const useStyles = createUseStyles({
         '&:hover': {
             opacity: 0.9,
         },
+    },
+    selectedCta: {
+        background: 'var(--success-color)',
     },
     stripeBtn: {
         display: 'block',
@@ -251,7 +289,7 @@ const useStyles = createUseStyles({
     },
     paymentGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: '14px',
         '@media(max-width: 767px)': {
             gridTemplateColumns: '1fr',
@@ -318,6 +356,7 @@ const useStyles = createUseStyles({
         marginLeft: '6px',
     },
     cryptoAddress: {
+        width: '100%',
         fontFamily: 'monospace',
         fontSize: '13px',
         background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#2a2a2a' : '#f4f4f4',
@@ -329,11 +368,18 @@ const useStyles = createUseStyles({
         border: '1px solid transparent',
         transition: 'border-color 150ms ease, background 150ms ease',
         userSelect: 'none',
+        textAlign: 'left',
         '&:hover': {
             borderColor: 'var(--primary-color)',
         },
+        '&:focus-visible': {
+            borderColor: 'var(--primary-color)',
+            outline: '2px solid var(--primary-color)',
+            outlineOffset: '2px',
+        },
     },
     cryptoAddressCopied: {
+        width: '100%',
         fontFamily: 'monospace',
         fontSize: '13px',
         background: 'var(--primary-color)',
@@ -347,6 +393,18 @@ const useStyles = createUseStyles({
         userSelect: 'none',
         textAlign: 'center',
         fontStyle: 'italic',
+    },
+    cryptoAddressError: {
+        width: '100%',
+        fontFamily: 'monospace',
+        fontSize: '13px',
+        background: '#FAE5E5',
+        color: '#8a1f11',
+        borderRadius: '4px',
+        padding: '8px 12px',
+        cursor: 'pointer',
+        border: '1px solid #C00',
+        textAlign: 'center',
     },
     disclaimer: {
         textAlign: 'center',
@@ -366,6 +424,11 @@ const useStyles = createUseStyles({
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
+    },
+    countdownNote: {
+        fontSize: '12px',
+        margin: '10px 0 0',
+        opacity: 0.95,
     },
     countdownLabel: {
         fontSize: '13px',
@@ -438,9 +501,84 @@ const useStyles = createUseStyles({
         marginBottom: '6px',
         alignSelf: 'center',
     },
+    selectionBox: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
+        border: '2px solid var(--primary-color)',
+        borderRadius: '6px',
+        boxShadow: '0 2px 7px rgba(25, 25, 25, 0.14)',
+        marginBottom: '14px',
+        padding: '14px 16px',
+    },
+    selectionTitle: {
+        color: 'var(--text-color-primary)',
+        fontSize: '16px',
+        fontWeight: 700,
+        margin: '0 0 4px',
+    },
+    selectionText: {
+        fontSize: '13px',
+        margin: 0,
+    },
+    stepsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '14px',
+        '@media(max-width: 767px)': {
+            gridTemplateColumns: '1fr',
+        },
+    },
+    stepCard: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
+        borderRadius: '6px',
+        boxShadow: '0 1px 3px rgba(25, 25, 25, 0.15)',
+        padding: '16px',
+    },
+    stepNumber: {
+        alignItems: 'center',
+        background: 'var(--primary-color)',
+        borderRadius: '50%',
+        color: 'white',
+        display: 'inline-flex',
+        fontSize: '13px',
+        fontWeight: 700,
+        height: '26px',
+        justifyContent: 'center',
+        marginBottom: '8px',
+        width: '26px',
+    },
+    stepTitle: {
+        color: 'var(--text-color-primary)',
+        fontSize: '15px',
+        fontWeight: 700,
+        margin: '0 0 4px',
+    },
+    stepText: {
+        fontSize: '13px',
+        lineHeight: 1.45,
+        margin: 0,
+    },
+    claimBox: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : '#fff7f2',
+        border: '1px solid rgba(138, 81, 73, 0.3)',
+        borderRadius: '6px',
+        marginTop: '28px',
+        padding: '16px 18px',
+        textAlign: 'center',
+    },
+    claimTitle: {
+        color: 'var(--text-color-primary)',
+        fontSize: '17px',
+        fontWeight: 700,
+        margin: '0 0 6px',
+    },
+    claimText: {
+        fontSize: '13px',
+        lineHeight: 1.5,
+        margin: '3px 0',
+    },
 });
 
-const TARGET_DATE = new Date(2026, 6, 1, 0, 0, 0, 0);
+const TARGET_DATE = new Date('2026-07-01T00:00:00');
 
 const getTimeUntilTarget = () => {
     let diff = Math.max(0, TARGET_DATE.getTime() - Date.now());
@@ -452,34 +590,72 @@ const getTimeUntilTarget = () => {
 };
 
 const CryptoAddress = ({ address, styles }) => {
-    const [copied, setCopied] = useState(false);
+    const [copyStatus, setCopyStatus] = useState('idle');
+    const resetTimeout = useRef(null);
 
-    const handleClick = () => {
-        navigator.clipboard.writeText(address).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1000);
-        });
+    useEffect(() => () => clearTimeout(resetTimeout.current), []);
+
+    const handleClick = async () => {
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(address);
+            } else {
+                const textArea = document.createElement('textarea');
+                textArea.value = address;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                const copied = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                if (!copied) throw new Error('Copy command failed');
+            }
+            setCopyStatus('copied');
+        } catch (e) {
+            setCopyStatus('error');
+        }
+
+        clearTimeout(resetTimeout.current);
+        resetTimeout.current = setTimeout(() => setCopyStatus('idle'), 1600);
     };
 
     return (
-        <div
-            className={copied ? styles.cryptoAddressCopied : styles.cryptoAddress}
+        <button
+            type="button"
+            className={
+                copyStatus === 'copied'
+                    ? styles.cryptoAddressCopied
+                    : copyStatus === 'error'
+                        ? styles.cryptoAddressError
+                        : styles.cryptoAddress
+            }
             onClick={handleClick}
-            title="Click to copy"
+            title="Copy address"
+            aria-label={`Copy ${address}`}
         >
-            {copied ? 'Copied to clipboard!' : address}
-        </div>
+            {copyStatus === 'copied'
+                ? 'Copied to clipboard!'
+                : copyStatus === 'error'
+                    ? `Copy failed: ${address}`
+                    : address}
+        </button>
     );
 };
 
 const Donate = () => {
     const s = useStyles({ theme: getTheme() });
     const [countdown, setCountdown] = useState(getTimeUntilTarget);
+    const [selectedTier, setSelectedTier] = useState(tiers.find(tier => tier.popular));
 
     useEffect(() => {
         const id = setInterval(() => setCountdown(getTimeUntilTarget()), 1000);
         return () => clearInterval(id);
     }, []);
+
+    const selectTier = tier => {
+        setSelectedTier(tier);
+        document.getElementById('payment-methods').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     return <div className={`container ${s.wrapper}`}>
         <div className={s.hero}>
@@ -490,13 +666,18 @@ const Donate = () => {
                 a live breakdown of every cent we receive and spend in a dedicated channel on our Discord server.
             </p>
             <p className={s.subTitle} style={{ marginTop: '10px' }}>
-                Pick a tier below to donate and grab the matching item as a thank-you.
+                Pick a tier below to donate and receive a limited in-game item as our thank-you.
             </p>
+            <div className={s.heroHighlights}>
+                <span className={s.heroHighlight}>Limited in-game rewards</span>
+                <span className={s.heroHighlight}>Permanent Discord role</span>
+                <span className={s.heroHighlight}>Transparent community funding</span>
+            </div>
         </div>
 
         <div className={s.countdownBanner}>
             <p className={s.countdownLabel}>Leaving Soon</p>
-            <p className={s.countdownTitle}>These donation items disappear on June 1, 2026</p>
+            <p className={s.countdownTitle}>These donation items disappear on July 1, 2026</p>
             <div className={s.countdownGrid}>
                 <div className={s.countdownUnit}>
                     <p className={s.countdownValue}>{String(countdown.days).padStart(2, '0')}</p>
@@ -515,6 +696,7 @@ const Donate = () => {
                     <p className={s.countdownUnitLabel}>Seconds</p>
                 </div>
             </div>
+            <p className={s.countdownNote}>Claim your reward before this limited collection retires.</p>
         </div>
 
         <div className={s.grid}>
@@ -523,6 +705,7 @@ const Donate = () => {
                 const thumbInner = (
                     <>
                         <div className={s.badgeContainer}>
+                            {tier.popular && <span className={`${s.badge} ${s.popularBadge}`}>Popular</span>}
                             <span className={s.badge}>New</span>
                             <span className={s.badge}>
                                 <span className={`${s.badgeClockIcon} icon-clock`}/>
@@ -531,7 +714,8 @@ const Donate = () => {
                         <img src={tier.img} alt={`$${tier.amount} donation item`} className={s.thumb}/>
                     </>
                 );
-                return <div key={tier.amount} className={s.card}>
+                const isSelected = selectedTier.amount === tier.amount;
+                return <div key={tier.amount} className={`${s.card} ${isSelected ? s.selectedCard : ''}`}>
                     {itemUrl ? (
                         <a
                             href={itemUrl}
@@ -548,17 +732,41 @@ const Donate = () => {
                     {tier.amount === 50 && (
                         <span className={s.bundleTag}>+ all items</span>
                     )}
+                    <p className={s.itemName}>{tier.name}</p>
                     <p className={s.amount}>${tier.amount}</p>
                     <p className={s.robuxRow}>
                         +{tier.robux.toLocaleString()}
                         <img src='/img/img-robux.png' alt='Robux' className={s.robuxIcon} />
                     </p>
                     <button
-                        className={s.ctaRow}
-                        onClick={() => document.getElementById('payment-methods').scrollIntoView({ behavior: 'smooth' })}
-                    >Donate ${tier.amount}</button>
+                        type="button"
+                        className={`${s.ctaRow} ${isSelected ? s.selectedCta : ''}`}
+                        onClick={() => selectTier(tier)}
+                        aria-pressed={isSelected}
+                    >{isSelected ? 'Selected' : `Choose $${tier.amount}`}</button>
                 </div>;
             })}
+        </div>
+
+        <div className={s.section}>
+            <h2 className={s.sectionTitle}>How It Works</h2>
+            <div className={s.stepsGrid}>
+                <div className={s.stepCard}>
+                    <span className={s.stepNumber}>1</span>
+                    <p className={s.stepTitle}>Choose a tier</p>
+                    <p className={s.stepText}>Pick the reward you want. The $50 tier includes the full collection.</p>
+                </div>
+                <div className={s.stepCard}>
+                    <span className={s.stepNumber}>2</span>
+                    <p className={s.stepTitle}>Donate securely</p>
+                    <p className={s.stepText}>Use Ko-fi or one of the cryptocurrency addresses below.</p>
+                </div>
+                <div className={s.stepCard}>
+                    <span className={s.stepNumber}>3</span>
+                    <p className={s.stepTitle}>Claim your rewards</p>
+                    <p className={s.stepText}>Send your receipt in Discord and allow up to 24 hours for delivery.</p>
+                </div>
+            </div>
         </div>
 
         <div className={s.section}>
@@ -593,6 +801,13 @@ const Donate = () => {
 
         <div className={s.section} id="payment-methods">
             <h2 className={s.sectionTitle}>Payment Methods</h2>
+            <div className={s.selectionBox}>
+                <p className={s.selectionTitle}>Your selected tier: ${selectedTier.amount} - {selectedTier.name}</p>
+                <p className={s.selectionText}>
+                    Your thank-you reward includes {selectedTier.bundle ? 'the complete item collection' : 'the matching limited item'},
+                    {' '}{selectedTier.robux.toLocaleString()} Robux, and the permanent Discord Donator role.
+                </p>
+            </div>
             <div className={s.paymentGrid}>
                 {paymentMethods.map(method => (
                     <div key={method.name} className={s.paymentCard}>
@@ -615,7 +830,7 @@ const Donate = () => {
                                 rel='noopener noreferrer'
                                 className={s.stripeBtn}
                             >
-                                Donate
+                                Donate ${selectedTier.amount} with {method.name}
                             </a>
                         )}
                     </div>
@@ -639,8 +854,13 @@ const Donate = () => {
         </div>
 
         <p className={s.disclaimer}>Donations are final and non-refundable.</p>
-        <p>After donating, message @bruteforcing on Discord or open a support ticket with your receipt to claim your role and item.</p>
-        <p>Claims are usually processed sooner, but please allow up to 24 hours.</p>
+        <div className={s.claimBox}>
+            <p className={s.claimTitle}>Ready to claim your reward?</p>
+            <p className={s.claimText}>
+                After donating, message <strong>@bruteforcing</strong> on Discord or open a support ticket with your receipt.
+            </p>
+            <p className={s.claimText}>Claims are usually processed sooner, but please allow up to 24 hours.</p>
+        </div>
     </div>;
 };
 
