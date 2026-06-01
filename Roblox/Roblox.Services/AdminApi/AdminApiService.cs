@@ -276,7 +276,7 @@ public class AdminApiService : ServiceBase
         if (!request.isApproved)
         {
             var isOwnerCreatedAsset = assetInfo.creatorType == CreatorType.User && isOwnerUserId(assetInfo.creatorTargetId);
-            if (isOwnerCreatedAsset)
+            if (isOwnerCreatedAsset && !actorIsOwner)
                 throw new StaffException("You do not have permission to delete items created by an owner");
         }
 
