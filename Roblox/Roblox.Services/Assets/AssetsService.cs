@@ -1001,25 +1001,37 @@ public class AssetsService : ServiceBase, IService
                 throw new Exception("Unexpected assetType: " + assetType);
         }
 
-        if (thumbRequests.Count == 0)
-            return;
-
         try
         {
+            if (thumbRequests.Count == 0)
+                return;
+
             Console.WriteLine("Start multi render");
             await Task.WhenAll(thumbRequests);
             Console.WriteLine("End multi render");
         }
         catch (System.Exception e)
         {
-            Console.WriteLine("[error] Render failed for {0}:{1}: {2}", assetId, assetType, e.Message);
+            Writer.Info(LogGroup.AssetRender, "Render failed for {0}:{1}: {2}\n{3}", assetId, assetType, e.Message, e.StackTrace);
         }
-        inqueueAssetIds.Remove(assetId);
+        finally
+        {
+            inqueueAssetIds.Remove(assetId);
+        }
     }
 
     public void RenderAsset(long assetId, Models.Assets.Type assetType)
     {
-        Task.Run(async () => { await RenderAssetAsync(assetId, assetType); });
+        if (ExecutionContext.IsFlowSuppressed())
+        {
+            _ = Task.Run(() => RenderAssetAsync(assetId, assetType));
+            return;
+        }
+
+        using (ExecutionContext.SuppressFlow())
+        {
+            _ = Task.Run(() => RenderAssetAsync(assetId, assetType));
+        }
     }
     private static byte[] ConvertBinaryMesh(byte[] buffer, String version)
     {
