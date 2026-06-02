@@ -259,7 +259,8 @@ public sealed class FrontendProxyMiddleware
                path.Equals("/js/axios.min.js", StringComparison.OrdinalIgnoreCase) ||
                path.StartsWith("/js/roblox/", StringComparison.OrdinalIgnoreCase) ||
                (path.StartsWith("/img/", StringComparison.OrdinalIgnoreCase) &&
-                path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase));
+                path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase) || 
+                path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string[][] CreatePrefixBuckets()
