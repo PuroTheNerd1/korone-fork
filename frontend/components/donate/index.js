@@ -5,7 +5,7 @@ import { getTheme, themeType } from "../../services/theme";
 const tiers = [
     { amount: 5, name: "Saturn's Ring", img: '/img/DonatorItems/SaturnsRing.png', assetId: '764757', robux: 500 },
     { amount: 10, name: 'Asteroids Belt', img: '/img/DonatorItems/AsteroidsBelt.png', assetId: '764499', robux: 1100 },
-    { amount: 15, name: 'Molten Dragon Wings', img: '/img/DonatorItems/MDW.png', assetId: '764520', robux: 1750 },
+    { amount: 15, name: "Mars's Dragon Wings", img: '/img/DonatorItems/MDW.png', assetId: '764520', robux: 1750 },
     { amount: 25, name: 'Horns of the Nebula', img: '/img/DonatorItems/HOTN.png', assetId: '764657', robux: 3100, popular: true },
     { amount: 50, name: 'Solar System', img: '/img/DonatorItems/SolarSystem.png', assetId: '764477', robux: 6000, bundle: true },
 ];
