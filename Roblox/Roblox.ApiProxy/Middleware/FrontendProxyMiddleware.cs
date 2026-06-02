@@ -220,9 +220,7 @@ public sealed class FrontendProxyMiddleware
             return true;
         }
 
-        if (path.Equals("/js/bootstrap.min.css", StringComparison.OrdinalIgnoreCase) ||
-            path.Equals("/js/axios.min.js", StringComparison.OrdinalIgnoreCase) ||
-            path.StartsWith("/js/roblox/", StringComparison.OrdinalIgnoreCase))
+        if (IsFrontendOwnedPath(path))
         {
             return false;
         }
@@ -253,6 +251,15 @@ public sealed class FrontendProxyMiddleware
         }
 
         return false;
+    }
+
+    private static bool IsFrontendOwnedPath(string path)
+    {
+        return path.Equals("/js/bootstrap.min.css", StringComparison.OrdinalIgnoreCase) ||
+               path.Equals("/js/axios.min.js", StringComparison.OrdinalIgnoreCase) ||
+               path.StartsWith("/js/roblox/", StringComparison.OrdinalIgnoreCase) ||
+               (path.StartsWith("/img/", StringComparison.OrdinalIgnoreCase) &&
+                path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string[][] CreatePrefixBuckets()
