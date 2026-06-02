@@ -7,7 +7,7 @@ param(
     [string]$WebsiteServiceName = "Roblox.Website",
     [string]$DataStoreServiceName = "Roblox.Services.DataStore",
     [string]$ModerationServiceName = "Roblox.Services.Moderation",
-    [string]$StripeServiceName = "Roblox.Services.Stripe"
+    [string]$DonationServiceName = "Roblox.Services.Donation"
 )
 
 $ErrorActionPreference = "Stop"
@@ -128,8 +128,11 @@ $services = @(
     @{ Name = $WebsiteServiceName; Folder = "Roblox.Website" }
     @{ Name = $DataStoreServiceName; Folder = "Roblox.Services.DataStore" }
     @{ Name = $ModerationServiceName; Folder = "Roblox.Services.Moderation" }
-    @{ Name = $StripeServiceName; Folder = "Roblox.Services.Stripe" }
+    @{ Name = $DonationServiceName; Folder = "Roblox.Services.Donation" }
 )
+
+Write-Section "Stopping legacy Stripe service"
+Stop-ServiceIfExists -Name "Roblox.Services.Stripe"
 
 foreach ($entry in $services) {
     Write-Section "Deploying $($entry.Name)"

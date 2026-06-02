@@ -4,6 +4,7 @@ using Roblox.Libraries.LeakCheckApi;
 using Roblox.Libraries.RobloxApi;
 using Roblox.Services;
 using Roblox.Services.AdminApi;
+using Roblox.Services.Donations;
 using Roblox.Services.Games;
 using Roblox.Services.PlaceLauncher;
 using Roblox.Services.Signer;
@@ -47,6 +48,7 @@ public class RobloxServiceAccessor : IDisposable
     private RobloxApi? _robloxApi;
     private LeakCheckApi? _leakCheck;
     private DiscordBotApi? _discordBotApi;
+    private DonationRewardService? _donationRewards;
 
     public RobloxServiceAccessor()
     {
@@ -87,6 +89,7 @@ public class RobloxServiceAccessor : IDisposable
     public AdminApiService adminApi => GetService(ref _adminApi);
     public DataStoreService dataStore => GetService(ref _dataStore);
     public R2StorageService r2Storage => GetService(ref _r2Storage);
+    public DonationRewardService donationRewards => GetService(ref _donationRewards);
     public RobloxApi robloxApi => _robloxApi ??= new RobloxApi();
     public LeakCheckApi leakCheck => _leakCheck ??= new LeakCheckApi(Roblox.Configuration.LeakCheckApiKey);
     public DiscordBotApi discordBotApi => _discordBotApi ??= new DiscordBotApi(Roblox.Configuration.DiscordBotToken);

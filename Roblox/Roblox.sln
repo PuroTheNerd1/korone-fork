@@ -49,7 +49,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.ServiceDefaults", "S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Web.Infrastructure", "Roblox.Web.Infrastructure\Roblox.Web.Infrastructure.csproj", "{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Stripe", "Services\Roblox.Services.Stripe\Roblox.Services.Stripe.csproj", "{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Donation", "Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj", "{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -2,4 +2,5 @@
 **/Properties
 **/appsettings.json
 **/appsettings.*.json
+!Services/Roblox.Services.Donation/appsettings.json
 **/bin

@@ -21,7 +21,7 @@ const paymentMethods = [
         name: 'Ko-fi',
         value: null,
         url: '/donate/ko-fi',
-        note: 'Include your Korone username and Discord username in the donation message.',
+        note: 'Set your Ko-fi Display Name to your exact Korone username before paying.',
     },
     // {
     //     name: 'PayPal',
@@ -197,6 +197,8 @@ const useStyles = createUseStyles({
     robuxRow: {
         display: 'inline-flex',
         alignItems: 'center',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
         gap: '4px',
         fontSize: '14px',
         fontWeight: 600,
@@ -210,6 +212,7 @@ const useStyles = createUseStyles({
     },
     ctaRow: {
         width: '100%',
+        marginTop: 'auto',
         textAlign: 'center',
         background: 'var(--primary-color)',
         color: 'white',
@@ -490,6 +493,7 @@ const useStyles = createUseStyles({
         display: 'block',
     },
     bundleTag: {
+        display: 'inline-flex',
         background: 'var(--primary-color)',
         color: 'white',
         fontSize: '11px',
@@ -498,8 +502,7 @@ const useStyles = createUseStyles({
         borderRadius: '4px',
         textTransform: 'uppercase',
         letterSpacing: '0.5px',
-        marginBottom: '6px',
-        alignSelf: 'center',
+        marginLeft: '3px',
     },
     selectionBox: {
         background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
@@ -518,6 +521,17 @@ const useStyles = createUseStyles({
     selectionText: {
         fontSize: '13px',
         margin: 0,
+    },
+    displayNameNotice: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#2a2a2a' : '#fff7f2',
+        border: '1px solid rgba(138, 81, 73, 0.4)',
+        borderRadius: '4px',
+        color: 'var(--text-color-primary)',
+        fontSize: '13px',
+        fontWeight: 600,
+        lineHeight: 1.5,
+        margin: '12px 0 0',
+        padding: '10px 12px',
     },
     stepsGrid: {
         display: 'grid',
@@ -589,6 +603,23 @@ const getTimeUntilTarget = () => {
     return { days, hours, minutes, seconds };
 };
 
+const copyText = async text => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+    const copied = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    if (!copied) throw new Error('Copy command failed');
+};
+
 const CryptoAddress = ({ address, styles }) => {
     const [copyStatus, setCopyStatus] = useState('idle');
     const resetTimeout = useRef(null);
@@ -597,19 +628,7 @@ const CryptoAddress = ({ address, styles }) => {
 
     const handleClick = async () => {
         try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(address);
-            } else {
-                const textArea = document.createElement('textarea');
-                textArea.value = address;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.select();
-                const copied = document.execCommand('copy');
-                document.body.removeChild(textArea);
-                if (!copied) throw new Error('Copy command failed');
-            }
+            await copyText(address);
             setCopyStatus('copied');
         } catch (e) {
             setCopyStatus('error');
@@ -669,7 +688,7 @@ const Donate = () => {
                 Pick a tier below to donate and receive a limited in-game item as our thank-you.
             </p>
             <div className={s.heroHighlights}>
-                <span className={s.heroHighlight}>Limited in-game rewards</span>
+                <span className={s.heroHighlight}>Limited on-site rewards</span>
                 <span className={s.heroHighlight}>Permanent Discord role</span>
                 <span className={s.heroHighlight}>Transparent community funding</span>
             </div>
@@ -729,14 +748,12 @@ const Donate = () => {
                     ) : (
                         <div className={s.thumbWrap}>{thumbInner}</div>
                     )}
-                    {tier.amount === 50 && (
-                        <span className={s.bundleTag}>+ all items</span>
-                    )}
                     <p className={s.itemName}>{tier.name}</p>
                     <p className={s.amount}>${tier.amount}</p>
                     <p className={s.robuxRow}>
                         +{tier.robux.toLocaleString()}
                         <img src='/img/img-robux.png' alt='Robux' className={s.robuxIcon} />
+                        {tier.bundle && <span className={s.bundleTag}>+ all items</span>}
                     </p>
                     <button
                         type="button"
@@ -759,12 +776,12 @@ const Donate = () => {
                 <div className={s.stepCard}>
                     <span className={s.stepNumber}>2</span>
                     <p className={s.stepTitle}>Donate securely</p>
-                    <p className={s.stepText}>Use Ko-fi or one of the cryptocurrency addresses below.</p>
+                    <p className={s.stepText}>For Ko-fi, set your Display Name to your exact Korone username and enter the selected amount manually.</p>
                 </div>
                 <div className={s.stepCard}>
                     <span className={s.stepNumber}>3</span>
                     <p className={s.stepTitle}>Claim your rewards</p>
-                    <p className={s.stepText}>Send your receipt in Discord and allow up to 24 hours for delivery.</p>
+                    <p className={s.stepText}>Ko-fi grants on-site items and Robux automatically. Open a support ticket for Discord roles or cryptocurrency donations.</p>
                 </div>
             </div>
         </div>
@@ -788,7 +805,7 @@ const Donate = () => {
             <div className={s.perksBox}>
                 <div className={s.perkItem}>
                     <span className={s.perkBadge}>Item</span>
-                    <p className={s.perkText}>Every tier grants the matching in-game item shown above.</p>
+                    <p className={s.perkText}>Ko-fi automatically grants the matching on-site item and Robux reward for your tier.</p>
                 </div>
                 <div className={s.perkItem}>
                     <span className={s.perkBadge}>Discord</span>
@@ -806,6 +823,11 @@ const Donate = () => {
                 <p className={s.selectionText}>
                     Your thank-you reward includes {selectedTier.bundle ? 'the complete item collection' : 'the matching limited item'},
                     {' '}{selectedTier.robux.toLocaleString()} Robux, and the permanent Discord Donator role.
+                </p>
+                <p className={s.displayNameNotice}>
+                    Before paying with Ko-fi, set your Ko-fi <strong>Display Name</strong> to your exact Korone username
+                    and enter <strong>${selectedTier.amount}</strong> manually. If your Display Name does not match,
+                    your on-site item and Robux cannot be delivered automatically.
                 </p>
             </div>
             <div className={s.paymentGrid}>
@@ -830,7 +852,7 @@ const Donate = () => {
                                 rel='noopener noreferrer'
                                 className={s.stripeBtn}
                             >
-                                Donate ${selectedTier.amount} with {method.name}
+                                Continue to {method.name} for ${selectedTier.amount}
                             </a>
                         )}
                     </div>
@@ -855,9 +877,10 @@ const Donate = () => {
 
         <p className={s.disclaimer}>Donations are final and non-refundable.</p>
         <div className={s.claimBox}>
-            <p className={s.claimTitle}>Ready to claim your reward?</p>
+            <p className={s.claimTitle}>Need a Discord role or cryptocurrency reward?</p>
             <p className={s.claimText}>
-                After donating, message <strong>@bruteforcing</strong> on Discord or open a support ticket with your receipt.
+                Open a support ticket with your receipt. Ko-fi on-site items and Robux are delivered automatically when
+                your Ko-fi Display Name exactly matches your Korone username.
             </p>
             <p className={s.claimText}>Claims are usually processed sooner, but please allow up to 24 hours.</p>
         </div>

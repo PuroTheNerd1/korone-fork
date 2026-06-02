@@ -36,7 +36,7 @@ jobs:
           dotnet build Roblox\Roblox.ApiProxy\Roblox.ApiProxy.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.DataStore\Roblox.Services.DataStore.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj -c Release --no-restore -m:1
-          dotnet build Roblox\Services\Roblox.Services.Stripe\Roblox.Services.Stripe.csproj -c Release --no-restore -m:1
+          dotnet build Roblox\Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj -c Release --no-restore -m:1
 
       - name: Publish deployable projects
         run: |
@@ -48,7 +48,7 @@ jobs:
           dotnet publish Roblox\Roblox.ApiProxy\Roblox.ApiProxy.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.ApiProxy")
           dotnet publish Roblox\Services\Roblox.Services.DataStore\Roblox.Services.DataStore.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.DataStore")
           dotnet publish Roblox\Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Moderation")
-          dotnet publish Roblox\Services\Roblox.Services.Stripe\Roblox.Services.Stripe.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Stripe")
+          dotnet publish Roblox\Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Donation")
 
       - name: Add deployment scripts
         run: |
@@ -75,7 +75,7 @@ jobs:
       WEBSITE_SERVICE: ${{ vars.WEB_WEBSITE_SERVICE || 'Roblox.Website' }}
       DATASTORE_SERVICE: ${{ vars.WEB_DATASTORE_SERVICE || 'Roblox.Services.DataStore' }}
       MODERATION_SERVICE: ${{ vars.WEB_MODERATION_SERVICE || 'Roblox.Services.Moderation' }}
-      STRIPE_SERVICE: ${{ vars.WEB_STRIPE_SERVICE || 'Roblox.Services.Stripe' }}
+      DONATION_SERVICE: ${{ vars.WEB_DONATION_SERVICE || 'Roblox.Services.Donation' }}
     steps:
       - name: Download deploy bundle
         uses: actions/download-artifact@v4
@@ -124,7 +124,7 @@ jobs:
             -WebsiteServiceName '${{ env.WEBSITE_SERVICE }}' `
             -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}' `
             -ModerationServiceName '${{ env.MODERATION_SERVICE }}' `
-            -StripeServiceName '${{ env.STRIPE_SERVICE }}'
+            -DonationServiceName '${{ env.DONATION_SERVICE }}'
           EOF
           )
           encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
