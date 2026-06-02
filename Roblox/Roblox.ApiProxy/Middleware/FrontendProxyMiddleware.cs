@@ -220,6 +220,13 @@ public sealed class FrontendProxyMiddleware
             return true;
         }
 
+        if (path.Equals("/js/bootstrap.min.css", StringComparison.OrdinalIgnoreCase) ||
+            path.Equals("/js/axios.min.js", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/js/roblox/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
         if (path.Contains("/canmanage/", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("filter-friends", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("multiget-friend-requests", StringComparison.OrdinalIgnoreCase) ||
