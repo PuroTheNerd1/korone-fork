@@ -5,6 +5,7 @@ param(
     [string]$DeployRoot,
     [string]$ApiProxyServiceName = "Roblox.ApiProxy",
     [string]$WebsiteServiceName = "Roblox.Website",
+    [string]$DataServiceName = "Roblox.Services.Data",
     [string]$DataStoreServiceName = "Roblox.Services.DataStore",
     [string]$ModerationServiceName = "Roblox.Services.Moderation",
     [string]$DonationServiceName = "Roblox.Services.Donation"
@@ -126,6 +127,7 @@ Write-Host "DeployRoot: $DeployRoot"
 $services = @(
     @{ Name = $ApiProxyServiceName; Folder = "Roblox.ApiProxy" }
     @{ Name = $WebsiteServiceName; Folder = "Roblox.Website" }
+    @{ Name = $DataServiceName; Folder = "Roblox.Services.Data" }
     @{ Name = $DataStoreServiceName; Folder = "Roblox.Services.DataStore" }
     @{ Name = $ModerationServiceName; Folder = "Roblox.Services.Moderation" }
     @{ Name = $DonationServiceName; Folder = "Roblox.Services.Donation" }
