@@ -21,7 +21,7 @@ const paymentMethods = [
         name: 'Ko-fi',
         value: null,
         url: '/donate/ko-fi',
-        note: 'Set your Ko-fi Display Name to your exact Korone username before paying.',
+        note: 'Logged into Ko-fi? Change your Ko-fi profile Display Name to your exact Korone username before paying.',
     },
     // {
     //     name: 'PayPal',
@@ -776,7 +776,7 @@ const Donate = () => {
                 <div className={s.stepCard}>
                     <span className={s.stepNumber}>2</span>
                     <p className={s.stepTitle}>Donate securely</p>
-                    <p className={s.stepText}>For Ko-fi, set your Display Name to your exact Korone username and enter the selected amount manually.</p>
+                    <p className={s.stepText}>For Ko-fi, enter the selected amount manually. If you are logged in, change your Ko-fi profile Display Name to your exact Korone username before paying.</p>
                 </div>
                 <div className={s.stepCard}>
                     <span className={s.stepNumber}>3</span>
@@ -825,9 +825,10 @@ const Donate = () => {
                     {' '}{selectedTier.robux.toLocaleString()} Robux, and the permanent Discord Donator role.
                 </p>
                 <p className={s.displayNameNotice}>
-                    Before paying with Ko-fi, set your Ko-fi <strong>Display Name</strong> to your exact Korone username
-                    and enter <strong>${selectedTier.amount}</strong> manually. If your Display Name does not match,
-                    your on-site item and Robux cannot be delivered automatically.
+                    Before paying with Ko-fi, enter <strong>${selectedTier.amount}</strong> manually. If you are logged
+                    into Ko-fi, change your Ko-fi profile <strong>Display Name</strong> to your exact Korone username
+                    before paying. Guests should enter their exact Korone username as their name at checkout. If the
+                    name does not match, your on-site item and Robux cannot be delivered automatically.
                 </p>
             </div>
             <div className={s.paymentGrid}>
@@ -880,7 +881,7 @@ const Donate = () => {
             <p className={s.claimTitle}>Need a Discord role or cryptocurrency reward?</p>
             <p className={s.claimText}>
                 Open a support ticket with your receipt. Ko-fi on-site items and Robux are delivered automatically when
-                your Ko-fi Display Name exactly matches your Korone username.
+                your Ko-fi name exactly matches your Korone username.
             </p>
             <p className={s.claimText}>Claims are usually processed sooner, but please allow up to 24 hours.</p>
         </div>
