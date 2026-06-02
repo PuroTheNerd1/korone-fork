@@ -12,23 +12,25 @@ namespace Roblox.Website.Controllers
     {
         public static void AddToBypass(string template)
         {
-            if (!FrontendProxyMiddleware.BypassUrls.Contains(template))
+            var toAdd = template;
+            if (!toAdd.StartsWith("/"))
             {
-                var toAdd = template;
-                if (!toAdd.StartsWith("/"))
-                {
-                    toAdd = "/" + toAdd;
-                }
+                toAdd = "/" + toAdd;
+            }
 
-                if (toAdd.IndexOf("{") != -1)
-                {
-                    toAdd = toAdd.Substring(0, toAdd.IndexOf("{"));
-                }
+            if (toAdd.IndexOf("{") != -1)
+            {
+                toAdd = toAdd.Substring(0, toAdd.IndexOf("{"));
+            }
 
-                toAdd = toAdd.ToLower();
-                Console.WriteLine("[info] add to bypass {0}", toAdd);
-                FrontendProxyMiddleware.BypassUrls.Add(toAdd);
+            toAdd = toAdd.ToLower();
+            if (!ApplicationGuardMiddleware.allowedUrls.Contains(toAdd))
+            {
                 ApplicationGuardMiddleware.allowedUrls.Add(toAdd);
+            }
+
+            if (!CsrfMiddleware.bypassUrls.Contains(toAdd))
+            {
                 CsrfMiddleware.bypassUrls.Add(toAdd);
             }
         }

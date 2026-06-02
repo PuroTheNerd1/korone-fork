@@ -127,7 +127,6 @@ public static class RobloxWebsiteApplicationExtensions
         app.UseRobloxPlayerCorsMiddleware();
         app.UseRobloxCsrfMiddleware();
         app.UseApplicationGuardMiddleware();
-        app.UseMiddleware<FrontendProxyMiddleware>();
         app.UseExceptionHandler();
         app.UseSwagger();
         app.UseSwaggerUI(c =>
