@@ -17,12 +17,14 @@ const paymentMethods = [
     //     url: '/donate/stripe',
     //     note: null,
     // },
-    {
-        name: 'Ko-fi',
-        value: null,
-        url: '/donate/ko-fi',
-        note: 'Logged into Ko-fi? Change your Ko-fi profile Display Name to your exact Korone username before paying.',
-    },
+
+    // {
+    //     name: 'Ko-fi',
+    //     value: null,
+    //     url: '/donate/ko-fi',
+    //     note: 'Logged into Ko-fi? Change your Ko-fi profile Display Name to your exact Korone username before paying.',
+    // },
+
     // {
     //     name: 'PayPal',
     //     value: '@AdirMaimun',
