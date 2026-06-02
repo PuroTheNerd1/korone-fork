@@ -106,8 +106,8 @@ const NavigationLinks = props => {
         <LinkEntry url='games'>Games</LinkEntry>
         <LinkEntry url={getCatalogStyle() === catalogPageStyle.Legacy ? 'Catalog.aspx' : 'catalog'}>Catalog</LinkEntry>
         <LinkEntry url='develop'>Create</LinkEntry>
-        <LinkEntry url='download'>Download</LinkEntry>
-        {/* <LinkEntry url='donate'>Donate</LinkEntry> */}
+        {/* <LinkEntry url='download'>Download</LinkEntry> */}
+        <LinkEntry url='donate'>Donate</LinkEntry>
       </div>
     </div>
   </div>
