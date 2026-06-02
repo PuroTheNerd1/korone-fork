@@ -1041,7 +1041,6 @@ namespace Roblox.Website.Controllers
             };
         }
         [HttpPostBypass("ide/publish/uploadexistinganimation")]
-        [HttpPostBypass("Data/Upload.ashx")]
         public async Task<long> UploadPlaceFromStudio(long assetId)
         {
             FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);

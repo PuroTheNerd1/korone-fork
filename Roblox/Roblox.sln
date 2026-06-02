@@ -51,6 +51,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Web.Infrastructure",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Donation", "Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj", "{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Data", "Services\Roblox.Services.Data\Roblox.Services.Data.csproj", "{760DCE08-FF94-4380-A88F-6546E94DC4D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -149,6 +151,10 @@ Global
 		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{760DCE08-FF94-4380-A88F-6546E94DC4D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{760DCE08-FF94-4380-A88F-6546E94DC4D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{760DCE08-FF94-4380-A88F-6546E94DC4D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{760DCE08-FF94-4380-A88F-6546E94DC4D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -159,5 +165,6 @@ Global
 		{D10B5A3F-93C5-472D-8E82-C180EFC18D58} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{BF1DE2BD-CBC3-4122-B9E1-C63FA72F1F7B} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{78731CF5-E2BB-44FC-A16E-35F50E9CAE93} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
+		{760DCE08-FF94-4380-A88F-6546E94DC4D1} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 	EndGlobalSection
 EndGlobal
