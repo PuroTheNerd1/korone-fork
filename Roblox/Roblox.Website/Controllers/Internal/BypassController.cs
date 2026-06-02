@@ -287,7 +287,7 @@ namespace Roblox.Website.Controllers
             };
         }
 
-        [HttpGetBypass("download2")]
+        [HttpGetBypass("download3")]
         public async Task<dynamic> DownloadPage()
         {
             //do this for anti reporting shit

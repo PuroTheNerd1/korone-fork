@@ -123,7 +123,7 @@ public sealed class FrontendProxyMiddleware
         "/set-year",
         "/sign-out/",
         "/sponsoredpage/",
-        "/download2",
+        "/download3",
         "/generate",
         "/genereate",
         "/getallowed",
