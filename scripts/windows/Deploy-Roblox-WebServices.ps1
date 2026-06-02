@@ -133,9 +133,6 @@ $services = @(
     @{ Name = $DonationServiceName; Folder = "Roblox.Services.Donation" }
 )
 
-Write-Section "Stopping legacy Stripe service"
-Stop-ServiceIfExists -Name "Roblox.Services.Stripe"
-
 foreach ($entry in $services) {
     Write-Section "Deploying $($entry.Name)"
     $from = Join-Path $SourceRoot $entry.Folder
