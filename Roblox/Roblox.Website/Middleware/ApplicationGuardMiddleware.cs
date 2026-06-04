@@ -303,7 +303,7 @@ public class ApplicationGuardMiddleware
         var uaBlocked = IsUserAgentBlocked(ua);
         if(uaBlocked)
         {
-            uaBlocked = !ctx.Request.GetEncodedUrl().ToString().Contains("clientsettings");
+            uaBlocked = !ctx.Request.GetEncodedPathAndQuery().Contains("setting/quietget/");
         };
 
         var bypassOk = false;
