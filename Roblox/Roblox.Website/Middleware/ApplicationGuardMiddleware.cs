@@ -304,8 +304,8 @@ public class ApplicationGuardMiddleware
         if(uaBlocked)
         {
             var pathAndQuery = ctx.Request.GetEncodedPathAndQuery();
-            uaBlocked = !pathAndQuery.Contains("setting/quietget/", StringComparison.OrdinalIgnoreCase) || 
-                        !pathAndQuery.Contains("v1/settings/application", StringComparison.OrdinalIgnoreCase) || 
+            uaBlocked = !pathAndQuery.Contains("setting/quietget/", StringComparison.OrdinalIgnoreCase) && 
+                        !pathAndQuery.Contains("v1/settings/application", StringComparison.OrdinalIgnoreCase) && 
                         !pathAndQuery.Contains("v2/settings/application", StringComparison.OrdinalIgnoreCase);
         };
 
