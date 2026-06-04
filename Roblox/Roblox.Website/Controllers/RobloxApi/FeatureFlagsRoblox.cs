@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Exceptions;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Roblox.Web.Infrastructure.Metadata;
 
 namespace Roblox.Website.Controllers
 {
@@ -14,6 +15,7 @@ namespace Roblox.Website.Controllers
         [HttpPostBypass("Setting/QuietGet/{type}")]
         [HttpGetBypass("Setting/Get/{type}")]
         [HttpGetBypass("Setting/QuietGet/{type}")]
+        [AllowRobloxAnonymous]
         public MVC.ActionResult<dynamic> GetApplicationSettingsLegacy(string type, string apiKey)
         {
             return Content(GetFeatureFlags(type, apiKey), "application/json");
@@ -23,6 +25,7 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("v2/settings/application")]
         [HttpPostBypass("v1/settings/application")]
         [HttpGetBypass("v1/settings/application")]
+        [AllowRobloxAnonymous]
         public MVC.ActionResult<dynamic> GetApplicationSettingsModern(string applicationName)
         {
             return Content(GetFeatureFlags(applicationName), "application/json");
