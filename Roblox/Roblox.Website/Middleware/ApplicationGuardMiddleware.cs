@@ -245,6 +245,7 @@ public class ApplicationGuardMiddleware
     {
         "/version",
         "/",
+        "/setting/quietget/",
         "/auth/2fa",
         "/auth/captcha",
     };
