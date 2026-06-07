@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Roblox.ServiceDefaults;
 using Roblox.Services.Thumbnails.ExceptionHandlers;
 using Roblox.Web.Infrastructure;
@@ -9,6 +10,7 @@ builder.Services.AddExceptionHandler<ThumbnailsServiceExceptionHandler>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 

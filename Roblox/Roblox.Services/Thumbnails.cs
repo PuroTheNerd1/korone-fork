@@ -365,7 +365,7 @@ public class ThumbnailsService : ServiceBase, IService
     private static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName, bool isThumbnails = true)
     {
         if (!Configuration.IsCdnEnabled) 
-            return Configuration.CdnBaseUrl + fileName;
+            return BuildCdnUrl(fileName, isThumbnails);
         // really shitty work but this accounts for most cases.
         if(fileName.StartsWith('/'))
             fileName = fileName[1..];
@@ -400,6 +400,53 @@ public class ThumbnailsService : ServiceBase, IService
         }
 
         return R2StorageService.GetPublicUrl(r2Key);
+    }
+
+    private static string BuildCdnUrl(string fileName, bool isThumbnails)
+    {
+        if (fileName.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            fileName.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+            fileName.StartsWith("/img/", StringComparison.OrdinalIgnoreCase))
+        {
+            return fileName;
+        }
+
+        var baseUrl = string.IsNullOrWhiteSpace(Configuration.CdnBaseUrl)
+            ? "https://cdn.pekora.zip/"
+            : Configuration.CdnBaseUrl;
+
+        baseUrl = baseUrl.TrimEnd('/') + "/";
+
+        if (fileName.StartsWith('/'))
+        {
+            fileName = fileName[1..];
+        }
+
+        if (fileName.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+        {
+            return baseUrl + fileName;
+        }
+
+        if (fileName.StartsWith("thumbnails/", StringComparison.OrdinalIgnoreCase))
+        {
+            return baseUrl + "images/" + EnsurePngExtension(fileName);
+        }
+
+        if (fileName.StartsWith("groups/", StringComparison.OrdinalIgnoreCase))
+        {
+            return baseUrl + "images/" + fileName;
+        }
+
+        var prefix = isThumbnails ? "images/thumbnails/" : "images/groups/";
+        return baseUrl + prefix + EnsurePngExtension(fileName);
+    }
+
+    private static string EnsurePngExtension(string fileName)
+    {
+        return fileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+               fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+            ? fileName
+            : fileName + ".png";
     }
 
     public bool IsThreadSafe()
