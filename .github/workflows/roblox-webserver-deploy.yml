@@ -16,6 +16,8 @@ concurrency:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
     defaults:
       run:
         shell: pwsh
@@ -26,9 +28,11 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: Roblox/**/packages.lock.json
 
       - name: Restore solution
-        run: dotnet restore Roblox\Roblox.sln
+        run: dotnet restore Roblox\Roblox.sln --locked-mode
 
       - name: Build deployable projects
         run: |
