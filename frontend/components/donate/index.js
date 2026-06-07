@@ -25,12 +25,12 @@ const paymentMethods = [
     //     note: 'Logged into Ko-fi? Change your Ko-fi profile Display Name to your exact Korone username before paying.',
     // },
 
-    // {
-    //     name: 'PayPal',
-    //     value: '@AdirMaimun',
-    //     url: 'https://paypal.me/AdirMaimun',
-    //     note: 'Friends & Family Only',
-    // },
+    {
+        name: 'CashApp',
+        value: '$boxed404',
+        url: 'https://cash.app/$boxed404',
+        note: null,
+    },
 ];
 
 const cryptoMethods = [
@@ -880,9 +880,9 @@ const Donate = () => {
 
         <p className={s.disclaimer}>Donations are final and non-refundable.</p>
         <div className={s.claimBox}>
-            <p className={s.claimTitle}>Need a Discord role or cryptocurrency reward?</p>
+            <p className={s.claimTitle}>Wanna claim your rewards?</p>
             <p className={s.claimText}>
-                Open a support ticket with your receipt. Ko-fi on-site items and Robux are delivered automatically when
+                Join https://discord.gg/84DqZYzeQU and open a ticket with your receipt. If using Ko-fi, on-site items and Robux are delivered automatically when
                 your Ko-fi name exactly matches your Korone username.
             </p>
             <p className={s.claimText}>Claims are usually processed sooner, but please allow up to 24 hours.</p>
