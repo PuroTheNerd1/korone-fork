@@ -156,6 +156,8 @@ public class GameServerService : ServiceBase
     private static readonly TimeSpan PlayerPresenceTtl = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan PortReservationTtl = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan JoinReservationTtl = TimeSpan.FromSeconds(90);
+    private static readonly TimeSpan LoadingServerStartupTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan ReadyServerHeartbeatTimeout = TimeSpan.FromMinutes(5);
 
     private sealed class LiveGameServerRecord
     {
@@ -250,6 +252,14 @@ return 1";
                 userId.ToString(),
             });
         return (long)result == 1;
+    }
+
+    private static bool IsLiveServerStale(GameServerDb server)
+    {
+        var maxAge = server.status == ServerStatus.Loading
+            ? LoadingServerStartupTimeout
+            : ReadyServerHeartbeatTimeout;
+        return server.updatedAt.Add(maxAge) < DateTime.UtcNow;
     }
 
     public static ConcurrentDictionary<long, long> currentPlayersInGame = new ConcurrentDictionary<long, long>() { }; // userid, placeid
@@ -599,9 +609,9 @@ return 1";
         {
             var currentPlayerCount = await GetLivePlayerCount(server.id);
 
-            // if the server is older than 5 minutes then shutdown the server
-            if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
+            if (IsLiveServerStale(server))
             {
+                Writer.Info(LogGroup.GameServerJoin, "Removing stale live server jobId={0} placeId={1} status={2} updatedAt={3:O}", server.id, placeInfo.placeId, server.status, server.updatedAt);
                 await ShutDownServerAsync(server.id);
                 continue;
             }
@@ -624,18 +634,27 @@ return 1";
         }
 
         // We need to create a lock to prevent multiple requests from creating the same game server
-        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(10));
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}:{matchmaking}", TimeSpan.FromSeconds(10));
         if (!serverCreationLock.IsAcquired)
         {
+            Writer.Info(LogGroup.GameServerJoin, "Server creation lock busy placeId={0} matchmaking={1}", placeInfo.placeId, matchmaking);
             return new GameServerGetOrCreateResponse
             {
                 status = JoinStatus.Loading,
             };
         }
+        Writer.Info(LogGroup.GameServerJoin, "Acquired server creation lock placeId={0} matchmaking={1}", placeInfo.placeId, matchmaking);
 
         var afterLockServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
         foreach (var server in afterLockServers)
         {
+            if (IsLiveServerStale(server))
+            {
+                Writer.Info(LogGroup.GameServerJoin, "Removing stale live server after lock jobId={0} placeId={1} status={2} updatedAt={3:O}", server.id, placeInfo.placeId, server.status, server.updatedAt);
+                await ShutDownServerAsync(server.id);
+                continue;
+            }
+
             if (await GetLivePlayerCount(server.id) >= placeInfo.maxPlayerCount)
                 continue;
 
@@ -702,7 +721,18 @@ return 1";
     public async Task<bool> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
     {
         var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
-        return await arbiterClient.StartGameServer(request);
+        Writer.Info(LogGroup.GameServerJoin, "Starting arbiter game server jobId={0} placeId={1} rccPort={2} networkPort={3} proxyPort={4} matchmaking={5}", jobId, placeInfo.placeId, RCCPort, networkServerPort, proxyPort, matchmaking);
+        try
+        {
+            var started = await arbiterClient.StartGameServer(request);
+            Writer.Info(LogGroup.GameServerJoin, "Arbiter start result jobId={0} placeId={1} started={2}", jobId, placeInfo.placeId, started);
+            return started;
+        }
+        catch (Exception ex)
+        {
+            Writer.Info(LogGroup.GameServerJoin, "Arbiter start failed jobId={0} placeId={1} error={2}\n{3}", jobId, placeInfo.placeId, ex.Message, ex.StackTrace);
+            return false;
+        }
     }
 
     public async Task<IEnumerable<GameServerPlayer>> GetGameServerPlayers(Guid serverId)
