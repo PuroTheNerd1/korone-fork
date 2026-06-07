@@ -116,6 +116,7 @@ services:
       BotAuthorization: "KoroneBot-dev-secret"
       Render__BaseUrl: "ws://game-server:3189"
       Render__Authorization: "KoroneRender-dev-secret"
+      Render__RendererBaseUrl: "http://game-renderer:3043"
       AssetValidation__BaseUrl: "http://asset-validation:8080"
       AssetValidation__Authorization: "KoroneAssetValidation-dev-secret"
     depends_on:
@@ -131,6 +132,7 @@ services:
       dockerfile: Dockerfile
     pull_policy: never
     ports:
+      - "3043:3043"
       - "16612:16612"
     volumes:
       - ./RCCService:/app/RCCService
