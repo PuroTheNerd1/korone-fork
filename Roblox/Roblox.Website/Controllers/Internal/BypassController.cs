@@ -697,7 +697,7 @@ namespace Roblox.Website.Controllers
                 throw new ForbiddenException(0, "User is banned");
             }
 
-            await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
+            await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId, userInfo.username);
             return Ok();
         }
 
@@ -707,7 +707,7 @@ namespace Roblox.Website.Controllers
             if (!isRCC)
                 throw new UnauthorizedAccessException();
             var jobId = await services.gameServer.GetJobIdByUserId(visitorId);
-            long placeId = GameServerService.GetUserPlaceId(visitorId);
+            long placeId = await services.gameServer.GetUserPlaceIdAsync(visitorId);
 
             await services.gameServer.OnPlayerLeave(visitorId, placeId, jobId);
         }

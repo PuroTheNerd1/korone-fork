@@ -5,8 +5,14 @@ namespace Roblox.Services.Caching;
 
 public sealed class DistributedJsonCache : ServiceBase, IService
 {
-    private static readonly ConcurrentDictionary<string, SemaphoreSlim> KeyLocks = new();
+    private static readonly ConcurrentDictionary<string, RefCountedKeyLock> KeyLocks = new();
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+
+    private sealed class RefCountedKeyLock
+    {
+        public SemaphoreSlim Semaphore { get; } = new(1, 1);
+        public int References;
+    }
 
     private sealed class CacheEnvelope<T>
     {
@@ -21,8 +27,9 @@ public sealed class DistributedJsonCache : ServiceBase, IService
             return cached.Value;
         }
 
-        var keyLock = KeyLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-        await keyLock.WaitAsync();
+        var keyLock = KeyLocks.GetOrAdd(key, _ => new RefCountedKeyLock());
+        Interlocked.Increment(ref keyLock.References);
+        await keyLock.Semaphore.WaitAsync();
         try
         {
             cached = await TryGetAsync<T>(key);
@@ -42,7 +49,12 @@ public sealed class DistributedJsonCache : ServiceBase, IService
         }
         finally
         {
-            keyLock.Release();
+            keyLock.Semaphore.Release();
+            if (Interlocked.Decrement(ref keyLock.References) == 0)
+            {
+                ((ICollection<KeyValuePair<string, RefCountedKeyLock>>)KeyLocks)
+                    .Remove(new KeyValuePair<string, RefCountedKeyLock>(key, keyLock));
+            }
         }
     }
 

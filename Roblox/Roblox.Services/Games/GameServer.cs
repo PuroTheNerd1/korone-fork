@@ -14,6 +14,7 @@ using Roblox.Services.Exceptions;
 using Roblox.Logging;
 using System.Collections.Concurrent;
 using Roblox.Dto.Users;
+using StackExchange.Redis;
 
 namespace Roblox.Services;
 
@@ -151,6 +152,105 @@ public class GameServerService : ServiceBase
     private static string jwtKey { get; set; } = string.Empty;
     private static EasyJwt jwt { get; } = new();
     private static Random random = new Random();
+    private static readonly TimeSpan LiveServerTtl = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan PlayerPresenceTtl = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan PortReservationTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan JoinReservationTtl = TimeSpan.FromSeconds(90);
+
+    private sealed class LiveGameServerRecord
+    {
+        public Guid id { get; set; }
+        public long assetId { get; set; }
+        public long port { get; set; }
+        public DateTime updatedAt { get; set; }
+        public ServerStatus status { get; set; }
+        public int type { get; set; }
+        public long ping { get; set; } = -1;
+        public long fps { get; set; } = -1;
+    }
+
+    private static string ServerKey(Guid jobId) => $"gameserver:v1:{jobId:N}";
+    private static string PlaceServersKey(long placeId, int? matchmaking) => $"gameserver:v1:place:{placeId}:type:{matchmaking ?? 1}";
+    private static string PlayersKey(Guid jobId) => $"gameserver:v1:players:{jobId:N}";
+    private static string PlayerNamesKey(Guid jobId) => $"gameserver:v1:playernames:{jobId:N}";
+    private static string UserJobKey(long userId) => $"gameserver:v1:user:{userId}";
+    private static string UserPlaceKey(long userId) => $"gameserver:v1:userplace:{userId}";
+    private static string UserPlayHistoryKey(long userId) => $"gameserver:v1:userplayhistory:{userId}";
+    private static string ActiveUsersKey() => "gameserver:v1:activeusers";
+    private static string PortKey(int port) => $"gameserver:v1:port:{port}";
+    private static string ReservationsKey(Guid jobId) => $"gameserver:v1:reservations:{jobId:N}";
+
+    private const string ReserveSlotLua = @"
+local now = tonumber(ARGV[1])
+local cutoff = tonumber(ARGV[2])
+local maxPlayers = tonumber(ARGV[3])
+local ttlSeconds = tonumber(ARGV[4])
+local member = ARGV[5]
+redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', cutoff)
+local active = redis.call('SCARD', KEYS[1])
+local reserved = redis.call('ZCARD', KEYS[2])
+if active + reserved >= maxPlayers then
+    return 0
+end
+redis.call('ZADD', KEYS[2], now, member)
+redis.call('EXPIRE', KEYS[2], ttlSeconds)
+return 1";
+
+    private static GameServerDb ToGameServerDb(LiveGameServerRecord record)
+    {
+        return new GameServerDb
+        {
+            id = record.id,
+            assetId = record.assetId,
+            port = record.port,
+            updatedAt = record.updatedAt,
+            status = record.status,
+            type = record.type,
+        };
+    }
+
+    private async Task<LiveGameServerRecord?> GetLiveServerRecord(Guid jobId)
+    {
+        var raw = await redis.StringGetAsync(ServerKey(jobId));
+        if (raw == null)
+            return null;
+
+        return JsonSerializer.Deserialize<LiveGameServerRecord>(raw);
+    }
+
+    private async Task SaveLiveServerRecord(LiveGameServerRecord record)
+    {
+        await redis.StringSetAsync(ServerKey(record.id), JsonSerializer.Serialize(record), LiveServerTtl);
+        await redis.SetAddAsync(PlaceServersKey(record.assetId, record.type), record.id.ToString("N"), LiveServerTtl);
+    }
+
+    private async Task DeleteLiveServerIndexes(LiveGameServerRecord record)
+    {
+        await redis.SetRemoveAsync(PlaceServersKey(record.assetId, record.type), record.id.ToString("N"));
+    }
+
+    private async Task<int> GetLivePlayerCount(Guid jobId)
+    {
+        return (await redis.SetMembersAsync(PlayersKey(jobId))).Length;
+    }
+
+    private async Task<bool> ReserveJoinSlot(Guid jobId, long userId, int maxPlayers)
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var cutoff = now - (long)JoinReservationTtl.TotalMilliseconds;
+        var result = await redis.ScriptEvaluateAsync(
+            ReserveSlotLua,
+            new RedisKey[] { PlayersKey(jobId), ReservationsKey(jobId) },
+            new RedisValue[]
+            {
+                now,
+                cutoff,
+                maxPlayers,
+                Math.Max(1, (long)JoinReservationTtl.TotalSeconds),
+                userId.ToString(),
+            });
+        return (long)result == 1;
+    }
 
     public static ConcurrentDictionary<long, long> currentPlayersInGame = new ConcurrentDictionary<long, long>() { }; // userid, placeid
     public static void Configure(string newJwtKey)
@@ -158,22 +258,24 @@ public class GameServerService : ServiceBase
         jwtKey = newJwtKey;
     }
 
-    public async Task OnPlayerJoin(long userId, long placeId, Guid serverId)
+    public async Task OnPlayerJoin(long userId, long placeId, Guid serverId, string? username = null)
     {
         currentPlayersInGame.AddOrUpdate(userId, placeId, (key, oldValue) => placeId);
-        await db.ExecuteAsync(
-            "INSERT INTO asset_server_player (asset_id, user_id, server_id) VALUES (:asset_id, :user_id, :server_id::uuid)",
-            new
-            {
-                asset_id = placeId,
-                user_id = userId,
-                server_id = serverId,
-            });
-        await InsertAsync("asset_play_history", new
+
+        await redis.SetAddAsync(PlayersKey(serverId), userId.ToString(), PlayerPresenceTtl);
+        await redis.SetAddAsync(ActiveUsersKey(), userId.ToString(), PlayerPresenceTtl);
+        if (!string.IsNullOrWhiteSpace(username))
+            await redis.StringSetAsync($"{PlayerNamesKey(serverId)}:{userId}", username, PlayerPresenceTtl);
+        await redis.StringSetAsync(UserJobKey(userId), serverId.ToString(), PlayerPresenceTtl);
+        await redis.StringSetAsync(UserPlaceKey(userId), placeId.ToString(), PlayerPresenceTtl);
+        await Roblox.Cache.DistributedCache.redis.GetDatabase(0).SortedSetRemoveAsync(ReservationsKey(serverId), userId.ToString());
+
+        var playHistoryId = await InsertAsync("asset_play_history", new
         {
             asset_id = placeId,
             user_id = userId,
         });
+        await redis.StringSetAsync(UserPlayHistoryKey(userId), playHistoryId.ToString(), PlayerPresenceTtl);
         await db.ExecuteAsync("UPDATE asset_place SET visit_count = visit_count + 1 WHERE asset_id = :id", new
         {
             id = placeId,
@@ -237,20 +339,32 @@ public class GameServerService : ServiceBase
     {
         currentPlayersInGame.TryRemove(userId, out _);
 
-        await db.ExecuteAsync(
-            "DELETE FROM asset_server_player WHERE user_id = :user_id AND server_id = :server_id::uuid", new
-            {
-                server_id = serverId,
-                user_id = userId,
-            });
-        Console.WriteLine("deleted from db line 195 onplayerleave");
-        var latestSession = await db.QuerySingleOrDefaultAsync<AssetPlayEntry>(
-            "SELECT id, created_at as createdAt FROM asset_play_history WHERE user_id = :user_id AND asset_id = :asset_id AND ended_at IS NULL ORDER BY asset_play_history.id DESC LIMIT 1",
-            new
-            {
-                user_id = userId,
-                asset_id = placeId,
-            });
+        await redis.SetRemoveAsync(PlayersKey(serverId), userId.ToString());
+        await redis.SetRemoveAsync(ActiveUsersKey(), userId.ToString());
+        await redis.KeyDeleteAsync($"{PlayerNamesKey(serverId)}:{userId}");
+        await redis.KeyDeleteAsync(UserJobKey(userId));
+        await redis.KeyDeleteAsync(UserPlaceKey(userId));
+        var cachedPlayHistoryId = await redis.StringGetAsync(UserPlayHistoryKey(userId));
+        await redis.KeyDeleteAsync(UserPlayHistoryKey(userId));
+
+        AssetPlayEntry? latestSession = null;
+        if (long.TryParse(cachedPlayHistoryId, out var playHistoryId))
+        {
+            latestSession = await db.QuerySingleOrDefaultAsync<AssetPlayEntry>(
+                "SELECT id, created_at as createdAt FROM asset_play_history WHERE id = :id AND ended_at IS NULL",
+                new { id = playHistoryId });
+        }
+
+        if (latestSession == null)
+        {
+            latestSession = await db.QuerySingleOrDefaultAsync<AssetPlayEntry>(
+                "SELECT id, created_at as createdAt FROM asset_play_history WHERE user_id = :user_id AND asset_id = :asset_id AND ended_at IS NULL ORDER BY asset_play_history.id DESC LIMIT 1",
+                new
+                {
+                    user_id = userId,
+                    asset_id = placeId,
+                });
+        }
         if (latestSession != null)
         {
             await db.ExecuteAsync("UPDATE asset_play_history SET ended_at = now() WHERE id = :id", new
@@ -335,108 +449,155 @@ public class GameServerService : ServiceBase
         return currentPlayersInGame[userId];
     }
 
-    public async Task<DateTime> GetLastServerPing(string serverId)
+    public async Task<long> GetUserPlaceIdAsync(long userId)
     {
-        var result = await db.QuerySingleOrDefaultAsync<DateTime>("SELECT updated_at FROM asset_server WHERE id = :id::uuid", new
+        var placeId = await redis.StringGetAsync(UserPlaceKey(userId));
+        return long.TryParse(placeId, out var parsed) ? parsed : GetUserPlaceId(userId);
+    }
+
+    public async Task<IReadOnlyDictionary<long, long>> GetPlayerCountsByPlaceIds(IEnumerable<long> placeIds, int type = 1)
+    {
+        var result = new Dictionary<long, long>();
+        foreach (var placeId in placeIds.Distinct())
         {
-            id = serverId,
-        });
+            long count = 0;
+            foreach (var server in await GetGameServersForPlace(placeId, type))
+            {
+                count += await GetLivePlayerCount(server.id);
+            }
+            result[placeId] = count;
+        }
 
         return result;
     }
+
+    public async Task<long> GetTotalActivePlayerCount()
+    {
+        return (await redis.SetMembersAsync(ActiveUsersKey())).LongLength;
+    }
+
+    public async Task<long[]> GetActiveUserIds()
+    {
+        return (await redis.SetMembersAsync(ActiveUsersKey()))
+            .Select(v => long.TryParse(v, out var userId) ? userId : 0)
+            .Where(v => v != 0)
+            .ToArray();
+    }
+
+    public async Task<DateTime> GetLastServerPing(string serverId)
+    {
+        return Guid.TryParse(serverId, out var jobId) && await GetLiveServerRecord(jobId) is { } record
+            ? record.updatedAt
+            : DateTime.MinValue;
+    }
     public async Task<long> GetServerStat(Guid serverId)
     {
-        var result = await db.QuerySingleOrDefaultAsync<long>("SELECT ping FROM asset_server WHERE id = :id::uuid", new
-        {
-            id = serverId,
-        });
-
-        if (result == 0)
-            return -1;
-
-        return result;
+        var record = await GetLiveServerRecord(serverId);
+        return record?.ping ?? -1;
     }
 
     public async Task SetServerStats(string serverId, long ping, long fps)
     {
-        await db.ExecuteAsync("UPDATE asset_server SET ping = :ping, fps = :fps WHERE id = :id::uuid", new
-        {
-            ping,
-            fps,
-            id = serverId,
-        });
+        if (!Guid.TryParse(serverId, out var jobId))
+            return;
+
+        var record = await GetLiveServerRecord(jobId);
+        if (record == null)
+            return;
+
+        record.ping = ping;
+        record.fps = fps;
+        record.updatedAt = DateTime.UtcNow;
+        await SaveLiveServerRecord(record);
     }
     public async Task SetServerPing(Guid serverId)
     {
-        await db.ExecuteAsync("UPDATE asset_server SET updated_at = :u, status = :stat WHERE id = :id::uuid", new
-        {
-            u = DateTime.UtcNow,
-            stat = ServerStatus.Ready,
-            id = serverId,
-        });
+        var record = await GetLiveServerRecord(serverId);
+        if (record == null)
+            return;
+
+        record.updatedAt = DateTime.UtcNow;
+        record.status = ServerStatus.Ready;
+        await SaveLiveServerRecord(record);
     }
 
     public async Task DeleteGameServer(Guid serverId)
     {
-        await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
-        await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
+        var record = await GetLiveServerRecord(serverId);
+        if (record != null)
+        {
+            await DeleteLiveServerIndexes(record);
+            await redis.KeyDeleteAsync(PortKey((int)record.port));
+        }
+
+        foreach (var userIdRaw in await redis.SetMembersAsync(PlayersKey(serverId)))
+        {
+            if (long.TryParse(userIdRaw, out var userId))
+            {
+                await redis.KeyDeleteAsync(UserJobKey(userId));
+                await redis.KeyDeleteAsync(UserPlaceKey(userId));
+                await redis.KeyDeleteAsync($"{PlayerNamesKey(serverId)}:{userId}");
+                await redis.SetRemoveAsync(ActiveUsersKey(), userId.ToString());
+            }
+        }
+
+        await redis.KeyDeleteAsync(ServerKey(serverId));
+        await redis.KeyDeleteAsync(PlayersKey(serverId));
+        await redis.KeyDeleteAsync(ReservationsKey(serverId));
     }
 
 
    
     public async Task<Guid> GetJobIdByUserId(long userId)
     {
-        var result = await db.QueryFirstOrDefaultAsync<Guid?>("SELECT server_id FROM asset_server_player WHERE user_id = :userId", new
-        {
-            userId
-        });
-
-        return result ?? throw new RecordNotFoundException("User not found in a job");
+        var result = await redis.StringGetAsync(UserJobKey(userId));
+        return Guid.TryParse(result, out var jobId)
+            ? jobId
+            : throw new RecordNotFoundException("User not found in a job");
     }
     public async Task<GameServerDb> GetGameServer(Guid jobId)
     {
-        return await db.QueryFirstOrDefaultAsync<GameServerDb>(
-            "SELECT id, asset_id as assetId, port, updated_at as updatedAt, status, type FROM asset_server WHERE id = :id::uuid",
-            new
-            {
-                id = jobId,
-            });
+        var record = await GetLiveServerRecord(jobId);
+        return record == null ? null! : ToGameServerDb(record);
     }
 
     public async Task<bool> IsPortTaken(int port)
     {
-        int result = await db.QueryFirstOrDefaultAsync<int>(
-            "SELECT port FROM asset_server WHERE port = :gsport",
-            new
-            {
-                gsport = port,
-            });
-        return result != 0;
+        return await redis.StringGetAsync(PortKey(port)) != null;
     }
     public async Task<IEnumerable<GameServerDb>> GetGameServersForPlace(long placeId, int? matchmaking = 1)
     {
-        var result = await db.QueryAsync<GameServerDb>(
-            @"SELECT s.id, s.asset_id AS assetId, s.port, s.updated_at AS updatedAt, s.status, s.type
-          FROM asset_server s
-          WHERE s.asset_id = :assetId AND s.type = :type
-          ORDER BY (SELECT COUNT(*) FROM asset_server_player p WHERE p.server_id = s.id) ASC",
-            new
+        var ids = await redis.SetMembersAsync(PlaceServersKey(placeId, matchmaking));
+        var servers = new List<GameServerDb>();
+        foreach (var id in ids)
+        {
+            if (!Guid.TryParse(id, out var jobId))
+                continue;
+
+            var record = await GetLiveServerRecord(jobId);
+            if (record == null)
             {
-                assetId = placeId,
-                type = matchmaking
-            });
-        if (result == null)
-            return new List<GameServerDb>();
-        return result;
+                await redis.SetRemoveAsync(PlaceServersKey(placeId, matchmaking), id);
+                continue;
+            }
+
+            servers.Add(ToGameServerDb(record));
+        }
+
+        var counts = new Dictionary<Guid, int>();
+        foreach (var server in servers)
+            counts[server.id] = await GetLivePlayerCount(server.id);
+
+        return servers.OrderBy(s => counts[s.id]).ThenBy(s => s.updatedAt);
     }
 
-    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking)
+    public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking, long? userId = null)
     {
         var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
 
         foreach (var server in gameServers)
         {
-            var currentPlayerCount = (await GetGameServerPlayers(server.id)).Count();
+            var currentPlayerCount = await GetLivePlayerCount(server.id);
 
             // if the server is older than 5 minutes then shutdown the server
             if (server.updatedAt.AddMinutes(5) < DateTime.UtcNow)
@@ -450,7 +611,38 @@ public class GameServerService : ServiceBase
                 continue;
             }
 
+            if (userId.HasValue && !await ReserveJoinSlot(server.id, userId.Value, placeInfo.maxPlayerCount))
+                continue;
+
             return new GameServerGetOrCreateResponse()
+            {
+                job = server.id,
+                ip = Configuration.GameServerIp,
+                port = server.port,
+                status = server.status == ServerStatus.Ready ? JoinStatus.Joining : JoinStatus.Loading
+            };
+        }
+
+        // We need to create a lock to prevent multiple requests from creating the same game server
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(10));
+        if (!serverCreationLock.IsAcquired)
+        {
+            return new GameServerGetOrCreateResponse
+            {
+                status = JoinStatus.Loading,
+            };
+        }
+
+        var afterLockServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
+        foreach (var server in afterLockServers)
+        {
+            if (await GetLivePlayerCount(server.id) >= placeInfo.maxPlayerCount)
+                continue;
+
+            if (userId.HasValue && !await ReserveJoinSlot(server.id, userId.Value, placeInfo.maxPlayerCount))
+                continue;
+
+            return new GameServerGetOrCreateResponse
             {
                 job = server.id,
                 ip = Configuration.GameServerIp,
@@ -466,40 +658,31 @@ public class GameServerService : ServiceBase
         {
             await Task.Delay(100);
             proxyPort = random.Next(30000, 40000);
-            if (!await IsPortTaken(proxyPort))
+            if (await redis.StringSetIfNotExistsAsync(PortKey(proxyPort), "1", PortReservationTtl))
                 break;
-            
         } while (true);
-
-        // We need to create a lock to prevent multiple requests from creating the same game server
-        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(10));
-        if (!serverCreationLock.IsAcquired)
-        {
-            return new GameServerGetOrCreateResponse
-            {
-                status = JoinStatus.Loading,
-            };
-        }
 
         Guid jobId = Guid.NewGuid();
 
 
         if (await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking))
         {
-            await db.ExecuteAsync(
-                "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
-            new
+            var record = new LiveGameServerRecord
             {
-                id = jobId,
-                asset_id = placeInfo.placeId,
-                ip = Configuration.GameServerIp,
                 port = proxyPort,
-                server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
+                id = jobId,
+                assetId = placeInfo.placeId,
+                updatedAt = DateTime.UtcNow,
+                status = ServerStatus.Loading,
                 type = matchmaking
-            });
+            };
+            await SaveLiveServerRecord(record);
+            if (userId.HasValue)
+                await ReserveJoinSlot(jobId, userId.Value, placeInfo.maxPlayerCount);
         }
         else
         {
+            await redis.KeyDeleteAsync(PortKey(proxyPort));
             return new GameServerGetOrCreateResponse()
             {
                 status = JoinStatus.Error
@@ -524,22 +707,54 @@ public class GameServerService : ServiceBase
 
     public async Task<IEnumerable<GameServerPlayer>> GetGameServerPlayers(Guid serverId)
     {
-        return await db.QueryAsync<GameServerPlayer>(
-            "SELECT user_id as userId, u.username FROM asset_server_player INNER JOIN \"user\" u ON u.id = asset_server_player.user_id WHERE server_id = :id::uuid", new
+        var userIds = (await redis.SetMembersAsync(PlayersKey(serverId)))
+            .Select(v => long.TryParse(v, out var userId) ? userId : 0)
+            .Where(v => v != 0)
+            .ToArray();
+        if (userIds.Length == 0)
+            return Array.Empty<GameServerPlayer>();
+
+        var nameKeys = userIds.Select(userId => $"{PlayerNamesKey(serverId)}:{userId}").ToArray();
+        var cachedNames = await redis.StringGetManyAsync(nameKeys);
+        var missingNames = userIds
+            .Where(userId => !cachedNames.TryGetValue($"{PlayerNamesKey(serverId)}:{userId}", out var name) || string.IsNullOrWhiteSpace(name))
+            .ToArray();
+
+        var dbNames = new Dictionary<long, string>();
+        if (missingNames.Length != 0)
+        {
+            await using var connection = await Database.OpenConnectionAsync("GameServer.GetGameServerPlayers.Open");
+            var rows = await Database.QueryTimedAsync<GameServerPlayer>(
+                connection,
+                "GameServer.GetGameServerPlayers.Names",
+                "SELECT id as userId, username FROM \"user\" WHERE id = ANY(:ids)",
+                new { ids = missingNames });
+            dbNames = rows.ToDictionary(row => row.userId, row => row.username);
+        }
+
+        return userIds.Select(userId =>
+        {
+            var key = $"{PlayerNamesKey(serverId)}:{userId}";
+            var hasCached = cachedNames.TryGetValue(key, out var cachedName) && !string.IsNullOrWhiteSpace(cachedName);
+            return new GameServerPlayer
             {
-               id = serverId,
-            });
+                userId = userId,
+                username = hasCached ? cachedName! : dbNames.GetValueOrDefault(userId, userId.ToString()),
+            };
+        });
     }
 
     public async Task<IEnumerable<GameServerEntryWithPlayers>> GetGameServers(long placeId, int offset, int limit, int type = 1)
     {
-        var result = (await db.QueryAsync<GameServerEntryWithPlayers>("SELECT id::uuid, asset_id as assetId FROM asset_server WHERE asset_id = :id AND type = :type LIMIT :limit OFFSET :offset", new
-        {
-            id = placeId,
-            type,
-            limit,
-            offset,
-        })).ToList();
+        var result = (await GetGameServersForPlace(placeId, type))
+            .Skip(offset)
+            .Take(limit)
+            .Select(server => new GameServerEntryWithPlayers
+            {
+                id = server.id,
+                assetId = server.assetId,
+            })
+            .ToList();
 
         foreach (var server in result)
         {

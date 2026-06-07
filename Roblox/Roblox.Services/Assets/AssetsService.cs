@@ -132,6 +132,7 @@ public struct ByteReader
 public class AssetsService : ServiceBase, IService
 {
     private static string FavoriteCountCacheKey(long assetId) => $"assets:favorites:v1:{assetId}";
+    private static string LatestAssetVersionCacheKey(long assetId) => $"assets:latest-version:v1:{assetId}";
     private readonly Roblox.Services.RobloxAssetService robloxAssetService = new();
     private static void assert(bool Bool, String Message)
     {
@@ -154,23 +155,36 @@ public class AssetsService : ServiceBase, IService
     }
     public async Task<AssetVersionEntry> GetLatestAssetVersion(long assetId, bool skipCache = false)
     {
-        //using var assetVersionCache = ServiceProvider.GetOrCreate<GetLatestAssetVersionCache>();
-        //if (!skipCache)
-        //{
-        //    var (exists, cached) = assetVersionCache.Get(assetId);
-        //    if (exists && cached != null)
-        //        return cached;
-        //}
+        if (!skipCache)
+        {
+            using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+            var cached = await cache.GetOrCreateAsync(
+                LatestAssetVersionCacheKey(assetId),
+                TimeSpan.FromSeconds(60),
+                () => QueryLatestAssetVersion(assetId));
+            if (cached == null) throw new RecordNotFoundException();
+            return cached;
+        }
 
-        var result = await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
+        var result = await QueryLatestAssetVersion(assetId);
+        if (result == null) throw new RecordNotFoundException();
+        return result;
+    }
+
+    private async Task<AssetVersionEntry?> QueryLatestAssetVersion(long assetId)
+    {
+        return await db.QuerySingleOrDefaultAsync<Dto.Assets.AssetVersionEntry>(
             "SELECT id as assetVersionId, version_number as versionNumber, content_url as contentUrl, content_id as contentId, created_at as createdAt, updated_at as updatedAt, creator_id as creatorId FROM asset_version WHERE asset_id = :id ORDER BY id DESC LIMIT 1",
             new
             {
                 id = assetId,
             });
-        if (result == null) throw new RecordNotFoundException();
-        //assetVersionCache.Set(assetId, result);
-        return result;
+    }
+
+    private async Task InvalidateLatestAssetVersionCache(long assetId)
+    {
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        await cache.RemoveAsync(LatestAssetVersionCacheKey(assetId));
     }
     public async Task<IEnumerable<AssetVersionEntry>> GetAssetVersions(long assetId, int offset, int limit, SortOrder sortOrder)
     {
@@ -1390,6 +1404,7 @@ public class AssetsService : ServiceBase, IService
         });
 
         await UpdateAsset(assetId);
+        await InvalidateLatestAssetVersionCache(assetId);
 
         return new()
         {
@@ -1414,6 +1429,7 @@ public class AssetsService : ServiceBase, IService
         });
 
         await UpdateAsset(assetId);
+        await InvalidateLatestAssetVersionCache(assetId);
 
         return new()
         {
@@ -1439,6 +1455,7 @@ public class AssetsService : ServiceBase, IService
         });
 
         await UpdateAsset(assetId);
+        await InvalidateLatestAssetVersionCache(assetId);
 
         return new()
         {

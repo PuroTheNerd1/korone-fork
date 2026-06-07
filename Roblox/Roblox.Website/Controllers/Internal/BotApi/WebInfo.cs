@@ -19,13 +19,8 @@ namespace Roblox.Website.Controllers
             {
                 t,
             });
-            var IngameQuery = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM asset_server_player", new
-            {
-                t,
-            });
-
             long OnlineCount = OnlineCountQuery?.total ?? 0;
-            long Ingame = IngameQuery?.total ?? 0;
+            long Ingame = await services.gameServer.GetTotalActivePlayerCount();
             
             return new 
             {

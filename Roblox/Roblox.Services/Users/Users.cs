@@ -5,6 +5,7 @@ using CsvHelper;
 using Dapper;
 using Roblox.Dto;
 using Roblox.Dto.Assets;
+using Roblox.Dto.Games;
 using Roblox.Dto.Economy;
 using Roblox.Dto.Users;
 using Roblox.Dto.Authentication;
@@ -34,6 +35,12 @@ public class UsersService : ServiceBase, IService
 {
     private static TwoFactorAuth tfa = new TwoFactorAuth("Korone");
     private static string UserByIdCacheKey(long userId) => $"users:info:v1:{userId}";
+    public async Task InvalidateUserInfoCache(long userId)
+    {
+        using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
+        await cache.RemoveAsync(UserByIdCacheKey(userId));
+    }
+
     public async Task<bool> IsNameAvailableForNameChange(long contextUserId, string username)
     {
         var escapedUsername = username
@@ -283,6 +290,7 @@ public class UsersService : ServiceBase, IService
             id = userId,
             status = AccountStatus.Ok,
         });
+        await InvalidateUserInfoCache(userId);
     }
 
     public async Task DeleteUser(long userId, bool skipOnlineCheck)
@@ -374,6 +382,7 @@ public class UsersService : ServiceBase, IService
             // todo: should we delete transaction? not the entire data, but like clear the user_id or something?
             return 0;
         });
+        await InvalidateUserInfoCache(userId);
     }
 
     public async Task<long> GetUserIdFromUsername(string username)
@@ -430,6 +439,7 @@ public class UsersService : ServiceBase, IService
             id = userId,
             name = newName,
         });
+        await InvalidateUserInfoCache(userId);
     }
 
     private static readonly string[] UsernameCannotStartOrEndWith = {
@@ -565,6 +575,7 @@ public class UsersService : ServiceBase, IService
 
             return 0;
         });
+        await InvalidateUserInfoCache(userId);
     }
 
     public async Task<IEnumerable<UserId>> SearchUsers(string? keyword, int limit, int offset)
@@ -765,10 +776,7 @@ public class UsersService : ServiceBase, IService
             id = userId,
             description = newDescription,
         });
-        using (var s = ServiceProvider.GetOrCreate<GetUserByIdCache>())
-        {
-            s.Remove(userId);
-        }
+        await InvalidateUserInfoCache(userId);
     }
 
     private static string redisKeyPrefix = "sess:v1:";
@@ -2066,15 +2074,8 @@ public class UsersService : ServiceBase, IService
         var t = sql.AddTemplate(@"
         SELECT 
             ""user"".id as userId,
-            ""user"".online_at as onlineAt,
-            asset_server_player.asset_id as currentPlaceId,
-            asset_server_player.server_id as currentGameId,
-            ua.universe_id as currentUniverseId,
-            u.root_asset_id as rootPlaceId
+            ""user"".online_at as onlineAt
         FROM ""user""
-        LEFT JOIN asset_server_player ON asset_server_player.user_id = ""user"".id
-        LEFT JOIN universe_asset ua ON asset_server_player.asset_id = ua.asset_id
-        LEFT JOIN universe u ON ua.universe_id = u.id
         /**where**/
         LIMIT 1000");
 
@@ -2084,16 +2085,42 @@ public class UsersService : ServiceBase, IService
             sql.OrWhere("\"user\".id = " + item);
         }
 
-        var presenceData = await db.QueryAsync<DbPresenceEntry>(t.RawSql, t.Parameters);
+        var presenceData = (await db.QueryAsync<DbPresenceEntry>(t.RawSql, t.Parameters)).ToList();
+        var jobKeys = presenceData.Select(item => $"gameserver:v1:user:{item.userId}").ToArray();
+        var placeKeys = presenceData.Select(item => $"gameserver:v1:userplace:{item.userId}").ToArray();
+        var jobData = await redis.StringGetManyAsync(jobKeys);
+        var placeData = await redis.StringGetManyAsync(placeKeys);
+        var livePlaceIds = placeData.Values
+            .Where(v => long.TryParse(v, out _))
+            .Select(v => long.TryParse(v, out var placeId) ? placeId : 0)
+            .Where(v => v != 0)
+            .Distinct()
+            .ToArray();
+        var livePlaceDetails = new Dictionary<long, PlaceEntry>();
+        if (livePlaceIds.Length != 0)
+        {
+            using var games = ServiceProvider.GetOrCreate<GamesService>(this);
+            foreach (var place in await games.MultiGetPlaceDetails(livePlaceIds))
+            {
+                livePlaceDetails[place.placeId] = place;
+            }
+        }
         var results = new List<PresenceEntry>();
         foreach (var item in presenceData)
         {
             var userId = item.userId;
             var isOnline = item.onlineAt >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5));
-            var placeId = item.currentPlaceId;
-            var universeId = item.currentUniverseId;
-            var rootPlaceId = item.rootPlaceId;
-            var currentGameId = item.currentGameId;
+            var placeKey = $"gameserver:v1:userplace:{userId}";
+            var jobKey = $"gameserver:v1:user:{userId}";
+            long? placeId = placeData.TryGetValue(placeKey, out var rawPlaceId) && long.TryParse(rawPlaceId, out var parsedPlaceId)
+                ? parsedPlaceId
+                : null;
+            var currentGameId = jobData.TryGetValue(jobKey, out var rawJobId) ? rawJobId : null;
+            long? rootPlaceId = null;
+            if (placeId.HasValue && livePlaceDetails.TryGetValue(placeId.Value, out var placeDetails))
+            {
+                rootPlaceId = placeDetails.universeRootPlaceId;
+            }
             var result = new PresenceEntry
             {
                 userId = userId,
@@ -2101,7 +2128,7 @@ public class UsersService : ServiceBase, IService
                     isOnline ? PresenceType.Online : PresenceType.Offline,
                 lastLocation = placeId != null ? "Playing" : "Website",
                 rootPlaceId = rootPlaceId,
-                gameId = currentGameId.ToString(),
+                gameId = currentGameId,
                 placeId = placeId,
                 lastOnline = placeId != null ? DateTime.UtcNow : item.onlineAt,
             };
