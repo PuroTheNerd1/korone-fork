@@ -9,10 +9,13 @@ import PlaceController from "./Controllers/PlaceController.js";
 const App = express();
 const ProcessPort = Config.Ports.Process;
 
-App.use(express.text({ limit: "250mb" }));
-App.use(express.json());
+App.use(express.json({ limit: "250mb" }));
+App.use(express.text({ type: "text/*", limit: "250mb" }));
 
-App.listen(ProcessPort, () => Console.Log(`Renderer started on port &a&l${ProcessPort}`));
+App.use((req, _, next) => {
+    Console.Debug(`${req.method} ${req.path}`);
+    next();
+});
 
 App.use("/player", PlayerController);
 App.use("/image", ImageController);
@@ -21,3 +24,5 @@ App.use("/game", PlaceController);
 App.get("/", (_, res) => {
     return res.status(200).send("PEKAPEKA OK!");
 });
+
+App.listen(ProcessPort, () => Console.Log(`Renderer started on port &a&l${ProcessPort}`));

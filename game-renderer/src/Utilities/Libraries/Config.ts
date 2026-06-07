@@ -38,9 +38,12 @@ function loadConfig(): IConfig {
         // config.json is optional when environment variables are provided
     }
 
+    const baseUrl = process.env.BASE_URL ?? file.BaseUrl ?? '';
+    const rccUrl = process.env.RCC_URL ?? file.RCCUrl ?? '';
+
     return {
-        BaseUrl: process.env.BASE_URL                   ?? file.BaseUrl  ?? '',
-        RCCUrl:  process.env.RCC_URL                    ?? file.RCCUrl   ?? '',
+        BaseUrl: baseUrl.trim().replace(/\/+$/, ''),
+        RCCUrl:  rccUrl.trim().replace(/\/+$/, ''),
         Debug: process.env.DEBUG !== undefined 
             ? process.env.DEBUG.toLowerCase() === 'true' 
             : file.Debug ?? false,        
