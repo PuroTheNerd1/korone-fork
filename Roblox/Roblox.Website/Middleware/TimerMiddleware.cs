@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http.Extensions;
+using Roblox.Metrics;
 using Roblox.Website.Lib;
 
 namespace Roblox.Website.Middleware;
@@ -14,7 +15,12 @@ public class TimerMiddleware
     
     public async Task InvokeAsync(HttpContext ctx)
     {
+        var requestWatch = Stopwatch.StartNew();
         await _next(ctx);
+        requestWatch.Stop();
+
+        var route = ctx.GetEndpoint()?.DisplayName ?? ctx.Request.Path.Value ?? "unknown";
+        PerformanceMetrics.ReportEndpointDuration(route, ctx.Request.Method, ctx.Response.StatusCode, requestWatch.ElapsedMilliseconds);
 
         if (ctx.Items.ContainsKey(MiddlewareTimer.MiddlewareTimerKey))
         {
