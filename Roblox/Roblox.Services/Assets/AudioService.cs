@@ -56,6 +56,73 @@ public class AudioService : ServiceBase, IService
         using var mp3Stream = await ConvertAudioToMp3(inputFileStream);
         return GetPeakDbLevel(mp3Stream);
     }
+
+    private static bool IsMp3Media(IMediaAnalysis mediaInfo, string audioFilePath)
+    {
+        if (IsMp3FormatName(mediaInfo.Format.FormatName))
+            return true;
+
+        if (mediaInfo.PrimaryAudioStream?.CodecName.Equals("mp3", StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (mediaInfo.AudioStreams.Any(stream =>
+                stream.CodecName.Equals("mp3", StringComparison.OrdinalIgnoreCase) ||
+                stream.CodecLongName.Contains("mpeg audio layer 3", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        return HasMp3FrameHeader(audioFilePath);
+    }
+
+    private static bool IsMp3FormatName(string formatName)
+    {
+        return formatName.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Any(format => format.Equals("mp3", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool HasMp3FrameHeader(string audioFilePath)
+    {
+        using var fileStream = File.OpenRead(audioFilePath);
+        Span<byte> header = stackalloc byte[10];
+        if (fileStream.Read(header) < 4)
+            return false;
+
+        if (header[0] == 'I' && header[1] == 'D' && header[2] == '3')
+        {
+            fileStream.Position = DecodeId3SyncSafeSize(header.Slice(6, 4)) + 10;
+            if (fileStream.Read(header) < 4)
+                return false;
+        }
+        else
+        {
+            fileStream.Position = 0;
+        }
+
+        Span<byte> frame = stackalloc byte[4];
+        if (fileStream.Read(frame) < frame.Length)
+            return false;
+
+        var hasFrameSync = frame[0] == 0xFF && (frame[1] & 0xE0) == 0xE0;
+        var mpegVersion = (frame[1] >> 3) & 0x03;
+        var layer = (frame[1] >> 1) & 0x03;
+        var bitrate = (frame[2] >> 4) & 0x0F;
+        var sampleRate = (frame[2] >> 2) & 0x03;
+
+        return hasFrameSync &&
+            mpegVersion != 0x01 &&
+            layer == 0x01 &&
+            bitrate is > 0 and < 0x0F &&
+            sampleRate != 0x03;
+    }
+
+    private static int DecodeId3SyncSafeSize(Span<byte> sizeBytes)
+    {
+        return (sizeBytes[0] << 21) |
+            (sizeBytes[1] << 14) |
+            (sizeBytes[2] << 7) |
+            sizeBytes[3];
+    }
             
     public static async Task<MemoryStream> ConvertAudioToMp3(Stream inputStream)
     {
@@ -151,7 +218,7 @@ public class AudioService : ServiceBase, IService
 
             var formatDetails = mediaInfo.Format;
 
-            var isMp3 = formatDetails.FormatName == "mp3";
+            var isMp3 = IsMp3Media(mediaInfo, tempFile);
             var isCreatorFormatException = creatorId == 15422 ||
                 creatorId == 16815 ||
                 creatorId == 16024;
