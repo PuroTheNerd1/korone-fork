@@ -108,6 +108,15 @@ public class PlaceLauncherService : ServiceBase
         }
 
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default, userId);
+        if (result.status == JoinStatus.Error)
+        {
+            return new PlaceLaunchResponse()
+            {
+                status = (int)JoinStatus.Error,
+                message = "An error occurred while starting the game.",
+            };
+        }
+
         if (result.status != JoinStatus.Joining)
         {
             return new PlaceLaunchResponse()
@@ -180,6 +189,15 @@ public class PlaceLauncherService : ServiceBase
         }
 
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit, userId);
+        if (result.status == JoinStatus.Error)
+        {
+            return new PlaceLaunchResponse()
+            {
+                status = (int)JoinStatus.Error,
+                message = "An error occurred while starting cloud edit.",
+            };
+        }
+
         if (result.status == JoinStatus.Joining)
         {
             string membership = await users.GetUserMemberShipAsString(userId);

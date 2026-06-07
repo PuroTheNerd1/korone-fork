@@ -426,17 +426,25 @@ return 1";
         await arbiterClient.EvictPlayer(ArbiterHttpClient.CreateEvictPlayerRequest(jobId, userId));
     }
 
-    public async Task ShutDownServerAsync(Guid serverId)
+    private async Task TryKillGameServerAsync(Guid serverId)
     {
         try
         {
             await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
-            await DeleteGameServer(serverId);
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error shutting down server {serverId}: {ex}");
+            Writer.Info(LogGroup.GameServerJoin, "Error sending kill request for server {0}: {1}\n{2}", serverId, ex.Message, ex.StackTrace);
         }
+    }
+
+    public async Task ShutDownServerAsync(Guid serverId, bool waitForArbiter = true)
+    {
+        await DeleteGameServer(serverId);
+        if (waitForArbiter)
+            await TryKillGameServerAsync(serverId);
+        else
+            _ = TryKillGameServerAsync(serverId);
     }
 
 
@@ -604,15 +612,18 @@ return 1";
     public async Task<GameServerGetOrCreateResponse> GetServerForPlace(PlaceEntry placeInfo, int matchmaking, long? userId = null)
     {
         var gameServers = await GetGameServersForPlace(placeInfo.placeId, matchmaking);
+        Writer.Info(LogGroup.GameServerJoin, "GetServerForPlace placeId={0} matchmaking={1} candidateCount={2}", placeInfo.placeId, matchmaking, gameServers.Count());
 
         foreach (var server in gameServers)
         {
             var currentPlayerCount = await GetLivePlayerCount(server.id);
+            var age = DateTime.UtcNow - server.updatedAt;
+            Writer.Info(LogGroup.GameServerJoin, "Evaluating live server jobId={0} placeId={1} status={2} ageSeconds={3:F1} players={4}/{5}", server.id, placeInfo.placeId, server.status, age.TotalSeconds, currentPlayerCount, placeInfo.maxPlayerCount);
 
             if (IsLiveServerStale(server))
             {
                 Writer.Info(LogGroup.GameServerJoin, "Removing stale live server jobId={0} placeId={1} status={2} updatedAt={3:O}", server.id, placeInfo.placeId, server.status, server.updatedAt);
-                await ShutDownServerAsync(server.id);
+                await ShutDownServerAsync(server.id, waitForArbiter: false);
                 continue;
             }
 
@@ -622,8 +633,12 @@ return 1";
             }
 
             if (userId.HasValue && !await ReserveJoinSlot(server.id, userId.Value, placeInfo.maxPlayerCount))
+            {
+                Writer.Info(LogGroup.GameServerJoin, "Join reservation failed jobId={0} placeId={1} userId={2}", server.id, placeInfo.placeId, userId.Value);
                 continue;
+            }
 
+            Writer.Info(LogGroup.GameServerJoin, "Returning existing live server jobId={0} placeId={1} status={2}", server.id, placeInfo.placeId, server.status);
             return new GameServerGetOrCreateResponse()
             {
                 job = server.id,
@@ -651,7 +666,7 @@ return 1";
             if (IsLiveServerStale(server))
             {
                 Writer.Info(LogGroup.GameServerJoin, "Removing stale live server after lock jobId={0} placeId={1} status={2} updatedAt={3:O}", server.id, placeInfo.placeId, server.status, server.updatedAt);
-                await ShutDownServerAsync(server.id);
+                await ShutDownServerAsync(server.id, waitForArbiter: false);
                 continue;
             }
 
@@ -659,8 +674,12 @@ return 1";
                 continue;
 
             if (userId.HasValue && !await ReserveJoinSlot(server.id, userId.Value, placeInfo.maxPlayerCount))
+            {
+                Writer.Info(LogGroup.GameServerJoin, "Join reservation failed after lock jobId={0} placeId={1} userId={2}", server.id, placeInfo.placeId, userId.Value);
                 continue;
+            }
 
+            Writer.Info(LogGroup.GameServerJoin, "Returning existing live server after lock jobId={0} placeId={1} status={2}", server.id, placeInfo.placeId, server.status);
             return new GameServerGetOrCreateResponse
             {
                 job = server.id,
