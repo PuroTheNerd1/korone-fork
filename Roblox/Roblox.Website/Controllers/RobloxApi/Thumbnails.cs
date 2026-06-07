@@ -5,7 +5,6 @@ using Roblox.Dto.Thumbnails;
 using Roblox.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Thumbnails;
-using Roblox.Website.WebsiteModels.Thumbnails;
 
 namespace Roblox.Website.Controllers;
 [ApiController]

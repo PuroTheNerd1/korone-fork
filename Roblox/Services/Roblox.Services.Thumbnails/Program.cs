@@ -1,0 +1,20 @@
+using Roblox.ServiceDefaults;
+using Roblox.Services.Thumbnails.ExceptionHandlers;
+using Roblox.Web.Infrastructure;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddRobloxServiceDefaults("Roblox.Services.Thumbnails", ServiceExposure.InternalService);
+builder.Services.AddExceptionHandler<ThumbnailsServiceExceptionHandler>();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
+
+var app = builder.Build();
+
+app.UseRobloxServiceDefaults(ServiceExposure.InternalService);
+app.MapControllers();
+
+app.Run();

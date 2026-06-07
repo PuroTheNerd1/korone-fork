@@ -43,6 +43,7 @@ jobs:
           dotnet build Roblox\Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Avatar\Roblox.Services.Avatar.csproj -c Release --no-restore -m:1
+          dotnet build Roblox\Services\Roblox.Services.Thumbnails\Roblox.Services.Thumbnails.csproj -c Release --no-restore -m:1
 
       - name: Publish deployable projects
         run: |
@@ -57,6 +58,7 @@ jobs:
           dotnet publish Roblox\Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Moderation")
           dotnet publish Roblox\Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Donation")
           dotnet publish Roblox\Services\Roblox.Services.Avatar\Roblox.Services.Avatar.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Avatar")
+          dotnet publish Roblox\Services\Roblox.Services.Thumbnails\Roblox.Services.Thumbnails.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Thumbnails")
 
       - name: Add deployment scripts
         run: |
@@ -86,6 +88,7 @@ jobs:
       MODERATION_SERVICE: ${{ vars.WEB_MODERATION_SERVICE || 'Roblox.Services.Moderation' }}
       DONATION_SERVICE: ${{ vars.WEB_DONATION_SERVICE || 'Roblox.Services.Donation' }}
       AVATAR_SERVICE: ${{ vars.WEB_AVATAR_SERVICE || 'Roblox.Services.Avatar' }}
+      THUMBNAILS_SERVICE: ${{ vars.WEB_THUMBNAILS_SERVICE || 'Roblox.Services.Thumbnails' }}
     steps:
       - name: Download deploy bundle
         uses: actions/download-artifact@v4
@@ -136,7 +139,8 @@ jobs:
             -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}' `
             -ModerationServiceName '${{ env.MODERATION_SERVICE }}' `
             -DonationServiceName '${{ env.DONATION_SERVICE }}' `
-            -AvatarServiceName '${{ env.AVATAR_SERVICE }}'
+            -AvatarServiceName '${{ env.AVATAR_SERVICE }}' `
+            -ThumbnailsServiceName '${{ env.THUMBNAILS_SERVICE }}'
           EOF
           )
           encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)

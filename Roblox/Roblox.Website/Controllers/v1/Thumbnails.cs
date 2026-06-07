@@ -6,7 +6,6 @@ using Roblox.Logging;
 using Roblox.Models;
 using Roblox.Models.Thumbnails;
 using Roblox.Services;
-using Roblox.Website.WebsiteModels.Thumbnails;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 
 namespace Roblox.Website.Controllers;

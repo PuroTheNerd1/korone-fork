@@ -25,3 +25,10 @@ public class AssetThumbnailEntryDb
     public ModerationStatus moderationStatus { get; set; }
     public Type type { get; set; }
 }
+
+public class BatchRequestEntry
+{
+    public string requestId { get; set; }
+    public string type { get; set; }
+    public long targetId { get; set; }
+}
