@@ -14,47 +14,66 @@ public class AudioService : ServiceBase, IService
     public static float GetPeakDbLevel(Stream mp3Stream)
     {
         mp3Stream.Position = 0;
-        
-        float peakSample = 0;
-        
+
         using (var mp3Reader = new Mp3FileReader(mp3Stream))
         using (var waveStream = WaveFormatConversionStream.CreatePcmStream(mp3Reader))
         {
-            var sampleProvider = waveStream.ToSampleProvider();
-            int sampleRate = sampleProvider.WaveFormat.SampleRate;
-            int channels = sampleProvider.WaveFormat.Channels;
-            
-            float[] sampleBuffer = new float[(int)(sampleRate * 0.1) * channels];
-            
-            int samplesRead;
-            do
-            {
-                samplesRead = sampleProvider.Read(sampleBuffer, 0, sampleBuffer.Length);
-                
-                for (int i = 0; i < samplesRead; i++)
-                {
-                    peakSample = Math.Max(peakSample, Math.Abs(sampleBuffer[i]));
-                }
-            } while (samplesRead > 0);
+            return GetPeakDbLevel(waveStream.ToSampleProvider());
         }
-        
+    }
+
+    private static float GetPeakDbLevel(ISampleProvider sampleProvider)
+    {
+        float peakSample = 0;
+
+        int sampleRate = sampleProvider.WaveFormat.SampleRate;
+        int channels = sampleProvider.WaveFormat.Channels;
+
+        float[] sampleBuffer = new float[(int)(sampleRate * 0.1) * channels];
+
+        int samplesRead;
+        do
+        {
+            samplesRead = sampleProvider.Read(sampleBuffer, 0, sampleBuffer.Length);
+
+            for (int i = 0; i < samplesRead; i++)
+            {
+                peakSample = Math.Max(peakSample, Math.Abs(sampleBuffer[i]));
+            }
+        } while (samplesRead > 0);
+
         if (peakSample <= 0)
             return float.NegativeInfinity;
 
         return 20f * MathF.Log10(peakSample);
     }
 
-    private static async Task<float> GetPeakDbLevel(string audioFilePath, bool convertToMp3)
+    private static async Task<float> GetPeakDbLevel(string audioFilePath, bool decodeWithFfmpeg)
     {
-        if (!convertToMp3)
+        if (!decodeWithFfmpeg)
         {
-            await using var audioFileStream = File.OpenRead(audioFilePath);
-            return GetPeakDbLevel(audioFileStream);
+            try
+            {
+                await using var audioFileStream = File.OpenRead(audioFilePath);
+                return GetPeakDbLevel(audioFileStream);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[warning] direct MP3 peak scan failed, retrying with ffmpeg decode: {0}", e.Message);
+            }
         }
 
         await using var inputFileStream = File.OpenRead(audioFilePath);
-        using var mp3Stream = await ConvertAudioToMp3(inputFileStream);
-        return GetPeakDbLevel(mp3Stream);
+        using var waveStream = await ConvertAudioToWave(inputFileStream);
+        return GetWavePeakDbLevel(waveStream);
+    }
+
+    private static float GetWavePeakDbLevel(Stream waveStream)
+    {
+        waveStream.Position = 0;
+
+        using var waveReader = new WaveFileReader(waveStream);
+        return GetPeakDbLevel(waveReader.ToSampleProvider());
     }
 
     private static bool IsMp3Media(IMediaAnalysis mediaInfo, string audioFilePath)
@@ -158,6 +177,45 @@ public class AudioService : ServiceBase, IService
         catch (Exception ex)
         {
             Console.WriteLine($"[error] error converting audio to MP3: {ex.Message}\n");
+            throw;
+        }
+        finally
+        {
+            File.Delete(tempInput);
+            File.Delete(tempOutput);
+        }
+    }
+
+    private static async Task<MemoryStream> ConvertAudioToWave(Stream inputStream)
+    {
+        string tempInput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.tmp");
+        string tempOutput = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.wav");
+        try
+        {
+            await using (var fileStream = File.Create(tempInput))
+            {
+                inputStream.Seek(0, SeekOrigin.Begin);
+                await inputStream.CopyToAsync(fileStream);
+            }
+
+            await FFMpegArguments
+                .FromFileInput(tempInput)
+                .OutputToFile(tempOutput, true, options =>
+                    options.WithCustomArgument("-vn -acodec pcm_f32le -f wav"))
+                .ProcessAsynchronously();
+
+            var memoryStream = new MemoryStream();
+            await using (var outputFileStream = File.OpenRead(tempOutput))
+            {
+                await outputFileStream.CopyToAsync(memoryStream);
+            }
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            return memoryStream;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[error] error converting audio to WAV: {ex.Message}\n");
             throw;
         }
         finally
