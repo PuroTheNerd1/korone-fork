@@ -1111,6 +1111,19 @@ namespace Roblox.Website.Controllers
             return "false";
         }
 
+        [HttpGetBypass("universes/get-player-place-instance")]
+        public async Task<IActionResult> GetPlayerPlaceInstance(long userId)
+        {
+            using var games = ServiceProvider.GetOrCreate<GameServerService>();
+            var jobId = await games.GetJobIdByUserId(userId);
+            var gameServer = await games.GetGameServer(jobId);
+            return Ok(new
+            {
+                PlaceId = gameServer.assetId,
+                GameId = jobId.ToString()
+            });
+        }
+
         [HttpGetBypass("v2/get-rollout-settings")]
         public dynamic ChatRollout(string featureNames)
         {
