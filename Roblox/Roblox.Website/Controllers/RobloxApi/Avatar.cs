@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Services;
-using Roblox.Website.WebsiteModels;
 using Roblox.Dto.Avatar;
 using Roblox.Exceptions;
 using Roblox.Models.Avatar;

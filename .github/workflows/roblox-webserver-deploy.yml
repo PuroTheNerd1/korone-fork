@@ -42,6 +42,7 @@ jobs:
           dotnet build Roblox\Services\Roblox.Services.DataStore\Roblox.Services.DataStore.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj -c Release --no-restore -m:1
+          dotnet build Roblox\Services\Roblox.Services.Avatar\Roblox.Services.Avatar.csproj -c Release --no-restore -m:1
 
       - name: Publish deployable projects
         run: |
@@ -55,6 +56,7 @@ jobs:
           dotnet publish Roblox\Services\Roblox.Services.DataStore\Roblox.Services.DataStore.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.DataStore")
           dotnet publish Roblox\Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Moderation")
           dotnet publish Roblox\Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Donation")
+          dotnet publish Roblox\Services\Roblox.Services.Avatar\Roblox.Services.Avatar.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Avatar")
 
       - name: Add deployment scripts
         run: |
@@ -83,6 +85,7 @@ jobs:
       DATASTORE_SERVICE: ${{ vars.WEB_DATASTORE_SERVICE || 'Roblox.Services.DataStore' }}
       MODERATION_SERVICE: ${{ vars.WEB_MODERATION_SERVICE || 'Roblox.Services.Moderation' }}
       DONATION_SERVICE: ${{ vars.WEB_DONATION_SERVICE || 'Roblox.Services.Donation' }}
+      AVATAR_SERVICE: ${{ vars.WEB_AVATAR_SERVICE || 'Roblox.Services.Avatar' }}
     steps:
       - name: Download deploy bundle
         uses: actions/download-artifact@v4
@@ -132,7 +135,8 @@ jobs:
             -DataServiceName '${{ env.DATA_SERVICE }}' `
             -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}' `
             -ModerationServiceName '${{ env.MODERATION_SERVICE }}' `
-            -DonationServiceName '${{ env.DONATION_SERVICE }}'
+            -DonationServiceName '${{ env.DONATION_SERVICE }}' `
+            -AvatarServiceName '${{ env.AVATAR_SERVICE }}'
           EOF
           )
           encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
