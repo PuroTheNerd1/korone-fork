@@ -91,6 +91,7 @@ namespace Roblox.Models.Assets
         FileTooLarge,
         EmptyStream,
         UnsupportedFormat,
+        TooLoud,
     }
 
     public enum UserAdvertisementTargetType

@@ -9,13 +9,13 @@ namespace Roblox.Services;
 
 public class AudioService : ServiceBase, IService
 {
+    private const float maxDecibel = -2f;
     private const long maxAudioFileSizeBytes = 20447232;
-        // really ugly function :(
-    public static float GetPeakDbLevel(MemoryStream mp3Stream)
+    public static float GetPeakDbLevel(Stream mp3Stream)
     {
         mp3Stream.Position = 0;
         
-        float peakDb = float.MinValue;
+        float peakSample = 0;
         
         using (var mp3Reader = new Mp3FileReader(mp3Stream))
         using (var waveStream = WaveFormatConversionStream.CreatePcmStream(mp3Reader))
@@ -26,34 +26,35 @@ public class AudioService : ServiceBase, IService
             
             float[] sampleBuffer = new float[(int)(sampleRate * 0.1) * channels];
             
-            int bytesRead;
+            int samplesRead;
             do
             {
-                bytesRead = sampleProvider.Read(sampleBuffer, 0, sampleBuffer.Length);
+                samplesRead = sampleProvider.Read(sampleBuffer, 0, sampleBuffer.Length);
                 
-                if (bytesRead > 0)
+                for (int i = 0; i < samplesRead; i++)
                 {
-                    double sum = 0;
-                    int sampleCount = bytesRead / sizeof(float);
-                    
-                    for (int i = 0; i < sampleCount; i++)
-                    {
-                        float sample = sampleBuffer[i];
-                        sum += sample * sample;
-                    }
-                    
-                    double rms = Math.Sqrt(sum / sampleCount);
-                    double db = 20 * Math.Log10(Math.Max(0.0001, rms));
-                    
-                    if (db > peakDb)
-                    {
-                        peakDb = (float)db;
-                    }
+                    peakSample = Math.Max(peakSample, Math.Abs(sampleBuffer[i]));
                 }
-            } while (bytesRead > 0);
+            } while (samplesRead > 0);
         }
         
-        return peakDb;
+        if (peakSample <= 0)
+            return float.NegativeInfinity;
+
+        return 20f * MathF.Log10(peakSample);
+    }
+
+    private static async Task<float> GetPeakDbLevel(string audioFilePath, bool convertToMp3)
+    {
+        if (!convertToMp3)
+        {
+            await using var audioFileStream = File.OpenRead(audioFilePath);
+            return GetPeakDbLevel(audioFileStream);
+        }
+
+        await using var inputFileStream = File.OpenRead(audioFilePath);
+        using var mp3Stream = await ConvertAudioToMp3(inputFileStream);
+        return GetPeakDbLevel(mp3Stream);
     }
             
     public static async Task<MemoryStream> ConvertAudioToMp3(Stream inputStream)
@@ -126,37 +127,57 @@ public class AudioService : ServiceBase, IService
         }
         catch (OperationCanceledException)
         {
+            if (File.Exists(tempFile))
+                File.Delete(tempFile);
+
             return MediaValidation.UnsupportedFormat;
         }
         catch (Exception e)
         {
             Console.WriteLine("[error] error validating audio: {0}\n{1}", e.Message, e.StackTrace);
+            if (File.Exists(tempFile))
+                File.Delete(tempFile);
+
             return MediaValidation.UnsupportedFormat;
+        }
+
+        try
+        {
+            if (mediaInfo.Duration > TimeSpan.FromMinutes(7))
+                return MediaValidation.TooLong;
+
+            if (mediaInfo.Duration < TimeSpan.FromMilliseconds(10))
+                return MediaValidation.TooShort;
+
+            var formatDetails = mediaInfo.Format;
+
+            var isMp3 = formatDetails.FormatName == "mp3";
+            var isCreatorFormatException = creatorId == 15422 ||
+                creatorId == 16815 ||
+                creatorId == 16024;
+
+            if (!isMp3 && !isCreatorFormatException)
+                return MediaValidation.UnsupportedFormat;
+
+            try
+            {
+                var peakDb = await GetPeakDbLevel(tempFile, !isMp3);
+                if (peakDb > maxDecibel)
+                    return MediaValidation.TooLoud;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[error] error checking audio peak level: {0}\n{1}", e.Message, e.StackTrace);
+                return MediaValidation.UnsupportedFormat;
+            }
+
+            return MediaValidation.Ok;
         }
         finally
         {
             if (File.Exists(tempFile))
                 File.Delete(tempFile);
         }
-
-        if (mediaInfo.Duration > TimeSpan.FromMinutes(7))
-            return MediaValidation.TooLong;
-
-        if (mediaInfo.Duration < TimeSpan.FromMilliseconds(10))
-            return MediaValidation.TooShort;
-
-        var formatDetails = mediaInfo.Format;
-
-        // our game engine currently supports mp3 and whitelist these retards
-        if (formatDetails.FormatName == "mp3" ||
-            creatorId == 15422 ||
-            creatorId == 16815 ||
-            creatorId == 16024)
-        {
-            return MediaValidation.Ok;
-        }
-
-        return MediaValidation.UnsupportedFormat;
     }
     public bool IsThreadSafe()
     {

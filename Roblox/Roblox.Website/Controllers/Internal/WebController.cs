@@ -804,12 +804,12 @@ public class WebController : ControllerBase
             || !await services.cooldown.TryCooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
             throw new RobloxException(429, 0, "Too many requests");
 
-        var pendingAssets = await services.assets.CountAssetsPendingApproval();
+        /*var pendingAssets = await services.assets.CountAssetsPendingApproval();
         if (pendingAssets >= 150)
         {
             Metrics.UserMetrics.ReportGlobalPendingAssetsFloodCheckReached(userSession.userId);
             throw new RobloxException(400, 0, "There are too many pending items. Try again in a few minutes.");
-        }
+        }*/
 
         var groupId = request.groupId ?? 0;
         var creatorType = groupId == 0 ? CreatorType.User : CreatorType.Group;
@@ -958,9 +958,7 @@ public class WebController : ControllerBase
 
         return clothingAsset;
     }
-
-    private const float maxDecibel = -2f;
-
+    
     private async Task<CreateResponse> UploadAudio(UploadAssetRequest request, Stream stream, long creatorId, CreatorType creatorType)
     {
         var balance = await services.economy.GetBalance(creatorType, creatorId);
@@ -970,14 +968,17 @@ public class WebController : ControllerBase
         byte[] audioBytes = await ReadStreamToByteArray(stream);
 
         var validationStream = CreateStreamFromBytes(audioBytes);
-        var isOk = await Services.AudioService.IsAudioValid(validationStream, creatorId);
+        var status = await Services.AudioService.IsAudioValid(validationStream, creatorId);
         validationStream.Dispose();
 
-        if (isOk == MediaValidation.UnsupportedFormat)
-            throw new BadRequestException(0, "OGG uploading is currently disabled, try uploading as an MP3 instead");
+        if (status == MediaValidation.UnsupportedFormat)
+            throw new BadRequestException(0, "Unsupported audio format, try uploading as an MP3 instead");
 
-        if (isOk != MediaValidation.Ok)
-            throw new BadRequestException(0, "Bad audio file. Error = " + isOk.ToString());
+        if (status == MediaValidation.TooLoud)
+            throw new BadRequestException(0, "Audio is too loud. Please keep the peak level at or below -2 dB.");
+
+        if (status != MediaValidation.Ok)
+            throw new BadRequestException(0, $"Bad audio file. Error code: {status.ToString()}");
 
         await services.economy.ChargeForAudioUpload(creatorType, creatorId);
         var createStream = CreateStreamFromBytes(audioBytes);
