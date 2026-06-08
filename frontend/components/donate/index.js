@@ -25,12 +25,12 @@ const paymentMethods = [
     //     note: 'Logged into Ko-fi? Change your Ko-fi profile Display Name to your exact Korone username before paying.',
     // },
 
-    {
-        name: 'CashApp',
-        value: '$boxed404',
-        url: 'https://cash.app/$boxed404',
-        note: null,
-    },
+    // {
+    //     name: 'CashApp',
+    //     value: '$boxed404',
+    //     url: 'https://cash.app/$boxed404',
+    //     note: null,
+    // },
 ];
 
 const cryptoMethods = [
