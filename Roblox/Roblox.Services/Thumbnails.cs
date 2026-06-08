@@ -82,7 +82,7 @@ public class ThumbnailsService : ServiceBase, IService
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl);
             results.Add(c);
         }
         return results;
@@ -103,7 +103,7 @@ public class ThumbnailsService : ServiceBase, IService
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl);
             results.Add(c);
         }
 
@@ -130,7 +130,7 @@ public class ThumbnailsService : ServiceBase, IService
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl);
             results.Add(c);
         }
 
@@ -183,7 +183,7 @@ public class ThumbnailsService : ServiceBase, IService
 
             if (!string.IsNullOrEmpty(c.imageUrl))
             {
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl);
             }
 
             results.Add(new ThumbnailEntry
@@ -212,7 +212,7 @@ public class ThumbnailsService : ServiceBase, IService
         {
             c.state = c.imageUrl == null ? ThumbnailState.Pending : ThumbnailState.Completed;
             if (c.imageUrl != null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl);
             results.Add(c);
         }
 
@@ -238,7 +238,7 @@ public class ThumbnailsService : ServiceBase, IService
                 c.imageUrl = "/images/groups/" + c.imageUrl;
             }
             if (c.imageUrl != null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl, false);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl, false);
             results.Add(c);
         }
 
@@ -273,7 +273,7 @@ public class ThumbnailsService : ServiceBase, IService
                 c.imageUrl = "/img/blocked.png";
             }
             if (c.imageUrl != null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl);
 
             results.Add(new ThumbnailEntryRBX()
             {
@@ -307,7 +307,7 @@ public class ThumbnailsService : ServiceBase, IService
         foreach (var c in entries)
         {
             if (c.imageUrl is not null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl);
 
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
@@ -344,7 +344,7 @@ public class ThumbnailsService : ServiceBase, IService
         foreach (var c in entries)
         {
             if (c.imageUrl is not null)
-                c.imageUrl = await GetOrMigrateThumbnailUrlAsync(c.imageUrl);
+                c.imageUrl = GetThumbnailUrl(c.imageUrl);
 
             if (c.moderationStatus != ModerationStatus.ReviewApproved)
                 c.imageUrl = "/img/placeholder.png";
@@ -362,47 +362,7 @@ public class ThumbnailsService : ServiceBase, IService
         return results;
     }
 
-    private static async Task<string> GetOrMigrateThumbnailUrlAsync(string fileName, bool isThumbnails = true)
-    {
-        if (!Configuration.IsCdnEnabled) 
-            return BuildCdnUrl(fileName, isThumbnails);
-        // really shitty work but this accounts for most cases.
-        if(fileName.StartsWith('/'))
-            fileName = fileName[1..];
-        if(fileName.StartsWith("images/"))
-            fileName = fileName[7..];
-        if(fileName.StartsWith("groups/"))
-            fileName = fileName[7..];
-        if(fileName.StartsWith("thumbnails/"))
-            fileName = fileName[11..];
-        var contentType = "image/png";
-        if(fileName.EndsWith(".json"))
-            contentType = "application/json";
-        else if(!fileName.EndsWith(".png"))
-            fileName += ".png";
-        
-        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
-        var r2Key = (isThumbnails ? "images/thumbnails/" : "images/groups/") + fileName;
-        var localPath = (isThumbnails ? Configuration.ThumbnailsDirectory : Configuration.GroupIconsDirectory) + fileName;
-        var markerPath = localPath + ".migrated";
-
-        if (!File.Exists(markerPath))
-        {
-            if (!await r2Service.FileExistsAsync(r2Key))
-            {
-                if (File.Exists(localPath))
-                {
-                    using var file = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read, 0, FileOptions.Asynchronous);
-                    await r2Service.UploadFileAsync(r2Key, file, contentType);
-                }
-            }
-            try { File.Create(markerPath).Close(); } catch { }
-        }
-
-        return R2StorageService.GetPublicUrl(r2Key);
-    }
-
-    private static string BuildCdnUrl(string fileName, bool isThumbnails)
+    private static string GetThumbnailUrl(string fileName, bool isThumbnails = true)
     {
         if (fileName.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
             fileName.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||

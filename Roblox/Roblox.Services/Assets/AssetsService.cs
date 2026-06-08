@@ -234,31 +234,8 @@ public class AssetsService : ServiceBase, IService
         if (key.Contains('/', StringComparison.Ordinal))
             throw new ArgumentException("GetAssetDownloadUrlAsync error");
 
-        var fullPath = Configuration.AssetDirectory + key;
         var r2Service = ServiceProvider.GetOrCreate<R2StorageService>();
         var r2Key = "assets/" + key;
-
-        if (File.Exists(fullPath + ".migrated")) return r2Service.GenerateSignedUrl(r2Key, TimeSpan.FromHours(1));
-
-        // is it in r2????
-        if (await r2Service.FileExistsAsync(r2Key))
-        {
-            try { await File.WriteAllBytesAsync(fullPath + ".migrated", Array.Empty<byte>()); } catch {}
-            return r2Service.GenerateSignedUrl(r2Key, TimeSpan.FromHours(1));
-        }
-        
-        // is it in local disk maybe??????????
-        if (File.Exists(fullPath))
-        {
-            using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 0, FileOptions.Asynchronous);
-            await r2Service.UploadFileAsync(r2Key, file);
-            try { await File.WriteAllBytesAsync(fullPath + ".migrated", Array.Empty<byte>()); } catch {}
-        }
-        else
-        {
-            // nigga wtf???
-            throw new FileNotFoundException("Asset not found locally or in R2: " + key);
-        }
 
         return r2Service.GenerateSignedUrl(r2Key, TimeSpan.FromHours(1));
     }

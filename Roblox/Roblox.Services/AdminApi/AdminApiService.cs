@@ -29,47 +29,51 @@ public class AdminApiService : ServiceBase
     private UsersService users => _users ??= ServiceProvider.GetOrCreate<UsersService>(this);
     private DiscordBotApi discordBotApi => _discordBotApi ??= new DiscordBotApi(Roblox.Configuration.DiscordBotToken);
 
-    public async Task<string> GetOrMigrateImageUrlAsync(string fileName, bool isThumbnails = true)
+    public string GetImageUrl(string fileName, bool isThumbnails = true)
     {
-        if (!Roblox.Configuration.IsCdnEnabled)
-            return Roblox.Configuration.CdnBaseUrl + fileName;
+        if (fileName.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            fileName.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+            fileName.StartsWith("/img/", StringComparison.OrdinalIgnoreCase))
+        {
+            return fileName;
+        }
+
+        var baseUrl = string.IsNullOrWhiteSpace(Roblox.Configuration.CdnBaseUrl)
+            ? "https://cdn.pekora.zip/"
+            : Roblox.Configuration.CdnBaseUrl;
+
+        baseUrl = baseUrl.TrimEnd('/') + "/";
 
         if (fileName.StartsWith('/'))
+        {
             fileName = fileName[1..];
-        if (fileName.StartsWith("images/"))
-            fileName = fileName[7..];
-        if (fileName.StartsWith("groups/"))
-        {
-            isThumbnails = false;
-            fileName = fileName[7..];
-        }
-        if (fileName.StartsWith("thumbnails/"))
-            fileName = fileName[11..];
-
-        const string contentType = "image/png";
-        var r2Service = ServiceProvider.GetOrCreate<R2StorageService>(this);
-        var r2Key = (isThumbnails ? "images/thumbnails/" : "images/groups/") + fileName;
-        var localPath = (isThumbnails ? Roblox.Configuration.ThumbnailsDirectory : Roblox.Configuration.GroupIconsDirectory) + fileName;
-        var markerPath = localPath + ".migrated";
-
-        if (!File.Exists(markerPath))
-        {
-            if (!await r2Service.FileExistsAsync(r2Key) && File.Exists(localPath))
-            {
-                using var file = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read, 0, FileOptions.Asynchronous);
-                await r2Service.UploadFileAsync(r2Key, file, contentType);
-            }
-
-            try
-            {
-                File.Create(markerPath).Close();
-            }
-            catch
-            {
-            }
         }
 
-        return R2StorageService.GetPublicUrl(r2Key);
+        if (fileName.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+        {
+            return baseUrl + fileName;
+        }
+
+        if (fileName.StartsWith("groups/", StringComparison.OrdinalIgnoreCase))
+        {
+            return baseUrl + "images/" + EnsurePngExtension(fileName);
+        }
+
+        if (fileName.StartsWith("thumbnails/", StringComparison.OrdinalIgnoreCase))
+        {
+            return baseUrl + "images/" + EnsurePngExtension(fileName);
+        }
+
+        var prefix = isThumbnails ? "images/thumbnails/" : "images/groups/";
+        return baseUrl + prefix + EnsurePngExtension(fileName);
+    }
+
+    private static string EnsurePngExtension(string fileName)
+    {
+        return fileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+               fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+            ? fileName
+            : fileName + ".png";
     }
 
     public async Task<IReadOnlyCollection<PendingGroupIconEntry>> GetPendingIconsAsync()
@@ -80,7 +84,7 @@ public class AdminApiService : ServiceBase
 
         foreach (var item in result)
         {
-            item.name = await GetOrMigrateImageUrlAsync("/images/groups/" + item.name, false);
+            item.name = GetImageUrl("/images/groups/" + item.name, false);
         }
 
         return result;
@@ -151,7 +155,7 @@ public class AdminApiService : ServiceBase
         }
         else if (item.content_url != null)
         {
-            item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
+            item.content_url = GetImageUrl("/images/thumbnails/" + item.content_url + ".png");
         }
 
         return item;
@@ -230,7 +234,7 @@ public class AdminApiService : ServiceBase
 
                 if (item.content_url != null)
                 {
-                    item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
+                    item.content_url = GetImageUrl("/images/thumbnails/" + item.content_url + ".png");
                 }
 
                 result.Add(item);
@@ -402,7 +406,7 @@ public class AdminApiService : ServiceBase
 
             if (item.content_url != null)
             {
-                item.content_url = await GetOrMigrateImageUrlAsync("/images/thumbnails/" + item.content_url + ".png");
+                item.content_url = GetImageUrl("/images/thumbnails/" + item.content_url + ".png");
             }
         }
 

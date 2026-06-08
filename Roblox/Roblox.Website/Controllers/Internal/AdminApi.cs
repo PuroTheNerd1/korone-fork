@@ -392,7 +392,7 @@ public class AdminApiController : ControllerBase
         {
             gid = groupId,
         });
-        icon.name = await services.adminApi.GetOrMigrateImageUrlAsync("/images/groups/" + icon.name, false);
+        icon.name = services.adminApi.GetImageUrl("/images/groups/" + icon.name, false);
 
         return new
         {
@@ -502,7 +502,7 @@ public class AdminApiController : ControllerBase
         var year = await services.users.GetYear(userId);
 
         if (result.thumbnail_url != null)
-            result.thumbnail_url = await services.adminApi.GetOrMigrateImageUrlAsync(result.thumbnail_url);
+            result.thumbnail_url = services.adminApi.GetImageUrl(result.thumbnail_url);
         result.theme = ((ThemeTypes) result.theme).ToString();
         result.status = ((AccountStatus)result.status).ToString();
         result.trade_filter = ((TradeQualityFilter)result.trade_filter).ToString();
