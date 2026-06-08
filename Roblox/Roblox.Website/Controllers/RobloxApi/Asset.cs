@@ -94,7 +94,7 @@ public class Asset : ControllerBase
         AssetVersionEntry assetVersion;
         if (version is null)
         {
-            assetVersion = await services.assets.GetLatestAssetVersion(id); 
+            assetVersion = await services.assets.GetLatestAssetVersion(id, details.assetType == Type.Place); 
         }
         else
         {

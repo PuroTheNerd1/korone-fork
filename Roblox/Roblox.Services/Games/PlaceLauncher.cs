@@ -108,25 +108,7 @@ public class PlaceLauncherService : ServiceBase
         }
 
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default, userId);
-        if (result.status == JoinStatus.Error)
-        {
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.Error,
-                message = "An error occurred while starting the game.",
-            };
-        }
-
-        if (result.status != JoinStatus.Joining)
-        {
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.Loading,
-                message = "Server found, loading...",
-            };
-        }
-
-        if (Special == true)
+        if (Special.HasValue && (bool)Special)
         {
             string membership = await users.GetUserMemberShipAsString(userId);
             var userInfo = await users.GetUserById((long)userId);
@@ -134,14 +116,6 @@ public class PlaceLauncherService : ServiceBase
 
             string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
-            if (jobInfo == null)
-            {
-                return new PlaceLaunchResponse()
-                {
-                    status = (int)JoinStatus.Loading,
-                    message = "Server found, loading...",
-                };
-            }
             string clientTicket =  sign.GenerateClientTicket(placeInfo.year, userId, username!, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
             joinScript = games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
 
@@ -149,15 +123,23 @@ public class PlaceLauncherService : ServiceBase
         using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
         // Create security ticket for the player
         await playerSecurity.CreatePlayerTicket(userId, result.job);
+        if (result.status == JoinStatus.Joining)
+        {
+            return new PlaceLaunchResponse()
+            {
+                jobId = result.job,
+                status = (int)result.status,
+                joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}",
+                authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
+                authenticationTicket = cookie,
+                message = $"Server found ({result.job})",
+                joinScript = (Special ?? false) ? joinScript ?? "" : ""
+            };
+        }
         return new PlaceLaunchResponse()
         {
-            jobId = result.job,
-            status = (int)result.status,
-            joinScriptUrl = $"{Roblox.Configuration.BaseUrl}/Game/Join.ashx?jobId={result.job}",
-            authenticationUrl = Roblox.Configuration.BaseUrl + "/Login/Negotiate.ashx",
-            authenticationTicket = cookie,
-            message = $"Server found ({result.job})",
-            joinScript = (Special ?? false) ? joinScript ?? "" : ""
+            status = (int)JoinStatus.Loading,
+            message = "Server found, loading...",
         };
     }
     public async Task<PlaceLaunchResponse> RequestCloudEdit(long placeId, long userId, string username)
@@ -189,14 +171,9 @@ public class PlaceLauncherService : ServiceBase
         }
 
         var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit, userId);
-        if (result.status == JoinStatus.Error)
-        {
-            return new PlaceLaunchResponse()
-            {
-                status = (int)JoinStatus.Error,
-                message = "An error occurred while starting cloud edit.",
-            };
-        }
+        // Create security ticket for the player
+        using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
+        await playerSecurity.CreatePlayerTicket(userId, result.job);
 
         if (result.status == JoinStatus.Joining)
         {
@@ -204,20 +181,9 @@ public class PlaceLauncherService : ServiceBase
             var userInfo = await users.GetUserById((long)userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
             GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
-            if (jobInfo == null)
-            {
-                return new PlaceLaunchResponse()
-                {
-                    status = (int)JoinStatus.Loading,
-                    message = "Server found, loading...",
-                };
-            }
             string clientTicket = sign.GenerateClientTicket(placeInfo.year, userId, username, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
 
             dynamic settings = games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, false, null);
-            // Create security ticket for the player only after a usable job exists.
-            using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
-            await playerSecurity.CreatePlayerTicket(userId, result.job);
             return new PlaceLaunchResponse()
             {
                 jobId = result.job,

@@ -2363,30 +2363,7 @@ Thank you for your understanding,
     [HttpGet("players/in-game"), StaffFilter(Access.GetUsersInGame)]
     public async Task<dynamic> GetInGamePlayers()
     {
-        var userIds = await services.gameServer.GetActiveUserIds();
-        if (userIds.Length == 0)
-            return Array.Empty<object>();
-
-        var presence = (await services.users.MultiGetPresence(userIds)).ToList();
-        var users = (await services.users.MultiGetUsersById(userIds)).ToDictionary(user => user.id, user => user.name);
-        var placeIds = presence
-            .Where(p => p.placeId.HasValue)
-            .Select(p => p.placeId!.Value)
-            .Distinct()
-            .ToArray();
-        var places = placeIds.Length == 0
-            ? new Dictionary<long, string>()
-            : (await db.QueryAsync("SELECT id, name FROM asset WHERE id = ANY(:ids)", new { ids = placeIds }))
-                .ToDictionary(row => (long)row.id, row => (string)row.name);
-
-        return presence.Select(p => new
-        {
-            user_id = p.userId,
-            asset_id = p.placeId,
-            server_id = p.gameId,
-            username = users.GetValueOrDefault(p.userId, p.userId.ToString()),
-            asset_name = p.placeId.HasValue ? places.GetValueOrDefault(p.placeId.Value, "") : "",
-        });
+        return await db.QueryAsync("SELECT s.user_id, s.asset_id, s.server_id, u.username, a.name as asset_name FROM asset_server_player s INNER JOIN \"user\" u ON u.id = s.user_id INNER JOIN asset a ON a.id = s.asset_id LIMIT 1000");
     }
 
     [HttpGet("players/online-count"), StaffFilter(Access.GetUsersOnline)]

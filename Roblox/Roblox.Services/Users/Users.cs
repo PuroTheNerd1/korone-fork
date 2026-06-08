@@ -2074,8 +2074,15 @@ public class UsersService : ServiceBase, IService
         var t = sql.AddTemplate(@"
         SELECT 
             ""user"".id as userId,
-            ""user"".online_at as onlineAt
+            ""user"".online_at as onlineAt,
+            asset_server_player.asset_id as currentPlaceId,
+            asset_server_player.server_id as currentGameId,
+            ua.universe_id as currentUniverseId,
+            u.root_asset_id as rootPlaceId
         FROM ""user""
+        LEFT JOIN asset_server_player ON asset_server_player.user_id = ""user"".id
+        LEFT JOIN universe_asset ua ON asset_server_player.asset_id = ua.asset_id
+        LEFT JOIN universe u ON ua.universe_id = u.id
         /**where**/
         LIMIT 1000");
 
@@ -2085,42 +2092,16 @@ public class UsersService : ServiceBase, IService
             sql.OrWhere("\"user\".id = " + item);
         }
 
-        var presenceData = (await db.QueryAsync<DbPresenceEntry>(t.RawSql, t.Parameters)).ToList();
-        var jobKeys = presenceData.Select(item => $"gameserver:v1:user:{item.userId}").ToArray();
-        var placeKeys = presenceData.Select(item => $"gameserver:v1:userplace:{item.userId}").ToArray();
-        var jobData = await redis.StringGetManyAsync(jobKeys);
-        var placeData = await redis.StringGetManyAsync(placeKeys);
-        var livePlaceIds = placeData.Values
-            .Where(v => long.TryParse(v, out _))
-            .Select(v => long.TryParse(v, out var placeId) ? placeId : 0)
-            .Where(v => v != 0)
-            .Distinct()
-            .ToArray();
-        var livePlaceDetails = new Dictionary<long, PlaceEntry>();
-        if (livePlaceIds.Length != 0)
-        {
-            using var games = ServiceProvider.GetOrCreate<GamesService>(this);
-            foreach (var place in await games.MultiGetPlaceDetails(livePlaceIds))
-            {
-                livePlaceDetails[place.placeId] = place;
-            }
-        }
+        var presenceData = await db.QueryAsync<DbPresenceEntry>(t.RawSql, t.Parameters);
         var results = new List<PresenceEntry>();
         foreach (var item in presenceData)
         {
             var userId = item.userId;
             var isOnline = item.onlineAt >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5));
-            var placeKey = $"gameserver:v1:userplace:{userId}";
-            var jobKey = $"gameserver:v1:user:{userId}";
-            long? placeId = placeData.TryGetValue(placeKey, out var rawPlaceId) && long.TryParse(rawPlaceId, out var parsedPlaceId)
-                ? parsedPlaceId
-                : null;
-            var currentGameId = jobData.TryGetValue(jobKey, out var rawJobId) ? rawJobId : null;
-            long? rootPlaceId = null;
-            if (placeId.HasValue && livePlaceDetails.TryGetValue(placeId.Value, out var placeDetails))
-            {
-                rootPlaceId = placeDetails.universeRootPlaceId;
-            }
+            var placeId = item.currentPlaceId;
+            var universeId = item.currentUniverseId;
+            var rootPlaceId = item.rootPlaceId;
+            var currentGameId = item.currentGameId;
             var result = new PresenceEntry
             {
                 userId = userId,
@@ -2128,7 +2109,7 @@ public class UsersService : ServiceBase, IService
                     isOnline ? PresenceType.Online : PresenceType.Offline,
                 lastLocation = placeId != null ? "Playing" : "Website",
                 rootPlaceId = rootPlaceId,
-                gameId = currentGameId,
+                gameId = currentGameId.ToString(),
                 placeId = placeId,
                 lastOnline = placeId != null ? DateTime.UtcNow : item.onlineAt,
             };
