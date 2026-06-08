@@ -9,6 +9,7 @@ namespace Roblox.Services.Moderation.Controllers;
 [Route("/")]
 public class ModerationController : RobloxControllerBase
 {
+    
     [HttpPost("moderation/v2/filtertext/")]
     [HttpPost("moderation/filtertext/")]
     [AllowRobloxAnonymous]
