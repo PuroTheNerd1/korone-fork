@@ -107,7 +107,7 @@ public class PlaceLauncherService : ServiceBase
             };
         }
 
-        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default, userId);
+        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.Default);
         if (Special.HasValue && (bool)Special)
         {
             string membership = await users.GetUserMemberShipAsString(userId);
@@ -170,7 +170,7 @@ public class PlaceLauncherService : ServiceBase
             };
         }
 
-        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit, userId);
+        var result = await gameServer.GetServerForPlace(placeInfo, (int)MatchmakingContextId.CloudEdit);
         // Create security ticket for the player
         using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
         await playerSecurity.CreatePlayerTicket(userId, result.job);

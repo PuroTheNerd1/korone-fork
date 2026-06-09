@@ -1,6 +1,5 @@
 using Dapper;
 using Newtonsoft.Json.Linq;
-using System.Text.Json;
 using Roblox.Dto;
 using Roblox.Dto.Games;
 using Roblox.Dto.Users;
@@ -316,7 +315,7 @@ public class GamesService : ServiceBase, IService
                 asset.creator_id as creatorId,
                 asset.creator_type as creatorType,
                 asset_place.roblox_place_id as robloxPlaceId,
-                0 as playing,
+                (SELECT COUNT(*) as playing FROM asset_server_player WHERE asset_id = universe.root_asset_id),
                 (CASE WHEN ""asset"".creator_type = 1 THEN ""user"".username ELSE ""group"".name END) AS creatorName,
                 (CASE WHEN ""asset"".creator_type = 1 THEN ""user"".verified ELSE NULL END) AS isVerified
             FROM
@@ -344,11 +343,6 @@ public class GamesService : ServiceBase, IService
         {
             result[i].favoritedCount = favorites[i];
         }
-        var liveCounts = await gameServer.GetPlayerCountsByPlaceIds(result.Select(c => c.rootPlaceId));
-        foreach (var item in result)
-        {
-            item.playing = liveCounts.GetValueOrDefault(item.rootPlaceId, 0);
-        }
         return result;
     }
     public async Task<Universe> GetUniverseInfo(long universeId)
@@ -374,7 +368,7 @@ public class GamesService : ServiceBase, IService
                 a.price_robux AS price,
                 a.creator_id AS creatorId,
                 a.creator_type AS creatorType,
-                0 AS playing,
+                (SELECT COUNT(*) FROM asset_server_player WHERE asset_id = u.root_asset_id) AS playing,
                 COALESCE(u_user.username, g.name) AS creatorName
             FROM universe u
             INNER JOIN asset a ON a.id = u.root_asset_id
@@ -392,8 +386,6 @@ public class GamesService : ServiceBase, IService
 
         using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
         result.favoritedCount = await assets.CountFavorites(result.rootPlaceId);
-        result.playing = (await gameServer.GetPlayerCountsByPlaceIds(new[] { result.rootPlaceId }))
-            .GetValueOrDefault(result.rootPlaceId, 0);
         return result;
     }
 
@@ -486,15 +478,14 @@ public class GamesService : ServiceBase, IService
     }
     public async Task<IEnumerable<GameListEntry>> GetGamesList(long? contextUserId, string? sortToken, int maxRows, Genre? genre, string? keyword)
     {
-        var cacheKey = $"games:list:v1:{contextUserId ?? 0}:{sortToken ?? "popular"}:{maxRows}:{genre?.ToString() ?? "all"}:{keyword ?? ""}";
-        var cached = await redis.StringGetAsync(cacheKey);
-        if (!string.IsNullOrWhiteSpace(cached))
-        {
-            var parsed = JsonSerializer.Deserialize<IEnumerable<GameListEntry>>(cached);
-            if (parsed != null)
-                return parsed;
-        }
-
+        //using var gamesCache = ServiceProvider.GetOrCreate<GetGamesListCache>(this);
+        //var canCache = sortToken != "recent" || sortToken != "favorited" || sortToken != "favourited" && (sortToken != null && keyword == null);
+        //if (canCache)
+        //{
+        //    var (exists, cached) = gamesCache.Get(sortToken!);
+        //    if (exists && cached != null)
+        //        return cached;
+        //}
         var query = new SqlBuilder();
         var temp = query.AddTemplate(@"
             SELECT asset.name,
@@ -507,7 +498,7 @@ public class GamesService : ServiceBase, IService
                    universe.root_asset_id as rootPlaceId,  
                    universe_asset.universe_id as universeId,
                    asset_place.visit_count as visitCount,
-                   0 as playerCount,
+                   COALESCE(asp.playerCount, 0) as playerCount,
                    COALESCE(af.favorite_count, 0) as favorite_count,
                    COALESCE(upv.totalUpVotes, 0) as totalUpVotes,
                    COALESCE(dnv.totalDownVotes, 0) as totalDownVotes,
@@ -520,6 +511,11 @@ public class GamesService : ServiceBase, IService
             LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
             LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
             
+            LEFT JOIN (
+                SELECT asset_id, COUNT(*) AS playerCount
+                FROM asset_server_player
+                GROUP BY asset_id
+            ) asp on asp.asset_id = asset.id
             LEFT JOIN (
                 SELECT asset_id, COUNT(*) AS favorite_count
                 FROM asset_favorite
@@ -626,19 +622,11 @@ public class GamesService : ServiceBase, IService
                 break;
             default:
                 // popular and default are same
-                query.OrderBy("asset_place.visit_count DESC");
+                query.OrderBy("playerCount DESC, asset_place.visit_count DESC");
                 break;
         }
 
         var result = await db.QueryAsync<GameListEntry>(temp.RawSql, temp.Parameters);
-        var resultList = result.ToList();
-        var liveCounts = await gameServer.GetPlayerCountsByPlaceIds(resultList.Select(c => c.placeId));
-        foreach (var item in resultList)
-        {
-            item.playerCount = (int)liveCounts.GetValueOrDefault(item.placeId, 0);
-        }
-        result = resultList;
-
         // If required, use custom sort
         if (sortOrder != null)
         {
@@ -672,9 +660,7 @@ public class GamesService : ServiceBase, IService
         //    gamesCache.Set(sortToken!, result);
         //}
 
-        var finalResult = result.ToList();
-        await redis.StringSetAsync(cacheKey, JsonSerializer.Serialize(finalResult), TimeSpan.FromSeconds(15));
-        return finalResult;
+        return result;
     }
 
     public async Task SetPlacePrivacyType(long universeId, PrivacyType privacyType)
@@ -757,7 +743,7 @@ public class GamesService : ServiceBase, IService
                 asset.id as placeId,
                 asset.description as description,
                 asset.asset_genre as genre,
-                0 AS playerCount,
+                (select count(*) AS playerCount FROM asset_server_player WHERE asset_server_player.asset_id = asset.id),
                 (case when ""asset"".creator_type = 1 then ""user"".username else ""group"".name end) as builder,
                 asset.created_at as created,
                 asset.updated_at as updated,
@@ -782,17 +768,11 @@ public class GamesService : ServiceBase, IService
             query.OrWhere("(asset.asset_type = " + (int)Type.Place + " AND asset.id = " + id + ")");
         }
 
-        var result = (await db.QueryAsync<PlaceEntry>(temp.RawSql, temp.Parameters)).ToList();
-        var liveCounts = await gameServer.GetPlayerCountsByPlaceIds(result.Select(c => c.placeId));
-        foreach (var item in result)
-        {
-            item.playerCount = liveCounts.GetValueOrDefault(item.placeId, 0);
-        }
-        return result;
+        return await db.QueryAsync<PlaceEntry>(temp.RawSql, temp.Parameters);
     }
     public async Task<IEnumerable<PlaceEntry>> GetUniversePlaces(long universeId)
     {
-        var result = (await db.QueryAsync<PlaceEntry>(
+        var result = await db.QueryAsync<PlaceEntry>(
             @"SELECT
                 asset.id as universeRootPlaceId,
                 asset.creator_id as builderId,
@@ -802,7 +782,7 @@ public class GamesService : ServiceBase, IService
                 asset.id as placeId,
                 asset.description as description,
                 asset.asset_genre as genre,
-                0 AS playerCount,
+                (select count(*) AS playerCount FROM asset_server_player WHERE asset_server_player.asset_id = asset.id),
                 (case when ""asset"".creator_type = 1 then ""user"".username else ""group"".name end) as builder,
                 asset.created_at as created,
                 asset.updated_at as updated,
@@ -817,12 +797,7 @@ public class GamesService : ServiceBase, IService
             LEFT JOIN ""group"" ON ""group"".id = asset.creator_id AND asset.creator_type = 2
             LEFT JOIN ""user"" ON ""user"".id = asset.creator_id AND asset.creator_type = 1
             WHERE universe_asset.universe_id = :universeId",
-            new { universeId = universeId })).ToList();
-        var liveCounts = await gameServer.GetPlayerCountsByPlaceIds(result.Select(c => c.placeId));
-        foreach (var item in result)
-        {
-            item.playerCount = liveCounts.GetValueOrDefault(item.placeId, 0);
-        }
+            new { universeId = universeId });
         return result;
     }
     public async Task<long> CountUniversePlaces(long universeId)
