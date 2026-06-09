@@ -5,7 +5,6 @@ using Roblox.Web.Infrastructure.Metadata;
 namespace Roblox.Services.Moderation.Controllers;
 
 [ApiController]
-[InternalServiceOnly]
 [Route("/")]
 public class ModerationController : RobloxControllerBase
 {
