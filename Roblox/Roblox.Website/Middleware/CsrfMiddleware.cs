@@ -1,12 +1,9 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using JWT;
 using JWT.Algorithms;
 using JWT.Exceptions;
 using JWT.Serializers;
 using Microsoft.AspNetCore.Http.Extensions;
-using Roblox.Exceptions;
-using Roblox.Models.Sessions;
 using Roblox.Web.Infrastructure.Metadata;
 using Roblox.Website.Controllers;
 using Roblox.Website.Lib;
@@ -120,62 +117,6 @@ public class CsrfMiddleware : ControllerServicesExtended
         });
     }
 
-
-    public static List<string> bypassUrls = new()
-    {
-        // gs
-        "/gs/activity",
-        "/gs/ping",
-        "/gs/delete",
-        "/gs/shutdown",
-        "/gs/players/report",
-        "/gs/a",
-        "/game/validateticket.ashx",
-        "/api/moderation/filtertext",
-        "/moderation/filtertext",
-        "/moderation/v2/filtertext",
-        "/develop/upload-version",
-        // universes
-        "/universes/",
-        // uses built-in RequestVerificationToken
-        "/auth",
-        "/auth/signup",
-        "/auth/discord",
-        "/",
-        "/auth/application-check",
-        "/internal/year",
-        "/internal/clothingstealer",
-        "/internal/report-abuse",
-        "/internal/age",
-        "/internal/membership",
-        "/internal/apply",
-        "/internal/place-update",
-        "/internal/migrate-to-application",
-        "/internal/contest/first-contest",
-        "/internal/tixexchange",
-        "/internal/robuxexchange",
-        "/internal/referral",
-        "/auth/account-deletion",
-        "/auth/2fa",
-        "/",
-        "/auth/password-reset",
-        "/auth/ticket",
-        "/auth/captcha",
-        "/internal/invite",
-        "/internal/create-place",
-        "/internal/promocodes",
-        "/auth/notapproved",
-        // hubs
-        "/chat",
-        "/chat/negotiate",
-        "/v1/router",
-        "/version",
-        "/v1/CreateOrUpdate",
-        "/game/validate-machine",
-        //economy
-        "v1/purchases/products",
-    };
-
     public async Task InvokeAsync(HttpContext ctx)
     {
         var csrfTimer = new MiddlewareTimer(ctx, "c");
@@ -187,36 +128,19 @@ public class CsrfMiddleware : ControllerServicesExtended
             return;
         }
         #endif
-        var pathLower = ctx.Request.Path.ToString().ToLower();
-        var fullUrl = ctx.Request.GetEncodedUrl().ToLower();
-        if (ctx.GetEndpoint().ShouldSkipRobloxCsrf())
+        if (!ctx.GetEndpoint().RequiresRobloxCsrf())
         {
+            csrfTimer.Stop();
             await _next(ctx);
             return;
         }
-        if (pathLower.EndsWith("/"))
-        {
-            pathLower = pathLower.Substring(0, pathLower.Length - 1);
-        }
+
         try
         {
-            bool isBypassed = pathLower == "" || bypassUrls.Any(bypassPath => pathLower.Contains(bypassPath, StringComparison.OrdinalIgnoreCase));
-
-            if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && !pathLower.Contains("v1/router") && !pathLower.Contains("multiget-friend-requests") && !pathLower.Contains("filter-friends") && !pathLower.Contains("abusereport") && !isBypassed && !pathLower.Contains("enablecloudedit")  && !pathLower.Contains("v1/purchases/products") && !pathLower.Contains("teamcreate"))
+            if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD")
             {
                 var token = TryGetCookie(ctx);
                 var provided = ctx.Request.Headers["x-csrf-token"].ToList();
-                var userAgent = ctx.Request.Headers["User-Agent"].ToString();
-                var stupidHeader = ctx.Request.Headers["stupid"].ToString();
-                if (fullUrl.Contains("messagerouter"))
-                {
-                    Console.WriteLine($"MEOW MEOW MEOW MEOW MEOW: {fullUrl}");
-                }
-                if (userAgent.ToLower().Contains("roblox") || userAgent == Configuration.UserAgentBypassSecret)
-                {
-                    await _next(ctx);
-                    return;
-                }
                 if (token == null)
                 {
 #if DEBUG

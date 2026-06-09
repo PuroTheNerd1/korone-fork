@@ -1,15 +1,11 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Net.Http.Headers;
 using Roblox.Libraries.EasyJwt;
-using Roblox.Libraries.Password;
 using Roblox.Logging;
 using Roblox.Models.Sessions;
-using Roblox.Services;
-using Roblox.Services.App.FeatureFlags;
 using Roblox.Web.Infrastructure.Http;
 using Roblox.Web.Infrastructure.Metadata;
 using Roblox.Website.Controllers;
@@ -22,41 +18,6 @@ public class ApplicationGuardMiddleware
     private static string authorization { get; set; }
     public const string AuthorizationHeaderName = "rblx-authorization";
     public const string AuthorizationCookieName = "rblx-authorization";
-
-    public static List<string> allowedUrls { get; } = new()
-    {
-        "/",
-        "/auth/captcha",
-        "/auth/discord",
-        "/auth/submit",
-        "/auth/2fa",
-        "/auth/privacy",
-        "/auth/tos",
-        "/auth/password-reset",
-        "/auth/contact",
-        "/auth/account-deletion",
-        "/auth/signup",
-        "/auth/ticket",
-        "/auth/application-check",
-        // razor public
-        "/unsecuredcontent/",
-        // gs
-        "/gs/activity",
-        "/gs/ping",
-        "/gs/delete",
-        "/gs/shutdown",
-        "/gs/players/report",
-        "/gs/a",
-        // other
-        "/v1",
-        "/game/validate-machine",
-        "/game/validateticket.ashx",
-        "/game/get-join-script-debug",
-        "/api/moderation/filtertext",
-        "/moderation/filtertext",
-        "/moderation/v2/filtertext",
-        "/version",
-    };
 
     public static void Configure(string authorizationString)
     {
@@ -75,18 +36,12 @@ public class ApplicationGuardMiddleware
         _next = next;
     }
 
-    private bool IsAuthorized(HttpContext ctx, RobloxRequestContext requestContext)
+    private bool IsAuthorized(HttpContext ctx)
     {
         if (ctx.Request.Headers.ContainsKey(AuthorizationHeaderName))
         {
             return ctx.Request.Headers[AuthorizationHeaderName].ToArray()[0] == authorization;
         }
-
-        if (requestContext.IsRobloxClient || requestContext.IsTrustedInternalRequest)
-            return true;
-
-        if (requestContext.IsAuthenticated)
-            return true;
 
         return false;
     }
@@ -250,13 +205,6 @@ public class ApplicationGuardMiddleware
         "/auth/captcha",
     };
 
-    private async Task Redirect(HttpContext ctx, string dest)
-    {
-        ctx.Response.StatusCode = 302;
-        ctx.Response.Headers.Location = "/";
-        await ctx.Response.WriteAsync("Object moved to <a href=\""+dest+"\">here</a>.");
-    }
-
     public async Task InvokeAsync(HttpContext ctx)
     {
         var appGuardTimer = new MiddlewareTimer(ctx, "AppGuard");
@@ -374,31 +322,55 @@ public class ApplicationGuardMiddleware
 
         var authTimer = new MiddlewareTimer(ctx, "a");
         var endpoint = ctx.GetEndpoint();
-        var isAuthorized = IsAuthorized(ctx, requestContext);
+        var isAuthorized = IsAuthorized(ctx);
         authTimer.Stop();
 
-        if (isAuthorized || endpoint.AllowsRobloxAnonymous() || endpoint.IsBrowserFacingEndpoint() || allowedUrls.Contains(normalizedPath))
-            {
-                appGuardTimer.Stop();
-                await _next(ctx);
-                return;
-            }
-
-            // If not blocked
-            if (FeatureFlags.IsDisabled(FeatureFlag.AllowAccessToAllRequests) && !ua.ToLower().Contains("roblox") && ua != Configuration.UserAgentBypassSecret && !ua.ToLower().Contains("discordbot"))
-            {
-                await Redirect(ctx, "/");
-                return;
-            }
-            // Otherwise, allow (almost) all
-            if (normalizedPath == "")
-            {
-                await Redirect(ctx, "/");
-                return;
-            }
-            appGuardTimer.Stop();
-            await _next(ctx);
+        if (!SatisfiesEndpointRequirements(endpoint, requestContext, isAuthorized))
+        {
+            await SendUnauthorized(ctx);
+            return;
         }
+
+        appGuardTimer.Stop();
+        await _next(ctx);
+    }
+
+    private static bool SatisfiesEndpointRequirements(Endpoint? endpoint, RobloxRequestContext requestContext, bool isAuthorized)
+    {
+        if (endpoint.IsInternalServiceOnly() && !isAuthorized)
+        {
+            return false;
+        }
+
+        if (endpoint.RequiresRobloxSession() && !requestContext.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (endpoint.RequiresRccRequest() && !requestContext.IsRcc)
+        {
+            return false;
+        }
+
+        if (endpoint.RequiresRobloxClient() && !requestContext.IsRobloxClient)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static async Task SendUnauthorized(HttpContext ctx)
+    {
+        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await ctx.Response.WriteAsJsonAsync(new
+        {
+            errors = new[]
+            {
+                new { code = 0, message = "Unauthorized" },
+            },
+        });
+    }
 }
 
 public static class ApplicationGuardMiddlewareExtensions

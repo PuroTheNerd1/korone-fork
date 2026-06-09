@@ -20,40 +20,54 @@ public class ProxyForwardedAuthMiddleware
     public async Task InvokeAsync(HttpContext context, IRobloxRequestContextAccessor requestContextAccessor)
     {
         var endpoint = context.GetEndpoint();
-        var allowAnonymous = endpoint.AllowsRobloxAnonymous() || endpoint.IsBrowserFacingEndpoint();
-        var requiresSession = endpoint.RequiresRobloxSession();
         var isAuthorized = IsAuthorized(context);
-
-        if (!isAuthorized && !allowAnonymous)
-        {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                errors = new[]
-                {
-                    new { code = 0, message = "Unauthorized" },
-                },
-            });
-            return;
-        }
-
         var requestContext = RobloxRequestContextFactory.CreateFromForwardedHeaders(context, isAuthorized, _options.RccAuthorization);
         requestContextAccessor.SetCurrent(requestContext);
 
-        if (requiresSession && !requestContext.IsAuthenticated)
+        if (!SatisfiesEndpointRequirements(endpoint, requestContext, isAuthorized))
         {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                errors = new[]
-                {
-                    new { code = 0, message = "Unauthorized" },
-                },
-            });
+            await SendUnauthorized(context);
             return;
         }
 
         await _next(context);
+    }
+
+    private static bool SatisfiesEndpointRequirements(Endpoint? endpoint, RobloxRequestContext requestContext, bool isAuthorized)
+    {
+        if (endpoint.IsInternalServiceOnly() && !isAuthorized)
+        {
+            return false;
+        }
+
+        if (endpoint.RequiresRobloxSession() && !requestContext.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (endpoint.RequiresRccRequest() && !requestContext.IsRcc)
+        {
+            return false;
+        }
+
+        if (endpoint.RequiresRobloxClient() && !requestContext.IsRobloxClient)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static async Task SendUnauthorized(HttpContext context)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            errors = new[]
+            {
+                new { code = 0, message = "Unauthorized" },
+            },
+        });
     }
 
     private bool IsAuthorized(HttpContext context)

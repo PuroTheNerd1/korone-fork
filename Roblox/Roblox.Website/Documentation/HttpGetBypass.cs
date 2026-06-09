@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Roblox.Website.Middleware;
 
 namespace Roblox.Website.Controllers
 {
@@ -12,27 +11,8 @@ namespace Roblox.Website.Controllers
     {
         public static void AddToBypass(string template)
         {
-            var toAdd = template;
-            if (!toAdd.StartsWith("/"))
-            {
-                toAdd = "/" + toAdd;
-            }
-
-            if (toAdd.IndexOf("{") != -1)
-            {
-                toAdd = toAdd.Substring(0, toAdd.IndexOf("{"));
-            }
-
-            toAdd = toAdd.ToLower();
-            if (!ApplicationGuardMiddleware.allowedUrls.Contains(toAdd))
-            {
-                ApplicationGuardMiddleware.allowedUrls.Add(toAdd);
-            }
-
-            if (!CsrfMiddleware.bypassUrls.Contains(toAdd))
-            {
-                CsrfMiddleware.bypassUrls.Add(toAdd);
-            }
+            // Endpoint access policy is metadata-driven. These route attributes remain
+            // for routing compatibility and no longer register auth/CSRF bypasses.
         }
     }
     /// <summary>

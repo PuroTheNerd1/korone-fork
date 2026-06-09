@@ -6,8 +6,6 @@ COPY ["./api/migrations", "/migrations/migrations"]
 COPY ["./api/knexfile.js", "/migrations/"]
 COPY ["./api/package.json", "/migrations/"]
 COPY ["./api/package-lock.json", "/migrations/"]
-COPY ["./Roblox/Roblox.IntegrationTest/config.json", "/migrations/"]
-
 RUN cd /migrations/ &&\
     npm ci &&\
     # required for addGroups migration
