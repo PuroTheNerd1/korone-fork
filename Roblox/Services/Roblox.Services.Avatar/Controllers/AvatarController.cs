@@ -103,35 +103,35 @@ public class AvatarController : RobloxControllerBase
         var wornAssets = await services.avatar.GetWornAssets(userId);
         var avatar = await services.avatar.GetAvatar(userId);
         var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
-        dynamic bodyColors = new
+        var bodyColors = new Dictionary<string, int>
         {
-            headColorId = avatar.headColorId,
-            leftArmColorId = avatar.leftArmColorId,
-            leftLegColorId = avatar.leftLegColorId,
-            rightArmColorId = avatar.rightArmColorId,
-            rightLegColorId = avatar.rightLegColorId,
-            torsoColorId = avatar.torsoColorId,
-            HeadColor = avatar.headColorId,
-            LeftArmColor = avatar.leftArmColorId,
-            LeftLegColor = avatar.leftLegColorId,
-            RightArmColor = avatar.rightArmColorId,
-            RightLegColor = avatar.rightLegColorId,
-            TorsoColor = avatar.torsoColorId
+            ["headColorId"] = avatar.headColorId,
+            ["leftArmColorId"] = avatar.leftArmColorId,
+            ["leftLegColorId"] = avatar.leftLegColorId,
+            ["rightArmColorId"] = avatar.rightArmColorId,
+            ["rightLegColorId"] = avatar.rightLegColorId,
+            ["torsoColorId"] = avatar.torsoColorId,
+            ["HeadColor"] = avatar.headColorId,
+            ["LeftArmColor"] = avatar.leftArmColorId,
+            ["LeftLegColor"] = avatar.leftLegColorId,
+            ["RightArmColor"] = avatar.rightArmColorId,
+            ["RightLegColor"] = avatar.rightLegColorId,
+            ["TorsoColor"] = avatar.torsoColorId,
         };
-        dynamic scales = new
+        var scales = new Dictionary<string, double>
         {
-            avatar.scales.height,
-            Height = avatar.scales.height,
-            avatar.scales.width,
-            Width = avatar.scales.width,
-            avatar.scales.head,
-            Head = avatar.scales.head,
-            avatar.scales.depth,
-            Depth = avatar.scales.depth,
-            avatar.scales.proportion,
-            Proportion = avatar.scales.proportion,
-            avatar.scales.bodyType,
-            BodyType = avatar.scales.bodyType
+            ["height"] = avatar.scales.height,
+            ["Height"] = avatar.scales.height,
+            ["width"] = avatar.scales.width,
+            ["Width"] = avatar.scales.width,
+            ["head"] = avatar.scales.head,
+            ["Head"] = avatar.scales.head,
+            ["depth"] = avatar.scales.depth,
+            ["Depth"] = avatar.scales.depth,
+            ["proportion"] = avatar.scales.proportion,
+            ["Proportion"] = avatar.scales.proportion,
+            ["bodyType"] = avatar.scales.bodyType,
+            ["BodyType"] = avatar.scales.bodyType,
         };
 
         equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == AssetType.Gear).Select(d => d.id));
