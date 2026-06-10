@@ -956,15 +956,6 @@ namespace Roblox.Website.Controllers
         {
             return new MVC.RedirectResult("/internal/membership");
         }
-        [HttpGetBypass("game/players/{userId}")]
-        public MVC.ActionResult<dynamic> ChatWhiteList(long userId)
-        {
-            return new
-            {
-                ChatFilter = StaffFilter.IsOwner(userId) ? "whitelist" : "blacklist",
-            };
-        }
-
         // For goober.top bootstrapper
         // [HttpGetBypass("/version")]
         // public dynamic Version() {
@@ -1162,27 +1153,6 @@ namespace Roblox.Website.Controllers
                 IsOnline = onlineStatus.userPresenceType == PresenceType.Online,
             };
         }
-        [HttpGetBypass("users/account-info")]
-        [HttpPostBypass("users/account-info")]
-        public async Task<dynamic> AccountInfo()
-        {
-            var userBalance = await services.economy.GetUserBalance(safeUserSession.userId);
-            return new
-            {
-                UserId = safeUserSession.userId,
-                Username = safeUserSession.username,
-                DisplayName = safeUserSession.username,
-                HasPasswordSet = true,
-                Email = "korone@pekora.zip",
-                MembershipType = 3,
-                RobuxBalance = userBalance.robux,
-                AgeBracket = 0,
-                Roles = new string[] { },
-                EmailNotificationEnabled = false,
-                PasswordNotifcationEnabled = false,
-            };
-        }
-
         [HttpGetBypass("/asset/getyear")]
         public async Task<dynamic> GetPlaceYear(long placeId)
         {

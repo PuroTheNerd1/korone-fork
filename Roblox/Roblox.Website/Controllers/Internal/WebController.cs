@@ -333,17 +333,6 @@ public class WebController : ControllerBase
         return Content(JsonConvert.SerializeObject(data), "application/json");
     }
 
-    [HttpGet("users/{userId:long}/canmanage/{placeId:long}")]
-    public async Task<dynamic> CanManage(long userId, long placeId)
-    {
-        bool canManage = StaffFilter.IsOwner(userId) || await services.assets.CanUserModifyItem(placeId, userId);
-        return new
-        {
-            Success = canManage,
-            CanManage = canManage
-        };
-    }
-
     [HttpPost("users/set-builders-club")]
     public async Task SetBuildersClub(MembershipType membershipType)
     {
