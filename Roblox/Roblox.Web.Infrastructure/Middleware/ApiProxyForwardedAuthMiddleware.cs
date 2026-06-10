@@ -82,6 +82,21 @@ public class ApiProxyForwardedAuthMiddleware
             return true;
         }
 
-        return route.PathPrefixes.Any(prefix => path.StartsWithSegments(prefix, StringComparison.OrdinalIgnoreCase));
+        return route.PathPrefixes.Any(prefix => path.StartsWithSegments(NormalizePathPrefix(prefix), StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string NormalizePathPrefix(string prefix)
+    {
+        if (string.IsNullOrWhiteSpace(prefix))
+        {
+            return "/";
+        }
+
+        if (!prefix.StartsWith('/'))
+        {
+            prefix = "/" + prefix;
+        }
+
+        return prefix.Length > 1 ? prefix.TrimEnd('/') : prefix;
     }
 }

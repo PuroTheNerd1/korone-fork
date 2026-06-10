@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Roblox.Web.Infrastructure.Auth;
+using Roblox.Web.Infrastructure.Configuration;
 using Roblox.Web.Infrastructure.Http;
 
 namespace Roblox.Web.Infrastructure.Tests;
@@ -115,5 +116,38 @@ public class SessionResolverDockerTests
         Assert.Equal(seeded.Username, context.Request.Headers[RobloxWebContextConstants.UsernameHeaderName]);
         Assert.Equal(seeded.SessionId, context.Request.Headers[RobloxWebContextConstants.SessionIdHeaderName]);
         Assert.True(context.GetRobloxRequestContext()!.IsAuthenticated);
+    }
+
+    [Fact]
+    public async Task ApiProxyForwardsResolvedSessionHeadersForAvatarApisiteRoute()
+    {
+        var fixture = await DockerInfrastructureFixture.CreateAsync();
+        if (fixture == null)
+        {
+            return;
+        }
+
+        var seeded = await fixture.CreateSeededSessionAsync();
+        var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(
+            options => options.InternalServiceRoutes.Add(new RobloxInternalServiceRoute
+            {
+                Hosts = new List<string> { "www.test.local" },
+                PathPrefixes = new List<string> { "/apisite/avatar/" },
+            }),
+            ctx =>
+            {
+                ctx.Request.Host = new HostString("www.test.local");
+                ctx.Request.Path = "/apisite/avatar/v1/recent-items/all/list";
+                InfrastructureTestHelpers.AddCookie(ctx, RobloxWebContextConstants.SessionCookieName, seeded.Cookie);
+            });
+
+        Assert.True(nextCalled);
+        Assert.Equal(TestConstants.ProxyAuthorization, context.Request.Headers[RobloxWebContextConstants.ProxyAuthorizationHeaderName]);
+        Assert.Equal(seeded.UserId.ToString(), context.Request.Headers[RobloxWebContextConstants.UserIdHeaderName]);
+        Assert.Equal(seeded.Username, context.Request.Headers[RobloxWebContextConstants.UsernameHeaderName]);
+        Assert.Equal(seeded.SessionId, context.Request.Headers[RobloxWebContextConstants.SessionIdHeaderName]);
+        Assert.Equal("browser", context.Request.Headers[RobloxWebContextConstants.AuthTypeHeaderName]);
+        Assert.True(context.GetRobloxRequestContext()!.IsAuthenticated);
+        Assert.True(context.GetRobloxRequestContext()!.IsTrustedInternalRequest);
     }
 }

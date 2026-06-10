@@ -64,6 +64,22 @@ public class ApiProxyForwardedAuthMiddlewareTests
     }
 
     [Fact]
+    public async Task DecoratesConfiguredRoutePrefixWithTrailingSlash()
+    {
+        var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(
+            options => options.InternalServiceRoutes.Add(new RobloxInternalServiceRoute
+            {
+                Hosts = new List<string> { "www.test.local" },
+                PathPrefixes = new List<string> { "/apisite/avatar/" },
+            }),
+            ctx => ctx.Request.Path = "/apisite/avatar/v1/recent-items/all/list");
+
+        Assert.True(nextCalled);
+        Assert.Equal(TestConstants.ProxyAuthorization, context.Request.Headers[RobloxWebContextConstants.ProxyAuthorizationHeaderName]);
+        Assert.True(context.GetRobloxRequestContext()!.IsTrustedInternalRequest);
+    }
+
+    [Fact]
     public async Task DecoratesRccAuthTypeWhenAccessKeyIsValid()
     {
         var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(
