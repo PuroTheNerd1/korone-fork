@@ -1163,16 +1163,6 @@ namespace Roblox.Website.Controllers
             }
         }
         
-        [HttpGetBypass("v1/Close")]
-        [HttpPostBypass("V1/Close")]
-        public async Task<dynamic> CloseGSNew(Guid gameId)
-        {
-            if (!isRCC)
-                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-            await services.gameServer.ShutDownServerAsync(gameId);
-            return "OK";
-        }
-        
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
         [HttpPostBypass("/v1.0/SequenceStatistics/BatchAddToSequencesV2")]

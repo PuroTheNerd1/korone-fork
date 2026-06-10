@@ -15,7 +15,9 @@ public class ApiProxyConfigurationTests
         Assert.True(routes.TryGetProperty("api-host-route", out var apiRoute), "api-host-route should exist.");
         Assert.Equal("api-cluster", apiRoute.GetProperty("ClusterId").GetString());
         Assert.Equal("{**catch-all}", apiRoute.GetProperty("Match").GetProperty("Path").GetString());
-        Assert.Contains("api.pekora.zip", ReadStringArray(apiRoute.GetProperty("Match").GetProperty("Hosts")));
+        var apiHosts = ReadStringArray(apiRoute.GetProperty("Match").GetProperty("Hosts"));
+        Assert.Contains("api.pekora.zip", apiHosts);
+        Assert.Contains("*.api.pekora.zip", apiHosts);
 
         Assert.True(clusters.TryGetProperty("api-cluster", out var apiCluster), "api-cluster should exist.");
         Assert.Equal(
@@ -48,6 +50,7 @@ public class ApiProxyConfigurationTests
         var root = document.RootElement;
 
         Assert.Contains("api.pekora.zip", ReadStringArray(root.GetProperty("InternalServiceHosts")));
+        Assert.Contains("*.api.pekora.zip", ReadStringArray(root.GetProperty("InternalServiceHosts")));
 
         foreach (var route in root.GetProperty("InternalServiceRoutes").EnumerateArray())
         {

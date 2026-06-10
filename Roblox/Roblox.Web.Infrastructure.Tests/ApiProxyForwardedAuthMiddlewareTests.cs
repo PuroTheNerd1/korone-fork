@@ -48,6 +48,18 @@ public class ApiProxyForwardedAuthMiddlewareTests
     }
 
     [Fact]
+    public async Task DecoratesConfiguredWildcardHostWithProxyHeaders()
+    {
+        var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(
+            options => options.InternalServiceHosts.Add("*.api.pekora.zip"),
+            ctx => ctx.Request.Host = new HostString("gameinstances.api.pekora.zip"));
+
+        Assert.True(nextCalled);
+        Assert.Equal(TestConstants.ProxyAuthorization, context.Request.Headers[RobloxWebContextConstants.ProxyAuthorizationHeaderName]);
+        Assert.True(context.GetRobloxRequestContext()!.IsTrustedInternalRequest);
+    }
+
+    [Fact]
     public async Task DecoratesConfiguredRoutePrefixCaseInsensitively()
     {
         var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(

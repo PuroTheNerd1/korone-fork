@@ -7,8 +7,22 @@ namespace Roblox.Services.Api.Controllers;
 
 [ApiController]
 [Route("/")]
-public class GamesRelayController : RobloxControllerBase
+public class GameInstancesController : RobloxControllerBase
 {
+    [RequireRccRequest]
+    [HttpGet("v1/Close")]
+    [HttpPost("V1/Close")]
+    public async Task<dynamic> Close(Guid gameId)
+    {
+        if (!isRCC)
+        {
+            throw new RobloxException(401, 0, "Unauthorized");
+        }
+
+        await services.gameServer.ShutDownServerAsync(gameId);
+        return "OK";
+    }
+
     [RequireRccRequest]
     [HttpPost("v2/CreateOrUpdate")]
     [HttpGet("v2/CreateOrUpdate")]

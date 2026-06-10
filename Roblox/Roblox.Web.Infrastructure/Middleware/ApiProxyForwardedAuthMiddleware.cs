@@ -66,12 +66,12 @@ public class ApiProxyForwardedAuthMiddleware
             return true;
         }
 
-        return _options.InternalServiceHosts.Any(candidate => string.Equals(candidate, host, StringComparison.OrdinalIgnoreCase));
+        return _options.InternalServiceHosts.Any(candidate => HostMatches(candidate, host));
     }
 
     private static bool RouteMatches(RobloxInternalServiceRoute route, string host, PathString path)
     {
-        var hostMatches = route.Hosts.Count == 0 || route.Hosts.Any(candidate => string.Equals(candidate, host, StringComparison.OrdinalIgnoreCase));
+        var hostMatches = route.Hosts.Count == 0 || route.Hosts.Any(candidate => HostMatches(candidate, host));
         if (!hostMatches)
         {
             return false;
@@ -98,5 +98,22 @@ public class ApiProxyForwardedAuthMiddleware
         }
 
         return prefix.Length > 1 ? prefix.TrimEnd('/') : prefix;
+    }
+
+    private static bool HostMatches(string candidate, string host)
+    {
+        if (string.Equals(candidate, host, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!candidate.StartsWith("*.", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var suffix = candidate[1..];
+        return host.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) &&
+               host.Length > suffix.Length;
     }
 }

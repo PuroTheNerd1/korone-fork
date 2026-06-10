@@ -8,10 +8,12 @@ using Roblox.Web.Infrastructure.Metadata;
 
 namespace Roblox.Services.Api.Tests;
 
-public class GamesRelayRouteTests
+public class GameInstancesRouteTests
 {
-    private static readonly IReadOnlyList<GamesRelayRouteCase> Routes = new List<GamesRelayRouteCase>
+    private static readonly IReadOnlyList<GameInstancesRouteCase> Routes = new List<GameInstancesRouteCase>
     {
+        new("GET", "/v1/Close"),
+        new("POST", "/V1/Close"),
         new("POST", "/v2/CreateOrUpdate"),
         new("GET", "/v2/CreateOrUpdate"),
         new("GET", "/v1/CreateOrUpdate"),
@@ -22,15 +24,15 @@ public class GamesRelayRouteTests
         new("GET", "/v2.0/Refresh"),
     };
 
-    public static IEnumerable<object[]> GamesRelayRoutes()
+    public static IEnumerable<object[]> GameInstanceRoutes()
     {
         return Routes.Select(route => new object[] { route });
     }
 
     [Fact]
-    public void RouteMatrix_CoversEveryGamesRelayControllerRoute()
+    public void RouteMatrix_CoversEveryGameInstancesControllerRoute()
     {
-        var declaredRoutes = typeof(GamesRelayController)
+        var declaredRoutes = typeof(GameInstancesController)
             .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
             .SelectMany(method => method.GetCustomAttributes<HttpMethodAttribute>())
             .SelectMany(attribute => attribute.Template == null
@@ -45,14 +47,14 @@ public class GamesRelayRouteTests
         var missing = declaredRoutes.Except(matrixRoutes).OrderBy(route => route.Method).ThenBy(route => route.Path).ToList();
         var extra = matrixRoutes.Except(declaredRoutes).OrderBy(route => route.Method).ThenBy(route => route.Path).ToList();
 
-        Assert.True(missing.Count == 0, "Missing GamesRelay route matrix entries: " + string.Join(", ", missing));
-        Assert.True(extra.Count == 0, "GamesRelay route matrix contains entries not declared by controller: " + string.Join(", ", extra));
+        Assert.True(missing.Count == 0, "Missing GameInstances route matrix entries: " + string.Join(", ", missing));
+        Assert.True(extra.Count == 0, "GameInstances route matrix contains entries not declared by controller: " + string.Join(", ", extra));
     }
 
     [Fact]
-    public void RouteMatrix_AllGamesRelayRoutesRequireRcc()
+    public void RouteMatrix_AllGameInstancesRoutesRequireRcc()
     {
-        var unprotectedRoutes = typeof(GamesRelayController)
+        var unprotectedRoutes = typeof(GameInstancesController)
             .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
             .Where(method => method.GetCustomAttribute<RequireRccRequestAttribute>() == null)
             .SelectMany(method => method.GetCustomAttributes<HttpMethodAttribute>())
@@ -63,8 +65,8 @@ public class GamesRelayRouteTests
     }
 
     [Theory]
-    [MemberData(nameof(GamesRelayRoutes))]
-    public async Task GamesRelayRoutes_RejectAnonymousRequests(GamesRelayRouteCase route)
+    [MemberData(nameof(GameInstanceRoutes))]
+    public async Task GameInstanceRoutes_RejectAnonymousRequests(GameInstancesRouteCase route)
     {
         await using var factory = new ApiServiceFactory();
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -82,7 +84,7 @@ public class GamesRelayRouteTests
         return "/" + route.Trim('/');
     }
 
-    public sealed record GamesRelayRouteCase(string Method, string Path)
+    public sealed record GameInstancesRouteCase(string Method, string Path)
     {
         public override string ToString()
         {
