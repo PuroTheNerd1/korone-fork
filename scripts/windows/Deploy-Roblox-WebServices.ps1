@@ -7,7 +7,7 @@ param(
     [string]$WebsiteServiceName = "Roblox.Website",
     [string]$DataServiceName = "Roblox.Services.Data",
     [string]$DataStoreServiceName = "Roblox.Services.DataStore",
-    [string]$ModerationServiceName = "Roblox.Services.Moderation",
+    [string]$ApiServiceName = "Roblox.Services.Api",
     [string]$DonationServiceName = "Roblox.Services.Donation",
     [string]$AvatarServiceName = "Roblox.Services.Avatar",
     [string]$ThumbnailsServiceName = "Roblox.Services.Thumbnails"
@@ -131,7 +131,7 @@ $services = @(
     @{ Name = $WebsiteServiceName; Folder = "Roblox.Website" }
     @{ Name = $DataServiceName; Folder = "Roblox.Services.Data" }
     @{ Name = $DataStoreServiceName; Folder = "Roblox.Services.DataStore" }
-    @{ Name = $ModerationServiceName; Folder = "Roblox.Services.Moderation" }
+    @{ Name = $ApiServiceName; Folder = "Roblox.Services.Api" }
     @{ Name = $DonationServiceName; Folder = "Roblox.Services.Donation" }
     @{ Name = $AvatarServiceName; Folder = "Roblox.Services.Avatar" }
     @{ Name = $ThumbnailsServiceName; Folder = "Roblox.Services.Thumbnails" }

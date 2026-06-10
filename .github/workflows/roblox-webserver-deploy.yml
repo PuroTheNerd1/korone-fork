@@ -40,7 +40,7 @@ jobs:
           dotnet build Roblox\Roblox.ApiProxy\Roblox.ApiProxy.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Data\Roblox.Services.Data.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.DataStore\Roblox.Services.DataStore.csproj -c Release --no-restore -m:1
-          dotnet build Roblox\Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj -c Release --no-restore -m:1
+          dotnet build Roblox\Services\Roblox.Services.Api\Roblox.Services.Api.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Avatar\Roblox.Services.Avatar.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Thumbnails\Roblox.Services.Thumbnails.csproj -c Release --no-restore -m:1
@@ -55,7 +55,7 @@ jobs:
           dotnet publish Roblox\Roblox.ApiProxy\Roblox.ApiProxy.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.ApiProxy")
           dotnet publish Roblox\Services\Roblox.Services.Data\Roblox.Services.Data.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Data")
           dotnet publish Roblox\Services\Roblox.Services.DataStore\Roblox.Services.DataStore.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.DataStore")
-          dotnet publish Roblox\Services\Roblox.Services.Moderation\Roblox.Services.Moderation.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Moderation")
+          dotnet publish Roblox\Services\Roblox.Services.Api\Roblox.Services.Api.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Api")
           dotnet publish Roblox\Services\Roblox.Services.Donation\Roblox.Services.Donation.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Donation")
           dotnet publish Roblox\Services\Roblox.Services.Avatar\Roblox.Services.Avatar.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Avatar")
           dotnet publish Roblox\Services\Roblox.Services.Thumbnails\Roblox.Services.Thumbnails.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Thumbnails")
@@ -85,7 +85,7 @@ jobs:
       WEBSITE_SERVICE: ${{ vars.WEB_WEBSITE_SERVICE || 'Roblox.Website' }}
       DATA_SERVICE: ${{ vars.WEB_DATA_SERVICE || 'Roblox.Services.Data' }}
       DATASTORE_SERVICE: ${{ vars.WEB_DATASTORE_SERVICE || 'Roblox.Services.DataStore' }}
-      MODERATION_SERVICE: ${{ vars.WEB_MODERATION_SERVICE || 'Roblox.Services.Moderation' }}
+      API_SERVICE: ${{ vars.WEB_API_SERVICE || 'Roblox.Services.Api' }}
       DONATION_SERVICE: ${{ vars.WEB_DONATION_SERVICE || 'Roblox.Services.Donation' }}
       AVATAR_SERVICE: ${{ vars.WEB_AVATAR_SERVICE || 'Roblox.Services.Avatar' }}
       THUMBNAILS_SERVICE: ${{ vars.WEB_THUMBNAILS_SERVICE || 'Roblox.Services.Thumbnails' }}
@@ -137,7 +137,7 @@ jobs:
             -WebsiteServiceName '${{ env.WEBSITE_SERVICE }}' `
             -DataServiceName '${{ env.DATA_SERVICE }}' `
             -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}' `
-            -ModerationServiceName '${{ env.MODERATION_SERVICE }}' `
+            -ApiServiceName '${{ env.API_SERVICE }}' `
             -DonationServiceName '${{ env.DONATION_SERVICE }}' `
             -AvatarServiceName '${{ env.AVATAR_SERVICE }}' `
             -ThumbnailsServiceName '${{ env.THUMBNAILS_SERVICE }}'
