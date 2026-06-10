@@ -658,59 +658,6 @@ namespace Roblox.Website.Controllers
             };
         }
 
-        //this is for the newer years that dont have a custom monitoring script
-        [HttpPostBypass("presence/register-game-presence")]
-        public async Task<dynamic> RegisterGamePresence(long visitorId, long placeId, Guid gameId, string locationType)
-        {
-            // Security check
-            if (!isRCC || placeId != currentPlaceId || gameId.ToString() != currentGameId)
-                throw new UnauthorizedAccessException();
-
-            if (!await services.playerSecurity.IsPlayerTicketValid(visitorId, gameId))
-            {
-                await services.gameServer.KickPlayer(visitorId, gameId);
-                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: PlayerSpoofer");
-                throw new ForbiddenException(0, "User does not have a valid placelauncher ticket");
-            }
-
-            var onlineStatus = (await services.users.MultiGetPresence(new[] {visitorId})).First();
-            // RAGESOC will trigger here it's most likely a cheater because why ever would a player not be online when joining a game
-            // We check this by checking if the user was online in the last 5 minutes
-            var hasSuspicousLastOnline = onlineStatus.lastOnline < DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(2)) || onlineStatus.userPresenceType == PresenceType.Offline;
-            if (hasSuspicousLastOnline)
-            {
-                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: SuspicousLastOnline");
-            }
-            // Check if a gameserver exists for the gameId, and then check if the placeId matches the assetId of the game server
-            var gameServer = await services.gameServer.GetGameServer(gameId);
-            if (placeId != gameServer.assetId)
-            {
-                throw new BadRequestException();
-            }
-
-            var userInfo = await services.users.GetUserById(visitorId);
-            // If a banned user tries to join the game, we kick them
-            if (userInfo.IsDeleted())
-            {
-                await services.gameServer.KickPlayer(visitorId, gameId);
-                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: BannedUser");
-                throw new ForbiddenException(0, "User is banned");
-            }
-
-            await services.gameServer.OnPlayerJoin(visitorId, placeId, gameId);
-            return Ok();
-        }
-
-        [HttpPostBypass("presence/register-absence")]
-        public async Task RegisterGamePresenceAbsence(long visitorId)
-        {
-            if (!isRCC)
-                throw new UnauthorizedAccessException();
-            var jobId = await services.gameServer.GetJobIdByUserId(visitorId);
-            long placeId = GameServerService.GetUserPlaceId(visitorId);
-
-            await services.gameServer.OnPlayerLeave(visitorId, placeId, jobId);
-        }
         [HttpGetBypass("/device/initialize")]
         [HttpPostBypass("/device/initialize")]
         public ActionResult<dynamic> InitDevice()
