@@ -1112,21 +1112,6 @@ namespace Roblox.Website.Controllers
             };
         }
 
-        [HttpGetBypass("/currency/balance")]
-        public async Task<dynamic> GetBalance()
-        {
-            return await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
-        }
-
-        [HttpGetBypass("/ownership/hasasset")]
-        public async Task<bool> DoesOwnAsset(long userId, long assetId)
-        {
-            var owned = await services.users.GetUserAssets(userId, assetId);
-            if (owned.Any())
-                return true;
-            return false;
-        }
-
         [HttpPostBypass("v1/logout")]
         [HttpGetBypass("sign-out/v1")]
         [HttpPostBypass("sign-out/v1")]
@@ -1138,21 +1123,6 @@ namespace Roblox.Website.Controllers
             HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
         }
 
-        [HttpGetBypass("users/get-by-username")]
-        public async Task<dynamic> GetByUsername(string username)
-        {
-            var userInfo = await services.users.GetUserByName(username);
-            var onlineStatus = (await services.users.MultiGetPresence(new[] {userInfo.userId})).First();
-            var result = (await services.thumbnails.GetUserHeadshots(new[] { userInfo.userId })).ToList();
-            return new
-            {
-                Id = userInfo.userId,
-                Username = username,
-                AvatarUri = result?.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png",
-                AvatarFinal = true,
-                IsOnline = onlineStatus.userPresenceType == PresenceType.Online,
-            };
-        }
         [HttpGetBypass("/asset/getyear")]
         public async Task<dynamic> GetPlaceYear(long placeId)
         {

@@ -15,6 +15,7 @@ public class UsersRouteTests
     {
         new("GET", "/users/account-info", true),
         new("POST", "/users/account-info", true),
+        new("GET", "/users/get-by-username", false),
         new("GET", "/users/{userId:long}/canmanage/{placeId:long}", false),
         new("GET", "/game/players/{userId:long}", false),
     };

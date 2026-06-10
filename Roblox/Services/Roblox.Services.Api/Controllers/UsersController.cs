@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Roblox.Models.Users;
 using Roblox.Web.Infrastructure.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
@@ -38,6 +39,23 @@ public class UsersController : RobloxControllerBase
             Roles = Array.Empty<string>(),
             EmailNotificationEnabled = false,
             PasswordNotifcationEnabled = false,
+        };
+    }
+
+    [AllowRobloxAnonymous]
+    [HttpGet("users/get-by-username")]
+    public async Task<dynamic> GetByUsername(string username)
+    {
+        var userInfo = await services.users.GetUserByName(username);
+        var onlineStatus = (await services.users.MultiGetPresence(new[] { userInfo.userId })).First();
+        var headshots = (await services.thumbnails.GetUserHeadshots(new[] { userInfo.userId })).ToList();
+        return new
+        {
+            Id = userInfo.userId,
+            Username = username,
+            AvatarUri = headshots.FirstOrDefault()?.imageUrl ?? "/img/placeholder.png",
+            AvatarFinal = true,
+            IsOnline = onlineStatus.userPresenceType == PresenceType.Online,
         };
     }
 
