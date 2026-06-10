@@ -1,3 +1,4 @@
+/*
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Thumbnails;
@@ -271,3 +272,4 @@ public class ThumbnailsControllerV1 : ControllerBase
         };
     }
 }
+*/

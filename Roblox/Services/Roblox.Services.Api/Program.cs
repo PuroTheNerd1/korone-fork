@@ -3,7 +3,7 @@ using Roblox.Web.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddRobloxServiceDefaults("Roblox.Services.Moderation", ServiceExposure.InternalService);
+builder.AddRobloxServiceDefaults("Roblox.Services.Api", ServiceExposure.InternalService);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -16,3 +16,7 @@ app.UseRobloxServiceDefaults(ServiceExposure.InternalService);
 app.MapControllers();
 
 app.Run();
+
+public partial class Program
+{
+}

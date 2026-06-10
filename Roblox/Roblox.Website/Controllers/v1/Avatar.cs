@@ -1,3 +1,4 @@
+/*
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.Json;
@@ -625,3 +626,4 @@ public class AvatarControllerV1 : ControllerBase, IService
 
 
 }
+*/

@@ -2,13 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Roblox.Web.Infrastructure.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
-namespace Roblox.Services.Moderation.Controllers;
+namespace Roblox.Services.Api.Controllers;
 
 [ApiController]
 [Route("/")]
 public class ModerationController : RobloxControllerBase
 {
-    
     [HttpPost("moderation/v2/filtertext/")]
     [HttpPost("moderation/filtertext/")]
     [AllowRobloxAnonymous]
