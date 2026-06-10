@@ -1203,40 +1203,6 @@ namespace Roblox.Website.Controllers
             return "OK";
         }
         
-        [HttpPostBypass("v2/CreateOrUpdate")]
-        [HttpGetBypass("v2/CreateOrUpdate")]
-        [HttpGetBypass("v1/CreateOrUpdate")]
-        [HttpPostBypass("v1/CreateOrUpdate")]
-        public async Task<dynamic> GetOrCreate(string gameId, decimal ping, decimal fps)
-        {
-
-            if(!isRCC)
-                throw new Roblox.Exceptions.UnauthorizedException(0, "Unauthorized");
-
-            int roundPing = (int)Math.Round(ping, 0);
-            int roundFps = (int)Math.Round(fps, 0);
-            await services.gameServer.SetServerStats(gameId, roundPing, roundFps);
-            return "OK!";
-
-        }
-
-        [HttpPostBypass("v1.0/Refresh")]
-        [HttpPostBypass("v2.0/Refresh")]
-        [HttpGetBypass("v1.0/Refresh")]
-        [HttpGetBypass("v2.0/Refresh")]
-        public async Task RefreshGameInstance(Guid gameId, long clientCount, Decimal gameTime)
-        {
-            if (!isRCC)
-                throw new UnauthorizedException();
-            if (clientCount == 0 && gameTime > 50)
-            {
-                await services.gameServer.ShutDownServerAsync(gameId);
-                return;
-            }
-            await services.gameServer.SetServerPing(gameId);
-            //await services.gameServer.SetFilteringEnabled(gameId, true);
-
-        }
         [HttpPostBypass("/v1.0/SequenceStatistics/AddToSequence")]
         [HttpPostBypass("/v1.1/Counters/Increment")]
         [HttpPostBypass("/v1.0/SequenceStatistics/BatchAddToSequencesV2")]
