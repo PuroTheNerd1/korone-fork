@@ -57,6 +57,27 @@ public class ApiProxyConfigurationTests
             }
 
             Assert.DoesNotContain("/moderation/", ReadStringArray(prefixes));
+            Assert.DoesNotContain("/marketplace/", ReadStringArray(prefixes));
+            Assert.DoesNotContain("/gametransactions/", ReadStringArray(prefixes));
+        }
+    }
+
+    [Fact]
+    public void ApiProxyConfig_DoesNotPathRouteMarketplaceOrGameTransactions()
+    {
+        using var document = LoadApiProxyAppSettings();
+        var routes = document.RootElement.GetProperty("ReverseProxy").GetProperty("Routes");
+
+        foreach (var route in routes.EnumerateObject())
+        {
+            var match = route.Value.GetProperty("Match");
+            if (!match.TryGetProperty("Path", out var path))
+            {
+                continue;
+            }
+
+            Assert.DoesNotContain("/marketplace/", path.GetString() ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("/gametransactions/", path.GetString() ?? string.Empty, StringComparison.OrdinalIgnoreCase);
         }
     }
 
