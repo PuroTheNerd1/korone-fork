@@ -101,4 +101,28 @@ public class ApiProxyForwardedAuthMiddlewareTests
         Assert.True(nextCalled);
         Assert.Equal("rcc", context.Request.Headers[RobloxWebContextConstants.AuthTypeHeaderName]);
     }
+    
+    [Fact]
+    public async Task DecoratesConfiguredNonDotWildcardHostWithProxyHeaders()
+    {
+        var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(
+            options => options.InternalServiceHosts.Add("*aapi.local.tld"),
+            ctx => ctx.Request.Host = new HostString("testaapi.local.tld"));
+
+        Assert.True(nextCalled);
+        Assert.Equal(TestConstants.ProxyAuthorization, context.Request.Headers[RobloxWebContextConstants.ProxyAuthorizationHeaderName]);
+        Assert.True(context.GetRobloxRequestContext()!.IsTrustedInternalRequest);
+    }
+    
+    [Fact]
+    public async Task DoesNotDecorateNonWildcardMatchingHost()
+    {
+        var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(
+            options => options.InternalServiceHosts.Add("*aapi.local.tld"),
+            ctx => ctx.Request.Host = new HostString("testapi.local.tld")); // missing the extra 'a'
+
+        Assert.True(nextCalled);
+        Assert.False(context.Request.Headers.ContainsKey(RobloxWebContextConstants.ProxyAuthorizationHeaderName));
+        Assert.Null(context.GetRobloxRequestContext());
+    }
 }
