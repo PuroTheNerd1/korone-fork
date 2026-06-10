@@ -8,6 +8,7 @@ using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Web.Infrastructure.Controllers;
+using Roblox.Web.Infrastructure.Http;
 using Roblox.Web.Infrastructure.Metadata;
 using AssetType = Roblox.Models.Assets.Type;
 using ServiceProvider = Roblox.Services.ServiceProvider;
@@ -452,7 +453,7 @@ public class AvatarController : RobloxControllerBase
     [HttpGet("/apisite/avatar/v1/avatar")]
     public async Task<dynamic> GetMyAvatar()
     {
-        return await GetAvatar(userSession?.userId ?? (long.TryParse(HttpContext.Request.Cookies["USERID"], out var userId) ? userId : 1));
+        return await GetAvatar(userSession?.userId ?? (long.TryParse(HttpContext.Request.Headers[RobloxWebContextConstants.UserIdHeaderName], out var userId) ? userId : 1));
     }
 
     [AllowRobloxAnonymous]
