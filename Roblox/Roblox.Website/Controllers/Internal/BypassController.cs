@@ -965,55 +965,11 @@ namespace Roblox.Website.Controllers
             };
         }
 
-        [HttpGetBypass("GetAllowedMD5Hashes")]
-        public MVC.ActionResult<dynamic> AllowedMd5Hashes()
-        {
-            if (!isRCC)
-                throw new RobloxException(400, 0, "BadRequest");
-            List<string> allowedList = new List<string>
-            {
-                "088e8d2d5d31fd351f66efc7049dab10", //2017L Prod New
-                "bba43f967698feff49038f51b391b48e", //2018L Prod
-                "4091ce1193a5430573430411eb20bd44", //2020 New prod
-                "7da7086e7f3a739873fa5970ef586e98", //2021M Prod
-                "1fd6e7becff68acc140b2db17e24c86e", //2021M June 6,
-            };
-
-            return new { data = allowedList };
-        }
-        
         // For goober.top bootstrapper
         // [HttpGetBypass("/version")]
         // public dynamic Version() {
         //     return "version-d262983d5d887e114ba240e32e2d7465";
         // }
-
-        [HttpGetBypass("GetAllowedSecurityKeys")]
-        public MVC.ActionResult<dynamic> AllowedSecurity()
-        {
-            return true;
-        }
-        [HttpGetBypass("GetAllowedSecurityVersions")]
-        public MVC.ActionResult<dynamic> AllowedSecurityVersions()
-        {
-            if (!isRCC)
-                throw new RobloxException(400, 0, "BadRequest");
-            List<string> allowedList = new List<string>()
-            {
-                "0.206.0pcplayer",
-                "0.235.0pcplayer",
-                "0.314.0pcplayer",
-                "0.376.0pcplayer",
-                "0.355.0pcplayer",
-                "2.355.0iosapp",
-                "0.395.0pcplayer",
-                "0.450.0pcplayer",
-                "0.451.0pcplayer",
-                "0.463.0pcplayer"
-            };
-            var jsonString = JsonConvert.SerializeObject(allowedList);
-            return new { data = jsonString };
-        }
 
 
 
