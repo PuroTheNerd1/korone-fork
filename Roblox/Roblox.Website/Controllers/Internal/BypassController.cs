@@ -1042,19 +1042,6 @@ namespace Roblox.Website.Controllers
         {
             return await services.games.GetYear(placeId);
         }
-        [HttpPostBypass("game/load-place-info")]
-        public async Task<dynamic> LoadPlaceInfo()
-        {
-            var details = await services.assets.GetAssetCatalogInfo(currentPlaceId);
-            return new
-            {
-                CreatorId =  details.creatorTargetId,
-                CreatorType = "User",
-                PlaceVersion = details.id,
-                GameId = currentPlaceId,
-                IsRobloxPlace = details.creatorTargetId == 1
-            };
-        }
 
 
         [HttpGetBypass("studio/e.png")]

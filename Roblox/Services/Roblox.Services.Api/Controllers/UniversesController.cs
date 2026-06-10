@@ -19,7 +19,7 @@ public class UniversesController : RobloxControllerBase
         };
     }
 
-    [AllowRobloxAnonymous]
+    [RequireRccRequest]
     [HttpGet("v1.1/game-start-info")]
     public async Task<dynamic> GameStartInfo(long universeId)
     {
@@ -50,6 +50,21 @@ public class UniversesController : RobloxControllerBase
                 bodyType = 1.0,
             },
             universeAvatarAssetOverrides = new List<object>(),
+        };
+    }
+    
+    [RequireRccRequest]
+    [HttpPost("game/load-place-info")]
+    public async Task<dynamic> LoadPlaceInfo()
+    {
+        var details = await services.assets.GetAssetCatalogInfo(currentPlaceId);
+        return new
+        {
+            CreatorId =  details.creatorTargetId,
+            CreatorType = "User",
+            PlaceVersion = details.id,
+            GameId = currentPlaceId,
+            IsRobloxPlace = details.creatorTargetId == 1
         };
     }
 
