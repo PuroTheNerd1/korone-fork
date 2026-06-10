@@ -107,7 +107,7 @@ public class ApiProxyForwardedAuthMiddleware
             return true;
         }
 
-        if (!candidate.StartsWith("*.", StringComparison.Ordinal))
+        if (!candidate.StartsWith('*'))
         {
             return false;
         }
