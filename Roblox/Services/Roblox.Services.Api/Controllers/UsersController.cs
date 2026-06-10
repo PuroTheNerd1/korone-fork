@@ -60,6 +60,18 @@ public class UsersController : RobloxControllerBase
     }
 
     [AllowRobloxAnonymous]
+    [HttpGet("users/{userId:long}")]
+    public async Task<dynamic> GetUserInfo(long userId)
+    {
+        var userInfo = await services.users.GetUserById(userId);
+        return new
+        {
+            Id = userId,
+            Username = userInfo.username,
+        };
+    }
+
+    [AllowRobloxAnonymous]
     [HttpGet("users/{userId:long}/canmanage/{placeId:long}")]
     public async Task<dynamic> CanManage(long userId, long placeId)
     {

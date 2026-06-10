@@ -13,6 +13,7 @@ public class UniversesRouteTests
     private static readonly IReadOnlyList<UniversesRouteCase> Routes = new List<UniversesRouteCase>
     {
         new("GET", "/universes/get-universe-containing-place", false),
+        new("GET", "/v1.1/game-start-info", false),
         new("GET", "/universes/get-info", true),
         new("GET", "/universes/get-universe-places", true),
         new("GET", "/universes/get-aliases", false),

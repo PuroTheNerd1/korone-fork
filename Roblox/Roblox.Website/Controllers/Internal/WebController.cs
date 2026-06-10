@@ -320,19 +320,6 @@ public class WebController : ControllerBase
         };
     }
 
-    [HttpGet("users/{userId:long}")]
-    public async Task<IActionResult> GetUserInfo(long userId)
-    {
-        var userInfo = await services.users.GetUserById(userId);
-        var data = new
-        {
-            Id = userId,
-            Username = userInfo.username,
-        };
-
-        return Content(JsonConvert.SerializeObject(data), "application/json");
-    }
-
     [HttpPost("users/set-builders-club")]
     public async Task SetBuildersClub(MembershipType membershipType)
     {
