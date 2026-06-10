@@ -131,51 +131,6 @@ public class UniverseV1 : ControllerBase
             })
         };
     }
-    [HttpGetBypass("universes/get-universe-containing-place")]
-    public async Task<dynamic> GetUniverse(long placeid)
-    {
-        return new
-        {
-            UniverseId = await services.games.GetUniverseId(placeid)
-        };
-    }
-
-    [HttpGetBypass("universes/get-info")]
-    public async Task<dynamic> GetUniverseInfo(long universeId)
-    {
-        var uni = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
-        if (uni == null)
-            throw new RecordNotFoundException();
-        return new
-        {
-            Name = uni.name,
-            Description = uni.description,
-            RootPlace = uni.rootPlaceId,
-            StudioAccessToApisAllowed = true,
-            CurrentUserHasEditPermissions = uni.creatorId == safeUserSession.userId,
-            UniverseAvatarType = uni.universeAvatarType,
-        };
-    }
-
-    [HttpGetBypass("universes/get-universe-places")]
-    public async Task<dynamic> GetUniversePlaces(long universeId)
-    {
-        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-        var rootPlace = await services.games.GetRootPlaceId(universeId);
-        var places = await services.games.GetUniversePlaces(universeId);
-        return new
-        {
-            FinalPage = true,
-            RootPlace = rootPlace,
-            Places = places.Select(placeInfo => new
-            {
-                PlaceId = placeInfo.placeId,
-                Name = placeInfo.name,
-            }),
-            PageSize = places.Count()
-        };
-    }
-
     [HttpGetBypass("badges/list-badges-for-place/json")]
     public async Task<dynamic> GetGameBadges(long placeId)
     {
@@ -240,17 +195,6 @@ public class UniverseV1 : ControllerBase
                 PriceInRobux = c.priceInRobux,
             }),
             PageSize = products.Count
-        };
-    }
-
-    [HttpGetBypass("universes/get-aliases")]
-    public dynamic GetAliases()
-    {
-        return new
-        {
-            FinalPage = true,
-            Aliases = new List<string>(),
-            PageSize = 50
         };
     }
 
