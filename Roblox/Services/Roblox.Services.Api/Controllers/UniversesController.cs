@@ -104,6 +104,24 @@ public class UniversesController : RobloxControllerBase
             PageSize = products.Count
         };
     }
+    
+    [RequireRobloxSession]
+    [HttpPost("universes/{universeId:long}/enablecloudedit")]
+    public async Task<IActionResult> EnableCloudEdit(long universeId)
+    {
+        await services.games.CanManageUniverse(safeUserSession.userId, universeId);
+        await services.games.SetCloudedit(true, universeId);
+        return Ok(new { });
+    }
+
+    [HttpGet("universes/{universeId:long}/cloudeditenabled")]
+    public async Task<dynamic> IsCloudEditEnabled(long universeId)
+    {
+        return new
+        {
+            enabled = await services.games.IsCloudeditEnabled(universeId)
+        };
+    }
 
     [RequireRobloxSession]
     [HttpGet("universes/get-info")]

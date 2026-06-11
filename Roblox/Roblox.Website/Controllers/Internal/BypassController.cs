@@ -929,24 +929,6 @@ namespace Roblox.Website.Controllers
             return assetId;
         }
 
-        [HttpPostBypass("universes/{universeId:long}/enablecloudedit")]
-        public async Task<OkObjectResult> EnableCloudEdit(long universeId)
-        {
-            await services.games.CanManageUniverse(safeUserSession.userId, universeId);
-            await services.games.SetCloudedit(true, universeId);
-            return Ok(new { });
-        }
-
-        [HttpGetBypass("universes/{universeId:long}/cloudeditenabled")]
-        public async Task<dynamic> IsCloudEditEnabled(long universeId)
-        {
-            return new
-            {
-                enabled = await services.games.IsCloudeditEnabled(universeId)
-            };
-        }
-
-
         [HttpGetBypass("v1/user/{userId:long}/is-admin-developer-console-enabled")]
         public async Task<dynamic> NewCanManage(long userId)
         {
