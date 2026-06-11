@@ -161,43 +161,6 @@ public class UniverseV1 : ControllerBase
         };
     }
 
-    [HttpGetBypass("developerproducts/list")]
-    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId, long? universeId)
-    {
-        if (page < 1 || page > 5)
-        {
-            page = 1;
-        }
-
-        if (universeId is null && placeId is not null)
-        {
-            universeId = await services.games.GetUniverseId(placeId.Value);
-        }
-        else if (universeId == null)
-        {
-            throw new BadRequestException(0, "You must provide a valid placeId or universeId.");
-        }
-
-        var products = (await services.games.GetDeveloperProducts(universeId.Value, 5, 5 * (page - 1))).ToList();
-        return new
-        {
-            FinalPage = products.Count < 5 || page == 5,
-            DeveloperProducts = products.Select(c => new
-            {
-                ProductId = c.id,
-                DeveloperProductId = c.iconImageAssetId,
-                Name = c.name,
-                Description = c.description,
-                IconImageAssetId = c.iconImageAssetId,
-                displayName = c.name,
-                displayDescription = c.description,
-                displayIcon = (int?)null,
-                PriceInRobux = c.priceInRobux,
-            }),
-            PageSize = products.Count
-        };
-    }
-
     [HttpGet("v1/gametemplates")]
     public async Task<dynamic> StudioTemplates()
     {

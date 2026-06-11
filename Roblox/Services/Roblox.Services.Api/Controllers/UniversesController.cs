@@ -67,12 +67,49 @@ public class UniversesController : RobloxControllerBase
             IsRobloxPlace = details.creatorTargetId == 1
         };
     }
+    
+    [AllowRobloxAnonymous]
+    [HttpGet("developerproducts/list")]
+    public async Task<dynamic> GetDeveloperProducts(long page, long? placeId, long? universeId)
+    {
+        if (page is < 1 or > 5)
+        {
+            page = 1;
+        }
+
+        universeId = universeId switch
+        {
+            null when placeId is not null => await services.games.GetUniverseId(placeId.Value),
+            null => throw new RobloxException(RobloxException.BadRequest, 0,
+                "You must provide a valid placeId or universeId."),
+            _ => universeId!
+        };
+
+        var products = (await services.games.GetDeveloperProducts(universeId.Value, 5, 5 * (page - 1))).ToList();
+        return new
+        {
+            FinalPage = products.Count < 5 || page == 5,
+            DeveloperProducts = products.Select(c => new
+            {
+                ProductId = c.id,
+                DeveloperProductId = c.iconImageAssetId,
+                Name = c.name,
+                Description = c.description,
+                IconImageAssetId = c.iconImageAssetId,
+                displayName = c.name,
+                displayDescription = c.description,
+                displayIcon = (int?)null,
+                PriceInRobux = c.priceInRobux,
+            }),
+            PageSize = products.Count
+        };
+    }
 
     [RequireRobloxSession]
     [HttpGet("universes/get-info")]
     public async Task<dynamic> GetUniverseInfo(long universeId)
     {
-        var universe = (await services.games.MultiGetUniverseInfo(new[] { universeId })).FirstOrDefault();
+        var universe = (await services.games.MultiGetUniverseInfo([universeId])).FirstOrDefault();
         if (universe == null)
         {
             throw new RecordNotFoundException();
