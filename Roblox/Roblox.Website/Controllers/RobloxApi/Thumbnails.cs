@@ -5,6 +5,8 @@ using Roblox.Dto.Thumbnails;
 using Roblox.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Thumbnails;
+using Roblox.Services.Exceptions;
+using Roblox.Web.Infrastructure.Metadata;
 
 namespace Roblox.Website.Controllers;
 [ApiController]
@@ -238,9 +240,13 @@ public class RbxThumbnails : ControllerBase
     }
 
     [HttpPostBypass("v1/batch")]
-    public async Task<dynamic> BatchThumbnailsRequest([FromBody] IEnumerable<BatchRequestEntry> request)
+    public async Task<dynamic> BatchThumbnailsRequest([FromBody] IEnumerable<BatchRequestEntry>? request)
     {
-        var thumbs = request.ToList();
+        if (!await services.cooldown.TryIncrementBucketCooldown("Thumbnails:V1:Batch:Ip:" + GetIP(), 60, TimeSpan.FromSeconds(1)))
+            throw new TooManyRequestsException(0);
+        
+        var thumbs = request is not null ? request.ToList() : [];
+        if(thumbs.Count > 100) throw new BadRequestException(1, "There are too many requested Ids.");
         var allResults = await Task.WhenAll(new List<Task<IEnumerable<dynamic>>>()
         {
             MultiGetThumbnailsGeneric(thumbs, "Avatar", services.thumbnails.GetUserThumbnails),
