@@ -192,37 +192,67 @@ public class Chat : ControllerBase
         };
     }
 
+    // preferred roblox-like behavior over v2/Chat.cs 
     [HttpGetBypass("v2/multi-get-latest-messages")]
-    public async Task<dynamic> MultiGetLatestMessages(string conversationIds)
+    public async Task<dynamic> MultiGetLatestMessages(string? conversationIds)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.WebsiteChat);
-        var ids = conversationIds.Split(",").Select(long.Parse).Distinct().ToArray();
-        if (ids.Length == 0 || ids.Length > 100)
-            throw new RobloxException(400, 0, "BadRequest");
 
-        var result = new List<dynamic>();
-        foreach (var id in ids)
+        List<dynamic> result = [];
+        if (conversationIds is not null)
         {
-            if (!await services.chat.IsUserInConversation(id, safeUserSession.userId))
-                throw new RobloxException(403, 0, "Forbidden");
-            var latest = await services.chat.GetLatestMessageInConversation(id);
-            var isRead = latest == null || await services.chat.IsRead(latest.id, id, safeUserSession.userId);
-
-            result.Add(new
+            var ids = conversationIds.Split(",").Select(long.Parse).Distinct().ToArray();
+            if (ids.Length is 0 or > 100)
+                throw new RobloxException(400, 0, "BadRequest");
+            
+            foreach (var id in ids)
             {
-                conversationId = id,
-                chatMessages = latest != null ? new[]
+                if (!await services.chat.IsUserInConversation(id, safeUserSession.userId))
+                    throw new RobloxException(403, 0, "Forbidden");
+                var latest = await services.chat.GetLatestMessageInConversation(id);
+                var isRead = latest == null || await services.chat.IsRead(latest.id, id, safeUserSession.userId);
+
+                result.Add(new
                 {
-                    new
+                    conversationId = id,
+                    chatMessages = latest != null ? new[]
                     {
-                        id = latest.id,
-                        sent = latest.createdAt,
-                        read = isRead,
-                        senderTargetId = latest.userId,
-                        content = latest.message,
-                    }
-                } : ArraySegment<dynamic>.Empty,
-            });
+                        new
+                        {
+                            id = latest.id,
+                            sent = latest.createdAt,
+                            read = isRead,
+                            senderTargetId = latest.userId,
+                            content = latest.message,
+                        }
+                    } : ArraySegment<dynamic>.Empty,
+                });
+            }
+        }
+        else
+        {
+            var conversations = await services.chat.GetUserConversations(safeUserSession.userId);
+            foreach (var conversation in conversations)
+            {
+                var latest = await services.chat.GetLatestMessageInConversation(conversation.id);
+                var isRead = latest == null || await services.chat.IsRead(latest.id, conversation.id, safeUserSession.userId);
+                
+                result.Add(new
+                {
+                    conversationId = conversation.id,
+                    chatMessages = latest != null ? new[]
+                    {
+                        new 
+                        {
+                            id = latest.id,
+                            sent = latest.createdAt,
+                            read = isRead,
+                            senderTargetId = latest.userId,
+                            content = latest.message,
+                        }
+                    } : ArraySegment<dynamic>.Empty,
+                });
+            }
         }
 
         return result;
