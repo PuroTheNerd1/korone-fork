@@ -306,8 +306,12 @@ public class GameServerService : ServiceBase
     {
         try
         {
-            await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
-            await DeleteGameServer(serverId);
+            if (!await TryDeleteGameServer(serverId))
+                return;
+
+            var killed = await arbiterClient.KillGameServer(ArbiterHttpClient.CreateKillGameServerRequest(serverId));
+            if (!killed)
+                Console.Error.WriteLine($"Arbiter rejected shutdown request for server {serverId}");
         }
         catch (Exception ex)
         {
@@ -378,8 +382,14 @@ public class GameServerService : ServiceBase
 
     public async Task DeleteGameServer(Guid serverId)
     {
+        await TryDeleteGameServer(serverId);
+    }
+
+    private async Task<bool> TryDeleteGameServer(Guid serverId)
+    {
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
-        await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
+        var deletedServers = await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
+        return deletedServers > 0;
     }
 
 
