@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Roblox;
 using Roblox.Dto.Users;
 using Roblox.Rendering;

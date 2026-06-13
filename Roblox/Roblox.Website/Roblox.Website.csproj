@@ -9,9 +9,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Fleck" Version="1.2.0" />
-    <PackageReference Include="JWT" Version="8.7.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0" />
+    <PackageReference Include="JWT" Version="11.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="10.2.1" />
     <PackageReference Include="TwoFactorAuth.Net" Version="1.4.0" />
   </ItemGroup>
   <ItemGroup>

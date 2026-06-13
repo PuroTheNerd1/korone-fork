@@ -1,4 +1,5 @@
-using Xunit.Abstractions;
+using NetVips;
+using Xunit;
 
 namespace Roblox.UnitTest;
 
@@ -23,7 +24,11 @@ public class ImageTest
 
         await Assert.ThrowsAnyAsync<Exception>(async () =>
         {
-            await SixLabors.ImageSharp.Image.LoadWithFormatAsync(img);
+            await Task.Run(() =>
+            {
+                using var image = Image.NewFromStream(img, "", failOn: Enums.FailOn.Error);
+                image.PngsaveBuffer();
+            });
         });
     }
 }

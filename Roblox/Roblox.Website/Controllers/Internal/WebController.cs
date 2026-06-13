@@ -14,7 +14,6 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Catalog;
-using SixLabors.ImageSharp;
 using Roblox.Libraries.DiscordApi;
 using Roblox.Models.Db;
 using DSharpPlus;

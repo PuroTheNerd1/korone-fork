@@ -11,8 +11,7 @@ using Roblox.Models.Economy;
 using Roblox.Models.Groups;
 using Roblox.Services.App.Groups;
 using Roblox.Services.Exceptions;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
+using NetVips;
 using StatusEntry = Roblox.Dto.Groups.StatusEntry;
 
 namespace Roblox.Services;
@@ -1327,24 +1326,25 @@ public class GroupsService : ServiceBase, IService
     private const int MaxIconFilesSizeByte = 5 * 1024 * 1024;
     private const int MaxIconStartFileSizeBytes = 10 * 1024 * 1024;
 
-    private async Task<GroupIcon> ConvertImageToGroupIcon(Stream rawImageStream)
+    private Task<GroupIcon> ConvertImageToGroupIcon(Stream rawImageStream)
     {
         if (rawImageStream.Length >= MaxIconStartFileSizeBytes)
             throw new Exception("Stream is too large");
 
         rawImageStream.Position = 0;
-        using var img = await Image.LoadAsync(rawImageStream);
+        using var img = Image.ThumbnailStream(
+            rawImageStream,
+            420,
+            height: 420,
+            size: Enums.Size.Force,
+            failOn: Enums.FailOn.Error);
         if (img == null)
             throw new Exception("Bad image");
-        // var h = img.Height;
-        // var w = img.Width;
-        var square = 420;//h > w ? w : h;
-        img.Mutate(c => c.Resize(square, square));
         var newStream = new MemoryStream();
-        await img.SaveAsPngAsync(newStream);
+        img.PngsaveStream(newStream);
         if (newStream.Length >= MaxIconFilesSizeByte)
             throw new Exception("Final stream is too large");
-        return new GroupIcon(newStream);
+        return Task.FromResult(new GroupIcon(newStream));
     }
 
     public async Task SetGroupIconFromStream(long groupId, Stream groupIconUnsafe, long userIdPerformingAction)

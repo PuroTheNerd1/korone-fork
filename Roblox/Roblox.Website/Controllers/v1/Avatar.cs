@@ -12,7 +12,6 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Dapper;
-using SixLabors.ImageSharp.PixelFormats;
 using Roblox.Logging;
 
 namespace Roblox.Website.Controllers;

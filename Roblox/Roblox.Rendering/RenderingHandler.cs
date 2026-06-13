@@ -4,9 +4,7 @@ using Roblox;
 using System.Text.Json;
 using System.Net.Http.Json;
 using System.Dynamic;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Png;
+using NetVips;
 
 namespace Roblox.Rendering
 {
@@ -285,16 +283,19 @@ namespace Roblox.Rendering
                 throw new ArgumentException("Unsupported image type for resizing.");
             }
 
-            // Step 2: Process the image
             using (imageStream)
             {
-                using var image = await Image.LoadAsync(imageStream);
-                image.Mutate(x => x.Resize(width, height));
+                using var image = Image.ThumbnailStream(
+                    imageStream,
+                    width,
+                    height: height,
+                    size: Enums.Size.Force,
+                    failOn: Enums.FailOn.Error);
 
                 if (typeof(TReturn) == typeof(MemoryStream))
                 {
                     var outStream = new MemoryStream();
-                    await image.SaveAsync(outStream, new PngEncoder());
+                    image.PngsaveStream(outStream);
                     outStream.Position = 0;
                     return (TReturn)(object)outStream;
                 }
@@ -302,7 +303,7 @@ namespace Roblox.Rendering
                 if (typeof(TReturn) == typeof(byte[]))
                 {
                     var outStream = new MemoryStream();
-                    await image.SaveAsync(outStream, new PngEncoder());
+                    image.PngsaveStream(outStream);
                     outStream.Position = 0;
                     return (TReturn)(object)outStream.ToArray();
                 }
@@ -310,7 +311,7 @@ namespace Roblox.Rendering
                 if (typeof(TReturn) == typeof(string))
                 {
                     var outStream = new MemoryStream();
-                    await image.SaveAsync(outStream, new PngEncoder());
+                    image.PngsaveStream(outStream);
                     outStream.Position = 0;
                     byte[] bytesResult = outStream.ToArray();
                     string base64Result = Convert.ToBase64String(bytesResult);
