@@ -32,7 +32,7 @@ public class PresenceController : RobloxControllerBase
                                       onlineStatus.userPresenceType == PresenceType.Offline;
         if (hasSuspiciousLastOnline)
         {
-            await services.discordBotApi.SendMessageInChannel(Roblox.Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: SuspicousLastOnline");
+            await services.discordBotApi.SendMessageInChannel(Roblox.Configuration.DiscordLogChannelId, $"[RAGE-SS] UID: {visitorId} Flag: SuspiciousLastOnline");
         }
 
         var gameServer = await services.gameServer.GetGameServer(gameId);
