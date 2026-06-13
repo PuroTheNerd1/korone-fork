@@ -939,21 +939,6 @@ namespace Roblox.Website.Controllers
             };
         }
 
-
-        [HttpGetBypass("game/validate-place-join")]
-        [HttpPostBypass("universes/validate-place-join")]
-        [HttpGetBypass("universes/validate-place-join")]
-        public async Task<string> ValidateJoin(long originPlaceId, long destinationPlaceId)
-        {
-            using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
-            if (await playerSecurity.ValidateTeleport(originPlaceId, destinationPlaceId))
-            {
-                return "true";
-            }
-            await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] Flag: InvalidTeleport\nOrigin Place Id:{originPlaceId}\nDestination Place Id: {destinationPlaceId}");
-            return "false";
-        }
-
         [HttpGetBypass("universes/get-player-place-instance")]
         public async Task<IActionResult> GetPlayerPlaceInstance(long userId)
         {

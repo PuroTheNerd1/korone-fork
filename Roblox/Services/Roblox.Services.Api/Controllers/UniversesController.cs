@@ -105,6 +105,21 @@ public class UniversesController : RobloxControllerBase
         };
     }
     
+    // TODO: does this start with game? does this have a POST variant? (was requested with GET, and /universes/)
+    [HttpGet("game/validate-place-join")]
+    [HttpPost("universes/validate-place-join")]
+    [HttpGet("universes/validate-place-join")]
+    public async Task<string> ValidateJoin(long originPlaceId, long destinationPlaceId)
+    {
+        using var playerSecurity = ServiceProvider.GetOrCreate<PlayerSecurityService>();
+        if (await playerSecurity.ValidateTeleport(originPlaceId, destinationPlaceId))
+        {
+            return "true";
+        }
+        await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLogChannelId, $"[RAGE-SS] Flag: InvalidTeleport\nOrigin Place Id:{originPlaceId}\nDestination Place Id: {destinationPlaceId}");
+        return "false";
+    }
+    
     [RequireRobloxSession]
     [HttpPost("universes/{universeId:long}/enablecloudedit")]
     public async Task<IActionResult> EnableCloudEdit(long universeId)
