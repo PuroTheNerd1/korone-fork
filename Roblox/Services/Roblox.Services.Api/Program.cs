@@ -1,14 +1,26 @@
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Roblox.ServiceDefaults;
 using Roblox.Web.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddRobloxServiceDefaults("Roblox.Services.Api", ServiceExposure.InternalService);
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+builder.Services.AddControllers(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.InputFormatters.Add(new XmlSerializerInputFormatter(options));
+        options.RespectBrowserAcceptHeader = true;
+    })
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        o.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = long.MaxValue;
+});
 
 var app = builder.Build();
 
