@@ -338,11 +338,22 @@ public class GamesService : ServiceBase, IService
         var result = (await db.QueryAsync<MultiGetUniverseEntry>(temp.RawSql, temp.Parameters)).ToList();
         using var assets = ServiceProvider.GetOrCreate<AssetsService>(this);
 
-        var favorites = await Task.WhenAll(result.Select(c => assets.CountFavorites(c.rootPlaceId)));
-        for (var i = 0; i < result.Count; i++)
+        if (transactionConnection != null)
         {
-            result[i].favoritedCount = favorites[i];
+            foreach (var universe in result)
+            {
+                universe.favoritedCount = await assets.CountFavorites(universe.rootPlaceId);
+            }
         }
+        else
+        {
+            var favorites = await Task.WhenAll(result.Select(c => assets.CountFavorites(c.rootPlaceId)));
+            for (var i = 0; i < result.Count; i++)
+            {
+                result[i].favoritedCount = favorites[i];
+            }
+        }
+
         return result;
     }
     public async Task<Universe> GetUniverseInfo(long universeId)
