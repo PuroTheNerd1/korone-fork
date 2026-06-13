@@ -31,3 +31,19 @@ public class FriendRequestEntryInternal
     public long userId { get; set; }
     public string name { get; set; }
 }
+
+public class FollowerRequest
+{
+    public long followedUserId { get; set; }
+}
+public class FriendRequest
+{
+    public long? requesterUserId { get; set; }
+    public long? recipientUserId { get; set; }
+    public long? friendUserId { get; set; }
+}
+public class FilterSocialRequest
+{
+    public long userId { get; set; }
+    public List<long> otherUserIds { get; set; }
+}

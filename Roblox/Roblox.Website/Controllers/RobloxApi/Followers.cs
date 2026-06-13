@@ -1,5 +1,6 @@
 using MVC = Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Dto.Friends;
 using Roblox.Services.App.FeatureFlags;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 namespace Roblox.Website.Controllers

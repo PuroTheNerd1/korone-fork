@@ -15,22 +15,6 @@ using MVC = Microsoft.AspNetCore.Mvc;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 namespace Roblox.Website.Controllers
 {
-    public class FollowerRequest
-    {
-        public long followedUserId { get; set; }
-    }
-    public class FriendRequest
-    {
-        public long? requesterUserId { get; set; }
-        public long? recipientUserId { get; set; }
-        public long? friendUserId { get; set; }
-    }
-    public class FilterSocialRequest
-    {
-        public long userId { get; set; }
-        public List<long> otherUserIds { get; set; }
-    }
-
     [MVC.ApiController]
     [MVC.Route("/")]
     public class Friends: ControllerBase
@@ -59,28 +43,6 @@ namespace Roblox.Website.Controllers
                 });
             }
             return onlineFriends;
-        }
-
-        [HttpPost("users/filter-friends")]
-        [Consumes("application/x-www-form-urlencoded")]
-        public async Task<dynamic> FilterFriends([FromForm] FilterSocialRequest request)
-        {
-            var result = await services.friends.GetFriends(request.userId);
-            List<dynamic> filteredFriends = new List<dynamic>();
-            foreach (FriendEntry friend in result)
-            {
-                if (!request.otherUserIds.Contains(friend.id))
-                    continue;
-                filteredFriends.Add(new
-                {
-                    Id = friend.id,
-                    Username = friend.name,
-                    AvatarUri = "http://",
-                    AvatarFinal = true,
-                    IsOnline = friend.isOnline,
-                });
-            }
-            return filteredFriends;
         }
 
         [HttpPostBypass("friends/filter")]

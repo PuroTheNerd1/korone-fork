@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Roblox.Dto.Friends;
 using Roblox.Models.Users;
 using Roblox.Web.Infrastructure.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
@@ -81,6 +82,29 @@ public class UsersController : RobloxControllerBase
             Success = canManage,
             CanManage = canManage,
         };
+    }
+    
+    [AllowRobloxAnonymous]
+    [HttpPost("users/filter-friends")]
+    [Consumes("application/x-www-form-urlencoded")]
+    public async Task<dynamic> FilterFriends([FromForm] FilterSocialRequest request)
+    {
+        var result = await services.friends.GetFriends(request.userId);
+        List<dynamic> filteredFriends = new List<dynamic>();
+        foreach (FriendEntry friend in result)
+        {
+            if (!request.otherUserIds.Contains(friend.id))
+                continue;
+            filteredFriends.Add(new
+            {
+                Id = friend.id,
+                Username = friend.name,
+                AvatarUri = "http://",
+                AvatarFinal = true,
+                IsOnline = friend.isOnline,
+            });
+        }
+        return filteredFriends;
     }
 
     [AllowRobloxAnonymous]
