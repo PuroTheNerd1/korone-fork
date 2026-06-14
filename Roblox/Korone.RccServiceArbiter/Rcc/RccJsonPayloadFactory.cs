@@ -36,7 +36,7 @@ public sealed class RccJsonPayloadFactory : IRccJsonPayloadFactory
                 MaxGameInstances = 5,
                 PreferredPlayerCapacity = Math.Min(request.MaxPlayerCount, 10),
                 UniverseId = request.UniverseId,
-                BaseUrl = baseUrl,
+                BaseUrl = _options.ServiceUrl,
                 PlaceFetchUrl = $"{baseUrl}/asset?id={request.PlaceId}",
                 MatchmakingContextId = request.MatchmakingContextId,
                 CreatorType = "User",
