@@ -982,6 +982,101 @@ namespace Roblox.Website.Controllers
                 isMarketplaceEnabledForGroup = true,
             };
         }
+        
+        // this is for www subdomain
+        [HttpGetBypass("/v1/avatar-fetch")]
+        [HttpGetBypass("/v1.1/avatar-fetch")]
+        public async Task<IActionResult> CharacterFetch(long? placeId, long userId)
+        {
+            List<long> accessoryVersionIds = new List<long>();
+            List<long> equippedGearVersionIds = new List<long>();
+            var wornAssets = await services.avatar.GetWornAssets(userId);
+            var avatar = await services.avatar.GetAvatar(userId);
+            var assetInfo = await services.assets.MultiGetInfoById(wornAssets);
+            dynamic bodyColors = new
+            {
+                headColorId = avatar.headColorId,
+                leftArmColorId = avatar.leftArmColorId,
+                leftLegColorId = avatar.leftLegColorId,
+                rightArmColorId = avatar.rightArmColorId,
+                rightLegColorId = avatar.rightLegColorId,
+                torsoColorId = avatar.torsoColorId,
+
+                HeadColor = avatar.headColorId,
+                LeftArmColor = avatar.leftArmColorId,
+                LeftLegColor = avatar.leftLegColorId,
+                RightArmColor = avatar.rightArmColorId,
+                RightLegColor = avatar.rightLegColorId,
+                TorsoColor = avatar.torsoColorId
+            };
+            // why the fuck are there capitalized and not capitalized, super ugly
+            dynamic scales = new 
+            {
+                avatar.scales.height,
+                Height = avatar.scales.height,
+                avatar.scales.width,
+                Width = avatar.scales.width,
+                avatar.scales.head,
+                Head = avatar.scales.head,
+                avatar.scales.depth,
+                Depth = avatar.scales.depth,
+                avatar.scales.proportion,
+                Proportion = avatar.scales.proportion,
+                avatar.scales.bodyType,
+                BodyType = avatar.scales.bodyType
+            };
+            
+            equippedGearVersionIds.AddRange(assetInfo.Where(d => d.assetType == Models.Assets.Type.Gear).Select(d => d.id));
+            accessoryVersionIds.AddRange(assetInfo.Where(d => (d.assetType != Models.Assets.Type.Gear && placeId != 0) && d.assetType != Models.Assets.Type.EmoteAnimation).Select(d => d.id));
+            if (placeId != 0)
+            {
+                equippedGearVersionIds = new List<long>();
+            }
+            int positionCounter = 1;
+            var animationAssetIds = assetInfo
+                .Where(c => c.assetType == Models.Assets.Type.RunAnimation 
+                        || c.assetType == Models.Assets.Type.JumpAnimation 
+                        || c.assetType == Models.Assets.Type.FallAnimation 
+                        || c.assetType == Models.Assets.Type.ClimbAnimation
+                        || c.assetType == Models.Assets.Type.IdleAnimation
+                        || c.assetType == Models.Assets.Type.WalkAnimation
+                        || c.assetType == Models.Assets.Type.SwimAnimation)
+                .GroupBy(c => c.assetType.ToString().Replace("Animation", "").ToLower())
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.First().id 
+                );
+
+            var result = new 
+            {
+                resolvedAvatarType = avatar.avatarType.ToString(),
+                accessoryVersionIds,
+                equippedGearVersionIds,
+                assetAndAssetTypeIds = assetInfo
+                    .Where(c => c.assetType != Models.Assets.Type.EmoteAnimation 
+                                && !animationAssetIds.ContainsKey(c.assetType.ToString().Replace("Animation", "").ToLower()))
+                    .Select(c => new
+                    {
+                        assetId = c.id,
+                        assetTypeId = (int)c.assetType,
+                }),
+                backpackGearVersionIds = equippedGearVersionIds,
+                animationAssetIds = animationAssetIds,
+                playerAvatarType = avatar.avatarType.ToString(),
+                scales,
+                bodyColorsUrl = $"{Configuration.BaseUrl}/Asset/BodyColors.ashx?userId={userId}",
+                bodyColors,
+                emotes = assetInfo.Where(c => c.assetType == Models.Assets.Type.EmoteAnimation).Select(c => new
+                {
+                    assetId = c.id,
+                    assetName = c.name,
+                    position = positionCounter++,
+                }),
+            };
+
+            string jsonString = JsonConvert.SerializeObject(result);
+            return Content(jsonString, "application/json");
+        }
 
         [HttpPostBypass("v1/logout")]
         [HttpGetBypass("sign-out/v1")]
