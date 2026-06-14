@@ -114,7 +114,7 @@ public class PlaceLauncherService : ServiceBase
             var userInfo = await users.GetUserById((long)userId);
             var accountAgeDays = DateTime.UtcNow.Subtract(userInfo.created).Days;
 
-            string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
+            string characterAppearanceUrl = $"https://api.{Configuration.ShortBaseUrl}/v1/avatar-fetch?userId={userId}&placeId={placeId}";
             GameServerDb jobInfo = await gameServer.GetGameServer(result.job);
             string clientTicket =  sign.GenerateClientTicket(placeInfo.year, userId, username!, characterAppearanceUrl, membership, result.job, accountAgeDays, placeId);
             joinScript = games.GetJoinScript(placeInfo, userInfo, jobInfo, characterAppearanceUrl, clientTicket, membership, accountAgeDays, true, cookie);
@@ -148,7 +148,7 @@ public class PlaceLauncherService : ServiceBase
         using var gameServer = ServiceProvider.GetOrCreate<GameServerService>(this);
         using var users = ServiceProvider.GetOrCreate<UsersService>(this);
         using var sign = ServiceProvider.GetOrCreate<SignService>(this);
-        string characterAppearanceUrl = $"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
+        string characterAppearanceUrl = $"https://api.{Configuration.ShortBaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
         PlaceEntry placeInfo = (await games.MultiGetPlaceDetails(new[] { placeId })).First();
         // Block 2017 due to authentication issues
         if (placeInfo.moderationStatus != ModerationStatus.ReviewApproved || placeInfo.year == 2017)

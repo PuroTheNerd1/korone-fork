@@ -376,7 +376,7 @@ namespace Roblox.Website.Controllers
             if (!await services.games.CanUserJoinUniverse(userId, placeInfo.builderId, placeInfo.universeId))
                 throw new ForbiddenException(1, "You cannot join this game, you do not have permission.");
 
-            string characterAppearanceUrl = $"{Configuration.BaseUrl.Replace("https", "http")}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
+            string characterAppearanceUrl = $"https://api.{Configuration.ShortBaseUrl}/v1.1/avatar-fetch?userId={userId}&placeId={placeId}";
             
             var jobPlayers = await services.gameServer.GetGameServerPlayers(jobId);
             

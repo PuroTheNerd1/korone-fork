@@ -700,7 +700,7 @@ public class AssetsService : ServiceBase, IService
     }
     private async Task CreateAnimationThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
-        string render = await RenderingHandler.RequestAnimationRender($"{Configuration.BaseUrl}/v1.1/avatar-fetch?userId=1", $"{Configuration.BaseUrl}/v1/asset?id={assetId}");
+        string render = await RenderingHandler.RequestAnimationRender($"https://api.{Configuration.ShortBaseUrl}/v1.1/avatar-fetch?userId=1", $"https://assetdelivery.{Configuration.ShortBaseUrl}/v1/asset?id={assetId}");
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.ReviewApproved);
     }
     private async Task CreateAnimationSilhouetteRender(long assetId, CancellationToken? cancellationToken = null)
