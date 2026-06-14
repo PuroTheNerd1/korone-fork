@@ -624,17 +624,7 @@ namespace Roblox.Website.Controllers
                 success = true
             };
         }
-
-        [HttpGetBypass("/device/initialize")]
-        [HttpPostBypass("/device/initialize")]
-        public ActionResult<dynamic> InitDevice()
-        {
-            return new
-            {
-                browserTrackerId = 1234567890,
-                appDeviceIdentifier = (string?)null,
-            };
-        }
+        
         [HttpGetBypass("/Game/ClientPresence.ashx")]
         public void ClientPresenceAshx(string action, long placeId, long userId, bool IsTeleport)
         {
