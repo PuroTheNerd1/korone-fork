@@ -9,12 +9,12 @@ public class DeviceController : RobloxControllerBase
 {
     [HttpGet]
     [HttpPost]
-    public ActionResult<dynamic> Initialize()
+    public IActionResult Initialize()
     {
-        return new
+        return Ok(new
         {
             browserTrackerId = 1234567890,
             appDeviceIdentifier = (string?)null,
-        };
+        });
     }
 }
