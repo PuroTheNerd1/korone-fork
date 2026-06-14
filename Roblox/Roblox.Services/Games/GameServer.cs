@@ -25,11 +25,15 @@ public class GameServerService : ServiceBase
     {
 
         private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(100);
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
 
         public ArbiterHttpClient()
         {
             this.BaseAddress = new Uri($"https://arbiter.{Configuration.ShortBaseUrl}/");
-            this.DefaultRequestHeaders.Add("PJX-ArbiterAUTH", Configuration.ArbiterAuthorization);
+            this.DefaultRequestHeaders.Add("rblx-authorization", Configuration.ArbiterAuthorization);
         }
 
         private async Task<HttpResponseMessage> PostLimitedAsync(string url, HttpContent content)
@@ -45,17 +49,20 @@ public class GameServerService : ServiceBase
             }
         }
 
-        public async Task<bool> StartGameServer(StartGameServerRequest request)
+        public async Task<StartGameServerResponse?> StartGameServer(StartGameServerRequest request)
         {
             var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
             var result = await PostLimitedAsync("start-game-server", content);
-            return result.IsSuccessStatusCode;
+            if (!result.IsSuccessStatusCode)
+                return null;
+
+            await using var response = await result.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<StartGameServerResponse>(response, JsonOptions);
         }
 
         public async Task<bool> EvictPlayer(EvictPlayerRequest request)
         {
-            var jsonRequest = $"{{ \"gameId\": \"{request.gameId}\", \"userId\": {request.userId}, \"messageVersionId\": {request.messageVersionId} }}";
-            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
             var result = await PostLimitedAsync("evict-player", content);
             return result.IsSuccessStatusCode;
@@ -91,7 +98,7 @@ public class GameServerService : ServiceBase
                 messageVersionId = 0
             };
         }
-        public static StartGameServerRequest CreateGameServerRequest(PlaceEntry placeInfo, int rccPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
+        public static StartGameServerRequest CreateGameServerRequest(PlaceEntry placeInfo, Guid jobId, int matchmaking)
         {
             return new StartGameServerRequest
             {
@@ -99,9 +106,6 @@ public class GameServerService : ServiceBase
                 placeId = placeInfo.placeId,
                 universeId = placeInfo.universeId,
                 maxPlayerCount = placeInfo.maxPlayerCount,
-                gameServerPort = networkServerPort,
-                rccPort = rccPort,
-                proxyPort = proxyPort,
                 creatorId = placeInfo.builderId,
                 placeVersion = 1,
                 matchmakingContextId = matchmaking,
@@ -132,13 +136,21 @@ public class GameServerService : ServiceBase
             public long placeId { get; set; }
             public long universeId { get; set; }
             public int maxPlayerCount { get; set; }
-            public long gameServerPort { get; set; }
-            public long rccPort { get; set; }
-            public long proxyPort { get; set; }
             public long creatorId { get; set; }
             public long placeVersion { get; set; }
             public int matchmakingContextId { get; set; }
             public long year { get; set; }
+        }
+
+        public class StartGameServerResponse
+        {
+            public string status { get; set; }
+            public Guid jobId { get; set; }
+            public int rccPort { get; set; }
+            public int gameServerPort { get; set; }
+            public int proxyPort { get; set; }
+            public int? rccProcessId { get; set; }
+            public int? quilkinProcessId { get; set; }
         }
 
         public class KillGameServerRequest
@@ -150,7 +162,6 @@ public class GameServerService : ServiceBase
     private static ArbiterHttpClient arbiterClient = new ArbiterHttpClient();
     private static string jwtKey { get; set; } = string.Empty;
     private static EasyJwt jwt { get; } = new();
-    private static Random random = new Random();
 
     public static ConcurrentDictionary<long, long> currentPlayersInGame = new ConcurrentDictionary<long, long>() { }; // userid, placeid
     public static void Configure(string newJwtKey)
@@ -469,18 +480,6 @@ public class GameServerService : ServiceBase
             };
         }
 
-        int mainRCCPort = random.Next(30000, 40000);
-        int networkServerPort = random.Next(50000, 60000);
-        int proxyPort = 0;
-        do
-        {
-            await Task.Delay(100);
-            proxyPort = random.Next(30000, 40000);
-            if (!await IsPortTaken(proxyPort))
-                break;
-            
-        } while (true);
-
         // We need to create a lock to prevent multiple requests from creating the same game server
         using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(10));
         if (!serverCreationLock.IsAcquired)
@@ -492,9 +491,9 @@ public class GameServerService : ServiceBase
         }
 
         Guid jobId = Guid.NewGuid();
+        var startResult = await StartGameServer(placeInfo, jobId, matchmaking);
 
-
-        if (await StartGameServer(placeInfo, mainRCCPort, networkServerPort, proxyPort, jobId, matchmaking))
+        if (startResult != null)
         {
             await db.ExecuteAsync(
                 "INSERT INTO asset_server (id, asset_id, ip, port, server_connection, type) VALUES (:id::uuid, :asset_id, :ip, :port, :server_connection, :type)",
@@ -503,8 +502,8 @@ public class GameServerService : ServiceBase
                 id = jobId,
                 asset_id = placeInfo.placeId,
                 ip = Configuration.GameServerIp,
-                port = proxyPort,
-                server_connection = $"{Configuration.GameServerIp}:{proxyPort}",
+                port = startResult.proxyPort,
+                server_connection = $"{Configuration.GameServerIp}:{startResult.proxyPort}",
                 type = matchmaking
             });
         }
@@ -520,15 +519,15 @@ public class GameServerService : ServiceBase
         {
             job = jobId,
             ip = Configuration.GameServerIp,
-            port = proxyPort,
+            port = startResult.proxyPort,
             status = JoinStatus.Waiting
         };
     }
 
 
-    public async Task<bool> StartGameServer(PlaceEntry placeInfo, int RCCPort, int networkServerPort, int proxyPort, Guid jobId, int matchmaking)
+    public async Task<ArbiterHttpClient.StartGameServerResponse?> StartGameServer(PlaceEntry placeInfo, Guid jobId, int matchmaking)
     {
-        var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, RCCPort, networkServerPort, proxyPort, jobId, matchmaking);
+        var request = ArbiterHttpClient.CreateGameServerRequest(placeInfo, jobId, matchmaking);
         return await arbiterClient.StartGameServer(request);
     }
 
