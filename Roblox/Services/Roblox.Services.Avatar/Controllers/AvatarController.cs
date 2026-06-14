@@ -94,6 +94,7 @@ public class AvatarController : RobloxControllerBase
         }
     }
 
+    // TODO: does this even belong in avatar and WWW?
     [AllowRobloxAnonymous]
     [HttpGet("/v1/avatar-fetch")]
     [HttpGet("/v1.1/avatar-fetch")]
