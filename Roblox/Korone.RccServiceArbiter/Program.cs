@@ -1,10 +1,13 @@
 using Korone.RccServiceArbiter.Configuration;
+using Korone.RccServiceArbiter.Middleware;
 using Korone.RccServiceArbiter.Processes;
 using Korone.RccServiceArbiter.Rcc;
 using Korone.RccServiceArbiter.Services;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Roblox.ServiceDefaults;
 using Roblox.Web.Infrastructure;
+using Roblox.Web.Infrastructure.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +45,26 @@ builder.Services.AddHostedService<ArbiterPostStartWorker>();
 
 var app = builder.Build();
 
-app.UseRobloxServiceDefaults(ServiceExposure.InternalService);
+Roblox.Services.ServiceProvider.Initialize(app.Services);
+app.UseRouting();
+app.UseRobloxRequestServicesScope();
+app.UseExceptionHandler();
+app.UseMiddleware<ArbiterInternalAuthMiddleware>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false,
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = registration => registration.Tags.Contains("ready"),
+});
 app.MapControllers();
 
 app.Run();
