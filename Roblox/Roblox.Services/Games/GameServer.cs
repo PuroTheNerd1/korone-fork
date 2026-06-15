@@ -21,6 +21,9 @@ namespace Roblox.Services;
 
 public class GameServerService : ServiceBase
 {
+    private static readonly TimeSpan EmptyServerTtl = TimeSpan.FromMinutes(10);
+    private const int EmptyServerCleanupBatchSize = 100;
+
     public class ArbiterHttpClient : HttpClient
     {
 
@@ -394,6 +397,34 @@ public class GameServerService : ServiceBase
     public async Task DeleteGameServer(Guid serverId)
     {
         await TryDeleteGameServer(serverId);
+    }
+
+    public async Task<int> DeleteOldGameServers()
+    {
+        var cutoff = DateTime.UtcNow.Subtract(EmptyServerTtl);
+        var serverIds = (await db.QueryAsync<Guid>(
+            @"SELECT s.id
+              FROM asset_server s
+              WHERE s.created_at < :cutoff
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM asset_server_player p
+                    WHERE p.server_id = s.id
+                )
+              ORDER BY s.created_at
+              LIMIT :limit",
+            new
+            {
+                cutoff,
+                limit = EmptyServerCleanupBatchSize,
+            })).ToList();
+
+        foreach (var serverId in serverIds)
+        {
+            await ShutDownServerAsync(serverId);
+        }
+
+        return serverIds.Count;
     }
 
     private async Task<bool> TryDeleteGameServer(Guid serverId)

@@ -35,7 +35,7 @@ public class WebController : ControllerBase
             {
                 try
                 {
-                    //await staticServices.gameServer.DeleteOldGameServers();
+                    await staticServices.gameServer.DeleteOldGameServers();
                 }
                 catch (Exception e)
                 {
