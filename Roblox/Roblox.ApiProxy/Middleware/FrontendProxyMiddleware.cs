@@ -230,6 +230,7 @@ public sealed class FrontendProxyMiddleware
             path.Contains("multiget-friend-requests", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("abusereport", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("/universes/", StringComparison.OrdinalIgnoreCase) ||
+            path.Contains("/unsecuredcontent/", StringComparison.OrdinalIgnoreCase) ||
             IsNumericPath(path, "/places/", "/settings") ||
             IsNumericPath(path, "/users/", string.Empty))
         {
