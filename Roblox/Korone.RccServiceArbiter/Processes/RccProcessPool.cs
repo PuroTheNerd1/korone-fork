@@ -58,6 +58,9 @@ public sealed class RccProcessPool : IRccProcessPool
                 throw new InvalidOperationException($"Game server {request.JobId} already exists");
             }
 
+            CleanUpExpiredHandles();
+            EnsureCapacity(request.Year);
+
             handle = await AcquireRccProcessAsync(request.Year, cancellationToken);
             gameServerPort = _ports.Allocate(_options.Ports.GameServer);
             proxyPort = _ports.Allocate(_options.Ports.Proxy);
@@ -197,43 +200,7 @@ public sealed class RccProcessPool : IRccProcessPool
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            var removed = 0;
-            foreach (var pair in _active.ToArray())
-            {
-                var handle = pair.Value;
-                if (!handle.HasExited && handle.ExpirationUtc >= _clock.UtcNow)
-                {
-                    continue;
-                }
-
-                if (_active.TryRemove(pair.Key, out var removedHandle))
-                {
-                    ReleaseGamePorts(removedHandle);
-                    DisposeHandle(removedHandle);
-                    removed++;
-                }
-            }
-
-            foreach (var year in _idle.Keys.ToList())
-            {
-                var queue = _idle[year];
-                var kept = new Queue<RccProcessHandle>();
-                while (queue.TryDequeue(out var handle))
-                {
-                    if (handle.HasExited || handle.LastUsedUtc.AddSeconds(_options.Processes.IdleTtlSeconds) <= _clock.UtcNow)
-                    {
-                        DisposeHandle(handle);
-                        removed++;
-                        continue;
-                    }
-
-                    kept.Enqueue(handle);
-                }
-
-                _idle[year] = kept;
-            }
-
-            return removed;
+            return CleanUpExpiredHandles();
         }
         finally
         {
@@ -280,21 +247,98 @@ public sealed class RccProcessPool : IRccProcessPool
         }
 
         var rccPort = _ports.Allocate(_options.Ports.Rcc);
+        IManagedProcess? process = null;
         try
         {
             var exe = Path.Combine(_options.RccServiceRoot, $"RCCService{year}", "RCCService.exe");
-            var process = _launcher.Start(exe, $"-console {rccPort}", Path.GetDirectoryName(exe));
+            process = _launcher.Start(exe, $"-console {rccPort}", Path.GetDirectoryName(exe));
             await _readinessProbe.WaitUntilAvailableAsync(
                 rccPort,
                 TimeSpan.FromSeconds(_options.Processes.StartupTimeoutSeconds),
                 cancellationToken);
             return new RccProcessHandle(year, rccPort, process, _soapClientFactory.Create(rccPort), _clock.UtcNow);
         }
-        catch
+        catch (Exception ex)
         {
+            if (process != null)
+            {
+                try
+                {
+                    process.KillTree();
+                }
+                finally
+                {
+                    process.Dispose();
+                }
+            }
+
             _ports.Release(rccPort);
+            _logger.LogWarning(ex, "Failed to start RCCService for year {Year}; killed startup process and released port {Port}", year, rccPort);
             throw;
         }
+    }
+
+    private void EnsureCapacity(long year)
+    {
+        if (_active.Count >= _options.Processes.MaxActiveProcesses)
+        {
+            _logger.LogWarning(
+                "Rejecting RCC start for year {Year}: active process limit {Limit} reached",
+                year,
+                _options.Processes.MaxActiveProcesses);
+            throw new InvalidOperationException($"Active RCC process limit reached ({_options.Processes.MaxActiveProcesses})");
+        }
+
+        var activeForYear = _active.Count(pair => pair.Value.Year == year);
+        if (activeForYear >= _options.Processes.MaxActivePerYear)
+        {
+            _logger.LogWarning(
+                "Rejecting RCC start for year {Year}: per-year active process limit {Limit} reached",
+                year,
+                _options.Processes.MaxActivePerYear);
+            throw new InvalidOperationException($"Active RCC process limit reached for year {year} ({_options.Processes.MaxActivePerYear})");
+        }
+    }
+
+    private int CleanUpExpiredHandles()
+    {
+        var removed = 0;
+        foreach (var pair in _active.ToArray())
+        {
+            var handle = pair.Value;
+            if (!handle.HasExited && handle.ExpirationUtc >= _clock.UtcNow)
+            {
+                continue;
+            }
+
+            if (_active.TryRemove(pair.Key, out var removedHandle))
+            {
+                ReleaseGamePorts(removedHandle);
+                DisposeHandle(removedHandle);
+                removed++;
+            }
+        }
+
+        foreach (var year in _idle.Keys.ToList())
+        {
+            var queue = _idle[year];
+            var kept = new Queue<RccProcessHandle>();
+            while (queue.TryDequeue(out var handle))
+            {
+                if (handle.HasExited || handle.LastUsedUtc.AddSeconds(_options.Processes.IdleTtlSeconds) <= _clock.UtcNow)
+                {
+                    DisposeHandle(handle);
+                    removed++;
+                    continue;
+                }
+
+                kept.Enqueue(handle);
+            }
+
+            _idle[year] = kept;
+        }
+
+        return removed;
     }
 
     private IManagedProcess StartQuilkin(int proxyPort, int gameServerPort)

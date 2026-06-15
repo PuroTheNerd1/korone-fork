@@ -62,6 +62,12 @@ public sealed class PortRange
 
 public sealed class ArbiterProcessOptions
 {
+    [Range(1, 10000)]
+    public int MaxActiveProcesses { get; set; } = 256;
+
+    [Range(1, 10000)]
+    public int MaxActivePerYear { get; set; } = 128;
+
     [Range(0, 100)]
     public int ReservePerYear { get; set; } = 2;
 

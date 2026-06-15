@@ -41,6 +41,32 @@ public sealed class RccProcessPoolTests
         Assert.Equal(0, fixture.Pool.GetStatistics().ServerCount);
     }
 
+    [Fact]
+    public async Task StartGameServer_RejectsWhenActiveProcessLimitIsReached()
+    {
+        var fixture = new PoolFixture(maxReuseCount: 1, maxActiveProcesses: 1);
+        await fixture.Pool.StartGameServerAsync(CreateRequest(Guid.NewGuid()), CancellationToken.None);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            fixture.Pool.StartGameServerAsync(CreateRequest(Guid.NewGuid()), CancellationToken.None));
+
+        Assert.Contains("Active RCC process limit reached", ex.Message);
+        Assert.Equal(2, fixture.Processes.Count);
+    }
+
+    [Fact]
+    public async Task StartGameServer_KillsRccProcessWhenReadinessFails()
+    {
+        var fixture = new PoolFixture(maxReuseCount: 5, readinessFails: true);
+
+        await Assert.ThrowsAsync<TimeoutException>(() =>
+            fixture.Pool.StartGameServerAsync(CreateRequest(Guid.NewGuid()), CancellationToken.None));
+
+        var process = Assert.Single(fixture.Processes);
+        Assert.True(process.Killed);
+        Assert.Contains(45000, fixture.Ports.ReleasedPorts);
+    }
+
     private static StartGameServerRequest CreateRequest(Guid jobId)
     {
         return new StartGameServerRequest
@@ -58,7 +84,7 @@ public sealed class RccProcessPoolTests
 
     private sealed class PoolFixture
     {
-        public PoolFixture(int maxReuseCount)
+        public PoolFixture(int maxReuseCount, int maxActiveProcesses = 256, bool readinessFails = false)
         {
             Clock = new MutableClock();
             Ports = new FakePortAllocator();
@@ -71,6 +97,8 @@ public sealed class RccProcessPoolTests
                     QuilkinPath = "quilkin.exe",
                     Processes = new ArbiterProcessOptions
                     {
+                        MaxActiveProcesses = maxActiveProcesses,
+                        MaxActivePerYear = maxActiveProcesses,
                         MaxReuseCount = maxReuseCount,
                         ReservePerYear = 1,
                         IdleTtlSeconds = 300,
@@ -81,7 +109,7 @@ public sealed class RccProcessPoolTests
                 }),
                 Ports,
                 Launcher,
-                new FakeReadinessProbe(),
+                new FakeReadinessProbe(readinessFails),
                 new FakeSoapClientFactory(),
                 new RccJsonPayloadFactory(Options.Create(new ArbiterOptions())),
                 new FakePostStartQueue(),
@@ -103,10 +131,11 @@ public sealed class RccProcessPoolTests
 
     private sealed class FakePortAllocator : IPortAllocator
     {
-        private readonly Queue<int> _ports = new(new[] { 45000, 50000, 30000, 50001, 30001 });
+        private readonly Queue<int> _ports = new(new[] { 45000, 50000, 30000, 45001, 50001, 30001, 45002, 50002, 30002 });
 
+        public List<int> ReleasedPorts { get; } = new();
         public int Allocate(PortRange range) => _ports.Dequeue();
-        public void Release(int port) { }
+        public void Release(int port) => ReleasedPorts.Add(port);
     }
 
     private sealed class FakeProcessLauncher : IRccProcessLauncher
@@ -138,7 +167,19 @@ public sealed class RccProcessPoolTests
 
     private sealed class FakeReadinessProbe : IRccReadinessProbe
     {
-        public Task WaitUntilAvailableAsync(int port, TimeSpan timeout, CancellationToken cancellationToken) => Task.CompletedTask;
+        private readonly bool _fails;
+
+        public FakeReadinessProbe(bool fails)
+        {
+            _fails = fails;
+        }
+
+        public Task WaitUntilAvailableAsync(int port, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            return _fails
+                ? Task.FromException(new TimeoutException("RCC did not become ready"))
+                : Task.CompletedTask;
+        }
     }
 
     private sealed class FakeSoapClientFactory : IRccSoapClientFactory
