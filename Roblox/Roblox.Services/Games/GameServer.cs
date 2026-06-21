@@ -431,7 +431,7 @@ public class GameServerService : ServiceBase
     {
         await db.ExecuteAsync("DELETE FROM asset_server_player WHERE server_id = :id::uuid", new {id = serverId});
         var deletedServers = await db.ExecuteAsync("DELETE FROM asset_server WHERE id = :id::uuid", new {id = serverId});
-        return deletedServers > 0;
+        return true;
     }
 
 
