@@ -10,7 +10,7 @@ namespace Korone.RccServiceArbiter.Processes;
 
 public sealed class RccProcessPool : IRccProcessPool
 {
-    private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly SemaphoreSlim _gate = new(1, 100);
     private readonly ConcurrentDictionary<Guid, RccProcessHandle> _active = new();
     private readonly Dictionary<long, Queue<RccProcessHandle>> _idle = new();
     private readonly ArbiterOptions _options;
@@ -119,26 +119,28 @@ public sealed class RccProcessPool : IRccProcessPool
 
     public async Task<bool> StopGameServerAsync(Guid jobId, CancellationToken cancellationToken)
     {
+        RccProcessHandle? handle;
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            if (!_active.TryRemove(jobId, out var handle))
+            if (!_active.TryRemove(jobId, out handle))
             {
                 return false;
             }
+        }
+        finally
+        {
+            _gate.Release();
+        }
 
-            try
-            {
-                if (handle.Year >= 2020)
-                {
-                    await handle.SoapClient.ExecuteExAsync(jobId.ToString(), RccScriptFactory.Shutdown(), cancellationToken);
-                }
+        var closedCleanly = await TryGracefulShutdownAsync(handle, jobId, cancellationToken);
 
-                await handle.SoapClient.CloseJobAsync(jobId.ToString(), cancellationToken);
-            }
-            catch (Exception ex)
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            if (!closedCleanly)
             {
-                _logger.LogWarning(ex, "RCC close failed for job {JobId}; process will not be recycled", jobId);
+                ReleaseGamePorts(handle);
                 DisposeHandle(handle);
                 return true;
             }
@@ -159,6 +161,27 @@ public sealed class RccProcessPool : IRccProcessPool
         finally
         {
             _gate.Release();
+        }
+    }
+    private async Task<bool> TryGracefulShutdownAsync(RccProcessHandle handle, Guid jobId, CancellationToken cancellationToken)
+    {
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(_options.Processes.ShutdownTimeoutSeconds));
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+        try
+        {
+            if (handle.Year >= 2020)
+            {
+                await handle.SoapClient.ExecuteExAsync(jobId.ToString(), RccScriptFactory.Shutdown(), linkedCts.Token);
+            }
+
+            await handle.SoapClient.CloseJobAsync(jobId.ToString(), linkedCts.Token);
+            return true;
+        }
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
+        {
+            _logger.LogWarning("RCC close timed out for job {JobId}; forcing process kill", jobId);
+            return false;
         }
     }
 
