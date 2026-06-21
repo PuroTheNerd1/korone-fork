@@ -27,7 +27,7 @@ public class GameServerService : ServiceBase
     public class ArbiterHttpClient : HttpClient
     {
 
-        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(100);
+  
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -41,15 +41,7 @@ public class GameServerService : ServiceBase
 
         private async Task<HttpResponseMessage> PostLimitedAsync(string url, HttpContent content)
         {
-            await _semaphore.WaitAsync();
-            try
-            {
-                return await base.PostAsync(url, content);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+            return await base.PostAsync(url, content);
         }
 
         public async Task<StartGameServerResponse?> StartGameServer(StartGameServerRequest request)
@@ -511,7 +503,7 @@ public class GameServerService : ServiceBase
         }
 
         // We need to create a lock to prevent multiple requests from creating the same game server
-        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1:{placeInfo.placeId}", TimeSpan.FromSeconds(10));
+        using var serverCreationLock = await Cache.redLock.CreateLockAsync($"CreateGameServerV1", TimeSpan.FromSeconds(5));
         if (!serverCreationLock.IsAcquired)
         {
             return new GameServerGetOrCreateResponse
