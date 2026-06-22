@@ -60,7 +60,7 @@ public sealed class RccProcessLauncher : IRccProcessLauncher
             {
                 if (!_process.HasExited)
                 {
-                    _process.Kill(entireProcessTree: true);
+                    _process.Kill(entireProcessTree: true, );
                 }
             }
             catch (InvalidOperationException)

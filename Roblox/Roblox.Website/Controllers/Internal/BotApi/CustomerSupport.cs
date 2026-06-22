@@ -34,12 +34,12 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> RemoveTwoFactor(string discordId, long userId)
         {
             UserInfo userDiscordInfo = await services.users.GetUserByDiscordId(discordId);
-            Console.WriteLine($"Testetstetst: {userDiscordInfo.userId}");
             // First we check if the user who ran the command if he is a owner if they are not, then throw exception
             if (!StaffFilter.IsOwner(userDiscordInfo.userId))
             {
                 throw new InternalServerErrorException("not owner");
             }
+
             await services.users.DeleteTotp(userId);
             return new
             {
@@ -91,6 +91,7 @@ namespace Roblox.Website.Controllers
             // Example: 19bcbfac216d46cbaeb826125d1bae42
             string randomlyGeneratedPassword = (Guid.NewGuid().ToString().Replace("-", "") + Guid.NewGuid().ToString().Replace("-", "")).Substring(0, 32);
             await services.users.UpdatePassword(userId, randomlyGeneratedPassword);
+            await services.users.ExpireAllSessions(safeUserSession.userId);
             var userInfo = await services.users.GetUserById(userId);
             return new
             {
