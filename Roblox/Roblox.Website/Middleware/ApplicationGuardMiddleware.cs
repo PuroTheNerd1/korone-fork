@@ -367,7 +367,7 @@ public class ApplicationGuardMiddleware
         {
             errors = new[]
             {
-                new { code = 0, message = "Unauthorized" },
+                new { code = 0, message = "Unauthorized (AG)" },
             },
         });
     }

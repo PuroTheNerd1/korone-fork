@@ -231,6 +231,7 @@ public sealed class FrontendProxyMiddleware
             path.Contains("abusereport", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("/universes/", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("/unsecuredcontent/", StringComparison.OrdinalIgnoreCase) ||
+            path.Contains("bot", StringComparison.OrdinalIgnoreCase) ||
             IsNumericPath(path, "/places/", "/settings") ||
             IsNumericPath(path, "/users/", string.Empty))
         {
