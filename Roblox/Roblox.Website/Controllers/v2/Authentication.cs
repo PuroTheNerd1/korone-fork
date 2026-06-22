@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Roblox.Dto.Users;
 using Roblox.Exceptions;
 using Roblox.Models.Sessions;
 using Roblox.Models.Users;
@@ -8,6 +8,7 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Website.WebsiteModels;
 using Roblox.Website.WebsiteModels.Authentication;
+using System.ComponentModel.DataAnnotations;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using ServiceProvider = Microsoft.Extensions.DependencyInjection.ServiceProvider;
 
@@ -58,6 +59,26 @@ public class AuthenticationControllerV2 : ControllerBase
 
         // We can update the user's password now
         await services.users.UpdatePassword(safeUserSession.userId, request.newPassword);
+
+        var userId = safeUserSession.userId;
+        // Clear all sessions
+        await services.users.ExpireAllSessions(userId);
+
+        var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+        {
+            sessionId = await services.users.CreateSession(userId),
+            createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        });
+
+        HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
+        {
+            Domain = $".{Configuration.ShortBaseUrl}",
+            Secure = false,
+            Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(14)),
+            IsEssential = true,
+            Path = "/",
+            SameSite = SameSiteMode.Lax,
+        });
     }
 
     [HttpPost("logout")]
