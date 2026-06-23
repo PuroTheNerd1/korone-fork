@@ -20,7 +20,7 @@ public class AdminTwoFactorFilter : Attribute, IAsyncActionFilter
 
     public static async Task<bool> IsVerified(long userId)
     {
-        var val = redis.StringGetAsync(GetKey(userId));
+        var val = await redis.StringGetAsync(GetKey(userId));
         return val != null;
     }
 
@@ -45,7 +45,7 @@ public class AdminTwoFactorFilter : Attribute, IAsyncActionFilter
         var session = context.HttpContext.Items[SessionMiddleware.CookieName] as UserSession;
         if (session == null || !await IsVerified(session.userId))
         {
-            var isApi = context.HttpContext.Request.Path.StartsWithSegments("/admin-api");
+            var isApi = context.HttpContext.Request.Path.StartsWithSegments("/admin");
             if (isApi)
                 context.Result = new JsonResult(new { error = "2FA verification required" }) { StatusCode = 401 };
             else
