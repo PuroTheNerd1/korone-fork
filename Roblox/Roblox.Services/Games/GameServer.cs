@@ -67,10 +67,8 @@ public class GameServerService : ServiceBase
         {
             var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
             var result = await PostLimitedAsync("kill-game-server", content);
-            if (!result.IsSuccessStatusCode) return false;
-
-            await using var response = await result.Content.ReadAsStreamAsync();
-            var parsed = await JsonSerializer.DeserializeAsync<dynamic>(response, JsonOptions);
+            var json = await result.Content.ReadAsStringAsync();
+            var parsed = JsonSerializer.Deserialize<dynamic>(json, JsonOptions);
             return parsed?.Success ?? false;
         }
 
