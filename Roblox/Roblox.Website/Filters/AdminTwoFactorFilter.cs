@@ -16,21 +16,21 @@ public class AdminTwoFactorFilter : Attribute, IAsyncActionFilter
     private const string redisKey = "admin:2fa:v1:";
     private static readonly TimeSpan ttl = TimeSpan.FromMinutes(20);
 
-    public static string GetKey(long userId) => redisKey + userId;
+    public static string GetKey(long userId, string sessionId) => redisKey + userId + ":" + sessionId;
 
-    public static async Task<bool> IsVerified(long userId)
+    public static async Task<bool> IsVerified(long userId, string sessionId)
     {
-        var val = await redis.StringGetAsync(GetKey(userId));
+        var val = await redis.StringGetAsync(GetKey(userId, sessionId));
         return val != null;
     }
 
-    public static async Task MarkVerified(long userId)
+    public static async Task MarkVerified(long userId, string sessionId)
     {
-        await redis.StringSetAsync(GetKey(userId), "1");
+        await redis.StringSetAsync(GetKey(userId, sessionId), "1");
     }
-    public static async Task Invalidate(long userId)
+    public static async Task Invalidate(long userId, string sessionId)
     {
-        await redis.KeyDeleteAsync(GetKey(userId));
+        await redis.KeyDeleteAsync(GetKey(userId, sessionId));
     }
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -43,15 +43,15 @@ public class AdminTwoFactorFilter : Attribute, IAsyncActionFilter
         }
 
         var session = context.HttpContext.Items[SessionMiddleware.CookieName] as UserSession;
-        if (session == null || !await IsVerified(session.userId))
+        if (session == null || !await IsVerified(session.userId, session.sessionId))
         {
-            var isApi = context.HttpContext.Request.Path.StartsWithSegments("/admin");
+            var isApi = context.HttpContext.Request.Path.StartsWithSegments("/admin-api");
             if (isApi)
                 context.Result = new JsonResult(new { error = "2FA verification required" }) { StatusCode = 401 };
             else
                 context.Result = new RedirectResult("/admin/2fa");
             return;
         }
-
+        await next();
     }
 }

@@ -4,6 +4,7 @@ public static class RobloxWebContextConstants
 {
     public const string SessionCookieName = ".PUPPYSECURITY";
     public const string AltSessionCookieName = ".PEKORASECURITY";
+    public const string RobloxSessionCookieName = ".ROBLOSECURITY";
     public const string CsrfCookieName = "rbxcsrf4";
     public const string DiscordCookieName = "PEKORA-DISCORD";
     public const string RobloxCookieName = "PEKORA-ROBLOX";

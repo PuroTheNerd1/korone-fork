@@ -46,14 +46,15 @@ public class GameInstancesController : RobloxControllerBase
     [HttpPost("v2.0/Refresh")]
     [HttpGet("v1.0/Refresh")]
     [HttpGet("v2.0/Refresh")]
-    public async Task Refresh([FromBody] GameSessionsRequest request, Guid gameId, long clientCount, decimal gameTime)
+    public async Task Refresh([FromBody] GameSessionsRequest? request, Guid gameId, long clientCount, decimal gameTime)
     {
         if (!isRCC)
         {
             throw new RobloxException(401, 0, "Unauthorized");
         }
 
-        if (request.GameSessions.Count == 0 && gameTime > 50)
+        var sessionCount = request?.GameSessions?.Count ?? (int)clientCount;
+        if (sessionCount == 0 && gameTime > 50)
         {
             await services.gameServer.ShutDownServerAsync(gameId);
             return;

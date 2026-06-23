@@ -38,6 +38,7 @@ using Roblox.Website.WebsiteModels.Asset;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Dynamic;
+using System.IO;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
@@ -54,6 +55,7 @@ namespace Roblox.Website.Controllers;
 [ApiController]
 [Route("/admin-api/api/")]
 [AdminTwoFactorFilter]
+//[AdminTwoFactorFilter]
 #if RELEASE
 [ApiExplorerSettings(IgnoreApi = true)]
 #endif
@@ -112,35 +114,57 @@ public class AdminApiController : ControllerBase
     }
 
     // will be reworked soon to work with the frontend of the admin panel
-    [SkipAdminTwoFactor]
-    [HttpGet("/admin/2fa")]
-    public async Task<IActionResult> BrowserPromptFor2FA()
-    {
-        var authHeader = Request.Headers["Authorization"].ToString();
-        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Basic "))
-        {
-            var decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(authHeader["Basic ".Length..]));
-            var code = decoded.Split(':', 2).Last();
-            
-            var totp = await services.users.GetTotp(safeUserSession.userId);
 
-            if (totp != null && services.users.VerifyTotp(totp.secret, code))
-            {
-                await AdminTwoFactorFilter.MarkVerified(safeUserSession.userId);
-                return Redirect(Request.Query["returnUrl"].ToString() is { Length: > 0 } r ? r : "/admin");
+    [HttpGet("/admin/2fa")]
+    [SkipAdminTwoFactor]
+    public async Task<IActionResult> ShowPrompt([FromQuery] string? returnUrl)
+    {
+        if (string.IsNullOrEmpty(returnUrl)) returnUrl = "/admin";
+
+        var returnUrlJson = System.Text.Json.JsonSerializer.Serialize(returnUrl);
+
+        return Content($$"""
+        <script>
+            var code = prompt("Enter your 2FA code");
+            if (code) {
+                fetch(`/admin/2fa/verify?code=${code}`, {
+                    method: "POST",
+                }).then(r => {
+                    if (r.ok) window.location = {{returnUrlJson}};
+                    else prompt("Invalid code, try again") && (window.location = window.location.href);
+                });
+            } else {
+                window.location = "/home";
             }
-        }
-        Response.Headers["WWW-Authenticate"] = "Basic realm=\"Enter your 2FA code as the password\"";
-        return StatusCode(401);
+        </script>
+    """, "text/html");
     }
+
+    [HttpPostBypass("/admin/2fa/verify")]
+    [SkipAdminTwoFactor]
+    public async Task<IActionResult> VerifyPrompt([FromQuery] string code)
+    {
+        var totp = await services.users.GetTotp(safeUserSession.userId);
+        var isValid = totp != null && services.users.VerifyTotp(totp.secret, code);
+        if (!isValid) throw new UnauthorizedException();
+
+        await AdminTwoFactorFilter.MarkVerified(safeUserSession.userId, safeUserSession.sessionId);
+        return Ok();
+    }
+
     // Wildcards are not easily supported... https://stackoverflow.com/questions/51973631/wildcard-in-route-attribute-for-webapi?rq=1
     [HttpGet("/admin/"), HttpGet("/admin/{one}"), HttpGet("/admin/{one}/{two}"), HttpGet("/admin/{one}/{two}/{three}"), HttpGet("/admin/{one}/{two}/{three}/{four}"), HttpGet("/admin/{one}/{two}/{three}/{four}/{five}"), HttpGet("/admin/{one}/{two}/{three}/{four}/{five}/{six}")]
     public async Task<IActionResult> GetAdminView()
     {
         if (!IsLoggedIn() || !await IsStaff(userSession.userId)) return Redirect("/home");
+
+        if (!await AdminTwoFactorFilter.IsVerified(userSession.userId, userSession.sessionId))
+            return Redirect("/admin/2fa?returnUrl=/admin/");
+
         return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "index.html")), "text/html");
     }
 
+    [HttpGet("permissions")]
     public async Task<dynamic> GetPermissions()
     {
         var isOwner = StaffFilter.IsOwner(userSession.userId);

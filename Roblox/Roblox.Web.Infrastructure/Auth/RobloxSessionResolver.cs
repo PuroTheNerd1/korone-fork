@@ -25,7 +25,6 @@ public static class RobloxSessionResolver
             {
                 return null;
             }
-
             using var users = ServiceProvider.GetOrCreate<UsersService>();
             var sessionInfo = await users.GetSessionById(decoded.sessionId);
             var userInfo = await users.GetUserById(sessionInfo.userId);
@@ -42,6 +41,7 @@ public static class RobloxSessionResolver
             {
                 EncodedCookie = cookie,
                 Session = session,
+                SessionCreatedAt = DateTimeOffset.FromUnixTimeSeconds(decoded.createdAt).UtcDateTime,
                 UserInfo = userInfo,
             };
         }
@@ -59,6 +59,11 @@ public static class RobloxSessionResolver
         }
 
         if (context.Request.Cookies.TryGetValue(RobloxWebContextConstants.AltSessionCookieName, out var altCookie))
+        {
+            return altCookie;
+        }
+        // mobile client
+        if (context.Request.Cookies.TryGetValue(RobloxWebContextConstants.RobloxSessionCookieName, out var robloxCookie))
         {
             return altCookie;
         }
