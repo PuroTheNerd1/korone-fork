@@ -13,7 +13,7 @@ public class AdminTwoFactorFilter : Attribute, IAsyncActionFilter
 {
     private static DistributedCache redis => Roblox.Services.Cache.distributed;
 
-    private const string redisKey = "admin:2fa:v1:";
+    private const string redisKey = "admin:2fa:v2:";
     private static readonly TimeSpan ttl = TimeSpan.FromMinutes(20);
 
     public static string GetKey(long userId, string sessionId) => redisKey + userId + ":" + sessionId;
@@ -26,7 +26,7 @@ public class AdminTwoFactorFilter : Attribute, IAsyncActionFilter
 
     public static async Task MarkVerified(long userId, string sessionId)
     {
-        await redis.StringSetAsync(GetKey(userId, sessionId), "1");
+        await redis.StringSetAsync(GetKey(userId, sessionId), "1", ttl);
     }
     public static async Task Invalidate(long userId, string sessionId)
     {
