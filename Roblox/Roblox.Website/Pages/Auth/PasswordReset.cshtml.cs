@@ -27,7 +27,7 @@ public class PasswordReset : RobloxPageModel
     private const string InvalidNewPassword = "Your new password is invalid. It must be at least 3 characters.";
     private const string LeakedPassword = "This password was previously spotted in a leak, please choose a stronger password.";
 
-        [BindProperty]
+    [BindProperty]
     public string? username { get; set; }
     [BindProperty]
     public string? action { get; set; }

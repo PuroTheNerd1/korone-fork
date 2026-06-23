@@ -53,6 +53,7 @@ namespace Roblox.Website.Controllers;
 
 [ApiController]
 [Route("/admin-api/api/")]
+[AdminTwoFactorFilter]
 #if RELEASE
 [ApiExplorerSettings(IgnoreApi = true)]
 #endif
@@ -110,6 +111,28 @@ public class AdminApiController : ControllerBase
         return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "build", "bundle.css")), "text/css");
     }
 
+    // will be reworked soon to work with the frontend of the admin panel
+    [SkipAdminTwoFactor]
+    [HttpGet("/admin/2fa")]
+    public async Task<IActionResult> BrowserPromptFor2FA()
+    {
+        var authHeader = Request.Headers["Authorization"].ToString();
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Basic "))
+        {
+            var decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(authHeader["Basic ".Length..]));
+            var code = decoded.Split(':', 2).Last();
+            
+            var totp = await services.users.GetTotp(safeUserSession.userId);
+
+            if (totp != null && services.users.VerifyTotp(totp.secret, code))
+            {
+                await AdminTwoFactorFilter.MarkVerified(safeUserSession.userId);
+                return Redirect(Request.Query["returnUrl"].ToString() is { Length: > 0 } r ? r : "/admin");
+            }
+        }
+        Response.Headers["WWW-Authenticate"] = "Basic realm=\"Enter your 2FA code as the password\"";
+        return StatusCode(401);
+    }
     // Wildcards are not easily supported... https://stackoverflow.com/questions/51973631/wildcard-in-route-attribute-for-webapi?rq=1
     [HttpGet("/admin/"), HttpGet("/admin/{one}"), HttpGet("/admin/{one}/{two}"), HttpGet("/admin/{one}/{two}/{three}"), HttpGet("/admin/{one}/{two}/{three}/{four}"), HttpGet("/admin/{one}/{two}/{three}/{four}/{five}"), HttpGet("/admin/{one}/{two}/{three}/{four}/{five}/{six}")]
     public async Task<IActionResult> GetAdminView()
@@ -118,7 +141,6 @@ public class AdminApiController : ControllerBase
         return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "index.html")), "text/html");
     }
 
-    [HttpGet("permissions")]
     public async Task<dynamic> GetPermissions()
     {
         var isOwner = StaffFilter.IsOwner(userSession.userId);
