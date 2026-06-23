@@ -1,5 +1,5 @@
 {
-	"applicationSettings": {
+  "applicationSettings": {
     "AllowVideoPreRoll": "True",
     "AxisAdornmentGrabSize": "12",
     "CaptureCountersIntervalInMinutes": "5",
@@ -1105,6 +1105,7 @@
     "DFIntWebParserInfluxWriteNanInfPerMyriad": "1000",
     "DFIntWeldPermyriad": "100",
     "DFIntWorldStepDtAveExpFactorHundredth": "1",
+    "DFLogRCCMonitoringVerbose": "100",
     "DFLogAnalyticsDeferredEphemeralReportingDiagnostic": "0",
     "DFLogClientRecvFromRaknet": "10",
     "DFLogErrorDescription": "6",
@@ -4662,5 +4663,5 @@
     "TreatAndroidInputSourceAsBitmask": "True",
     "UseSetForegroundWindowForPlayer2": "True",
     "VideoPreRollWaitTimeSeconds": "45"
-    }
+  }
 }

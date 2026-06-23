@@ -80,7 +80,7 @@ public sealed class RccProcessPool : IRccProcessPool
             await handle.SoapClient.OpenJobExAsync(job, script, cancellationToken);
 
             _active[request.JobId] = handle;
-            await _postStartQueue.EnqueueAsync(new ArbiterPostStartAction(request.JobId, request.Year), cancellationToken);
+            //await _postStartQueue.EnqueueAsync(new ArbiterPostStartAction(request.JobId, request.Year), cancellationToken);
 
             return new StartGameServerResponse
             {
@@ -133,29 +133,20 @@ public sealed class RccProcessPool : IRccProcessPool
             _gate.Release();
         }
 
-        var closedCleanly = await TryGracefulShutdownAsync(handle, jobId, cancellationToken);
-
-        await _gate.WaitAsync(cancellationToken);
         try
         {
-            if (!closedCleanly)
-            {
-                ReleaseGamePorts(handle);
-                DisposeHandle(handle);
-                return true;
-            }
+            await TryGracefulShutdownAsync(handle, jobId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Graceful shutdown failed for job {JobId}; forcing kill", jobId);
+        }
 
+        await _gate.WaitAsync(CancellationToken.None);
+        try
+        {
             ReleaseGamePorts(handle);
-            if (CanRecycle(handle))
-            {
-                handle.MarkIdle(_clock.UtcNow);
-                EnqueueIdle(handle);
-            }
-            else
-            {
-                DisposeHandle(handle);
-            }
-
+            DisposeHandle(handle);
             return true;
         }
         finally
@@ -173,6 +164,7 @@ public sealed class RccProcessPool : IRccProcessPool
             if (handle.Year >= 2020)
             {
                 await handle.SoapClient.ExecuteExAsync(jobId.ToString(), RccScriptFactory.Shutdown(), linkedCts.Token);
+                return true;
             }
 
             await handle.SoapClient.CloseJobAsync(jobId.ToString(), linkedCts.Token);

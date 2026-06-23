@@ -62,13 +62,15 @@ public static class RccScriptFactory
         return new ScriptExecution
         {
             Name = "Close Server V1",
-            Script = CreateRequest("Thumbnail", new Dictionary<string, object?>
+            Script = CreateRequest("ServerAction", new Dictionary<string, object?>
             {
-                ["Type"] = "Shutdown",
-                ["Arguments"] = new object[] { true },
+                ["Action"] = "Shutdown",
+                ["Reason"] = "Developer",
+                ["VerboseReason"] = "meow",
             }),
         };
     }
+
 
     private static string CreateRequest(string mode, object payload)
     {

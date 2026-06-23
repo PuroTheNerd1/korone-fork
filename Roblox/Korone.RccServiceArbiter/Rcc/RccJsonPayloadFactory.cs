@@ -32,7 +32,7 @@ public sealed class RccJsonPayloadFactory : IRccJsonPayloadFactory
                 GameId = request.JobId.ToString(),
                 MachineAddress = _options.PublicIp,
                 MaxPlayers = request.MaxPlayerCount,
-                GsmInterval = 2,
+                GsmInterval = 10,
                 MaxGameInstances = 5,
                 PreferredPlayerCapacity = Math.Min(request.MaxPlayerCount, 10),
                 UniverseId = request.UniverseId,

@@ -58,10 +58,9 @@ public sealed class RccProcessLauncher : IRccProcessLauncher
         {
             try
             {
-                if (!_process.HasExited)
-                {
-                    _process.Kill(entireProcessTree: true, );
-                }
+                Console.WriteLine("Attempting to kill");
+                _process.Kill(entireProcessTree: true);
+                _process.WaitForExit(5000);
             }
             catch (InvalidOperationException)
             {

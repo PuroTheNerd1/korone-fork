@@ -15,6 +15,13 @@ public sealed class ScriptExecution
     public IReadOnlyList<LuaValue> Arguments { get; set; } = Array.Empty<LuaValue>();
 }
 
+public sealed class ServerAction
+{
+    public string Action { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+    public string VerboseReason { get; set; } = string.Empty;
+}
+
 public sealed class LuaValue
 {
     public LuaType Type { get; set; }

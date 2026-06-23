@@ -392,18 +392,19 @@ public class GameServerService : ServiceBase
 
     public async Task<int> DeleteOldGameServers()
     {
-        var cutoff = DateTime.UtcNow.Subtract(EmptyServerTtl);
+        var cutoff = DateTime.UtcNow.AddMinutes(-5);
+
         var serverIds = (await db.QueryAsync<Guid>(
             @"SELECT s.id
-              FROM asset_server s
-              WHERE s.created_at < :cutoff
-                AND NOT EXISTS (
-                    SELECT 1
-                    FROM asset_server_player p
-                    WHERE p.server_id = s.id
-                )
-              ORDER BY s.created_at
-              LIMIT :limit",
+          FROM asset_server s
+          WHERE s.updated_at < :cutoff
+            AND NOT EXISTS (
+                SELECT 1
+                FROM asset_server_player p
+                WHERE p.server_id = s.id
+            )
+          ORDER BY s.updated_at
+          LIMIT :limit",
             new
             {
                 cutoff,

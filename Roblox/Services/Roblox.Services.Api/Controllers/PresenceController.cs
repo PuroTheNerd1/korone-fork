@@ -63,8 +63,14 @@ public class PresenceController : RobloxControllerBase
         }
 
         var jobId = await services.gameServer.GetJobIdByUserId(visitorId);
+
         var placeId = GameServerService.GetUserPlaceId(visitorId);
 
         await services.gameServer.OnPlayerLeave(visitorId, placeId, jobId);
+        var players = await services.gameServer.GetGameServerPlayers(jobId);
+        if (players.Count() == 0)
+        {
+            await services.gameServer.ShutDownServerAsync(jobId);
+        }
     }
 }
