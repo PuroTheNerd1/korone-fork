@@ -264,6 +264,7 @@
     "DFFlagPreventMeshLODV2WhenFlagOff": true,
     "DFFlagRCCMonitoringCustomTimeouts": true,
     "DFFlagRCCMonitoringInitializeCpuVariables": true,
+    "FFlagUnifiedPlayerPayload": true,
     "DFFlagRCCTeamCreateSaveOnZeroPlayers": true,
     "DFFlagRaknetBandwidthAddDataCenterId": false,
     "DFFlagRaknetBandwidthAddPhyPacketsLossPercent": true,
