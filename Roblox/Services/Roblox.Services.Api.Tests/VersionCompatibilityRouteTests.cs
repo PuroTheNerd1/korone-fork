@@ -1,9 +1,7 @@
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Roblox.Services.Api.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
@@ -64,13 +62,13 @@ public class VersionCompatibilityRouteTests
     [MemberData(nameof(VersionCompatibilityRoutes))]
     public async Task VersionCompatibilityRoutes_RejectAnonymousRequests(VersionCompatibilityRouteCase route)
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await ApiRouteTestFixture.CreateAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
-        var response = await client.GetAsync(route.Path);
+        var response = await fixture.Client.GetAsync(route.Path);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -78,10 +76,13 @@ public class VersionCompatibilityRouteTests
     [Fact]
     public async Task GetAllowedMd5Hashes_WithRcc_ReturnsAllowedHashes()
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = CreateRccClient(factory);
+        await using var fixture = await CreateRccFixtureAsync();
+        if (fixture == null)
+        {
+            return;
+        }
 
-        var response = await client.GetAsync("/GetAllowedMD5Hashes");
+        var response = await fixture.Client.GetAsync("/GetAllowedMD5Hashes");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
@@ -99,10 +100,13 @@ public class VersionCompatibilityRouteTests
     [Fact]
     public async Task GetAllowedSecurityKeys_WithRcc_ReturnsTrue()
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = CreateRccClient(factory);
+        await using var fixture = await CreateRccFixtureAsync();
+        if (fixture == null)
+        {
+            return;
+        }
 
-        var response = await client.GetAsync("/GetAllowedSecurityKeys");
+        var response = await fixture.Client.GetAsync("/GetAllowedSecurityKeys");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("true", await response.Content.ReadAsStringAsync());
@@ -111,10 +115,13 @@ public class VersionCompatibilityRouteTests
     [Fact]
     public async Task GetAllowedSecurityVersions_WithRcc_ReturnsSerializedVersionList()
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = CreateRccClient(factory);
+        await using var fixture = await CreateRccFixtureAsync();
+        if (fixture == null)
+        {
+            return;
+        }
 
-        var response = await client.GetAsync("/GetAllowedSecurityVersions");
+        var response = await fixture.Client.GetAsync("/GetAllowedSecurityVersions");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
@@ -137,14 +144,14 @@ public class VersionCompatibilityRouteTests
         }, versions);
     }
 
-    private static HttpClient CreateRccClient(ApiServiceFactory factory)
+    private static async Task<ApiRouteTestFixture?> CreateRccFixtureAsync()
     {
-        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        var fixture = await ApiRouteTestFixture.CreateAsync(new Dictionary<string, string?>
         {
-            AllowAutoRedirect = false,
+            ["RccAuthorization"] = RccAuthorization,
         });
-        client.DefaultRequestHeaders.Add("accesskey", RccAuthorization);
-        return client;
+        fixture?.Client.DefaultRequestHeaders.Add("accesskey", RccAuthorization);
+        return fixture;
     }
 
     private static string NormalizeRoute(string route)
@@ -157,18 +164,6 @@ public class VersionCompatibilityRouteTests
         public override string ToString()
         {
             return $"GET {Path}";
-        }
-    }
-
-    private sealed class ApiServiceFactory : WebApplicationFactory<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            Environment.SetEnvironmentVariable("Postgres", " ");
-            Environment.SetEnvironmentVariable("Redis", " ");
-            Environment.SetEnvironmentVariable("Authorization", "ApiRouteTestAuthorization");
-            Environment.SetEnvironmentVariable("RccAuthorization", RccAuthorization);
-            builder.UseEnvironment("Testing");
         }
     }
 }

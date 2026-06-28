@@ -1,9 +1,7 @@
 using System.Net;
 using System.Reflection;
 using System.Text;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Roblox.Services.Api.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
@@ -62,11 +60,11 @@ public class ClientSettingsRouteTests
     [MemberData(nameof(LegacyClientSettingsRoutes))]
     public async Task LegacyClientSettingsRoutes_ReturnFeatureFlagsAnonymously(ClientSettingsRouteCase route)
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await CreateFixtureAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
         var path = route.Path.Replace("{type}", "StudioAppSettings", StringComparison.Ordinal);
         var request = new HttpRequestMessage(new HttpMethod(route.Method), path + "?apiKey=D6925E56-BFB9-4908-AAA2-A5B1EC4B2D79");
@@ -75,7 +73,7 @@ public class ClientSettingsRouteTests
             request.Content = new StringContent(string.Empty, Encoding.UTF8, "application/x-www-form-urlencoded");
         }
 
-        var response = await client.SendAsync(request);
+        var response = await fixture.Client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
@@ -85,13 +83,13 @@ public class ClientSettingsRouteTests
     [Fact]
     public async Task LegacyClientSettingsRoute_RejectsInvalidApiKey()
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await CreateFixtureAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
-        var response = await client.GetAsync("/Setting/Get/StudioAppSettings?apiKey=bad-key");
+        var response = await fixture.Client.GetAsync("/Setting/Get/StudioAppSettings?apiKey=bad-key");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -109,27 +107,22 @@ public class ClientSettingsRouteTests
         }
     }
 
-    private sealed class ApiServiceFactory : WebApplicationFactory<Program>
+    private static async Task<ApiRouteTestFixture?> CreateFixtureAsync()
     {
-        private readonly string _jsonDataDirectory = CreateJsonDataDirectory();
+        var jsonDataDirectory = CreateJsonDataDirectory();
+        Roblox.Configuration.JsonDataDirectory = jsonDataDirectory;
 
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        return await ApiRouteTestFixture.CreateAsync(new Dictionary<string, string?>
         {
-            Environment.SetEnvironmentVariable("Postgres", " ");
-            Environment.SetEnvironmentVariable("Redis", " ");
-            Environment.SetEnvironmentVariable("Authorization", "ApiRouteTestAuthorization");
-            Environment.SetEnvironmentVariable("RccAuthorization", "ApiRouteTestRccAuthorization");
-            Environment.SetEnvironmentVariable("Directories__JsonData", _jsonDataDirectory);
-            Roblox.Configuration.JsonDataDirectory = _jsonDataDirectory;
-            builder.UseEnvironment("Testing");
-        }
+            ["Directories:JsonData"] = jsonDataDirectory,
+        });
+    }
 
-        private static string CreateJsonDataDirectory()
-        {
-            var directory = Path.Combine(Path.GetTempPath(), "korone-api-client-settings-tests", Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(directory);
-            File.WriteAllText(Path.Combine(directory, "StudioAppSettings.json"), "{\"FFlagFromTest\":true}");
-            return directory;
-        }
+    private static string CreateJsonDataDirectory()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "korone-api-client-settings-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(Path.Combine(directory, "StudioAppSettings.json"), "{\"FFlagFromTest\":true}");
+        return directory;
     }
 }

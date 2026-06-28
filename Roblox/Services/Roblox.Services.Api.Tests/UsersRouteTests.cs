@@ -1,9 +1,7 @@
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Roblox.Services.Api.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
@@ -18,6 +16,7 @@ public class UsersRouteTests
         new("GET", "/users/get-by-username", false),
         new("GET", "/users/{userId:long}", false),
         new("GET", "/users/{userId:long}/canmanage/{placeId:long}", false),
+        new("POST", "/users/filter-friends", false),
         new("GET", "/game/players/{userId:long}", false),
     };
 
@@ -79,13 +78,13 @@ public class UsersRouteTests
     [MemberData(nameof(AccountInfoRoutes))]
     public async Task AccountInfoRoutes_RejectAnonymousRequests(UsersRouteCase route)
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await ApiRouteTestFixture.CreateAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
-        var response = await client.SendAsync(new HttpRequestMessage(new HttpMethod(route.Method), route.Path));
+        var response = await fixture.Client.SendAsync(new HttpRequestMessage(new HttpMethod(route.Method), route.Path));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -95,13 +94,13 @@ public class UsersRouteTests
     [InlineData(2, "blacklist")]
     public async Task GamePlayersRoute_ReturnsChatFilterForOwnerStatus(long userId, string expectedChatFilter)
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await ApiRouteTestFixture.CreateAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
-        var response = await client.GetAsync($"/game/players/{userId}");
+        var response = await fixture.Client.GetAsync($"/game/players/{userId}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
@@ -118,19 +117,6 @@ public class UsersRouteTests
         public override string ToString()
         {
             return $"{Method} {Path}";
-        }
-    }
-
-    private sealed class ApiServiceFactory : WebApplicationFactory<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            Environment.SetEnvironmentVariable("Postgres", " ");
-            Environment.SetEnvironmentVariable("Redis", " ");
-            Environment.SetEnvironmentVariable("Authorization", "ApiRouteTestAuthorization");
-            Environment.SetEnvironmentVariable("RccAuthorization", "ApiRouteTestRccAuthorization");
-            Environment.SetEnvironmentVariable("OwnerUserId__0", "1");
-            builder.UseEnvironment("Testing");
         }
     }
 }

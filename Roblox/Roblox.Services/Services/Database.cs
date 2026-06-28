@@ -117,6 +117,8 @@ public static class Database
     {
         dbConnectionString = databaseConnectionString;
         DataSource = NpgsqlDataSource.Create(databaseConnectionString);
+        tableNames.Clear();
+        tableToColumnMap.Clear();
 
         var allTables = connection.Query("select * from information_schema.tables WHERE table_schema = :table_schema AND table_catalog = :table_catalog", new
         {

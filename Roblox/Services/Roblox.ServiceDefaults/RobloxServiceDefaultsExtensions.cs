@@ -22,6 +22,7 @@ public static class RobloxServiceDefaultsExtensions
         RobloxServiceInfrastructure.Initialize(builder.Configuration);
         builder.Services.AddRobloxWebInfrastructure(builder.Configuration);
 
+        builder.Services.AddExceptionHandler<RobloxServiceExceptionHandler>();
         builder.Services.AddProblemDetails();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>

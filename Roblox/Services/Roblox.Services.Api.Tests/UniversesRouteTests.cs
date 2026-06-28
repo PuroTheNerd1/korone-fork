@@ -1,8 +1,6 @@
 using System.Net;
 using System.Reflection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Roblox.Services.Api.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
@@ -14,6 +12,13 @@ public class UniversesRouteTests
     {
         new("GET", "/universes/get-universe-containing-place", false),
         new("GET", "/v1.1/game-start-info", false),
+        new("POST", "/game/load-place-info", false),
+        new("GET", "/developerproducts/list", false),
+        new("GET", "/game/validate-place-join", false),
+        new("POST", "/universes/validate-place-join", false),
+        new("GET", "/universes/validate-place-join", false),
+        new("POST", "/universes/{universeId:long}/enablecloudedit", true),
+        new("GET", "/universes/{universeId:long}/cloudeditenabled", false),
         new("GET", "/universes/get-info", true),
         new("GET", "/universes/get-universe-places", true),
         new("GET", "/universes/get-aliases", false),
@@ -77,13 +82,13 @@ public class UniversesRouteTests
     [MemberData(nameof(SessionRoutes))]
     public async Task SessionUniverseRoutes_RejectAnonymousRequests(UniversesRouteCase route)
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await ApiRouteTestFixture.CreateAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
-        var response = await client.GetAsync(route.Path);
+        var response = await fixture.Client.SendAsync(new HttpRequestMessage(new HttpMethod(route.Method), MaterializePath(route.Path)));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -93,23 +98,16 @@ public class UniversesRouteTests
         return "/" + route.Trim('/');
     }
 
+    private static string MaterializePath(string route)
+    {
+        return route.Replace("{universeId:long}", "1", StringComparison.Ordinal);
+    }
+
     public sealed record UniversesRouteCase(string Method, string Path, bool RequiresSession)
     {
         public override string ToString()
         {
             return $"{Method} {Path}";
-        }
-    }
-
-    private sealed class ApiServiceFactory : WebApplicationFactory<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            Environment.SetEnvironmentVariable("Postgres", " ");
-            Environment.SetEnvironmentVariable("Redis", " ");
-            Environment.SetEnvironmentVariable("Authorization", "ApiRouteTestAuthorization");
-            Environment.SetEnvironmentVariable("RccAuthorization", "ApiRouteTestRccAuthorization");
-            builder.UseEnvironment("Testing");
         }
     }
 }

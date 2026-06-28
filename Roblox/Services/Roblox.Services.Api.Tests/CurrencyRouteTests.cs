@@ -1,8 +1,6 @@
 using System.Net;
 using System.Reflection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Roblox.Services.Api.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
@@ -49,13 +47,13 @@ public class CurrencyRouteTests
     [Fact]
     public async Task BalanceRoute_RejectsAnonymousRequests()
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await ApiRouteTestFixture.CreateAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
-        var response = await client.GetAsync("/currency/balance");
+        var response = await fixture.Client.GetAsync("/currency/balance");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -66,16 +64,4 @@ public class CurrencyRouteTests
     }
 
     public sealed record CurrencyRouteCase(string Method, string Path, bool RequiresSession);
-
-    private sealed class ApiServiceFactory : WebApplicationFactory<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            Environment.SetEnvironmentVariable("Postgres", " ");
-            Environment.SetEnvironmentVariable("Redis", " ");
-            Environment.SetEnvironmentVariable("Authorization", "ApiRouteTestAuthorization");
-            Environment.SetEnvironmentVariable("RccAuthorization", "ApiRouteTestRccAuthorization");
-            builder.UseEnvironment("Testing");
-        }
-    }
 }

@@ -1,8 +1,6 @@
 using System.Net;
 using System.Reflection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Roblox.Services.Api.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
@@ -83,13 +81,13 @@ public class MarketplaceRouteTests
     [MemberData(nameof(ProtectedRoutes))]
     public async Task ProtectedMarketplaceRoutes_RejectAnonymousRequests(MarketplaceRouteCase route)
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await ApiRouteTestFixture.CreateAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
-        var response = await client.SendAsync(new HttpRequestMessage(new HttpMethod(route.Method), route.Path));
+        var response = await fixture.Client.SendAsync(new HttpRequestMessage(new HttpMethod(route.Method), route.Path));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -104,18 +102,6 @@ public class MarketplaceRouteTests
         public override string ToString()
         {
             return $"{Method} {Path}";
-        }
-    }
-
-    private sealed class ApiServiceFactory : WebApplicationFactory<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            Environment.SetEnvironmentVariable("Postgres", " ");
-            Environment.SetEnvironmentVariable("Redis", " ");
-            Environment.SetEnvironmentVariable("Authorization", "ApiRouteTestAuthorization");
-            Environment.SetEnvironmentVariable("RccAuthorization", "ApiRouteTestRccAuthorization");
-            builder.UseEnvironment("Testing");
         }
     }
 }

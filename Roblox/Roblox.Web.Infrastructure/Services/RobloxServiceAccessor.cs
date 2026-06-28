@@ -49,6 +49,7 @@ public class RobloxServiceAccessor : IDisposable
     private LeakCheckApi? _leakCheck;
     private DiscordBotApi? _discordBotApi;
     private DonationRewardService? _donationRewards;
+    private AuthenticationService? _authentication;
 
     public RobloxServiceAccessor()
     {
@@ -90,6 +91,7 @@ public class RobloxServiceAccessor : IDisposable
     public DataStoreService dataStore => GetService(ref _dataStore);
     public R2StorageService r2Storage => GetService(ref _r2Storage);
     public DonationRewardService donationRewards => GetService(ref _donationRewards);
+    public AuthenticationService authentication => GetService(ref _authentication);
     public RobloxApi robloxApi => _robloxApi ??= new RobloxApi();
     public LeakCheckApi leakCheck => _leakCheck ??= new LeakCheckApi(Roblox.Configuration.LeakCheckApiKey);
     public DiscordBotApi discordBotApi => _discordBotApi ??= new DiscordBotApi(Roblox.Configuration.DiscordBotToken);

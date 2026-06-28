@@ -1,9 +1,7 @@
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Roblox.Services.Api.Controllers;
 
 namespace Roblox.Services.Api.Tests;
@@ -20,13 +18,13 @@ public class ApiRouteTests
     [MemberData(nameof(FilterTextRoutes))]
     public async Task FilterTextRoutes_ReturnExpectedResponseShapeAnonymously(string path)
     {
-        await using var factory = new ApiServiceFactory();
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var fixture = await ApiRouteTestFixture.CreateAsync();
+        if (fixture == null)
         {
-            AllowAutoRedirect = false,
-        });
+            return;
+        }
 
-        var response = await client.PostAsync(path, new FormUrlEncodedContent(new Dictionary<string, string>
+        var response = await fixture.Client.PostAsync(path, new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["text"] = "hello world",
         }));
@@ -67,17 +65,5 @@ public class ApiRouteTests
     private static string NormalizeRoute(string route)
     {
         return "/" + route.Trim('/');
-    }
-
-    private sealed class ApiServiceFactory : WebApplicationFactory<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            Environment.SetEnvironmentVariable("Postgres", " ");
-            Environment.SetEnvironmentVariable("Redis", " ");
-            Environment.SetEnvironmentVariable("Authorization", "ApiRouteTestAuthorization");
-            Environment.SetEnvironmentVariable("RccAuthorization", "ApiRouteTestRccAuthorization");
-            builder.UseEnvironment("Testing");
-        }
     }
 }

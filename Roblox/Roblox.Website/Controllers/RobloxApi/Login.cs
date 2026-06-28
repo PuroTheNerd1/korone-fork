@@ -1,160 +1,48 @@
-using MVC = Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc;
-using Roblox.Services.Exceptions;
-using Roblox.Website.WebsiteModels.Authentication;
-using System.Web;
-using Roblox.Dto.Users;
+using MVC = Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Authentication;
-using Roblox.Services.App.FeatureFlags;
+using Roblox.Dto.Users;
 using Roblox.Exceptions;
-using System.Security;
 using Roblox.Logging;
+using Roblox.Services.Exceptions;
+using Roblox.Web.Infrastructure.Auth;
+using TwoFactor = Roblox.Website.WebsiteModels.Authentication.TwoFactor;
+using TwoFactorEmail = Roblox.Website.WebsiteModels.Authentication.TwoFactorEmail;
+using TwoFactorEmailLogin = Roblox.Website.WebsiteModels.Authentication.TwoFactorEmailLogin;
+using TwoFactorLegacy = Roblox.Website.WebsiteModels.Authentication.TwoFactorLegacy;
+using BadRequestException = Roblox.Exceptions.BadRequestException;
+
 namespace Roblox.Website.Controllers
 {
-
     [MVC.ApiController]
     [MVC.Route("/")]
-    public class RobloxLogin: ControllerBase
+    public class RobloxLogin : ControllerBase
     {
         [HttpPostBypass("v1/login")]
-        public async Task<dynamic> LoginV1([FromBody] LoginRequest request)
+        public async Task<LoginV1Response> LoginV1([FromBody] LoginRequest request)
         {
-            await IsRequestValid();
-            string username = request.cvalue;
-            string password = request.password;
-
-            string[] splittedUsername = username.Split('|');
-
-            username = splittedUsername[0];
-            string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
-
-            var userInfo = await services.users.GetUserByName(username);
-
-            if (await Login(userInfo.username, request.password, userInfo.userId, totpCode, isPasswordLeaked))
-                await CreateSessionAndSetCookie(userInfo.userId);
-
-            return new
-            {
-                user = new
-                {
-                    id = userInfo.userId,
-                    name = userInfo.username,
-                    displayName = userInfo.username,
-                },
-                isBanned = userInfo.IsDeleted()
-            };
-
+            var result = await services.authentication.LoginV1(request, CreateLoginRequestContext());
+            RobloxSessionCookieWriter.AppendSessionCookies(HttpContext, result.sessionId);
+            return result.response;
         }
 
         [HttpPostBypass("v2/login")]
-        public async Task<dynamic> LoginV2()
+        public async Task<IActionResult> LoginV2()
         {
-            await IsRequestValid();
-            string requestBody = await GetRequestBody();
-            string? username = "";
-            string? password = "";
+            var result = await services.authentication.LoginV2(await GetRequestBody(), CreateLoginRequestContext());
 
-            if (string.IsNullOrEmpty(requestBody))
-                throw new BadRequestException(8, "Empty request body.");
-
-            if (UserAgent == "RobloxStudio/WinInet")
+            if (result.requiresTwoStepVerification)
             {
-                var keyValuePairs = requestBody.Split('&');
-                foreach (var pair in keyValuePairs)
-                {
-                    var keyValue = pair.Split('=');
-                    if (keyValue.Length == 2)
-                    {
-                        var key = HttpUtility.UrlDecode(keyValue[0]);
-                        var value = HttpUtility.UrlDecode(keyValue[1]);
-                        if (key == "username") username = value;
-                        if (key == "password") password = value;
-                    }
-                }
-            }
-            else
-            {
-                try
-                {
-                    var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
-                    username = loginRequest?.username ?? loginRequest?.cvalue;
-                    password = loginRequest?.password;
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Failed to login");
-                }
+                return Ok(result.twoStepVerificationResponse);
             }
 
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                throw new BadRequestException(3, "Username and Password are required. Please try again.");
-
-
-            // Format: {username}|{2facode}
-            string[] splittedUsername = username.Split('|');
-
-            username = splittedUsername[0];
-            string totpCode = splittedUsername.Length == 2 ? splittedUsername[1] : "";
-
-            UserInfo userInfo = await services.users.GetUserByName(username);
-
-            await Login(username, password, userInfo.userId, totpCode, isPasswordLeaked, true);
-
-            if (await services.users.GetTotpStatus(userInfo.userId) == TotpStatus.Enabled)
-            {
-                TwoFactorTicket info = new TwoFactorTicket
-                {
-                    userId = userInfo.userId,
-                    hashedIp = GetIP(),
-                };
-                string ticket = await services.users.Generate2SVTicket(info);
-                return new
-                {
-                    message = "TwoStepVerificationRequired",
-                    mediaType = "Email",
-                    tl = ticket,
-                    code = 6,
-                    twoStepVerificationData = new
-                    {
-                        mediaType = "Email",
-                        ticket = ticket,
-                    },
-                    identityVerificationLoginTicket = ticket,
-                    user = new
-                    {
-                        id = userInfo.userId,
-                        name = userInfo.username,
-                        displayName = userInfo.username
-                    },
-                };
-            }
-
-            await CreateSessionAndSetCookie(userInfo.userId);
-            return new
-            {
-                // TODO: is there any reason why this is hard coded
-                membershipType = 4,
-                userInfo.username,
-                name = userInfo.username,
-                isUnder13 = false,
-                countryCode = "US",
-                userId = userInfo.userId,
-                id = userInfo.userId,
-                displayName = userInfo.username,
-                user = new
-                {
-                    id = userInfo.userId,
-                    name = userInfo.username,
-                    displayName = userInfo.username
-                },
-                isBanned = false
-            };
+            RobloxSessionCookieWriter.AppendSessionCookies(HttpContext, result.sessionId!);
+            return Ok(result.response);
         }
+
         [HttpPostBypass("v3/users/{userId:long}/two-step-verification/login")]
-        public async Task<dynamic> TwoStepVerificationEmailLogin([FromRoute] long userId, [FromBody] TwoFactorEmailLogin request)
+        public async Task<IActionResult> TwoStepVerificationEmailLogin([FromRoute] long userId, [FromBody] TwoFactorEmailLogin request)
         {
-            await IsRequestValid();
             LoginTicet ticketInfo = await services.users.GetLoginTicketInfo(request.verificationToken);
 
             if (ticketInfo.userId != userId || ticketInfo.challengeId != request.challengeId)
@@ -166,14 +54,15 @@ namespace Roblox.Website.Controllers
             Writer.Info(LogGroup.Authentication, "User {0} has logged in with 2FA.", userId);
 
             await services.users.DeleteTicket(request.verificationToken);
-            await CreateSessionAndSetCookie(ticketInfo.userId);
+            var sessionId = await services.users.CreateSession(ticketInfo.userId);
+            RobloxSessionCookieWriter.AppendSessionCookies(HttpContext, sessionId);
 
-            return "{}";
+            return Content("{}", "application/json");
         }
+
         [HttpPostBypass("/v1/users/{userId}/challenges/email/verify")]
-        public async Task<dynamic> TwoStepVerificationEmail([FromRoute] long userId, [FromBody] TwoFactorEmail request)
+        public async Task<TwoStepEmailVerifyResponse> TwoStepVerificationEmail([FromRoute] long userId, [FromBody] TwoFactorEmail request)
         {
-            await IsRequestValid();
             TwoFactorTicket info;
             try
             {
@@ -189,9 +78,8 @@ namespace Roblox.Website.Controllers
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
 
                 var totpInfo = await services.users.GetTotp(info.userId);
-                if (!services.users.VerifyTotp(totpInfo.secret, request.code))
+                if (totpInfo == null || !services.users.VerifyTotp(totpInfo.secret, request.code))
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
-
             }
             catch (RecordNotFoundException)
             {
@@ -206,17 +94,16 @@ namespace Roblox.Website.Controllers
                 hashedIp = GetIP(),
             };
 
-            return new
+            return new TwoStepEmailVerifyResponse
             {
-                verificationToken = await services.users.GenerateLoginTicket(loginTicketInfo)
+                verificationToken = await services.users.GenerateLoginTicket(loginTicketInfo),
             };
         }
 
         [HttpPostBypass("v1/twostepverification/verify")]
         [HttpPostBypass("v2/twostepverification/verify")]
-        public async Task<dynamic> TwoStepVerification([FromBody] TwoFactor request)
+        public async Task<IActionResult> TwoStepVerification([FromBody] TwoFactor request)
         {
-            await IsRequestValid();
             TwoFactorTicket info;
             try
             {
@@ -228,26 +115,26 @@ namespace Roblox.Website.Controllers
                 if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
                     throw new BadRequestException(6, "Failure2SVNotEnabled");
 
-                TotpInfo totpInfo = await services.users.GetTotp(info.userId);
+                TotpInfo? totpInfo = await services.users.GetTotp(info.userId);
 
-                if (!services.users.VerifyTotp(totpInfo.secret, request.code))
+                if (totpInfo == null || !services.users.VerifyTotp(totpInfo.secret, request.code))
                     throw new BadRequestException(6, "Failure2SVInvalidCode");
-
             }
             catch (RecordNotFoundException)
             {
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
-            await services.users.DeleteTicket(request.ticket);
 
-            await CreateSessionAndSetCookie(info.userId);
+            await services.users.DeleteTicket(request.ticket);
+            var sessionId = await services.users.CreateSession(info.userId);
+            RobloxSessionCookieWriter.AppendSessionCookies(HttpContext, sessionId);
 
             return Content("{}", "application/json");
         }
+
         [HttpPostBypass("v2/twostepverification/login/verify")]
-        public async Task<dynamic> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
+        public async Task<TwoStepLegacyLoginResponse> TwoStepVerificationLegacy([FromBody] TwoFactorLegacy request)
         {
-            await IsRequestValid();
             TwoFactorTicket info;
             try
             {
@@ -259,104 +146,44 @@ namespace Roblox.Website.Controllers
                 if (await services.users.GetTotpStatus(info.userId) != TotpStatus.Enabled)
                     throw new BadRequestException(6, "2FA is not enabled on this account.");
 
-                TotpInfo totpInfo = await services.users.GetTotp(info.userId);
+                TotpInfo? totpInfo = await services.users.GetTotp(info.userId);
 
-                if (!services.users.VerifyTotp(totpInfo.secret, request.identificationCode))
+                if (totpInfo == null || !services.users.VerifyTotp(totpInfo.secret, request.identificationCode))
                     throw new BadRequestException(6, "Incorrect 2FA code. Please try again.");
             }
             catch (RecordNotFoundException)
             {
                 throw new BadRequestException(5, "Invalid two step verification ticket.");
             }
+
             await services.users.DeleteTicket(request.tl);
-            await CreateSessionAndSetCookie(info.userId);
-            return new
+            var sessionId = await services.users.CreateSession(info.userId);
+            RobloxSessionCookieWriter.AppendSessionCookies(HttpContext, sessionId);
+
+            return new TwoStepLegacyLoginResponse
             {
-                info.userId,
+                userId = info.userId,
             };
         }
 
         [HttpGetBypass("v2/passwords/current-status")]
-        public dynamic GetPasswordStatus()
+        public PasswordStatusResponse GetPasswordStatus()
         {
-            return new 
+            return new PasswordStatusResponse
             {
-                valid = userSession != null
+                valid = userSession != null,
             };
         }
-        private async Task<string> CreateSessionAndSetCookie(long userId)
+
+        private LoginRequestContext CreateLoginRequestContext()
         {
-            var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
+            return new LoginRequestContext
             {
-                sessionId = await services.users.CreateSession(userId),
-                createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            });
-            
-            HttpContext.Response.Cookies.Append(".ROBLOSECURITY", sessionCookie, new CookieOptions()
-            {
-                Domain = $".{Configuration.ShortBaseUrl}",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(14)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
-            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-            {
-                Domain = $".{Configuration.ShortBaseUrl}",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(14)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
-            return sessionCookie;
+                hashedIp = GetIP(),
+                userAgent = UserAgent,
+                isRobloxClient = isRoblox,
+                isPasswordLeaked = isPasswordLeaked,
+            };
         }
-        private async Task<bool> Login(string username, string password, long userId, string? totpCode, bool isPasswordLeaked, bool? skip2FA = false)
-        {
-            //get totp info
-            if (!await services.users.VerifyPassword(userId, password))
-                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
-
-            if (await services.leakCheck.IsPasswordLeaked(password))
-            {
-                await services.users.NullifyPassword(userId);
-                await services.discordBotApi.SendMessageInChannel(Configuration.DiscordLockChannelId, $"{username} has been locked");
-                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
-            }
-
-            if ((bool)skip2FA)
-                return true;
-
-            if (await services.users.GetTotpStatus(userId) == TotpStatus.Enabled)
-            {
-                TotpInfo? totpInfo = await services.users.GetTotp(userId);
-                //null check
-                if (string.IsNullOrEmpty(totpCode))
-                    throw new ForbiddenException((int)LoginError403.IncorrectCredentials, $"You have 2FA enabled. Please login with this username format {username}|2FA Code");
-
-                //verify totp code
-                if (!services.users.VerifyTotp(totpInfo.secret, totpCode))
-                    throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect 2FA code. Please try again.");
-            }
-
-            return true;
-        }
-
-        private async Task IsRequestValid()
-        {
-            FeatureFlags.FeatureCheck(FeatureFlag.LoginEnabled);
-
-            var loginKey = "LoginAttemptCountV1:" + GetIP();
-            var attemptCount = (await services.cooldown.GetBucketDataForKey(loginKey, TimeSpan.FromMinutes(10))).ToArray();
-
-            if (!await services.cooldown.TryIncrementBucketCooldown(loginKey, 15, TimeSpan.FromMinutes(10), attemptCount, true))
-                throw new ForbiddenException((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
-
-            if (!isRoblox)
-                throw new ForbiddenException((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
-        }
-        
-
     }
 }
