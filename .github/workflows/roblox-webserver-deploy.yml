@@ -81,17 +81,32 @@ jobs:
           Copy-Item scripts\windows\Deploy-Roblox-WebServices.ps1 $scriptTarget -Force
 
       - name: Prepare SSH key
+        env:
+          WEB_SERVER_SSH_KEY: ${{ secrets.WEB_SERVER_SSH_KEY }}
         run: |
           $sshDirectory = Join-Path $env:USERPROFILE ".ssh"
           New-Item -ItemType Directory -Force -Path $sshDirectory | Out-Null
 
           $keyPath = Join-Path $sshDirectory "korone_deploy_key"
-          @'
-          ${{ secrets.WEB_SERVER_SSH_KEY }}
-          '@ | Set-Content -LiteralPath $keyPath -NoNewline
+          $key = $env:WEB_SERVER_SSH_KEY
+          if ([string]::IsNullOrWhiteSpace($key)) {
+            throw "WEB_SERVER_SSH_KEY is empty."
+          }
+
+          $key = $key.Trim()
+          $key = $key -replace "\\r\\n", "`n"
+          $key = $key -replace "\\n", "`n"
+          $key = $key -replace "`r`n", "`n"
+          $key = $key -replace "`r", "`n"
+
+          [System.IO.File]::WriteAllText(
+            $keyPath,
+            $key + "`n",
+            [System.Text.UTF8Encoding]::new($false))
 
           icacls $keyPath /inheritance:r | Out-Null
           icacls $keyPath /grant:r "$($env:USERNAME):(R)" | Out-Null
+          & ssh-keygen -y -f $keyPath | Out-Null
           "SSH_KEY_PATH=$keyPath" | Add-Content -LiteralPath $env:GITHUB_ENV
 
       - name: Archive deploy bundle
