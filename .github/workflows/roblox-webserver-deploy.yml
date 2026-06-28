@@ -14,10 +14,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     env:
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+      WEB_SERVER_PORT: ${{ secrets.WEB_SERVER_PORT || '22' }}
+      WEB_SERVER_HOST: ${{ secrets.WEB_SERVER_HOST }}
+      WEB_SERVER_USER: ${{ secrets.WEB_SERVER_USER }}
+      DEPLOY_ROOT: ${{ vars.WEB_DEPLOY_ROOT || 'C:\KoroneServices' }}
+      STAGING_ROOT: ${{ vars.WEB_STAGING_ROOT || 'korone-deploy' }}
+      APIPROXY_SERVICE: ${{ vars.WEB_APIPROXY_SERVICE || 'Roblox.ApiProxy' }}
+      WEBSITE_SERVICE: ${{ vars.WEB_WEBSITE_SERVICE || 'Roblox.Website' }}
+      DATA_SERVICE: ${{ vars.WEB_DATA_SERVICE || 'Roblox.Services.Data' }}
+      DATASTORE_SERVICE: ${{ vars.WEB_DATASTORE_SERVICE || 'Roblox.Services.DataStore' }}
+      API_SERVICE: ${{ vars.WEB_API_SERVICE || 'Roblox.Services.Api' }}
+      DONATION_SERVICE: ${{ vars.WEB_DONATION_SERVICE || 'Roblox.Services.Donation' }}
+      AVATAR_SERVICE: ${{ vars.WEB_AVATAR_SERVICE || 'Roblox.Services.Avatar' }}
+      THUMBNAILS_SERVICE: ${{ vars.WEB_THUMBNAILS_SERVICE || 'Roblox.Services.Thumbnails' }}
     defaults:
       run:
         shell: pwsh
@@ -66,41 +80,19 @@ jobs:
           New-Item -ItemType Directory -Force -Path $scriptTarget | Out-Null
           Copy-Item scripts\windows\Deploy-Roblox-WebServices.ps1 $scriptTarget -Force
 
-      - name: Upload deploy bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: roblox-webserver-deploy-bundle
-          path: deploy_bundle
-          retention-days: 7
-
-  deploy:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs: build
-    runs-on: ubuntu-latest
-    env:
-      WEB_SERVER_PORT: ${{ secrets.WEB_SERVER_PORT || '22' }}
-      DEPLOY_ROOT: ${{ vars.WEB_DEPLOY_ROOT || 'C:\KoroneServices' }}
-      STAGING_ROOT: ${{ vars.WEB_STAGING_ROOT || 'korone-deploy' }}
-      APIPROXY_SERVICE: ${{ vars.WEB_APIPROXY_SERVICE || 'Roblox.ApiProxy' }}
-      WEBSITE_SERVICE: ${{ vars.WEB_WEBSITE_SERVICE || 'Roblox.Website' }}
-      DATA_SERVICE: ${{ vars.WEB_DATA_SERVICE || 'Roblox.Services.Data' }}
-      DATASTORE_SERVICE: ${{ vars.WEB_DATASTORE_SERVICE || 'Roblox.Services.DataStore' }}
-      API_SERVICE: ${{ vars.WEB_API_SERVICE || 'Roblox.Services.Api' }}
-      DONATION_SERVICE: ${{ vars.WEB_DONATION_SERVICE || 'Roblox.Services.Donation' }}
-      AVATAR_SERVICE: ${{ vars.WEB_AVATAR_SERVICE || 'Roblox.Services.Avatar' }}
-      THUMBNAILS_SERVICE: ${{ vars.WEB_THUMBNAILS_SERVICE || 'Roblox.Services.Thumbnails' }}
-    steps:
-      - name: Download deploy bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: roblox-webserver-deploy-bundle
-          path: deploy_bundle
-
       - name: Prepare SSH key
         run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' '${{ secrets.WEB_SERVER_SSH_KEY }}' > ~/.ssh/korone_deploy_key
-          chmod 600 ~/.ssh/korone_deploy_key
+          $sshDirectory = Join-Path $env:USERPROFILE ".ssh"
+          New-Item -ItemType Directory -Force -Path $sshDirectory | Out-Null
+
+          $keyPath = Join-Path $sshDirectory "korone_deploy_key"
+          @'
+          ${{ secrets.WEB_SERVER_SSH_KEY }}
+          '@ | Set-Content -LiteralPath $keyPath -NoNewline
+
+          icacls $keyPath /inheritance:r | Out-Null
+          icacls $keyPath /grant:r "$($env:USERNAME):(R)" | Out-Null
+          "SSH_KEY_PATH=$keyPath" | Add-Content -LiteralPath $env:GITHUB_ENV
 
       - name: Archive deploy bundle
         run: |
@@ -108,40 +100,60 @@ jobs:
 
       - name: Create remote staging directory
         run: |
-          remote_script=$(cat <<'EOF'
-          $stagingRoot = Join-Path $env:USERPROFILE '${{ env.STAGING_ROOT }}\${{ github.run_id }}'
-          New-Item -ItemType Directory -Force -Path $stagingRoot | Out-Null
-          EOF
-          )
-          encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
-          ssh -i ~/.ssh/korone_deploy_key -o StrictHostKeyChecking=no -p "${{ env.WEB_SERVER_PORT }}" "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}" "cmd /c powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encoded"
+          function ConvertTo-PowerShellLiteral {
+            param([string]$Value)
+            return "'" + $Value.Replace("'", "''") + "'"
+          }
 
-      - name: Upload deploy bundle
-        run: >
-          scp -i ~/.ssh/korone_deploy_key
-          -O
-          -o StrictHostKeyChecking=no
-          -P "${{ env.WEB_SERVER_PORT }}"
-          roblox-webserver-deploy-bundle.tar.gz
-          "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}:${{ env.STAGING_ROOT }}/${{ github.run_id }}/roblox-webserver-deploy-bundle.tar.gz"
+          $stagingPath = "$($env:STAGING_ROOT)\$($env:GITHUB_RUN_ID)"
+          $stagingLiteral = ConvertTo-PowerShellLiteral $stagingPath
+          $remoteScript = @"
+          `$stagingRoot = Join-Path `$env:USERPROFILE $stagingLiteral
+          New-Item -ItemType Directory -Force -Path `$stagingRoot | Out-Null
+          "@
+          $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($remoteScript))
+          $remote = "$($env:WEB_SERVER_USER)@$($env:WEB_SERVER_HOST)"
+          & ssh -i $env:SSH_KEY_PATH -o StrictHostKeyChecking=no -p $env:WEB_SERVER_PORT $remote "cmd /c powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encoded"
+
+      - name: Copy deploy bundle to server
+        run: |
+          $remoteTarget = "$($env:WEB_SERVER_USER)@$($env:WEB_SERVER_HOST):$($env:STAGING_ROOT)/$($env:GITHUB_RUN_ID)/roblox-webserver-deploy-bundle.tar.gz"
+          & scp -i $env:SSH_KEY_PATH -O -o StrictHostKeyChecking=no -P $env:WEB_SERVER_PORT roblox-webserver-deploy-bundle.tar.gz $remoteTarget
 
       - name: Deploy and restart services
         run: |
-          remote_script=$(cat <<'EOF'
-          $stagingRoot = Join-Path $env:USERPROFILE '${{ env.STAGING_ROOT }}\${{ github.run_id }}'
-          tar -xf (Join-Path $stagingRoot 'roblox-webserver-deploy-bundle.tar.gz') -C $stagingRoot
-          & (Join-Path $stagingRoot 'scripts\windows\Deploy-Roblox-WebServices.ps1') `
-            -SourceRoot $stagingRoot `
-            -DeployRoot '${{ env.DEPLOY_ROOT }}' `
-            -ApiProxyServiceName '${{ env.APIPROXY_SERVICE }}' `
-            -WebsiteServiceName '${{ env.WEBSITE_SERVICE }}' `
-            -DataServiceName '${{ env.DATA_SERVICE }}' `
-            -DataStoreServiceName '${{ env.DATASTORE_SERVICE }}' `
-            -ApiServiceName '${{ env.API_SERVICE }}' `
-            -DonationServiceName '${{ env.DONATION_SERVICE }}' `
-            -AvatarServiceName '${{ env.AVATAR_SERVICE }}' `
-            -ThumbnailsServiceName '${{ env.THUMBNAILS_SERVICE }}'
-          EOF
-          )
-          encoded=$(printf '%s' "$remote_script" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
-          ssh -i ~/.ssh/korone_deploy_key -o StrictHostKeyChecking=no -p "${{ env.WEB_SERVER_PORT }}" "${{ secrets.WEB_SERVER_USER }}@${{ secrets.WEB_SERVER_HOST }}" "cmd /c powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encoded"
+          function ConvertTo-PowerShellLiteral {
+            param([string]$Value)
+            return "'" + $Value.Replace("'", "''") + "'"
+          }
+
+          $stagingPath = "$($env:STAGING_ROOT)\$($env:GITHUB_RUN_ID)"
+          $stagingLiteral = ConvertTo-PowerShellLiteral $stagingPath
+          $deployRootLiteral = ConvertTo-PowerShellLiteral $env:DEPLOY_ROOT
+          $apiProxyServiceLiteral = ConvertTo-PowerShellLiteral $env:APIPROXY_SERVICE
+          $websiteServiceLiteral = ConvertTo-PowerShellLiteral $env:WEBSITE_SERVICE
+          $dataServiceLiteral = ConvertTo-PowerShellLiteral $env:DATA_SERVICE
+          $dataStoreServiceLiteral = ConvertTo-PowerShellLiteral $env:DATASTORE_SERVICE
+          $apiServiceLiteral = ConvertTo-PowerShellLiteral $env:API_SERVICE
+          $donationServiceLiteral = ConvertTo-PowerShellLiteral $env:DONATION_SERVICE
+          $avatarServiceLiteral = ConvertTo-PowerShellLiteral $env:AVATAR_SERVICE
+          $thumbnailsServiceLiteral = ConvertTo-PowerShellLiteral $env:THUMBNAILS_SERVICE
+
+          $remoteScript = @"
+          `$stagingRoot = Join-Path `$env:USERPROFILE $stagingLiteral
+          tar -xf (Join-Path `$stagingRoot 'roblox-webserver-deploy-bundle.tar.gz') -C `$stagingRoot
+          & (Join-Path `$stagingRoot 'scripts\windows\Deploy-Roblox-WebServices.ps1') ``
+            -SourceRoot `$stagingRoot ``
+            -DeployRoot $deployRootLiteral ``
+            -ApiProxyServiceName $apiProxyServiceLiteral ``
+            -WebsiteServiceName $websiteServiceLiteral ``
+            -DataServiceName $dataServiceLiteral ``
+            -DataStoreServiceName $dataStoreServiceLiteral ``
+            -ApiServiceName $apiServiceLiteral ``
+            -DonationServiceName $donationServiceLiteral ``
+            -AvatarServiceName $avatarServiceLiteral ``
+            -ThumbnailsServiceName $thumbnailsServiceLiteral
+          "@
+          $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($remoteScript))
+          $remote = "$($env:WEB_SERVER_USER)@$($env:WEB_SERVER_HOST)"
+          & ssh -i $env:SSH_KEY_PATH -o StrictHostKeyChecking=no -p $env:WEB_SERVER_PORT $remote "cmd /c powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encoded"
