@@ -19,21 +19,54 @@ public static class RobloxSessionCookieWriter
 
     public static void AppendSessionCookiesForToken(HttpContext httpContext, string sessionCookie)
     {
-        var options = CreateSessionCookieOptions();
+        var options = CreateSessionCookieOptions(httpContext);
         httpContext.Response.Cookies.Append(RobloxWebContextConstants.RobloxSessionCookieName, sessionCookie, options);
-        httpContext.Response.Cookies.Append(RobloxWebContextConstants.SessionCookieName, sessionCookie, CreateSessionCookieOptions());
+        httpContext.Response.Cookies.Append(RobloxWebContextConstants.SessionCookieName, sessionCookie, CreateSessionCookieOptions(httpContext));
     }
 
-    private static CookieOptions CreateSessionCookieOptions()
+    private static CookieOptions CreateSessionCookieOptions(HttpContext httpContext)
     {
-        return new CookieOptions
+        var options = new CookieOptions
         {
-            Domain = $".{Roblox.Configuration.ShortBaseUrl}",
             Secure = false,
             Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(14)),
             IsEssential = true,
             Path = "/",
             SameSite = SameSiteMode.Lax,
         };
+
+        var domain = ResolveCookieDomain(httpContext);
+        if (!string.IsNullOrWhiteSpace(domain))
+        {
+            options.Domain = domain;
+        }
+
+        return options;
+    }
+
+    private static string? ResolveCookieDomain(HttpContext httpContext)
+    {
+        var configuredBaseUrl = Roblox.Configuration.ShortBaseUrl;
+        if (!string.IsNullOrWhiteSpace(configuredBaseUrl))
+        {
+            return "." + configuredBaseUrl.Trim().TrimStart('.');
+        }
+
+        var host = httpContext.Request.Host.Host;
+        if (string.IsNullOrWhiteSpace(host) ||
+            string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+            System.Net.IPAddress.TryParse(host, out _))
+        {
+            return null;
+        }
+
+        var labels = host.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        if (labels.Length < 2)
+        {
+            return null;
+        }
+
+        var rootDomain = string.Join('.', labels[^2], labels[^1]);
+        return "." + rootDomain;
     }
 }
