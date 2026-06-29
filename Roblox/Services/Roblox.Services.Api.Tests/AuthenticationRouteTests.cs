@@ -160,6 +160,30 @@ public class AuthenticationRouteTests
     }
 
     [Fact]
+    public async Task LoginV2_WithAndroidClientUserAgentAndDeviceHandle_SetsSessionCookies()
+    {
+        await using var fixture = await ApiRouteTestFixture.CreateAsync(handleCookies: false);
+        if (fixture == null)
+        {
+            return;
+        }
+
+        fixture.Client.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "Mozilla/5.0 (1980MB; 1080x2072; 440x440; 392x753; Google sdk_gphone_x86; 11) AppleWebKit/537.36 (KHTML, like Gecko) ROBLOX Android App 2.311.156028 Phone Hybrid() GooglePlayStore");
+
+        var user = await fixture.CreateUserAsync();
+        var response = await fixture.Client.PostAsync("/v2/login", JsonContent(new
+        {
+            deviceHandle = "17568685581919560531",
+            username = user.Username,
+            password = user.Password,
+        }));
+
+        await AssertStatusCode(response, HttpStatusCode.OK);
+        AssertSessionCookies(response);
+    }
+
+    [Fact]
     public async Task LoginV2_WithTotpEnabled_ReturnsTwoStepRequiredWithoutSessionCookies()
     {
         await using var fixture = await ApiRouteTestFixture.CreateAsync(robloxClient: true, handleCookies: false);
