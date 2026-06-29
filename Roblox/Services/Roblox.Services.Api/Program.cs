@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Roblox.ServiceDefaults;
+using Roblox.Services.Api.HostedServices;
 using Roblox.Web.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddRobloxServiceDefaults("Roblox.Services.Api", ServiceExposure.InternalService);
+builder.Services.AddHostedService<FeatureFlagRefreshHostedService>();
 builder.Services.AddControllers(options =>
     {
         options.InputFormatters.Add(new XmlSerializerInputFormatter(options));
