@@ -3,8 +3,9 @@ import { createUseStyles } from "react-jss";
 import getFlag from "../../../lib/getFlag";
 import { setUserDescription } from "../../../services/accountInformation";
 import {
-    getAvPageStyle, getCatalogPageStyle, getCatalogStyle, getGroupPagesStyle, getHideRE,
-    getSearchUserPageStyle, getTheme, setAvPageStyle, setCatalogPageStyle, setCatalogStyle,
+    getAvPageStyle, getCatalogPageStyle, getCatalogStyle, getTradeStyle,
+    getGroupPagesStyle, getHideRE, getSearchUserPageStyle, getTheme, setAvPageStyle,
+    setCatalogPageStyle, setCatalogStyle, setTradeStyle, 
     setGroupPagesStyle, setHideRE, setSearchUserPageStyle,
     setTheme, setThemeColor, setThemeCustomColor, setThemeFont, setThemeForumHeader,
     setThemeRibbon, themeType
@@ -318,6 +319,23 @@ const  AccountInfo = props => {
                                     }}>
                                 <option value="Modern">Modern (2017+)</option>
                                 <option value="Legacy">Legacy (2012-2017)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className='flex mt-1'>
+                        <div className='col pe-0'>
+                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Trade Style'
+                                   readOnly={true}
+                                   type='text'></input>
+                        </div>
+                        <div className='col ps-0 pe-0'>
+                            <select className={'form-control ' + s.select} value={getTradeStyle()}
+                                    onChange={ev => {
+                                        setTradeStyle(ev.currentTarget.value);
+                                        window.location.replace(window.location.pathname + '?t=' + new Date().getTime());
+                                    }}>
+                                <option value="Modern">Modern (2020+)</option>
+                                <option value="Legacy">Legacy (2012-2019)</option>
                             </select>
                         </div>
                     </div>

@@ -1,4 +1,5 @@
 import {createUseStyles} from "react-jss";
+import { useRouter } from "next/router";
 import AssetDetailsStore from "../stores/AssetDetailsStore";
 import React, { useEffect, useState } from "react";
 import ActionButton from "../../actionButton";
@@ -8,6 +9,7 @@ import { ThumbnailFromState } from "../../AvatarEditorPage/components/avatarCard
 import CreatorLink from "../../creatorLink";
 import Authentication from "../../../stores/authentication";
 import dayjs from "dayjs";
+import { getTradeStyle, tradePageStyle } from "../../../services/theme";
 
 const useStyles = createUseStyles({
     containerHeader: {
@@ -146,6 +148,7 @@ function Owners({ isLabelHidden = false }) {
     const store = AssetDetailsStore.useContainer();
     const auth = Authentication.useContainer();
     const btnStyles = useButtonStyles();
+    const router = useRouter();
     const [owners, setOwners] = useState(/** @type OwnerEntryThumb[] */([]));
     
     useEffect(() => setOwners(store.owners.slice(0, 10)),
@@ -210,6 +213,11 @@ function Owners({ isLabelHidden = false }) {
                                 <ActionButton
                                     label="Trade"
                                     onClick={() => {
+                                        if (!owner.owner?.id) return;
+                                        if (getTradeStyle() === tradePageStyle.Modern) {
+                                            router.push(`/users/${owner.owner.id}/trade`).then();
+                                            return;
+                                        }
                                         window.open("/Trade/TradeWindow.aspx?TradePartnerID=" + owner.owner.id, "_blank", "scrollbars=0, height=608, width=914");
                                     }}
                                     buttonStyle={btnStyles.newCancelButton}

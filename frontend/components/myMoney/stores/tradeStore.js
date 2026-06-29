@@ -8,6 +8,7 @@ const TradeStore = createContainer(() => {
   const [tradeType, setTradeType] = useState('inbound');
   const [cursor, setCursor] = useState(null);
   const [selectedTrade, setSelectedTrade] = useState(null);
+  const [counterTradeDetails, setCounterTradeDetails] = useState(null);
   const [refresh, setRefresh] = useState(null);
 
   useEffect(() => {
@@ -15,6 +16,7 @@ const TradeStore = createContainer(() => {
     setTrades(null);
     setCursor(null);
     setSelectedTrade(null);
+    setCounterTradeDetails(null);
     getMyTrades({
       cursor: null,
       tradeType,
@@ -30,6 +32,9 @@ const TradeStore = createContainer(() => {
 
     selectedTrade,
     setSelectedTrade,
+
+    counterTradeDetails,
+    setCounterTradeDetails,
 
     feedback,
     setFeedback,

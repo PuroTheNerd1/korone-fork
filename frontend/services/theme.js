@@ -38,6 +38,11 @@ const catalogPageStyle = {
     Legacy: 'Legacy',
 }
 
+const tradePageStyle = {
+    Modern: 'Modern',
+    Legacy: 'Legacy',
+}
+
 const groupPagesStyle = {
     Modern: 'Modern',
     Legacy: 'Legacy',
@@ -186,6 +191,20 @@ const setCatalogStyle = (themeString) => {
     localStorage.setItem('rbx_cat_style_v1', themeString);
 }
 
+const getTradeStyle = () => {
+    if (!isLocalStorageAvailable) return tradePageStyle["Modern"];
+
+    let value = localStorage.getItem('rbx_trade_style_v1');
+    // validate
+    if (typeof value !== 'string' || !Object.getOwnPropertyNames(tradePageStyle).includes(value)) return tradePageStyle["Modern"];
+    return tradePageStyle[value];
+}
+
+const setTradeStyle = (themeString) => {
+    if (!isLocalStorageAvailable) return;
+    localStorage.setItem('rbx_trade_style_v1', themeString);
+}
+
 const getGroupPagesStyle = () => {
     if (!isLocalStorageAvailable) return groupPagesStyle["Modern"];
 
@@ -256,6 +275,9 @@ export {
     getCatalogStyle,
     setCatalogStyle,
 
+    getTradeStyle,
+    setTradeStyle,
+
     getGroupPagesStyle,
     setGroupPagesStyle,
 
@@ -270,5 +292,6 @@ export {
     themeFont,
     avPageStyleType,
     catalogPageStyle,
+    tradePageStyle,
     searchUserPageStyle,
 }

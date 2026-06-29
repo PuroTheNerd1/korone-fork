@@ -1,5 +1,6 @@
 import { createUseStyles } from "react-jss";
 import { acceptTrade, declineTrade } from "../../../services/trades";
+import { getTradeStyle, tradePageStyle } from "../../../services/theme";
 import AuthenticationStore from "../../../stores/authentication";
 import useButtonStyles from "../../../styles/buttonStyles";
 import ActionButton from "../../actionButton";
@@ -56,6 +57,11 @@ const TradeButtons = props => {
         </div>}
         {canCounter && <div className={'col-4 mx-auto ps-0 pe-0'}>
           <ActionButton label='Counter' className={buttonStyles.continueButton + ' ' + s.acceptButton} onClick={() => {
+            if (getTradeStyle() === tradePageStyle.Modern) {
+              tradeStore.setSelectedTrade(null);
+              tradeStore.setCounterTradeDetails(trade);
+              return;
+            }
             window.open("/Trade/TradeWindow.aspx?TradeSessionId=" + trade.id + "&TradePartnerID=" + trade.user.id, "_blank", "scrollbars=0, height=608, width=914");
           }}></ActionButton>
         </div>}

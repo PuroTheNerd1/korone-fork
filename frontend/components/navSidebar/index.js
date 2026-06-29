@@ -3,7 +3,7 @@ import { createUseStyles } from "react-jss";
 import AuthenticationStore from "../../stores/authentication";
 import NavigationStore from "../../stores/navigation";
 import LinkEntry from "./components/linkEntry";
-import {avPageStyleType, getAvPageStyle, getGroupPagesStyle, getTheme, themeType} from "../../services/theme";
+import {avPageStyleType, getAvPageStyle, getGroupPagesStyle, getTheme, getTradeStyle, themeType, tradePageStyle} from "../../services/theme";
 import {
     getPendingApplicationCount,
     getPendingAssets, getPendingGroupIcons,
@@ -170,7 +170,7 @@ const NavSideBar = props => {
                        icon='icon-nav-charactercustomizer'/>
             <LinkEntry theme={getTheme()} name='Inventory' url={'/users/' + authStore.userId + '/inventory'}
                        icon='icon-nav-inventory'/>
-            <LinkEntry theme={getTheme()} name='Trade' url='/My/Trades.aspx' icon='icon-nav-trade'
+            <LinkEntry theme={getTheme()} name='Trade' url={getTradeStyle() === tradePageStyle.Legacy ? '/My/Trades.aspx' : '/trades'} icon='icon-nav-trade'
                        count={authStore.notificationCount.trades}/>
             <LinkEntry theme={getTheme()} name='Groups' url={getGroupPagesStyle() !== 'Modern' ? '/My/Groups.aspx' : '/groups'} icon='icon-nav-group'/>
             <LinkEntry theme={getTheme()} name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum'/>

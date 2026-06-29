@@ -2,6 +2,8 @@ import React from "react";
 import { createUseStyles } from "react-jss";
 import AuthenticationStore from "../../../stores/authentication";
 import AdSkyscraper from "../../ad/adSkyscraper";
+import NewTradePage from "../../newTradePage";
+import { getTradeStyle, tradePageStyle } from "../../../services/theme";
 import MoneyPageStore from "../stores/moneyPageStore";
 import TradeStore from "../stores/tradeStore";
 import TradeEntry from "./tradeEntry";
@@ -43,6 +45,17 @@ const MyTradesTable = props => {
   const auth = AuthenticationStore.useContainer();
   const trades = TradeStore.useContainer();
   const s = useStyles();
+
+  if (trades.counterTradeDetails && getTradeStyle() === tradePageStyle.Modern) {
+    return <NewTradePage
+      counterTrade={trades.counterTradeDetails}
+      partnerUserId={trades.counterTradeDetails.user?.id}
+      onBack={() => {
+        trades.setCounterTradeDetails(null);
+        trades.refershTrades();
+      }}
+    />;
+  }
 
   return <div className='row mt-2'>
     {trades.selectedTrade && <TradeModal></TradeModal>}

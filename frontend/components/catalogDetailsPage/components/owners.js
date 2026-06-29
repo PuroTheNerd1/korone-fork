@@ -1,6 +1,8 @@
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { getCollectibleOwners } from "../../../services/inventory";
+import { getTradeStyle, tradePageStyle } from "../../../services/theme";
 import ActionButton from "../../actionButton";
 import CreatorLink from "../../creatorLink";
 import GenericPagination from "../../genericPagination";
@@ -8,6 +10,7 @@ import PlayerImage from "../../playerImage";
 
 const Owners = props => {
   const { assetId } = props;
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [cursor, setCursor] = useState(null);
   const [owners, setOwners] = useState(null);
@@ -55,6 +58,10 @@ const Owners = props => {
           <div className='col-2'>
             <div className='mt-4'>
               {owner ? <ActionButton label='Trade' onClick={() => {
+                if (getTradeStyle() === tradePageStyle.Modern) {
+                  router.push(`/users/${owner.id}/trade`).then();
+                  return;
+                }
                 window.open("/Trade/TradeWindow.aspx?TradePartnerID=" + owner.id, "_blank", "scrollbars=0, height=608, width=914");
               }}/> : null}
             </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { createUseStyles } from "react-jss";
 import { followUser, unfollowUser } from "../../../services/friends";
 import { multiGetPresence } from "../../../services/presence";
@@ -15,6 +16,7 @@ import RelationshipStatistics from "./relationshipStatistics";
 import RAPStats from "./RAPStats";
 import ChatButton from "./chatButton";
 import JoinButton from "./joinButton";
+import { getTradeStyle, tradePageStyle } from "../../../services/theme";
 
 const useHeaderStyles = createUseStyles({
   iconWrapper: {
@@ -194,6 +196,7 @@ const useHeaderStyles = createUseStyles({
 const ProfileHeader = props => {
   const auth = AuthenticationStore.useContainer();
   const store = UserProfileStore.useContainer();
+  const router = useRouter();
   
   const statusInput = useRef(null);
   
@@ -290,6 +293,10 @@ const ProfileHeader = props => {
         name: 'Trade',
         onClick: (e) => {
           e.preventDefault();
+          if (getTradeStyle() === tradePageStyle.Modern) {
+            router.push(`/users/${store.userId}/trade`).then();
+            return;
+          }
           window.open("/Trade/TradeWindow.aspx?TradePartnerID=" + store.userId, "_blank", "scrollbars=0, height=608, width=914");
         }
       });
@@ -301,7 +308,7 @@ const ProfileHeader = props => {
       });
     }
     setDropdownOptions(buttons);
-  }, [auth.userId, auth.isPending, auth.permissions, store.isFollowing, editStatus, store.userId]);
+  }, [auth.userId, auth.isPending, auth.permissions, store.isFollowing, editStatus, store.userId, router]);
   
   const s = useHeaderStyles();
   const cardStyles = useCardStyles();
