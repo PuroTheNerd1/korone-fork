@@ -121,31 +121,9 @@ public class AuthenticationService : ServiceBase, IService
 
     private static LoginRequest ParseLoginV2Request(string requestBody, string userAgent)
     {
-        if (userAgent == "RobloxStudio/WinInet")
+        if (ShouldParseAsFormUrlEncoded(requestBody, userAgent))
         {
-            var request = new LoginRequest();
-            var keyValuePairs = requestBody.Split('&');
-            foreach (var pair in keyValuePairs)
-            {
-                var keyValue = pair.Split('=', 2);
-                if (keyValue.Length != 2)
-                {
-                    continue;
-                }
-
-                var key = HttpUtility.UrlDecode(keyValue[0]);
-                var value = HttpUtility.UrlDecode(keyValue[1]);
-                if (key == "username")
-                {
-                    request.username = value;
-                }
-                else if (key == "password")
-                {
-                    request.password = value ?? string.Empty;
-                }
-            }
-
-            return request;
+            return ParseFormUrlEncodedLoginRequest(requestBody);
         }
 
         try
@@ -157,6 +135,39 @@ public class AuthenticationService : ServiceBase, IService
             Writer.Info(LogGroup.Authentication, "Failed to parse v2 login request body.");
             return new LoginRequest();
         }
+    }
+
+    private static bool ShouldParseAsFormUrlEncoded(string requestBody, string userAgent)
+    {
+        if (userAgent == "RobloxStudio/WinInet")
+        {
+            return true;
+        }
+
+        var trimmedRequestBody = requestBody.TrimStart();
+        return !trimmedRequestBody.StartsWith('{') &&
+               !trimmedRequestBody.StartsWith('[') &&
+               requestBody.Contains('=') &&
+               (requestBody.Contains("username=", StringComparison.OrdinalIgnoreCase) ||
+                requestBody.Contains("password=", StringComparison.OrdinalIgnoreCase) ||
+                requestBody.Contains("cvalue=", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static LoginRequest ParseFormUrlEncodedLoginRequest(string requestBody)
+    {
+        var form = HttpUtility.ParseQueryString(requestBody);
+        return new LoginRequest
+        {
+            username = FirstNonEmpty(form["username"], form["cvalue"]),
+            ctype = form["ctype"] ?? string.Empty,
+            cvalue = form["cvalue"] ?? string.Empty,
+            password = form["password"] ?? string.Empty,
+        };
+    }
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !string.IsNullOrEmpty(value));
     }
 
     private async Task ValidateLoginRequest(LoginRequestContext context)

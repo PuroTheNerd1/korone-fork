@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -89,6 +90,13 @@ public class RobloxControllerBase : ControllerBase, IDisposable
 
     protected async Task<string> GetRequestBody()
     {
+        if (Request.HasFormContentType)
+        {
+            var form = await Request.ReadFormAsync();
+            return string.Join("&", form.SelectMany(field => field.Value.Select(value =>
+                $"{WebUtility.UrlEncode(field.Key)}={WebUtility.UrlEncode(value)}")));
+        }
+
         using var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: false);
         return await reader.ReadToEndAsync();
     }
