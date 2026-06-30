@@ -1,8 +1,17 @@
 // ReSharper disable InconsistentNaming
 
 using Microsoft.AspNetCore.Http;
+using Roblox.Dto.AbuseReport;
+using Roblox.Dto.Assets;
+using Roblox.Dto.Economy;
+using Roblox.Dto.Groups;
+using Roblox.Dto.Trades;
+using Roblox.Dto.Users;
+using Roblox.Models.AbuseReport;
 using Roblox.Models.Assets;
 using Roblox.Models.Economy;
+using Roblox.Models.Staff;
+using Roblox.Models.Trades;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Dto.Admin;
@@ -11,6 +20,219 @@ public class SetAlertRequest
 {
     public string? text { get; set; }
     public string? url { get; set; }
+}
+
+public sealed class AdminActorContext
+{
+    public long userId { get; set; }
+    public string sessionId { get; set; } = string.Empty;
+    public bool isOwner { get; set; }
+    public IReadOnlyCollection<Access> permissions { get; set; } = Array.Empty<Access>();
+}
+
+public sealed class AdminDataRow : Dictionary<string, object?>
+{
+}
+
+public sealed class AdminPermissionsResponse
+{
+    public AdminRankResponse rank { get; set; } = new();
+}
+
+public sealed class AdminRankResponse
+{
+    public string? name { get; set; }
+    public AdminRankDetailsResponse details { get; set; } = new();
+    public IEnumerable<Access> permissions { get; set; } = Array.Empty<Access>();
+}
+
+public sealed class AdminRankDetailsResponse
+{
+    public bool isAdmin { get; set; }
+    public bool isModerator { get; set; }
+    public bool isOwner { get; set; }
+}
+
+public sealed class AdminStatsResponse
+{
+    public AdminMemoryStatsResponse memory { get; set; } = new();
+    public long serverStartTime { get; set; }
+}
+
+public sealed class AdminMemoryStatsResponse
+{
+    public string allocated { get; set; } = string.Empty;
+    public string used { get; set; } = string.Empty;
+}
+
+public sealed class AdminSystemMessageResponse
+{
+    public string LinkText { get; set; } = string.Empty;
+    public string LinkUrl { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public bool IsVisible { get; set; }
+}
+
+public sealed class AdminMessageResponse
+{
+    public string message { get; set; } = string.Empty;
+}
+
+public sealed class AdminCountResponse
+{
+    public long count { get; set; }
+}
+
+public sealed class AdminTotalResponse
+{
+    public long total { get; set; }
+}
+
+public sealed class AdminRobuxAmountResponse
+{
+    public int robuxAmount { get; set; }
+}
+
+public sealed class AdminDateResponse
+{
+    public DateTime? date { get; set; }
+}
+
+public sealed class AdminUsersResponse
+{
+    public IEnumerable<AdminDataRow> data { get; set; } = Array.Empty<AdminDataRow>();
+}
+
+public sealed class AdminModerationLogsResponse
+{
+    public IEnumerable<AdminDataRow> data { get; set; } = Array.Empty<AdminDataRow>();
+    public IEnumerable<string> columns { get; set; } = Array.Empty<string>();
+}
+
+public sealed class AdminGroupModerationInfoResponse
+{
+    public AdminDataRow? icon { get; set; }
+    public AdminDataRow? info { get; set; }
+}
+
+public sealed class AdminAssetDetailsResponse
+{
+    public IEnumerable<MultiGetAssetDeveloperDetails> developerInfo { get; set; } = Array.Empty<MultiGetAssetDeveloperDetails>();
+    public IEnumerable<Roblox.Dto.Assets.MultiGetEntry> info { get; set; } = Array.Empty<Roblox.Dto.Assets.MultiGetEntry>();
+}
+
+public sealed class AdminAssetIdResponse
+{
+    public long assetId { get; set; }
+}
+
+public sealed class AdminCreateGameResponse
+{
+    public long placeId { get; set; }
+    public long universeId { get; set; }
+}
+
+public sealed class AdminLotteryRunResponse
+{
+    public string name { get; set; } = string.Empty;
+    public string username { get; set; } = string.Empty;
+}
+
+public sealed class AdminSuccessResponse
+{
+    public bool success { get; set; }
+}
+
+public sealed class AdminLatestTextModerationIdsResponse
+{
+    public long ForumPost { get; set; }
+    public long AssetComment { get; set; }
+    public long GroupWallPost { get; set; }
+    public long UserStatusPost { get; set; }
+    public long GroupStatusPost { get; set; }
+}
+
+public sealed class AdminApplicationApproveResponse
+{
+    public string? joinId { get; set; }
+}
+
+public sealed class AdminTradeHistoryResponse
+{
+    public TradeEntryDb trade { get; set; } = new();
+    public TradeEntryDbFull? db { get; set; }
+    public IEnumerable<TradeItemEntryDb> items { get; set; } = Array.Empty<TradeItemEntryDb>();
+}
+
+public sealed class AdminTrackedItemHistoryEntry
+{
+    public DateTime created_at { get; set; }
+    public string track_type { get; set; } = string.Empty;
+    public long? user_id_two { get; set; }
+    public long? user_id_one { get; set; }
+    public string? user_one_username { get; set; }
+    public string? user_two_username { get; set; }
+    public long? amount { get; set; }
+    public int? currency_type { get; set; }
+    public long? id { get; set; }
+}
+
+public sealed class AdminMacAddressHistoryEntry
+{
+    public long userId { get; set; }
+    public string macAddress { get; set; } = string.Empty;
+    public DateTimeOffset createdAt { get; set; }
+    public DateTimeOffset updatedAt { get; set; }
+}
+
+public sealed class AdminAltAccountByMacEntry
+{
+    public string macAddress { get; set; } = string.Empty;
+    public long userCount { get; set; }
+    public IEnumerable<AdminAltAccountUserEntry> users { get; set; } = Array.Empty<AdminAltAccountUserEntry>();
+}
+
+public sealed class AdminAltAccountUserEntry
+{
+    public long id { get; set; }
+    public string username { get; set; } = string.Empty;
+    public string status { get; set; } = string.Empty;
+}
+
+public sealed class AdminUserBanHistoryEntry
+{
+    public long id { get; set; }
+    public long user_id { get; set; }
+    public string reason { get; set; } = string.Empty;
+    public string internal_reason { get; set; } = string.Empty;
+    public string created_at { get; set; } = string.Empty;
+    public string? expired_at { get; set; }
+    public long actor_id { get; set; }
+    public string actor_username { get; set; } = string.Empty;
+}
+
+public sealed class AdminChatMessagesResponse
+{
+    public string content { get; set; } = string.Empty;
+    public string contentType { get; set; } = "text/plain; charset=utf-8";
+}
+
+public sealed class ModerateUgcRequestBody
+{
+    public long id { get; set; }
+    public bool isApproved { get; set; }
+}
+
+public sealed class PendingUgcRequestEntry
+{
+    public long id { get; set; }
+    public long userId { get; set; }
+    public long robloxAssetId { get; set; }
+    public string robloxUrl { get; set; } = string.Empty;
+    public string? itemName { get; set; }
+    public DateTime createdAt { get; set; }
+    public string? creatorName { get; set; }
+    public short status { get; set; }
 }
 
 public class CreateUserRequest

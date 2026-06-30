@@ -1,29 +1,16 @@
-// This controller is special: It directly accesses DB/Redis for ease of use.
-// Admin features do not have to handle load like other controllers do - it's unlikely even two people will be using
-// this controller at any given time.
-// Features should be easy to add and easy to remove. All that really matters is ease of writing and security - speed,
-// best practices, etc, do not matter.
-
-using Dapper;
 using DSharpPlus;
-using InfluxDB.Client.Api.Domain;
 using Microsoft.AspNetCore.Mvc;
-using Npgsql;
-using Roblox.Cache;
 using Roblox.Dto;
 using Roblox.Dto.AbuseReport;
 using Roblox.Dto.Admin;
 using Roblox.Dto.Assets;
-using Roblox.Dto.Avatar;
 using Roblox.Dto.Economy;
 using Roblox.Dto.Groups;
 using Roblox.Dto.Staff;
 using Roblox.Dto.Users;
 using Roblox.Exceptions;
-using Roblox.Logging;
 using Roblox.Models.AbuseReport;
 using Roblox.Models.Assets;
-using Roblox.Models.Avatar;
 using Roblox.Models.Db;
 using Roblox.Models.Economy;
 using Roblox.Models.Sessions;
@@ -36,15 +23,8 @@ using Roblox.Services.Exceptions;
 using Roblox.Website.Filters;
 using Roblox.Website.WebsiteModels.Asset;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Dynamic;
-using System.IO;
-using System.Net.NetworkInformation;
 using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using Exception = System.Exception;
-using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
 // just to shut the compiler up
 #pragma warning disable CS8604
@@ -61,10 +41,6 @@ namespace Roblox.Website.Controllers;
 #endif
 public class AdminApiController : ControllerBase
 {
-    private NpgsqlConnection db => services.assets.db;
-    private DistributedCache redis => Roblox.Services.Cache.distributed;
-    private static readonly long startTime = DateTimeOffset.Now.ToUnixTimeSeconds();
-
     private static readonly string adminRandomUrlPart = Guid.NewGuid().ToString();
 
     private bool IsLoggedIn()
@@ -80,6 +56,19 @@ public class AdminApiController : ControllerBase
                 throw new StaffException("Not logged in");
             return base.userSession!;
         }
+    }
+
+    private async Task<AdminActorContext> GetActorContext()
+    {
+        var session = userSession;
+        var isOwner = StaffFilter.IsOwner(session.userId);
+        return new AdminActorContext
+        {
+            userId = session.userId,
+            sessionId = session.sessionId,
+            isOwner = isOwner,
+            permissions = isOwner ? Enum.GetValues<Access>() : (await StaffFilter.GetPermissions(session.userId)).ToArray(),
+        };
     }
 
     [HttpGet("/admin/build-redirect/bundle.js")]
@@ -144,10 +133,7 @@ public class AdminApiController : ControllerBase
     [SkipAdminTwoFactor]
     public async Task<IActionResult> VerifyPrompt([FromQuery] string code)
     {
-        var totp = await services.users.GetTotp(safeUserSession.userId);
-        var isValid = totp != null && services.users.VerifyTotp(totp.secret, code);
-        if (!isValid) throw new UnauthorizedException();
-
+        await services.adminApi.ValidateTwoFactorCodeAsync(safeUserSession.userId, code);
         await AdminTwoFactorFilter.MarkVerified(safeUserSession.userId, safeUserSession.sessionId);
         return Ok();
     }
@@ -165,197 +151,93 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("permissions")]
-    public async Task<dynamic> GetPermissions()
+    public async Task<AdminPermissionsResponse> GetPermissions()
     {
-        var isOwner = StaffFilter.IsOwner(userSession.userId);
-        var permissions = await services.users.GetStaffPermissions(userSession.userId);
-        var isAdmin = isOwner;
-        var isMod = isAdmin;
-        return new
-        {
-            rank = new
-            {
-                name = isOwner ? "Owner" : isAdmin ? "admin" : isMod ? "Mod" : null,
-                details = new
-                {
-                    isAdmin,
-                    isModerator = isMod,
-                    isOwner,
-                },
-                permissions = isOwner
-                    ? Enum.GetValues<Access>()
-                    : permissions.Select(c => c.permission),
-            }
-        };
+        return await services.adminApi.GetPermissionsAsync(await GetActorContext());
     }
 
     [HttpGet("staff/list"), StaffFilter(Access.SetPermissions)]
     public async Task<IEnumerable<UserId>> GetAllStaff()
     {
-        return await services.users.GetAllStaff();
+        return await services.adminApi.GetAllStaffAsync();
     }
 
 
     [HttpGet("staff/permissions/list"), StaffFilter(Access.SetPermissions)]
     public IEnumerable<Access> GetAllPermissions()
     {
-        return Enum.GetValues<Access>();
+        return services.adminApi.GetAllPermissions();
     }
 
     [HttpGet("staff/permissions"), StaffFilter(Access.SetPermissions)]
     public async Task<IEnumerable<StaffUserPermissionEntry>> GetUserPermissions(long userId)
     {
-        return await services.users.GetStaffPermissions(userId);
+        return await services.adminApi.GetUserPermissionsAsync(userId);
     }
 
     [HttpPost("staff/permissions"), StaffFilter(Access.SetPermissions)]
     public async Task SetUserPermissions(long userId, Access permission)
     {
-        if (permission == Access.SetPermissions)
-        {
-            // TOOD: log this
-            throw new StaffException("InternalServerError");
-        }
-
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new Exception("InternalServerError");
-
-        if (permission == Access.All) throw new BadRequestException(0, "Invalid permission");
-        
-        await services.users.AddStaffPermission(userId, permission);
+        await services.adminApi.SetUserPermissionsAsync(userId, permission, await GetActorContext());
     }
 
     [HttpDelete("staff/permissions"), StaffFilter(Access.SetPermissions)]
     public async Task DeletePermission(long userId, Access permission)
     {
-        await services.users.RemoveStaffPermission(userId, permission);
+        await services.adminApi.DeletePermissionAsync(userId, permission);
     }
 
     [HttpGet("stats"), StaffFilter(Access.GetStats)]
-    public dynamic GetStatus()
+    public AdminStatsResponse GetStatus()
     {
-        using var proc = Process.GetCurrentProcess();
-        var gcInfo = GC.GetGCMemoryInfo();
-        var allocatedMem = proc.WorkingSet64;
-        var memoryInUse = gcInfo.HeapSizeBytes;
-        return new
-        {
-            memory = new
-            {
-                allocated = (allocatedMem / 1024 / 1024) + " KB",
-                used = (memoryInUse / 1024 / 1024) + " KB",
-            },
-            serverStartTime = startTime,
-        };
+        return services.adminApi.GetStatus();
     }
 
     [HttpGet("crash"), StaffFilter(Access.GetStats)]
     public Task CrashSite()
     {
-        if (!StaffFilter.IsOwner(safeUserSession.userId))
-            throw new UnauthorizedException();
-        Environment.Exit(0);
+        services.adminApi.CrashSite(new AdminActorContext
+        {
+            userId = safeUserSession.userId,
+            sessionId = safeUserSession.sessionId,
+            isOwner = StaffFilter.IsOwner(safeUserSession.userId),
+        });
         return Task.CompletedTask;
     }
 
     [HttpGet("alert"), StaffFilter(Access.GetAlert)]
-    public async Task<dynamic> GetSystemMessage()
+    public async Task<AdminSystemMessageResponse> GetSystemMessage()
     {
-        var msg = await services.users.GetGlobalAlert();
-        return new
-        {
-            LinkText = "",
-            LinkUrl = msg?.url ?? "",
-            Text = msg?.message ?? "",
-            IsVisible = msg != null,
-        };
+        return await services.adminApi.GetSystemMessageAsync();
     }
 
     [HttpPost("alert"), StaffFilter(Access.SetAlert)]
     public async Task SetAlert([Required, FromBody] SetAlertRequest request)
     {
-        if (request.text == "") request.text = null;
-        if (request.text is { Length: > 255 })
-            throw new StaffException("Text is over the limit of 255 characters");
-        if (request.url is {Length: > 255})
-            throw new StaffException("URL is over 255 characters");
-        if (string.IsNullOrWhiteSpace(request.url))
-            request.url = null;
-        // Usekess check
-        // if (request.url != null)
-        // {
-        //     var url = new Uri(request.url);
-        //     if (!url.Host.EndsWith(".pekora.zip") && url.Host != "pekora.zip")
-        //         throw new StaffException("All URLs must link to pekora.zip. Base was " + url.Host);
-        // }
-        Writer.Info(LogGroup.AbuseDetection, "User {0} is setting alert to '{1}'", userSession.userId, request.text);
-        await services.users.SetGlobalAlert(request.text, request.url);
-        await db.ExecuteAsync("INSERT INTO moderation_set_alert (actor_id, alert, alert_url) VALUES (:user_id, :text, :url)", new
-        {
-            user_id = userSession.userId,
-            text = request.text,
-            url = request.url,
-        });
+        await services.adminApi.SetAlertAsync(request, await GetActorContext());
     }
 
     [HttpPost("create-user"), StaffFilter(Access.CreateUser)]
-    public async Task<dynamic> CreateUser([Required, FromBody] CreateUserRequest req)
+    public async Task<UserId> CreateUser([Required, FromBody] CreateUserRequest req)
     {
-        if (req.username == null)
-            throw new StaffException("Bad username");
-        if (req.password == null)
-            throw new StaffException("Bad password");
-        // HACK! Needs to be fixed later via admin panel
-        int? userId = null;
-        if (int.TryParse(req.userId, out int parsedUserId))
-        {
-            userId = parsedUserId;
-        }
-        return await services.users.CreateUser(req.username, req.password, Gender.Unknown, userId);
+        return await services.adminApi.CreateUserAsync(req);
     }
 
     [HttpPost("force-application"), StaffFilter(Access.ForceApplication)]
-    public async Task<dynamic> ForceApplication([Required, FromBody] ForceApplicationReq req)
+    public async Task<AdminMessageResponse> ForceApplication([Required, FromBody] ForceApplicationReq req)
     {
-        if (req.socialURL == null)
-            throw new StaffException("Bad Social URL");
-
-        var inviteId = services.users.GetUserInvite(req.userId);
-
-
-        if (inviteId != null)
-            await services.users.DeleteUserInvite(req.userId);
-
-
-        var id = await services.users.CreateApplication(new CreateUserApplicationRequest()
-        {
-            about = "Forced Application",
-            socialPresence = req.socialURL,
-            isVerified = true,
-            verifiedUrl = req.socialURL,
-            verificationPhrase = "Forced Application",
-            verifiedId = "1",
-        });
-
-
-        var joinId = await services.users.ProcessApplication(id, 1, UserApplicationStatus.Approved);
-        if (joinId == null)
-        {
-            throw new StaffException("The join id is null");
-        }
-        await services.users.SetApplicationUserIdByJoinId(joinId, req.userId);
-
-        return "Join application added to user";
+        return await services.adminApi.ForceApplicationAsync(req);
     }
     
     [HttpGet("groups/pending-icons"), StaffFilter(Access.GetPendingGroupIcons)]
+    [SkipAdminTwoFactor]
     public async Task<IEnumerable<PendingGroupIconEntry>> GetPendingIcons()
     {
         return await services.adminApi.GetPendingIconsAsync();
     }
 
     [HttpPost("gift-users"),  StaffFilter(Access.CreateAsset)]
-    public async Task<dynamic> GiftUsers([FromBody] GiftUsersRequest req)
+    public async Task<IActionResult> GiftUsers([FromBody] GiftUsersRequest req)
     {
         await services.adminApi.GiftUsersAsync(req, userSession.userId, StaffFilter.IsOwner(userSession.userId));
         return Ok();
@@ -368,13 +250,14 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("assets/get-asset-stream"), StaffFilter(Access.GetPendingModerationItems)]
-    public async Task<dynamic> GetPendingAssetStream(long assetId)
+    public async Task<IActionResult> GetPendingAssetStream(long assetId)
     {
         var content = await services.adminApi.GetPendingAssetStreamAsync(assetId, userSession.userId, StaffFilter.IsOwner(userSession.userId));
         return File(content, "application/octet-stream");
     }
 
     [HttpGet("assets/pending-assets"), StaffFilter(Access.GetPendingModerationItems)]
+    [SkipAdminTwoFactor]
     public async Task<IEnumerable<PendingAssetEntry>> GetPendingAssets()
     {
         return await services.adminApi.GetPendingAssetsAsync(userSession.userId, StaffFilter.IsOwner(userSession.userId), StaffFilter.IsOwner);
@@ -393,6 +276,7 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("icons/pending-assets"), StaffFilter(Access.GetPendingModerationGameIcons)]
+    [SkipAdminTwoFactor]
     public async Task<IEnumerable<PendingAssetIconEntry>> GetPendingAssetIcons()
     {
         return await services.adminApi.GetPendingAssetIconsAsync();
@@ -404,23 +288,6 @@ public class AdminApiController : ControllerBase
         await services.adminApi.ModerateIconAsync(request, StaffFilter.IsOwner(userSession.userId));
     }
 
-    private async Task AwardCommissionForApplicationReview()
-    {
-        // give commission
-        await services.economy.IncrementCurrency(CreatorType.User, userSession.userId, CurrencyType.Robux, 5);
-        await services.users.InsertAsync("user_transaction", new
-        {
-            type = PurchaseType.Commission,
-            currency_type = CurrencyType.Robux,
-            amount = 5,
-            // details
-            sub_type = TransactionSubType.StaffApplicationReview,
-            // user data
-            user_id_one = userSession.userId,
-            user_id_two = 1,
-        });
-    }
-
     [HttpPost("groups/icon-toggle"), StaffFilter(Access.SetGroupIconModerationStatus)]
     public async Task ToggleIcon([Required, FromBody] IconToggleRequest request)
     {
@@ -428,141 +295,28 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("groups/get-by-id"), StaffFilter(Access.GetGroupManageInfo)]
-    public async Task<dynamic> GetGroupModerationInfo(long groupId)
+    public async Task<AdminGroupModerationInfoResponse> GetGroupModerationInfo(long groupId)
     {
-        var icon = await db.QuerySingleOrDefaultAsync("SELECT * FROM group_icon WHERE group_id = :gid", new
-        {
-            gid = groupId,
-        });
-        var info = await db.QuerySingleOrDefaultAsync("SELECT * FROM \"group\" WHERE id = :gid", new
-        {
-            gid = groupId,
-        });
-        icon.name = services.adminApi.GetImageUrl("/images/groups/" + icon.name, false);
-
-        return new
-        {
-            icon,
-            info,
-        };
+        return await services.adminApi.GetGroupModerationInfoAsync(groupId);
     }
 
     [HttpGet("user-joins"), StaffFilter(Access.GetUserJoinCount)]
-    public async Task<dynamic> GetUserJoinCount(string period)
+    public async Task<AdminTotalResponse> GetUserJoinCount(string period)
     {
-        var t = DateTime.UtcNow.Subtract(period is "past-day" ? TimeSpan.FromDays(1) :
-                period is "past-hour" ? TimeSpan.FromHours(1) :
-                period is "past-week" ? TimeSpan.FromDays(7) : TimeSpan.FromDays(30));
-        var all = await db.QuerySingleOrDefaultAsync<Total>(
-            "SELECT COUNT(*) AS total FROM \"user\" WHERE created_at >= :t", new
-            {
-                t,
-            });
-        return new
-        {
-            all.total,
-        };
+        return await services.adminApi.GetUserJoinCountAsync(period);
     }
 
-    private static readonly List<string> whitelistedUserSorts = new()
-    {
-        "user_economy.balance_robux",
-        "user_economy.balance_tickets",
-        "user.id",
-        "user.online_at",
-    };
-
     [HttpGet("users"), StaffFilter(Access.GetUsersList)]
-    public async Task<dynamic> GetUsers(string orderByColumn = "user.id", string? orderByMode = "asc", int limit = 10,
+    public async Task<AdminUsersResponse> GetUsers(string orderByColumn = "user.id", string? orderByMode = "asc", int limit = 10,
         int offset = 0, string? query = null, long? userId = null)
     {
-        if (!whitelistedUserSorts.Contains(orderByColumn))
-            throw new StaffException("Invalid sort column");
-        if (orderByMode != "asc" && orderByMode != "desc")
-            throw new StaffException("Invalid sort mode");
-        if (limit is > 10000 or < 1) limit = 10;
-        orderByColumn = orderByColumn.Replace("user_economy", "ue").Replace("user", "u");
-
-        var sql = new SqlBuilder();
-        var t = sql.AddTemplate(
-            "SELECT u.id, u.username, u.description, u.created_at, u.online_at, u.status, u.is_18_plus, ja.id as join_application_id, ja.status as join_application_status, ui.id as invite_id, ui.author_id as invite_author_id, us.*, ue.* FROM \"user\" u LEFT JOIN user_settings us ON us.user_id = u.id LEFT JOIN user_economy ue on u.id = ue.user_id LEFT JOIN join_application ja on u.id = ja.user_id LEFT JOIN user_invite ui on u.id = ui.user_id /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new {limit, offset });
-        sql.OrderBy(orderByColumn + " " + orderByMode + " NULLS LAST");
-        if (!string.IsNullOrEmpty(query))
-        {
-            var wildcardQuery = "%" + query + "%";
-            sql.Where("u.username ILIKE :query", new { query = wildcardQuery });
-        }
-        if (userId != null)
-        {
-            sql.Where("u.id = :userId", new { userId });
-        }
-
-        var all = await db.QueryAsync(t.RawSql, t.Parameters);
-        return new
-        {
-            data = all.Select(c =>
-            {
-                c.status = ((AccountStatus)c.status).ToString();
-                c.trade_filter = ((TradeQualityFilter)c.trade_filter).ToString();
-                c.inventory_privacy = ((GeneralPrivacy)c.inventory_privacy).ToString();
-                c.trade_privacy = ((GeneralPrivacy)c.trade_privacy).ToString();
-                c.private_message_privacy = ((GeneralPrivacy)c.private_message_privacy).ToString();
-                c.gender = ((Gender)c.gender).ToString();
-                if (c.join_application_status != null)
-                    c.join_application_status = ((UserApplicationStatus) c.join_application_status).ToString();
-                c.is_admin = (object?)false; // todo
-                c.is_moderator = (object?)false; // todo
-                // just in case
-                c.password = "";
-
-                return c;
-            }),
-        };
+        return await services.adminApi.GetUsersAsync(orderByColumn, orderByMode, limit, offset, query, userId);
     }
 
     [HttpGet("user"), StaffFilter(Access.GetUserDetailed)]
-    public async Task<dynamic> GetUserInfoDetailed(long userId)
+    public async Task<AdminDataRow> GetUserInfoDetailed(long userId)
     {
-        var result = await db.QuerySingleOrDefaultAsync(
-            @"SELECT u.id, u.verified, u.username, u.description, u.created_at, u.online_at, u.status, us.*, ue.*, avatar.thumbnail_url,
-            ub.author_user_id as ban_author_user_id, ban_author.username as ban_author_username, ub.reason as ban_reason,
-            ub.internal_reason as ban_reason_internal, ub.created_at as ban_created_at, ub.expired_at as ban_expired_at, ub.updated_at as ban_updated_at
-            FROM ""user"" u
-            LEFT JOIN user_settings us on u.id = us.user_id
-            LEFT JOIN user_economy ue on u.id = ue.user_id
-            LEFT JOIN user_avatar avatar ON avatar.user_id = u.id
-            LEFT JOIN user_ban ub ON ub.user_id = u.id
-            LEFT JOIN ""user"" as ban_author ON ban_author.id = ub.author_user_id
-            WHERE u.id = :user_id
-            LIMIT 1",
-            new
-            {
-                user_id = userId,
-            });
-        if (result == null) 
-            throw new StaffException("Invalid user ID");
-
-        var joinInvite = await services.users.GetUserInvite(userId);
-        var joinApp = await services.users.GetApplicationByUserId(userId);
-        var membership = await services.users.GetUserMembership(userId);
-        var year = await services.users.GetYear(userId);
-
-        if (result.thumbnail_url != null)
-            result.thumbnail_url = services.adminApi.GetImageUrl(result.thumbnail_url);
-        result.theme = ((ThemeTypes) result.theme).ToString();
-        result.status = ((AccountStatus)result.status).ToString();
-        result.trade_filter = ((TradeQualityFilter)result.trade_filter).ToString();
-        result.inventory_privacy = ((GeneralPrivacy)result.inventory_privacy).ToString();
-        result.trade_privacy = ((GeneralPrivacy)result.trade_privacy).ToString();
-        result.private_message_privacy = ((GeneralPrivacy)result.private_message_privacy).ToString();
-        result.gender = ((Gender)result.gender).ToString();
-        result.is_admin = (object)false; // todo
-        result.is_moderator = (object)await StaffFilter.IsStaff(userId);
-        result.membership = (object?)membership;
-        result.invite = (object?) joinInvite;
-        result.joinApp = (object?) joinApp;
-        result.year = year.ToString();
-        return result;
+        return await services.adminApi.GetUserInfoDetailedAsync(userId, StaffFilter.IsOwner);
     }
 
     private bool IsAdmin()
@@ -578,2520 +332,635 @@ public class AdminApiController : ControllerBase
     [HttpPost("unban"), StaffFilter(Access.UnbanUser)]
     public async Task UnbanUser([Required, FromBody] UserIdRequest request)
     {
-        var status = await services.users.GetUserById(request.userId);
-        if (status.accountStatus == AccountStatus.Forgotten)
-            throw new StaffException("Forgotten accounts cannot be un-banned");
-
-        await db.ExecuteAsync("UPDATE \"user\" SET status = :st WHERE id = :id", new
-        {
-            st = AccountStatus.Ok,
-            id = request.userId,
-        });
-        await services.users.InvalidateUserInfoCache(request.userId);
-        // log
-        await db.ExecuteAsync("INSERT INTO moderation_unban (user_id, actor_id) VALUES (:user_id, :actor_id)", new
-        {
-            user_id = request.userId,
-            actor_id = userSession.userId,
-        });
-        // actually unban
-        await db.ExecuteAsync("DELETE FROM user_ban WHERE user_id = :id", new { id = request.userId });
+        await services.adminApi.UnbanUserAsync(request, await GetActorContext());
     }
 
     [HttpPost("ban"), StaffFilter(Access.BanUser)]
     public async Task BanUser([Required, FromBody] BanUserRequest request)
     {
-        // 30 bans per hour per staff
-        if (!await services.cooldown.TryIncrementBucketCooldown("BanUserV2:" + safeUserSession.userId, 60, TimeSpan.FromHours(1)))
-            throw new StaffException("You are being rate limited, pleae try again later");
-        
-        DateTime? expirationDate = string.IsNullOrWhiteSpace(request.expires)
-            ? null
-            : DateTime.SpecifyKind(DateTime.Parse(request.expires), DateTimeKind.Utc);
-
-        var doesExpire = expirationDate != null;
-
-        var info = await services.users.GetUserById(request.userId);
-        if (userSession.userId == request.userId)
-        {
-            throw new StaffException("You cannot ban yourself");
-        }
-        if (info.accountStatus != AccountStatus.Ok && info.accountStatus != AccountStatus.Suppressed && info.accountStatus != AccountStatus.MustValidateEmail)
-            throw new StaffException("You cannot ban this user. Current status is " + info.accountStatus);
-        if (await IsStaff(request.userId) && !StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("You cannot ban this user.");
-        // insert ban
-        await db.ExecuteAsync(
-            "INSERT INTO user_ban (user_id, reason, author_user_id, expired_at, internal_reason) VALUES (:user_id, :reason, :author, :expires, :internal_reason)", new
-            {
-                internal_reason = request.internalReason,
-                user_id = request.userId,
-                request.reason,
-                author = userSession.userId,
-                expires = expirationDate,
-            });
-        // log
-        await db.ExecuteAsync("INSERT INTO moderation_ban (user_id, actor_id, reason, internal_reason, expired_at) VALUES (:user_id, :author, :reason, :internal_reason, :expires)", new
-        {
-            user_id = request.userId,
-            author = userSession.userId,
-            reason = request.reason,
-            internal_reason = request.internalReason,
-            expires = expirationDate,
-        });
-        // mark as banned
-        await db.ExecuteAsync("UPDATE \"user\" SET status = :st WHERE id = :id", new
-        {
-            st = doesExpire ? AccountStatus.Suppressed : AccountStatus.Deleted,
-            id = request.userId,
-        });
-        await services.users.InvalidateUserInfoCache(request.userId);
-        // take all limited items off sale
-        await db.ExecuteAsync("UPDATE user_asset SET price = 0 WHERE price != 0 AND user_id = :user_id", new
-        {
-            user_id = request.userId,
-        });
-        await services.gameServer.KickPlayer(request.userId);
-        await services.users.ExpireAllSessions(request.userId);
+        await services.adminApi.BanUserAsync(request, await GetActorContext(), StaffFilter.IsOwner);
     }
 
     [HttpPost("user/create-message"), StaffFilter(Access.CreateMessage)]
     public async Task CreateMessage([Required, FromBody] CreateMessageRequest request)
     {
-        // validate user
-        await services.users.GetUserById(request.userId);
-        if (request.body.Length is > 1024 or < 1)
-            throw new StaffException("Body is not valid");
-        if (request.subject.Length is > 64 or < 1)
-            throw new StaffException("Subject is not valid");
-        await services.privateMessages.CreateMessage(request.userId, 1, request.subject, request.body);
-        await db.ExecuteAsync("INSERT INTO moderation_admin_message(user_id, actor_id, body, subject) VALUES (:user_id, :actor_id, :body, :subject)", new
-        {
-            user_id = request.userId,
-            actor_id = userSession.userId,
-            request.body,
-            request.subject,
-        });
+        await services.adminApi.CreateMessageAsync(request, await GetActorContext());
     }
 
     [HttpGet("user/messages-from-admins"), StaffFilter(Access.GetAdminMessages)]
-    public async Task<dynamic> GetMessagesFromStaff(long userId, int limit = 10, int offset = 0)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetMessagesFromStaff(long userId, int limit = 10, int offset = 0)
     {
-        if (limit is > 100 or < 1) limit = 10;
-        return await db.QueryAsync(
-            "SELECT user_message.* FROM user_message WHERE user_id_to = :id AND user_id_from = 1 ORDER BY id DESC LIMIT :limit OFFSET :offset",
-            new
-            {
-                id = userId,
-                limit,
-                offset,
-            });
+        return await services.adminApi.GetMessagesFromStaffAsync(userId, limit, offset);
     }
 
     [HttpPost("user/nullify-password"), StaffFilter(Access.NullifyPassword)]
     public async Task NullifyUserPassword([Required, FromBody] UserIdRequest request)
     {
-        if (await IsStaff(request.userId) && !StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Bad user id");
-        await db.ExecuteAsync("UPDATE \"user\" SET password = '' WHERE id = :id", new
-        {
-            id = request.userId,
-        });
+        await services.adminApi.NullifyUserPasswordAsync(request, await GetActorContext(), StaffFilter.IsOwner);
     }
 
     [HttpPost("user/logout"), StaffFilter(Access.DestroyAllSessionsForUser)]
     public async Task DeleteAllSessions([Required, FromBody] UserIdRequest request)
     {
-        await services.users.ExpireAllSessions(request.userId);
+        await services.adminApi.DeleteAllSessionsAsync(request);
     }
 
     [HttpPost("user/lock"), StaffFilter(Access.LockAccount)]
     public async Task LockUser([Required, FromBody] UserIdRequest request)
     {
-        if (await IsStaff(request.userId) && !StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Cannot lock this user");
-        await db.ExecuteAsync("UPDATE \"user\" SET status = :status, session_expired_at = now() WHERE id = :id", new
-        {
-            id = request.userId,
-            status = AccountStatus.MustValidateEmail,
-        });
-        await services.users.InvalidateUserInfoCache(request.userId);
+        await services.adminApi.LockUserAsync(request, await GetActorContext(), StaffFilter.IsOwner);
     }
 
     [HttpPost("user/regenerate-avatar"), StaffFilter(Access.RegenerateAvatar)]
     public async Task RegenAvatarRequest([Required, FromBody] UserIdRequest request)
     {
-        using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
-        await avatarCache.DeleteAvatarCache(request.userId);
-        await services.avatar.RedrawAvatar(request.userId, default, default, default, true, true);
+        await services.adminApi.RegenerateAvatarAsync(request);
     }
 
     [HttpPost("user/reset-avatar"), StaffFilter(Access.ResetAvatar)]
     public async Task ResetAvatar([Required, FromBody] UserIdRequest request)
     {
-        if (await IsStaff(request.userId))
-            throw new StaffException("Cannot reset avatar for this user");
-
-        await services.avatar.RedrawAvatar(request.userId, new List<long>(), new ColorEntry
-        {
-            headColorId = 194,
-            torsoColorId = 23,
-            rightArmColorId = 194,
-            leftArmColorId = 194,
-            rightLegColorId = 102,
-            leftLegColorId = 102,
-        }, AvatarType.R6, true, true);
-
-        using var avatarCache = ServiceProvider.GetOrCreate<AvatarCache>();
-        avatarCache.UnscheduleRender(request.userId);
-
-        await avatarCache.DeleteAvatarCache(request.userId);
+        await services.adminApi.ResetAvatarAsync(request, StaffFilter.IsOwner);
     }
     
     [HttpGet("user/mac-address-history"), StaffFilter(Access.ViewMacAddresses)]
-    public async Task<dynamic> GetMacAddressHistory([Required, FromQuery] long userId)
+    public async Task<IReadOnlyCollection<AdminMacAddressHistoryEntry>> GetMacAddressHistory([Required, FromQuery] long userId)
     {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new NotFoundException();
-        var rawData = await services.users.GetMacAddresses(userId);
-
-        var result = new List<dynamic>();
-        foreach (var item in rawData)
-        {
-            if(item == null)
-                continue;
-            result.Add(new
-            {
-                userId,
-                macAddress = BitConverter.ToString(PhysicalAddress.Parse(item.macAddress.ToUpper().Replace(":", "")).GetAddressBytes()).Replace("-", ":"),
-                item.createdAt,
-                item.updatedAt,
-            });
-        }
-        
-        return result;
+        return await services.adminApi.GetMacAddressHistoryAsync(userId, await GetActorContext());
     }
 
     [HttpGet("alt-accounts/by-mac"), StaffFilter(Access.ViewMacAddresses)]
-    public async Task<dynamic> GetAltAccountsByMac(int limit = 50, int offset = 0)
+    public async Task<IReadOnlyCollection<AdminAltAccountByMacEntry>> GetAltAccountsByMac(int limit = 50, int offset = 0)
     {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new NotFoundException();
-        if (limit is > 200 or < 1) limit = 50;
-        if (offset < 0) offset = 0;
-
-        var macs = (await db.QueryAsync(
-            @"SELECT mac_address::text AS ""macAddress"", COUNT(DISTINCT user_id) AS ""userCount""
-              FROM user_mac_address
-              GROUP BY mac_address
-              HAVING COUNT(DISTINCT user_id) > 1
-              ORDER BY COUNT(DISTINCT user_id) DESC, mac_address ASC
-              LIMIT @limit OFFSET @offset", new { limit, offset })).ToList();
-
-        var result = new List<dynamic>();
-        foreach (var m in macs)
-        {
-            string rawMac = (string)m.macAddress;
-            var users = await db.QueryAsync(
-                @"SELECT DISTINCT u.id, u.username, u.status
-                  FROM user_mac_address ma
-                  JOIN ""user"" u ON u.id = ma.user_id
-                  WHERE ma.mac_address = @mac::macaddr
-                  ORDER BY u.id ASC", new { mac = rawMac });
-
-            var formattedMac = BitConverter.ToString(PhysicalAddress.Parse(rawMac.ToUpper().Replace(":", "")).GetAddressBytes()).Replace("-", ":");
-            result.Add(new
-            {
-                macAddress = formattedMac,
-                userCount = (long)m.userCount,
-                users = users.Select(u => new
-                {
-                    id = (long)u.id,
-                    username = (string)u.username,
-                    status = ((AccountStatus)u.status).ToString(),
-                }).ToList(),
-            });
-        }
-
-        return result;
+        return await services.adminApi.GetAltAccountsByMacAsync(await GetActorContext(), limit, offset);
     }
 
     [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]
-    public async Task<IEnumerable<dynamic>> GetUserBanHistory([Required, FromQuery] long userId)
+    public async Task<IReadOnlyCollection<AdminUserBanHistoryEntry>> GetUserBanHistory([Required, FromQuery] long userId)
     {
-        var rawData = await db.QueryAsync("SELECT * FROM moderation_ban WHERE user_id = :user_id ORDER BY id DESC LIMIT 1000", new
-        {
-            user_id = userId,
-        });
-
-        var result = new List<ExpandoObject>();
-        // Really fucking hacky ill fix this later though :P
-        foreach (var item in rawData)
-        {
-            dynamic obj = new ExpandoObject();
-
-            obj.id = item.id;
-            obj.user_id = item.user_id;
-            obj.reason = item.reason ?? "No reason provided";
-            obj.internal_reason = item.internal_reason ?? "No internal reason provided ";
-            obj.created_at = item.created_at.ToString("yyyy-MM-dd HH:mm:ss");
-            obj.expired_at = item.expired_at?.ToString("yyyy-MM-dd HH:mm:ss");
-            obj.actor_id = item.actor_id;
-            obj.actor_username = (await services.users.GetUserById(item.actor_id)).username;
-
-            result.Add(obj);
-        }
-
-        return result;
+        return await services.adminApi.GetUserBanHistoryAsync(userId);
     }
 
     [HttpGet("user/status-history"), StaffFilter(Access.GetUserStatusHistory)]
-    public async Task<dynamic> GetUserStatusHistory([Required, FromQuery] long userId)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetUserStatusHistory([Required, FromQuery] long userId)
     {
-        return await db.QueryAsync("SELECT * FROM user_status WHERE user_id = :user_id AND status IS NOT NULL ORDER BY id DESC", new
-        {
-            user_id = userId,
-        });
+        return await services.adminApi.GetUserStatusHistoryAsync(userId);
     }
 
     [HttpGet("user/comment-history"), StaffFilter(Access.DeleteComment)]
-    public async Task<dynamic> GetUserCommentHistory([Required, FromQuery] long userId)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetUserCommentHistory([Required, FromQuery] long userId)
     {
-        return await db.QueryAsync("SELECT * FROM asset_comment WHERE user_id = :user_id ORDER BY id DESC LIMIT 1000",
-            new
-            {
-                user_id = userId,
-            });
+        return await services.adminApi.GetUserCommentHistoryAsync(userId);
     }
 
     [HttpDelete("user/status"), StaffFilter(Access.DeleteUserStatus)]
     public async Task DeleteUserStatus([Required, FromQuery] long userId, [Required, FromQuery] long statusId)
     {
-        await db.ExecuteAsync("UPDATE user_status SET status = '[ Content Deleted ]' WHERE id = :id AND user_id = :user_id", new
-        {
-            id = statusId,
-            user_id = userId,
-        });
+        await services.adminApi.DeleteUserStatusAsync(userId, statusId);
     }
 
     [HttpPost("asset/refund-transaction"), StaffFilter(Access.RefundAndDeleteFirstPartyAssetSale)]
     public async Task RefundTransaction(long transactionId, long assetId, long expectedAmount, long userId)
     {
-        // First, lookup to make sure params are valid.
-        var transaction = await db.QuerySingleOrDefaultAsync<RefundTransactionEntry>(
-            "SELECT id, asset_id as assetId, amount, user_id_one as userId, user_asset_id as userAssetId, currency_type as currencyType FROM user_transaction WHERE id = :id", new
-            {
-                id = transactionId,
-            });
-        if (transaction == null)
-            throw new StaffException("Transaction does not exist");
-        if (transaction.userId != userId || transaction.assetId != assetId || transaction.amount != expectedAmount)
-            throw new StaffException("Transaction state is not valid. Reload the page and try again");
-        // Make sure UAID exists
-        if (transaction.userAssetId != 0 && transaction.userAssetId != null)
-        {
-            try
-            {
-                var us = await services.users.GetUserAssetById(transaction.userAssetId.Value);
-                if (us == null || us.userId != userId)
-                    throw new StaffException("User asset does not exist or is no longer owned by this user");
-            }
-            catch (RecordNotFoundException)
-            {
-                throw new StaffException("User asset no longer exists");
-            }
-        }
-        // check avatar
-        var av = await services.avatar.GetWornAssets(userId);
-        var shouldUpdateAvatar = av.Any(a => a == assetId);
-
-        // log
-        await db.ExecuteAsync("INSERT INTO moderation_refund_transaction(actor_id, user_id_one, user_id_two, asset_id, user_asset_id, amount, currency_type, transaction_id) VALUES(:actor_id, :user_id_one, :user_id_two, :asset_id, :user_asset_id, :amount, :currency_type, :transaction_id)", new
-        {
-            actor_id = userSession.userId,
-            user_id_one = userId,
-            user_id_two = transaction.otherUserId,
-            asset_id = assetId,
-            user_asset_id = transaction.userAssetId,
-            amount = expectedAmount,
-            currency_type = transaction.currencyType,
-            transaction_id = transactionId,
-        });
-        // First, refund the user
-        await services.economy.IncrementCurrency(CreatorType.User, userId, transaction.currencyType, transaction.amount);
-        // transfer the uaid
-        var bd = await services.users.GetUserIdFromUsername("BadDecisions");
-        if (transaction.userAssetId != 0 && transaction.userAssetId != null)
-        {
-            await db.ExecuteAsync("UPDATE user_asset SET user_id = :bd WHERE id = :id", new
-            {
-                id = transaction.userAssetId.Value,
-                bd,
-            });
-        }
-        else
-        {
-            // we can't delete one uaid. just move any owned copies the user has.
-            await db.ExecuteAsync("UPDATE user_asset SET user_id = :bd WHERE asset_id = :asset_id AND user_id = :user_id", new
-            {
-                asset_id = transaction.assetId,
-                user_id = transaction.userId,
-                bd,
-            });
-        }
-
-        // delete transaction
-        await db.ExecuteAsync("DELETE FROM user_transaction WHERE id = :id", new
-        {
-            id = transactionId,
-        });
-
-        if (shouldUpdateAvatar)
-        {
-            Writer.Info(LogGroup.AdminApi, "refunded transaction {0}. userId {1} requires a redraw", transaction.id, userId);
-            // avatar requires an update.
-            await services.avatar.RedrawAvatar(userId, default, default, default, default, true);
-        }
+        await services.adminApi.RefundTransactionAsync(transactionId, assetId, expectedAmount, userId, await GetActorContext());
     }
 
     [HttpGet("asset/product-history"), StaffFilter(Access.GetSaleHistoryForAsset)]
-    public async Task<dynamic> GetAssetProductHistory(long assetId)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetAssetProductHistory(long assetId)
     {
-        return await db.QueryAsync(
-                "SELECT p.id, p.asset_id, a.name, p.actor_id, u.username, p.is_for_sale, price_in_tickets, price_in_robux, p.is_limited, p.is_limited_unique, p.max_copies, p.offsale_at, p.created_at FROM moderation_update_product p LEFT JOIN asset a ON a.id = asset_id LEFT JOIN \"user\" u ON u.id = p.actor_id WHERE p.asset_id = :asset_id ORDER BY id DESC", new
-                {
-                    asset_id = assetId,
-                });
+        return await services.adminApi.GetAssetProductHistoryAsync(assetId);
     }
 
     [HttpGet("asset/sale-history"), StaffFilter(Access.GetSaleHistoryForAsset)]
-    public async Task<dynamic> GetSaleHistory(long assetId, int limit, int offset, DateTime? start = null, DateTime? end = null)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetSaleHistory(long assetId, int limit, int offset, DateTime? start = null, DateTime? end = null)
     {
-        var qb = new SqlBuilder();
-        var t = qb.AddTemplate("SELECT t.id, t.user_id_one, u.username, t.amount, t.currency_type, t.user_asset_id, t.created_at FROM user_transaction t INNER JOIN \"user\" u ON u.id = t.user_id_one /**where**/ ORDER BY id DESC LIMIT :limit OFFSET :offset", new
-        {
-            limit = limit,
-            offset = offset,
-        });
-        qb.Where("t.user_id_two = 1 AND t.type = :type AND t.sub_type = :sub_type AND t.asset_id = :asset_id", new
-        {
-            type = PurchaseType.Purchase,
-            sub_type = TransactionSubType.ItemPurchase,
-            asset_id = assetId,
-        });
-        if (start != null)
-        {
-            qb.Where("t.created_at >= :start", new
-            {
-                start = start.Value,
-            });
-        }
-        if (end != null)
-        {
-            qb.Where("t.created_at <= :end", new
-            {
-                end = end.Value,
-            });
-        }
-        return await db.QueryAsync(t.RawSql, t.Parameters);
+        return await services.adminApi.GetSaleHistoryAsync(assetId, limit, offset, start, end);
     }
 
-    private bool doesActionHaveActioned(string action)
-    {
-        switch (action)
-        {
-            case "ban":
-            case "unban":
-            case "item":
-            case "message":
-                return true;
-            default:
-                return false;
-        }
-    }
-    
     [HttpGet("logs"), StaffFilter(Access.GetAdminLogs)]
-    public async Task<dynamic> GetModerationLogs(string logType, int limit = 10, int offset = 0, bool descending = true, string? author = null, string? actioned = null)
+    public async Task<AdminModerationLogsResponse> GetModerationLogs(string logType, int limit = 10, int offset = 0, bool descending = true, string? author = null, string? actioned = null)
     {
-        if (limit is > 100 or < 1) limit = 10;
-        logType = logType.ToLower();
-
-        var sql = new SqlBuilder();
-        SqlBuilder.Template template;
-        string[] columns;
-        
-        switch (logType)
-        {
-            case "ban":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, mb.created_at, mb.expired_at, mb.reason, 
-                        mb.internal_reason, mb.user_id, actioned.username, mb.actor_id, 
-                        author.username as author_username 
-                    FROM moderation_ban mb
-                        INNER JOIN ""user"" actioned ON actioned.id = mb.user_id 
-                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[]
-                { "#", "Date", "Expires", "Reason", "Internal Reason", "UserID",
-                    "Username", "AuthorID", "Author Username",
-                };
-                break;
-            }
-            case "unban":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, mb.created_at, mb.user_id, 
-                        actioned.username, mb.actor_id, author.username as author_username 
-                    FROM moderation_unban mb
-                        INNER JOIN ""user"" actioned ON actioned.id = mb.user_id 
-                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[]
-                { "#", "Date", "UserID", "Username", 
-                    "AuthorID", "Author Username",
-                };
-                break;
-            }
-            case "item":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, mb.created_at, mb.user_asset_id, ua.asset_id, mb.user_id, 
-                        actioned.username, mb.author_user_id, author.username as author_username
-                    FROM moderation_give_item mb
-                        INNER JOIN ""user"" actioned ON actioned.id = mb.user_id 
-                        INNER JOIN ""user"" author ON author.id = mb.author_user_id 
-                        INNER JOIN ""user_asset"" ua ON ua.id = mb.user_asset_id
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[]
-                { "#", "Date", "UserAssetID", "AssetID", "UserID",
-                    "Username", "Author ID", "Author Username",
-                };
-                break;
-            }
-            case "asset":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, asset_id, actor_id, author.username as author_username, action, mb.created_at
-                    FROM moderation_manage_asset mb
-                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[] { "#", "Asset ID", "Author ID", "Author Username", "Status", "Date" };
-                break;
-            }
-            case "alert":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, alert, alert_url, actor_id, author.username as author_username, mb.created_at
-                    FROM moderation_set_alert mb
-                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[] { "#", "Text", "URL", "Author ID", "Author Username", "Date" };
-                break;
-            }
-            case "message":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, subject, body, actor_id, user_id,
-                        author.username as author_username, actioned.username, mb.created_at
-                    FROM moderation_admin_message mb
-                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
-                        INNER JOIN ""user"" actioned ON actioned.id = mb.user_id 
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[] { "#", "Subject", "Body", "Author ID",
-                    "User ID", "Author Username", "Messaged Username", "Date" };
-                break;
-            }
-            case "applications":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, application_id, author_user_id, new_status,
-                        author.username as author_username, mb.created_at
-                    FROM moderation_change_join_app mb
-                        INNER JOIN ""user"" author ON author.id = mb.author_user_id 
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[] { "#", "Application ID", "Author ID", "New Status", "Author Username", "Date" };
-                break;
-            }
-            case "refund":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, asset_id, actor_id, user_id_one, amount,
-                        currency_type, user_asset_id, author.username as author_username, mb.created_at
-                    FROM moderation_refund_transaction mb
-                        INNER JOIN ""user"" author ON author.id = mb.actor_id 
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[] { "#", "Asset ID", "Author ID",
-                    "UserID", "Amount", "Currency", "UAID", "Date", };
-                break;
-            }
-            case "product":
-            {
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, mb.asset_id, a.name, mb.actor_id, mb.is_for_sale, price_in_tickets,
-                        price_in_robux, mb.is_limited, mb.is_limited_unique, mb.max_copies,
-                        mb.offsale_at, author.username as author_username, mb.created_at 
-                    FROM moderation_update_product mb 
-                        LEFT JOIN asset a ON a.id = asset_id
-                        INNER JOIN ""user"" author ON author.id = mb.actor_id
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[] { "#", "Asset ID", "Name", "Author ID", "IsForSale", "Price (R$)",
-                    "Price (T$)", "Limited", "LimitedU", "MaxCopies", "Offsale", "Author Username", "Date" };
-                break;
-            }
-            case "robux":
-            case "tickets":
-            {
-                var table = logType == "robux" ? "moderation_give_robux" : "moderation_give_tickets";
-                template = sql.AddTemplate(@"
-                    SELECT 
-                        mb.id, mb.created_at, mb.amount, mb.user_id, 
-                        mb.author_user_id, author.username as author_username
-                    FROM "+table+@" mb
-                        INNER JOIN ""user"" author ON author.id = mb.author_user_id
-                    /**where**/ /**orderby**/
-                    LIMIT :limit OFFSET :offset
-                    ", new {limit, offset});
-                columns = new[] { "#", "Date", logType == "robux" ? "Robux Amount" : "Tix Amount", 
-                    "User ID", "Author ID", "Author Username" };
-                break;
-            }
-            default:
-                throw new StaffException("Bad log type " + logType);
-        }
-        
-        if (!string.IsNullOrWhiteSpace(actioned) && doesActionHaveActioned(logType))
-        {
-            sql.Where("actioned.username ILIKE :actioned", new {actioned});
-        }
-        if (!string.IsNullOrWhiteSpace(author))
-        {
-            Console.WriteLine(author);
-            sql.Where("author.username ILIKE :author", new {author});
-        }
-
-        var desc = descending ? "DESC" : "ASC";
-        sql.OrderBy($"mb.id {desc}");
-        
-        var result = await db.QueryAsync(template.RawSql, template.Parameters);
-
-        if (logType.Equals("applications"))
-        {
-            result = result.Select(c =>
-            {
-                var oldStatus = (int) c.new_status;
-                c.new_status = (object)(UserApplicationStatus) oldStatus;
-                return c;
-            });
-        } else if (logType.Equals("asset"))
-        {
-            result = result.Select(c =>
-            {
-                var oldStatus = (int)c.action;
-                c.action = (object)(ModerationStatus)oldStatus;
-                return c;
-            });
-        }
-        
-        return new
-        {
-            data = result,
-            columns,
-        };
+        return await services.adminApi.GetModerationLogsAsync(logType, limit, offset, descending, author, actioned);
     }
     
     [HttpGet("getbadges"), StaffFilter(Access.GetUserBadges)]
-    public async Task<dynamic> GetUserBadges(long userId)
+    public async Task<IEnumerable<Roblox.Dto.Users.BadgeEntry>> GetUserBadges(long userId)
     {
-        return await services.accountInformation.GetUserBadges(userId);
+        return await services.adminApi.GetUserBadgesAsync(userId);
     }
 
     [HttpPost("givebadge"), StaffFilter(Access.GiveUserBadge)]
     public async Task GiveUserBadge([Required, FromBody] GiveBadgeRequest request)
     {
-        if (await IsStaff(request.userId) && !StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Cannot modify badges for this user");
-        var ent = BadgesMetadata.Badges.Find(v => v.id == request.badgeId);
-        if (ent == null)
-            throw new StaffException("BadgeId does not exist");
-        await db.ExecuteAsync("INSERT INTO user_badge (user_id, badge_id) VALUES (:user_id, :badge_id)", new
-        {
-            user_id = request.userId,
-            badge_id = request.badgeId,
-        });
+        await services.adminApi.GiveUserBadgeAsync(request, await GetActorContext(), StaffFilter.IsOwner);
     }
 
     [HttpPost("deletebadge"), StaffFilter(Access.DeleteUserBadge)]
     public async Task DeleteUserBadge([Required, FromBody] GiveBadgeRequest request)
     {
-        if (await IsStaff(request.userId) && !StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Cannot modify badges for this user");
-        await db.ExecuteAsync("DELETE FROM user_badge WHERE user_id = :user_id AND badge_id = :badge_id", new
-        {
-            user_id = request.userId,
-            badge_id = request.badgeId,
-        });
+        await services.adminApi.DeleteUserBadgeAsync(request, await GetActorContext(), StaffFilter.IsOwner);
     }
 
     [HttpPost("givetickets"), StaffFilter(Access.GiveUserRobux)]
     public async Task GiveUserTickets([Required, FromBody] GiveUserTicketsRequest request)
     {
-        // temporary
-        // if (!StaffFilter.IsOwner(userSession.userId))
-        //     throw new StaffException("Cannot give Tickets to this user");
-        if (request.tickets is <= -10000000 or > 10000000)
-            throw new StaffException("Invalid ticket amount. Must be between 1 and 10M (inclusive)");
-
-        await db.ExecuteAsync("UPDATE user_economy SET balance_tickets = balance_tickets + :amt WHERE user_id = :user_id",
-            new
-            {
-                user_id = request.userId,
-                amt = request.tickets,
-            });
-        await db.ExecuteAsync(
-            "INSERT INTO moderation_give_tickets (user_id, author_user_id, amount) VALUES (:user_id, :author_user_id, :amount)",
-            new
-            {
-                user_id = request.userId,
-                author_user_id = userSession.userId,
-                amount = request.tickets,
-            });
+        await services.adminApi.GiveUserTicketsAsync(request, await GetActorContext());
     }
 
     [HttpPost("giverobux"), StaffFilter(Access.GiveUserRobux)]
     public async Task GiveUserRobux([Required, FromBody] GiveUserRobuxRequest request)
     {
-        // temporary
-        // if (!StaffFilter.IsOwner(userSession.userId))
-        //     throw new StaffException("Cannot give Robux to this user");
-        if (request.robux is <= -10000000 or > 10000000)
-            throw new StaffException("Invalid robux amount. Must be between 1 and 10M (inclusive)");
-
-        await db.ExecuteAsync("UPDATE user_economy SET balance_robux = balance_robux + :amt WHERE user_id = :user_id",
-            new
-            {
-                user_id = request.userId,
-                amt = request.robux,
-            });
-        await db.ExecuteAsync(
-            "INSERT INTO moderation_give_robux (user_id, author_user_id, amount) VALUES (:user_id, :author_user_id, :amount)",
-            new
-            {
-                user_id = request.userId,
-                author_user_id = userSession.userId,
-                amount = request.robux,
-            });
+        await services.adminApi.GiveUserRobuxAsync(request, await GetActorContext());
     }
 
     [HttpGet("user-collectibles"), StaffFilter(Access.GetUserCollectibles)]
-    public async Task<dynamic> GetUserCollectibles(long userId)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetUserCollectibles(long userId)
     {
-        var result = (await db.QueryAsync("SELECT asset_id, user_asset.id as user_asset_id, asset.name FROM user_asset INNER JOIN asset ON asset.id = user_asset.asset_id WHERE user_asset.user_id = :user_id AND (asset.is_limited = true OR asset.is_limited_unique = true)",
-            new { user_id = userId })).ToList();
-        return result;
+        return await services.adminApi.GetUserCollectiblesAsync(userId);
     }
 
     [HttpPost("removeitem"), StaffFilter(Access.RemoveUserItem)]
     public async Task RemoveItem([Required, FromBody] RemoveItemRequest request)
     {
-        // temporary
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Cannot give remove items from this user");
-        var transferTo = await services.users.GetUserIdFromUsername("BadDecisions");
-        var affected = await db.ExecuteAsync(
-            "UPDATE user_asset SET price = 0, user_id = :new_user_id, updated_at = now() WHERE user_id = :old_user_id AND user_asset.id = :user_asset_id",
-            new
-            {
-                new_user_id = transferTo,
-                old_user_id = request.userId,
-                user_asset_id = request.userAssetId,
-            });
-        if (affected != 1)
-            throw new StaffException("User asset is no longer owned by this user");
-        await db.ExecuteAsync(
-            "INSERT INTO moderation_give_item (user_id, author_user_id, user_asset_id, user_id_from) VALUES (:user_id, :author_user_id, :user_asset_id, :user_id_from)",
-            new
-            {
-                user_id = transferTo,
-                author_user_id = userSession.userId,
-                user_asset_id = request.userAssetId,
-                user_id_from = request.userId,
-            });
+        await services.adminApi.RemoveItemAsync(request, await GetActorContext());
     }
 
     [HttpGet("assets/giveitem-circ"), StaffFilter(Access.GiveUserItem)]
     public async Task<IEnumerable<StaffUserAssetTrackEntry>> GetGiveItemCirc(long assetId, int limit)
     {
-        var transferTo = await services.users.GetUserIdFromUsername("BadDecisions");
-        return (await db.QueryAsync<StaffUserAssetTrackEntry>(
-            "SELECT user_asset.id, user_asset.asset_id as assetId, user_asset.user_id as userId, u.username, user_asset.serial FROM user_asset INNER JOIN \"user\" u ON u.id = user_asset.user_id INNER JOIN \"user_ban\" ub ON ub.user_id = user_asset.user_id WHERE user_asset.asset_id = :asset_id AND ((u.status = :status AND ub.created_at <= :time_sub) OR u.id = :bad) AND user_asset.user_id != 1 ORDER BY user_asset.serial DESC NULLS LAST LIMIT :limit",
-            new
-            {
-                bad = transferTo,
-                status = AccountStatus.Deleted,
-                // ban must be 30 or more days old (bans cannot be appealed after 30 days)
-                time_sub = DateTime.UtcNow.Subtract(TimeSpan.FromDays(31)),
-                asset_id = assetId,
-                limit = limit,
-            })).ToList();
+        return await services.adminApi.GetGiveItemCircAsync(assetId, limit);
     }
+
     [HttpPost("giveitem"), StaffFilter(Access.GiveUserItem)]
     public async Task GiveItem([Required, FromBody] GiveItemRequest request)
     {
-        // if (!StaffFilter.IsOwner(userSession.userId))
-        //     throw new StaffException("Cannot give items to this user");
-        Console.WriteLine(request.assetId);
-        var details = await services.assets.GetAssetCatalogInfo(request.assetId);
-        if (!details.itemRestrictions.Contains("LimitedUnique") && request.giveSerial)
-            throw new StaffException("This asset is not limited unique, cannot give serial");
-
-        // try to get term copies
-        var terminatedCopies = (await GetGiveItemCirc(request.assetId, request.copies)).ToList();
-        if (terminatedCopies.Count < request.copies)
-        {
-            // We'll have to create items
-            for (var i = 0; i < (request.copies - terminatedCopies.Count); i++)
-            {
-                var saleCount = await services.assets.GetSaleCount(request.assetId);
-                long? serial = request.giveSerial ? saleCount + 1 : null;
-
-                var id = await db.QuerySingleOrDefaultAsync(
-                    "INSERT INTO user_asset (asset_id, user_id, serial) VALUES (:asset_id, :user_id, :serial) RETURNING user_asset.id", new
-                    {
-                        asset_id = request.assetId,
-                        user_id = request.userId,
-                        serial = serial,
-                    });
-                await db.ExecuteAsync(
-                    "INSERT INTO moderation_give_item (user_id, author_user_id, user_asset_id, user_id_from) VALUES (:user_id, :author_user_id, :user_asset_id, null)",
-                    new
-                    {
-                        user_id = request.userId,
-                        user_asset_id = (long)id.id,
-                        author_user_id = userSession.userId,
-                    });
-
-                if (serial != null)
-                {
-                    // create fake transaction as well
-                    await services.economy.InsertTransaction(new AssetPurchaseTransaction(request.userId,
-                        details.creatorType, details.creatorTargetId, CurrencyType.Robux, 0, request.assetId, (long)id.id));
-                    await services.assets.IncrementSaleCount(request.assetId);
-                }
-            }
-        }
-        // Transfer terminated copies and log
-        foreach (var item in terminatedCopies)
-        {
-            await db.ExecuteAsync("UPDATE user_asset SET user_id = :uid, updated_at = now(), price = 0 WHERE id = :id", new
-            {
-                id = item.id,
-                uid = request.userId,
-            });
-            await db.ExecuteAsync(
-                "INSERT INTO moderation_give_item (user_id, author_user_id, user_asset_id, user_id_from) VALUES (:user_id, :author_user_id, :user_asset_id, :user_id_from)",
-                new
-                {
-                    user_id = request.userId,
-                    author_user_id = userSession.userId,
-                    user_asset_id = item.id,
-                    user_id_from = item.userId,
-                });
-        }
+        await services.adminApi.GiveItemAsync(request, await GetActorContext());
     }
 
     [HttpGet("trackitem"), StaffFilter(Access.TrackItem)]
-    public async Task<dynamic> TrackItem(long userAssetId)
+    public async Task<IReadOnlyCollection<AdminTrackedItemHistoryEntry>> TrackItem(long userAssetId)
     {
-        var saleData = await services.economy.GetTransactionsForUserAssetId(userAssetId);
-        var tradeData = await services.trades.GetTradesByUserAssetId(userAssetId);
-
-        var historyList = new List<dynamic>();
-        foreach (var item in saleData)
-        {
-            dynamic historyEntry = new ExpandoObject();
-            historyEntry.created_at = item.createdAt;
-            historyEntry.track_type = "Sale";
-            historyEntry.user_id_two = item.userIdTwo;
-            historyEntry.user_id_one = item.userIdOne;
-            historyEntry.user_one_username = item.userNameOne;
-            historyEntry.user_two_username = item.userNameTwo;
-            historyEntry.amount = item.amount;
-            historyEntry.currency_type = (int)item.currency;
-            historyList.Add(historyEntry);
-        }
-
-        foreach (var item in tradeData)
-        {
-            dynamic historyEntry = new ExpandoObject();
-            historyEntry.created_at = item.createdAt;
-            historyEntry.track_type = "Trade";
-            historyEntry.user_id_two = item.userIdTwo;
-            historyEntry.user_id_one = item.userIdOne;
-            historyEntry.user_one_username = item.usernameOne;
-            historyEntry.user_two_username = item.usernameTwo;
-            historyEntry.id = item.id;
-            historyList.Add(historyEntry);
-        }
-
-        return historyList;
+        return await services.adminApi.TrackItemAsync(userAssetId);
     }
 
     [HttpPost("user/delete"), StaffFilter(Access.DeleteUser)]
     public async Task DeleteUser([Required, FromBody] UserIdRequest request)
     {
-        if (await IsStaff(request.userId))
-            throw new StaffException("Cannot delete this user");
-        var k = "staff:userdeletion:v1";
-        if ((await redis.StringGetAsync(k)) != null)
-            throw new StaffException(
-                "An account deletion was already requested recently. Try again in about 10 seconds.");
-        await redis.StringSetAsync(k, "{}", TimeSpan.FromSeconds(10));
-
-        await services.users.DeleteUser(request.userId, true);
-        // reset av
-        await ResetAvatar(request);
+        await services.adminApi.DeleteUserAsync(request, StaffFilter.IsOwner);
     }
 
     [HttpGet("user/usernames"), StaffFilter(Access.GetPreviousUsernames)]
     public async Task<IEnumerable<string>> GetPreviousUsernames(long userId)
     {
-        return (await services.users.GetPreviousUsernames(userId)).Select(c => c.username);
+        return await services.adminApi.GetPreviousUsernamesAsync(userId);
     }
 
     [HttpPost("user/usernames/delete"), StaffFilter(Access.DeleteUsername)]
     public async Task DeleteUsername([Required, FromBody] DeleteUsernameRequest request)
     {
-        // Temporary
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("InternalServerError");
-        if (await IsStaff(request.userId) && !StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Cannot modify this user's usernames");
-        var previousNames = (await services.users.GetPreviousUsernames(request.userId)).ToList();
-        var totalChanges = previousNames.Where(c => c.username.ToLower() == request.username.ToLower()).ToList();
-        if (totalChanges.Count == 0)
-            throw new StaffException("The username provided has not been used by this user.");
-
-        await services.users.InTransaction(async _ =>
-        {
-            var usersDb = services.users.db;
-            await usersDb.ExecuteAsync("DELETE FROM user_previous_username WHERE user_id = :id AND username ILIKE :name", new
-            {
-                id = request.userId,
-                name = request.username,
-            });
-
-            await services.privateMessages.CreateMessage(request.userId, 1, 
-            "Username Refund", @$"Hello,
-
-We have deleted one of your previous usernames, ""{request.username}"". You will no longer have access to this username.
-
-Thank you for your understanding,
-
-
--The Korone Team");
-            return 0;
-        });
+        await services.adminApi.DeleteUsernameAsync(request, await GetActorContext(), StaffFilter.IsOwner);
     }
 
     [HttpDelete("user/comment"), StaffFilter(Access.DeleteComment)]
     public async Task DeleteComment([Required, FromQuery] long userId, [Required, FromQuery] long commentId)
     {
-        await db.ExecuteAsync("UPDATE asset_comment SET comment = '[ Content Deleted ]' WHERE id = :id AND user_id = :user_id", new
-        {
-            id = commentId,
-            user_id = userId,
-        });
+        await services.adminApi.DeleteCommentAsync(userId, commentId);
     }
 
     [HttpPost("delete-forum-post"), StaffFilter(Access.DeleteForumPost)]
     public async Task DeleteForumPost([Required, FromBody] DeleteForumPostRequest request)
     {
-        var details = await db.QuerySingleOrDefaultAsync("SELECT id, thread_id FROM forum_post WHERE id = :id", new
-        {
-            id = request.postId,
-        });
-        if (details == null)
-            throw new StaffException("Post does not exist");
-        if (details.thread_id == null)
-        {
-            await db.ExecuteAsync("DELETE FROM forum_post WHERE id = :id OR thread_id = :id",
-                new { id = request.postId });
-        }
-        else
-        {
-            await db.ExecuteAsync("UPDATE forum_post SET post = '[ Content Deleted ]' WHERE id = :id",
-                new { id = request.postId });
-        }
+        await services.adminApi.DeleteForumPostAsync(request);
     }
 
     [HttpPost("lock-forum-thread"), StaffFilter(Access.LockForumThread)]
     public async Task LockForumThread(long threadId)
     {
-        await db.ExecuteAsync("UPDATE forum_post SET is_locked = true WHERE id = :id AND thread_id IS NULL", new
-        {
-            id = threadId,
-        });
+        await services.adminApi.LockForumThreadAsync(threadId);
     }
 
     [HttpPost("lottery/run"), StaffFilter(Access.RunLottery)]
-    public async Task<dynamic> RunLottery()
+    public async Task<AdminLotteryRunResponse> RunLottery()
     {
-        var log = Writer.CreateWithId(LogGroup.Lottery);
-        log.Info("Lottery start. Initiated by {0}", userSession.userId);
-// #if !DEBUG
-//         var runDate = await redis.StringGetAsync("lottery_run_v1");
-//         if (runDate != null)
-//         {
-//             throw new StaffException("Lottery already ran recently. Try again later.");
-//         }
-// #endif
-
-        var allItems = (await GetLotteryItems()).ToList();
-        log.Info("There are {0} items available",allItems.Count);
-        if (allItems.Count == 0)
-            throw new StaffException("There are no items available for lottery");
-        var allUsers = (await GetEligibleLotteryUsers()).ToList();
-        log.Info("There are {0} users available",allUsers.Count);
-#if !DEBUG
-        if (allUsers.Count < 10)
-            throw new StaffException("At least 10 users have to be online to run the lottery");
-#endif
-        var randomItem = allItems[new Random().Next(0, allItems.Count)];
-        log.Info("Picked item. UAID = {0} Old Owner = {1}", randomItem.userAssetId, randomItem.userId);
-        var randomUser = allUsers[new Random().Next(0, allUsers.Count)];
-        log.Info("Picked user. ID = {0}", randomUser.userId);
-        // transfer item...
-        await db.ExecuteAsync("UPDATE user_asset SET user_id = :user_id, updated_at = now(), price = 0 WHERE id = :id", new
-        {
-            user_id = randomUser.userId,
-            id = randomItem.userAssetId,
-        });
-        log.Info("item {0} transferred from {1} to {2}", randomItem.userAssetId, randomItem.userId, randomUser.userId);
-        // send messages
-        await services.privateMessages.CreateMessage(randomUser.userId, 1, "You Won The Lottery!",
-            "Congrats! Your account was chosen as the winner for today's lottery, where a Limited or Limited Unique item is given away after the owner has been offline for 6 months or more.\n\nThe item you won is: " +
-            randomItem.name + ", which has a Recent Average Price of " + randomItem.recentAveragePrice + ". The item has already been added to your account - no action is required to claim it.\nIf you do not want this item, you can sell it on the market or trade it with another user for an item you do want.\n\n-The Korone Team");
-        log.Info("sent message to user picked {0}", randomUser.userId);
-        await services.privateMessages.CreateMessage(randomItem.userId, 1, "Inactive Account Penalty",
-            "Hello\n\nAs part of our efforts to encourage activity and discourage account compromises, we have removed the item " +
-            randomItem.name +
-            " from your inventory, and awarded it to a random player who was active at the time of our lottery draw. We understand that you may not have been expecting this to happen, however, it is outlined in our policy that we reserve the right to remove items from accounts once they've been inactive for 6 months or longer. At the time of sending this message, your account has been inactive since " + randomUser.onlineAt.ToString("MMMM dd, yyyy") + "\n\nItems taken from your account for lottery purposes cannot be restored. We hope you understand,\n\n-The Korone Team");
-        log.Info("sent message to old asset owner {0}", randomItem.userId);
-        // await redis.StringSetAsync("lottery_run_v1", "{}", TimeSpan.FromMinutes(30));
-        return new
-        {
-            randomItem.name, randomUser.username,
-        };
+        return await services.adminApi.RunLotteryAsync(await GetActorContext());
     }
 
     [HttpGet("lottery/get-users-eligible")]
     public async Task<IEnumerable<UserLotteryEntry>> GetEligibleLotteryUsers()
     {
-        var eligibleUsers = await db.QueryAsync<UserLotteryEntry>(
-            "SELECT u.username, u.id as userId, u.online_at as onlineAt FROM \"user\" u WHERE u.online_at >= :online_time AND u.created_at <= :creation_time AND u.status = :status", new
-            {
-                status = AccountStatus.Ok,
-                online_time = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(10)),
-                creation_time = DateTime.UtcNow.Subtract(TimeSpan.FromDays(30)), // at least 30 days old account
-            });
-        return eligibleUsers;
+        return await services.adminApi.GetEligibleLotteryUsersAsync();
     }
 
     [HttpGet("lottery/get-items")]
     public async Task<IEnumerable<LotteryItemEntry>> GetLotteryItems()
     {
-        var eligibleItems = await db.QueryAsync<LotteryItemEntry>("SELECT a.name, a.id as assetId, a.recent_average_price as recentAveragePrice, u.id as userId, u.online_at as onlineAt, u.username, ua.id as userAssetId FROM user_asset ua INNER JOIN \"user\" u on u.id = ua.user_id INNER JOIN \"asset\" a ON a.id = ua.asset_id WHERE u.id != 1 AND u.id != 12 AND u.online_at <= :time AND (a.is_limited OR a.is_limited_unique) AND NOT a.is_for_sale AND u.status = :status ORDER BY u.online_at LIMIT 1000", new
-        {
-            status = AccountStatus.Ok,
-            time = DateTime.UtcNow.Subtract(TimeSpan.FromDays(30 * 1)), // currently from 1 month
-        });
-        return eligibleItems;
+        return await services.adminApi.GetLotteryItemsAsync();
     }
 
 
     [HttpGet("asset/types")]
     public Dictionary<int,string> GetAssetTypes()
     {
-        var all = new Dictionary<int, string>();
-        foreach (var value in Enum.GetValues<Type>())
-        {
-            all[(int) value] = value.ToString();
-        }
-
-        return all;
+        return services.adminApi.GetAssetTypes();
     }
 
     [HttpGet("asset/genres")]
     public Dictionary<int,string> GetAssetGenres()
     {
-        var all = new Dictionary<int, string>();
-        foreach (var value in Enum.GetValues<Genre>())
-        {
-            all[(int) value] = value.ToString();
-        }
-
-        return all;
+        return services.adminApi.GetAssetGenres();
     }
 
     [HttpPost("asset/re-render"), StaffFilter(Access.RequestAssetReRender)]
     public async Task RequestAssetReRender([Required, FromBody] ReRenderRequest request)
     {
-        var details = await services.assets.GetAssetCatalogInfo(request.assetId);
-        services.assets.RenderAsset(request.assetId, details.assetType);
+        await services.adminApi.RequestAssetReRenderAsync(request);
     }
 
     [HttpGet("asset/details"), StaffFilter(Access.GetProductDetails)]
-    public async Task<dynamic> GetAssetDetails(long assetId)
+    public async Task<AdminAssetDetailsResponse> GetAssetDetails(long assetId)
     {
-        var devInfo = await services.assets.MultiGetAssetDeveloperDetails(new[] {assetId});
-        var info = await services.assets.MultiGetInfoById(new[] {assetId});
-        return new
-        {
-            developerInfo = devInfo, info,
-        };
+        return await services.adminApi.GetAssetDetailsAsync(assetId);
     }
 
     [HttpGet("product/details"), StaffFilter(Access.GetProductDetails)]
-    public async Task<dynamic> GetProductDetails(long assetId)
+    public async Task<ProductEntry> GetProductDetails(long assetId)
     {
-        return await services.assets.GetProductForAsset(assetId);
-    }
-
-    private async Task InsertProductLog(long assetId, long userId, bool isLimited, bool isLimitedUnique, DateTime? offsaleAt, int? maxCopies, long? priceRobux, long?priceTickets, bool isForSale)
-    {
-        await db.ExecuteAsync("INSERT INTO moderation_update_product (asset_id, actor_id, is_limited, is_limited_unique, offsale_at, max_copies, price_in_robux, price_in_tickets, is_for_sale) VALUES (@asset_id, @actor_id, @is_limited, @is_limited_unique, @offsale_at, @max_copies, @robux, @tix, @is_for_sale)", new
-        {
-            asset_id = assetId,
-            actor_id = userId,
-            is_limited = isLimited,
-            is_limited_unique = isLimitedUnique,
-            offsale_at = offsaleAt,
-            max_copies = maxCopies,
-            robux = priceRobux,
-            tix = priceTickets,
-            is_for_sale = isForSale,
-        });
+        return await services.adminApi.GetProductDetailsAsync(assetId);
     }
 
     [HttpPatch("asset/product"), StaffFilter(Access.SetAssetProduct)]
     public async Task UpdateAssetProduct([Required, FromBody] UpdateProductRequest request)
     {
-        var details = await services.assets.GetProductForAsset(request.assetId);
-        var permissions = (await services.users.GetStaffPermissions(safeUserSession.userId)).Select(c => c.permission).ToArray();
-
-        if (!StaffFilter.IsOwner(safeUserSession.userId))
-        {
-            if (!permissions.Contains(Access.MakeItemLimited))
-            {
-                // cannot update a limited item
-                if (details.isLimited || details.isLimitedUnique)
-                    throw new StaffException("You do not have permission to update a limited item");
-
-                request.isLimited = false;
-                request.isLimitedUnique = false;
-                request.maxCopies = null;
-            }
-
-            // cannot update a product that is not owned by the admin account
-            var extraInfo = await services.assets.GetAssetCatalogInfo(request.assetId);
-            if (extraInfo.creatorType != CreatorType.User && extraInfo.creatorTargetId != 1)
-                throw new StaffException("You do not have permission to update a product that is not owned by the admin account");
-            /*var allowedTypes = new List<Type>()
-            {
-                Type.Hat,
-                Type.FrontAccessory,
-                Type.BackAccessory,
-                Type.NeckAccessory,
-                Type.HairAccessory,
-                Type.ShoulderAccessory,
-                Type.BackAccessory,
-                Type.FrontAccessory,
-                Type.WaistAccessory,
-                Type.NeckAccessory,
-                Type.Package,
-                Type.Face,
-                Type.Gear,
-                Type.Head
-            };
-            if (!allowedTypes.Contains(extraInfo.assetType))
-                throw new StaffException("You do not have permission to update a product that is not a hat, accessory, or package");
-                */
-        }
-        // check if existing log exists (old products don't have logs)
-        var existingLog = await db.QuerySingleOrDefaultAsync<Total>("SELECT count(*) as total FROM moderation_update_product WHERE asset_id = :asset_id", new
-        {
-            asset_id = request.assetId,
-        });
-        if (existingLog.total == 0)
-        {
-            // insert log
-            await InsertProductLog(request.assetId, 1, details.isLimited, details.isLimitedUnique, details.offsaleAt, details.serialCount, details.priceRobux, details.priceTickets, details.isForSale);
-        }
-
-        await InsertProductLog(request.assetId, safeUserSession.userId, request.isLimited, request.isLimitedUnique, request.offsaleDeadline?.ToUniversalTime(), request.maxCopies, request.priceRobux, request.priceTickets, request.isForSale);
-
-        await services.assets.UpdateAssetMarketInfoName(request.assetId, request.assetName);
-        await services.assets.UpdateAssetMarketDescriptionInfo(request.assetId, request.description);
-
-        await services.assets.UpdateAssetMarketInfo(request.assetId, request.isForSale, request.isLimited, request.isLimitedUnique, request.maxCopies, request.offsaleDeadline?.ToUniversalTime());
-        await services.assets.SetItemPrice(request.assetId, request.priceRobux, request.priceTickets);
+        await services.adminApi.UpdateAssetProductAsync(request, await GetActorContext());
     }
 
     [HttpPost("asset/start-sale"), StaffFilter(Access.SetAssetProduct)]
     public async Task StartAssetSale([Required, FromBody] StartSaleRequest request)
     {
-        if (!StaffFilter.IsOwner(safeUserSession.userId))
-            throw new StaffException("Only the owner can start sales");
-        await services.assets.StartSale(request.assetId, request.pctOff, request.flatRobux, request.flatTix, request.salesUnits);
+        await services.adminApi.StartAssetSaleAsync(request, await GetActorContext());
     }
 
     [HttpPost("asset/end-sale"), StaffFilter(Access.SetAssetProduct)]
     public async Task EndAssetSale([Required, FromBody] EndSaleRequest request)
     {
-        if (!StaffFilter.IsOwner(safeUserSession.userId))
-            throw new StaffException("Only the owner can end sales");
-        await services.assets.EndSale(request.assetId);
-    }
-
-    private async Task CopyItemFloodCheck()
-    {
-        if (!StaffFilter.IsOwner(safeUserSession.userId))
-        {
-            var canUploadLocal = await services.cooldown.TryIncrementBucketCooldown(
-                "CopyItemFromRobloxV1:" + safeUserSession.userId, 30, TimeSpan.FromHours(1));
-            if (!canUploadLocal)
-                throw new StaffException("Flood check reached for asset uploads on your account (hour). Try again in an hour");
-
-            var canUploadLocalDay = await services.cooldown.TryIncrementBucketCooldown(
-                "CopyItemFromRobloxV1:" + safeUserSession.userId, 40, TimeSpan.FromHours(12));
-            if (!canUploadLocalDay)
-                throw new StaffException("Flood check reached for asset uploads on your account (day). Try again tomorrow");
-
-            var canUploadGlobal =
-                await services.cooldown.TryIncrementBucketCooldown("CopyItemFromRobloxGlobalV1", 60,
-                    TimeSpan.FromHours(12));
-            if (!canUploadGlobal)
-                throw new StaffException("Global flood check reached for item uploads");
-        }
+        await services.adminApi.EndAssetSaleAsync(request, await GetActorContext());
     }
 
     [HttpPost("bundle/copy-from-roblox"), StaffFilter(Access.CreateBundleCopiedFromRoblox)]
-    public async Task<dynamic> CopyBundle(long bundleId)
+    public async Task<CreateResponse> CopyBundle(long bundleId)
     {
-        var details = await services.robloxApi.GetBundle(bundleId);
-        if (details.bundleType != "BodyParts" && details.bundleType != "AvatarAnimations") throw new StaffException("Invalid bundleType " + details.bundleType);
-
-        // Check if duplicate?
-        var alreadyExists = await services.assets.SearchCatalog(new CatalogSearchRequest()
-        {
-            limit = 10,
-            include18Plus = true,
-            includeNotForSale = true,
-            creatorType = CreatorType.User,
-            creatorTargetId = 1,
-            keyword = details.name,
-        });
-        if (alreadyExists._total > 0 && alreadyExists != null)
-        {
-            var existing = await services.assets.MultiGetInfoById(alreadyExists.data.Select(c => c.id));
-            foreach (var ent in existing)
-            {
-                if (ent.assetType == Type.Package && ent.name == details.name)
-                {
-                    throw new StaffException("It looks like this bundle already exists: AssetID=" + ent.id);
-                }
-            }
-        }
-
-        var ids = new List<long>();
-        foreach (var item in details.items)
-        {
-            if (item.type != "Asset") continue;
-            Console.WriteLine("Getting {0}", item.id);
-            var info = await services.robloxApi.GetProductInfo(item.id, false);
-
-            Stream content;
-            if (details.bundleType == "AvatarAnimations")
-            {
-                content = await services.robloxApi.GetAssetContentFromProxy(item.id, 1);
-            }
-            else
-            {
-                content = await services.robloxApi.GetAssetContentFromProxy(item.id);
-            }
-            // var isOk = await services.assets.ValidateAssetFile(content, info.AssetTypeId!.Value);
-            // if (!isOk)
-            //     throw new StaffException("The asset file doesn't look correct. Please try again.");
-            content.Position = 0;
-            // Make the item!
-            var assetDetails = await services.assets.CreateAsset(item.name, null, 1,
-                CreatorType.User, 1, content, info.AssetTypeId!.Value, Genre.All, ModerationStatus.ReviewApproved,
-                DateTime.UtcNow, DateTime.UtcNow, item.id);
-            ids.Add(assetDetails.assetId);
-        }
-
-        await CopyItemFloodCheck();
-        // Now make the bundle
-        return await CreateAsset(new CreateAssetRequest()
-        {
-            assetTypeId = Type.Package,
-            description = details.description,
-            genre = Genre.All,
-            isForSale = false,
-            isLimited = false,
-            isLimitedUnique = false,
-            maxCopies = null,
-            name = details.name,
-            offsaleDeadline = null,
-            packageAssetIds = string.Join(",", ids.Select(c => c.ToString())),
-        });
+        return await services.adminApi.CopyBundleAsync(bundleId, await GetActorContext());
     }
+
     [HttpPost("asset/backport-from-roblox"), StaffFilter(Access.CreateAssetCopiedFromRoblox)]
-    public async Task<dynamic> BackportAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
+    public async Task<AdminAssetIdResponse> BackportAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
     {
-        var permissions = (await services.users.GetStaffPermissions(safeUserSession.userId)).Select(c => c.permission).ToArray();
-        if (!request.force)
-        {
-            // Check duplicate id first
-            try
-            {
-                // Check if already exists
-                var ourAssetId = await services.assets.GetAssetIdFromRobloxAssetId(request.assetId);
-                return new
-                {
-                    assetId = ourAssetId,
-                };
-            }
-            catch (RecordNotFoundException)
-            {
-                // Don't care
-            }
-        }
-
-        var details = await services.robloxApi.GetProductInfo(request.assetId, true);
-        var allowedTypes = new List<Models.Assets.Type>()
-        {
-            Type.Hat,
-            Type.HairAccessory,
-            Type.FrontAccessory,
-            Type.BackAccessory,
-            Type.WaistAccessory,
-            Type.NeckAccessory,
-            Type.Gear,
-            Type.Face,
-            Type.ShoulderAccessory,
-            Type.FaceAccessory,
-            Type.Head,
-            Type.EmoteAnimation,
-            Type.Model
-        };
-        if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
-            throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);
-        if (string.IsNullOrWhiteSpace(details.Name))
-            throw new StaffException("Name cannot be null or empty");
-        if (details.IsLimited == null || details.IsLimitedUnique == null)
-            throw new StaffException("Product details were invalid for this item. Try again");
-
-        if (details.IsLimited == true || details.IsLimitedUnique == true)
-        {
-            if (!permissions.Contains(Access.MakeItemLimited) && !StaffFilter.IsOwner(safeUserSession.userId))
-                throw new StaffException("You do not have permission to copy a limited item");
-        }
-
-        if (!request.force)
-        {
-            // Check if duplicate?
-            var alreadyExists = await services.assets.SearchCatalog(new CatalogSearchRequest()
-            {
-                limit = 10,
-                include18Plus = true,
-                includeNotForSale = true,
-                creatorType = CreatorType.User,
-                creatorTargetId = 1,
-                keyword = details.Name,
-            });
-            if (alreadyExists._total != 0 && alreadyExists.data != null)
-                foreach (var item in alreadyExists.data)
-                {
-                    var info = await services.assets.GetAssetCatalogInfo(item.id);
-                    if (info.assetType == details.AssetTypeId)
-                        throw new StaffException("It looks like this item already exists: AssetID=" + info.id +
-                                                 "\nIf this is incorrect, click the 'force' button to upload this item anyway.");
-                }
-        }
-
-        await CopyItemFloodCheck();
-        // Now backport the item!
-        long backportId = await services.assets.BackportAccessory(request.assetId);
-        if (backportId == 0)
-            throw new StaffException("Failed to backport asset");
-        await db.ExecuteAsync("INSERT INTO moderation_migrate_asset(asset_id, roblox_asset_id, actor_id) VALUES (@assetId, @robloxAssetId, @actorId)",
-            new
-            {
-                assetId = backportId,
-                robloxAssetId = request.assetId,
-                actorId = safeUserSession.userId,
-            });
-
-        return new
-        {
-            assetId = backportId
-        };
+        return await services.adminApi.BackportAssetFromRobloxAsync(request, await GetActorContext());
     }
+
     [HttpPost("asset/copy-from-roblox"), StaffFilter(Access.CreateAssetCopiedFromRoblox)]
-    public async Task<dynamic> CopyAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
+    public async Task<AdminAssetIdResponse> CopyAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
     {
-        var permissions = (await services.users.GetStaffPermissions(safeUserSession.userId)).Select(c => c.permission).ToArray();
-        if (!request.force)
-        {
-            // Check duplicate id first
-            try
-            {
-                // Check if already exists
-                var ourAssetId = await services.assets.GetAssetIdFromRobloxAssetId(request.assetId);
-                return new
-                {
-                    assetId = ourAssetId,
-                };
-            }
-            catch (RecordNotFoundException)
-            {
-                // Don't care
-            }
-        }
-
-        var details = await services.robloxApi.GetProductInfo(request.assetId, true);
-        var allowedTypes = new List<Models.Assets.Type>()
-        {
-            Type.Hat,
-            Type.HairAccessory,
-            Type.FrontAccessory,
-            Type.BackAccessory,
-            Type.WaistAccessory,
-            Type.NeckAccessory,
-            Type.Gear,
-            Type.Face,
-            Type.ShoulderAccessory,
-            Type.FaceAccessory,
-            Type.Head,
-            Type.EmoteAnimation,
-        };
-
-        if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
-            throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);
-        if (string.IsNullOrWhiteSpace(details.Name))
-            throw new StaffException("Name cannot be null or empty");
-        if (details.IsLimited == null || details.IsLimitedUnique == null)
-            throw new StaffException("Product details were invalid for this item. Try again");
-
-        if (details.IsLimited == true || details.IsLimitedUnique == true)
-        {
-            if (!permissions.Contains(Access.MakeItemLimited) && !StaffFilter.IsOwner(safeUserSession.userId))
-                throw new StaffException("You do not have permission to copy a limited item");
-        }
-
-        if (!request.force)
-        {
-            // Check if duplicate?
-            var alreadyExists = await services.assets.SearchCatalog(new CatalogSearchRequest()
-            {
-                limit = 10,
-                include18Plus = true,
-                includeNotForSale = true,
-                creatorType = CreatorType.User,
-                creatorTargetId = 1,
-                keyword = details.Name,
-            });
-            if (alreadyExists._total != 0 && alreadyExists.data != null)
-                foreach (var item in alreadyExists.data)
-                {
-                    var info = await services.assets.GetAssetCatalogInfo(item.id);
-                    if (info.assetType == details.AssetTypeId)
-                        throw new StaffException("It looks like this item already exists: AssetID=" + info.id +
-                                                 "\nIf this is incorrect, click the 'force' button to upload this item anyway.");
-                }
-        }
-        var content = await services.robloxApi.GetAssetContentFromProxy(request.assetId);
-
-        content.Position = 0;
-        await CopyItemFloodCheck();
-        // Now make the item!
-        var assetDetails = await services.assets.CreateAsset(details.Name, details.Description, 1,
-            CreatorType.User, 1, content, details.AssetTypeId.Value, Genre.All, ModerationStatus.ReviewApproved,
-            DateTime.UtcNow, DateTime.UtcNow, request.assetId);
-        await db.ExecuteAsync("INSERT INTO moderation_migrate_asset(asset_id, roblox_asset_id, actor_id) VALUES (@assetId, @robloxAssetId, @actorId)",
-            new
-            {
-                assetId = assetDetails.assetId,
-                robloxAssetId = request.assetId,
-                actorId = safeUserSession.userId,
-            });
-
-        return new
-        {
-            assetId = assetDetails.assetId,
-        };
+        return await services.adminApi.CopyAssetFromRobloxAsync(request, await GetActorContext());
     }
 
     [HttpGet("ugc-requests/pending"), StaffFilter(Access.PendingUgcItems)]
-    public async Task<IEnumerable<dynamic>> GetPendingUgcRequests()
+    public async Task<IEnumerable<PendingUgcRequestEntry>> GetPendingUgcRequests()
     {
-        var rows = await db.QueryAsync<PendingUgcRequestEntry>(
-            "SELECT ur.id, ur.user_id as userId, ur.roblox_asset_id as robloxAssetId, ur.roblox_url as robloxUrl, ur.item_name as itemName, ur.created_at as createdAt, u.username as creatorName " +
-            "FROM ugc_request ur INNER JOIN \"user\" u ON u.id = ur.user_id " +
-            "WHERE ur.status = :status ORDER BY ur.id ASC LIMIT 50",
-            new { status = (short)Roblox.Models.UgcRequest.UgcRequestStatus.Pending });
-        return rows;
+        return await services.adminApi.GetPendingUgcRequestsAsync();
     }
 
     [HttpPost("ugc-request/moderate"), StaffFilter(Access.PendingUgcItems)]
-    public async Task<dynamic> ModerateUgcRequest([Required, FromBody] ModerateUgcRequestBody request)
+    public async Task<AdminSuccessResponse> ModerateUgcRequest([Required, FromBody] ModerateUgcRequestBody request)
     {
-        var newStatus = request.isApproved
-            ? (short)Roblox.Models.UgcRequest.UgcRequestStatus.Approved
-            : (short)Roblox.Models.UgcRequest.UgcRequestStatus.Declined;
-
-        // Atomically claim the pending row. If another staff already claimed it, claimed == null.
-        var row = await db.QuerySingleOrDefaultAsync<PendingUgcRequestEntry>(
-            "UPDATE ugc_request SET status = :newStatus, decided_at = NOW(), decided_by = :by " +
-            "WHERE id = :id AND status = :pending " +
-            "RETURNING id, user_id as userId, roblox_asset_id as robloxAssetId, roblox_url as robloxUrl, item_name as itemName, status",
-            new
-            {
-                newStatus,
-                by = safeUserSession.userId,
-                id = request.id,
-                pending = (short)Roblox.Models.UgcRequest.UgcRequestStatus.Pending,
-            });
-        if (row == null)
-            throw new StaffException("Request not found or already decided");
-
-        if (request.isApproved)
-        {
-            long createdAssetId;
-            string itemName = row.itemName ?? "your item";
-            try
-            {
-                var copyResult = await CopyAssetFromRoblox(new CopyAssetRequest
-                {
-                    assetId = row.robloxAssetId,
-                    force = false,
-                });
-                createdAssetId = (long)copyResult.assetId;
-            }
-            catch (Exception e)
-            {
-                // Revert the claim so another staff can retry.
-                await db.ExecuteAsync(
-                    "UPDATE ugc_request SET status = :pending, decided_at = NULL, decided_by = NULL WHERE id = :id",
-                    new { pending = (short)Roblox.Models.UgcRequest.UgcRequestStatus.Pending, id = row.id });
-                if (e is StaffException) throw;
-                throw new StaffException("Failed to copy item: " + e.Message);
-            }
-
-            await db.ExecuteAsync(
-                "UPDATE ugc_request SET created_asset_id = :assetId WHERE id = :id",
-                new { assetId = createdAssetId, id = row.id });
-
-            var body = $"Good news! Your UGC item request was approved.\n\n" +
-                       $"Item: {itemName}\n" +
-                       $"Original URL: {row.robloxUrl}\n" +
-                       $"View on Korone: /catalog/{createdAssetId}/--\n\n" +
-                       $"Thanks for contributing!";
-            await services.privateMessages.CreateMessage(row.userId, 1, "Your UGC item request was approved", body);
-        }
-        else
-        {
-            var body = $"Your UGC item request was declined.\n\n" +
-                       $"Item URL: {row.robloxUrl}\n\n" +
-                       $"You may submit a different item if you'd like.";
-            await services.privateMessages.CreateMessage(row.userId, 1, "Your UGC item request was declined", body);
-        }
-
-        return new { success = true };
-    }
-
-    public class ModerateUgcRequestBody
-    {
-        public long id { get; set; }
-        public bool isApproved { get; set; }
-    }
-
-    public class PendingUgcRequestEntry
-    {
-        public long id { get; set; }
-        public long userId { get; set; }
-        public long robloxAssetId { get; set; }
-        public string robloxUrl { get; set; } = string.Empty;
-        public string? itemName { get; set; }
-        public DateTime createdAt { get; set; }
-        public string? creatorName { get; set; }
-        public short status { get; set; }
+        return await services.adminApi.ModerateUgcRequestAsync(request, await GetActorContext());
     }
 
     [HttpPost("asset/create"), StaffFilter(Access.CreateAsset)]
-    public async Task<dynamic> CreateAsset([Required, FromForm] CreateAssetRequest request)
+    public async Task<CreateResponse> CreateAsset([Required, FromForm] CreateAssetRequest request)
     {
-        if (request.isLimitedUnique) request.isLimited = true;
-        if (!Enum.IsDefined(request.assetTypeId))
-            throw new StaffException("Bad assetTypeId");
-        //var isMesh = request.assetTypeId == Type.Mesh;
-        var isPackage = request.assetTypeId == Type.Package;
-        var disableRender = isPackage;
-        IEnumerable<long>? packageAssetIds = null;
-
-        if (!isPackage && request.rbxm == null)
-            throw new StaffException("No file specified");
-
-        if (isPackage)
-        {
-            // validate
-            if (request.packageAssetIds == null)
-                throw new StaffException("Must specify assetIds when creating a package");
-            packageAssetIds = request.packageAssetIds.Split(",").Select(long.Parse);
-            var packages = (await services.assets.MultiGetAssetDeveloperDetails(packageAssetIds)).ToList();
-            var result = new Dictionary<Type, int>();
-            foreach (var item in packages)
-            {
-                var type = (Type) item.typeId;
-                if (!result.ContainsKey(type))
-                {
-                    result[type] = 0;
-                }
-
-                result[type]++;
-            }
-            // confirm all required types are specified
-           var optionalOneOf = new List<Type>() 
-           {
-                Type.LeftArm,
-                Type.LeftLeg,
-                Type.RightLeg,
-                Type.RightArm,
-                Type.Torso,
-                Type.Head,
-                Type.Gear,
-                Type.Shirt,
-                Type.Pants,
-                Type.Face,
-                Type.RunAnimation,
-                Type.IdleAnimation,
-                Type.WalkAnimation,
-                Type.FallAnimation,
-                Type.ClimbAnimation,
-                Type.JumpAnimation,
-                Type.SwimAnimation,
-                Type.EmoteAnimation
-            };
-
-            var optionalCanHaveMoreThanOne = new List<Type>() {Type.Hat, Type.HairAccessory, Type.ShoulderAccessory, Type.BackAccessory, Type.FrontAccessory, Type.WaistAccessory, Type.NeckAccessory};
-            // optional
-            foreach (var type in optionalOneOf)
-            {
-                if (result.ContainsKey(type))
-                {
-                    if (result[type] > 1)
-                        throw new StaffException("Package has too many of this type: " + type);
-                }
-            }
-            // finally, update our assets list in-place, so people can't specify invalid types
-            packageAssetIds = packages.Where(c =>
-            {
-                var t = (Type) c.typeId;
-                return optionalOneOf.Contains(t) ||
-                       optionalCanHaveMoreThanOne.Contains(t);
-            }).Select(c => c.assetId);
-        }
-
-        Stream? file = null;
-        if (request.rbxm != null)
-        {
-            var fileData = request.rbxm.OpenReadStream();
-            // TODO: we should probably be validating audio and image uploads...
-            if (request.assetTypeId != Type.Audio && request.assetTypeId != Type.EmoteAnimation && request.assetTypeId != Type.Image && request.assetTypeId != Type.Mesh && request.assetTypeId != Type.GamePass && request.assetTypeId != Type.Badge)
-            {
-                var isOk = await services.assets.RobloxFileValidation(fileData);
-                if (!isOk)
-                    throw new StaffException("The asset file doesn't look correct. Please try again.");
-            }
-            fileData.Position = 0;
-            file = fileData;
-        }
-
-        var assetDetails = await services.assets.CreateAsset(request.name, request.description, 1,
-            CreatorType.User, 1, file, request.assetTypeId, request.genre, ModerationStatus.ReviewApproved,
-            DateTime.UtcNow, DateTime.UtcNow, request.robloxAssetId, disableRender);
-        if (request.assetTypeId == Type.Package)
-        {
-            if (packageAssetIds == null)
-                throw new StaffException("packageAssetIds cannot be null when creating a package");
-
-            foreach (var id in packageAssetIds.Distinct())
-            {
-                await services.assets.InsertPackageAsset(assetDetails.assetId, id);
-            }
-            services.assets.RenderAsset(assetDetails.assetId, request.assetTypeId);
-        }
-        // add market data
-        await services.assets.SetItemPrice(assetDetails.assetId, request.price, null);
-        await services.assets.UpdateAssetMarketInfo(assetDetails.assetId, request.isForSale, request.isLimited,
-            request.isLimitedUnique, request.maxCopies, request.offsaleDeadline?.ToUniversalTime());
-
-        // return
-        return assetDetails;
+        return await services.adminApi.CreateAssetAsync(request);
     }
 
     [HttpPost("asset/create/clothing"), StaffFilter(Access.CreateClothingAsset)]
-    public async Task<dynamic> CreateClothingAsset([Required, FromForm] CreateClothingRequest request)
+    public async Task<CreateResponse> CreateClothingAsset([Required, FromForm] CreateClothingRequest request)
     {
-        if (request.file == null)
-            throw new StaffException("No file specified");
-
-        var buf = request.file.OpenReadStream();
-        var ok = await services.assets.ValidateClothing(buf, request.assetTypeId);
-        if (ok == null) throw new StaffException("Invalid file provided");
-        // create clothing asset
-        buf.Position = 0;
-        var texture = await services.assets.CreateAsset(request.file.FileName, $"{request.assetTypeId} Image", 1,
-            CreatorType.User, 1, buf, Type.Image, Genre.All, ModerationStatus.ReviewApproved, DateTime.UtcNow, DateTime.UtcNow);
-        // create the asset itself
-        var asset = await services.assets.CreateAsset(request.name, request.description, 1, CreatorType.User, 1,
-            null, request.assetTypeId, request.genre, ModerationStatus.ReviewApproved, DateTime.UtcNow,
-            DateTime.UtcNow, request.robloxAssetId, false, texture.assetId);
-        // add market data
-        await services.assets.SetItemPrice(asset.assetId, request.price, null);
-        await services.assets.UpdateAssetMarketInfo(asset.assetId, request.isForSale, false, false,
-            null, null);
-        return asset;
+        return await services.adminApi.CreateClothingAssetAsync(request);
     }
 
     [HttpPost("asset/create/from-roblox"), StaffFilter(Access.MigrateAssetFromRoblox)]
-    public async Task<dynamic> CopyAnyItemFromRoblox([Required, FromBody] MigrateItemAlternateRequest request)
+    public async Task<MigrateItem> CopyAnyItemFromRoblox([Required, FromBody] MigrateItemAlternateRequest request)
     {
         return await MigrateItem.MigrateItemFromRoblox(request.url);
     }
 
     [HttpGet("group-verify"), StaffFilter(Access.LockAndUnlockGroup)]
-    public async Task<dynamic> GroupVerify(long groupId, bool verify)
+    public async Task<AdminMessageResponse> GroupVerify(long groupId, bool verify)
     {
-        if (!StaffFilter.IsOwner(safeUserSession.userId))
-            throw new StaffException("Not authorized to verify groups");
-        await db.ExecuteAsync("UPDATE \"group\" SET verified = :isVerified WHERE id = :id", new
-        {
-            isVerified = verify,
-            id = groupId,
-        });
-        return "Group " + groupId + " has been " + (verify ? "verified" : "unverified") + ".";
+        return await services.adminApi.GroupVerifyAsync(groupId, verify, await GetActorContext());
     }   
 
     [HttpGet("create-promocode"), StaffFilter(Access.GiveUserItem)]
-    public async Task<dynamic> CreatePromocode(string promocode, int? robux, long? assetId)
+    public async Task<AdminMessageResponse> CreatePromocode(string promocode, int? robux, long? assetId)
     {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Not authorized to create promocodes");
-        try
-        {
-            await services.promocodes.AddPromocode(promocode, robux, assetId);
-        }
-        catch (Exception e)
-        {
-            return Ok("Failed to create promocode: " + e.Message);
-        }
-
-        return Ok("Created promocode");
+        return await services.adminApi.CreatePromocodeAsync(promocode, robux, assetId, await GetActorContext());
     }
 
     [HttpGet("delete-promocode"), StaffFilter(Access.GiveUserItem)]
-    public async Task<dynamic> DeletePromocode(string promocode)
+    public async Task<AdminMessageResponse> DeletePromocode(string promocode)
     {
-        if (!StaffFilter.IsOwner(userSession.userId))
-            throw new StaffException("Not authorized to create promocodes");
-        try
-        {
-            await services.promocodes.DeletePromocode(promocode);
-        }
-        catch (Exception e)
-        {
-            return Ok("Failed to delete promocode: " + e.Message);
-        }
-
-        return Ok("Deleted promocode");
+        return await services.adminApi.DeletePromocodeAsync(promocode, await GetActorContext());
     }
 
     [HttpPost("create-game"), StaffFilter(Access.CreateGameForUser)]
-    public async Task<dynamic> CreateGame([Required, FromBody] UserIdRequest request)
+    public async Task<AdminCreateGameResponse> CreateGame([Required, FromBody] UserIdRequest request)
     {
-        var username = (await services.users.GetUserById(request.userId)).username;
-        var asset = await services.assets.CreatePlace(request.userId, username, CreatorType.User, request.userId);
-        var universe = await services.games.CreateUniverse(asset.placeId);
-        return new
-        {
-            asset.placeId, universe.universeId,
-        };
+        return await services.adminApi.CreateGameAsync(request);
     }
 
     [HttpPost("asset/version/create"), StaffFilter(Access.CreateAssetVersion)]
-    public async Task<dynamic> CreateAssetVersion([Required, FromForm] CreateAssetVersionRequest request)
+    public async Task<AssetVersionWithIdEntry> CreateAssetVersion([Required, FromForm] CreateAssetVersionRequest request)
     {
-        if (request.rbxm == null)
-            throw new StaffException("No file specified");
-
-        var info = await services.assets.GetAssetCatalogInfo(request.assetId);
-        var canUpload = false;
-        if (info.creatorType is CreatorType.User && info.creatorTargetId == 1)
-        {
-            canUpload = true;
-        }
-        else if (await services.assets.CanUserModifyItem(info.id, userSession.userId))
-        {
-            canUpload = true;
-        }
-
-        if (canUpload == false && !StaffFilter.IsOwner(userSession.userId)) throw new StaffException("Not authorized to modify this item");
-        if (info.assetType == Type.Package) throw new StaffException("Cannot create an asset version for this type");
-        var result = await services.assets.CreateAssetVersion(request.assetId, 1, request.rbxm.OpenReadStream());
-        services.assets.RenderAsset(request.assetId, info.assetType);
-        return result;
+        return await services.adminApi.CreateAssetVersionAsync(request, await GetActorContext());
     }
 
     [HttpPost("infrastructure/request-update"), StaffFilter(Access.RequestWebsiteUpdate)]
-    public dynamic RequestUpdate()
+    public AdminMessageResponse RequestUpdate()
     {
         throw new StaffException("Feature has been removed");
     }
 
     [HttpGet("feature-flags/all"), StaffFilter(Access.ManageFeatureFlags)]
-    public dynamic GetAllFlags()
+    public IReadOnlyDictionary<FeatureFlag, bool> GetAllFlags()
     {
-        return FeatureFlags.GetAllFlags();
+        return services.adminApi.GetAllFlags();
     }
 
     [HttpPost("feature-flags/enable"), StaffFilter(Access.ManageFeatureFlags)]
     public async Task EnableFlag(string featureFlag)
     {
-        await FeatureFlags.EnableFlag(Enum.Parse<FeatureFlag>(featureFlag));
+        await services.adminApi.EnableFlagAsync(featureFlag);
     }
 
     [HttpPost("feature-flags/disable"), StaffFilter(Access.ManageFeatureFlags)]
     public async Task DisableFlag(string featureFlag)
     {
-        await FeatureFlags.DisableFlag(Enum.Parse<FeatureFlag>(featureFlag));
+        await services.adminApi.DisableFlagAsync(featureFlag);
     }
 
     [HttpGet("players/in-game"), StaffFilter(Access.GetUsersInGame)]
-    public async Task<dynamic> GetInGamePlayers()
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetInGamePlayers()
     {
-        return await db.QueryAsync("SELECT s.user_id, s.asset_id, s.server_id, u.username, a.name as asset_name FROM asset_server_player s INNER JOIN \"user\" u ON u.id = s.user_id INNER JOIN asset a ON a.id = s.asset_id LIMIT 1000");
+        return await services.adminApi.GetInGamePlayersAsync();
     }
 
     [HttpGet("players/online-count"), StaffFilter(Access.GetUsersOnline)]
-    public async Task<dynamic> GetOnlinePlayersCount()
+    public async Task<AdminTotalResponse> GetOnlinePlayersCount()
     {
-        var t = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(60));
-        var OnlineCount = await db.QuerySingleOrDefaultAsync("SELECT COUNT(*) as total FROM \"user\" WHERE online_at >= :t", new
-        {
-            t,
-        });
-
-        var usernames = new List<string>();
-        return new
-        {
-            total = (long)OnlineCount.total,
-        };
+        return await services.adminApi.GetOnlinePlayersCountAsync();
     }
 
 
 
     [HttpGet("users/{userId:long}/transactions"), StaffFilter(Access.GetUserTransactions)]
-    public async Task<dynamic> GetUserTransactions(long userId, PurchaseType type, int offset, int limit)
+    public async Task<IEnumerable<TransactionEntryDb>> GetUserTransactions(long userId, PurchaseType type, int offset, int limit)
     {
-        return await services.economy.GetTransactions(userId, CreatorType.User, type, limit, offset);
+        return await services.adminApi.GetUserTransactionsAsync(userId, type, offset, limit);
     }
 
     [HttpGet("users/{userId:long}/all-transactions"), StaffFilter(Access.GetUserTransactions)]
-    public async Task<dynamic> GetAllUserTransactions(long userId, int offset, int limit)
+    public async Task<IEnumerable<TransactionEntryDb>> GetAllUserTransactions(long userId, int offset, int limit)
     {
-        return await services.economy.GetTransactions(userId, CreatorType.User, limit, offset);
+        return await services.adminApi.GetAllUserTransactionsAsync(userId, offset, limit);
     }
 
     [HttpGet("users/{userId:long}/trades"), StaffFilter(Access.GetUserTransactions)]
-    public async Task<dynamic> GetUserTrades(long userId, TradeType type, int offset, int limit)
+    public async Task<IReadOnlyCollection<AdminTradeHistoryResponse>> GetUserTrades(long userId, TradeType type, int offset, int limit)
     {
-        var response = new List<dynamic>();
-        var result = await services.trades.GetTradesOfType(userId, type, limit, offset);
-        foreach (var item in result)
-        {
-            var tradeDbEntry = await services.trades.GetTradeById(item.id);
-            var items = await services.trades.GetTradeItems(item.id);
-            response.Add(new
-            {
-                trade = item,
-                db = tradeDbEntry,
-                items,
-            });
-        }
-        return response;
+        return await services.adminApi.GetUserTradesAsync(userId, type, offset, limit);
     }
 
-// TODO: add logging
-/*
     [HttpPost("trades/{tradeId:long}/rollback"), StaffFilter(Access.RollbackTrade)]
     public async Task RollbackTrade(long tradeId)
     {
-        await services.trades.RollbackTrade(tradeId);
+        await services.adminApi.RollbackTradeAsync(tradeId, await GetActorContext());
     }
-    */
 
     [HttpPost("users/{userId:long}/reset-description"), StaffFilter(Access.ResetDescription)]
     public async Task ResetDescription(long userId)
     {
-        var rlKey = "ResetDescriptionV1";
-        if ((await redis.StringGetAsync(rlKey)) !=null)
-        {
-            throw new StaffException("Someone already reset a description recently. Try again in a few seconds.");
-        }
-
-        await redis.StringSetAsync(rlKey, "{}", TimeSpan.FromSeconds(5));
-        await services.users.SetUserDescription(userId, "[ Content Deleted ]");
+        await services.adminApi.ResetDescriptionAsync(userId);
     }
 
     [HttpPost("users/{userId:long}/reset-username"), StaffFilter(Access.ResetUsername)]
     public async Task ResetUsername(long userId)
     {
-        if (!StaffFilter.IsOwner(userSession.userId))
-        {
-            var rlKey = "ResetUsernameV1";
-            if ((await redis.StringGetAsync(rlKey)) != null)
-            {
-                throw new StaffException("Someone already reset a username recently. Try again in a few seconds.");
-            }
-
-            await redis.StringSetAsync(rlKey, "{}", TimeSpan.FromSeconds(5));
-        }
-
-        // get user data
-        var userData = await services.users.GetUserById(userId);
-        if (userData.isModerator || userData.isAdmin || await IsStaff(userData.userId))
-            throw new StaffException("Cannot change this user's username");
-        // ban the username
-        await services.users.AddBadUsername(userData.username);
-        // reset
-        await services.users.ResetUsername(userId, userSession.userId);
-        // message
-        await services.privateMessages.CreateMessage(userId, 1, "Username Reset",
-            "Hello,\n\nYour username has been reset due to abuse concerns. You can request a new username by contacting a staff member.\n\n-The Korone Team");
+        await services.adminApi.ResetUsernameAsync(userId, await GetActorContext(), StaffFilter.IsOwner);
     }
 
     [HttpPost("users/{userId:long}/verify-user")]
     public async Task VerifyUser(long userId)
     {
-        if (!IsAdmin())
-            throw new StaffException("You are not allowed to access this");
-        await db.ExecuteAsync("UPDATE \"user\" SET verified = true WHERE id = :uid", new 
-        {
-            uid = userId,
-        });
-        await services.users.InvalidateUserInfoCache(userId);
+        await services.adminApi.VerifyUserAsync(userId, await GetActorContext());
     }
 
     [HttpPost("users/{userId:long}/unverify-user")]
     public async Task UnverifyUser(long userId)
     {
-        if (!IsAdmin())
-            throw new StaffException("You are not allowed to access this");
-        await db.ExecuteAsync("UPDATE \"user\" SET verified = false WHERE id = :uid", new 
-        {
-            uid = userId,
-        });
-        await services.users.InvalidateUserInfoCache(userId);
+        await services.adminApi.UnverifyUserAsync(userId, await GetActorContext());
     }
 
 
     [HttpGet("applications/update-lock"), StaffFilter(Access.ManageApplications)]
     public async Task UpdateLocks(string ids)
     {
-        var parsed = ids.Split(",");
-        if (parsed.Length is < 0 or > 10)
-            return;
-
-        await services.users.AcquireApplicationLocks(userSession.userId, parsed);
+        await services.adminApi.UpdateLocksAsync(ids, await GetActorContext());
     }
 
     [HttpGet("applications/list"), StaffFilter(Access.ManageApplications)]
-    public async Task<dynamic> GetApplications(UserApplicationStatus? status, int offset, SortOrder sortOrder, string? searchQuery = null, ApplicationSearchColumn? searchColumn = null)
+    public async Task<IEnumerable<UserApplicationEntry>> GetApplications(UserApplicationStatus? status, int offset, SortOrder sortOrder, string? searchQuery = null, ApplicationSearchColumn? searchColumn = null)
     {
-        return await services.users.GetApplications(status, offset, sortOrder, status == UserApplicationStatus.Pending ? userSession.userId : null, searchQuery, searchColumn);
+        return await services.adminApi.GetApplicationsAsync(status, offset, sortOrder, searchQuery, searchColumn, await GetActorContext());
     }
 
     [HttpGet("applications/details"), StaffFilter(Access.ManageApplications)]
-    public async Task<dynamic> GetApplicationById(string id)
+    public async Task<UserApplicationEntry> GetApplicationById(string id)
     {
-        var result = await services.users.GetApplicationById(id);
-        if (result == null)
-            throw new StaffException("Application ID is invalid or does not exist");
-        return result;
+        return await services.adminApi.GetApplicationByIdAsync(id);
     }
 
     [HttpGet("applications/pending-num")]
+    [SkipAdminTwoFactor]
     [StaffFilter(Access.ManageApplications)]
-    public async Task<dynamic> GetNumPendingApplications()
+    public async Task<AdminCountResponse> GetNumPendingApplications()
     {
-        var count = await services.users.CountPendingApplications();
-        return new
-        {
-            count
-        };
+        return await services.adminApi.GetNumPendingApplicationsAsync();
     }
 
     [HttpPost("applications/{applicationId}/approve"), StaffFilter(Access.ManageApplications)]
-    public async Task<dynamic> ApproveApplication(string applicationId)
+    public async Task<AdminApplicationApproveResponse> ApproveApplication(string applicationId)
     {
-        var appInfo = await services.users.GetApplicationById(applicationId);
-        if (appInfo?.status == UserApplicationStatus.Pending)
-        {
-            // award commission for reviewing the application
-            await AwardCommissionForApplicationReview();
-        }
-        else if (appInfo?.status == UserApplicationStatus.Approved || appInfo?.status == UserApplicationStatus.Rejected)
-        {
-            throw new StaffException("Application is already approved or rejected");
-        }
-        var result = await services.users.ProcessApplication(applicationId, userSession.userId, UserApplicationStatus.Approved);
-
-        return new
-        {
-            joinId = result,
-        };
+        return await services.adminApi.ApproveApplicationAsync(applicationId, await GetActorContext());
     }
 
     [HttpPost("applications/{applicationId}/decline"), StaffFilter(Access.ManageApplications)]
     public async Task DeclineApplication(string applicationId, string reason)
     {
-        var appInfo = await services.users.GetApplicationById(applicationId);
-        if (appInfo?.status == UserApplicationStatus.Pending)
-        {
-            await AwardCommissionForApplicationReview();
-        }
-        await services.users.ProcessApplication(applicationId, userSession.userId, UserApplicationStatus.Rejected, reason);
+        await services.adminApi.DeclineApplicationAsync(applicationId, reason, await GetActorContext());
     }
 
     [HttpPost("applications/{applicationId}/decline-silent"), StaffFilter(Access.ManageApplications)]
     public async Task DeclineApplicationSilently(string applicationId)
     {
-        var appInfo = await services.users.GetApplicationById(applicationId);
-        if (appInfo?.status == UserApplicationStatus.Pending)
-        {
-            await AwardCommissionForApplicationReview();
-        }
-        await services.users.ProcessApplication(applicationId, userSession.userId, UserApplicationStatus.SilentlyRejected);
+        await services.adminApi.DeclineApplicationSilentlyAsync(applicationId, await GetActorContext());
     }
 
     [HttpPost("applications/{applicationId}/clear"), StaffFilter(Access.ClearApplications)]
     public async Task ClearApplication(string applicationId)
     {
-        await services.users.ClearApplication(applicationId);
+        await services.adminApi.ClearApplicationAsync(applicationId);
     }
 
     [HttpGet("invites/{userId:long}"), StaffFilter(Access.ManageInvites)]
-    public async Task<dynamic> GetInvitesByUser(long userId)
+    public async Task<IEnumerable<UserInviteEntry>> GetInvitesByUser(long userId)
     {
-        return await services.users.GetInvitesByUser(userId);
+        return await services.adminApi.GetInvitesByUserAsync(userId);
     }
 
     [HttpGet("text-moderation/get-latest"), StaffFilter(Access.GetAllAssetComments)]
-    public async Task<dynamic> GetLatestIdsForTextMod()
+    public async Task<AdminLatestTextModerationIdsResponse> GetLatestIdsForTextMod()
     {
-        var forumPosts = await services.forums.GetAllPosts(0, 1, "desc", null);
-        var comments = await GetAllAssetComments(1, 0, "desc");
-        var wall = await GetAllWallPosts(1, 0, "desc");
-        var status = await GetAllUserStatuses(0, 1, "desc");
-        var groupStatus = await GetGroupStatuses(0, 1, "desc");
-
-        return new
-        {
-            ForumPost = forumPosts.Last().postId,
-            AssetComment = comments.Last().id,
-            GroupWallPost = wall.Last().id,
-            UserStatusPost = status.Last().id,
-            GroupStatusPost = groupStatus.Last().id,
-        };
+        return await services.adminApi.GetLatestIdsForTextModAsync();
     }
 
     [HttpGet("assets/comments"), StaffFilter(Access.GetAllAssetComments)]
     public async Task<IEnumerable<StaffAssetCommentEntry>> GetAllAssetComments(int limit, int offset, string? sortOrder = "asc", long? exclusiveStartId = 0)
     {
-        var q = new Dapper.SqlBuilder();
-        var t = q.AddTemplate(
-            "SELECT asset_comment.id as id, asset.id as assetId, asset.name, asset_comment.comment as comment, u.id as userId, u.username as username, asset_comment.created_at as createdAt FROM asset_comment INNER JOIN asset ON asset_comment.asset_id = asset.id INNER JOIN \"user\" u ON asset_comment.user_id = u.id /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new {
-                limit,
-                offset,
-            });
-
-        if (exclusiveStartId != null)
-            q.Where("asset_comment.id > :start_id", new
-            {
-                start_id = exclusiveStartId.Value,
-            });
-        q.OrderBy(sortOrder == "desc" ? "asset_comment.id DESC" : "asset_comment.id ASC");
-
-        return await db.QueryAsync<StaffAssetCommentEntry>(t.RawSql, t.Parameters);
+        return await services.adminApi.GetAllAssetCommentsAsync(limit, offset, sortOrder, exclusiveStartId);
     }
 
     [HttpGet("groups/wall"), StaffFilter(Access.GetGroupWall)]
     public async Task<IEnumerable<StaffWallEntry>> GetAllWallPosts(int limit, int offset, string? sortOrder = "asc", long? exclusiveStartId = null)
     {
-        var q = new SqlBuilder();
-        var t = q.AddTemplate(
-            "SELECT gw.id, gw.content as post, gw.group_id as groupId, gw.user_id as userId, u.username, gw.created_at as createdAt FROM group_wall gw INNER JOIN \"user\" u ON gw.user_id = u.id /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset",
-            new
-            {
-                limit,
-                offset,
-            });
-        if (exclusiveStartId != null)
-            q.Where("gw.id > :start_id", new
-            {
-                start_id = exclusiveStartId.Value,
-            });
-
-        q.OrderBy(sortOrder == "desc" ? "gw.id desc" : "gw.id asc");
-
-        return await db.QueryAsync<StaffWallEntry>(t.RawSql, t.Parameters);
+        return await services.adminApi.GetAllWallPostsAsync(limit, offset, sortOrder, exclusiveStartId);
     }
 
     [HttpPost("groups/wall/remove"), StaffFilter(Access.DeleteGroupWallPost)]
     public async Task RemoveWallPost(long id)
     {
-        await db.ExecuteAsync("UPDATE group_wall SET \"content\" = '[ Content Deleted ]' WHERE id = :id", new
-        {
-            id,
-        });
+        await services.adminApi.RemoveWallPostAsync(id);
     }
 
     [HttpGet("groups/status"), StaffFilter(Access.GetGroupStatus)]
     public async Task<IEnumerable<GroupWallPostStaff>> GetGroupStatuses(int offset, int limit, string? sortOrder = "asc", long? exclusiveStartId = null)
     {
-        var q = new SqlBuilder();
-        var t = q.AddTemplate(
-            "SELECT s.id, s.group_id, s.status, s.user_id, g.name, u.username, s.created_at FROM group_status s INNER JOIN \"group\" g ON s.group_id = g.id INNER JOIN \"user\" u ON g.user_id = u.id /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset",
-            new
-            {
-                limit,
-                offset,
-            });
-        q.OrderBy(sortOrder == "desc" ? "s.id DESC" : "s.id ASC");
-        if (exclusiveStartId != null)
-            q.Where("s.id > :start_id", new
-            {
-                start_id = exclusiveStartId.Value,
-            });
-
-        return await db.QueryAsync<GroupWallPostStaff>(t.RawSql, t.Parameters);
+        return await services.adminApi.GetGroupStatusesAsync(offset, limit, sortOrder, exclusiveStartId);
     }
 
     [HttpPost("groups/status/delete"), StaffFilter(Access.DeleteGroupStatus)]
     public async Task DeleteGroupStatus(long id)
     {
-        await services.groups.DeleteGroupStatus(id);
+        await services.adminApi.DeleteGroupStatusAsync(id);
     }
 
     [HttpGet("users/status"), StaffFilter(Access.GetAllUserStatuses)]
     public async Task<IEnumerable<StaffUserStatusEntry>> GetAllUserStatuses(int offset, int limit, string? sortOrder = "asc", long? exclusiveStartId = null)
     {
-        var q = new SqlBuilder();
-        var t = q.AddTemplate(
-            "SELECT s.id as id, s.user_id as userId, s.status as post, u.username, s.created_at as createdAt FROM user_status s INNER JOIN \"user\" u ON s.user_id = u.id /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset",
-            new
-            {
-                limit,
-                offset,
-            });
-        if (exclusiveStartId != null)
-            q.Where("s.id > :start_id", new
-            {
-                start_id = exclusiveStartId.Value,
-            });
-
-        q.OrderBy(sortOrder == "desc" ? "s.id DESC" : "s.id ASC");
-        return await db.QueryAsync<StaffUserStatusEntry>(t.RawSql, t.Parameters);
+        return await services.adminApi.GetAllUserStatusesAsync(offset, limit, sortOrder, exclusiveStartId);
     }
 
-    private readonly List<string> allowedGroupSortColumns = new List<string>
-    {
-        "id",
-    };
-
     [HttpGet("groups/list"), StaffFilter(Access.GetGroupManageInfo)]
-    public async Task<dynamic> GetGroupList(int offset, int limit, string sortColumn, string sortOrder)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetGroupList(int offset, int limit, string sortColumn, string sortOrder)
     {
-        if (!allowedGroupSortColumns.Contains(sortColumn))
-        {
-            sortColumn = allowedGroupSortColumns[0];
-        }
-
-        if (sortOrder is not "asc" or "desc")
-        {
-            sortOrder = "asc";
-        }
-
-        var sql = new SqlBuilder();
-        var t = sql.AddTemplate("SELECT * FROM \"group\" g /**orderby**/");
-        sql.OrderBy($"{sortColumn} {sortOrder} LIMIT :limit OFFSET :offset", new
-        {
-            limit,
-            offset,
-        });
-
-        return await db.QueryAsync(t.RawSql, t.Parameters);
+        return await services.adminApi.GetGroupListAsync(offset, limit, sortColumn, sortOrder);
     }
 
     [HttpGet("groups/get-by-name"), StaffFilter(Access.GetGroupManageInfo)]
-    public async Task<dynamic> GetGroupByName(string name)
+    public async Task<AdminGroupModerationInfoResponse> GetGroupByName(string name)
     {
-        long? id = await services.groups.GetGroupIdByName(name);
-        if (id == null)
-            throw new StaffException("Group name is invalid or does not exist");
-        return await GetGroupModerationInfo((long)id);
+        return await services.adminApi.GetGroupByNameAsync(name);
     }
 
     [HttpGet("groups/audit-log"), StaffFilter(Access.GetGroupManageInfo)]
-    public async Task<dynamic> GetEntireAuditLog(long groupId)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetEntireAuditLog(long groupId)
     {
-        return await db.QueryAsync(
-            "SELECT * FROM group_audit_log WHERE group_id = :gid ORDER BY group_audit_log.id DESC", new
-            {
-                gid = groupId,
-            });
+        return await services.adminApi.GetEntireAuditLogAsync(groupId);
     }
 
     [HttpPost("groups/toggle-lock-status"), StaffFilter(Access.LockAndUnlockGroup)]
     public async Task ToggleGroupLockStatus(long groupId, bool locked)
     {
-        await db.ExecuteAsync("UPDATE \"group\" g SET locked = :t WHERE g.id = :id", new
-        {
-            id = groupId,
-            t = locked,
-        });
+        await services.adminApi.ToggleGroupLockStatusAsync(groupId, locked);
     }
 
     [HttpPost("groups/reset"), StaffFilter(Access.ResetGroup)]
     public async Task ResetGroup(long groupId)
     {
-        var newName = "[ Content Deleted (" + groupId + ") ]";
-        if (await services.groups.IsGroupNameTaken(newName))
-        {
-            newName = Guid.NewGuid().ToString();
-        }
-        await db.ExecuteAsync(
-            "UPDATE \"group\" SET name = :name, description = '[ Content Deleted ]' WHERE id = :id",
-            new
-            {
-                id = groupId,
-                name = newName,
-            });
-        // delete all status entries...
-        foreach (var entry in await services.groups.MultiGetGroupStatus(new []{groupId}, 100000))
-        {
-            await db.ExecuteAsync("UPDATE group_status SET status = '[ Content Deleted ]' WHERE id = :id", new
-            {
-                id = entry.feedId,
-            });
-        }
-        // delete all roles...
-        foreach (var item in await services.groups.GetRolesInGroup(groupId))
-        {
-            if (item.rank == 0)
-                continue;
-            var name = "Role" + item.id + "";
-            await db.ExecuteAsync(
-                "UPDATE group_role SET name = :name, description = '[ Content Deleted ]' WHERE id =:id", new
-                {
-                    item.id,
-                    name,
-                });
-        }
-        // moderate icons
-        await db.ExecuteAsync("UPDATE group_icon SET is_approved = 0 WHERE group_id = :id", new
-        {
-            id = groupId,
-        });
-        // clear audit logs - could contain personal info
-        await db.ExecuteAsync(
-            "UPDATE group_audit_log SET new_description = '[ Content Deleted ]', old_description = '[ Content Deleted ]' WHERE new_description IS NOT NULL AND group_id = :id",
-            new
-            {
-                id = groupId,
-            });
-        await db.ExecuteAsync(
-            "UPDATE group_audit_log SET new_name = '[ Content Deleted ]', old_name = '[ Content Deleted ]' WHERE new_name IS NOT NULL AND group_id = :id",
-            new
-            {
-                id = groupId,
-            });
-        await db.ExecuteAsync(
-            "UPDATE group_audit_log SET post_desc = '[ Content Deleted ]' WHERE post_desc IS NOT NULL AND group_id = :id",
-            new
-            {
-                id = groupId,
-            });
-        // wall
-        await db.ExecuteAsync("UPDATE group_wall SET content = '[ Content Deleted ]' WHERE group_id = :id", new
-        {
-            id = groupId,
-        });
+        await services.adminApi.ResetGroupAsync(groupId);
     }
 
     [HttpGet("games/play-history"), StaffFilter(Access.GetUsersInGame)]
-    public async Task<dynamic> GetPlayHistory(int limit, int offset)
+    public async Task<IReadOnlyCollection<AdminDataRow>> GetPlayHistory(int limit, int offset)
     {
-        return await db.QueryAsync(
-            "SELECT p.asset_id, p.user_id, p.created_at, p.ended_at, a.name, u.username FROM asset_play_history p INNER JOIN asset a ON p.asset_id = a.id INNER JOIN \"user\" u ON p.user_id = u.id ORDER BY p.id DESC LIMIT :limit OFFSET :offset", new
-            {
-                limit,
-                offset,
-            });
+        return await services.adminApi.GetPlayHistoryAsync(limit, offset);
     }
 
     [HttpPost("text-moderation/request-payment"), StaffFilter(Access.GetAllAssetComments)]
-    public async Task<dynamic> RequestPayment()
+    public async Task<AdminRobuxAmountResponse> RequestPayment()
     {
-        var redisKey = "TextModerator:Clock:v2:" + userSession.userId;
-        var lastTimeStr = await redis.StringGetAsync(redisKey);
-        var lastClock = DateTime.UtcNow;
-        if (lastTimeStr != null)
-        {
-            // ran into TZ issues if I just used "ToString()". No clue how I should be actually doing this...
-            var result = JsonSerializer.Deserialize<DateTimeSerialized>(lastTimeStr);
-            if (result != null)
-                lastClock = result.clock;
-        }
-        await redis.StringSetAsync(redisKey, JsonSerializer.Serialize(new DateTimeSerialized()
-        {
-            clock = DateTime.UtcNow,
-        }));
-
-        var forumPosts = await services.forums.GetAllPosts(0, 100, "desc", null);
-        var comments = await GetAllAssetComments(100, 0, "desc");
-        var wall = await GetAllWallPosts(100, 0, "desc");
-        var status = await GetAllUserStatuses(0, 100, "desc");
-        var groupStatus = await GetGroupStatuses(0, 100, "desc");
-
-        var validForumPosts = forumPosts.Count(c => c.createdAt > lastClock);
-        var validComments = comments.Count(c => c.createdAt > lastClock);
-        var validWall = wall.Count(c => c.createdAt > lastClock);
-        var validStatus = status.Count(c => c.createdAt > lastClock);
-        var validGroupStatus = groupStatus.Count(c => c.created_at > lastClock);
-        const int robuxMultiplier = 5;
-
-        var robuxAmount = (validComments + validForumPosts + validWall + validStatus + validGroupStatus);
-        if (robuxAmount == 0)
-            return new
-            {
-                robuxAmount,
-            };
-
-        robuxAmount *= robuxMultiplier;
-
-        if (robuxAmount > 150)
-        {
-            robuxAmount = 150;
-        }
-
-        await services.economy.IncrementCurrency(CreatorType.User, userSession.userId, CurrencyType.Robux, robuxAmount);
-        await services.users.InsertAsync("user_transaction", new
-        {
-            type = PurchaseType.Commission,
-            currency_type = CurrencyType.Robux,
-            amount = robuxAmount,
-            // details
-            sub_type = TransactionSubType.StaffTextModeration,
-            // user data
-            user_id_one = userSession.userId,
-            user_id_two = 1,
-        });
-
-        return new
-        {
-            robuxAmount,
-        };
+        return await services.adminApi.RequestPaymentAsync(await GetActorContext());
     }
 
     [HttpGet("chat-messages/{reportId}"), StaffFilter(Access.ManageReports)]
-    public async Task<dynamic> GetChatMessages(string reportId)
+    public async Task<IActionResult> GetChatMessages(string reportId)
     {
-        GameMessagesEntry gameMessages = await services.abuseReport.GetGamesMessagesById(reportId);
-        return Content($"These messages were recorded at: {gameMessages.createdAt:yyyy-MM-dd HH:mm:ss} in the game job {gameMessages.jobId}.\n\n" + gameMessages.messages, "text/plain; charset=utf-8", Encoding.UTF8);
+        var response = await services.adminApi.GetChatMessagesAsync(reportId);
+        return Content(response.content, response.contentType, Encoding.UTF8);
     }
 
     [HttpGet("reports/pending-count"), StaffFilter(Access.ManageReports)]
-    public async Task<dynamic> GetPendingReports()
+    [SkipAdminTwoFactor]
+    public async Task<AdminCountResponse> GetPendingReports()
     {
-        var count = await services.abuseReport.CountPendingReports();
-        return new
-        {
-            count
-        };
+        return await services.adminApi.GetPendingReportsAsync();
     }
 
     [HttpGet("reports/list"), StaffFilter(Access.ManageReports)]
-    public async Task<dynamic> GetReports(AbuseReportStatus status)
+    public async Task<IEnumerable<AbuseReportEntry>> GetReports(AbuseReportStatus status)
     {
-        return await services.abuseReport.GetReports(status);
-    }
-
-    private async Task RewardForReportReview()
-    {
-        const int robuxAmount = 5;
-        await services.economy.IncrementCurrency(CreatorType.User, userSession.userId, CurrencyType.Robux, robuxAmount);
-        await services.users.InsertAsync("user_transaction", new
-        {
-            type = PurchaseType.Commission,
-            currency_type = CurrencyType.Robux,
-            amount = robuxAmount,
-            // details
-            sub_type = TransactionSubType.StaffReportReview,
-            // user data
-            user_id_one = userSession.userId,
-            user_id_two = 1,
-        });
+        return await services.adminApi.GetReportsAsync(status);
     }
 
     [HttpPost("reports/{id}/accept"), StaffFilter(Access.ManageReports)]
     public async Task AcceptReport(string id)
     {
-        var data = await services.abuseReport.GetReportById(id);
-        if (data == null || data.reportStatus != AbuseReportStatus.Pending)
-            return;
-        await services.abuseReport.SetReportStatus(id, AbuseReportStatus.Valid, safeUserSession.userId);
-        await services.privateMessages.CreateMessage(data.userId, 1, "Thank you for your report", "Your report has been reviewed and accepted. Thank you for helping keep Korone safe.");
-        await RewardForReportReview();
+        await services.adminApi.AcceptReportAsync(id, await GetActorContext());
     }
 
     [HttpPost("reports/{id}/decline"), StaffFilter(Access.ManageReports)]
     public async Task DeclineReport(string id)
     {
-        var data = await services.abuseReport.GetReportById(id);
-        if (data == null || data.reportStatus != AbuseReportStatus.Pending)
-            return;
-        await services.abuseReport.SetReportStatus(id, AbuseReportStatus.InvalidGood, safeUserSession.userId);
-        await RewardForReportReview();
+        await services.adminApi.DeclineReportAsync(id, await GetActorContext());
     }
 
     [HttpPost("reports/{id}/invalid"), StaffFilter(Access.ManageReports)]
     public async Task DeclineReportInvalid(string id)
     {
-        var data = await services.abuseReport.GetReportById(id);
-        if (data == null || data.reportStatus != AbuseReportStatus.Pending)
-            return;
-        await services.abuseReport.SetReportStatus(id, AbuseReportStatus.InvalidBad, safeUserSession.userId);
-        await RewardForReportReview();
+        await services.adminApi.DeclineReportInvalidAsync(id, await GetActorContext());
     }
 
     [HttpGet("assets/{assetId}/owners"), StaffFilter(Access.GetAllAssetOwners)]
     public async Task<IEnumerable<CollectibleUserAssetEntry>> GetLiterallyAllOwnersKindaUnsafe(long assetId)
     {
-        return await db.QueryAsync<CollectibleUserAssetEntry>("SELECT id as userAssetId, asset_id as assetId, user_id as userId, price, serial, created_at as createdAt, updated_at as updatedAt FROM user_asset WHERE asset_id = :asset_id", new
-        {
-            asset_id = assetId,
-        });
+        return await services.adminApi.GetAllOwnersAsync(assetId);
     }
-
-    private Regex matchAssetThumbRegex = new Regex("\\/images\\/thumbnails\\/([a-zA-Z0-9]+)", RegexOptions.Compiled);
-    private Regex matchUserThumbRegex = new Regex("(\\/images\\/thumbnails\\/[a-zA-Z0-9\\.\\\\_]+)", RegexOptions.Compiled);
-    private Regex matchGroupIconRegex = new Regex("\\/images\\/thumbnails\\/([a-zA-Z0-9\\.]+)", RegexOptions.Compiled);
 
     [HttpGet("moderation/get-by-thumbnail"), StaffFilter(Access.GetDetailsFromThumbnail)]
     public async Task<StaffAssetResolveThumbnailResponse> GetDetailsFromThumbnail(string url)
     {
-        if (string.IsNullOrWhiteSpace(url))
-            return new();
-
-        var response = new StaffAssetResolveThumbnailResponse();
-
-        var assetUrl = matchAssetThumbRegex.Match(url);
-        if (assetUrl.Success)
-        {
-            // thumbs
-            var groupData = assetUrl.Groups[1].Value;
-            var matchingThumbs = await db.QueryAsync<ResolveThumbAssetEntry>("SELECT asset_id as assetId FROM asset_thumbnail WHERE content_url = :url",
-                new
-                {
-                    url = groupData,
-                });
-            response.assets = matchingThumbs;
-            // versions
-            var matchingVersions = await db.QueryAsync<ResolveThumbAssetEntry>(
-                "SELECT asset_id as assetId FROM asset_version WHERE content_url = :url", new
-                {
-                    url = groupData,
-                });
-            var list = response.assets.ToList();
-            list.AddRange(matchingVersions);
-            response.assets = list;
-        }
-
-        var thumbOrHeadshotUrl = matchUserThumbRegex.Match(url);
-        if (thumbOrHeadshotUrl.Success)
-        {
-            var groupData = thumbOrHeadshotUrl.Groups[1].Value;
-            var matchingUserThumbs = await db.QueryAsync<ResolveThumbUsersEntry>(
-                "SELECT user_id as userId FROM user_avatar WHERE thumbnail_url = :url OR headshot_thumbnail_url = :url", new
-                {
-                    url = groupData,
-                });
-            response.users = matchingUserThumbs;
-        }
-
-        var groupUrl = matchGroupIconRegex.Match(url);
-        if (groupUrl.Success)
-        {
-            var groupData = groupUrl.Groups[1].Value;
-            var matchingGroups = await db.QueryAsync<ResolveThumbGroupsEntry>("SELECT group_id as groupId FROM group_icon WHERE name = :url", new
-            {
-                url = groupData,
-            });
-            response.groups = matchingGroups;
-        }
-
-        return response;
+        return await services.adminApi.GetDetailsFromThumbnailAsync(url);
     }
 
-    // [HttpGet("game-servers/list")]
-    // [StaffFilter(Access.GetGameServers)]
-    // public async Task<dynamic> GetGameServers()
-    // {
-    //     var result = await services.gameServer.GetAllGameServers()
-    //     return result;
-    // }
-    
     /**
      **********************
      **
@@ -3103,99 +972,36 @@ Thank you for your understanding,
     [HttpGet("performance/totals/assets"), StaffFilter(Access.GetStaffPerformance)]
     public async Task<long> GetPerfTotalsAsset(long userId)
     {
-        // this is pretty complex but basically heres the gist:
-        // PROBLEM:
-        // some assets, such as teeshirts, will have two assets, the teeshirt itself, and the image.
-        // when a moderator accepts what may look like one asset, its actually accepting two
-        // and that'll go into the count, which inflates the number of actually approved assets
-        // FIX:
-        // we compare the previous value against the current, and check if the timestamp is under
-        // 500. if it is, dont count it. simple as that.
-        // since it'll usually auto accept the asset almost immediately, this works to filter out
-        // most joined assets, while making sure to not interfere with the real assets that are
-        // accepted quickly
-        return await db.QuerySingleOrDefaultAsync<long>(@"
-                WITH ordered_mma AS (
-                    SELECT 
-                        mma.created_at,
-                        LAG(mma.created_at) OVER (PARTITION BY actor_id ORDER BY mma.created_at) AS prev_created_at 
-                    FROM moderation_manage_asset as mma
-                        INNER JOIN asset ON asset.id = mma.asset_id
-                    WHERE actor_id = :userId AND asset.asset_type != :audioType
-                )
-                SELECT 
-                    COUNT(*) 
-                FROM ordered_mma 
-                    WHERE prev_created_at IS NULL
-                        OR EXTRACT(EPOCH FROM(created_at - prev_created_at)) * 1000 >= 500
-                ",
-            new
-            {
-                userId, audioType = Type.Audio
-            });
+        return await services.adminApi.GetPerfTotalsAssetAsync(userId);
     }
     
     [HttpGet("performance/totals/audios"), StaffFilter(Access.GetStaffPerformance)]
     public async Task<long> GetPerfTotalsAudios(long userId)
     {
-        return await db.QuerySingleOrDefaultAsync<long>(@"
-                SELECT 
-                    COUNT(*) 
-                FROM moderation_manage_asset as mma
-                INNER JOIN asset ON asset.id = mma.asset_id
-                WHERE actor_id = :userId AND asset.asset_type = :audioType
-                ",
-            new
-            {
-                userId, audioType = Type.Audio
-            });
+        return await services.adminApi.GetPerfTotalsAudiosAsync(userId);
     }
     
     [HttpGet("performance/totals/signups"), StaffFilter(Access.GetStaffPerformance)]
     public async Task<long> GetPerfTotalsApplications(long userId)
     {
-        return await db.QuerySingleOrDefaultAsync<long>(@"
-                SELECT 
-                    COUNT(*) 
-                FROM moderation_change_join_app
-                    WHERE author_user_id = :userId
-                ", new { userId });
+        return await services.adminApi.GetPerfTotalsApplicationsAsync(userId);
     }
     
     [HttpGet("performance/totals/reports"), StaffFilter(Access.GetStaffPerformance)]
     public async Task<long> GetPerfTotalsReports(long userId)
     {
-        return await db.QuerySingleOrDefaultAsync<long>(@"
-                SELECT 
-                    COUNT(*) 
-                FROM abuse_report
-                    WHERE author_id = :userId AND report_status != :pending
-                ", new { userId, pending = AbuseReportStatus.Pending });
+        return await services.adminApi.GetPerfTotalsReportsAsync(userId);
     }
     
     [HttpGet("performance/totals/players-moderated"), StaffFilter(Access.GetStaffPerformance)]
     public async Task<long> GetPerfTotalsPlayersModerated(long userId)
     {
-        return await db.QuerySingleOrDefaultAsync<long>(@"
-                SELECT 
-                    COUNT(*) 
-                FROM moderation_ban
-                    WHERE actor_id = :userId
-                ", new { userId });
+        return await services.adminApi.GetPerfTotalsPlayersModeratedAsync(userId);
     }
     
     [HttpGet("performance/permissions-gave"), StaffFilter(Access.GetStaffPerformance)]
-    public async Task<dynamic> GetPerfPermDate(long userId)
+    public async Task<AdminDateResponse> GetPerfPermDate(long userId)
     {
-        var res = await db.QuerySingleOrDefaultAsync<DateTime?>(@"
-                SELECT 
-                    MIN(created_at)
-                FROM user_permission
-                    WHERE user_id = :userId
-                ", new { userId });
-        return new
-        {
-            date = res
-        };
+        return await services.adminApi.GetPerfPermDateAsync(userId);
     }
 }

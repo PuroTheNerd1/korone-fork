@@ -6,13 +6,16 @@
 	let data;
 	let offset = 0;
 	let limit = 10;
-	let author;
-	let author_value;
+	let author = "";
+	let authorValue = "";
 	let disabled = false;
+	let logType = "ban";
+
 	$: {
 		disabled = true;
+		const authorQuery = author.trim() ? `&author=${encodeURIComponent(author.trim())}` : "";
 		request
-			.get(`/logs?logType=${logType}&offset=${offset}&limit=${limit}${author ? `&author=${author}` : ""}`)
+			.get(`/logs?logType=${logType}&offset=${offset}&limit=${limit}${authorQuery}`)
 			.then((res) => {
 				data = res.data;
 			})
@@ -21,12 +24,11 @@
 			});
 	}
 
-	let logType = "ban";
-
 	function handleEnter(e) {
 		if (e.key === "Enter") {
 			e.preventDefault();
-			author_value = author;
+			author = authorValue;
+			offset = 0;
 		}
 	}
 </script>
@@ -63,6 +65,7 @@
 					<option value='message'>ADMIN MESSAGE</option>
 					<option value='product'>PRODUCT UPDATE</option>
 					<option value='refund'>REFUND</option>
+					<option value='trade-rollback'>TRADE ROLLBACK</option>
 				</select>
 			</div>
 			<div class="col-6 col-md-3">
@@ -71,7 +74,7 @@
 					{disabled}
 					class="form-control"
 					type="text"
-					value={author_value}
+					bind:value={authorValue}
 					maxlength={32}
 					id="search-author"
 					on:keydown={handleEnter}
@@ -92,7 +95,7 @@
 							{#each data.data as i}
 								<tr>
 									{#each Object.getOwnPropertyNames(i) as col}
-										{#if col === "user_id" || col === "author_user_id" || col === "actor_id" || col === "actor_user_id"}
+										{#if col === "user_id" || col === "author_user_id" || col === "actor_id" || col === "actor_user_id" || col === "user_id_one" || col === "user_id_two"}
 											<td>
 												<a use:link href={`/admin/manage-user/${i[col]}`}>
 													{i[col]}
