@@ -133,8 +133,15 @@ public class AdminApiController : ControllerBase
     [SkipAdminTwoFactor]
     public async Task<IActionResult> VerifyPrompt([FromQuery] string code)
     {
-        await services.adminApi.ValidateTwoFactorCodeAsync(safeUserSession.userId, code);
-        await AdminTwoFactorFilter.MarkVerified(safeUserSession.userId, safeUserSession.sessionId);
+        if (!IsLoggedIn())
+            throw new Roblox.Services.Exceptions.RobloxException(401, 0, "Unauthorized");
+
+        var session = safeUserSession;
+        if (!await IsStaff(session.userId))
+            throw new Roblox.Services.Exceptions.RobloxException(Roblox.Services.Exceptions.RobloxException.Forbidden, 0, "Forbidden");
+
+        await services.adminApi.ValidateTwoFactorCodeAsync(session.userId, session.sessionId, code);
+        await AdminTwoFactorFilter.MarkVerified(session.userId, session.sessionId);
         return Ok();
     }
 

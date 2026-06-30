@@ -36,6 +36,10 @@ namespace Roblox.Services.AdminApi;
 public class AdminApiService : ServiceBase
 {
     private static readonly long startTime = DateTimeOffset.Now.ToUnixTimeSeconds();
+    private const int AdminTwoFactorVerifyRequestsPerMinute = 10;
+    private const int AdminTwoFactorInvalidAttemptsPerWindow = 5;
+    private static readonly TimeSpan AdminTwoFactorInvalidAttemptWindow = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan AdminTwoFactorCompromiseAlertWindow = TimeSpan.FromHours(1);
     private static readonly Regex matchAssetThumbRegex = new("\\/images\\/thumbnails\\/([a-zA-Z0-9]+)", RegexOptions.Compiled);
     private static readonly Regex matchUserThumbRegex = new("(\\/images\\/thumbnails\\/[a-zA-Z0-9\\.\\\\_]+)", RegexOptions.Compiled);
     private static readonly Regex matchGroupIconRegex = new("\\/images\\/thumbnails\\/([a-zA-Z0-9\\.]+)", RegexOptions.Compiled);
@@ -210,11 +214,53 @@ public class AdminApiService : ServiceBase
         };
     }
 
-    public async Task ValidateTwoFactorCodeAsync(long userId, string code)
+    public async Task ValidateTwoFactorCodeAsync(long userId, string sessionId, string code)
     {
+        if (!await cooldown.TryIncrementBucketCooldown(
+                $"AdminTwoFactorVerifyAttemptV1:{userId}:{sessionId}",
+                AdminTwoFactorVerifyRequestsPerMinute,
+                TimeSpan.FromMinutes(1),
+                true))
+        {
+            throw new TooManyRequestsException("Too many 2FA verification attempts. Try again in a minute.");
+        }
+
         var totp = await users.GetTotp(userId);
-        if (totp == null || !users.VerifyTotp(totp.secret, code))
+        if (totp == null || string.IsNullOrWhiteSpace(code) || !users.VerifyTotp(totp.secret, code))
+        {
+            await RecordInvalidTwoFactorAttemptAsync(userId);
             throw new UnauthorizedException();
+        }
+    }
+
+    private async Task RecordInvalidTwoFactorAttemptAsync(long userId)
+    {
+        var allowed = await cooldown.TryIncrementBucketCooldown(
+            $"AdminTwoFactorInvalidAttemptV1:{userId}",
+            AdminTwoFactorInvalidAttemptsPerWindow,
+            AdminTwoFactorInvalidAttemptWindow,
+            true);
+
+        if (allowed)
+            return;
+
+        await SendPotentialStaffCompromiseAlertAsync(userId);
+        throw new TooManyRequestsException("Too many invalid 2FA verification attempts. Try again later.");
+    }
+
+    private async Task SendPotentialStaffCompromiseAlertAsync(long userId)
+    {
+        if (!await cooldown.TryIncrementBucketCooldown(
+                $"AdminTwoFactorCompromiseAlertV1:{userId}",
+                1,
+                AdminTwoFactorCompromiseAlertWindow))
+        {
+            return;
+        }
+
+        await discordBotApi.SendMessageInChannel(
+            Roblox.Configuration.DiscordLogChannelId,
+            $"<@1339179586407235680> :warning: STAFF {userId} POTENTIAL COMPROMISE!");
     }
 
     public Task<IEnumerable<UserId>> GetAllStaffAsync()
@@ -2967,6 +3013,13 @@ Thank you for your understanding,
     private sealed class UnauthorizedException : RobloxException
     {
         public UnauthorizedException(string errorMessage = "Authorization has been denied for this request.") : base(401, 0, errorMessage)
+        {
+        }
+    }
+
+    private sealed class TooManyRequestsException : RobloxException
+    {
+        public TooManyRequestsException(string errorMessage = "TooManyRequests") : base(RobloxException.TooManyRequests, 0, errorMessage)
         {
         }
     }
