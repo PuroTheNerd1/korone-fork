@@ -9,7 +9,6 @@ namespace Roblox.Models.Assets
     public enum Type
     {
         Image = 1,
-        TeeShirt = 2,
         TShirt = 2,
         Audio = 3,
         Mesh = 4,

@@ -242,7 +242,7 @@ public class AvatarService : ServiceBase, IService {
 
         Type.Shirt,
         Type.Pants,
-        Type.TeeShirt,
+        Type.TShirt,
         //accesories
         Type.Face,
         Type.Hat,
@@ -707,7 +707,7 @@ public class AvatarService : ServiceBase, IService {
         {
             switch (item.assetType)
             {
-                case Type.TeeShirt:
+                case Type.TShirt:
                     tShirt++;
                     break;
                 case Type.Shirt:

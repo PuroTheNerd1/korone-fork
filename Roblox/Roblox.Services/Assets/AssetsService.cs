@@ -579,7 +579,7 @@ public class AssetsService : ServiceBase, IService
                 return img;
         }
 
-        if (type == Models.Assets.Type.TeeShirt)
+        if (type == Models.Assets.Type.TShirt)
             return img;
 
         return null;
@@ -935,7 +935,7 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.Package:
                 thumbRequests.Add(CreatePackageThumbnail(assetId, cancellationToken));
                 break;
-            case Models.Assets.Type.TeeShirt:
+            case Models.Assets.Type.TShirt:
                 thumbRequests.Add(CreateTeeShirtThumbnail(assetId, cancellationToken));
                 break;
 
@@ -2070,7 +2070,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             case "Pants":
                 return Type.Pants;
             case "Tshirts":
-                return Type.TeeShirt;
+                return Type.TShirt;
             case "Heads":
                 return Type.Head;
             case "Emote":
@@ -2308,7 +2308,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
                 builder.Where(
                     $"(asset.asset_type = {(int)Models.Assets.Type.Shirt} OR " +
                     $"asset.asset_type = {(int)Models.Assets.Type.Pants} OR " +
-                    $"asset.asset_type = {(int)Models.Assets.Type.TeeShirt})");
+                    $"asset.asset_type = {(int)Models.Assets.Type.TShirt})");
                 break;
             case "bodyparts":
                 builder.Where(
@@ -3044,7 +3044,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
 
     private static readonly List<Models.Assets.Type> allowedAssetTypesForAdvertisements = new List<Type>()
     {
-        Type.TeeShirt,
+        Type.TShirt,
         Type.Shirt,
         Type.Pants,
         Type.Place,

@@ -697,7 +697,7 @@ public class WebController : ControllerBase
     private static readonly List<Models.Assets.Type> AllowedAssetTypes = new()
     {
         Models.Assets.Type.Audio,
-        Models.Assets.Type.TeeShirt,
+        Models.Assets.Type.TShirt,
         Models.Assets.Type.Shirt,
         Models.Assets.Type.Pants,
         Models.Assets.Type.Image,
@@ -827,7 +827,7 @@ public class WebController : ControllerBase
             {
                 case Models.Assets.Type.Shirt:
                 case Models.Assets.Type.Pants:
-                case Models.Assets.Type.TeeShirt:
+                case Models.Assets.Type.TShirt:
                     return await UploadClothing(request, stream, creatorId, creatorType);
                 case Models.Assets.Type.Audio:
                     return await UploadAudio(request, stream, creatorId, creatorType);

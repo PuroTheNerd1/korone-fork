@@ -104,7 +104,7 @@ public class Asset : ControllerBase
         switch (details.assetType)
         {
             // Special types
-            case Roblox.Models.Assets.Type.TeeShirt:
+            case Roblox.Models.Assets.Type.TShirt:
                 return new FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetTeeShirt(assetVersion.contentId)), "application/binary");
             case Models.Assets.Type.Shirt:
                 return new FileContentResult(Encoding.UTF8.GetBytes(ContentFormatters.GetShirt(assetVersion.contentId)), "application/binary");

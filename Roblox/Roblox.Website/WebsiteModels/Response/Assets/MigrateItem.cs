@@ -98,7 +98,7 @@ public class MigrateItem
             {
                 content = await robloxApi.GetAssetContent(assetId);
             }
-            if (robloxDetails.AssetTypeId is Models.Assets.Type.TeeShirt or Models.Assets.Type.Shirt
+            if (robloxDetails.AssetTypeId is Models.Assets.Type.TShirt or Models.Assets.Type.Shirt
                 or Models.Assets.Type.Pants)
             {
                 var reader = new StreamReader(content);

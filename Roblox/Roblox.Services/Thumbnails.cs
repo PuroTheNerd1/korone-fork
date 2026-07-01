@@ -37,7 +37,7 @@ public class ThumbnailsService : ServiceBase, IService
                 ids = new List<Models.Assets.Type>()
                 {
                     // Focus on user-generated content for now. We might add hats/games in the future.
-                    Models.Assets.Type.TeeShirt,
+                    Models.Assets.Type.TShirt,
                     Models.Assets.Type.Shirt,
                     Models.Assets.Type.Pants,
                     Models.Assets.Type.Image,

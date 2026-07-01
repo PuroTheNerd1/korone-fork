@@ -63,7 +63,7 @@ public class ItemConfigurationV1 : ControllerBase
     private readonly Models.Assets.Type[] sellableAssetTypes = {
         Type.Shirt,
         Type.Pants,
-        Type.TeeShirt,
+        Type.TShirt,
         Type.GamePass
     };
 

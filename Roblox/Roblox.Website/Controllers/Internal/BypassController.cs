@@ -852,7 +852,7 @@ namespace Roblox.Website.Controllers
         public async Task<dynamic> MigrateClothingBot([Required] string assetId)
         {
             ValidateBotAuthorization();
-            return await MigrateItem.MigrateItemFromRoblox(assetId, true, 5, new List<Models.Assets.Type>() { Models.Assets.Type.TeeShirt, Models.Assets.Type.Shirt, Models.Assets.Type.Pants });
+            return await MigrateItem.MigrateItemFromRoblox(assetId, true, 5, new List<Models.Assets.Type>() { Models.Assets.Type.TShirt, Models.Assets.Type.Shirt, Models.Assets.Type.Pants });
         }
 
         [HttpGetBypass("BuildersClub/Upgrade.ashx")]
