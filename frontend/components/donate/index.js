@@ -37,22 +37,22 @@ const cryptoMethods = [
     {
         name: 'Ethereum',
         ticker: 'ETH',
-        address: '0xE4283B453182E4514b1e7Cf1de12d71cc726b3F8',
+        address: '0xc7E913Ba2836653e571A7b63291c72C777eA1722',
     },
     {
         name: 'Bitcoin',
         ticker: 'BTC',
-        address: 'bc1qpwkvukjucw4j488d228pc3yhephfjp9l47q5ju',
+        address: 'bc1qaqqlh2x5a6getaqkfkrh945vzewe6wwg6ucqgp',
     },
     {
         name: 'Litecoin',
         ticker: 'LTC',
-        address: 'LgkgqhFd1zLHAe7kymV472RssjXWy1tYgg',
+        address: 'Le7B2ncBUy2bm3KU3WyjGWua7S828Uc2Au',
     },
     {
         name: 'Solana',
         ticker: 'SOL',
-        address: '1EjmdfgcjNgD7sNv4mQ6SKvX51iBw2z8wJLpDgPmf9P',
+        address: 'AQgEqtnNAK7G43FZLhZMyc8p5gKh1j5MMy4Pg59CTiy5',
     },
 ];
 
