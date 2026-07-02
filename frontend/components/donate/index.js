@@ -763,7 +763,7 @@ const useStyles = createUseStyles({
     },
 });
 
-const TARGET_DATE = new Date('2026-07-01T00:00:00');
+const TARGET_DATE = new Date('2026-08-01T00:00:00');
 
 const getTimeUntilTarget = () => {
     let diff = Math.max(0, TARGET_DATE.getTime() - Date.now());
@@ -922,7 +922,7 @@ const Donate = () => {
 
         <div className={s.countdownBanner}>
             <p className={s.countdownLabel}>Leaving Soon</p>
-            <p className={s.countdownTitle}>These donation items disappear on July 1, 2026</p>
+            <p className={s.countdownTitle}>These donation items disappear on August 1, 2026</p>
             <div className={s.countdownGrid}>
                 <div className={s.countdownUnit}>
                     <p className={s.countdownValue}>{String(countdown.days).padStart(2, '0')}</p>
