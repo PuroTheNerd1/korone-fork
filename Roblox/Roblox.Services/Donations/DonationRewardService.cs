@@ -8,11 +8,11 @@ public sealed class DonationRewardService : ServiceBase, IService
 {
     private static readonly DonationTier[] RewardTiers =
     {
-        new(50m, 6000, new long[] { 764757, 764499, 764520, 764657, 764477 }),
-        new(25m, 3100, new long[] { 764657 }),
-        new(15m, 1750, new long[] { 764520 }),
-        new(10m, 1100, new long[] { 764499 }),
-        new(5m, 500, new long[] { 764757 }),
+        new(50m, 6000, new long[] { /*764757,*/ 864051, 864087, 864095, 864039 }),
+        new(25m, 3100, new long[] { 864095 }),
+        new(15m, 1750, new long[] { 864087 }),
+        new(10m, 1100, new long[] { 864051 }),
+        //new(5m, 500, new long[] { 764757 }),
     };
 
     public DonationTier? GetClampedTier(decimal amount)
