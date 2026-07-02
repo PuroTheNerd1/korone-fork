@@ -239,7 +239,6 @@ const LoggedInArea = (props) => {
   const authStore = AuthenticationStore.useContainer();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  if (authStore.robux === null || authStore.tix === null) return null;
   return (
     <div className={`${s.linkContainerCol} `}>
       <div className={`${s.row} row`}>
@@ -262,7 +261,7 @@ const LoggedInArea = (props) => {
             <a className={`${s.currencyLink}`} href='/My/Money.aspx'>
               <span className={`${s.currencyIcon} icon-nav-robux`} />
               <span className={s.currencySpan}>
-                {authStore.robux.toLocaleString()}
+                {authStore.robux === null ? "?" : authStore.robux.toLocaleString()}
               </span>
             </a>
           </li>
@@ -272,7 +271,7 @@ const LoggedInArea = (props) => {
                 <a className={`${s.currencyLink}`} href='/My/Money.aspx'>
                   <span className="icon-nav-tix" />
                   <span className={s.currencySpan}>
-                    {authStore.tix.toLocaleString()}
+                    {authStore.tix === null ? "?" : authStore.tix.toLocaleString()}
                   </span>
                 </a>
               </li>
