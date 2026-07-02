@@ -59,8 +59,21 @@ WHERE id = :ledgerId
             using var economy = ServiceProvider.GetOrCreate<EconomyService>(this);
             using var users = ServiceProvider.GetOrCreate<UsersService>(this);
             await economy.IncrementCurrency(CreatorType.User, request.UserId!.Value, CurrencyType.Robux, tier!.Robux);
-            foreach (var assetId in tier.AssetIds)
+
+            var alreadyOwnedAssetIds = (await db.QueryAsync<long>(@"
+SELECT DISTINCT asset_id
+FROM user_asset
+WHERE user_id = :userId AND asset_id = ANY(:assetIds)
+", new
+            {
+                userId = request.UserId.Value,
+                assetIds = tier.AssetIds.ToArray(),
+            })).ToHashSet();
+
+            foreach (var assetId in tier.AssetIds.Where(assetId => !alreadyOwnedAssetIds.Contains(assetId)))
+            {
                 await users.CreateUserAsset(request.UserId.Value, assetId);
+            }
 
             await db.ExecuteAsync(@"
 UPDATE donation_webhook_event
