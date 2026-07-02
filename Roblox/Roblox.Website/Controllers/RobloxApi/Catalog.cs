@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Assets;
+using Roblox.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
@@ -645,6 +646,9 @@ public class Catalog : ControllerBase
     [HttpPostBypass("v1/catalog/items/details")]
     public async Task<RobloxCollection<MultiGetEntry>> MultiGetItemDetails([Required, FromBody] WebsiteModels.Catalog.MultiGetRequest request)
     {
+	    if (!await services.cooldown.TryIncrementBucketCooldown("Catalog:V1:Items:Details:Ip:" + GetIP(), 100, TimeSpan.FromSeconds(1)))
+		    throw new TooManyRequestsException();
+	    
 	    var requestedIds = request.items.Select(c => c.id).ToList();
 	    var result = (await services.assets.MultiGetInfoById(requestedIds)).ToList();
 	    var orderIndex = new Dictionary<long, int>();
