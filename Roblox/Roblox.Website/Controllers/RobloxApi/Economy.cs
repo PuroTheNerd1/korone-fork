@@ -361,6 +361,10 @@ public class Economy : ControllerBase
     public async Task<AssetResaleData> GetResaleData(long assetId)
     {
         FeatureCheck();
+        
+        if (!await services.cooldown.TryIncrementBucketCooldown("Economy:V1:Assets:ResaleData:Ip:" + GetIP(), 50, TimeSpan.FromMinutes(1)))
+            throw new TooManyRequestsException();
+        
         return await services.assets.GetResaleData(assetId);
     }
 
