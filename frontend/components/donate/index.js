@@ -51,10 +51,6 @@ const rewarbleGiftCardSources = [
         note: 'PayPal & Card Accepted via G2A (USA ONLY)',
         links: [
             {
-                label: 'G2A Rewarble Super Gift Card - $5 USD',
-                href: 'https://www.g2a.com/rewarble-super-gift-card-5-usd-by-rewarble-key-united-states-i10000506957010',
-            },
-            {
                 label: 'G2A Rewarble Super Gift Card - $10 USD',
                 href: 'https://www.g2a.com/rewarble-super-gift-card-10-usd-by-rewarble-key-united-states-i10000506957011',
             },
