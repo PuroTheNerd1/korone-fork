@@ -21,7 +21,6 @@ public class AuthenticationController : RobloxControllerBase
     }
 
     [AllowRobloxAnonymous]
-    [RequireRobloxClient]
     [HttpPost("v2/login")]
     public async Task<IActionResult> LoginV2()
     {
