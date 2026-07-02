@@ -216,7 +216,7 @@ public class GamesControllerV1 : ControllerBase
     [HttpGet("games/recommendations/game/{universeId:long}")]
     public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
     {
-        if (!await services.cooldown.TryIncrementBucketCooldown("Games:Recommendations:Game:Ip:" + GetIP(), 1000, TimeSpan.FromMinutes(1)))
+        if (!await services.cooldown.TryIncrementBucketCooldown("Games:Recommendations:Game:Ip:" + GetIP(), 200, TimeSpan.FromMinutes(1)))
             throw new RobloxException(RobloxException.TooManyRequests);
         
         if (maxRows is > 50 or < 1) maxRows = 50;
