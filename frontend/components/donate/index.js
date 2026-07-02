@@ -1017,7 +1017,7 @@ const Donate = () => {
             <div className={s.showcaseBox}>
                 <video
                     className={s.showcaseVideo}
-                    src='/img/DonatorItems/preview.mp4'
+                    src='/img/DonatorItems/ItemPreview.mp4'
                     autoPlay
                     loop
                     muted
