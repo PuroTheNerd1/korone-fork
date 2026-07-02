@@ -176,11 +176,9 @@ public class GamesControllerV1 : ControllerBase
     [HttpGet("games/list")]
     public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)
     {
-        // if (!await services.cooldown.TryIncrementBucketCooldown($"GetGames:{safeUserSession.userId}", 3, TimeSpan.FromSeconds(5)))
-        // {
-        //     Console.WriteLine($"GetGames:{safeUserSession.userId} IP: {GetRequesterIpRaw(HttpContext)} UA: {UserAgent}");
-        //     throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
-        // }
+        if (!await services.cooldown.TryIncrementBucketCooldown($"Games:V1:{GetIP()}", 80, TimeSpan.FromMinutes(1)))
+             throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
+        
         if (UserAgent.Contains("Roblox/")) return new { };
         if (maxRows is > 50 or < 1) maxRows = 50;
         var result = await services.games.GetGamesList(userSession?.userId, sortToken, maxRows, genre, keyword);

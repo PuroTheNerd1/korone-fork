@@ -715,6 +715,10 @@ public class CatalogControllerV1 : ControllerBase
     {
 		if (FeatureFlags.IsDisabled(FeatureFlag.EconomyEnabled))
 			return new SearchResponse();
+		
+		if (!await services.cooldown.TryIncrementBucketCooldown("Catalog:V1:Search:Items:Ip:" + GetIP(), 40, TimeSpan.FromMinutes(1)))
+			throw new TooManyRequestsException();
+		
         var request = new CatalogSearchRequest()
 	    {
 		    category = category,
