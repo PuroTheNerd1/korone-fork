@@ -2579,6 +2579,8 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             {
                 id = assetId,
             });
+        if (info == null)
+            throw new RecordNotFoundException($"Asset {assetId} not found.");
         using (var us = ServiceProvider.GetOrCreate<UsersService>())
         {
             info.sales = await us.CountSoldCopiesForAsset(assetId);
