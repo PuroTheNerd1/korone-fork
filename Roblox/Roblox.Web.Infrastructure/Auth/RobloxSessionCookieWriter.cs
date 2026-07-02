@@ -24,6 +24,19 @@ public static class RobloxSessionCookieWriter
         httpContext.Response.Cookies.Append(RobloxWebContextConstants.SessionCookieName, sessionCookie, CreateSessionCookieOptions(httpContext));
     }
 
+    public static void DeleteSessionCookies(HttpContext httpContext)
+    {
+        httpContext.Response.Cookies.Delete(
+            RobloxWebContextConstants.RobloxSessionCookieName,
+            CreateSessionCookieOptions(httpContext));
+        httpContext.Response.Cookies.Delete(
+            RobloxWebContextConstants.SessionCookieName,
+            CreateSessionCookieOptions(httpContext));
+        httpContext.Response.Cookies.Delete(
+            RobloxWebContextConstants.AltSessionCookieName,
+            CreateSessionCookieOptions(httpContext));
+    }
+
     private static CookieOptions CreateSessionCookieOptions(HttpContext httpContext)
     {
         var options = new CookieOptions

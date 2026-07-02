@@ -35,6 +35,18 @@ public class AuthenticationController : RobloxControllerBase
         RobloxSessionCookieWriter.AppendSessionCookies(HttpContext, result.sessionId!);
         return Ok(result.response);
     }
+    
+    // TODO - neva: is this really HttpGet? as far as i know, its just HttpPost
+    [RequireRobloxClient]
+    [RequireRobloxSession]
+    [HttpGet("sign-out/v1")]
+    [HttpPost("sign-out/v1")]
+    public void Logout()
+    {
+        using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
+        sessCache.Remove(safeUserSession.sessionId);
+        RobloxSessionCookieWriter.DeleteSessionCookies(HttpContext);
+    }
 
     private LoginRequestContext CreateLoginRequestContext()
     {
