@@ -53,14 +53,20 @@ public class AuthenticationService : ServiceBase, IService
         }
 
         var parsedRequest = ParseLoginV2Request(requestBody, context.userAgent);
-        if (string.IsNullOrEmpty(parsedRequest.username) || string.IsNullOrEmpty(parsedRequest.password))
+        var username = string.IsNullOrEmpty(parsedRequest.username) && parsedRequest.ctype == "Username"
+            ? parsedRequest.cvalue
+            : parsedRequest.username;
+
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(parsedRequest.password))
         {
-            throw BadRequest((int)LoginError400.UsernamePasswordRequired, "Username and Password are required. Please try again.");
+            throw BadRequest(
+                (int)LoginError400.UsernamePasswordRequired,
+                "Username and Password are required. Please try again.");
         }
 
         await ValidateLoginRequest(context);
 
-        var credential = SplitUsernameAndTotpCode(parsedRequest.username);
+        var credential = SplitUsernameAndTotpCode(username);
         using var users = ServiceProvider.GetOrCreate<UsersService>(this);
         var userInfo = await users.GetUserByName(credential.username);
 
