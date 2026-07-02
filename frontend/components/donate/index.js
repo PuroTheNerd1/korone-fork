@@ -1,36 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { redeemRewarbleVoucher } from "../../services/donations";
 import { getTheme, themeType } from "../../services/theme";
+import AuthenticationStore from "../../stores/authentication";
 
 const tiers = [
-    { amount: 5, name: "Saturn's Ring", img: '/img/DonatorItems/SaturnsRing.png', assetId: '764757', robux: 500 },
-    { amount: 10, name: 'Asteroids Belt', img: '/img/DonatorItems/AsteroidsBelt.png', assetId: '764499', robux: 1100 },
-    { amount: 15, name: "Mars's Dragon Wings", img: '/img/DonatorItems/MDW.png', assetId: '764520', robux: 1750 },
-    { amount: 25, name: 'Horns of the Nebula', img: '/img/DonatorItems/HOTN.png', assetId: '764657', robux: 3100, popular: true },
-    { amount: 50, name: 'Solar System', img: '/img/DonatorItems/SolarSystem.png', assetId: '764477', robux: 6000, bundle: true },
-];
-
-const paymentMethods = [
-    // {
-    //     name: 'Stripe',
-    //     value: null,
-    //     url: '/donate/stripe',
-    //     note: null,
-    // },
-
-    // {
-    //     name: 'Ko-fi',
-    //     value: null,
-    //     url: '/donate/ko-fi',
-    //     note: 'Logged into Ko-fi? Change your Ko-fi profile Display Name to your exact Korone username before paying.',
-    // },
-
-    // {
-    //     name: 'CashApp',
-    //     value: '$boxed404',
-    //     url: 'https://cash.app/$boxed404',
-    //     note: null,
-    // },
+    //{ amount: 5, name: "Saturn's Ring", img: '/img/DonatorItems/SaturnsRing.png', assetId: '764757', robux: 500 },
+    { amount: 10, name: "Sea Traveler's Panama", img: '/img/DonatorItems/STP.png', assetId: '864051', robux: 1100 },
+    { amount: 15, name: "Oasis Sombrero", img: '/img/DonatorItems/Sombrero.png', assetId: '864087', robux: 1750 },
+    { amount: 25, name: 'Aquatic Horns of the Distilled Shoreline', img: '/img/DonatorItems/Horns.png', assetId: '864095', robux: 3100, popular: true },
+    { amount: 50, name: 'Dominus Aecor', img: '/img/DonatorItems/Dom.png', assetId: '864039', robux: 6000, bundle: true },
 ];
 
 const cryptoMethods = [
@@ -53,6 +32,45 @@ const cryptoMethods = [
         name: 'Solana',
         ticker: 'SOL',
         address: 'AQgEqtnNAK7G43FZLhZMyc8p5gKh1j5MMy4Pg59CTiy5',
+    },
+];
+
+const rewarbleGiftCardSources = [
+    {
+        title: 'CoinGate',
+        note: 'Card and Crypto Only (USA ONLY)',
+        links: [
+            {
+                label: 'Rewarble Super Gift Card',
+                href: 'https://coingate.com/gift-cards/rewarble-super',
+            },
+        ],
+    },
+    {
+        title: 'Giftcards',
+        note: 'PayPal & Card Accepted via G2A (USA ONLY)',
+        links: [
+            {
+                label: 'G2A Rewarble Super Gift Card - $5 USD',
+                href: 'https://www.g2a.com/rewarble-super-gift-card-5-usd-by-rewarble-key-united-states-i10000506957010',
+            },
+            {
+                label: 'G2A Rewarble Super Gift Card - $10 USD',
+                href: 'https://www.g2a.com/rewarble-super-gift-card-10-usd-by-rewarble-key-united-states-i10000506957011',
+            },
+            {
+                label: 'G2A Rewarble Super Gift Card - $15 USD',
+                href: 'https://www.g2a.com/rewarble-super-gift-card-15-usd-by-rewarble-key-united-states-i10000506957019',
+            },
+            {
+                label: 'G2A Rewarble Super Gift Card - $25 USD',
+                href: 'https://www.g2a.com/rewarble-super-gift-card-25-usd-by-rewarble-key-united-states-i10000506957013',
+            },
+            {
+                label: 'G2A Rewarble Super Gift Card - $50 USD',
+                href: 'https://www.g2a.com/rewarble-super-gift-card-50-usd-by-rewarble-key-united-states-i10000506957015',
+            },
+        ],
     },
 ];
 
@@ -331,6 +349,157 @@ const useStyles = createUseStyles({
         marginBottom: 0,
         fontStyle: 'italic',
         lineHeight: 1.4,
+    },
+    rewarbleGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 390px)',
+        gap: '14px',
+        '@media(max-width: 900px)': {
+            gridTemplateColumns: '1fr',
+        },
+    },
+    tutorialCard: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
+        borderRadius: '6px',
+        boxShadow: '0 1px 3px rgba(25, 25, 25, 0.15)',
+        padding: '16px',
+        color: 'var(--text-color-primary)',
+    },
+    tutorialList: {
+        margin: 0,
+        paddingLeft: '20px',
+        fontSize: '14px',
+        lineHeight: 1.55,
+        '& li': {
+            marginBottom: '7px',
+        },
+        '& li:last-child': {
+            marginBottom: 0,
+        },
+    },
+    tutorialLinks: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        marginTop: '14px',
+    },
+    vendorSource: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+    },
+    vendorTitle: {
+        color: 'var(--text-color-primary)',
+        fontSize: '14px',
+        fontWeight: 700,
+        margin: 0,
+    },
+    vendorNote: {
+        color: 'var(--text-color-secondary)',
+        fontSize: '12px',
+        fontWeight: 600,
+        margin: 0,
+    },
+    vendorLinkList: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: '4px',
+    },
+    tutorialLink: {
+        color: 'var(--primary-color)',
+        fontSize: '14px',
+        fontWeight: 600,
+        textDecoration: 'none',
+        '&:hover': {
+            color: 'var(--primary-color-hover)',
+            textDecoration: 'underline',
+        },
+    },
+    redeemCard: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#393939' : 'var(--white-color)',
+        borderRadius: '6px',
+        boxShadow: '0 1px 3px rgba(25, 25, 25, 0.15)',
+        padding: '16px',
+        color: 'var(--text-color-primary)',
+    },
+    redeemLabel: {
+        display: 'block',
+        color: 'var(--text-color-primary)',
+        fontSize: '14px',
+        fontWeight: 700,
+        marginBottom: '7px',
+    },
+    voucherInput: {
+        width: '100%',
+        height: '40px',
+        border: '1px solid var(--text-color-secondary)',
+        borderRadius: '4px',
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#2a2a2a' : '#fff',
+        color: 'var(--text-color-primary)',
+        fontSize: '15px',
+        fontWeight: 600,
+        letterSpacing: '0.8px',
+        padding: '0 11px',
+        textTransform: 'uppercase',
+        outline: 0,
+        '&:focus': {
+            borderColor: 'var(--primary-color)',
+        },
+    },
+    redeemHint: {
+        color: 'var(--text-color-secondary)',
+        fontSize: '12px',
+        lineHeight: 1.4,
+        margin: '8px 0 0',
+    },
+    redeemButton: {
+        width: '100%',
+        minHeight: '38px',
+        marginTop: '12px',
+        border: 0,
+        borderRadius: '4px',
+        background: 'var(--success-color)',
+        color: '#fff',
+        fontSize: '15px',
+        fontWeight: 700,
+        cursor: 'pointer',
+        '&:hover': {
+            background: 'var(--success-color-hover)',
+        },
+        '&:disabled': {
+            opacity: 0.5,
+            cursor: 'not-allowed',
+        },
+    },
+    redeemResult: {
+        borderRadius: '4px',
+        fontSize: '13px',
+        lineHeight: 1.45,
+        marginTop: '12px',
+        padding: '10px 12px',
+    },
+    redeemSuccess: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#153923' : '#e5f7eb',
+        color: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#a7e6bd' : '#176333',
+        border: '1px solid rgba(31, 142, 72, 0.35)',
+    },
+    redeemWarning: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#3e3216' : '#fff4d8',
+        color: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#f1d28a' : '#7a4b00',
+        border: '1px solid rgba(180, 127, 0, 0.35)',
+    },
+    redeemError: {
+        background: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#432020' : '#fae5e5',
+        color: p => p.theme === themeType.dark || p.theme === themeType.obc2019 ? '#ffb6b6' : '#8a1f11',
+        border: '1px solid rgba(204, 0, 0, 0.35)',
+    },
+    resultTitle: {
+        fontWeight: 700,
+        margin: '0 0 3px',
+    },
+    resultText: {
+        margin: 0,
     },
     cryptoGrid: {
         display: 'grid',
@@ -663,10 +832,38 @@ const CryptoAddress = ({ address, styles }) => {
     );
 };
 
+const getRedeemErrorMessage = error => {
+    const data = error?.response?.data;
+    if (data?.message) return data.message;
+    if (data?.errors?.[0]?.message) return data.errors[0].message;
+    return error?.message || 'Voucher could not be redeemed.';
+};
+
+const getRedeemResultTitle = result => {
+    if (!result) return '';
+    if (result.status === 'granted') return 'Rewards granted';
+    if (result.status === 'duplicate') return 'Voucher already processed';
+    return 'Manual review needed';
+};
+
+const getRedeemResultBody = result => {
+    if (!result) return '';
+    if (result.status === 'granted' && result.reward) {
+        const assets = result.reward.assetIds?.length || 0;
+        return `${result.message} You received ${result.reward.robux.toLocaleString()} Robux${assets ? ` and ${assets} item${assets === 1 ? '' : 's'}` : ''}.`;
+    }
+    return result.message || 'Voucher redeemed, but rewards need manual review. Please contact support at https://support.korone.one/submit-request';
+};
+
 const Donate = () => {
     const s = useStyles({ theme: getTheme() });
+    const auth = AuthenticationStore.useContainer();
     const [countdown, setCountdown] = useState(getTimeUntilTarget);
     const [selectedTier, setSelectedTier] = useState(tiers.find(tier => tier.popular));
+    const [voucherCode, setVoucherCode] = useState('');
+    const [redeeming, setRedeeming] = useState(false);
+    const [redeemResult, setRedeemResult] = useState(null);
+    const [redeemError, setRedeemError] = useState(null);
 
     useEffect(() => {
         const id = setInterval(() => setCountdown(getTimeUntilTarget()), 1000);
@@ -676,6 +873,33 @@ const Donate = () => {
     const selectTier = tier => {
         setSelectedTier(tier);
         document.getElementById('payment-methods').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const normalizedVoucherCode = voucherCode.trim().toUpperCase();
+    const canRedeem = auth.isAuthenticated && normalizedVoucherCode.length >= 16 && !redeeming;
+
+    const handleVoucherChange = event => {
+        setVoucherCode(event.currentTarget.value.toUpperCase());
+        setRedeemResult(null);
+        setRedeemError(null);
+    };
+
+    const handleRedeem = async event => {
+        event.preventDefault();
+        if (!canRedeem) return;
+
+        setRedeeming(true);
+        setRedeemResult(null);
+        setRedeemError(null);
+        try {
+            const result = await redeemRewarbleVoucher({ code: normalizedVoucherCode });
+            setRedeemResult(result);
+            setVoucherCode('');
+        } catch (error) {
+            setRedeemError(getRedeemErrorMessage(error));
+        } finally {
+            setRedeeming(false);
+        }
     };
 
     return <div className={`container ${s.wrapper}`}>
@@ -777,13 +1001,13 @@ const Donate = () => {
                 </div>
                 <div className={s.stepCard}>
                     <span className={s.stepNumber}>2</span>
-                    <p className={s.stepTitle}>Donate securely</p>
-                    <p className={s.stepText}>For Ko-fi, enter the selected amount manually. If you are logged in, change your Ko-fi profile Display Name to your exact Korone username before paying.</p>
+                    <p className={s.stepTitle}>Buy a voucher</p>
+                    <p className={s.stepText}>Purchase a Rewarble voucher for the matching USD amount on Rewarble.</p>
                 </div>
                 <div className={s.stepCard}>
                     <span className={s.stepNumber}>3</span>
                     <p className={s.stepTitle}>Claim your rewards</p>
-                    <p className={s.stepText}>Ko-fi grants on-site items and Robux automatically. Open a support ticket for Discord roles or cryptocurrency donations.</p>
+                    <p className={s.stepText}>Log in, paste your voucher code below, and rewards are granted to your Korone account automatically.</p>
                 </div>
             </div>
         </div>
@@ -807,7 +1031,7 @@ const Donate = () => {
             <div className={s.perksBox}>
                 <div className={s.perkItem}>
                     <span className={s.perkBadge}>Item</span>
-                    <p className={s.perkText}>Ko-fi automatically grants the matching on-site item and Robux reward for your tier.</p>
+                    <p className={s.perkText}>Rewarble voucher redemption grants the matching on-site item and Robux reward for your tier.</p>
                 </div>
                 <div className={s.perkItem}>
                     <span className={s.perkBadge}>Discord</span>
@@ -819,7 +1043,7 @@ const Donate = () => {
         </div>
 
         <div className={s.section} id="payment-methods">
-            <h2 className={s.sectionTitle}>Payment Methods</h2>
+            <h2 className={s.sectionTitle}>Redeem a Rewarble Voucher</h2>
             <div className={s.selectionBox}>
                 <p className={s.selectionTitle}>Your selected tier: ${selectedTier.amount} - {selectedTier.name}</p>
                 <p className={s.selectionText}>
@@ -827,39 +1051,63 @@ const Donate = () => {
                     {' '}{selectedTier.robux.toLocaleString()} Robux, and the permanent Discord Donator role.
                 </p>
                 <p className={s.displayNameNotice}>
-                    Before paying with Ko-fi, enter <strong>${selectedTier.amount}</strong> manually. If you are logged
-                    into Ko-fi, change your Ko-fi profile <strong>Display Name</strong> to your exact Korone username
-                    before paying. Guests should enter their exact Korone username as their name at checkout. If the
-                    name does not match, your on-site item and Robux cannot be delivered automatically.
+                    Buy a <strong>${selectedTier.amount} USD</strong> Rewarble voucher, then redeem it here while logged in.
+                    Rewards are granted to the Korone account currently signed in on this page.
                 </p>
             </div>
-            <div className={s.paymentGrid}>
-                {paymentMethods.map(method => (
-                    <div key={method.name} className={s.paymentCard}>
-                        <p className={s.paymentName}>{method.name}</p>
-                        {method.value !== null && (
-                            <a
-                                href={method.url}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                                className={s.paymentLink}
-                            >
-                                {method.value}
-                            </a>
-                        )}
-                        {method.note && <p className={s.paymentNote}>{method.note}</p>}
-                        {method.value === null && (
-                            <a
-                                href={method.url}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                                className={s.stripeBtn}
-                            >
-                                Continue to {method.name} for ${selectedTier.amount}
-                            </a>
-                        )}
+            <div className={s.rewarbleGrid}>
+                <div className={s.tutorialCard}>
+                    <ol className={s.tutorialList}>
+                        <li>Choose the Korone reward tier you want.</li>
+                        <li>Use one of the links below to buy a Rewarble gift card for the matching USD amount.</li>
+                        <li>Return to this page while logged into the Korone account that should receive the rewards.</li>
+                        <li>Paste the voucher code into the redeem box and submit it once.</li>
+                        <li>If anything goes wrong, contact support at https://support.korone.one/submit-request</li>
+                    </ol>
+                    <div className={s.tutorialLinks}>
+                        {rewarbleGiftCardSources.map(source => (
+                            <div className={s.vendorSource} key={source.title}>
+                                <p className={s.vendorTitle}>{source.title}</p>
+                                <p className={s.vendorNote}>{source.note}</p>
+                                <div className={s.vendorLinkList}>
+                                    {source.links.map(link => (
+                                        <a className={s.tutorialLink} href={link.href} target="_blank" rel="noopener noreferrer" key={link.href}>{link.label}</a>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                </div>
+                <form className={s.redeemCard} onSubmit={handleRedeem}>
+                    <label className={s.redeemLabel} htmlFor="rewarble-voucher-code">Rewarble voucher code</label>
+                    <input
+                        id="rewarble-voucher-code"
+                        className={s.voucherInput}
+                        value={voucherCode}
+                        onChange={handleVoucherChange}
+                        placeholder="PASTE VOUCHER CODE"
+                        autoComplete="off"
+                    />
+                    <p className={s.redeemHint}>
+                        Voucher codes must be at least 16 characters. Codes are automatically uppercased before redeeming.
+                    </p>
+                    {!auth.isAuthenticated && !auth.isPending ? <p className={s.redeemHint}>Log in before redeeming so rewards can be granted to your account.</p> : null}
+                    <button
+                        type="submit"
+                        className={s.redeemButton}
+                        disabled={!canRedeem}
+                    >
+                        {redeeming ? 'Redeeming...' : 'Redeem Voucher'}
+                    </button>
+                    {redeemResult ? <div className={`${s.redeemResult} ${redeemResult.status === 'granted' ? s.redeemSuccess : redeemResult.status === 'duplicate' ? s.redeemWarning : s.redeemWarning}`}>
+                        <p className={s.resultTitle}>{getRedeemResultTitle(redeemResult)}</p>
+                        <p className={s.resultText}>{getRedeemResultBody(redeemResult)}</p>
+                    </div> : null}
+                    {redeemError ? <div className={`${s.redeemResult} ${s.redeemError}`}>
+                        <p className={s.resultTitle}>Voucher not redeemed</p>
+                        <p className={s.resultText}>{redeemError}</p>
+                    </div> : null}
+                </form>
             </div>
         </div>
 
@@ -880,11 +1128,9 @@ const Donate = () => {
 
         <p className={s.disclaimer}>Donations are final and non-refundable.</p>
         <div className={s.claimBox}>
-            <p className={s.claimTitle}>Wanna claim your rewards?</p>
-            <p className={s.claimText}>
-                Join https://discord.gg/84DqZYzeQU and open a ticket with your receipt. If using Ko-fi, on-site items and Robux are delivered automatically when
-                your Ko-fi name exactly matches your Korone username.
-            </p>
+            <p className={s.claimTitle}>Need help?</p>
+            <p className={s.claimText}>If anything goes wrong, go to https://support.korone.one/submit-request for customer support.</p>
+            <p className={s.claimText}>Rewarble vouchers grant on-site items and Robux automatically when redeemed by a logged-in Korone account.</p>
             <p className={s.claimText}>Claims are usually processed sooner, but please allow up to 24 hours.</p>
         </div>
     </div>;
