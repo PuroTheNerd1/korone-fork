@@ -41,6 +41,7 @@ public sealed class FrontendProxyMiddleware
         "/health/",
         "/gs/",
         "/moderation/",
+        "/admin-api/",
         "/donation-api/",
         "/stripe-api/",
         "/auth/",
