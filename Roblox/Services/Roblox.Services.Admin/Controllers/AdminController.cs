@@ -34,7 +34,7 @@ using Type = Roblox.Models.Assets.Type;
 namespace Roblox.Services.Admin.Controllers;
 
 [ApiController]
-[InternalServiceOnly]
+//[InternalServiceOnly]
 [RequireRobloxSession]
 [RequireRobloxCsrf]
 [AdminStaffFilter]
