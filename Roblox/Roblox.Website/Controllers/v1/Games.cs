@@ -8,6 +8,7 @@ using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
 using Roblox.Services.Exceptions;
+using Roblox.Web.Infrastructure.Metadata;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Website.Controllers;
@@ -211,10 +212,13 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
+    [RequireRobloxSession]
     [HttpGet("games/recommendations/game/{universeId:long}")]
     public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
     {
-        if (!await services.cooldown.TryIncrementBucketCooldown("Games:Recommendations:Game:Ip:" + GetIP(), 80, TimeSpan.FromMinutes(1)))
+        if (!await services.cooldown.TryIncrementBucketCooldown("Games:V1:Recommendations:Ip:" + GetIP(), 60, TimeSpan.FromMinutes(1)) ||
+            !await services.cooldown.TryIncrementBucketCooldown("Games:V1:Recommendations:Id:" + safeUserSession.userId, 80, TimeSpan.FromMinutes(1)) ||
+            !await services.cooldown.TryIncrementBucketCooldown("Games:V1:Recommendations:UniverseId:" + universeId, 100, TimeSpan.FromMinutes(1)))
             throw new RobloxException(RobloxException.TooManyRequests);
         
         if (maxRows is > 50 or < 1) maxRows = 50;
@@ -232,10 +236,13 @@ public class GamesControllerV1 : ControllerBase
         return await services.games.MultiGetPlaceDetails(placeIds.Split(",").Select(long.Parse));
     }
 
+    [RequireRobloxSession]
     [HttpGet("games/votes")]
     public async Task<dynamic> GetGameVotes(string universeIds)
     {
-        if (!await services.cooldown.TryIncrementBucketCooldown("Games:Recommendations:Game:Ip:" + GetIP(), 80, TimeSpan.FromMinutes(1)))
+        if (!await services.cooldown.TryIncrementBucketCooldown("Games:V1:Votes:Ip:" + GetIP(), 60, TimeSpan.FromMinutes(1)) ||
+            !await services.cooldown.TryIncrementBucketCooldown("Games:V1:Votes:Id:" + safeUserSession.userId, 80, TimeSpan.FromMinutes(1)) ||
+            !await services.cooldown.TryIncrementBucketCooldown("Games:V1:Votes:Universes:" + universeIds, 100, TimeSpan.FromMinutes(1)))
             throw new RobloxException(RobloxException.TooManyRequests);
         
         var ids = universeIds.Split(",").Select(long.Parse).Distinct().ToList();
