@@ -46,7 +46,6 @@ public sealed class FrontendProxyMiddleware
         "/auth/",
         "/ide/",
         "/internal/",
-        "/admin",
         "/css/",
         "/js/",
         "/img/",
@@ -141,6 +140,7 @@ public sealed class FrontendProxyMiddleware
     private readonly IHttpForwarder _forwarder;
     private readonly ILogger<FrontendProxyMiddleware> _logger;
     private readonly RequestDelegate _next;
+    private readonly HashSet<string> _publicHosts;
 
     public FrontendProxyMiddleware(
         RequestDelegate next,
@@ -152,6 +152,7 @@ public sealed class FrontendProxyMiddleware
         _forwarder = forwarder;
         _logger = logger;
         _destinationPrefix = NormalizeDestinationPrefix(options.Value.DestinationPrefix);
+        _publicHosts = NormalizePublicHosts(options.Value.PublicHosts);
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -194,11 +195,10 @@ public sealed class FrontendProxyMiddleware
         return Task.CompletedTask;
     }
 
-    private static bool ShouldProxyToFrontend(HttpContext context)
+    private bool ShouldProxyToFrontend(HttpContext context)
     {
         var host = context.Request.Host.Host;
-        if (!host.Equals("pekora.zip", StringComparison.OrdinalIgnoreCase) &&
-            !host.Equals("www.pekora.zip", StringComparison.OrdinalIgnoreCase))
+        if (!_publicHosts.Contains(host))
         {
             return false;
         }
@@ -322,5 +322,21 @@ public sealed class FrontendProxyMiddleware
         }
 
         return destinationPrefix.EndsWith('/') ? destinationPrefix : destinationPrefix + '/';
+    }
+
+    private static HashSet<string> NormalizePublicHosts(IEnumerable<string> publicHosts)
+    {
+        var hosts = publicHosts
+            .Where(host => !string.IsNullOrWhiteSpace(host))
+            .Select(host => host.Trim())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (hosts.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"{FrontendProxyOptions.SectionName}:{nameof(FrontendProxyOptions.PublicHosts)} must contain at least one host.");
+        }
+
+        return hosts;
     }
 }

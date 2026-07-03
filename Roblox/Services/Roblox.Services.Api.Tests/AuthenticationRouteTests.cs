@@ -12,8 +12,10 @@ public class AuthenticationRouteTests
 {
     private static readonly IReadOnlyList<AuthenticationRouteCase> Routes = new List<AuthenticationRouteCase>
     {
-        new("POST", "/v1/login"),
-        new("POST", "/v2/login"),
+        new("POST", "/v1/login", AllowsAnonymous: true, RequiresRobloxClient: true, RequiresSession: false),
+        new("POST", "/v2/login", AllowsAnonymous: true, RequiresRobloxClient: true, RequiresSession: false),
+        new("GET", "/sign-out/v1", AllowsAnonymous: false, RequiresRobloxClient: true, RequiresSession: true),
+        new("POST", "/sign-out/v1", AllowsAnonymous: false, RequiresRobloxClient: true, RequiresSession: true),
     };
 
     [Fact]
@@ -39,18 +41,30 @@ public class AuthenticationRouteTests
     }
 
     [Fact]
-    public void LoginRoutes_AreAnonymousAndRequireRobloxClientMetadata()
+    public void AuthenticationRoutes_HaveExpectedMetadata()
     {
         foreach (var method in typeof(AuthenticationController).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
         {
-            if (!method.GetCustomAttributes<HttpMethodAttribute>().Any())
+            var httpAttributes = method.GetCustomAttributes<HttpMethodAttribute>().ToArray();
+            if (httpAttributes.Length == 0)
             {
                 continue;
             }
 
-            Assert.NotNull(method.GetCustomAttribute<AllowRobloxAnonymousAttribute>());
-            Assert.NotNull(method.GetCustomAttribute<RequireRobloxClientAttribute>());
-            Assert.Null(method.GetCustomAttribute<RequireRobloxSessionAttribute>());
+            foreach (var httpAttribute in httpAttributes)
+            {
+                foreach (var httpMethod in httpAttribute.HttpMethods)
+                {
+                    var route = Routes.Single(route =>
+                        route.Method == httpMethod.ToUpperInvariant() &&
+                        route.Path == NormalizeRoute(httpAttribute.Template!));
+
+                    Assert.Equal(route.AllowsAnonymous, method.GetCustomAttribute<AllowRobloxAnonymousAttribute>() != null);
+                    Assert.Equal(route.RequiresRobloxClient, method.GetCustomAttribute<RequireRobloxClientAttribute>() != null);
+                    Assert.Equal(route.RequiresSession, method.GetCustomAttribute<RequireRobloxSessionAttribute>() != null);
+                }
+            }
+
             Assert.Null(method.GetCustomAttribute<RequireRccRequestAttribute>());
         }
     }
@@ -184,6 +198,30 @@ public class AuthenticationRouteTests
     }
 
     [Fact]
+    public async Task LoginV2_WithAndroidClientFormPayloadAndDeviceHandle_SetsSessionCookies()
+    {
+        await using var fixture = await ApiRouteTestFixture.CreateAsync(handleCookies: false);
+        if (fixture == null)
+        {
+            return;
+        }
+
+        fixture.Client.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "Mozilla/5.0 (1980MB; 1080x2072; 440x440; 392x753; Google sdk_gphone_x86; 11) AppleWebKit/537.36 (KHTML, like Gecko) ROBLOX Android App 2.311.156028 Phone Hybrid() GooglePlayStore");
+
+        var user = await fixture.CreateUserAsync();
+        var response = await fixture.Client.PostAsync("/v2/login", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["username"] = user.Username,
+            ["password"] = user.Password,
+            ["deviceHandle"] = "02504034d7f9,d85ed30ce3f7,0a0027000008,00155dc804c3",
+        }));
+
+        await AssertStatusCode(response, HttpStatusCode.OK);
+        AssertSessionCookies(response);
+    }
+
+    [Fact]
     public async Task LoginV2_WithTotpEnabled_ReturnsTwoStepRequiredWithoutSessionCookies()
     {
         await using var fixture = await ApiRouteTestFixture.CreateAsync(robloxClient: true, handleCookies: false);
@@ -212,6 +250,45 @@ public class AuthenticationRouteTests
             root.GetProperty("tl").GetString(),
             root.GetProperty("twoStepVerificationData").GetProperty("ticket").GetString());
         Assert.Equal(user.UserId, root.GetProperty("user").GetProperty("id").GetInt64());
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("POST")]
+    public async Task SignOutV1_RejectsUnauthenticatedRobloxClientRequests(string method)
+    {
+        await using var fixture = await ApiRouteTestFixture.CreateAsync(robloxClient: true);
+        if (fixture == null)
+        {
+            return;
+        }
+
+        var response = await fixture.Client.SendAsync(new HttpRequestMessage(new HttpMethod(method), "/sign-out/v1"));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task SignOutV1_WithAuthenticatedSessionDeletesSessionCookies()
+    {
+        await using var fixture = await ApiRouteTestFixture.CreateAsync(robloxClient: true);
+        if (fixture == null)
+        {
+            return;
+        }
+
+        var user = await fixture.CreateUserAsync();
+        var loginResponse = await fixture.Client.PostAsync("/v2/login", JsonContent(new
+        {
+            username = user.Username,
+            password = user.Password,
+        }));
+        await AssertStatusCode(loginResponse, HttpStatusCode.OK);
+
+        var signOutResponse = await fixture.Client.PostAsync("/sign-out/v1", null);
+
+        await AssertStatusCode(signOutResponse, HttpStatusCode.OK);
+        AssertDeletedSessionCookies(signOutResponse);
     }
 
     private static StringContent JsonContent(object value)
@@ -253,6 +330,20 @@ public class AuthenticationRouteTests
         Assert.DoesNotContain(cookies, cookie => cookie.StartsWith(".PUPPYSECURITY=", StringComparison.Ordinal));
     }
 
+    private static void AssertDeletedSessionCookies(HttpResponseMessage response)
+    {
+        var cookies = GetSetCookies(response);
+        Assert.Contains(cookies, cookie => IsDeletedCookie(cookie, ".ROBLOSECURITY"));
+        Assert.Contains(cookies, cookie => IsDeletedCookie(cookie, ".PUPPYSECURITY"));
+        Assert.Contains(cookies, cookie => IsDeletedCookie(cookie, ".PEKORASECURITY"));
+    }
+
+    private static bool IsDeletedCookie(string cookie, string name)
+    {
+        return cookie.StartsWith(name + "=;", StringComparison.Ordinal) &&
+               cookie.Contains("expires=", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static IReadOnlyList<string> GetSetCookies(HttpResponseMessage response)
     {
         return response.Headers.TryGetValues("Set-Cookie", out var values)
@@ -260,7 +351,12 @@ public class AuthenticationRouteTests
             : Array.Empty<string>();
     }
 
-    public sealed record AuthenticationRouteCase(string Method, string Path)
+    public sealed record AuthenticationRouteCase(
+        string Method,
+        string Path,
+        bool AllowsAnonymous,
+        bool RequiresRobloxClient,
+        bool RequiresSession)
     {
         public override string ToString()
         {

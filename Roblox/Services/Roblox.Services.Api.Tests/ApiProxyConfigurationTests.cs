@@ -84,6 +84,36 @@ public class ApiProxyConfigurationTests
         }
     }
 
+    [Fact]
+    public void ApiProxyConfig_DeclaresFrontendPublicHosts()
+    {
+        using var document = LoadApiProxyAppSettings();
+        var frontendProxy = document.RootElement.GetProperty("FrontendProxy");
+
+        var hosts = ReadStringArray(frontendProxy.GetProperty("PublicHosts"));
+        Assert.Contains("pekora.zip", hosts);
+        Assert.Contains("www.pekora.zip", hosts);
+    }
+
+    [Fact]
+    public void ApiProxyConfig_DoesNotRouteAdminHostUntilAdminServiceIsDeployed()
+    {
+        using var document = LoadApiProxyAppSettings();
+        var root = document.RootElement;
+
+        Assert.DoesNotContain("admin.pekora.zip", ReadStringArray(root.GetProperty("InternalServiceHosts")));
+
+        var routes = root.GetProperty("ReverseProxy").GetProperty("Routes");
+        foreach (var route in routes.EnumerateObject())
+        {
+            var match = route.Value.GetProperty("Match");
+            if (match.TryGetProperty("Hosts", out var hosts))
+            {
+                Assert.DoesNotContain("admin.pekora.zip", ReadStringArray(hosts));
+            }
+        }
+    }
+
     private static JsonDocument LoadApiProxyAppSettings()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

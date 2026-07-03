@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Text;
 using Roblox.Services.Exceptions;
 using Roblox.Web.Infrastructure.Controllers;
 using Roblox.Web.Infrastructure.Http;
@@ -78,6 +79,32 @@ public class BaseTypesTests
     }
 
     [Fact]
+    public async Task ControllerBase_GetRequestBodyReturnsParsedFormBody()
+    {
+        var httpContext = InfrastructureTestHelpers.Context();
+        httpContext.Request.ContentType = "application/x-www-form-urlencoded";
+        var body = "username=lvm&password=%7D~%295%5B%25Zb%60J%40CENSORED&deviceHandle=02504034d7f9,d85ed30ce3f7,0a0027000008,00155dc804c3";
+        httpContext.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(body));
+        httpContext.Request.ContentLength = body.Length;
+        var controller = new TestController
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext,
+            },
+            RequestContextAccessor = new StaticRequestContextAccessor(new RobloxRequestContext()),
+            ServicesAccessor = new RobloxServiceAccessor(),
+            FileContentCache = new FileContentCache(),
+        };
+
+        var requestBody = await controller.ExposedGetRequestBody();
+
+        Assert.Contains("username=lvm", requestBody);
+        Assert.Contains("password=", requestBody);
+        Assert.Contains("deviceHandle=", requestBody);
+    }
+
+    [Fact]
     public void PageModelBase_ExposesRequestContextProperties()
     {
         var httpContext = InfrastructureTestHelpers.Context();
@@ -122,6 +149,10 @@ public class BaseTypesTests
         public string? ExposedDiscordAccessToken => discordAccessToken;
         public string? ExposedRobloxAccessToken => robloxAccessToken;
         public string ExposedUserAgent => UserAgent;
+        public Task<string> ExposedGetRequestBody()
+        {
+            return GetRequestBody();
+        }
     }
 
     private sealed class TestPageModel : RobloxPageModelBase

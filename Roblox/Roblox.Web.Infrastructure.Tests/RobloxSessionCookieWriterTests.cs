@@ -72,8 +72,38 @@ public class RobloxSessionCookieWriterTests
         }
     }
 
+    [Fact]
+    public void DeleteSessionCookies_ExpiresAllSessionCookieNames()
+    {
+        var previousShortBaseUrl = Roblox.Configuration.ShortBaseUrl;
+        try
+        {
+            Roblox.Configuration.ShortBaseUrl = "pekora.zip";
+            var context = InfrastructureTestHelpers.Context();
+            context.Request.Host = new HostString("api.pekora.zip");
+
+            RobloxSessionCookieWriter.DeleteSessionCookies(context);
+
+            var cookies = GetSetCookies(context);
+            Assert.Contains(cookies, cookie => IsExpiredCookie(cookie, RobloxWebContextConstants.RobloxSessionCookieName));
+            Assert.Contains(cookies, cookie => IsExpiredCookie(cookie, RobloxWebContextConstants.SessionCookieName));
+            Assert.Contains(cookies, cookie => IsExpiredCookie(cookie, RobloxWebContextConstants.AltSessionCookieName));
+            Assert.All(cookies, cookie => Assert.Contains("domain=.pekora.zip", cookie, StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            Roblox.Configuration.ShortBaseUrl = previousShortBaseUrl;
+        }
+    }
+
     private static IReadOnlyList<string> GetSetCookies(HttpContext context)
     {
         return context.Response.Headers.SetCookie.Select(cookie => cookie ?? string.Empty).ToList();
+    }
+
+    private static bool IsExpiredCookie(string cookie, string name)
+    {
+        return cookie.StartsWith(name + "=;", StringComparison.Ordinal) &&
+               cookie.Contains("expires=", StringComparison.OrdinalIgnoreCase);
     }
 }

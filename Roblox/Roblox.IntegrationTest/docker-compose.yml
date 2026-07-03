@@ -68,6 +68,24 @@ services:
       Authorization: "ApiRouteTestAuthorization"
       RccAuthorization: "ApiRouteTestRccAuthorization"
       Jwt__Sessions: "api-route-test-session-jwt-secret"
+  users_route_test:
+    build:
+      context: ../../
+      dockerfile: Roblox/Roblox.IntegrationTest/docker/users-route-tests.dockerfile
+      network: host
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      KORONE_REQUIRE_DOCKER_TESTS: "true"
+      KORONE_TEST_POSTGRES: "Host=postgres;Port=5432;Database=roblox_integration_test;Username=roblox_integration_test_user;Password=docker"
+      KORONE_TEST_REDIS: "redis:6379"
+      Postgres: "Host=postgres;Port=5432;Database=roblox_integration_test;Username=roblox_integration_test_user;Password=docker"
+      Redis: "redis:6379"
+      Authorization: "UsersRouteTestAuthorization"
+      RccAuthorization: "UsersRouteTestRccAuthorization"
+      Jwt__Sessions: "users-route-test-session-jwt-secret"
+      OwnerUserId__0: "1"
   web_infrastructure_test:
     build:
       context: ../../

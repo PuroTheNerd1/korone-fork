@@ -65,7 +65,7 @@ public static class RobloxSessionResolver
         // mobile client
         if (context.Request.Cookies.TryGetValue(RobloxWebContextConstants.RobloxSessionCookieName, out var robloxCookie))
         {
-            return altCookie;
+            return robloxCookie;
         }
 
         return null;

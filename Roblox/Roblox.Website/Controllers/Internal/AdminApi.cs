@@ -41,8 +41,6 @@ namespace Roblox.Website.Controllers;
 #endif
 public class AdminApiController : ControllerBase
 {
-    private static readonly string adminRandomUrlPart = Guid.NewGuid().ToString();
-
     private bool IsLoggedIn()
     {
         return base.userSession != null;
@@ -71,44 +69,11 @@ public class AdminApiController : ControllerBase
         };
     }
 
-    [HttpGet("/admin/build-redirect/bundle.js")]
-    public async Task<IActionResult> GetAdminBuildJs()
-    {
-        if (!await StaffFilter.IsStaff(userSession.userId))
-            throw new StaffException("Not staff");
-        return new RedirectResult("/admin/build/" + adminRandomUrlPart + "/bundle.js");
-    }
-
-    [HttpGet("/admin/build/{part}/bundle.js")]
-    public async Task<IActionResult> GetAdminBundleJsReal()
-    {
-        if (!await IsStaff(safeUserSession.userId)) 
-            return Redirect("/home");
-        return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "build", "bundle.js")), "application/javascript");
-    }
-
-    [HttpGet("/admin/build-redirect/bundle.css")]
-    public async Task<IActionResult> GetAdminBundleCss()
-    {
-        if (!await StaffFilter.IsStaff(userSession.userId))
-            throw new StaffException("Not staff");
-        return new RedirectResult("/admin/build/" + adminRandomUrlPart + "/bundle.css");
-    }
-
-    [HttpGet("/admin/build/{part}/bundle.css")]
-    public async Task<IActionResult> GetAdminBundleCssReal()
-    {
-        if (!IsLoggedIn() || !await IsStaff(userSession.userId)) return Redirect("/home");
-        return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "build", "bundle.css")), "text/css");
-    }
-
-    // will be reworked soon to work with the frontend of the admin panel
-
-    [HttpGet("/admin/2fa")]
+    [HttpGet("2fa")]
     [SkipAdminTwoFactor]
     public async Task<IActionResult> ShowPrompt([FromQuery] string? returnUrl)
     {
-        if (string.IsNullOrEmpty(returnUrl)) returnUrl = "/admin";
+        if (string.IsNullOrEmpty(returnUrl)) returnUrl = "/admin/";
 
         var returnUrlJson = System.Text.Json.JsonSerializer.Serialize(returnUrl);
 
@@ -116,7 +81,7 @@ public class AdminApiController : ControllerBase
         <script>
             var code = prompt("Enter your 2FA code");
             if (code) {
-                fetch(`/admin/2fa/verify?code=${code}`, {
+                fetch(`/admin-api/api/2fa/verify?code=${code}`, {
                     method: "POST",
                 }).then(r => {
                     if (r.ok) window.location = {{returnUrlJson}};
@@ -129,7 +94,7 @@ public class AdminApiController : ControllerBase
     """, "text/html");
     }
 
-    [HttpPostBypass("/admin/2fa/verify")]
+    [HttpPostBypass("2fa/verify")]
     [SkipAdminTwoFactor]
     public async Task<IActionResult> VerifyPrompt([FromQuery] string code)
     {
@@ -143,18 +108,6 @@ public class AdminApiController : ControllerBase
         await services.adminApi.ValidateTwoFactorCodeAsync(session.userId, session.sessionId, code);
         await AdminTwoFactorFilter.MarkVerified(session.userId, session.sessionId);
         return Ok();
-    }
-
-    // Wildcards are not easily supported... https://stackoverflow.com/questions/51973631/wildcard-in-route-attribute-for-webapi?rq=1
-    [HttpGet("/admin/"), HttpGet("/admin/{one}"), HttpGet("/admin/{one}/{two}"), HttpGet("/admin/{one}/{two}/{three}"), HttpGet("/admin/{one}/{two}/{three}/{four}"), HttpGet("/admin/{one}/{two}/{three}/{four}/{five}"), HttpGet("/admin/{one}/{two}/{three}/{four}/{five}/{six}")]
-    public async Task<IActionResult> GetAdminView()
-    {
-        if (!IsLoggedIn() || !await IsStaff(userSession.userId)) return Redirect("/home");
-
-        if (!await AdminTwoFactorFilter.IsVerified(userSession.userId, userSession.sessionId))
-            return Redirect("/admin/2fa?returnUrl=/admin/");
-
-        return Content(FileContentCache.ReadText(Path.Combine(Configuration.AdminBundleDirectory, "index.html")), "text/html");
     }
 
     [HttpGet("permissions")]

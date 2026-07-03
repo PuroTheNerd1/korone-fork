@@ -21,6 +21,7 @@ public class SessionResolverDockerTests
     [Theory]
     [InlineData(RobloxWebContextConstants.SessionCookieName)]
     [InlineData(RobloxWebContextConstants.AltSessionCookieName)]
+    [InlineData(RobloxWebContextConstants.RobloxSessionCookieName)]
     public async Task ResolvesValidSignedSessionCookie(string cookieName)
     {
         var fixture = await DockerInfrastructureFixture.CreateAsync();

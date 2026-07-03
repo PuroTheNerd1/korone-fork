@@ -71,6 +71,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Users", "Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Users.Tests", "Services\Roblox.Services.Users.Tests\Roblox.Services.Users.Tests.csproj", "{940A0956-8416-4C63-960D-494D38DAFBCA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Admin", "Services\Roblox.Services.Admin\Roblox.Services.Admin.csproj", "{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.ApiProxy.Tests", "Roblox.ApiProxy.Tests\Roblox.ApiProxy.Tests.csproj", "{A295B666-82E1-48C3-89DE-94921D7772E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -477,6 +481,30 @@ Global
 		{940A0956-8416-4C63-960D-494D38DAFBCA}.Release|x64.Build.0 = Release|Any CPU
 		{940A0956-8416-4C63-960D-494D38DAFBCA}.Release|x86.ActiveCfg = Release|Any CPU
 		{940A0956-8416-4C63-960D-494D38DAFBCA}.Release|x86.Build.0 = Release|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Debug|x64.Build.0 = Debug|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Debug|x86.Build.0 = Debug|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Release|x64.ActiveCfg = Release|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Release|x64.Build.0 = Release|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Release|x86.ActiveCfg = Release|Any CPU
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0}.Release|x86.Build.0 = Release|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Debug|x64.Build.0 = Debug|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Debug|x86.Build.0 = Debug|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|x64.ActiveCfg = Release|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|x64.Build.0 = Release|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|x86.ActiveCfg = Release|Any CPU
+		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -493,5 +521,6 @@ Global
 		{00823C46-33CD-4274-8BA1-EF2E91F896DE} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{F7B534D3-DDD2-477B-99ED-4E98FDCB424F} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{940A0956-8416-4C63-960D-494D38DAFBCA} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
+		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 	EndGlobalSection
 EndGlobal
