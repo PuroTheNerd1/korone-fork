@@ -20,8 +20,19 @@ public class AuthenticationService : ServiceBase, IService
     public async Task<LoginV1ServiceResult> LoginV1(LoginRequest request, LoginRequestContext context)
     {
         await ValidateLoginRequest(context);
+        
+        var username = string.IsNullOrEmpty(request.username) && request.ctype == "Username"
+            ? request.cvalue
+            : request.username;
 
-        var credential = SplitUsernameAndTotpCode(request.cvalue);
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(request.password))
+        {
+            throw BadRequest(
+                (int)LoginError400.UsernamePasswordRequired,
+                "Username and Password are required. Please try again.");
+        }
+
+        var credential = SplitUsernameAndTotpCode(username);
         using var users = ServiceProvider.GetOrCreate<UsersService>(this);
         var userInfo = await users.GetUserByName(credential.username);
 
