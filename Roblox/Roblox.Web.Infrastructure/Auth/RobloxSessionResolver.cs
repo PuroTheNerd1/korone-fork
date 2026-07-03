@@ -13,19 +13,14 @@ public static class RobloxSessionResolver
     public static async Task<RobloxResolvedSession?> TryResolveFromCookie(HttpContext context)
     {
         var attempted = false;
-        foreach (var (cookieName, cookie) in GetCookieValues(context))
+        foreach (var (_, cookie) in GetCookieValues(context))
         {
-            attempted = true;
             try
             {
                 var decoded = RobloxSessionTokenCodec.DecodeJwt<SessionTokenPayload>(cookie);
                 if (string.IsNullOrWhiteSpace(decoded.sessionId))
-                {
-                    AuthDebugLogger.Write(context, $"resolver.empty-session-id cookie={cookieName}");
                     continue;
-                }
 
-                AuthDebugLogger.Write(context, $"resolver.decoded cookie={cookieName} session={AuthDebugLogger.Fingerprint(decoded.sessionId)}");
                 using var users = ServiceProvider.GetOrCreate<UsersService>();
                 var sessionInfo = await users.GetSessionById(decoded.sessionId);
                 var userInfo = await users.GetUserById(sessionInfo.userId);
@@ -38,7 +33,6 @@ public static class RobloxSessionResolver
                     false,
                     decoded.sessionId);
 
-                AuthDebugLogger.Write(context, $"resolver.resolved cookie={cookieName} userId={userInfo.userId} session={AuthDebugLogger.Fingerprint(decoded.sessionId)}");
                 return new RobloxResolvedSession
                 {
                     EncodedCookie = cookie,
@@ -49,13 +43,7 @@ public static class RobloxSessionResolver
             }
             catch (Exception exception) when (exception is InvalidTokenPartsException or NullReferenceException or FormatException or SignatureVerificationException or RecordNotFoundException)
             {
-                AuthDebugLogger.Write(context, $"resolver.failed cookie={cookieName} reason={exception.GetType().Name}");
             }
-        }
-
-        if (!attempted)
-        {
-            AuthDebugLogger.Write(context, "resolver.no-session-cookies");
         }
 
         return null;

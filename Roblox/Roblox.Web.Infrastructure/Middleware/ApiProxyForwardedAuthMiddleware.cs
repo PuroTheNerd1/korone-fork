@@ -20,8 +20,6 @@ public class ApiProxyForwardedAuthMiddleware
     public async Task InvokeAsync(HttpContext context, IRobloxRequestContextAccessor requestContextAccessor)
     {
         var incomingIsTrusted = IsAuthorized(context);
-        AuthDebugLogger.Write(context,
-            $"apiproxy.begin incomingTrusted={incomingIsTrusted} sessionCookies={AuthDebugLogger.CookieNames(context)} incomingUserHeader={context.Request.Headers.ContainsKey(RobloxWebContextConstants.UserIdHeaderName)}");
 
         var requestContext = incomingIsTrusted
             ? RobloxRequestContextFactory.CreateFromForwardedHeaders(context, true, _options.RccAuthorization)
@@ -33,8 +31,6 @@ public class ApiProxyForwardedAuthMiddleware
         }
 
         var shouldDecorate = ShouldDecorateRequest(context.Request.Host.Host, context.Request.Path);
-        AuthDebugLogger.Write(context,
-            $"apiproxy.context shouldDecorate={shouldDecorate} authenticated={requestContext.IsAuthenticated} sessionUserId={requestContext.Session?.userId.ToString() ?? "none"}");
 
         if (!shouldDecorate)
         {
@@ -66,10 +62,7 @@ public class ApiProxyForwardedAuthMiddleware
             context.Request.Headers[RobloxWebContextConstants.SessionIdHeaderName] = requestContext.Session.sessionId;
             context.Request.Headers[RobloxWebContextConstants.AccountStatusHeaderName] = requestContext.Session.accountStatus.ToString();
         }
-
-        AuthDebugLogger.Write(context,
-            $"apiproxy.forward proxyAuth={context.Request.Headers.ContainsKey(RobloxWebContextConstants.ProxyAuthorizationHeaderName)} userHeader={context.Request.Headers.ContainsKey(RobloxWebContextConstants.UserIdHeaderName)} sessionUserId={requestContext.Session?.userId.ToString() ?? "none"}");
-
+        
         await _next(context);
     }
 
