@@ -126,6 +126,6 @@ public class ProxyForwardedAuthMiddlewareTests
         using var json = await InfrastructureTestHelpers.ReadJsonAsync(context);
         Assert.True(json.RootElement.TryGetProperty("errors", out var errors));
         Assert.Equal(JsonValueKind.Array, errors.ValueKind);
-        Assert.Equal("Unauthorized", errors[0].GetProperty("message").GetString());
+        Assert.Equal("Unauthorized (PRX)", errors[0].GetProperty("message").GetString());
     }
 }

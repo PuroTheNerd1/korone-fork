@@ -19,12 +19,6 @@ public class ApiProxyForwardedAuthMiddleware
 
     public async Task InvokeAsync(HttpContext context, IRobloxRequestContextAccessor requestContextAccessor)
     {
-        if (!ShouldDecorateRequest(context.Request.Host.Host, context.Request.Path))
-        {
-            await _next(context);
-            return;
-        }
-
         var requestContext = RobloxRequestContextFactory.CreateAnonymous(context, _options.RccAuthorization);
         var resolvedSession = await RobloxSessionResolver.TryResolveFromCookie(context);
         if (resolvedSession != null)
@@ -32,8 +26,16 @@ public class ApiProxyForwardedAuthMiddleware
             requestContext = RobloxRequestContextFactory.CreateWithSession(context, resolvedSession.Session, _options.RccAuthorization);
         }
 
-        requestContext.IsTrustedInternalRequest = true;
         requestContextAccessor.SetCurrent(requestContext);
+        ClearForwardedHeaders(context);
+
+        if (!ShouldDecorateRequest(context.Request.Host.Host, context.Request.Path))
+        {
+            await _next(context);
+            return;
+        }
+
+        requestContext.IsTrustedInternalRequest = true;
 
         if (!string.IsNullOrWhiteSpace(_options.Authorization))
         {
@@ -57,6 +59,20 @@ public class ApiProxyForwardedAuthMiddleware
         }
 
         await _next(context);
+    }
+
+    private static void ClearForwardedHeaders(HttpContext context)
+    {
+        context.Request.Headers.Remove(RobloxWebContextConstants.ProxyAuthorizationHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.UserIdHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.UsernameHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.SessionIdHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.AccountStatusHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.AuthTypeHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.GameIdHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.PlaceIdHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.ClientIpHashHeaderName);
+        context.Request.Headers.Remove(RobloxWebContextConstants.UserAgentHeaderName);
     }
 
     private bool ShouldDecorateRequest(string host, PathString path)

@@ -21,7 +21,8 @@ public class ApiProxyForwardedAuthMiddlewareTests
 
         Assert.True(nextCalled);
         Assert.False(context.Request.Headers.ContainsKey(RobloxWebContextConstants.ProxyAuthorizationHeaderName));
-        Assert.Null(context.GetRobloxRequestContext());
+        Assert.NotNull(context.GetRobloxRequestContext());
+        Assert.False(context.GetRobloxRequestContext()!.IsTrustedInternalRequest);
     }
 
     [Fact]
@@ -123,6 +124,30 @@ public class ApiProxyForwardedAuthMiddlewareTests
 
         Assert.True(nextCalled);
         Assert.False(context.Request.Headers.ContainsKey(RobloxWebContextConstants.ProxyAuthorizationHeaderName));
-        Assert.Null(context.GetRobloxRequestContext());
+        Assert.NotNull(context.GetRobloxRequestContext());
+        Assert.False(context.GetRobloxRequestContext()!.IsTrustedInternalRequest);
+    }
+
+    [Fact]
+    public async Task ClearsClientSuppliedForwardedIdentityHeadersBeforeDecorating()
+    {
+        var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(
+            options => options.InternalServiceHosts.Add("www.test.local"),
+            ctx =>
+            {
+                ctx.Request.Headers[RobloxWebContextConstants.ProxyAuthorizationHeaderName] = "client-secret";
+                ctx.Request.Headers[RobloxWebContextConstants.UserIdHeaderName] = "1";
+                ctx.Request.Headers[RobloxWebContextConstants.UsernameHeaderName] = "spoofed";
+                ctx.Request.Headers[RobloxWebContextConstants.SessionIdHeaderName] = "spoofed-session";
+                ctx.Request.Headers[RobloxWebContextConstants.AccountStatusHeaderName] = "Ok";
+            });
+
+        Assert.True(nextCalled);
+        Assert.Equal(TestConstants.ProxyAuthorization, context.Request.Headers[RobloxWebContextConstants.ProxyAuthorizationHeaderName]);
+        Assert.False(context.Request.Headers.ContainsKey(RobloxWebContextConstants.UserIdHeaderName));
+        Assert.False(context.Request.Headers.ContainsKey(RobloxWebContextConstants.UsernameHeaderName));
+        Assert.False(context.Request.Headers.ContainsKey(RobloxWebContextConstants.SessionIdHeaderName));
+        Assert.False(context.Request.Headers.ContainsKey(RobloxWebContextConstants.AccountStatusHeaderName));
+        Assert.False(context.GetRobloxRequestContext()!.IsAuthenticated);
     }
 }
