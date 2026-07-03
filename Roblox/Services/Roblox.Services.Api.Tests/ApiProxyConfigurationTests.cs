@@ -96,22 +96,26 @@ public class ApiProxyConfigurationTests
     }
 
     [Fact]
-    public void ApiProxyConfig_DoesNotRouteAdminHostUntilAdminServiceIsDeployed()
+    public void ApiProxyConfig_RoutesAdminHostV1ToAdminCluster()
     {
         using var document = LoadApiProxyAppSettings();
         var root = document.RootElement;
-
-        Assert.DoesNotContain("admin.pekora.zip", ReadStringArray(root.GetProperty("InternalServiceHosts")));
-
         var routes = root.GetProperty("ReverseProxy").GetProperty("Routes");
-        foreach (var route in routes.EnumerateObject())
-        {
-            var match = route.Value.GetProperty("Match");
-            if (match.TryGetProperty("Hosts", out var hosts))
-            {
-                Assert.DoesNotContain("admin.pekora.zip", ReadStringArray(hosts));
-            }
-        }
+        var clusters = root.GetProperty("ReverseProxy").GetProperty("Clusters");
+
+        Assert.Contains("admin.pekora.zip", ReadStringArray(root.GetProperty("InternalServiceHosts")));
+
+        Assert.True(routes.TryGetProperty("admin-host-route", out var adminRoute), "admin-host-route should exist.");
+        Assert.Equal("admin-cluster", adminRoute.GetProperty("ClusterId").GetString());
+        Assert.Equal("/v1/{**catch-all}", adminRoute.GetProperty("Match").GetProperty("Path").GetString());
+        Assert.Contains("admin.pekora.zip", ReadStringArray(adminRoute.GetProperty("Match").GetProperty("Hosts")));
+
+        Assert.True(clusters.TryGetProperty("admin-cluster", out var adminCluster), "admin-cluster should exist.");
+        Assert.Equal(
+            "http://127.0.0.1:5210",
+            adminCluster.GetProperty("Destinations").GetProperty("primary").GetProperty("Address").GetString());
+
+        Assert.False(routes.TryGetProperty("admin-api-route", out _), "legacy /admin-api/api public proxy route should not exist.");
     }
 
     private static JsonDocument LoadApiProxyAppSettings()

@@ -1,7 +1,7 @@
 <script>
 	import Loader from "../components/misc/Loader.svelte";
 	import Main from "../components/templates/Main.svelte";
-	import request from "../lib/request";
+	import request, { adminApiUrl } from "../lib/request";
 	import { link } from "svelte-routing";
 	import { hasPermission } from "../stores/rank";
 	let blur = 'false';
@@ -206,11 +206,11 @@
 											<a href={asset.group_id ? `/My/Groups.aspx?gid=${asset.group_id}` : `/catalog/${asset.asset_id || asset.id}/--`}>
 												{#if asset.assetType === 'Audio'}
 													<audio controls={true}>
-														<source src={`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`} />
+														<source src={adminApiUrl(`assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`)} />
 													</audio>
 												{:else if asset.assetType === 'Video'}
 													<video controls={true} width="400">
-														<source src={`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`} type="video/mp4" />
+														<source src={adminApiUrl(`assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`)} type="video/mp4" />
 														<track 
 															kind="captions" 
 															src="#" 
@@ -252,7 +252,7 @@
 											<div class="col-12 mt-4">
 												<div class="btn-group w-100">
 													{#if asset.assetType === 'Audio' || asset.assetType === 'Video' || asset.assetType === 'Model'}
-														<button class="btn btn-warning border border-dark" on:click={() => window.open(`/admin-api/api/assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`, '_blank')}>
+														<button class="btn btn-warning border border-dark" on:click={() => window.open(adminApiUrl(`assets/get-asset-stream?assetId=${asset.asset_id || asset.id}`), '_blank')}>
 															Download Asset
 														</button>
 													{/if}

@@ -75,6 +75,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Admin", "Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.ApiProxy.Tests", "Roblox.ApiProxy.Tests\Roblox.ApiProxy.Tests.csproj", "{A295B666-82E1-48C3-89DE-94921D7772E9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Admin.Tests", "Services\Roblox.Services.Admin.Tests\Roblox.Services.Admin.Tests.csproj", "{1892F4CF-997E-4FD2-8937-F77AA076C644}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -505,6 +507,18 @@ Global
 		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|x64.Build.0 = Release|Any CPU
 		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|x86.ActiveCfg = Release|Any CPU
 		{A295B666-82E1-48C3-89DE-94921D7772E9}.Release|x86.Build.0 = Release|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Debug|x64.Build.0 = Debug|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Debug|x86.Build.0 = Debug|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|x64.ActiveCfg = Release|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|x64.Build.0 = Release|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|x86.ActiveCfg = Release|Any CPU
+		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -522,5 +536,6 @@ Global
 		{F7B534D3-DDD2-477B-99ED-4E98FDCB424F} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{940A0956-8416-4C63-960D-494D38DAFBCA} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
+		{1892F4CF-997E-4FD2-8937-F77AA076C644} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 	EndGlobalSection
 EndGlobal

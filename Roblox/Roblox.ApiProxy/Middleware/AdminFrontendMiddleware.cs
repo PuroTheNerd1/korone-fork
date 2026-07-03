@@ -16,6 +16,7 @@ public sealed class AdminFrontendMiddleware
     private static readonly string CacheBust = Guid.NewGuid().ToString("N");
 
     private readonly AdminFrontendOptions _options;
+    private readonly AdminApiOptions _adminApiOptions;
     private readonly IAdminSessionResolver _sessionResolver;
     private readonly IAdminStaffAuthorizationService _staffAuthorization;
     private readonly IAdminTwoFactorStore _twoFactorStore;
@@ -25,6 +26,7 @@ public sealed class AdminFrontendMiddleware
     public AdminFrontendMiddleware(
         RequestDelegate next,
         IOptions<AdminFrontendOptions> options,
+        IOptions<AdminApiOptions> adminApiOptions,
         IAdminSessionResolver sessionResolver,
         IAdminStaffAuthorizationService staffAuthorization,
         IAdminTwoFactorStore twoFactorStore,
@@ -32,6 +34,7 @@ public sealed class AdminFrontendMiddleware
     {
         _next = next;
         _options = options.Value;
+        _adminApiOptions = adminApiOptions.Value;
         _sessionResolver = sessionResolver;
         _staffAuthorization = staffAuthorization;
         _twoFactorStore = twoFactorStore;
@@ -61,7 +64,7 @@ public sealed class AdminFrontendMiddleware
 
         if (!await _twoFactorStore.IsVerifiedAsync(session.userId, session.sessionId))
         {
-            context.Response.Redirect("/admin-api/api/2fa?returnUrl=" + Uri.EscapeDataString(GetReturnUrl(context)));
+            context.Response.Redirect(GetTwoFactorPromptUrl(context));
             return;
         }
 
@@ -171,5 +174,12 @@ public sealed class AdminFrontendMiddleware
     private static string GetReturnUrl(HttpContext context)
     {
         return context.Request.PathBase + context.Request.Path + context.Request.QueryString;
+    }
+
+    private string GetTwoFactorPromptUrl(HttpContext context)
+    {
+        return _adminApiOptions.PublicBaseUrl.TrimEnd('/') +
+               "/2fa?returnUrl=" +
+               Uri.EscapeDataString(GetReturnUrl(context));
     }
 }

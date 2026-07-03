@@ -12,6 +12,8 @@ builder.Services.AddSingleton<IAdminStaffAuthorizationService, AdminStaffAuthori
 builder.Services.AddSingleton<IAdminTwoFactorStore, AdminTwoFactorStore>();
 builder.Services.Configure<AdminFrontendOptions>(
     builder.Configuration.GetSection(AdminFrontendOptions.SectionName));
+builder.Services.Configure<AdminApiOptions>(
+    builder.Configuration.GetSection(AdminApiOptions.SectionName));
 builder.Services.Configure<FrontendProxyOptions>(
     builder.Configuration.GetSection(FrontendProxyOptions.SectionName));
 builder.Services.AddHttpForwarder();
@@ -21,6 +23,7 @@ builder.Services.AddReverseProxy()
 var app = builder.Build();
 
 app.UseRobloxServiceDefaults(ServiceExposure.PublicService);
+app.UseMiddleware<AdminApiCorsMiddleware>();
 app.UseMiddleware<AdminFrontendMiddleware>();
 app.UseMiddleware<FrontendProxyMiddleware>();
 app.MapReverseProxy();

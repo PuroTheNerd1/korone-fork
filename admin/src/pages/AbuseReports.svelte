@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { adminApiUrl } from '../lib/request';
 	import dayjs from "dayjs";
     import {link} from "svelte-routing";
     import DropdownButton from "../components/misc/DropdownButton.svelte";
@@ -117,7 +118,7 @@
 									{#if app.reportReason === "BadChatMessagesInGame"}
 										<button
 											class="btn btn-sm btn-outline-primary w-100"
-											on:click={() => window.open(`/admin-api/api/chat-messages/${app.id}`)}
+											on:click={() => window.open(adminApiUrl(`chat-messages/${app.id}`))}
 										>
 											View chat messages
 										</button>

@@ -57,6 +57,8 @@ public static class RobloxServiceDefaultsExtensions
             app.UseMiddleware<ApiProxyForwardedAuthMiddleware>();
         }
 
+        app.UseMiddleware<RobloxCsrfMiddleware>();
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();

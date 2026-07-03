@@ -37,6 +37,11 @@ public class AdminFrontendRouteTests : IDisposable
                 {
                     options.RootDirectory = _adminRoot;
                 });
+                services.Configure<AdminApiOptions>(options =>
+                {
+                    options.PublicBaseUrl = "https://admin.pekora.zip/v1/";
+                    options.CorsAllowedOrigins = new[] { "https://www.pekora.zip" };
+                });
                 services.AddLogging();
                 services.AddSingleton<IAdminSessionResolver>(_sessionResolver);
                 services.AddSingleton<IAdminStaffAuthorizationService>(_staffAuthorization);
@@ -68,7 +73,7 @@ public class AdminFrontendRouteTests : IDisposable
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Equal(
-            "/admin-api/api/2fa?returnUrl=%2Fadmin%2Fusers%3Ftab%3Dstaff",
+            "https://admin.pekora.zip/v1/2fa?returnUrl=%2Fadmin%2Fusers%3Ftab%3Dstaff",
             response.Headers.Location?.OriginalString);
     }
 

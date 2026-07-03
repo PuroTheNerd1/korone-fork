@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Features;
 using Roblox.ServiceDefaults;
 using Roblox.Web.Infrastructure;
 
@@ -9,6 +10,11 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = long.MaxValue;
+});
 
 var app = builder.Build();
 

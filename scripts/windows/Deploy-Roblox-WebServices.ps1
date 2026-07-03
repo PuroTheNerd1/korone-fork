@@ -11,7 +11,8 @@ param(
     [string]$DonationServiceName = "Roblox.Services.Donation",
     [string]$AvatarServiceName = "Roblox.Services.Avatar",
     [string]$ThumbnailsServiceName = "Roblox.Services.Thumbnails",
-    [string]$UsersServiceName = "Roblox.Services.Users"
+    [string]$UsersServiceName = "Roblox.Services.Users",
+    [string]$AdminServiceName = "Roblox.Services.Admin"
 )
 
 $ErrorActionPreference = "Stop"
@@ -137,6 +138,7 @@ $services = @(
     @{ Name = $AvatarServiceName; Folder = "Roblox.Services.Avatar" }
     @{ Name = $ThumbnailsServiceName; Folder = "Roblox.Services.Thumbnails" }
     @{ Name = $UsersServiceName; Folder = "Roblox.Services.Users" }
+    @{ Name = $AdminServiceName; Folder = "Roblox.Services.Admin" }
 )
 
 foreach ($entry in $services) {

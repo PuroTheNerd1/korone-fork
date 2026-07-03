@@ -1,9 +1,17 @@
 import axios from 'axios';
-const baseUrl: string = '/admin-api/api/';
+const configuredBaseUrl = (window as Window & { ADMIN_API_BASE_URL?: string }).ADMIN_API_BASE_URL;
+export const adminApiBaseUrl: string = configuredBaseUrl || 'https://admin.pekora.zip/v1/';
 let goodCsrf = '';
+
+export function adminApiUrl(path: string): string {
+	const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+	return new URL(cleanPath, adminApiBaseUrl).toString();
+}
+
 const client = axios.create({
-	baseURL: baseUrl,
+	baseURL: adminApiBaseUrl,
 	maxRedirects: 0,
+	withCredentials: true,
 });
 client.interceptors.request.use(ok => {
 	if (!ok.headers) {

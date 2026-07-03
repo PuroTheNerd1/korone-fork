@@ -432,6 +432,12 @@ public class MigrateItemAlternateRequest
     public bool disableRender { get; set; }
 }
 
+public class MigrateItemResponse
+{
+    public long assetId { get; set; }
+    public long assetVersionId { get; set; }
+}
+
 public class CreateAssetVersionRequest
 {
     public long assetId { get; set; }

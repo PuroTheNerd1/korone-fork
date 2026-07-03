@@ -10,6 +10,7 @@ using Roblox.Dto.Groups;
 using Roblox.Dto.Staff;
 using Roblox.Dto.Users;
 using Roblox.Exceptions;
+using Roblox.Libraries;
 using Roblox.Libraries.DiscordApi;
 using Roblox.Libraries.RobloxApi;
 using Roblox.Logging;
@@ -43,6 +44,7 @@ public class AdminApiService : ServiceBase
     private static readonly Regex matchAssetThumbRegex = new("\\/images\\/thumbnails\\/([a-zA-Z0-9]+)", RegexOptions.Compiled);
     private static readonly Regex matchUserThumbRegex = new("(\\/images\\/thumbnails\\/[a-zA-Z0-9\\.\\\\_]+)", RegexOptions.Compiled);
     private static readonly Regex matchGroupIconRegex = new("\\/images\\/thumbnails\\/([a-zA-Z0-9\\.]+)", RegexOptions.Compiled);
+    private static readonly Regex migrateItemAssetIdUrlRegex = new("\\?id=([0-9]+)", RegexOptions.Compiled);
     private static readonly List<string> whitelistedUserSorts = new()
     {
         "user_economy.balance_robux",
@@ -2245,6 +2247,180 @@ Thank you for your understanding,
         await assets.SetItemPrice(asset.assetId, request.price, null);
         await assets.UpdateAssetMarketInfo(asset.assetId, request.isForSale, false, false, null, null);
         return asset;
+    }
+
+    public async Task<MigrateItemResponse> MigrateAnyItemFromRobloxAsync(MigrateItemAlternateRequest request, AdminActorContext actor)
+    {
+        FeatureFlags.FeatureCheck(FeatureFlag.UploadContentEnabled);
+        var assetId = Roblox.Libraries.Assets.UrlUtilities.GetAssetIdFromUrl(request.url);
+        var existing = await TryGetMigratedItemAsync(assetId);
+        if (existing != null)
+            return existing;
+
+        await using var migrationLock = await Cache.redLock.CreateLockAsync(
+            "MigrateItemFromRobloxV1:" + assetId,
+            TimeSpan.FromSeconds(30));
+        if (!migrationLock.IsAcquired)
+            throw new LockNotAcquiredException();
+
+        existing = await TryGetMigratedItemAsync(assetId);
+        if (existing != null)
+            return existing;
+
+        var robloxDetails = await robloxApi.GetProductInfoAssetDelivery(assetId);
+        Stream? content;
+        long? contentId = null;
+        if (robloxDetails.AssetTypeId == Type.Audio)
+        {
+            content = await robloxApi.GetAssetAudioContent(assetId);
+        }
+        else
+        {
+            if (robloxDetails is ProductInfoWithAssetDelivery extended)
+            {
+                if (string.IsNullOrEmpty(extended.location))
+                    throw new StaffException("Roblox did not return a URL for this asset. Is the ID correct?");
+                content = await robloxApi.GetStreamAsync(extended.location);
+            }
+            else
+            {
+                content = await robloxApi.GetAssetContent(assetId);
+            }
+
+            if (robloxDetails.AssetTypeId is Type.TShirt or Type.Shirt or Type.Pants)
+            {
+                var reader = new StreamReader(content);
+                var templateContent = await reader.ReadToEndAsync();
+                content.Position = 0;
+
+                var robloxUrls = migrateItemAssetIdUrlRegex.Match(templateContent);
+                if (!robloxUrls.Success)
+                    throw new StaffException("Could not match for robloxUrl");
+
+                contentId = long.Parse(robloxUrls.Groups[1].Value);
+            }
+        }
+
+        var disableRender = request.disableRender;
+#if DEBUG
+        disableRender = true;
+#endif
+        var modState = robloxDetails.AssetTypeId is Type.Animation or Type.SolidModel or Type.Lua or Type.Mesh or Type.MeshPart or Type.Model
+            ? ModerationStatus.ReviewApproved
+            : ModerationStatus.AwaitingApproval;
+
+        if (contentId != null)
+        {
+            var imageData = await robloxApi.GetAssetContent((long)contentId);
+            if (robloxDetails.AssetTypeId == null)
+                throw new StaffException("Null " + nameof(robloxDetails.AssetTypeId));
+
+            var ok = await assets.ValidateClothing(imageData, robloxDetails.AssetTypeId.Value);
+            if (ok == null)
+                throw new StaffException("ValidateClothing() returned false");
+
+            if (robloxDetails.Name == null)
+                throw new StaffException("Null " + nameof(robloxDetails.Name));
+
+            imageData.Position = 0;
+            var shirtResult = await assets.CreateAsset(
+                robloxDetails.Name,
+                null,
+                2,
+                CreatorType.User,
+                2,
+                imageData,
+                Type.Image,
+                Genre.All,
+                modState,
+                DateTime.UtcNow,
+                DateTime.UtcNow,
+                contentId,
+                disableRender);
+
+            imageData.Position = 0;
+            var img = await Imager.ReadAsync(content);
+            imageData.Position = 0;
+            await assets.InsertOrUpdateAssetVersionMetadataImage(
+                shirtResult.assetVersionId,
+                (int)imageData.Length,
+                img.width,
+                img.height,
+                img.imageFormat,
+                await assets.GenerateImageHash(imageData));
+
+            contentId = shirtResult.assetId;
+            content = null;
+        }
+
+        if (robloxDetails.Name == null)
+            throw new StaffException("Null " + nameof(robloxDetails.Name));
+        if (robloxDetails.AssetTypeId == null)
+            throw new StaffException("Null " + nameof(robloxDetails.AssetTypeId));
+
+        var assetResult = await assets.CreateAsset(
+            robloxDetails.Name,
+            robloxDetails.Description,
+            2,
+            CreatorType.User,
+            2,
+            content,
+            robloxDetails.AssetTypeId.Value,
+            Genre.All,
+            modState,
+            robloxDetails.Created,
+            robloxDetails.Updated,
+            assetId,
+            disableRender,
+            contentId,
+            assetIdOverride: assetId);
+
+        if (robloxDetails.AssetTypeId.Value == Type.Image && content != null)
+        {
+            content.Position = 0;
+            var img = await Imager.ReadAsync(content);
+            content.Position = 0;
+            await assets.InsertOrUpdateAssetVersionMetadataImage(
+                assetResult.assetVersionId,
+                (int)content.Length,
+                img.width,
+                img.height,
+                img.imageFormat,
+                await assets.GenerateImageHash(content));
+        }
+
+        await db.ExecuteAsync(
+            "INSERT INTO moderation_migrate_asset(asset_id, roblox_asset_id, actor_id) VALUES (@assetId, @robloxAssetId, @actorId)",
+            new
+            {
+                assetResult.assetId,
+                robloxAssetId = assetId,
+                actorId = actor.userId,
+            });
+
+        return new MigrateItemResponse
+        {
+            assetId = assetResult.assetId,
+            assetVersionId = assetResult.assetVersionId,
+        };
+    }
+
+    private async Task<MigrateItemResponse?> TryGetMigratedItemAsync(long robloxAssetId)
+    {
+        try
+        {
+            var assetId = await assets.GetAssetIdFromRobloxAssetId(robloxAssetId);
+            var latestVersion = await assets.GetLatestAssetVersion(assetId);
+            return new MigrateItemResponse
+            {
+                assetId = assetId,
+                assetVersionId = latestVersion.assetVersionId,
+            };
+        }
+        catch (RecordNotFoundException)
+        {
+            return null;
+        }
     }
 
     private async Task CopyItemFloodCheck(AdminActorContext actor)
