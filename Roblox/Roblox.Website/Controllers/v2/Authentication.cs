@@ -64,21 +64,9 @@ public class AuthenticationControllerV2 : ControllerBase
         // Clear all sessions
         await services.users.ExpireAllSessions(userId);
 
-        var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-        {
-            sessionId = await services.users.CreateSession(userId),
-            createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        });
-
-        HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-        {
-            Domain = $".{Configuration.ShortBaseUrl}",
-            Secure = false,
-            Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(14)),
-            IsEssential = true,
-            Path = "/",
-            SameSite = SameSiteMode.Lax,
-        });
+        Roblox.Web.Infrastructure.Auth.RobloxSessionCookieWriter.AppendSessionCookies(
+            HttpContext,
+            await services.users.CreateSession(userId));
     }
 
     [HttpPost("logout")]
@@ -87,7 +75,7 @@ public class AuthenticationControllerV2 : ControllerBase
         await services.users.DeleteSession(safeUserSession.sessionId);
         using var sessCache = Roblox.Services.ServiceProvider.GetOrCreate<UserSessionsCache>();
         sessCache.Remove(safeUserSession.sessionId);
-        HttpContext.Response.Cookies.Delete(Middleware.SessionMiddleware.CookieName);
+        Roblox.Web.Infrastructure.Auth.RobloxSessionCookieWriter.DeleteSessionCookies(HttpContext);
     }
 
     // [HttpPost("login")]

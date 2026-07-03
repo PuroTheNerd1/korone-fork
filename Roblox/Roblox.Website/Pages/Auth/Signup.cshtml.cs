@@ -256,19 +256,10 @@ public class Signup : RobloxPageModel
         }
 
         var sess = await services.users.CreateSession(createdUser.userId);
-        var sessionCookie = Roblox.Website.Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-        {
-            sessionId = sess,
-            createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        });
-        HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-        {
-            Secure = true,
-            Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-            IsEssential = true,
-            Path = "/",
-            SameSite = SameSiteMode.Lax,
-        });
+        Roblox.Web.Infrastructure.Auth.RobloxSessionCookieWriter.AppendSessionCookies(
+            HttpContext,
+            sess,
+            TimeSpan.FromDays(364));
         
         // Create default place for user
         if (FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService))

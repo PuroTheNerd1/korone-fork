@@ -5,7 +5,7 @@ namespace Roblox.Web.Infrastructure.Auth;
 
 public static class RobloxSessionCookieWriter
 {
-    public static string AppendSessionCookies(HttpContext httpContext, string sessionId)
+    public static string AppendSessionCookies(HttpContext httpContext, string sessionId, TimeSpan? lifetime = null)
     {
         var sessionCookie = RobloxSessionTokenCodec.CreateJwt(new SessionTokenPayload
         {
@@ -13,15 +13,15 @@ public static class RobloxSessionCookieWriter
             createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
         });
 
-        AppendSessionCookiesForToken(httpContext, sessionCookie);
+        AppendSessionCookiesForToken(httpContext, sessionCookie, lifetime);
         return sessionCookie;
     }
 
-    public static void AppendSessionCookiesForToken(HttpContext httpContext, string sessionCookie)
+    public static void AppendSessionCookiesForToken(HttpContext httpContext, string sessionCookie, TimeSpan? lifetime = null)
     {
-        var options = CreateSessionCookieOptions(httpContext);
+        var options = CreateSessionCookieOptions(httpContext, lifetime);
         httpContext.Response.Cookies.Append(RobloxWebContextConstants.RobloxSessionCookieName, sessionCookie, options);
-        httpContext.Response.Cookies.Append(RobloxWebContextConstants.SessionCookieName, sessionCookie, CreateSessionCookieOptions(httpContext));
+        httpContext.Response.Cookies.Append(RobloxWebContextConstants.SessionCookieName, sessionCookie, CreateSessionCookieOptions(httpContext, lifetime));
     }
 
     public static void DeleteSessionCookies(HttpContext httpContext)
@@ -37,12 +37,12 @@ public static class RobloxSessionCookieWriter
             CreateSessionCookieOptions(httpContext));
     }
 
-    private static CookieOptions CreateSessionCookieOptions(HttpContext httpContext)
+    private static CookieOptions CreateSessionCookieOptions(HttpContext httpContext, TimeSpan? lifetime = null)
     {
         var options = new CookieOptions
         {
             Secure = false,
-            Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(14)),
+            Expires = DateTimeOffset.Now.Add(lifetime ?? TimeSpan.FromDays(14)),
             IsEssential = true,
             Path = "/",
             SameSite = SameSiteMode.Lax,

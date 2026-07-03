@@ -95,20 +95,10 @@ public class Landing : RobloxPageModel
     private async Task CreateSessionAndSetCookie(long userId)
     {
         var sess = await services.users.CreateSession(userId);
-        var sessionCookie = Middleware.SessionMiddleware.CreateJwt(new Middleware.JwtEntry()
-        {
-            sessionId = sess,
-            createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        });
-        HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
-        {
-            Secure = true,
-            Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-            IsEssential = true,
-            HttpOnly = true,
-            Path = "/",
-            SameSite = SameSiteMode.Lax,
-        });
+        Roblox.Web.Infrastructure.Auth.RobloxSessionCookieWriter.AppendSessionCookies(
+            HttpContext,
+            sess,
+            TimeSpan.FromDays(364));
     }
 
     private static async Task PreventTimingExploits(Stopwatch watch)

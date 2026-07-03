@@ -313,15 +313,10 @@ namespace Roblox.Website.Controllers
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
         public void Negotiate([Required, FromQuery] string suggest)
         {
-            HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, suggest, new CookieOptions
-            {
-                Domain = $".{Configuration.ShortBaseUrl}",
-                Secure = false,
-                Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-            });
+            Roblox.Web.Infrastructure.Auth.RobloxSessionCookieWriter.AppendSessionCookiesForToken(
+                HttpContext,
+                suggest,
+                TimeSpan.FromDays(364));
         }
 
         [HttpPostBypass("game/validate-machine")]
