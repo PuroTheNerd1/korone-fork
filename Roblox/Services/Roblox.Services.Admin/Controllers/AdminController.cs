@@ -84,11 +84,9 @@ public class AdminController : RobloxControllerBase
 
     [HttpGet("2fa")]
     [SkipAdminTwoFactor]
-    public async Task<IActionResult> ShowPrompt([FromQuery] string? returnUrl)
+    public async Task<IActionResult> ShowPrompt()
     {
-        if (string.IsNullOrEmpty(returnUrl)) returnUrl = "/admin/";
-
-        var returnUrlJson = System.Text.Json.JsonSerializer.Serialize(returnUrl);
+        var returnUrlJson = System.Text.Json.JsonSerializer.Serialize($"https://www.{Configuration.ShortBaseUrl}/admin/");
 
         return Content($$"""
         <script>
