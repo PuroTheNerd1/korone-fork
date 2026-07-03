@@ -8,6 +8,7 @@ using Roblox.Models.Db;
 using Roblox.Services.Exceptions;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Roblox.Web.Infrastructure.Metadata;
 
 namespace Roblox.Website.Controllers;
 
@@ -55,10 +56,16 @@ public class BadgesControllerV1 : ControllerBase
     }
     
     // Gets badge by their awarding game.
+    [RequireRobloxSession]
     [HttpGet("universes/{universeId:long}/badges")]
     [HttpGetBypass("/v1/universes/{universeId:long}/badges")]
     public async Task<RobloxCollectionPaginated<BadgeAssetDetails>> GetUniverseBadges(long universeId, int limit, string? cursor, SortOrder? sortOrder)
     {
+        if (!await services.cooldown.TryIncrementBucketCooldown("Badges:V1:Universes:Ip:" + GetIP(), 60, TimeSpan.FromMinutes(1)) ||
+            !await services.cooldown.TryIncrementBucketCooldown("Badges:V1:Universes:Id:" + safeUserSession.userId, 80, TimeSpan.FromMinutes(1)) ||
+            !await services.cooldown.TryIncrementBucketCooldown("Badges:V1:Universes:UniverseId:" + universeId, 100, TimeSpan.FromMinutes(1)))
+            throw new RobloxException(RobloxException.TooManyRequests);
+        
         if (limit is > 100 or < 1) limit = 10;
         var offset = cursor != null ? int.Parse(cursor) : 0;
         var uni = await services.games.GetUniverseInfo(universeId);
@@ -120,7 +127,7 @@ public class BadgesControllerV1 : ControllerBase
             { 557868, 555371 }, // Eggfection
             { 557874, 555380 }, // Doggo Egg
             { 557881, 555389 }, // Builderman Egg
-            { 557883, 555393 }, // Royal Fabergé Egg
+            { 557883, 555393 }, // Royal Fabergï¿½ Egg
             { 557893, 555619 }, // Hipster Egg of Retro
             { 557896, 555620 }, // Top of the World Egg
             { 557903, 555621 }, // Inkwell Egg
@@ -140,10 +147,10 @@ public class BadgesControllerV1 : ControllerBase
             { 558023, 557493 }, // Egg of Life
             { 558033, 557502 }, // S.S. Egg - The Mighty Dirigible
             { 558038, 557515 }, // Eggsplorer
-            { 558039, 557523 }, // Black Iron Fabergé Egg
+            { 558039, 557523 }, // Black Iron Fabergï¿½ Egg
             { 558018, 558798 }, // Arborist's Verdant Egg of Leafyness
             { 558041, 558793 }, // Insanely Valuable Crystal Egg
-            { 558062, 562740 }, // The Final Fabergégg
+            { 558062, 562740 }, // The Final Fabergï¿½gg
             { 558010, 562746 }, // The Pirate Egg
     };
     
