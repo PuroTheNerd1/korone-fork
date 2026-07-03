@@ -12,43 +12,42 @@ public static class RobloxSessionResolver
 {
     public static async Task<RobloxResolvedSession?> TryResolveFromCookie(HttpContext context)
     {
-        var cookie = GetCookieValue(context);
-        if (string.IsNullOrWhiteSpace(cookie))
+        foreach (var cookie in GetCookieValues(context))
         {
-            return null;
-        }
-
-        try
-        {
-            var decoded = RobloxSessionTokenCodec.DecodeJwt<SessionTokenPayload>(cookie);
-            if (string.IsNullOrWhiteSpace(decoded.sessionId))
+            try
             {
-                return null;
+                var decoded = RobloxSessionTokenCodec.DecodeJwt<SessionTokenPayload>(cookie);
+                if (string.IsNullOrWhiteSpace(decoded.sessionId))
+                {
+                    continue;
+                }
+
+                using var users = ServiceProvider.GetOrCreate<UsersService>();
+                var sessionInfo = await users.GetSessionById(decoded.sessionId);
+                var userInfo = await users.GetUserById(sessionInfo.userId);
+                var session = new UserSession(
+                    userInfo.userId,
+                    userInfo.username,
+                    userInfo.created,
+                    userInfo.accountStatus,
+                    0,
+                    false,
+                    decoded.sessionId);
+
+                return new RobloxResolvedSession
+                {
+                    EncodedCookie = cookie,
+                    Session = session,
+                    SessionCreatedAt = DateTimeOffset.FromUnixTimeSeconds(decoded.createdAt).UtcDateTime,
+                    UserInfo = userInfo,
+                };
             }
-            using var users = ServiceProvider.GetOrCreate<UsersService>();
-            var sessionInfo = await users.GetSessionById(decoded.sessionId);
-            var userInfo = await users.GetUserById(sessionInfo.userId);
-            var session = new UserSession(
-                userInfo.userId,
-                userInfo.username,
-                userInfo.created,
-                userInfo.accountStatus,
-                0,
-                false,
-                decoded.sessionId);
-
-            return new RobloxResolvedSession
+            catch (Exception exception) when (exception is InvalidTokenPartsException or NullReferenceException or FormatException or SignatureVerificationException or RecordNotFoundException)
             {
-                EncodedCookie = cookie,
-                Session = session,
-                SessionCreatedAt = DateTimeOffset.FromUnixTimeSeconds(decoded.createdAt).UtcDateTime,
-                UserInfo = userInfo,
-            };
+            }
         }
-        catch (Exception exception) when (exception is InvalidTokenPartsException or NullReferenceException or FormatException or SignatureVerificationException or RecordNotFoundException)
-        {
-            return null;
-        }
+
+        return null;
     }
 
     public static string? GetCookieValue(HttpContext context)
@@ -69,5 +68,28 @@ public static class RobloxSessionResolver
         }
 
         return null;
+    }
+
+    private static IEnumerable<string> GetCookieValues(HttpContext context)
+    {
+        var cookieNames = new[]
+        {
+            RobloxWebContextConstants.SessionCookieName,
+            RobloxWebContextConstants.AltSessionCookieName,
+            RobloxWebContextConstants.RobloxSessionCookieName,
+        };
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var cookieName in cookieNames)
+        {
+            if (!context.Request.Cookies.TryGetValue(cookieName, out var cookie) ||
+                string.IsNullOrWhiteSpace(cookie) ||
+                !seen.Add(cookie))
+            {
+                continue;
+            }
+
+            yield return cookie;
+        }
     }
 }
