@@ -19,23 +19,25 @@ public class ApiProxyForwardedAuthMiddleware
 
     public async Task InvokeAsync(HttpContext context, IRobloxRequestContextAccessor requestContextAccessor)
     {
-        var requestContext = RobloxRequestContextFactory.CreateAnonymous(context, _options.RccAuthorization);
-        var resolvedSession = await RobloxSessionResolver.TryResolveFromCookie(context);
-        if (resolvedSession != null)
-        {
-            requestContext = RobloxRequestContextFactory.CreateWithSession(context, resolvedSession.Session, _options.RccAuthorization);
-        }
+        var incomingIsTrusted = IsAuthorized(context);
+        var requestContext = incomingIsTrusted
+            ? RobloxRequestContextFactory.CreateFromForwardedHeaders(context, true, _options.RccAuthorization)
+            : await CreateBrowserRequestContextAsync(context);
 
-        requestContextAccessor.SetCurrent(requestContext);
-        ClearForwardedHeaders(context);
+        if (!incomingIsTrusted)
+        {
+            ClearForwardedHeaders(context);
+        }
 
         if (!ShouldDecorateRequest(context.Request.Host.Host, context.Request.Path))
         {
+            requestContextAccessor.SetCurrent(requestContext);
             await _next(context);
             return;
         }
 
         requestContext.IsTrustedInternalRequest = true;
+        requestContextAccessor.SetCurrent(requestContext);
 
         if (!string.IsNullOrWhiteSpace(_options.Authorization))
         {
@@ -59,6 +61,15 @@ public class ApiProxyForwardedAuthMiddleware
         }
 
         await _next(context);
+    }
+
+    private async Task<RobloxRequestContext> CreateBrowserRequestContextAsync(HttpContext context)
+    {
+        var requestContext = RobloxRequestContextFactory.CreateAnonymous(context, _options.RccAuthorization);
+        var resolvedSession = await RobloxSessionResolver.TryResolveFromCookie(context);
+        return resolvedSession == null
+            ? requestContext
+            : RobloxRequestContextFactory.CreateWithSession(context, resolvedSession.Session, _options.RccAuthorization);
     }
 
     private static void ClearForwardedHeaders(HttpContext context)
@@ -131,5 +142,16 @@ public class ApiProxyForwardedAuthMiddleware
         var suffix = candidate[1..];
         return host.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) &&
                host.Length > suffix.Length;
+    }
+    
+    private bool IsAuthorized(HttpContext context)
+    {
+        if (string.IsNullOrWhiteSpace(_options.Authorization))
+        {
+            return false;
+        }
+
+        return context.Request.Headers.TryGetValue(RobloxWebContextConstants.ProxyAuthorizationHeaderName, out var provided) &&
+               provided.ToString() == _options.Authorization;
     }
 }

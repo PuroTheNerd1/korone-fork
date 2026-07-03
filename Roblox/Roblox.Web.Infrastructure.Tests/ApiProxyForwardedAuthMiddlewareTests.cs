@@ -150,4 +150,25 @@ public class ApiProxyForwardedAuthMiddlewareTests
         Assert.False(context.Request.Headers.ContainsKey(RobloxWebContextConstants.AccountStatusHeaderName));
         Assert.False(context.GetRobloxRequestContext()!.IsAuthenticated);
     }
+
+    [Fact]
+    public async Task TrustedIncomingProxyHeadersCreateAuthenticatedContextAndAreForwarded()
+    {
+        var session = InfrastructureTestHelpers.CreateSession(userId: 123, username: "ForwardedUser", sessionId: "forwarded-session");
+        var (context, nextCalled) = await InfrastructureTestHelpers.InvokeApiProxyForwardedAuthAsync(
+            options => options.InternalServiceHosts.Add("www.test.local"),
+            ctx =>
+            {
+                ctx.Request.Headers[RobloxWebContextConstants.ProxyAuthorizationHeaderName] = TestConstants.ProxyAuthorization;
+                InfrastructureTestHelpers.AddForwardedSessionHeaders(ctx, session);
+            });
+
+        Assert.True(nextCalled);
+        Assert.Equal(TestConstants.ProxyAuthorization, context.Request.Headers[RobloxWebContextConstants.ProxyAuthorizationHeaderName]);
+        Assert.Equal("123", context.Request.Headers[RobloxWebContextConstants.UserIdHeaderName]);
+        Assert.Equal("ForwardedUser", context.Request.Headers[RobloxWebContextConstants.UsernameHeaderName]);
+        Assert.Equal("forwarded-session", context.Request.Headers[RobloxWebContextConstants.SessionIdHeaderName]);
+        Assert.True(context.GetRobloxRequestContext()!.IsAuthenticated);
+        Assert.True(context.GetRobloxRequestContext()!.IsTrustedInternalRequest);
+    }
 }

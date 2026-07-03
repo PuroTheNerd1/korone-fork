@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Roblox.Web.Infrastructure.Auth;
 using Roblox.Web.Infrastructure.Configuration;
 using Roblox.Web.Infrastructure.Http;
 using Roblox.Web.Infrastructure.Metadata;
@@ -23,17 +22,6 @@ public class ProxyForwardedAuthMiddleware
         var endpoint = context.GetEndpoint();
         var isAuthorized = IsAuthorized(context);
         var requestContext = RobloxRequestContextFactory.CreateFromForwardedHeaders(context, isAuthorized, _options.RccAuthorization);
-        if (isAuthorized && !requestContext.IsAuthenticated)
-        {
-            var resolvedSession = await RobloxSessionResolver.TryResolveFromCookie(context);
-            if (resolvedSession != null)
-            {
-                requestContext.Session = resolvedSession.Session;
-                requestContext.SessionCookie = resolvedSession.EncodedCookie;
-                requestContext.IsAuthenticated = true;
-            }
-        }
-
         requestContextAccessor.SetCurrent(requestContext);
 
         if (!SatisfiesEndpointRequirements(endpoint, requestContext, isAuthorized))
