@@ -8,6 +8,7 @@ using Roblox.Models.Db;
 using Roblox.Services.Exceptions;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Roblox.Services.App.FeatureFlags;
 using Roblox.Web.Infrastructure.Metadata;
 
 namespace Roblox.Website.Controllers;
@@ -19,12 +20,14 @@ public class BadgesControllerV1 : ControllerBase
     // base: https://apidocs.sixteensrc.zip/badges/docs.html#/
     
     // Gets badge information by the badge id.
+    [RequireRobloxSession]
     [HttpGet("badges/{badgeId:long}")]
     [HttpGetBypass("/v1/badges/{badgeId:long}")]
     [HttpPost("badges/{badgeId:long}")]
     [HttpPostBypass("/v1/badges/{badgeId:long}")]
     public async Task<BadgeAssetDetails> GetBadgeDetails(long badgeId) 
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.BadgesEnabled);
         // TODO: is this even needed?
         var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
         if (basicBadgeInfo is null) {
@@ -39,9 +42,12 @@ public class BadgesControllerV1 : ControllerBase
     }
     
     // Updates badge configuration.
+    [RequireRobloxSession]
     [HttpPatch("badges/{badgeId:long}")]
     public async Task<dynamic> UpdateBadgeConfig(long badgeId, [Required, FromBody] BadgeUpdateRequest request) 
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.BadgesEnabled);
+
         await services.assets.ValidatePermissions(badgeId, safeUserSession.userId);
         
         var basicBadgeInfo = await services.badges.GetBadgeInfo(badgeId);
@@ -60,7 +66,8 @@ public class BadgesControllerV1 : ControllerBase
     [HttpGet("universes/{universeId:long}/badges")]
     [HttpGetBypass("/v1/universes/{universeId:long}/badges")]
     public async Task<RobloxCollectionPaginated<BadgeAssetDetails>> GetUniverseBadges(long universeId, int limit, string? cursor, SortOrder? sortOrder)
-    {
+    {        
+        FeatureFlags.FeatureCheck(FeatureFlag.BadgesEnabled);
         if (!await services.cooldown.TryIncrementBucketCooldown("Badges:V1:Universes:Ip:" + GetIP(), 60, TimeSpan.FromMinutes(1)) ||
             !await services.cooldown.TryIncrementBucketCooldown("Badges:V1:Universes:Id:" + safeUserSession.userId, 80, TimeSpan.FromMinutes(1)) ||
             !await services.cooldown.TryIncrementBucketCooldown("Badges:V1:Universes:UniverseId:" + universeId, 100, TimeSpan.FromMinutes(1)))
@@ -80,10 +87,12 @@ public class BadgesControllerV1 : ControllerBase
     }
     
     // Gets a list of badges a user has been awarded.
+    [RequireRobloxSession]
     [HttpGet("users/{userId:long}/badges")]
     [HttpGetBypass("/v1/users/{userId:long}/badges")]
     public async Task<RobloxCollectionPaginated<BadgeAssetDetails>> GetBadges(long userId, int limit, string? cursor, SortOrder? sortOrder)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.BadgesEnabled);
         if (limit is > 100 or < 1) limit = 10;
         var offset = cursor != null ? int.Parse(cursor) : 0;
         var badgeInfo = (await services.badges.GetBadgesForUser(userId, limit, offset, sortOrder)).ToList();
@@ -97,10 +106,12 @@ public class BadgesControllerV1 : ControllerBase
     }
     
     // Gets timestamps for when badges were awarded to a user.
+    [RequireRobloxSession]
     [HttpGet("users/{userId:long}/badges/awarded-dates")]
     [HttpGetBypass("/v1/users/{userId:long}/badges/awarded-dates")]
     public async Task<dynamic> GetBadgeTimestamps(long userId, string badgeIds)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.BadgesEnabled);
         var ids = badgeIds.Split(",").Select(long.Parse).ToArray();
         if (!ids.Any())
             return Array.Empty<BadgeAwardDate>();
@@ -155,11 +166,13 @@ public class BadgesControllerV1 : ControllerBase
     };
     
     // Award a badge to a user.
+    [RequireRccRequest]
     [HttpPost("users/{userId:long}/badges/{badgeId:long}/award-badge")]
     [HttpPostBypass("/v1/users/{userId:long}/badges/{badgeId:long}/award-badge")]
     [HttpPostBypass("/assets/award-badge")]
     public async Task<dynamic> AwardBadge(long userId, long badgeId, long? placeId)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.BadgesEnabled);
         if (!isRCC) {
             throw new PermissionException(badgeId, safeUserSession.userId);
         }
@@ -232,9 +245,11 @@ public class BadgesControllerV1 : ControllerBase
     }
     
     // Removes a badge from a user.
+    [RequireRccRequest]
     [HttpDelete("users/{userId:long}/badges/{badgeId:long}")]
     public async Task<dynamic> RemoveBadgeFromUser(long userId, long badgeId)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.BadgesEnabled);
         if (!isRCC) {
             throw new PermissionException(badgeId, safeUserSession.userId);
         }
