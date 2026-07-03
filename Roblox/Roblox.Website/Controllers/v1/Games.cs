@@ -7,6 +7,7 @@ using Roblox.Logging;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
+using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
 using Roblox.Web.Infrastructure.Metadata;
 using Type = Roblox.Models.Assets.Type;
@@ -17,9 +18,11 @@ namespace Roblox.Website.Controllers;
 [Route("/apisite/games/v1")]
 public class GamesControllerV1 : ControllerBase
 {
+    [RequireRobloxSession]
     [HttpGet("games")]
     public async Task<dynamic> MultiGetUniverseInfo(string universeIds)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         var sp = universeIds.Split(",").Select(long.Parse);
         var result = await services.games.MultiGetUniverseInfo(sp);
         return new
@@ -28,9 +31,11 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
+    [RequireRobloxSession]
     [HttpGet("games/sorts")]
     public async Task<dynamic> GetGameSorts(string? gameSortsContext)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         var sorts = new Dictionary<string, dynamic>()
         {
             {
@@ -174,9 +179,11 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
+    [RequireRobloxSession]
     [HttpGet("games/list")]
     public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         if (!await services.cooldown.TryIncrementBucketCooldown($"Games:V1:{GetIP()}", 80, TimeSpan.FromMinutes(1)))
              throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
         
@@ -191,9 +198,11 @@ public class GamesControllerV1 : ControllerBase
 
     private static Regex numberRegex { get; } = new("([0-9]+)");
 
+    [RequireRobloxSession]
     [HttpGet("games/multiget-playability-status")]
     public dynamic MultiGetPlayabilityStatus()
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         var ids = HttpContext.Request.QueryString.Value ?? "";
         return numberRegex.Matches(ids).Select(c => long.Parse(c.Value)).Distinct().Select(c => new
         {
@@ -203,9 +212,11 @@ public class GamesControllerV1 : ControllerBase
         });
     }
 
+    [RequireRobloxSession]
     [HttpGet("games/{universeId:long}/social-links/list")]
     public dynamic GetSocialLinks()
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         return new
         {
             data = new List<int>(),
@@ -216,6 +227,7 @@ public class GamesControllerV1 : ControllerBase
     [HttpGet("games/recommendations/game/{universeId:long}")]
     public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         if (!await services.cooldown.TryIncrementBucketCooldown("Games:V1:Recommendations:Ip:" + GetIP(), 60, TimeSpan.FromMinutes(1)) ||
             !await services.cooldown.TryIncrementBucketCooldown("Games:V1:Recommendations:Id:" + safeUserSession.userId, 80, TimeSpan.FromMinutes(1)) ||
             !await services.cooldown.TryIncrementBucketCooldown("Games:V1:Recommendations:UniverseId:" + universeId, 100, TimeSpan.FromMinutes(1)))
@@ -230,9 +242,11 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
+    [RequireRobloxSession]
     [HttpGet("games/multiget-place-details")]
     public async Task<IEnumerable<PlaceEntry>> MultiGetPlaceDetails(string placeIds)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         return await services.games.MultiGetPlaceDetails(placeIds.Split(",").Select(long.Parse));
     }
 
@@ -240,6 +254,7 @@ public class GamesControllerV1 : ControllerBase
     [HttpGet("games/votes")]
     public async Task<dynamic> GetGameVotes(string universeIds)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         if (!await services.cooldown.TryIncrementBucketCooldown("Games:V1:Votes:Ip:" + GetIP(), 60, TimeSpan.FromMinutes(1)) ||
             !await services.cooldown.TryIncrementBucketCooldown("Games:V1:Votes:Id:" + safeUserSession.userId, 80, TimeSpan.FromMinutes(1)) ||
             !await services.cooldown.TryIncrementBucketCooldown("Games:V1:Votes:Universes:" + universeIds, 100, TimeSpan.FromMinutes(1)))
@@ -268,16 +283,20 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
+    [RequireRobloxSession]
     [HttpPatch("games/{universeId:long}/user-votes")]
     public async Task VoteOnUniverse(long universeId, [Required, FromBody] VoteRequest request)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         var uni = await services.games.GetUniverseInfo(universeId);
         await services.assets.VoteOnAsset(uni.rootPlaceId, safeUserSession.userId, request.vote);
     }
 
+    [RequireRobloxSession]
     [HttpGet("users/{userId:long}/count")]
     public async Task<dynamic> GetUserGameCount(long userId)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         var localUserId = safeUserSession.userId;
         await using var placeCuntLock =
             await Services.Cache.redLock.CreateLockAsync("GetPlaceCountV1:UserId:" + localUserId,
@@ -295,9 +314,11 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
+    [RequireRobloxSession]
     [HttpGet("games/{universeId:long}/game-passes")]
     public async Task<RobloxCollectionPaginated<UniverseGamePassEntry>> GetUniverseGamePasses(long universeId, long? unfiltered = 0, SortOrder? sortOrder = SortOrder.Asc, int? limit = 10, string? cursor = null)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         if (limit is > 100 or < 1) limit = 10;
         int offset = int.Parse(cursor ?? "0");
         var result = (await services.games.GetGamePassesForUniverse(universeId, limit ?? 10, offset, userSession?.userId, sortOrder ?? SortOrder.Asc)).ToList();
@@ -310,9 +331,11 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
+    [RequireRobloxSession]
     [HttpGet("games/game-passes/{assetId:long}")]
     public async Task<GamePassDetails> GetGamePassInfo(long assetId)
     {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         return await services.games.GetGamePassInfo(assetId);
     }
 }
