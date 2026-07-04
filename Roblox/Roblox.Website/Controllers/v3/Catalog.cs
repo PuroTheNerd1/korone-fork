@@ -5,11 +5,14 @@ using Roblox.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Economy;
+using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
+using Roblox.Web.Infrastructure.Metadata;
 
 namespace Roblox.Website.Controllers;
 
 [ApiController]
+[RequireRobloxSession]
 [Route("/apisite/catalog/v3")]
 public class CatalogControllerV3 : ControllerBase
 {
@@ -43,6 +46,12 @@ public class CatalogControllerV3 : ControllerBase
         long? maxPrice = null
         )
     {
+        if (FeatureFlags.IsDisabled(FeatureFlag.EconomyEnabled))
+            return new SearchResponse();
+		
+        if (!await services.cooldown.TryIncrementBucketCooldown("Catalog:V3:Search:Items:Ip:" + GetIP(), 40, TimeSpan.FromMinutes(1)))
+            throw new TooManyRequestsException();
+        
         var request = new CatalogSearchRequest2
         {
             category = category,

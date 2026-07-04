@@ -5,18 +5,21 @@ using Roblox.Exceptions;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Web.Infrastructure.Metadata;
 using MultiGetEntry = Roblox.Dto.Assets.MultiGetEntry;
 #pragma warning disable CS8600
 
 namespace Roblox.Website.Controllers;
 
 [ApiController]
+[RequireRobloxSession]
 [Route("/apisite/catalog/v1")]
 public class CatalogControllerV1 : ControllerBase
 {
     [HttpGet("categories")]
     public dynamic GetCategories()
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
         return new
         {
             Featured = 0,
@@ -41,6 +44,7 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGet("subcategories")]
     public dynamic GetSubcategories()
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
         return new
         {
             Featured = 0,
@@ -91,6 +95,7 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGet("search/navigation-menu-items")]
     public dynamic GetSearchNavigationMenuItems()
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
         return new
         {
             defaultGearSubcategory = 5,
@@ -624,6 +629,7 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGet("catalog/metadata")]
     public dynamic GetCatalogMetadata()
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
 	    return new
 	    {
 		    numberOfCatalogItemsToDisplayOnSplash = 25,
@@ -643,6 +649,7 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGetBypass("/v1/recommendations/asset/{assetTypeId}")]
     public async Task<dynamic> GetRecommendations(Models.Assets.Type assetTypeId, long contextAssetId, int numItems)
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
 	    var result = await services.assets.GetRecommendedItems(assetTypeId, contextAssetId, numItems);
 	    return new
 	    {
@@ -695,6 +702,8 @@ public class CatalogControllerV1 : ControllerBase
     [HttpPost("catalog/items/details")]
     public async Task<RobloxCollection<MultiGetEntry>> MultiGetItemDetails([Required, FromBody] WebsiteModels.Catalog.MultiGetRequest request)
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
+
 	    if (!await services.cooldown.TryIncrementBucketCooldown("Catalog:V1:Items:Details:Ip:" + GetIP(), 100, TimeSpan.FromSeconds(1)))
 		    throw new TooManyRequestsException();
 	    
@@ -713,7 +722,7 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGet("search/items")]
     public async Task<SearchResponse> SearchItems(string? category, string? subcategory, string? sortType, string? keyword, string? cursor, int limit = 10, CreatorType? creatorType = null, long? creatorTargetId = null, string? creatorName = null, bool includeNotForSale = false, string? _genreFilterCsv = null)
     {
-		if (FeatureFlags.IsDisabled(FeatureFlag.EconomyEnabled))
+		if (FeatureFlags.IsDisabled(FeatureFlag.CatalogEnabled))
 			return new SearchResponse();
 		
 		if (!await services.cooldown.TryIncrementBucketCooldown("Catalog:V1:Search:Items:Ip:" + GetIP(), 40, TimeSpan.FromMinutes(1)))
@@ -747,6 +756,8 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGet("recommendations/metadata")]
     public dynamic GetRecommendationsMetadata(string? page)
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
+
 	    var displayed = 0;
 	    var retrieved = 0;
 	    var subject = "assets";
@@ -781,30 +792,40 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGet("canedit")]
     public async Task<bool> CanEdit(long assetId) 
 	{
+		FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
+
 	    return await services.assets.CanUserModifyItem(assetId, safeUserSession.userId) || safeUserSession.userId == 3;
     }
 
     [HttpGet("favorites/users/{userId:long}/assets/{assetId:long}/favorite")]
     public async Task<FavoriteEntry?> GetFavoriteStatus(long userId, long assetId)
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
+
 	    return await services.assets.GetFavoriteStatus(safeUserSession.userId, assetId);
     }
 
     [HttpPost("favorites/users/{userId:long}/assets/{assetId:long}/favorite")]
     public async Task CreateFavorite(long userId, long assetId)
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
+
 	    await services.assets.CreateFavorite(safeUserSession.userId, assetId);
     }
 
     [HttpDelete("favorites/users/{userId:long}/assets/{assetId:long}/favorite")]
     public async Task DeleteFavorite(long userId, long assetId)
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
+
 	    await services.assets.DeleteFavorite(safeUserSession.userId, assetId);
     }
 
     [HttpGet("asset-to-category")]
     public dynamic GetAssetToCategory()
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
+
 	    return new Dictionary<int, int>()
 	    {
 		    {8,11},
@@ -840,6 +861,8 @@ public class CatalogControllerV1 : ControllerBase
     [HttpGet("asset-to-subcategory")]
     public dynamic GetAssetToSubcategory()
     {
+	    FeatureFlags.FeatureCheck(FeatureFlag.CatalogEnabled);
+
 	    return new Dictionary<int, int>()
 	    {
 		    {2,13},
