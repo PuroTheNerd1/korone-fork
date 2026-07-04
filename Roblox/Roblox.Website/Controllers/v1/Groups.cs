@@ -14,13 +14,15 @@ using Roblox.Models.Staff;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
+using Roblox.Web.Infrastructure.Metadata;
 using Roblox.Website.WebsiteModels.Groups;
 using BadRequestException = Roblox.Exceptions.BadRequestException;
 using StatusEntry = Roblox.Dto.Groups.StatusEntry;
 
 namespace Roblox.Website.Controllers;
 
-[ApiController()]
+[ApiController]
+[RequireRobloxSession]
 [Route("/apisite/groups/v1")]
 public class GroupsControllerV1 : ControllerBase
 {
@@ -88,6 +90,12 @@ public class GroupsControllerV1 : ControllerBase
     public async Task<dynamic> SearchGroups(string keyword, string? cursor, int limit = 10, bool prioritizeExactMatch = false)
     {
         FeatureCheck();
+        
+        if (!await services.cooldown.TryIncrementBucketCooldown("Groups:V1:Search:Ip:" + GetIP(), 60, TimeSpan.FromMinutes(1)) || 
+            !await services.cooldown.TryIncrementBucketCooldown("Groups:V1:Search:Id:" + safeUserSession.userId, 60, TimeSpan.FromMinutes(1)) ||
+                !await services.cooldown.TryIncrementBucketCooldown("Groups:V1:Search:Keyword:" + keyword, 100, TimeSpan.FromMinutes(1)))
+            throw new TooManyRequestsException(0);
+        
         var offset = int.Parse(cursor ?? "0");
         var result = (await services.groups.SearchGroups(keyword, cursor, limit)).ToList();
 
