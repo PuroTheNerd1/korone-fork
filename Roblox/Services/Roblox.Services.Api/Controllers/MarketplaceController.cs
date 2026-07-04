@@ -108,8 +108,8 @@ public class MarketplaceController : RobloxControllerBase
         if (iconModStatus != ModerationStatus.ReviewApproved)
             throw BadRequest("Developer Product is not approved");
 
-        var universeInfo = (await services.games.MultiGetUniverseInfo(new[] { productInfo.universeId })).ToList();
-        if (universeInfo.FirstOrDefault() is null || universeInfo.First().rootPlaceId != purchaseRequest.placeId)
+        var universeInfo = await services.games.GetUniverseInfo(productInfo.universeId);
+        if (universeInfo.rootPlaceId != purchaseRequest.placeId)
             throw BadRequest("Place is invalid for this purchase or does not exist");
 
         if (productInfo.price != purchaseRequest.expectedUnitPrice)
