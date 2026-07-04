@@ -12,7 +12,7 @@ param(
     [string]$AvatarServiceName = "Roblox.Services.Avatar",
     [string]$ThumbnailsServiceName = "Roblox.Services.Thumbnails",
     [string]$UsersServiceName = "Roblox.Services.Users",
-    [string]$AdminServiceName = "Roblox.Services.Admin"
+    [string]$AdminServiceName = "Roblox.Services.Admin",
     [string]$GamesServiceName = "Roblox.Services.Games"
 )
 
