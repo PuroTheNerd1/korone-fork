@@ -1,26 +1,28 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using InfluxDB.Client.Core.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Games;
-using Roblox.Exceptions;
 using Roblox.Logging;
 using Roblox.Models;
 using Roblox.Models.Assets;
 using Roblox.Models.Db;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Exceptions;
+using Roblox.Web.Infrastructure.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
-using Type = Roblox.Models.Assets.Type;
 
-namespace Roblox.Website.Controllers;
+namespace Roblox.Services.Games.Controllers;
 
 [ApiController]
-[NonController]
-[Route("/apisite/games/v1")]
-public class GamesControllerV1 : ControllerBase
+[InternalServiceOnly]
+[RequireRobloxCsrf]
+[RequireRobloxSession]
+[Route("/")]
+public class GamesController : RobloxControllerBase
 {
-    [RequireRobloxSession]
-    [HttpGet("games")]
+    [HttpGet("/v1/games")]
+    [HttpGet("/apisite/games/v1/games")]
     public async Task<dynamic> MultiGetUniverseInfo(string universeIds)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -32,8 +34,8 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [RequireRobloxSession]
-    [HttpGet("games/sorts")]
+    [HttpGet("/v1/games/sorts")]
+    [HttpGet("/apisite/games/v1/games/sorts")]
     public async Task<dynamic> GetGameSorts(string? gameSortsContext)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -100,10 +102,8 @@ public class GamesControllerV1 : ControllerBase
         var results = new List<dynamic>();
         if (gameSortsContext != null && gameSortsContext is "HomeSorts" or "UnifiedHomeSorts")
         {
-            if (userSession == null)
-                throw new ForbiddenException();
             // we need to check if player actually has anything recent before showing recent sort
-            var recent = await services.games.GetRecentGames(userSession.userId, 1);
+            var recent = await services.games.GetRecentGames(safeUserSession.userId, 1);
             if (recent.Any())
             {
                 results.Add(sorts["recent"]);
@@ -180,15 +180,14 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [RequireRobloxSession]
-    [HttpGet("games/list")]
+    [HttpGet("/v1/games/list")]
+    [HttpGet("/apisite/games/v1/games/list")]
     public async Task<dynamic> GetGamesList(string? sortToken, int maxRows = 10, Genre? genre = null, string? keyword = null)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         if (!await services.cooldown.TryIncrementBucketCooldown($"Games:V1:{GetIP()}", 80, TimeSpan.FromMinutes(1)))
-             throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
+             throw new RobloxException(RobloxException.TooManyRequests, 0, "Too many attempts. Try again in a few seconds.");
         
-        if (UserAgent.Contains("Roblox/")) return new { };
         if (maxRows is > 50 or < 1) maxRows = 50;
         var result = await services.games.GetGamesList(userSession?.userId, sortToken, maxRows, genre, keyword);
         return new
@@ -199,8 +198,8 @@ public class GamesControllerV1 : ControllerBase
 
     private static Regex numberRegex { get; } = new("([0-9]+)");
 
-    [RequireRobloxSession]
-    [HttpGet("games/multiget-playability-status")]
+    [HttpGet("/v1/games/multiget-playability-status")]
+    [HttpGet("/apisite/games/v1/games/multiget-playability-status")]
     public dynamic MultiGetPlayabilityStatus()
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -213,8 +212,8 @@ public class GamesControllerV1 : ControllerBase
         });
     }
 
-    [RequireRobloxSession]
-    [HttpGet("games/{universeId:long}/social-links/list")]
+    [HttpGet("/v1/games/{universeId:long}/social-links/list")]
+    [HttpGet("/apisite/games/v1/games/{universeId:long}/social-links/list")]
     public dynamic GetSocialLinks()
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -224,8 +223,8 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [RequireRobloxSession]
-    [HttpGet("games/recommendations/game/{universeId:long}")]
+    [HttpGet("/v1/games/recommendations/game/{universeId:long}")]
+    [HttpGet("/apisite/games/v1/games/recommendations/game/{universeId:long}")]
     public async Task<dynamic> GetRecommendedGames(long universeId, int maxRows = 6)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -243,16 +242,16 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [RequireRobloxSession]
-    [HttpGet("games/multiget-place-details")]
+    [HttpGet("/v1/games/multiget-place-details")]
+    [HttpGet("/apisite/games/v1/games/multiget-place-details")]
     public async Task<IEnumerable<PlaceEntry>> MultiGetPlaceDetails(string placeIds)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         return await services.games.MultiGetPlaceDetails(placeIds.Split(",").Select(long.Parse));
     }
 
-    [RequireRobloxSession]
-    [HttpGet("games/votes")]
+    [HttpGet("/v1/games/votes")]
+    [HttpGet("/apisite/games/v1/games/votes")]
     public async Task<dynamic> GetGameVotes(string universeIds)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -284,8 +283,8 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [RequireRobloxSession]
-    [HttpPatch("games/{universeId:long}/user-votes")]
+    [HttpPatch("/v1/games/{universeId:long}/user-votes")]
+    [HttpPatch("/apisite/games/v1/games/{universeId:long}/user-votes")]
     public async Task VoteOnUniverse(long universeId, [Required, FromBody] VoteRequest request)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -293,19 +292,19 @@ public class GamesControllerV1 : ControllerBase
         await services.assets.VoteOnAsset(uni.rootPlaceId, safeUserSession.userId, request.vote);
     }
 
-    [RequireRobloxSession]
-    [HttpGet("users/{userId:long}/count")]
+    [HttpGet("/v1/users/{userId:long}/count")]
+    [HttpGet("/apisite/games/v1/users/{userId:long}/count")]
     public async Task<dynamic> GetUserGameCount(long userId)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         var localUserId = safeUserSession.userId;
-        await using var placeCuntLock =
+        await using var placeCountLock =
             await Services.Cache.redLock.CreateLockAsync("GetPlaceCountV1:UserId:" + localUserId,
                 TimeSpan.FromSeconds(3));
-        if (!placeCuntLock.IsAcquired)
+        if (!placeCountLock.IsAcquired)
         {
             Writer.Info(LogGroup.AbuseDetection, "GetPlaceCount API could not acquire placeCuntLock");
-            throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
+            throw new RobloxException(RobloxException.TooManyRequests, 0, "Too many attempts. Try again in a few seconds.");
         }
 
         var uniCount = await services.games.GetUserPlaceCount(userId);
@@ -315,8 +314,8 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [RequireRobloxSession]
-    [HttpGet("games/{universeId:long}/game-passes")]
+    [HttpGet("/v1/games/{universeId:long}/game-passes")]
+    [HttpGet("/apisite/games/v1/games/{universeId:long}/game-passes")]
     public async Task<RobloxCollectionPaginated<UniverseGamePassEntry>> GetUniverseGamePasses(long universeId, long? unfiltered = 0, SortOrder? sortOrder = SortOrder.Asc, int? limit = 10, string? cursor = null)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -332,11 +331,80 @@ public class GamesControllerV1 : ControllerBase
         };
     }
 
-    [RequireRobloxSession]
-    [HttpGet("games/game-passes/{assetId:long}")]
+    [HttpGet("/v1/games/game-passes/{assetId:long}")]
+    [HttpGet("/apisite/games/v1/games/game-passes/{assetId:long}")]
     public async Task<GamePassDetails> GetGamePassInfo(long assetId)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
         return await services.games.GetGamePassInfo(assetId);
+    }
+    
+    [HttpGet("/v1/games/{universeId:long}/favorites")]
+    public async Task<dynamic> GetFavoriteStatus(long universeId)
+    {
+        return new
+        {
+            isFavorited = await services.assets.GetFavoriteStatus(safeUserSession.userId, universeId)
+        };
+    }
+    
+    //v2
+    [HttpGet("/v2/users/{userId:long}/games")]
+    [HttpGet("/apisite/games/v2/users/{userId:long}/games")]
+    public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetUserGames(long userId,
+        string? sortOrder, string? accessFilter, int limit, string? cursor = null)
+    {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
+        
+        if (limit is > 100 or < 1) limit = 10;
+        int offset = int.Parse(cursor ?? "0");
+        var result =
+            (await services.games.GetGamesForType(CreatorType.User, userId, limit, offset, sortOrder ?? "asc", accessFilter ?? "All")).ToList();
+        return new RobloxCollectionPaginated<GamesForCreatorEntry>()
+        {
+            nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
+            previousPageCursor = offset >= limit ? (offset-limit).ToString() : null,
+            data = result,
+        };
+    }
+    
+    [HttpGet("/v2/groups/{groupId:long}/games")]
+    [HttpGet("/apisite/games/v2/groups/{groupId:long}/games")]
+    public async Task<RobloxCollectionPaginated<GamesForCreatorEntry>> GetGroupGames(long groupId,
+        string? sortOrder, string? accessFilter, int limit, string? cursor = null)
+    {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
+        
+        if (limit is > 100 or < 1) limit = 10;
+        int offset = int.Parse(cursor ?? "0");
+        var result =
+            (await services.games.GetGamesForType(CreatorType.Group, groupId, limit, offset, sortOrder, accessFilter)).ToList();
+        return new RobloxCollectionPaginated<GamesForCreatorEntry>()
+        {
+            nextPageCursor = result.Count >= limit ? (offset+limit).ToString(): null,
+            previousPageCursor = offset >= limit ? (offset-limit).ToString() : null,
+            data = result,
+        };
+    }
+
+    /// <summary>
+    /// Endpoint is only valid for custom media (such as videos or custom thumbnails. Auto generated and/or default thumbnails are not returned.
+    /// </summary>
+    [HttpGet("/v1/games/{universeId}/media")]
+    [HttpGet("/v2/games/{universeId}/media")]
+    [HttpGet("/apisite/games/v2/games/{universeId}/media")]
+    public async Task<RobloxCollection<GameMediaEntry>> GetGameMedia(long universeId) 
+    {
+        FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
+
+        var universe = (await services.games.MultiGetUniverseInfo(new[] {universeId})).First();
+        if (universe == null) {
+            throw new RobloxException(RobloxException.BadRequest, 0, "Universe doesn't exist");
+        }
+        var result = await services.games.GetGameMedia(universe.rootPlaceId);
+        return new()
+        {
+            data = result,
+        };
     }
 }

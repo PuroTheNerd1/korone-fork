@@ -34,6 +34,7 @@ jobs:
       THUMBNAILS_SERVICE: ${{ vars.WEB_THUMBNAILS_SERVICE || 'Roblox.Services.Thumbnails' }}
       USERS_SERVICE: ${{ vars.WEB_USERS_SERVICE || 'Roblox.Services.Users' }}
       ADMIN_SERVICE: ${{ vars.WEB_ADMIN_SERVICE || 'Roblox.Services.Admin' }}
+      GAMES_SERVICE: ${{ vars.WEB_GAMES_SERVICE || 'Roblox.Services.Games' }}
     defaults:
       run:
         shell: pwsh
@@ -62,6 +63,7 @@ jobs:
           dotnet build Roblox\Services\Roblox.Services.Thumbnails\Roblox.Services.Thumbnails.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Users\Roblox.Services.Users.csproj -c Release --no-restore -m:1
           dotnet build Roblox\Services\Roblox.Services.Admin\Roblox.Services.Admin.csproj -c Release --no-restore -m:1
+          dotnet build Roblox\Services\Roblox.Services.Games\Roblox.Services.Games.csproj -c Release --no-restore -m:1
 
       - name: Publish deployable projects
         run: |
@@ -79,6 +81,7 @@ jobs:
           dotnet publish Roblox\Services\Roblox.Services.Thumbnails\Roblox.Services.Thumbnails.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Thumbnails")
           dotnet publish Roblox\Services\Roblox.Services.Users\Roblox.Services.Users.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Users")
           dotnet publish Roblox\Services\Roblox.Services.Admin\Roblox.Services.Admin.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Admin")
+          dotnet publish Roblox\Services\Roblox.Services.Games\Roblox.Services.Games.csproj -c Release --no-build -o (Join-Path $bundleRoot "Roblox.Services.Games")
 
       - name: Add deployment scripts
         run: |
@@ -161,6 +164,7 @@ jobs:
           $thumbnailsServiceLiteral = ConvertTo-PowerShellLiteral $env:THUMBNAILS_SERVICE
           $usersServiceLiteral = ConvertTo-PowerShellLiteral $env:USERS_SERVICE
           $adminServiceLiteral = ConvertTo-PowerShellLiteral $env:ADMIN_SERVICE
+          $gamesServiceLiteral = ConvertTo-PowerShellLiteral $env:GAMES_SERVICE
 
           $remoteScript = @"
           `$stagingRoot = Join-Path `$env:USERPROFILE $stagingLiteral
@@ -178,6 +182,7 @@ jobs:
             -ThumbnailsServiceName $thumbnailsServiceLiteral ``
             -UsersServiceName $usersServiceLiteral ``
             -AdminServiceName $adminServiceLiteral
+            -GamesServiceName $gamesServiceLiteral
           "@
           $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($remoteScript))
           $remote = "$($env:WEB_SERVER_USER)@$($env:WEB_SERVER_HOST)"

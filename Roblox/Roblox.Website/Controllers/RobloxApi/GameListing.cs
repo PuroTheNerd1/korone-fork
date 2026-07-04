@@ -11,6 +11,7 @@ namespace Roblox.Website.Controllers
 {
 
     [ApiController]
+    [NonController]
     [Route("/")]
     public class GameListing: ControllerBase
     {

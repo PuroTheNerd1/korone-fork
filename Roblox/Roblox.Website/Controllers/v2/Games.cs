@@ -7,6 +7,7 @@ using Roblox.Models.Assets;
 namespace Roblox.Website.Controllers;
 
 [ApiController]
+[NonController]
 [Route("/apisite/games/v2")]
 public class GamesControllerV2 : ControllerBase
 {

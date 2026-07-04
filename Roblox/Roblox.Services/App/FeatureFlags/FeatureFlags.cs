@@ -54,7 +54,8 @@ public enum FeatureFlag
     WebsiteChat,
     PasswordReset,
     TradePreventAcceptanceIfTooManyCopies,
-    BadgesEnabled
+    BadgesEnabled,
+    CatalogEnabled
 }
 
 public static class FeatureFlags

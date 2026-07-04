@@ -77,6 +77,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.ApiProxy.Tests", "Ro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Admin.Tests", "Services\Roblox.Services.Admin.Tests\Roblox.Services.Admin.Tests.csproj", "{1892F4CF-997E-4FD2-8937-F77AA076C644}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roblox.Services.Games", "Services\Roblox.Services.Games\Roblox.Services.Games.csproj", "{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -519,6 +521,18 @@ Global
 		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|x64.Build.0 = Release|Any CPU
 		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|x86.ActiveCfg = Release|Any CPU
 		{1892F4CF-997E-4FD2-8937-F77AA076C644}.Release|x86.Build.0 = Release|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Debug|x64.Build.0 = Debug|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Debug|x86.Build.0 = Debug|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Release|x64.ActiveCfg = Release|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Release|x64.Build.0 = Release|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Release|x86.ActiveCfg = Release|Any CPU
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -537,5 +551,6 @@ Global
 		{940A0956-8416-4C63-960D-494D38DAFBCA} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{E3FCFDD7-08CF-4EB7-9B99-B2EEBCEAABC0} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 		{1892F4CF-997E-4FD2-8937-F77AA076C644} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
+		{10EE7753-DC2A-4337-BC82-AEAB8116F4FA} = {DCBB4417-9323-453F-9530-8D74B5B665FE}
 	EndGlobalSection
 EndGlobal
