@@ -181,7 +181,7 @@ jobs:
             -AvatarServiceName $avatarServiceLiteral ``
             -ThumbnailsServiceName $thumbnailsServiceLiteral ``
             -UsersServiceName $usersServiceLiteral ``
-            -AdminServiceName $adminServiceLiteral
+            -AdminServiceName $adminServiceLiteral ``
             -GamesServiceName $gamesServiceLiteral
           "@
           $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($remoteScript))
