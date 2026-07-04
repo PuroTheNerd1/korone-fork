@@ -2,6 +2,8 @@ using System.Net;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Roblox.ApiProxy.Configuration;
+using Roblox.Models.Users;
+using Roblox.Web.Infrastructure.Http;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Model;
 
@@ -164,6 +166,11 @@ public sealed class FrontendProxyMiddleware
             return;
         }
 
+        if (!CanUseFrontend(context))
+        {
+            return;
+        }
+
         context.Response.OnStarting(UpdateCacheHeaders, context);
         var error = await _forwarder.SendAsync(
             context,
@@ -177,6 +184,24 @@ public sealed class FrontendProxyMiddleware
         {
             _logger.LogWarning("Frontend proxy request failed with {ForwarderError}", error);
         }
+    }
+
+    private static bool CanUseFrontend(HttpContext context)
+    {
+        var session = context.GetRobloxRequestContext()?.Session;
+        if (session == null)
+        {
+            context.Response.Redirect("/");
+            return false;
+        }
+
+        if (session.accountStatus is AccountStatus.Suppressed or AccountStatus.Poisoned or AccountStatus.Deleted)
+        {
+            context.Response.Redirect("/auth/notapproved");
+            return false;
+        }
+
+        return true;
     }
 
     private static Task UpdateCacheHeaders(object state)

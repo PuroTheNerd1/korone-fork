@@ -26,6 +26,8 @@ public class AdminApiCorsMiddlewareTests
         Assert.Equal("true", response.Headers.GetValues("Access-Control-Allow-Credentials").Single());
         Assert.Contains("x-csrf-token", response.Headers.GetValues("Access-Control-Allow-Headers").Single());
         Assert.Contains("x-csrf-token", response.Headers.GetValues("Access-Control-Expose-Headers").Single());
+        Assert.False(string.IsNullOrWhiteSpace(response.Headers.GetValues("x-csrf-token").Single()));
+        Assert.Contains(response.Headers.GetValues("Set-Cookie"), value => value.Contains("rbxcsrf4="));
     }
 
     [Fact]

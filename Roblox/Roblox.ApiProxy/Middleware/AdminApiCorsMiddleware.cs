@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using Roblox.ApiProxy.Configuration;
+using Roblox.Web.Infrastructure.Middleware;
 
 namespace Roblox.ApiProxy.Middleware;
 
@@ -27,6 +28,7 @@ public sealed class AdminApiCorsMiddleware
 
         if (HttpMethods.IsOptions(context.Request.Method))
         {
+            RobloxCsrfMiddleware.EnsureTokenHeader(context);
             context.Response.StatusCode = StatusCodes.Status204NoContent;
             return;
         }

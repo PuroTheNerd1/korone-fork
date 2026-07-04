@@ -12,7 +12,6 @@ public static class RobloxSessionResolver
 {
     public static async Task<RobloxResolvedSession?> TryResolveFromCookie(HttpContext context)
     {
-        var attempted = false;
         foreach (var (_, cookie) in GetCookieValues(context))
         {
             try

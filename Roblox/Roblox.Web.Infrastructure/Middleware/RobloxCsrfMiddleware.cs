@@ -8,7 +8,7 @@ namespace Roblox.Web.Infrastructure.Middleware;
 
 public sealed class RobloxCsrfMiddleware
 {
-    private const string HeaderName = "x-csrf-token";
+    public const string HeaderName = "x-csrf-token";
     private readonly RequestDelegate _next;
 
     public RobloxCsrfMiddleware(RequestDelegate next)
@@ -23,9 +23,15 @@ public sealed class RobloxCsrfMiddleware
             !endpoint.RequiresRobloxCsrf() ||
             endpoint.ShouldSkipRobloxCsrf() ||
             HttpMethods.IsGet(context.Request.Method) ||
-            HttpMethods.IsHead(context.Request.Method) ||
-            HttpMethods.IsOptions(context.Request.Method))
+            HttpMethods.IsHead(context.Request.Method))
         {
+            await _next(context);
+            return;
+        }
+
+        if (HttpMethods.IsOptions(context.Request.Method))
+        {
+            EnsureTokenHeader(context);
             await _next(context);
             return;
         }
@@ -45,6 +51,17 @@ public sealed class RobloxCsrfMiddleware
         }
 
         await _next(context);
+    }
+
+    public static string EnsureTokenHeader(HttpContext context)
+    {
+        var token = context.Request.Cookies.TryGetValue(RobloxWebContextConstants.CsrfCookieName, out var cookieValue) &&
+                    !string.IsNullOrWhiteSpace(cookieValue)
+            ? cookieValue
+            : CreateAndSetToken(context);
+
+        context.Response.Headers[HeaderName] = token;
+        return token;
     }
 
     private static bool TokenEquals(string expected, string? provided)
