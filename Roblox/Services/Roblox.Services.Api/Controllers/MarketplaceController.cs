@@ -110,7 +110,7 @@ public class MarketplaceController : RobloxControllerBase
 
         var universeInfo = await services.games.GetUniverseInfo(productInfo.universeId);
         if (universeInfo.rootPlaceId != purchaseRequest.placeId)
-            throw BadRequest("Place is invalid for this purchase or does not exist");
+            throw BadRequest($"Place {purchaseRequest.placeId} is invalid for this purchase {universeInfo.rootPlaceId} or does not exist {currentPlaceId}");
 
         if (productInfo.price != purchaseRequest.expectedUnitPrice)
             throw BadRequest("Expected price is not the actual price");
