@@ -4,12 +4,6 @@ import AuthenticationStore from "../../stores/authentication";
 import NavigationStore from "../../stores/navigation";
 import LinkEntry from "./components/linkEntry";
 import {avPageStyleType, getAvPageStyle, getGroupPagesStyle, getTheme, getTradeStyle, themeType, tradePageStyle} from "../../services/theme";
-import {
-    getPendingApplicationCount,
-    getPendingAssets, getPendingGroupIcons,
-    getPendingIcons,
-    getPendingReportCount
-} from "../../services/admin";
 import PlayerHeadshot from "../playerHeadshot";
 import Link from "../link";
 import VerifiedBadge from "../verifiedBadge";
@@ -97,7 +91,6 @@ const NavSideBar = props => {
         width: window.innerWidth
     })
     const s = useNavSideBarStyles({ theme: getTheme() });
-    const [pendingCount, setPendingCount] = useState(69);
     useEffect(() => {
         window.addEventListener('resize', () => {
             setDimensions({
@@ -105,38 +98,7 @@ const NavSideBar = props => {
                 width: window.innerWidth
             });
         });
-        
-        const setPending = async () => {
-            if (authStore.isStaff) {
-                let pendingAssCount = 0;
-                // im pretty sure there's a better way to do this while keeping everything asynchronous but ong i forgot 😭😭
-                getPendingAssets().then(d => {
-                    pendingAssCount += d.length;
-                    setPendingCount(pendingAssCount);
-                });
-                getPendingIcons().then(d => {
-                    pendingAssCount += d.length
-                    setPendingCount(pendingAssCount);
-                });
-                getPendingApplicationCount().then(d => {
-                    pendingAssCount += d.count
-                    setPendingCount(pendingAssCount);
-                });
-                getPendingReportCount().then(d => {
-                    pendingAssCount += d.count
-                    setPendingCount(pendingAssCount);
-                });
-                getPendingGroupIcons().then(d => {
-                    pendingAssCount += d.length
-                    setPendingCount(pendingAssCount);
-                });
-            }
-        }
-        setPending().then();
     }, []);
-    useEffect(() => {
-        if (pendingCount === 0) setPendingCount(69);
-    }, [pendingCount]);
     const paddingTop = mainNavBarRef.current && mainNavBarRef.current.clientHeight + 'px' || 0;
     
     if (navStore.isSidebarOpen === false && dimensions.width <= 1324) {
@@ -176,7 +138,7 @@ const NavSideBar = props => {
             <LinkEntry theme={getTheme()} name='Forums' url='/Forum/Default.aspx' icon='icon-nav-forum'/>
             <LinkEntry theme={getTheme()} name='Download' url='/download' icon='icon-nav-download'/>
             {isStaff ? (
-                <LinkEntry theme={getTheme()} name='Panel' url='/admin' icon='icon-edit' count={pendingCount}/>
+                <LinkEntry theme={getTheme()} name='Panel' url='/admin' icon='icon-edit' count={0}/>
             ) : null}
             <a href='/BuildersClub/Upgrade.ashx'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
         </div>
