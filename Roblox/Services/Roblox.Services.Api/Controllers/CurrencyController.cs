@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Models.Assets;
+using Roblox.Dto.Users;
 using Roblox.Web.Infrastructure.Controllers;
 using Roblox.Web.Infrastructure.Metadata;
 
@@ -11,7 +12,7 @@ public class CurrencyController : RobloxControllerBase
 {
     [RequireRobloxSession]
     [HttpGet("currency/balance")]
-    public async Task<dynamic> GetBalance()
+    public async Task<UserEconomy> GetBalance()
     {
         return await services.economy.GetBalance(CreatorType.User, safeUserSession.userId);
     }
