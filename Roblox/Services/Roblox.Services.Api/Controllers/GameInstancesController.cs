@@ -12,7 +12,7 @@ public class GameInstancesController : RobloxControllerBase
     [RequireRccRequest]
     [HttpGet("v1/Close")]
     [HttpPost("V1/Close")]
-    public async Task<dynamic> Close(Guid gameId)
+    public async Task<IActionResult> Close(Guid gameId)
     {
         if (!isRCC)
         {
@@ -20,7 +20,7 @@ public class GameInstancesController : RobloxControllerBase
         }
 
         await services.gameServer.ShutDownServerAsync(gameId);
-        return "OK";
+        return Ok("OK");
     }
 
     [RequireRccRequest]
@@ -28,7 +28,7 @@ public class GameInstancesController : RobloxControllerBase
     [HttpGet("v2/CreateOrUpdate")]
     [HttpGet("v1/CreateOrUpdate")]
     [HttpPost("v1/CreateOrUpdate")]
-    public async Task<dynamic> CreateOrUpdate(string gameId, decimal ping, decimal fps)
+    public async Task<IActionResult> CreateOrUpdate(string gameId, decimal ping, decimal fps)
     {
         if (!isRCC)
         {
@@ -38,7 +38,7 @@ public class GameInstancesController : RobloxControllerBase
         var roundPing = (int)Math.Round(ping, 0);
         var roundFps = (int)Math.Round(fps, 0);
         await services.gameServer.SetServerStats(gameId, roundPing, roundFps);
-        return "OK!";
+        return Ok("OK!");
     }
 
     [RequireRccRequest]
