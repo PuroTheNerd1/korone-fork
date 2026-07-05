@@ -765,8 +765,8 @@ public class WebController : ControllerBase
         if (!AllowedAssetTypes.Contains(request.assetType) || userSession == null)
             throw new BadRequestException(0, "Asset type not supported");
 
-        if (!await services.cooldown.TryCooldownCheck("Develop:Upload:StartUserId:" + userSession.userId, TimeSpan.FromSeconds(5))
-            || !await services.cooldown.TryCooldownCheck("Develop:Upload:StartIp:" + GetIP(), TimeSpan.FromSeconds(5)))
+        if (!await services.cooldown.TryIncrementBucketCooldown("Develop:Upload:UserId:" + userSession.userId, 10, TimeSpan.FromMinutes(1))
+            || !await services.cooldown.TryIncrementBucketCooldown("Develop:Upload:Ip:" + GetIP(), 10, TimeSpan.FromMinutes(1)))
             throw new RobloxException(429, 0, "Too many requests");
 
         /*var pendingAssets = await services.assets.CountAssetsPendingApproval();
@@ -809,37 +809,25 @@ public class WebController : ControllerBase
             pendingAssetUploadsMux.Release();
         }
 
-        using var stream = request.file.OpenReadStream();
+        await using var stream = request.file.OpenReadStream();
 
         try
         {
-            switch (request.assetType)
+            return request.assetType switch
             {
-                case Models.Assets.Type.Shirt:
-                case Models.Assets.Type.Pants:
-                case Models.Assets.Type.TShirt:
-                    return await UploadClothing(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.Audio:
-                    return await UploadAudio(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.Image:
-                    return await UploadImage(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.Video:
-                    return await UploadVideo(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.Mesh:
-                    return await UploadMesh(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.MeshPart:
-                    return await UploadMeshPart(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.Model:
-                    return await UploadModel(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.GamePass:
-                    return await UploadGamePass(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.Badge:
-                    return await UploadAssetBadge(request, stream, creatorId, creatorType);
-                case Models.Assets.Type.Animation:
-                    return await UploadAnimation(request, stream, creatorId, creatorType);
-                default:
-                    throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
-            }
+                Models.Assets.Type.Shirt or Models.Assets.Type.Pants or Models.Assets.Type.TShirt =>
+                    await UploadClothing(request, stream, creatorId, creatorType),
+                Models.Assets.Type.Audio => await UploadAudio(request, stream, creatorId, creatorType),
+                Models.Assets.Type.Image => await UploadImage(request, stream, creatorId, creatorType),
+                Models.Assets.Type.Video => await UploadVideo(request, stream, creatorId, creatorType),
+                Models.Assets.Type.Mesh => await UploadMesh(request, stream, creatorId, creatorType),
+                Models.Assets.Type.MeshPart => await UploadMeshPart(request, stream, creatorId, creatorType),
+                Models.Assets.Type.Model => await UploadModel(request, stream, creatorId, creatorType),
+                Models.Assets.Type.GamePass => await UploadGamePass(request, stream, creatorId, creatorType),
+                Models.Assets.Type.Badge => await UploadAssetBadge(request, stream, creatorId, creatorType),
+                Models.Assets.Type.Animation => await UploadAnimation(request, stream, creatorId, creatorType),
+                _ => throw new RobloxException(RobloxException.BadRequest, 0, "Endpoint does not support this assetType: " + request.assetType)
+            };
         }
         finally
         {

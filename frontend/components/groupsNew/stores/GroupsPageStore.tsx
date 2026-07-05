@@ -53,7 +53,7 @@ const GroupsPageStore = createContainer(() => {
             try {
                 let req: GroupPermissionsEntry = await getPermissionsForRoleset({ groupId: group.id, rolesetId: roleSetId });
                 if (req) setUserPerms(req);
-            } catch (e) { console.error(e) }
+            } catch (e) {}
         })()
     }, [userGroupStore?.userGroups, group]);
 
@@ -147,7 +147,7 @@ const GroupsPageStore = createContainer(() => {
         let funds: {robux: number; tickets: number;} = { robux: 0, tickets: 0 };
         try {
             funds = await getRobuxGroup({groupId: group.id});
-        } catch (e) { console.error(e) }
+        } catch (e) {}
 
         setGroup({
             ...group,

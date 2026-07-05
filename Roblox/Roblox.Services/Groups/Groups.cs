@@ -30,10 +30,7 @@ public class GroupsService : ServiceBase, IService
             return role.rank == 255;
 
         // Check permissions
-        if (role.HasPermission(permission))
-            return true;
-        // Does not have permission
-        return false;
+        return role.HasPermission(permission);
     }
 
     public async Task<long> GetMemberCount(long groupId)

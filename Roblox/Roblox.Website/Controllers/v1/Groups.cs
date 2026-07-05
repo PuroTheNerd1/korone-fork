@@ -424,7 +424,7 @@ public class GroupsControllerV1 : ControllerBase
         FeatureCheck();
         // TODO: Users can only get role permissions if they either have that role, or have ChangeRank permissions. For now, we just return permissions regardless of Role but this is not correct.
         // Only users with changeRank permissions can view permissions
-        // await CheckPermission(groupId, GroupPermission.ChangeRank);
+        await CheckPermission(groupId, GroupPermission.ChangeRank);
         var value = (await services.groups.GetRolesInGroupWithPermissions(groupId)).First(a => a.id == roleSetId);
         return new GroupPermissionsEntryApi(value);
     }
