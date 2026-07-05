@@ -1,27 +1,59 @@
 import Head from 'next/head';
 import Theme2016 from '../../../components/theme2016';
 import GroupsPageStore from "../../../components/groupsNew/stores/GroupsPageStore";
-import {GetServerSidePropsContext} from "next";
-import {getInfo} from "../../../services/groups";
 import GroupPreProcessor from "../../../components/groupsNew/GroupPreProcessor";
-import {GroupWithShout} from "../../../services/groups-typed";
-import React from "react";
+import {getInfo, GroupWithShout} from "../../../services/groups-typed";
+import React, {useEffect, useState} from "react";
 import MyGroupsStore from "../../../components/myGroups/stores/myGroupsStore";
 import { getGroupPagesStyle } from "../../../services/theme";
 import GroupPageStore from "../../../components/myGroups/stores/groupPageStore";
 import MyGroups from "../../../components/myGroups";
 import UserGroupsStore from "../../../components/groupsNew/stores/UserGroupsStore";
+import {useRouter} from "next/router";
 
-const GamePage = ({ group, groupId }: { group: GroupWithShout|null, groupId: any }) => {
+const GamePage = () => {
+    const router = useRouter();
+    const [group, setGroup] = useState<GroupWithShout|null|undefined>(undefined);
+    const routeGroupId = typeof router.query.groupId === "string" ? router.query.groupId : null;
+
+    useEffect(() => {
+        if (!router.isReady) return;
+
+        let cancelled = false;
+        const groupId = routeGroupId ? parseInt(routeGroupId) : NaN;
+        if (!routeGroupId || Number.isNaN(groupId)) {
+            console.error("Invalid groupId", router.query.groupId);
+            setGroup(null);
+            return;
+        }
+
+        setGroup(undefined);
+        const loadGroup = async () => {
+            try {
+                const info = await getInfo({groupId});
+                if (!cancelled) setGroup(info);
+            } catch (error) {
+                console.error(error);
+                if (!cancelled) setGroup(null);
+            }
+        };
+
+        void loadGroup();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [router.isReady, routeGroupId]);
+
     if (getGroupPagesStyle() !== 'Modern') return <MyGroupsStore.Provider>
         <GroupPageStore.Provider>
-            <MyGroups id={groupId}/>
+            <MyGroups id={routeGroupId}/>
         </GroupPageStore.Provider>
     </MyGroupsStore.Provider>;
 
     return (
         <>
-            {group !== null && (
+            {group !== null && group !== undefined && (
                 <Head>
                     <title>{group.name} - Korone</title>
                     <meta property="og:title" content={group.name} />
@@ -43,36 +75,5 @@ const GamePage = ({ group, groupId }: { group: GroupWithShout|null, groupId: any
             </Theme2016>
         </>
     );
-}
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-    const { groupId } = context.query;
-    if (typeof groupId !== "string" || Number.isNaN(parseInt(groupId))) {
-        console.error("Invalid groupId", groupId);
-        return {
-            props: {
-                group: null,
-                groupId: groupId,
-            }
-        };
-    }
-
-    const groupIdNum = parseInt(groupId);
-    try {
-        const info = await getInfo({groupId: groupIdNum});
-        return {
-            props: {
-                group: info,
-                groupId: groupId,
-            }
-        }
-    } catch (error) {
-        console.error(error);
-        return {
-            props: {
-                group: null,
-                groupId: groupId,
-            }
-        };
-    }
 }
 export default GamePage;

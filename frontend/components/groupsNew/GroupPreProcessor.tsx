@@ -8,7 +8,7 @@ import {itemNameToEncodedName} from "../../services/catalog";
 import UserGroupsStore from "./stores/UserGroupsStore";
 
 // load all of the data required for the group page here
-const GroupPreProcessor = ({group, loadDefault}: {group:GroupWithShout|null,loadDefault?:boolean}) => {
+const GroupPreProcessor = ({group, loadDefault}: {group?:GroupWithShout|null,loadDefault?:boolean}) => {
     const store = GroupsPageStore.useContainer();
     const ustore = UserGroupsStore.useContainer();
     const auth = AuthenticationStore.useContainer();
@@ -24,9 +24,16 @@ const GroupPreProcessor = ({group, loadDefault}: {group:GroupWithShout|null,load
             store.setGroupNotFound(false);
 
             let nextGroup = group;
+            if (nextGroup === undefined) {
+                store.setLoading(true);
+                void ustore.fetchData();
+                return;
+            }
+
             if (!loadDefault && nextGroup === null) {
                 store.setGroup(null);
                 store.setGroupNotFound(true);
+                store.setLoading(false);
                 void ustore.fetchData();
                 return;
             }
@@ -60,6 +67,7 @@ const GroupPreProcessor = ({group, loadDefault}: {group:GroupWithShout|null,load
                     if (isCurrent()) {
                         store.setGroup(null);
                         store.setGroupNotFound(true);
+                        store.setLoading(false);
                     }
                     return;
                 }
