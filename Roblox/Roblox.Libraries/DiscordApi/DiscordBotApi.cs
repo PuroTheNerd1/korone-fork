@@ -45,17 +45,19 @@ public class DiscordBotApi
             Writer.Info(LogGroup.DiscordApi, "Failed to add {0} to korone status: {1} with response: {2}", discordId, result.StatusCode, await result.Content.ReadAsStringAsync());
         }
     }
-    public async Task MessageUser(string discordId, string content, DiscordEmbed? discordEmbed = null)
+    public async Task<bool> MessageUser(string discordId, string content, DiscordEmbed? discordEmbed = null)
     {
         var channel = await GetDMChannel(discordId);
         if (channel == null)
         {
             Writer.Info(LogGroup.DiscordApi, "Failed to get DM channel for {0}", discordId);
-            return;
+            return false;
         }
-        await SendMessageInChannel(channel.Id.ToString(), content, discordEmbed);
+
+        return await SendMessageInChannel(channel.Id.ToString(), content, discordEmbed);
     }
-    public async Task SendMessageInChannel(string channelId, string content, DiscordEmbed? discordEmbed = null)
+
+    public async Task<bool> SendMessageInChannel(string channelId, string content, DiscordEmbed? discordEmbed = null)
     {
         var data = new Dictionary<string, dynamic>
         {
@@ -72,12 +74,13 @@ public class DiscordBotApi
         if (result.IsSuccessStatusCode)
         {
             Writer.Info(LogGroup.DiscordApi, "Succcessfully messaged {0} to Korone", channelId);
+            return true;
         }
-        else
-        {
-            Writer.Info(LogGroup.DiscordApi, "Failed to message {0} to korone status: {1}", channelId, result.StatusCode);
-        }
+
+        Writer.Info(LogGroup.DiscordApi, "Failed to message {0} to korone status: {1}", channelId, result.StatusCode);
+        return false;
     }
+
     private async Task<DiscordDmChannel?> GetDMChannel(string discordId)
     {
         var data = new Dictionary<string,string>
@@ -87,6 +90,12 @@ public class DiscordBotApi
         var jsonData = JsonConvert.SerializeObject(data);
         var contentData = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var result = await discordClient.PostAsync($"users/@me/channels", contentData);
+        if (!result.IsSuccessStatusCode)
+        {
+            Writer.Info(LogGroup.DiscordApi, "Failed to create DM channel for {0} status: {1}", discordId, result.StatusCode);
+            return null;
+        }
+
         var json = await result.Content.ReadAsStringAsync();
         var channel = JsonConvert.DeserializeObject<DiscordDmChannel>(json);
         return channel;
