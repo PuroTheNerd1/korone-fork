@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Roblox.ServiceDefaults;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.Avatar.ExceptionHandlers;
@@ -14,6 +15,7 @@ builder.Services.AddExceptionHandler<AvatarServiceExceptionHandler>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
