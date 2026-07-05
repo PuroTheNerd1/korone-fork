@@ -13,7 +13,7 @@ public static class RobloxRequestContextFactory
         var rawIp = TryGetRawIp(httpContext);
         var hashedIp = httpContext.Request.Headers.TryGetValue(RobloxWebContextConstants.ClientIpHashHeaderName, out var forwardedIpHash)
             ? forwardedIpHash.ToString()
-            : (string.IsNullOrWhiteSpace(rawIp) ? string.Empty : RobloxIpHasher.GetIP(rawIp));
+            : (string.IsNullOrWhiteSpace(rawIp) ? string.Empty : RobloxIpHasher.GetIp(rawIp));
 
         var userAgent = httpContext.Request.Headers.TryGetValue(RobloxWebContextConstants.UserAgentHeaderName, out var forwardedUserAgent)
             ? forwardedUserAgent.ToString()

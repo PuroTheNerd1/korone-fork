@@ -33,7 +33,7 @@ public class RobloxPageModelBase : PageModel, IDisposable
             return string.Empty;
         }
 
-        return RobloxIpHasher.GetIP(rawIpAddress, salt);
+        return RobloxIpHasher.GetIp(rawIpAddress, salt);
     }
 
     public virtual void Dispose()

@@ -73,9 +73,9 @@ public class RobloxControllerBase : ControllerBase, IDisposable
         return RobloxIpHasher.GetRequesterIpRaw(ctx);
     }
 
-    public static void InitializeIpHashSetup()
+    public static Task InitializeIpHashSetupAsync()
     {
-        RobloxIpHasher.InitializeIpHashSetup();
+        return RobloxIpHasher.InitializeIpHashSetupAsync();
     }
 
     public static ulong ConvertFromIpAddressToInteger(string ipAddress)
@@ -85,7 +85,7 @@ public class RobloxControllerBase : ControllerBase, IDisposable
 
     public static string GetIP(string trueIp, string? salt = null)
     {
-        return RobloxIpHasher.GetIP(trueIp, salt);
+        return RobloxIpHasher.GetIp(trueIp, salt);
     }
 
     protected async Task<string> GetRequestBody()
@@ -118,7 +118,7 @@ public class RobloxControllerBase : ControllerBase, IDisposable
     {
         if (!string.IsNullOrWhiteSpace(RequestContext.RawIp))
         {
-            return RobloxIpHasher.GetIP(RequestContext.RawIp, salt);
+            return RobloxIpHasher.GetIp(RequestContext.RawIp, salt);
         }
 
         return string.IsNullOrWhiteSpace(salt) ? RequestContext.HashedIp : string.Empty;

@@ -11,13 +11,8 @@ public static class Cache
     private static RedLockFactory? _redLock;
     public static RedLockFactory redLock
     {
-        get
-        {
-            if (_redLock == null)
-                throw new Exception("RedLock is not available");
-            return _redLock;
-        }
-        set => _redLock = value;
+        get => _redLock ?? throw new Exception("RedLock is not available");
+        private set => _redLock = value;
     }
 
     public static void Configure(string connectUrl, string? password = null)

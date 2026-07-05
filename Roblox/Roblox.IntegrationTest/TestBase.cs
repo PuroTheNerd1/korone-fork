@@ -28,8 +28,8 @@ public class TestBase
         Roblox.Services.Cache.Configure("redis");
         Console.WriteLine("Load flags...");
         // Must load flags before everything
-        FeatureFlags.UpdateFlags();
-        FeatureFlags.DisableFlagSync(FeatureFlag.TradePreventAcceptanceIfTooManyCopies);
+        FeatureFlags.RefreshOnceAsync().GetAwaiter().GetResult();
+        FeatureFlags.DisableFlag(FeatureFlag.TradePreventAcceptanceIfTooManyCopies).GetAwaiter().GetResult();
         Console.WriteLine("Wait for DB to be ready...");
         while (true)
         {

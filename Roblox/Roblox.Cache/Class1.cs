@@ -16,16 +16,11 @@ public class DistributedCache
     private static ConnectionMultiplexer? _redis;
     public static ConnectionMultiplexer redis
     {
-        get
-        {
-            if (_redis == null)
-                throw new Exception("Redis is not available");
-            return _redis;
-        }
-        set => _redis = value;
+        get => _redis ?? throw new Exception("Redis is not available");
+        private set => _redis = value;
     }
 
-    private static IDatabase Database => redis.GetDatabase(0);
+    private static IDatabase database => redis.GetDatabase(0);
 
     public static void Configure(string connectUrl, string? password = null)
     {
@@ -91,13 +86,13 @@ public class DistributedCache
 
     public async Task StringSetAsync(string key, string value)
     {
-        await Database.StringSetAsync(key, value);
+        await database.StringSetAsync(key, value);
         AddToLocalCache(key, value);
     }
 
     public async Task StringSetAsync(string key, string value, TimeSpan ttl)
     {
-        await Database.StringSetAsync(key, value, ttl);
+        await database.StringSetAsync(key, value, ttl);
         AddToLocalCache(key, value, ttl);
     }
 
@@ -108,7 +103,7 @@ public class DistributedCache
 
     public async Task<bool> StringSetIfNotExistsAsync(string key, string value, TimeSpan ttl)
     {
-        var wasSet = await Database.StringSetAsync(key, value, ttl, When.NotExists);
+        var wasSet = await database.StringSetAsync(key, value, ttl, When.NotExists);
         if (wasSet)
             AddToLocalCache(key, value, ttl);
 
@@ -120,7 +115,7 @@ public class DistributedCache
         if (TryGetLocal(key, out var cached))
             return cached;
 
-        var value = await Database.StringGetAsync(key);
+        var value = await database.StringGetAsync(key);
         if (value.HasValue)
         {
             var str = value.ToString();
@@ -153,7 +148,7 @@ public class DistributedCache
         if (redisKeys.Count == 0)
             return result;
 
-        var redisValues = await Database.StringGetAsync(redisKeys.ToArray());
+        var redisValues = await database.StringGetAsync(redisKeys.ToArray());
         for (var i = 0; i < redisKeys.Count; i++)
         {
             var key = (string)redisKeys[i]!;
@@ -181,7 +176,7 @@ public class DistributedCache
         if (TryGetLocal(key, out var cached))
             return cached;
 
-        var value = Database.StringGet(key);
+        var value = database.StringGet(key);
         if (!value.HasValue)
         {
             PerformanceMetrics.ReportRedisLookup(GetPrefix(key), "redis", false);
@@ -197,43 +192,43 @@ public class DistributedCache
     [Obsolete("Use StringSetAsync instead. This method only remains for legacy synchronous call sites.")]
     public void StringSet(string key, string value)
     {
-        Database.StringSet(key, value);
+        database.StringSet(key, value);
         AddToLocalCache(key, value);
     }
 
     public async Task<long> StringIncrementAsync(string key, long value = 1)
     {
         LocalCache.Remove(key);
-        return await Database.StringIncrementAsync(key, value);
+        return await database.StringIncrementAsync(key, value);
     }
 
     public async Task<bool> KeyExpireAsync(string key, TimeSpan ttl)
     {
-        return await Database.KeyExpireAsync(key, ttl);
+        return await database.KeyExpireAsync(key, ttl);
     }
 
     public async Task KeyDeleteAsync(string key)
     {
         LocalCache.Remove(key);
-        await Database.KeyDeleteAsync(key);
+        await database.KeyDeleteAsync(key);
     }
 
     public async Task<long> SetAddAsync(string key, string value, TimeSpan? ttl = null)
     {
-        var added = await Database.SetAddAsync(key, value);
+        var added = await database.SetAddAsync(key, value);
         if (ttl is not null)
-            await Database.KeyExpireAsync(key, ttl);
+            await database.KeyExpireAsync(key, ttl);
         return added ? 1 : 0;
     }
 
     public async Task<bool> SetRemoveAsync(string key, string value)
     {
-        return await Database.SetRemoveAsync(key, value);
+        return await database.SetRemoveAsync(key, value);
     }
 
     public async Task<string[]> SetMembersAsync(string key)
     {
-        var members = await Database.SetMembersAsync(key);
+        var members = await database.SetMembersAsync(key);
         return members.Select(v => v.ToString()).ToArray();
     }
 
@@ -242,18 +237,18 @@ public class DistributedCache
     public async Task<string?> StringGetDeleteAsync(string key)
     {
         LocalCache.Remove(key);
-        var result = await Database.ScriptEvaluateAsync(GetDeleteLua, new RedisKey[] { key });
+        var result = await database.ScriptEvaluateAsync(GetDeleteLua, [key]);
         if (result.IsNull) return null;
         return (string?)result;
     }
 
     public async Task<RedisResult> ScriptEvaluateAsync(string script, RedisKey[] keys, RedisValue[] values)
     {
-        return await Database.ScriptEvaluateAsync(script, keys, values);
+        return await database.ScriptEvaluateAsync(script, keys, values);
     }
 
     public async Task PublishAsync(string channel, string message)
     {
-        await Database.PublishAsync(channel, message);
+        await database.PublishAsync(RedisChannel.Literal(channel), message);
     }
 }

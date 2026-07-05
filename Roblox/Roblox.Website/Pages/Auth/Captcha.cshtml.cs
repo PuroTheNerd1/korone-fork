@@ -28,31 +28,28 @@ public class Captcha : RobloxPageModel
         }
 
         var result = await Roblox.Libraries.Captcha.HCaptcha.IsValid(rawIpAddress, hCaptchaResponse);
-        if (result)
+        if (!result) return Page();
+        
+        var ua = HttpContext.Request.Headers.UserAgent;
+
+        var jwt = new UserAgentBypass()
         {
-            var ua = HttpContext.Request.Headers.UserAgent;
+            userAgent = ua!,
+            createdAt = DateTime.UtcNow,
+        };
+        jwt.ipAddress = GetIpHashWithSalt(jwt.GetSalt());
 
-            var jwt = new UserAgentBypass()
-            {
-                userAgent = ua!,
-                createdAt = DateTime.UtcNow,
-            };
-            jwt.ipAddress = GetIpHashWithSalt(jwt.GetSalt());
-
-            var jwtService = new EasyJwt();
-            var jwtToken = jwtService.CreateJwt(jwt, Roblox.Configuration.UserAgentBypassSecret);
-            HttpContext.Response.Cookies.Append("uabypass1", jwtToken, new()
-            {
-                IsEssential = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTime.UtcNow.AddDays(7),
-                Secure = true,
-            });
-            Roblox.Metrics.ApplicationGuardMetrics.ReportCaptchaSuccessForUserAgent(ua!);
-            return new RedirectResult("/");
-        }
-
-        return Page();
+        var jwtService = new EasyJwt();
+        var jwtToken = jwtService.CreateJwt(jwt, Roblox.Configuration.UserAgentBypassSecret);
+        HttpContext.Response.Cookies.Append("uabypass1", jwtToken, new()
+        {
+            IsEssential = true,
+            Path = "/",
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTime.UtcNow.AddDays(7),
+            Secure = true,
+        });
+        Roblox.Metrics.ApplicationGuardMetrics.ReportCaptchaSuccessForUserAgent(ua!);
+        return new RedirectResult("/");
     }
 }

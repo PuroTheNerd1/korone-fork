@@ -8,9 +8,9 @@ namespace Roblox.Website.Controllers
             return RobloxControllerBase.GetRequesterIpRaw(ctx);
         }
 
-        public static new void InitializeIpHashSetup()
+        public static new Task InitializeIpHashSetupAsync()
         {
-            RobloxControllerBase.InitializeIpHashSetup();
+            return RobloxControllerBase.InitializeIpHashSetupAsync();
         }
 
         public static new ulong ConvertFromIpAddressToInteger(string ipAddress)
