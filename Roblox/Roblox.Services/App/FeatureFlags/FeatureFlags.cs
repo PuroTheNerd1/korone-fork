@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using System.Text.Json;
-using Roblox.Logging;
 using Roblox.Services.Exceptions;
 
 namespace Roblox.Services.App.FeatureFlags;
@@ -60,106 +58,111 @@ public enum FeatureFlag
 
 public static class FeatureFlags
 {
-    private static Dictionary<FeatureFlag, bool>? featureFlags { get; set; }
+    private const string FeatureFlagRedisName = "FeatureFlagsWebV1";
+    private static readonly FeatureFlag[] AllFlags = Enum.GetValues<FeatureFlag>();
+    private static readonly SemaphoreSlim WriteLock = new(1, 1);
+    private static IReadOnlyDictionary<FeatureFlag, bool>? flagsSnapshot;
 
     public static async Task RefreshOnceAsync()
     {
-        featureFlags ??= new();
         await UpdateFlagsAsync();
     }
 
-    private static void ProcessRedisFlagResponse(string? flags)
+    private static IReadOnlyDictionary<FeatureFlag, bool> CreateDefaultSnapshot()
     {
-        if (flags == null)
-        {
-            // Unset
-            featureFlags = new();
-            return;
-        }
-        var deserialized = JsonSerializer.Deserialize<Dictionary<FeatureFlag, bool>>(flags);
-        if (deserialized == null)
-        {
-            // Unset
-            featureFlags = new();
-            return;
-        }
+        var result = new Dictionary<FeatureFlag, bool>();
+        foreach (var flag in AllFlags)
+            result[flag] = true;
 
-        featureFlags = deserialized;
+        return result;
     }
-    private const string featureFlagRedisName = "FeatureFlagsWebV1";
-    public static void UpdateFlags()
+
+    private static IReadOnlyDictionary<FeatureFlag, bool> NormalizeSnapshot(
+        IReadOnlyDictionary<FeatureFlag, bool>? flags)
     {
-        var flags = Roblox.Services.Cache.distributed.StringGet(featureFlagRedisName);
-        ProcessRedisFlagResponse(flags);
+        var result = new Dictionary<FeatureFlag, bool>();
+        foreach (var flag in AllFlags)
+            result[flag] = flags?.GetValueOrDefault(flag, true) ?? true;
+
+        return result;
+    }
+
+    private static IReadOnlyDictionary<FeatureFlag, bool> DeserializeSnapshot(string? flags)
+    {
+        if (string.IsNullOrWhiteSpace(flags))
+            return CreateDefaultSnapshot();
+
+        var deserialized = JsonSerializer.Deserialize<Dictionary<FeatureFlag, bool>>(flags);
+        return NormalizeSnapshot(deserialized);
+    }
+
+    internal static IReadOnlyDictionary<FeatureFlag, bool> DeserializeSnapshotForTests(string? flags)
+    {
+        return DeserializeSnapshot(flags);
     }
     
-    public static async Task UpdateFlagsAsync()
+    internal static void ReplaceSnapshotForTests(IReadOnlyDictionary<FeatureFlag, bool>? flags)
     {
-        var flags = await Roblox.Services.Cache.distributed.StringGetAsync(featureFlagRedisName);
-        ProcessRedisFlagResponse(flags);
+        flagsSnapshot = flags == null ? null : NormalizeSnapshot(flags);
+    }
+
+    private static async Task UpdateFlagsAsync()
+    {
+        var flags = await Cache.distributed.StringGetAsync(FeatureFlagRedisName);
+        flagsSnapshot = DeserializeSnapshot(flags);
+    }
+
+    private static IReadOnlyDictionary<FeatureFlag, bool> GetSnapshot()
+    {
+        return flagsSnapshot ?? throw new Exception("Flags are not set");
     }
 
     public static bool IsEnabled(FeatureFlag flag)
     {
-        if (featureFlags == null)
-            throw new Exception("Flags are not set");
-        
-        if (featureFlags.ContainsKey(flag))
-            return featureFlags[flag];
-        // Default to false. Unset means it's probably new
-        return true;
+        return GetSnapshot().GetValueOrDefault(flag, true);
     }
     
     public static bool IsDisabled(FeatureFlag flag)
     {
-        if (featureFlags == null)
-            throw new Exception("Flags are not set");
-        
-        if (featureFlags.ContainsKey(flag))
-            return featureFlags[flag] == false;
-        // Default to false. Unset means it's probably new
-        return false;
+        return !IsEnabled(flag);
     }
 
-    public static async Task EnableFlag(FeatureFlag flagToEnable)
+    private static async Task SetFlagAsync(FeatureFlag flag, bool enabled)
     {
-        if (featureFlags == null)
-            throw new Exception("Flags are not set");
-        
-        featureFlags[flagToEnable] = true;
-        await Roblox.Services.Cache.distributed.StringSetAsync(featureFlagRedisName, JsonSerializer.Serialize(featureFlags));
+        await WriteLock.WaitAsync();
+        try
+        {
+            var nextSnapshot = NormalizeSnapshot(GetSnapshot());
+            var writableSnapshot = new Dictionary<FeatureFlag, bool>(nextSnapshot)
+            {
+                [flag] = enabled,
+            };
+            var normalizedSnapshot = NormalizeSnapshot(writableSnapshot);
+
+            await Roblox.Services.Cache.distributed.StringSetAsync(
+                FeatureFlagRedisName,
+                JsonSerializer.Serialize(normalizedSnapshot));
+            flagsSnapshot = normalizedSnapshot;
+        }
+        finally
+        {
+            WriteLock.Release();
+        }
     }
 
-    public static async Task DisableFlag(FeatureFlag flagToDisable)
+    public static Task EnableFlag(FeatureFlag flagToEnable)
     {
-        if (featureFlags == null)
-            throw new Exception("Flags are not set");
-        
-        featureFlags[flagToDisable] = false;
-        await Roblox.Services.Cache.distributed.StringSetAsync(featureFlagRedisName, JsonSerializer.Serialize(featureFlags));
+        return SetFlagAsync(flagToEnable, true);
     }
-    
-    public static void DisableFlagSync(FeatureFlag flagToDisable)
+
+    public static Task DisableFlag(FeatureFlag flagToDisable)
     {
-        if (featureFlags == null)
-            throw new Exception("Flags are not set");
-        
-        featureFlags[flagToDisable] = false;
-        Roblox.Services.Cache.distributed.StringSet(featureFlagRedisName, JsonSerializer.Serialize(featureFlags));
+        return SetFlagAsync(flagToDisable, false);
     }
 
     public static IReadOnlyDictionary<FeatureFlag, bool> GetAllFlags()
     {
-        if (featureFlags == null)
-            throw new Exception("Not ready");
-        foreach (var flag in Enum.GetValues<FeatureFlag>())
-        {
-            if (!featureFlags.ContainsKey(flag))
-            {
-                featureFlags[flag] = true;
-            }
-        }
-        return featureFlags;
+        return new Dictionary<FeatureFlag, bool>(GetSnapshot());
     }
 
     public static void FeatureCheck(FeatureFlag flag)
