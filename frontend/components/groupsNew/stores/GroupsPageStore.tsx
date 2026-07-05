@@ -21,9 +21,39 @@ import {CatalogCategory, CatalogSortBy} from "../../CatalogPage/stores/CatalogPa
 import {userOwnsItems} from "../../../services/inventory";
 import UserGroupsStore from "./UserGroupsStore";
 
+const emptyGroupPermissions = () => ({
+    groupPostsPermissions: {
+        viewWall: false,
+        postToWall: false,
+        deleteFromWall: false,
+        viewStatus: false,
+        postToStatus: false,
+    },
+    groupMembershipPermissions: {
+        changeRank: false,
+        inviteMembers: false,
+        removeMembers: false,
+    },
+    groupManagementPermissions: {
+        manageRelationships: false,
+        manageClan: false,
+        viewAuditLogs: false,
+    },
+    groupEconomyPermissions: {
+        spendGroupFunds: false,
+        advertiseGroup: false,
+        createItems: false,
+        manageItems: false,
+        addGroupPlaces: false,
+        manageGroupGames: false,
+        viewGroupPayouts: false,
+    },
+});
+
 const GroupsPageStore = createContainer(() => {
     const userGroupStore = UserGroupsStore.useContainer();
     const [group, setGroup] = useState<GroupFull|null>(null);
+    const [groupNotFound, setGroupNotFound] = useState(false);
     const [posts, setPosts] = useState<GroupPosts>({posts: [], page: 0, nextPage: null, prevPage: null});
     const [members, setMembers] = useState<GroupMembers>({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
     const [memberCache, setMemberCache] = useState<GroupMembers[]>([]);
@@ -34,6 +64,7 @@ const GroupsPageStore = createContainer(() => {
     const [storeItems, setStoreItems] = useState<GroupStoreItems>({items: [], page: 0, total: 0, nextPage: null, prevPage: null});
     const [storeItemsCache, setStoreItemsCache] = useState<GroupStoreItems[]>([]);
     const sdeb = useRef(false);
+    const fetchRequestRef = useRef(0);
 
     // TODO: should be in the other one, ill setup later
 
@@ -45,25 +76,54 @@ const GroupsPageStore = createContainer(() => {
     useEffect(() => {
         if (!group) return;
         setUserPerms(null);
-        let roleSetId = 1; // guest by default
         let userGroup = userGroupStore?.userGroups?.find(g => g.group.id === group?.id);
-        if (userGroup) roleSetId = userGroup.role.id;
+        if (!userGroup) return;
 
+        if (userGroup.role.rank !== 255) {
+            setUserPerms({
+                role: userGroup.role,
+                permissions: emptyGroupPermissions(),
+                areGroupGamesVisible: false,
+                areGroupFundsVisible: false,
+                areEnemiesAllowed: false,
+                canConfigure: false,
+            });
+            return;
+        }
+
+        let cancelled = false;
         (async () => {
             try {
-                let req: GroupPermissionsEntry = await getPermissionsForRoleset({ groupId: group.id, rolesetId: roleSetId });
-                if (req) setUserPerms(req);
+                let req: GroupPermissionsEntry = await getPermissionsForRoleset({ groupId: group.id, rolesetId: userGroup.role.id });
+                if (cancelled || !req) return;
+                setUserPerms(req);
+                if (req.areGroupFundsVisible || req.permissions.groupEconomyPermissions.spendGroupFunds) {
+                    try {
+                        let funds = await getRobuxGroup({groupId: group.id});
+                        if (!cancelled) {
+                            setGroup(current => current?.id === group.id ? {...current, funds: funds ?? null} : current);
+                        }
+                    } catch (e) {}
+                }
             } catch (e) {}
         })()
-    }, [userGroupStore?.userGroups, group]);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [userGroupStore?.userGroups, group?.id]);
 
     async function fetchData(group: GroupWithShout, clearData?: boolean) {
-        if (isLoading || auth.isPending) return;
+        if (auth.isPending) return;
+        const requestId = ++fetchRequestRef.current;
+        const isCurrent = () => fetchRequestRef.current === requestId;
         await setLoading(true);
+        await setGroupNotFound(false);
 
         if (clearData) {
             // reset everything
             await setGroup(null);
+            await setUserPerms(null);
             await setPosts({posts: [], page: 0, nextPage: null, prevPage: null});
             await setMembers({members: [], rank: 0, page: 0, nextPage: null, prevPage: null});
             await setStoreItems({items: [], page: 0, total: 0, nextPage: null, prevPage: null});
@@ -73,10 +133,11 @@ const GroupsPageStore = createContainer(() => {
         }
 
         if (group.isLocked) {
-            setTimeout(() => setLoading(false), 1000);
+            setTimeout(() => { if (isCurrent()) setLoading(false) }, 1000);
             await setLoadingNE(true);
 
             await wait(1);
+            if (!isCurrent()) return;
             setLoadingNE(false);
             setGroup({
                 ...group,
@@ -92,13 +153,16 @@ const GroupsPageStore = createContainer(() => {
         try {
             // @ts-ignore
             groupIcon = (await multiGetGroupIcons({ groupIds: [group.id] }))[0];
+            if (!isCurrent()) return;
         } catch (e) { console.error(e) }
         let groupRoles: GroupRoleEntry[] = [];
         try {
             groupRoles = await getRoles({ groupId: group.id }); // might be null
+            if (!isCurrent()) return;
         } catch (e) { console.error(e) }
         try {
             let req = (await getWall({ groupId: group.id, sort: 'Desc', limit: 10, cursor: null}));
+            if (!isCurrent()) return;
             if (req) {
                 let post = {
                     posts: req.data,
@@ -119,9 +183,11 @@ const GroupsPageStore = createContainer(() => {
             let rankId = groupRoles.filter(v => v.rank > 0)[0]?.id;
             if (rankId === undefined) throw new Error("no default rank found for group members")
             let req = (await getRolesetMembers({ groupId: group.id, roleSetId: rankId, sortOrder: 'Desc', limit: 9, cursor: null}));
+            if (!isCurrent()) return;
             if (req && req.data) {
                 // @ts-ignore
                 let memberThumbs = await multiGetUserHeadshots({userIds: req.data.map(v => v.userId)}) ?? [];
+                if (!isCurrent()) return;
                 let members = {
                     members: req.data.map(v => {
                         let thumb = memberThumbs.find(d => d.targetId === v.userId);
@@ -144,23 +210,21 @@ const GroupsPageStore = createContainer(() => {
                 }
             }
         } catch (e) { console.error(e) }
-        let funds: {robux: number; tickets: number;} = { robux: 0, tickets: 0 };
-        try {
-            funds = await getRobuxGroup({groupId: group.id});
-        } catch (e) {}
+        if (!isCurrent()) return;
 
         setGroup({
             ...group,
             icon: groupIcon ?? null,
             roles: groupRoles ?? null,
-            funds: funds ?? null,
+            funds: null,
             games: []
         });
 
-        setTimeout(() => setLoading(false), 1000);
+        setTimeout(() => { if (isCurrent()) setLoading(false) }, 1000);
         await setLoadingNE(true);
 
         await wait(1);
+        if (!isCurrent()) return;
         setLoadingNE(false);
     }
 
@@ -311,6 +375,7 @@ const GroupsPageStore = createContainer(() => {
 
     return {
         group, setGroup,
+        groupNotFound, setGroupNotFound,
         isLoadingNE, setLoadingNE,
         posts, setPosts,
         members, setMembers,
@@ -337,7 +402,7 @@ export type GroupFull = GroupWithShout & {
     funds: {
         robux: number,
         tickets: number,
-    };
+    }|null;
 };
 
 export type GroupPosts = {

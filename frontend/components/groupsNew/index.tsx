@@ -1,6 +1,6 @@
 import {createUseStyles} from "react-jss";
 import GroupsPageStore from "./stores/GroupsPageStore";
-import {useEffect, useRef} from "react";
+import {useRef} from "react";
 import GroupIcon from "../groupIcon";
 import {ThumbnailFromState} from "../AvatarEditorPage/components/avatarCardList";
 import CreatorLink from "../creatorLink";
@@ -25,6 +25,7 @@ import {wait} from "../../lib/utils";
 import {FeedbackType} from "../../models/feedback";
 import FeedbackStore from "../../stores/feedback";
 import {getTheme, themeType } from "../../services/theme";
+import {itemNameToEncodedName} from "../../services/catalog";
 
 const useStyles = createUseStyles({
     groupDetailWrapper: {
@@ -378,6 +379,7 @@ const GroupsPage = () => {
     const textAreaRef = useRef(null);
     const postDeb = useRef(false);
     const pageDeb = useRef(false);
+    const showGroupLoading = !store.group && (store.isLoading || !store.groupNotFound);
 
     return <div className={`container big padding-none`}>
         <AdBanner className={s.banner}/>
@@ -394,7 +396,7 @@ const GroupsPage = () => {
                             {
                                 userGroups?.map(ug => {
                                     if (!ug) return null;
-                                    return <NewLink key={ug.group.id} href={`/groups/${ug.group.id}/${encodeURIComponent(ug.group.name)}`}
+                                    return <NewLink key={ug.group.id} href={`/groups/${ug.group.id}/${itemNameToEncodedName(ug.group.name)}`}
                                                     className={`${s.groupContainer} flex ${ug.group.id === store?.group?.id ? "current" : ""}`}
                                     >
                                         <div className={`${s.userGroupImage}`}>
@@ -425,9 +427,9 @@ const GroupsPage = () => {
                     </div> : null
             }
             {
-                !store.group && store.isLoading ? <div className={`container ${s.spinnerContainer}`}>
+                showGroupLoading ? <div className={`container ${s.spinnerContainer}`}>
                     <span className="spinner" style={{backgroundSize: "auto 36px"}}/>
-                </div> : group === null ?
+                </div> : store.groupNotFound ?
                     <div className={s.textThemed} style={{marginLeft: 12, fontSize: 16, fontWeight: 500,}}>
                         This group does not exist.
                     </div> : group?.isLocked ?
