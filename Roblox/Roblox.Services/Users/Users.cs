@@ -34,7 +34,9 @@ namespace Roblox.Services;
 public class UsersService : ServiceBase, IService
 {
     private static TwoFactorAuth tfa = new TwoFactorAuth("Korone");
+    private static readonly TimeSpan PasswordResetTicketTtl = TimeSpan.FromHours(1);
     private static string UserByIdCacheKey(long userId) => $"users:info:v1:{userId}";
+    private static string PasswordResetCacheKey(string id) => $"PasswordReset:Ticket:V1:{id}";
     public async Task InvalidateUserInfoCache(long userId)
     {
         using var cache = ServiceProvider.GetOrCreate<DistributedJsonCache>();
@@ -2716,25 +2718,25 @@ public class UsersService : ServiceBase, IService
             throw new ArgumentException(nameof(verificationPhrase) + " cannot be null");
 
         var uuid = Guid.NewGuid().ToString();
-        await db.ExecuteAsync("INSERT INTO user_password_reset (user_id, id, created_at, status, social_url, verification_phrase) VALUES (:user_id, :id, :created_at, :status, :social_url, :verification_phrase)", new
+        var entry = new PasswordResetEntry
         {
-            user_id = userId,
             id = uuid,
-            social_url = socialUrl,
-            verification_phrase = verificationPhrase,
-            created_at = DateTime.UtcNow,
+            createdAt = DateTime.UtcNow,
             status = PasswordResetState.Created,
-        });
+            userId = userId,
+        };
+
+        await redis.StringSetAsync(PasswordResetCacheKey(uuid), JsonSerializer.Serialize(entry), PasswordResetTicketTtl);
         return uuid;
     }
 
     public async Task<PasswordResetEntry?> GetPasswordResetEntry(string id)
     {
-        return await db.QuerySingleOrDefaultAsync<PasswordResetEntry>(
-            "SELECT id, user_id as userId, created_at as createdAt, status FROM user_password_reset WHERE id = :id", new
-            {
-                id = id,
-            });
+        var raw = await redis.StringGetAsync(PasswordResetCacheKey(id));
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+
+        return JsonSerializer.Deserialize<PasswordResetEntry>(raw);
     }
 
     public async Task<IAsyncDisposable> GetPasswordResetLock(string id)
@@ -2745,21 +2747,15 @@ public class UsersService : ServiceBase, IService
         return result;
     }
 
-    public async Task RedeemPasswordReset(string id, string newPassword)
+    public async Task<bool> RedeemPasswordReset(string id, string newPassword)
     {
-        // First, get the ticket and update its state
-        var ticket = await GetPasswordResetEntry(id);
-        if (ticket == null)
-            throw new ArgumentException("Invalid " + nameof(id));
+        var raw = await redis.StringGetDeleteAsync(PasswordResetCacheKey(id));
+        if (string.IsNullOrWhiteSpace(raw))
+            return false;
 
-        var updated = await db.ExecuteAsync("UPDATE user_password_reset SET status = :status WHERE id = :id AND status = :old_status", new
-        {
-            id = id,
-            old_status = PasswordResetState.Created,
-            status = PasswordResetState.PasswordChanged,
-        });
-        if (updated != 1)
-            throw new ArgumentException("Password reset was already redeemed");
+        var ticket = JsonSerializer.Deserialize<PasswordResetEntry>(raw);
+        if (ticket == null)
+            return false;
 
         await UpdatePassword(ticket.userId, newPassword);
 
@@ -2771,6 +2767,13 @@ public class UsersService : ServiceBase, IService
             // TODO: is this safe?
             await UnlockAccount(ticket.userId);
         }
+
+        return true;
+    }
+
+    public async Task DeletePasswordResetEntry(string id)
+    {
+        await redis.KeyDeleteAsync(PasswordResetCacheKey(id));
     }
     public async Task GiveUserInviterBadge(long userId)
     {
