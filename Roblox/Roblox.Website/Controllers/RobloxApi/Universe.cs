@@ -767,17 +767,4 @@ public class UniverseV1 : ControllerBase
             }
         };
     }
-    
-    private string GetRedisKeyForRejection(long userId)
-    {
-        return "app_rejected_recently_for_place:v1.2:" + userId;
-    }
-
-    private async Task<bool> WasRejectedRecently(long userId)
-    {
-        var result = await Roblox.Services.Cache.distributed.StringGetAsync(GetRedisKeyForRejection(userId));
-        if (result != null)
-            return true;
-        return false;
-    }
 }

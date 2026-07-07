@@ -164,6 +164,18 @@ public class UniversesController : RobloxControllerBase
             UniverseAvatarType = universe.universeAvatarType,
         };
     }
+    
+    [RequireRobloxSession]
+    [HttpGet("/v1/universes/{universeId:long}/symbolic-links")]
+    public dynamic GetBoilerplateContent(long universeId)
+    {
+        return new
+        {
+            previousPageCursor = (string?)null,
+            nextPageCursor = (string?)null,
+            data =  Array.Empty<string>()
+        };
+    }
 
     [RequireRobloxSession]
     [HttpGet("universes/get-universe-places")]
