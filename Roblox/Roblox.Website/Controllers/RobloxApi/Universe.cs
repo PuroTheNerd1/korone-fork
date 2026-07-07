@@ -768,111 +768,6 @@ public class UniverseV1 : ControllerBase
         };
     }
     
-    [HttpGetBypass("/universes/create")]
-    [HttpPostBypass("/universes/create")]
-    public async Task<dynamic> CreateUniverseApi([FromBody] CreateUniverseRequest request)
-    {
-        if (!FeatureFlags.IsEnabled(FeatureFlag.CreatePlaceSelfService))
-            throw new BadRequestException(0, "Place creation is currently disabled");
-        if (userSession is null)
-            throw new UnauthorizedException(0, "You are not logged in");
-        await using var createGameLock =
-            await Roblox.Services.Cache.redLock.CreateLockAsync("CreatePlaceSelfServiceV1:UserId:" + userSession.userId,
-                TimeSpan.FromSeconds(10));
-        if (!createGameLock.IsAcquired)
-        {
-            Writer.Info(LogGroup.AbuseDetection, "CreatePlace API could not acquire createGameLock");
-            throw new TooManyRequestsException(0, "Too many attempts. Try again in a few seconds.");
-        }
-        
-        var createStatus = await CanCreatePlace(userSession.userId);
-        if (createStatus != PlaceCreationFailureReason.Ok) 
-            throw new BadRequestException(0, GetMessage(createStatus));
-        
-
-        Writer.Info(LogGroup.AbuseDetection, "CreatePlace API userId={0} can create a place, creating it", userSession.userId);
-        // create one!
-        var asset = await services.assets.CreatePlace(userSession.userId, userSession.username, CreatorType.User, userSession.userId, request.templatePlaceIdToUse);
-        // create universe too
-        var universe = await services.games.CreateUniverse(asset.placeId);
-        // give url
-        return new
-        {
-            asset.placeId,
-            universe.universeId,
-        };
-    }
-    
-    private async Task<PlaceCreationFailureReason> CanCreatePlace(long userId)
-    {
-        var log = Writer.CreateWithId(LogGroup.AbuseDetection);
-        log.Info("start CanCreatePlace with userId={0}",userId);
-        var userInfo = await services.users.GetUserById(userId);
-        if (userInfo.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1)))
-        {
-            log.Info("account is too new");
-            return PlaceCreationFailureReason.AccountTooNew;
-        }
-
-        var createdPlaces = (await services.assets.GetCreations(CreatorType.User, userId, Type.Place, 0, 100)).ToArray();
-        if (createdPlaces.Length != 0)
-        {
-            if (createdPlaces.Length > 15)
-            {
-                log.Info("account has too many places {0}", createdPlaces.Length);
-                return PlaceCreationFailureReason.TooManyPlaces;
-            }
-
-            var placeDetails = (await services.games.MultiGetPlaceDetails(createdPlaces
-                    .Select(c => c.assetId)))
-                .ToArray();
-
-            if (placeDetails.Length != createdPlaces.Length)
-            {
-                // uhhh
-                log.Info("placeDetails len and createdPlaces len do not match: {0} vs {1}", placeDetails.Length, createdPlaces.Length);
-                if (placeDetails.Length == 0)
-                    throw new Exception("Place details len is zero while createdPlaces len is not zero");
-            }
-
-
-            var isAnyPlaceCreatedLessThanADayAgo =
-                placeDetails.FirstOrDefault(v => v.created > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1))) != null;
-
-            if (isAnyPlaceCreatedLessThanADayAgo && !(userId is 3 or 1 or 7))
-            {
-                log.Info("account place was created less than a day ago");
-                return PlaceCreationFailureReason.LatestPlaceCreatedTooRecently;
-            }
-        }
-
-
-        var app = await services.users.GetApplicationByUserId(userId);
-        if (app is not {status: UserApplicationStatus.Approved})
-        {
-            log.Info("user has no app or it is not approved {0}", app?.status.ToString());
-            return PlaceCreationFailureReason.NoApplication;
-        }
-        
-        log.Info("user is active enough for a place. return OK");
-        return PlaceCreationFailureReason.Ok;
-    }
-    
-    private string GetMessage(PlaceCreationFailureReason reason)
-    {
-        return reason switch
-        {
-            PlaceCreationFailureReason.AccountTooNew =>
-                "Your account is too new. Try again when your account is at least 7 days old.",
-            PlaceCreationFailureReason.TooManyPlaces => "Your account already has the maximum amount of places on it.",
-            PlaceCreationFailureReason.NoApplication => "You cannot create a place if you did not join through the application system.",
-            PlaceCreationFailureReason.TooInactive => "Your account is too inactive to create a place. Staff cannot comment on the exact reason, so please do not ask. Try playing around some more, posting on places like the forums, joining groups, buying items, then try again in a few days.",
-            PlaceCreationFailureReason.LatestPlaceCreatedTooRecently => "Latest place was created too recently. Try again in a day.",
-            PlaceCreationFailureReason.NotEnoughVisitsForNewPlace => "You do not have enough visits to create a new place. Try again in a few days.",
-            _ => "Unknown reason. Code = " + reason.ToString(),
-        };
-    }
-    
     private string GetRedisKeyForRejection(long userId)
     {
         return "app_rejected_recently_for_place:v1.2:" + userId;
@@ -884,16 +779,5 @@ public class UniverseV1 : ControllerBase
         if (result != null)
             return true;
         return false;
-    }
-    
-    public enum PlaceCreationFailureReason
-    {
-        Ok = 1,
-        AccountTooNew,
-        TooManyPlaces,
-        NoApplication,
-        TooInactive,
-        LatestPlaceCreatedTooRecently,
-        NotEnoughVisitsForNewPlace,
     }
 }
