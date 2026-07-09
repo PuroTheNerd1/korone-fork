@@ -902,17 +902,17 @@ const Donate = () => {
         <div className={s.hero}>
             <h1 className={s.title}>Support Korone</h1>
             <p className={s.subTitle}>
-                Korone is a non-profit project run by the community, for the community. Every dollar goes straight
-                into better hosting and infrastructure &mdash; nothing else. For full legal transparency, we publish
-                a live breakdown of every cent we receive and spend in a dedicated channel on our Discord server.
+                Korone is a privately owned, community-based project, not a registered non-profit or charity.
+                Contributions help support the servers, development work, future expenses, and reserves that keep Korone running.
             </p>
             <p className={s.subTitle} style={{ marginTop: '10px' }}>
-                Pick a tier below to donate and receive a limited in-game item as our thank-you.
+                While profit is not Korone's main purpose, it may receive more revenue than its operating costs.
+                Pick a tier below to contribute and receive a limited in-game item as our thank-you.
             </p>
             <div className={s.heroHighlights}>
                 <span className={s.heroHighlight}>Limited on-site rewards</span>
                 <span className={s.heroHighlight}>Permanent Discord role</span>
-                <span className={s.heroHighlight}>Transparent community funding</span>
+                <span className={s.heroHighlight}>Community funding</span>
             </div>
         </div>
 
