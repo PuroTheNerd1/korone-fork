@@ -2649,7 +2649,7 @@ Thank you for your understanding,
         var allowedTypes = new List<Type>
         {
             Type.Hat, Type.HairAccessory, Type.FrontAccessory, Type.BackAccessory, Type.WaistAccessory,
-            Type.NeckAccessory, Type.Gear, Type.Face, Type.ShoulderAccessory, Type.FaceAccessory,
+            Type.NeckAccessory, Type.Gear, Type.ShoulderAccessory, Type.FaceAccessory,
             Type.Head, Type.EmoteAnimation, Type.Model
         };
         ValidateRobloxCopyDetails(details, allowedTypes, actor);
@@ -2689,7 +2689,7 @@ Thank you for your understanding,
         var allowedTypes = new List<Type>
         {
             Type.Hat, Type.HairAccessory, Type.FrontAccessory, Type.BackAccessory, Type.WaistAccessory,
-            Type.NeckAccessory, Type.Gear, Type.Face, Type.ShoulderAccessory, Type.FaceAccessory,
+            Type.NeckAccessory, Type.Gear, Type.ShoulderAccessory, Type.FaceAccessory,
             Type.Head, Type.EmoteAnimation,
         };
         ValidateRobloxCopyDetails(details, allowedTypes, actor);
