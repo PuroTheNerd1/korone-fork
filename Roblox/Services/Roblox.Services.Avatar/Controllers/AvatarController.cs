@@ -274,6 +274,21 @@ public class AvatarController : RobloxControllerBase
         await services.avatar.UpdateUserAvatarImages(safeUserSession.userId, null, null, null);
         AttemptScheduleRender();
     }
+    
+    [RequireRobloxSession]
+    [HttpGet("/v1/avatar/set-rig")]
+    [HttpGet("/apisite/avatar/v1/avatar/set-rig")]
+    public async Task SetBodyRigType([Required] string rigType)
+    {
+        if (!Enum.TryParse(rigType, ignoreCase: true, out AvatarType avatarRigType))
+            throw BadRequest("Invalid player avatar type");
+        
+        var userId =  safeUserSession.userId;
+
+        await services.avatar.UpdateRigType(avatarRigType, userId);
+        await services.avatar.UpdateUserAvatarImages(userId, null, null, null);
+        AttemptScheduleRender();
+    }
 
     [RequireRobloxSession]
     [HttpPost("/v1/avatar/set-body-colors")]
