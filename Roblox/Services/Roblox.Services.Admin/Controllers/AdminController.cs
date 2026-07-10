@@ -35,8 +35,7 @@ namespace Roblox.Services.Admin.Controllers;
 
 [ApiController]
 [InternalServiceOnly]
-[RequireRobloxSession]
-[RequireRobloxCsrf]
+[RequireRobloxSession] 
 [AdminStaffFilter]
 [AdminTwoFactorFilter]
 [Route("/v1")]
