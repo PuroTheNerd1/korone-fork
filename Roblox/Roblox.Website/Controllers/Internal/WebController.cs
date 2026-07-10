@@ -467,7 +467,7 @@ public class WebController : ControllerBase
         }
     }
 
-    [HttpGet("game/get-join-script")]
+    [HttpPost("game/get-join-script")]
     public async Task<dynamic> GetJoinScript(long placeId)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -490,7 +490,7 @@ public class WebController : ControllerBase
         };
     }
 
-    [HttpGet("game/get-join-script-fromjobid")]
+    [HttpPost("game/get-join-script-fromjobid")]
     public async Task<dynamic> GetJoinScriptFromJobId(long placeId, string jobId)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
