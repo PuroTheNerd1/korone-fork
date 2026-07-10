@@ -62,10 +62,6 @@
 			errorMessage = "Enter at least one Roblox asset URL or ID.";
 			return;
 		}
-		if (assetIds.length > 50) {
-			errorMessage = "Bulk copy is limited to 50 assets at a time.";
-			return;
-		}
 
 		disabled = true;
 		results = [];
