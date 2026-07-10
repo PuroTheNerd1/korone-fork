@@ -67,7 +67,7 @@ export const getGameMedia = ({universeId}) => {
 }
 
 export const launchGame = async ({placeId}) => {
-    const result = await request('GET', getBaseUrl() + '/game/get-join-script?placeId=' + encodeURIComponent(placeId));
+    const result = await request('POST', getBaseUrl() + '/game/get-join-script?placeId=' + encodeURIComponent(placeId));
     const toClick = result.data.joinUrl;
     const aTag = document.createElement('a');
     aTag.setAttribute('href', result.data.prefix + '' + result.data.joinScriptUrl);
@@ -80,7 +80,7 @@ export const launchGame = async ({placeId}) => {
 }
 
 export const launchStudio = async ({placeId}) => {
-    const result = await request('GET', getBaseUrl() + '/game/get-studio-script?placeId=' + encodeURIComponent(placeId));
+    const result = await request('POST', getBaseUrl() + '/game/get-studio-script?placeId=' + encodeURIComponent(placeId));
     const aTag = document.createElement('a');
     aTag.setAttribute('href', result.data.prefix + '' + result.data.joinScriptUrl);
     document.body.appendChild(aTag);
@@ -98,7 +98,7 @@ export const launchGameFromJobId = async ({placeId, jobId}) => {
         return;
     }
     
-    const result = await request('GET', getBaseUrl() + '/game/get-join-script-fromjobid?placeId=' + encodeURIComponent(placeId) + "&jobId=" + encodeURIComponent(jobId));
+    const result = await request('POST', getBaseUrl() + '/game/get-join-script-fromjobid?placeId=' + encodeURIComponent(placeId) + "&jobId=" + encodeURIComponent(jobId));
     const toClick = result.data.joinUrl;
     const aTag = document.createElement('a');
     aTag.setAttribute('href', result.data.prefix + '' + result.data.joinScriptUrl);
