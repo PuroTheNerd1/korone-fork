@@ -2515,7 +2515,7 @@ Thank you for your understanding,
     private async Task<BulkCopyAssetResponse> CopyRobloxAssetsInBulkAsync(
         BulkCopyAssetRequest request,
         AdminActorContext actor,
-        Func<CopyAssetRequest, AdminActorContext, Task<AdminAssetIdResponse>> copyAsset)
+        Func<CopyAssetRequest, AdminActorContext, bool, Task<AdminAssetIdResponse>> copyAsset)
     {
         var assetIds = request.assetIds
             .Where(assetId => assetId > 0)
@@ -2543,21 +2543,28 @@ Thank you for your understanding,
                 }
 
                 var details = await robloxApi.GetProductInfo(assetId, true);
-                var priceRobux = GetRobloxCopyPrice(details);
+                var skipReason = GetBulkCopySkipReason(details, request);
+                if (skipReason != null)
+                {
+                    results.Add(CreateBulkCopySkipped(assetId, skipReason));
+                    continue;
+                }
+
+                var priceRobux = GetRobloxCopyPrice(details, request);
                 var created = await copyAsset(new CopyAssetRequest
                 {
                     assetId = assetId,
                     force = request.force,
-                }, actor);
+                }, actor, !request.keepLimitedProperties);
 
                 await UpdateAssetProductAsync(new UpdateProductRequest
                 {
                     assetId = created.assetId,
                     assetName = details.Name ?? string.Empty,
                     description = details.Description ?? string.Empty,
-                    isForSale = true,
-                    isLimited = details.IsLimited == true,
-                    isLimitedUnique = details.IsLimitedUnique == true,
+                    isForSale = !IsRobloxOffsale(details) || !request.keepOffsaleProperty,
+                    isLimited = request.keepLimitedProperties && details.IsLimited == true,
+                    isLimitedUnique = request.keepLimitedProperties && details.IsLimitedUnique == true,
                     priceRobux = priceRobux,
                     priceTickets = null,
                     maxCopies = null,
@@ -2599,9 +2606,40 @@ Thank you for your understanding,
         }
     }
 
-    private static int GetRobloxCopyPrice(ProductDataResponse details)
+    private static string? GetBulkCopySkipReason(ProductDataResponse details, BulkCopyAssetRequest request)
     {
-        return details.PriceInRobux is > 0 ? details.PriceInRobux.Value : DefaultBulkRobloxAssetCopyPriceRobux;
+        var isOffsale = IsRobloxOffsale(details);
+        if (IsRobloxLimited(details) && request.skipLimitedItems)
+            return "Skipped limited item";
+        if (isOffsale && request.skipOffsaleItems)
+            return "Skipped offsale item";
+        if (request.skipOpenedOffsaleGiftItems &&
+            isOffsale &&
+            details.Name?.Contains("Opened", StringComparison.OrdinalIgnoreCase) == true &&
+            details.Name.Contains("Gift", StringComparison.OrdinalIgnoreCase))
+            return "Skipped opened gift item";
+
+        return null;
+    }
+
+    private static bool IsRobloxLimited(ProductDataResponse details)
+    {
+        return details.IsLimited == true || details.IsLimitedUnique == true;
+    }
+
+    private static bool IsRobloxOffsale(ProductDataResponse details)
+    {
+        return details.IsForSale == false;
+    }
+
+    private static int GetRobloxCopyPrice(ProductDataResponse details, BulkCopyAssetRequest request)
+    {
+        if (details.PriceInRobux is > 0)
+            return details.PriceInRobux.Value;
+        if (IsRobloxLimited(details) && request.limitedPriceRobux is > 0)
+            return request.limitedPriceRobux.Value;
+
+        return DefaultBulkRobloxAssetCopyPriceRobux;
     }
 
     private static BulkCopyAssetResult CreateBulkCopySuccess(long robloxAssetId, long assetId, int? priceRobux, bool alreadyExisted)
@@ -2614,6 +2652,16 @@ Thank you for your understanding,
             priceRobux = priceRobux,
             alreadyExisted = alreadyExisted,
             success = true,
+        };
+    }
+
+    private static BulkCopyAssetResult CreateBulkCopySkipped(long robloxAssetId, string reason)
+    {
+        return new BulkCopyAssetResult
+        {
+            robloxAssetId = robloxAssetId,
+            success = false,
+            error = reason,
         };
     }
 
@@ -2632,7 +2680,7 @@ Thank you for your understanding,
             : ex.Message;
     }
 
-    public async Task<AdminAssetIdResponse> BackportAssetFromRobloxAsync(CopyAssetRequest request, AdminActorContext actor)
+    public async Task<AdminAssetIdResponse> BackportAssetFromRobloxAsync(CopyAssetRequest request, AdminActorContext actor, bool allowLimitedCopyWithoutLimitedPermission = false)
     {
         if (!request.force)
         {
@@ -2652,7 +2700,7 @@ Thank you for your understanding,
             Type.NeckAccessory, Type.Gear, Type.ShoulderAccessory, Type.FaceAccessory,
             Type.Head, Type.EmoteAnimation, Type.Model
         };
-        ValidateRobloxCopyDetails(details, allowedTypes, actor);
+        ValidateRobloxCopyDetails(details, allowedTypes, actor, allowLimitedCopyWithoutLimitedPermission);
 
         if (!request.force)
             await EnsureNoRobloxCopyDuplicate(details);
@@ -2672,7 +2720,7 @@ Thank you for your understanding,
         return new AdminAssetIdResponse { assetId = backportId };
     }
 
-    public async Task<AdminAssetIdResponse> CopyAssetFromRobloxAsync(CopyAssetRequest request, AdminActorContext actor)
+    public async Task<AdminAssetIdResponse> CopyAssetFromRobloxAsync(CopyAssetRequest request, AdminActorContext actor, bool allowLimitedCopyWithoutLimitedPermission = false)
     {
         if (!request.force)
         {
@@ -2692,7 +2740,7 @@ Thank you for your understanding,
             Type.NeckAccessory, Type.Gear, Type.ShoulderAccessory, Type.FaceAccessory,
             Type.Head, Type.EmoteAnimation,
         };
-        ValidateRobloxCopyDetails(details, allowedTypes, actor);
+        ValidateRobloxCopyDetails(details, allowedTypes, actor, allowLimitedCopyWithoutLimitedPermission);
 
         if (!request.force)
             await EnsureNoRobloxCopyDuplicate(details);
@@ -2714,7 +2762,7 @@ Thank you for your understanding,
         return new AdminAssetIdResponse { assetId = assetDetails.assetId };
     }
 
-    private void ValidateRobloxCopyDetails(ProductDataResponse details, IReadOnlyCollection<Type> allowedTypes, AdminActorContext actor)
+    private void ValidateRobloxCopyDetails(ProductDataResponse details, IReadOnlyCollection<Type> allowedTypes, AdminActorContext actor, bool allowLimitedCopyWithoutLimitedPermission = false)
     {
         if (details.AssetTypeId == null || !allowedTypes.Contains(details.AssetTypeId.Value))
             throw new StaffException("Cannot copy this assetType: " + details.AssetTypeId);
@@ -2724,6 +2772,7 @@ Thank you for your understanding,
             throw new StaffException("Product details were invalid for this item. Try again");
 
         if ((details.IsLimited == true || details.IsLimitedUnique == true) &&
+            !allowLimitedCopyWithoutLimitedPermission &&
             !HasPermission(actor, Access.MakeItemLimited))
             throw new StaffException("You do not have permission to copy a limited item");
     }

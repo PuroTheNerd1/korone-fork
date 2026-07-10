@@ -130,6 +130,12 @@ public sealed class BulkCopyAssetRequest
 {
     public IEnumerable<long> assetIds { get; set; } = Array.Empty<long>();
     public bool force { get; set; }
+    public bool skipLimitedItems { get; set; }
+    public bool keepLimitedProperties { get; set; } = true;
+    public int? limitedPriceRobux { get; set; }
+    public bool skipOpenedOffsaleGiftItems { get; set; }
+    public bool skipOffsaleItems { get; set; }
+    public bool keepOffsaleProperty { get; set; }
 }
 
 public sealed class BulkCopyAssetResult

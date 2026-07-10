@@ -12,6 +12,12 @@
 	let input = "";
 	let force = "false";
 	let didError = false;
+	let skipLimitedItems = false;
+	let keepLimitedProperties = true;
+	let limitedPriceRobux = "";
+	let skipOpenedOffsaleGiftItems = false;
+	let skipOffsaleItems = false;
+	let keepOffsaleProperty = false;
 	let results: BulkCopyAssetResult[] = [];
 
 	interface BulkCopyAssetResult {
@@ -63,10 +69,17 @@
 
 		disabled = true;
 		results = [];
+		const limitedPrice = parseInt(limitedPriceRobux, 10);
 		try {
 			const response = await request.post<BulkCopyAssetResponse>(endpoint, {
 				assetIds,
 				force: force === "true",
+				skipLimitedItems,
+				keepLimitedProperties,
+				limitedPriceRobux: Number.isSafeInteger(limitedPrice) && limitedPrice > 0 ? limitedPrice : null,
+				skipOpenedOffsaleGiftItems,
+				skipOffsaleItems,
+				keepOffsaleProperty,
 			});
 			results = response.data.results || [];
 			didError = results.some((result) => !result.success);
@@ -129,6 +142,71 @@
 					<option value="true">Yes</option>
 				</select>
 			{/if}
+		</div>
+		<div class="col-12 mt-3">
+			<div class="row">
+				<div class="col-3">
+					<label for="skip-limited">Don't copy Limited items</label>
+					<input
+						type="checkbox"
+						class="form-check-input ml-2"
+						id="skip-limited"
+						{disabled}
+						bind:checked={skipLimitedItems}
+					/>
+				</div>
+				<div class="col-3">
+					<label for="keep-limited">Keep Limited property</label>
+					<input
+						type="checkbox"
+						class="form-check-input ml-2"
+						id="keep-limited"
+						disabled={disabled || skipLimitedItems}
+						bind:checked={keepLimitedProperties}
+					/>
+				</div>
+				<div class="col-3">
+					<label for="limited-price">Limited price</label>
+					<input
+						type="number"
+						class="form-control dark-input"
+						id="limited-price"
+						min="1"
+						disabled={disabled || skipLimitedItems}
+						bind:value={limitedPriceRobux}
+					/>
+				</div>
+				<div class="col-3">
+					<label for="skip-gifts">Don't copy opened offsale gifts</label>
+					<input
+						type="checkbox"
+						class="form-check-input ml-2"
+						id="skip-gifts"
+						{disabled}
+						bind:checked={skipOpenedOffsaleGiftItems}
+					/>
+				</div>
+				<div class="col-3 mt-3">
+					<label for="skip-offsale">Don't copy offsale items</label>
+					<input
+						type="checkbox"
+						class="form-check-input ml-2"
+						id="skip-offsale"
+						{disabled}
+						bind:checked={skipOffsaleItems}
+					/>
+				</div>
+				<div class="col-3 mt-3">
+					<label for="keep-offsale">Keep Offsale property</label>
+					<input
+						type="checkbox"
+						class="form-check-input ml-2"
+						id="keep-offsale"
+						disabled={disabled || skipOffsaleItems}
+						bind:checked={keepOffsaleProperty}
+					/>
+				</div>
+			</div>
 		</div>
 		<div class="col-12 mt-4">
 			<button class="btn btn-success" {disabled} on:click={submit}>Create Assets</button>
