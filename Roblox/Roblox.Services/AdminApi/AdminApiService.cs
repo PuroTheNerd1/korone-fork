@@ -2808,10 +2808,12 @@ Thank you for your understanding,
             return new Dictionary<long, long>();
 
         var rows = await db.QueryAsync<ExistingCopiedRobloxAssetRow>(
-            "SELECT roblox_asset_id AS \"robloxAssetId\", id AS \"assetId\" FROM asset WHERE roblox_asset_id = ANY(@assetIds)",
+            "SELECT roblox_asset_id AS \"robloxAssetId\", id AS \"assetId\" FROM asset WHERE roblox_asset_id = ANY(@assetIds) ORDER BY id ASC",
             new { assetIds = ids });
 
-        return rows.ToDictionary(row => row.robloxAssetId, row => row.assetId);
+        return rows
+            .GroupBy(row => row.robloxAssetId)
+            .ToDictionary(group => group.Key, group => group.First().assetId);
     }
 
     private async Task<Dictionary<long, ProductDataResponse>> TryGetCatalogItemDetailsBatchAsync(IEnumerable<long> robloxAssetIds)
