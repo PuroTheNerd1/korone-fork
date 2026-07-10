@@ -126,6 +126,29 @@ public sealed class AdminAssetIdResponse
     public long assetId { get; set; }
 }
 
+public sealed class BulkCopyAssetRequest
+{
+    public IEnumerable<long> assetIds { get; set; } = Array.Empty<long>();
+    public bool force { get; set; }
+}
+
+public sealed class BulkCopyAssetResult
+{
+    public long robloxAssetId { get; set; }
+    public long? assetId { get; set; }
+    public string? catalogUrl { get; set; }
+    public int? priceRobux { get; set; }
+    public bool alreadyExisted { get; set; }
+    public bool success { get; set; }
+    public string? error { get; set; }
+}
+
+public sealed class BulkCopyAssetResponse
+{
+    public IEnumerable<BulkCopyAssetResult> results { get; set; } = Array.Empty<BulkCopyAssetResult>();
+    public IEnumerable<string> catalogUrls { get; set; } = Array.Empty<string>();
+}
+
 public sealed class AdminCreateGameResponse
 {
     public long placeId { get; set; }

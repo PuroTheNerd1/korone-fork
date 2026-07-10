@@ -177,7 +177,17 @@
 				{/if}
 				{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
 					<li class="nav-item ml-4">
+						<a use:link class="nav-link" href="/admin/asset/bulk-copy"><CopyIcon /> Bulk Copy Asset</a>
+					</li>
+				{/if}
+				{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
+					<li class="nav-item ml-4">
 						<a use:link class="nav-link" href="/admin/asset/ugccopy"><CopyIcon /> Copy UGC</a>
+					</li>
+				{/if}
+				{#if rank.hasPermission("CreateAssetCopiedFromRoblox")}
+					<li class="nav-item ml-4">
+						<a use:link class="nav-link" href="/admin/asset/bulk-ugccopy"><CopyIcon /> Bulk Copy UGC</a>
 					</li>
 				{/if}
 				{#if rank.hasPermission("CreateBundleCopiedFromRoblox")}

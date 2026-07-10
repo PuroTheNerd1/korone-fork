@@ -589,10 +589,22 @@ public class AdminController : RobloxControllerBase
         return await services.adminApi.BackportAssetFromRobloxAsync(request, await GetActorContext());
     }
 
+    [HttpPost("asset/bulk-backport-from-roblox"), AdminPermission(Access.CreateAssetCopiedFromRoblox)]
+    public async Task<BulkCopyAssetResponse> BackportAssetsFromRoblox([Required, FromBody] BulkCopyAssetRequest request)
+    {
+        return await services.adminApi.BackportAssetsFromRobloxAsync(request, await GetActorContext());
+    }
+
     [HttpPost("asset/copy-from-roblox"), AdminPermission(Access.CreateAssetCopiedFromRoblox)]
     public async Task<AdminAssetIdResponse> CopyAssetFromRoblox([Required, FromBody] CopyAssetRequest request)
     {
         return await services.adminApi.CopyAssetFromRobloxAsync(request, await GetActorContext());
+    }
+
+    [HttpPost("asset/bulk-copy-from-roblox"), AdminPermission(Access.CreateAssetCopiedFromRoblox)]
+    public async Task<BulkCopyAssetResponse> CopyAssetsFromRoblox([Required, FromBody] BulkCopyAssetRequest request)
+    {
+        return await services.adminApi.CopyAssetsFromRobloxAsync(request, await GetActorContext());
     }
 
     [HttpGet("ugc-requests/pending"), AdminPermission(Access.PendingUgcItems)]

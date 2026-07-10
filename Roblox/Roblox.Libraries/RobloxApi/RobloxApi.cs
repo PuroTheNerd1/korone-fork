@@ -16,6 +16,8 @@ public class ProductDataResponse
     public string? Name { get; set; }
     public string? Description { get; set; }
     public Models.Assets.Type? AssetTypeId { get; set; }
+    public int? PriceInRobux { get; set; }
+    public bool? IsForSale { get; set; }
     public bool? IsLimited { get; set; }
     public bool? IsLimitedUnique { get; set; }
     public DateTime? Created { get; set; }

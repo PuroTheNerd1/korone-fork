@@ -42,6 +42,8 @@
 	import Permissions from "./pages/Permissions.svelte";
 	import ForceApplication from "./pages/ForceApplication.svelte";
 	import GiftAllUsers from "./pages/GiftAllUsers.svelte";
+	import BulkCopyRobloxAsset from "./pages/BulkCopyRobloxAsset.svelte";
+	import BulkCopyRobloxUGC from "./pages/BulkCopyRobloxUGC.svelte";
 	import CopyRobloxUgc from "./pages/CopyRobloxUGC.svelte";
 	import StaffStats from "./pages/StaffPerformance.svelte";
 	import Alts from "./pages/Alts.svelte";
@@ -135,8 +137,14 @@
 		<Route path="/admin/asset/copy">
 			<CopyRobloxClothing />
 		</Route>
+		<Route path="/admin/asset/bulk-copy">
+			<BulkCopyRobloxAsset />
+		</Route>
 		<Route path="/admin/asset/ugccopy">
 			<CopyRobloxUgc />
+		</Route>
+		<Route path="/admin/asset/bulk-ugccopy">
+			<BulkCopyRobloxUGC />
 		</Route>
 		<Route path="/admin/bundle/copy">
 			<CopyRobloxBundle />

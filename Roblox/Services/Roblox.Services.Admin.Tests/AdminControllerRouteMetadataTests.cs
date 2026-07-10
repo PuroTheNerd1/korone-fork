@@ -82,6 +82,23 @@ public class AdminControllerRouteMetadataTests
             attribute => HasAttributeType(attribute, "Roblox.Web.Infrastructure.Metadata.SkipRobloxCsrfAttribute"));
     }
 
+    [Theory]
+    [InlineData(nameof(AdminController.CopyAssetsFromRoblox), "asset/bulk-copy-from-roblox")]
+    [InlineData(nameof(AdminController.BackportAssetsFromRoblox), "asset/bulk-backport-from-roblox")]
+    public void BulkRobloxAssetCopyRoutes_UseCreateAssetCopiedFromRobloxPermission(string actionName, string routeTemplate)
+    {
+        var method = typeof(AdminController).GetMethod(actionName);
+        Assert.NotNull(method);
+
+        var route = Assert.IsType<HttpPostAttribute>(
+            method.GetCustomAttributes(inherit: true).Single(attribute => attribute is HttpPostAttribute));
+        Assert.Equal(routeTemplate, route.Template);
+
+        var permission = Assert.IsType<AdminPermissionAttribute>(
+            method.GetCustomAttributes(inherit: true).Single(attribute => attribute is AdminPermissionAttribute));
+        Assert.Equal(Access.CreateAssetCopiedFromRoblox, ReadAdminPermission(permission));
+    }
+
     private static Dictionary<string, RouteEntry> ReadRouteMatrix(Type controllerType)
     {
         return controllerType

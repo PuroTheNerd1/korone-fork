@@ -37,6 +37,8 @@ namespace Roblox.Services.AdminApi;
 public class AdminApiService : ServiceBase
 {
     private static readonly long startTime = DateTimeOffset.Now.ToUnixTimeSeconds();
+    private const int MaxBulkRobloxAssetCopyCount = 50;
+    private const int DefaultBulkRobloxAssetCopyPriceRobux = 30;
     private const int AdminTwoFactorVerifyRequestsPerMinute = 10;
     private const int AdminTwoFactorInvalidAttemptsPerWindow = 5;
     private static readonly TimeSpan AdminTwoFactorInvalidAttemptWindow = TimeSpan.FromMinutes(10);
@@ -2498,6 +2500,136 @@ Thank you for your understanding,
             offsaleDeadline = null,
             packageAssetIds = string.Join(",", ids.Select(c => c.ToString())),
         });
+    }
+
+    public async Task<BulkCopyAssetResponse> BackportAssetsFromRobloxAsync(BulkCopyAssetRequest request, AdminActorContext actor)
+    {
+        return await CopyRobloxAssetsInBulkAsync(request, actor, BackportAssetFromRobloxAsync);
+    }
+
+    public async Task<BulkCopyAssetResponse> CopyAssetsFromRobloxAsync(BulkCopyAssetRequest request, AdminActorContext actor)
+    {
+        return await CopyRobloxAssetsInBulkAsync(request, actor, CopyAssetFromRobloxAsync);
+    }
+
+    private async Task<BulkCopyAssetResponse> CopyRobloxAssetsInBulkAsync(
+        BulkCopyAssetRequest request,
+        AdminActorContext actor,
+        Func<CopyAssetRequest, AdminActorContext, Task<AdminAssetIdResponse>> copyAsset)
+    {
+        var assetIds = request.assetIds
+            .Where(assetId => assetId > 0)
+            .Distinct()
+            .ToList();
+
+        if (assetIds.Count == 0)
+            throw new StaffException("At least one Roblox asset ID is required");
+        if (assetIds.Count > MaxBulkRobloxAssetCopyCount)
+            throw new StaffException($"Bulk copy is limited to {MaxBulkRobloxAssetCopyCount} assets at a time");
+
+        var results = new List<BulkCopyAssetResult>();
+        foreach (var assetId in assetIds)
+        {
+            try
+            {
+                if (!request.force)
+                {
+                    var existingAssetId = await TryGetExistingCopiedRobloxAssetId(assetId);
+                    if (existingAssetId != null)
+                    {
+                        results.Add(CreateBulkCopySuccess(assetId, existingAssetId.Value, null, true));
+                        continue;
+                    }
+                }
+
+                var details = await robloxApi.GetProductInfo(assetId, true);
+                var priceRobux = GetRobloxCopyPrice(details);
+                var created = await copyAsset(new CopyAssetRequest
+                {
+                    assetId = assetId,
+                    force = request.force,
+                }, actor);
+
+                await UpdateAssetProductAsync(new UpdateProductRequest
+                {
+                    assetId = created.assetId,
+                    assetName = details.Name ?? string.Empty,
+                    description = details.Description ?? string.Empty,
+                    isForSale = true,
+                    isLimited = details.IsLimited == true,
+                    isLimitedUnique = details.IsLimitedUnique == true,
+                    priceRobux = priceRobux,
+                    priceTickets = null,
+                    maxCopies = null,
+                    offsaleDeadline = null,
+                }, actor);
+
+                results.Add(CreateBulkCopySuccess(assetId, created.assetId, priceRobux, false));
+            }
+            catch (Exception ex)
+            {
+                results.Add(new BulkCopyAssetResult
+                {
+                    robloxAssetId = assetId,
+                    success = false,
+                    error = GetBulkCopyErrorMessage(ex),
+                });
+            }
+        }
+
+        return new BulkCopyAssetResponse
+        {
+            results = results,
+            catalogUrls = results
+                .Where(result => result.success && !string.IsNullOrWhiteSpace(result.catalogUrl))
+                .Select(result => result.catalogUrl!)
+                .ToList(),
+        };
+    }
+
+    private async Task<long?> TryGetExistingCopiedRobloxAssetId(long robloxAssetId)
+    {
+        try
+        {
+            return await assets.GetAssetIdFromRobloxAssetId(robloxAssetId);
+        }
+        catch (RecordNotFoundException)
+        {
+            return null;
+        }
+    }
+
+    private static int GetRobloxCopyPrice(ProductDataResponse details)
+    {
+        return details.PriceInRobux is > 0 ? details.PriceInRobux.Value : DefaultBulkRobloxAssetCopyPriceRobux;
+    }
+
+    private static BulkCopyAssetResult CreateBulkCopySuccess(long robloxAssetId, long assetId, int? priceRobux, bool alreadyExisted)
+    {
+        return new BulkCopyAssetResult
+        {
+            robloxAssetId = robloxAssetId,
+            assetId = assetId,
+            catalogUrl = GetCatalogUrl(assetId),
+            priceRobux = priceRobux,
+            alreadyExisted = alreadyExisted,
+            success = true,
+        };
+    }
+
+    private static string GetCatalogUrl(long assetId)
+    {
+        var path = $"/catalog/{assetId}/--";
+        return string.IsNullOrWhiteSpace(Roblox.Configuration.ShortBaseUrl)
+            ? path
+            : $"https://www.{Roblox.Configuration.ShortBaseUrl}{path}";
+    }
+
+    private static string GetBulkCopyErrorMessage(Exception ex)
+    {
+        return ex is RobloxException robloxException && !string.IsNullOrWhiteSpace(robloxException.errorMessage)
+            ? robloxException.errorMessage
+            : ex.Message;
     }
 
     public async Task<AdminAssetIdResponse> BackportAssetFromRobloxAsync(CopyAssetRequest request, AdminActorContext actor)
