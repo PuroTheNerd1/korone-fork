@@ -2522,10 +2522,13 @@ Thank you for your understanding,
             .Distinct()
             .ToList();
 
-        if (assetIds.Count == 0)
-            throw new StaffException("At least one Roblox asset ID is required");
-        if (assetIds.Count > MaxBulkRobloxAssetCopyCount)
-            throw new StaffException($"Bulk copy is limited to {MaxBulkRobloxAssetCopyCount} assets at a time");
+        switch (assetIds.Count)
+        {
+            case 0:
+                throw new StaffException("At least one Roblox asset ID is required");
+            case > MaxBulkRobloxAssetCopyCount when !actor.isOwner:
+                throw new StaffException($"Bulk copy is limited to {MaxBulkRobloxAssetCopyCount} assets at a time");
+        }
 
         var results = new List<BulkCopyAssetResult>();
         foreach (var assetId in assetIds)
