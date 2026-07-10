@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Dapper;
 using Roblox.Cache;
 using Roblox.Dto;
@@ -2504,18 +2505,18 @@ Thank you for your understanding,
 
     public async Task<BulkCopyAssetResponse> BackportAssetsFromRobloxAsync(BulkCopyAssetRequest request, AdminActorContext actor)
     {
-        return await CopyRobloxAssetsInBulkAsync(request, actor, BackportAssetFromRobloxAsync);
+        return await CopyRobloxAssetsInBulkAsync(request, actor, BulkRobloxCopyMode.UgcBackport);
     }
 
     public async Task<BulkCopyAssetResponse> CopyAssetsFromRobloxAsync(BulkCopyAssetRequest request, AdminActorContext actor)
     {
-        return await CopyRobloxAssetsInBulkAsync(request, actor, CopyAssetFromRobloxAsync);
+        return await CopyRobloxAssetsInBulkAsync(request, actor, BulkRobloxCopyMode.Asset);
     }
 
     private async Task<BulkCopyAssetResponse> CopyRobloxAssetsInBulkAsync(
         BulkCopyAssetRequest request,
         AdminActorContext actor,
-        Func<CopyAssetRequest, AdminActorContext, bool, Task<AdminAssetIdResponse>> copyAsset)
+        BulkRobloxCopyMode mode)
     {
         var assetIds = request.assetIds
             .Where(assetId => assetId > 0)
@@ -2530,62 +2531,58 @@ Thank you for your understanding,
                 throw new StaffException($"Bulk copy is limited to {MaxBulkRobloxAssetCopyCount} assets at a time");
         }
 
-        var results = new List<BulkCopyAssetResult>();
+        var resultByRobloxAssetId = new Dictionary<long, BulkCopyAssetResult>();
+        var candidates = new List<BulkRobloxCopyCandidate>();
+        var existingAssetIds = request.force
+            ? new Dictionary<long, long>()
+            : await GetExistingCopiedRobloxAssetIds(assetIds);
+        var catalogDetails = await TryGetCatalogItemDetailsBatchAsync(assetIds.Where(assetId => !existingAssetIds.ContainsKey(assetId)));
+
         foreach (var assetId in assetIds)
         {
             try
             {
-                if (!request.force)
+                if (existingAssetIds.TryGetValue(assetId, out var existingAssetId))
                 {
-                    var existingAssetId = await TryGetExistingCopiedRobloxAssetId(assetId);
-                    if (existingAssetId != null)
-                    {
-                        results.Add(CreateBulkCopySuccess(assetId, existingAssetId.Value, null, true));
-                        continue;
-                    }
-                }
-
-                var details = await robloxApi.GetProductInfo(assetId, true);
-                var skipReason = GetBulkCopySkipReason(details, request);
-                if (skipReason != null)
-                {
-                    results.Add(CreateBulkCopySkipped(assetId, skipReason));
+                    resultByRobloxAssetId[assetId] = CreateBulkCopySuccess(assetId, existingAssetId, null, true);
                     continue;
                 }
 
+                var details = await GetBulkRobloxProductDetailsAsync(assetId, catalogDetails);
+                var skipReason = GetBulkCopySkipReason(details, request);
+                if (skipReason != null)
+                {
+                    resultByRobloxAssetId[assetId] = CreateBulkCopySkipped(assetId, skipReason);
+                    continue;
+                }
+
+                ValidateRobloxCopyDetails(details, GetBulkCopyAllowedTypes(mode), actor, !request.keepLimitedProperties);
+                if (!request.force)
+                    await EnsureNoRobloxCopyDuplicate(details);
+
                 var priceRobux = GetRobloxCopyPrice(details, request);
-                var created = await copyAsset(new CopyAssetRequest
-                {
-                    assetId = assetId,
-                    force = request.force,
-                }, actor, !request.keepLimitedProperties);
-
-                await UpdateAssetProductAsync(new UpdateProductRequest
-                {
-                    assetId = created.assetId,
-                    assetName = details.Name ?? string.Empty,
-                    description = details.Description ?? string.Empty,
-                    isForSale = !IsRobloxOffsale(details) || !request.keepOffsaleProperty,
-                    isLimited = request.keepLimitedProperties && details.IsLimited == true,
-                    isLimitedUnique = request.keepLimitedProperties && details.IsLimitedUnique == true,
-                    priceRobux = priceRobux,
-                    priceTickets = null,
-                    maxCopies = null,
-                    offsaleDeadline = null,
-                }, actor);
-
-                results.Add(CreateBulkCopySuccess(assetId, created.assetId, priceRobux, false));
+                candidates.Add(new BulkRobloxCopyCandidate(assetId, details, priceRobux));
             }
             catch (Exception ex)
             {
-                results.Add(new BulkCopyAssetResult
+                resultByRobloxAssetId[assetId] = new BulkCopyAssetResult
                 {
                     robloxAssetId = assetId,
                     success = false,
                     error = GetBulkCopyErrorMessage(ex),
-                });
+                };
             }
         }
+
+        if (mode == BulkRobloxCopyMode.Asset)
+            await CopyBulkRobloxAssetsAsync(candidates, request, actor, resultByRobloxAssetId);
+        else
+            await BackportBulkRobloxAssetsAsync(candidates, request, actor, resultByRobloxAssetId);
+
+        var results = assetIds
+            .Where(resultByRobloxAssetId.ContainsKey)
+            .Select(assetId => resultByRobloxAssetId[assetId])
+            .ToList();
 
         return new BulkCopyAssetResponse
         {
@@ -2595,6 +2592,386 @@ Thank you for your understanding,
                 .Select(result => result.catalogUrl!)
                 .ToList(),
         };
+    }
+
+    private enum BulkRobloxCopyMode
+    {
+        Asset,
+        UgcBackport,
+    }
+
+    private sealed record BulkRobloxCopyCandidate(long RobloxAssetId, ProductDataResponse Details, int PriceRobux);
+
+    private sealed class ExistingCopiedRobloxAssetRow
+    {
+        public long robloxAssetId { get; set; }
+        public long assetId { get; set; }
+    }
+
+    private sealed class BulkContentDownloadResult
+    {
+        public ConcurrentDictionary<long, byte[]> contentByAssetId { get; } = new();
+        public ConcurrentDictionary<long, Exception> errorsByAssetId { get; } = new();
+    }
+
+    private sealed record BulkBackportPrepared(
+        BulkRobloxCopyCandidate Candidate,
+        byte[] RbxmBytes,
+        long MeshRobloxAssetId);
+
+    private async Task CopyBulkRobloxAssetsAsync(
+        IReadOnlyCollection<BulkRobloxCopyCandidate> candidates,
+        BulkCopyAssetRequest request,
+        AdminActorContext actor,
+        IDictionary<long, BulkCopyAssetResult> resultByRobloxAssetId)
+    {
+        if (candidates.Count == 0)
+            return;
+
+        var assetDelivery = await TryGetAssetDeliveryV2BatchLookupAsync(candidates.Select(candidate => candidate.RobloxAssetId));
+        var contentDownloads = await DownloadBulkRobloxAssetContentBytesAsync(candidates.Select(candidate => candidate.RobloxAssetId), assetDelivery);
+
+        foreach (var candidate in candidates)
+        {
+            try
+            {
+                if (contentDownloads.errorsByAssetId.TryGetValue(candidate.RobloxAssetId, out var downloadError))
+                    throw downloadError;
+
+                if (!contentDownloads.contentByAssetId.TryGetValue(candidate.RobloxAssetId, out var contentBytes))
+                    throw new Exception("Roblox asset content was not downloaded");
+
+                await CopyItemFloodCheck(actor);
+                await using var content = new MemoryStream(contentBytes);
+                var assetDetails = await assets.CreateAsset(
+                    candidate.Details.Name!,
+                    candidate.Details.Description,
+                    1,
+                    CreatorType.User,
+                    1,
+                    content,
+                    candidate.Details.AssetTypeId!.Value,
+                    Genre.All,
+                    ModerationStatus.ReviewApproved,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow,
+                    candidate.RobloxAssetId,
+                    disableRender: true);
+
+                await UpdateCreatedBulkCopyAssetAsync(assetDetails.assetId, candidate, request, actor);
+                assets.RenderAsset(assetDetails.assetId, candidate.Details.AssetTypeId.Value);
+                resultByRobloxAssetId[candidate.RobloxAssetId] = CreateBulkCopySuccess(candidate.RobloxAssetId, assetDetails.assetId, candidate.PriceRobux, false);
+            }
+            catch (Exception ex)
+            {
+                resultByRobloxAssetId[candidate.RobloxAssetId] = new BulkCopyAssetResult
+                {
+                    robloxAssetId = candidate.RobloxAssetId,
+                    success = false,
+                    error = GetBulkCopyErrorMessage(ex),
+                };
+            }
+        }
+    }
+
+    private async Task BackportBulkRobloxAssetsAsync(
+        IReadOnlyCollection<BulkRobloxCopyCandidate> candidates,
+        BulkCopyAssetRequest request,
+        AdminActorContext actor,
+        IDictionary<long, BulkCopyAssetResult> resultByRobloxAssetId)
+    {
+        if (candidates.Count == 0)
+            return;
+
+        var primaryDelivery = await TryGetAssetDeliveryV2BatchLookupAsync(candidates.Select(candidate => candidate.RobloxAssetId));
+        var primaryDownloads = await DownloadBulkRobloxAssetContentBytesAsync(candidates.Select(candidate => candidate.RobloxAssetId), primaryDelivery);
+        var prepared = new List<BulkBackportPrepared>();
+        var meshIds = new HashSet<long>();
+
+        foreach (var candidate in candidates)
+        {
+            try
+            {
+                if (primaryDownloads.errorsByAssetId.TryGetValue(candidate.RobloxAssetId, out var downloadError))
+                    throw downloadError;
+
+                if (!primaryDownloads.contentByAssetId.TryGetValue(candidate.RobloxAssetId, out var rbxmBytes))
+                    throw new Exception("Roblox UGC content was not downloaded");
+
+                var meshId = ExtractBackportMeshId(rbxmBytes);
+                meshIds.Add(meshId);
+                prepared.Add(new BulkBackportPrepared(candidate, rbxmBytes, meshId));
+            }
+            catch (Exception ex)
+            {
+                resultByRobloxAssetId[candidate.RobloxAssetId] = new BulkCopyAssetResult
+                {
+                    robloxAssetId = candidate.RobloxAssetId,
+                    success = false,
+                    error = GetBulkCopyErrorMessage(ex),
+                };
+            }
+        }
+
+        var meshDetailsById = await TryGetCatalogItemDetailsBatchAsync(meshIds);
+        var meshDelivery = await TryGetAssetDeliveryV2BatchLookupAsync(meshIds);
+        var meshDownloads = await DownloadBulkRobloxAssetContentBytesAsync(meshIds, meshDelivery);
+
+        foreach (var item in prepared)
+        {
+            var candidate = item.Candidate;
+            try
+            {
+                var meshDetails = await GetBulkRobloxProductDetailsAsync(item.MeshRobloxAssetId, meshDetailsById);
+                if (meshDetails.AssetTypeId != Type.Mesh)
+                    throw new StaffException("The mesh request has failed");
+
+                if (meshDownloads.errorsByAssetId.TryGetValue(item.MeshRobloxAssetId, out var meshDownloadError))
+                    throw meshDownloadError;
+
+                if (!meshDownloads.contentByAssetId.TryGetValue(item.MeshRobloxAssetId, out var meshBytes))
+                    throw new Exception("Roblox mesh content was not downloaded");
+
+                var newMeshBytes = AssetsService.ConvertMesh(meshBytes);
+                await CopyItemFloodCheck(actor);
+                await using var newMeshStream = new MemoryStream(newMeshBytes);
+                var meshAsset = await assets.CreateAsset(
+                    meshDetails.Name ?? candidate.Details.Name!,
+                    meshDetails.Description,
+                    1,
+                    CreatorType.User,
+                    1,
+                    newMeshStream,
+                    Type.Mesh,
+                    Genre.All,
+                    ModerationStatus.ReviewApproved,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow,
+                    item.MeshRobloxAssetId,
+                    disableRender: true);
+
+                var newRbxmBytes = RewriteBackportMeshId(item.RbxmBytes, item.MeshRobloxAssetId.ToString(), meshAsset.assetId.ToString());
+                await using var newRbxmStream = new MemoryStream(newRbxmBytes);
+                var assetDetails = await assets.CreateAsset(
+                    candidate.Details.Name!,
+                    candidate.Details.Description,
+                    1,
+                    CreatorType.User,
+                    1,
+                    newRbxmStream,
+                    candidate.Details.AssetTypeId!.Value,
+                    Genre.All,
+                    ModerationStatus.ReviewApproved,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow,
+                    candidate.RobloxAssetId,
+                    disableRender: true);
+
+                await UpdateCreatedBulkCopyAssetAsync(assetDetails.assetId, candidate, request, actor);
+                assets.RenderAsset(meshAsset.assetId, Type.Mesh);
+                assets.RenderAsset(assetDetails.assetId, candidate.Details.AssetTypeId.Value);
+                resultByRobloxAssetId[candidate.RobloxAssetId] = CreateBulkCopySuccess(candidate.RobloxAssetId, assetDetails.assetId, candidate.PriceRobux, false);
+            }
+            catch (Exception ex)
+            {
+                resultByRobloxAssetId[candidate.RobloxAssetId] = new BulkCopyAssetResult
+                {
+                    robloxAssetId = candidate.RobloxAssetId,
+                    success = false,
+                    error = GetBulkCopyErrorMessage(ex),
+                };
+            }
+        }
+    }
+
+    private static IReadOnlyCollection<Type> GetBulkCopyAllowedTypes(BulkRobloxCopyMode mode)
+    {
+        return mode == BulkRobloxCopyMode.UgcBackport
+            ? new List<Type>
+            {
+                Type.Hat, Type.HairAccessory, Type.FrontAccessory, Type.BackAccessory, Type.WaistAccessory,
+                Type.NeckAccessory, Type.Gear, Type.ShoulderAccessory, Type.FaceAccessory,
+                Type.Head, Type.EmoteAnimation, Type.Model
+            }
+            : new List<Type>
+            {
+                Type.Hat, Type.HairAccessory, Type.FrontAccessory, Type.BackAccessory, Type.WaistAccessory,
+                Type.NeckAccessory, Type.Gear, Type.ShoulderAccessory, Type.FaceAccessory,
+                Type.Head, Type.EmoteAnimation,
+            };
+    }
+
+    private async Task<Dictionary<long, long>> GetExistingCopiedRobloxAssetIds(IEnumerable<long> robloxAssetIds)
+    {
+        var ids = robloxAssetIds.Distinct().ToArray();
+        if (ids.Length == 0)
+            return new Dictionary<long, long>();
+
+        var rows = await db.QueryAsync<ExistingCopiedRobloxAssetRow>(
+            "SELECT roblox_asset_id AS \"robloxAssetId\", id AS \"assetId\" FROM asset WHERE roblox_asset_id = ANY(@assetIds)",
+            new { assetIds = ids });
+
+        return rows.ToDictionary(row => row.robloxAssetId, row => row.assetId);
+    }
+
+    private async Task<Dictionary<long, ProductDataResponse>> TryGetCatalogItemDetailsBatchAsync(IEnumerable<long> robloxAssetIds)
+    {
+        var ids = robloxAssetIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return new Dictionary<long, ProductDataResponse>();
+
+        try
+        {
+            return await robloxApi.GetCatalogItemDetailsBatchAsync(ids);
+        }
+        catch (Exception ex)
+        {
+            Writer.Info(LogGroup.RealRobloxApi, "catalog items/details batch failed: {0}", ex.Message);
+            return new Dictionary<long, ProductDataResponse>();
+        }
+    }
+
+    private async Task<ProductDataResponse> GetBulkRobloxProductDetailsAsync(long robloxAssetId, IReadOnlyDictionary<long, ProductDataResponse> catalogDetails)
+    {
+        if (catalogDetails.TryGetValue(robloxAssetId, out var details))
+            return details;
+
+        return await robloxApi.GetProductInfo(robloxAssetId, true);
+    }
+
+    private async Task<Dictionary<long, AssetDeliveryV2BatchResponse>> TryGetAssetDeliveryV2BatchLookupAsync(IEnumerable<long> robloxAssetIds)
+    {
+        var ids = robloxAssetIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return new Dictionary<long, AssetDeliveryV2BatchResponse>();
+
+        try
+        {
+            var response = await RobloxApi.GetAssetDeliveryV2BatchAsync(ids.Select(assetId => new BatchAssetRequest
+            {
+                assetId = assetId,
+                assetType = "Asset",
+                requestId = assetId.ToString(),
+            }).ToList());
+
+            return response
+                .Where(entry => !string.IsNullOrWhiteSpace(entry.requestId) && long.TryParse(entry.requestId, out _))
+                .ToDictionary(entry => long.Parse(entry.requestId!), entry => entry);
+        }
+        catch (Exception ex)
+        {
+            Writer.Info(LogGroup.RealRobloxApi, "assetdelivery v2 batch failed: {0}", ex.Message);
+            return new Dictionary<long, AssetDeliveryV2BatchResponse>();
+        }
+    }
+
+    private async Task<BulkContentDownloadResult> DownloadBulkRobloxAssetContentBytesAsync(
+        IEnumerable<long> robloxAssetIds,
+        IReadOnlyDictionary<long, AssetDeliveryV2BatchResponse> batchEntries)
+    {
+        var result = new BulkContentDownloadResult();
+        using var semaphore = new SemaphoreSlim(4);
+        var tasks = robloxAssetIds.Distinct().Select(async assetId =>
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                await using var stream = await DownloadRobloxAssetContentAsync(assetId, batchEntries);
+                result.contentByAssetId[assetId] = EasyConverters.StreamToByte(stream);
+            }
+            catch (Exception ex)
+            {
+                result.errorsByAssetId[assetId] = ex;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
+
+        await Task.WhenAll(tasks);
+        return result;
+    }
+
+    private async Task<Stream> DownloadRobloxAssetContentAsync(long robloxAssetId, IReadOnlyDictionary<long, AssetDeliveryV2BatchResponse> batchEntries)
+    {
+        if (batchEntries.TryGetValue(robloxAssetId, out var entry))
+        {
+            try
+            {
+                return await robloxApi.DownloadAssetContentFromBatchLocationAsync(entry);
+            }
+            catch (Exception ex)
+            {
+                Writer.Info(LogGroup.RealRobloxApi, "assetdelivery v2 location failed for {0}: {1}", robloxAssetId, ex.Message);
+            }
+        }
+
+        return await robloxApi.GetAssetContentFromProxy(robloxAssetId);
+    }
+
+    private async Task UpdateCreatedBulkCopyAssetAsync(
+        long assetId,
+        BulkRobloxCopyCandidate candidate,
+        BulkCopyAssetRequest request,
+        AdminActorContext actor)
+    {
+        await InTransaction(async _ =>
+        {
+            using var txAssets = ServiceProvider.GetOrCreate<AssetsService>(this);
+            await db.ExecuteAsync("INSERT INTO moderation_migrate_asset(asset_id, roblox_asset_id, actor_id) VALUES (@assetId, @robloxAssetId, @actorId)",
+                new
+                {
+                    assetId = assetId,
+                    robloxAssetId = candidate.RobloxAssetId,
+                    actorId = actor.userId,
+                });
+
+            var details = await txAssets.GetProductForAsset(assetId);
+            var existingLog = await db.QuerySingleOrDefaultAsync<Total>("SELECT count(*) as total FROM moderation_update_product WHERE asset_id = :asset_id", new
+            {
+                asset_id = assetId,
+            });
+            if (existingLog.total == 0)
+                await InsertProductLog(assetId, 1, details.isLimited, details.isLimitedUnique, details.offsaleAt, details.serialCount, details.priceRobux, details.priceTickets, details.isForSale);
+
+            var isForSale = !IsRobloxOffsale(candidate.Details) || !request.keepOffsaleProperty;
+            var isLimited = request.keepLimitedProperties && candidate.Details.IsLimited == true;
+            var isLimitedUnique = request.keepLimitedProperties && candidate.Details.IsLimitedUnique == true;
+
+            await InsertProductLog(assetId, actor.userId, isLimited, isLimitedUnique, null, null, candidate.PriceRobux, null, isForSale);
+            await txAssets.UpdateAssetMarketInfoName(assetId, candidate.Details.Name ?? string.Empty);
+            await txAssets.UpdateAssetMarketDescriptionInfo(assetId, candidate.Details.Description ?? string.Empty);
+            await txAssets.UpdateAssetMarketInfo(assetId, isForSale, isLimited, isLimitedUnique, null, null);
+            await txAssets.SetItemPrice(assetId, candidate.PriceRobux, null);
+            return 0;
+        });
+    }
+
+    private static long ExtractBackportMeshId(byte[] rbxmBytes)
+    {
+        var rbxmHexString = Convert.ToHexString(rbxmBytes);
+        var meshIdHexString = rbxmHexString
+            .Split(EasyConverters.StringToHexString("MeshId"))[1]
+            .Split(EasyConverters.StringToHexString("rbxassetid://"))[1]
+            .Split(EasyConverters.StringToHexString("PROP"))[0];
+
+        return long.Parse(EasyConverters.HexStringToString(meshIdHexString));
+    }
+
+    private static byte[] RewriteBackportMeshId(byte[] rbxmBytes, string oldMeshId, string newMeshId)
+    {
+        if (newMeshId.Length > oldMeshId.Length)
+            throw new Exception("New MeshId too long");
+
+        var newMeshIdHex = EasyConverters.StringToHexString(newMeshId);
+        for (var i = 0; i < oldMeshId.Length - newMeshId.Length; i++)
+        {
+            newMeshIdHex = $"{newMeshIdHex}00";
+        }
+
+        var oldMeshIdHex = EasyConverters.StringToHexString(oldMeshId);
+        return Convert.FromHexString(Convert.ToHexString(rbxmBytes).Replace(oldMeshIdHex, newMeshIdHex));
     }
 
     private async Task<long?> TryGetExistingCopiedRobloxAssetId(long robloxAssetId)

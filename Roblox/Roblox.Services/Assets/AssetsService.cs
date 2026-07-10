@@ -1262,7 +1262,7 @@ public class AssetsService : ServiceBase, IService
         return Encoding.UTF8.GetBytes(data);
     }
 
-    private static byte[] ConvertMesh(byte[] buffer)
+    internal static byte[] ConvertMesh(byte[] buffer)
     {
         ByteReader reader = new ByteReader(buffer);
         assert(reader.String(8) == "version ", "Invalid mesh file");

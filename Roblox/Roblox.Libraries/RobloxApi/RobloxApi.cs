@@ -127,10 +127,65 @@ public class MultiGetDetailsRequest
 public class MultiGetDetailsResponseEntry
 {
     public long id { get; set; }
-    public string itemType { get; set; }
-    public int price { get; set; }
-    public string creatorType { get; set; }
+    public string? itemType { get; set; }
+    public string? name { get; set; }
+    public string? description { get; set; }
+    public int? assetType { get; set; }
+    public int? price { get; set; }
+    public int? lowestPrice { get; set; }
+    public string? priceStatus { get; set; }
+    public string? creatorType { get; set; }
     public long creatorTargetId { get; set; }
+    public IEnumerable<string>? itemRestrictions { get; set; }
+
+    public ProductDataResponse ToProductDataResponse()
+    {
+        var restrictions = itemRestrictions?.ToArray() ?? Array.Empty<string>();
+        var isLimitedUnique = restrictions.Any(value => string.Equals(value, "LimitedUnique", StringComparison.OrdinalIgnoreCase));
+        var isLimited = isLimitedUnique || restrictions.Any(value => string.Equals(value, "Limited", StringComparison.OrdinalIgnoreCase));
+
+        Models.Assets.Type? mappedAssetType = null;
+        if (assetType is { } assetTypeValue && Enum.IsDefined(typeof(Models.Assets.Type), assetTypeValue))
+            mappedAssetType = (Models.Assets.Type)assetTypeValue;
+
+        return new ProductDataResponse
+        {
+            Name = name,
+            Description = description,
+            AssetTypeId = mappedAssetType,
+            PriceInRobux = price is > 0 ? price : lowestPrice is > 0 ? lowestPrice : null,
+            IsForSale = IsForSale(),
+            IsLimited = isLimited,
+            IsLimitedUnique = isLimitedUnique,
+            Created = DateTime.UtcNow,
+            Updated = DateTime.UtcNow,
+        };
+    }
+
+    public bool HasBulkCopyRequiredFields()
+    {
+        return !string.IsNullOrWhiteSpace(name) &&
+               description != null &&
+               assetType != null &&
+               itemRestrictions != null &&
+               IsForSale() != null;
+    }
+
+    private bool? IsForSale()
+    {
+        if (!string.IsNullOrWhiteSpace(priceStatus))
+        {
+            if (priceStatus.Contains("off", StringComparison.OrdinalIgnoreCase))
+                return false;
+            if (priceStatus.Contains("free", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        if (price is > 0 || lowestPrice is > 0)
+            return true;
+
+        return priceStatus == null ? null : false;
+    }
 }
 
 public class MultiGetDetailsResponse
@@ -205,6 +260,22 @@ public class BatchAssetRequest
     public long assetId { get; set; }
     public string assetType { get; set; }
     public string requestId { get; set; }
+}
+
+public class AssetDeliveryV2BatchResponse
+{
+    public string? requestId { get; set; }
+    public bool isArchived { get; set; }
+    public int assetTypeId { get; set; }
+    public IEnumerable<AssetDeliveryEntry>? locations { get; set; }
+    public List<AssetDeliveryV1Error>? errors { get; set; }
+
+    public string? FirstUsableLocation()
+    {
+        return locations?
+            .FirstOrDefault(entry => !string.IsNullOrWhiteSpace(entry.location))
+            ?.location;
+    }
 }
 
 public class RobloxApi
@@ -448,6 +519,42 @@ public class RobloxApi
 
         return response;
     }
+
+    public static async Task<IEnumerable<AssetDeliveryV2BatchResponse>> GetAssetDeliveryV2BatchAsync(List<BatchAssetRequest> assets, long? placeId = 1818)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "https://assetdelivery.roblox.com/v2/assets/batch");
+
+        request.Content = new StringContent(JsonSerializer.Serialize(assets), Encoding.UTF8, "application/json");
+        request.Headers.Add("Roblox-Place-Id", placeId.ToString());
+
+        var result = await _robloxApiClient.SendAsync(request);
+        if (!result.IsSuccessStatusCode)
+            throw new Exception("Unexpected response from Roblox assetdelivery v2 batch: " + result.StatusCode);
+
+        var response = await result.Content.ReadFromJsonAsync<IEnumerable<AssetDeliveryV2BatchResponse>>();
+        if (response == null)
+            throw new Exception("Null response from assetdelivery v2 batch request");
+
+        return response;
+    }
+
+    public async Task<Stream> DownloadAssetContentFromBatchLocationAsync(AssetDeliveryV2BatchResponse entry)
+    {
+        var location = entry.FirstUsableLocation();
+        if (string.IsNullOrWhiteSpace(location))
+            throw new Exception("Roblox assetdelivery v2 batch did not return a usable location");
+
+        var response = await _robloxApiClient.GetAsync(location);
+        if (!response.IsSuccessStatusCode)
+            throw new Exception("Bad response downloading assetdelivery v2 location: " + response.StatusCode);
+
+        var memory = new MemoryStream();
+        await response.Content.CopyToAsync(memory);
+        memory.Position = 0;
+        return memory;
+    }
     public static async Task<AssetDelivery?> GetAssetById(long assetId, long? placeId = 1818)
     {
         var request = new HttpRequestMessage(
@@ -581,6 +688,19 @@ public class RobloxApi
                 throw new Exception("Null multi-get response from Roblox");
             return json;
         }
+    }
+
+    public async Task<Dictionary<long, ProductDataResponse>> GetCatalogItemDetailsBatchAsync(IEnumerable<long> assetIds)
+    {
+        var response = await MultiGetAssetDetails(assetIds.Select(assetId => new MultiGetDetailsRequestEntry
+        {
+            itemType = "Asset",
+            id = assetId,
+        }));
+
+        return response.data
+            .Where(entry => entry.HasBulkCopyRequiredFields())
+            .ToDictionary(entry => entry.id, entry => entry.ToProductDataResponse());
     }
 
     public async Task<long> CountFollowers(long userId)
