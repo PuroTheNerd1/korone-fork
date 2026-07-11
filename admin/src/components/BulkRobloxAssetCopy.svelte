@@ -15,6 +15,7 @@
 	let skipLimitedItems = false;
 	let keepLimitedProperties = true;
 	let limitedPriceRobux = "";
+	let discountedPricePercent = "";
 	let skipOpenedOffsaleGiftItems = false;
 	let skipOffsaleItems = false;
 	let keepOffsaleProperty = false;
@@ -66,6 +67,7 @@
 		disabled = true;
 		results = [];
 		const limitedPrice = parseInt(limitedPriceRobux, 10);
+		const discountedPrice = parseInt(discountedPricePercent, 10);
 		try {
 			const response = await request.post<BulkCopyAssetResponse>(endpoint, {
 				assetIds,
@@ -76,6 +78,7 @@
 				skipOpenedOffsaleGiftItems,
 				skipOffsaleItems,
 				keepOffsaleProperty,
+				discountedPricePercent: Number.isSafeInteger(discountedPrice) && discountedPrice > 0 ? discountedPrice : null,
 			});
 			results = response.data.results || [];
 			didError = results.some((result) => !result.success);
@@ -170,6 +173,17 @@
 						min="1"
 						disabled={disabled || skipLimitedItems}
 						bind:value={limitedPriceRobux}
+					/>
+				</div>
+				<div class="col-3">
+					<label for="discounted-price">Discounted price percent</label>
+					<input
+						type="number"
+						class="form-control dark-input"
+						id="discounted-price"
+						min="0"
+						{disabled}
+						bind:value={discountedPricePercent}
 					/>
 				</div>
 				<div class="col-3">
