@@ -5,6 +5,7 @@
 
 	let disabled = false;
 	let limit = 100;
+	let newestFirst = false;
 	let errorMessage: string | undefined;
 	let matchedCount: number | undefined;
 	let rerenderedAssetIds: number[] = [];
@@ -24,7 +25,7 @@
 		rerenderedAssetIds = [];
 
 		try {
-			const response = await request.post("/asset/fix-bugged-renders", { limit });
+			const response = await request.post("/asset/fix-bugged-renders", { limit, newestFirst });
 			matchedCount = response.data.matchedCount;
 			rerenderedAssetIds = response.data.rerenderedAssetIds || [];
 		} catch (e) {
@@ -59,6 +60,14 @@
 				bind:value={limit}
 				disabled={disabled}
 			/>
+		</div>
+
+		<div class="col-12 col-md-4">
+			<label for="sort">Search order</label>
+			<select id="sort" class="form-control dark-input" bind:value={newestFirst} disabled={disabled}>
+				<option value={false}>Oldest bugged items</option>
+				<option value={true}>Newest bugged items</option>
+			</select>
 		</div>
 
 		<div class="col-12 mt-4">

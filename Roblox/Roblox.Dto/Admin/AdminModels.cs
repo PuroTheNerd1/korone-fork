@@ -394,6 +394,7 @@ public class ReRenderRequest
 public class FixBuggedRendersRequest
 {
     public int? limit { get; set; }
+    public bool newestFirst { get; set; }
 }
 
 public sealed class FixBuggedRendersResponse

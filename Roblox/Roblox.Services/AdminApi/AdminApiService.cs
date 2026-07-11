@@ -1867,6 +1867,7 @@ Thank you for your understanding,
     public async Task<FixBuggedRendersResponse> FixBuggedRendersAsync(FixBuggedRendersRequest request)
     {
         var limit = Math.Clamp(request.limit ?? 100, 1, 500);
+        var sortDirection = request.newestFirst ? "DESC" : "ASC";
         var rows = (await db.QueryAsync<BuggedRenderAssetRow>(
             @"SELECT asset.id AS ""assetId"", asset.asset_type AS ""assetType""
               FROM asset
@@ -1880,7 +1881,7 @@ Thank you for your understanding,
                     OR thumbnail.content_url IS NULL
                     OR thumbnail.moderation_status <> :approvedStatus
                 )
-              ORDER BY asset.id ASC
+              ORDER BY asset.id " + sortDirection + @"
               LIMIT :limit",
             new
             {
