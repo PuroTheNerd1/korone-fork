@@ -537,6 +537,12 @@ public class AdminApiController : ControllerBase
         await services.adminApi.RequestAssetReRenderAsync(request);
     }
 
+    [HttpPost("asset/fix-bugged-renders"), StaffFilter(Access.RequestAssetReRender)]
+    public async Task<FixBuggedRendersResponse> FixBuggedRenders([FromBody] FixBuggedRendersRequest request)
+    {
+        return await services.adminApi.FixBuggedRendersAsync(request);
+    }
+
     [HttpGet("asset/details"), StaffFilter(Access.GetProductDetails)]
     public async Task<AdminAssetDetailsResponse> GetAssetDetails(long assetId)
     {

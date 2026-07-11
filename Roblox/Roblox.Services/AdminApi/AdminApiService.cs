@@ -1858,6 +1858,50 @@ Thank you for your understanding,
         assets.RenderAsset(request.assetId, details.assetType);
     }
 
+    private sealed class BuggedRenderAssetRow
+    {
+        public long assetId { get; set; }
+        public Type assetType { get; set; }
+    }
+
+    public async Task<FixBuggedRendersResponse> FixBuggedRendersAsync(FixBuggedRendersRequest request)
+    {
+        var limit = Math.Clamp(request.limit ?? 100, 1, 500);
+        var rows = (await db.QueryAsync<BuggedRenderAssetRow>(
+            @"SELECT asset.id AS ""assetId"", asset.asset_type AS ""assetType""
+              FROM asset
+              LEFT JOIN asset_thumbnail thumbnail ON thumbnail.asset_id = asset.id
+              WHERE asset.moderation_status = :approvedStatus
+                AND asset.creator_type = :creatorType
+                AND asset.creator_id = 1
+                AND asset.asset_type <> ALL(:excludedTypes)
+                AND (
+                    thumbnail.asset_id IS NULL
+                    OR thumbnail.content_url IS NULL
+                    OR thumbnail.moderation_status <> :approvedStatus
+                )
+              ORDER BY asset.id ASC
+              LIMIT :limit",
+            new
+            {
+                approvedStatus = (int)ModerationStatus.ReviewApproved,
+                creatorType = (int)CreatorType.User,
+                excludedTypes = new[] { (int)Type.Audio, (int)Type.Video },
+                limit,
+            })).ToList();
+
+        foreach (var row in rows)
+        {
+            assets.RenderAsset(row.assetId, row.assetType);
+        }
+
+        return new FixBuggedRendersResponse
+        {
+            matchedCount = rows.Count,
+            rerenderedAssetIds = rows.Select(row => row.assetId).ToArray(),
+        };
+    }
+
     public async Task<AdminAssetDetailsResponse> GetAssetDetailsAsync(long assetId)
     {
         var devInfo = await assets.MultiGetAssetDeveloperDetails(new[] { assetId });

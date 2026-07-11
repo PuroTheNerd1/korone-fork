@@ -391,6 +391,17 @@ public class ReRenderRequest
     public long assetId { get; set; }
 }
 
+public class FixBuggedRendersRequest
+{
+    public int? limit { get; set; }
+}
+
+public sealed class FixBuggedRendersResponse
+{
+    public int matchedCount { get; set; }
+    public IEnumerable<long> rerenderedAssetIds { get; set; } = Array.Empty<long>();
+}
+
 public class UpdateProductRequest
 {
     public long assetId { get; set; }

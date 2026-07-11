@@ -223,6 +223,9 @@
 					<li class="nav-item ml-4">
 						<a use:link class="nav-link" href="/admin/asset/re-render"><RefreshCcwIcon /> Force Item Re-Render</a>
 					</li>
+					<li class="nav-item ml-4">
+						<a use:link class="nav-link" href="/admin/asset/fix-bugged-renders"><RefreshCcwIcon /> Fix Bugged Renders</a>
+					</li>
 				{/if}
 				<li class="nav-item mt-2 d-md-none d-block">
 					<a class="nav-link" href="/">Back to Korone</a>

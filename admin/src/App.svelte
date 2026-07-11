@@ -20,6 +20,7 @@
 	import CreateAsset from "./pages/CreateAsset.svelte";
 	import CreateAssetVersion from "./pages/CreateAssetVersion.svelte";
 	import AssetReRender from "./pages/AssetReRender.svelte";
+	import FixBuggedRenders from "./pages/FixBuggedRenders.svelte";
 	import UpdateAssetProduct from "./pages/UpdateAssetProduct.svelte";
 	import CreateClothing from "./pages/CreateClothing.svelte";
 	import CopyRobloxClothing from "./pages/CopyRobloxClothing.svelte";
@@ -127,6 +128,9 @@
 		</Route>
 		<Route path="/admin/asset/re-render">
 			<AssetReRender />
+		</Route>
+		<Route path="/admin/asset/fix-bugged-renders">
+			<FixBuggedRenders />
 		</Route>
 		<Route path="/admin/product/update">
 			<UpdateAssetProduct />

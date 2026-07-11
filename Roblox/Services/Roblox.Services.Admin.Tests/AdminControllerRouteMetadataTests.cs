@@ -99,6 +99,21 @@ public class AdminControllerRouteMetadataTests
         Assert.Equal(Access.CreateAssetCopiedFromRoblox, ReadAdminPermission(permission));
     }
 
+    [Fact]
+    public void FixBuggedRendersRoute_UsesRequestAssetReRenderPermission()
+    {
+        var method = typeof(AdminController).GetMethod(nameof(AdminController.FixBuggedRenders));
+        Assert.NotNull(method);
+
+        var route = Assert.IsType<HttpPostAttribute>(
+            method.GetCustomAttributes(inherit: true).Single(attribute => attribute is HttpPostAttribute));
+        Assert.Equal("asset/fix-bugged-renders", route.Template);
+
+        var permission = Assert.IsType<AdminPermissionAttribute>(
+            method.GetCustomAttributes(inherit: true).Single(attribute => attribute is AdminPermissionAttribute));
+        Assert.Equal(Access.RequestAssetReRender, ReadAdminPermission(permission));
+    }
+
     private static Dictionary<string, RouteEntry> ReadRouteMatrix(Type controllerType)
     {
         return controllerType
