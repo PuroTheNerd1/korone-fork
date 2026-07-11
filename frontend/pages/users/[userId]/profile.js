@@ -23,11 +23,6 @@ const UserProfilePage = ({ username, userId, description, ...props }) => {
                           content={`https://pekora.zip/thumbs/avatar-headshot.ashx?userId=${userId}`}/>
                     <meta name="og:site_name" content="Korone"/>
                     <meta name="theme-color" content="#E2231A"/>
-                    <script src="/js/3d/three-r137/three.js"/>
-                    <script src="/js/3d/three-r137/MTLLoaderr.js"/>
-                    <script src="/js/3d/three-r137/OBJLoaderr.js"/>
-                    <script src="/js/3d/three-r137/RobloxOrbitControls.js"/>
-                    <script src="/js/3d/tween.js"/>
                 </Head>
             )}
             <UserProfileStore.Provider>

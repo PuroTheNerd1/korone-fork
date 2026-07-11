@@ -188,6 +188,11 @@ public sealed class FrontendProxyMiddleware
 
     private static bool CanUseFrontend(HttpContext context)
     {
+        if (IsFrontendPublicAsset(context.Request.Path.Value ?? string.Empty))
+        {
+            return true;
+        }
+
         var session = context.GetRobloxRequestContext()?.Session;
         if (session == null)
         {
@@ -283,12 +288,29 @@ public sealed class FrontendProxyMiddleware
 
     private static bool IsFrontendOwnedPath(string path)
     {
-        return path.Equals("/js/bootstrap.min.css", StringComparison.OrdinalIgnoreCase) ||
-               path.Equals("/js/axios.min.js", StringComparison.OrdinalIgnoreCase) ||
-               path.StartsWith("/js/roblox/", StringComparison.OrdinalIgnoreCase) ||
-               (path.StartsWith("/img/", StringComparison.OrdinalIgnoreCase) &&
-                path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase) || 
-                path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase));
+        return IsFrontendPublicAsset(path);
+    }
+
+    private static bool IsFrontendPublicAsset(string path)
+    {
+        if (path.StartsWith("/_next/static/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (path.Equals("/js/bootstrap.min.css", StringComparison.OrdinalIgnoreCase) ||
+            path.Equals("/js/axios.min.js", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/js/3d/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/js/roblox/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return path.StartsWith("/img/", StringComparison.OrdinalIgnoreCase) &&
+               (path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase) ||
+                path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
+                path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string[][] CreatePrefixBuckets()

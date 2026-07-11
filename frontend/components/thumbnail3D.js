@@ -1,5 +1,74 @@
 import { wait } from "../lib/utils";
 
+const threeScriptUrls = [
+    "/js/3d/three-r137/three.js",
+    "/js/3d/three-r137/MTLLoaderr.js",
+    "/js/3d/three-r137/OBJLoaderr.js",
+    "/js/3d/three-r137/RobloxOrbitControls.js",
+    "/js/3d/tween.js",
+];
+
+let threeScriptsPromise = null;
+
+const hasThreeAvatarGlobals = () => (
+    typeof window !== "undefined" &&
+    window.THREE &&
+    window.THREE.MTLLoader &&
+    window.THREE.OBJLoader &&
+    window.THREE.OrbitControls
+);
+
+const loadScript = (src) => new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+        if (existing.dataset.loaded === "true") {
+            resolve();
+            return;
+        }
+
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), { once: true });
+        return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = false;
+    script.dataset.loaded = "false";
+    script.onload = () => {
+        script.dataset.loaded = "true";
+        resolve();
+    };
+    script.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(script);
+});
+
+export const loadThreeAvatarScripts = async () => {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    if (hasThreeAvatarGlobals()) {
+        return;
+    }
+
+    if (!threeScriptsPromise) {
+        threeScriptsPromise = threeScriptUrls.reduce(
+            (promise, src) => promise.then(() => loadScript(src)),
+            Promise.resolve()
+        ).then(() => {
+            if (!hasThreeAvatarGlobals()) {
+                throw new Error("3D avatar scripts loaded without registering THREE avatar globals.");
+            }
+        }).catch(error => {
+            threeScriptsPromise = null;
+            throw error;
+        });
+    }
+
+    await threeScriptsPromise;
+};
+
 export class Thumbnail3DHandler {
     // Public
     /** @type {Thumbnail3D|null} */
@@ -69,6 +138,7 @@ export class Thumbnail3DHandler {
      */
     async LoadThumbnail(thumbJson, canvasParent, set3DReady) {
         await this.Stop();
+        await loadThreeAvatarScripts();
         if (!this.scene) this.Init();
         set3DReady(false);
         this.isLoadingThumbnail = true;

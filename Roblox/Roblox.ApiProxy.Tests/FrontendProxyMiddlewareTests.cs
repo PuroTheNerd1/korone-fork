@@ -46,12 +46,48 @@ public class FrontendProxyMiddlewareTests
         Assert.Equal(1, forwarder.ForwardCount);
     }
 
-    private static async Task<(DefaultHttpContext Context, FakeForwarder Forwarder)> InvokeAsync(UserSession? session = null)
+    [Theory]
+    [InlineData("/_next/static/chunks/main.js")]
+    [InlineData("/js/bootstrap.min.css")]
+    [InlineData("/js/3d/three-r137/three.js")]
+    [InlineData("/js/3d/three-r137/OBJLoaderr.js")]
+    [InlineData("/js/roblox/icons.css")]
+    [InlineData("/img/generic_light_2025.svg")]
+    public async Task FrontendPublicAsset_WithoutSession_ForwardsToFrontend(string path)
+    {
+        var (context, forwarder) = await InvokeAsync(path: path);
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+        Assert.Equal("forwarded", await ReadBodyAsync(context));
+        Assert.Equal(1, forwarder.ForwardCount);
+    }
+
+    [Fact]
+    public async Task BackendOwnedJsPath_WithoutSession_ContinuesToNextMiddleware()
+    {
+        var nextCalled = false;
+        var (context, forwarder) = await InvokeAsync(
+            path: "/js/legacy-bundle.js",
+            next: _ =>
+            {
+                nextCalled = true;
+                return Task.CompletedTask;
+            });
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+        Assert.Equal(0, forwarder.ForwardCount);
+        Assert.True(nextCalled);
+    }
+
+    private static async Task<(DefaultHttpContext Context, FakeForwarder Forwarder)> InvokeAsync(
+        UserSession? session = null,
+        string path = "/home",
+        RequestDelegate? next = null)
     {
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
         context.Request.Host = new HostString("www.pekora.zip");
-        context.Request.Path = "/home";
+        context.Request.Path = path;
         context.Connection.RemoteIpAddress = IPAddress.Parse("127.0.0.1");
         context.SetRobloxRequestContext(new RobloxRequestContext
         {
@@ -61,7 +97,7 @@ public class FrontendProxyMiddlewareTests
 
         var forwarder = new FakeForwarder();
         var middleware = new FrontendProxyMiddleware(
-            _ => Task.CompletedTask,
+            next ?? (_ => Task.CompletedTask),
             forwarder,
             Options.Create(new FrontendProxyOptions
             {
