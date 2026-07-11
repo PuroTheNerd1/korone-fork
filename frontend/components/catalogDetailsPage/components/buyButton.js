@@ -65,7 +65,7 @@ const SaleCount = props => {
   const store = CatalogDetailsPage.useContainer();
   const s = useSaleCountStyles();
   return <p className={'mt-2 mb-2 text-center ' + s.text}>
-    ( <span className='text-black'>{store.saleCount}</span> Sold)
+    ( <span>{store.saleCount}</span> Sold)
   </p>
 }
 
@@ -74,7 +74,7 @@ const OwnedCount = props => {
   const s = useSaleCountStyles();
   if (!store.ownedCopies || store.ownedCopies.length === 0) return null;
   return <p className={'mt-2 mb-0 text-center ' + s.text}>
-    ( <span className='text-black'>{store.ownedCopies.length}</span> Owned)
+    ( <span>{store.ownedCopies.length}</span> Owned)
   </p>
 }
 
