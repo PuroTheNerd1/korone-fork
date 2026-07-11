@@ -14,11 +14,10 @@ const useStyles = createUseStyles({
     margin: 0,
     color: 'var(--text-color-primary)',
     display: 'block',
-    lineHeight: '1.4em',
+    lineHeight: '1.3em',
     textRendering: 'auto',
-    fontWeight: '400',
+    fontWeight: '300',
     width: '100%',
-    fontFamily: 'HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif'
   },
   allContainer: {
   },
@@ -41,8 +40,8 @@ const useStyles = createUseStyles({
     display: 'flex',
     justifyContent: 'space-between',
     '& h3': {
-      fontSize: '20px',
-      fontWeight: '700',
+      fontSize: '24px',
+      fontWeight: '300',
       lineHeight: '1em',
       float: 'left',
       margin: 0,
