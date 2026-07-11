@@ -3075,7 +3075,8 @@ Thank you for your understanding,
             return priceRobux;
 
         var clampedPercent = Math.Clamp(discountedPricePercent.Value, 0, 100);
-        return (int)Math.Round(priceRobux * (clampedPercent / 100m), MidpointRounding.AwayFromZero);
+        var remainingPercent = 100 - clampedPercent;
+        return (int)Math.Round(priceRobux * (remainingPercent / 100m), MidpointRounding.AwayFromZero);
     }
 
     private static BulkCopyAssetResult CreateBulkCopySuccess(long robloxAssetId, long assetId, int? priceRobux, bool alreadyExisted)
