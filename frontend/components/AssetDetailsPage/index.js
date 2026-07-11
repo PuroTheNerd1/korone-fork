@@ -563,10 +563,10 @@ function AssetDetailsPage({ itemDetails }) {
                 label: "Type",
                 field: getTypeStrFromTypeNum(itemDetails.assetType),
             },
-            {
-                label: "Sales",
-                field: formatNum(itemDetails.saleCount),
-            },
+            //{
+            //    label: "Sales",
+            //    field: formatNum(itemDetails.saleCount),
+            //},
             {
                 label: "Created",
                 field: dayjs(itemDetails.createdAt).format('M/D/YYYY'),
