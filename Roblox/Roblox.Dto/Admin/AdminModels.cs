@@ -136,6 +136,7 @@ public sealed class BulkCopyAssetRequest
     public bool skipOpenedOffsaleGiftItems { get; set; }
     public bool skipOffsaleItems { get; set; }
     public bool keepOffsaleProperty { get; set; }
+    public int? discountedPricePercent { get; set; }
 }
 
 public sealed class BulkCopyAssetResult

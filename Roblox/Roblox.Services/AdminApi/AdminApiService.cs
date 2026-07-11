@@ -2605,7 +2605,7 @@ Thank you for your understanding,
                 if (!request.force)
                     await EnsureNoRobloxCopyDuplicate(details);
 
-                var priceRobux = GetRobloxCopyPrice(details, request);
+                var priceRobux = ApplyRobloxCopyDiscountPercent(GetRobloxCopyPrice(details, request), request.discountedPricePercent);
                 candidates.Add(new BulkRobloxCopyCandidate(assetId, details, priceRobux));
             }
             catch (Exception ex)
@@ -3067,6 +3067,15 @@ Thank you for your understanding,
             return request.limitedPriceRobux.Value;
 
         return DefaultBulkRobloxAssetCopyPriceRobux;
+    }
+
+    private static int ApplyRobloxCopyDiscountPercent(int priceRobux, int? discountedPricePercent)
+    {
+        if (discountedPricePercent is null)
+            return priceRobux;
+
+        var clampedPercent = Math.Clamp(discountedPricePercent.Value, 0, 100);
+        return (int)Math.Round(priceRobux * (clampedPercent / 100m), MidpointRounding.AwayFromZero);
     }
 
     private static BulkCopyAssetResult CreateBulkCopySuccess(long robloxAssetId, long assetId, int? priceRobux, bool alreadyExisted)
