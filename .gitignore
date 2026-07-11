@@ -54,6 +54,7 @@ game-renderer/src/routers/gameServerRouter.js
 node_modules
 /admin/public/build/*
 package-lock.json
+!frontend/package-lock.json
 yarn.lock
 Roblox/.editorconfig
 /Roblox/.idea/.idea.Roblox/.idea/dataSources

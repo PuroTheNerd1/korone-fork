@@ -121,20 +121,6 @@ const setThemeCustomColor = (hexColor) => {
     localStorage.setItem('rbx_theme_custom_color_v1', hexColor.toLowerCase());
 }
 
-const getThemeFont = () => {
-    if (!isLocalStorageAvailable) return themeFont.gotham;
-    
-    let value = localStorage.getItem('rbx_theme_font_v1');
-    // validate
-    if (typeof value !== 'string' || !Object.getOwnPropertyNames(themeFont).includes(value)) return themeFont.gotham;
-    return themeFont[value];
-}
-
-const setThemeFont = (themeString) => {
-    if (!isLocalStorageAvailable) return;
-    localStorage.setItem('rbx_theme_font_v1', themeString)
-}
-
 const getThemeForumHeader = () => {
     if (!isLocalStorageAvailable) return 'false';
     
@@ -250,9 +236,6 @@ const setHideRE = (themeString) => {
 export {
     getTheme,
     setTheme,
-    
-    getThemeFont,
-    setThemeFont,
     
     getThemeColor,
     setThemeColor,

@@ -1,16 +1,67 @@
-# requires docker 24+ with Compose v2
+# requires Docker 24+ with Compose v2
 
 name: korone-dev
+
+x-dotnet-dev-env: &dotnet-dev-env
+  ASPNETCORE_ENVIRONMENT: Development
+  DOTNET_USE_POLLING_FILE_WATCHER: "true"
+  Postgres: "Host=postgres;Port=5432;Database=economy;Username=roblox;Password=roblox_dev_pass"
+  Redis: "redis:6379"
+  RedisAuthentication: ""
+  BaseUrl: "http://localhost:5200"
+  CdnBaseUrl: "http://localhost:5200"
+  IsCdnEnabled: "false"
+  Authorization: "KoroneInternal-dev-secret"
+  RccAuthorization: "KoroneRcc-dev-secret"
+  Jwt__Sessions: "KoroneSessions-dev-secret"
+  BotAuthorization: "KoroneBot-dev-secret"
+  Render__BaseUrl: "ws://game-server:3189"
+  Render__Authorization: "KoroneRender-dev-secret"
+  Render__RendererBaseUrl: "http://game-renderer:3043"
+  AssetValidation__BaseUrl: "http://asset-validation:4300"
+  AssetValidation__Authorization: "KoroneAssetValidation-dev-secret"
+  Directories__Public: "/srv/app/api/public/"
+  Directories__Asset: "/srv/app/api/asset/"
+  Directories__Storage: "/srv/app/api/storage/"
+  Directories__Thumbnails: "/srv/app/api/public/images/Thumbnails/"
+  Directories__GroupIcons: "/srv/app/api/public/images/Groups/"
+  Directories__XmlTemplates: "/srv/app/Roblox/Roblox.Libraries/Templates/"
+  Directories__JsonData: "/srv/app/Roblox/Roblox.Libraries/Json/"
+  Directories__ScriptsData: "/srv/app/Roblox/Roblox.Libraries/StudioScripts/"
+  Directories__AdminBundle: "/srv/app/admin/public/"
+  Directories__EconomyChatBundle: "/srv/app/economy-chat/build/"
+  Directories__RCCLuaScripts: "/srv/app/Roblox/Roblox.Rendering/internalscripts/"
+  Directories__RCCService: "/srv/app/RCCService/"
+  Directories__RCCServiceGames: "/srv/app/RCCService/"
+
+x-dotnet-dev-service: &dotnet-dev-service
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  volumes:
+    - .:/srv/app
+    - dotnet_cache:/root/.nuget
+    - dotnet_artifacts:/tmp/korone-artifacts
+  networks:
+    - economy
+  depends_on:
+    dotnet-build:
+      condition: service_completed_successfully
+    db-migrate:
+      condition: service_completed_successfully
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
-  dotnet_cache: # ~/.nuget / build artifacts for roblox-website
-  go_pkg_cache: # GOPATH/pkg/mod for asset-validation
-  frontend_nm: # node_modules for frontend
-  admin_nm: # node_modules for admin
-  game-renderer_nm: # node_modules for game-renderer
-  game-server_nm: # node_modules for game-server
+  dotnet_cache:
+  dotnet_artifacts:
+  go_pkg_cache:
+  go_bin_cache:
+  migrations_nm:
+  frontend_nm:
+  admin_nm:
+
 networks:
   economy:
     driver: bridge
@@ -26,7 +77,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432" # expose so you can connect from a GUI like DBeaver
+      - "127.0.0.1:5432:5432"
     networks:
       - economy
     healthcheck:
@@ -42,7 +93,7 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     networks:
       - economy
     healthcheck:
@@ -56,7 +107,13 @@ services:
     working_dir: /app
     volumes:
       - ./api:/app
-    command: sh -c "npm install && npx knex migrate:latest"
+      - migrations_nm:/app/node_modules
+    command: >
+      sh -c "LOCK_HASH=$$(sha256sum package.json package-lock.json 2>/dev/null | sha256sum | cut -d' ' -f1);
+      if [ ! -f node_modules/.deps-hash ] || [ \"$$(cat node_modules/.deps-hash)\" != \"$$LOCK_HASH\" ]; then
+      npm install && echo \"$$LOCK_HASH\" > node_modules/.deps-hash;
+      fi;
+      npx knex migrate:latest"
     networks:
       - economy
     depends_on:
@@ -70,61 +127,201 @@ services:
       DB_NAME: economy
     restart: "no"
 
-  roblox-website:
-    image: mcr.microsoft.com/dotnet/sdk:8.0
-    working_dir: /srv/app/Roblox/Roblox.Website
+  db-seed-trades:
+    image: node:20-alpine
+    profiles:
+      - seed
+    working_dir: /app
     volumes:
-      # Mount the whole repo root so that the "Directories.Base" path in
-      # appsettings.json can point to /srv/app and resolve sub-paths correctly.
-      - .:/srv/app
-      - dotnet_cache:/root/.nuget
-    command: dotnet watch run --urls http://0.0.0.0:5000
-    ports:
-      - "5000:5000"
+      - ./api:/app
+      - migrations_nm:/app/node_modules
+    command: >
+      sh -c "LOCK_HASH=$$(sha256sum package.json package-lock.json 2>/dev/null | sha256sum | cut -d' ' -f1);
+      if [ ! -f node_modules/.deps-hash ] || [ \"$$(cat node_modules/.deps-hash)\" != \"$$LOCK_HASH\" ]; then
+      npm install && echo \"$$LOCK_HASH\" > node_modules/.deps-hash;
+      fi;
+      node seeds/dev-trades.js"
     networks:
       - economy
-    environment:
-      # these override appsettings.json values: useful for secretsssssss very secret secrets super secret stuff like very secret and secret stuff u can hide everything here in secrets btw its all secret shhhhhhhhh shush secret
-      ASPNETCORE_ENVIRONMENT: Development
-      Postgres: "Host=postgres;Port=5432;Database=economy;Username=roblox;Password=roblox_dev_pass"
-      Redis: "redis:6379"
-      RedisAuthentication: ""
-      BaseUrl: "http://localhost:5000"
-      CdnBaseUrl: "http://localhost:5000"
-      IsCdnEnabled: "false"
-      OwnerUserId__0: "1"
-      PackageShirtAssetId: "0" # fucking retarded
-      PackagePantsAssetId: "0" # fucking retarded
-      LeakCheckApiKey: "5a635535d335f02410f11719885127b6c946c0fc" # fucking retarded
-      Twitter__Bearer: "0" # fucking retarded
-      HCaptcha__Public: "1x00000000000000000000AA"
-      HCaptcha__Private: "1x0000000000000000000000000000000AA"
-      Directories__Public: "/srv/app/api/public/"
-      Directories__Asset: "/srv/app/api/asset/"
-      Directories__Storage: "/srv/app/api/storage/"
-      Directories__Thumbnails: "/srv/app/api/public/images/Thumbnails/"
-      Directories__GroupIcons: "/srv/app/api/public/images/Groups/"    
-      Directories__XmlTemplates: "/srv/app/Roblox/Roblox.Libraries/Templates/" 
-      Directories__JsonData: "/srv/app/Roblox/Roblox.Libraries/Json/"     
-      Directories__ScriptsData: "/srv/app/Roblox/Roblox.Libraries/StudioScripts/" 
-      Directories__AdminBundle: "/srv/app/admin/public/" 
-      Directories__EconomyChatBundle: "/srv/app/economy-chat/build/" 
-      Directories__RCCLuaScripts: "/srv/app/Roblox/Roblox.Rendering/internalscripts/"
-      Directories__RCCService: "/srv/app/RCCService/" 
-      Directories__RCCServiceGames: "/srv/app/RCCService/" 
-      Jwt__Sessions: "KoroneSessions-dev-secret"
-      BotAuthorization: "KoroneBot-dev-secret"
-      Render__BaseUrl: "ws://game-server:3189"
-      Render__Authorization: "KoroneRender-dev-secret"
-      Render__RendererBaseUrl: "http://game-renderer:3043"
-      AssetValidation__BaseUrl: "http://asset-validation:8080"
-      AssetValidation__Authorization: "KoroneAssetValidation-dev-secret"
     depends_on:
       db-migrate:
         condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: roblox
+      DB_PASS: roblox_dev_pass
+      DB_NAME: economy
+    restart: "no"
+
+  dotnet-build:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /srv/app/Roblox
+    volumes:
+      - .:/srv/app
+      - dotnet_cache:/root/.nuget
+      - dotnet_artifacts:/tmp/korone-artifacts
+    networks:
+      - economy
+    command: >
+      sh -c "dotnet build Roblox.Website/Roblox.Website.csproj --artifacts-path /tmp/korone-artifacts/roblox-website -v minimal &&
+      dotnet build Roblox.ApiProxy/Roblox.ApiProxy.csproj --artifacts-path /tmp/korone-artifacts/api-proxy -v minimal &&
+      dotnet build Services/Roblox.Services.DataStore/Roblox.Services.DataStore.csproj --artifacts-path /tmp/korone-artifacts/game-persistence -v minimal &&
+      dotnet build Services/Roblox.Services.Api/Roblox.Services.Api.csproj --artifacts-path /tmp/korone-artifacts/api-service -v minimal &&
+      dotnet build Services/Roblox.Services.Donation/Roblox.Services.Donation.csproj --artifacts-path /tmp/korone-artifacts/donation-service -v minimal &&
+      dotnet build Services/Roblox.Services.Data/Roblox.Services.Data.csproj --artifacts-path /tmp/korone-artifacts/data-service -v minimal &&
+      dotnet build Services/Roblox.Services.Avatar/Roblox.Services.Avatar.csproj --artifacts-path /tmp/korone-artifacts/avatar-service -v minimal &&
+      dotnet build Services/Roblox.Services.Thumbnails/Roblox.Services.Thumbnails.csproj --artifacts-path /tmp/korone-artifacts/thumbnails-service -v minimal &&
+      dotnet build Services/Roblox.Services.Users/Roblox.Services.Users.csproj --artifacts-path /tmp/korone-artifacts/users-service -v minimal &&
+      dotnet build Services/Roblox.Services.Admin/Roblox.Services.Admin.csproj --artifacts-path /tmp/korone-artifacts/admin-service -v minimal"
+    restart: "no"
+
+  api-proxy:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Roblox.ApiProxy
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/api-proxy run --no-build --no-restore --urls http://0.0.0.0:5200
+    ports:
+      - "127.0.0.1:5200:5200"
+    environment:
+      <<: *dotnet-dev-env
+      FrontendProxy__DestinationPrefix: "http://frontend:3000/"
+      FrontendProxy__PublicHosts__0: "localhost"
+      FrontendProxy__PublicHosts__1: "127.0.0.1"
+      FrontendProxy__PublicHosts__2: "pekora.zip"
+      FrontendProxy__PublicHosts__3: "www.pekora.zip"
+      InternalServiceHosts__0: "localhost"
+      ReverseProxy__Clusters__website-cluster__Destinations__primary__Address: "http://roblox-website:5000"
+      ReverseProxy__Clusters__gamepersistence-cluster__Destinations__primary__Address: "http://game-persistence:5203"
+      ReverseProxy__Clusters__api-cluster__Destinations__primary__Address: "http://api-service:5204"
+      ReverseProxy__Clusters__donation-cluster__Destinations__primary__Address: "http://donation-service:5205"
+      ReverseProxy__Clusters__avatar-cluster__Destinations__primary__Address: "http://avatar-service:5207"
+      ReverseProxy__Clusters__thumbnails-cluster__Destinations__primary__Address: "http://thumbnails-service:5208"
+      ReverseProxy__Clusters__users-cluster__Destinations__primary__Address: "http://users-service:5209"
+      ReverseProxy__Clusters__admin-cluster__Destinations__primary__Address: "http://admin-service:5210"
+      ReverseProxy__Routes__avatar-apisite-route__Match__Hosts__0: "localhost"
+      ReverseProxy__Routes__avatar-apisite-route__Match__Hosts__1: "127.0.0.1"
+      ReverseProxy__Routes__avatar-apisite-route__Match__Hosts__2: "www.pekora.zip"
+      ReverseProxy__Routes__thumbnails-apisite-route__Match__Hosts__0: "localhost"
+      ReverseProxy__Routes__thumbnails-apisite-route__Match__Hosts__1: "127.0.0.1"
+      ReverseProxy__Routes__thumbnails-apisite-route__Match__Hosts__2: "www.pekora.zip"
+      ReverseProxy__Routes__users-apisite-route__Match__Hosts__0: "localhost"
+      ReverseProxy__Routes__users-apisite-route__Match__Hosts__1: "127.0.0.1"
+      ReverseProxy__Routes__users-apisite-route__Match__Hosts__2: "www.pekora.zip"
+    depends_on:
+      roblox-website:
+        condition: service_started
+      game-persistence:
+        condition: service_started
+      api-service:
+        condition: service_started
+      donation-service:
+        condition: service_started
+      avatar-service:
+        condition: service_started
+      thumbnails-service:
+        condition: service_started
+      users-service:
+        condition: service_started
+      admin-service:
+        condition: service_started
+      frontend:
+        condition: service_started
+
+  roblox-website:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Roblox.Website
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/roblox-website run --no-build --no-restore --urls http://0.0.0.0:5000
+    expose:
+      - "5000"
+    environment:
+      <<: *dotnet-dev-env
+      OwnerUserId__0: "1"
+      PackageShirtAssetId: "0"
+      PackagePantsAssetId: "0"
+      LeakCheckApiKey: "dev-placeholder-leakcheck-api-key-0000000000000000"
+      Twitter__Bearer: "dev-placeholder"
+      HCaptcha__Public: "1x00000000000000000000AA"
+      HCaptcha__Private: "1x0000000000000000000000000000000AA"
+
+  game-persistence:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.DataStore
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/game-persistence run --no-build --no-restore --urls http://0.0.0.0:5203
+    expose:
+      - "5203"
+    environment:
+      <<: *dotnet-dev-env
+
+  api-service:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.Api
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/api-service run --no-build --no-restore --urls http://0.0.0.0:5204
+    expose:
+      - "5204"
+    environment:
+      <<: *dotnet-dev-env
+
+  donation-service:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.Donation
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/donation-service run --no-build --no-restore --urls http://0.0.0.0:5205
+    expose:
+      - "5205"
+    environment:
+      <<: *dotnet-dev-env
+      Discord__WebhookUrl: ""
+      Stripe__WebhookSecret: ""
+      Kofi__VerificationToken: ""
+      Rewarble__ApiKey: "${REWARBLE_API_KEY:-}"
+      Rewarble__BaseUrl: "${REWARBLE_BASE_URL:-https://api.rewarble.com}"
+      Rewarble__TestMode: "${REWARBLE_TEST_MODE:-false}"
+
+  data-service:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.Data
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/data-service run --no-build --no-restore --urls http://0.0.0.0:5206
+    expose:
+      - "5206"
+    environment:
+      <<: *dotnet-dev-env
+
+  avatar-service:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.Avatar
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/avatar-service run --no-build --no-restore --urls http://0.0.0.0:5207
+    expose:
+      - "5207"
+    environment:
+      <<: *dotnet-dev-env
+
+  thumbnails-service:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.Thumbnails
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/thumbnails-service run --no-build --no-restore --urls http://0.0.0.0:5208
+    expose:
+      - "5208"
+    environment:
+      <<: *dotnet-dev-env
+
+  users-service:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.Users
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/users-service run --no-build --no-restore --urls http://0.0.0.0:5209
+    expose:
+      - "5209"
+    environment:
+      <<: *dotnet-dev-env
+      OwnerUserId__0: "1"
+
+  admin-service:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.Admin
+    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/admin-service run --no-build --no-restore --urls http://0.0.0.0:5210
+    expose:
+      - "5210"
+    environment:
+      <<: *dotnet-dev-env
+      OwnerUserId__0: "1"
 
   game-renderer:
     build:
@@ -132,15 +329,15 @@ services:
       dockerfile: Dockerfile
     pull_policy: never
     ports:
-      - "3043:3043"
-      - "16612:16612"
+      - "127.0.0.1:3043:3043"
+      - "127.0.0.1:16612:16612"
     volumes:
       - ./RCCService:/app/RCCService
     environment:
       WINEPREFIX: /root/.wine
       WINEARCH: win64
-      DISPLAY: ":99"          # Xvfb display
-      BASE_URL: "http://roblox-website:5000/"
+      DISPLAY: ":99"
+      BASE_URL: "http://api-proxy:5200/"
       RCC_URL: "http://localhost"
       DEBUG: "true"
       PORT_PROCESS: "3043"
@@ -152,8 +349,8 @@ services:
     networks:
       - economy
     depends_on:
-      postgres:
-        condition: service_healthy
+      api-proxy:
+        condition: service_started
     restart: unless-stopped
 
   game-server:
@@ -162,35 +359,37 @@ services:
       dockerfile: Dockerfile
     pull_policy: never
     ports:
-      - "3189:3189"
+      - "127.0.0.1:3189:3189"
     volumes:
       - ./RCCService:/app/RCCService
     environment:
       WINEPREFIX: /root/.wine
       WINEARCH: win64
-      DISPLAY: ":99"          # Xvfb display
+      DISPLAY: ":99"
       AUTHORIZATION: "KoroneRender-dev-secret"
-      BASE_URL: "http://roblox-website:5000"
+      BASE_URL: "http://api-proxy:5200"
       RCC_PORT: "1234"
       PORT: "5800"
       THUMBNAIL_WEBSOCKET_PORT: "3189"
       WEBSITE_BOT_AUTH: "KoroneBot-dev-secret"
-      #RCC: ""
-      #CONTENT: ""
       DOCKER_DISABLED: "false"
     networks:
       - economy
+    depends_on:
+      api-proxy:
+        condition: service_started
     restart: unless-stopped
 
   asset-validation:
-    image: golang:1.21-alpine
+    image: golang:1.25-alpine
     working_dir: /app
     volumes:
       - ./AssetValidationServiceV2:/app
       - go_pkg_cache:/go/pkg/mod
-    command: sh -c "go install github.com/air-verse/air@latest 2>/dev/null; which air && air || go run main.go"
+      - go_bin_cache:/go/bin
+    command: sh -c "if ! command -v air >/dev/null 2>&1; then go install github.com/air-verse/air@latest; fi; air"
     ports:
-      - "4300:4300"
+      - "127.0.0.1:4300:4300"
     networks:
       - economy
     restart: unless-stopped
@@ -200,16 +399,19 @@ services:
     working_dir: /app
     volumes:
       - ./admin:/app
-      - admin_nm:/app/node_modules # keep node_modules in a named vol
+      - admin_nm:/app/node_modules
     command: >
-      sh -c "npm install && npm run dev"
+      sh -c "LOCK_HASH=$$(sha256sum package.json package-lock.json 2>/dev/null | sha256sum | cut -d' ' -f1);
+      if [ ! -f node_modules/.deps-hash ] || [ \"$$(cat node_modules/.deps-hash)\" != \"$$LOCK_HASH\" ]; then
+      npm install && echo \"$$LOCK_HASH\" > node_modules/.deps-hash;
+      fi;
+      npm run dev"
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     networks:
       - economy
     environment:
-      # admin 2 main backend
-      VITE_API_BASE: http://localhost:5000
+      VITE_API_BASE: "http://localhost:5200"
     restart: unless-stopped
 
   frontend:
@@ -217,15 +419,20 @@ services:
     working_dir: /app
     volumes:
       - ./frontend:/app
-      - frontend_nm:/app/node_modules # keep node_modules in a named vol
+      - ./frontend/config.docker-dev.json:/app/config.json:ro
+      - frontend_nm:/app/node_modules
     command: >
-      sh -c "npm install && npm run dev"
+      sh -c "LOCK_HASH=$$(sha256sum package.json package-lock.json 2>/dev/null | sha256sum | cut -d' ' -f1);
+      if [ ! -f node_modules/.deps-hash ] || [ \"$$(cat node_modules/.deps-hash)\" != \"$$LOCK_HASH\" ]; then
+      npm install && echo \"$$LOCK_HASH\" > node_modules/.deps-hash;
+      fi;
+      npm run dev"
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
       - economy
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:5000
+      PORT: "3000"
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     restart: unless-stopped

@@ -7,7 +7,7 @@ import {
     getGroupPagesStyle, getHideRE, getSearchUserPageStyle, getTheme, setAvPageStyle,
     setCatalogPageStyle, setCatalogStyle, setTradeStyle, 
     setGroupPagesStyle, setHideRE, setSearchUserPageStyle,
-    setTheme, setThemeColor, setThemeCustomColor, setThemeFont, setThemeForumHeader,
+    setTheme, setThemeColor, setThemeCustomColor, setThemeForumHeader,
     setThemeRibbon, themeType
 } from "../../../services/theme";
 import AuthenticationStore from "../../../stores/authentication";
@@ -232,26 +232,6 @@ const  AccountInfo = props => {
                             </div>
                         </div>
                     }
-                    <div className='flex mt-1'>
-                        <div className='col pe-0'>
-                            <input className={'form-control ' + s.select + ' ' + s.disabled} value='Website Font'
-                                   readOnly={true}
-                                   type='text'></input>
-                        </div>
-                        <div className='col ps-0 pe-0'>
-                            <select className={'form-control ' + s.select} value={store.theme.font} onChange={(ev) => {
-                                setThemeFont(ev.currentTarget.value);
-                                ChangeVarsForThemeFont(ev.currentTarget.value);
-                                store.setTheme({
-                                    ...store.theme,
-                                    font: ev.target.value,
-                                });
-                            }}>
-                                <option value='gotham'>Gotham SSm</option>
-                                <option value='ssp'>Source Sans Pro</option>
-                            </select>
-                        </div>
-                    </div>
                     <div className='flex mt-1'>
                         <div className='col pe-0'>
                             <input className={'form-control ' + s.select + ' ' + s.disabled} value='Stylize Forum Headers'

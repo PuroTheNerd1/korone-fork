@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosHeaders } from 'axios';
 const configuredBaseUrl = (window as Window & { ADMIN_API_BASE_URL?: string }).ADMIN_API_BASE_URL;
 export const adminApiBaseUrl: string = configuredBaseUrl || 'https://admin.pekora.zip/v1/';
 let goodCsrf = '';
@@ -15,7 +15,7 @@ const client = axios.create({
 });
 client.interceptors.request.use(ok => {
 	if (!ok.headers) {
-		ok.headers = {};
+		ok.headers = new AxiosHeaders();
 	}
 	ok.headers['x-csrf-token'] = goodCsrf;
 	return ok;
