@@ -3,7 +3,7 @@ import GroupsPageStore from "./stores/GroupsPageStore";
 import {useEffect, useRef} from "react";
 import GroupsNew from "./index";
 import AuthenticationStore from "../../stores/authentication";
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 import {itemNameToEncodedName} from "../../services/catalog";
 import UserGroupsStore from "./stores/UserGroupsStore";
 

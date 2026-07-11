@@ -1,7 +1,38 @@
-import config from './config';
-const axios = typeof window !== 'undefined' ? window.axios : require('axios');
+import axios from 'axios';
+import { publicRuntimeConfig } from './publicConfig';
 
 let _csrf = '';
+
+const getServerRuntimeConfig = () => {
+    if (typeof window !== 'undefined') {
+        return {};
+    }
+
+    try {
+        const nodeRequire = eval('require');
+        const fs = nodeRequire('fs');
+        const path = nodeRequire('path');
+        const configPath = path.join(process.cwd(), 'config.json');
+        return JSON.parse(fs.readFileSync(configPath, 'utf-8')).serverRuntimeConfig || {};
+    } catch (e) {
+        return {};
+    }
+};
+
+const resolveRequestUrl = (url) => {
+    const isBrowser = typeof window !== 'undefined';
+    if (isBrowser || typeof url !== 'string' || !url.startsWith('/')) {
+        return url;
+    }
+
+    const serverRuntimeConfig = getServerRuntimeConfig();
+    const baseUrl = serverRuntimeConfig.backend?.baseUrl || publicRuntimeConfig.backend?.baseUrl;
+    if (!baseUrl) {
+        return url;
+    }
+
+    return baseUrl.replace(/\/+$/g, '') + url;
+}
 
 /**
  * @param {string} service
@@ -9,14 +40,24 @@ let _csrf = '';
  * @returns {string}
  */
 export const getFullUrl = (service, url) => {
-    return config.publicRuntimeConfig.backend.apiFormat.replace(/\{0\}/g, service).replace(/\{1\}/g, url);
+    return publicRuntimeConfig.backend.apiFormat.replace(/\{0\}/g, service).replace(/\{1\}/g, url);
+}
+
+// TODO - neva: make getFullUrlNew the default.
+/**
+ * @param {string} service
+ * @param {string} url
+ * @returns {string}
+ */
+export const getFullUrlNew = (service, url) => {
+    return publicRuntimeConfig.backend.apiFormat.replace(/\{0\}/g, service).replace(/\{1\}/g, url);
 }
 
 /**
  * @returns {string}
  */
 export const getBaseUrl = () => {
-    return config.publicRuntimeConfig.backend.baseUrl;
+    return publicRuntimeConfig.backend.baseUrl;
 }
 
 /**
@@ -24,7 +65,7 @@ export const getBaseUrl = () => {
  * @returns {string}
  */
 export const getBaseUrl2 = (str) => {
-    return config.publicRuntimeConfig.backend.baseUrl + (str.charAt(0) === '/' ? str : '/' + str);
+    return publicRuntimeConfig.backend.baseUrl + (str.charAt(0) === '/' ? str : '/' + str);
 }
 
 /**
@@ -32,7 +73,7 @@ export const getBaseUrl2 = (str) => {
  * @returns {string}
  */
 export const getUrlWithProxy = (url) => {
-    if (config.publicRuntimeConfig.backend.proxyEnabled)
+    if (publicRuntimeConfig.backend.proxyEnabled)
         return '/api/proxy?url=' + encodeURIComponent(url);
     return url;
 }
@@ -52,16 +93,17 @@ const request = async (method, url, data, verbose = false, extraHeaders) => {
             'x-csrf-token': _csrf,
         }
         if (!isBrowser) {
+            const serverRuntimeConfig = getServerRuntimeConfig();
             // Auth header, if required
-            const authHeaderValue = config.serverRuntimeConfig.backend.authorization;
+            const authHeaderValue = serverRuntimeConfig.backend?.authorization;
             if (typeof authHeaderValue === 'string')
-                headers[config.serverRuntimeConfig.backend.authorizationHeader || 'authorization'] = authHeaderValue;
+                headers[serverRuntimeConfig.backend?.authorizationHeader || 'authorization'] = authHeaderValue;
 
             // Custom user agent
             headers['user-agent'] = 'Roblox2016/1.0';
         }
-        const cfClientId = config.publicRuntimeConfig.backend.cfClientId;
-        const cfClientSecret = config.publicRuntimeConfig.backend.cfClientSecret;
+        const cfClientId = publicRuntimeConfig.backend.cfClientId;
+        const cfClientSecret = publicRuntimeConfig.backend.cfClientSecret;
         if (typeof cfClientId === 'string' && typeof cfClientSecret === 'string') {
             headers['CF-Access-Client-Id'] = cfClientId;
             headers['CF-Access-Client-Secret'] = cfClientSecret;
@@ -74,7 +116,7 @@ const request = async (method, url, data, verbose = false, extraHeaders) => {
 
         return await axios.request({
             method,
-            url: getUrlWithProxy(url),
+            url: resolveRequestUrl(getUrlWithProxy(url)),
             data: data,
             headers: headers,
             maxRedirects: 0,

@@ -5,7 +5,6 @@ import { launchGame } from "../../../services/games";
 import AuthenticationStore from "../../../stores/authentication";
 import useButtonStyles from "../../../styles/buttonStyles";
 import ActionButton from "../../actionButton";
-import { decode } from "jsonwebtoken";
 
 const useStyles = createUseStyles({
     buttonWrapper: {

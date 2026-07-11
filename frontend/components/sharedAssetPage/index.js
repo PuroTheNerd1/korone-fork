@@ -15,7 +15,7 @@ import {
     multiGetPlaceDetails,
     multiGetUniverseDetails
 } from "../../services/games";
-import { useRouter } from "next/dist/client/router";
+import { useRouter } from "next/router";
 import { catalogPageStyle, getCatalogPageStyle } from "../../services/theme";
 import SharedAssetPage2019 from "../sharedAssetPage2019";
 

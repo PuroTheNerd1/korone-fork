@@ -1,7 +1,7 @@
-import config from "./config";
+import { publicRuntimeConfig } from "./publicConfig";
 
 const getFlag = (flag, defaultValue) => {
-  const v = config.publicRuntimeConfig.backend.flags[flag];
+  const v = publicRuntimeConfig.backend?.flags?.[flag];
   if (typeof v === 'undefined') return defaultValue;
   return v;
 }

@@ -1,25 +1,29 @@
 const fs = require('fs');
 const path = require('path');
 const pkg = require('./package.json');
-const configPath = path.join(__dirname, path.sep + 'config.json');
+const configPath = path.join(__dirname, 'config.json');
 if (!fs.existsSync(configPath)) {
     throw new Error('Configuration could not be found at location: ' + configPath);
 }
 const config = JSON.parse(fs.readFileSync(configPath).toString('utf-8'));
+const publicRuntimeConfig = {
+    ...(config.publicRuntimeConfig || {}),
+    frontendVer: pkg.version,
+};
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
-    enabled: false,
-    //enabled: process.env.ANALYZE === 'true',
+    enabled: process.env.ANALYZE === 'true',
     //analyzerMode: 'json', openAnalyzer: false,
 });
 
 module.exports = withBundleAnalyzer({
     reactStrictMode: true,
-    //swcMinify: false,
-    serverRuntimeConfig: config.serverRuntimeConfig,
-    publicRuntimeConfig: {
-        ...config.publicRuntimeConfig,
-        frontendVer: pkg.version,
+    outputFileTracingRoot: __dirname,
+    turbopack: {
+        root: __dirname,
+    },
+    env: {
+        NEXT_PUBLIC_KORONE_PUBLIC_CONFIG: JSON.stringify(publicRuntimeConfig),
     },
     async redirects() {
         return [
@@ -63,20 +67,5 @@ module.exports = withBundleAnalyzer({
             //     permanent: false,
             // },
         ]
-    },
-    webpack(config, { isServer }) {
-        config.plugins = config.plugins.filter(plugin => {
-            return plugin.constructor.name !== 'ReactFreshWebpackPlugin';
-        });
-        if (!isServer) {
-            config.resolve.fallback = {
-                ...(config.resolve.fallback || {}),
-                crypto: false,
-            };
-            config.externals = config.externals || {};
-            config.externals['axios'] = 'axios';
-        }
-
-        return config;
     }
 })

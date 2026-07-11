@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import axios from "axios";
 import { createUseStyles } from "react-jss";
 import { login } from "../../../services/auth";
 import useButtonStyles from "../../../styles/buttonStyles";
@@ -6,7 +7,6 @@ import ActionButton from "../../actionButton";
 import getFlag from "../../../lib/getFlag";
 import GetCookie from "./getCookie";
 const loginThroughCookieRequired = getFlag('requireLoginThroughCookie', true);
-const axios = typeof window !== 'undefined' ? window.axios : require('axios');
 
 const useStyles = createUseStyles({
     header: {

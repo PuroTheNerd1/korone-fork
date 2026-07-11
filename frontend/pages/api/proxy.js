@@ -1,23 +1,17 @@
-import getConfig from 'next/config';
-import { fromUrl, parseDomain, ParseResultType } from 'parse-domain';
+import axios from 'axios';
 import { getBaseUrl } from '../../lib/request';
-const axios = typeof window !== 'undefined' ? window.axios : require('axios');
+import { publicRuntimeConfig } from '../../lib/publicConfig';
+import { serverRuntimeConfig } from '../../lib/serverConfig';
 
 const UrlUtilities = (() => {
   const getDomainFromUrl = (url) => {
-    const baseDomainParsed = parseDomain(fromUrl(url));
-    if (baseDomainParsed.type === ParseResultType.Listed) {
-      return baseDomainParsed.domain + '.' + baseDomainParsed.topLevelDomains.join('.');
-    } else if (baseDomainParsed.type === ParseResultType.Ip) {
-      return baseDomainParsed.hostname;
-    }else if (baseDomainParsed.type === ParseResultType.Reserved) {
-      if (baseDomainParsed.hostname === 'localhost') {
-        return 'localhost';
-      }
-      throw new Error('The only allowed reserved domain type is localhost, got ' + baseDomainParsed.hostname);
-    } else {
-      throw new Error('Unsupported domain type: ' + baseDomainParsed.type);
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (hostname === 'localhost' || hostname.includes(':') || /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
+      return hostname;
     }
+
+    const labels = hostname.split('.').filter(Boolean);
+    return labels.length > 1 ? labels.slice(-2).join('.') : hostname;
   }
   const baseWithDomainAndTld = getDomainFromUrl(getBaseUrl()).toLowerCase();
 
@@ -35,7 +29,7 @@ const actualHandler = async (req, res) => {
   // A safer approach might be to just send the parts of the URL (query params, path, api site) to this handler, then construct the correct URL here.
   const isUrlSafe = UrlUtilities.isSafe(fullUrl);// typeof fullUrl === 'string' && fullUrl.toLowerCase().startsWith(getBaseUrl())
 
-  if (getConfig().publicRuntimeConfig.backend.proxyEnabled !== true || !isUrlSafe) {
+  if (publicRuntimeConfig.backend.proxyEnabled !== true || !isUrlSafe) {
     return res.status(500).json({
       success: false,
     });
@@ -46,9 +40,9 @@ const actualHandler = async (req, res) => {
       'x-csrf-token': req.headers['x-csrf-token'] || '',
       'user-agent': req.headers['user-agent'],
     }
-    const authHeaderValue = getConfig().serverRuntimeConfig.backend.authorization;
+    const authHeaderValue = serverRuntimeConfig.backend?.authorization;
     if (typeof authHeaderValue === 'string')
-      requestHeaders[getConfig().serverRuntimeConfig.backend.authorizationHeader || 'authorization'] = authHeaderValue;
+      requestHeaders[serverRuntimeConfig.backend?.authorizationHeader || 'authorization'] = authHeaderValue;
 
     // TODO: whitelisted headers might be safer...
     for (const key in req.headers) {

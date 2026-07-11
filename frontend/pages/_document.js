@@ -33,7 +33,6 @@ export default class JssDocument extends Document {
                     <link rel="preconnect" href="https://challenges.cloudflare.com" crossOrigin="anonymous"/>
                     <link rel="dns-prefetch" href="https://challenges.cloudflare.com"/>
                     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer/>
-                    <script src="/js/axios.min.js"></script>
                     <style id="server-side-styles">{registry.toString()}</style>
                 </>
             ),

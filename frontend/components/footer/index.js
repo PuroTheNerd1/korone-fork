@@ -1,6 +1,6 @@
 import { createUseStyles } from "react-jss";
 import { getTheme, themeType } from "../../services/theme";
-import getConfig from "next/config";
+import { publicRuntimeConfig } from "../../lib/publicConfig";
 
 const footerLinks = {
   '/about-us': 'About Us',
@@ -74,7 +74,6 @@ const useFooterStyles2 = createUseStyles({
 
 const Footer = props => {
   const s = useFooterStyles2({ theme: getTheme() });
-  const { publicRuntimeConfig } = getConfig();
   return <footer className={s.footerContainer}>
     <div className={s.footer}>
       <ul className={s.footerLinks}>

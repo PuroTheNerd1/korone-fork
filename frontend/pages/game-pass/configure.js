@@ -1,4 +1,4 @@
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 import ConfigureItem from "../../components/configureItem2019";
 import Theme2016 from "../../components/theme2016";
 

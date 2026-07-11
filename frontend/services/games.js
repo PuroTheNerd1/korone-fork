@@ -1,5 +1,5 @@
 import getFlag from "../lib/getFlag";
-import request, {getBaseUrl, getBaseUrl2, getFullUrl} from "../lib/request"
+import request, {getBaseUrl, getBaseUrl2, getFullUrl, getFullUrlNew} from "../lib/request"
 import {itemNameToEncodedName} from "./catalog";
 
 const gamePage2015Enabled = getFlag('2015GameDetailsPageEnabled', false);
@@ -334,7 +334,7 @@ export const getGameTemplates = async () => {
  * @returns {Promise<CreateGameResponse|string|null>}
  */
 export const createGameRequest = ({ templatePlaceId = null }) => {
-    return request('POST', getBaseUrl2(`/universes/create`), {
+    return request('POST', getFullUrlNew('api', '/universes/create'), {
         templatePlaceIdToUse: templatePlaceId ?? 0,
     }, true).then(response => {
         console.log(response.data);

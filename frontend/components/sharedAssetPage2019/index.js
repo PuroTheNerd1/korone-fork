@@ -6,7 +6,7 @@ import GameDetails from "../gameDetails";
 import GameDetailsStore from "../gameDetails/stores/gameDetailsStore";
 import { getItemDetailsNew, getItemUrl } from "../../services/catalog";
 import { getGameUrl, getLibraryItemUrl, isLibraryItem } from "../../services/games";
-import { useRouter } from "next/dist/client/router";
+import { useRouter } from "next/router";
 import Feedback from "../../stores/feedback";
 import ErrorPage from "../errorPage";
 import AssetDetailsStore from "../AssetDetailsPage/stores/AssetDetailsStore";

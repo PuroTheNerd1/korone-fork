@@ -1,12 +1,12 @@
 import getFlag from "../../lib/getFlag";
-import getConfig from "next/config";
+import { serverRuntimeConfig } from "../../lib/serverConfig";
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
 let csrfKey;
 const genKeyIfRequired = () => {
   if (!csrfKey) {
-    const configKey = getConfig().serverRuntimeConfig.backend.csrfKey;
+    const configKey = serverRuntimeConfig.backend?.csrfKey;
     if (configKey === undefined || typeof configKey !== 'string' || configKey.trim().length === 0) {
       console.warn('[warning] No serverRuntimeConfig.backend.csrfKey is set, so a random one will be generated for this instance. If you are running multiple instances of 2016-roblox, this may lead to problems. Set the csrfKey to a randomly generated value to remove this warning.');
       csrfKey = require('crypto').randomBytes(64).toString('base64');

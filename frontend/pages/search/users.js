@@ -1,7 +1,7 @@
 import SearchUsers from "../../components/searchUsers";
 import SearchUsersNew from "../../components/searchUsersNew";
 import Theme2016 from "../../components/theme2016";
-import { useRouter } from "next/dist/client/router";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { getSearchUserPageStyle, searchUserPageStyle } from "../../services/theme";
 

@@ -1,12 +1,12 @@
 import request from "../lib/request"
 import { getFullUrl } from "../lib/request";
-import config from "../lib/config";
+import { publicRuntimeConfig } from "../lib/publicConfig";
 import { forgeCheckoutSeal } from "../util/checkout_seal";
 import { getInvisibleTurnstileToken, prefetchTurnstileToken, prewarmTurnstile } from "../util/checkout_turnstile";
 
 const getTurnstileSiteKey = () =>
-  config?.publicRuntimeConfig?.backend?.invisibleTurnstileSiteKey
-  || config?.publicRuntimeConfig?.invisibleTurnstileSiteKey
+  publicRuntimeConfig?.backend?.invisibleTurnstileSiteKey
+  || publicRuntimeConfig?.invisibleTurnstileSiteKey
   || null;
 
 export const prewarmCheckoutTurnstile = () => {
@@ -27,8 +27,24 @@ const readCheckoutPageToken = () => {
   return el ? el.getAttribute('content') : null;
 };
 
+const getServerRuntimeConfig = () => {
+  if (typeof window !== 'undefined') {
+    return {};
+  }
+
+  try {
+    const nodeRequire = eval('require');
+    const fs = nodeRequire('fs');
+    const path = nodeRequire('path');
+    const configPath = path.join(process.cwd(), 'config.json');
+    return JSON.parse(fs.readFileSync(configPath, 'utf-8')).serverRuntimeConfig || {};
+  } catch (e) {
+    return {};
+  }
+};
+
 export const mintCheckoutPageTokenSsr = async ({ assetId, cookie }) => {
-  const cfg = config?.serverRuntimeConfig?.backend || {};
+  const cfg = getServerRuntimeConfig()?.backend || {};
   const internalUa = cfg.internalUserAgent || null;
   const extra = {};
   if (cookie) extra['Cookie'] = cookie;

@@ -15,7 +15,7 @@ import NextLink from 'next/link';
  * @type {import("react").FC<NewLinkProps>}
  */
 const NewLink = ({className, onClick, children, href, style}) => {
-    return <NextLink href={href || "#"} passHref>
+    return <NextLink href={href || "#"} passHref legacyBehavior>
         <a className={className} onClick={onClick} style={style}>
             {children}
         </a>

@@ -1,5 +1,5 @@
 import SearchGroups from "../../components/searchGroups";
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 import Theme2016 from "../../components/theme2016";
 
 const SearchGroupsPage = props => {

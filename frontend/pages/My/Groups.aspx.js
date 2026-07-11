@@ -1,4 +1,4 @@
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 import React, {useEffect} from "react";
 import MyGroups from "../../components/myGroups";
 import GroupPageStore from "../../components/myGroups/stores/groupPageStore";

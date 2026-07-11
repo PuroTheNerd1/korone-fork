@@ -6,7 +6,7 @@ import useButtonStyles from "../../../styles/buttonStyles";
 import {IsValidNum, tick, wait} from "../../../lib/utils";
 import {useEffect, useState} from "react";
 import {getTheme, themeType} from "../../../services/theme";
-import {useRouter} from "next/dist/client/router";
+import {useRouter} from "next/router";
 
 const useStyles = createUseStyles({
     inputStyle: {
