@@ -1,4 +1,6 @@
-jest.mock('../lib/publicConfig', () => ({
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('../lib/publicConfig', () => ({
   publicRuntimeConfig: {
     backend: {
       baseUrl: 'https://www.roblox.com',
@@ -8,7 +10,7 @@ jest.mock('../lib/publicConfig', () => ({
   },
 }));
 
-import { UrlUtilities } from "../pages/api/proxy";
+const { UrlUtilities } = await import('../pages/api/proxy');
 
 describe('UrlUtilities.IsSafe()', () => {
   it('must return that a valid URL is safe', () => {
